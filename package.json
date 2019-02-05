@@ -59,6 +59,7 @@
     "ember-cli-roboto-fontface": "^2.0.1",
     "express": "^4.16.3",
     "express-graphql": "^0.6.12",
+    "file-saver": "^2.0.0",
     "graphql": "^0.13.2",
     "graphql-tag": "^2.9.2",
     "ionic-plugin-keyboard": "^2.2.1",

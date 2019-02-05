@@ -428,6 +428,7 @@
     }
   },
   "EXTRACTION": {
+    "BTN_DOWNLOAD_FILE": "Télécharger",
     "COMMON": {
       "YEAR": "Année",
       "PROJECT": "Projet",
@@ -461,7 +462,8 @@
     },
     "ERROR": {
       "LOAD_EXTRACTION_TYPES_ERROR": "Erreur de chargement des type d'extraction",
-      "LOAD_EXTRACTION_ROWS_ERROR": "Erreur de chargement des lignes de données."
+      "LOAD_EXTRACTION_ROWS_ERROR": "Erreur de chargement des lignes de données.",
+      "DOWNLOAD_EXTRACTION_ROWS_ERROR": "Erreur de tékéchargement des données."
     }
   },
   "ERROR": {

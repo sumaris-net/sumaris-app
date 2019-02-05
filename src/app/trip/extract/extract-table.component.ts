@@ -109,7 +109,6 @@ export class ExtractTable implements OnInit {
   async ngOnInit() {
 
 
-
     // If the user changes the sort order, reset back to the first page.
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
@@ -120,8 +119,6 @@ export class ExtractTable implements OnInit {
     )
       .subscribe(() => {
         if (this.loading || isNil(this.extractionType)) return; // avoid multiple load
-
-        console.debug("Refreshing...");
         return this.load(this.extractionType);
       });
   }
@@ -136,10 +133,6 @@ export class ExtractTable implements OnInit {
     this.error = null;
     console.debug(`[extract-table] Loading ${this.extractionType.category} ${this.extractionType.label}`);
 
-    const filter = this.filterForm.value;
-    filter.criteria = (filter.criteria || [])
-      .filter(criterion => isNotNil(criterion.name) && isNotNil(criterion.value));
-
     let data;
     try {
       data = await this.service.loadRows(this.extractionType,
@@ -147,7 +140,7 @@ export class ExtractTable implements OnInit {
         this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
         this.sort && this.sort.active,
         this.sort && this.sort.direction,
-        filter
+        this.getFilter()
       );
 
     }
@@ -324,6 +317,14 @@ export class ExtractTable implements OnInit {
     this.onRefresh.emit();
   }
 
+  public downloadAsFile(extractionType?: ExtractionType) {
+
+    extractionType = extractionType || this.filterForm.controls['extractionType'].value;
+
+    this.service.downloadAsFile(extractionType, this.displayedColumns, this.getFilter());
+
+  }
+
   /* -- private method -- */
 
   private async updateTitle() {
@@ -342,5 +343,12 @@ export class ExtractTable implements OnInit {
   private generateTableId() {
     const id = this.location.path(true).replace(/[?].*$/g, '').replace(/\/[\d]+/g, '_id') + "_" + this.constructor.name;
     return id;
+  }
+
+  private getFilter(): any {
+    const filter = this.filterForm.value;
+    filter.criteria = (filter.criteria || [])
+      .filter(criterion => isNotNil(criterion.name) && isNotNil(criterion.value));
+    return filter;
   }
 }

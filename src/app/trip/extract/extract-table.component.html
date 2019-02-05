@@ -20,6 +20,9 @@
       <button mat-icon-button [title]="'COMMON.BTN_FILTER'|translate" (click)="filterExpansionPanel.toggle()">
         <mat-icon>search</mat-icon>
       </button>
+      <button mat-icon-button [title]="'EXTRACTION.BTN_DOWNLOAD_FILE'|translate" (click)="downloadAsFile()">
+        <mat-icon>get_app</mat-icon>
+      </button>
 
       <!-- <mat-button-toggle value="edit" [title]="'COMMON.BTN_TABLE_EDIT'|translate" (change)="inlineEdition=inlineEditionBtn.checked"
         class="hidden-xs hidden-sm" [disabled]="true" [checked]="true" #inlineEditionBtn>
