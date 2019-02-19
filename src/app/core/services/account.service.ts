@@ -10,7 +10,7 @@ import {
   UserProfileLabel,
   UserSettings
 } from "./model";
-import {Subject, Subscription} from "rxjs-compat";
+import {Subject, Subscription} from "rxjs";
 import gql from "graphql-tag";
 import {TranslateService} from "@ngx-translate/core";
 import {Apollo} from "apollo-angular";

@@ -1,7 +1,7 @@
 import {Component, EventEmitter, OnInit, ViewChild} from '@angular/core';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from '@ngx-translate/core';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BehaviorSubject, Observable, of, Subject} from 'rxjs';
 import {isNil, isNotNil} from '../../shared/shared.module';
 import {TableDataSource} from "angular4-material-table";
 import {ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/extraction.model";
@@ -15,7 +15,7 @@ import {ModalController} from "@ionic/angular";
 import {AccountService} from "../../core/services/account.service";
 import {Location} from "@angular/common";
 import {trimEmptyToNull} from "../../shared/functions";
-import {throttleTime} from "rxjs/operators";
+import {first, throttleTime} from "rxjs/operators";
 
 export const DEFAULT_PAGE_SIZE = 20;
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -75,7 +75,7 @@ export class ExtractTable implements OnInit {
     });
 
     // Load types
-    this.$extractionTypes = this.service.loadTypes().first();
+    this.$extractionTypes = this.service.loadTypes().pipe(first());
 
     // Listen route parameters
     this.route.params.subscribe(({category, label}) => {
@@ -86,7 +86,7 @@ export class ExtractTable implements OnInit {
 
       // If not type found in params, redirect to first one
       if (isNil(extractionType.category) || isNil(extractionType.label)) {
-        return this.$extractionTypes.first().subscribe(types => {
+        return this.$extractionTypes.pipe(first()).subscribe(types => {
           // no types
           if (!types || !types.length) {
             console.warn("[extract-table] No extraction types loaded !");
@@ -99,11 +99,11 @@ export class ExtractTable implements OnInit {
         })
       }
       else {
-        this.$extractionTypes.first().subscribe(types => {
+        this.$extractionTypes.pipe(first()).subscribe(types => {
           // Select the exact type object in the filter form
           const selectedType = types.find(type => type.label === extractionType.label && type.category === extractionType.category);
 
-          this.route.queryParams.first().subscribe(({q}) =>  {
+          this.route.queryParams.toPromise().then(({q}) =>  {
             this.filterForm.get('extractionType').setValue(selectedType);
           })
         });
@@ -124,8 +124,8 @@ export class ExtractTable implements OnInit {
     this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
     merge(
-      this.sort && this.sort.sortChange || EventEmitter.empty(),
-      this.paginator && this.paginator.page || EventEmitter.empty(),
+      this.sort && this.sort.sortChange || of(),
+      this.paginator && this.paginator.page || of(),
       this.onRefresh
     )
       .subscribe(() => {
@@ -229,13 +229,12 @@ export class ExtractTable implements OnInit {
     // Update title
     await this.updateTitle();
 
-    this.dataSource.connect().first().subscribe(() => {
-      this.loading = false;
-      this.filterForm.enable();
-      this.filterForm.markAsUntouched();
-      this.filterForm.markAsPristine();
-    });
+    await this.dataSource.connect().toPromise();
 
+    this.loading = false;
+    this.filterForm.enable();
+    this.filterForm.markAsUntouched();
+    this.filterForm.markAsPristine();
   }
 
   public async onExtractionTypeChange(extractionType?: ExtractionType): Promise<any> {

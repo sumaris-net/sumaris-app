@@ -20,6 +20,8 @@ export const ErrorCodes = {
   ACCOUNT_NOT_EXISTS: 9,
   SUBSCRIBE_ACCOUNT_ERROR: 10,
 
+  LOAD_CONFIGURATION_ERROR: 50,
+
   // DATA errors (load error)
   LOAD_PERSONS_ERROR: 100,
 

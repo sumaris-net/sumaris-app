@@ -2,13 +2,13 @@ import {Component, OnInit, Input, ViewChild} from '@angular/core';
 import { MenuController, ModalController } from "@ionic/angular";
 
 import { Router } from "@angular/router";
-import { Account, UserProfileLabel } from "../services/model";
+import {Account, Configuration, UserProfileLabel} from "../services/model";
 import { AccountService } from "../services/account.service";
 import { AboutModal } from '../about/modal-about';
 
 import { environment } from '../../../environments/environment';
 import { HomePage } from '../home/home';
-import { PodConfigService } from '../services/podconfig.service';
+import { ConfigService } from '../services/config.service';
 
 import { Subject } from 'rxjs';
 import { fadeInAnimation } from '../../shared/material/material.animations';
@@ -61,16 +61,17 @@ export class MenuComponent implements OnInit {
     protected accountService: AccountService,
     protected router: Router,
     protected menu: MenuController,
-    protected configurationService: PodConfigService,
+    protected configService: ConfigService,
     protected modalCtrl: ModalController
   ) {
 
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     // subscriptions
     this.accountService.onLogin.subscribe(account => this.onLogin(account));
     this.accountService.onLogout.subscribe(() => this.onLogout());
+    this.configService.dataSubject.subscribe(config => this.onConfigChanged(config));
 
     if (this.accountService.isLogin()) {
       this.onLogin(this.accountService.account);
@@ -87,12 +88,12 @@ export class MenuComponent implements OnInit {
     }
 
     this.splitPane.when=SPLIT_PANE_SHOW_WHEN;
+  }
 
-    this.configurationService.getConfs().then(conf =>{
-      this.logo = conf.logo;
-      this.appName = conf.name;
-    })
-
+  onConfigChanged(config: Configuration) {
+    if (!config) return;
+    this.logo = config.logo;
+    this.appName = config.name;
   }
 
   onLogin(account: Account) {

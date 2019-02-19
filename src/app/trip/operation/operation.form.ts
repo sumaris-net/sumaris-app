@@ -4,8 +4,8 @@ import {Operation, PhysicalGear, Trip} from "../services/trip.model";
 import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {Observable} from 'rxjs';
-import {debounceTime, map, mergeMap} from 'rxjs/operators';
+import {Observable, of} from 'rxjs';
+import {debounceTime, first, map, mergeMap} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
 import {AppForm} from '../../core/core.module';
 import {
@@ -81,16 +81,20 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
         )
             .pipe(
                 mergeMap(value => {
-                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+                    if (EntityUtils.isNotEmpty(value)) return of([value]);
                     const physicalGear = this.form.get('physicalGear').value;
-                    if (!physicalGear || !physicalGear.gear) return Observable.of([]);
+                    if (!physicalGear || !physicalGear.gear) return of([]);
                     value = (typeof value === "string" && value !== "*") && value || undefined;
                     return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
                         {
                             entityName: 'Metier',
                             levelId: physicalGear && physicalGear.gear && physicalGear.gear.id || null,
                             searchText: value as string
-                        }).first().map(({data}) => data);
+                        })
+                      .pipe(
+                        first(),
+                        map(({data}) => data)
+                      );
                 }));
     }
 

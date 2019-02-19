@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, mergeMap, startWith} from "rxjs/operators";
+import {BehaviorSubject, Observable, of} from 'rxjs';
+import {debounceTime, filter, first, map, mergeMap, startWith} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -122,13 +122,13 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
             .pipe(
                 startWith('ngOnInit')
             )
-            .subscribe((event) => {
-                this.refreshPmfms(event)
-            });
+            .subscribe((event) => this.refreshPmfms(event));
 
         this.pmfms
-            .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
+          .pipe(
+            filter(pmfms => pmfms && pmfms.length > 0),
+            first()
+          )
             .subscribe(pmfms => {
                 this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
                 let displayedColumns = pmfms.map(p => p.pmfmId.toString());
@@ -149,7 +149,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
             .pipe(
                 debounceTime(250),
                 mergeMap((value) => {
-                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+                    if (EntityUtils.isNotEmpty(value)) return of([value]);
                     value = (typeof value === "string" && value !== '*') && value || undefined;
                     if (this.debug) console.debug("[sample-table] Searching taxon name on {" + (value || '*') + "}...");
                     return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
@@ -158,7 +158,11 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                             levelId: TaxonomicLevelIds.SPECIES,
                             searchText: value as string,
                             searchAttribute: 'label'
-                        }).first().map(({data}) => data);
+                        })
+                      .pipe(
+                        first(),
+                        map(({data}) => data)
+                      );
                 })
             );
 
@@ -190,7 +194,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     ): Observable<LoadResult<Sample>> {
       if (!this.data) {
           if (this.debug) console.debug("[sample-table] Unable to load row: value not set (or not started)");
-          return Observable.empty(); // Not initialized
+          return of(); // Not initialized
       }
 
       // If dirty: save first
@@ -211,9 +215,11 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         if (this.debug) console.debug("[sample-table] Loading rows..", this.data);
 
         this.pmfms
-          .filter(pmfms => pmfms && pmfms.length > 0)
-          .first()
-          .subscribe(pmfms => {
+          .pipe(
+            filter(pmfms => pmfms && pmfms.length > 0),
+            first()
+          )
+          .subscribe((pmfms: PmfmStrategy[]) => {
             // Transform entities into object array
             const data = this.data.map(sample => {
               const json = sample.asObject();

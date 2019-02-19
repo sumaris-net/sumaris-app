@@ -16,6 +16,7 @@ import {Subject} from 'rxjs';
 import {DateFormatPipe, isNil, isNotNil} from '../shared/shared.module';
 import {EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
 import {Moment} from "moment";
+import {ConfigService} from "../core/services/config.service";
 
 @Component({
   selector: 'page-trip',
@@ -50,7 +51,8 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     alertCtrl: AlertController,
     translate: TranslateService,
     protected dateFormat: DateFormatPipe,
-    protected tripService: TripService
+    protected tripService: TripService,
+    protected configService: ConfigService
   ) {
     super(route, router, alertCtrl, translate);
 
@@ -58,7 +60,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     //this.debug = !environment.production;
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     super.ngOnInit();
 
     // Register forms & tables
@@ -67,13 +69,13 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     this.disable();
 
-    this.route.params.first().subscribe(res => {
-      const id = res && res["tripId"];
+    this.route.params.toPromise().then(async params => {
+      const id = params && params["tripId"];
       if (!id || id === "new") {
-        this.load();
+        await this.load();
       }
       else {
-        this.load(parseInt(id));
+        await this.load(parseInt(id));
       }
     });
   }
@@ -84,8 +86,9 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     if (!id) {
 
       // Create using default values
+      const config = await this.configService.get();
       const data = Trip.fromObject({
-        program: { label: environment.defaultProgram }
+        program: { label: config.defaultProgram }
       });
 
       this.updateView(data, true);
@@ -95,7 +98,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
     // Load
     else {
-      const data = await this.tripService.load(id).first().toPromise();
+      const data = await this.tripService.load(id).toPromise();
       this.updateView(data, true);
       this.loading = false;
       this.showOperationTable = true;

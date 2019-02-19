@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, OnDestroy, EventEmitter } from "@angular/core";
-import { Observable } from 'rxjs';
-import { mergeMap } from "rxjs/operators";
+import {Observable, of} from 'rxjs';
+import {first, map, mergeMap} from "rxjs/operators";
 import { ValidatorService, TableElement } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AccountService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from "../../core/core.module";
 import { OperationValidatorService } from "../services/operation.validator";
@@ -89,13 +89,17 @@ export class OperationTable extends AppTable<Operation, OperationFilter> impleme
     this.metiers = this._onMetierCellChange
       .pipe(
         mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          if (EntityUtils.isNotEmpty(value)) return of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
           return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Metier',
               searchText: value as string
-            }).first().map(({data}) => data);
+            })
+            .pipe(
+              first(),
+              map(({data}) => data)
+            );
         }));
 
   }

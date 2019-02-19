@@ -9,14 +9,6 @@
       <input matInput [placeholder]="'CONFIGURATION.APP_NAME' | translate" formControlName="name" />
     </mat-form-field>
 
-    <!-- <mat-form-field>
-      <input matInput [placeholder]="'CONFIGURATION.BASE_URL' | translate" formControlName="baseUrl" />
-    </mat-form-field>
-
-    <mat-form-field>
-      <input matInput [placeholder]="'CONFIGURATION.REMOTE_BASE_URL' | translate" formControlName="remoteBaseUrl" />
-    </mat-form-field> -->
-
     <mat-form-field>
       <input matInput [placeholder]="'CONFIGURATION.VERSION' | translate" formControlName="label" readonly/>
     </mat-form-field>
@@ -24,7 +16,6 @@
     <!-- <mat-form-field>
       <input matInput [placeholder]="'CONFIGURATION.GEO_FORMAT' | translate" formControlName="defaultLatLongFormat" />
     </mat-form-field> -->
-
 
 
     <!--div formArrayName="properties">
@@ -45,9 +36,9 @@
 
     <!-- Display configured Departments logos -->
     <div class="bottom-banner">
-      <div class="carousel" *ngFor="let dep of partners | async ">
-        <img class="logo" src="{{ dep.logo }}" alt="{{dep.label}}" [title]="dep.name" width="150" />
-        <mat-icon class="mat-icon material-icons mat-icon-no-color closeButton" (click)="removeIcon(dep.logo)">close</mat-icon>
+      <div class="carousel" *ngFor="let item of partners | async ">
+        <img class="logo" src="{{ item.logo }}" alt="{{item.label}}" [title]="item.name" width="150" />
+        <mat-icon class="mat-icon material-icons mat-icon-no-color closeButton" (click)="removePartner(item)">close</mat-icon>
       </div>
 
     </div>

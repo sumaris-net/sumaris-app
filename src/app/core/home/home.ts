@@ -1,22 +1,18 @@
 import { Component, OnDestroy, OnInit, Inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { RegisterModal } from '../register/modal/modal-register';
 import { Subscription, BehaviorSubject } from 'rxjs';
 import { AccountService } from '../services/account.service';
-import { Account, Department } from '../services/model';
+import {Account, Configuration, Department} from '../services/model';
 import { TranslateService } from '@ngx-translate/core';
-import { PodConfigService } from '../services/podconfig.service';
+import { ConfigService } from '../services/config.service';
 import { DOCUMENT } from '@angular/platform-browser';
 
-export function getBackgroundImage() {
-  return this.bgImage; 
- };
 
 export function getRandomImage(files : String[]) {
   let imgIndex = Math.floor(Math.random() * files.length)  ;
-   return files[imgIndex]; 
- };
+  return files[imgIndex];
+};
 
 @Component({
   moduleId: module.id.toString(),
@@ -33,43 +29,24 @@ export class HomePage implements OnInit, OnDestroy {
   partners = new BehaviorSubject<Department[]>(null);
   logo: String;
   appName: string;
-  partLogos: string[];
+  loading = true;
 
   constructor(
     @Inject(DOCUMENT) private _document: HTMLDocument,
     public accountService: AccountService,
-    public activatedRoute: ActivatedRoute,
     public modalCtrl: ModalController,
     public translate: TranslateService,
-
-    public configurationService: PodConfigService
+    public configService: ConfigService
   ) {
     
     this.isLogin = accountService.isLogin();
     if (this.isLogin) {
       this.onLogin(this.accountService.account);
     }
- 
-    this.configurationService.getConfs().then(conf => {
-      this.appName = conf.label;
-      this._document.getElementById('appTitle').textContent = conf.name;
 
-      let fav = conf.properties["favicon"];
-      if(fav){
-        this._document.getElementById('appFavicon').setAttribute('href', fav); 
-      }
-
-      this.logo = conf.logo;
-      this.partners.next(conf.partners);
-      this.bgImage = getRandomImage(conf.backgroundImages);
-    })
-
-    // Subscriptions
-    this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
-    this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
   };
 
-  ngOnInit() {
+  async ngOnInit() {
     // Workaround needed on Firefox Browser
     const pageElements = document.getElementsByTagName('page-home');
     if (pageElements && pageElements.length == 1) {
@@ -79,11 +56,33 @@ export class HomePage implements OnInit, OnDestroy {
         pageElement.classList.remove('ion-page-invisible');
       }
     }
+
+    // Subscriptions
+    this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.onLogin(account)));
+    this.subscriptions.push(this.accountService.onLogout.subscribe(() => this.onLogout()));
+    this.subscriptions.push(this.configService.dataSubject.subscribe(config => this.onConfigChanged(config)));
   }
 
   ngOnDestroy() {
     this.subscriptions.forEach(s => s.unsubscribe());
     this.subscriptions = [];
+  }
+
+  onConfigChanged(config: Configuration) {
+    if (!config) return; // skip
+
+    this.appName = config.label;
+    this._document.getElementById('appTitle').textContent = config.name;
+
+    let fav = config.properties["favicon"];
+    if(fav){
+      this._document.getElementById('appFavicon').setAttribute('href', fav);
+    }
+
+    this.logo = config.homeImage || config.logo;
+    this.partners.next(config.partners);
+    this.bgImage = getRandomImage(config.backgroundImages);
+    this.loading = false;
   }
 
   onLogin(account: Account) {

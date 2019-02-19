@@ -2,8 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { AccountService } from '../../services/account.service';
-import { Location } from '@angular/common';
-import { getBackgroundImage } from '../../home/home';
+import { getRandomImage} from '../../home/home';
+import {Configuration} from "../../services/model";
+import {ConfigService} from "../../services/config.service";
 
 @Component({
   selector: 'page-register-confirm',
@@ -21,10 +22,10 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
 
   constructor(
     private accountService: AccountService,
-    private activatedRoute: ActivatedRoute) {
+    private activatedRoute: ActivatedRoute,
+    private configService: ConfigService) {
 
     this.isLogin = accountService.isLogin();
-    this.bgImage = getBackgroundImage();
 
     // Subscriptions
     this.subscriptions.push(this.accountService.onLogin.subscribe(account => this.isLogin = true));
@@ -34,7 +35,7 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
     ));
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
     // Workaround need on Firefox Browser
     const pageElements = document.getElementsByTagName('page-register-confirm');
     if (pageElements && pageElements.length == 1) {
@@ -44,6 +45,15 @@ export class RegisterConfirmPage implements OnInit, OnDestroy {
         pageElement.classList.remove('ion-page-invisible');
       }
     }
+
+    this.onConfig(await this.configService.get());
+  }
+
+
+  onConfig(config: Configuration) {
+    if (!config) return; // skip
+
+    this.bgImage = getRandomImage(config.backgroundImages);
   }
 
   ngOnDestroy() {

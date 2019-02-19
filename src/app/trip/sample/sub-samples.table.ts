@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, map, startWith} from "rxjs/operators";
+import {BehaviorSubject, Observable, of} from 'rxjs';
+import {debounceTime, filter, first, map, startWith} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -147,8 +147,10 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
             .subscribe((event) => this.refreshPmfms(event));
 
         this.pmfms
-            .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
+          .pipe(
+            filter(pmfms => pmfms && pmfms.length > 0),
+            first()
+          )
             .subscribe(pmfms => {
                 this.displayParentPmfm = (pmfms || []).find(p => p.pmfmId == PmfmIds.TAG_ID);
                 pmfms = (pmfms || []).filter(p => p !== this.displayParentPmfm);
@@ -212,7 +214,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
     ): Observable<LoadResult<Sample>> {
       if (!this.data) {
           if (this.debug) console.debug("[sub-sample-table] Unable to load row: value not set (or not started)");
-          return Observable.empty(); // Not initialized
+          return of(); // Not initialized
       }
 
       // If dirty: save first
@@ -220,6 +222,7 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         this.save()
           .then(saved => {
             if (saved) {
+              // Loop
               this.loadAll(offset, size, sortBy, sortDirection, filter, options);
               this._dirty = true; // restore previous state
             }
@@ -232,9 +235,11 @@ export class SubSamplesTable extends AppTable<Sample, { operationId?: number }> 
         if (this.debug) console.debug("[sub-sample-table] Loading rows...", this.data);
 
         this.pmfms
-          .filter(pmfms => pmfms && pmfms.length > 0)
-          .first()
-          .subscribe(pmfms => {
+          .pipe(
+            filter(pmfms => pmfms && pmfms.length > 0),
+            first()
+          )
+          .subscribe((pmfms: PmfmStrategy[]) => {
             // Transform entities into object array
             const data = this.data.map(sample => {
               const json = sample.asObject();

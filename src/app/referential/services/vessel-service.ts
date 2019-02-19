@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import gql from "graphql-tag";
 import { Apollo } from "apollo-angular";
-import { Observable } from "rxjs-compat";
+import { Observable } from "rxjs";
 import { VesselFeatures, Person, toDateISOString } from "./model";
 import {DataService, LoadResult} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";

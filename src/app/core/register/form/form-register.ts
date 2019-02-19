@@ -3,9 +3,10 @@ import { FormBuilder, FormGroup, Validators, FormControl, AbstractControl, Valid
 import { RegisterData, AccountService, AccountFieldDef } from "../../services/account.service";
 import { Account, referentialToString, Entity } from "../../services/model";
 import { MatHorizontalStepper } from "@angular/material";
-import { Observable, Subscription } from "rxjs";
+import {Observable, Subscription, timer} from "rxjs";
 import { AccountValidatorService } from "../../services/account.validator";
 import { environment } from "../../../../environments/environment";
+import {mergeMap} from "rxjs/operators";
 
 
 @Component({
@@ -141,14 +142,16 @@ export class RegisterForm implements OnInit {
   emailAvailability(accountService: AccountService): AsyncValidatorFn {
     return function (control: AbstractControl): Observable<ValidationErrors | null> {
 
-      return Observable.timer(500).mergeMap(() => {
-        return accountService.checkEmailAvailable(control.value)
-          .then(res => null)
-          .catch(err => {
-            console.error(err);
-            return { availability: true };
-          });
-      });
+      return timer(500).pipe(
+        mergeMap(() => {
+          return accountService.checkEmailAvailable(control.value)
+            .then(res => null)
+            .catch(err => {
+              console.error(err);
+              return { availability: true };
+            });
+        })
+      );
     }
   }
 

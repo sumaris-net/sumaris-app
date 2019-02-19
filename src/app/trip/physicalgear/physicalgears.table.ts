@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
 
-import {BehaviorSubject, Observable} from 'rxjs';
+import {BehaviorSubject, Observable, of} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
@@ -104,7 +104,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       });
 
     // DEBUG only
-    this.detailMeasurements = /*this.debug && Observable.empty() || */this.gearForm
+    this.detailMeasurements = /*this.debug && of() || */this.gearForm
       .valueChanges
       .pipe(
         map(value => {
@@ -130,7 +130,7 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
     filter?: any,
     options?: any
   ): Observable<LoadResult<PhysicalGear>> {
-    if (!this.data) return Observable.empty(); // Not initialized
+    if (!this.data) return of(); // Not initialized
     sortBy = sortBy != 'id' && sortBy || 'rankOrder'; // Replace 'id' with 'rankOrder'
 
     const now = Date.now();

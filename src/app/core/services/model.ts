@@ -262,6 +262,8 @@ export class Property extends Referential {
 
 }
 
+export type InputMode = 'onField' | 'desktop';
+
 export class Configuration extends Referential  {
 
   static fromObject(source: Configuration): Configuration {
@@ -271,14 +273,20 @@ export class Configuration extends Referential  {
   }
 
   id: number;  
-  public properties:Map<String,String>;
-  backgroundImages: String[];
+  properties: Map<string,string>;
+  backgroundImages: string[];
   partners: Department[];
-  defaultProgram: String;
-  logo: String;
+  defaultProgram: string;
+  logo: string;
+  homeImage: string;
+
+  offline: boolean;
+  inputMode: InputMode;
  
   constructor() {
     super();
+    this.offline = false;
+    this.inputMode = 'desktop';
   }
  
   copy(target: Configuration): Configuration {
@@ -289,6 +297,13 @@ export class Configuration extends Referential  {
   asObject(minify?: boolean): any {
     if (minify) return { id: this.id }; // minify=keep id only
     const target: any = super.asObject();
+
+    // Remove client properties (not known by pod)
+    if (minify) {
+      delete target.offline;
+      delete target.inputMode;
+    }
+
     return target;
   }
 
@@ -301,6 +316,7 @@ export class Configuration extends Referential  {
     this.backgroundImages = source.backgroundImages;
     this.partners = source.partners;
     this.logo = source.logo;
+    this.homeImage = source.homeImage;
     return this;
   }
 }

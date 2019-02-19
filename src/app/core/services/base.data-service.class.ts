@@ -1,11 +1,12 @@
-import {Observable} from "rxjs-compat";
+import {Observable, of} from "rxjs";
 import {Apollo} from "apollo-angular";
 import {ApolloQueryResult, FetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
-import {map} from "rxjs/operators";
+import {first, map} from "rxjs/operators";
 
 import {environment} from '../../../environments/environment';
+import {FetchResult} from "apollo-link";
 
 export abstract class BaseDataService {
 
@@ -20,34 +21,35 @@ export abstract class BaseDataService {
 
   }
 
-  protected query<T, V = R>(opts: {
+  protected async query<T, V = R>(opts: {
     query: any,
     variables: V,
     error?: ServiceError,
     fetchPolicy?: FetchPolicy
   }): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      this.apollo.query<ApolloQueryResult<T>, V>({
+
+    let res: ApolloQueryResult<T>;
+    try {
+      res = await this.apollo.query<T, V>({
         query: opts.query,
         variables: opts.variables,
         fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy) || undefined
-      })
-        .catch(error => this.onApolloError<T>(error))
-        .first()
-        .subscribe(({ data, errors }) => {
-          if (errors) {
-            const error = errors[0] as any;
-            if (error && error.code && error.message) {
-              reject(error);
-              return;
-            }
-            console.error("[data-service] " + error.message);
-            reject(opts.error ? opts.error : error.message);
-            return;
-          }
-          resolve(data as T);
-        });
-    });
+      }).toPromise();
+    }
+    catch(error) {
+      res = await this.onApolloError<T>(error).toPromise();
+    }
+
+    if (res.errors) {
+      const error = res.errors[0] as any;
+      if (error && error.code && error.message) {
+        throw error;
+      }
+      console.error("[data-service] " + error.message);
+      throw (opts.error ? opts.error : error.message);
+    }
+
+    return res.data as T;
   }
 
   protected watchQuery<T, V = R>(opts: {
@@ -63,7 +65,7 @@ export abstract class BaseDataService {
       notifyOnNetworkStatusChange: true
     })
       .valueChanges
-      .catch(error => this.onApolloError<T>(error))
+      //.catch(error => this.onApolloError<T>(error))
       .pipe(
         map(({ data, errors }) => {
           if (errors) {
@@ -79,42 +81,43 @@ export abstract class BaseDataService {
       );
   }
 
-  protected mutate<T, V = R>(opts: {
+  protected async mutate<T, V = R>(opts: {
     mutation: any,
     variables: V,
     error?: ServiceError
   }): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      this.apollo.mutate<ApolloQueryResult<T>, V>({
+
+    let res: FetchResult<T>;
+    try {
+      res = await this.apollo.mutate<T, V>({
         mutation: opts.mutation,
         variables: opts.variables
-      })
-        .catch(error => this.onApolloError<T>(error))
-        .first()
-        .subscribe(({ data, errors }) => {
-          if (errors) {
-            const error = errors[0] as any;
-            if (error && error.code && error.message) {
-              if (error && error.code == ServerErrorCodes.BAD_UPDATE_DATE) {
-                reject({ code: ServerErrorCodes.BAD_UPDATE_DATE, message: "ERROR.BAD_UPDATE_DATE" });
-              }
-              else if (error && error.code == ServerErrorCodes.DATA_LOCKED) {
-                reject({ code: ServerErrorCodes.DATA_LOCKED, message: "ERROR.DATA_LOCKED" });
-              }
-              else {
-                reject(error);
-              }
-            }
-            else {
-              console.error("[data-service] " + error.message);
-              reject(opts.error ? opts.error : error.message);
-            }
-          }
-          else {
-            resolve(data as T);
-          }
-        });
-    });
+      }).toPromise();
+    }
+    catch(error) {
+      res = await this.onApolloError<T>(error).toPromise();
+    }
+
+    if (res.errors) {
+      const error = res.errors[0] as any;
+      if (error && error.code && error.message) {
+        if (error && error.code == ServerErrorCodes.BAD_UPDATE_DATE) {
+          throw { code: ServerErrorCodes.BAD_UPDATE_DATE, message: "ERROR.BAD_UPDATE_DATE" };
+        }
+        else if (error && error.code == ServerErrorCodes.DATA_LOCKED) {
+          throw { code: ServerErrorCodes.DATA_LOCKED, message: "ERROR.DATA_LOCKED" };
+        }
+        else {
+          throw error;
+        }
+      }
+      else {
+        console.error("[data-service] " + error.message);
+        throw (opts.error ? opts.error : error.message);
+      }
+    }
+
+    return res.data as T;
   }
 
   protected subscribe<T, V = R>(opts: {
@@ -127,7 +130,7 @@ export abstract class BaseDataService {
       query: opts.query,
       variables: opts.variables
     })
-      .catch(error => this.onApolloError<T>(error))
+      //.catchError(error => this.onApolloError<T>(error))
       .pipe(
         map(({ data, errors }) => {
           if (errors) {
@@ -266,7 +269,7 @@ export abstract class BaseDataService {
       (err.graphQLErrors && this.toAppError(err.graphQLErrors[0])) ||
       this.toAppError(err) ||
       this.toAppError(err.originalError);
-    return Observable.of({
+    return of({
       data: null,
       errors: appError && [appError] || err.graphQLErrors || [err],
       loading: false,

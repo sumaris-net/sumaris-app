@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
-import {Observable} from "rxjs-compat";
+import {Observable} from "rxjs";
 import {BaseDataService, environment} from "../../core/core.module";
 import {map} from "rxjs/operators";
 

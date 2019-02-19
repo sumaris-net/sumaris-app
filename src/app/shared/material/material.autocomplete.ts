@@ -1,8 +1,8 @@
-import { Component, OnInit, forwardRef, Optional, Input } from "@angular/core";
-import { FormControl, NG_VALUE_ACCESSOR, FormGroupDirective } from "@angular/forms";
-import { Observable } from "rxjs";
-import { debounceTime, mergeMap, startWith } from "rxjs/operators";
-import { DataService } from "../services/data-service.class";
+import {Component, forwardRef, Input, OnInit, Optional} from "@angular/core";
+import {FormControl, FormGroupDirective, NG_VALUE_ACCESSOR} from "@angular/forms";
+import {Observable, of} from "rxjs";
+import {debounceTime, first, map, mergeMap, startWith} from "rxjs/operators";
+import {DataService} from "../services/data-service.class";
 
 export const DEFAULT_VALUE_ACCESSOR: any = {
     provide: NG_VALUE_ACCESSOR,
@@ -55,14 +55,18 @@ export class MatAutocompleteField implements OnInit {
                 startWith('*'),
                 debounceTime(250),
                 mergeMap(value => {
-                    if (this.isNotEmpty(value)) return Observable.of([value]);
+                    if (this.isNotEmpty(value)) return of([value]);
                     value = (typeof value === "string") && value || undefined;
                     return this.service.loadAll(0, 10, undefined, undefined,
                         Object.assign({
                             searchText: value as string,
                         }, this.filter || {}),
-                        this.serviceOptions)
-                        .map(({data}) => data);
+                        this.serviceOptions
+                    )
+                    .pipe(
+                      first(),
+                      map(({data}) => data)
+                    );
                 })
             );
 

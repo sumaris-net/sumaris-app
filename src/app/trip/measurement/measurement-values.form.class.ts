@@ -11,11 +11,12 @@ import { FormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/measurement.validator';
 import { FormGroup } from "@angular/forms";
 import { environment } from '../../../environments/environment';
+import {ConfigService} from "../../core/services/config.service";
 export abstract class MeasurementValuesForm<T extends { measurementValues: { [key: string]: any } }> extends AppForm<T> {
 
     protected _onValueChange = new EventEmitter<any>();
     protected _onRefreshPmfms = new EventEmitter<any>();
-    protected _program: string = environment.defaultProgram;
+    protected _program: string;
     protected _gear: string = null;
     protected _acquisitionLevel: string;
     protected data: T;
@@ -96,15 +97,19 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
         protected measurementValidatorService: MeasurementsValidatorService,
         protected formBuilder: FormBuilder,
         protected programService: ProgramService,
+        protected configService: ConfigService,
         form: FormGroup
     ) {
         super(dateAdapter, platform, form);
     }
 
-    ngOnInit() {
-        super.ngOnInit();
+    async ngOnInit() {
+      super.ngOnInit();
 
-        this.registerSubscription(
+      const config = await this.configService.get();
+      this._program =  config.defaultProgram;
+
+      this.registerSubscription(
             this._onRefreshPmfms.asObservable()
                 .subscribe(async (event: any) => {
                     // Skip if missing: program, acquisition (or gear, if required)

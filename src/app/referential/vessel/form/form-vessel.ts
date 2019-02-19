@@ -5,8 +5,8 @@ import {EntityUtils, LocationLevelIds, ReferentialRef, referentialToString, Vess
 import {Platform} from '@ionic/angular';
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {Observable} from 'rxjs';
-import {mergeMap} from 'rxjs/operators';
+import {Observable, of} from 'rxjs';
+import {first, map, mergeMap} from 'rxjs/operators';
 import {AppForm, AppFormUtils} from '../../../core/core.module';
 import {ReferentialRefService} from '../../services/referential-ref.service';
 
@@ -38,7 +38,7 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
       .valueChanges
       .pipe(
         mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          if (EntityUtils.isNotEmpty(value)) return of([value]);
           value = (typeof value == "string" && value !== '*') && value || undefined;
           return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
             {
@@ -46,8 +46,10 @@ export class VesselForm extends AppForm<VesselFeatures> implements OnInit {
               levelId: LocationLevelIds.PORT,
               searchText: value as string
             }
-          ).first()
-            .map(({data}) => data);
+          ).pipe(
+            first(),
+            map(({data}) => data)
+          )
         }))
     ;
   }

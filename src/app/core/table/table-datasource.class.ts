@@ -6,6 +6,7 @@ import { Entity } from "../services/model";
 import { TableElement } from "angular4-material-table";
 import { ErrorCodes } from "../services/errors";
 import { AppFormUtils } from "../form/form.utils";
+import {first, map} from "rxjs/operators";
 
 export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<T> {
 
@@ -26,7 +27,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
    * @param dataService A service to load and save data
    * @param dataType Type of data contained by the Table. If not specified, then `data` with at least one element must be specified.
    * @param validatorService Service that create instances of the FormGroup used to validate row fields.
-   * @param config Additional configuration for table.
+   * @param config Additional data for table.
    */
   constructor(dataType: new () => T,
     private dataService: DataService<T, F>,
@@ -60,13 +61,15 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     this.onLoading.emit(true);
     return this.dataService.loadAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
-      .catch(err => this.handleError(err, 'Unable to load rows'))
-      .map(res => {
-        this.onLoading.emit(false);
-        if (this._debug) console.debug("[table-datasource] Updating datasource...", res);
-        this.updateDatasource(res.data);
-        return res;
-      });
+      //.catchError(err => this.handleError(err, 'Unable to load rows'))
+      .pipe(
+        map(res => {
+          this.onLoading.emit(false);
+          if (this._debug) console.debug("[table-datasource] Updating datasource...", res);
+          this.updateDatasource(res.data);
+          return res;
+        })
+      );
   }
 
   async save(): Promise<boolean> {
@@ -205,7 +208,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     this.onLoading.emit(true);
 
     this.dataService.deleteAll([row.currentData], this.serviceOptions)
-      .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
+      .catchError(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
         setTimeout(() => {
           // make sure row has been deleted (because GrapQHl cache remove can failed)
@@ -244,7 +247,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
   /* -- private method -- */
 
   public getRows(): Promise<TableElement<T>[]> {
-    return this.connect().first().toPromise();
+    return this.connect().pipe(first()).toPromise();
   }
 
   private logRowErrors(row: TableElement<T>): void {

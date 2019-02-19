@@ -1,13 +1,13 @@
 import {EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatPaginator, MatSort, MatTable} from "@angular/material";
 import {merge} from "rxjs/observable/merge";
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {distinctUntilChanged, mergeMap, startWith} from "rxjs/operators";
 import {TableElement} from "angular4-material-table";
 import {AppTableDataSource} from "./table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
 import {Entity} from "../services/model";
-import {Subscription} from "rxjs-compat";
+import {Subscription} from "rxjs";
 import {ModalController, Platform} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AccountService} from '../services/account.service';
@@ -146,8 +146,8 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this.sort && this.paginator && this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
 
         merge(
-            this.sort && this.sort.sortChange || EventEmitter.empty(),
-            this.paginator && this.paginator.page || EventEmitter.empty(),
+            this.sort && this.sort.sortChange || of(),
+            this.paginator && this.paginator.page || of(),
             this.onRefresh
         )
             .pipe(
@@ -158,11 +158,11 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                         this.selection.clear();
                         this.editedRow = undefined;
                         if (any === 'skip' || !this.dataSource) {
-                            return Observable.of(undefined);
+                            return of(undefined);
                         }
                         if (!this.dataSource) {
                             if (this.debug) console.debug("[table] Skipping data load: no dataSource defined");
-                            return Observable.of(undefined);
+                            return of(undefined);
                         }
                         if (this.debug) console.debug("[table] Calling dataSource.load()...");
                         return this.dataSource.load(
@@ -174,10 +174,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                         );
                     })
             )
-            .catch(err => {
-                this.error = err && err.message || err;
-                return Observable.empty();
-            })
+            // .catch(err => {
+            //     this.error = err && err.message || err;
+            //     return of();
+            // })
             .subscribe(res => {
                 if (res && res.data) {
                     this.isRateLimitReached = !this.paginator || (res.data.length < this.paginator.pageSize);
@@ -327,7 +327,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         if (this.loading) return;
         this.isAllSelected() ?
             this.selection.clear() :
-            this.dataSource.connect().first().subscribe(rows =>
+            this.dataSource.getRows().then(rows =>
                 rows.forEach(row => this.selection.select(row))
             );
     }
@@ -438,7 +438,7 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
                 if (!res) return; // CANCELLED
 
                 // Apply columns
-                var userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+                const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
                 this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
 
                 // Update user settings

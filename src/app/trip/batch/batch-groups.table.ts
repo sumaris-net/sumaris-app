@@ -1,5 +1,5 @@
 import {Component} from "@angular/core";
-import {Observable} from "rxjs";
+import {Observable, of} from "rxjs";
 import {ValidatorService} from "angular4-material-table";
 import {AccountService, AppFormUtils} from "../../core/core.module";
 import {Batch, getPmfmName, MeasurementUtils, PmfmStrategy, referentialToString} from "../services/trip.model";
@@ -18,6 +18,7 @@ import {FormBuilder, FormGroup, Validator, Validators} from "@angular/forms";
 import {BatchesTable} from "./batches.table";
 import {isNil, isNotNil, LoadResult} from "../../shared/shared.module";
 import {MethodIds} from "../../referential/services/model";
+import {first} from "rxjs/operators";
 
 @Component({
     selector: 'table-batch-groups',
@@ -65,7 +66,7 @@ export class BatchGroupsTable extends BatchesTable {
     ): Observable<LoadResult<Batch>> {
       if (!this.data) {
         if (this.debug) console.debug("[batch-table] Unable to load row: value not set (or not started)");
-        return Observable.empty(); // Not initialized
+        return of(); // Not initialized
       }
 
       // If dirty: save first
@@ -86,9 +87,11 @@ export class BatchGroupsTable extends BatchesTable {
           if (this.debug) console.debug("[batch-table] Loading rows..", this.data);
 
           this.pmfms
-            .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
-            .subscribe(pmfms => {
+            .pipe(
+              filter(pmfms => pmfms && pmfms.length > 0),
+              first()
+            )
+            .subscribe((pmfms: PmfmStrategy[]) => {
               let weightMethodValues = this.qvPmfm.qualitativeValues.reduce((res, qv, qvIndex) => {
                 res[qvIndex] = false;
                 return res;

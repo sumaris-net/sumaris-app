@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Observable} from "rxjs";
-import {map} from "rxjs/operators";
+import {first, map} from "rxjs/operators";
 import {Referential} from "./model";
 import {DataService, LoadResult} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
@@ -134,8 +134,9 @@ export class ReferentialService extends BaseDataService implements DataService<R
       variables: variables,
       error: { code: ErrorCodes.LOAD_REFERENTIALS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIALS_ERROR" },
       fetchPolicy: options && options.fetchPolicy || 'network-only'
-    }).first()
+    })
       .pipe(
+        first(),
         map(({referentials, referentialsCount}) => {
           const data = (referentials || []).map(Referential.fromObject);
           data.forEach(r => r.entityName = entityName);

@@ -1,4 +1,4 @@
-import {Observable} from "rxjs-compat";
+import {Observable} from "rxjs";
 
 export declare interface LoadResult<T> {
   data: T[];

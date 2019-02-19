@@ -10,6 +10,7 @@ import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
 import {Subject} from 'rxjs';
 import {BatchValidatorService} from '../services/batch.validator';
+import {ConfigService} from "../../core/services/config.service";
 
 @Component({
     selector: 'form-catch',
@@ -30,15 +31,18 @@ export class CatchForm extends MeasurementValuesForm<Batch> implements OnInit {
         protected measurementsValidatorService: MeasurementsValidatorService,
         protected formBuilder: FormBuilder,
         protected programService: ProgramService,
-        protected validatorService: BatchValidatorService
+        protected validatorService: BatchValidatorService,
+        protected configService: ConfigService
     ) {
 
-        super(dateAdapter, platform, measurementsValidatorService, formBuilder, programService, validatorService.getFormGroup());
+        super(dateAdapter, platform, measurementsValidatorService, formBuilder, programService,
+          configService,
+          validatorService.getFormGroup());
         this._acquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
     }
 
-    ngOnInit() {
-        super.ngOnInit();
+    async ngOnInit() {
+        await super.ngOnInit();
 
         // pmfm
         this.registerSubscription(

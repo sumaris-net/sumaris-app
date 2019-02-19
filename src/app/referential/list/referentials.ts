@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { Observable, Subject } from "rxjs";
-import { map } from "rxjs/operators";
+import {Observable, of, Subject} from "rxjs";
+import {first, map} from "rxjs/operators";
 import { ValidatorService } from "angular4-material-table";
 import { AppTableDataSource, AppTable, AppFormUtils } from "../../core/core.module";
 import { ReferentialValidatorService } from "../services/referential.validator";
@@ -124,8 +124,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // Combo entities
     this.entities = this.referentialService.loadTypes()
-      .first()
       .pipe(
+        first(),
         map((types) => types.map(type => {
           return {
             id: type.id,
@@ -187,7 +187,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     const res = await this.referentialService.loadLevels(entityName, {
       fetchPolicy: 'network-only'
     });
-    this.levels = Observable.of(res);
+    this.levels = of(res);
     this.showLevelColumn = res && res.length > 0;
     return res
   }

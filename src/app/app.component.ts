@@ -4,7 +4,9 @@ import {MenuItem} from './core/menu/menu.component';
 import {HomePage} from './core/home/home';
 import {AccountService, DataService} from './core/core.module';
 import {ReferentialRefService} from './referential/referential.module';
-import { PodConfigService } from './core/services/podconfig.service';
+import { ConfigService } from './core/services/config.service';
+import {Observable} from "rxjs";
+import {Configuration} from "./core/services/model";
 // import { StatusBar } from "@ionic-native/status-bar";
 // import { SplashScreen } from "@ionic-native/splash-screen";
 // import { Keyboard } from "@ionic-native/keyboard";
@@ -21,6 +23,7 @@ import { PodConfigService } from './core/services/podconfig.service';
 export class AppComponent {
 
   root: any = HomePage;
+  config : Observable<Configuration>;
   logo: String;
   appName: String;
   menuItems: Array<MenuItem> = [
@@ -39,12 +42,13 @@ export class AppComponent {
     private platform: Platform,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
-    private configurationService: PodConfigService
+    private configService: ConfigService
     // TODO: waiting ionic-native release
     // private statusBar: StatusBar, 
     // private splashScreen: SplashScreen,
     // private keyboard: Keyboard
   ) {
+
 
     platform.ready().then(() => {
       console.info("[app] Setting cordova plugins...");
@@ -59,7 +63,8 @@ export class AppComponent {
       keyboard.disableScroll(true);
       */
 
-      this.initConfig();
+      // subscriptions
+      this.configService.dataSubject.subscribe(config => this.onConfig(config));
 
       this.addAccountFields();
     });
@@ -79,30 +84,28 @@ export class AppComponent {
     }, 16);
   }
 
-  protected async initConfig() {
+  protected onConfig(config: Configuration) {
 
-    const config = await this.configurationService.getConfs();
-
-    this.logo = config.logo;
     this.appName = config.label;
-    this.updateColors(    
-      config.properties["sumaris.site.color.primary"],
-      config.properties["sumaris.site.color.secondary"],
-      config.properties["sumaris.site.color.tertiary"]
-    );
+    this.logo = config.logo;
 
+    // Update the thme
+    this.updateTheme({
+      primary: config.properties["sumaris.site.color.primary"],
+      secondary: config.properties["sumaris.site.color.secondary"],
+      tertiary: config.properties["sumaris.site.color.tertiary"],
+      light: config.properties["sumaris.site.color.light"]
+    });
   }
 
-  updateColors(primary, secondary, tertiary) {
+  updateTheme(options: {primary?: string; secondary? : string; tertiary?: string; light?: string}) {
 
-    console.log("Updating Colors based on configuration - 1- " + primary + " 2- " + secondary + " 3- "+ tertiary );
-
-    document.documentElement.style.setProperty(`--ion-color-primary`, primary);
-
-    document.documentElement.style.setProperty(`--ion-color-light`, secondary); 
-    document.documentElement.style.setProperty(`--ion-color-secondary`, secondary); 
-    
-    document.documentElement.style.setProperty(`--ion-color-tertiary`, tertiary);
+    console.debug("[app] Updating theme from config");
+    if (options.primary) document.documentElement.style.setProperty(`--ion-color-primary`, options.primary);
+    // TODO:
+    //if (options.secondary) document.documentElement.style.setProperty(`--ion-color-secondary`, options.secondary);
+    //if (options.tertiary) document.documentElement.style.setProperty(`--ion-color-tertiary`, options.tertiary);
+    //if (options.light) document.documentElement.style.setProperty(`--ion-color-light`, options.light);
   }
 
   protected addAccountFields() {

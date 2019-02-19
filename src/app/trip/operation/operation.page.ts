@@ -19,7 +19,7 @@ import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
 import {BatchGroupsTable} from "../batch/batch-groups.table";
 import {SubBatchesTable} from "../batch/sub-batches.table";
 import {MatTabChangeEvent} from "@angular/material";
-import {debounceTime, distinctUntilChanged, filter, map, startWith} from "rxjs/operators";
+import {debounceTime, distinctUntilChanged, filter, first, map, startWith} from "rxjs/operators";
 import {Validators} from "@angular/forms";
 import {Moment} from "moment";
 
@@ -106,7 +106,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     this.disable();
 
     // Read route
-    this.route.params.first().subscribe(res => {
+    this.route.params.toPromise().then(res => {
       const tripId = res && res["tripId"];
       const id = res && res["opeId"];
       setTimeout(() => {
@@ -127,7 +127,11 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     });
 
     // Update available parent on sub-sample table, when samples changes
-    this.survivalTestsTable.listChange.debounceTime(400).subscribe(samples => {
+    this.survivalTestsTable.listChange
+      .pipe(
+        debounceTime(400)
+      )
+      .subscribe(samples => {
       const availableParents = (samples || [])
         .filter(s => !!s.measurementValues[PmfmIds.TAG_ID]);
       // Will refresh the tables (inside the setter):
@@ -136,7 +140,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     });
 
     // Update available parent on individual batch table, when batch group changes
-    this.batchGroupsTable.listChange.debounceTime(400).subscribe(batchGroups => {
+    this.batchGroupsTable.listChange.pipe(debounceTime(400)).subscribe(batchGroups => {
       // Will refresh the tables (inside the setter):
       this.subBatchesTable.availableParents = (batchGroups || []);
     });
@@ -153,7 +157,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
       if (this.debug) console.debug("[page-operation] Loading operation...");
 
-      const data = await this.operationService.load(id).first().toPromise();
+      const data = await this.operationService.load(id).toPromise();
       if (!data || !data.tripId) {
         console.error("Unable to load operation with id:" + id);
         this.error = "TRIP.OPERATION.ERROR.LOAD_OPERATION_ERROR";
@@ -163,7 +167,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
       if (this.debug) console.debug("[page-operation] Operation loaded", data);
 
-      const trip = await this.tripService.load(data.tripId).first().toPromise();
+      const trip = await this.tripService.load(data.tripId).toPromise();
       this.updateView(data, trip);
       this.loading = false;
       this.startListenChanges();
@@ -172,7 +176,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     // New operation
     else if (options && options.tripId) {
       if (this.debug) console.debug("[page-operation] Creating new operation...");
-      const trip = await this.tripService.load(options.tripId).first().toPromise();
+      const trip = await this.tripService.load(options.tripId).toPromise();
 
       const data = new Operation();
 
@@ -248,8 +252,10 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
     const batchGroups = batches.filter(s => s.label && s.label.startsWith(this.batchGroupsTable.acquisitionLevel + "#"));
 
     this.batchGroupsTable.pmfms
-      .filter(pmfms => (pmfms && pmfms.length > 0))
-      .first()
+      .pipe(
+        filter(pmfms => (pmfms && pmfms.length > 0)),
+        first()
+      )
       .subscribe(() => {
         const qvPmfm = this.batchGroupsTable.qvPmfm;
         this.subBatchesTable.availableParents = batchGroups;
@@ -302,9 +308,9 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
         .pipe(
           debounceTime(400),
           filter(loading => loading === false),
-          distinctUntilChanged()
+          distinctUntilChanged(),
+          first()
         )
-        .first()
         .subscribe(() => {
           const formGroup = this.measurementsForm.form;
 
@@ -313,8 +319,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           if (isNotNil(samplingTypeControl)) {
             this.registerSubscription(
               samplingTypeControl.valueChanges
-                .debounceTime(400)
                 .pipe(
+                  debounceTime(400),
                   startWith(samplingTypeControl.value),
                   filter(value => EntityUtils.isNotEmpty(value)),
                   map(value => value.label),
@@ -350,8 +356,8 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
           if (isNotNil(samplingTypeControl)) {
             this.registerSubscription(
               tripProgressControl.valueChanges
-                .debounceTime(400)
                 .pipe(
+                  debounceTime(400),
                   startWith(tripProgressControl.value),
                   filter(isNotNil),
                   distinctUntilChanged()

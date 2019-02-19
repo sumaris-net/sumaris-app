@@ -4,7 +4,7 @@ import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
 import {BehaviorSubject} from 'rxjs';
-import {startWith, throttleTime} from "rxjs/operators";
+import {filter, first, startWith, throttleTime} from "rxjs/operators";
 import {zip} from "rxjs/observable/zip";
 import {AppForm} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
@@ -139,14 +139,16 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         zip(
             this._onValueChanged
                 .pipe(
-                    startWith('ngOnInit')
-                )
-                .filter(() => this.data && this.data.length > 0),
+                  startWith('ngOnInit'),
+                  filter(() => this.data && this.data.length > 0)
+                ),
             this.pmfms
-                .filter((pmfms) => isNotNil(pmfms))
-        )
-            .first()
-            .subscribe(([event, pmfms]) => this.updateControls(event, pmfms));
+              .pipe(
+                filter((pmfms) => isNotNil(pmfms))
+              )
+          )
+          .pipe(first())
+          .subscribe(([event, pmfms]) => this.updateControls(event, pmfms));
 
         // Listen form changes
         this.form.valueChanges
@@ -219,11 +221,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         if (!pmfms || this._onLoadingPmfms.getValue()) {
             this.logDebug(`updateControls(${event}): waiting pmfms...`);
             this._onLoadingPmfms
-                .filter(loading => !loading)
                 .pipe(
-                    throttleTime(100) // groups pmfms updates event, if many updates in few duration
+                  filter(loading => !loading),
+                  throttleTime(100), // groups pmfms updates event, if many updates in few duration
+                  first()
                 )
-                .first()
                 .subscribe(() => {
                     this.updateControls(event);
                 });

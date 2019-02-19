@@ -3,7 +3,7 @@ import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 
 import {AccountFieldDef, AccountService} from './services/account.service';
-import {PodConfigService} from './services/podconfig.service';
+import {ConfigService} from './services/config.service';
 
 import {AccountValidatorService} from './services/account.validator';
 import {UserSettingsValidatorService} from './services/user-settings.validator';
@@ -146,7 +146,7 @@ export function HttpLoaderFactory(http: HttpClient) {
         CryptoService,
         AccountValidatorService,
         UserSettingsValidatorService,
-        PodConfigService
+        ConfigService
     ]
 })
 export class CoreModule {

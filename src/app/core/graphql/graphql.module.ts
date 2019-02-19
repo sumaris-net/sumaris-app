@@ -10,7 +10,7 @@ import { InMemoryCache, defaultDataIdFromObject } from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
 import { WebSocketLink } from 'apollo-link-ws';
 import { getMainDefinition } from 'apollo-utilities';
-
+import { onError } from 'apollo-link-error';
 
 /* Hack on Websocket, to avoid the use of protocol */
 declare let window: any;
@@ -93,6 +93,17 @@ export class AppGraphQLModule {
       dataIdFromObject: dataIdFromObject
     });
 
+    const link = onError(({ graphQLErrors, networkError }) => {
+      if (graphQLErrors)
+        graphQLErrors.map(({ message, locations, path }) =>
+          console.log(
+            `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+          ),
+        );
+
+      if (networkError) console.log(`[Network error]: ${networkError}`);
+    });
+
     // create Apollo
     apollo.create({
       link: ApolloLink.split(
@@ -104,7 +115,13 @@ export class AppGraphQLModule {
         authLink.concat(http)
       ),
       cache: imCache,
-      connectToDevTools: !environment.production
+      connectToDevTools: !environment.production,
+      defaultOptions: {
+        watchQuery: {
+          // See https://www.apollographql.com/docs/angular/features/error-handling.html
+          errorPolicy: 'all'
+        }
+      }
     });
 
     // Update auth Token

@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import gql from "graphql-tag";
 import {Apollo} from "apollo-angular";
-import {Observable} from "rxjs-compat";
+import {Observable} from "rxjs";
 import {fillRankOrder, isNil, Person, Trip} from "./trip.model";
 import {DataService, LoadResult, isNotNil} from "../../shared/shared.module";
 import {BaseDataService} from "../../core/core.module";
@@ -250,7 +250,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
   load(id: number): Observable<Trip | null> {
     if (!id) throw new Error("id should not be null");
 
-    const now = new Date();
+    const now = Date.now();
     if (this._debug) console.debug("[trip-service] Loading trip {" + id + "}...");
 
     return this.watchQuery<{ trip: Trip }>({
@@ -264,7 +264,7 @@ export class TripService extends BaseDataService implements DataService<Trip, Tr
         map(data => {
           if (data && data.trip) {
             const res = Trip.fromObject(data.trip);
-            if (this._debug) console.debug("[trip-service] Trip {" + id + "} loaded in " + (new Date().getTime() - now.getTime()) + "ms", res);
+            if (this._debug) console.debug(`[trip-service] Trip {${id}} loaded in ${Date.now() - now}ms`, res);
             return res;
           }
           return null;

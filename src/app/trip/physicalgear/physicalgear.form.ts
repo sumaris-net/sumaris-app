@@ -1,11 +1,11 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
-import {Measurement, PhysicalGear} from "../services/trip.model";
+import {Measurement, PhysicalGear, Trip} from "../services/trip.model";
 import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment'
 import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, map, startWith} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, first, map, startWith} from 'rxjs/operators';
 import {AppForm} from '../../core/core.module';
 import {
   EntityUtils,
@@ -15,7 +15,7 @@ import {
   referentialToString
 } from "../../referential/referential.module";
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {environment} from '../../../environments/environment';
+import {ConfigService} from "../../core/services/config.service";
 
 @Component({
     selector: 'form-physical-gear',
@@ -24,7 +24,7 @@ import {environment} from '../../../environments/environment';
 })
 export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
-    private _program: string = environment.defaultProgram;
+    private _program: string;
     private _gears: ReferentialRef[] = [];
 
     loading = false;
@@ -55,13 +55,17 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
         protected platform: Platform,
         protected physicalGearValidatorService: PhysicalGearValidatorService,
         protected programService: ProgramService,
-        protected referentialRefService: ReferentialRefService
+        protected referentialRefService: ReferentialRefService,
+        protected configService: ConfigService
     ) {
 
         super(dateAdapter, platform, physicalGearValidatorService.getFormGroup());
     }
 
     async ngOnInit() {
+
+        const config = await this.configService.get();
+        this._program =  config.defaultProgram;
 
         this._gears = await this.programService.loadGears(this._program);
 
@@ -89,18 +93,20 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
             );
 
         this.form.controls['gear'].valueChanges
-            .filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
-            .subscribe(value => {
-                this.measurementsForm.gear = value.label;
-                this.measurementsForm.updateControls('[physical-gear-form] gear changed');
-            });
+          .pipe(
+            filter(value => EntityUtils.isNotEmpty(value) && !this.loading)
+          )
+          .subscribe(value => {
+              this.measurementsForm.gear = value.label;
+              this.measurementsForm.updateControls('[physical-gear-form] gear changed');
+          });
 
         this.measurementsForm.valueChanges
             /*.pipe(
                 debounceTime(300)
             )*/
-            .subscribe(measurements => {
-                // Skip if noloading or no observers
+            .subscribe((_) => {
+                // Skip if loading or no observers
                 if (this.loading || !this.valueChanges.observers.length) return;
 
                 if (this.debug) console.debug("[physical-gear-form] measurementsForm.valueChanges => propagate event");
@@ -111,7 +117,7 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
             /*.pipe(
                 debounceTime(300)
             )*/
-            .subscribe(json => {
+            .subscribe((_) => {
                 // Skip if not loading or no observers
                 if (this.loading || !this.valueChanges.observers.length) return;
 
@@ -145,9 +151,11 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
         else {
             // Wait the end of pmfms loading
             this.measurementsForm.onLoading
-                .filter(loading => !loading)
-                .first()
-                .subscribe(() => this.loading = false);
+              .pipe(
+                filter(loading => !loading),
+                first()
+              )
+              .subscribe(() => this.loading = false);
         }
 
         // Restore enable state (because form.setValue() can change it !)

@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from "@angular/core";
-import {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -17,7 +17,7 @@ import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
 import {FormBuilder, FormGroup} from "@angular/forms";
 import {ReferentialRefService, referentialToString, vesselFeaturesToString} from "../referential/referential.module";
-import {debounceTime, mergeMap} from "rxjs/operators";
+import {debounceTime, first, map, mergeMap, startWith} from "rxjs/operators";
 import {TranslateService} from "@ngx-translate/core";
 
 @Component({
@@ -93,17 +93,21 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
     // Programs combo (filter)
     this.programs = this.filterForm.controls['program']
       .valueChanges
-      .startWith('')
       .pipe(
+        startWith(''),
         debounceTime(250),
         mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          if (EntityUtils.isNotEmpty(value)) return of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
           return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Program',
               searchText: value as string
-            }).first().map(({data}) => data);
+            })
+            .pipe(
+              first(),
+              map(({data}) => data)
+            );
         })
       );
 
@@ -113,14 +117,18 @@ export class TripsPage extends AppTable<Trip, TripFilter> implements OnInit, OnD
       .pipe(
         debounceTime(250),
         mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          if (EntityUtils.isNotEmpty(value)) return of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
           return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
               searchText: value as string
-            }).first().map(({data}) => data);
+            })
+            .pipe(
+              first(),
+              map(({data}) => data)
+            );
         }));
 
     // Update filter when changes

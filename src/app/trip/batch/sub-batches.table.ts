@@ -1,6 +1,6 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit} from "@angular/core";
-import {BehaviorSubject, Observable} from 'rxjs';
-import {debounceTime, map, mergeMap, startWith} from "rxjs/operators";
+import {BehaviorSubject, Observable, of} from 'rxjs';
+import {debounceTime, filter, first, map, mergeMap, startWith} from "rxjs/operators";
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
   AccountService,
@@ -160,8 +160,10 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
           .subscribe((event) => this.refreshPmfms(event));
 
       this.pmfms
-          .filter(pmfms => pmfms && pmfms.length > 0)
-          .first()
+        .pipe(
+          filter(pmfms => pmfms && pmfms.length > 0),
+          first()
+        )
           .subscribe(pmfms => {
               this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
               let pmfmColumns = pmfms.map(p => p.pmfmId.toString());
@@ -184,7 +186,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
           .pipe(
               debounceTime(250),
               mergeMap((value) => {
-                  if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+                  if (EntityUtils.isNotEmpty(value)) return of([value]);
                   value = (typeof value === "string" && value !== '*') && value || undefined;
                   if (this.debug) console.debug("[sub-batch-table] Searching taxon name on {" + (value || '*') + "}...");
                   return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
@@ -193,7 +195,11 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
                           levelId: TaxonomicLevelIds.SPECIES,
                           searchText: value as string,
                           searchAttribute: 'label'
-                      }).first().map(({data}) => data);
+                      })
+                    .pipe(
+                      first(),
+                      map(({data}) => data)
+                    );
               })
           );
 
@@ -268,7 +274,7 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
     ): Observable<LoadResult<Batch>> {
       if (!this.data) {
           if (this.debug) console.debug("[sub-batch-table] Unable to load row: value not set (or not started)");
-          return Observable.empty(); // Not initialized
+          return of(); // Not initialized
       }
 
       // If dirty: save first
@@ -289,9 +295,11 @@ export class SubBatchesTable extends AppTable<Batch, { operationId?: number }> i
         if (this.debug) console.debug("[sub-batch-table] Loading rows..", this.data);
 
         this.pmfms
-          .filter(pmfms => pmfms && pmfms.length > 0)
-          .first()
-          .subscribe(pmfms => {
+          .pipe(
+            filter(pmfms => pmfms && pmfms.length > 0),
+            first()
+          )
+          .subscribe((pmfms: PmfmStrategy[]) => {
             // Transform entities into object array
             const data = this.data.map(batch => {
               const json = batch.asObject();

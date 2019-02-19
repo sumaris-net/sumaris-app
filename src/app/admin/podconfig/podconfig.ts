@@ -1,29 +1,13 @@
-import { Component, OnInit, ViewChild } from "@angular/core";
+import {Component, OnInit} from "@angular/core";
 
-import { ModalController, Platform } from "@ionic/angular";
-import { Router, ActivatedRoute } from "@angular/router";
-import { Subscription, BehaviorSubject } from 'rxjs';
+import {ModalController} from "@ionic/angular";
+import {ActivatedRoute, Router} from "@angular/router";
+import {BehaviorSubject} from 'rxjs';
+import {FormBuilder, FormGroup} from "@angular/forms";
+import {Configuration, Department} from '../../core/services/model';
+import {ConfigService} from "src/app/core/services/config.service";
+import {AppFormUtils} from "src/app/core/core.module";
 
-import { Location } from '@angular/common';
-import { FormGroup, FormBuilder } from "@angular/forms";
-import { environment } from '../../../environments/environment';
-import { Configuration, Property, Department } from '../../core/services/model';
-import { PodConfigService } from "src/app/core/services/podconfig.service";
-import { AppFormUtils } from "src/app/core/core.module";
-import { CarouselComponent } from "./carousel/carousel.component";
-
-//Function that calculates de css to load
-export function getBrandCSS(styles: string[]): string[] {
-  alert("getBrandCSS " + environment.defaultProgram + "    " + styles);
-
-  for (let i = 0; i < styles.length; i++) {
-    //alert("getBrandCSS "+ environment.defaultProgram + "    " +styles);
-    //console.log(environment.defaultProgram + "    " + styles[i]);
-    styles[i] = environment.defaultProgram + '.' + styles[i];
-  }
-  return styles;
-}
- 
 
 @Component({
   moduleId: module.id.toString(),
@@ -38,13 +22,11 @@ export class PodConfigPage implements OnInit {
   loading: boolean = true;
   error: string;
 
-
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
-    protected carousel: CarouselComponent,
     public modalCtrl: ModalController,
-    protected configurationService: PodConfigService,
+    protected configService: ConfigService,
     protected formBuilder: FormBuilder 
       ) {
  
@@ -55,37 +37,29 @@ export class PodConfigPage implements OnInit {
 
   };
 
-  ngOnInit() {
-    this.load();
+  async ngOnInit() {
+    await this.load();
   }
 
   async load() {
 
-    // this.configurationService.getDepartments().then(de =>{
-    //   this.departements.next(de);
-    //   console.log("depService.logos " +  de .map(d=>d.logo) );
-    // });
+    try {
+      const data = await this.configService.dataSubject.toPromise();
+      console.debug("[podconfig] Loaded pod data: ", data);
 
-    const data = await this.configurationService.getConfs();
-    console.dir(data);
-
-
-
-    this.updateView(data);
+      this.updateView(data);
+    } catch(err) {
+      this.error = err && err.message || err;
+      this.loading = false;
+    }
   }
 
-  removeIcon(icon: String){
-    console.log("remove Icon " + icon);
+  removePartner(item: Department){
+    console.log("Remove partner: ", item);
   }
-
-  // removeBG(bgImage: string){
-  //   console.log("remove BackGround " + bgImage);
-  //   this.configurationService.removeBackGround();
-  // }
 
   updateView(data: Configuration) {
 
-    console.dir(data);
     this.data = data;
 
     const json = AppFormUtils.getFormValueFromEntity(data, this.form);
@@ -107,7 +81,7 @@ export class PodConfigPage implements OnInit {
     try {
 
       console.log(" Saving  ", this.form.value);
-      //await this.configurationService.save(this.data);
+      //await this.configService.save(this.data);
 
       this.form.markAsUntouched();
     }

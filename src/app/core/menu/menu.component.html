@@ -3,8 +3,9 @@
   <ion-menu side="start" content="content" menuId="main">
     <ion-header>
 
-      <mat-toolbar padding *ngIf="!isLogin" style="height: unset; height: unset; display: block; margin: auto; text-align: center;">
-        <img src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="150px;"/>
+      <mat-toolbar padding *ngIf="!isLogin" style="height: unset; display: block; margin: auto; text-align: center;">
+
+        <img *ngIf="!loading" src="{{logo}}" [title]="'APP_NAME'|translate: {appName: appName}"  width="150px;"/>
       </mat-toolbar>
 
       <ion-toolbar [@fadeInAnimation] *ngIf="isLogin" class="ion-toolbar-top">
@@ -15,9 +16,7 @@
               </div>
             </ion-col>
             <ion-col size="8" class="user-logo">
-               <!-- <img src="./assets/img/logo-menu.png" [title]="'APP_NAME'|translate" />
-             img src="./assets/img/logo/logo-interreg2seas.png" width="108px;"/>-->
-              <img src="{{logo}}" width="108px;"/>
+              <img *ngIf="!loading" src="{{logo}}" width="108px;"/>
             </ion-col>
           </ion-row>
           <ion-row no-padding>

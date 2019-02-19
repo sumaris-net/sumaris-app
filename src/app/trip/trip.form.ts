@@ -4,8 +4,8 @@ import {LocationLevelIds, Referential, Trip, VesselFeatures, vesselFeaturesToStr
 import {ModalController, Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material";
-import {Observable} from 'rxjs';
-import {debounceTime, mergeMap} from 'rxjs/operators';
+import {Observable, of} from 'rxjs';
+import {debounceTime, first, map, mergeMap, startWith} from 'rxjs/operators';
 import {merge} from "rxjs/observable/merge";
 import {AppForm} from '../core/core.module';
 import {
@@ -47,17 +47,21 @@ export class TripForm extends AppForm<Trip> implements OnInit {
     // Combo: vessels
     this.programs = this.form.controls['program']
       .valueChanges
-      .startWith('')
       .pipe(
+        startWith(''),
         debounceTime(250),
         mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          if (EntityUtils.isNotEmpty(value)) return of([value]);
           value = (typeof value === "string" && value !== "*") && value || undefined;
           return this.referentialRefService.loadAll(0, !value ? 50 : 10, undefined, undefined,
             {
               entityName: 'Program',
               searchText: value as string
-            }).first().map(({data}) => data);
+            })
+            .pipe(
+              first(),
+              map(({data}) => data)
+            );
         }));
 
     // Combo: vessels
@@ -66,11 +70,15 @@ export class TripForm extends AppForm<Trip> implements OnInit {
       .pipe(
         debounceTime(250),
         mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          if (EntityUtils.isNotEmpty(value)) return of([value]);
           value = (typeof value === "string") && value || undefined;
           return this.vesselService.loadAll(0, 10, undefined, undefined,
             { searchText: value as string }
-          ).first().map(({data}) => data);
+          )
+            .pipe(
+              first(),
+              map(({data}) => data)
+            );
         }));
 
     // Combo: sale location
@@ -82,14 +90,18 @@ export class TripForm extends AppForm<Trip> implements OnInit {
         .pipe(
           debounceTime(250),
           mergeMap(value => {
-            if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+            if (EntityUtils.isNotEmpty(value)) return of([value]);
             value = (typeof value === "string" && value !== '*') && value || undefined;
             return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
               {
                 entityName: 'Location',
                 levelId: LocationLevelIds.PORT,
                 searchText: value as string
-              }).first().map(({data}) => data);
+              })
+              .pipe(
+                first(),
+                map(({data}) => data)
+              );
           })
         );
   }

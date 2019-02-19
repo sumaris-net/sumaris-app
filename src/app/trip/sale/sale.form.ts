@@ -5,8 +5,8 @@ import { Platform } from '@ionic/angular';
 import { Moment } from 'moment/moment';
 import { AppForm } from '../../core/core.module';
 import { DateAdapter } from "@angular/material";
-import { Observable } from 'rxjs';
-import { mergeMap, debounceTime } from 'rxjs/operators';
+import {Observable, of} from 'rxjs';
+import {mergeMap, debounceTime, first, map} from 'rxjs/operators';
 import { VesselService, ReferentialRefService } from '../../referential/referential.module';
 
 @Component({
@@ -57,11 +57,15 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
         .valueChanges
         .pipe(
           mergeMap(value => {
-            if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+            if (EntityUtils.isNotEmpty(value)) return of([value]);
             value = (typeof value === "string") && value || undefined;
             return this.vesselService.loadAll(0, 10, undefined, undefined,
               { searchText: value as string }
-            ).map(({data}) => data);
+            )
+              .pipe(
+                first(),
+                map(({data}) => data)
+              );
           }));
     }
     else {
@@ -74,14 +78,18 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
       .pipe(
         debounceTime(250),
         mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          if (EntityUtils.isNotEmpty(value)) return of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
           return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'Location',
               levelId: LocationLevelIds.PORT,
               searchText: value as string
-            }).first().map(({data}) => data);
+            })
+            .pipe(
+              first(),
+              map(({data}) => data)
+            );
         }));
 
     // Combo: sale types
@@ -90,13 +98,17 @@ export class SaleForm extends AppForm<Sale> implements OnInit {
       .pipe(
         debounceTime(250),
         mergeMap(value => {
-          if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+          if (EntityUtils.isNotEmpty(value)) return of([value]);
           value = (typeof value === "string" && value !== '*') && value || undefined;
           return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
             {
               entityName: 'SaleType',
               searchText: value as string
-            }).first().map(({data}) => data);
+            })
+            .pipe(
+              first(),
+              map(({data}) => data)
+            );
         }));
   }
 
