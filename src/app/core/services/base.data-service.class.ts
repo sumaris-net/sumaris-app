@@ -1,6 +1,6 @@
 import {Observable, of} from "rxjs";
 import {Apollo} from "apollo-angular";
-import {ApolloQueryResult, FetchPolicy} from "apollo-client";
+import {ApolloQueryResult, ErrorPolicy, FetchPolicy} from "apollo-client";
 import {R} from "apollo-angular/types";
 import {ErrorCodes, ServerErrorCodes, ServiceError} from "./errors";
 import {first, map} from "rxjs/operators";
@@ -56,13 +56,15 @@ export abstract class BaseDataService {
     query: any,
     variables: V,
     error?: ServiceError,
-    fetchPolicy?: FetchPolicy
+    fetchPolicy?: FetchPolicy,
+    errorPolicy?: ErrorPolicy
   }): Observable<T> {
     return this.apollo.watchQuery<T, V>({
       query: opts.query,
       variables: opts.variables,
       fetchPolicy: opts.fetchPolicy || (environment.apolloFetchPolicy as FetchPolicy) || undefined,
-      notifyOnNetworkStatusChange: true
+      notifyOnNetworkStatusChange: true,
+      errorPolicy: opts.errorPolicy || undefined/*will use default*/
     })
       .valueChanges
       //.catch(error => this.onApolloError<T>(error))

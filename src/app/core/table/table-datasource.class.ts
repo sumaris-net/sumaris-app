@@ -61,7 +61,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
 
     this.onLoading.emit(true);
     return this.dataService.loadAll(offset, size, sortBy, sortDirection, filter, this.serviceOptions)
-      //.catchError(err => this.handleError(err, 'Unable to load rows'))
+      //.catch(err => this.handleError(err, 'Unable to load rows'))
       .pipe(
         map(res => {
           this.onLoading.emit(false);
@@ -208,7 +208,7 @@ export class AppTableDataSource<T extends Entity<T>, F> extends TableDataSource<
     this.onLoading.emit(true);
 
     this.dataService.deleteAll([row.currentData], this.serviceOptions)
-      .catchError(err => this.handleErrorPromise(err, 'Unable to delete row'))
+      .catch(err => this.handleErrorPromise(err, 'Unable to delete row'))
       .then(() => {
         setTimeout(() => {
           // make sure row has been deleted (because GrapQHl cache remove can failed)

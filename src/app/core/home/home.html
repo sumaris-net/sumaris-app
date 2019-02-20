@@ -26,9 +26,9 @@
     <ion-toolbar translucent>
       <ion-buttons slot="end">
         <!-- change locale button -->
-        <ion-button color="light" fill="solid" [matMenuTriggerFor]="matmenu">
+        <ion-button color="light" fill="solid" [matMenuTriggerFor]="matmenu" *ngIf="!loading">
           <mat-icon slot="start">public</mat-icon>
-          <ion-label>&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
+          <ion-label >&nbsp;{{ (translate.currentLang || translate.defaultLang).substr(0,2) | uppercase }}</ion-label>
         </ion-button>
       </ion-buttons>
     </ion-toolbar>

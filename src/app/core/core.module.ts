@@ -154,12 +154,22 @@ export class CoreModule {
     constructor(
         translate: TranslateService,
         accountService: AccountService,
-        dateAdapter: DateAdapter<any>) {
+        dateAdapter: DateAdapter<any>,
+        configService: ConfigService) {
 
         console.info("[core] Starting module...");
 
         // this language will be used as a fallback when a translation isn't found in the current language
         translate.setDefaultLang(environment.defaultLocale);
+
+        configService.get()
+          .then(config => {
+            const locale = config && config.properties['defaultLocale'];
+            if (locale && locale !== environment.defaultLocale) {
+              console.info(`[core] Changing default locale to {${locale}`);
+              translate.setDefaultLang(locale);
+            }
+          });
 
         // When locale changes, apply to date adapter
         translate.onLangChange.subscribe(event => {
@@ -172,13 +182,13 @@ export class CoreModule {
                 try {
                     const momentLocale: string = event.lang.substr(0, 2);
                     moment.locale(momentLocale);
-                    console.debug('[app] Use locale {' + event.lang + '}');
+                    console.debug('[core] Use locale {' + event.lang + '}');
                 }
                 // If error, fallback to en
                 catch (err) {
                     dateAdapter.setLocale('en');
                     moment.locale('en');
-                    console.warn('[app] Unknown local for moment lib. Using default [en]');
+                    console.warn('[core] Unknown local for moment lib. Using default [en]');
                 }
 
             }
