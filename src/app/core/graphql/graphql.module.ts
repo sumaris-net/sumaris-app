@@ -10,7 +10,7 @@ import { InMemoryCache, defaultDataIdFromObject } from 'apollo-cache-inmemory';
 import { ApolloLink } from 'apollo-link';
 import { WebSocketLink } from 'apollo-link-ws';
 import { getMainDefinition } from 'apollo-utilities';
-import { onError } from 'apollo-link-error';
+import {ErrorLink, onError} from 'apollo-link-error';
 
 /* Hack on Websocket, to avoid the use of protocol */
 declare let window: any;
@@ -93,7 +93,7 @@ export class AppGraphQLModule {
       dataIdFromObject: dataIdFromObject
     });
 
-    const link = onError(({ graphQLErrors, networkError }) => {
+    const error = onError(({ graphQLErrors, networkError, operation, forward }) => {
       if (graphQLErrors)
         graphQLErrors.map(({ message, locations, path }) =>
           console.log(
@@ -102,6 +102,7 @@ export class AppGraphQLModule {
         );
 
       if (networkError) console.log(`[Network error]: ${networkError}`);
+      return forward(operation);
     });
 
     // create Apollo
@@ -112,14 +113,14 @@ export class AppGraphQLModule {
           return def.kind === 'OperationDefinition' && def.operation === 'subscription';
         },
         ws,
-        authLink.concat(http)
+        authLink.concat(error).concat(http)
       ),
       cache: imCache,
       connectToDevTools: !environment.production,
       defaultOptions: {
         watchQuery: {
           // See https://www.apollographql.com/docs/angular/features/error-handling.html
-          errorPolicy: 'all'
+          errorPolicy: 'none'
         }
       }
     });
