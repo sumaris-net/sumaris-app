@@ -14,6 +14,7 @@ import {
   ReferentialRefService,
   referentialToString
 } from '../../referential/referential.module';
+import * as moment from "moment";
 
 @Component({
     selector: 'form-operation',
@@ -92,6 +93,16 @@ export class OperationForm extends AppForm<Operation> implements OnInit {
                             searchText: value as string
                         }).first().map(({data}) => data);
                 }));
+
+       //  this.form.controls['endDateTime'].patchValue(moment());
+       // this.form.controls.startDateTime.patchValue({
+       //     startDateTime: moment()
+       // });
+        
+        this.form.patchValue( {
+            startDateTime: moment(),
+            endDateTime: moment(),
+        });
     }
 
     setTrip(trip: Trip) {

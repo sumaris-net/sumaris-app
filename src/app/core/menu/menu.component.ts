@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, ViewChild } from '@angular/core';
 import { MenuController, ModalController } from "@ionic/angular";
 
 import { Router } from "@angular/router";
@@ -9,7 +9,7 @@ import { AboutModal } from '../about/modal-about';
 import { environment } from '../../../environments/environment';
 import { HomePage } from '../home/home';
 import { PodConfigService } from '../services/podconfig.service';
-
+import { Components }  from '@ionic/core';
 import { Subject } from 'rxjs';
 import { fadeInAnimation } from '../../shared/material/material.animations';
 
@@ -20,6 +20,7 @@ export interface MenuItem {
   icon?: string;
   profile?: UserProfileLabel;
   exactProfile?: UserProfileLabel;
+  hideOnClick?: boolean;
 }
 
 @Component({
@@ -46,6 +47,8 @@ export class MenuComponent implements OnInit {
   @Input() content: any;
 
   @Input() side: string = "left";
+
+  @ViewChild('mainMenu') pane : Components.IonSplitPane;
 
   root: any = HomePage;
 
@@ -85,6 +88,22 @@ export class MenuComponent implements OnInit {
       this.appName = conf.name;
     })
 
+  }
+
+  hideMenu(event, item){
+    console.log("event : " +this.pane.when +"  " + event + "  " + item);
+    console.dir(event);
+    console.dir(item);
+    console.log( ( this.pane.when === 'lg' ) + "   " + item.hideOnClick);
+    this.pane.when = true || '';
+    if(item.hideOnClick){
+      this.pane.when = true;
+      this.menu.close();
+    }else {
+        this.pane.when = 'lg';
+        this.menu.close();
+    }
+  
   }
 
   onLogin(account: Account) {
@@ -139,7 +158,7 @@ export class MenuComponent implements OnInit {
         else {
           res = true;
         }
-
+ 
         return res;
       }));
     }

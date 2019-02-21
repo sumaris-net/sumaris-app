@@ -12,7 +12,7 @@ import {SubSamplesTable} from '../sample/sub-samples.table';
 import {AlertController} from "@ionic/angular";
 import {TranslateService} from '@ngx-translate/core';
 import {AcquisitionLevelCodes} from '../../core/services/model';
-import {isNil, isNotNil} from '../../shared/shared.module';
+import {isNil, isNotNil, fadeInOutAnimation} from '../../shared/shared.module';
 import {PmfmIds, QualitativeLabels} from '../../referential/referential.module';
 import {Subject} from 'rxjs';
 import {DateFormatPipe} from 'src/app/shared/pipes/date-format.pipe';
@@ -22,12 +22,14 @@ import {MatTabChangeEvent} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, map, startWith} from "rxjs/operators";
 import {Validators} from "@angular/forms";
 import {Moment} from "moment";
+import * as moment from "moment";
 
 
 @Component({
   selector: 'page-operation',
   templateUrl: './operation.page.html',
-  styleUrls: ['./operation.page.scss']
+  styleUrls: ['./operation.page.scss'],
+  animations: [fadeInOutAnimation]
 })
 export class OperationPage extends AppTabPage<Operation, { tripId: number }> implements OnInit {
 
@@ -37,6 +39,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   trip: Trip;
   saving: boolean = false;
   rankOrder: number;
+  subTabIndex: number;
   selectedBatchSamplingTabIndex: number = 0;
   selectedSurvivalTestTabIndex: number = 0;
 
@@ -174,7 +177,14 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       if (this.debug) console.debug("[page-operation] Creating new operation...");
       const trip = await this.tripService.load(options.tripId).first().toPromise();
 
-      const data = new Operation();
+      const data = Operation.fromObject({
+        startDateTime: moment(),
+        batches: [
+          Batch.fromObject({
+            //measurementValues: {50 : 321}   // 50 = LANDING_WEIGHT PMFM 321 value
+          })
+        ]
+      });
 
       // Use the default gear, if only one
       if (trip.gears.length == 1) {
@@ -210,6 +220,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
   }
 
   updateView(data: Operation | null, trip?: Trip) {
+    this.onURLChange();
     this.data = data;
     this.opeForm.value = data;
     if (trip) {

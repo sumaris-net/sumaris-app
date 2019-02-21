@@ -11,11 +11,11 @@ import {MeasurementsForm} from './measurement/measurements.form.component';
 import {AppFormUtils, AppTabPage} from '../core/core.module';
 import {PhysicalGearTable} from './physicalgear/physicalgears.table';
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../environments/environment';
 import {Subject} from 'rxjs';
 import {DateFormatPipe, isNil, isNotNil} from '../shared/shared.module';
 import {EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
 import {Moment} from "moment";
+import * as moment from "moment";
 
 @Component({
   selector: 'page-trip',
@@ -82,10 +82,10 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
     this.error = null;
     // new
     if (!id) {
-
+      // FIXME : add isOnField check 
       // Create using default values
       const data = Trip.fromObject({
-        program: { label: environment.defaultProgram }
+        departureDateTime: moment() 
       });
 
       this.updateView(data, true);
