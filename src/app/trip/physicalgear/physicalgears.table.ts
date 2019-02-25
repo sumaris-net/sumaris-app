@@ -1,6 +1,6 @@
-import {Component, OnDestroy, OnInit, ViewChild} from "@angular/core";
+import {Component, EventEmitter, Input, OnDestroy, OnInit, ViewChild} from "@angular/core";
 
-import {BehaviorSubject, Observable} from 'rxjs';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {TableElement, ValidatorService} from "angular4-material-table";
 import {
@@ -29,11 +29,16 @@ import {DataService, LoadResult} from "../../shared/shared.module";
 })
 export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements OnInit, OnDestroy, DataService<PhysicalGear, any> {
 
-  private data: PhysicalGear[];
 
   private _dataSubject = new BehaviorSubject<{data: PhysicalGear[]}>({data: []});
 
+  private data: PhysicalGear[];
   detailMeasurements: Observable<string[]>;
+  programSubject = new Subject<string>();
+
+  @Input() set program(program: string) {
+    this.programSubject.next(program);
+  }
 
   @ViewChild('gearForm') gearForm: PhysicalGearForm;
 
@@ -83,6 +88,9 @@ export class PhysicalGearTable extends AppTable<PhysicalGear, any> implements On
       onNewRow: (row) => this.onCreateNewGear(row)
     }));
 
+    // this.program.subscribe(program => {
+    //   this.gearForm.program = program;
+    // })
   };
 
 

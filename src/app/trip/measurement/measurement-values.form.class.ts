@@ -1,27 +1,26 @@
-import { Input, EventEmitter } from '@angular/core';
-import { PmfmStrategy, MeasurementUtils } from "../services/trip.model";
-import { Platform } from "@ionic/angular";
-import { Moment } from 'moment/moment';
-import { DateAdapter } from "@angular/material";
-import { Subject } from 'rxjs';
-import { zip } from "rxjs/observable/zip";
-import { AppForm, AppFormUtils } from '../../core/core.module';
-import { ProgramService } from "../../referential/referential.module";
-import { FormBuilder } from '@angular/forms';
-import { MeasurementsValidatorService } from '../services/measurement.validator';
-import { FormGroup } from "@angular/forms";
-import { environment } from '../../../environments/environment';
+import {EventEmitter, Input} from '@angular/core';
+import {MeasurementUtils, PmfmStrategy} from "../services/trip.model";
+import {Platform} from "@ionic/angular";
+import {Moment} from 'moment/moment';
+import {DateAdapter} from "@angular/material";
+import {Subject} from 'rxjs';
+import {zip} from "rxjs/observable/zip";
+import {AppForm, AppFormUtils} from '../../core/core.module';
+import {ProgramService} from "../../referential/referential.module";
+import {FormBuilder, FormGroup} from '@angular/forms';
+import {MeasurementsValidatorService} from '../services/measurement.validator';
+
 export abstract class MeasurementValuesForm<T extends { measurementValues: { [key: string]: any } }> extends AppForm<T> {
 
     protected _onValueChange = new EventEmitter<any>();
     protected _onRefreshPmfms = new EventEmitter<any>();
-    protected _program: string = environment.defaultProgram;
+    protected _program: string;
     protected _gear: string = null;
     protected _acquisitionLevel: string;
     protected data: T;
     protected _debugAcquisitionLevel: string;
 
-    loading: boolean = true;
+    loading: boolean = false;
     pmfms = new Subject<PmfmStrategy[]>();
     cachedPmfms: PmfmStrategy[];
 
@@ -156,7 +155,7 @@ export abstract class MeasurementValuesForm<T extends { measurementValues: { [ke
 
                     //if (event) this.logDebug(`call _onMeasurementsChange.emit('${event}')`);
 
-                    const now = Date.now();
+                    //const now = Date.now();
                     //this.logDebug("Updating form, using pmfms:", pmfms);
 
                     if (!this.form.controls['measurementValues']) {

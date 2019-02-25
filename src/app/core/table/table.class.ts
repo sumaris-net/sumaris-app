@@ -208,6 +208,10 @@ export abstract class AppTable<T extends Entity<T>, F> implements OnInit, OnDest
         this._cellValueChangesDefs = {};
     }
 
+    protected registerSubscription(sub: Subscription) {
+      this._subscriptions.push(sub);
+    }
+
     setDatasource(datasource: AppTableDataSource<T, F>) {
         if (this.dataSource) throw new Error("[table] dataSource already set !");
         this.dataSource = datasource;

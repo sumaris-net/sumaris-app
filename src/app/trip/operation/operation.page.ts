@@ -5,7 +5,7 @@ import {OperationForm} from './operation.form';
 import {Batch, EntityUtils, Operation, Trip} from '../services/trip.model';
 import {TripService} from '../services/trip.service';
 import {MeasurementsForm} from '../measurement/measurements.form.component';
-import {AccountService, AppFormUtils, AppTabPage} from '../../core/core.module';
+import {AccountService, AppFormUtils, AppTabPage, environment} from '../../core/core.module';
 import {CatchForm} from '../catch/catch.form';
 import {SamplesTable} from '../sample/samples.table';
 import {SubSamplesTable} from '../sample/sub-samples.table';
@@ -21,8 +21,8 @@ import {SubBatchesTable} from "../batch/sub-batches.table";
 import {MatTabChangeEvent} from "@angular/material";
 import {debounceTime, distinctUntilChanged, filter, map, startWith} from "rxjs/operators";
 import {Validators} from "@angular/forms";
-import {Moment} from "moment";
 import * as moment from "moment";
+import {Moment} from "moment";
 
 @Component({
   selector: 'page-operation',
@@ -35,6 +35,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
 
   title = new Subject<string>();
   trip: Trip;
+  programSubject = new Subject<string>();
   saving: boolean = false;
   rankOrder: number;
   selectedBatchSamplingTabIndex: number = 0;
@@ -157,6 +158,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       if (!options || isNil(options.tripId)) throw new Error("Missing argument 'options.tripId'!");
 
       const trip = await this.tripService.load(options.tripId).first().toPromise();
+      this.programSubject.next(trip && trip.program && trip.program.label);
       this.usageMode = this.computeUsageMode(trip);
 
       const data = new Operation();
@@ -190,6 +192,7 @@ export class OperationPage extends AppTabPage<Operation, { tripId: number }> imp
       if (this.debug) console.debug("[page-operation] Operation loaded", data);
 
       const trip = await this.tripService.load(data.tripId).first().toPromise();
+      this.programSubject.next(trip.program && trip.program.label);
       this.usageMode = this.computeUsageMode(trip);
 
       this.updateView(data, trip);

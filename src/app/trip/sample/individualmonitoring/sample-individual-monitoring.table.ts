@@ -48,7 +48,7 @@ export class IndividualMonitoringTable extends SubSamplesTable {
     };
 
     async ngOnInit() {
-        super.ngOnInit();
+        await super.ngOnInit();
 
         // Listening on column 'IS_DEAD' value changes
         this.registerCellValueChanges('isDead', "measurementValues." + PmfmIds.IS_DEAD.toString())

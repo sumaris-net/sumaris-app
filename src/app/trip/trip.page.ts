@@ -4,19 +4,19 @@ import {AlertController} from "@ionic/angular";
 
 import {TripService} from './services/trip.service';
 import {TripForm} from './trip.form';
-import {ReferentialRef, Trip} from './services/trip.model';
+import {EntityUtils, Trip} from './services/trip.model';
 import {SaleForm} from './sale/sale.form';
 import {OperationTable} from './operation/operations.table';
 import {MeasurementsForm} from './measurement/measurements.form.component';
 import {AccountService, AppFormUtils, AppTabPage} from '../core/core.module';
 import {PhysicalGearTable} from './physicalgear/physicalgears.table';
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../environments/environment';
 import {Subject} from 'rxjs';
 import {DateFormatPipe, isNil, isNotNil} from '../shared/shared.module';
 import {EntityQualityMetadataComponent} from "./quality/entity-quality-metadata.component";
-import {Moment} from "moment";
 import * as moment from "moment";
+import {Moment} from "moment";
+import {distinct, filter, map} from "rxjs/operators";
 
 @Component({
   selector: 'page-trip',
@@ -27,6 +27,7 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
 
   protected _enableListenChanges: boolean = true;
 
+  programSubject = new Subject<string>();
   title = new Subject<string>();
   saving: boolean = false;
   defaultBackHref: string = "/trips";
@@ -78,6 +79,21 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
         this.load(parseInt(id));
       }
     });
+
+    // Listen program changes
+    if (this.tripForm && this.tripForm.form) {
+      this.registerSubscription(this.tripForm.form.controls['program'].valueChanges
+        .pipe(
+          filter(EntityUtils.isNotEmpty),
+          map(obj => obj.label),
+          distinct()
+        )
+        .subscribe(program => {
+          console.debug("[trip-page] Propagate program change: " + program);
+          this.programSubject.next(program);
+        })
+      );
+    }
   }
 
   async load(id?: number, options?: any) {
@@ -93,7 +109,6 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
       // If is on field mode, fill default values
       if (isOnFieldMode) {
         data.departureDateTime = moment();
-        data.program = ReferentialRef.fromObject({label: environment.defaultProgram});
       }
 
       this.updateView(data, true);
@@ -134,6 +149,9 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   updateView(data: Trip | null, updateOperations?: boolean) {
     this.data = data;
     this.tripForm.value = data;
+    if (isNotNil(data.id)) {
+      this.tripForm.form.controls['program'].disable();
+    }
     this.saleForm.value = data && data.sale;
     this.measurementsForm.value = data && data.measurements || [];
     this.measurementsForm.updateControls();
@@ -243,12 +261,16 @@ export class TripPage extends AppTabPage<Trip> implements OnInit {
   enable() {
     if (!this.data || isNotNil(this.data.validationDate)) return false;
     // If not a new trip, check user can write
-    if ((this.data.id || this.data.id === 0) && !this.tripService.canUserWrite(this.data)) {
+    if (isNotNil(this.data.id) && !this.tripService.canUserWrite(this.data)) {
       if (this.debug) console.warn("[trip] Leave form disable (User has NO write access)");
       return;
     }
     if (this.debug) console.debug("[trip] Enabling form (User has write access)");
     super.enable();
+    // Leave program disable once saved
+    if (isNotNil(this.data.id)) {
+      this.tripForm.form.controls['program'].disable();
+    }
   }
 
   async onOperationClick(opeId: number) {

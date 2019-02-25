@@ -11,11 +11,11 @@
     <!-- PROGRAM -->
     <ion-row no-padding>
       <ion-col>
-        <mat-form-field>
+        <mat-form-field >
           <ion-icon margin-right name="contract" matPrefix></ion-icon>
-          <input matInput [placeholder]="'TRIP.PROGRAM'|translate" [matAutocomplete]="autoProgram" formControlName="program">
-          <mat-error *ngIf="form.controls.program.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls.program.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+          <input matInput [placeholder]="'TRIP.PROGRAM'|translate" [matAutocomplete]="autoProgram" formControlName="program" required>
+          <mat-error *ngIf="form.controls['program'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          <mat-error *ngIf="form.controls['program'].hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
         </mat-form-field>
 
         <!-- Program combo -->

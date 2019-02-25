@@ -3,15 +3,13 @@ import {Measurement, MeasurementUtils, PmfmStrategy} from "../services/trip.mode
 import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment';
 import {DateAdapter, FloatLabelType} from "@angular/material";
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, merge} from 'rxjs';
 import {startWith, throttleTime} from "rxjs/operators";
-import {zip} from "rxjs/observable/zip";
 import {AppForm} from '../../core/core.module';
 import {ProgramService} from "../../referential/referential.module";
 import {FormBuilder} from '@angular/forms';
 import {MeasurementsValidatorService} from '../services/measurement.validator';
 import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
 import {isNil, isNotNil} from '../../shared/shared.module';
 
 @Component({
@@ -23,7 +21,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
 
     private _onValueChanged = new EventEmitter<any>();
     private _onRefreshPmfms = new EventEmitter<any>();
-    private _program: string = environment.defaultProgram;
+    private _program: string;
     private _gear: string;
     private _acquisitionLevel: string;
     protected data: Measurement[];
@@ -31,7 +29,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     protected _onLoadingPmfms = new BehaviorSubject<boolean>(true);
 
     pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
-    onLoading = new BehaviorSubject<boolean>(true);
+    onLoading = new BehaviorSubject<boolean>(false);
 
     @Input() showError: boolean = false;
 
@@ -51,6 +49,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     @Input()
     set program(value: string) {
         if (this._program === value) return; // Skip if same
+        console.log("Setting form meas program=" + value);
         this._program = value;
         if (!this.onLoading.getValue()) {
             this._onRefreshPmfms.emit('set program');
@@ -129,14 +128,14 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
     ngOnInit() {
         super.ngOnInit();
 
-        this._onRefreshPmfms
+        this._onRefreshPmfms.asObservable()
             .pipe(
                 startWith('ngOnInit')
             )
             .subscribe((event) => this.refreshPmfms(event));
 
         // Auto update the view, when value AND pmfms are filled
-        zip(
+        merge(
             this._onValueChanged
                 .pipe(
                     startWith('ngOnInit')
@@ -145,8 +144,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
             this.pmfms
                 .filter((pmfms) => isNotNil(pmfms))
         )
-            .first()
-            .subscribe(([event, pmfms]) => this.updateControls(event, pmfms));
+            //.first()
+            .subscribe((_) => this.updateControls('merge', this.pmfms.getValue()));
 
         // Listen form changes
         this.form.valueChanges
@@ -202,6 +201,9 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         this.pmfms.next(pmfms);
         this._onLoadingPmfms.next(false);
 
+        if (this.enabled)
+          this.onLoading.next(false);
+
         return pmfms;
     }
 
@@ -209,7 +211,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
         if (isNil(this.data)) return; // not ready
         pmfms = pmfms || this.pmfms.getValue();
 
-        this.onLoading.next(true);
 
         if (this.form.enabled){
           this.form.disable();
@@ -230,7 +231,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> {
             return;
         }
 
-        if (event) this.logDebug(`updateControls(${event})...`);
+      this.onLoading.next(true);
+
+
+      if (event) this.logDebug(`updateControls(${event})...`);
 
         // No pmfms (= empty form)
         if (!pmfms.length) {

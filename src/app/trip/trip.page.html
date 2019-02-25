@@ -52,7 +52,7 @@
                   <ion-label translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
                 </ion-col>
                 <ion-col>
-                  <form-measurements acquisitionLevel="TRIP" [debug]="debug" #measurementsForm></form-measurements>
+                  <form-measurements acquisitionLevel="TRIP" [debug]="debug" #measurementsForm [program]="programSubject|async"></form-measurements>
                   <span *ngIf="debug">
                     <br />dirty: {{measurementsForm.dirty}}
                   </span>
@@ -89,7 +89,7 @@
           <ion-label color="danger" class="error" [innerHTML]="physicalGearTable.error|translate"></ion-label>
         </ion-item>
 
-        <table-physical-gears #physicalGearTable [debug]="debug">
+        <table-physical-gears #physicalGearTable [debug]="debug" [program]="programSubject|async">
         </table-physical-gears>
 
       </div>

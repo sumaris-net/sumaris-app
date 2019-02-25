@@ -1,11 +1,11 @@
 import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {PhysicalGearValidatorService} from "../services/physicalgear.validator";
-import {Measurement, PhysicalGear} from "../services/trip.model";
+import {isNotNil, Measurement, PhysicalGear} from "../services/trip.model";
 import {Platform} from "@ionic/angular";
 import {Moment} from 'moment/moment'
 import {DateAdapter} from "@angular/material";
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {debounceTime, distinctUntilChanged, map, startWith} from 'rxjs/operators';
+import {debounceTime, distinct, distinctUntilChanged, filter, map, startWith} from 'rxjs/operators';
 import {AppForm} from '../../core/core.module';
 import {
   EntityUtils,
@@ -24,13 +24,17 @@ import {environment} from '../../../environments/environment';
 })
 export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
-    private _program: string = environment.defaultProgram;
     private _gears: ReferentialRef[] = [];
 
     loading = false;
     filteredGears: Observable<ReferentialRef[]>;
     measurements: Measurement[];
     gear: Subject<string> = new BehaviorSubject<string>(null);
+    programSubject = new Subject<string>();
+
+    @Input() set program(program: string) {
+      this.programSubject.next(program);
+    }
 
     @Input() showComment: boolean = true;
 
@@ -63,30 +67,39 @@ export class PhysicalGearForm extends AppForm<PhysicalGear> implements OnInit {
 
     async ngOnInit() {
 
-        this._gears = await this.programService.loadGears(this._program);
+      this.registerSubscription(
+        this.programSubject
+          .pipe(
+            filter(isNotNil),
+            distinct()
+          )
+          .subscribe(async(program) => {
+              this._gears = await this.programService.loadGears(program);
+          })
+      );
 
-        // Combo: gears
-        this.filteredGears = this.form.controls['gear'].valueChanges
-            .pipe(
-                distinctUntilChanged(),
-                debounceTime(250),
-                startWith(''),
-                map((value: any) => {
-                    if (EntityUtils.isNotEmpty(value)) {
-                        // apply value for measurements sub-form
-                        //this.gear.next(value.label);
-                        return [value];
-                    }
-                    value = (typeof value === "string" && value !== '*') && value || undefined;
-                    if (!value) return this._gears; // all gears
-                    // Search on label or name
-                    const ucValue = value.toUpperCase();
-                    return this._gears.filter(g =>
-                        (g.label && g.label.toUpperCase().indexOf(ucValue) === 0)
-                        || (g.name && g.name.toUpperCase().indexOf(ucValue) != -1)
-                    );
-                })
-            );
+      // Combo: gears
+      this.filteredGears = this.form.controls['gear'].valueChanges
+          .pipe(
+              //distinctUntilChanged(),
+              debounceTime(250),
+              startWith(''),
+              map((value: any) => {
+                  if (EntityUtils.isNotEmpty(value)) {
+                      // apply value for measurements sub-form
+                      //this.gear.next(value.label);
+                      return [value];
+                  }
+                  value = (typeof value === "string" && value !== '*') && value || undefined;
+                  if (!value) return this._gears; // all gears
+                  // Search on label or name
+                  const ucValue = value.toUpperCase();
+                  return this._gears.filter(g =>
+                      (g.label && g.label.toUpperCase().indexOf(ucValue) === 0)
+                      || (g.name && g.name.toUpperCase().indexOf(ucValue) != -1)
+                  );
+              })
+          );
 
         this.form.controls['gear'].valueChanges
             .filter(value => EntityUtils.isNotEmpty(value) && !this.loading)

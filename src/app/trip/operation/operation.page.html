@@ -27,7 +27,8 @@
         <ion-row no-padding>
           <ion-col padding>
             <!-- form -->
-            <form-operation (onSubmit)="save($event)" [showError]="false" #opeForm [debug]="debug" [usageMode]="usageMode">
+            <form-operation (onSubmit)="save($event)" [showError]="false" #opeForm [debug]="debug"
+                            [usageMode]="usageMode">
 
               <!-- Other features -->
               <ion-row ng-if="data">
@@ -37,7 +38,7 @@
                   </ion-label>
                 </ion-col>
                 <ion-col no-padding>
-                  <form-measurements acquisitionLevel="OPERATION" [debug]="debug" #measurementsForm></form-measurements>
+                  <form-measurements acquisitionLevel="OPERATION" [debug]="debug" #measurementsForm [program]="programSubject|async"></form-measurements>
                 </ion-col>
               </ion-row>
             </form-operation>
@@ -68,7 +69,7 @@
       </ng-template>
 
       <!-- catch form -->
-      <form-catch (onSubmit)="save($event)" [showError]="false" #catchForm [debug]="debug">
+      <form-catch (onSubmit)="save($event)" [showError]="false" #catchForm [debug]="debug" [program]="programSubject|async">
       </form-catch>
 
       <!-- tab group for batches -->
@@ -100,7 +101,8 @@
           <table-sub-batches #subBatchesTable [debug]="debug"
                              acquisitionLevel="SORTING_BATCH_INDIVIDUAL"
                              [showTaxonGroupColumn]="false"
-                             [showTaxonNameColumn]="false">
+                             [showTaxonNameColumn]="false"
+                             [program]="programSubject|async">
           </table-sub-batches>
         </mat-tab>
 
@@ -128,7 +130,7 @@
             <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && survivalTestsTable.invalid"></ion-icon>
           </ng-template>
 
-          <table-samples #survivalTestsTable [debug]="debug" acquisitionLevel="SURVIVAL_TEST">
+          <table-samples #survivalTestsTable [debug]="debug" acquisitionLevel="SURVIVAL_TEST" [program]="programSubject|async">
           </table-samples>
         </mat-tab>
 
@@ -140,7 +142,7 @@
             <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualMonitoringTable.invalid"></ion-icon>
           </ng-template>
 
-          <table-individual-monitoring #individualMonitoringTable [debug]="debug" acquisitionLevel="INDIVIDUAL_MONITORING"></table-individual-monitoring>
+          <table-individual-monitoring #individualMonitoringTable [debug]="debug" acquisitionLevel="INDIVIDUAL_MONITORING" [program]="programSubject|async"></table-individual-monitoring>
         </mat-tab>
 
         <!-- TAB: Individual releases  -->
@@ -151,7 +153,7 @@
             <ion-icon slot="end" name="alert" color="danger" *ngIf="submitted && individualReleaseTable.invalid"></ion-icon>
           </ng-template>
 
-          <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE"></table-sub-samples>
+          <table-sub-samples #individualReleaseTable [debug]="debug" acquisitionLevel="INDIVIDUAL_RELEASE" [program]="programSubject|async"></table-sub-samples>
         </mat-tab>
       </mat-tab-group>
 

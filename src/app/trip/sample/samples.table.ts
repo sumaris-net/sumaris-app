@@ -44,7 +44,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     private _dataSubject = new BehaviorSubject<{data: Sample[]}>({data: []});
     private _onRefreshPmfms = new EventEmitter<any>();
 
-    loading = true;
+    loading = false;
     loadingPmfms = true;
     pmfms = new BehaviorSubject<PmfmStrategy[]>(undefined);
     measurementValuesFormGroupConfig: { [key: string]: any };
@@ -64,6 +64,7 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
 
     @Input()
     set program(value: string) {
+      console.log("SAMPLE table set program:" + value);
         if (this._program === value) return; // Skip if same
         this._program = value;
         if (!this.loading) {
@@ -118,17 +119,15 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
     async ngOnInit() {
         super.ngOnInit();
 
-        this._onRefreshPmfms
-            .pipe(
-                startWith('ngOnInit')
-            )
-            .subscribe((event) => {
-                this.refreshPmfms(event)
-            });
+      this.registerSubscription(
+        this._onRefreshPmfms.asObservable()
+            .subscribe(() => this.refreshPmfms('ngOnInit'))
+      );
 
+      this.registerSubscription(
         this.pmfms
             .filter(pmfms => pmfms && pmfms.length > 0)
-            .first()
+            //.first()
             .subscribe(pmfms => {
                 this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(pmfms);
                 let displayedColumns = pmfms.map(p => p.pmfmId.toString());
@@ -142,30 +141,30 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
                 this.loading = false;
 
                 if (this.data) this.onRefresh.emit();
-            });
+            }));
 
-        // Taxon name combo
-        this.taxonNames = this.registerCellValueChanges('taxonName')
-            .pipe(
-                debounceTime(250),
-                mergeMap((value) => {
-                    if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
-                    value = (typeof value === "string" && value !== '*') && value || undefined;
-                    if (this.debug) console.debug("[sample-table] Searching taxon name on {" + (value || '*') + "}...");
-                    return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
-                        {
-                            entityName: 'TaxonName',
-                            levelId: TaxonomicLevelIds.SPECIES,
-                            searchText: value as string,
-                            searchAttribute: 'label'
-                        }).first().map(({data}) => data);
-                })
-            );
+      // Taxon name combo
+      this.taxonNames = this.registerCellValueChanges('taxonName')
+          .pipe(
+              debounceTime(250),
+              mergeMap((value) => {
+                  if (EntityUtils.isNotEmpty(value)) return Observable.of([value]);
+                  value = (typeof value === "string" && value !== '*') && value || undefined;
+                  if (this.debug) console.debug("[sample-table] Searching taxon name on {" + (value || '*') + "}...");
+                  return this.referentialRefService.loadAll(0, !value ? 30 : 10, undefined, undefined,
+                      {
+                          entityName: 'TaxonName',
+                          levelId: TaxonomicLevelIds.SPECIES,
+                          searchText: value as string,
+                          searchAttribute: 'label'
+                      }).first().map(({data}) => data);
+              })
+          );
 
+      this.registerSubscription(
         this.taxonNames.subscribe(items => {
           this._implicitValues['taxonName'] = (items.length === 1) && items[0];
-        });
-
+        }));
     }
 
     getRowValidator(): FormGroup {
@@ -333,6 +332,8 @@ export class SamplesTable extends AppTable<Sample, { operationId?: number }> imp
         if (!candLoadPmfms) {
             return undefined;
         }
+
+        console.log("SAMPLE refreshPmfms");
 
         this.loading = true;
         this.loadingPmfms = true;
