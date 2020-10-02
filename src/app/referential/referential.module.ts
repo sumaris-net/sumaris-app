@@ -7,12 +7,14 @@ import {ReferentialRefService} from './services/referential-ref.service';
 import {ReferentialService} from './services/referential.service';
 import {ReferentialValidatorService} from './services/validator/referential.validator';
 import {ProgramService} from './services/program.service';
+
 import {VesselForm} from "./vessel/form/form-vessel";
 import {VesselPage} from "./vessel/page/vessel.page";
 import {VesselsTable} from "./vessel/list/vessels.table";
 import {VesselModal} from "./vessel/modal/modal-vessel";
-import {ReferentialsPage} from './list/referentials';
 
+
+import {ReferentialsPage} from './list/referentials';
 import {ReferentialForm} from "./form/referential.form";
 import {ProgramPage} from "./program/program.page";
 import {ProgramValidatorService} from "./services/validator/program.validator";

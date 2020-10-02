@@ -1,6 +1,7 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {HomePage} from './core/home/home';
+import { TestForm } from './trip/trip.module'
 import {RegisterConfirmPage} from './core/register/confirm/confirm';
 import {AccountPage} from './core/account/account';
 import {SettingsPage} from "./core/settings/settings.page";
@@ -57,7 +58,21 @@ const routes: Routes = [
     },
     loadChildren: () => import('./trip/trip-routing.module').then(m => m.TripRoutingModule)
   },
-
+ // test
+ {
+  path: 'bargeo/test',
+  canActivate: [AuthGuardService],
+  data: {
+    profile: 'USER'
+  },
+  children: [
+    {
+      path: '',
+      pathMatch: 'full',
+      component: TestForm
+    }
+  ]
+},
   // Observations
   {
     path: 'observations',

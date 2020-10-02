@@ -86,9 +86,7 @@
               }
             ],
             "styles": [
-              "./node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
-              "./src/global.scss",
-              "./node_modules/leaflet/dist/leaflet.css"
+              "./src/global.scss"
             ],
             "scripts": [],
             "stylePreprocessorOptions": {
@@ -196,9 +194,6 @@
                 "output": "/assets"
               }
             ],
-            "styles": [
-              "./src/global.scss"
-            ],
             "stylePreprocessorOptions": {
               "includePaths": [
                 "src/theme"
@@ -273,5 +268,8 @@
       }
     }
   },
-  "defaultProject": "app"
+  "defaultProject": "app",
+  "cli": {
+    "analytics": "e4fe456e-b104-432b-b918-5d3fa137829b"
+  }
 }

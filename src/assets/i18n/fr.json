@@ -347,6 +347,23 @@
       }
     }
   },
+  "BARGEO": {
+    "FISHING_AREA" :"Zone (s) de pêche",
+    "EOTP":"EOTP",
+    "LABORATORY" :"Laboratoire",
+    "TARGET_SPECIE" :"Espèce cible",
+    "LANDING_PORT" :"Port de débarquement",
+    "SEX": "Sexe",
+    "AGE": "Age",
+    "START_DATE": "Début",
+    "END_DATE": "Fin",
+    "WEIGHT": "Poids",
+    "SIZE": "Taille",
+    "MATURITY": "Maturité",
+    "CALCIFIED_TYPE": "Type de pièce calcifiée",
+    "SIZE_INCREMENT": "incrément de taille"
+  },
+
   "TRIP": {
     "TITLE": "Marée",
     "PROGRAM": "Programme de collecte",
@@ -842,6 +859,7 @@
     "DEPTH_GRADIENT": "Gradient de profondeur",
     "NEARBY_SPECIFIC_AREA": "Zone spécifique à proximité"
   },
+
   "QUALITY": {
     "BTN_CONTROL": "Controler la saisie",
     "BTN_TERMINATE": "Terminer la saisie",

@@ -4,6 +4,8 @@ import {CoreModule} from '../core/core.module';
 import {TripTable} from './trip/trips.table';
 import {TripPage} from './trip/trip.page';
 import {TripForm} from './trip/trip.form';
+import {TestForm} from '.././trip/test/test.form';
+
 import {SaleForm} from './sale/sale.form';
 import {OperationForm} from './operation/operation.form';
 import {OperationPage} from './operation/operation.page';
@@ -38,7 +40,7 @@ import {OperationsMap} from "./operation/map/operations.map";
 import {SocialModule} from "../social/social.module";
 import {BatchModal} from "./batch/modal/batch.modal";
 
-export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
+export { TripTable, TestForm,TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
 @NgModule({
   imports: [
@@ -53,6 +55,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     TripTable,
     TripPage,
     TripForm,
+    TestForm,
     PhysicalGearModal,
     SelectPhysicalGearModal,
     SaleForm,
@@ -81,6 +84,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SampleModal,
     IndividualMonitoringSubSamplesTable,
     EntityQualityFormComponent
+    
   ],
   exports: [
     // Modules
@@ -108,7 +112,8 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SubBatchModal,
     SampleForm,
     SamplesTable,
-    SubSamplesTable
+    SubSamplesTable,
+    TestForm
   ]
 })
 export class TripModule {

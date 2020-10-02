@@ -347,6 +347,23 @@
       }
     }
   },
+
+  "BARGEO": {
+    "FISHING_AREA" :"Fishing area (s)",
+    "EOTP":"EOTP",
+    "LABORATORY" :"Laboratory",
+    "TARGET_SPECIE" :"Target specie",
+    "LANDING_PORT" :"Landing port",
+    "SEX": "Sexe",
+    "AGE": "Age",
+    "START_DATE": "Start",
+    "END_DATE": "END",
+    "WEIGHT": "Weight",
+    "SIZE": "Size",
+    "MATURITY": "Maturity",
+    "CALCIFIED_TYPE": "Type of calcified part",
+    "SIZE_INCREMENT": "Size increment"
+  },
   "TRIP": {
     "TITLE": "Fishing trip",
     "PROGRAM": "Data collection programme",
@@ -842,6 +859,7 @@
     "DEPTH_GRADIENT": "Depth gradient",
     "NEARBY_SPECIFIC_AREA": "Nearby specific area"
   },
+
   "QUALITY": {
     "BTN_CONTROL": "Control input",
     "BTN_TERMINATE": "Complete input",
