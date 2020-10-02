@@ -43,7 +43,7 @@ import {distinctUntilChanged} from "rxjs/operators";
 export class TestForm extends AppForm<Test> implements OnInit {
 
   protected formBuilder: FormBuilder;
-  private _metiersSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _taxonGroupSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   mobile: boolean;
 
   constructor(
@@ -60,23 +60,15 @@ export class TestForm extends AppForm<Test> implements OnInit {
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      items: this._metiersSubject,
+      items: this._taxonGroupSubject,
       mobile: this.mobile
     });
-
-      // Listen physical gear, to enable/disable metier
-      this.registerSubscription(
-        this.form.get('metier').valueChanges
-          .pipe(
-            distinctUntilChanged((o1, o2) => EntityUtils.equals(o1, o2, 'id'))
-          )
-          .subscribe((physicalGear) => this.onMetierChanged())
-      );
-
+     
+      this.loadTaxonGroupe();
   }
  
 
-  setValue(data: Test, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
+  /*setValue(data: Test, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     // Use label and name from metier.taxonGroup
     if (data && data.metier) {
       data.metier = data.metier.clone(); // Leave original object unchanged
@@ -84,7 +76,7 @@ export class TestForm extends AppForm<Test> implements OnInit {
       data.metier.name = data.metier.taxonGroup && data.metier.taxonGroup.name || data.metier.name;
     }
     super.setValue(data, opts);
-  }
+  }*/
 
   // save buttonn
   save(){
@@ -107,49 +99,27 @@ export class TestForm extends AppForm<Test> implements OnInit {
 
    /* -- protected methods -- */
    
-  protected async onMetierChanged() {
+  protected async loadTaxonGroupe() {
 
-    console.log("onMetierChanged works");
+    console.log("loadTaxonGroupe works");
 
     const metierControl = this.form.get('metier');
-
      metierControl.enable();
-
       // Refresh metiers
-      const metiers = await this.loadMetiers();
-      this._metiersSubject.next(metiers);
-
-      const metier = metierControl.value;
-      if (ReferentialUtils.isNotEmpty(metier)) {
-        // Find new reference, by ID
-        let updatedMetier = (metiers || []).find(m => m.id === metier.id);
-
-        // If not found : retry using the label (WARN: because of searchJoin, label = taxonGroup.label)
-        updatedMetier = updatedMetier || (metiers || []).find(m => m.label === metier.label);
-
-        // Update the metier, if not found (=reset) or ID changed
-        if (!updatedMetier || !ReferentialUtils.equals(metier, updatedMetier)) {
-          metierControl.setValue(updatedMetier);
-        }
-      }   
+      const taxonGroup = await this.loadTaxonGroupMethod();
+      this._taxonGroupSubject.next(taxonGroup);
   }
 
-  protected async loadMetiers(): Promise<ReferentialRef[]> {
+  // Load taxonGroup Service
+  protected async loadTaxonGroupMethod(): Promise<ReferentialRef[]> {
     console.log("loadMetiers works");
-    const res = await this.referentialRefService.loadAll(0, 100, null,null,
+    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
       {
-        entityName: "Metier"
-      },
-      {
-        withTotal: false
+        entityName: "TaxonGroup"   
       });
 
     return res.data;
   }
 
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
 
 }
