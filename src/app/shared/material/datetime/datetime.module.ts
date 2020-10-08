@@ -14,6 +14,7 @@ import {TextMaskModule} from "angular2-text-mask";
 import {NgxMaterialTimepickerModule} from "ngx-material-timepicker";
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatButtonModule} from "@angular/material/button";
+import {MatDateShort} from "./material.dateshort";
 
 @NgModule({
   imports: [
@@ -34,11 +35,13 @@ import {MatButtonModule} from "@angular/material/button";
   exports: [
     MatIconModule,
     MatDate,
-    MatDateTime
+    MatDateTime,
+    MatDateShort
   ],
   declarations: [
     MatDate,
-    MatDateTime
+    MatDateTime,
+    MatDateShort
   ]
 })
 export class SharedMatDateTimeModule {

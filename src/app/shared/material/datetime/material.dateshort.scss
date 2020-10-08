@@ -1,0 +1,82 @@
+:host {
+  display: inline-block;
+  width: 100%;
+  position: relative;
+
+  [no-padding] {
+    --ion-grid-column-padding: 0;
+  }
+
+  [nowrap] {
+    flex-wrap: nowrap;
+  }
+
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+mat-form-field {
+  .datetime-md {
+    padding: 0 !important;
+  }
+
+  ion-datetime {
+    padding: 0 !important;
+  }
+
+}
+
+ion-col.day {
+  min-width: 100px;
+  .mat-form-field-subscript-wrapper {
+    overflow: visible;
+    right: -64px; // right offset to align hour
+    width: calc(100% + 64px); // get the full component width (overflow on the time part)
+
+    .mat-form-field-hint-wrapper {
+      display: flex;
+
+      .mat-form-field-hint-spacer {
+        flex: 1 0 1em;
+      }
+    }
+  }
+}
+
+ion-col.hour {
+  min-width: 55px;
+  max-width: 65px;
+
+  mat-form-field {
+    width: 100%;
+
+    mat-label,
+    input[type=text] {
+      text-align: left;
+      min-width: 50px; // Make placeholder (hh:mm) visible
+    }
+  }
+}
+
+mat-form-field.mat-form-field-disabled {
+  ion-col.day {
+    min-width: 100px;
+  }
+}
+
+.hour .mat-form-field-label {
+  max-width: 40px;
+}
+
+.hour mat-form-field.mat-form-field-should-float .mat-form-field-placeholder {
+  max-width: inherit;
+}
+
+mat-error {
+  text-align: right;
+  width: 100%
+}

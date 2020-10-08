@@ -52,6 +52,7 @@
     "DATE_SHORT_PATTERN": "DD/MM/YY",
     "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
     "DATE_PLACEHOLDER": "mm/dd/yyyy",
+    "DATE_SHORT_PLACEHOLDER": "mm/yyyy",
     "DATE_TIME_PLACEHOLDER": "mm/dd/yyyy hh:mm",
 
     "LAT_LONG": {

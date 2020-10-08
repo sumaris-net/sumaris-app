@@ -1,0 +1,79 @@
+<!-- readonly -->
+<mat-form-field *ngIf="readonly else writable">
+  <input matInput hidden type="text" readonly="true" [formControl]="formControl">
+  <ion-text>{{formControl.value|dateFormat: {pattern: displayPattern} }}</ion-text>
+</mat-form-field>
+
+<ng-template #writable>
+  <mat-form-field [floatLabel]="floatLabel">
+
+    <mat-label>{{placeholder}}</mat-label>
+
+    <div matPrefix><ng-content select="[matPrefix]"></ng-content></div>
+
+    <input matInput #matInput autocomplete="off" type="text"
+           *ngIf="!mobile"
+           [formControl]="dayControl"
+           [textMask]="{mask: dayMask, keepCharPositions: true, placeholderChar: placeholderChar}"
+           [placeholder]="'COMMON.DATE_SHORT_PLACEHOLDER'|translate"
+           (blur)="checkIfTouched()"
+           (keyup.arrowdown)="openDatePicker($event, datePicker1)"
+           (keyup.escape)="preventEvent($event)"
+           [required]="required"
+           [tabindex]="tabindex">
+    <input matInput #matInput autocomplete="off" type="text"
+           *ngIf="mobile"
+           [formControl]="dayControl"
+           (click)="openDatePickerIfMobile($event, datePicker1)"
+           [required]="required"
+           [tabindex]="tabindex"
+           readonly>
+
+    <!-- Hide the final control -->
+    <input matInput type="text"
+           [formControl]="formControl"
+           hidden
+           [matDatepicker]="datePicker1"
+           (dateChange)="onDatePickerChange($event)">
+
+
+    <button matSuffix mat-icon-button tabindex="-1"
+            type="button"
+            (click)="openDatePicker($event, datePicker1)"
+            [disabled]="formControl.disabled">
+      <div *ngIf="mobile; then iconDate; else iconDesktop"></div>
+    </button>
+    <button matSuffix mat-icon-button tabindex="-1"
+            type="button"
+            *ngIf="clearable"
+            (click)="writeValue(null)"
+            [hidden]="formControl.disabled || !formControl.value">
+      <mat-icon>close</mat-icon>
+    </button>
+
+    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="formControl.hasError('validDate')" translate>ERROR.FIELD_NOT_VALID_DATE</mat-error>
+    <mat-error *ngIf="formControl.hasError('dateIsAfter')">{{'ERROR.FIELD_NOT_VALID_DATE_AFTER' | translate: formControl.errors.dateIsAfter }}</mat-error>
+    <mat-error *ngIf="formControl.hasError('dateRange')" translate>ERROR.FIELD_NOT_VALID_DATE_RANGE</mat-error>
+    <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMaxDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MAX_DURATION</mat-error>
+    <mat-error *ngIf="!formControl.hasError('dateRange') && formControl.hasError('dateMinDuration')" translate>ERROR.FIELD_NOT_VALID_DATE_MIN_DURATION</mat-error>
+    <mat-error *ngIf="formControl.hasError('msg')">{{formControl.errors['msg']}}</mat-error>
+    <ng-content select="mat-error"></ng-content>
+  </mat-form-field>
+
+  <mat-datepicker #datePicker1 
+                  startView="multi-year"
+                  [touchUi]="mobile"
+                  [disabled]="formControl.disabled"
+                  (monthSelected)="closeDatePicker($event, datePicker1)"
+                  [startAt]="startDate"></mat-datepicker>
+
+  <ng-template #iconDesktop>
+    <mat-icon>keyboard_arrow_down</mat-icon>
+  </ng-template>
+
+  <ng-template #iconDate>
+    <mat-icon>date_range</mat-icon>
+  </ng-template>
+
+</ng-template>
