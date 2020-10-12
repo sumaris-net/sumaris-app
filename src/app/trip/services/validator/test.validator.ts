@@ -36,15 +36,13 @@ export class TestValidatorService<O extends TestValidatorOptions = TestValidator
         comment: [data && data.comment || null,Validators.required],
         startDate: [data && data.startDate || null, Validators.required],
         endDate: [data && data.endDate || null, Validators.required],
-        metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        taxonName: [data && data.taxonName || null, Validators.compose([Validators.required, SharedValidators.entity])],
       });
-
 
     return formConfig;
 
   }
 
- 
   getFormGroupOptions(data?: Test, opts?: O): { [key: string]: any } {
     /*return {
       validator: Validators.compose([

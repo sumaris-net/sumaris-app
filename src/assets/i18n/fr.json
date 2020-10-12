@@ -362,7 +362,8 @@
     "SIZE": "Taille",
     "MATURITY": "Maturité",
     "CALCIFIED_TYPE": "Type de pièce calcifiée",
-    "SIZE_INCREMENT": "incrément de taille"
+    "SIZE_INCREMENT": "incrément de taille",
+    "BTN_FILTER": "Restreindre aux valeurs déjà saisies"
   },
 
   "TRIP": {

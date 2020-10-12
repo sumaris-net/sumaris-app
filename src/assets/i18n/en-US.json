@@ -362,7 +362,8 @@
     "SIZE": "Size",
     "MATURITY": "Maturity",
     "CALCIFIED_TYPE": "Type of calcified part" ,
-    "SIZE_INCREMENT": "Size increment"
+    "SIZE_INCREMENT": "Size increment",
+    "BTN_FILTER": "Restrict to already filled values"
   },
   "TRIP": {
     "TITLE": "Fishing trip",

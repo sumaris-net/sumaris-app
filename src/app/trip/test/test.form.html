@@ -87,13 +87,21 @@
         <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
-        <ion-col>
-        <mat-autocomplete-field formControlName="metier"
-                                [placeholder]="'BARGEO.TARGET_SPECIE'|translate" 
-                                [config]="autocompleteFields.taxonGroup"
-                                [tabindex]="tabindex+1"                          
+      <ion-col>
+        <mat-autocomplete-field formControlName="taxonName"
+                                [placeholder]="'BARGEO.TARGET_SPECIE'|translate"
+                                [config]="autocompleteFields.taxonName"
+                                [tabindex]="tabindex+1"
                                 [required]="true"
                                 [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'">
+          <button matAfter type="button" mat-icon-button
+                  tabindex="-1"
+                  [disabled]="!canFilterTaxonName"
+                  [title]="'BARGEO.BTN_FILTER'|translate"
+                  (click)="toggleFilteredTaxonName()"
+                  [color]="enableTaxonNameFilter ? 'primary' : undefined">
+            <mat-icon>filter_list</mat-icon>
+          </button>
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
