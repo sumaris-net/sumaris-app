@@ -8,8 +8,6 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {AppForm, ReferentialRef, IReferentialRef} from '../../core/core.module';
 import { Test } from '../services/model/test.model';
 import {BehaviorSubject} from "rxjs";
-import { areAllEquivalent } from '@angular/compiler/src/output/output_ast';
-
 
 @Component({
   selector: 'form-test',
