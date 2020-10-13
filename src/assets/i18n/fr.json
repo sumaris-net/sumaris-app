@@ -363,12 +363,12 @@
     "MATURITY": "Maturité",
     "CALCIFIED_TYPE": "Type de pièce calcifiée",
     "SIZE_INCREMENT": "incrément de taille",
+    "BTN_FILTER": "Restreindre aux valeurs déjà saisies",
     "EFFORT"    : "Effort :",
     "QUARTER_1" : "Trimestre 1" ,
     "QUARTER_2" : "Trimestre 2",
     "QUARTER_3" : "Trimestre 3",
     "QUARTER_4" : "Trimestre 4"
-
   },
 
   "TRIP": {

@@ -363,11 +363,13 @@
     "MATURITY": "Maturity",
     "CALCIFIED_TYPE": "Type of calcified part" ,
     "SIZE_INCREMENT": "Size increment",
+    "BTN_FILTER": "Restrict to already filled values",
     "EFFORT"    : "Effort :",
     "QUARTER_1" : "Quarter 1" ,
     "QUARTER_2" : "Quarter 2",
     "QUARTER_3" : "Quarter 3",
     "QUARTER_4" : "Quarter 4"
+    
   },
   "TRIP": {
     "TITLE": "Fishing trip",

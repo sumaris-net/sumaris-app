@@ -3,7 +3,7 @@ import {TestValidatorService} from "../services/validator/test.validator";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {FormBuilder, FormControl} from "@angular/forms";
+import {FormBuilder} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {AppForm, ReferentialRef, IReferentialRef} from '../../core/core.module';
 import { Test } from '../services/model/test.model';
@@ -23,8 +23,10 @@ import { areAllEquivalent } from '@angular/compiler/src/output/output_ast';
 export class TestForm extends AppForm<Test> implements OnInit {
 
   protected formBuilder: FormBuilder;
-  private _taxonGroupSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
+  private _taxonNameSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   mobile: boolean;
+  enableTaxonNameFilter = false;
+  canFilterTaxonName = true;
 
   constructor(
     protected dateAdapter: DateAdapter<Moment>,
@@ -42,17 +44,16 @@ export class TestForm extends AppForm<Test> implements OnInit {
     const currentYear = new Date ();
     this.form.get('year').setValue(currentYear);
 
-    // Taxon group combo
-    this.registerAutocompleteField('taxonGroup', {
-      items: this._taxonGroupSubject,
+    // taxonName combo
+    this.registerAutocompleteField('taxonName', {
+      //suggestFn: (value, options) => this.suggest(value, options, "TaxonName"),
+      items: this._taxonNameSubject,
       mobile: this.mobile
     });
-     
-      this.loadTaxonGroupe();
-  }
-   
 
-   
+    this.loadTaxonNames();
+  }
+
 
   /*setValue(data: Test, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     // Use label and name from metier.taxonGroup
@@ -85,28 +86,50 @@ export class TestForm extends AppForm<Test> implements OnInit {
     console.log("close works");
   }
 
+  toggleFilteredTaxonName() {
+      this.enableTaxonNameFilter = !this.enableTaxonNameFilter;
+      this.loadTaxonNames();
+      console.log("enableTaxonNameFilter: " + this.enableTaxonNameFilter);
 
-   /* -- protected methods -- */
-   
-  protected async loadTaxonGroupe() {
-
-    console.log("loadTaxonGroupe works");
-
-    const metierControl = this.form.get('metier');
-     metierControl.enable();
-      // Refresh metiers
-      const taxonGroup = await this.loadTaxonGroupMethod();
-      this._taxonGroupSubject.next(taxonGroup);
+      /*this.registerAutocompleteField('taxonName', {
+        //suggestFn: (value, filter) => this.suggest1(value, filter),
+        suggestFn: (value, options) => this.suggest(value, options, "TaxonName"),
+      });*/
   }
 
-  // Load taxonGroup Service
-  protected async loadTaxonGroupMethod(): Promise<ReferentialRef[]> {
-    console.log("loadMetiers works");
-    const res = await this.referentialRefService.loadAll(0, 200, null,null, 
-      {
-        entityName: "TaxonGroup"   
-      });
+  /* -- protected methods -- */
 
+  protected async suggest(value: string, options: any, entityName: string) {
+    // TODO replace with dataService.loadAlreadyFilledTaxonName(0, 200, null, null)
+    return this.referentialRefService.loadAll(2, 3, null,null, {entityName: "TaxonName"});
+  }
+
+  protected async loadTaxonNames() {
+    console.log("loadTaxonNames works");
+    const taxonNameControl = this.form.get('taxonName');
+    taxonNameControl.enable();
+    // Refresh taxonNames
+    if (this.enableTaxonNameFilter) {
+      const taxonNames = await this.loadFilteredTaxonNamesMethod();
+      this._taxonNameSubject.next(taxonNames);
+    } else {
+      const taxonNames = await this.loadTaxonNamesMethod();
+      this._taxonNameSubject.next(taxonNames);
+    }
+  }
+
+  // Load taxonName Service
+  protected async loadTaxonNamesMethod(): Promise<ReferentialRef[]> {
+    console.log("loadTaxonName works");
+    const res = await this.referentialRefService.loadAll(0, 200, null, null, {entityName: "TaxonName"});
+    return res.data;
+  }
+
+  // Load Filtered taxonName Service
+  protected async loadFilteredTaxonNamesMethod(): Promise<ReferentialRef[]> {
+    console.log("loadFilteredTaxonName works");
+    // TODO replace with dataService.loadAlreadyFilledTaxonName(0, 200, null, null)
+    const res = await this.referentialRefService.loadAll(2, 3, null, null, {entityName: "TaxonName"});
     return res.data;
   }
 

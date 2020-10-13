@@ -35,7 +35,7 @@ export class TestValidatorService<O extends TestValidatorOptions = TestValidator
         __typename: [Test.TYPENAME],
         comment: [data && data.comment || null,Validators.required],
         year: [data && data.year || null, Validators.required],
-        metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
+        taxonName: [data && data.taxonName || null, Validators.compose([Validators.required, SharedValidators.entity])],
       });
 
 
@@ -43,7 +43,7 @@ export class TestValidatorService<O extends TestValidatorOptions = TestValidator
 
   }
 
- 
+
   getFormGroupOptions(data?: Test, opts?: O): { [key: string]: any } {
     /*return {
       validator: Validators.compose([

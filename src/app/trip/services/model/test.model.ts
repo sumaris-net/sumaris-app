@@ -10,7 +10,7 @@ import {DataEntity, DataEntityAsObjectOptions} from "../../../data/services/mode
 import {NOT_MINIFY_OPTIONS} from "../../../core/services/model/referential.model";
 import {Moment} from "moment";
 import {isEmptyArray} from "../../../shared/functions";
-import {Metier} from "../../../referential/services/model/taxon.model";
+import {TaxonNameRef} from "../../../referential/services/model/taxon.model";
 
 
 export class Test extends DataEntity<Test>  {
@@ -21,19 +21,19 @@ export class Test extends DataEntity<Test>  {
   static fromObject(source: any): Test {
     const res = new Test();
     res.fromObject(source);
-    
+
     return res;
   }
 
   year : Moment;
   comment : string;
-  metier: Metier;
-  
+  taxonName: TaxonNameRef;
+
   constructor() {
     super();
     this.__typename = Test.TYPENAME;
     this.comment=null;
-    this.metier = null;
+    this.taxonName = null;
   }
 
   clone(): Test {
@@ -45,8 +45,7 @@ export class Test extends DataEntity<Test>  {
 
     target.year = toDateISOString(this.year);
     target.comment = this.comment;
-    // Metier
-    target.metier = this.metier;
+    target.taxonName = this.taxonName;
 
     return target;
   }
@@ -55,8 +54,7 @@ export class Test extends DataEntity<Test>  {
     super.fromObject(source);
     this.year = fromDateISOString(source.year);
     this.comment = source.comment;
-    //this.metier = source.metier && Metier.fromObject(source.metier, {useChildAttributes: 'TaxonGroup'}) || undefined;
-
+    this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
     return this;
   }
 
