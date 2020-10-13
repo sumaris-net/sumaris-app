@@ -3,11 +3,12 @@ import {TestValidatorService} from "../services/validator/test.validator";
 import {Moment} from 'moment/moment';
 import {DateAdapter} from "@angular/material/core";
 import {LocalSettingsService} from "../../core/services/local-settings.service";
-import {FormBuilder} from "@angular/forms";
+import {FormBuilder, FormControl} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {AppForm, ReferentialRef, IReferentialRef} from '../../core/core.module';
 import { Test } from '../services/model/test.model';
 import {BehaviorSubject} from "rxjs";
+import { areAllEquivalent } from '@angular/compiler/src/output/output_ast';
 
 
 @Component({
@@ -37,6 +38,10 @@ export class TestForm extends AppForm<Test> implements OnInit {
 
   ngOnInit() {
 
+    //set current year
+    const currentYear = new Date ();
+    this.form.get('year').setValue(currentYear);
+
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
       items: this._taxonGroupSubject,
@@ -45,7 +50,9 @@ export class TestForm extends AppForm<Test> implements OnInit {
      
       this.loadTaxonGroupe();
   }
- 
+   
+
+   
 
   /*setValue(data: Test, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     // Use label and name from metier.taxonGroup
@@ -60,6 +67,9 @@ export class TestForm extends AppForm<Test> implements OnInit {
   // save buttonn
   save(){
     console.log("save work");
+
+    console.log(this.form.get("comment"));
+
   /* console.log("comment : "+this.form.get("comment").value);*/
   }
 

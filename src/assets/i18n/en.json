@@ -50,7 +50,7 @@
     "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
-    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_YEAR_PATTERN": "YYYY",
     "DATE_PLACEHOLDER": "dd/mm/yyyy",
     "DATE_SHORT_PLACEHOLDER": "mm/yyyy",
     "DATE_TIME_PLACEHOLDER": "dd/mm/yyyy hh:mm",
@@ -349,7 +349,8 @@
     }
   },
 
-  "BARGEO": {
+  "PLANIFICATION": {
+    "CREATE_SAMPLING_PLAN" : "Creating a sampling plan line",
     "FISHING_AREA" :"Fishing area (s)",
     "EOTP":"EOTP",
     "LABORATORY" :"Laboratory",
@@ -357,13 +358,17 @@
     "LANDING_PORT" :"Landing port",
     "SEX": "Sexe",
     "AGE": "Age",
-    "START_DATE": "Start",
-    "END_DATE": "END",
+    "YEAR": "Year",
     "WEIGHT": "Weight",
     "SIZE": "Size",
     "MATURITY": "Maturity",
     "CALCIFIED_TYPE": "Type of calcified part",
-    "SIZE_INCREMENT": "Size increment"
+    "SIZE_INCREMENT": "Size increment",
+    "EFFORT  "  : "Effort :" ,
+    "QUARTER_1" : "Quarter 1" ,
+    "QUARTER_2" : "Quarter 2",
+    "QUARTER_3" : "Quarter 3",
+    "QUARTER_4" : "Quarter 4"
   },
   "TRIP": {
     "TITLE": "Fishing trip",

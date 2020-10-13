@@ -118,7 +118,7 @@ import {HttpTranslateLoaderFactory} from "./shared/translate/http-translate-load
           ifProperty: 'sumaris.trip.enable',
           titleProperty: 'sumaris.trip.name'
         },
-        {title: 'Bargeo', path: '/bargeo/test',
+        {title: 'Planification', path: '/planification/test',
           matIcon: 'explore',
           profile: 'USER',
           ifProperty: 'sumaris.trip.enable',

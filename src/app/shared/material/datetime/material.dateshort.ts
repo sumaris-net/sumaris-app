@@ -42,7 +42,7 @@ export const DEFAULT_VALUE_ACCESSOR: any = {
   multi: true
 };
 
-const DAY_MASK = [/\d/, /\d/, '/', /\d/, /\d/, /\d/, /\d/];
+const DAY_MASK = [/\d/, /\d/, /\d/, /\d/];
 
 const noop = () => {
 };
@@ -147,7 +147,7 @@ export class MatDateShort implements OnInit, ControlValueAccessor, InputElement 
     this.formControl.setValidators(this.required ? Validators.compose([Validators.required, SharedValidators.validDate]) : SharedValidators.validDate);
 
     // Get patterns to display date
-    const patterns = this.translate.instant(['COMMON.DATE_MONTH_YEAR_PATTERN']);
+    const patterns = this.translate.instant(['COMMON.DATE_YEAR_PATTERN']);
     this.updatePattern(patterns);
 
     this.dayControl.valueChanges
@@ -252,8 +252,8 @@ export class MatDateShort implements OnInit, ControlValueAccessor, InputElement 
 
   private updatePattern(patterns: string[]) {
     this.displayPattern =
-            (this.displayPattern = patterns['COMMON.DATE_MONTH_YEAR_PATTERN'] !== 'COMMON.DATE_MONTH_YEAR_PATTERN' ? patterns['COMMON.DATE_MONTH_YEAR_PATTERN'] : 'L');
-    this.dayPattern = (patterns['COMMON.DATE_MONTH_YEAR_PATTERN'] !== 'COMMON.DATE_MONTH_YEAR_PATTERN' ? patterns['COMMON.DATE_MONTH_YEAR_PATTERN'] : 'L');
+            (this.displayPattern = patterns['COMMON.DATE_YEAR_PATTERN'] !== 'COMMON.DATE_YEAR_PATTERN' ? patterns['COMMON.DATE_YEAR_PATTERN'] : 'L');
+    this.dayPattern = (patterns['COMMON.DATE_YEAR_PATTERN'] !== 'COMMON.DATE_YEAR_PATTERN' ? patterns['COMMON.DATE_YEAR_PATTERN'] : 'L');
   }
 
   private onFormChange(dayValue): void {
@@ -324,16 +324,15 @@ export class MatDateShort implements OnInit, ControlValueAccessor, InputElement 
       if (!datePicker.opened) {
        
        // datePicker.startView =  "multi-year";     
-        datePicker.open();  
-
+        datePicker.open();   
       }
     }
   }
 
-  //  select only month and year
+  //  select only year
   closeDatePicker(eventData: any, matDatepicker?:any) {
    this.formControl.setValue(eventData);
-    matDatepicker.close();
+   matDatepicker.close();
   }
 
 

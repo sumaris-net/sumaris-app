@@ -1,4 +1,4 @@
-<app-toolbar title="Création d'une ligne de plan d'échantillonnage" color="primary"
+<app-toolbar [title]="'PLANIFICATION.CREATE_SAMPLING_PLAN'|translate" color="primary"
 [canGoBack]="false">
 </app-toolbar>
 
@@ -16,7 +16,7 @@
       </ion-col>
         <ion-col>
           <mat-autocomplete-field  
-            [placeholder]="'BARGEO.EOTP'|translate"
+            [placeholder]="'PLANIFICATION.EOTP'|translate"
             formControlName="comment">
     
           </mat-autocomplete-field>
@@ -34,7 +34,7 @@
   </ion-col>
     <ion-col>
       <mat-autocomplete-field
-      [placeholder]="'BARGEO.LABORATORY'|translate"
+      [placeholder]="'PLANIFICATION.LABORATORY'|translate"
         formControlName="comment"
         [required]="true">
       </mat-autocomplete-field>
@@ -52,7 +52,7 @@
       </ion-col>
         <ion-col>
           <mat-autocomplete-field
-            [placeholder]="'BARGEO.FISHING_AREA'|translate"
+            [placeholder]="'PLANIFICATION.FISHING_AREA'|translate"
             formControlName="comment"      
             [required]="true">
             <mat-icon matPrefix>room</mat-icon>
@@ -71,7 +71,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field   
-          [placeholder]="'BARGEO.LANDING_PORT'|translate"
+          [placeholder]="'PLANIFICATION.LANDING_PORT'|translate"
           formControlName="comment"
           [required]="true">
           <mat-icon matPrefix>room</mat-icon>
@@ -89,7 +89,7 @@
       </ion-col>
         <ion-col>
         <mat-autocomplete-field formControlName="metier"
-                                [placeholder]="'BARGEO.TARGET_SPECIE'|translate" 
+                                [placeholder]="'PLANIFICATION.TARGET_SPECIE'|translate" 
                                 [config]="autocompleteFields.taxonGroup"
                                 [tabindex]="tabindex+1"                          
                                 [required]="true"
@@ -113,7 +113,7 @@
 
       <ion-col>
         <mat-autocomplete-field formControlName="comment"
-                                [placeholder]="'BARGEO.WEIGHT'|translate"  >
+                                [placeholder]="'PLANIFICATION.WEIGHT'|translate"  >
           
           <button matAfter type="button" mat-icon-button tabindex="-1"
                   [title]="'TRIP.BTN_ADD_VESSEL'|translate"
@@ -144,7 +144,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field formControlName="comment"
-                                [placeholder]="'BARGEO.SIZE'|translate">
+                                [placeholder]="'PLANIFICATION.SIZE'|translate">
           
           <button matAfter type="button" mat-icon-button tabindex="-1"
                   [title]="'TRIP.BTN_ADD_VESSEL'|translate"
@@ -175,7 +175,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field formControlName="comment"
-                                [placeholder]="'BARGEO.MATURITY'|translate">
+                                [placeholder]="'PLANIFICATION.MATURITY'|translate">
 
           <button matAfter type="button" mat-icon-button tabindex="-1"
                   [title]="'TRIP.BTN_ADD_VESSEL'|translate"
@@ -206,7 +206,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field formControlName="comment"
-                                [placeholder]="'BARGEO.CALCIFIED_TYPE'|translate">
+                                [placeholder]="'PLANIFICATION.CALCIFIED_TYPE'|translate">
           
           
           <button matAfter type="button" mat-icon-button tabindex="-1"
@@ -234,7 +234,7 @@
     <ion-label>&nbsp;</ion-label>
   </ion-col>
   <ion-col size="12" size-sm="auto">
-    <mat-boolean-field [placeholder]="'BARGEO.SEX'|translate" formControlName="comment" [required]="true">
+    <mat-boolean-field [placeholder]="'PLANIFICATION.SEX'|translate" formControlName="comment" [required]="true">
     </mat-boolean-field>
   </ion-col>
   <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
@@ -249,7 +249,7 @@
     <ion-label>&nbsp;</ion-label>
   </ion-col>
   <ion-col size="12" size-sm="auto">
-    <mat-boolean-field [placeholder]="'BARGEO.AGE'|translate" formControlName="comment" [required]="true" >
+    <mat-boolean-field [placeholder]="'PLANIFICATION.AGE'|translate" formControlName="comment" [required]="true" >
     </mat-boolean-field>
   </ion-col>
   <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
@@ -264,7 +264,7 @@
   </ion-col>
     <ion-col>
       <mat-autocomplete-field
-        [placeholder]="'BARGEO.SIZE_INCREMENT'|translate"
+        [placeholder]="'PLANIFICATION.SIZE_INCREMENT'|translate"
         formControlName="comment"      
         [required]="true">
       </mat-autocomplete-field>
@@ -282,19 +282,10 @@
     </h2>
   </ion-col>
 
-    <!-- Start date -->
-    <ion-col size="12" size-sm="auto">
-      <mat-date-short-field [placeholder]="'BARGEO.START_DATE'|translate"
-                            formControlName="startDate"
-                            [required]="true" >
-      </mat-date-short-field>
-    </ion-col>
-
-
-    <!-- END DATE -->
+    <!-- year -->
       <ion-col size="12" size-sm="auto">
-        <mat-date-short-field [placeholder]="'BARGEO.END_DATE'|translate"
-                              formControlName="endDate"
+        <mat-date-short-field [placeholder]="'PLANIFICATION.YEAR'|translate"
+                              formControlName="year"
                               [required]="true" >
         </mat-date-short-field>
       </ion-col>
@@ -303,6 +294,49 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
   </ion-row>
+
+   <!-- Trimestre -->
+   <ion-row>
+    <ion-col size="12" size-md="2" size-lg="3">
+      <ion-label class="ion-float-end" translate>PLANIFICATION.EFFORT</ion-label>
+    </ion-col>
+    <!-- T1 -->
+    <ion-col size="1">
+      <mat-form-field>
+        <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_1'|translate"
+               formControlName="comment" >
+      </mat-form-field>
+    </ion-col>
+
+     <!-- T2 -->
+     <ion-col size="1">
+      <mat-form-field>
+        <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_2'|translate"
+               formControlName="comment" >
+      </mat-form-field>
+    </ion-col>
+
+     <!-- T3 -->
+     <ion-col size="1">
+      <mat-form-field>
+        <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_3'|translate"
+               formControlName="comment" >
+      </mat-form-field>
+    </ion-col>
+
+     <!-- T4 -->
+     <ion-col size="1">
+      <mat-form-field>
+        <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_4'|translate"
+               formControlName="comment" >
+      </mat-form-field>
+    </ion-col>
+
+    <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+      <ion-label>&nbsp;</ion-label>
+    </ion-col>
+  </ion-row>
+
 
 
   <!-- Comments -->
@@ -321,12 +355,6 @@
     </ion-col>
   </ion-row>
 
-</ion-grid>
-  </form>
-
+  </ion-grid>
+ </form>
 </ion-content>
-
-
-
-
- 

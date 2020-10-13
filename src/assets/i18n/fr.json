@@ -50,7 +50,7 @@
     "TIME_PATTERN": "HH:mm",
     "DATE_FILE_PATTERN": "YYYY-MM-DD",
     "DATE_SHORT_PATTERN": "DD/MM/YY",
-    "DATE_MONTH_YEAR_PATTERN": "MM/YYYY",
+    "DATE_YEAR_PATTERN": "YYYY",
     "DATE_PLACEHOLDER": "jj/mm/aaaa",
     "DATE_SHORT_PLACEHOLDER": "mm/aaaa",
     "DATE_TIME_PLACEHOLDER": "jj/mm/aaaa hh:mm",
@@ -348,7 +348,8 @@
       }
     }
   },
-  "BARGEO": {
+  "PLANIFICATION": {
+    "CREATE_SAMPLING_PLAN" : "Création d'une ligne de plan d'échantillonnage",
     "FISHING_AREA" :"Zone (s) de pêche",
     "EOTP":"EOTP",
     "LABORATORY" :"Laboratoire",
@@ -356,13 +357,18 @@
     "LANDING_PORT" :"Port de débarquement",
     "SEX": "Sexe",
     "AGE": "Age",
-    "START_DATE": "Début",
-    "END_DATE": "Fin",
+    "YEAR": "Année",
     "WEIGHT": "Poids",
     "SIZE": "Taille",
     "MATURITY": "Maturité",
     "CALCIFIED_TYPE": "Type de pièce calcifiée",
-    "SIZE_INCREMENT": "incrément de taille"
+    "SIZE_INCREMENT": "incrément de taille",
+    "EFFORT"    : "Effort :",
+    "QUARTER_1" : "Trimestre 1" ,
+    "QUARTER_2" : "Trimestre 2",
+    "QUARTER_3" : "Trimestre 3",
+    "QUARTER_4" : "Trimestre 4"
+
   },
 
   "TRIP": {

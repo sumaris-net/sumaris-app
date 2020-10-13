@@ -60,7 +60,7 @@ const routes: Routes = [
   },
  // test
  {
-  path: 'bargeo/test',
+  path: 'planification/test',
   canActivate: [AuthGuardService],
   data: {
     profile: 'USER'

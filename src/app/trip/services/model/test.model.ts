@@ -25,8 +25,7 @@ export class Test extends DataEntity<Test>  {
     return res;
   }
 
-  startDate : Moment;
-  endDate : Moment;
+  year : Moment;
   comment : string;
   metier: Metier;
   
@@ -44,8 +43,7 @@ export class Test extends DataEntity<Test>  {
   asObject(options?: DataEntityAsObjectOptions): any {
     const target = super.asObject(options);
 
-    target.startDate = toDateISOString(this.startDate);
-    target.endDate = toDateISOString(this.endDate);
+    target.year = toDateISOString(this.year);
     target.comment = this.comment;
     // Metier
     target.metier = this.metier;
@@ -55,10 +53,10 @@ export class Test extends DataEntity<Test>  {
 
   fromObject(source: any): Test {
     super.fromObject(source);
-    this.startDate = fromDateISOString(source.startDate);
-    this.endDate = fromDateISOString(source.endDate);
+    this.year = fromDateISOString(source.year);
     this.comment = source.comment;
     //this.metier = source.metier && Metier.fromObject(source.metier, {useChildAttributes: 'TaxonGroup'}) || undefined;
+
     return this;
   }
 

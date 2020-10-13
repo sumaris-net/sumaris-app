@@ -34,8 +34,7 @@ export class TestValidatorService<O extends TestValidatorOptions = TestValidator
       {
         __typename: [Test.TYPENAME],
         comment: [data && data.comment || null,Validators.required],
-        startDate: [data && data.startDate || null, Validators.required],
-        endDate: [data && data.endDate || null, Validators.required],
+        year: [data && data.year || null, Validators.required],
         metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
       });
 
@@ -61,8 +60,7 @@ export class TestValidatorService<O extends TestValidatorOptions = TestValidator
     opts = this.fillDefaultOptions(opts);
 
     formGroup.get('comment').setValidators(opts.isOnFieldMode ? null : Validators.required);
-    formGroup.get('startDate').setValidators(opts.isOnFieldMode ? null : Validators.required);
-    formGroup.get('endDate').setValidators(opts.isOnFieldMode ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity]));
+    formGroup.get('year').setValidators(opts.isOnFieldMode ? null : Validators.required);
     return formGroup;
   }
 
