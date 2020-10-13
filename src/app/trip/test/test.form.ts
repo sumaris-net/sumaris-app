@@ -7,6 +7,7 @@ import {FormBuilder} from "@angular/forms";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {AppForm, ReferentialRef, IReferentialRef} from '../../core/core.module';
 import { Test } from '../services/model/test.model';
+import {StatusIds} from "../../core/services/model/model.enum";
 import {BehaviorSubject} from "rxjs";
 
 @Component({
@@ -44,7 +45,10 @@ export class TestForm extends AppForm<Test> implements OnInit {
 
     // taxonName combo
     this.registerAutocompleteField('taxonName', {
-      //suggestFn: (value, options) => this.suggest(value, options, "TaxonName"),
+      /*suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
+        entityName: 'TaxonName',
+        statusId: StatusIds.ENABLE
+      }),*/
       items: this._taxonNameSubject,
       mobile: this.mobile
     });
@@ -88,19 +92,9 @@ export class TestForm extends AppForm<Test> implements OnInit {
       this.enableTaxonNameFilter = !this.enableTaxonNameFilter;
       this.loadTaxonNames();
       console.log("enableTaxonNameFilter: " + this.enableTaxonNameFilter);
-
-      /*this.registerAutocompleteField('taxonName', {
-        //suggestFn: (value, filter) => this.suggest1(value, filter),
-        suggestFn: (value, options) => this.suggest(value, options, "TaxonName"),
-      });*/
   }
 
   /* -- protected methods -- */
-
-  protected async suggest(value: string, options: any, entityName: string) {
-    // TODO replace with dataService.loadAlreadyFilledTaxonName(0, 200, null, null)
-    return this.referentialRefService.loadAll(2, 3, null,null, {entityName: "TaxonName"});
-  }
 
   protected async loadTaxonNames() {
     console.log("loadTaxonNames works");
