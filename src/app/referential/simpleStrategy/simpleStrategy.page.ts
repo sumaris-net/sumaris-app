@@ -77,7 +77,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Program, ProgramService>
     this.form = validatorService.getFormGroup();
     // default values
     this.defaultBackHref = "/referential?entity=Program";
-    //this.defaultBackHref = "/referential/program/10?tab=2"; =>TODO : remplace 10 by id row
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;
 

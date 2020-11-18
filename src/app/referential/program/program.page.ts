@@ -59,6 +59,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
   i18nFieldPrefix = 'PROGRAM.';
+  selectedTabIndex = 2;
   strategyFormState: AnimationState;
   detailsPathSimpleStrategy = "/referential/simpleStrategy/:id"
   simpleStrategiesOption = false;
