@@ -33,7 +33,7 @@
               tabindex="-1"
               [disabled]="!canFilterEotp"
               [title]="'PLANIFICATION.BTN_FILTER'|translate"
-              (click)="toggleFilteredEotp()"
+              (click)="toggleFilteredItems('eotp')"
               [color]="enableEotpFilter ? 'primary' : undefined">
               <mat-icon>filter_list</mat-icon>
           </button>
@@ -58,7 +58,7 @@
           tabindex="-1"
           [disabled]="!canFilterLaboratory"
           [title]="'PLANIFICATION.BTN_FILTER'|translate"
-          (click)="toggleFilteredLaboratory()"
+          (click)="toggleFilteredItems('laboratory')"
           [color]="enableLaboratoryFilter ? 'primary' : undefined">
           <mat-icon>filter_list</mat-icon>
         </button>
@@ -94,7 +94,7 @@
               tabindex="-1"
               [disabled]="!canFilterFishingArea"
               [title]="'PLANIFICATION.BTN_FILTER'|translate"
-              (click)="toggleFilteredFishingArea()"
+              (click)="toggleFilteredItems('fishingArea')"
               [color]="enableFishingAreaFilter ? 'primary' : undefined">
               <mat-icon>filter_list</mat-icon>
            </button>
@@ -131,7 +131,7 @@
               tabindex="-1"
               [disabled]="!canFilterLandingArea"
               [title]="'PLANIFICATION.BTN_FILTER'|translate"
-              (click)="toggleFilteredLandingArea()"
+              (click)="toggleFilteredItems('landingArea')"
               [color]="enableLandingAreaFilter ? 'primary' : undefined">
               <mat-icon>filter_list</mat-icon>
       </button>
@@ -157,7 +157,7 @@
               tabindex="-1"
               [disabled]="!canFilterTaxonName"
               [title]="'PLANIFICATION.BTN_FILTER'|translate"
-              (click)="toggleFilteredTaxonName()"
+              (click)="toggleFilteredItems('taxonName')"
               [color]="enableTaxonNameFilter ? 'primary' : undefined">
         <mat-icon>filter_list</mat-icon>
       </button>
@@ -340,7 +340,7 @@
           tabindex="-1"
           [disabled]="!canFilterCalcifiedType"
           [title]="'PLANIFICATION.BTN_FILTER'|translate"
-          (click)="toggleFilteredCalcifiedType()"
+          (click)="toggleFilteredItems('calcifiedType')"
           [color]="enableCalcifiedTypeFilter ? 'primary' : undefined">
           <mat-icon>filter_list</mat-icon>
         </button>

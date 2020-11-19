@@ -12,6 +12,7 @@ import { PlanificationValidatorService } from 'src/app/trip/services/validator/p
 import { Program } from '../services/model/program.model';
 import { DEFAULT_PLACEHOLDER_CHAR } from 'src/app/shared/constants';
 import { InputElement } from 'src/app/shared/shared.module';
+import { MatAutocompleteFieldConfig } from 'src/app/shared/material/material.autocomplete';
 
 @Component({
   selector: 'form-planification',
@@ -25,12 +26,7 @@ import { InputElement } from 'src/app/shared/shared.module';
 export class PlanificationForm extends AppForm<Planification> implements OnInit, ControlValueAccessor, InputElement {
 
   protected formBuilder: FormBuilder;
-  private _sampleRowCode = new BehaviorSubject<string>(null);
-  private _taxonNameSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
-  private _laboratoryubject = new BehaviorSubject<IReferentialRef[]>(undefined);
-  private _fishingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _eotpSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
-  private _landingAreaSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
   private _calcifiedTypeSubject = new BehaviorSubject<IReferentialRef[]>(undefined);
 
 
@@ -49,6 +45,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   ];
 
   mobile: boolean;
+
   enableTaxonNameFilter = true;
   canFilterTaxonName = true;
 
@@ -118,46 +115,49 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     const currentYear = new Date ();
     this.form.get('year').setValue(currentYear);
 
-    // taxonName combo
+    // taxonName autocomplete
     this.registerAutocompleteField('taxonName', {
-      /*suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        entityName: 'TaxonName',
-        statusId: StatusIds.ENABLE
-      }),*/
-      /*attributes: ['id', 'name'],
-      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],*/
+      suggestFn: (value, filter) => this.suggest(value, {
+        ...filter, statusId : 1
+      },
+      'TaxonName',
+      this.enableTaxonNameFilter),
       attributes: ['name'],
       columnNames: [ 'REFERENTIAL.NAME'],
-
       columnSizes: [2,10],
-      items: this._taxonNameSubject,
-      mobile: this.mobile
+      mobile: this.settings.mobile
     });
-    this.loadTaxonNames();
 
+    // laboratory autocomplete
+    this.registerAutocompleteField('laboratory', {
+      suggestFn: (value, filter) => this.suggest(value, {
+        ...filter, statusId : 1
+      },
+      'Department',
+      this.enableLaboratoryFilter),
+      columnSizes : [4,6],
+      mobile: this.settings.mobile
+    });
 
-      // laboratory combo ------------------------------------------------------------
-      this.registerAutocompleteField('laboratory', {
-        columnSizes : [4,6],
-        items: this._laboratoryubject,
-        mobile: this.mobile
-      });
+    // fishingArea autocomplete
+    this.registerAutocompleteField('fishingArea', {
+      suggestFn: (value, filter) => this.suggest(value, {
+        ...filter, statusId : 0, levelId : 111
+      },
+      'Location',
+      this.enableFishingAreaFilter),
+      mobile: this.settings.mobile
+    });
 
-      this.loadDepartment();
-
-      // fishingArea combo ------------------------------------------------------------
-      this.registerAutocompleteField('fishingArea', {
-        items: this._fishingAreaSubject,
-        mobile: this.mobile
-      });
-      this.loadFishingAreas();
-
-      // landingArea combo ------------------------------------------------------------
-      this.registerAutocompleteField('landingArea', {
-        items: this._landingAreaSubject,
-        mobile: this.mobile
-      });
-      this.loadLandingAreas();
+    // landingArea autocomplete
+    this.registerAutocompleteField('landingArea', {
+      suggestFn: (value, filter) => this.suggest(value, {
+        ...filter, statusId : 1, levelId : 6
+      },
+      'Location',
+      this.enableLandingAreaFilter),
+      mobile: this.settings.mobile
+    });
 
      // eotp combo -------------------------------------------------------------------
      this.registerAutocompleteField('eotp', {
@@ -165,21 +165,74 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
       items: this._eotpSubject,
       mobile: this.mobile
     });
-     this.loadEotps();
+    this.loadEotps();
 
     // Calcified type combo ------------------------------------------------------------
-      this.registerAutocompleteField('calcifiedType', {
-        attributes: ['name'],
-        columnNames: [ 'REFERENTIAL.NAME'],
-        columnSizes: [2,10],
-        items: this._calcifiedTypeSubject,
-        mobile: this.mobile
-      });
-      this.loadCalcifiedType();
+    this.registerAutocompleteField('calcifiedType', {
+      attributes: ['name'],
+      columnNames: [ 'REFERENTIAL.NAME'],
+      columnSizes: [2,10],
+      items: this._calcifiedTypeSubject,
+      mobile: this.mobile
+    });
+    this.loadCalcifiedType();
 
   }
 
+  /**
+   * Suggest autocomplete values
+   * @param value
+   * @param filter - filters to apply
+   * @param entityName - referential to request
+   * @param filtered - boolean telling if we load prefilled data
+   */
+  protected async suggest(value: string, filter: any, entityName: string, filtered: boolean) : Promise<IReferentialRef[]> {
+    if(filtered) {
+      //TODO a remplacer par recuperation des donnees deja saisies
+      const res = await this.referentialRefService.loadAll(0, 5, null, null,
+        { ...filter,
+          entityName : entityName
+        },
+        { withTotal: false /* total not need */ }
+      );
+      return res.data;
+    } else {
+      return this.referentialRefService.suggest(value, {
+        ...filter,
+        entityName : entityName
+      });
+    }
+  }
 
+  toggleFilteredItems(fieldName: string){
+    let value : boolean;
+    switch (fieldName) {
+      case 'eotp':
+        this.enableEotpFilter = value = !this.enableEotpFilter;
+        this.loadEotps();
+        break;
+      case 'laboratory':
+        this.enableLaboratoryFilter = value = !this.enableLaboratoryFilter;
+        break;
+      case 'fishingArea':
+        this.enableFishingAreaFilter = value = !this.enableFishingAreaFilter;
+        break;
+      case 'landingArea':
+        this.enableLandingAreaFilter = value = !this.enableLandingAreaFilter;
+        break;
+      case 'taxonName':
+        this.enableTaxonNameFilter = value = !this.enableTaxonNameFilter;
+        break;
+      case 'calcifiedType':
+        this.enableCalcifiedTypeFilter = value = !this.enableCalcifiedTypeFilter;
+        this.loadCalcifiedType();
+        break;
+      default:
+        break;
+    }
+    this.markForCheck();
+    console.debug(`[planification] set enable filtered ${fieldName} items to ${value}`);
+  }
 
   /*setValue(data: Test, opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     // Use label and name from metier.taxonGroup
@@ -212,247 +265,36 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
     console.log("close works");
   }
 
-  toggleFilteredTaxonName() {
-      this.enableTaxonNameFilter = !this.enableTaxonNameFilter;
-      this.loadTaxonNames();
-  }
-
-  /* -- protected methods -- */
- //Taxons -----------------------------------------------------------------------------------------------
-  protected async loadTaxonNames() {
-    const taxonNameControl = this.form.get('taxonName');
-    taxonNameControl.enable();
-    // Refresh taxonNames
-    if (this.enableTaxonNameFilter) {
-      const taxonNames = await this.loadFilteredTaxonNamesMethod();
-      this._taxonNameSubject.next(taxonNames);
-    } else {
-      const taxonNames = await this.loadTaxonNamesMethod();
-      this._taxonNameSubject.next(taxonNames);
-    }
-  }
-
-  // Load taxonName Service
-  protected async loadTaxonNamesMethod(): Promise<ReferentialRef[]> {
-    console.log("loadTaxonName works");
-    const res = await this.referentialRefService.loadAll(0, 200, null, null, {entityName: "TaxonName"});
-    return res.data;
-  }
-
-  // Load Filtered taxonName Service
-  protected async loadFilteredTaxonNamesMethod(): Promise<ReferentialRef[]> {
-    // TODO replace with dataService.loadAlreadyFilledTaxonName(0, 200, null, null)
-    const res = await this.referentialRefService.loadAll(2, 3, null, null, {entityName: "TaxonName"});
-    return res.data;
-  }
+  // Calcified Type ---------------------------------------------------------------------------------------------
+      private calcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
+        {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
+        {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"},
+        {id: '3', label: 'vertèbre', name: 'vertèbre',statusId:1,entityName:"calcifiedType"},
+        {id: '4', label: 'otolithe', name: 'otolithe',statusId:1,entityName:"calcifiedType"}
+      ];
+    private filteredcalcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
+        {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
+        {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"}
+      ];
+      protected async loadCalcifiedType() {
+      const calcifiedTypeControl = this.form.get('calcifiedType');
 
 
-  //department(laboratory)---------------------------------------------------------------------------------------------
-      toggleFilteredLaboratory(){
-        this.enableLaboratoryFilter = !this.enableLaboratoryFilter;
-        this.loadDepartment();
-        console.log("enableLaboratoryFilter: " + this.enableLaboratoryFilter);
-      }
-     protected async loadDepartment() {
-      const departmentControl = this.form.get('laboratory');
-      departmentControl.enable();
+      calcifiedTypeControl.enable();
         // Refresh filtred departments
-        if (this.enableLaboratoryFilter) {
-          const departments = await this.loadFiltredDepartmentsMethod();
-          this._laboratoryubject.next(departments);
+        if (this.enableCalcifiedTypeFilter) {
+          //const calcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
+          // Mocked data
+          const calcifiedTypes = this.filteredcalcifiedTypesList;
+          this._calcifiedTypeSubject.next(calcifiedTypes);
         } else {
           // Refresh filtred departments
-          const departments = await this.loadDepartmentsMethod();
-          this._laboratoryubject.next(departments);
+          //const calcifiedTypes = await this.loadCalcifiedTypesMethod();
+          // Mocked data
+            const calcifiedTypes = this.calcifiedTypesList;
+            this._calcifiedTypeSubject.next(calcifiedTypes);
         }
     }
-
-    // Load department Service
-    protected async loadDepartmentsMethod(): Promise<ReferentialRef[]> {
-      const res = await this.referentialRefService.loadAll(0, 200, null,null,
-        {
-          entityName: "Department",
-          searchText:"PDG"
-        });
-
-        console.log("data departement :"+res.data);
-      return res.data;
-    }
-
-     //TODO : Load filtred department Service : another service to implement
-     protected async loadFiltredDepartmentsMethod(): Promise<ReferentialRef[]> {
-      const res = await this.referentialRefService.loadAll(0, 5, null,null,
-        {
-          entityName: "Department",
-          searchText:"PDG"
-        });
-        return res.data;
-    }
-
-
-  //fishing area ( zone en mer) ---------------------------------------------------------------------------------
-  toggleFilteredFishingArea(){
-    this.enableFishingAreaFilter = !this.enableFishingAreaFilter;
-    this.loadFishingAreas();
-    console.log("enableFishingAreaFilter: " + this.enableFishingAreaFilter);
-  }
-  protected async loadFishingAreas() {
-    const fishingAreaControl = this.form.get('fishingArea');
-    fishingAreaControl.enable();
-
-      // Refresh fishingAreas
-      if (this.enableFishingAreaFilter) {
-        const fishingAreas = await this.loadFiltredFishingAreasMethod();
-        this._fishingAreaSubject.next(fishingAreas);
-
-      } else {
-        // Refresh filtredfishingAreas
-        const fishingAreas = await this.loadFishingAreasMethod();
-        this._fishingAreaSubject.next(fishingAreas);
-      }
-  }
-
-  // Load fishingAreas Service
-  protected async loadFishingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null,
-      {
-        entityName: "Location",
-        statusId : 0,
-        levelId : 111
-        //statusId : 1,
-        //levelId : 5
-      });
-
-    return res.data;
-  }
-
-   // TODO : Load fishingAreas Service : another service to implement
-   protected async loadFiltredFishingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 5, null,null,
-      {
-        entityName: "Location",
-        statusId : 0,
-        levelId : 111
-        //statusId : 1,
-        //levelId : 5
-      });
-
-    return res.data;
-  }
-
-  //landingArea  ( zone terrestre) ---------------------------------------------------------------------------------
-  toggleFilteredLandingArea(){
-    this.enableLandingAreaFilter = !this.enableLandingAreaFilter;
-    this.loadLandingAreas();
-    console.log("enableLandingAreaFilter: " + this.enableLandingAreaFilter);
-  }
-  protected async loadLandingAreas() {
-    const landingAreaControl = this.form.get('landingArea');
-    landingAreaControl.enable();
-
-  // Refresh landingArea
-  if (this.enableLandingAreaFilter) {
-    const landingAreas = await this.loadFiltredLandingAreasMethod();
-      this._landingAreaSubject.next(landingAreas);
-
-  } else {
-     // Refresh filtred landingArea
-     const landingAreas = await this.loadLandingAreasMethod();
-     this._landingAreaSubject.next(landingAreas);
-   }
-  }
-
-  // Load landingArea Service
-  protected async loadLandingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 200, null,null,
-      {
-        entityName: "Location",
-        statusId : 1,
-        levelId : 6
-        //levelId : 2
-      });
-
-    return res.data;
-  }
-
- // TODO : Load filtred landing Service : another service to implement
-  protected async loadFiltredLandingAreasMethod(): Promise<ReferentialRef[]> {
-    const res = await this.referentialRefService.loadAll(0, 5, null,null,
-      {
-        entityName: "Location",
-        statusId : 1,
-        levelId : 6
-        //levelId : 2
-      });
-
-    return res.data;
-  }
-
-
-  // Calcified Type ---------------------------------------------------------------------------------------------
-        toggleFilteredCalcifiedType(){
-          this.enableCalcifiedTypeFilter = !this.enableCalcifiedTypeFilter;
-          this.loadCalcifiedType();
-          console.log("enableCalcifiedTypeFilter: " + this.enableCalcifiedTypeFilter);
-        }
-
-        private calcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-          {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
-          {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"},
-          {id: '3', label: 'vertèbre', name: 'vertèbre',statusId:1,entityName:"calcifiedType"},
-          {id: '4', label: 'otolithe', name: 'otolithe',statusId:1,entityName:"calcifiedType"}
-        ];
-      private filteredcalcifiedTypesList: Array<{id,label: string, name: string, statusId : number, entityName: string}> = [
-          {id: '1', label: 'écaille', name: 'écaille', statusId:1,entityName:"calcifiedType"},
-          {id: '2', label: 'illicium', name: 'illicium', statusId:1,entityName:"calcifiedType"}
-        ];
-       protected async loadCalcifiedType() {
-        const calcifiedTypeControl = this.form.get('calcifiedType');
-
-
-        calcifiedTypeControl.enable();
-          // Refresh filtred departments
-          if (this.enableCalcifiedTypeFilter) {
-            //const calcifiedTypes = await this.loadFilteredCalcifiedTypesMethod();
-            // Mocked data
-           const calcifiedTypes = this.filteredcalcifiedTypesList;
-           this._calcifiedTypeSubject.next(calcifiedTypes);
-          } else {
-            // Refresh filtred departments
-            //const calcifiedTypes = await this.loadCalcifiedTypesMethod();
-            // Mocked data
-             const calcifiedTypes = this.calcifiedTypesList;
-             this._calcifiedTypeSubject.next(calcifiedTypes);
-          }
-      }
-
-    // Load CalcifiedTypes Service
-    protected async loadCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
-      const res = await this.referentialRefService.loadAll(0, 200, null,null,
-        {
-          entityName: "CalcifiedTypes"
-        });
-
-        console.log("data CalcifiedTypes :"+res.data);
-      return res.data;
-    }
-
-     //TODO : Load filtred CalcifiedTypes Service : another service to implement
-     protected async loadFilteredCalcifiedTypesMethod(): Promise<ReferentialRef[]> {
-      const res = await this.referentialRefService.loadAll(0, 200, null,null,
-        {
-          entityName: "CalcifiedTypes"
-        });
-        return res.data;
-    }
-
-  //Eotp en mode bouchon------------------------------------------------------------------------------------------------
-  toggleFilteredEotp() {
-    this.enableEotpFilter = !this.enableEotpFilter;
-    //TODO :loadEotp()
-    this.loadEotps();
-    console.log("enableEotpFilter: " + this.enableEotpFilter);
-   }
 
   protected  loadEotps() {
     const eotpAreaControl = this.form.get('eotp');
