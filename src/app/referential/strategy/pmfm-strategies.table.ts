@@ -114,6 +114,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   @Input() canDisplayToolbar = true;
   @Input() canDisplayColumnsHeaders = true;
   @Input() canDisplaySimpleStrategyValidators = true;
+  @Input() pmfmFilterApplied: string = 'all';
   @Input() initializeOneRow = false;
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -649,13 +650,72 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$acquisitionLevels.next(res && res.data || undefined)
   }
 
-  protected async loadPmfms() {
+  protected async loadPmfmsOld() {
     const res = await this.pmfmService.loadAll(0, 10, null, null, null,
       {
         withTotal: false,
         withDetails: true
       });
     this.$pmfms.next(res && res.data || [])
+  }
+
+  protected async loadPmfms() {
+      const res = null;
+      if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
+      {
+        /*{
+          entityName: "Pmfm",
+          ...METIER_DEFAULT_FILTER,
+          searchJoin: "TaxonGroup",
+          levelId: gear && gear.id || undefined
+        },*/
+        //PmfmFilter const weightFilter = null;
+        // We add a filter on pmfm with parameter in ('WEIGHT')
+        const res = await this.pmfmService.loadAll(0, 123, null, null, {
+          entityName: 'Pmfm',
+          parametersCodes: ['WEIGHT'],
+          searchAttributes: ['parameter.code']
+        },
+          {
+            withTotal: false,
+            withDetails: true
+          });
+      }
+      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'size')
+      {
+        // We add a filter on pmfm with parameter in specific size list
+        const res = await this.pmfmService.loadAll(0, 456, null, null, {
+          entityName: 'Pmfm',
+          parametersCodes: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
+          searchAttributes: ['parameter.code']
+        },
+          {
+            withTotal: false,
+            withDetails: true
+          });
+      }
+      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'maturity')
+      {
+        // We add a filter on pmfm with parameter in specific maturity list
+        const res = await this.pmfmService.loadAll(0, 789, null, null, {
+          entityName: 'Pmfm',
+          parametersCodes: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'],
+          searchAttributes: ['parameter.code']
+        },
+          {
+            withTotal: false,
+            withDetails: true
+          });
+      }
+      else {
+        const res = await this.pmfmService.loadAll(0, 1000, null, null, null,
+        {
+          withTotal: false,
+          withDetails: true
+        });
+      }
+      this.$pmfms.next(res && res.data || [])
+
   }
 
 
