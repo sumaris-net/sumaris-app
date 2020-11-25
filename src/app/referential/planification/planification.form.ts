@@ -224,7 +224,7 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
   }
 
   private onSampleRowCodeChange(strValue): void {
-      console.debug(`onSampleRowCodeChange: ${strValue}`);
+      //console.debug(`onSampleRowCodeChange: ${strValue}`);
     }
 
   onSampleRowCodeFocus(event: FocusEvent) {
@@ -268,7 +268,10 @@ export class PlanificationForm extends AppForm<Planification> implements OnInit,
 
   private onYearChange(strValue): void {
     // Call sampleRowCodeManager() in order to refresh year and increment
-    this.sampleRowCodeManager(strValue._d.getFullYear());
+    if (strValue && strValue._d)
+    {
+      this.sampleRowCodeManager(strValue._d.getFullYear());
+    }
   }
 
   /**
