@@ -378,7 +378,8 @@
     "QUARTER_2": "Quarter 2",
     "QUARTER_3": "Quarter 3",
     "QUARTER_4": "Quarter 4",
-    "PARAMETERS_TITLE": "Mesured parameters :"
+    "PARAMETERS_TITLE": "Mesured parameters :",
+    "COMMENT" :"Comment"
   },
 
   "TRIP": {

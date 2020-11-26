@@ -4,7 +4,6 @@ import {environment, referentialToString, RESERVED_END_COLUMNS, RESERVED_START_C
 import {StrategyValidatorService} from "../../services/validator/strategy.validator";
 import {Strategy} from "../../services/model/strategy.model";
 import {InMemoryEntitiesService} from "../../../shared/services/memory-entity-service.class";
-import {toBoolean} from "../../../shared/functions";
 import {DefaultStatusList} from "../../../core/services/model/referential.model";
 import {AppInMemoryTable} from "../../../core/table/memory-table.class";
 
@@ -46,11 +45,15 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
       // columns
       RESERVED_START_COLUMNS
         .concat([
-          'label',
-          'name',
-          'description',
-          'status',
-          'comments'])
+          'sampleRowCode',
+          'eotp',
+          'laboratory',
+          'fishingArea',
+          'landingPort',
+          'targetSpecie',
+          'parametersTitle',
+          'year',
+          'comment'])
         .concat(RESERVED_END_COLUMNS),
       Strategy,
       memoryDataService,
@@ -58,7 +61,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
       null,
       {});
 
-    this.i18nColumnPrefix = 'REFERENTIAL.';
+    this.i18nColumnPrefix = 'PLANIFICATION.';
     this.autoLoad = false; // waiting parent to load
 
     this.confirmBeforeDelete = true;

@@ -378,7 +378,8 @@
     "QUARTER_2": "Trimestre 2",
     "QUARTER_3": "Trimestre 3",
     "QUARTER_4": "Trimestre 4",
-    "PARAMETERS_TITLE": "Paramètres à mesurer :"
+    "PARAMETERS_TITLE": "Paramètres à mesurer :",
+    "COMMENT" :"Commentaire"
   },
 
   "TRIP": {

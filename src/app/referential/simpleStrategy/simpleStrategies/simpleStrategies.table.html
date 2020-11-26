@@ -57,87 +57,115 @@
     <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
   </ng-container>
 
-  <!-- Label column -->
-  <ng-container matColumnDef="label">
+  <!-- codeLine column -->
+  <ng-container matColumnDef="sampleRowCode">
     <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>REFERENTIAL.LABEL</span>
+      <span translate>PLANIFICATION.SAMPLE_ROW_CODE</span>
     </mat-header-cell>
     <mat-cell *matCellDef="let row">
       <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['label']" [placeholder]="'REFERENTIAL.LABEL'|translate"
-               [appAutofocus]="row.id == -1 && row.editing" [readonly]="!row.editing">
-        <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.SAMPLE_ROW_CODE'|translate">
       </mat-form-field>
     </mat-cell>
   </ng-container>
 
-  <!-- Name column -->
-  <ng-container matColumnDef="name">
-    <mat-header-cell *matHeaderCellDef>
-      <span translate>REFERENTIAL.NAME</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['name']" [placeholder]="'REFERENTIAL.NAME'|translate"
-               [readonly]="!row.editing">
-        <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
+    <!-- eotp column -->
+    <ng-container matColumnDef="eotp">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.EOTP</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.EOTP'|translate">
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
 
+    <!-- LABORATORY column -->
+    <ng-container matColumnDef="laboratory">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.LABORATORY</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.LABORATORY'|translate">
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
 
-  <!-- Description column -->
-  <ng-container matColumnDef="description">
-    <mat-header-cell *matHeaderCellDef>
-      <span translate>REFERENTIAL.DESCRIPTION</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls.description" [placeholder]="'REFERENTIAL.DESCRIPTION'|translate"
-               [readonly]="!row.editing">
-        <mat-error *ngIf="row.validator.controls.description.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
+    <!-- FISHING_AREA column -->
+    <ng-container matColumnDef="fishingArea">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.FISHING_AREA</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.FISHING_AREA'|translate">
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
 
-  <!-- Status column  -->
-  <ng-container matColumnDef="status">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>REFERENTIAL.STATUS</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <ion-icon matPrefix *ngIf="row.validator.controls.statusId.value &gt;=0" [name]="statusById[row.validator.controls.statusId.value]?.icon"></ion-icon>
+    <!-- LANDING_PORT column -->
+    <ng-container matColumnDef="landingPort">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.LANDING_PORT</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.LANDING_PORT'|translate">
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
 
-        <mat-select [formControl]="row.validator.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
-          <mat-select-trigger>
-              <span *ngIf="row.validator.controls.statusId.value &gt;=0">
-                {{ statusById[row.validator.controls.statusId.value]?.label | translate}}</span>
-          </mat-select-trigger>
-          <mat-option *ngFor="let item of statusList" [value]="item.id">
-            <ion-icon [name]="item.icon"></ion-icon>
-            {{ item.label |translate }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="row.validator.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
+     <!-- TARGET_SPECIE column -->
+     <ng-container matColumnDef="targetSpecie">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.TARGET_SPECIE</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.TARGET_SPECIE'|translate">
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
 
-  <!-- Comment column -->
-  <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>REFERENTIAL.COMMENTS</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
-               [readonly]="!row.editing">
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
+    <!-- PARAMETERS_TITLE column -->
+    <ng-container matColumnDef="parametersTitle">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.PARAMETERS_TITLE</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.PARAMETERS_TITLE'|translate">
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
 
-  <!-- Actions buttons column -->
+    <!-- YEAR column -->
+    <ng-container matColumnDef="year">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.YEAR</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.YEAR'|translate">
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
+
+    <!-- comment column -->
+    <ng-container matColumnDef="comment">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>PLANIFICATION.COMMENT</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.COMMENT'|translate">
+        </mat-form-field>
+      </mat-cell>
+    </ng-container>
+
+	 <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
     </mat-header-cell>
