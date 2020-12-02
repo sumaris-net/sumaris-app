@@ -2,12 +2,14 @@ import {AppForm, Referential} from "../../../core/core.module";
 import {DateAdapter} from "@angular/material/core";
 import {Moment} from "moment";
 import {ReferentialValidatorService} from "../../services/validator/referential.validator";
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from "@angular/core";
 import {DefaultStatusList, StatusValue} from "../../../core/services/model/referential.model";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {LocalSettingsService} from "../../../core/services/local-settings.service";
 import { Program } from '../../services/model/program.model';
 import {FormBuilder, FormGroup} from "@angular/forms";
+import {OperationsTable} from "../../../trip/operation/operations.table";
+import {PlanificationForm} from "../../planification/planification.form";
 
 @Component({
   selector: 'app-simpleStrategy-form',
@@ -31,6 +33,8 @@ export class SimpleStrategyForm extends AppForm<Referential> implements OnInit {
   @Input() showError = true;
   @Input() entityName;
   @Input() program: Program;
+
+  @ViewChild('planificationForm', { static: true }) planificationForm: PlanificationForm;
 
   @Input()
   set statusList(values: StatusValue[]) {
@@ -73,6 +77,9 @@ export class SimpleStrategyForm extends AppForm<Referential> implements OnInit {
     if (entityNameControl && this.entityName && entityNameControl.value !== this.entityName) {
       entityNameControl.setValue(this.entityName, opts);
     }
+
+    // Propagate value to planification form when automatic binding isn't set in super.setValue()
+    this.planificationForm.setValueSimpleStrategy(data, opts);
   }
   protected markForCheck() {
     if (this.cd) this.cd.markForCheck();

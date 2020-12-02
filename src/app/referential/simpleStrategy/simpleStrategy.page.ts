@@ -1,25 +1,22 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
-import {AbstractControl, FormBuilder, FormGroup} from "@angular/forms";
+import {ValidatorService} from "@e-is/ngx-material-table";
+import {FormBuilder, FormGroup} from "@angular/forms";
 import {AppEntityEditor, EntityUtils, isNil} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
 import {Strategy} from "../services/model/strategy.model";
-import {ProgramService} from "../services/program.service";
 import {SimpleStrategyForm} from "../simpleStrategy/form/simpleStrategy.form";
 import {ProgramValidatorService} from "../services/validator/program.validator";
-import {StrategiesTable} from "../strategy/strategies.table";
-import {changeCaseToUnderscore, EntityServiceLoadOptions, fadeInOutAnimation} from "../../shared/shared.module";
+import {
+  fadeInOutAnimation
+} from "../../shared/shared.module";
 import {AccountService} from "../../core/services/account.service";
 import {ReferentialUtils} from "../../core/services/model/referential.model";
-import {AppPropertiesForm} from "../../core/form/properties.form";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ModalController} from "@ionic/angular";
-import {FormFieldDefinition, FormFieldDefinitionMap} from "../../shared/form/field.model";
-import {StrategyForm} from "../strategy/strategy.form";
-import {animate, AnimationEvent, state, style, transition, trigger} from "@angular/animations";
-import {debounceTime, filter, first} from "rxjs/operators";
-import {AppFormHolder} from "../../core/form/form.utils";
+import {FormFieldDefinitionMap} from "../../shared/form/field.model";
+import {animate, state, style, transition, trigger} from "@angular/animations";
 import {ProgramProperties} from "../services/config/program.config";
+import {StrategyService} from "../services/strategy.service";
 
 
 export enum AnimationState {
@@ -51,7 +48,7 @@ export enum AnimationState {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SimpleStrategyPage extends AppEntityEditor<Program, ProgramService> implements OnInit {
+export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyService> implements OnInit {
 
   propertyDefinitions = Object.getOwnPropertyNames(ProgramProperties).map(name => ProgramProperties[name]);
   fieldDefinitions: FormFieldDefinitionMap = {};
@@ -67,12 +64,12 @@ export class SimpleStrategyPage extends AppEntityEditor<Program, ProgramService>
     protected formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
-    dataService: ProgramService,
+    dataService: StrategyService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController
   ) {
     super(injector,
-      Program,
+      Strategy,
       dataService);
     this.form = validatorService.getFormGroup();
     // default values
@@ -84,22 +81,23 @@ export class SimpleStrategyPage extends AppEntityEditor<Program, ProgramService>
   }
 
   ngOnInit() {
- //  super.ngOnInit();
+    //  Call editor routing
+    super.ngOnInit();
 
     // Set entity name (required for referential form validator)
-    this.simpleStrategyForm.entityName = 'Program';
+    this.simpleStrategyForm.entityName = 'simpleStrategyForm';
 
 
-   }
+  }
 
-   protected canUserWrite(data: Program): boolean {
+  protected canUserWrite(data: Strategy): boolean {
     // TODO : check user is in program managers
     return (this.isNewData && this.accountService.isAdmin())
       || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
 
   }
 
-  protected computeTitle(data: Program): Promise<string> {
+  protected computeTitle(data: Strategy): Promise<string> {
     // new data
     if (!data || isNil(data.id)) {
       return this.translate.get('PROGRAM.NEW.TITLE').toPromise();
@@ -112,22 +110,35 @@ export class SimpleStrategyPage extends AppEntityEditor<Program, ProgramService>
 
   protected getFirstInvalidTabIndex(): number {
     if (this.simpleStrategyForm.invalid) return 0;
-   // TODO
+    // TODO
     return 0;
   }
 
   protected registerForms() {
     this.addChildForms([
       this.simpleStrategyForm
-       // TODO
+      // TODO
     ]);
   }
 
-  protected setValue(data: Program) {
+  updateView(data: Strategy | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
+    super.updateView(data, opts);
+
+    //if (this.isNewData && this.showBatchTables && isNotEmptyArray(this.batchTree.defaultTaxonGroups)) {
+    //  this.batchTree.autoFill();
+    //}
+  }
+
+  protected setValue(data: Strategy) {
     if (!data) return; // Skip
 
     this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
-    // TODO
+
+    this.simpleStrategyForm.value = data;
+    //this.simpleStrategyForm.program = 40;
+    //this.simpleStrategyForm.statusList =
+    this.simpleStrategyForm.entityName= 'strategy';
+
     this.markAsPristine();
   }
 

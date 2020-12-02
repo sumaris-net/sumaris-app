@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {TableElement} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {environment} from "../../../environments/environment";
 import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
@@ -23,10 +23,7 @@ import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasou
 import {debounceTime, map, startWith, switchMap, filter} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-import {Program} from "../services/model/program.model";
-import {SelectionChange} from "@angular/cdk/collections";
 import {ProgramService} from "../services/program.service";
-import {ProgramProperties} from "../services/config/program.config";
 
 export class PmfmStrategyFilter {
 
@@ -142,16 +139,16 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   private _program: string;
 
   @Input()
-    set program(value: string) {
-      if (this._program !== value && isNotNil(value)) {
-        this._program = value;
-        if (!this.loading) this.loadDefaultsFromProgram();
-      }
+  set program(value: string) {
+    if (this._program !== value && isNotNil(value)) {
+      this._program = value;
+      if (!this.loading) this.loadDefaultsFromProgram();
     }
+  }
 
-    get program(): string {
-      return this._program;
-    }
+  get program(): string {
+    return this._program;
+  }
 
   @Output() get selectionChanges(): Observable<TableElement<PmfmStrategy>[]> {
     return this.selection.changed.pipe(
@@ -309,12 +306,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false,
       autocomplete: this.registerAutocompleteField('parameter', {
         items: this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          map((pmfms: Pmfm[]) => {
-            return removeDuplicatesFromArray(pmfms.map(p => p.parameter), 'label');
-          })
-        ),
+          .pipe(
+            filter(isNotNil),
+            map((pmfms: Pmfm[]) => {
+              return removeDuplicatesFromArray(pmfms.map(p => p.parameter), 'label');
+            })
+          ),
         attributes: pmfmParameterAttributes,
         columnSizes: [4,8],
         columnNames: ['REFERENTIAL.PARAMETER.CODE', 'REFERENTIAL.PARAMETER.NAME'],
@@ -330,12 +327,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false,
       autocomplete: this.registerAutocompleteField('matrix', {
         items: this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          map((pmfms: Pmfm[]) => {
-            return removeDuplicatesFromArray(pmfms.map(p => p.matrix), 'name');
-          })
-        ),
+          .pipe(
+            filter(isNotNil),
+            map((pmfms: Pmfm[]) => {
+              return removeDuplicatesFromArray(pmfms.map(p => p.matrix), 'name');
+            })
+          ),
         attributes: ['name'],
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-medium-size'
@@ -348,12 +345,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false,
       autocomplete: this.registerAutocompleteField('fraction', {
         items: this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          map((pmfms: Pmfm[]) => {
-            return removeDuplicatesFromArray(pmfms.map(p => p.fraction), 'name');
-          })
-        ),
+          .pipe(
+            filter(isNotNil),
+            map((pmfms: Pmfm[]) => {
+              return removeDuplicatesFromArray(pmfms.map(p => p.fraction), 'name');
+            })
+          ),
         attributes: mfmAttributes,
         class: 'mat-autocomplete-panel-medium-size',
         showAllOnFocus: false
@@ -368,12 +365,12 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       required: false,
       autocomplete: this.registerAutocompleteField('method', {
         items: this.$pmfms
-        .pipe(
-          filter(isNotNil),
-          map((pmfms: Pmfm[]) => {
-            return removeDuplicatesFromArray(pmfms.map(p => p.method), 'name');
-          })
-        ),
+          .pipe(
+            filter(isNotNil),
+            map((pmfms: Pmfm[]) => {
+              return removeDuplicatesFromArray(pmfms.map(p => p.method), 'name');
+            })
+          ),
         attributes: mfmAttributes,
         class: 'mat-autocomplete-panel-medium-size',
         showAllOnFocus: false
@@ -453,29 +450,29 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   /* -- protected methods -- */
 
-    protected async onPmfmsParametersChanged(pmfmsUnits) {
+  protected async onPmfmsParametersChanged(pmfmsUnits) {
     console.debug("onPmfmsParametersChanged(pmfmsUnits");
-/**      const metierControl = this.form.get('metier');
-      const physicalGearControl = this.form.get('physicalGear');
+    /**      const metierControl = this.form.get('metier');
+     const physicalGearControl = this.form.get('physicalGear');
 
-      const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear, 'id');
-      const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;
-      // Use same trip's gear Object (if found)
-      if (hasPhysicalGear && isNotEmptyArray(gears)) {
+     const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear, 'id');
+     const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;
+     // Use same trip's gear Object (if found)
+     if (hasPhysicalGear && isNotEmptyArray(gears)) {
         physicalGear = (gears || []).find(g => g.id === physicalGear.id);
         physicalGearControl.patchValue(physicalGear, {emitEvent: false});
       }
 
-      // Change metier status, if need
-      const enableMetier = hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears);
-      if (enableMetier) {
+     // Change metier status, if need
+     const enableMetier = hasPhysicalGear && this.form.enabled && isNotEmptyArray(gears);
+     if (enableMetier) {
         if (metierControl.disabled) metierControl.enable();
       }
-      else {
+     else {
         if (metierControl.enabled) metierControl.disable();
       }
 
-      if (hasPhysicalGear) {
+     if (hasPhysicalGear) {
 
         // Refresh metiers
         const metiers = await this.loadMetiers(physicalGear);
@@ -495,7 +492,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
           }
         }
       }*/
-    }
+  }
 
   protected async onLoad(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
 
@@ -644,57 +641,56 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
 
   protected async loadPmfms() {
-      const res = null;
-      if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
-      {
-        // We add a filter on pmfm with parameter in ('WEIGHT')
-        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+    if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
+    {
+      // We add a filter on pmfm with parameter in ('WEIGHT')
+      const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
           levelLabels: ['WEIGHT']
           // searchJoin: "Parameter" is implied in pod filter
         },
-          {
-            withTotal: false,
-            withDetails: true
-          });
-          this.$pmfms.next(res && res.data || [])
-      }
-      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'size')
-      {
-        // We add a filter on pmfm with parameter in specific size list
-        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-          entityName: 'Pmfm',
-          levelLabels: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE']
-          // searchJoin: "Parameter" is implied in pod filter
-        },
-          {
-            withTotal: false,
-            withDetails: true
-          });
-          this.$pmfms.next(res && res.data || [])
-      }
-      else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'maturity')
-      {
-        // We add a filter on pmfm with parameter in specific maturity list
-        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
-          entityName: 'Pmfm',
-          levelLabels: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL']
-          // searchJoin: "Parameter" is implied in pod filter
-        },
-          {
-            withTotal: false,
-            withDetails: true
-          });
-          this.$pmfms.next(res && res.data || [])
-      }
-      else {
-        const res = await this.pmfmService.loadAll(0, 1000, null, null, null,
         {
           withTotal: false,
           withDetails: true
         });
-        this.$pmfms.next(res && res.data || [])
-      }
+      this.$pmfms.next(res && res.data || [])
+    }
+    else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'size')
+    {
+      // We add a filter on pmfm with parameter in specific size list
+      const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+          entityName: 'Pmfm',
+          levelLabels: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE']
+          // searchJoin: "Parameter" is implied in pod filter
+        },
+        {
+          withTotal: false,
+          withDetails: true
+        });
+      this.$pmfms.next(res && res.data || [])
+    }
+    else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'maturity')
+    {
+      // We add a filter on pmfm with parameter in specific maturity list
+      const res = await this.pmfmService.loadAll(0, 1000, null, null, {
+          entityName: 'Pmfm',
+          levelLabels: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL']
+          // searchJoin: "Parameter" is implied in pod filter
+        },
+        {
+          withTotal: false,
+          withDetails: true
+        });
+      this.$pmfms.next(res && res.data || [])
+    }
+    else {
+      const res = await this.pmfmService.loadAll(0, 1000, null, null, null,
+        {
+          withTotal: false,
+          withDetails: true
+        });
+      this.$pmfms.next(res && res.data || [])
+    }
 
 
   }
@@ -720,9 +716,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     const program = await this.programService.loadByLabel(this._program);
     if (!program) return; //  Program not found
-
-    // Map center
-    const centerCoords = program.getPropertyAsNumbers(ProgramProperties.TRIP_MAP_CENTER);
 
 
     // Emit event
