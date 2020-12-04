@@ -49,11 +49,13 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
           'eotp',
           'laboratory',
           'fishingArea',
-          'landingPort',
           'targetSpecie',
+          'comment',
           'parametersTitle',
-          'year',
-          'comment'])
+          't1',
+          't2',
+          't3',
+          't4'])
         .concat(RESERVED_END_COLUMNS),
       Strategy,
       memoryDataService,

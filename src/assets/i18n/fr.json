@@ -379,7 +379,12 @@
     "QUARTER_3": "Trimestre 3",
     "QUARTER_4": "Trimestre 4",
     "PARAMETERS_TITLE": "Paramètres à mesurer :",
-    "COMMENT" :"Commentaire"
+    "COMMENT" :"Commentaire",
+    "PARAMETERS_TITLE_TABLE": "Paramètres à mesurer",
+    "QUARTER_1_TABLE": "Efforts T1" ,
+    "QUARTER_2_TABLE": "Efforts T2",
+    "QUARTER_3_TABLE": "Efforts T3",
+    "QUARTER_4_TABLE": "Efforts T4"
   },
 
   "TRIP": {

@@ -105,18 +105,6 @@
       </mat-cell>
     </ng-container>
 
-    <!-- LANDING_PORT column -->
-    <ng-container matColumnDef="landingPort">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PLANIFICATION.LANDING_PORT</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.LANDING_PORT'|translate">
-        </mat-form-field>
-      </mat-cell>
-    </ng-container>
-
      <!-- TARGET_SPECIE column -->
      <ng-container matColumnDef="targetSpecie">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
@@ -129,41 +117,77 @@
       </mat-cell>
     </ng-container>
 
+  <!-- comment column -->
+  <ng-container matColumnDef="comment">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.COMMENT</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.COMMENT'|translate">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
+
     <!-- PARAMETERS_TITLE column -->
     <ng-container matColumnDef="parametersTitle">
       <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PLANIFICATION.PARAMETERS_TITLE</span>
+        <span translate>PLANIFICATION.PARAMETERS_TITLE_TABLE</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.PARAMETERS_TITLE'|translate">
+          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.PARAMETERS_TITLE_TABLE'|translate">
         </mat-form-field>
       </mat-cell>
     </ng-container>
 
-    <!-- YEAR column -->
-    <ng-container matColumnDef="year">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PLANIFICATION.YEAR</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.YEAR'|translate">
-        </mat-form-field>
-      </mat-cell>
-    </ng-container>
+  <!-- QUARTER_1_TABLE column -->
+  <ng-container matColumnDef="t1">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.QUARTER_1_TABLE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.QUARTER_1_TABLE'|translate">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
 
-    <!-- comment column -->
-    <ng-container matColumnDef="comment">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <span translate>PLANIFICATION.COMMENT</span>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.COMMENT'|translate">
-        </mat-form-field>
-      </mat-cell>
-    </ng-container>
+  <!-- QUARTER_2_TABLE column -->
+  <ng-container matColumnDef="t2">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.QUARTER_2_TABLE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.QUARTER_2_TABLE'|translate">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
+
+  <!-- QUARTER_3_TABLE column -->
+  <ng-container matColumnDef="t3">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.QUARTER_3_TABLE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.QUARTER_3_TABLE'|translate">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
+
+  <!-- QUARTER_4_TABLE column -->
+  <ng-container matColumnDef="t4">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <span translate>PLANIFICATION.QUARTER_4_TABLE</span>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <mat-form-field floatLabel="never">
+        <input matInput [formControl]="row.validator.controls['comments']" [placeholder]="'PLANIFICATION.QUARTER_4_TABLE'|translate">
+      </mat-form-field>
+    </mat-cell>
+  </ng-container>
 
 	 <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
