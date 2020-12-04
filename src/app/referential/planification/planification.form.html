@@ -8,11 +8,11 @@
       <ion-col>
         <mat-form-field>
           <input matInput #matInput
-                 formControlName="sampleRowCode"
+                 formControlName="label"
                  autocomplete="off"
                  type="text"
                  [textMask]="{mask: sampleRowMask, keepCharPositions: true, showMask: true, guide: true}"
-                 [(ngModel)]="sampleRowCode"
+                 [(ngModel)]="label"
                  placeholder="{{ 'PLANIFICATION.SAMPLE_ROW_TITLE' | translate }}" >
         </mat-form-field>
       </ion-col>
@@ -26,9 +26,9 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field
-          formControlName="eotp"
+          formControlName="analyticReference"
           [placeholder]="'PLANIFICATION.EOTP'|translate"
-          [config]="autocompleteFields.eotp"
+          [config]="autocompleteFields.analyticReference"
           [tabindex]="tabindex+1">
 
           <button matAfter type="button" mat-icon-button
@@ -86,7 +86,7 @@
     </ion-row>
 
     <!--FISHING AREA -->
-    <ion-row *ngFor="let fishingAreaTypeForm of fishingAreasForm?.controls; index as i; first as first">
+    <ion-row *ngFor="let fishingAreaForm of fishingAreasForm?.controls; index as i; first as first">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label>&nbsp;</ion-label>
       </ion-col>
@@ -130,28 +130,28 @@
 
 
     <!-- Target species (using metier) -->
-    <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
-      </ion-col>
-      <ion-col>
-        <mat-autocomplete-field formControlName="taxonName"
-                                [placeholder]="'PLANIFICATION.TARGET_SPECIE'|translate"
-                                [config]="autocompleteFields.taxonName"
-                                [tabindex]="tabindex+1"
-                                [required]="true"
-                                [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'">
-          <button matAfter type="button" mat-icon-button
-                  tabindex="-1"
-                  [disabled]="!canFilterTaxonName"
-                  [title]="'PLANIFICATION.BTN_FILTER'|translate"
-                  (click)="toggleFilteredItems('taxonName')"
-                  [color]="enableTaxonNameFilter ? 'primary' : undefined">
-            <mat-icon>filter_list</mat-icon>
-          </button>
-        </mat-autocomplete-field>
-      </ion-col>
-    </ion-row>
+    <!--    <ion-row>-->
+    <!--      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">-->
+    <!--        <ion-label>&nbsp;</ion-label>-->
+    <!--      </ion-col>-->
+    <!--      <ion-col>-->
+    <!--        <mat-autocomplete-field formControlName="taxonName"-->
+    <!--                                [placeholder]="'PLANIFICATION.TARGET_SPECIE'|translate"-->
+    <!--                                [config]="autocompleteFields.taxonName"-->
+    <!--                                [tabindex]="tabindex+1"-->
+    <!--                                [required]="true"-->
+    <!--                                [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'">-->
+    <!--          <button matAfter type="button" mat-icon-button-->
+    <!--                  tabindex="-1"-->
+    <!--                  [disabled]="!canFilterTaxonName"-->
+    <!--                  [title]="'PLANIFICATION.BTN_FILTER'|translate"-->
+    <!--                  (click)="toggleFilteredItems('taxonName')"-->
+    <!--                  [color]="enableTaxonNameFilter ? 'primary' : undefined">-->
+    <!--            <mat-icon>filter_list</mat-icon>-->
+    <!--          </button>-->
+    <!--        </mat-autocomplete-field>-->
+    <!--      </ion-col>-->
+    <!--    </ion-row>-->
 
 
     <!--year -->
@@ -161,7 +161,7 @@
       </ion-col>
       <ion-col size="12" size-sm="auto">
         <mat-date-short-field [placeholder]="'PLANIFICATION.YEAR'|translate"
-                              formControlName="year"
+                              formControlName="creationDate"
                               [required]="true" >
         </mat-date-short-field>
       </ion-col>
@@ -169,118 +169,118 @@
 
     <!--quarters-->
     <!-- Trimestre -->
-    <ion-row>
-      <ion-col size="12" size-md="2" size-lg="3">
-        <ion-label class="ion-float-end" translate>PLANIFICATION.EFFORT</ion-label>
-      </ion-col>
-      <!-- T1 -->
-      <ion-col size="1" class="ion-margin">
-        <mat-form-field>
-          <input matInput type="number" step="1" min="0" autocomplete="off" [placeholder]="'PLANIFICATION.QUARTER_1'|translate"
-          >
-        </mat-form-field>
-      </ion-col>
+    <!--    <ion-row>-->
+    <!--      <ion-col size="12" size-md="2" size-lg="3">-->
+    <!--        <ion-label class="ion-float-end" translate>PLANIFICATION.EFFORT</ion-label>-->
+    <!--      </ion-col>-->
+    <!--      &lt;!&ndash; T1 &ndash;&gt;-->
+    <!--      <ion-col size="1" class="ion-margin">-->
+    <!--        <mat-form-field>-->
+    <!--          <input matInput type="number" step="1" min="0" autocomplete="off" [placeholder]="'PLANIFICATION.QUARTER_1'|translate"-->
+    <!--          >-->
+    <!--        </mat-form-field>-->
+    <!--      </ion-col>-->
 
-      <!-- T2 -->
-      <ion-col size="1" class="ion-margin">
-        <mat-form-field>
-          <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_2'|translate">
-        </mat-form-field>
-      </ion-col>
-      <!-- T3 -->
-      <ion-col size="1" class="ion-margin">
-        <mat-form-field>
-          <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_3'|translate">
-        </mat-form-field>
-      </ion-col>
+    <!--      &lt;!&ndash; T2 &ndash;&gt;-->
+    <!--      <ion-col size="1" class="ion-margin">-->
+    <!--        <mat-form-field>-->
+    <!--          <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_2'|translate">-->
+    <!--        </mat-form-field>-->
+    <!--      </ion-col>-->
+    <!--      &lt;!&ndash; T3 &ndash;&gt;-->
+    <!--      <ion-col size="1" class="ion-margin">-->
+    <!--        <mat-form-field>-->
+    <!--          <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_3'|translate">-->
+    <!--        </mat-form-field>-->
+    <!--      </ion-col>-->
 
-      <!-- T4 -->
-      <ion-col size="1" class="ion-margin">
-        <mat-form-field>
-          <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_4'|translate">
-        </mat-form-field>
-      </ion-col>
-    </ion-row>
+    <!--      &lt;!&ndash; T4 &ndash;&gt;-->
+    <!--      <ion-col size="1" class="ion-margin">-->
+    <!--        <mat-form-field>-->
+    <!--          <input matInput type="number" step="1" min="0" autocomplete="off"  [placeholder]="'PLANIFICATION.QUARTER_4'|translate">-->
+    <!--        </mat-form-field>-->
+    <!--      </ion-col>-->
+    <!--    </ion-row>-->
 
 
+    <!--    <ion-row>-->
+    <!--      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">-->
+    <!--        <h2>-->
+    <!--          <ion-label class="ion-float-end" translate>PLANIFICATION.PARAMETERS_TITLE</ion-label>-->
+    <!--        </h2>-->
+    <!--      </ion-col>-->
+    <!--    </ion-row>-->
+
+    <!-- Weight Pmfms -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <h2>
-          <ion-label class="ion-float-end" translate>PLANIFICATION.PARAMETERS_TITLE</ion-label>
-        </h2>
+        <ion-label class="ion-float-end" translate>PLANIFICATION.WEIGHT</ion-label>
+      </ion-col>
+      <ion-col>
+        <ion-card class="ion-no-margin">
+          <app-pmfm-strategies-table #weightPmfmStrategiesTable
+                                     [title]=""
+                                     [program]="program"
+                                     [canEdit]="enabled"
+                                     [canDelete]="enabled"
+                                     [canDisplayToolbar]="false"
+                                     [canDisplayColumnsHeaders]="false"
+                                     [canDisplaySimpleStrategyValidators]="true"
+                                     pmfmFilterApplied="weight"
+                                     [initializeOneRow]="true"
+                                     [sticky]="true"
+                                     [showPMFMDetailsColumns]="true">
+          </app-pmfm-strategies-table>
+        </ion-card>
       </ion-col>
     </ion-row>
+    <ion-row style="height: 15px"></ion-row>
 
-  <!-- Weight Pmfms -->
-  <ion-row>
-        <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-          <ion-label class="ion-float-end" translate>PLANIFICATION.WEIGHT</ion-label>
-        </ion-col>
-        <ion-col>
-          <ion-card class="ion-no-margin">
-            <app-pmfm-strategies-table #pmfmStrategiesTable
-                                       [title]=""
-                                       [program]="program"
-                                       [canEdit]="enabled"
-                                       [canDelete]="enabled"
-                                       [canDisplayToolbar]="false"
-                                       [canDisplayColumnsHeaders]="false"
-                                       [canDisplaySimpleStrategyValidators]="true"
-                                       pmfmFilterApplied="weight"
-                                       [initializeOneRow]="true"
-                                       [sticky]="true"
-                                       [showPMFMDetailsColumns]="true">
-            </app-pmfm-strategies-table>
-          </ion-card>
-        </ion-col>
-      </ion-row>
-  <ion-row style="height: 15px"></ion-row>
-
-      <!-- Size Pmfms -->
-  <ion-row>
-    <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-      <ion-label class="ion-float-end" translate>PLANIFICATION.SIZE</ion-label>
-    </ion-col>
-    <ion-col>
-      <ion-card class="ion-no-margin">
-        <app-pmfm-strategies-table #pmfmStrategiesTable
-                                   [title]=""
-                                   [program]="program"
-                                   [canEdit]="enabled"
-                                   [canDelete]="enabled"
-                                   [canDisplayToolbar]="false"
-                                   [canDisplayColumnsHeaders]="false"
-                                   [canDisplaySimpleStrategyValidators]="true"
-                                   pmfmFilterApplied="size"
-                                   [initializeOneRow]="true"
-                                   [sticky]="true"
-                                   [showPMFMDetailsColumns]="true">
-        </app-pmfm-strategies-table>
-      </ion-card>
-    </ion-col>
-  </ion-row>
-  <ion-row style="height: 15px"></ion-row>
+    <!-- Size Pmfms -->
+    <ion-row>
+      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
+        <ion-label class="ion-float-end" translate>PLANIFICATION.SIZE</ion-label>
+      </ion-col>
+      <ion-col>
+        <ion-card class="ion-no-margin">
+          <app-pmfm-strategies-table #sizePmfmStrategiesTable
+                                     [title]=""
+                                     [program]="program"
+                                     [canEdit]="enabled"
+                                     [canDelete]="enabled"
+                                     [canDisplayToolbar]="false"
+                                     [canDisplayColumnsHeaders]="false"
+                                     [canDisplaySimpleStrategyValidators]="true"
+                                     pmfmFilterApplied="size"
+                                     [initializeOneRow]="true"
+                                     [sticky]="true"
+                                     [showPMFMDetailsColumns]="true">
+          </app-pmfm-strategies-table>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+    <ion-row style="height: 15px"></ion-row>
 
     <!--SEX -->
-    <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
-      </ion-col>
-      <ion-col size="12" size-sm="auto">
-        <mat-boolean-field [placeholder]="'PLANIFICATION.SEX'|translate" formControlName="sex" [required]="true">
-        </mat-boolean-field>
-      </ion-col>
+    <!--    <ion-row>-->
+    <!--      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">-->
+    <!--        <ion-label>&nbsp;</ion-label>-->
+    <!--      </ion-col>-->
+    <!--      <ion-col size="12" size-sm="auto">-->
+    <!--        <mat-boolean-field [placeholder]="'PLANIFICATION.SEX'|translate" formControlName="sex" [required]="true">-->
+    <!--        </mat-boolean-field>-->
+    <!--      </ion-col>-->
 
-    </ion-row>
+    <!--    </ion-row>-->
 
-  <!-- Maturity Pmfms -->
+    <!-- Maturity Pmfms -->
     <ion-row>
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end" translate>PLANIFICATION.MATURITY</ion-label>
       </ion-col>
       <ion-col>
         <ion-card class="ion-no-margin">
-          <app-pmfm-strategies-table #pmfmStrategiesTable
+          <app-pmfm-strategies-table #maturityPmfmStrategiesTable
                                      [title]=""
                                      [program]="program"
                                      [canEdit]="enabled"
@@ -296,18 +296,18 @@
         </ion-card>
       </ion-col>
     </ion-row>
-  <ion-row style="height: 15px"></ion-row>
+    <ion-row style="height: 15px"></ion-row>
 
     <!-- AGE -->
-    <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
-        <ion-label>&nbsp;</ion-label>
-      </ion-col>
-      <ion-col size="12" size-sm="auto">
-        <mat-boolean-field [placeholder]="'PLANIFICATION.AGE'|translate" formControlName="age" [required]="true" >
-        </mat-boolean-field>
-      </ion-col>
-    </ion-row>
+    <!--    <ion-row>-->
+    <!--      <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">-->
+    <!--        <ion-label>&nbsp;</ion-label>-->
+    <!--      </ion-col>-->
+    <!--      <ion-col size="12" size-sm="auto">-->
+    <!--        <mat-boolean-field [placeholder]="'PLANIFICATION.AGE'|translate" formControlName="age" [required]="true" >-->
+    <!--        </mat-boolean-field>-->
+    <!--      </ion-col>-->
+    <!--    </ion-row>-->
 
     <!-- Calcified Pmfms -->
     <ion-row *ngFor="let calcifiedTypeForm of calcifiedTypesForm?.controls; index as i; first as first">
@@ -362,7 +362,7 @@
         <mat-form-field appearance="outline">
         <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"
                   [placeholder]="'COMMON.COMMENTS'|translate"
-                  formControlName="comments" ></textarea>
+                  formControlName="description" ></textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
         </mat-form-field>
       </ion-col>

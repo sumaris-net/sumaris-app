@@ -56,8 +56,8 @@ export function toNotNil<T = any>(obj: T, defaultValue?: T): any | null {
   return (obj !== undefined && obj !== null) ? obj : defaultValue;
 }
 export function removeDuplicatesFromArray<T>(obj: T[] | null | undefined, property?: string): T[] | null | undefined {
-  if(property) return (obj !== undefined && obj !== null)?obj.filter((item, i, array) => array.findIndex(t => t[property] === item[property]) === i):obj;
-  return (obj !== undefined && obj !== null)?obj.filter((item, i, array) => array.findIndex(t => t === item) === i):obj;
+  if(property) return (obj !== undefined && obj !== null)?obj.filter((item, i, array) => array.findIndex(t => t && item && t[property] === item[property]) === i):obj;
+  return (obj !== undefined && obj !== null)?obj.filter((item, i, array) => array.findIndex(t => t && item && t === item) === i):obj;
 }
 export function toDateISOString(value: any): string | undefined {
   if (!value) return undefined;

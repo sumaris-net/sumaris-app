@@ -129,7 +129,7 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
   }
 
   //protected setValue(data: Strategy) {
-  protected setValue(data: Referential, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  protected setValue(data: Strategy, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
       if (!data) return; // Skip
 
