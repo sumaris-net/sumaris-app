@@ -39,6 +39,9 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
   pmfmId: number;
   pmfm: Pmfm;
 
+  parameterId: number;
+  matrixId: number;
+  fractionId: number;
   methodId: number;
   label: string;
   name: string;
@@ -95,6 +98,9 @@ export class PmfmStrategy extends DataEntity<PmfmStrategy, PmfmStrategyAsObjectO
 
     this.pmfmId = source.pmfmId;
     this.pmfm = source.pmfm && Pmfm.fromObject(source.pmfm);
+    this.parameterId = source.parameterId;
+    this.matrixId = source.matrixId;
+    this.fractionId = source.fractionId;
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name;

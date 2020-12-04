@@ -57,6 +57,7 @@ export class ReferentialFilter {
       searchAttribute: filter.searchAttribute,
       searchJoin: filter.searchJoin,
       levelIds: isNotNil(filter.levelId) ? [filter.levelId] : filter.levelIds,
+      levelLabels: isNotNil(filter.levelLabel) ? [filter.levelLabel] : filter.levelLabels,
       statusIds: isNotNil(filter.statusId) ? [filter.statusId] : (filter.statusIds || [StatusIds.ENABLE])
     };
   }

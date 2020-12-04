@@ -15,6 +15,7 @@ import {
 } from "../../core/core.module";
 import {ErrorCodes} from "./errors";
 import {ReferentialFragments} from "./referential.fragments";
+import {StrategyFragments} from "./strategy.service";
 import {GraphqlService} from "../../core/services/graphql.service";
 import {
   EntityService,
@@ -68,7 +69,17 @@ export class ProgramFilter {
   }
 }
 
-const ProgramFragments = {
+export interface ProgramServiceLoadOption extends EntityServiceLoadOptions {
+  withStrategy?: boolean;
+  toEntity?: boolean;
+}
+
+export interface ProgramServiceSaveOption {
+  withStrategy?: boolean;
+  enableOptimisticResponse?: boolean; // True by default
+}
+
+export const ProgramFragments = {
   lightProgram: gql`
     fragment LightProgramFragment on ProgramVO {
       id
@@ -125,59 +136,15 @@ const ProgramFragments = {
       }
     }
     `,
-  strategyRef: gql`
-    fragment StrategyRefFragment on StrategyVO {
-      id
-      label
-      name
-      description
-      comments
-      updateDate
-      creationDate
-      statusId
-      gears {
-        ...ReferentialFragment
-      }
-      taxonGroups {
-        ...TaxonGroupStrategyFragment
-      }
-      taxonNames {
-        ...TaxonNameStrategyFragment
-      }
-      pmfmStrategies {
-        ...PmfmStrategyRefFragment
-      }
-    }
-  `,
-  strategy: gql`
-    fragment StrategyFragment on StrategyVO {
-      id
-      label
-      name
-      description
-      comments
-      updateDate
-      creationDate
-      statusId
-      programId
-      gears {
-        ...ReferentialFragment
-      }
-      taxonGroups {
-        ...TaxonGroupStrategyFragment
-      }
-      taxonNames {
-        ...TaxonNameStrategyFragment
-      }
-      pmfmStrategies {
-        ...PmfmStrategyFragment
-      }
-    }
-  `,
+
+
   pmfmStrategyRef: gql`
     fragment PmfmStrategyRefFragment on PmfmStrategyVO {
       id
       pmfmId
+      parameterId
+      matrixId
+      fractionId
       methodId
       label
       name
@@ -216,6 +183,10 @@ const ProgramFragments = {
       pmfm {
         ...PmfmFragment
       }
+      parameterId
+      matrixId
+      fractionId
+      methodId
       gearIds
       taxonGroupIds
       referenceTaxonIds
@@ -256,8 +227,11 @@ const LoadRefQuery: any = gql`
       }
   }
   ${ProgramFragments.programRef}
-  ${ProgramFragments.strategyRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategyRef}
+  ${StrategyFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -271,8 +245,11 @@ const LoadQuery: any = gql`
       }
   }
   ${ProgramFragments.program}
-  ${ProgramFragments.strategy}
+  ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategy}
+  ${StrategyFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -308,8 +285,11 @@ const LoadAllRefWithTotalQuery: any = gql`
     referentialsCount(entityName: "Program")
   }
   ${ProgramFragments.programRef}
-  ${ProgramFragments.strategyRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategyRef}
+  ${StrategyFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -323,8 +303,11 @@ const SaveQuery: any = gql`
     }
   }
   ${ProgramFragments.program}
-  ${ProgramFragments.strategy}
+  ${StrategyFragments.strategy}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${ProgramFragments.pmfmStrategy}
+  ${StrategyFragments.strategyDepartment}
   ${ProgramFragments.taxonGroupStrategy}
   ${ProgramFragments.taxonNameStrategy}
   ${ReferentialFragments.referential}
@@ -347,7 +330,7 @@ const ProgramCacheKeys = {
 @Injectable({providedIn: 'root'})
 export class ProgramService extends BaseEntityService
   implements EntitiesService<Program, ProgramFilter>,
-    EntityService<Program> {
+    EntityService<Program, ProgramServiceLoadOption> {
 
 
   constructor(
@@ -820,6 +803,7 @@ export class ProgramService extends BaseEntityService
 
     if (this._debug) console.debug(`[program-service] Loading program {${id}}...`);
 
+    // LoadQuery return program with strategies
     const res = await this.graphql.query<{ program: any }>({
       query: LoadQuery,
       variables: {

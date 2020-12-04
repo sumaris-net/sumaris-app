@@ -33,7 +33,6 @@ import {PmfmValidatorService} from "./services/validator/pmfm.validator";
 import {PmfmPage} from "./pmfm/pmfm.page";
 import {ParameterPage} from "./pmfm/parameter.page";
 import {SimpleStrategyPage} from "./simpleStrategy/simpleStrategy.page";
-import {SimpleStrategyForm} from "./simpleStrategy/form/simpleStrategy.form";
 import {PlanificationForm} from "./planification/planification.form";
 import {ParameterValidatorService} from "./services/validator/parameter.validator";
 import {ReferentialTable} from "./list/referential.table";
@@ -56,7 +55,6 @@ import {TextMaskModule} from "angular2-text-mask";
   declarations: [
     ReferentialsPage,
     ReferentialForm,
-    SimpleStrategyForm,
     PlanificationForm,
     VesselsTable,
     VesselPage,
@@ -83,7 +81,6 @@ import {TextMaskModule} from "angular2-text-mask";
   exports: [
     ReferentialsPage,
     ReferentialForm,
-    SimpleStrategyForm,
     PlanificationForm,
     VesselsTable,
     VesselPage,

@@ -84,7 +84,7 @@ export class Program extends Entity<Program> {
     this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
     this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
 
-    this.strategies = (source.strategies || []).map(Strategy.fromObject);
+    this.strategies = source.strategies && source.strategies.map(Strategy.fromObject) || [];
   }
 
   equals(other: Program): boolean {

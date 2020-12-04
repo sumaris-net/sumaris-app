@@ -120,12 +120,14 @@
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
 
       <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid"
-              [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-              (click)="cancelOrDelete($event, row)">
-        <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-        <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+      <button mat-icon-button color="light" *ngIf="row.validator.invalid || (!canDisplayColumnsHeaders && selection.hasValue())"
+               [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+               (click)="cancelOrDelete($event, row)">
+         <mat-icon *ngIf="row.id !== -1 && (row.validator.invalid)">undo</mat-icon>
+         <mat-icon *ngIf="row.id === -1 || (!canDisplayColumnsHeaders && selection.isSelected(row) == true)">delete_outline</mat-icon>
       </button>
+
+
       <!-- validate -->
       <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
               [title]="'COMMON.BTN_VALIDATE'|translate"

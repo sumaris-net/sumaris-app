@@ -1,4 +1,4 @@
-image: jlrigau/maven-git
+image: trion/ng-cli
 
 stages:
     - build
@@ -8,64 +8,62 @@ stages:
     - release
     - deploy
 
-build_test:
-    stage: build
-    tags: 
-        - sih_public_runner
-    script:
-        - echo "Test compilation in progress"
-        - mvn clean install -DskipTests
-    environment:
-        name: test
-    artifacts:
-        paths:
-            - web-services/target/*.war
-    only:
-        - develop-ifremer   
-    when: always
+build_develop:
+  extends: .build
+  only:
+    - develop
+    - develop-ifremer
+  when: manual
 
+schedule-build:
+  extends: .build
+  only:
+    - schedules
 
-build_val:
-    stage: build
-    tags: 
-        - sih_public_runner
-    script:
-        - echo "Validation compilation in progress"
-        - mvn -s ./settings.xml clean install -DskipTests
-    environment:
-        name: validation
-    artifacts:
-        paths:
-            - web-services/target/*.war
-    only:
-        - develop-ifremer   
-    when: manual
-
-
+.build:
+  stage: build
+  tags:
+    - sih_public_runner
+  script:
+    - echo "Test compilation in progress"
+    - npm install
+    - npm run build
+    - echo "Creating web artifact in progress"
+    - PROJECT_DIR=`pwd`
+    - mkdir -p "${PROJECT_DIR}/dist"
+    - ZIP_FILE=${PROJECT_DIR}/dist/${CI_PROJECT_NAME}.zip
+    - cd $PROJECT_DIR/www
+    - zip -q -r $ZIP_FILE .
+  environment:
+    name: test
+  artifacts:
+    paths:
+      - dist
 
 sonarqube:
     stage: test
-    tags: 
+    tags:
         - sih_public_runner
     variables:
       SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
       SONAR_HOST_URL: "http://visi-common-sonar:9000"
-    image: 
+    image:
       name: sonarsource/sonar-scanner-cli:latest
       entrypoint: [""]
     script:
       - echo "Sonarqube analysis in progress"
-      - sonar-scanner 
-        -Dsonar.projectKey=wao
-        -Dsonar.host.url=$SONAR_HOST_URL 
+      - sonar-scanner
+        -Dsonar.projectKey=imagine-app
+        -Dsonar.host.url=$SONAR_HOST_URL
         -Dsonar.login=$SONAR_TOKEN
         -Dsonar.sourceEncoding=UTF-8
         -Dsonar.java.binaries=.
         -Dsonar.java.libraries=.
     only:
-        - develop-ifremer  
+        - develop
+        - develop-ifremer
     when: manual
- 
+
 
 pages:
     stage: docs
@@ -84,13 +82,13 @@ pages:
         paths:
             - public
     only:
+        - develop
         - develop-ifremer
     when: manual
-   
 
 package:
     stage: prepare
-    tags: 
+    tags:
         - sih_public_runner
     before_script:
         - git checkout -B "$CI_BUILD_REF_NAME"
@@ -114,7 +112,7 @@ package:
 
 release:
     stage: release
-    tags: 
+    tags:
         - sih_public_runner
     image: registry.gitlab.com/gitlab-org/release-cli:latest
     needs:
@@ -128,14 +126,14 @@ release:
         tag_name: "emso-charts-$TAG"
         ref: "$CI_COMMIT_SHA"
     only:
-        - develop-ifremer   
+        - develop-ifremer
 deploy:
     stage: deploy
-    tags: 
+    tags:
         - sih_public_runner
     script:
         - echo "Deploy in progress"
         - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=emso-charts -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
-    only: 
+    only:
         - develop-ifremer
     when: manual

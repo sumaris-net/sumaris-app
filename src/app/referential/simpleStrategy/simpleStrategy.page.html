@@ -15,14 +15,14 @@
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>PROGRAM.TAB_GENERAL</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && simpleStrategyForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && planificationForm.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-padding">
         <!-- error -->
-        <ion-item *ngIf="simpleStrategyForm.error || error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="planificationForm.error || error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="(simpleStrategyForm.error || error) | translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="(planificationForm.error || error) | translate"></ion-label>
         </ion-item>
 
         <ion-grid class="ion-no-padding">
@@ -30,15 +30,11 @@
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
               <!-- base form-->
-              <app-simpleStrategy-form #simpleStrategyForm
-                                    [form]="form"
-                                    [showError]="false"
-                                    [debug]="debug"
-                                    (onSubmit)="save($event)">
+              <form-planification #planificationForm
+                                       [showError]="false"
+                                       (onSubmit)="save($event)">
+              </form-planification>
 
-               
-
-              </app-simpleStrategy-form>
             </ion-col>
 
             <!-- entity metadata
@@ -70,7 +66,7 @@
 </ion-footer>
 
 <!-- FAB Button: add strategy -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"     
+<ion-fab slot="fixed" vertical="bottom" horizontal="end"
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" >
     <ion-icon name="add"></ion-icon>

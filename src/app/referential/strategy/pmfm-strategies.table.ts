@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Output} from '@angular/core';
 import {RESERVED_END_COLUMNS, RESERVED_START_COLUMNS} from "../../core/table/table.class";
-import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
+import {TableElement} from "@e-is/ngx-material-table";
 import {InMemoryEntitiesService} from "../../shared/services/memory-entity-service.class";
 import {environment} from "../../../environments/environment";
 import {PmfmStrategyValidatorService} from "../services/validator/pmfm-strategy.validator";
@@ -23,10 +23,7 @@ import {AppTableDataSourceOptions} from "../../core/table/entities-table-datasou
 import {debounceTime, map, startWith, switchMap, filter} from "rxjs/operators";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
 import {PmfmValueUtils} from "../services/model/pmfm-value.model";
-import {Program} from "../services/model/program.model";
-import {SelectionChange} from "@angular/cdk/collections";
 import {ProgramService} from "../services/program.service";
-import {ProgramProperties} from "../services/config/program.config";
 
 export class PmfmStrategyFilter {
 
@@ -644,11 +641,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
 
   protected async loadPmfms() {
-      const res = null;
       if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'weight')
       {
         // We add a filter on pmfm with parameter in ('WEIGHT')
-        const res = await this.pmfmService.loadAll(0, 123, null, null, {
+        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
           levelLabels: ['WEIGHT']
           // searchJoin: "Parameter" is implied in pod filter
@@ -662,7 +658,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'size')
       {
         // We add a filter on pmfm with parameter in specific size list
-        const res = await this.pmfmService.loadAll(0, 456, null, null, {
+        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
           levelLabels: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE']
           // searchJoin: "Parameter" is implied in pod filter
@@ -676,7 +672,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
       else if (this.pmfmFilterApplied && this.pmfmFilterApplied === 'maturity')
       {
         // We add a filter on pmfm with parameter in specific maturity list
-        const res = await this.pmfmService.loadAll(0, 789, null, null, {
+        const res = await this.pmfmService.loadAll(0, 1000, null, null, {
           entityName: 'Pmfm',
           levelLabels: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL']
           // searchJoin: "Parameter" is implied in pod filter
@@ -695,7 +691,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         });
         this.$pmfms.next(res && res.data || [])
       }
-      
+
 
   }
 
@@ -720,9 +716,6 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
     const program = await this.programService.loadByLabel(this._program);
     if (!program) return; //  Program not found
-
-    // Map center
-    const centerCoords = program.getPropertyAsNumbers(ProgramProperties.TRIP_MAP_CENTER);
 
 
     // Emit event
