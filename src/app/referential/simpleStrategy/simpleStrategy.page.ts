@@ -1,7 +1,14 @@
 import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, ViewChild} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup} from "@angular/forms";
-import {AppEntityEditor, EntityUtils, isNil, Referential, ReferentialRef} from "../../core/core.module";
+import {
+  AppEntityEditor,
+  EntityUtils,
+  IReferentialRef,
+  isNil,
+  Referential,
+  ReferentialRef
+} from "../../core/core.module";
 import {Program} from "../services/model/program.model";
 import {AppliedStrategy, Strategy, StrategyDepartment, TaxonNameStrategy} from "../services/model/strategy.model";
 import {ProgramValidatorService} from "../services/validator/program.validator";
@@ -139,7 +146,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       if (!data) return; // Skip
 
     this.form.patchValue({...data, properties: [], strategies: []}, {emitEvent: false});
-
     /*this.simpleStrategyForm.value = data;
     //this.simpleStrategyForm.program = 40;*/
     //this.simpleStrategyForm.statusList =
@@ -172,7 +178,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     const data = await super.getJsonValueToSave();
     // TODO : get programId
     data.programId=40;
-   // data.__typename="StrategyVO";
 
     //Sample row code
     data.label =  this.planificationForm.form.get("label").value;
@@ -183,7 +188,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     //eotp
     data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
 
-    data.analyticReference=this.planificationForm.form.get("analyticReference").value.label;
     //comments
     data.description = this.planificationForm.form.get("description").value;
 
@@ -211,12 +215,12 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       strategyDepartments   = laboratories.map(lab => ({
         strategyId : data.id,
         location : null,
-        privilege :null, //FIXME : get observer from referential ?
+        privilege :observer, //FIXME : get observer from referential ?
         department : lab
       })) ;
 
-      const result = strategyDepartments as StrategyDepartment [];
-      data.strategyDepartments = result;
+     // const result = strategyDepartments as StrategyDepartment [];
+      data.strategyDepartments = strategyDepartments;
     }
 
     //TaxonNames -------------------------------------------------------------------------------------------------------
@@ -252,10 +256,13 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       data.appliedStrategies = fishingAreas;
     }
 
-    const result = fishingAreas as AppliedStrategy [];
-    data.appliedStrategies = result;
 
-    //calcified type ---------------------------------------------------------------------------------------------------
+
+    //PSFM ---------------------------------------------------------------------------------------------------
+
+
+
+    //calcified type
     let calcifiedType = this.planificationForm.calcifiedTypesForm.value;
     let calcifiedTypes : PmfmStrategy [] = [];
 
