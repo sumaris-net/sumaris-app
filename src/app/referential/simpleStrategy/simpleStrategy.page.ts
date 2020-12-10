@@ -20,6 +20,7 @@ import {PlanificationForm} from "../planification/planification.form";
 import {ActivatedRoute} from "@angular/router";
 import {TaxonNameRef} from "../services/model/taxon.model";
 import {PmfmStrategy} from "../services/model/pmfm-strategy.model";
+import {Pmfm} from "../services/model/pmfm.model";
 
 
 export enum AnimationState {
@@ -199,7 +200,15 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
 
     if(laboratories){
 
-      strategyDepartments   = this.planificationForm.laboratoriesForm.value.map(lab => ({
+      let observer : IReferentialRef = new ReferentialRef();
+      observer.id =2;
+      observer.label ="Observer";
+      observer.name ="Observer privilege";
+      observer.statusId =1;
+      observer.entityName ="ProgramPrivilege";
+
+
+      strategyDepartments   = laboratories.map(lab => ({
         strategyId : data.id,
         location : null,
         privilege :null, //FIXME : get observer from referential ?
@@ -220,7 +229,8 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
       taxonName.strategyId= data.id;
       taxonName.priorityLevel=null;
       taxonName.taxonName=taxonNameStrategy[0];
-
+      //set reference TaxonId
+      taxonName.taxonName.referenceTaxonId = taxonName.taxonName.id;
       taxonNameStrategies.push(taxonName);
       data.taxonNames =taxonNameStrategies;
     }
@@ -237,6 +247,9 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
           appliedPeriods: null //FIXME : get appliedPeriods ?
         })
       );
+
+      //const result = fishingAreas as AppliedStrategy [];
+      data.appliedStrategies = fishingAreas;
     }
 
     const result = fishingAreas as AppliedStrategy [];
@@ -246,6 +259,34 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
     let calcifiedType = this.planificationForm.calcifiedTypesForm.value;
     let calcifiedTypes : PmfmStrategy [] = [];
 
+
+    if (calcifiedType) {
+       calcifiedTypes = calcifiedType.map(cal => ({
+         strategyId : data.id,
+         pmfm : null,
+         fractionId : cal.id,
+         qualitativeValue : undefined,
+         acquisitionLevel :'SAMPLE',
+         acquisitionNumber : 1,
+         isMandatory : false,
+         rankOrder : 1 //FIXME
+        })
+      );
+
+     // const result = calcifiedTypes as PmfmStrategy [];
+      data.pmfmStrategies = calcifiedTypes;
+    }
+
+
+
+
+
+    //age
+    // sex
+    // matirity
+    //WEIGHT
+    //Size
+    //efforts
 
 
 

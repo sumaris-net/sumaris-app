@@ -27,6 +27,7 @@ import {
   SAVE_LOCALLY_AS_OBJECT_OPTIONS,
   SAVE_AS_OBJECT_OPTIONS
 } from "../../core/services/model/referential.model";
+import {Program} from "./model/program.model";
 
 export declare interface StrategySaveOptions {
   programId?: number
@@ -500,6 +501,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
    * @param entities
    */
 
+  //not used
   async deleteAll(entities: Strategy[]): Promise<any> {
     // Get local entity ids, then delete id
     const localIds = entities && entities
@@ -553,7 +555,23 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
   protected asObject(entity: Strategy, opts?: DataEntityAsObjectOptions): any {
     opts = {...MINIFY_OPTIONS, ...opts};
     const copy: any = entity.asObject(opts);
+
+    // Full json optimisation
+    if (opts.minify && !opts.keepEntityName && !opts.keepTypename) {
+      // Clean vessel features object, before saving
+      copy.taxonNames = {id: entity.taxonNames && entity.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }))    };
+    }
     return copy;
+  }*/
+
+  protected asObject(source: Strategy, opts?: ReferentialAsObjectOptions): any {
+
+
+    return source.asObject(
+      <ReferentialAsObjectOptions>{
+        ...opts,
+        ...NOT_MINIFY_OPTIONS, // Force NOT minify, because program is a referential that can be minify in just an ID
+      });
   }
 
   //TODO : implements fillDefaultProperties here
@@ -571,6 +589,7 @@ export class StrategyService extends BaseEntityService implements EntitiesServic
       });
       }*/
   }
+
   protected copyIdAndUpdateDate(source: Strategy, target: Strategy) {
 
     EntityUtils.copyIdAndUpdateDate(source, target);

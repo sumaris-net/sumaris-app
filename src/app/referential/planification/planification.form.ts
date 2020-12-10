@@ -354,6 +354,13 @@ export class PlanificationForm extends AppForm<Strategy> implements OnInit {
       this.laboratoryHelper.resize(Math.max(1, data.strategyDepartments.length));
       laboratoriesControl.patchValue(laboratories);
 
+      // FISHING AREA
+      const fishingAreaControl = this.fishingAreasForm;
+      // applied_strategy.location_fk + program2location (zones en mer / configurables)
+      let fishingAreaAppliedStrategies = data.appliedStrategies;
+      let fishingArea = fishingAreaAppliedStrategies.map(appliedStrategy => { return appliedStrategy.location;
+      });
+      fishingAreaControl.patchValue(fishingArea);
 
 
     //   // TAXONS
