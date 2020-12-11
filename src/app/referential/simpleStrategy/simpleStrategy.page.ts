@@ -219,7 +219,6 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
         department : lab
       })) ;
 
-     // const result = strategyDepartments as StrategyDepartment [];
       data.strategyDepartments = strategyDepartments;
     }
 
@@ -251,15 +250,15 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
           appliedPeriods: null //FIXME : get appliedPeriods ?
         })
       );
-
-      //const result = fishingAreas as AppliedStrategy [];
       data.appliedStrategies = fishingAreas;
     }
 
 
 
-    //PSFM ---------------------------------------------------------------------------------------------------
+    //PMFM ---------------------------------------------------------------------------------------------------
 
+    let pmfmStrategie = this.planificationForm.pmfmStrategiesForm.value;
+    let pmfmStrategies : PmfmStrategy [] = [];
 
 
     //calcified type
@@ -280,19 +279,26 @@ export class SimpleStrategyPage extends AppEntityEditor<Strategy, StrategyServic
         })
       );
 
-     // const result = calcifiedTypes as PmfmStrategy [];
       data.pmfmStrategies = calcifiedTypes;
     }
 
+    //age , sex, matirity, WEIGH, Size
+    if (pmfmStrategie) {
+      pmfmStrategies = pmfmStrategie.map(pmfm => ({
+          strategyId : data.id,
+          pmfm : pmfm,
+          fractionId : null,
+          qualitativeValue : undefined,
+          acquisitionLevel :'SAMPLE',
+          acquisitionNumber : 1,
+          isMandatory : false,
+          rankOrder : 1 //FIXME
+        })
+      );
 
+      data.pmfmStrategies.push(pmfmStrategies);
+    }
 
-
-
-    //age
-    // sex
-    // matirity
-    //WEIGHT
-    //Size
     //efforts
 
 
