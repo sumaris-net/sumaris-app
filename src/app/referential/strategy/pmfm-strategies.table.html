@@ -129,15 +129,15 @@
 
 
       <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="(row.validator.valid && row.id !== -1) || (!canDisplayColumnsHeaders && row.validator.valid)"
+      <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
               [title]="'COMMON.BTN_VALIDATE'|translate"
               (click)="confirmEditCreate($event, row)">
         <mat-icon>check</mat-icon>
       </button>
       <!-- add -->
-      <button mat-icon-button color="light" *ngIf="(row.validator.valid && row.id === -1 && canDisplayColumnsHeaders) || (!canDisplayColumnsHeaders && !row.validator.valid)"
+      <button mat-icon-button color="light" *ngIf="(row.validator.valid && row.id === -1) || (!canDisplayColumnsHeaders)"
               [title]="'COMMON.BTN_ADD'|translate"
-              (click)="!canDisplayColumnsHeaders ? addRow() : confirmAndAddRow($event, row)">
+              (click)="confirmAndAddRow($event, row)">
         <mat-icon>add</mat-icon>
       </button>
     </mat-cell>

@@ -35,6 +35,7 @@ export class SimpleStrategiesTable extends AppInMemoryTable<Strategy, StrategyFi
 
   statusList = DefaultStatusList;
   statusById: any;
+  detailsPathSimpleStrategy = "/referential/simpleStrategy/:id"
 
   @Input() canEdit = false;
   @Input() canDelete = false;

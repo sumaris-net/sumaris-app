@@ -1168,12 +1168,7 @@
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "NEW": {
-        "TITLE": "Nouvelle stratégie",
-        "SAMPLING_TITLE": "Nouvelle ligne de plan"
-      },
-      "EDIT": {
-        "TITLE": "Stratégie",
-        "SAMPLING_TITLE": "Ligne de plan {{label}}"
+        "TITLE": "Nouvelle stratégie"
       },
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Niveau d'acquisition",

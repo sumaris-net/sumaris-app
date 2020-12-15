@@ -1,9 +1,5 @@
-<app-toolbar [title]="title$ | async"
-            color="primary"
-            [hasValidate]="!loading"
-            (onValidate)="save($event)"
-            [backHref]="defaultBackHref"
-            [canGoBack]="true">
+<app-toolbar [title]="'PLANIFICATION.CREATE_SAMPLING_PLAN'|translate" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
+             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 

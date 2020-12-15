@@ -1144,12 +1144,7 @@
       "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFMs",
       "BTN_REMOVE_TO_SELECTED_PMFM": "Remove to selected PMFMs",
       "NEW": {
-        "TITLE": "New strategy",
-        "SAMPLING_TITLE": "New Sample row"
-      },
-      "EDIT": {
-        "TITLE": "Strategy",
-        "SAMPLING_TITLE": "Sample row {{label}}"
+        "TITLE": "New strategy"
       },
       "PMFM_STRATEGY": {
         "ACQUISITION_LEVEL": "Acquisition level",

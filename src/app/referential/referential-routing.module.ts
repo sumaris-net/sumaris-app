@@ -49,19 +49,6 @@ const routes: Routes = [
         data: {
           profile: 'ADMIN'
         }
-      },
-      {
-        path: 'simpleStrategy/:id',
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: SimpleStrategyPage,
-            data: {
-              profile: 'ADMIN'
-            }
-          }
-        ]
       }
     ]
   },
@@ -104,6 +91,19 @@ const routes: Routes = [
       }
     ]
   },
+  {
+  path: 'simpleStrategy/:id',
+  children: [
+    {
+      path: '',
+      pathMatch: 'full',
+      component: SimpleStrategyPage,
+      data: {
+        profile: 'ADMIN'
+      }
+    }
+  ]
+},
 ];
 
 @NgModule({
