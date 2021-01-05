@@ -1159,7 +1159,8 @@
         "LOAD_STRATEGY_ERROR": "Error while loading stategy",
         "SAVE_STRATEGY_ERROR": "Error while saving stategy",
         "PARAMETERS.MIN_LENGTH": "The number of parameters to be measured must be greater than or equal to {{minLength}}",
-        "PARAMETERS.MATURITY": "Erreur saisie Age",
+        "PARAMETERS.MATURITY": "The maturity parameters are inseparable from the age parameter",
+        "PARAMETERS.SEX": "The sex parameter is inseparable from the maturity parameters",
         "EFFORT.MIN_LENGTH": "The number of efforts must be greater than or equal to {{minLength}}"
       },
       "CREATE_SAMPLING_PLAN": "Creating a sampling plan line",
