@@ -66,6 +66,8 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
   @Input() entityName;
   label: string = '';
 
+  IsSamples = true;
+
   @Input() placeholderChar: string = DEFAULT_PLACEHOLDER_CHAR;
 
   public sampleRowMask = ['2', '0', '2', '1', '-', 'B', 'I', 'O', '-', /\d/, /\d/, /\d/, /\d/];
@@ -153,6 +155,10 @@ export class SimpleStrategyForm extends AppForm<Strategy> implements OnInit {
     this.weightPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
     this.sizePmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
     this.maturityPmfmStrategiesTable.onConfirmEditCreateRow.subscribe(() => this.setPmfmStrategies());
+
+
+    //Call service Observation individuelles
+    this.IsSamples = false;
 
     // register year field changes
     this.registerSubscription(

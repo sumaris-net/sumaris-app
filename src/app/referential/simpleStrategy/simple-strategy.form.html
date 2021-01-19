@@ -11,6 +11,7 @@
                  formControlName="label"
                  autocomplete="off"
                  type="text"
+                 [readonly]="IsSamples"
                  [textMask]="{mask: sampleRowMask, keepCharPositions: true, showMask: true, guide: true}"
                  placeholder="{{ 'PROGRAM.STRATEGY.SAMPLE_ROW_TITLE' | translate }}" >
         </mat-form-field>
@@ -28,6 +29,7 @@
           formControlName="analyticReference"
           [placeholder]="'PROGRAM.STRATEGY.EOTP'|translate"
           [config]="autocompleteFields.analyticReference"
+          [readonly]="IsSamples"
           [tabindex]="tabindex+1">
 
           <button matAfter type="button" mat-icon-button
@@ -136,6 +138,7 @@
           [placeholder]="('PROGRAM.STRATEGY.TARGET_SPECIE'|translate)"
           [config]="autocompleteFields.taxonName"
           [tabindex]="tabindex+10+i*3"
+          [readonly]="IsSamples"
           [required]="true">
           <button matAfter type="button" mat-icon-button
                   tabindex="-1"
@@ -182,6 +185,7 @@
       <ion-col size="12" size-sm="auto">
         <mat-date-short-field [placeholder]="'PROGRAM.STRATEGY.YEAR'|translate"
                               formControlName="creationDate"
+                              [disabled]="IsSamples"
                               [required]="true" >
         </mat-date-short-field>
       </ion-col>
@@ -256,8 +260,8 @@
                                      #weightPmfmStrategiesTable
                                      [title]=""
                                      [program]="program"
-                                     [canEdit]="enabled"
-                                     [canDelete]="enabled"
+                                     [canEdit]="!IsSamples"
+                                     [canDelete]="!IsSamples"
                                      [canDisplayToolbar]="false"
                                      [canDisplayColumnsHeaders]="false"
                                      [canDisplaySimpleStrategyValidators]="true"
@@ -281,8 +285,8 @@
           <app-pmfm-strategies-table #sizePmfmStrategiesTable
                                      [title]=""
                                      [program]="program"
-                                     [canEdit]="enabled"
-                                     [canDelete]="enabled"
+                                     [canEdit]="!IsSamples"
+                                     [canDelete]="!IsSamples"
                                      [canDisplayToolbar]="false"
                                      [canDisplayColumnsHeaders]="false"
                                      [canDisplaySimpleStrategyValidators]="true"
@@ -317,8 +321,8 @@
           <app-pmfm-strategies-table #maturityPmfmStrategiesTable
                                      [title]=""
                                      [program]="program"
-                                     [canEdit]="enabled"
-                                     [canDelete]="enabled"
+                                     [canEdit]="!IsSamples"
+                                     [canDelete]="!IsSamples"
                                      [canDisplayToolbar]="false"
                                      [canDisplayColumnsHeaders]="false"
                                      [canDisplaySimpleStrategyValidators]="true"

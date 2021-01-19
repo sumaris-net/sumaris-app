@@ -49,7 +49,7 @@
       </mat-checkbox>
     </mat-header-cell>
     <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+      <mat-checkbox [disabled]="(!canDisplayColumnsHeaders && !canDelete)" (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
       </mat-checkbox>
     </mat-cell>
   </ng-container>
@@ -120,22 +120,22 @@
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
 
       <!-- undo or delete  -->
-      <button mat-icon-button color="light" *ngIf="row.validator.invalid || (!canDisplayColumnsHeaders && selection.hasValue())"
+      <button mat-icon-button color="light" *ngIf="row.validator.invalid || (canDelete && !canDisplayColumnsHeaders && selection.hasValue())"
                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
                (click)="(!canDisplayColumnsHeaders && selection.isSelected(row)) ? simpleStrategyDeleteSelection($event) : cancelOrDelete($event, row)">
          <mat-icon *ngIf="row.id !== -1 && (row.validator.invalid)">undo</mat-icon>
-         <mat-icon *ngIf="row.id === -1 || (!canDisplayColumnsHeaders && selection.isSelected(row))">delete_outline</mat-icon>
+         <mat-icon *ngIf="row.id === -1 || (canDelete && !canDisplayColumnsHeaders && selection.isSelected(row))">delete_outline</mat-icon>
       </button>
 
 
       <!-- validate -->
-      <button mat-icon-button color="light" *ngIf="(row.validator.valid && row.id !== -1) || (!canDisplayColumnsHeaders && row.validator.valid)"
+      <button mat-icon-button color="light" *ngIf="(row.validator.valid && row.id !== -1) || (canEdit && !canDisplayColumnsHeaders && row.validator.valid)"
               [title]="'COMMON.BTN_VALIDATE'|translate"
               (click)="confirmEditCreate($event, row)">
         <mat-icon>check</mat-icon>
       </button>
       <!-- add -->
-      <button mat-icon-button color="light" *ngIf="(row.validator.valid && row.id === -1 && canDisplayColumnsHeaders) || (!canDisplayColumnsHeaders && !row.validator.valid)"
+      <button mat-icon-button color="light" *ngIf="(row.validator.valid && row.id === -1 && canDisplayColumnsHeaders) || (canEdit && !canDisplayColumnsHeaders && !row.validator.valid)"
               [title]="'COMMON.BTN_ADD'|translate"
               (click)="!canDisplayColumnsHeaders ? addRow() : confirmAndAddRow($event, row)">
         <mat-icon>add</mat-icon>
@@ -148,7 +148,7 @@
            [class.mat-row-error]="row.validator.invalid"
            [class.mat-row-dirty]="row.validator.dirty"
            [class.mat-row-disabled]="!row.editing"
-           (click)="clickRow($event, row)"></mat-row>
+           (click)="canEdit ? clickRow($event, row) : ''"></mat-row>
 
 </mat-table>
 
