@@ -16,6 +16,10 @@
         <mat-error *ngIf="form.controls.sampleRowCode.hasError('noEffort')">
           {{form.controls.sampleRowCode.errors['noEffort']}}
         </mat-error>
+        <ion-text *ngIf="warning">
+          <ion-icon name="warning"></ion-icon>&nbsp;
+          <span translate>{{warning.noEffort}}</span>
+        </ion-text>
         <mat-autocomplete-field *ngIf="form.controls.sampleRowCode as effortControl"
           formControlName="sampleRowCode"
           [formControl]="effortControl"

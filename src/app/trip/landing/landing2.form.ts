@@ -82,6 +82,9 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
   @Input() locationLevelIds: number[];
 
 
+  warning;
+
+
   @Input() set showObservers(value: boolean) {
     if (this._showObservers !== value) {
       this._showObservers = value;
@@ -482,8 +485,11 @@ export class Landing2Form extends MeasurementValuesForm<Landing> implements OnIn
       } else if (appliedPeriod.acquisitionNumber == 0) {
         // TODO must be a warning, not error
         //return <ValidationErrors>{noEffort: this.translate.instant('LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR')};
+        this.warning = {noEffort: this.translate.instant('LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR')};
+        return null;
       } else {
         SharedValidators.clearError(control, 'noEffort');
+        this.warning = null;
       }
       return null;
     });
