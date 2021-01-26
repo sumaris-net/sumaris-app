@@ -13,7 +13,7 @@ import {EntityServiceLoadOptions} from "../../shared/services/entity-service.cla
 import {ObservedLocationService} from "../services/observed-location.service";
 import {TripService} from "../services/trip.service";
 import {filter, throttleTime} from "rxjs/operators";
-import {Observable} from "rxjs";
+import {Observable, Subscription} from "rxjs";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
 import {PlatformService} from "../../core/services/platform.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
@@ -33,6 +33,7 @@ import {Sample} from "../services/model/sample.model";
 import {PmfmIds} from "../../referential/services/model/model.enum";
 import {Pmfm} from "../../referential/services/model/pmfm.model";
 import {Parameter} from "../../referential/services/model/parameter.model";
+import {SampleValidatorService} from "../services/validator/trip.validators";
 
 @Component({
   selector: 'app-landing2-page',
@@ -57,6 +58,7 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
   protected vesselService: VesselSnapshotService;
   protected platform: PlatformService;
   protected strategyService: StrategyService;
+  private _rowValidatorSubscription: Subscription;
 
 
   mobile: boolean;
@@ -119,6 +121,15 @@ export class Landing2Page extends AppRootDataEditor<Landing, LandingService> imp
     );
   }
 
+  onStartSampleEditingForm({form, pmfms}) {
+    // Remove previous subscription
+    if (this._rowValidatorSubscription) {
+      this._rowValidatorSubscription.unsubscribe();
+    }
+
+    // Add computation and validation
+    this._rowValidatorSubscription = SampleValidatorService.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
+  }
   protected async onSampleRowCodeChange(sampleRowCode: Strategy) {
 
     if (sampleRowCode && sampleRowCode.label) {

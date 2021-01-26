@@ -143,5 +143,11 @@ export abstract class PmfmUtils {
   static isWeight(pmfm: PmfmStrategy | Pmfm): boolean {
     return isNotNil(pmfm.label) && pmfm.label.endsWith("WEIGHT");
   }
+  static hasParameterLabel(pmfm: Pmfm, label: string): boolean {
+    return isNotNil(pmfm.parameter) && pmfm.parameter.label === label;
+  }
+  static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
+    return isNotNil(pmfm.parameter) && labels.includes(pmfm.parameter.label);
+  }
 }
 

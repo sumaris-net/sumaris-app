@@ -3,7 +3,11 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedFormGroupValidators, SharedValidators} from "../../../shared/validator/validators";
 import {Sample} from "../model/sample.model";
-import {toNumber} from "../../../shared/functions";
+import {isNotNil, toNumber} from "../../../shared/functions";
+import {PmfmStrategy} from "../../../referential/services/model/pmfm-strategy.model";
+import {PmfmUtils} from "../../../referential/services/model/pmfm.model";
+import {Subscription} from "rxjs";
+import {ParameterLabelStrategies} from "../../../referential/services/model/model.enum";
 
 @Injectable({providedIn: 'root'})
 export class SampleValidatorService implements ValidatorService {
@@ -42,4 +46,36 @@ export class SampleValidatorService implements ValidatorService {
       ]
     });
   }
+
+  static addSampleValidators(form: FormGroup, pmfms: PmfmStrategy[],
+                             opts?: { markForCheck: () => void }): Subscription {
+    if (!form) {
+      console.warn("Argument 'form' required");
+      return null;
+    }
+
+    // TODO : to uncomment after updating model.enum : merege develop-ifremer => develop-ifremer-sprint5
+    /*const weightPmfms = pmfms.filter(p => PmfmUtils.hasParameterLabel(ParameterLabel.WEIGHT));
+    const sizePmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(ParameterLabelList.SIZE));*/
+
+    // TODO : to remove after updating model.enum : merege develop-ifremer => develop-ifremer-sprint5
+    const weightPmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm,ParameterLabelStrategies.WEIGHTS));
+    const sizePmfms = pmfms.filter(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm,ParameterLabelStrategies.LENGTHS));
+
+    form.setAsyncValidators(async (control) => {
+      const formGroup = control as FormGroup;
+      const measValues = formGroup.get('measurementValues').value;
+      const missingWeight = weightPmfms.findIndex(p => isNotNil(measValues[p.pmfmId])) !== -1;
+      const missingSize = sizePmfms.findIndex(p => isNotNil(measValues[p.pmfmId])) !== -1;
+
+      const error = { missingWeightOrSize: true };
+
+      if(!missingSize && !missingWeight){
+        return error;
+      }
+    });
+
+  }
+
+
 }
