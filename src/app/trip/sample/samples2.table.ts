@@ -16,7 +16,7 @@ import {
   isNil,
   ReferentialRef,
   referentialToString, RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS, TableSelectColumnsComponent
 } from "../../core/core.module";
 import {SampleValidatorService} from "../services/validator/sample.validator";
 import {isNilOrBlank, isNotNil} from "../../shared/functions";
@@ -35,6 +35,7 @@ import {ReferentialRefService} from "../../referential/services/referential-ref.
 import {TaxonNameStrategy} from "../../referential/services/model/strategy.model";
 import {BehaviorSubject} from "rxjs";
 import {FormFieldDefinition, FormFieldType} from "../../shared/form/field.model";
+import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
 
 export interface SampleFilter {
   operationId?: number;
@@ -190,6 +191,20 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
       showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
     //  });
+  }
+
+  protected registerFormFieldWithSettingsFieldName(fieldName: string, def: Partial<FormFieldDefinition>, fieldTitle: string, intoMap?: boolean) {
+    const definition = <FormFieldDefinition>{
+      key: fieldName,
+      label: this.i18nColumnPrefix + fieldTitle,
+      ...def
+    }
+    // if (intoMap === true) {
+      this.fieldDefinitionsMap[fieldName] = definition;
+    // }
+    // else {
+      this.fieldDefinitions.push(definition);
+    // }
   }
 
   /**
@@ -576,5 +591,80 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
       });
     return res.data;
 
+  }
+
+
+  async openAddPmfmsModal(event?: UIEvent): Promise<any> {
+    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
+    const hiddenColumns = this.columns.slice(fixedColumns.length)
+      .filter(name => this.displayedColumns.indexOf(name) == -1);
+    const columns = this.displayedColumns.slice(fixedColumns.length)
+      .concat(hiddenColumns)
+      .filter(name => name !== "actions")
+      .filter(name => !this.excludesColumns.includes(name))
+      .map(name => {
+        return {
+          name,
+          label: this.getI18nColumnName(name),
+          visible: this.displayedColumns.indexOf(name) !== -1
+        };
+      });
+
+    const modal = await this.modalCtrl.create({
+      component: TableSelectColumnsComponent,
+      componentProps: {columns: columns}
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED
+
+    // Apply columns
+    const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+    this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
+    this.markForCheck();
+
+    // Update user settings
+    await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
+  }
+
+  async openChangePmfmsModal(event?: UIEvent): Promise<any> {
+    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
+    const hiddenColumns = this.columns.slice(fixedColumns.length)
+      .filter(name => this.displayedColumns.indexOf(name) == -1);
+    const columns = this.displayedColumns.slice(fixedColumns.length)
+      .concat(hiddenColumns)
+      .filter(name => name !== "actions")
+      .filter(name => !this.excludesColumns.includes(name))
+      .map(name => {
+        return {
+          name,
+          label: this.getI18nColumnName(name),
+          visible: this.displayedColumns.indexOf(name) !== -1
+        };
+      });
+
+    const modal = await this.modalCtrl.create({
+      component: TableSelectColumnsComponent,
+      componentProps: {columns: columns}
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+    if (!res) return; // CANCELLED
+
+    // Apply columns
+    const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
+    this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
+    this.markForCheck();
+
+    // Update user settings
+    await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
   }
 }

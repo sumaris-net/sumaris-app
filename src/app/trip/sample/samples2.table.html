@@ -79,7 +79,8 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef></mat-header-cell>
+    <mat-header-cell *matHeaderCellDef>
+    </mat-header-cell>
   </ng-container>
 
   <mat-header-row class="first-header-row"
@@ -163,7 +164,7 @@
   <ng-container *ngFor="let pmfm of $dynamicPmfms | async">
     <ng-container *ngIf="pmfm.pmfmId" [matColumnDef]="pmfm.pmfmId.toString()">
       <mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm.isDate">
-        <ion-label>{{getPmfmColumnHeader(pmfm)}}
+        <ion-label color="primary" (click)="openChangePmfmsModal($event)">{{getPmfmColumnHeader(pmfm)}}
           <small *ngIf="pmfm.unitLabel && (pmfm.type === 'integer' || pmfm.type === 'double')"><br/>({{pmfm.unitLabel}})</small>
         </ion-label>
       </mat-header-cell>
@@ -181,6 +182,13 @@
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
     <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
+      <!-- Add pmfm button -->
+      <button mat-icon-button
+              hidden-xs hidden-sm hidden-mobile
+              [title]="'COMMON.BTN_ADD'|translate"
+              (click)="openAddPmfmsModal($event)">
+        <mat-icon>add</mat-icon>
+      </button>
     </mat-header-cell>
     <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
       <!-- pending -->
