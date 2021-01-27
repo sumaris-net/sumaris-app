@@ -193,19 +193,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     //  });
   }
 
-  protected registerFormFieldWithSettingsFieldName(fieldName: string, def: Partial<FormFieldDefinition>, fieldTitle: string, intoMap?: boolean) {
-    const definition = <FormFieldDefinition>{
-      key: fieldName,
-      label: this.i18nColumnPrefix + fieldTitle,
-      ...def
-    }
-    // if (intoMap === true) {
-      this.fieldDefinitionsMap[fieldName] = definition;
-    // }
-    // else {
-      this.fieldDefinitions.push(definition);
-    // }
-  }
+
 
   /**
    * Use in ngFor, for trackBy
