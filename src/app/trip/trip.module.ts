@@ -38,6 +38,7 @@ import {DataModule} from "../data/data.module";
 import {OperationsMap} from "./operation/map/operations.map";
 import {SocialModule} from "../social/social.module";
 import {BatchModal} from "./batch/modal/batch.modal";
+import {TableAddPmfmsComponent} from "./sample/table-add-pmfms.component";
 
 export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm, EntityQualityFormComponent };
 
@@ -67,6 +68,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     CatchBatchForm,
     SamplesTable,
     Samples2Table,
+    TableAddPmfmsComponent,
     SubSamplesTable,
     BatchGroupsTable,
     BatchesTable,
@@ -111,6 +113,7 @@ export { TripTable, TripPage, MeasurementValuesForm, SaleForm, MeasurementsForm,
     SampleForm,
     SamplesTable,
     Samples2Table,
+    TableAddPmfmsComponent,
     SubSamplesTable
   ]
 })

@@ -1,0 +1,47 @@
+<ion-header>
+  <ion-toolbar color="light">
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>
+      {{'REFERENTIAL.PMFM.BTN_OPEN_PARAMETER'|translate}}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="close()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content>
+  <ion-label>WIP</ion-label>
+
+</ion-content>
+
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+  <ion-toolbar>
+    <ion-row>
+      <ion-col></ion-col>
+      <ion-col size="auto">
+        <ion-button fill="clear" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button fill="solid" (click)="close()" color="tertiary">
+          <ion-label translate>COMMON.BTN_APPLY</ion-label>
+        </ion-button>
+
+      </ion-col>
+    </ion-row>
+
+  </ion-toolbar>
+</ion-footer>
