@@ -36,6 +36,9 @@ import {TaxonNameStrategy} from "../../referential/services/model/strategy.model
 import {BehaviorSubject} from "rxjs";
 import {FormFieldDefinition, FormFieldType} from "../../shared/form/field.model";
 import {SETTINGS_DISPLAY_COLUMNS} from "../../core/table/table.class";
+import {TableAddPmfmsComponent} from "./table-add-pmfms.component";
+import {ProgramService} from "../../referential/services/program.service";
+import {StrategyService} from "../../referential/services/strategy.service";
 
 export interface SampleFilter {
   operationId?: number;
@@ -137,7 +140,9 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
 
   constructor(
-    injector: Injector
+    protected injector: Injector,
+    protected programService: ProgramService,
+    protected strategyService: StrategyService
   ) {
     super(injector,
       Sample,
@@ -288,8 +293,21 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
         }
         else {
           // Display pmfm without parameter label like fractions ?
+          // Filter on type. Fractions pmfm doesn't provide type.
+          if (pmfmStrategy.type)
+          {
+            dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
+          }
         }
 
+      }
+      else {
+        // Display pmfm without parameter label like fractions ?
+        // Filter on type. Fractions pmfm doesn't provide type.
+        if (pmfmStrategy.type)
+        {
+          dynamicOthersColumnNames.push(pmfmStrategy.pmfmId.toString());
+        }
       }
     });
 
@@ -583,24 +601,12 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
 
 
   async openAddPmfmsModal(event?: UIEvent): Promise<any> {
-    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
-    const hiddenColumns = this.columns.slice(fixedColumns.length)
-      .filter(name => this.displayedColumns.indexOf(name) == -1);
-    const columns = this.displayedColumns.slice(fixedColumns.length)
-      .concat(hiddenColumns)
-      .filter(name => name !== "actions")
-      .filter(name => !this.excludesColumns.includes(name))
-      .map(name => {
-        return {
-          name,
-          label: this.getI18nColumnName(name),
-          visible: this.displayedColumns.indexOf(name) !== -1
-        };
-      });
+    //const columns = this.displayedColumns;
+    const pmfms = this.$pmfms.getValue();
 
     const modal = await this.modalCtrl.create({
-      component: TableSelectColumnsComponent,
-      componentProps: {columns: columns}
+      component: TableAddPmfmsComponent,
+      componentProps: {pmfms: pmfms, programService: this.programService, strategyService: this.strategyService}
     });
 
     // Open the modal
@@ -610,34 +616,16 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     const res = await modal.onDidDismiss();
     if (!res) return; // CANCELLED
 
-    // Apply columns
-    const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
-    this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
+    // Apply new pmfm
+    this.displayedColumns = this.getDisplayColumns();
     this.markForCheck();
 
-    // Update user settings
-    await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
   }
 
   async openChangePmfmsModal(event?: UIEvent): Promise<any> {
-    const fixedColumns = this.columns.slice(0, RESERVED_START_COLUMNS.length);
-    const hiddenColumns = this.columns.slice(fixedColumns.length)
-      .filter(name => this.displayedColumns.indexOf(name) == -1);
-    const columns = this.displayedColumns.slice(fixedColumns.length)
-      .concat(hiddenColumns)
-      .filter(name => name !== "actions")
-      .filter(name => !this.excludesColumns.includes(name))
-      .map(name => {
-        return {
-          name,
-          label: this.getI18nColumnName(name),
-          visible: this.displayedColumns.indexOf(name) !== -1
-        };
-      });
-
     const modal = await this.modalCtrl.create({
-      component: TableSelectColumnsComponent,
-      componentProps: {columns: columns}
+      component: TableAddPmfmsComponent,
+      componentProps: {}
     });
 
     // Open the modal
@@ -647,12 +635,7 @@ export class Samples2Table extends AppMeasurementsTable<Sample, SampleFilter>
     const res = await modal.onDidDismiss();
     if (!res) return; // CANCELLED
 
-    // Apply columns
-    const userColumns = columns && columns.filter(c => c.visible).map(c => c.name) || [];
-    this.displayedColumns = RESERVED_START_COLUMNS.concat(userColumns).concat(RESERVED_END_COLUMNS);
+    // Apply new pmfm
     this.markForCheck();
-
-    // Update user settings
-    await this.settings.savePageSetting(this.settingsId, userColumns, SETTINGS_DISPLAY_COLUMNS);
   }
 }
