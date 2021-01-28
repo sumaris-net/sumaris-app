@@ -1020,6 +1020,7 @@
       "UNIT": "Unité",
       "BTN_ADD_PARAMETER": "Créer un nouveau paramètre",
       "BTN_OPEN_PARAMETER": "Ouvrir le paramètre",
+      "BTN_ADD_PMFM_COLUMNS": "Ajouter un PMFM",
       "NEW": {
         "TITLE": "Nouveau PSFM"
       },
