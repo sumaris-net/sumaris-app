@@ -133,17 +133,17 @@ export class SimpleStrategiesTable extends AppTable<DenormalizedStrategy, Refere
     const rowsToDelete = this.selection.selected;
 
     for(let row  of rowsToDelete){
-      let existEffort= false
+      let hasRealizeEffort= false
       row.currentData.efforts.map(StrategyEffort.fromObject).forEach(effort => {
         if(effort.quarter){
-          const realizeEffort = row.currentData.effortByQuarter[effort.quarter].asRealizeEffort;
+          const realizeEffort = row.currentData.effortByQuarter[effort.quarter].hasRealizeEffort;
           if(realizeEffort){
-            existEffort = realizeEffort;
+            hasRealizeEffort = realizeEffort;
           }
         }
       });
       // send error when  effort exist
-      if(existEffort){
+      if(hasRealizeEffort){
         //TODO : label to integrate in error message
        // const label = row.currentData.label;
         this.error = 'PROGRAM.STRATEGY.ERROR.EFFORT.EXIST';
