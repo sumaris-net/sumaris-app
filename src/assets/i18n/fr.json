@@ -1376,7 +1376,8 @@
         "PARAMETERS.MIN_LENGTH": "Le nombre de paramètres à mesurer doit être supérieur ou égal à {{minLength}}",
         "PARAMETERS.WEIGHT_OR_SIZE": "Le poids ou la taille est obligatoire",
         "EFFORT.MIN_LENGTH": "Le nombre d'efforts doit être supérieur ou égal à {{minLength}}",
-        "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà"
+        "LABEL.UNIQUE": "Le code de la ligne de plan existe déjà",
+        "EFFORT.EXIST": "Une ligne de plan est liée à une observation individuelle"
       }
     },
     "ERROR": {

@@ -10,7 +10,7 @@ import {LocalSettingsService} from "../../core/services/local-settings.service";
 import {EntitiesTableDataSource} from "../../core/table/entities-table-datasource.class";
 import {LocationLevelIds, TaxonomicLevelIds} from "../services/model/model.enum";
 import {ReferentialFilter} from "../services/referential.service";
-import {DenormalizedStrategy, DenormalizedStrategyService} from "./denormalized-strategy.service";
+import {DenormalizedStrategy, DenormalizedStrategyService, StrategyEffort} from "./denormalized-strategy.service";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {StatusIds} from "../../core/services/model/model.enum";
 import {ProgramProperties} from "../services/config/program.config";
@@ -128,6 +128,31 @@ export class SimpleStrategiesTable extends AppTable<DenormalizedStrategy, Refere
     if (this._program && !this.autoLoad) {
       this.onRefresh.emit();
     }
+  }
+  async deleteSelection(event: UIEvent): Promise<number> {
+    const rowsToDelete = this.selection.selected;
+
+    for(let row  of rowsToDelete){
+      let existEffort= false
+      row.currentData.efforts.map(StrategyEffort.fromObject).forEach(effort => {
+        if(effort.quarter){
+          const realizeEffort = row.currentData.effortByQuarter[effort.quarter].asRealizeEffort;
+          if(realizeEffort){
+            existEffort = realizeEffort;
+          }
+        }
+      });
+      // send error when  effort exist
+      if(existEffort){
+        //TODO : label to integrate in error message
+       // const label = row.currentData.label;
+        this.error = 'PROGRAM.STRATEGY.ERROR.EFFORT.EXIST';
+        return 0;
+      }
+    }
+    // delete if strategy has not effort
+    await super.deleteSelection(event);
+    this.error = null;
   }
 
   protected setProgram(program: Program) {

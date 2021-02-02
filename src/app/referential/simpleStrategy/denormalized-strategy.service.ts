@@ -98,6 +98,13 @@ export class StrategyEffort {
       Math.max(0, this.expectedEffort - (this.realizedEffort || 0));
   }
 
+  get asRealizeEffort(): boolean {
+    if( this.realizedEffort > 0){
+      return true;
+    }
+    return false;
+  }
+
 }
 
 const DenormalizedStrategyFragments = {
