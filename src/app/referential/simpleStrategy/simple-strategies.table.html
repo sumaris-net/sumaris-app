@@ -17,7 +17,7 @@
 
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" [innerHTML]="error|translate:errorDetails"></ion-label>
   </ion-item>
 
   <span class="toolbar-spacer"></span>

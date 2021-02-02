@@ -26,6 +26,7 @@ import {environment} from "../../../environments/environment";
 export class SimpleStrategiesTable extends AppTable<DenormalizedStrategy, ReferentialFilter> {
 
   private _program: Program;
+  errorDetails : any;
 
   statusList = DefaultStatusList;
   statusById: any;
@@ -144,8 +145,7 @@ export class SimpleStrategiesTable extends AppTable<DenormalizedStrategy, Refere
       });
       // send error when  effort exist
       if(hasRealizeEffort){
-        //TODO : label to integrate in error message
-       // const label = row.currentData.label;
+        this.errorDetails = {errorDetails: row.currentData.label};
         this.error = 'PROGRAM.STRATEGY.ERROR.EFFORT.EXIST';
         return 0;
       }
