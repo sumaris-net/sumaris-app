@@ -18,7 +18,7 @@ import {ParameterLabelGroups} from "./model/model.enum";
 import {ConfigService} from "../../core/services/config.service";
 import {PmfmService} from "./pmfm.service";
 import {ReferentialRefService} from "./referential-ref.service";
-import {mergeMap} from "rxjs/internal/operators";
+import {mergeMap} from "rxjs/operators";
 import {DateUtils} from "../../shared/dates";
 import {SamplingStrategy, StrategyEffort} from "./model/sampling-strategy.model";
 import {BaseReferentialService} from "./base-referential-service.class";
