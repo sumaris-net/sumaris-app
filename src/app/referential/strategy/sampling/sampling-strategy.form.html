@@ -401,7 +401,7 @@
     <ion-row>
       <ion-col>
         <mat-form-field appearance="outline">
-        <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"
+        <textarea matInput #comments [matTextareaAutosize]="true" [matAutosizeMinRows]="4" maxlength="2000"
                   [placeholder]="'COMMON.COMMENTS'|translate"
                   formControlName="comments" ></textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>

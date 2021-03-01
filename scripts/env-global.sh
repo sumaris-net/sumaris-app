@@ -16,11 +16,11 @@ echo "Preparing project environment.."
 NODE_VERSION=12
 #NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
-#ANDROID_NDK_VERSION=r19c
-ANDROID_SDK_VERSION=r29.0.2
-ANDROID_SDK_TOOLS_VERSION=6609375
-ANDROID_SDK_ROOT=/usr/lib/android-sdk
-ANDROID_ALTERNATIVE_SDK_ROOT="${HOME}/Android/Sdk"
+ANDROID_NDK_VERSION=21.0.6113669 # Should be compatible with 'cordova-sqlite-storage' plugin
+ANDROID_SDK_VERSION=29.0.3
+ANDROID_SDK_CLI_VERSION=6858069
+ANDROID_SDK_ROOT="${HOME}/Android/Sdk"
+ANDROID_ALTERNATIVE_SDK_ROOT=/usr/lib/android-sdk
 ANDROID_SDK_TOOLS_ROOT=${ANDROID_SDK_ROOT}/cli
 ANDROID_OUTPUT_APK=${PROJECT_DIR}/platforms/android/app/build/outputs/apk
 ANDROID_OUTPUT_APK_DEBUG=${ANDROID_OUTPUT_APK}/debug
@@ -33,7 +33,7 @@ PROJECT_NAME=sumaris-app
 # /!\ WARN can be define in your <project>/.local/env.sh file
 #JAVA_HOME=
 
-GRADLE_VERSION=6.1.1
+GRADLE_VERSION=6.5.1
 GRADLE_HOME=${HOME}/.gradle/${GRADLE_VERSION}
 CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip
 
@@ -137,3 +137,4 @@ if [[ ! -d "${PROJECT_DIR}/node_modules" ]]; then
     cd ${PROJECT_DIR}
     npm install
 fi
+

@@ -111,7 +111,7 @@
     <ion-row *ngIf="showComment">
       <ion-col>
         <mat-form-field appearance="outline">
-          <textarea matInput #comments matTextareaAutosize="true" matAutosizeMinRows="4"
+          <textarea matInput #comments [matTextareaAutosize]="true" [matAutosizeMinRows]="4"
                     maxlength="2000"
                     tabindex="100"
                     [placeholder]="'COMMON.COMMENTS'|translate"

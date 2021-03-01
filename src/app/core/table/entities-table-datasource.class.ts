@@ -3,7 +3,7 @@ import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {Entity, IEntity} from "../services/model/entity.model";
 import {ErrorCodes} from '../services/errors';
 import {catchError, map, takeUntil} from "rxjs/operators";
-import {Directive, OnDestroy} from "@angular/core";
+import {Directive, OnDestroy, Optional} from "@angular/core";
 import {EntitiesServiceWatchOptions, IEntitiesService, LoadResult} from "../../shared/services/entity-service.class";
 import {SortDirection} from "@angular/material/sort";
 import {CollectionViewer} from "@angular/cdk/collections";
@@ -71,12 +71,12 @@ export class EntitiesTableDataSource<T extends IEntity<T>, F, O extends Entities
    */
   constructor(dataType: new() => T,
               public readonly dataService: IEntitiesService<T, F, O>,
-              validatorService?: ValidatorService,
-              config?: AppTableDataSourceOptions<T, O>) {
+              @Optional() validatorService?: ValidatorService,
+              @Optional() config?: AppTableDataSourceOptions<T, O>) {
     super([], dataType, validatorService, config);
     this._options = {
       dataServiceOptions: {},
-      debug: !config.suppressErrors,
+      debug: config && !config.suppressErrors,
       ...config
     };
     this._useValidator = isNotNil(validatorService);

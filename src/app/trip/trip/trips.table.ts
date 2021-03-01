@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnDestroy, OnInit} from "@angular/core";
 import {TableElement, ValidatorService} from "@e-is/ngx-material-table";
 import {TripValidatorService} from "../services/validator/trip.validator";
-import {TripFilter, TripService} from "../services/trip.service";
+import {TripFilter, TripLoadOptions, TripService} from "../services/trip.service";
 import {ModalController} from "@ionic/angular";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Location} from '@angular/common';
@@ -41,9 +41,9 @@ export const TripsPageSettingsEnum = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit, OnDestroy {
+export class TripTable extends AppRootTable<Trip, TripFilter, TripLoadOptions> implements OnInit, OnDestroy {
 
-  highlightedRow: TableElement<Trip>;
+  highlightedRow?: TableElement<Trip>;
 
   constructor(
     protected injector: Injector,
@@ -53,7 +53,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     protected location: Location,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
-    protected dataService: TripService,
+    dataService: TripService,
     protected userEventService: UserEventService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -75,7 +75,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           'comments'])
         .concat(RESERVED_END_COLUMNS),
         dataService,
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService, null, {
+      new EntitiesTableDataSource<Trip, TripFilter, TripLoadOptions>(Trip, dataService, undefined, {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {

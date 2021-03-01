@@ -5,10 +5,10 @@ import {InjectionToken} from "@angular/core";
 export const ENVIRONMENT = new InjectionToken<Environment>("ENV");
 
 export class Environment {
-  name: string;
-  version: string;
-  production: boolean;
-  baseUrl: string;
+  name: string = 'sumaris';
+  version: string = '0.0.0';
+  production?: boolean;
+  baseUrl?: string;
   mock?: boolean;
   listenRemoteChanges?: boolean;
 
@@ -31,12 +31,12 @@ export class Environment {
   apolloFetchPolicy?:  FetchPolicy;
 
   // Default values
-  defaultLocale: string;
+  defaultLocale: ('en' | 'en-US' | 'fr') = 'fr';
   defaultLatLongFormat?: 'DD' | 'DDMM' | 'DDMMSS';
   defaultDepartmentId?: number;
   defaultAppName?: string;
   defaultAndroidInstallUrl?: string;
 
   // Storage
-  storage?: Partial<StorageConfig>
+  storage?: Partial<StorageConfig>;
 }

@@ -1,28 +1,9 @@
-import {
-  AfterViewInit,
-  Directive,
-  EventEmitter,
-  Injector,
-  Input,
-  OnDestroy,
-  OnInit,
-  Output,
-  ViewChild
-} from "@angular/core";
+import {AfterViewInit, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild} from "@angular/core";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort, MatSortable, SortDirection} from "@angular/material/sort";
 import {MatTable} from "@angular/material/table";
 import {BehaviorSubject, EMPTY, merge, Observable, of, Subject, Subscription} from 'rxjs';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-  mergeMap,
-  startWith,
-  switchMap,
-  tap
-} from "rxjs/operators";
+import {catchError, debounceTime, distinctUntilChanged, filter, mergeMap, startWith, switchMap, tap} from "rxjs/operators";
 import {TableElement} from "@e-is/ngx-material-table";
 import {EntitiesTableDataSource} from "./entities-table-datasource.class";
 import {SelectionModel} from "@angular/cdk/collections";
@@ -40,11 +21,7 @@ import {PlatformService} from "../services/platform.service";
 import {ShowToastOptions, Toasts} from "../../shared/toasts";
 import {Alerts} from "../../shared/alerts";
 import {createPromiseEventEmitter, emitPromiseEvent} from "../../shared/events";
-import {Environment, ENVIRONMENT} from "../../../environments/environment.class";
-import {
-  MatAutocompleteConfigHolder,
-  MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig
-} from "../../shared/material/autocomplete/material.autocomplete";
+import {MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "../../shared/material/autocomplete/material.autocomplete";
 
 export const SETTINGS_DISPLAY_COLUMNS = "displayColumns";
 export const SETTINGS_SORTED_COLUMN = "sortedColumn";
@@ -77,7 +54,7 @@ export abstract class AppTable<T extends Entity<T>, F = any>
 
   private _initialized = false;
   private _subscription = new Subscription();
-  private _dataSourceSubscription: Subscription;
+  private _dataSourceSubscription: Subscription = null;
 
   private _cellValueChangesDefs: {
     [key: string]: CellValueChangeListener
@@ -91,19 +68,18 @@ export abstract class AppTable<T extends Entity<T>, F = any>
   protected translate: TranslateService;
   protected alertCtrl: AlertController;
   protected toastController: ToastController;
-  protected environment: Environment;
 
   excludesColumns: string[] = [];
-  displayedColumns: string[];
-  resultsLength: number;
-  visibleRowCount: number;
+  displayedColumns: string[] = [];
+  resultsLength = 0;
+  visibleRowCount = 0;
   loadingSubject = new BehaviorSubject<boolean>(true);
-  error: string;
+  error?: string;
   isRateLimitReached = false;
   selection = new SelectionModel<TableElement<T>>(true, []);
-  editedRow: TableElement<T> = undefined;
+  editedRow?: TableElement<T> = undefined;
   onRefresh = new EventEmitter<any>();
-  settingsId: string;
+  settingsId?: string;
   autocompleteFields: {[key: string]: MatAutocompleteFieldConfig};
   mobile: boolean;
 

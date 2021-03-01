@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Load global variables
-. "$(dirname $0)/env-global.sh"
+source "$(dirname $0)/env-global.sh"
 
 # Make sure variables are set
 if [[ "_" == "_${ANDROID_SDK_ROOT}" ]]; then
@@ -15,7 +15,7 @@ fi
 
 if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}/tools/bin" ]]; then
   echo "Installing Android SDK CLI tools... ${ANDROID_SDK_TOOLS_ROOT}"
-  ANDROID_SDK_CLI_TOOL_FILE="commandlinetools-linux-${ANDROID_SDK_TOOLS_VERSION}_latest.zip"
+  ANDROID_SDK_CLI_TOOL_FILE="commandlinetools-linux-${ANDROID_SDK_CLI_VERSION}_latest.zip"
   test -e "${ANDROID_SDK_CLI_TOOL_FILE}" || wget -kL https://dl.google.com/android/repository/${ANDROID_SDK_CLI_TOOL_FILE}
   # Get parent folder
   test -e "${ANDROID_SDK_TOOLS_ROOT}" || sudo mkdir -p "${ANDROID_SDK_TOOLS_ROOT}"
@@ -28,7 +28,8 @@ if [[ ! -d "${ANDROID_SDK_TOOLS_ROOT}/tools/bin" ]]; then
   exit 1
 fi
 
-export PATH=${ANDROID_SDK_TOOLS_ROOT}/tools/bin:$PATH
+# Add Sdk tools and Java to path
+export PATH=${ANDROID_SDK_TOOLS_ROOT}/tools/bin:${JAVA_HOME}/bin$:$PATH
 
 mkdir -p ${ANDROID_SDK_ROOT}/licenses
 echo 8933bad161af4178b1185d1a37fbf41ea5269c55 > ${ANDROID_SDK_ROOT}/licenses/android-sdk-license
@@ -39,24 +40,28 @@ yes | sdkmanager --licenses "--sdk_root=${ANDROID_SDK_ROOT}"
 mkdir -p ~/.android
 touch ~/.android/repositories.cfg
 
+echo "Installing Android platform-tools..."
 echo y | sdkmanager "platform-tools" "--sdk_root=${ANDROID_SDK_ROOT}" | tee sdkmanager.log
 echo y | sdkmanager "extras;android;m2repository" "--sdk_root=${ANDROID_SDK_ROOT}" | tee -a  sdkmanager.log
 echo y | sdkmanager "extras;google;m2repository" "--sdk_root=${ANDROID_SDK_ROOT}" | tee -a sdkmanager.log
 
 # Install build tools
-echo y | sdkmanager "build-tools;23.0.2" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
-echo y | sdkmanager "build-tools;23.0.3" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
-echo y | sdkmanager "build-tools;25.0.2" --sdk_root=${ANDROID_SDK_ROOT}  | tee -a sdkmanager.log
-echo y | sdkmanager "build-tools;27.0.3" --sdk_root=${ANDROID_SDK_ROOT}  | tee -a sdkmanager.log
-echo y | sdkmanager "build-tools;28.0.3" --sdk_root=${ANDROID_SDK_ROOT}  | tee -a sdkmanager.log
-echo y | sdkmanager "build-tools;29.0.2" --sdk_root=${ANDROID_SDK_ROOT}  | tee -a sdkmanager.log
+echo "Installing Android build-tools..."
+echo y | sdkmanager "build-tools;${ANDROID_SDK_VERSION}" --sdk_root=${ANDROID_SDK_ROOT}  | tee -a sdkmanager.log
+[[ $? -ne 0 ]] && exit 1
 
 # Install platforms
-echo y | sdkmanager "platforms;android-16" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
-echo y | sdkmanager "platforms;android-21" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
+echo "Installing Android target platforms..."
+echo y | sdkmanager "platforms;android-22" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 echo y | sdkmanager "platforms;android-23" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 echo y | sdkmanager "platforms;android-24" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 echo y | sdkmanager "platforms;android-25" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 echo y | sdkmanager "platforms;android-27" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 echo y | sdkmanager "platforms;android-28" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
 echo y | sdkmanager "platforms;android-29" --sdk_root=${ANDROID_SDK_ROOT} | tee -a sdkmanager.log
+[[ $? -ne 0 ]] && exit 1
+
+# Install NDK
+echo "Installing Android NDK..."
+sdkmanager "ndk;22.0.7026061" --sdk_root=${ANDROID_SDK_ROOT}
+sdkmanager "ndk;${ANDROID_NDK_VERSION}" --sdk_root=${ANDROID_SDK_ROOT}

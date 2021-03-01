@@ -19,7 +19,7 @@ ionic cordova build android --warning-mode=none --color $*
 [[ $? -ne 0 ]] && exit 1
 
 echo "Running Android application..."
-if [[ "$1" == "--release" || "$1" == "--production" ]]; then
+if [[ "$1" == "--release" || "$1" == "--prod" ]]; then
   native-run android --app ${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.apk
 else
   native-run android --app ${ANDROID_OUTPUT_APK_DEBUG}/${ANDROID_OUTPUT_APK_PREFIX}-debug.apk

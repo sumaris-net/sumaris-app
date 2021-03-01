@@ -56,8 +56,8 @@
   <!-- Comments -->
   <mat-form-field appearance="outline" *ngIf="showComment">
     <textarea matInput #comments
-              matTextareaAutosize="true"
-              matAutosizeMinRows="4"
+              [matTextareaAutosize]="true"
+              [matAutosizeMinRows]="4"
               maxlength="2000"
               [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
               formControlName="comments"

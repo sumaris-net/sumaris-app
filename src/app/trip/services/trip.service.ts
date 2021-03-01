@@ -243,8 +243,8 @@ export class TripFilter {
     });
   }
 
-  static searchFilter<T extends Trip>(f: TripFilter): (T) => boolean {
-    if (!f) return undefined;
+  static searchFilter<T extends Trip>(f?: TripFilter): (T) => boolean {
+    if (!f) return () => true;
 
     const filterFns: FilterFn<T>[] = [];
 
@@ -303,7 +303,7 @@ export class TripFilter {
    * Clean a filter, before sending to the pod (e.g remove 'synchronizationStatus')
    * @param f
    */
-  static asPodObject(f: TripFilter): any {
+  static asPodObject(f?: TripFilter): any {
     if (!f) return f;
     return {
       ...f,
@@ -476,14 +476,13 @@ export class TripService
     super(injector,
       Trip,
       {
+        featureName: TRIP_FEATURE_NAME,
         queries: TripQueries,
         mutations: TripMutations,
         subscriptions: TripSubscriptions,
         filterAsObjectFn: TripFilter.asPodObject,
         filterFnFactory: TripFilter.searchFilter
       });
-
-    this._featureName = TRIP_FEATURE_NAME;
 
     // Register user event actions
     userEventService.registerAction({

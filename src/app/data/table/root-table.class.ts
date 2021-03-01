@@ -21,6 +21,7 @@ import {referentialToString} from "../../core/services/model/referential.model";
 import {AppTable} from "../../core/table/table.class";
 import {toDateISOString} from "../../shared/dates";
 import * as momentImported from "moment";
+import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 const moment = momentImported;
 
 export const AppRootTableSettingsEnum = {
@@ -28,7 +29,8 @@ export const AppRootTableSettingsEnum = {
 };
 
 @Directive()
-export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
+// tslint:disable-next-line:directive-class-suffix
+export abstract class AppRootTable<T extends RootDataEntity<T>, F = any, O extends EntityServiceLoadOptions = EntityServiceLoadOptions>
   extends AppTable<T, F> {
 
   protected network: NetworkService;
@@ -70,7 +72,7 @@ export abstract class AppRootTable<T extends RootDataEntity<T>, F = any>
     modalCtrl: ModalController,
     settings: LocalSettingsService,
     columns: string[],
-    protected dataService: IDataSynchroService<T>,
+    protected dataService: IDataSynchroService<T, O>,
     _dataSource?: EntitiesTableDataSource<T, F>,
     _filter?: F,
     injector?: Injector

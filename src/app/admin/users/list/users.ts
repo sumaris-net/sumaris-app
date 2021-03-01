@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, OnInit} from "@angular/core";
 import {Person, UserProfileLabels} from "../../../core/services/model/person.model";
-import {DefaultStatusList, referentialToString} from "../../../core/services/model/referential.model";
+import {DefaultStatusList, referentialToString, StatusValue} from "../../../core/services/model/referential.model";
 import {PersonFilter, PersonService} from "../../services/person.service";
 import {PersonValidatorService} from "../../services/validator/person.validator";
 import {ModalController} from "@ionic/angular";
@@ -16,7 +16,7 @@ import {LocalSettingsService} from "../../../core/services/local-settings.servic
 import {debounceTime, filter} from "rxjs/operators";
 import {EntitiesTableDataSource} from "../../../core/table/entities-table-datasource.class";
 import {isNotNil} from "../../../shared/functions";
-import {ENVIRONMENT} from "../../../../environments/environment.class";
+import {ENVIRONMENT, Environment} from "../../../../environments/environment.class";
 
 @Component({
   selector: 'app-users-table',
@@ -34,9 +34,8 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
   profiles = UserProfileLabels;
   additionalFields: FormFieldDefinition[];
   statusList = DefaultStatusList;
-  statusById;
+  statusById: {[key: number]: StatusValue};
   filterIsEmpty = true;
-  any;
 
   constructor(
     protected route: ActivatedRoute,
@@ -51,7 +50,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
     protected cd: ChangeDetectorRef,
     formBuilder: FormBuilder,
     injector: Injector,
-    @Inject(ENVIRONMENT) environment
+    @Inject(ENVIRONMENT) environment: Environment
   ) {
     super(route, router, platform, location, modalCtrl, settings,
       RESERVED_START_COLUMNS
@@ -73,7 +72,7 @@ export class UsersPage extends AppTable<Person, PersonFilter> implements OnInit 
           saveOnlyDirtyRows: true
         }
       }),
-      null,
+      undefined,
       injector
     );
 

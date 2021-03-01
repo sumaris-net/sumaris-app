@@ -4,7 +4,6 @@ import {RootDataEntity, SynchronizationStatusEnum} from "./model/root-data-entit
 import {EntityServiceLoadOptions} from "../../shared/services/entity-service.class";
 import {BaseRootDataService, BaseRootEntityGraphqlMutations} from "../../trip/services/root-data-service.class";
 import {ReferentialRefService} from "../../referential/services/referential-ref.service";
-import {ProgramService} from "../../referential/services/program.service";
 import {VesselSnapshotService} from "../../referential/services/vessel-snapshot.service";
 import {PersonService} from "../../admin/services/person.service";
 import {Injector} from "@angular/core";
@@ -16,11 +15,7 @@ import {isNil} from "../../shared/functions";
 import {SAVE_LOCALLY_AS_OBJECT_OPTIONS} from "./model/data-entity.model";
 import {JobUtils} from "../../shared/services/job.utils";
 import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {
-  BaseEntityGraphqlQueries,
-  BaseEntityGraphqlSubscriptions,
-  BaseEntityServiceOptions
-} from "../../referential/services/base-entity-service.class";
+import {BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions} from "../../referential/services/base-entity-service.class";
 
 
 export interface IDataSynchroService<T extends RootDataEntity<T>, O = EntityServiceLoadOptions> {
@@ -58,7 +53,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   extends BaseRootDataService<T, F, Q, M, S>
   implements IDataSynchroService<T, O> {
 
-  protected _featureName: string;
+  private readonly _featureName: string;
 
   protected referentialRefService: ReferentialRefService;
   protected personService: PersonService;
@@ -68,17 +63,18 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   protected network: NetworkService;
   protected settings: LocalSettingsService;
 
-  protected $importationProgress: Observable<number>;
+  protected $importationProgress: Observable<number>|null = null;
 
   get featureName(): string {
-    return this._featureName || DEFAULT_FEATURE_NAME;
+    return this._featureName;
   }
-
 
   protected constructor (
     injector: Injector,
     dataType: new() => T,
-    options: BaseEntityServiceOptions<T, F, Q, M, S>
+    options: BaseEntityServiceOptions<T, F, Q, M, S> & {
+      featureName: string;
+    }
   ) {
     super(injector, dataType, options);
 
@@ -89,6 +85,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     this.entities = injector.get(EntitiesStorage);
     this.network = injector.get(NetworkService);
     this.settings = injector.get(LocalSettingsService);
+    this._featureName = options && options.featureName || DEFAULT_FEATURE_NAME;
   }
 
   executeImport(opts?: {
@@ -97,13 +94,13 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
     if (this.$importationProgress) return this.$importationProgress; // Skip to may call
 
     const totalProgression = opts && opts.maxProgression || 100;
-    const jobOpts = { maxProgression: undefined};
+    const jobOpts = { maxProgression: 1};
     const jobDefers: Observable<number>[] = [
       // Clear caches
       defer(() => timer()
         .pipe(
           switchMap(() => this.network.clearCache()),
-          map(() => jobOpts.maxProgression as number)
+          map(() => jobOpts.maxProgression)
         )
       ),
 
@@ -114,7 +111,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
       defer(() => timer()
         .pipe(
           switchMap(() => this.entities.persist()),
-          map(() => jobOpts.maxProgression as number)
+          map(() => jobOpts.maxProgression)
         ))
     ];
     const jobCount = jobDefers.length;
@@ -168,7 +165,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
   async synchronizeById(id: number): Promise<T> {
     const entity = await this.load(id);
 
-    if (!entity || entity.id >= 0) return; // skip
+    if (!entity || entity.id >= 0) throw new Error(`Invalid id ${id}. Unable to synchronize`); // skip
 
     return await this.synchronize(entity);
   }
@@ -238,7 +235,7 @@ export abstract class RootDataSynchroService<T extends RootDataEntity<T>,
    * @protected
    */
   protected getImportJobs(opts: {
-    maxProgression: undefined;
+    maxProgression?: number;
   }): Observable<number>[] {
     return JobUtils.defers([
       (p, o) => this.referentialRefService.executeImport(p, o),

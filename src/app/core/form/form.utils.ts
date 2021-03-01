@@ -24,7 +24,7 @@ export interface IAppForm  {
   dirty: boolean;
   empty?: boolean;
   pending: boolean;
-  error: string;
+  error?: string;
   enabled: boolean;
   disabled: boolean;
 

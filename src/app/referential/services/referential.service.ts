@@ -51,7 +51,7 @@ export class ReferentialFilter<ID = number> {
    * Clean a filter, before sending to the pod (e.g remove 'levelId', 'statusId')
    * @param filter
    */
-  static asPodObject<T extends ReferentialFilter = ReferentialFilter>(filter: T): any {
+  static asPodObject<T extends ReferentialFilter = ReferentialFilter>(filter?: T): any {
     if (!filter) return filter;
     return {
       id: filter.id,
