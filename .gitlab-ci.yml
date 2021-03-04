@@ -8,43 +8,6 @@ stages:
     - release
     - deploy
 
-build_dev:
-  extends: .build
-  only:
-    - develop
-    - develop-ifremer
-    - develop-imagine
-  except:
-    - schedules
-
-schedule-build:
-  extends: .build_and_zip
-  only:
-    - schedules
-
-build_dev_and_zip:
-  extends: .build_and_zip
-  only:
-    - develop
-    - develop-ifremer
-    - develop-imagine
-  when: manual
-
-.build_and_zip:
-  extends: .build
-  after_script:
-    - echo "Creating web artifact in progress"
-    - PROJECT_DIR=`pwd`
-    - mkdir -p "${PROJECT_DIR}/dist"
-    - ZIP_FILE=${PROJECT_DIR}/dist/${CI_PROJECT_NAME}.zip
-    - cd $PROJECT_DIR/www
-    - zip -q -r $ZIP_FILE .
-  artifacts:
-      paths:
-        - dist
-  only:
-    - schedules
-
 .build:
   stage: build
   tags:
@@ -55,6 +18,35 @@ build_dev_and_zip:
     - npm run build
   environment:
     name: test
+
+build_dev:
+  extends: .build
+  only:
+    - develop
+    - develop-imagine
+    - feature/gitlab_ci
+  except:
+    - schedules
+
+schedule-build:
+  extends: .build
+  only:
+    - schedules
+
+publish_registry:
+    stage: deploy
+    tags:
+        - sih_public_runner
+    script:
+        - echo "Deploy artefact in progress"
+        - echo "//gitlab.example.com/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}">.npmrc
+        - npm publish dist
+    only:
+        - develop
+        - develop-imagine
+        - feature/gitlab_ci
+    when: manual
+
 
 sonarqube:
     stage: test
@@ -77,9 +69,7 @@ sonarqube:
         -Dsonar.java.libraries=.
     only:
         - develop
-        - develop-ifremer
     when: manual
-
 
 pages:
     stage: docs
@@ -99,7 +89,6 @@ pages:
             - public
     only:
         - develop
-        - develop-ifremer
     when: manual
 
 package:
@@ -122,7 +111,7 @@ package:
         reports:
             dotenv: variables.env
     only:
-        - develop-ifremer
+        - develop
     allow_failure: false
     when: manual
 
@@ -143,6 +132,7 @@ release:
         ref: "$CI_COMMIT_SHA"
     only:
         - develop-ifremer
+
 deploy:
     stage: deploy
     tags:
@@ -151,5 +141,5 @@ deploy:
         - echo "Deploy in progress"
         - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=emso-charts -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
     only:
-        - develop-ifremer
+        - develop
     when: manual
