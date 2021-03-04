@@ -39,8 +39,9 @@ publish_registry:
         - sih_public_runner
     script:
         - echo "Deploy artefact in progress"
+        - echo "${CI_PROJECT_ROOT_NAMESPACE}"
         - cp ${CI_PROJECT_DIR}/package.json ${CI_PROJECT_DIR}/dist
-        - ls ${CI_PROJECT_DIR}/dist/package.json
+        - cat ${CI_PROJECT_DIR}/dist/package.json
         - npm config set @sumaris:registry https://gitlab.ifremer.fr/api/v4/projects/1273/packages/npm/
         - echo "//gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}">.npmrc
         - npm publish ${CI_PROJECT_DIR}/dist
