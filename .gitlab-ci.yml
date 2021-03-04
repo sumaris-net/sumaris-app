@@ -40,10 +40,11 @@ publish_registry:
     script:
         - echo "Deploy artefact in progress"
         - echo "${CI_PROJECT_ROOT_NAMESPACE}"
-        - cp ${CI_PROJECT_DIR}/package.json ${CI_PROJECT_DIR}/dist
-        - cat ${CI_PROJECT_DIR}/dist/package.json
-        - npm config set @sumaris:registry https://gitlab.ifremer.fr/api/v4/projects/1273/packages/npm/
-        - echo "//gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}">.npmrc
+        - cp ${CI_PROJECT_DIR}/package.json ${CI_PROJECT_DIR}/dist/package.json
+        - '{
+          echo "registry=https://gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/"
+          echo "https://gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}"
+          } | tee --append .npmrc'
         - npm publish ${CI_PROJECT_DIR}/dist
     only:
         - develop
