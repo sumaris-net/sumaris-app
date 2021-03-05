@@ -184,7 +184,7 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
     target.pmfms.forEach(pmfmStrategy => {
       // Keep only pmfmId
       pmfmStrategy.pmfmId = toNumber(pmfmStrategy.pmfm && pmfmStrategy.pmfm.id, pmfmStrategy.pmfmId);
-      delete pmfmStrategy.pmfm;
+      // delete pmfmStrategy.pmfm;
 
       // Find existing strategy label pmfm
       pmfmStrategyLabelExists = pmfmStrategyLabelExists || (pmfmStrategy.pmfmId === PmfmIds.STRATEGY_LABEL);

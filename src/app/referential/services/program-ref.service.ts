@@ -281,14 +281,6 @@ export class ProgramRefService
     toEntity?: boolean;
   }, debug?: boolean): Observable<DenormalizedPmfmStrategy[]> {
 
-    // When strategyLabel is set, we clear the cache since it is not refreshed when a new strategy is set (from current application or since another client using common server)
-    if (opts && opts.strategyLabel)
-    {
-      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, programLabel].join('|');
-      this.cache.clearGroup(cacheKey);
-      opts.cache = false;
-    }
-
     // Use cache (enable by default)
     if (!opts || opts.cache !== false) {
       const cacheKey = [ProgramRefCacheKeys.PMFMS, programLabel, JSON.stringify({...opts, cache: undefined, toEntity: undefined})].join('|');
@@ -302,7 +294,7 @@ export class ProgramRefService
         );
     }
 
-    return this.watchByLabel(programLabel, {toEntity: false, debug: false, cache: (!opts || opts.cache)}) // Watch the program
+    return this.watchByLabel(programLabel, {toEntity: false, debug: false}) // Watch the program
       .pipe(
         map(program => {
           // Find strategy

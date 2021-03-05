@@ -435,7 +435,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Fractions
     const fractionIds: number[] = removeDuplicatesFromArray(data
       .reduce((res, strategy) => res.concat(...strategy.pmfms), [])
-      .reduce((res, pmfmStrategie) => res.concat(pmfmStrategie.fractionId), [])
+      .reduce((res, pmfmStrategie) => res.concat(pmfmStrategie.fraction && pmfmStrategie.fraction.id), [])
     );
 
     const fractions = (
@@ -460,6 +460,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         ))
         .filter(isNotNil);
       this.analyticsReferenceItems.next(analyticReferences);
+    } catch (err) {
+      console.debug('Error on load AnalyticReference');
+    }
+  }
+
+
+  async getAnalyticReferenceName(analyticReference): Promise<string> {
+    try {
+      return await this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference  })
+      .then(res => firstArrayValue(res.data).name )
     } catch (err) {
       console.debug('Error on load AnalyticReference');
     }
@@ -630,7 +640,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     appliedStrategyWithPeriods.appliedPeriods = [1, 2, 3, 4].map(quarter => {
       const startMonth = (quarter - 1) * 3 + 1;
       const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
-      const endDate = startDate.clone().add(2, 'month').endOf('month');
+      const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
       // Find the existing entity, or create a new one
       const appliedPeriod = appliedPeriods && appliedPeriods.find(period => period.startDate.month() === startDate.month())
         || AppliedPeriod.fromObject({ acquisitionNumber: undefined });
@@ -648,10 +658,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     // Get fisrt period
     const firstAppliedPeriod = firstArrayValue(appliedStrategyWithPeriods.appliedPeriods);
 
-    this.form.patchValue({
-      year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
-      analyticReference: data.analyticReference && { label: data.analyticReference } || null
-    });
+
+    this.getAnalyticReferenceName(data.analyticReference).then(name => {
+      this.form.patchValue({
+        year: firstAppliedPeriod ? firstAppliedPeriod.startDate : moment(),
+        analyticReference: data.analyticReference && { label: data.analyticReference, name } || null
+      });
+    })
+
 
 
     // If new
@@ -660,8 +674,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.form.get('sex').patchValue(null);
       this.form.get('age').patchValue(null);
     } else {
-      this.form.get('age').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.AGE) !== -1);
-      this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => p.pmfmId && p.pmfmId === PmfmIds.SEX) !== -1);
+      this.form.get('age').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.AGE)) !== -1);
+      this.form.get('sex').patchValue((data.pmfms || []).findIndex(p => PmfmUtils.hasParameterLabelIncludes(p.pmfm, ParameterLabelGroups.SEX)) !== -1);
       // pmfms = [hasSex, hasAge];
     }
 
@@ -715,10 +729,13 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     target.name = target.label || target.name;
     target.label = target.label || target.name;
     target.description = target.label || target.description;
-    target.analyticReference = EntityUtils.isNotEmpty(target.analyticReference, 'label')
-      ? target.analyticReference['label']
-      : target.analyticReference;
+    target.analyticReference = target.analyticReference && EntityUtils.isNotEmpty(target.analyticReference, 'label') ? 
+    target.analyticReference['label'] : 
+    EntityUtils.isNotEmpty(this.form.get('analyticReference').value, 'label') ?
+    this.form.get('analyticReference').value.label :
+    this.form.get('analyticReference').value;
 
+    
     // get taxonName and
     target.taxonNames = (this.form.controls.taxonNames.value || []).map(TaxonNameStrategy.fromObject);
     target.taxonNames.forEach(taxonNameStrategy => {

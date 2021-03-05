@@ -2,6 +2,7 @@ import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "../../../shared/form/field.model";
 import {changeCaseToUnderscore} from "../../../shared/functions";
 import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonomicLevelIds} from "../model/model.enum";
+import {StatusIds} from "../../../core/services/model/model.enum";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
@@ -53,7 +54,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: LocationLevelIds.COUNTRY
@@ -65,7 +66,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: LocationLevelIds.PORT
@@ -77,7 +78,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: LocationLevelIds.AUCTION
@@ -89,7 +90,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE
@@ -101,7 +102,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: LocationLevelIds.ICES_DIVISION
@@ -113,7 +114,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'TaxonomicLevel',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: TaxonomicLevelIds.FAMILY
@@ -125,7 +126,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'TaxonomicLevel',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: TaxonomicLevelIds.GENUS
@@ -137,7 +138,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'TaxonomicLevel',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: TaxonomicLevelIds.SPECIES
@@ -149,7 +150,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'TaxonomicLevel',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES
@@ -161,7 +162,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'Pmfm',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: PmfmIds.MORSE_CODE
@@ -173,7 +174,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'Pmfm',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: PmfmIds.STRATEGY_LABEL
@@ -185,7 +186,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'Pmfm',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: PmfmIds.AGE
@@ -197,7 +198,7 @@ export const REFERENTIAL_CONFIG_OPTIONS: FormFieldDefinitionMap = {
     autocomplete: {
       filter: {
         entityName: 'Pmfm',
-        statusIds: [0, 1]
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
       }
     },
     defaultValue: PmfmIds.SEX

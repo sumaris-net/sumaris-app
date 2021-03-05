@@ -213,7 +213,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     entities.forEach(s => {
       const pmfms = s.pmfms;
       s.parameterGroups = (pmfms && parameterListKeys || []).reduce((res, key) => {
-        return pmfms.findIndex(p => pmfmIdsMap[key].includes(p.pmfmId) || (p.parameter && p.parameter.id && pmfmIdsMap[key].includes(p.parameter.id))) !== -1 ? res.concat(key) : res;
+        return pmfms.findIndex(p => pmfmIdsMap[key].includes(p.pmfmId) || (p.parameter && p.parameter.label && p.parameter.label.includes(key))) !== -1 ? res.concat(key) : res;
       }, []);
     });
   }
