@@ -43,7 +43,7 @@ publish_registry:
         - cp ${CI_PROJECT_DIR}/package.json ${CI_PROJECT_DIR}/www
         - '{
           echo "registry=https://gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/"
-          echo "https://gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}"
+          echo "//gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}"
           } | tee --append .npmrc'
         - npm publish ${CI_PROJECT_DIR}/www
     only:
@@ -143,8 +143,14 @@ deploy:
     tags:
         - sih_public_runner
     script:
-        - echo "Deploy in progress"
-        - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=emso-charts -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
+        - echo "Deploy artefact in progress"
+        - echo "${CI_PROJECT_ROOT_NAMESPACE}"
+        - cp ${CI_PROJECT_DIR}/package.json ${CI_PROJECT_DIR}/www
+        - '{
+          echo "registry=https://gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/"
+          echo "//gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}"
+          } | tee --append .npmrc'
+        - npm publish ${CI_PROJECT_DIR}/www
     only:
         - develop
     when: manual
