@@ -39,9 +39,10 @@ publish_registry:
         - sih_public_runner
     script:
         - echo "Deploy artefact in progress"
-        - pwd
-        - ls ${CI_PROJECT_DIR}/www
+        - PROJECT_DIR=`pwd`
+        - ls
         - ls ${CI_PROJECT_DIR}/dist
+        - ls ${PROJECT_DIR}/www
         - cp ${CI_PROJECT_DIR}/package.json ${CI_PROJECT_DIR}/www
         - cat ${CI_PROJECT_DIR}/www/package.json
         - |
