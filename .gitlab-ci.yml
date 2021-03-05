@@ -41,10 +41,11 @@ publish_registry:
         - echo "Deploy artefact in progress"
         - echo "${CI_PROJECT_ROOT_NAMESPACE}"
         - cp ${CI_PROJECT_DIR}/package.json ${CI_PROJECT_DIR}/www
-        - '{
-          echo "registry=https://gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/"
-          echo "//gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}"
-          } | tee --append .npmrc'
+        - |
+          {
+            echo "registry=https://gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/"
+            echo "//gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/:_authToken=${CI_JOB_TOKEN}"
+          } | tee --append .npmrc
         - npm publish ${CI_PROJECT_DIR}/www
     only:
         - develop
