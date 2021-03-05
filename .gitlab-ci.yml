@@ -39,8 +39,11 @@ publish_registry:
         - sih_public_runner
     script:
         - echo "Deploy artefact in progress"
-        - echo "${CI_PROJECT_ROOT_NAMESPACE}"
+        - pwd
+        - ls ${CI_PROJECT_DIR}/www
+        - ls ${CI_PROJECT_DIR}/dist
         - cp ${CI_PROJECT_DIR}/package.json ${CI_PROJECT_DIR}/www
+        - cat ${CI_PROJECT_DIR}/www/package.json
         - |
           {
             echo "registry=https://gitlab.ifremer.fr/api/v4/projects/${CI_PROJECT_ID}/packages/npm/"
