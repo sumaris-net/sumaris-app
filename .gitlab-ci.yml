@@ -16,6 +16,8 @@ stages:
     - echo "installation and build in progress"
     - npm install
     - npm run build.${BUILD_ENVIRONMENT}
+  variables:
+    BUILD_ENVIRONMENT: aot
 
 build-dev:
   extends: .build
@@ -25,52 +27,27 @@ build-dev:
     - feature/ci_build
   except:
     - schedules
-  variables:
-    BUILD_ENVIRONMENT: dev
 
 schedule-build:
   extends: .build
-  variables:
-    BUILD_ENVIRONMENT: dev
   only:
     - schedules
 
-build_dev_and_zip:
-  extends: .build
-  after_script:
-    - echo "Creating web artifact in progress"
-    - PROJECT_DIR=`pwd`
-    - mkdir -p "${PROJECT_DIR}/dist"
-    - ZIP_FILE=${PROJECT_DIR}/dist/${CI_PROJECT_NAME}.zip
-    - cd $PROJECT_DIR/www
-    - zip -q -r $ZIP_FILE .
-  variables:
-    BUILD_ENVIRONMENT: dev
-  artifacts:
-    paths:
-      - dist
-  only:
-    - develop
-    - develop-imagine
-    - feature/ci_build
-  when: manual
-
-deploy_project_registry:
-    stage: deploy
-    tags:
-        - sih_public_runner
+build_registry:
+    extends: .build
     before_script:
-        - SNAPSHOT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
-    script:
-        - echo "Deploy Snapshot in progress"
-        - echo $SNAPSHOT_VERSION
-        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$SNAPSHOT_VERSION -Dfile=sumaris-server/target/sumaris-server-$SNAPSHOT_VERSION.war -DrepositoryId=job-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
+      - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
+      - ZIP_FILE=${CI_PROJECT_DIR}/www/${CI_PROJECT_NAME}.zip
+    after_script:
+      - echo "Deploy artefact in progress"
+      - cd ${CI_PROJECT_DIR}/www
+      - zip -q -r ${ZIP_FILE} .
+      - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${ZIP_FILE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${APP_VERSION}/${CI_PROJECT_NAME}.zip"'
     only:
         - develop
-        - feature/imagine
-        - feature-oracle-adagio
+        - develop-imagine
+        - feature/gitlab_ci
     when: manual
-
 
 sonarqube:
     stage: test
