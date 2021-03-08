@@ -45,7 +45,7 @@ build_registry:
     only:
         - develop
         - develop-imagine
-        - feature/gitlab_ci
+        - feature/ci_build
     when: manual
 
 sonarqube:
