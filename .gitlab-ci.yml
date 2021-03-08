@@ -19,7 +19,7 @@ stages:
   variables:
     BUILD_ENVIRONMENT: aot
 
-build-auto:
+build_auto:
   extends: .build
   only:
     - develop
@@ -28,7 +28,7 @@ build-auto:
   except:
     - schedules
 
-schedule-build:
+schedule_build:
   extends: .build
   only:
     - schedules
