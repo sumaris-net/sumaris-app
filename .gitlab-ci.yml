@@ -37,13 +37,13 @@ build_registry:
     extends: .build
     before_script:
       - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
-      - ZIP_FILE=${CI_PROJECT_DIR}/dist/${CI_PROJECT_NAME}.zip
+      - ZIP_FILE=${CI_PROJECT_DIR}/www/${CI_PROJECT_NAME}.zip
     after_script:
       - echo "Deploy artefact in progress"
-      - mkdir -p "${CI_PROJECT_DIR}/dist"
+      - echo "v${APP_VERSION} file = ${ZIP_FILE}"
       - cd ${CI_PROJECT_DIR}/www
-      - zip -r $ZIP_FILE .
-      - echo "v${APP_VERSION}v file = ${ZIP_FILE}"
+      - ls
+      - zip -r ${ZIP_FILE} .
       - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${ZIP_FILE} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${CI_PROJECT_NAME}/${APP_VERSION}/${CI_PROJECT_NAME}.zip"'
     artifacts:
       paths:
