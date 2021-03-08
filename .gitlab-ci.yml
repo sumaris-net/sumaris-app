@@ -1,36 +1,41 @@
 image: trion/ng-cli
 
 stages:
-    - build
-    - test
-    - docs
-    - prepare
-    - release
-    - deploy
+  - build
+  - test
+  - docs
+  - prepare
+  - release
+  - deploy
 
-build_dev:
+.build:
+  stage: build
+  tags:
+    - sih_public_runner
+  script:
+    - echo "installation and build in progress"
+    - npm install
+    - npm run build.${BUILD_ENVIRONMENT}
+
+build-dev:
   extends: .build
   only:
     - develop
-    - develop-ifremer
     - develop-imagine
+    - feature/ci_build
   except:
     - schedules
+  variables:
+    BUILD_ENVIRONMENT: dev
 
 schedule-build:
-  extends: .build_and_zip
+  extends: .build
+  variables:
+    BUILD_ENVIRONMENT: dev
   only:
     - schedules
 
 build_dev_and_zip:
-  extends: .build_and_zip
-  only:
-    - develop
-    - develop-ifremer
-    - develop-imagine
-  when: manual
-
-.build_and_zip:
   extends: .build
   after_script:
     - echo "Creating web artifact in progress"
@@ -39,22 +44,33 @@ build_dev_and_zip:
     - ZIP_FILE=${PROJECT_DIR}/dist/${CI_PROJECT_NAME}.zip
     - cd $PROJECT_DIR/www
     - zip -q -r $ZIP_FILE .
+  variables:
+    BUILD_ENVIRONMENT: dev
   artifacts:
-      paths:
-        - dist
+    paths:
+      - dist
   only:
-    - schedules
+    - develop
+    - develop-imagine
+    - feature/ci_build
+  when: manual
 
-.build:
-  stage: build
-  tags:
-    - sih_public_runner
-  script:
-    - echo "Test compilation in progress"
-    - npm install
-    - npm run build
-  environment:
-    name: test
+deploy_project_registry:
+    stage: deploy
+    tags:
+        - sih_public_runner
+    before_script:
+        - SNAPSHOT_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout)
+    script:
+        - echo "Deploy Snapshot in progress"
+        - echo $SNAPSHOT_VERSION
+        - mvn -s ./ci_settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=imagine-pod -Dversion=$SNAPSHOT_VERSION -Dfile=sumaris-server/target/sumaris-server-$SNAPSHOT_VERSION.war -DrepositoryId=job-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1272/packages/maven
+    only:
+        - develop
+        - feature/imagine
+        - feature-oracle-adagio
+    when: manual
+
 
 sonarqube:
     stage: test
