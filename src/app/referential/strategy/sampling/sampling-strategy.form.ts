@@ -398,6 +398,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   async loadFilteredItems(program: Program): Promise<void> {
 
+    const sortFn = (a: ReferentialRef, b: ReferentialRef) => {
+      if(a.name < b.name) { return -1; }
+      if(a.name > b.name) { return 1; }
+      return 0;
+    };
+
     // Load historical data
     // TODO BLA: check if sort by label works fine
     const items = await this.samplingStrategyService.loadAll(0, 20, 'label', 'desc', {
@@ -412,6 +418,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         res.concat(...strategy.departments), [])
         .reduce((res, department: StrategyDepartment) => res.concat([department.department]), []),
       'id');
+    departments.sort(sortFn);
     this.departmentItems.next(departments);
 
     // Locations
@@ -421,6 +428,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .reduce((res, appliedStrategy: AppliedStrategy) =>
           res.concat([appliedStrategy.location]), []),
       'id');
+    locations.sort(sortFn);
     this.locationItems.next(locations);
 
     // Taxons
@@ -430,6 +438,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         .reduce((res, taxonName: TaxonNameStrategy): TaxonNameRef[] =>
           res.concat([taxonName.taxonName]), []),
       'id');
+    taxons.sort(sortFn);
     this.taxonNameItems.next(taxons);
 
     // Fractions
@@ -443,7 +452,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         fractionIds.map(id => this.referentialRefService.loadAll(0, 1, null, null, { id, entityName: 'Fraction' })
           .then(res => res && firstArrayValue(res.data)))
       ))
-      .filter(isNotNil);
+      .filter(isNotNil)
+      .sort(sortFn);
     this.fractionItems.next(fractions);
 
     // Analytic References
@@ -458,7 +468,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
               this.strategyService.loadAllAnalyticReferences(0, 1, 'label', 'desc', { label: analyticReference  })
                 .then(res => res && firstArrayValue(res.data)))
         ))
-        .filter(isNotNil);
+        .filter(isNotNil)
+        .sort(sortFn);
       this.analyticsReferenceItems.next(analyticReferences);
     } catch (err) {
       console.debug('Error on load AnalyticReference');
