@@ -24,7 +24,6 @@ build_auto:
   only:
     - develop
     - develop-imagine
-    - feature/ci_build
   except:
     - schedules
 
@@ -49,31 +48,6 @@ build_registry:
     only:
         - develop
         - develop-imagine
-        - feature/ci_build
-    when: manual
-
-sonarqube:
-    stage: test
-    tags:
-        - sih_public_runner
-    variables:
-      SONAR_TOKEN: "e6f816eee72d3d5c03319ec74b468157b9164d12"
-      SONAR_HOST_URL: "http://visi-common-sonar:9000"
-    image:
-      name: sonarsource/sonar-scanner-cli:latest
-      entrypoint: [""]
-    script:
-      - echo "Sonarqube analysis in progress"
-      - sonar-scanner
-        -Dsonar.projectKey=imagine-app
-        -Dsonar.host.url=$SONAR_HOST_URL
-        -Dsonar.login=$SONAR_TOKEN
-        -Dsonar.sourceEncoding=UTF-8
-        -Dsonar.java.binaries=.
-        -Dsonar.java.libraries=.
-    only:
-        - develop
-        - develop-ifremer
     when: manual
 
 pages:
@@ -94,7 +68,7 @@ pages:
             - public
     only:
         - develop
-        - develop-ifremer
+        - develop-imagine
     when: manual
 
 package:
@@ -117,7 +91,8 @@ package:
         reports:
             dotenv: variables.env
     only:
-        - develop-ifremer
+        - develop
+        - develop-imagine
     allow_failure: false
     when: manual
 
@@ -137,7 +112,8 @@ release:
         tag_name: "emso-charts-$TAG"
         ref: "$CI_COMMIT_SHA"
     only:
-        - develop-ifremer
+        - develop
+        - develop-imagine
 deploy:
     stage: deploy
     tags:
@@ -146,5 +122,6 @@ deploy:
         - echo "Deploy in progress"
         - mvn -s ./settings.xml deploy:deploy-file -DgroupId=fr.ifremer -DartifactId=emso-charts -Dversion=$TAG -Dfile=web-services/target/ROOT.war -DrepositoryId=gitlab-maven -Durl=https://gitlab.ifremer.fr/api/v4/projects/1226/packages/maven
     only:
-        - develop-ifremer
+        - develop
+        - develop-imagine
     when: manual
