@@ -37,6 +37,10 @@ export const environment: Environment = Object.freeze({
     {
       host: 'test.sumaris.net',
       port: 443
+    },
+    {
+      host: 'isi.ifremer.fr/imagine-server/',
+      port: 443
     }
   ],
 
