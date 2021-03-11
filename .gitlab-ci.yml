@@ -49,6 +49,7 @@ build_registry:
     only:
         - develop
         - develop-imagine
+        - feature/build_ci
     when: manual
 
 pages:
