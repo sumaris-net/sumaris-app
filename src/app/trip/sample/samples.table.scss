@@ -99,6 +99,10 @@
     height: 90px;
     max-height: 90px;
 
+    th {
+      top: 56px !important;
+    }
+
     .mat-column-pmfm {
       max-height: 100%;
       overflow: hidden;
