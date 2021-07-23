@@ -519,8 +519,12 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       console.debug('Error on load AnalyticReference');
     }
 
-    const currentData = data.find(elem => elem.id === this.form.get('id').value)
-    this.form.get('label').setValue(currentData.label);
+    // set label if data already exist
+    const labelAlreadyExist = this.form.get('id').value
+    if (labelAlreadyExist) {
+      const currentData = data.find(elem => elem.id === labelAlreadyExist)
+      this.form.get('label').setValue(currentData.label);
+    }
   }
 
 

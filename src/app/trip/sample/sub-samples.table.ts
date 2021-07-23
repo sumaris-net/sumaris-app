@@ -109,6 +109,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     // Always hide parent tag_id (if present)
     this.setShowColumn(PmfmIds.TAG_ID.toString(), false);
+    this.setShowColumn(PmfmIds.DRESSING.toString(), false);
 
     // Parent combo
     this.registerAutocompleteField('parent', {

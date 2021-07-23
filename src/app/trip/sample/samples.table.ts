@@ -581,7 +581,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           ...groupPmfms.reduce((res, pmfm, index) => {
             if (orderedPmfmIds.includes(pmfm.id)) return res; // Skip if already proceed
             orderedPmfmIds.push(pmfm.id);
-            const visible = group !== 'TAG_ID'; //  && groupPmfmCount > 1;
+            const visible = group !== 'TAG_ID' && group !== 'DRESSING'; //  && groupPmfmCount > 1;
             const key = 'group-' + ((pmfm instanceof DenormalizedPmfmStrategy) ? (pmfm as IDenormalizedPmfm).completeName : pmfm.label);
             return index !== 0 ? res : res.concat(<GroupColumnDefinition>{
               key,
