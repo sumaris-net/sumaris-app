@@ -194,6 +194,7 @@
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Référentiel > Niveau taxinomique > Sous espèce",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Ligne de plan",
         "PMFM_TAG_ID": "Référentiel > PSFM > Code prélèvement",
+        "PMFM_DRESSING": "Référentiel > PSFM > Présentation",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "STRATEGY_PARAMETER_AGE_LABEL": "Stratégie > Paramètre > Code âge",

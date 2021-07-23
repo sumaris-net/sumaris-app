@@ -839,6 +839,8 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     let pmfmStrategies: any[] = [
       // Add tag id Pmfm
       <PmfmStrategy>{ pmfm: { id: PmfmIds.TAG_ID } },
+      // Add dressing Pmfm
+      <PmfmStrategy>{ pmfm: { id: PmfmIds.DRESSING } },
       // Add weights Pmfm
       ...this.weightPmfmStrategiesTable.value,
       // Add length Pmfm

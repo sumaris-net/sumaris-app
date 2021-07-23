@@ -185,6 +185,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: PmfmIds.TAG_ID
   },
+  PMFM_DRESSING: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.pmfm.DRESSING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DRESSING',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.DRESSING
+  },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.pmfm.AGE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AGE_ID',

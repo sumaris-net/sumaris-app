@@ -194,6 +194,7 @@
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "PMFM_STRATEGY_LABEL_ID": "Référentiel > PSFM > Strategy label",
         "PMFM_TAG_ID": "Référentiel > PSFM > Sample tag",
+        "PMFM_DRESSING": "Référentiel > PSFM > Presentation",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "STRATEGY_PARAMETER_AGE_LABEL": "Strategy > Parameter > Age label",
