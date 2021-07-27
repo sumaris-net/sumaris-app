@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Inject, OnInit, ViewChild} from '@angular/core';
 import { ActivatedRoute, Router } from "@angular/router";
 import { TableElement } from "@e-is/ngx-material-table/src/app/ngx-material-table/table-element";
 import { Subject } from "rxjs";
@@ -12,6 +12,7 @@ import { SamplingStrategiesTable } from "./sampling/sampling-strategies.table";
 import { StrategiesTable } from "./strategies.table";
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {MatExpansionPanel} from '@angular/material/expansion';
+import { ContextService } from '../../shared/context.service';
 
 // app-strategies-page
 @Component({
@@ -60,7 +61,8 @@ export class StrategiesPage {
     protected programRefService: ProgramRefService,
     protected accountService: AccountService,
     protected platformService: PlatformService,
-    protected cd: ChangeDetectorRef
+    @Inject(forwardRef(() => ContextService)) protected contextService: ContextService,
+    protected cd: ChangeDetectorRef,
   ) {
     this.mobile = platformService.mobile;
 
