@@ -2,7 +2,7 @@ import {NgModule} from '@angular/core';
 import {RouterModule} from '@angular/router';
 import {TranslateModule} from '@ngx-translate/core';
 import {SharedModule} from '@sumaris-net/ngx-components';
-import { ContextService } from './context.service';
+import { Context, ContextService } from './context.service';
 
 @NgModule({
   imports: [
@@ -17,7 +17,10 @@ import { ContextService } from './context.service';
     ContextService,
   ],
   providers: [
-    ContextService,
+    {
+      provide: ContextService,
+      useValue: new ContextService<Context>({})
+    },
   ],
 })
 export class AppSharedModule {
