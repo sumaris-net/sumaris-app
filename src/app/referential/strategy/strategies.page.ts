@@ -120,6 +120,8 @@ export class StrategiesPage {
 
   onNewDataFromRow<S extends Strategy>(row: TableElement<S>) {
     console.debug('Add new Data', row.currentData);
+    console.debug(this.contextService.set('wip', row.currentData));
+    // TODO Navigate to Trip creation screen (and consume `contextService.set('wip  ')`)
   }
 
   markAsLoading(opts?: { emitEvent?: boolean }) {
