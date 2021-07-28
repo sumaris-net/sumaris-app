@@ -975,7 +975,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     }
 
     if (errors) {
-      taxonNameMask = [/^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/, /^[A-Z]$/];
+      taxonNameMask = [/^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/, /^[a-zA-Z]$/];
     }
 
     // @ts-ignore
