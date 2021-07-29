@@ -13,6 +13,8 @@ import { StrategiesTable } from "./strategies.table";
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {MatExpansionPanel} from '@angular/material/expansion';
 import { ContextService } from '../../shared/context.service';
+import { Landing } from '@app/trip/services/model/landing.model';
+import { SamplingStrategy } from '../services/model/sampling-strategy.model';
 
 // app-strategies-page
 @Component({
@@ -118,10 +120,10 @@ export class StrategiesPage {
     });
   }
 
-  onNewDataFromRow<S extends Strategy>(row: TableElement<S>) {
+  onNewDataFromRow(row: TableElement<SamplingStrategy>) {
     console.debug('Add new Data', row.currentData);
-    console.debug(this.contextService.set('wip', row.currentData));
-    // TODO Navigate to Trip creation screen (and consume `contextService.set('wip  ')`)
+    console.debug(this.contextService.setValue('samplingStrategy', row.currentData, { ttl: 1000 }));
+    // TODO Navigate to Trip creation screen (and consume `contextService.getObservable('samplingStrategy  ')`)
   }
 
   markAsLoading(opts?: { emitEvent?: boolean }) {
