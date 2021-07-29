@@ -1,7 +1,5 @@
 import { Injectable } from "@angular/core";
 import { SamplingStrategy } from "@app/referential/services/model/sampling-strategy.model";
-import { Landing } from "@app/trip/services/model/landing.model";
-import { ObservedLocation } from "@app/trip/services/model/observed-location.model";
 import { BehaviorSubject, interval } from "rxjs";
 
 export type Context = {
