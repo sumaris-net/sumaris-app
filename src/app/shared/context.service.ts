@@ -60,7 +60,7 @@ export class ContextService<S extends Record<string, any> = Context> {
     }
 
     getValue(key: keyof ObservableValues<S>): S[typeof key] {
-        return this.getObservable(key).closed ? undefined : this.getObservable(key).getValue();
+        return this.getObservable(key)?.closed ? undefined : this.getObservable(key)?.getValue();
     }
 
     reset(): void {
