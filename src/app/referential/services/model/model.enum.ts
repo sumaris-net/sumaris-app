@@ -133,6 +133,11 @@ export const ParameterLabelGroups = {
 
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
 
+export const FractionGroupIds = {
+  //AGE: [231, 232, 233, 234, 221, 235, 236, 237]
+  AGE: [10, 11]
+};
+
 export const PmfmLabelPatterns = {
   BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/,
   LATITUDE: /^latitude$/i,

@@ -207,7 +207,8 @@
         "PARAMETER_GROUP_SEX_LABELS": "Stratégie > Paramètre > Code sexe",
         "PARAMETER_GROUP_WEIGHT_LABELS": "Stratégie > Paramètre > Codes poids",
         "PARAMETER_GROUP_LENGTH_LABELS": "Stratégie > Paramètre > Codes longueur",
-        "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturités"
+        "PARAMETER_GROUP_MATURITY_LABELS": "Stratégie > Paramètre > Codes maturités",
+        "PARAMETER_GROUP_FRACTION_LABELS": "Stratégie > Paramètre > Codes fraction"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",

@@ -1,7 +1,7 @@
 import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
-import {LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
+import {FractionGroupIds, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
 import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -312,6 +312,12 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_MATURITY_LABELS',
     type: 'string',
     defaultValue: ParameterLabelGroups.MATURITY.join(',')
+  },
+  PARAMETER_GROUP_FRACTION_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.list.parameter.fraction.labels',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_FRACTION_LABELS',
+    type: 'string',
+    defaultValue: FractionGroupIds.AGE.join(',')
   }
 });
 

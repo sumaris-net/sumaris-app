@@ -39,7 +39,17 @@ import {ReferentialRefService} from '../../services/referential-ref.service';
 import {StrategyService} from '../../services/strategy.service';
 import {StrategyValidatorService} from '../../services/validator/strategy.validator';
 import {PmfmStrategiesTable} from '../pmfm-strategies.table';
-import {AcquisitionLevelCodes, autoCompleteFractions, LocationLevelIds, MatrixIds, ParameterLabelGroups, PmfmIds, ProgramPrivilegeIds, TaxonomicLevelIds} from '../../services/model/model.enum';
+import {
+  AcquisitionLevelCodes,
+  autoCompleteFractions,
+  FractionGroupIds,
+  LocationLevelIds,
+  MatrixIds,
+  ParameterLabelGroups,
+  PmfmIds,
+  ProgramPrivilegeIds,
+  TaxonomicLevelIds
+} from '../../services/model/model.enum';
 import {ProgramProperties} from '../../services/config/program.config';
 import {BehaviorSubject, merge} from 'rxjs';
 import {SamplingStrategyService} from '../../services/sampling-strategy.service';
@@ -207,12 +217,22 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.referentialRefService.loadAll(0, 0, null, null, {
-      entityName: 'Fraction',
-      levelId: MatrixIds.INDIVIDUAL
-    })
-      .then(({data}) => this.allFractionItems.next(data));
+    /*
+          this.referentialRefService.loadAll(0, 0, null, null, {
+              entityName: 'Fraction',
+              levelId: MatrixIds.INDIVIDUAL
+            })
+              .then(({data}) => {
+                console.info(data);
+                console.info(FractionGroupIds);
+                this.allFractionItems.next(data);
+              });
+*/
+      Promise.all(FractionGroupIds.AGE.map(fractionId => this.referentialRefService.loadById(fractionId, 'Fraction')))
+        .then((fractionGroupIdsReferentialRefArray: ReferentialRef[]) => {
+          this.allFractionItems.next(fractionGroupIdsReferentialRefArray);
+          console.info(this.allFractionItems);
+        });
 
     this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
       .then(map => this._$pmfmGroups.next(map));
@@ -540,7 +560,6 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       this.form.get('label').setValue(currentData.label);
     }
   }
-
 
   async getAnalyticReferenceByLabel(label: string): Promise<ReferentialRef> {
     if (isNilOrBlank(label)) return undefined;
