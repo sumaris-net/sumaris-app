@@ -2,7 +2,7 @@
   "name": "ADAP",
   "short_name": "ADAP",
   "manifest_version": 1,
-  "version": "1.10.1",
+  "version": "1.10.3",
   "default_locale": "fr",
   "description": "ADAP App.",
   "icons": [{

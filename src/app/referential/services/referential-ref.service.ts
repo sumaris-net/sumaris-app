@@ -8,7 +8,7 @@ import {Referential, ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-c
 import {ReferentialService} from "./referential.service";
 import {IEntitiesService, LoadResult, SuggestService} from "@sumaris-net/ngx-components";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
-import {LocationLevelIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from "./model/model.enum";
+import {LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, TaxonGroupIds, TaxonomicLevelIds} from './model/model.enum';
 import {Metier, TaxonNameRef} from "./model/taxon.model";
 import {NetworkService}  from "@sumaris-net/ngx-components";
 import {EntitiesStorage}  from "@sumaris-net/ngx-components";
@@ -656,11 +656,11 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     TaxonomicLevelIds.SUBSPECIES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_SUBSPECIES_ID);
 
     // Parameters
-    ParameterLabelGroups.AGE = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_AGE_LABEL);
-    ParameterLabelGroups.SEX = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_SEX_LABEL);
-    ParameterLabelGroups.WEIGHT = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_WEIGHT_LABELS);
-    ParameterLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_LENGTH_LABELS);
-    ParameterLabelGroups.MATURITY = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.STRATEGY_PARAMETER_MATURITY_LABELS);
+    ParameterLabelGroups.AGE = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_AGE_LABELS);
+    ParameterLabelGroups.SEX = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_SEX_LABELS);
+    ParameterLabelGroups.WEIGHT = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_WEIGHT_LABELS);
+    ParameterLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_LENGTH_LABELS);
+    ParameterLabelGroups.MATURITY = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.PARAMETER_GROUP_MATURITY_LABELS);
 
     // PMFM
     PmfmIds.TAG_ID = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TAG_ID);
@@ -668,6 +668,15 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     PmfmIds.STRATEGY_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_STRATEGY_LABEL_ID);
     PmfmIds.AGE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_AGE_ID);
     PmfmIds.SEX = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_SEX_ID);
+
+    // Methods
+    MethodIds.MEASURED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_MEASURED_BY_OBSERVER_ID);
+    MethodIds.OBSERVED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_OBSERVED_BY_OBSERVER_ID);
+    MethodIds.ESTIMATED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_ESTIMATED_BY_OBSERVER_ID);
+    MethodIds.CALCULATED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_ID);
+
+    // Matrix
+    MatrixIds.INDIVIDUAL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.FRACTION_INDIVIDUAL_ID);
 
     // Taxon group
     // TODO: add all enumerations

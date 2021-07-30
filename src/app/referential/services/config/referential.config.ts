@@ -1,7 +1,7 @@
 import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition, FormFieldDefinitionMap} from "@sumaris-net/ngx-components";
 import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
-import {LocationLevelIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
+import {FractionGroupIds, LocationLevelIds, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, ProgramLabel, TaxonomicLevelIds} from '../model/model.enum';
 import {StatusIds}  from "@sumaris-net/ngx-components";
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
@@ -114,7 +114,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: LocationLevelIds.ICES_DIVISION
   },
   TAXONOMIC_LEVEL_FAMILY_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.taxonomicLevel.FAMILY.id',
+    key: 'sumaris.enumeration.TaxonomicLevel.FAMILY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_FAMILY_ID',
     type: 'entity',
     autocomplete: {
@@ -126,7 +126,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: TaxonomicLevelIds.FAMILY
   },
   TAXONOMIC_LEVEL_GENUS_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.taxonomicLevel.GENUS.id',
+    key: 'sumaris.enumeration.TaxonomicLevel.GENUS.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_GENUS_ID',
     type: 'entity',
     autocomplete: {
@@ -138,7 +138,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: TaxonomicLevelIds.GENUS
   },
   TAXONOMIC_LEVEL_SPECIES_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.taxonomicLevel.SPECIES.id',
+    key: 'sumaris.enumeration.TaxonomicLevel.SPECIES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_SPECIES_ID',
     type: 'entity',
     autocomplete: {
@@ -150,7 +150,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: TaxonomicLevelIds.SPECIES
   },
   TAXONOMIC_LEVEL_SUBSPECIES_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.taxonomicLevel.SUBSPECIES.id',
+    key: 'sumaris.enumeration.TaxonomicLevel.SUBSPECIES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_SUBSPECIES_ID',
     type: 'entity',
     autocomplete: {
@@ -162,7 +162,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: TaxonomicLevelIds.SUBSPECIES
   },
   PMFM_STRATEGY_LABEL_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.pmfm.STRATEGY_LABEL.id',
+    key: 'sumaris.enumeration.Pmfm.STRATEGY_LABEL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_STRATEGY_LABEL_ID',
     type: 'entity',
     autocomplete: {
@@ -174,7 +174,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: PmfmIds.STRATEGY_LABEL
   },
   PMFM_TAG_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.pmfm.TAG_ID.id',
+    key: 'sumaris.enumeration.Pmfm.TAG_ID.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TAG_ID',
     type: 'entity',
     autocomplete: {
@@ -198,7 +198,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: PmfmIds.DRESSING
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.pmfm.AGE.id',
+    key: 'sumaris.enumeration.Pmfm.AGE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AGE_ID',
     type: 'entity',
     autocomplete: {
@@ -210,7 +210,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: PmfmIds.AGE
   },
   PMFM_SEX_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.pmfm.SEX.id',
+    key: 'sumaris.enumeration.Pmfm.SEX.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SEX_ID',
     type: 'entity',
     autocomplete: {
@@ -221,36 +221,104 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: PmfmIds.SEX
   },
-  STRATEGY_PARAMETER_AGE_LABEL: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.parameter.age.label',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_AGE_LABEL',
+
+  // Methods
+  METHOD_MEASURED_BY_OBSERVER_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Method.MEASURED_BY_OBSERVER.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_MEASURED_BY_OBSERVER_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Method',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MethodIds.MEASURED_BY_OBSERVER
+  },
+  METHOD_OBSERVED_BY_OBSERVER_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Method.OBSERVED_BY_OBSERVER.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_OBSERVED_BY_OBSERVER_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Method',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MethodIds.OBSERVED_BY_OBSERVER
+  },
+  METHOD_ESTIMATED_BY_OBSERVER_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Method.ESTIMATED_BY_OBSERVER.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_ESTIMATED_BY_OBSERVER_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Method',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MethodIds.ESTIMATED_BY_OBSERVER
+  },
+  METHOD_CALCULATED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Method.CALCULATED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_CALCULATED_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Method',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MethodIds.CALCULATED
+  },
+  FRACTION_INDIVIDUAL_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Fraction.INDIVIDUAL.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.FRACTION_INDIVIDUAL_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Matrix',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MatrixIds.INDIVIDUAL
+  },
+  PARAMETER_GROUP_AGE_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.list.parameter.age.labels',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_AGE_LABELS',
     type: 'string',
     defaultValue: ParameterLabelGroups.AGE[0]
   },
-  STRATEGY_PARAMETER_SEX_LABEL: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.parameter.sex.label',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_SEX_LABEL',
+  PARAMETER_GROUP_SEX_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.list.parameter.sex.labels',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_SEX_LABELS',
     type: 'string',
     defaultValue: ParameterLabelGroups.SEX[0]
   },
-  STRATEGY_PARAMETER_WEIGHT_LABELS: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.parameter.weight.labels',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_WEIGHT_LABELS',
+  PARAMETER_GROUP_WEIGHT_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.list.parameter.weight.labels',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_WEIGHT_LABELS',
     type: 'string',
     defaultValue: ParameterLabelGroups.WEIGHT.join(',')
   },
-  STRATEGY_PARAMETER_LENGTH_LABELS: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.parameter.length.labels',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_LENGTH_LABELS',
+  PARAMETER_GROUP_LENGTH_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.list.parameter.length.labels',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_LENGTH_LABELS',
     type: 'string',
     defaultValue: ParameterLabelGroups.LENGTH.join(',')
   },
-  STRATEGY_PARAMETER_MATURITY_LABELS: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.parameter.maturity.labels',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.STRATEGY_PARAMETER_MATURITY_LABELS',
+  PARAMETER_GROUP_MATURITY_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.list.parameter.maturity.labels',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_MATURITY_LABELS',
     type: 'string',
     defaultValue: ParameterLabelGroups.MATURITY.join(',')
   },
+  PARAMETER_GROUP_FRACTION_LABELS: <FormFieldDefinition>{
+    key: 'sumaris.list.parameter.fraction.labels',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_FRACTION_LABELS',
+    type: 'string',
+    defaultValue: FractionGroupIds.AGE.join(',')
+  }
 });
 
 export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze({

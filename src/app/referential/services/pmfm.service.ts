@@ -402,7 +402,8 @@ export class PmfmService
     return this.loadAll(0, !value ? 30 : 10, filter && filter.searchAttribute || null, null,
       { ...filter, searchText: value},
       {
-        query: LoadAllWithPartsQueryWithTotal
+        query: LoadAllWithPartsQueryWithTotal,
+        withTotal: true /*need for fetch more*/
       }
     );
   }

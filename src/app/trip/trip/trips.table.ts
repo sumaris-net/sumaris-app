@@ -28,11 +28,12 @@ import {Trip} from '../services/model/trip.model';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 import {TripTrashModal, TripTrashModalOptions} from './trash/trip-trash.modal';
-import {TRIP_FEATURE_NAME} from '../services/config/trip.config';
+import {TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME} from '../services/config/trip.config';
 import {AppRootTable, AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
 import {environment} from '@environments/environment';
 import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
 import {filter, tap} from 'rxjs/operators';
+import {BehaviorSubject} from 'rxjs';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -52,6 +53,7 @@ export const TripsPageSettingsEnum = {
 })
 export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
+  $title = new BehaviorSubject<string>('');
   highlightedRow: TableElement<Trip>;
   showRecorder = true;
   showObservers = true;
@@ -114,6 +116,8 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureId = TripsPageSettingsEnum.FEATURE_ID;
 
+
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -175,6 +179,10 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
           filter(isNotNil),
           tap(config => {
             console.info('[trips] Init from config', config);
+
+            const title = config && config.getProperty(TRIP_CONFIG_OPTIONS.TRIP_NAME);
+            this.$title.next(title);
+
             this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
             this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
 

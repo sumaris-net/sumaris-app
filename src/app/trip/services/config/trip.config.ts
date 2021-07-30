@@ -19,6 +19,22 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     label: 'TRIP.OPTIONS.ENABLE',
     type: 'boolean'
   },
+  TRIP_NAME: <FormFieldDefinition>{
+    key: 'sumaris.trip.name',
+    label: 'TRIP.OPTIONS.NAME',
+    type: 'enum',
+    values: [
+      {
+        key: 'MENU.TRIPS',
+        value: 'MENU.TRIPS'
+      },
+      {
+        key: 'MENU.LOGBOOKS',
+        value: 'MENU.LOGBOOKS'
+      }
+    ],
+    defaultValue: 'MENU.TRIPS'
+  },
   OBSERVED_LOCATION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.enable',
     label: 'OBSERVED_LOCATION.OPTIONS.ENABLE',
@@ -30,6 +46,10 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
     type: 'enum',
     values: [
       {
+        key: 'MENU.OBSERVATIONS',
+        value: 'MENU.OBSERVATIONS'
+      },
+      {
         key: 'MENU.OCCASIONS',
         value: 'MENU.OCCASIONS'
       },
@@ -38,7 +58,7 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
         value: 'MENU.AUCTION_OCCASIONS'
       }
     ],
-    defaultValue: 'MENU.OBSERVED_LOCATIONS'
+    defaultValue: 'MENU.OCCASIONS'
   }
 });
 

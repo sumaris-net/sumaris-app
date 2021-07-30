@@ -64,9 +64,9 @@ export const environment: Environment = Object.freeze({
       port: 443
     },
     {
-      host: 'adap.pecheursdebretagne.eu',
-      port: 443,
-      path: '/test'
+      host: 'sih.sfa.sc',
+      port: 80,
+      useSsl: false
     },
     {
       host: 'www.sumaris.net',

@@ -81,7 +81,7 @@ export class StrategiesPage {
       this.canDelete = this.canEdit;
 
       // Read program's properties
-      this.strategyEditor = program.getProperty<StrategyEditor>(ProgramProperties.PROGRAM_STRATEGY_EDITOR);
+      this.strategyEditor = program.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR);
       this.i18nSuffix = program.getProperty<StrategyEditor>(ProgramProperties.I18N_SUFFIX);
       this.$title.next(program.label);
     } catch (err) {

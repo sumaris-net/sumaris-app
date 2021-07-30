@@ -316,18 +316,30 @@ export const ProgramProperties = Object.freeze({
 
   /* -- Program / Strategy options -- */
 
-  PROGRAM_STRATEGY_EDITOR: <FormFieldDefinition>{
+  STRATEGY_EDITOR_PREDOC_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.predoc.fetchSize',
+    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_PREDOC_ENABLE',
+    type: 'integer',
+    defaultValue: '50'
+  },
+  STRATEGY_EDITOR_PREDOC_FETCH_SIZE: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.predoc.fetchSize',
+    label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_PREDOC_FETCH_SIZE',
+    type: 'integer',
+    defaultValue: '50'
+  },
+  STRATEGY_EDITOR: <FormFieldDefinition>{
     key: "sumaris.program.strategy.editor",
-    label: "PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR",
+    label: "PROGRAM.OPTIONS.STRATEGY_EDITOR",
     type: 'enum',
     values: [
       {
         key: 'legacy',
-        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_LEGACY'
+        value: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_ENUM.LEGACY'
       },
       {
         key: 'sampling',
-        value: 'PROGRAM.OPTIONS.PROGRAM_STRATEGY_EDITOR_SAMPLING'
+        value: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_ENUM.SAMPLING'
       }
     ],
     defaultValue: "legacy"

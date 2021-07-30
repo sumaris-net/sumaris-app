@@ -664,7 +664,7 @@ export class ProgramRefService
 
           // Wait 100ms (to avoid to recreate if new subscription comes less than 100ms after)
           setTimeout(() => {
-            if (cache.subject.observers.length > 0) return; // Skip if has observers
+            if (cache.subject.observers?.length > 0) return; // Skip if has observers
             // DEBUG
             //console.debug(`[program-ref-service] Closing program {${id}} changes listener`);
             this._subscriptionCache[cacheKey] = undefined;

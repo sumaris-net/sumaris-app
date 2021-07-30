@@ -109,6 +109,10 @@ export const MethodIds = {
   CALCULATED: 4
 };
 
+export const MatrixIds = {
+  INDIVIDUAL: 2
+}
+
 export const autoCompleteFractions = {
   1362: 'Otholite', 1452: 'Otholite', 1644: 'Ecaille', 1956: 'Otholite', 2049: 'Illicium', 2050: 'Illicium', 1960: 'Otholite', 1693: 'Ecaille',
   1549: 'Otholite', 1990: 'Otholite', 1921: 'Otholite', 1912: 'Otholite', 1349: 'Otholite', 1555: 'Otholite', 1556: 'Otholite', 1986: 'Otholite',
@@ -129,6 +133,11 @@ export const ParameterLabelGroups = {
 
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
 
+export const FractionGroupIds = {
+  //AGE: [231, 232, 233, 234, 221, 235, 236, 237]
+  AGE: [10, 11]
+};
+
 export const PmfmLabelPatterns = {
   BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/,
   LATITUDE: /^latitude$/i,
@@ -144,7 +153,8 @@ export const UnitLabelPatterns = {
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
-  KG: 'kg'
+  KG: 'kg',
+  GRAM: 'g'
 };
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,

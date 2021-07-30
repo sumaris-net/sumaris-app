@@ -160,7 +160,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> implem
   }
   updateView(data: Program | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }) {
 
-    this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.PROGRAM_STRATEGY_EDITOR) || 'legacy';
+    this.strategyEditor = data && data.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR) || 'legacy';
     this.i18nTabStrategiesSuffix = this.strategyEditor === 'sampling' ? '.SAMPLING' : '';
 
     super.updateView(data, opts);

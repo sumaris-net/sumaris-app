@@ -329,7 +329,7 @@
     </ion-row>
 
     <!-- Maturity Pmfms -->
-    <ion-row [hidden]="!ifSex()">
+    <ion-row [hidden]="!hasSex()">
       <ion-col size="0" size-md="2" size-lg="3" class="ion-no-padding">
         <ion-label class="ion-float-end">{{i18nFieldPrefix + 'MATURITIES'|translate}}</ion-label>
       </ion-col>
@@ -364,7 +364,7 @@
     </ion-row>
 
     <!-- Calcified Pmfms -->
-    <ion-row [hidden]="!ifAge()" *ngFor="let pmfmsFraction of pmfmsFractionForm?.controls; index as i; first as first">
+    <ion-row [hidden]="!hasAge()" *ngFor="let pmfmsFraction of pmfmsFractionForm?.controls; index as i; first as first">
       <ion-col size="0" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" *ngIf="first">{{i18nFieldPrefix + 'CALCIFIED_TYPE'|translate}}</ion-label>
       </ion-col>

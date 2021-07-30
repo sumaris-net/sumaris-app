@@ -12,12 +12,23 @@
 }
 
 .table-container {
-  height: calc(100%);
+  height: 100%;
 }
 
 .mat-table {
   min-width: 100%;
   --mat-cell-vertical-padding: 4px;
+
+  .mat-table-sticky {
+    &.mat-column-id {
+      left: 50px !important;
+      min-width: 80px;
+      max-width: 80px;
+    }
+    &.mat-column-label {
+      left: 130px !important;
+    }
+  }
 
   .mat-column-label,
   .mat-column-analyticReference {

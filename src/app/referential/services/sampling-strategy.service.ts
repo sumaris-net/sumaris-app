@@ -199,7 +199,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     }
 
     // Wait jobs end
-    await Promise.all(jobs);
+    if (jobs.length) await Promise.all(jobs);
 
     return res;
   }

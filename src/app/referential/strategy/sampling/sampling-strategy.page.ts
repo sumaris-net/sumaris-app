@@ -216,6 +216,18 @@ export class SamplingStrategyPage extends AppEntityEditor<Strategy, StrategyServ
       }));
     }
 
+    // Add a DRESSEING_ID Pmfm, if missing
+    if (!pmfmIds.includes(PmfmIds.DRESSING)) {
+      console.debug(`[simple-strategy-page] Adding new PmfmStrategy on Pmfm {id: ${PmfmIds.DRESSING}} to hold the strategy label, on ${AcquisitionLevelCodes.SAMPLE}`);
+      target.pmfms.push(PmfmStrategy.fromObject({
+        pmfm: {id: PmfmIds.DRESSING},
+        acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
+        isMandatory: true,
+        acquisitionNumber : 1,
+        rankOrder: 1 // Should be the only one PmfmStrategy on Landing
+      }));
+    }
+
     // Remove unused attributes
     delete target.denormalizedPmfms;
   }

@@ -73,8 +73,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   }
 
   set startDate(value: Moment) {
-    if (value && (!this._startDate || !value.isSame(this._startDate, "day"))) {
-      this._startDate = moment(value).startOf("day");
+    if (value && (!this._startDate || !value.isSame(this._startDate))) {
+      this._startDate = value;
       this._onRefreshDates.emit();
     }
   }
