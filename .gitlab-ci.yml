@@ -76,10 +76,9 @@ build:
     - cp -R /tmp/.build-cache/node_modules .
   variables:
     BUILD_ENVIRONMENT: dev
-  only:
-    - develop
-    - /^imagine\/.*/
-    - /^feature\/.*/
+  except:
+    - tags
+    - master
 
 failsafe-build:
   extends: .build
@@ -92,10 +91,9 @@ failsafe-build:
     - yarn install
   variables:
     BUILD_ENVIRONMENT: dev
-  only:
-    - develop
-    - /^imagine\/.*/
-    - /^feature\/.*/
+  except:
+    - tags
+    - master
 
 docker:ci:
   extends: .docker
@@ -107,10 +105,9 @@ docker:ci:
     - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f scripts/ci/Dockerfile .
     #- docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
     - docker push ${CI_BUILD_IMAGE}
-  only:
-    - develop
-    - /^imagine\/.*/
-    - /^feature\/.*/
+  except:
+    - tags
+    - master
 
 # ---------------------------------------------------------------
 # Release jobs
