@@ -1,8 +1,8 @@
-import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
-import { MethodIds, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelPatterns, WeightToKgCoefficientConversion, WeightUnitSymbol } from './model.enum';
-import { Parameter, ParameterType } from './parameter.model';
-import { PmfmValue } from './pmfm-value.model';
-import { Moment } from 'moment';
+import {BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
+import {MethodIds, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelPatterns, WeightToKgCoefficientConversion, WeightUnitSymbol} from './model.enum';
+import {Parameter, ParameterType} from './parameter.model';
+import {PmfmValue} from './pmfm-value.model';
+import {Moment} from 'moment';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -117,6 +117,8 @@ export class Pmfm extends BaseReferential<Pmfm> implements IFullPmfm<Pmfm> {
 
   completeName: string; // Computed attributes
   // alreadyConverted: boolean;
+
+  displayConversion?: UnitConversion;
 
   constructor() {
     super(Pmfm.TYPENAME);
@@ -257,7 +259,7 @@ export abstract class PmfmUtils {
   }
 
   static isWeight(pmfm: IPmfm): boolean {
-    return pmfm.unitLabel === UnitLabel.KG || pmfm.label?.endsWith("WEIGHT") || (pmfm instanceof Pmfm && (pmfm as Pmfm).parameter?.label?.endsWith("WEIGHT"));
+    return pmfm.unitLabel === UnitLabel.KG || pmfm.unitLabel === UnitLabel.GRAM || pmfm.unitLabel === UnitLabel.MG || pmfm.unitLabel === UnitLabel.TON || pmfm.label?.endsWith('WEIGHT') || (pmfm instanceof Pmfm && (pmfm as Pmfm).parameter?.label?.endsWith('WEIGHT'));
   }
 
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
