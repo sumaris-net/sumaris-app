@@ -77,6 +77,15 @@ mat-form-field {
   height: var(--mat-toolbar-height);
 }
 
+
+// Smaller title on very extra small device
+@media screen and (max-width: $screen-xs-max) {
+  ion-toolbar ion-title {
+    font-size: 18px;
+    padding-inline: 8px;
+  }
+}
+
 // Mobile: change form labels style
 @media screen and (max-width: $screen-sm-max) {
   form ion-col > ion-label.ion-float-center, form ion-col > ion-label.ion-float-end {
