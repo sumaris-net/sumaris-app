@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {Observable} from "rxjs";
+import { Observable, of } from 'rxjs';
 import {map} from "rxjs/operators";
 
 
-import {AccountService}  from "@sumaris-net/ngx-components";
+import { AccountService, IEntityService } from '@sumaris-net/ngx-components';
 import {ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType} from "./model/extraction-type.model";
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {FeatureCollection} from "geojson";
@@ -24,6 +24,7 @@ import {ExtractionProductFilter} from "./filter/extraction-product.filter";
 import {LoadResult} from "@sumaris-net/ngx-components";
 import { ErrorCodes } from '@app/data/services/errors';
 import { ExtractionErrorCodes } from '@app/extraction/services/extraction.errors';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 
 export const AggregationFragments = {
@@ -159,7 +160,9 @@ const DeleteAggregations: any = gql`
 
 @Injectable({providedIn: 'root'})
 // TODO: use BaseEntityService
-export class ExtractionProductService extends BaseGraphqlService {
+export class ExtractionProductService
+  extends BaseGraphqlService
+  implements IEntityService<ExtractionProduct, number> {
 
   constructor(
     protected graphql: GraphqlService,
@@ -168,7 +171,6 @@ export class ExtractionProductService extends BaseGraphqlService {
   ) {
     super(graphql, environment);
   }
-
 
   /**
    * Watch products
@@ -217,6 +219,12 @@ export class ExtractionProductService extends BaseGraphqlService {
     });
 
     return (data && data.aggregationType && ExtractionProduct.fromObject(data.aggregationType)) || null;
+  }
+
+  listenChanges(id: number, opts?: any): Observable<ExtractionProduct | undefined> {
+    // TODO use BaseEntityService
+    console.warn('listenChanges() not implemented yet');
+    return of();
   }
 
   /**

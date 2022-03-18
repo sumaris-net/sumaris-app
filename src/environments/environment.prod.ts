@@ -11,10 +11,9 @@ export const environment = Object.freeze(<AppEnvironment>{
   defaultLocale: "fr",
   defaultLatLongFormat: "DDMM",
   apolloFetchPolicy: "cache-first",
-  mock: false,
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '1.19.0',
+  peerMinVersion: '1.21.0',
 
   // FIXME: enable cache
   persistCache: false,
@@ -44,10 +43,6 @@ export const environment = Object.freeze(<AppEnvironment>{
       host: 'sih.sfa.sc',
       port: 80,
       useSsl: false
-    },
-    {
-      host: 'imagine-pod.ifremer.fr',
-      port: 443
     }
   ],
 
@@ -75,7 +70,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   program: {
     enableListenChanges: true,
-    listenIntervalInSeconds: 0
+    listenIntervalInSeconds: 30
   }
 });
 /* tslint:enable */

@@ -51,7 +51,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
         canUserWrite: (data: ExtractionProduct, opts?: any) => productService.canUserWrite(data, opts),
         save: (data, _) => productService.save(data),
         delete: (data, _) => productService.deleteAll([data]),
-        listenChanges: (id, _) => undefined
+        listenChanges: (id, opts) => productService.listenChanges(id, opts)
       },
       // Editor options
       {

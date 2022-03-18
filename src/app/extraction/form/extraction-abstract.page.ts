@@ -34,6 +34,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
   type: T;
   form: FormGroup;
   canEdit = false;
+  mobile: boolean;
 
   onRefresh = new EventEmitter<any>();
   $types = new BehaviorSubject<T[]>(undefined);
@@ -73,6 +74,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
     protected modalCtrl: ModalController
   ) {
     super(route, router, alertCtrl, translate);
+    this.mobile = settings.mobile;
     // Create the main form
     this.form = formBuilder.group({
       sheetName: [null, Validators.required]
@@ -367,6 +369,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
   protected canUserWrite(type: ExtractionType): boolean {
     return type.category === ExtractionCategories.PRODUCT && (
       this.accountService.isAdmin()
+      || (this.accountService.isUser() && type.recorderPerson?.id === this.accountService.person.id)
       || (this.accountService.isSupervisor() && this.accountService.canUserWriteDataForDepartment(type.recorderDepartment)));
   }
 

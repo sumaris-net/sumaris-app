@@ -16,12 +16,11 @@ export const environment = Object.freeze(<Environment>{
   defaultLocale: "fr",
   defaultLatLongFormat: "DDMM",
   apolloFetchPolicy: "cache-first",
-  mock: false,
 
   // FIXME: enable cache
   persistCache: false,
 
-  peerMinVersion: '1.19.0',
+  peerMinVersion: '1.21.0',
 
   defaultPeer: {
     host: 'localhost',
