@@ -1539,6 +1539,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       }
     }
 
+    // Update fishing area
+    if (target.fishingAreas && source.fishingAreas){
+      target.fishingAreas.forEach(targetFishArea => {
+        const sourceFishArea = source.fishingAreas.find(json => targetFishArea.equals(json));
+        EntityUtils.copyIdAndUpdateDate(sourceFishArea, targetFishArea);
+      })
+    }
+
     // Update measurements
     if (target.measurements && source.measurements) {
       target.measurements.forEach(targetMeas => {
