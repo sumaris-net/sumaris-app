@@ -12,6 +12,7 @@ import { MeasurementsValidatorService } from '@app/trip/services/validator/measu
 export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
 
   pmfms: IPmfm[];
+  showSamplingBatchColumns: boolean = true;
 
   constructor(
     protected measurementsValidatorService: MeasurementsValidatorService,
@@ -33,8 +34,9 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
   }): FormGroup {
     const form = this.formBuilder.group(this.getFormGroupConfig(data, {...opts}));
 
-    if (opts && ((opts.qvPmfm && opts.qvPmfm.qualitativeValues.length) || opts.withChildren)) {
-      const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm});
+    if (opts && opts.withChildren) {
+      // there is a second level of children only if there is qvPmfm and sampling batch columns
+      const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm && this.showSamplingBatchColumns});
 
       formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
     }
@@ -168,13 +170,9 @@ export class BatchValidators {
     qvPmfm?: IPmfm;
   }): ValidatorFn {
     if (!opts?.qvPmfm) {
-      let showError = true;
       return (control) => {
-        if (showError) {
-          console.error('Please check implementation for sample row validator, when no qvPmfm', control);
-          showError = false;
-        }
-        return null;
+        const form = control as FormGroup;
+        return BatchValidators.computeSamplingWeight(form, {...opts, emitEvent: false, onlySelf: false});
       };
     }
 
@@ -197,7 +195,7 @@ export class BatchValidators {
         }
         return BatchValidators.computeSamplingWeight(form, {...qvOpts, emitEvent: false, onlySelf: false});
       }
-    })
+    });
     return Validators.compose(validators);
   }
 

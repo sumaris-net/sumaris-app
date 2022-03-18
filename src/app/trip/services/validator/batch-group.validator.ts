@@ -20,7 +20,8 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
   }
 
   getRowValidator(): FormGroup {
-    return super.getFormGroup(null, {withWeight: true, withChildren: true, qvPmfm: this.qvPmfm, pmfms:this.pmfms});
+    // The first level of children can be qvPmfm or samplingColumns
+    return super.getFormGroup(null, {withWeight: true, withChildren: !!this.qvPmfm || this.showSamplingBatchColumns, qvPmfm: this.qvPmfm, pmfms:this.pmfms});
   }
 
   getFormGroup(data?: BatchGroup, opts?: {
