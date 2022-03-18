@@ -114,9 +114,8 @@
 <!-- options menu -->
 <mat-menu #optionMenu="matMenu">
 
-
   <button mat-menu-item
-          class="visible-xs visible-sm visible-mobile"
+          *ngIf="mobile"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>

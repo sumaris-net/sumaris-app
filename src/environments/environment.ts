@@ -22,7 +22,6 @@ export const environment = Object.freeze(<AppEnvironment>{
   defaultLocale: "fr",
   defaultLatLongFormat: "DDMM",
   apolloFetchPolicy: "no-cache",
-  mock: false,
 
   // FIXME: enable cache
   persistCache: false,
@@ -30,7 +29,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // TODO: make this works
   //offline: true,
 
-  peerMinVersion: '1.19.0',
+  peerMinVersion: '1.21.0',
 
   defaultPeers: [
     {
