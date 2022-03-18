@@ -182,7 +182,7 @@ import { AppImageModule } from '@app/image/image.module';
     {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
-        ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
+      ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
       ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
     }},
 
