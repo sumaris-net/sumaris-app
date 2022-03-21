@@ -371,7 +371,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
                 landingByVesselMap.set(landing.vesselSnapshot.id, landing);
               }
             });
-            entities = Object.values(landingByVesselMap);
+            entities = Array.from(landingByVesselMap.values());
             total = entities.length;
           }
 
