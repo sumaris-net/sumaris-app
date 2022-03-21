@@ -95,7 +95,9 @@
       </ng-template>
 
       <div class="ion-padding">
-        <form-vessel #formVessel>
+        <form-vessel #formVessel
+                     [withNameRequired]="withNameRequired"
+                     [maxDate]="maxDateVesselRegistration">
         </form-vessel>
       </div>
 

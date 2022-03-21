@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {TripValidatorService} from '../services/validator/trip.validator';
-import { IonButton, ModalController } from '@ionic/angular';
+import {ModalController} from '@ionic/angular';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
 
 import {
@@ -26,6 +26,7 @@ import {
   ReferentialUtils,
   StatusIds,
   toBoolean,
+  toDateISOString,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
@@ -325,10 +326,13 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   async addVesselModal(): Promise<any> {
+    const maxDate = this.form.get('departureDateTime').value;
+
     const modal = await this.modalCtrl.create({
       component: VesselModal,
       componentProps: {
-        defaultStatus: this.vesselDefaultStatus
+        defaultStatus: this.vesselDefaultStatus,
+        maxDate: isNotNil(maxDate) ? toDateISOString(maxDate) : undefined
       }
     });
 

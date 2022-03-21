@@ -24,6 +24,8 @@
 
 <ion-content class="ion-padding">
   <form-vessel [canEditStatus]="canEditStatus"
+               [withNameRequired]="withNameRequired"
+               [maxDate]="maxDate"
                (onSubmit)="onSave($event)"
                (onCancel)="cancel()">
   </form-vessel>

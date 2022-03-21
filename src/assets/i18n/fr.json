@@ -196,7 +196,8 @@
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
-        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?"
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?",
+        "NAME_REQUIRED": "Navires: Nom obligatoire ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -2154,6 +2155,7 @@
     "FIELD_NOT_VALID_EMAIL": "Adresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
     "FIELD_NOT_VALID_DATE_AFTER": "Doit être postérieure à {{minDate}}",
+    "FIELD_NOT_VALID_DATE_BEFORE": "Doit être antérieure à {{maxDate}}",
     "FIELD_NOT_VALID_DATE_RANGE": "Dates incohérentes",
     "FIELD_NOT_VALID_DATE_MAX_DURATION": "Durée trop longue",
     "FIELD_NOT_VALID_DATE_MIN_DURATION": "Durée trop courte",

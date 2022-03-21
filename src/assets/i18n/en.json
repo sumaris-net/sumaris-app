@@ -196,7 +196,8 @@
         "DEFAULT_FILTER_COUNTRY_ID": "Vessels: Default country (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Vessels: Show base port?",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels: Nb char. for search",
-        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Vessels: Registration: search as prefix?"
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Vessels: Registration: search as prefix?",
+        "NAME_REQUIRED": "Vessels: Name required?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Referential > Program for vessels",
@@ -2001,6 +2002,7 @@
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",
     "FIELD_NOT_VALID_DATE": "Invalid date",
     "FIELD_NOT_VALID_DATE_AFTER": "Must be after {{minDate}}",
+    "FIELD_NOT_VALID_DATE_BEFORE": "Must be before {{maxDate}}",
     "FIELD_NOT_VALID_DATE_RANGE": "Inconsistent dates",
     "FIELD_NOT_VALID_DATE_MAX_DURATION": "Duration too long",
     "FIELD_NOT_VALID_DATE_MIN_DURATION": "Duration too short",

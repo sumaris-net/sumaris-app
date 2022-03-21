@@ -269,7 +269,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         allowAddNewVessel: this.allowAddNewVessel,
         showVesselTypeColumn: this.showVesselType,
         showBasePortLocationColumn: this.showVesselBasePortLocation,
-        defaultVesselSynchronizationStatus: 'SYNC'
+        defaultVesselSynchronizationStatus: 'SYNC',
+        maxDateVesselRegistration: endDate,
       },
       keyboardClose: true,
       cssClass: 'modal-large'
