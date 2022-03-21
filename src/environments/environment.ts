@@ -31,6 +31,9 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   peerMinVersion: '1.21.0',
 
+  // Not need during DEV
+  //checkAppVersionIntervalInSeconds: 0,
+
   defaultPeers: [
     {
       host: '192.168.8.146',

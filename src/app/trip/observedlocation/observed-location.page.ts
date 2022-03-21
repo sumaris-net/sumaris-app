@@ -538,22 +538,21 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     };
   }
 
-  protected async getJsonValueToSave(): Promise<any> {
-    const json = await super.getJsonValueToSave();
+  protected async onEntitySaved(data: ObservedLocation): Promise<void> {
+    await super.onEntitySaved(data);
 
-    if (this.landingsTable && this.landingsTable.dirty && this.landingsTable.canEdit) {
+    // Save landings table, when editable
+    if (this.landingsTable?.dirty && this.landingsTable.canEdit) {
       await this.landingsTable.save();
     }
-    if (this.aggregatedLandingsTable && this.aggregatedLandingsTable.dirty) {
+    else if (this.aggregatedLandingsTable?.dirty) {
       await this.aggregatedLandingsTable.save();
     }
-
-    return json;
   }
 
   protected getFirstInvalidTabIndex(): number {
     return this.observedLocationForm.invalid ? 0
-      : ((this.landingsTable && this.landingsTable.invalid) || (this.aggregatedLandingsTable && this.aggregatedLandingsTable.invalid) ? 1
+      : ((this.table?.invalid) ? 1
         : -1);
   }
 

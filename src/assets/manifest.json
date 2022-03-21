@@ -1,12 +1,12 @@
 {
-  "name": "ADAP",
-  "short_name": "ADAP",
+  "name": "SUMARiS",
+  "short_name": "SUMARiS",
   "manifest_version": 1,
   "version": "1.21.1",
   "default_locale": "fr",
-  "description": "ADAP App.",
+  "description": "Data collection tool for fisheries monitoring",
   "icons": [{
-    "src": "assets/img/logo-adap-small.png",
+    "src": "assets/img/logo/logo-sumaris.png",
     "sizes": "183x120",
     "type": "image/png"
   }],

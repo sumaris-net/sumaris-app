@@ -5,6 +5,8 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
   AppTable,
+  ConfigService,
+  CORE_CONFIG_OPTIONS, DateUtils,
   EntitiesTableDataSource,
   filterNotNil,
   firstNotNilPromise,
@@ -15,7 +17,7 @@ import {
   referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  toBoolean,
+  toBoolean
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { BehaviorSubject } from 'rxjs';
@@ -35,6 +37,8 @@ import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
+import { switchMap } from 'rxjs/internal/operators';
+import { map } from 'rxjs/operators';
 
 const moment = momentImported;
 
@@ -120,6 +124,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     protected formBuilder: FormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
+    protected configService: ConfigService,
     protected cd: ChangeDetectorRef,
   ) {
 
@@ -152,6 +157,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     // FOR DEV ONLY ----
     this.debug = !environment.production;
 
+
   }
 
   ngOnInit() {
@@ -164,10 +170,19 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     // Listen network
     this.offline = this.network.offline;
 
-    this.registerSubscription(this._onRefreshDates.subscribe(() => this.refreshDates()));
+    this.registerSubscription(this._onRefreshDates
+      .pipe(
+        // Get the DB timezone
+        switchMap(_ => this.configService.config),
+        map(config => config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE))
+      )
+      .subscribe(dbTimezone => this.refreshDates(dbTimezone)));
+
     this.registerSubscription(this._onRefreshPmfms.subscribe(() => this.refreshPmfms()));
 
     this.registerSubscription(filterNotNil(this.$dates).subscribe(() => this.updateColumns()));
+
+
   }
 
   ngOnDestroy() {
@@ -178,6 +193,11 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this._onRefreshPmfms.unsubscribe();
     this._onRefreshDates.complete();
     this._onRefreshDates.unsubscribe();
+  }
+
+  markAsReady(opts?: { emitEvent?: boolean }) {
+    console.log('TODO marking as ready')
+    super.markAsReady(opts);
   }
 
   async ready() {
@@ -199,7 +219,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       filter.programLabel = this._programLabel;
       filter.locationId = parent.location && parent.location.id;
       filter.startDate = parent.startDateTime;
-      filter.endDate = parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, 'day');
+      filter.endDate = parent.endDateTime || parent.startDateTime.clone().add(this._nbDays, 'day');
       this.setFilter(filter);
     }
   }
@@ -332,16 +352,26 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       .concat(RESERVED_END_COLUMNS);
   }
 
-  private refreshDates() {
-    if (isNil(this._startDate) || isNil(this._nbDays)) return;
+  private async refreshDates(dbTimeZone: string) {
+    if (!dbTimeZone || isNil(this._startDate) || isNil(this._nbDays)) return;
+
+    // DEBUG
+    console.debug(`[aggregated-landings-table] Computing dates... {dbTimeZone: '${dbTimeZone}'}`);
+
+    // Clear startDate hour
+    const startDay = DateUtils.resetTime(this._startDate, dbTimeZone);
 
     const dates: Moment[] = [];
     for (let d = 0; d < this._nbDays; d++) {
-      dates[d] = moment(this._startDate).add(d, 'day');
+      dates[d] = startDay.clone().add(d, 'day');
     }
 
-    const today = moment().startOf('day');
-    this.$currentDate.next(dates.find(date => date.valueOf() === today.valueOf()) || this._startDate);
+    // DEBUG
+    if (this.debug)
+      console.debug(`[aggregated-landings-table] Calendar will use this dates: ${dates.map(d => d.format()).join(', ')}`);
+
+    const today = DateUtils.resetTime(moment(), dbTimeZone);
+    this.$currentDate.next(dates.find(date => date.isSame(today) || startDay));
 
     this.$dates.next(dates);
   }

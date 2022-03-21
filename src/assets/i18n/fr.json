@@ -108,8 +108,8 @@
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
-    "LOADING_DOTS": "Chargement...",
     "NO_RESULT": "Aucun résultat",
+    "LOADING_DOTS": "Chargement...",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
@@ -2235,7 +2235,8 @@
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
     "CANCEL_ROW": "<b>Êtes-vous sûr</b> de vouloir annuler les modifications sur cette ligne ?",
     "CANCEL_ROWS": "<b>Êtes-vous sûr</b> de vouloir annuler les modifications sur ces lignes ?",
-    "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"
+    "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?",
+    "RELOAD_APP": "Une nouvelle <b>version {{version}}</b> est disponible pour {{name}}:<ul><li><b>Enregistrer</b> vos éventuelles modifications en cours<li>Cliquez sur le bouton <b>Mettre à jour</b>, ou rafraichissez l'onglet du navigateur.</ul>"
   },
   "INFO": {
     "ALERT_HEADER": "Information",
@@ -2249,6 +2250,7 @@
     "UPDATE_APP_TO_VERSION": "<b>Veuillez mettre à jour {{name}}</b> (en v{{version}} ou +)",
     "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>.",
     "UPDATE_APP_DOWNLOADED": "Le téléchargement de la mise à jour est terminée.<br/><b>Veuillez l'installer</b> à partir des fichiers de l'appareil.",
-    "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères"
+    "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères",
+    "TEXT_PROGRESS": "{{current}} sur {{max}}"
   }
 }
