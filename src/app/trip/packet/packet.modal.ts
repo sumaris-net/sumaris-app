@@ -3,9 +3,9 @@ import { IWithPacketsEntity, Packet } from '../services/model/packet.model';
 import { ModalController } from '@ionic/angular';
 import { Subject, Subscription } from 'rxjs';
 import { PacketForm } from './packet.form';
-import { AppFormUtils, isNil, LocalSettingsService, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormUtils, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
-import { environment } from '@environments/environment.prod';
+import { environment } from '@environments/environment';
 
 export interface PacketModalOptions {
   data: Packet;

@@ -476,10 +476,6 @@ export class VesselService
 
   }
 
-  listenChanges(id: number, options?: any): Observable<Vessel> {
-    throw new Error('Method not implemented.');
-  }
-
   control(entity: Vessel, opts?: any): Promise<FormErrors> {
     return undefined; // Not implemented
   }

@@ -51,7 +51,6 @@ export class VesselValidatorService<O extends VesselValidatorOptions = VesselVal
     this.vesselRegistrationPeriodValidator.updateFormGroup(form.get('vesselRegistrationPeriod') as FormGroup, {required: true, ...opts});
   }
 
-
   protected fillDefaultOptions(opts?: O): O {
     opts = opts || {} as O;
 
