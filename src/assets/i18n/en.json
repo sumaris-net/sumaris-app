@@ -108,8 +108,8 @@
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
     "RESULT_COUNT": "{{count}} results",
-    "LOADING_DOTS": "Loading...",
     "NO_RESULT": "No result",
+    "LOADING_DOTS": "Loading...",
     "NO_DATA": "No data",
     "MISSING": "Missing",
 
@@ -2084,7 +2084,8 @@
     "DELETE_ROWS": "<b>Are you sure</b> you want to delete this rows?",
     "CANCEL_ROW": "<b>Are you sure</b> you want to cancel changes on this row ?",
     "CANCEL_ROWS": "<b>Are you sure</b> you want to cancel changes on these rows ?",
-    "SEND_DEBUG_DATA": "Do you want to send this data to the administrator for help?"
+    "SEND_DEBUG_DATA": "Do you want to send this data to the administrator for help?",
+    "RELOAD_APP": "A new <b>version {{version}}</b> is available for {{name}}:<ul><li><b>Save</b> any current changes<li>Click on the <b>Update</b> button, or refresh the browser tab.</ul>"
   },
   "INFO": {
     "ALERT_HEADER": "Information",
@@ -2098,6 +2099,7 @@
     "UPDATE_APP_TO_VERSION": "<b>Please upgrade {{name}}</b> in version {{version}} (or more)",
     "UPDATE_APP_HELP": "If you do not do this upgrade, communication with the network node may not work.",
     "UPDATE_APP_DOWNLOADED": "The update download is complete.<br/><b>Please install</b> from the downloaded files.",
-    "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters"
+    "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters",
+    "TEXT_PROGRESS": "{{current}} of {{max}}"
   }
 }

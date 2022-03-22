@@ -76,7 +76,8 @@
                                         [showError]="false"
                                         [showEndDateTime]="false"
                                         [debug]="debug"
-                                        (onSubmit)="save($event)">
+                                        (onSubmit)="save($event)"
+                                        [timezone]="$timezone|async">
             </app-form-observed-location>
           </ion-col>
 
