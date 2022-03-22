@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, 
 import {VesselValidatorOptions, VesselValidatorService} from '../services/validator/vessel.validator';
 import {Vessel} from '../services/model/vessel.model';
 import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {AccountService, AppForm, AppFormUtils, LocalSettingsService, ReferentialRef, StatusById, StatusIds, StatusList, toBoolean} from '@sumaris-net/ngx-components';
+import { AccountService, AppForm, AppFormUtils, isNil, LocalSettingsService, ReferentialRef, StatusById, StatusIds, StatusList, toBoolean } from '@sumaris-net/ngx-components';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {FormGroup} from '@angular/forms';
 import {Moment} from 'moment';
@@ -46,10 +46,13 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
 
   @Input() set defaultRegistrationLocation(value: ReferentialRef) {
     if (this._defaultRegistrationLocation !== value) {
-      this._defaultRegistrationLocation = value;
       console.debug('[form-vessel] Changing default registration location to:' + value);
-      if (this.registrationForm) {
-        this.registrationForm.patchValue({registrationLocation: this.defaultRegistrationLocation});
+      this._defaultRegistrationLocation = value;
+
+      // Apply value, if possible (not yt set)
+      const registrationLocationControl = this.registrationForm?.get('registrationLocation');
+      if (registrationLocationControl && isNil(registrationLocationControl.value)) {
+        registrationLocationControl.patchValue({registrationLocation: value});
       }
     }
   }
@@ -158,7 +161,6 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   }
 
   filterNumberInput = AppFormUtils.filterNumberInput;
-
 
   /* -- protected methods -- */
 
