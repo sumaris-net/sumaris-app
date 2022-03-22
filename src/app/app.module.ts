@@ -70,7 +70,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
 import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
 import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
 import { AppImageModule } from '@app/image/image.module';
-import { SHARED_TESTING_PAGES } from '@sumaris-net/ngx-components/src/app/shared/shared.testing.module';
+import { SHARED_TESTING_PAGES } from '@sumaris-net/ngx-components';
 
 @NgModule({
   declarations: [
