@@ -250,6 +250,7 @@ export class BatchValidators {
     const samplingRatioControl = form.get(samplingRatioPath);
     const samplingRatioTextControl = form.get(samplingRatioPath + 'Text');
     const samplingWeightControl = form.get(samplingWeightPath);
+    const samplingWeightValueControl = form.get(samplingWeightPath + ".value");
 
     const totalWeight = toFloat(totalWeightControl.value?.value);
     const samplingRatioPct = toNumber(samplingRatioControl.value);
@@ -294,14 +295,14 @@ export class BatchValidators {
 
       // Sampling weight must be under total weight
       if (toNumber(samplingWeight) > toNumber(totalWeight)) {
-        if (!samplingWeightControl.hasError('max') || samplingWeightControl.errors['max'] !== totalWeight) {
-          samplingWeightControl.markAsPending({ onlySelf: true, emitEvent: true }); //{onlySelf: true, emitEvent: false});
-          samplingWeightControl.markAsTouched({ onlySelf: true });
-          samplingWeightControl.setErrors({ ...samplingWeightControl.errors, max: { max: totalWeight } }, opts);
+        if (!samplingWeightControl.hasError('max') || samplingWeightValueControl.errors['max'] !== totalWeight) {
+          samplingWeightValueControl.markAsPending({ onlySelf: true, emitEvent: true }); //{onlySelf: true, emitEvent: false});
+          samplingWeightValueControl.markAsTouched({ onlySelf: true });
+          samplingWeightValueControl.setErrors({ ...samplingWeightValueControl.errors, max: { max: totalWeight } }, opts);
         }
         return { max: { max: totalWeight } } as ValidationErrors;
       } else {
-        SharedValidators.clearError(samplingWeightControl, 'max');
+        SharedValidators.clearError(samplingWeightValueControl, 'max');
       }
 
       // Update sampling ratio
