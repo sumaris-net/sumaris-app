@@ -30,9 +30,9 @@ import {
   APP_LOCALES,
   APP_MENU_ITEMS,
   APP_TESTING_PAGES,
+  AppGestureConfig,
   CORE_CONFIG_OPTIONS,
   DATE_ISO_PATTERN,
-  AppGestureConfig,
   Department,
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
@@ -70,6 +70,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
 import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
 import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
 import { AppImageModule } from '@app/image/image.module';
+import { SHARED_TESTING_PAGES } from '@sumaris-net/ngx-components/src/app/shared/shared.testing.module';
 
 @NgModule({
   declarations: [
@@ -165,7 +166,7 @@ import { AppImageModule } from '@app/image/image.module';
         ]
     },
 
-    {provide: MAT_DATE_LOCALE, useValue: 'en'},
+    {provide: MAT_DATE_LOCALE, useValue: environment.defaultLocale || 'en'},
     {
       provide: MAT_DATE_FORMATS, useValue: {
         parse: {
@@ -179,8 +180,11 @@ import { AppImageModule } from '@app/image/image.module';
         }
       }
     },
-    {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
+
+    {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
+
+    // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
       ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
       ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
@@ -340,6 +344,7 @@ import { AppImageModule } from '@app/image/image.module';
 
     // Testing pages
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
+        ...SHARED_TESTING_PAGES,
         ...REFERENTIAL_TESTING_PAGES,
         ...IMAGE_TESTING_PAGES,
         ...TRIP_TESTING_PAGES
