@@ -421,8 +421,8 @@ export class TripService
     protected userEventService: UserEventService,
     protected trashRemoteService: TrashRemoteService,
     protected formErrorTranslator: FormErrorTranslator,
-    @Optional() private translate: TranslateService,
-    @Optional() private toastController: ToastController
+    @Optional() protected translate: TranslateService,
+    @Optional() protected toastController: ToastController
   ) {
     super(injector,
       Trip, TripFilter,
@@ -1122,7 +1122,7 @@ export class TripService
     }
 
     // If trip is Valid, control operations
-    else {
+    else if (!opts || !opts.withOperationGroup){
       const errors = await this.operationService.controlAllByTrip(entity, {program});
       if (errors) {
         return {operations: errors};
