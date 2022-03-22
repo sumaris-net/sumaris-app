@@ -176,27 +176,29 @@ export class BatchValidators {
       };
     }
 
-    const validators = (opts.qvPmfm.qualitativeValues || []).map((qv, qvIndex) => {
-      const qvSuffix = `children.${qvIndex}.`;
-      const qvOpts = {
-        ...opts,
-        weightPath: qvSuffix + 'weight',
-        samplingWeightPath: qvSuffix + 'children.0.weight',
-        samplingRatioPath: qvSuffix + 'children.0.samplingRatio',
-        qvIndex
-      };
-      return (control) => {
-        const form = control as FormGroup;
-        if (form.get(qvSuffix + 'individualCount').disabled) {
-          form.get(qvSuffix + 'individualCount').enable();
+    return Validators.compose((opts.qvPmfm.qualitativeValues || [])
+      .map((qv, qvIndex) => {
+        const qvSuffix = `children.${qvIndex}.`;
+        const qvOpts = {
+          ...opts,
+          weightPath: qvSuffix + 'weight',
+          samplingWeightPath: qvSuffix + 'children.0.weight',
+          samplingRatioPath: qvSuffix + 'children.0.samplingRatio',
+          qvIndex
+        };
+        return (control) => {
+          const form = control as FormGroup;
+          // Enable total individual count
+          if (form.get(qvSuffix + 'individualCount').disabled) {
+            form.get(qvSuffix + 'individualCount').enable();
+          }
+          // Enable sampling individual count
+          if (form.get(qvSuffix + 'children.0.individualCount').disabled) {
+            form.get(qvSuffix + 'children.0.individualCount').enable();
+          }
+          return BatchValidators.computeSamplingWeight(form, {...qvOpts, emitEvent: false, onlySelf: false});
         }
-        if (form.get(qvSuffix + 'children.0.individualCount').disabled) {
-          form.get(qvSuffix + 'children.0.individualCount').enable();
-        }
-        return BatchValidators.computeSamplingWeight(form, {...qvOpts, emitEvent: false, onlySelf: false});
-      }
-    });
-    return Validators.compose(validators);
+      }));
   }
 
   static weightLengthConversion(opts?: {
@@ -230,6 +232,8 @@ export class BatchValidators {
     samplingWeightPath?: string;
     samplingRatioPath?: string;
     qvIndex?: number;
+    // UI function
+    //markForCheck?: () => void
   }): ValidationErrors | null {
 
     const qvSuffix = opts && isNotNilOrNaN(opts.qvIndex) ? 'children.' + opts.qvIndex.toString() : '';
@@ -282,7 +286,7 @@ export class BatchValidators {
     }
 
     // DEBUG
-    console.debug('[batch-validator] Start computing: ', [totalWeight, samplingRatioPct, samplingWeight, sampleForm.get('samplingRatioText')?.value]);
+    console.debug('[batch-validator] Start computing: ', [totalWeight, samplingRatioPct, samplingWeight, samplingRatioText]);
 
     // Compute samplingRatio, using weights
     if (!batch.weight.computed && isNotNilOrNaN(totalWeight) && totalWeight > 0

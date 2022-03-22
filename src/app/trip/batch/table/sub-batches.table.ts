@@ -693,7 +693,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected onInvalidForm() {
-    this.form.markAsTouched({emitEvent: true});
+    this.form.markAllAsTouched({emitEvent: true});
     if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-table] ");
   }
 
