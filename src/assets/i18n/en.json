@@ -2001,6 +2001,7 @@
     "FIELD_NOT_VALID_EMAIL": "Invalid email address",
     "FIELD_NOT_VALID_DATE": "Invalid date",
     "FIELD_NOT_VALID_DATE_AFTER": "Must be after {{minDate}}",
+    "FIELD_NOT_VALID_DATE_BEFORE": "Must be before {{maxDate}}",
     "FIELD_NOT_VALID_DATE_RANGE": "Inconsistent dates",
     "FIELD_NOT_VALID_DATE_MAX_DURATION": "Duration too long",
     "FIELD_NOT_VALID_DATE_MIN_DURATION": "Duration too short",

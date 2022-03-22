@@ -9,9 +9,9 @@ import {
   AccountService,
   Alerts,
   AppTable,
-  ConfigService,
+  ConfigService, CORE_CONFIG_OPTIONS,
   EntityServiceLoadOptions,
-  fadeInOutAnimation,
+  fadeInOutAnimation, firstNotNilPromise, fromDateISOString,
   HistoryPageReference, isNil,
   isNotNil,
   LocalSettingsService,
@@ -70,6 +70,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showLandingTab = false;
   $landingTableType = new BehaviorSubject<LandingTableType>(undefined);
   $table = new BehaviorSubject<ILandingsTable>(undefined);
+  $timezone = new BehaviorSubject<string>(undefined);
   allowAddNewVessel: boolean;
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
@@ -122,6 +123,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.configService.config.subscribe(config => {
         if (!config) return;
         this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
+        const dbTimeZone = config.getProperty(CORE_CONFIG_OPTIONS.DB_TIMEZONE);
+        this.$timezone.next(dbTimeZone);
         this.markForCheck();
       })
     );
@@ -338,9 +341,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
 
+
     await super.setProgram(program);
 
     try {
+      const timezone = await firstNotNilPromise(this.$timezone);
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
       this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
       this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -351,11 +356,15 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       const aggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
       if (aggregatedLandings) {
         // Force some date properties
+        this.observedLocationForm.timezone = timezone;
         this.observedLocationForm.showEndDateTime = true;
         this.observedLocationForm.showStartTime = false;
         this.observedLocationForm.showEndTime = false;
-        this.observedLocationForm.filterStartDateDay = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY));
+        this.observedLocationForm.startDateDay = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY));
         this.observedLocationForm.forceDurationDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
+      }
+      else {
+        this.observedLocationForm.timezone = null; // Use local TZ for dates
       }
       this.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
       this.addLandingUsingHistoryModal = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_SHOW_LANDINGS_HISTORY);
@@ -370,15 +379,15 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
       this.$landingTableType.next(aggregatedLandings ? 'aggregated' : 'legacy');
 
-      // Wait table to be updated (see ngInit in template)
-      const table = await this.$table
-        .pipe(
-          filter(table => aggregatedLandings ? table instanceof AggregatedLandingsTable : table instanceof LandingsTable),
-          first()
-        ).toPromise();
+      // Wait the expected table (set using ngInit - see template)
+      const table = await firstNotNilPromise(this.$table
+        .pipe(filter(table => aggregatedLandings ? table instanceof AggregatedLandingsTable : table instanceof LandingsTable)));
+
+      // Configure table
       if (aggregatedLandings) {
         console.debug("[observed-location] Init aggregated landings table:", table);
         const aggregatedLandingsTable = table as AggregatedLandingsTable;
+        aggregatedLandingsTable.timeZone = timezone;
         aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
         aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
       }
@@ -416,7 +425,13 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
 
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
-      data.startDateTime = moment();
+      if (!this.observedLocationForm.showStartTime && this.observedLocationForm.timezone) {
+        data.startDateTime = moment().tz(this.observedLocationForm.timezone)
+          .startOf('day').utc();
+      }
+      else {
+        data.startDateTime = moment();
+      }
 
       // Set current user as observers (if enable)
       if (this.showObservers) {

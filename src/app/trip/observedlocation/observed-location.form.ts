@@ -6,6 +6,7 @@ import { MeasurementValuesForm } from '../measurement/measurement-values.form.cl
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import {
+  DateUtils,
   FormArrayHelper,
   fromDateISOString,
   isEmptyArray,
@@ -19,7 +20,7 @@ import {
   ReferentialUtils,
   StatusIds,
   toBoolean,
-  UserProfileLabel,
+  UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -27,6 +28,8 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { environment } from '@environments/environment';
+import { toDateISOString } from '@sumaris-net/ngx-components';
+import { DateFilterFn } from '@angular/material/datepicker';
 
 @Component({
   selector: 'app-form-observed-location',
@@ -43,8 +46,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   @Input() showEndTime = true;
   @Input() showComment = true;
   @Input() showButtons = true;
-  @Input() filterStartDateDay: number;
+  @Input() startDateDay: number = null;
   @Input() forceDurationDays: number;
+  @Input() timezone: string = null;
 
   _showObservers: boolean;
   observersHelper: FormArrayHelper<Person>;
@@ -52,6 +56,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   locationFilter: Partial<ReferentialRefFilter> = {
     entityName: 'Location'
   };
+  startDatePickerFilter: DateFilterFn<Moment>;
   mobile: boolean;
   referentialToString = referentialToString;
 
@@ -181,54 +186,32 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         .subscribe(programLabel => this.programLabel = programLabel));
 
     // Copy startDateTime to endDateTime, when endDate is hidden
+    const endDateTimeControl = this.form.get('endDateTime');
     this.registerSubscription(
       this.form.get('startDateTime').valueChanges
         .pipe(
-          debounceTime(150),
-          filter(v => isNotNil(v)),
-          map(fromDateISOString),
-          // remove time if time control not shown
-          tap((startDateTime: Moment) => {
-            if (!this.showStartTime) {
-              this.form.patchValue({
-                startDateTime: startDateTime.startOf('day'),
-              }, { emitEvent: false });
-            }
-          }),
-          // update end date time
-          tap((startDateTime: Moment) => {
-            if (!this.showEndDateTime) {
-              // copy start date time + 1ms
-              this.form.patchValue({
-                endDateTime: startDateTime.clone().add(1, 'millisecond'),
-              }, { emitEvent: false });
-            } else if (this.forceDurationDays > 0) {
-              // add duration days
-              this.form.patchValue({
-                endDateTime: startDateTime.clone().add(this.forceDurationDays - 1, 'day'),
-              }, { emitEvent: false });
-            }
-          })
+          debounceTime(150)
         )
-        .subscribe()
-    );
+        .subscribe(startDateTime => {
+          startDateTime = fromDateISOString(startDateTime)?.clone();
+          if (!startDateTime) return; // Skip
+          if (this.timezone) startDateTime.tz(this.timezone);
 
-    this.registerSubscription(
-      this.form.get('endDateTime').valueChanges
-        .pipe(
-          debounceTime(150),
-          filter(v => isNotNil(v) && this.showEndDateTime),
-          map(fromDateISOString),
-          // remove time if time control not shown
-          tap((endDateTime: Moment) => {
-            if (!this.showEndTime) {
-              this.form.patchValue({
-                endDateTime: endDateTime.startOf('day'),
-              }, { emitEvent: false });
-            }
-          })
-        )
-        .subscribe()
+          // Compute the end date time
+          if (!this.showEndDateTime) {
+            // copy start date time + 1ms
+            const endDateTime = startDateTime.clone().add(1, 'millisecond');
+            endDateTimeControl.patchValue(toDateISOString(endDateTime), { emitEvent: false });
+          }
+          // Add a offset
+          else if (this.forceDurationDays > 0) {
+            const endDate = startDateTime.clone()
+              .add(this.forceDurationDays, 'day')
+              .add(-1, 'second');
+            // add expected number of days
+            endDateTimeControl.patchValue(toDateISOString(endDate), { emitEvent: false });
+          }
+        })
     );
   }
 
@@ -258,8 +241,15 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     }
 
     // Update form group
-    this.validatorService.updateFormGroup(this.form, {startDateDay: this.filterStartDateDay});
+    this.validatorService.updateFormGroup(this.form, {
+      startDateDay: this.startDateDay,
+      timezone: this.timezone
+    });
 
+    // Create a filter for start date picker
+    this.startDatePickerFilter = isNotNil(this.startDateDay)
+      ? (d) => DateUtils.isAtDay(d, this.startDateDay, this.timezone)
+      : null;
   }
 
   addObserver() {

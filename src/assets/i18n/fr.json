@@ -1043,7 +1043,8 @@
     },
     "ERROR": {
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
-      "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation."
+      "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
+      "START_DATE_INVALID": "Doit commencer un {{day}}"
     },
     "CONFIRM": {
       "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
@@ -2154,6 +2155,7 @@
     "FIELD_NOT_VALID_EMAIL": "Adresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
     "FIELD_NOT_VALID_DATE_AFTER": "Doit être postérieure à {{minDate}}",
+    "FIELD_NOT_VALID_DATE_BEFORE": "Doit être antérieure à {{maxDate}}",
     "FIELD_NOT_VALID_DATE_RANGE": "Dates incohérentes",
     "FIELD_NOT_VALID_DATE_MAX_DURATION": "Durée trop longue",
     "FIELD_NOT_VALID_DATE_MIN_DURATION": "Durée trop courte",
