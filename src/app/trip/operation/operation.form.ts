@@ -429,6 +429,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       data.physicalGear = physicalGears.find(g => g.id === physicalGear.id) || physicalGear;
     }
 
+    // If parent or child operation
+    const isChildOperation = data && isNotNil(data.parentOperation?.id);
+    const isParentOperation = !isChildOperation && (isNotNil(data.childOperation?.id) || this.allowParentOperation);
+    if (isChildOperation || isParentOperation) {
+      this._allowParentOperation = true; // do not use setter to not update form group
+      this.setIsParentOperation(isParentOperation, {emitEvent: false});
+      if (isChildOperation) this.updateFormGroup({emitEvent: false});
+    }
+
     // Use label and name from metier.taxonGroup
     if (!isNew && data?.metier) {
       data.metier = data.metier.clone(); // Leave original object unchanged
@@ -441,18 +450,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       data.startPosition = null;
       data.endPosition = null;
     }
-    if (!isNew && !this._showFishingArea) data.fishingAreas = [];
 
+    if (!isNew && !this._showFishingArea) data.fishingAreas = [];
     if (!isNew && this._showFishingArea && data.fishingAreas.length) {
       this.fishingAreasHelper.resize(Math.max(data.fishingAreas.length, 1));
-    }
-
-    const isChildOperation = data && isNotNil(data.parentOperation?.id);
-    const isParentOperation = !isChildOperation && (isNotNil(data.childOperation?.id) || this.allowParentOperation);
-    if (isChildOperation || isParentOperation) {
-      this._allowParentOperation = true; // do not use setter to not update form group
-      this.setIsParentOperation(isParentOperation, {emitEvent: false});
-      if (isChildOperation) this.updateFormGroup({emitEvent: false});
     }
 
     if (isParentOperation && isNil(data.qualityFlagId)) {

@@ -1,9 +1,6 @@
-import {RootDataEntityFilter} from "../../../data/services/model/root-data-filter.model";
-import {PhysicalGear} from "../model/trip.model";
-import {Moment} from "moment";
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
+import { PhysicalGear } from '../model/trip.model';
+import { EntityAsObjectOptions, EntityClass } from '@sumaris-net/ngx-components';
 
 @EntityClass({typename: 'PhysicalGearFilterVO'})
 export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter, PhysicalGear> {

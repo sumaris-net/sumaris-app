@@ -690,6 +690,10 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
 
 export class VesselPositionUtils {
 
+  static isNoNilOrEmpty(pos: VesselPosition|undefined): boolean {
+    return pos && isNotNil(pos.latitude) && isNotNil(pos.longitude);
+  }
+
   static dateTimeComparator(sortDirection?: SortDirection): (n1: VesselPosition, n2: VesselPosition) => number {
     const side = sortDirection !== 'desc' ? 1 : -1;
     return (n1, n2) => n1.dateTime.isSame(n2.dateTime) ? 0 : (n1.dateTime.isAfter(n2.dateTime) ? side : -1 * side);

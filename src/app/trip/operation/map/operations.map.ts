@@ -1,22 +1,24 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnInit } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import * as L from 'leaflet';
-import { CRS, LayerGroup, MapOptions, PathOptions } from 'leaflet';
+import { CRS, LayerGroup, MapOptions, PathOptions, Polygon } from 'leaflet';
 import {
   AppTabEditor,
   DateDiffDurationPipe,
   DateFormatPipe,
   EntityUtils,
-  fadeInOutAnimation, firstNotNilPromise,
+  fadeInOutAnimation,
+  firstNotNilPromise,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LatLongPattern,
   LocalSettingsService,
   PlatformService,
-  sleep, waitFor,
+  sleep,
+  waitFor
 } from '@sumaris-net/ngx-components';
-import { Feature, LineString } from 'geojson';
+import { Feature, Geometry, LineString, MultiPolygon, Position } from 'geojson';
 import { AlertController, ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { distinctUntilChanged, filter, switchMap, tap, throttleTime } from 'rxjs/operators';
@@ -25,8 +27,11 @@ import { ProgramProperties } from '../../../referential/services/config/program.
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet/src/leaflet/layers/control/leaflet-control-layers-config.model';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
 import { Program } from '../../../referential/services/model/program.model';
-import { Operation } from '../../services/model/trip.model';
+import { Operation, VesselPositionUtils } from '../../services/model/trip.model';
 import { environment } from '@environments/environment';
+import { LocationLevels } from '@app/referential/services/model/model.enum';
+import { LocationUtils } from '@app/referential/location/location.utils';
+import { Geometries } from '@app/shared/geometries.utils';
 
 export interface OperationsMapModalOptions {
   data: Operation[];
@@ -145,7 +150,9 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
       this.$onOverFeature
         .pipe(
           throttleTime(200),
-          filter(feature => feature !== this.$selectedFeature.value),
+          filter(feature => feature !== this.$selectedFeature.value
+            // Exclude rectangle feature
+            && feature.geometry.type === 'LineString'),
           tap(feature => this.$selectedFeature.next(feature))
         ).subscribe());
 
@@ -208,61 +215,52 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
       // Clean existing layers, if any
       this.cleanMapLayers();
 
-      const tripLayer = L.geoJSON(null, {
-        style: this.getTripLayerStyle()
-      });
       const operationLayer = L.geoJSON(null, {
         onEachFeature: this.onEachFeature.bind(this),
         style: (feature) => this.getOperationLayerStyle(feature)
       });
+      const layers = [operationLayer];
+      let tripCoordinates: Position[] = [];
 
       // Add operation to layer
-      const allPositionsCoords: [number, number][] = [];
       (this.data || [])
         .sort(EntityUtils.sortComparator('rankOrderOnPeriod', 'asc'))
         .forEach((ope, index) => {
-          const operationCoords: [number, number][] = [ope.startPosition, ope.endPosition]
-            .filter(pos => pos && isNotNil(pos.latitude) && isNotNil(pos.longitude))
-            .map(pos => [pos.longitude, pos.latitude]);
-          if (operationCoords.length > 0) {
-            // Add to operation layer
-            operationLayer.addData(<Feature>{
-              type: "Feature",
-              id: ope.id,
-              geometry: <LineString>{
-                type: "LineString",
-                coordinates: operationCoords
-              },
-              properties: {
-                first: index === 0,
-                ...ope,
-                // Replace date with a formatted date
-                startDateTime: this.dateFormatPipe.transform(ope.startDateTime, {time: true}),
-                endDateTime: this.dateFormatPipe.transform(ope.endDateTime, {time: true}),
-                duration: this.dateDiffDurationPipe.transform({startValue: ope.startDateTime, endValue: ope.endDateTime}),
-                // Add index
-                index
-              }
-            });
+          const feature = this.getOperationFeature(ope, index);
+          if (!feature) return; // Skip if empty
 
-            // Add to all position array
-            operationCoords.forEach(coords => allPositionsCoords.push(coords));
+          // Add feature to layer
+          operationLayer.addData(feature);
+
+          // Add to all position array
+          if (Geometries.isLineString(feature.geometry)) {
+            tripCoordinates = tripCoordinates.concat(...feature.geometry.coordinates);
           }
-      });
+        });
 
       // Add trip feature to layer
-      tripLayer.addData(<Feature>{
-        type: "Feature",
-        id: 'trip',
-        geometry: <LineString>{
-          type: "LineString",
-          coordinates: allPositionsCoords
-        }
-      });
+      if (tripCoordinates.length) {
+        const tripLayer = L.geoJSON(null, {
+          style: this.getTripLayerStyle()
+        });
+        layers.push(tripLayer)
 
-      // Add new layer to layers control
-      const tripLayerName = this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER');
-      this.layersControl.overlays[tripLayerName] = tripLayer;
+        tripLayer.addData(<Feature>{
+          type: "Feature",
+          id: 'trip',
+          geometry: <LineString>{
+            type: "LineString",
+            coordinates: tripCoordinates
+          }
+        });
+
+        // Add trip layer to control
+        const tripLayerName = this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER');
+        this.layersControl.overlays[tripLayerName] = tripLayer;
+
+      }
+
+      // Add operations layer to control
       const operationLayerName = this.translate.instant('TRIP.OPERATION.MAP.OPERATIONS_LAYER');
       this.layersControl.overlays[operationLayerName] = operationLayer;
 
@@ -273,7 +271,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
       }
 
       // Refresh layer
-      this.$layers.next([operationLayer, tripLayer]);
+      this.$layers.next(layers);
     } catch (err) {
       console.error("[operations-map] Error while load layers:", err);
       this.error = err && err.message || err;
@@ -369,4 +367,48 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
         delete this.layersControl.overlays[layerName];
       });
   }
+
+  protected getOperationFeature(ope: Operation, index: number): Feature {
+
+    // Create feature
+    const features = <Feature>{
+      type: 'Feature',
+      geometry: null, // Will be set later
+      id: ope.id,
+      properties: {
+        first: index === 0,
+        ...ope,
+        // Replace date with a formatted date
+        startDateTime: this.dateFormatPipe.transform(ope.startDateTime || ope.fishingStartDateTime, { time: true }),
+        endDateTime: this.dateFormatPipe.transform(ope.endDateTime || ope.fishingEndDateTime, { time: true }),
+        duration: this.dateDiffDurationPipe.transform({ startValue: ope.startDateTime|| ope.fishingStartDateTime, endValue: ope.endDateTime || ope.fishingEndDateTime}),
+        // Add index
+        index
+      }
+    };
+
+    // Use lat/long positions
+    let coordinates: [number, number][] = [ope.startPosition, ope.fishingStartPosition, ope.fishingEndPosition, ope.endPosition]
+      .filter(VesselPositionUtils.isNoNilOrEmpty)
+      .map(pos => [pos.longitude, pos.latitude]);
+    features.geometry = coordinates.length && <LineString>{ type: "LineString", coordinates};
+
+    // Use Fishing Areas
+    if (!features.geometry) {
+      const rectangleLabels: string[] = (ope.fishingAreas || [])
+        .map(fa => fa && fa.location?.label)
+        .filter(LocationUtils.isStatisticalRectangleLabel);
+      features.geometry = rectangleLabels.length && <MultiPolygon>{
+        type: 'MultiPolygon',
+        coordinates: rectangleLabels.map(rect => LocationUtils.getGeometryFromRectangleLabel(rect))
+          .map(geometry => geometry?.coordinates)
+      };
+    }
+
+    if (!features.geometry) return undefined; // No geometry: skip
+
+    return features;
+  }
+
+
 }
