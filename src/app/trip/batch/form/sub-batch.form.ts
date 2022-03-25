@@ -7,7 +7,7 @@ import {ReferentialRefService} from '../../../referential/services/referential-r
 import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
 import {
   AppFormUtils,
-  EntityUtils,
+  EntityUtils, firstNotNilPromise,
   focusNextInput,
   focusPreviousInput,
   GetFocusableInputOptions,
@@ -23,21 +23,21 @@ import {
   startsWithUpperCase,
   toBoolean,
   toNumber,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
-import {debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap} from 'rxjs/operators';
-import {AcquisitionLevelCodes, PmfmIds, QualitativeLabels} from '../../../referential/services/model/model.enum';
-import {BehaviorSubject, combineLatest} from 'rxjs';
-import {MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {PmfmFormField} from '../../../referential/pmfm/pmfm.form-field.component';
-import {SubBatch} from '../../services/model/subbatch.model';
-import {BatchGroup, BatchGroupUtils} from '../../services/model/batch-group.model';
-import {TranslateService} from '@ngx-translate/core';
-import {FloatLabelType} from '@angular/material/form-field';
-import {ProgramRefService} from '../../../referential/services/program-ref.service';
-import {IPmfm, PmfmUtils} from '../../../referential/services/model/pmfm.model';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
-import {environment} from '@environments/environment';
+import { debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap } from 'rxjs/operators';
+import { AcquisitionLevelCodes, ParameterLabelGroups, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
+import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
+import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { PmfmFormField } from '../../../referential/pmfm/pmfm.form-field.component';
+import { SubBatch } from '../../services/model/subbatch.model';
+import { BatchGroup, BatchGroupUtils } from '../../services/model/batch-group.model';
+import { TranslateService } from '@ngx-translate/core';
+import { FloatLabelType } from '@angular/material/form-field';
+import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { environment } from '@environments/environment';
 
 
 @Component({
@@ -53,6 +53,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected _parentAttributes: string[];
   protected _showTaxonName: boolean;
   protected _disableByDefaultControls: AbstractControl[] = [];
+  protected _weightConversionSubscription: Subscription;
 
   mobile: boolean;
   enableIndividualCountControl: FormControl;
@@ -63,13 +64,14 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   @Input() showParentGroup = true;
   @Input() showIndividualCount = true;
-  @Input() tabindex: number;
-  @Input() floatLabel: FloatLabelType;
-  @Input() usageMode: UsageMode;
   @Input() showError = true;
   @Input() showSubmitButton = true;
   @Input() displayParentPmfm: IPmfm;
+  @Input() enableWeightConversion: boolean;
   @Input() isNew: boolean;
+  @Input() tabindex: number;
+  @Input() floatLabel: FloatLabelType;
+  @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
@@ -544,8 +546,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
+    // Hide the QV pmfm
     if (this._qvPmfm) {
-      // Hide the QV pmfm
       const index = pmfms.findIndex(pmfm => pmfm.id === this._qvPmfm.id);
       if (index !== -1) {
         const qvPmfm = this._qvPmfm.clone();
@@ -568,16 +570,33 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     return pmfms;
   }
 
-  protected onUpdateControls(form: FormGroup) {
+  protected async onUpdateControls(form: FormGroup): Promise<void> {
+
+    // If QV: must be required
     if (this._qvPmfm) {
       const measFormGroup = form.get('measurementValues') as FormGroup;
       const qvControl = measFormGroup.get(this._qvPmfm.id.toString());
 
-      // Make sure QV is required
       if (qvControl) {
         qvControl.setValidators(Validators.required);
       }
     }
+
+    // Weight/length computation
+    this._weightConversionSubscription?.unsubscribe();
+    if (this.enableWeightConversion) {
+      // DEBUG
+      if (this.debug) console.debug('[sub-batch-form] Adding Weight/Length conversion computation...');
+
+      this._weightConversionSubscription = this.validatorService.enableWeightLengthConversion(form, {
+        pmfms: this.$pmfms.value,
+        markForCheck: ()  => this.markForCheck(),
+        // DEBUG
+        debug: this.debug
+      });
+      this.registerSubscription(this._weightConversionSubscription);
+    }
+
   }
 
   protected getValue(): SubBatch {

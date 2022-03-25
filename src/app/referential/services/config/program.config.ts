@@ -155,6 +155,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_BATCH_WEIGHT_CONVERSION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.weight.conversion.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE',
+    defaultValue: 'false', // Enable RTP / Equiv poids vif
+    type: 'boolean'
+  },
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.enable',
     label: 'PROGRAM.OPTIONS.TRIP_SAMPLE_ENABLE',

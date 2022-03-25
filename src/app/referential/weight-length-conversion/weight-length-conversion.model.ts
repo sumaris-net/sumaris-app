@@ -1,4 +1,4 @@
-import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
+import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, ReferentialUtils, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { StoreObject } from '@apollo/client/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
@@ -60,9 +60,14 @@ export class WeightLengthConversionRef
   static fromObject: (source: any, opts?: any) => WeightLengthConversionRef;
 
   locationId: number = null;
-  sexId: number = null;
+  rectangleLabels: string[];
+
   lengthParameterId: number = null;
   lengthUnitId: number = null;
+  lengthUnitLabel: string = null;
+  lengthPmfmIds: number[] = null;
+
+  sexId: number = null;
 
   constructor() {
     super(WeightLengthConversionRef.TYPENAME);
@@ -72,9 +77,14 @@ export class WeightLengthConversionRef
     super.fromObject(source, opts);
 
     this.locationId = source.locationId;
-    this.sexId = source.sexId;
+    this.rectangleLabels = source.rectangleLabels;
+
     this.lengthParameterId = source.lengthParameterId;
-    this.lengthUnitId = source.lengthUnitId;
+    this.lengthUnitId = toNumber(source.lengthUnitId, source.lengthUnit?.id);
+    this.lengthUnitLabel = source.lengthUnitLabel || source.lengthUnit?.label;
+    this.lengthPmfmIds = source.lengthPmfmIds;
+
+    this.sexId = source.sexId;
   }
 }
 

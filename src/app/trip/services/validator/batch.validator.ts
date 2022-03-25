@@ -1,63 +1,54 @@
 import { Injectable } from '@angular/core';
-import { ValidatorService } from '@e-is/ngx-material-table';
 import { FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, isNotNilOrNaN, SharedAsyncValidators, SharedValidators, toBoolean, toFloat, toNumber } from '@sumaris-net/ngx-components';
+import {
+  EntityUtils,
+  FormArrayHelper,
+  isNil,
+  isNotNilOrBlank,
+  isNotNilOrNaN,
+  LocalSettingsService,
+  SharedAsyncValidators,
+  SharedValidators,
+  toBoolean,
+  toFloat,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import { Batch, BatchUtils, BatchWeight } from '../model/batch.model';
-import { MethodIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { MethodIds } from '@app/referential/services/model/model.enum';
 import { Subscription } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
+import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+
+export interface BatchValidatorOptions extends DataEntityValidatorOptions {
+  withWeight?: boolean;
+  weightRequired?: boolean;
+  rankOrderRequired?: boolean;
+  labelRequired?: boolean;
+  withChildren?: boolean;
+  withMeasurements?: boolean;
+  pmfms?: IPmfm[];
+  qvPmfm?: IPmfm;
+}
 
 @Injectable({providedIn: 'root'})
-export class BatchValidatorService<T extends Batch = Batch> implements ValidatorService {
+export class BatchValidatorService<
+  T extends Batch<T> = Batch,
+  O extends BatchValidatorOptions = BatchValidatorOptions
+  > extends DataEntityValidatorService<T, O> {
 
   pmfms: IPmfm[];
   showSamplingBatchColumns: boolean = true;
 
-  constructor(
+  protected constructor(
+    formBuilder: FormBuilder,
     protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder) {
+    settings?: LocalSettingsService
+  ) {
+    super(formBuilder, settings);
   }
 
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
-  }
-
-  getFormGroup(data?: T, opts?: {
-    withWeight?: boolean;
-    rankOrderRequired?: boolean;
-    labelRequired?: boolean;
-    withChildren?: boolean;
-    withMeasurements?: boolean;
-    pmfms?: IPmfm[];
-    qvPmfm?: IPmfm;
-  }): FormGroup {
-    const form = this.formBuilder.group(this.getFormGroupConfig(data, {...opts}));
-
-    if (opts && opts.withChildren) {
-      // there is a second level of children only if there is qvPmfm and sampling batch columns
-      const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm && this.showSamplingBatchColumns});
-
-      formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
-    }
-
-    // Add weight sub form
-    if (opts && opts.withWeight) {
-      form.addControl('weight', this.getWeightFormGroup(data && data.weight));
-    }
-
-    if (opts && opts.withMeasurements && opts.pmfms) {
-      if (form.contains('measurementValues')) form.removeControl('measurementValues')
-      form.addControl('measurementValues', this.measurementsValidatorService.getFormGroup(null, {
-        pmfms: opts.pmfms,
-        forceOptional: true
-      }));
-    }
-
-    return form;
-  }
-
-  protected getFormGroupConfig(data?: T, opts?: {
+  getFormGroupConfig(data?: T, opts?: {
     rankOrderRequired?: boolean;
     labelRequired?: boolean;
   }): { [key: string]: any } {
@@ -86,13 +77,41 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     };
   }
 
-  getWeightFormGroup(data?: BatchWeight): FormGroup {
-    return this.formBuilder.group({
-      methodId: [toNumber(data && data.methodId, null), SharedValidators.integer],
-      estimated: [toBoolean(data && data.estimated, null)],
-      computed: [toBoolean(data && data.computed, null)],
-      value: [toNumber(data && data.value, null), SharedValidators.double({maxDecimals: 2})]
-    });
+  getFormGroup(data?: T, opts?: O): FormGroup {
+    const form = super.getFormGroup(data, opts);
+
+    if (opts && opts.withChildren) {
+      // there is a second level of children only if there is qvPmfm and sampling batch columns
+      const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm && this.showSamplingBatchColumns});
+      formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
+    }
+
+    // Add weight sub form
+    if (opts && opts.withWeight) {
+      form.addControl('weight', this.getWeightFormGroup(data && data.weight, {
+          required: opts?.weightRequired
+        })
+      );
+    }
+
+    // Add measurement values
+    if (opts && opts.withMeasurements && opts.pmfms) {
+      if (form.contains('measurementValues')) form.removeControl('measurementValues')
+      form.addControl('measurementValues', this.measurementsValidatorService.getFormGroup(null, {
+        pmfms: opts.pmfms,
+        forceOptional: true
+      }));
+    }
+
+    return form;
+  }
+
+
+
+  protected getWeightFormGroup(data?: BatchWeight, opts?: {
+    required?: boolean;
+  }): FormGroup {
+    return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
   }
 
   protected getChildrenFormHelper(form: FormGroup, opts?: { withChildren: boolean }): FormArrayHelper<T> {
@@ -103,7 +122,7 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     }
     return new FormArrayHelper<T>(
       arrayControl,
-      (value) => this.getFormGroup(value, {withWeight: true, qvPmfm: undefined, withMeasurements: true, pmfms: this.pmfms, ...opts}),
+      (value) => this.getFormGroup(value, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, pmfms: this.pmfms, ...opts}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
       (value) => isNil(value),
       {allowEmptyArray: true}
@@ -126,17 +145,6 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
     );
   }
 
-  enableWeightLengthConversion(form: FormGroup, opts?: {
-    requiredWeight?: boolean;
-    markForCheck?: () => void;
-  }): Subscription {
-
-    return SharedAsyncValidators.registerAsyncValidator(form,
-      BatchValidators.weightLengthConversion(opts),
-      {markForCheck: opts?.markForCheck}
-    );
-  }
-
   enableRoundWeightConversion(form: FormGroup, opts?: {
     requiredWeight?: boolean;
     markForCheck?: () => void;
@@ -146,6 +154,23 @@ export class BatchValidatorService<T extends Batch = Batch> implements Validator
       BatchValidators.roundWeightConversion(opts),
       {markForCheck: opts?.markForCheck}
     );
+  }
+}
+
+export class BatchWeightValidator {
+
+  static getFormGroupConfig(data?: BatchWeight, opts?: {
+    required?: boolean;
+  }): {[key: string]: any} {
+    const validator = opts?.required
+      ? Validators.compose([Validators.required, SharedValidators.double({maxDecimals: 2})])
+      : SharedValidators.double({maxDecimals: 2});
+    return {
+      methodId: [toNumber(data && data.methodId, null), SharedValidators.integer],
+      estimated: [toBoolean(data && data.estimated, null)],
+      computed: [toBoolean(data && data.computed, null)],
+      value: [toNumber(data && data.value, null), validator]
+    };
   }
 }
 
@@ -201,16 +226,6 @@ export class BatchValidators {
       }));
   }
 
-  static weightLengthConversion(opts?: {
-    // Weight
-    requiredWeight?: boolean;
-    weightPath?: string;
-    // Length
-    lengthPath?: string;
-    lengthPmfmId?: number;
-  }): ValidatorFn {
-    return (control) => BatchValidators.computeWeightLengthConversion(control as FormGroup, {...opts, emitEvent: false, onlySelf: false})
-  }
 
   static roundWeightConversion(opts?: {
     // Weight
@@ -415,64 +430,6 @@ export class BatchValidators {
     }
   }
 
-  /**
-   * Converting length into a weight
-   * @param form
-   * @param opts
-   */
-  private static computeWeightLengthConversion(form: FormGroup, opts?: {
-    emitEvent?: boolean;
-    onlySelf?: boolean;
-    // Weight
-    requiredWeight?: boolean;
-    weightPath?: string;
-    // Length
-    lengthPath?: string;
-    lengthPmfmId?: number;
-  }) : ValidationErrors | null {
-
-    const weightPath = opts?.weightPath || 'weight';
-    const lengthPath = opts?.lengthPath || toNumber(opts?.lengthPmfmId, PmfmIds.LENGTH_TOTAL_CM).toString();
-
-    let weightControl = form.get(weightPath);
-    const lengthControl = form.get(lengthPath);
-
-    if (!lengthControl) throw Error(`Cannot resolve control with path: '${lengthPath}'`);
-
-    // Create weight control - should not occur ??
-    if (!weightControl) {
-      console.warn('Creating missing weight control - Please add it to the validator instead')
-      const weightValidators = opts?.requiredWeight ? Validators.required : undefined;
-      weightControl = new FormControl(null, weightValidators);
-      form.addControl(weightPath, weightControl);
-    }
-
-    if (weightControl.disabled) weightControl.enable(opts);
-    if (lengthControl.disabled) lengthControl.enable(opts);
-
-    const length = lengthControl.value;
-    const weight = weightControl.value;
-    // DEBUG
-    console.debug('[batch-validator] Start computing weight from length: ', [length]);
-
-
-    // Compute weight, using length
-    if (!weight.computed && isNotNilOrNaN(length) && length > 0) {
-
-      // TODO
-      const computedWeight = length * 20 ;
-
-      if (weight.value !== computedWeight) {
-        weightControl.patchValue({
-          value: computedWeight,
-          computed: true,
-          estimated: false
-        }, opts);
-      }
-    }
-
-    return null;
-  }
 
   /**
    * Converting length into a weight

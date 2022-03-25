@@ -17,20 +17,8 @@ export type ObservableValues<T> = {
 }
 
 export class ContextService<S extends Record<string, any> = Context> {
+
   protected observableState: ObservableValues<S>;
-
-  private toObservableValue<T extends S[keyof S]>(value: T): BehaviorSubject<T> {
-    return new BehaviorSubject<T>(value);
-  }
-
-  private toObservableValues<T extends Partial<S>>(state: T): ObservableValues<T> {
-    return Object.entries(state).reduce((acc, [key, value]) => {
-      return {
-        ...acc,
-        [key]: this.toObservableValue(value)
-      };
-    }, {}) as ObservableValues<T>;
-  }
 
   constructor(protected defaultState: S) {
     this.reset();
@@ -79,5 +67,20 @@ export class ContextService<S extends Record<string, any> = Context> {
   reset(): void {
     this.observableState && Object.values(this.observableState).forEach(obs => obs.complete());
     this.observableState = this.toObservableValues(this.defaultState);
+  }
+
+  /* -- private functions -- */
+
+  private toObservableValue<T extends S[keyof S]>(value: T): BehaviorSubject<T> {
+    return new BehaviorSubject<T>(value);
+  }
+
+  private toObservableValues<T extends Partial<S>>(state: T): ObservableValues<T> {
+    return Object.entries(state).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: this.toObservableValue(value)
+      };
+    }, {}) as ObservableValues<T>;
   }
 }

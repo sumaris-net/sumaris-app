@@ -120,7 +120,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   @Input() set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
-    this.setPmfms(pmfms);
+    if (pmfms !== this.$pmfms.value) {
+      this.setPmfms(pmfms);
+    }
   }
 
   @Input()
@@ -515,7 +517,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  protected async updateFormGroup(pmfms?: IPmfm[]) {
+  private async updateFormGroup(pmfms?: IPmfm[]) {
     pmfms = pmfms || this.$pmfms.value;
     if (!pmfms) return; // Skip
 

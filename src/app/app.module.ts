@@ -104,7 +104,7 @@ import { SHARED_TESTING_PAGES } from '@sumaris-net/ngx-components';
       sanitize: SecurityContext.NONE,
       markedOptions: {
         provide: MarkedOptions,
-        useValue: {
+        useValue: <MarkedOptions>{
           gfm: true,
           breaks: false,
           pedantic: false,

@@ -31,7 +31,7 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {Operation, PhysicalGear, Trip, VesselPosition} from '../services/model/trip.model';
+import {Operation, PhysicalGear, Trip} from '../services/model/trip.model';
 import {BehaviorSubject, combineLatest, merge, Subscription} from 'rxjs';
 import {debounceTime, distinctUntilChanged, filter, map, startWith} from 'rxjs/operators';
 import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
@@ -43,13 +43,14 @@ import {SelectOperationModal, SelectOperationModalOptions} from '@app/trip/opera
 import {PmfmService} from '@app/referential/services/pmfm.service';
 import {Router} from '@angular/router';
 import {PositionUtils} from '@app/trip/services/position.utils';
-import {FishingArea} from '@app/trip/services/model/fishing-area.model';
+import {FishingArea} from '@app/data/services/model/fishing-area.model';
 import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
 import {LocationLevelIds, PmfmIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
 import {TripService} from '@app/trip/services/trip.service';
 import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 import {TaxonGroupTypeIds} from '@app/referential/services/model/taxon-group.model';
+import { VesselPosition } from "@app/data/services/model/vessel-position.model";
 
 const moment = momentImported;
 
@@ -256,6 +257,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   get previousFishingEndDateTimeControl(): AbstractControl {
+    return this.fishingStartDateTimeEnable && this.form.get('fishingStartDateTime')
+      || this.form.get('startDateTime');
+  }
+
+  get lastStartDateTimeControl(): AbstractControl {
     return this.fishingStartDateTimeEnable && this.form.get('fishingStartDateTime')
       || this.form.get('startDateTime');
   }

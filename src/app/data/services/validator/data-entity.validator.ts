@@ -8,7 +8,10 @@ export interface DataEntityValidatorOptions {
   isOnFieldMode?: boolean;
 }
 
-export abstract class DataEntityValidatorService<T extends DataEntity<T>, O extends DataEntityValidatorOptions = DataEntityValidatorOptions>
+export abstract class DataEntityValidatorService<
+  T extends DataEntity<T>,
+  O extends DataEntityValidatorOptions = DataEntityValidatorOptions
+  >
   implements ValidatorService {
 
   protected constructor(
@@ -55,7 +58,6 @@ export abstract class DataEntityValidatorService<T extends DataEntity<T>, O exte
     // Must be override by subclasses
     console.warn(`${this.constructor.name}.updateFormGroup() not implemented yet!`);
   }
-
 
   /* -- protected methods -- */
 

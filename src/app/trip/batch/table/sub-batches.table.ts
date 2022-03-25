@@ -99,6 +99,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() useSticky = false;
+  @Input() enableWeightConversion = false;
 
   @Input() set qvPmfm(value: IPmfm) {
     this._qvPmfm = value;

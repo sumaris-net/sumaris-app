@@ -12,6 +12,10 @@ import { createAnimation } from '@ionic/core';
 import { SubBatch } from '../../services/model/subbatch.model';
 import { BatchGroup } from '../../services/model/batch-group.model';
 import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
+import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { environment } from '@environments/environment';
+import { DataContextService } from '@app/data/services/data-context.service';
 
 export interface ISubBatchesModalOptions {
 
@@ -19,6 +23,7 @@ export interface ISubBatchesModalOptions {
   showParentGroup: boolean;
   showTaxonNameColumn: boolean;
   showIndividualCount: boolean;
+  enableWeightConversion: boolean;
   maxVisibleButtons: number;
 
   parentGroup: BatchGroup;
@@ -36,7 +41,8 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
   styleUrls: ['sub-batches.modal.scss'],
   templateUrl: 'sub-batches.modal.html',
   providers: [
-    {provide: ValidatorService, useExisting: SubBatchValidatorService},
+    { provide: DataContextService, useExisting: TripContextService},
+    { provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => {
@@ -97,6 +103,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     protected viewCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected audio: AudioProvider,
+    protected context: ContextService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector,
@@ -111,7 +118,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showParentColumn = false;
 
     // TODO: for DEV only ---
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
+    console.log(this.context)
   }
 
   async ngOnInit() {
@@ -125,6 +133,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showForm = this.showForm && (this.form && !this.disabled);
 
     if (this.form) {
+      await this.form.setPmfms(this.pmfms);
       this.form.markAsReady();
 
       // Reset the form, using default value
@@ -157,7 +166,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   markAsReady() {
-    this.form.markAsReady();
+    this.form?.markAsReady();
   }
 
   setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
@@ -219,7 +228,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     }
 
     this.markAsLoading();
-    this.error = undefined;
+    this.resetError();
 
     try {
       // Save changes
@@ -229,7 +238,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       await this.viewCtrl.dismiss(this.getValue());
     } catch (err) {
       console.error(err);
-      this.error = err && err.message || err;
+      this.setError(err && err.message || err);
       this.markAsLoaded();
     }
   }
