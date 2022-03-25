@@ -1,20 +1,31 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {VesselRegistrationPeriod} from "../model/vessel.model";
-import {SharedValidators, toNumber} from '@sumaris-net/ngx-components';
+import {Injectable} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {VesselRegistrationPeriod} from '../model/vessel.model';
+import {fromDateISOString, isNotNil, SharedValidators, toNumber} from '@sumaris-net/ngx-components';
+import {Moment, unitOfTime} from 'moment';
+import {VesselValidatorOptions} from '@app/vessel/services/validator/vessel.validator';
+import {DateAdapter} from '@angular/material/core';
+import {TranslateService} from '@ngx-translate/core';
+
+export interface VesselRegistrationValidatorOptions extends VesselValidatorOptions {
+  required?: boolean;
+}
+
 
 @Injectable({providedIn: 'root'})
-export class VesselRegistrationValidatorService implements ValidatorService {
+export class VesselRegistrationValidatorService<O extends VesselRegistrationValidatorOptions = VesselRegistrationValidatorOptions> implements ValidatorService {
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(private formBuilder: FormBuilder,
+              protected dateAdapter: DateAdapter<Moment>,
+              protected translate: TranslateService) {
   }
 
   getRowValidator(): FormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: VesselRegistrationPeriod, opts?: { required: boolean }): FormGroup {
+  getFormGroup(data?: VesselRegistrationPeriod, opts?: O): FormGroup {
     return this.formBuilder.group({
       __typename: [VesselRegistrationPeriod.TYPENAME],
       id: [toNumber(data && data.id, null)],
@@ -24,5 +35,27 @@ export class VesselRegistrationValidatorService implements ValidatorService {
       intRegistrationCode: [data?.intRegistrationCode || null],
       registrationLocation: [data?.registrationLocation || null, opts && opts.required ? Validators.compose([Validators.required, SharedValidators.entity]) : SharedValidators.entity]
     });
+  }
+
+  updateFormGroup(form: FormGroup, opts?: O) {
+    const startDateControl = form.get('startDate');
+
+    if (opts && opts.maxDate) {
+      const maxDate = fromDateISOString(opts.maxDate);
+      const maxDateStr = this.dateAdapter.format(maxDate, this.translate.instant('COMMON.DATE_TIME_PATTERN'));
+
+      startDateControl.setValidators(opts.required
+        ? Validators.compose([
+          SharedValidators.dateIsBefore(opts.maxDate, maxDateStr, 'day'),
+          Validators.required
+        ])
+        : SharedValidators.dateIsBefore(opts.maxDate, maxDateStr, 'day')
+      );
+    } else if (opts && opts.required) {
+
+      startDateControl.setValidators(Validators.required);
+    } else {
+      startDateControl.clearValidators();
+    }
   }
 }

@@ -8,6 +8,19 @@
 
   <ion-grid>
 
+    <!-- DEBUG -->
+    <ion-row *ngIf="debug">
+      <ion-col size="0" size-md="3" size-lg="3">
+        <ion-label class="ion-float-end" hidden-xs hidden-sm>DEBUG :</ion-label>
+      </ion-col>
+      <ion-col>
+        <ion-text>
+          startDateTime: {{form.controls.startDateTime.value}}<br/>
+          endDateTime: {{form.controls.endDateTime.value }}<br/>
+        </ion-text>
+      </ion-col>
+    </ion-row>
+
     <!-- PROGRAM -->
     <ion-row>
       <ion-col offset-md="2" offset-lg="3">
@@ -50,6 +63,7 @@
           <mat-date-field formControlName="startDateTime"
                           [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE'|translate"
                           [tabindex]="tabindex+2"
+                          [timezone]="timezone"
                           required>
             <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
           </mat-date-field>
@@ -83,7 +97,7 @@
           </ion-label>
         </ion-col>
         <ion-col size="12" size-md="4">
-          <mat-date-time-field *ngIf='showStartTime; else startDate'
+          <mat-date-time-field *ngIf="showStartTime; else startDate"
                                formControlName="startDateTime"
                                [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE'|translate"
                                [tabindex]="tabindex+2"
@@ -95,6 +109,8 @@
             <mat-date-field formControlName="startDateTime"
                             [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE'|translate"
                             [tabindex]="tabindex+2"
+                            [timezone]="timezone"
+                            [datePickerFilter]="startDatePickerFilter"
                             required>
               <mat-icon matPrefix class="visible-xs visible-sm">today</mat-icon>
               <mat-icon matPrefix class="hidden-xs hidden-sm">date_range</mat-icon>
@@ -113,7 +129,10 @@
           <ng-template #endDate>
             <mat-date-field formControlName="endDateTime"
                             [placeholder]="'OBSERVED_LOCATION.EDIT.END_DATE'|translate"
-                            [tabindex]="tabindex+3">
+                            [tabindex]="tabindex+3"
+                            [timezone]="timezone"
+                            [readonly]="!!forceDurationDays"
+                            [startDate]="form.controls.startDateTime.valueChanges|async">
               <mat-icon matPrefix class="visible-xs visible-sm">event</mat-icon>
             </mat-date-field>
           </ng-template>

@@ -22,6 +22,8 @@ export const environment = Object.freeze(<Environment>{
 
   peerMinVersion: '1.21.0',
 
+  checkAppVersionIntervalInSeconds: 0, // Not need for DEV
+
   defaultPeer: {
     host: 'localhost',
     port: 8080

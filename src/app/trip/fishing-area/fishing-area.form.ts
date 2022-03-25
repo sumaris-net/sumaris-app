@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import { FishingArea } from '../services/model/fishing-area.model';
+import { FishingArea } from '../../data/services/model/fishing-area.model';
 import { FormBuilder } from '@angular/forms';
 import { ReferentialRefService } from '../../referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';

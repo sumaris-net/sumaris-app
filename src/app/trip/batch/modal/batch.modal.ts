@@ -17,15 +17,13 @@ export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEn
   showTaxonName: boolean;
   showIndividualCount: boolean;
 
-  // UI Options
-  maxVisibleButtons: number;
-
+  // Other options
   qvPmfm?: IPmfm;
   availableTaxonGroups?: IReferentialRef[] | Observable<IReferentialRef[]>;
+  taxonGroupsNoWeight?: string[]; // TODO: voir pour utiliser des IReferentialRef
 
-  // TODO: voir pour utiliser des IReferentialRef
-  taxonGroupsNoWeight?: string[];
-
+  // UI Options
+  maxVisibleButtons: number;
 }
 
 @Component({

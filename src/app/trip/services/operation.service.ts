@@ -48,7 +48,6 @@ import {
   OperationFromObjectOptions,
   POSITIONS_REGEXP,
   Trip,
-  VesselPosition,
   VesselPositionUtils
 } from './model/trip.model';
 import { Batch, BatchUtils } from './model/batch.model';
@@ -79,6 +78,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { TripLoadOptions } from '@app/trip/services/trip.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 
 
 export const OperationFragments = {
@@ -1537,6 +1537,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         // Should never append
         console.warn('[operation] Some positions sent by Pod have an unknown dateTime: ', sortedSourcePositions)
       }
+    }
+
+    // Update fishing area
+    if (target.fishingAreas && source.fishingAreas){
+      target.fishingAreas.forEach(targetFishArea => {
+        const sourceFishArea = source.fishingAreas.find(json => targetFishArea.equals(json));
+        EntityUtils.copyIdAndUpdateDate(sourceFishArea, targetFishArea);
+      })
     }
 
     // Update measurements

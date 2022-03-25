@@ -4,8 +4,7 @@
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->
     <button mat-icon-button
-            hidden-xs hidden-sm hidden-mobile
-            *ngIf="enabled"
+            *ngIf="canEdit && !mobile && enabled"
             [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
       <mat-icon>add</mat-icon>
     </button>
@@ -23,7 +22,7 @@
   <ng-template #hasSelection>
 
     <!-- Delete -->
-    <button mat-icon-button *ngIf="enabled"
+    <button mat-icon-button *ngIf="canDelete && enabled"
             [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>

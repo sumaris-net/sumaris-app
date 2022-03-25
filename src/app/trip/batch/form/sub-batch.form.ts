@@ -1,13 +1,13 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
-import { Batch } from '../../services/model/batch.model';
-import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
-import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
+import {ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
+import {Batch} from '../../services/model/batch.model';
+import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
+import {AbstractControl, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
+import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
 import {
   AppFormUtils,
-  EntityUtils,
+  EntityUtils, firstNotNilPromise,
   focusNextInput,
   focusPreviousInput,
   GetFocusableInputOptions,
@@ -23,11 +23,11 @@ import {
   startsWithUpperCase,
   toBoolean,
   toNumber,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
-import { BehaviorSubject, combineLatest } from 'rxjs';
+import { AcquisitionLevelCodes, ParameterLabelGroups, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
+import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { PmfmFormField } from '../../../referential/pmfm/pmfm.form-field.component';
 import { SubBatch } from '../../services/model/subbatch.model';
@@ -53,6 +53,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected _parentAttributes: string[];
   protected _showTaxonName: boolean;
   protected _disableByDefaultControls: AbstractControl[] = [];
+  protected _weightConversionSubscription: Subscription;
 
   mobile: boolean;
   enableIndividualCountControl: FormControl;
@@ -63,13 +64,14 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   @Input() showParentGroup = true;
   @Input() showIndividualCount = true;
-  @Input() tabindex: number;
-  @Input() floatLabel: FloatLabelType;
-  @Input() usageMode: UsageMode;
   @Input() showError = true;
   @Input() showSubmitButton = true;
   @Input() displayParentPmfm: IPmfm;
+  @Input() enableWeightConversion: boolean;
   @Input() isNew: boolean;
+  @Input() tabindex: number;
+  @Input() floatLabel: FloatLabelType;
+  @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
@@ -79,8 +81,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     if (taxonNameControl) {
       if (show) {
         taxonNameControl.setValidators([SharedValidators.entity, Validators.required]);
-      }
-      else {
+      } else {
         taxonNameControl.setValidators(null);
       }
     }
@@ -228,10 +229,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     });
 
     // Fill taxon names, from the parent changes
-    if (this.showTaxonName){
+    if (this.showTaxonName) {
       // Mobile
       if (this.mobile) {
-
 
         // Compute taxon names when parent has changed
         let currentParenLabel;
@@ -246,6 +246,14 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
             .subscribe());
 
         this.waitIdle().then(() => {
+
+          // Init the value on form when there is only 1 value because the input is hidden and never set
+          this.registerSubscription(this.$taxonNames.pipe(
+            filter(values => values?.length === 1)
+          ).subscribe(values => {
+              taxonNameControl.setValue(values[0], {emitEvent: false});
+            }
+          ));
 
           // Update taxonName when need
           let lastTaxonName: TaxonNameRef;
@@ -265,8 +273,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
                 // Compute index in list, and get value
                 if (items && items.length === 1) {
                   index = 0;
-                }
-                else if (ReferentialUtils.isNotEmpty(lastTaxonName)) {
+                } else if (ReferentialUtils.isNotEmpty(lastTaxonName)) {
                   index = items.findIndex(v => TaxonNameRef.equalsOrSameReferenceTaxon(v, lastTaxonName));
                 }
                 newTaxonName = (index !== -1) ? items[index] : null;
@@ -313,8 +320,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
                 taxonNameControl.patchValue(defaultTaxonName, {emitEVent: false});
                 // Remember for next form reset
                 this.data.taxonName = defaultTaxonName;
-              }
-              else {
+              } else {
                 taxonNameControl.reset(null, {emitEVent: false});
                 // Remember for next form reset
                 this.data.taxonName = undefined;
@@ -368,7 +374,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
   }
 
-  protected onApplyingEntity(data: SubBatch, opts?: {linkToParent?: boolean; }) {
+  protected onApplyingEntity(data: SubBatch, opts?: { linkToParent?: boolean; }) {
     super.onApplyingEntity(data);
 
     // Replace parent with value from availableParents
@@ -377,13 +383,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
   }
 
-  protected async updateView(data: SubBatch, opts?: {emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
+  protected async updateView(data: SubBatch, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; linkToParent?: boolean; }) {
 
     // Reset taxon name button index
     if (this.mobile && data && data.taxonName && isNotNil(data.taxonName.id)) {
       this.selectedTaxonNameIndex = (this.$taxonNames.getValue() || []).findIndex(tn => tn.id === data.taxonName.id);
-    }
-    else {
+    } else {
       this.selectedTaxonNameIndex = -1;
     }
 
@@ -408,7 +413,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this._disableByDefaultControls.forEach(c => c.disable(opts));
   }
 
-  onTaxonNameButtonClick(event: UIEvent|undefined, taxonName: TaxonNameRef, minTabindex: number) {
+  onTaxonNameButtonClick(event: UIEvent | undefined, taxonName: TaxonNameRef, minTabindex: number) {
     this.form.patchValue({taxonName});
     if (event) {
       event.preventDefault();
@@ -541,16 +546,15 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
+    // Hide the QV pmfm
     if (this._qvPmfm) {
-      // Hide the QV pmfm
       const index = pmfms.findIndex(pmfm => pmfm.id === this._qvPmfm.id);
       if (index !== -1) {
         const qvPmfm = this._qvPmfm.clone();
         qvPmfm.hidden = true;
         qvPmfm.required = true;
         pmfms[index] = qvPmfm;
-      }
-      else {
+      } else {
         console.warn('Cannot found the QVPmfm with ID=' + this._qvPmfm.id);
       }
     }
@@ -559,23 +563,40 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     const parentTaxonGroupId = this.parentGroup && this.parentGroup.taxonGroup && this.parentGroup.taxonGroup.id;
     if (isNotNil(parentTaxonGroupId)) {
       pmfms = pmfms.filter(pmfm => !PmfmUtils.isDenormalizedPmfm(pmfm)
-          || isEmptyArray(pmfm.taxonGroupIds)
-          || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
+        || isEmptyArray(pmfm.taxonGroupIds)
+        || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
     }
 
     return pmfms;
   }
 
-  protected onUpdateControls(form: FormGroup) {
+  protected async onUpdateControls(form: FormGroup): Promise<void> {
+
+    // If QV: must be required
     if (this._qvPmfm) {
       const measFormGroup = form.get('measurementValues') as FormGroup;
       const qvControl = measFormGroup.get(this._qvPmfm.id.toString());
 
-      // Make sure QV is required
       if (qvControl) {
         qvControl.setValidators(Validators.required);
       }
     }
+
+    // Weight/length computation
+    this._weightConversionSubscription?.unsubscribe();
+    if (this.enableWeightConversion) {
+      // DEBUG
+      if (this.debug) console.debug('[sub-batch-form] Adding Weight/Length conversion computation...');
+
+      this._weightConversionSubscription = this.validatorService.enableWeightLengthConversion(form, {
+        pmfms: this.$pmfms.value,
+        markForCheck: ()  => this.markForCheck(),
+        // DEBUG
+        debug: this.debug
+      });
+      this.registerSubscription(this._weightConversionSubscription);
+    }
+
   }
 
   protected getValue(): SubBatch {

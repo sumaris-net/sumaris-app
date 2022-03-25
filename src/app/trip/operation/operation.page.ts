@@ -26,7 +26,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
@@ -37,7 +37,7 @@ import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels
 import { BatchTreeComponent } from '../batch/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject, from, merge, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
@@ -45,6 +45,9 @@ import { OperationValidators, IPmfmForm } from '@app/trip/services/validator/ope
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { ContextService } from '@app/shared/context.service';
+import { SubBatchValidatorService } from '@app/trip/services/validator/sub-batch.validator';
+import { DataContextService } from '@app/data/services/data-context.service';
 
 const moment = momentImported;
 
@@ -56,6 +59,8 @@ const moment = momentImported;
   animations: [fadeInOutAnimation],
   providers: [
     { provide: APP_ENTITY_EDITOR, useExisting: OperationPage },
+    { provide: DataContextService, useExisting: TripContextService},
+    { provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: IonRouterOutlet,
       useValue: {
@@ -234,7 +239,6 @@ export class OperationPage
         )
         .subscribe(program => this.setProgram(program)));
 
-
     // Watch trip
     this.registerSubscription(
       this.$tripId
@@ -256,6 +260,7 @@ export class OperationPage
           // Load last operations (if enabled)
           //filter(_ => this.showLastOperations),
           filter(isNotNil),
+          debounceTime(500),
           switchMap(tripId => this.dataService.watchAll(
             0, 5,
             'startDateTime', 'desc',
@@ -272,6 +277,21 @@ export class OperationPage
         .subscribe()
     );
 
+    // Update the data context
+    this.registerSubscription(
+      merge(
+        this.selectedTabIndexChange
+          .pipe(
+            filter(tabIndex => tabIndex === OperationPage.TABS.CATCH && this.showBatchTables)
+          ),
+        from(this.ready())
+      )
+        .pipe(
+          debounceTime(500),
+          throttleTime(500)
+        )
+        .subscribe(_ => this.updateDateContext())
+    )
   }
 
   ngAfterViewInit() {
@@ -539,10 +559,11 @@ export class OperationPage
     this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
 
     const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
+    const enablePosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.opeForm.trip = this.trip;
-    this.opeForm.showPosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+    this.opeForm.showPosition = enablePosition;
     // TODO: make possible to have both showPosition and showFishingArea at true (ex SFA artisanal logbook program)
-    this.opeForm.showFishingArea = !this.opeForm.showPosition; // Trip has gps in use, so active positions controls else active fishing area control
+    this.opeForm.showFishingArea = !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
     this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
     const defaultLatitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LATITUDE_SIGN);
     const defaultLongitudeSign: '+' | '-' = program.getProperty(ProgramProperties.TRIP_LONGITUDE_SIGN);
@@ -1118,5 +1139,25 @@ export class OperationPage
     if (EntityUtils.isLocalId(this.data?.id as any)) return; // Skip if local entity
 
     super.startListenRemoteChanges();
+  }
+
+  protected updateDateContext() {
+    console.debug('[operation-page] Updating data context...');
+    // Date
+    const date = this.$lastEndDate.value || this.opeForm.lastStartDateTimeControl?.value;
+    this.tripContext.setValue('date', date);
+
+    // Fishing area
+    if (this.opeForm.showFishingArea) {
+      const fishingAreas = this.opeForm.fishingAreasHelper.formArray.value;
+      this.tripContext.setValue('fishingAreas', fishingAreas);
+      this.tripContext.resetValue('vesselPositions');
+    }
+    // Or vessel position
+    else if (this.opeForm.showPosition) {
+      const position = this.opeForm.lastActivePositionControl?.value;
+      this.tripContext.setValue('vesselPositions', [position]);
+      this.tripContext.resetValue('fishingAreas');
+    }
   }
 }

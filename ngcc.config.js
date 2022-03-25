@@ -15,6 +15,7 @@ module.exports = {
         /zone-error\//,
         /apollo-angular\//,
         /moment\//,
+        /moment-timezone\//,
         /ngx-material-table\//
       ]
     }

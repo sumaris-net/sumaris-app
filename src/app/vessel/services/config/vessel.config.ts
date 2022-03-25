@@ -47,6 +47,12 @@ export const VESSEL_CONFIG_OPTIONS = {
     type: 'boolean',
     defaultValue: 'false'
   },
+  VESSEL_NAME_REQUIRED: <FormFieldDefinition>{
+    key: 'sumaris.persistence.vessel.name.required',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.NAME_REQUIRED',
+    type: 'boolean',
+    defaultValue: true
+  },
   REFERENTIAL_VESSEL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.referential.vessel.enable',
     label: 'REFERENTIAL.OPTIONS.VESSELS_ENABLE',

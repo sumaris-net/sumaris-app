@@ -11,7 +11,8 @@ export class WeightLengthConversionFilter
 
   static fromObject: (source: any, opts?: any) => WeightLengthConversionFilter;
 
-  date: Moment = null;
+  month: number = null;
+  year: number = null;
   statusIds: number[];
 
   referenceTaxonId: number = null;
@@ -28,22 +29,32 @@ export class WeightLengthConversionFilter
   lengthUnitId: number = null;
   lengthUnitIds: number[];
 
+  lengthPmfmId: number = null;
+  lengthPmfmIds?: number[];
+
+  rectangleLabel: string = null;
+  rectangleLabels?: string[];
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
 
-    this.date = fromDateISOString(source.date);
+    this.month = source.month;
+    this.year = source.year;
     this.statusIds = source.statusIds;
     this.referenceTaxonId = source.referenceTaxonId;
     this.referenceTaxonIds = source.referenceTaxonIds;
     this.locationId = source.locationId;
     this.locationIds = source.locationIds;
-    this.sexId = source.sexId;
-    this.sexIds = source.sexIds;
     this.lengthParameterId = source.lengthParameterId;
     this.lengthParameterIds = source.lengthParameterIds;
     this.lengthUnitId = source.lengthUnitId;
     this.lengthUnitIds = source.lengthUnitIds;
+    this.lengthPmfmId = source.lengthPmfmId;
+    this.lengthPmfmIds = source.lengthPmfmIds;
+    this.rectangleLabel = source.rectangleLabel;
+    this.rectangleLabels = source.rectangleLabels;
+    this.sexId = source.sexId;
+    this.sexIds = source.sexIds;
   }
 
   asObject(opts?: EntityAsObjectOptions): StoreObject {
@@ -59,31 +70,27 @@ export class WeightLengthConversionFilter
       delete target.lengthParameterId;
       target.lengthUnitIds = isNotNil(this.lengthUnitId) ? [this.lengthUnitId] : this.lengthUnitIds;
       delete target.lengthUnitId;
-
-    } else {
-      target.referenceTaxonId = this.referenceTaxonId;
-      target.referenceTaxonIds = this.referenceTaxonIds;
-      target.locationId = this.locationId;
-      target.locationIds = this.locationIds;
-      target.sexId = this.sexId;
-      target.sexIds = this.sexIds;
-      target.lengthParameterId = this.lengthParameterId;
-      target.lengthParameterIds = this.lengthParameterIds;
-      target.lengthUnitId = this.lengthUnitId;
-      target.lengthUnitIds = this.lengthUnitIds;
+      target.lengthPmfmIds = isNotNil(this.lengthPmfmId) ? [this.lengthPmfmId] : this.lengthPmfmIds;
+      delete target.lengthPmfmId;
+      target.rectangleLabels = isNotNil(this.rectangleLabel) ? [this.rectangleLabel] : this.rectangleLabels;
+      delete target.rectangleLabel;
     }
     return target;
   }
 
-
-
   public buildFilter(): FilterFn<WeightLengthConversionRef>[] {
     const filterFns = super.buildFilter();
 
-    // Sex
-    const sexId = this.sexId;
-    if (isNotNil(sexId)) {
-      filterFns.push(t => t.id === sexId);
+    // Year
+    const year = this.year;
+    if (isNotNil(year)) {
+      filterFns.push(t => t.year === year);
+    }
+
+    // Month
+    const month = this.month;
+    if (isNotNil(month)) {
+      filterFns.push(t => (t.startMonth <= month) && (month <= t.endMonth));
     }
 
     // Status
@@ -104,11 +111,22 @@ export class WeightLengthConversionFilter
       filterFns.push(t => (t.referenceTaxonId === referenceTaxonId));
     }
 
-    // Date
-    const month = this.date?.get('month');
-    if (isNotNil(month)) {
-      console.warn('TODO check date month = ' + month);
-      filterFns.push(t => (t.startMonth <= month) && (month <= t.endMonth));
+    // Rectangle
+    const rectangleLabel = this.rectangleLabel;
+    if (isNotNil(rectangleLabel)) {
+      filterFns.push(t => (t.rectangleLabels?.includes(rectangleLabel)));
+    }
+
+    // Length Pmfm
+    const lengthPmfmId = this.lengthPmfmId;
+    if (isNotNil(lengthPmfmId)) {
+      filterFns.push(t => (t.lengthPmfmIds?.includes(lengthPmfmId)));
+    }
+
+    // Sex
+    const sexId = this.sexId;
+    if (isNotNil(sexId)) {
+      filterFns.push(t => t.id === sexId);
     }
 
     return filterFns;

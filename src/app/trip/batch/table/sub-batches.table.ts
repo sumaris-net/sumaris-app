@@ -99,6 +99,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() useSticky = false;
+  @Input() enableWeightConversion = false;
 
   @Input() set qvPmfm(value: IPmfm) {
     this._qvPmfm = value;
@@ -693,7 +694,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected onInvalidForm() {
-    this.form.markAsTouched({emitEvent: true});
+    this.form.markAllAsTouched({emitEvent: true});
     if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-table] ");
   }
 

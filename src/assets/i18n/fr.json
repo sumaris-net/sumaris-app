@@ -108,8 +108,8 @@
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
-    "LOADING_DOTS": "Chargement...",
     "NO_RESULT": "Aucun résultat",
+    "LOADING_DOTS": "Chargement...",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
@@ -196,7 +196,8 @@
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
-        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?"
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?",
+        "NAME_REQUIRED": "Navires: Nom obligatoire ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -1043,7 +1044,8 @@
     },
     "ERROR": {
       "UPDATE_CHILDREN_DATE_ERROR": "Erreur de recopie de la date d'observation, sur les données filles.",
-      "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation."
+      "COUNT_SAMPLES_ERROR": "Erreur de comptage des échantillonnages de l'observation.",
+      "START_DATE_INVALID": "Doit commencer un {{day}}"
     },
     "CONFIRM": {
       "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
@@ -1322,7 +1324,7 @@
       "NAME": "Libellé espèce commerciale",
       "PARENT": "Espèce commerciale parente",
       "TAXON_GROUP_TYPE": "Type de groupe",
-      "TAB_ROUND_WEIGHT_CONVERSION": "Equivalents Poids Vif",
+      "TAB_ROUND_WEIGHT_CONVERSION": "Equivalents Poids Vif (EPV)",
       "NEW": {
         "TITLE": "Nouvelle espèce commerciale"
       },
@@ -1330,7 +1332,7 @@
         "TITLE": "Espèce commerciale {{label}} - {{name}}"
       },
       "ROUND_WEIGHT_CONVERSION": {
-        "EXPORT_CSV_FILENAME": "Equiv_poids_vifs-{{taxonGroupId}}.csv",
+        "EXPORT_CSV_FILENAME": "EPV-{{taxonGroupId}}.csv",
         "CONVERSION_COEFFICIENT": "Coef. conversion",
         "COMMENTS": "Commentaires",
         "CREATION_DATE": "Date création",
@@ -1356,7 +1358,7 @@
       "TAXONOMIC_LEVEL": "Niveau taxonomique",
       "START_DATE": "Date de début",
       "END_DATE": "Date de fin",
-      "TAB_WEIGHT_LENGTH_CONVERSION": "Relations Taille/Poids",
+      "TAB_WEIGHT_LENGTH_CONVERSION": "Relations Taille-Poids (RTP)",
       "NEW": {
         "TITLE": "Nouvelle espèce scientifique"
       },
@@ -1546,13 +1548,15 @@
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientifiques ?",
-      "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: calcul auto nb indiv. échantillonné ?",
-      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : réordonné à la sauvegarde ?",
-      "TRIP_BATCH_ENABLE": "Capture > Lots pas espèces: Activer ?",
-      "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lots pas espèces: activer les mesures individuelles ?",
+      "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: Calcul auto nb indiv. échantillonné ?",
+      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : Réordonné à la sauvegarde ?",
+      "TRIP_BATCH_ENABLE": "Capture > Lot espèce: Activer ?",
+      "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lot espèce : Activer les mesures individuelles ?",
+      "TRIP_BATCH_WEIGHT_ENABLE": "Capture > Lot espèce : Saisir les poids ?",
+      "TRIP_BATCH_WEIGHT_CONVERSION_ENABLE": "Capture > Lot espèce : Calcul auto poids échantillonné (RTP, poids vifs) ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir nb indiv. ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientifiques ?",
-      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : Espèces commerciales ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : espèces scientifiques ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : espèces commerciales ?",
       "TRIP_SAMPLE_ENABLE": "Échantillon : Activer ?",
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Échantillon : Date et heure ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Échantillon : Espèces commerciales ?",
@@ -2154,6 +2158,7 @@
     "FIELD_NOT_VALID_EMAIL": "Adresse email invalide",
     "FIELD_NOT_VALID_DATE": "Date invalide",
     "FIELD_NOT_VALID_DATE_AFTER": "Doit être postérieure à {{minDate}}",
+    "FIELD_NOT_VALID_DATE_BEFORE": "Doit être antérieure à {{maxDate}}",
     "FIELD_NOT_VALID_DATE_RANGE": "Dates incohérentes",
     "FIELD_NOT_VALID_DATE_MAX_DURATION": "Durée trop longue",
     "FIELD_NOT_VALID_DATE_MIN_DURATION": "Durée trop courte",
@@ -2235,7 +2240,8 @@
     "DELETE_ROWS": "<b>Êtes-vous sûr</b> de vouloir supprimer ces lignes ?",
     "CANCEL_ROW": "<b>Êtes-vous sûr</b> de vouloir annuler les modifications sur cette ligne ?",
     "CANCEL_ROWS": "<b>Êtes-vous sûr</b> de vouloir annuler les modifications sur ces lignes ?",
-    "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?"
+    "SEND_DEBUG_DATA": "Voulez-vous envoyer ces données à l'administrateur, afin qu'il vous aide ?",
+    "RELOAD_APP": "Une nouvelle <b>version {{version}}</b> est disponible pour {{name}}:<ul><li><b>Enregistrer</b> vos éventuelles modifications en cours<li>Cliquez sur le bouton <b>Mettre à jour</b>, ou rafraichissez l'onglet du navigateur.</ul>"
   },
   "INFO": {
     "ALERT_HEADER": "Information",
@@ -2249,6 +2255,7 @@
     "UPDATE_APP_TO_VERSION": "<b>Veuillez mettre à jour {{name}}</b> (en v{{version}} ou +)",
     "UPDATE_APP_HELP": "Cette mise à jour est <b>nécessaire pour se connecter correctement</b> au nœud réseau. En cas de problème pour l'installation, veuillez <b>contacter votre administrateur</b>.",
     "UPDATE_APP_DOWNLOADED": "Le téléchargement de la mise à jour est terminée.<br/><b>Veuillez l'installer</b> à partir des fichiers de l'appareil.",
-    "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères"
+    "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères",
+    "TEXT_PROGRESS": "{{current}} sur {{max}}"
   }
 }

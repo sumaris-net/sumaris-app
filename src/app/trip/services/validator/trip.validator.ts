@@ -17,6 +17,7 @@ export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withFishingAreas?: boolean;
   returnFieldsRequired?: boolean;
   departureDateTimeRequired?: boolean;
+  withOperationGroup?: boolean;
 }
 
 @Injectable({providedIn: 'root'})

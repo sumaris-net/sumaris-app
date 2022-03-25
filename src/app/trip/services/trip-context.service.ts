@@ -1,15 +1,14 @@
 import { Trip } from '@app/trip/services/model/trip.model';
-import { ContextService } from '@app/shared/context.service';
 import { Injectable } from '@angular/core';
-import { UsageMode } from '@sumaris-net/ngx-components';
+import { DataContext } from '@app/data/services/model/data-context.model';
+import { DataContextService } from '@app/data/services/data-context.service';
 
-export type TripContext = {
+export interface TripContext extends DataContext {
   trip?: Trip;
-  usageMode?: UsageMode;
 }
 
 @Injectable({providedIn: 'root'})
-export class TripContextService extends ContextService<TripContext> {
+export class TripContextService extends DataContextService<TripContext> {
 
   constructor() {
     super(<TripContext>{});

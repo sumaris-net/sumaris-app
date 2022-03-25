@@ -14,12 +14,15 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
-
+  // Show/Hide fields
   showSamplingBatch: boolean;
 
+  // Other options
+  enableWeightConversion: boolean;
+
+  // Sub batches modal
   allowSubBatches: boolean;
   defaultHasSubBatches: boolean;
-
   openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
 }
 
@@ -56,6 +59,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() defaultHasSubBatches: boolean;
   @Input() taxonGroupsNoWeight: string[];
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+  @Input() enableWeightConversion: boolean;
   @Input() maxVisibleButtons: number;
 
   @Input() openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
@@ -276,7 +280,13 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     if (!updatedParent) return; // User cancelled
 
     this.data.observedIndividualCount = updatedParent.observedIndividualCount;
-    this.form.form.patchValue({observedIndividualCount: updatedParent.observedIndividualCount}, {emitEvent: false});
+    this.form.form.patchValue({observedIndividualCount: this.data.observedIndividualCount}, {emitEvent: false});
+
+    if (this.enableWeightConversion) {
+      console.warn('TODO: copy RTP weight ?');
+      // TODO: copy RTP weight if exists ?
+    }
+
     this.form.hasSubBatches = (updatedParent.observedIndividualCount > 0);
     this.form.markAsDirty();
   }

@@ -166,11 +166,26 @@
   </app-form-buttons-bar>
 </ion-footer>
 
-<!-- FAB Button: add strategy -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="strategiesTable && strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="onNewStrategy($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+<!-- FAB Button -->
+<ng-container *ngIf="mobile" [ngSwitch]="selectedTabIndex">
+
+  <!-- add strategy -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+           *ngSwitchCase="1"
+           [class.cdk-visually-hidden]="strategiesTable?.disabled"
+           @fadeInOutAnimation>
+    <ion-fab-button color="tertiary" (click)="onNewStrategy($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- add person -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+           *ngSwitchCase="3"
+           [class.cdk-visually-hidden]="personsTable?.disabled"
+           @fadeInOutAnimation>
+    <ion-fab-button color="tertiary" (click)="personsTable.addRow($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ng-container>

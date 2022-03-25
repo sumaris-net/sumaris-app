@@ -13,9 +13,9 @@ import {
   Person,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
-import { FishingArea } from './fishing-area.model';
+import { FishingArea } from '../../../data/services/model/fishing-area.model';
 import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
 import { IWithObserversEntity } from '@app/data/services/model/model.utils';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
@@ -28,7 +28,8 @@ import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Metier } from '@app/referential/services/model/metier.model';
 import { SortDirection } from '@angular/material/sort';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 
 /* -- Helper function -- */
 
@@ -683,54 +684,6 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear> implements IEntit
         // Same rankOrder
         && (this.rankOrder === other.rankOrder)
       );
-  }
-}
-
-@EntityClass({typename: 'VesselPositionVO'})
-export class VesselPosition extends DataEntity<VesselPosition> {
-
-  static fromObject: (source: any, opts?: any) => VesselPosition;
-
-  dateTime: Moment;
-  latitude: number;
-  longitude: number;
-  operationId: number;
-
-  constructor() {
-    super();
-    this.__typename = VesselPosition.TYPENAME;
-  }
-
-  asObject(options?: DataEntityAsObjectOptions): any {
-    const target = super.asObject(options);
-    target.dateTime = toDateISOString(this.dateTime);
-    return target;
-  }
-
-  fromObject(source: any): VesselPosition {
-    super.fromObject(source);
-    this.latitude = source.latitude;
-    this.longitude = source.longitude;
-    this.operationId = source.operationId;
-    this.dateTime = fromDateISOString(source.dateTime);
-    return this;
-  }
-
-  equals(other: VesselPosition): boolean {
-    return (super.equals(other) && isNotNil(this.id))
-      || (this.dateTime && this.dateTime.isSame(fromDateISOString(other.dateTime))
-        && (!this.operationId && !other.operationId || this.operationId === other.operationId));
-  }
-
-  isSamePoint(other: VesselPosition) {
-    if (!other) return false;
-    return (this.latitude === other.latitude) && (this.longitude === other.longitude);
-  }
-
-  copyPoint(source: VesselPosition) {
-    if (!source) return;
-    this.latitude = source.latitude;
-    this.longitude = source.longitude;
   }
 }
 

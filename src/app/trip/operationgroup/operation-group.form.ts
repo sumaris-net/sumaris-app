@@ -31,7 +31,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
   metier: Metier;
 
   @Input() tabindex: number;
-  @Input() showComment = false;
+  @Input() showComment = true;
   @Input() showError = true;
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
