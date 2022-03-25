@@ -108,7 +108,10 @@ const LoadAllWithTotalTaxonGroupsQuery: any = gql`
   ${ReferentialFragments.taxonName}
 `;
 
-const IMPORT_DEFAULT_ENTITY_NAMES = ['Location', 'Gear', 'Metier', 'MetierTaxonGroup', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType', 'WeightLengthConversion'];
+const IMPORT_DEFAULT_ENTITY_NAMES = ['Location', 'Gear', 'Metier', 'MetierTaxonGroup', 'TaxonGroup', 'TaxonName', 'Department', 'QualityFlag', 'SaleType', 'VesselType',
+  // TODO: enable this conversion (only for selected programs ?)
+  //'WeightLengthConversion', 'RoundWeightConversion'
+];
 
 export const ReferentialRefQueries: BaseEntityGraphqlQueries = {
   loadAll: LoadAllQuery,
