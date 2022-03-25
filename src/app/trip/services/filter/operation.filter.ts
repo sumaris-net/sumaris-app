@@ -1,4 +1,4 @@
-import {EntityClass, FilterFn, fromDateISOString, isNil, isNotNil, isNotNilOrNaN} from '@sumaris-net/ngx-components';
+import { EntityClass, FilterFn, fromDateISOString, isNil, isNotNil, isNotNilOrNaN, toDateISOString } from '@sumaris-net/ngx-components';
 import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
 import {Operation} from '@app/trip/services/model/trip.model';
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
@@ -18,8 +18,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   programLabel?: string;
   excludeChildOperation?: boolean;
   hasNoChildOperation?: boolean;
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
+  startDate?: Moment;
+  endDate?: Moment;
   gearIds?: number[];
   physicalGearIds?: number[];
   taxonGroupLabels?: string[];
@@ -38,8 +38,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     this.programLabel = source.programLabel;
     this.excludeChildOperation = source.excludeChildOperation;
     this.hasNoChildOperation = source.hasNoChildOperation;
-    this.startDate = source.startDate;
-    this.endDate = source.endDate;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
     this.gearIds = source.gearIds;
     this.physicalGearIds = source.physicalGearIds;
     this.taxonGroupLabels = source.taxonGroupLabels;
@@ -48,6 +48,8 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
 
   asObject(opts?: DataEntityAsObjectOptions): any {
     const target = super.asObject(opts);
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {
       delete target.excludeId; // Not include in Pod
       delete target.synchronizationStatus;

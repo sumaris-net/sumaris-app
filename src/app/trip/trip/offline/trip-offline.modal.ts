@@ -12,6 +12,7 @@ import { TripOfflineFilter } from '@app/trip/services/filter/trip.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Subject } from 'rxjs';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
 
 const moment = momentImported;
 
@@ -28,14 +29,6 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
 
   mobile: boolean;
   errorSubject = new Subject<string>();
-
-  periodDurations: { value: number; unit: DurationConstructor }[] = [
-    {value: 1, unit: 'week'},
-    {value: 15, unit: 'day'},
-    {value: 1, unit: 'month'},
-    {value: 3, unit: 'month'},
-    {value: 6, unit: 'month'}
-  ];
   periodDurationLabels: { key: string; label: string; startDate: Moment; }[];
 
   @Input() title = 'TRIP.OFFLINE_MODAL.TITLE';
@@ -70,14 +63,14 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
       formBuilder.group({
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         vesselSnapshot: [null, Validators.required],
-        periodDuration: ['15day', Validators.required],
+        periodDuration: ['15 day', Validators.required],
       }));
     this._enable = false; // Disable by default
     this.mobile = this.settings.mobile;
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
-    this.periodDurationLabels = this.periodDurations.map(v => {
+    this.periodDurationLabels = DATA_IMPORT_PERIODS.map(v => {
       const date = moment().utc(false)
         .add(-1 * v.value, v.unit); // Substract the period, from now
       return {

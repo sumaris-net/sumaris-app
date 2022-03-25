@@ -251,6 +251,7 @@
       "DATA_QUALITY_PROCESS_ENABLE": "Saisie > Activer le processus qualité ?",
       "DATA_SHOW_RECORDER": "Saisie > Afficher le saisisseur ?",
       "DATA_SHOW_OBSERVERS": "Saisie > Afficher les observateurs ?",
+      "DATA_IMPORT_DEFAULT_PERIOD": "Saisie hors-ligne > Période à importer (par défaut)",
       "LANDING": {
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",

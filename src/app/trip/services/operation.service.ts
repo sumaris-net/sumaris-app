@@ -1128,7 +1128,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const filter = {
       excludeChildOperation: true,
       hasNoChildOperation: true,
-      startDate: moment().add(-15, 'day'),
+      startDate: moment().add(-15, 'day'), // Overrided by opts.filter.startDate
       qualityFlagId: QualityFlagIds.NOT_COMPLETED,
       ...opts.filter
     };

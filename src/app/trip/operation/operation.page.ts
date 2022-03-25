@@ -290,7 +290,7 @@ export class OperationPage
           debounceTime(500),
           throttleTime(500)
         )
-        .subscribe(_ => this.updateDateContext())
+        .subscribe(_ => this.updateDataContext())
     )
   }
 
@@ -1141,7 +1141,7 @@ export class OperationPage
     super.startListenRemoteChanges();
   }
 
-  protected updateDateContext() {
+  protected updateDataContext() {
     console.debug('[operation-page] Updating data context...');
     // Date
     const date = this.$lastEndDate.value || this.opeForm.lastStartDateTimeControl?.value;
@@ -1149,7 +1149,9 @@ export class OperationPage
 
     // Fishing area
     if (this.opeForm.showFishingArea) {
-      const fishingAreas = this.opeForm.fishingAreasHelper.formArray.value;
+
+      const fishingAreas = this.opeForm.fishingAreasHelper && this.opeForm.fishingAreasHelper.formArray?.value
+        || this.data?.fishingAreas;
       this.tripContext.setValue('fishingAreas', fishingAreas);
       this.tripContext.resetValue('vesselPositions');
     }

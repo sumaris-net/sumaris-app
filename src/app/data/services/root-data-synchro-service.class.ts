@@ -117,7 +117,7 @@ export abstract class RootDataSynchroService<
     if (this.$importationProgress) return this.$importationProgress; // Avoid many call
 
     const totalProgression = opts && opts.maxProgression || 100;
-    const jobOpts = { maxProgression: undefined /* set when jobs length is known */};
+    const jobOpts = { maxProgression: undefined /* set later, when jobs length is known */};
     const jobDefers: Observable<number>[] = [
       // Clear caches
       defer(() => timer()

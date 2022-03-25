@@ -1,11 +1,20 @@
 import { TypePolicies } from '@apollo/client/core';
 import { FormFieldDefinition, PRIORITIZED_AUTHORITIES } from '@sumaris-net/ngx-components';
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'DataReferenceVO': {
     keyFields: ['entityName', 'id']
   }
 };
+
+export const DATA_IMPORT_PERIODS:readonly { value: number; unit: DurationConstructor }[] = Object.freeze([
+  {value: 1, unit: 'week'},
+  {value: 15, unit: 'day'},
+  {value: 1, unit: 'month'},
+  {value: 3, unit: 'month'},
+  {value: 6, unit: 'month'}
+]);
 
 export const DATA_CONFIG_OPTIONS = Object.freeze({
   ACCESS_PROGRAM_IDS: <FormFieldDefinition>{
@@ -76,5 +85,15 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.LANDING.FILTER_PERIOD',
     type: 'boolean',
     defaultValue: true
+  },
+  DATA_IMPORT_DEFAULT_PERIOD: <FormFieldDefinition>{
+    key: 'sumaris.data.import.predoc.period',
+    label: 'CONFIGURATION.OPTIONS.DATA_IMPORT_DEFAULT_PERIOD',
+    type: 'enum',
+    defaultValue: '1 month',
+    values: DATA_IMPORT_PERIODS.map(({value, unit}) => ({
+      key: `${value} ${unit}`,
+      value: `${value} ${unit}`
+    }))
   }
 });

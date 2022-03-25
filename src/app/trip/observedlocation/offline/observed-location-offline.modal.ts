@@ -13,6 +13,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationOfflineFilter } from '../../services/filter/observed-location.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
 
 const moment = momentImported;
 
@@ -28,13 +29,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
   mobile: boolean;
 
-  periodDurations: { value: number; unit: DurationConstructor; }[] = [
-    { value: 1, unit: 'week' },
-    { value: 15, unit: 'day' },
-    { value: 1,  unit: 'month' },
-    { value: 3,  unit: 'month' },
-    { value: 6,  unit: 'month' }
-  ];
   periodDurationLabels: { key: string; label: string; startDate: Moment; }[];
 
   @Input() title = 'OBSERVED_LOCATION.OFFLINE_MODAL.TITLE';
@@ -69,14 +63,14 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         enableHistory: [true, Validators.required],
         location: [null, Validators.required],
-        periodDuration: ['15day', Validators.required],
+        periodDuration: ['15 day', Validators.required],
       }));
     this._enable = false; // Disable by default
     this.mobile = this.settings.mobile;
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
-    this.periodDurationLabels = this.periodDurations.map(v => {
+    this.periodDurationLabels = DATA_IMPORT_PERIODS.map(v => {
       const date = moment().utc(false)
         .add(-1 * v.value, v.unit); // Substract the period, from now
       return {
