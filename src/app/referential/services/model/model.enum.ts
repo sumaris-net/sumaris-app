@@ -19,6 +19,12 @@ export const LocationLevelIds = {
   WEIGHT_LENGTH_CONVERSION_AREA: [110, 111]
 };
 
+export class LocationLevels {
+  static getStatisticalRectangleLevelIds() {
+    return [LocationLevelIds.ICES_RECTANGLE, LocationLevelIds.GFCM_RECTANGLE];
+  }
+}
+
 export const GearLevelIds = {
   FAO: 1
 };
