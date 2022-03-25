@@ -37,6 +37,8 @@ import {MatMenuTrigger} from '@angular/material/menu';
 import {BatchGroupValidatorService} from '../../services/validator/batch-group.validator';
 import {IPmfm, Pmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { environment } from '@environments/environment';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -73,9 +75,6 @@ declare interface GroupColumnDefinition {
   selector: 'app-batch-groups-table',
   templateUrl: 'batch-groups.table.html',
   styleUrls: ['batch-groups.table.scss'],
-  providers: [
-    {provide: ValidatorService, useExisting: BatchGroupValidatorService}
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchGroupsTable extends BatchesTable<BatchGroup> {
@@ -247,7 +246,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   constructor(
     injector: Injector,
     protected settings: LocalSettingsService,
-    protected batchGroupValidator: BatchGroupValidatorService
+    protected batchGroupValidator: BatchGroupValidatorService,
+    protected context: TripContextService
   ) {
     super(injector,
       // Force no validator (readonly mode, if mobile)
@@ -279,8 +279,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH; // Already set in batches-table
 
     // -- For DEV only
-    //this.debug = !environment.production;
-
+    this.debug = !environment.production;
+    console.log('TODO batch group context=', this.context);
   }
 
   ngOnInit() {
@@ -946,6 +946,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
+        enableWeightConversion: this.enableWeightConversion,
         availableParents,
         data: this.availableSubBatches,
         onNewParentClick,
@@ -1000,6 +1001,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         isNew,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
+        enableWeightConversion: this.enableWeightConversion,
         availableTaxonGroups: this.availableTaxonGroups,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
         showSamplingBatch: this.showSamplingBatchColumns,

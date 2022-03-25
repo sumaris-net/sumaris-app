@@ -316,7 +316,7 @@ export class MeasurementValuesUtils {
     pmfms = pmfms || [];
 
     // DEBUG
-    console.debug('calling normalizeValueToForm() from ' +  source.__typename);
+    //console.debug('calling normalizeValueToForm() from ' +  source.__typename);
 
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts && opts.onlyExistingPmfms) {

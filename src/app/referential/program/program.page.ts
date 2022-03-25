@@ -55,6 +55,7 @@ export enum AnimationState {
 })
 export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
 
+  readonly mobile: boolean;
   propertyDefinitions: FormFieldDefinition[];
   fieldDefinitions: FormFieldDefinitionMap = {};
   form: FormGroup;
@@ -93,6 +94,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this.form = validatorService.getFormGroup();
 
     // default values
+    this.mobile = this.settings.mobile;
     this.defaultBackHref = "/referential/list?entity=Program";
     this._enabled = this.accountService.isAdmin();
     this.tabCount = 4;

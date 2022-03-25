@@ -585,7 +585,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                         toEntity?: boolean;
                         withTotal?: boolean;
                       }): Promise<LoadResult<WeightLengthConversionRef>> {
-    return this.weightLengthConversionRefService.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+    return this.weightLengthConversionRefService.loadAll(offset, size, sortBy, sortDirection,
+      {...filter, referenceTaxonId:0, locationIds: [24749, 24752]}, opts);
   }
 
 
@@ -754,7 +755,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
               this.loadAllWeightLengthConversion(offset, size, 'id', null,
                 {statusIds}, {
                   fetchPolicy: 'network-only',
-                  debug: true, // TODO: change to false
+                  debug: true,
                   toEntity: false
                 }),
             progression,

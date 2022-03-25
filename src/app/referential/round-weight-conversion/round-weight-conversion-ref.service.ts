@@ -11,7 +11,7 @@ const QUERIES: BaseEntityGraphqlQueries = {
       ...WeightLengthConversionRefFragment
     }
   }
-  ${WeightLengthConversionFragments.ref}`,
+  ${WeightLengthConversionFragments.reference}`,
 
   loadAllWithTotal: gql`query WeightLengthConversionsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: WeightLengthConversionFilterVOInput){
       data: weightLengthConversions(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -19,7 +19,7 @@ const QUERIES: BaseEntityGraphqlQueries = {
       }
       total: weightLengthConversionsCount(filter: $filter)
   }
-  ${WeightLengthConversionFragments.ref}`
+  ${WeightLengthConversionFragments.reference}`
 };
 
 

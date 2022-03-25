@@ -34,10 +34,18 @@ import { SubBatch, SubBatchUtils } from '../services/model/subbatch.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { DataContextService } from '@app/data/services/data-context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { BatchGroupValidatorService } from '@app/trip/services/validator/batch-group.validator';
 
 @Component({
   selector: 'app-batch-tree',
   templateUrl: './batch-tree.component.html',
+  providers: [
+    {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService},
+    {provide: DataContextService, useExisting: DataContextService}
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit {
@@ -156,9 +164,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected programRefService: ProgramRefService,
-    protected tripService: TripService,
-    protected operationService: OperationService,
-    protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
@@ -407,7 +412,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
     this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
-
+    this.batchGroupsTable.enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE);
     this.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
 
     // Some specific taxon groups have no weight collected
@@ -421,6 +426,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
       this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
       this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
+      this.subBatchesTable.enableWeightConversion = this.batchGroupsTable.enableWeightConversion;
     }
 
     // Propagate to children components, if need

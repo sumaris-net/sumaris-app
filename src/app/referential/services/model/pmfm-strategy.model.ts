@@ -220,14 +220,14 @@ export class DenormalizedPmfmStrategy
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
-    this.parameterId =  source.parameterId;
+    this.parameterId = toNumber(source.parameterId, source.parameter?.id);
     this.matrixId = source.matrixId;
     this.fractionId = source.fractionId;
     this.methodId = source.methodId;
     this.label = source.label;
     this.name = source.name;
     this.completeName = source.completeName;
-    this.unitLabel = source.unitLabel;
+    this.unitLabel = source.unitLabel || source.unit?.label;
     this.type = source.type;
     this.minValue = source.minValue;
     this.maxValue = source.maxValue;

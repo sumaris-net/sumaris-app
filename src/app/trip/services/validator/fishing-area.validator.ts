@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {DataEntityValidatorOptions, DataEntityValidatorService} from '../../../data/services/validator/data-entity.validator';
-import {FishingArea} from '../model/fishing-area.model';
+import {FishingArea} from '../../../data/services/model/fishing-area.model';
 import {AbstractControlOptions, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
 

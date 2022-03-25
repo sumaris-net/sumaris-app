@@ -2,7 +2,7 @@ import { gql } from '@apollo/client/core';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 
 export const WeightLengthConversionFragments = {
-  ref: gql`fragment WeightLengthConversionRefFragment on WeightLengthConversionVO {
+  reference: gql`fragment WeightLengthConversionRefFragment on WeightLengthConversionVO {
     id
     updateDate
     year
@@ -11,6 +11,14 @@ export const WeightLengthConversionFragments = {
     conversionCoefficientA
     conversionCoefficientB
     referenceTaxonId
+    lengthPmfmIds
+    lengthParameterId
+    lengthUnit {
+      id
+      label
+      entityName
+      __typename
+    }
     sexId
     statusId
     rectangleLabels

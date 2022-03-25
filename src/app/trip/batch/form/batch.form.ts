@@ -380,7 +380,8 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         // Normalize samplingRatio to model
         if (isNotNilOrBlank(childJson.samplingRatio) && wasFormValues) {
           console.debug('Normalize samplingRatio to model: ' + childJson.samplingRatio);
-          childJson.samplingRatioText = `${childJson.samplingRatio}%`;
+          const computed = childJson.samplingRatioText?.indexOf('/') !== -1;
+          if (!computed) childJson.samplingRatioText = `${childJson.samplingRatio}%`;
           childJson.samplingRatio = +childJson.samplingRatio / 100;
         }
 
@@ -573,7 +574,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     if (this.showSamplingBatch && this.showWeight) {
       // Create a sampling form validator
       this.samplingFormValidator = this.validatorService.enableSamplingWeightComputation(this.form, {
-        requiredSampleWeight: this.requiredSampleWeight,
+        //requiredSampleWeight: this.requiredSampleWeight,
         markForCheck: () => this.markForCheck()
       });
     }
