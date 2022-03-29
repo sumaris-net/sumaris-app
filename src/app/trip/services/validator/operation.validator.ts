@@ -1,30 +1,20 @@
-import {Injectable} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
-import {PositionValidatorService} from './position.validator';
-import {
-  AppFormUtils, FormErrors,
-  fromDateISOString, isNil,
-  isNotNil,
-  LocalSettingsService,
-  SharedFormArrayValidators,
-  SharedFormGroupValidators,
-  SharedValidators,
-  toBoolean,
-  toNumber,
-} from '@sumaris-net/ngx-components';
-import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
-import {AcquisitionLevelCodes, PmfmIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {Program} from '@app/referential/services/model/program.model';
-import {MeasurementsValidatorService} from './measurement.validator';
-import {Operation, Trip} from '../model/trip.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {merge, Observable, Subscription, timer} from 'rxjs';
-import {map, startWith} from 'rxjs/operators';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {PositionUtils} from '@app/trip/services/position.utils';
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormArray, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { PositionValidatorService } from './position.validator';
+import { AppFormUtils, FormErrors, fromDateISOString, isNil, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { Program } from '@app/referential/services/model/program.model';
+import { MeasurementsValidatorService } from './measurement.validator';
+import { Operation, Trip } from '../model/trip.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { merge, Observable, Subscription } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { PositionUtils } from '@app/trip/services/position.utils';
 
 
 export interface IPmfmForm {
@@ -211,14 +201,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     }
 
     // Fishing end position
-    if (opts.withPosition && opts.withFishingEnd) {
+    if (opts.withPosition && opts.withFishingEnd && !opts.isParent) {
       if (!form.controls.fishingEndPosition) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: opts && !opts.isOnFieldMode}));
     } else {
       if (form.controls.fishingEndPosition) form.removeControl('fishingEndPosition');
     }
 
     // End position
-    if (opts.withPosition && opts.withEnd) {
+    if (opts.withPosition && opts.withEnd && !opts.isParent) {
       if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: opts && !opts.isOnFieldMode}));
     } else {
       if (form.controls.endPosition) form.removeControl('endPosition');

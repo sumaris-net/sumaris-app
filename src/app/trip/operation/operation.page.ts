@@ -1136,7 +1136,7 @@ export class OperationPage
   }
 
   startListenRemoteChanges() {
-    if (EntityUtils.isLocalId(this.data?.id as any)) return; // Skip if local entity
+    if (EntityUtils.isLocal(this.data)) return; // Skip if local entity
 
     super.startListenRemoteChanges();
   }
