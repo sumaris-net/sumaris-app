@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnInit } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import * as L from 'leaflet';
-import { CRS, LayerGroup, MapOptions, PathOptions, Polygon } from 'leaflet';
+import { CRS, LayerGroup, MapOptions, PathOptions } from 'leaflet';
 import {
   AppTabEditor,
   DateDiffDurationPipe,
@@ -18,7 +18,7 @@ import {
   sleep,
   waitFor
 } from '@sumaris-net/ngx-components';
-import { Feature, Geometry, LineString, MultiPolygon, Position } from 'geojson';
+import { Feature, LineString, MultiPolygon, Position } from 'geojson';
 import { AlertController, ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { distinctUntilChanged, filter, switchMap, tap, throttleTime } from 'rxjs/operators';
@@ -29,7 +29,6 @@ import { ProgramRefService } from '../../../referential/services/program-ref.ser
 import { Program } from '../../../referential/services/model/program.model';
 import { Operation, VesselPositionUtils } from '../../services/model/trip.model';
 import { environment } from '@environments/environment';
-import { LocationLevels } from '@app/referential/services/model/model.enum';
 import { LocationUtils } from '@app/referential/location/location.utils';
 import { Geometries } from '@app/shared/geometries.utils';
 
@@ -234,29 +233,27 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
 
           // Add to all position array
           if (Geometries.isLineString(feature.geometry)) {
-            tripCoordinates = tripCoordinates.concat(...feature.geometry.coordinates);
+            tripCoordinates = tripCoordinates.concat(feature.geometry.coordinates);
           }
         });
 
       // Add trip feature to layer
       if (tripCoordinates.length) {
-        const tripLayer = L.geoJSON(null, {
-          style: this.getTripLayerStyle()
-        });
-        layers.push(tripLayer)
-
-        tripLayer.addData(<Feature>{
-          type: "Feature",
+        const tripLayer = L.geoJSON(<Feature>{
+          type: 'Feature',
           id: 'trip',
           geometry: <LineString>{
-            type: "LineString",
+            type: 'LineString',
             coordinates: tripCoordinates
           }
+        }, {
+          style: this.getTripLayerStyle()
         });
+        layers.push(tripLayer);
 
         // Add trip layer to control
         const tripLayerName = this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER');
-        this.layersControl.overlays[tripLayerName] = tripLayer;
+        //this.layersControl.overlays[tripLayerName] = tripLayer;
 
       }
 
