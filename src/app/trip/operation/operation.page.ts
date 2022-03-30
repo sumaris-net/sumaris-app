@@ -82,10 +82,6 @@ export class OperationPage
     SAMPLE: 2,
   };
 
-  private _lastOperationsTripId: number;
-  private _measurementSubscription: Subscription;
-  private _sampleRowSubscription: Subscription;
-
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
   readonly mobile: boolean;
@@ -104,7 +100,6 @@ export class OperationPage
   allowParentOperation = false;
   autoFillBatch = false;
   autoFillDatesFromTrip = false;
-  forceDeskMode = false;
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
   showCatchTab = false;
@@ -112,6 +107,11 @@ export class OperationPage
   showBatchTables = false;
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
+
+  private _lastOperationsTripId: number;
+  private _measurementSubscription: Subscription;
+  private _sampleRowSubscription: Subscription;
+  private _forceMeasurementAsOptionalOnFieldMode = false;
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -138,8 +138,8 @@ export class OperationPage
     }
   }
 
-  get usageMode(): UsageMode {
-    return this.forceDeskMode ? 'DESK' : super.usageMode;
+  get forceMeasurementAsOptional(): boolean {
+    return this._forceMeasurementAsOptionalOnFieldMode && this.isOnFieldMode;
   }
 
   /**
@@ -557,7 +557,7 @@ export class OperationPage
     this.allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
     this.autoFillBatch = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL);
     this.autoFillDatesFromTrip = program.getPropertyAsBoolean(ProgramProperties.TRIP_APPLY_DATE_ON_NEW_OPERATION);
-
+    this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
     const isGPSUsed = toBoolean(MeasurementUtils.asBooleanValue(this.trip?.measurements, PmfmIds.GPS_USED), true);
     const enablePosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.opeForm.trip = this.trip;
@@ -959,8 +959,10 @@ export class OperationPage
   }
 
   protected computeUsageMode(operation: Operation): UsageMode {
+    // Allow to override the usageMode, by context (e.g. when control a trip)
     const contextualUsageMode = this.tripContext?.getValue('usageMode') as UsageMode;
     if (contextualUsageMode) return contextualUsageMode;
+
     // Read the settings
     return this.settings.isUsageMode('FIELD')
       && (
@@ -1136,7 +1138,7 @@ export class OperationPage
   }
 
   startListenRemoteChanges() {
-    if (EntityUtils.isLocalId(this.data?.id as any)) return; // Skip if local entity
+    if (EntityUtils.isLocal(this.data)) return; // Skip if local entity
 
     super.startListenRemoteChanges();
   }

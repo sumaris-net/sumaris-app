@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, NgZone, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, NgZone, ViewChild, ViewEncapsulation } from '@angular/core';
 import {
   AccountService,
   AppFormUtils,
@@ -8,42 +8,50 @@ import {
   ColorScaleLegendItem,
   DurationPipe,
   fadeInAnimation,
-  fadeInOutAnimation,
+  fadeInOutAnimation, firstTruePromise,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   isNumber,
-  isNumberRange, LoadResult,
+  isNumberRange,
+  LoadResult,
   LocalSettingsService,
-  PlatformService, propertyComparator,
+  PlatformService, ProgressBarService,
   sleep,
   StatusIds,
+  waitFor, waitForTrue
 } from '@sumaris-net/ngx-components';
-import {ExtractionService} from '../services/extraction.service';
-import {BehaviorSubject, Observable, Subject, Subscription, timer} from 'rxjs';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion} from '../services/model/extraction-type.model';
-import {Location} from '@angular/common';
+import { ExtractionService } from '../services/extraction.service';
+import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion } from '../services/model/extraction-type.model';
+import { Location } from '@angular/common';
 import * as L from 'leaflet';
-import {CRS, GeoJSON, MapOptions, WMSParams} from 'leaflet';
-import {Feature} from 'geojson';
-import {debounceTime, filter, map, switchMap, tap, throttleTime} from 'rxjs/operators';
-import {AlertController, ModalController, ToastController} from '@ionic/angular';
-import {SelectProductModal} from '../product/modal/select-product.modal';
+import { Control, ControlOptions, CRS, DomUtil, GeoJSON, MapOptions, WMSParams } from 'leaflet';
+import { Feature } from 'geojson';
+import { debounceTime, distinctUntilChanged, filter, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { SelectProductModal } from '../product/modal/select-product.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../form/extraction-abstract.page';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
-import {AggregationTypeValidatorService} from '../services/validator/aggregation-type.validator';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {Label, SingleOrMultiDataSet} from 'ng2-charts';
-import {ChartLegendOptions, ChartOptions, ChartType} from 'chart.js';
-import {AggregationStrata, ExtractionProduct, IAggregationStrata} from '../services/model/extraction-product.model';
-import {ExtractionUtils} from '../services/extraction.utils';
-import {ExtractionProductService} from '../services/extraction-product.service';
-import {UnitLabel, UnitLabelPatterns} from '@app/referential/services/model/model.enum';
-import {ExtractionProductFilter} from '../services/filter/extraction-product.filter';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { AggregationTypeValidatorService } from '../services/validator/aggregation-type.validator';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { Label, SingleOrMultiDataSet } from 'ng2-charts';
+import { ChartLegendOptions, ChartOptions, ChartType } from 'chart.js';
+import { AggregationStrata, ExtractionProduct, IAggregationStrata } from '../services/model/extraction-product.model';
+import { ExtractionUtils } from '../services/extraction.utils';
+import { ExtractionProductService } from '../services/extraction-product.service';
+import { UnitLabel, UnitLabelPatterns } from '@app/referential/services/model/model.enum';
+import { ExtractionProductFilter } from '../services/filter/extraction-product.filter';
+import { MapGraticule } from '@app/shared/map/map.graticule';
+import '@bepo65/leaflet.fullscreen';
+import 'leaflet-easybutton';
+import 'leaflet-easybutton/src/easy-button.css';
+import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
+import { FetchPolicy } from '@apollo/client';
 
 declare interface LegendOptions {
   min: number;
@@ -59,6 +67,8 @@ declare interface TechChartOptions extends ChartOptions {
   aggMin: number;
   aggMax: number;
 }
+
+const MAX_ZOOM = 10;
 
 const REGEXP_NAME_WITH_UNIT = /^([^(]+)(?: \(([^)]+)\))?$/;
 
@@ -87,62 +97,70 @@ const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:sche
   templateUrl: './extraction-map.page.html',
   styleUrls: ['./extraction-map.page.scss'],
   animations: [fadeInAnimation, fadeInOutAnimation],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct> {
 
-  started = false;
-
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
+    maxZoom: MAX_ZOOM,
     attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
   });
   sextantBaseLayer = L.tileLayer(
     'https://sextant.ifremer.fr/geowebcache/service/wmts'
       + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
     {
-      maxZoom: 18,
+      maxZoom: MAX_ZOOM,
       attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
     });
   countriesLayer = L.tileLayer.wms('http://www.ifremer.fr/services/wms/dcsmm', {
-    maxZoom: 18,
+    maxZoom: MAX_ZOOM,
     version: '1.3.0',
     crs: CRS.EPSG3857,
     format: "image/png",
     transparent: true,
-    zIndex: 9999, // Important, to bring this layer to top
+    zIndex: 500, // Important, to bring this layer to top
     attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
   }).setParams({
     layers: "ESPACES_TERRESTRES_P",
     service: 'WMS',
     sld_body: BASE_LAYER_SLD_BODY
   } as WMSParams);
-  graticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
-    maxZoom: 18,
-    version: '1.3.0',
-    crs: CRS.EPSG3857,
-    format: "image/png",
-    transparent: true,
-    attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
-  }).setParams({
-    layers: "graticule_4326",
-    service: 'WMS'
-  });
   baseLayer: L.TileLayer = this.sextantBaseLayer;
   availableBaseLayers = [
     {title: 'Sextant (Ifremer)', layer: this.sextantBaseLayer},
     {title: 'Open Street Map', layer: this.osmBaseLayer}
   ];
-  mapOptions: MapOptions = {
-    preferCanvas: false,
+  layersControl = <LeafletControlLayersConfig>{
+    baseLayers: {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      'Sextant (Ifremer)': this.sextantBaseLayer,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      'Open Street Map': this.osmBaseLayer
+    },
+    overlays: {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      // Graticule: this.sextantGraticuleLayer,
+    }
+  };
+  mapOptions = <L.MapOptions>{
+    preferCanvas: true,
     layers: [this.baseLayer],
-    maxZoom: 10, // max zoom to sextant layer
-    zoom: 5,
-    center: L.latLng(46.879966, -10) // Atlantic centric
+    zoomControl: false,
+    minZoom: 1,
+    maxZoom: MAX_ZOOM,
+    attributionControl: false,
+
+    // FIXME: cards not shown
+    fullscreenControl: true,
+    fullscreenControlOptions: {
+      position: 'topleft',
+      title: this.translate.instant('MAP.ENTER_FULLSCREEN'),
+      titleCancel: this.translate.instant('MAP.EXIT_FULLSCREEN'),
+    }
   };
   map: L.Map;
-  $layers = new BehaviorSubject<L.Layer[]>(null);
   showGraticule = false;
   showCountriesLayer = true;
 
@@ -188,7 +206,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     min: 0,
     max: 0
   };
-  $noData = new BehaviorSubject<boolean>(false);
 
   columnNames = {}; // cache for i18n column name
   productFilter: Partial<ExtractionProductFilter>;
@@ -206,6 +223,14 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   animationOverrides: {
     techChartOptions?: TechChartOptions
   } = {};
+
+  private layers: L.Layer[];
+  private graticule: MapGraticule;
+
+
+  @ViewChild('filterPanel', { static: true }) filterPanel: ElementRef;
+  @ViewChild('detailPanel', { static: true }) detailPanel: ElementRef;
+  @ViewChild('bottomRightPanel', { static: true }) bottomRightPanel: ElementRef;
 
   @ViewChild('filterExpansionPanel', { static: true }) filterExpansionPanel: MatExpansionPanel;
   @ViewChild('aggExpansionPanel', { static: true }) aggExpansionPanel: MatExpansionPanel;
@@ -260,6 +285,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     this.setTechChartOption({ scales: { yAxes: [{type}] } });
   }
 
+  get isAnimated(): boolean {
+    return !!this.animation;
+  }
+
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsPristine(opts);
     this.form.markAsPristine(opts);
@@ -280,10 +309,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return this.$sheetNames.value;
   }
 
-  get $ready(): Observable<boolean> {
-    return this._$ready.asObservable();
-  }
-
   constructor(
     route: ActivatedRoute,
     router: Router,
@@ -298,7 +323,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     modalCtrl: ModalController,
     protected location: Location,
     protected aggregationService: ExtractionProductService,
-    protected zone: NgZone,
     protected durationPipe: DurationPipe,
     protected aggregationStrataValidator: AggregationTypeValidatorService,
     protected cd: ChangeDetectorRef
@@ -331,20 +355,14 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     });
 
     const account = this.accountService.account;
-    this.formatNumberLocale = account && account.settings.locale || 'en-US';
+    this.formatNumberLocale = account && account.settings.locale || 'en-US';
     this.formatNumberLocale = this.formatNumberLocale.replace(/_/g, '-');
 
-    this.platform.ready()
-      .then(() => sleep(500))
-      .then(() => {
-        this.markAsReady();
-        if (!this.started) return this.start();
-      });
 
     this.registerSubscription(
       this.onRefresh.pipe(
         // avoid multiple load)
-        filter(() => this.ready && isNotNil(this.type) && (!this.loading || !!this.animation)),
+        filter(() => isNotNil(this.type) && (!this.loading || this.isAnimated)),
         switchMap(() => this.loadGeoData())
       ).subscribe(() => this.markAsPristine()));
 
@@ -369,16 +387,18 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
           debounceTime(250)
         ).subscribe(() => this.markForCheck())
     );
+
+
+    this.addCustomControls();
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.$layers.unsubscribe();
+    //this.$layers.unsubscribe();
     this.$legendItems.unsubscribe();
     this.$onOverFeature.unsubscribe();
     this.$selectedFeature.unsubscribe();
     this.$details.unsubscribe();
-    this.$noData.unsubscribe();
     this.$title.unsubscribe();
     this.$sheetNames.unsubscribe();
     this.$timeColumns.unsubscribe();
@@ -390,12 +410,56 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     this.$years.unsubscribe();
   }
 
-  onMapReady(leafletMap: L.Map) {
+  async onMapReady(leafletMap: L.Map) {
     this.map = leafletMap;
 
-    this.zone.run(() => {
-      this.start.bind(this);
-    });
+
+    // Wait settings to be loaded
+    const settings = await this.settings.ready();
+
+      // Add scale control
+    L.control.scale({
+      position: 'topright'
+    }).addTo(this.map);
+
+    // Add customized zoom control
+    L.control
+      .zoom({
+        zoomInTitle: this.translate.instant('MAP.ZOOM_IN'),
+        zoomOutTitle: this.translate.instant('MAP.ZOOM_OUT'),
+      })
+      .addTo(this.map);
+
+    // Create graticule
+    this.graticule = new MapGraticule({latLngPattern: settings.latLongFormat});
+    // Add custom button to show/hide graticule
+    L.easyButton({
+      states: [
+        {
+          stateName: 'show',
+          icon: '<i class="material-icons leaflet-control-icon">grid_on</i>',
+          title: this.translate.instant('MAP.SHOW_GRATICULE'),
+          onClick: (btn, map) => {
+            this.showGraticule = true;
+            this.graticule.addTo(map);
+            btn.state('hide');
+          },
+        },
+        {
+          stateName: 'hide',
+          icon: '<i class="material-icons leaflet-control-icon">grid_off</i>',
+          title: this.translate.instant('MAP.HIDE_GRATICULE'),
+          onClick: (btn, map) => {
+            this.showGraticule = false;
+            this.graticule.removeFrom(map);
+            btn.state('show');
+          },
+        },
+      ],
+    }).addTo(this.map);
+
+    // Call ready in a timeout to let leaflet map to initialize
+    setTimeout(() => this._$ready.next(true), 400);
   }
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionProduct>> {
@@ -404,21 +468,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   protected fromObject(json: any): ExtractionProduct {
     return ExtractionProduct.fromObject(json);
-  }
-
-  protected async start() {
-    if (!this.ready || this.started) return; // skip
-
-    const hasData = await this.tryLoadByYearIterations();
-
-    if (hasData) {
-      this.started = true;
-      this.fitToBounds();
-    }
-    // No data found: open the select modal
-    else {
-      this.openSelectTypeModal();
-    }
   }
 
   async setType(type: ExtractionProduct, opts?: {
@@ -545,6 +594,38 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   /* -- protected method -- */
 
+  protected resetGeoData() {
+    this.cleanMapLayers();
+
+    // Reset geo data
+    this.data = {total: 0, min: 0, max: 0};
+
+    // Hide details
+    this.$details.next();
+    // Hide chart
+    this.$tech.next(null);
+    // Hide legend
+    this.showLegend = false;
+
+    this.markForCheck()
+  }
+
+  protected cleanMapLayers() {
+    (this.layers || []).forEach((layer) => this.map.removeLayer(layer));
+    this.layers = [];
+  }
+
+
+  async ready(): Promise<void> {
+    if (this._$ready.value) return;
+
+    await this.platform.ready();
+
+    //if (!this.map) await sleep(500);
+
+    return waitForTrue(this._$ready);
+  }
+
   protected async updateColumns(opts?: {
     onlySelf?: boolean;
     emitEvent?: boolean;
@@ -605,25 +686,22 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }
   }
 
-  protected async tryLoadByYearIterations(
-    type?: ExtractionProduct,
-    startYear?: number,
-    endYear?: number
-  ) {
 
-    type = type || this.type;
-    startYear = isNotNil(startYear) ? startYear : new Date().getFullYear();
-    endYear = isNotNil(endYear) && endYear < startYear ? endYear : startYear - 10;
+  protected async loadData() {
+    const type = this.type;
+    if (!type) return; // Skip, if no type
+
+    const startYear = new Date().getFullYear();
+    const endYear = startYear - 10;
 
     const sheetName = this.sheetName || (type && type.sheetNames && type.sheetNames[0]) || null;
     const strata: any = (type && type.stratum || []).find(s => s && (s.isDefault || sheetName === s.sheetName));
 
-    if (!strata) return false; // Skip
+    if (!strata) return; // Skip, if no spatial strata
 
     let year = startYear;
     let hasData = false;
     do {
-      this.markAsLoading();
 
       // Set default filter
       this.form.patchValue({
@@ -636,36 +714,32 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       hasData = this.hasData;
     }
     while (!hasData && year >= endYear);
-
-    return hasData;
-  }
-
-  protected async loadData() {
-    return this.loadGeoData();
   }
 
   protected async loadGeoData() {
-    if (!this.ready) return;
+
+    await this.ready();
+
     if (!this.type || !this.type.category || !this.type.label) {
+      console.warn('[extraction-map] Cannot load GeoJSON data: missing type, or invalid type');
       this.markAsLoaded();
       return;
     }
 
     this.markAsLoading();
-    this.error = null;
 
-    const isAnimated = !!this.animation;
     const strata = this.getStrataValue();
     const filter = this.getFilterValue(strata);
 
-    // Disabled forms, and hide details
-    this.disable();
-    if (!isAnimated) this.$details.next();
-
-    const now = Date.now();
-    console.debug(`[extraction-map] Loading layer ${this.type.category} ${this.type.label}`, filter, strata);
-
     try {
+      const now = Date.now();
+      console.debug(`[extraction-map] Loading layer ${this.type.category} ${this.type.label}`, filter, strata);
+
+      // Disabled forms (after getting strata and filter)
+      this.disable();
+      this.resetGeoData();
+      this.error = null;
+
       let hasMore = true;
       let offset = 0;
       const size = 3000;
@@ -678,6 +752,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       });
       let total = 0;
       const aggColumnName = strata.aggColumnName;
+      const fetchPolicy: FetchPolicy = this.isAnimated ? "cache-first" : undefined /*default*/;
       let maxValue = 0;
 
       while (hasMore) {
@@ -687,9 +762,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
           strata,
           offset, size,
           null, null,
-          filter, {
-          fetchPolicy: isAnimated ? "cache-first" : undefined /*default*/
-          });
+          filter, { fetchPolicy });
 
         const hasData = isNotNil(geoJson) && geoJson.features && geoJson.features.length || false;
 
@@ -714,10 +787,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
       if (total === 0) {
         console.debug(`[extraction-map] No data found, in ${Date.now() - now}ms`);
-        // Clean layers
-        this.$layers.next([]);
-        // Hide chart
-        this.$tech.next(null);
+        // Clean geo data
+        this.resetGeoData();
       } else {
 
         // Prepare legend options
@@ -735,30 +806,36 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         layer.setStyle(this.getFeatureStyleFn(scale, aggColumnName));
         this.updateLegendStyle(scale);
 
-        // Refresh layers
-        this.$layers.next([layer]);
+        // Add to layers
+        layer.addTo(this.map);
+        this.layers.push(layer);
 
-        // Refresh layers
+        // Add countries layers
+        if (this.showCountriesLayer) {
+          this.countriesLayer.addTo(this.map);
+          this.layers.push(this.countriesLayer);
+        }
+
         console.debug(`[extraction-map] ${total} geometries loaded in ${Date.now() - now}ms (${Math.floor(offset / size)} slices)`);
 
         // Load tech data (wait end if animation is running)
         if (this.showTechChart) {
           await this.loadTechData(this.type, strata, filter);
         }
+        this.showLegend = isNotNilOrBlank(strata.aggColumnName);
       }
-
 
 
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
       this.showLegend = false;
+      this.markForCheck();
     } finally {
-      this.showLegend = isNotNilOrBlank(strata.aggColumnName);
-      this.$noData.next(!this.hasData);
-      if (!isAnimated) {
+      if (!this.isAnimated) {
         this.markAsLoaded();
         this.enable();
+        await this.fitToBounds();
       }
     }
   }
@@ -791,7 +868,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       // Keep data without values for this year
       if (opts.fixAxis) {
         // Find the column
-        const column = this.$techColumns.getValue().find(c => c.columnName === techColumnName);
+        const column = (this.$techColumns.value || []).find(c => c.columnName === techColumnName);
 
         // Copy, because object if immutable
         map = { ...map };
@@ -858,26 +935,42 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   }
 
-  fitToBounds() {
-    if (!this.started) return;
+  async fitToBounds(bounds?: L.LatLngBounds) {
 
-    const layers = this.$layers.getValue();
-    if (isEmptyArray(layers)) return; // Skip
+    await this.ready();
 
-    const done = (layers || []).findIndex(layer => {
-      // Find the first GeoJSON layer, then fit to bounds
-      if (layer && layer instanceof GeoJSON) {
-        const bounds = layer.getBounds();
-        if (bounds.isValid()) {
-          this.map.fitBounds(bounds, {maxZoom: 10});
-          return true;
-        }
-      }
-      return false;
-    }) !== -1;
-    if (!done) {
-      console.warn("[extraction-map] Cannot fit to bound. GeoJSON layer not found.");
+    if (!bounds && isEmptyArray(this.layers)) {
+      // TODO: get center from configuration, or settings ?
+      const centerCoords = [46.879966, -10];
+      this.map.setView(L.latLng(centerCoords as [number, number]), 5);
+      return;
     }
+
+      // Use given bounds, if any
+    if (bounds) {
+      if (bounds.isValid()) {
+        this.map.flyToBounds(bounds, { maxZoom: MAX_ZOOM, duration: 1 });
+      } else {
+        console.warn('[map] Cannot fit to bound. Invalid bounds.');
+        this.map.fitWorld();
+      }
+      return;
+    }
+
+    // Create bounds, from layers
+    let layerBounds: L.LatLngBounds;
+    this.layers
+      .filter((layer) => layer instanceof L.GeoJSON)
+      .forEach((layer) => {
+        if (!layerBounds) {
+          layerBounds = (layer as L.GeoJSON).getBounds();
+        } else {
+          layerBounds.extend((layer as L.GeoJSON).getBounds());
+        }
+      });
+
+    // Loop with layer bounds
+    return this.fitToBounds(layerBounds);
   }
 
   async loadAnimationOverrides(type: ExtractionProduct, strata: IAggregationStrata, filter: ExtractionFilter):
@@ -942,8 +1035,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
-    layer.on('mouseover', (_) => this.zone.run(() => this.$onOverFeature.next(feature)));
-    layer.on('mouseout', (_) => this.zone.run(() => this.closeFeatureDetails(feature)));
+    layer.on('mouseover', (_) => this.$onOverFeature.next(feature));
+    layer.on('mouseout', (_) => this.closeFeatureDetails(feature));
   }
 
   protected openFeatureDetails(feature: Feature) {
@@ -989,7 +1082,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   }
 
   closeFeatureDetails(feature: Feature, force?: boolean) {
-    if (this.$selectedFeature.getValue() !== feature) return; // skip is not the selected feature
+    if (this.$selectedFeature.value !== feature) return; // skip is not the selected feature
 
     // Close now, of forced (already wait 5s)
     if (force) {
@@ -1041,19 +1134,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     modal.present();
 
     // Wait until closed
-    const res = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
     // If selected a product, use it
-    if (res?.data instanceof ExtractionProduct) {
-      const type = res.data;
-      await this.setType(type, {emitEvent: false});
+    if (data instanceof ExtractionProduct) {
+      await this.setType(data, {emitEvent: false});
 
-      const hasData = await this.tryLoadByYearIterations(type);
-
-      // If no data: loop
-      if (!hasData) {
-        this.filterExpansionPanel.open();
-      }
+      return this.loadData();
     }
   }
 
@@ -1070,24 +1157,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }
     else {
       this.startAnimation();
-    }
-  }
-
-  toggleGraticule() {
-
-    // Make sure value is correct
-    this.showGraticule = this.showGraticule && this.map.hasLayer(this.graticuleLayer);
-
-    // Inverse value
-    this.showGraticule = !this.showGraticule;
-
-    // Add or remove layer
-    if (this.showGraticule) {
-      this.graticuleLayer.addTo(this.map);
-      this.showGraticule = true;
-    }
-    else {
-      this.map.removeLayer(this.graticuleLayer);
     }
   }
 
@@ -1139,21 +1208,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     if (!event.ctrlKey) {
       this.onRefresh.emit();
     }
-  }
-
-  setBaseLayer(layer: L.TileLayer) {
-
-    if (this.map.hasLayer(layer)) return; // Skip
-
-    this.availableBaseLayers.forEach(item => {
-      if (item.layer === layer) {
-        this.map.addLayer(item.layer);
-        this.baseLayer = layer;
-      }
-      else if (this.map.hasLayer(item.layer)){
-        this.map.removeLayer(item.layer);
-      }
-    });
   }
 
   /* -- protected methods -- */
@@ -1312,5 +1366,35 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return value.toLocaleString(this.formatNumberLocale, {
       useGrouping: true,
       maximumFractionDigits: 2});
+  }
+
+  protected async addCustomControls() {
+    await this.ready();
+    this.createCustomControl(this.filterPanel, {position: 'bottomleft'})
+      .addTo(this.map);
+
+    this.createCustomControl(this.bottomRightPanel, {position: 'bottomright'})
+      .addTo(this.map);
+
+    this.createCustomControl(this.detailPanel, {position: 'bottomright'})
+      .addTo(this.map);
+  }
+
+  protected createCustomControl(element: ElementRef, opts?: ControlOptions): L.Control {
+
+    if (!element || !element.nativeElement) {
+      throw new Error('Missing or invalid argument \'element\'');
+    }
+
+    const CustomControl = L.Control.extend({
+      onAdd(map: L.Map) {
+        return element.nativeElement;
+      },
+      onRemove(map: L.Map) {}
+    })
+    return new CustomControl({
+      position: 'topleft',
+      ...opts
+    });
   }
 }

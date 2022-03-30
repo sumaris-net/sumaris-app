@@ -1,0 +1,29 @@
+// --------------------------------------------------
+// Import globals
+// --------------------------------------------------
+@import "theme.globals";
+
+// --------------------------------------------------
+// Import leaflet
+// --------------------------------------------------
+@import "~leaflet/dist/leaflet.css";
+
+/* visual tweaks */
+
+// Leaflet
+.leaflet-container {
+  font: 12px/1.5 Roboto, Helvetica, Arial, sans-serif;
+}
+
+button.easy-button-button {
+  background-color: white;
+
+  &:hover {
+    background-color: #f4f4f4;
+  }
+
+  i.leaflet-control-icon {
+    font-size: large;
+    line-height: 28px;
+  }
+}

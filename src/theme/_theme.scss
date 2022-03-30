@@ -100,3 +100,10 @@ ion-toast {
     --button-color: var(--ion-color-tertiary);
   }
 }
+
+// Form buttons bar
+app-form-buttons-bar {
+  ion-col:first-of-type {
+    max-width: calc(100% - 400px);
+  }
+}

@@ -1,5 +1,5 @@
 import { Injectable, Injector, Optional } from '@angular/core';
-import { gql } from '@apollo/client/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
 import { filter, map } from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
@@ -391,10 +391,10 @@ const TripMutations = <BaseRootEntityGraphqlMutations & { saveLandedTrip: any; }
 const TripSubscriptions = {
   listenChanges: gql`subscription UpdateTrip($id: Int!, $interval: Int){
     data: updateTrip(id: $id, interval: $interval) {
-      ...TripFragment
+      ...LightTripFragment
     }
   }
-  ${TripFragments.trip}`
+  ${TripFragments.lightTrip}`
 };
 
 
@@ -656,12 +656,16 @@ export class TripService
     return res && res.total > 0;
   }
 
-  listenChanges(id: number, opts?: { interval?: number }): Observable<Trip> {
+  listenChanges(id: number, opts?: {
+    interval?: number;
+    fetchPolicy?: FetchPolicy
+  }): Observable<Trip> {
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
-    if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
     if (EntityUtils.isLocalId(id)) {
+      // FIXME: this should be never called (because entity listen only on remote data).
+      console.warn(`[trip-service] TODO: check why this code is calling, because editor should never listening for local data changes.`);
       return this.entities.watchAll<Trip>(Trip.TYPENAME, {offset:0, size: 1, filter: (t) => t.id === id})
         .pipe(
           map(({data}) => {
@@ -672,8 +676,11 @@ export class TripService
         );
     }
 
+    if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
+
     return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
+      fetchPolicy: opts && opts.fetchPolicy || undefined,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
         code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
@@ -683,7 +690,7 @@ export class TripService
       .pipe(
         map(({data}) => {
           const entity = data && Trip.fromObject(data);
-          if (entity && this._debug) console.debug(`[trip-service] Trip {${id}} updated on server !`, entity);
+          if (entity && this._debug) console.debug(`[trip-service] Trip {${id}} updated on server!`, entity);
           return entity;
         })
       );

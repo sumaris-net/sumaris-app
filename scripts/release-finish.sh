@@ -15,7 +15,7 @@ release_description=$2
 PROJECT_DIR=`pwd`
 
 # Check version format
-if [[ ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]+)?$ ]]; then
+if [[ ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]*)?$ ]]; then
   echo "Wrong version format"
   echo "Usage:"
   echo " > ./release-finish.sh <version> <release_description>"
@@ -47,4 +47,6 @@ git commit -m ''"$description"''
 # -F: fetch master & develop before
 # -m: use default message
 # -p: push all tags after finish
+export GIT_MERGE_AUTOEDIT=no
 git flow release finish -F -p "$version" -m ''"$description"''
+unset GIT_MERGE_AUTOEDIT

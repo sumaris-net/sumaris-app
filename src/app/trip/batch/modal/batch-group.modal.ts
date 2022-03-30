@@ -11,6 +11,10 @@ import { BatchGroup } from '../../services/model/batch-group.model';
 import { environment } from '@environments/environment';
 import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { DataContextService } from '@app/data/services/data-context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { SubBatchValidatorService } from '@app/trip/services/validator/sub-batch.validator';
+import { BatchGroupValidatorService } from '@app/trip/services/validator/batch-group.validator';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
@@ -30,6 +34,10 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   selector: 'app-batch-group-modal',
   templateUrl: 'batch-group.modal.html',
   styleUrls: ['batch-group.modal.scss'],
+  providers: [
+    { provide: DataContextService, useExisting: TripContextService},
+    { provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService}
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptions {

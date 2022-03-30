@@ -783,7 +783,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       isOnFieldMode: this.usageMode === 'FIELD',
       trip: this.trip,
       isParent: this.allowParentOperation && this.isParentOperation,
-      isChild: this.isChildOperation,
+      isChild: this.allowParentOperation && this.isChildOperation,
       withPosition: this.showPosition,
       withFishingAreas: this.showFishingArea,
       withFishingStart: this.fishingStartDateTimeEnable,

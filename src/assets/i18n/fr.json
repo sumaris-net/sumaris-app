@@ -1540,7 +1540,7 @@
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
-      "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Marée: Caractéritiques optionelles si saisie terrain ?",
+      "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
       "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",
@@ -1569,6 +1569,7 @@
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
       "TRIP_METIER_FILTER": "Marée > Opération : Filtrer les métiers déjà saisis ?",
+      "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée > Opération : Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte :",
       "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur : ",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
@@ -1889,8 +1890,6 @@
       "BTN_EDIT_LEGEND_HELP": "Paramétrer la légende",
       "LAYER": "Couche",
       "LAYERS": "Couches de données",
-      "BASE_LAYER": "Fond de carte",
-      "SHOW_GRATICULE": "Afficher le graticule",
       "SHOW_INVALID_GEOMETRIES": "Voir tous les géométries",
       "FILTER": "Filtrage",
       "YEAR": "Année",
@@ -2104,6 +2103,14 @@
       "NOT_COMPATIBLE_PEER": "L'application fonctionne en <b>mode hors-ligne</b>, car le nœud réseau <b>utilise une version obsolète</b>.<br/><small>Si le problème persiste, veuillez <b>contactez votre administrateur</b> ou utilisez un nœud v{{version}} ou supérieur.</small>"
     }
   },
+  "MAP": {
+    "ZOOM_IN": "Zoom avant",
+    "ZOOM_OUT": "Zoom arrière",
+    "ENTER_FULLSCREEN": "Plein écran",
+    "EXIT_FULLSCREEN": "Quitter plein écran",
+    "SHOW_GRATICULE": "Afficher le graticule",
+    "HIDE_GRATICULE": "Cacher le graticule"
+  },
   "SOCIAL": {
     "USER_EVENT": {
       "EVENT_TYPE": "Type",
@@ -2177,10 +2184,11 @@
     "EMAIL_ALREADY_REGISTERED": "Email déjà enregistrée",
     "UNKNOWN_TECHNICAL_ERROR": "Une erreur technique est survenue.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "UNKNOWN_NETWORK_ERROR": "Erreur de communication avec le serveur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
-    "BAD_UPDATE_DATE": "Sauvegarde impossible (modification concurrente détectée).",
+    "BAD_UPDATE_DATE": "Sauvegarde impossible.<small><br/>Modification concurrente détectée, veuillez recharger la page et réessayer.</small>",
     "DATA_LOCKED": "Sauvegarde impossible (donnée verrouillée).",
     "DATA_NOT_FOUND": "Donnée non trouvée",
-    "DOWNLOAD_FAILED": "Echec du téléchargement : {{error}}",
+    "DATA_UPDATE_DATE_CHANGED": "Vos modifications ne pourront pas être sauvegardées.<small><br/>Modification concurrente détectée, veuillez recharger la page et réessayer.</small>",
+    "DOWNLOAD_FAILED": "Échec du téléchargement : {{error}}",
     "LOAD_ACCOUNT_ERROR": "Erreur de chargement du compte utilisateur.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_ACCOUNT_ERROR": "Erreur lors de la sauvegarde de votre compte.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
     "SAVE_SETTINGS_ERROR": "Erreur lors de la sauvegarde de vos paramètres.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",

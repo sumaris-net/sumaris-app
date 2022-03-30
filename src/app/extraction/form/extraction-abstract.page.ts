@@ -29,7 +29,7 @@ export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class ExtractionAbstractPage<T extends ExtractionType | ExtractionProduct> extends AppTabEditor {
+export abstract class ExtractionAbstractPage<T extends ExtractionType | ExtractionProduct> extends AppTabEditor<T> {
 
   type: T;
   form: FormGroup;

@@ -24,7 +24,7 @@ import {
   NetworkService,
   PromiseEvent,
   ReferentialRef,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
 import { PhysicalGear, Trip } from '../services/model/trip.model';
@@ -43,9 +43,8 @@ import { Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { TripValidatorOptions } from '@app/trip/services/validator/trip.validator';
+import { Sale } from '@app/trip/services/model/sale.model';
 
 const moment = momentImported;
 
@@ -76,9 +75,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   showGearTable = false;
   showOperationTable = false;
   mobile = false;
-  forceMeasurementAsOptional = false;
   settingsId: string;
   devAutoFillData = false;
+
+  private _forceMeasurementAsOptionalOnFieldMode = false;
   private _measurementSubscription: Subscription;
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
@@ -90,6 +90,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   get dirty(): boolean {
     // Ignore operation table, when computing dirty state
     return this._dirty || (this.children?.filter(form => form !== this.operationsTable).findIndex(c => c.dirty) !== -1);
+  }
+
+  get forceMeasurementAsOptional(): boolean {
+    return this._forceMeasurementAsOptionalOnFieldMode && this.isOnFieldMode;
   }
 
   constructor(
@@ -241,7 +245,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
 
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
-    this.forceMeasurementAsOptional = this.isOnFieldMode && program.getPropertyAsBoolean(ProgramProperties.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL);
+    this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.operationsTable.showPosition = positionEnabled;
     this.operationsTable.showFishingArea = !positionEnabled;
@@ -362,10 +366,12 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   protected async setValue(data: Trip) {
+    const isNewData = isNil(data.id);
+
     // Set data to form
     const formPromise = this.tripForm.setValue(data);
 
-    this.saleForm.value = data && data.sale;
+    this.saleForm.value = data && data.sale || new Sale();
     this.measurementsForm.value = data && data.measurements || [];
 
     // Physical gear table
@@ -373,10 +379,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.physicalGearsTable.tripId = data.id;
 
     // Operations table
-    const isNew = isNil(data.id);
-    if (!isNew && this.operationsTable) {
-      this.operationsTable.setTripId(data.id);
-    }
+    if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
 
     await formPromise;
   }

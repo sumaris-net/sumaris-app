@@ -15,7 +15,7 @@
     "BTN_COMPACT_ROWS": "Compact rows",
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
-    "BTN_IMPORT": "Upload",
+    "BTN_IMPORT": "Import",
     "BTN_DUPLICATE": "Duplicate",
     "BTN_DELETE": "Delete",
     "BTN_DELETE_FOREVER": "Delete forever",
@@ -385,11 +385,11 @@
     "BTN_CHANGE_PEER": "See available nodes",
     "BTN_SHOW_MORE_HELP": "Show more parameters",
     "BTN_CLEAR_CACHE": "Clear data cache",
-    "OFFLINE_MODE": "Force offline mode? (experimental)",
+    "OFFLINE_MODE": "Force offline mode?",
     "DATA_ENTRY_DIVIDER": "Data entry settings",
     "USAGE_MODE": "Usage mode",
-    "USAGE_MODE_FIELD": "Mode on field",
-    "USAGE_MODE_DESK": "Mode in office",
+    "USAGE_MODE_FIELD": "Mode on <b>field</b>",
+    "USAGE_MODE_DESK": "Mode in <b>office</b>",
     "USAGE_MODES":  {
       "FIELD": "On field",
       "DESK": "In office"
@@ -618,7 +618,7 @@
         "FISHING_AREA_PLACEHOLDER": "Fishing area #",
         "FISHING_AREAS_DOTS": "Fishing areas:",
         "FISHING_AREAS": "Fishing areas",
-        "END_DATE_TIME": "Endd of operation",
+        "END_DATE_TIME": "End of operation",
         "OTHER_FEATURES": "Other features:",
         "NO_TARGET_SPECIES_FOUND": "No species for this gear",
         "DISTANCE_DOTS" : "Dist.: {{distance}} miles",
@@ -1540,7 +1540,7 @@
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
       "TRIP_METIERS_ENABLE": "Trip: Enter metiers?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
-      "TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL": "Trip: Are other features optional, when on field?",
+      "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
       "TRIP_MAP_ENABLE": "Trip > Map: Enable?",
       "TRIP_MAP_CENTER": "Trip > Map: cernter position",
@@ -1569,6 +1569,7 @@
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Trip > Position > Longitude: Default direction:",
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling) ?",
       "TRIP_METIER_FILTER": "Trip > Operation: Filter already used metiers ?",
+      "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip > Operation: Are other features optional, when on field?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation: Max travelled distance before warning :",
       "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation: Max travelled distance before error : ",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
@@ -1861,8 +1862,6 @@
       "BTN_EDIT_LEGEND_HELP": "Customize legend",
       "LAYER": "Layer",
       "LAYERS": "Data layers",
-      "BASE_LAYER": "Base layer",
-      "SHOW_GRATICULE": "Show graticule",
       "SHOW_INVALID_GEOMETRIES": "Show all shapes",
       "FILTER": "Filter",
       "YEAR": "Year",
@@ -2051,6 +2050,14 @@
       "NOT_COMPATIBLE_PEER": "The application works in <b>offline mode</b>, because the node <b>use a too old version</b>.<br/><small>If the problem persists, please <b>contact your administrator</b>, or select a node v{{version}} or superior.</small>"
     }
   },
+  "MAP": {
+    "ZOOM_IN": "Zoom in",
+    "ZOOM_OUT": "Zoom out",
+    "ENTER_FULLSCREEN": "Fullscreen mode",
+    "EXIT_FULLSCREEN": "Exit fullscreen mode",
+    "SHOW_GRATICULE": "Show graticule",
+    "HIDE_GRATICULE": "Hide graticule"
+  },
   "SOCIAL": {
     "USER_EVENT": {
       "EVENT_TYPE": "Type",
@@ -2127,6 +2134,7 @@
     "BAD_UPDATE_DATE": "Unable to save.<small><br/>Concurrent change detected. Please reload this page and retry.</small>",
     "DATA_LOCKED": "Unable to save.<small><br/>Data locked on server. Please retry later</small>",
     "DATA_NOT_FOUND": "Data not found",
+    "DATA_UPDATE_DATE_CHANGED": "Your changes cannot be saved.<small><br/>Concurrent change detected. Please reload this page and retry.</small>",
     "DOWNLOAD_FAILED": "Download failed: {{error}}",
     "LOAD_ACCOUNT_ERROR": "Error loading user account.<small><br/>If the problem persists, please contact your administrator.</small>",
     "SAVE_ACCOUNT_ERROR": "Error saving your account.<small><br/>If the problem persists, please contact your administrator.</small>",

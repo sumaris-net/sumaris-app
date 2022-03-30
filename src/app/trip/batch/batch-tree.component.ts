@@ -43,8 +43,8 @@ import { BatchGroupValidatorService } from '@app/trip/services/validator/batch-g
   selector: 'app-batch-tree',
   templateUrl: './batch-tree.component.html',
   providers: [
-    {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService},
-    {provide: DataContextService, useExisting: DataContextService}
+    {provide: DataContextService, useExisting: DataContextService},
+    {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
