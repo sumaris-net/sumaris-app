@@ -868,7 +868,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       // Keep data without values for this year
       if (opts.fixAxis) {
         // Find the column
-        const column = this.$techColumns.getValue().find(c => c.columnName === techColumnName);
+        const column = (this.$techColumns.value || []).find(c => c.columnName === techColumnName);
 
         // Copy, because object if immutable
         map = { ...map };

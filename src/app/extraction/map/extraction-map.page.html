@@ -392,7 +392,7 @@
         <!-- add chart button -->
         <ng-template #addChartButton>
           <ion-card *ngIf="$techColumns | async | isNotEmptyArray"
-                    [class.cdk-visually-hidden]="!started"
+                    [class.cdk-visually-hidden]="!data.total"
                     color="light" class="no-margin-end"
                     [matMenuTriggerFor]="techColumnMenu" @fadeInAnimation>
             <ion-card-content class="ion-no-padding">
