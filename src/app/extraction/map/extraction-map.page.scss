@@ -1,4 +1,7 @@
 @import '~@bepo65/leaflet.fullscreen/Control.FullScreen.css';
+:root {
+  --control-toolbar-height: 48px;
+}
 
 div[leaflet] {
   height: 100%;
@@ -82,10 +85,6 @@ div[leaflet] {
     }
   }
 }
-/*ion-card.no-margin-end {
-  margin-right: unset;
-  margin-inline-end: 0;
-}*/
 
 ion-card {
   margin: 0;
@@ -94,6 +93,7 @@ ion-card.chart {
   width: 260px;
   height: 213px;
   margin-inline-end: 10px;
+  --ion-toolbar-height: var(--control-toolbar-height);
 
   &.chart-bar {
     width: 360px;
@@ -103,8 +103,8 @@ ion-card.chart {
   ion-toolbar {
     padding-left: unset !important;
     padding-right: unset;
-    -webkit-padding-start: 8px !important;
-    padding-inline-start: 8px !important;
+    -webkit-padding-start: 8px;
+    padding-inline-start: 8px  !important;
     -webkit-padding-end: 8px;
     padding-inline-end: 8px;
 
@@ -143,6 +143,10 @@ ion-card.chart {
 }
 
 ion-card.legend {
+  ion-card-header {
+    height: var(--control-toolbar-height);
+  }
+
   ion-card-header,
   ion-card-content {
     padding-left: unset;
@@ -156,6 +160,7 @@ ion-card.legend {
   ion-card-subtitle {
 
     ion-label {
+      color: var(--ion-color-dark);
       ion-icon,
       mat-icon {
         visibility: hidden;
@@ -175,11 +180,11 @@ ion-card.legend {
   }
 
   ion-card-header:hover {
-    color: var(--ion-color-primary);
     background: rgba(0, 0, 0, 0.04);
     cursor: pointer;
 
     ion-card-subtitle ion-label {
+      color: var(--ion-color-primary);
       ion-icon,
       mat-icon {
         visibility: visible;

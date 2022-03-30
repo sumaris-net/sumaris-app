@@ -352,25 +352,26 @@
         <!-- chart -->
         <ion-card *ngIf="$tech | async as tech; else addChartButton"
                   color="light"
-                  class="chart no-margin-end"
+                  class="chart"
                   [class.chart-bar]="techChartOptions.type==='bar'"
                   @fadeInAnimation>
-          <ion-toolbar color="transparent" class="mat-expansion-panel-header"
+          <ion-toolbar color="transparent"
                        [matMenuTriggerFor]="techColumnMenu"
                        (click)="$event.stopPropagation()">
-            <ion-text color="primary" [matTooltip]="'EXTRACTION.MAP.BTN_CHART_SERIES_HELP'|translate">
+            <ion-text color="primary" [title]="'EXTRACTION.MAP.BTN_CHART_SERIES_HELP'|translate">
               <span [innerHTML]="tech.title | translate: tech.titleParams"></span>
               <mat-icon class="ion-color-primary">arrow_drop_down</mat-icon>
             </ion-text>
 
             <ion-buttons slot="end">
               <button mat-icon-button class="ion-color-dark"
-                      [matTooltip]="'EXTRACTION.MAP.DISPLAY_OPTIONS'|translate"
+                      [title]="'EXTRACTION.MAP.DISPLAY_OPTIONS'|translate"
                       [matMenuTriggerFor]="chartOptionsMenu"
                       (click)="$event.stopPropagation()">
                 <mat-icon>more_vert</mat-icon>
               </button>
               <button mat-icon-button
+                      [title]="'COMMON.BTN_CLOSE'|translate"
                       (click)="hideTechChart()">
                 <mat-icon class="ion-color-medium">close</mat-icon>
               </button>
@@ -416,7 +417,7 @@
                   *ngIf="showLegend"
                   [ngStyle]="legendStyle"
                   @fadeInAnimation>
-          <ion-card-header (click)="openLegendForm($event)" [matTooltip]="'EXTRACTION.MAP.BTN_EDIT_LEGEND_HELP'|translate">
+          <ion-card-header (click)="openLegendForm($event)" [title]="'EXTRACTION.MAP.BTN_EDIT_LEGEND_HELP'|translate">
             <ion-card-subtitle>
               <ion-label>
                 <span translate>EXTRACTION.MAP.LEGEND</span>
