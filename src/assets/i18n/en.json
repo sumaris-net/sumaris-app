@@ -1861,8 +1861,6 @@
       "BTN_EDIT_LEGEND_HELP": "Customize legend",
       "LAYER": "Layer",
       "LAYERS": "Data layers",
-      "BASE_LAYER": "Base layer",
-      "SHOW_GRATICULE": "Show graticule",
       "SHOW_INVALID_GEOMETRIES": "Show all shapes",
       "FILTER": "Filter",
       "YEAR": "Year",
@@ -2050,6 +2048,14 @@
     "ERROR": {
       "NOT_COMPATIBLE_PEER": "The application works in <b>offline mode</b>, because the node <b>use a too old version</b>.<br/><small>If the problem persists, please <b>contact your administrator</b>, or select a node v{{version}} or superior.</small>"
     }
+  },
+  "MAP": {
+    "ZOOM_IN": "Zoom in",
+    "ZOOM_OUT": "Zoom out",
+    "ENTER_FULLSCREEN": "Fullscreen mode",
+    "EXIT_FULLSCREEN": "Exit fullscreen mode",
+    "SHOW_GRATICULE": "Show graticule",
+    "HIDE_GRATICULE": "Hide graticule"
   },
   "SOCIAL": {
     "USER_EVENT": {
