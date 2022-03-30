@@ -199,11 +199,11 @@ export const OperationQueries = {
   }
   ${OperationFragments.lightOperation}`,
 
-  loadAllWithTripWithTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithTripAndTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightOperationFragment
       trip {
-           id
+        id
         program {
           id
           label
@@ -296,12 +296,12 @@ const OperationMutations: BaseEntityGraphqlMutations & {terminate: any }= {
 };
 
 const OperationSubscriptions: BaseEntityGraphqlSubscriptions = {
-  listenChanges: gql`subscription updateOperation($id: Int!, $interval: Int){
+  listenChanges: gql`subscription UpdateOperation($id: Int!, $interval: Int){
     data: updateOperation(id: $id, interval: $interval) {
-      ...OperationFragment
+      ...LightOperationFragment
     }
   }
-  ${OperationFragments.operation}`
+  ${OperationFragments.lightOperation}`
 };
 
 const sortByStartDateFn = (n1: Operation, n2: Operation) => {
@@ -531,9 +531,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       // Prepare control options
       opts = await this.fillControlOptionsForTrip(trip.id, {trip, ...opts});
 
-      // Load all operations
+      // Load all (light) operations
       const { data } = await this.loadAllByTrip({ tripId: trip.id },
-        { computeRankOrder: false });
+        { computeRankOrder: false, fullLoad: false, toEntity: false });
 
       if (isEmptyArray(data)) return undefined; // Skip if empty
 
@@ -665,30 +665,28 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     await this.deleteAll([data]);
   }
 
-  public listenChanges(id: number): Observable<Operation> {
+  public listenChanges(id: number, opts?: {
+    interval?: number;
+    fetchPolicy: FetchPolicy;
+  }): Observable<Operation> {
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
     if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
     return this.graphql.subscribe<{ data: Operation }, { id: number, interval: number }>({
       query: OperationSubscriptions.listenChanges,
-      variables: {
-        id,
-        interval: 10
-      },
+      fetchPolicy: opts && opts.fetchPolicy || undefined,
+      variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
         code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
         message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
-        map(data => {
-          if (data && data.data) {
-            const res = Operation.fromObject(data.data);
-            if (this._debug) console.debug(`[operation-service] Operation {${id}} updated on server !`, res);
-            return res;
-          }
-          return null; // deleted ?
+        map(({data}) => {
+          const entity = data && Operation.fromObject(data);
+          if (entity && this._debug) console.debug(`[operation-service] Operation {${id}} updated on server!`, entity);
+          return entity;
         })
       );
   }
@@ -1138,11 +1136,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
           debug: false,
-          fetchPolicy: 'network-only',
+          fetchPolicy: 'no-cache',
           withTotal: (offset === 0), // Compute total only once
           toEntity: false,
           computeRankOrder: false,
-          query: OperationQueries.loadAllWithTripWithTotal
+          query: OperationQueries.loadAllWithTripAndTotal
         }),
       progression,
       { maxProgression: maxProgression * 0.9 }
@@ -1153,11 +1151,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const ids = (resLocal && resLocal.data || []).filter(ope => !res.data.find(o => o.id === ope.id) && ope.id > 0).map(o => o.id);
 
     if (ids.length > 0) {
-      await this.entities.deleteMany<Operation>(ids, { entityName: 'OperationVO', emitEvent: false });
+      await this.entities.deleteMany<Operation>(ids, { entityName: Operation.TYPENAME, emitEvent: false });
     }
 
     // Save result locally
-    await this.entities.saveAll(res.data, { entityName: 'OperationVO', reset: false });
+    await this.entities.saveAll(res.data, { entityName: Operation.TYPENAME, reset: false });
   }
 
   /**

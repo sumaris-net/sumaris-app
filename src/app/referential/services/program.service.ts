@@ -140,11 +140,12 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
 
-    const query = (!opts || opts.withTotal !== false) ? ProgramQueries.loadAllWithTotal : ProgramQueries.loadAll;
+    const withTotal = (!opts || opts.withTotal !== false);
+    const query = withTotal ? ProgramQueries.loadAllWithTotal : ProgramQueries.loadAll;
     return this.mutableWatchQuery<LoadResult<any>>({
-      queryName: (!opts || opts.withTotal !== false) ? 'LoadAllWithTotal' : 'LoadAll',
+      queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       arrayFieldName: 'data',
-      totalFieldName: 'total',
+      totalFieldName: withTotal ? 'total' : undefined,
       query,
       variables,
       error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},

@@ -409,7 +409,7 @@ export class VesselSnapshotService
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
           debug: false,
-          fetchPolicy: 'network-only',
+          fetchPolicy: 'no-cache',
           withBasePortLocation: true,
           withTotal: (offset === 0), // Compute total only once
           toEntity: false

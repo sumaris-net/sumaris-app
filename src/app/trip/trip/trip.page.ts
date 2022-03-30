@@ -24,7 +24,7 @@ import {
   NetworkService,
   PromiseEvent,
   ReferentialRef,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
 import { PhysicalGear, Trip } from '../services/model/trip.model';
@@ -43,9 +43,8 @@ import { Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { TripValidatorOptions } from '@app/trip/services/validator/trip.validator';
+import { Sale } from '@app/trip/services/model/sale.model';
 
 const moment = momentImported;
 
@@ -362,10 +361,12 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   protected async setValue(data: Trip) {
+    const isNewData = isNil(data.id);
+
     // Set data to form
     const formPromise = this.tripForm.setValue(data);
 
-    this.saleForm.value = data && data.sale;
+    this.saleForm.value = data && data.sale || new Sale();
     this.measurementsForm.value = data && data.measurements || [];
 
     // Physical gear table
@@ -373,10 +374,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.physicalGearsTable.tripId = data.id;
 
     // Operations table
-    const isNew = isNil(data.id);
-    if (!isNew && this.operationsTable) {
-      this.operationsTable.setTripId(data.id);
-    }
+    if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
 
     await formPromise;
   }

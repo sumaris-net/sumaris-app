@@ -22,11 +22,11 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person, StatusIds
+  Person, StatusIds, toNumber
 } from '@sumaris-net/ngx-components';
 import {BehaviorSubject, EMPTY, Observable, of} from 'rxjs';
 import {Landing} from './model/landing.model';
-import {gql} from '@apollo/client/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
 import {DataFragments, DataCommonFragments} from './trip.queries';
 import {filter, map, tap} from 'rxjs/operators';
 import {BaseRootDataService} from '@app/data/services/root-data-service.class';
@@ -724,27 +724,28 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   }
 
 
-  listenChanges(id: number): Observable<Landing> {
+  listenChanges(id: number, opts?: {
+    interval?: number;
+    fetchPolicy: FetchPolicy;
+  }): Observable<Landing> {
     if (!id && id !== 0) throw new Error('Missing argument \'id\'');
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 
     return this.graphql.subscribe<{ data: any }, { id: number, interval: number }>({
       query: this.subscriptions.listenChanges,
-      variables: {
-        id: id,
-        interval: 10
-      },
+      fetchPolicy: opts && opts.fetchPolicy || undefined,
+      variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
         code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
         message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
-        map(res => {
-          const data = res && Landing.fromObject(res.data);
-          if (data && this._debug) console.debug(`[landing-service] Landing {${id}} updated on server !`, data);
-          return data;
+        map(({data}) => {
+          const entity = data && Landing.fromObject(data);
+          if (entity && this._debug) console.debug(`[landing-service] Landing {${id}} updated on server!`, entity);
+          return entity;
         })
       );
   }

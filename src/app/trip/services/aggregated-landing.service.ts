@@ -59,31 +59,26 @@ ${VesselSnapshotFragments.lightVesselSnapshot}
 ${ReferentialFragments.referential}
 ${VesselActivityFragment}`;
 
-const AggregatedLandingQueries: BaseEntityGraphqlQueries = {
-  loadAll: gql`
-    query AggregatedLandings($filter: AggregatedLandingFilterVOInput){
+const Queries: BaseEntityGraphqlQueries = {
+  loadAll: gql`query AggregatedLandings($filter: AggregatedLandingFilterVOInput){
       data: aggregatedLandings(filter: $filter){
         ...AggregatedLandingFragment
       }
     }
-    ${AggregatedLandingFragment}
-  `
+    ${AggregatedLandingFragment}`
 };
 
-const AggregatedLandingMutations: BaseEntityGraphqlMutations = {
-  saveAll: gql`
-    mutation SaveAggregatedLandings($aggregatedLandings:[AggregatedLandingVOInput], $filter: AggregatedLandingFilterVOInput){
-      saveAggregatedLandings(aggregatedLandings: $aggregatedLandings, filter: $filter){
+const Mutations: BaseEntityGraphqlMutations = {
+  saveAll: gql`mutation SaveAggregatedLandings($data:[AggregatedLandingVOInput], $filter: AggregatedLandingFilterVOInput){
+    data: saveAggregatedLandings(aggregatedLandings: $data, filter: $filter){
         ...AggregatedLandingFragment
       }
     }
-    ${AggregatedLandingFragment}
-  `,
-  deleteAll: gql`
-    mutation DeleteAggregatedLandings($filter: AggregatedLandingFilterVOInput, $vesselSnapshotIds: [Int]){
+    ${AggregatedLandingFragment}`,
+
+  deleteAll: gql`mutation DeleteAggregatedLandings($filter: AggregatedLandingFilterVOInput, $vesselSnapshotIds: [Int]){
       deleteAggregatedLandings(filter: $filter, vesselSnapshotIds: $vesselSnapshotIds)
-    }
-  `
+    }`
 };
 
 @Injectable({providedIn: 'root'})
@@ -135,7 +130,7 @@ export class AggregatedLandingService
 
     return this.mutableWatchQuery<LoadResult<AggregatedLanding>>({
         queryName: 'LoadAll',
-        query: AggregatedLandingQueries.loadAll,
+        query: Queries.loadAll,
         arrayFieldName: 'data',
         insertFilterFn: dataFilter && dataFilter.asFilterFn(),
         variables: {
@@ -225,16 +220,16 @@ export class AggregatedLandingService
     const now = Date.now();
     if (this._debug) console.debug('[aggregated-landing-service] Saving aggregated landings...', json);
 
-    await this.graphql.mutate<{ saveAggregatedLandings: AggregatedLanding[] }>({
-      mutation: AggregatedLandingMutations.saveAll,
+    await this.graphql.mutate<{ data: AggregatedLanding[] }>({
+      mutation: Mutations.saveAll,
       variables: {
-        aggregatedLandings: json,
+        data: json,
         filter: this._lastFilter && this._lastFilter.asPodObject()
       },
       error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
       update: (proxy, {data}) => {
 
-        const res = data?.saveAggregatedLandings || [];
+        const res = data?.data || [];
         if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings saved remotely in ${Date.now() - now}ms`, res);
 
         entities.forEach(aggLanding => {
@@ -249,7 +244,7 @@ export class AggregatedLandingService
                 vesselActivity.observedLocationId = savedVesselActivity.observedLocationId;
                 vesselActivity.landingId = savedVesselActivity.landingId;
                 if (vesselActivity.tripId !== savedVesselActivity.tripId) {
-                  console.warn(`!!!!!!!!!!!!!! ${vesselActivity.tripId} !== ${savedVesselActivity.tripId}`)
+                  console.warn(`/!\ ${vesselActivity.tripId} !== ${savedVesselActivity.tripId}`)
                 }
                 vesselActivity.tripId = savedVesselActivity.tripId;
               }
@@ -289,7 +284,7 @@ export class AggregatedLandingService
     if (this._debug) console.debug('[aggregated-landing-service] Deleting aggregated landings... ids:', ids);
 
     await this.graphql.mutate<any>({
-      mutation: AggregatedLandingMutations.deleteAll,
+      mutation: Mutations.deleteAll,
       variables: {
         filter: this._lastFilter && this._lastFilter.asPodObject(),
         vesselSnapshotIds: entities.map(value => value.vesselSnapshot.id)

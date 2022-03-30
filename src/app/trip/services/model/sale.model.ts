@@ -1,4 +1,4 @@
-import {EntityClass, fromDateISOString, isNotEmptyArray, Person, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
+import { EntityClass, fromDateISOString, isNotEmptyArray, isNotNil, Person, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
 import {DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
 import {Sample} from './sample.model';
@@ -74,6 +74,16 @@ export class Sale extends DataRootVesselEntity<Sale>
     }
 
     return target;
+  }
+
+  equals(other: Sale): boolean {
+    // Same Entity, by ID
+    return (isNotNil(this.id) && super.equals(other))
+      // Or same [trip, rankOrder]
+      || (isNotNil(this.tripId) && this.tripId === other.tripId && this.rankOrder === other.rankOrder)
+      // Or same [observationLocation, rankOrder]
+      || (isNotNil(this.observedLocationId) && this.observedLocationId === other.observedLocationId && this.rankOrder === other.rankOrder)
+      ;
   }
 
 }

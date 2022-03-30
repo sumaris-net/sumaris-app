@@ -683,7 +683,7 @@ export class ProgramRefService
           this.loadAll(offset, size, 'id', 'asc', loadFilter, {
             debug: false,
             query: ProgramRefQueries.loadAllWithTotalAndStrategy,
-            fetchPolicy: "network-only",
+            fetchPolicy: "no-cache",
             toEntity: false
           }),
         progression,

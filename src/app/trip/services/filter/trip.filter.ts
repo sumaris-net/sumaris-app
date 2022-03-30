@@ -1,5 +1,5 @@
 import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
-import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil, Person, ReferentialRef, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotEmptyArray, isNotNil, Person, ReferentialRef, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { Trip } from '../model/trip.model';
 import { VesselSnapshot } from '../../../referential/services/model/vessel-snapshot.model';
@@ -52,7 +52,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       delete target.location;
 
       // Observers
-      target.observerPersonIds = this.observers && this.observers.map(o => o && o.id).filter(isNotNil) || undefined;
+      target.observerPersonIds = isNotEmptyArray(this.observers) && this.observers.map(o => o && o.id).filter(isNotNil) || undefined;
       delete target.observers;
     }
     else {

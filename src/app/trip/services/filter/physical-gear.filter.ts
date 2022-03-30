@@ -1,6 +1,6 @@
 import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
 import { PhysicalGear } from '../model/trip.model';
-import { EntityAsObjectOptions, EntityClass } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, FilterFn, isNotNil } from '@sumaris-net/ngx-components';
 
 @EntityClass({typename: 'PhysicalGearFilterVO'})
 export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter, PhysicalGear> {
@@ -8,8 +8,8 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
   static fromObject: (source: any, opts?: any) => PhysicalGearFilter;
 
   tripId?: number;
-  vesselId?: number;
   excludeTripId?: number;
+  vesselId?: number;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -29,4 +29,25 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
     return target;
   }
 
+  buildFilter(): FilterFn<PhysicalGear>[] {
+    const filterFns = super.buildFilter();
+
+    // Trip
+    if (isNotNil(this.tripId)) {
+      const tripId = this.tripId;
+      filterFns.push(pg => (pg.tripId === tripId || pg.trip?.id === tripId));
+    }
+    if (isNotNil(this.excludeTripId)) {
+      const excludeTripId = this.excludeTripId;
+      filterFns.push(pg => !(pg.tripId === excludeTripId || pg.trip?.id === excludeTripId));
+    }
+
+    // Vessel
+    if (isNotNil(this.vesselId)) {
+      const vesselId = this.vesselId;
+      filterFns.push(pg => pg.trip?.vesselSnapshot?.id === vesselId);
+    }
+
+    return filterFns;
+  }
 }

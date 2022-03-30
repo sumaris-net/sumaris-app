@@ -1,7 +1,7 @@
 import {Injectable, InjectionToken} from '@angular/core';
 import {
   AccountService,
-  arrayDistinct,
+  arrayDistinct, BaseEntityGraphqlQueries,
   BaseGraphqlService,
   EntitiesStorage,
   firstNotNilPromise,
@@ -27,17 +27,37 @@ import {TripFilter} from '@app/trip/services/filter/trip.filter';
 import {ErrorCodes} from '@app/data/services/errors';
 import {mergeLoadResult} from '@app/shared/functions';
 import {mergeMap} from 'rxjs/operators';
+import { OperationQueries } from '@app/trip/services/operation.service';
+import { BaseQueryOptions } from '@apollo/client';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 
+const Queries: BaseEntityGraphqlQueries & {loadAllWithTripAndTotal: any} = {
+  loadAll: gql`query PhysicalGears($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    data: physicalGears(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...PhysicalGearFragment
+    }
+  }
+  ${PhysicalGearFragments.physicalGear}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightDepartment}`,
 
-const LoadAllQuery: any = gql`
-  query PhysicalGears($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  load: gql`query PhysicalGear($id: Int!) {
+    data: physicalGear(id: $id){
+      ...PhysicalGearFragment
+    }
+  }
+  ${PhysicalGearFragments.physicalGear}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightDepartment}`,
+
+  loadAllWithTripAndTotal: gql`query PhysicalGearsWithTrip($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: physicalGears(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...PhysicalGearFragment
       trip {
         departureDateTime
         returnDateTime
         vesselSnapshot {
-          id
+          ...LightVesselSnapshotFragment
         }
       }
     }
@@ -45,19 +65,8 @@ const LoadAllQuery: any = gql`
   ${PhysicalGearFragments.physicalGear}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.lightDepartment}
-`;
-
-
-const LoadQuery: any = gql`
-  query PhysicalGear($id: Int!){
-    data: physicalGear(id: $id){
-      ...PhysicalGearFragment
-    }
-  }
-  ${PhysicalGearFragments.physicalGear}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.lightDepartment}
-`;
+  ${VesselSnapshotFragments.lightVesselSnapshot}`
+};
 
 
 const sortByTripDateFn = (n1: PhysicalGear, n2: PhysicalGear) => {
@@ -97,6 +106,8 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       distinctByRankOrder?: boolean;
       fetchPolicy?: WatchQueryFetchPolicy;
       toEntity?: boolean;
+      withTotal?: boolean;
+      query?: any;
     }
   ): Observable<LoadResult<PhysicalGear>> {
 
@@ -122,10 +133,12 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     };
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug('[physical-gear-service] Loading physical gears... using options:', variables);
+    //if (this._debug)
+      console.debug('[physical-gear-service] Loading physical gears... using options:', variables);
 
+    const query = opts?.query || Queries.loadAll;
     return this.graphql.watchQuery<LoadResult<any>>({
-      query: LoadAllQuery,
+      query,
       variables,
       error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
       fetchPolicy: opts && opts.fetchPolicy || undefined
@@ -148,6 +161,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
             data.sort(sortByTripDateFn);
           }
 
+          // Remove identical gears (find duplication, by [gear, rankOrder and measurements]
           if (opts && opts.distinctByRankOrder === true) {
             data = arrayDistinct(data, ['gear.id', 'rankOrder', 'measurementValues']);
           }
@@ -169,6 +183,15 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     return data;
   }
 
+  /**
+   * Get physical gears, from trips data, and imported gears (offline mode)
+   * @param offset
+   * @param size
+   * @param sortBy
+   * @param sortDirection
+   * @param filter
+   * @param opts
+   */
   watchAllLocally(
     offset: number,
     size: number,
@@ -227,6 +250,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
                 return {
                   ...gear,
                   trip: {
+                    id: trip.id,
                     departureDateTime: trip.departureDateTime,
                     returnDateTime: trip.returnDateTime
                   }
@@ -242,8 +266,8 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
         })
       );
 
+    // Then, search from predoc (physical gears imported by the offline mode, into the local storage)
     variables.filter = filter.asFilterFn();
-
     const fromStorage$ = this.entities.watchAll<PhysicalGear>(PhysicalGear.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
       .pipe(map(({data, total}) => {
         const entities = (!opts || opts.toEntity !== false) ?
@@ -260,9 +284,12 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
         .pipe(
           map(([res1, res2]) => mergeLoadResult(res1, res2)),
           mergeMap(async ({data, total}) => {
+            // Sort by trip dates
             if (filter && filter.vesselId && isNil(filter.tripId)) {
               data.sort(sortByTripDateFn);
             }
+
+            // Remove duplicated gears
             if (opts && opts.distinctByRankOrder === true) {
               data = arrayDistinct(data, ['gear.id', 'rankOrder', 'measurementValues']);
             }
@@ -306,7 +333,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       // Load from pod
       else {
         const res = await this.graphql.query<{ data: PhysicalGear }>({
-          query: LoadQuery,
+          query: Queries.load,
           variables: {id},
           error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'}
         });
@@ -333,6 +360,8 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
                   distinctByRankOrder?: boolean;
                   fetchPolicy?: WatchQueryFetchPolicy;
                   toEntity?: boolean;
+                  withTotal?: boolean;
+                  query?: any;
                 }): Promise<LoadResult<PhysicalGear>> {
     return firstNotNilPromise(this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts));
   }
@@ -349,13 +378,14 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       ...opts.filter
     };
 
-    console.info('[physicalgear-service] Importing physicalgear...');
+    console.info('[physical-gear-service] Importing physical gears...');
 
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
-          fetchPolicy: 'network-only',
+          fetchPolicy: 'no-cache',
           distinctByRankOrder: true,
-          toEntity: false
+          toEntity: false,
+          query: Queries.loadAllWithTripAndTotal
         }),
       progression,
       {maxProgression: maxProgression * 0.9}
@@ -363,7 +393,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
 
 
     // Save result locally
-    await this.entities.saveAll(res.data, {entityName: 'PhysicalGearVO', reset: true});
+    await this.entities.saveAll(res.data, {entityName: PhysicalGear.TYPENAME, reset: true});
   }
 
   asFilter(filter: Partial<PhysicalGearFilter>): PhysicalGearFilter {

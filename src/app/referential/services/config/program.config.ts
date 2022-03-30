@@ -259,7 +259,7 @@ export const ProgramProperties = Object.freeze({
   },
   TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
-    label: 'PROGRAM.OPTIONS.TRIP_FISHING_AREA_LOCATION_LEVEL_IDS',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS',
     type: 'entity',
     autocomplete: {
       filter: {
