@@ -2,7 +2,7 @@
   "name": "SUMARiS",
   "short_name": "SUMARiS",
   "manifest_version": 1,
-  "version": "1.22.1",
+  "version": "1.22.2",
   "default_locale": "fr",
   "description": "Data collection tool for fisheries monitoring",
   "icons": [{
