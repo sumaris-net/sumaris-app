@@ -21,7 +21,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   baseUrl: "/",
   defaultLocale: "fr",
   defaultLatLongFormat: "DDMM",
-  apolloFetchPolicy: "no-cache",
+  apolloFetchPolicy: "cache-first",
 
   // FIXME: enable cache
   persistCache: false,

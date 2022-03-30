@@ -59,21 +59,6 @@
           yPosition="above" >
   <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.DISPLAY_OPTIONS</mat-label>
 
-  <!-- Change base layer -->
-  <button mat-menu-item [matMenuTriggerFor]="baseLayerMenu" translate>EXTRACTION.MAP.BASE_LAYER</button>
-  <mat-menu #baseLayerMenu="matMenu">
-    <button mat-menu-item *ngFor="let item of availableBaseLayers" (click)="setBaseLayer(item.layer)">
-      <ion-icon *ngIf="baseLayer === item.layer" name="checkmark"></ion-icon>
-      {{item.title|translate}}
-    </button>
-  </mat-menu>
-
-  <!-- Show graticule -->
-  <button mat-menu-item (click)="toggleGraticule()">
-    <ion-icon *ngIf="showGraticule" name="checkmark"></ion-icon>
-    <span translate> EXTRACTION.MAP.SHOW_GRATICULE</span>
-  </button>
-
   <!-- Show countries layer -->
   <button mat-menu-item (click)="toggleShowCountriesLayer()">
     <ion-icon *ngIf="!showCountriesLayer" name="checkmark"></ion-icon>
@@ -146,14 +131,22 @@
 
 </mat-menu>
 
-<ion-content>
+<ion-content class="no-footer no-paginator">
 
-    <!-- -->
-  <div class="bottom-left filter ng-hide"
+  <!-- Leaflet map -->
+  <div leaflet
+       (leafletMapReady)="onMapReady($event)"
+       [leafletOptions]="mapOptions"
+       [leafletLayersControl]="layersControl">
+
+  </div>
+
+  <!-- filter panel -->
+  <div class="filter" #filterPanel
        [class.expanded]="filterExpansionPanel.expanded"
-       [@fadeInAnimation]="type">
+       [class.cdk-visually-hidden]="!type">
 
-    <mat-accordion [formGroup]="form.controls.strata">
+    <mat-accordion [formGroup]="strataForm">
 
       <!-- sheet selector -->
       <mat-expansion-panel #sheetExpansionPanel>
@@ -319,45 +312,41 @@
 
   </div>
 
-  <!-- Bottom right cards -->
-  <ion-grid class="bottom-right ion-no-padding">
+  <!-- Details -->
+  <div class="details" #detailPanel>
+    <ion-card *ngIf="$details | async as details"
+              color="light"
+              @fadeInAnimation>
 
-    <ion-row>
-      <ion-col></ion-col>
+      <ion-card-header *ngIf="details.title; let title">
+        <ion-card-subtitle><span [innerHTML]="title"></span></ion-card-subtitle>
+        <ion-card-title>
+          <ion-label>
+            <span [innerHTML]="details.value"></span>
+            <ion-text *ngIf="details.otherValue" color="medium">
+              <small>&nbsp;(<span [innerHTML]="details.otherValue"></span>)</small>
+            </ion-text>
+          </ion-label>
+        </ion-card-title>
+      </ion-card-header>
 
-      <ion-col class="ion-align-self-end">
+      <ion-card-content>
+        <p>
+          <ng-container *ngFor="let item of details.properties">
+            <ion-text color="primary100">{{item.name}}</ion-text>
+            <ion-text>:&nbsp;</ion-text>
+            <ion-text color="dark"><b>{{item.value}}</b></ion-text>
+            <br/>
+          </ng-container>
+        </p>
+      </ion-card-content>
+    </ion-card>
+  </div>
 
-        <!-- Details card -->
-        <ion-card color="light" class="details ng-hide "
-                  *ngIf="$details | async as details" @fadeInOutAnimation>
+  <!-- Bottom right -->
+  <div #bottomRightPanel>
+    <ion-row class="ion-align-self-end">
 
-          <ion-card-header *ngIf="details.title; let title">
-            <ion-card-subtitle><span [innerHTML]="title"></span></ion-card-subtitle>
-            <ion-card-title>
-              <ion-label>
-                <span [innerHTML]="details.value"></span>
-                <ion-text *ngIf="details.otherValue" color="medium">
-                  <small>&nbsp;(<span [innerHTML]="details.otherValue"></span>)</small>
-                </ion-text>
-              </ion-label>
-            </ion-card-title>
-          </ion-card-header>
-
-          <ion-card-content>
-            <p>
-              <ng-container *ngFor="let item of details.properties">
-                <ion-text color="primary100">{{item.name}}</ion-text>
-                <ion-text>:&nbsp;</ion-text>
-                <ion-text color="dark"><b>{{item.value}}</b></ion-text>
-                <br/>
-              </ng-container>
-            </p>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-
-    <ion-row>
       <ion-col class="ion-align-self-end">
 
         <!-- chart -->
@@ -567,23 +556,7 @@
         </ion-card>
       </ion-col>
     </ion-row>
-
-  </ion-grid>
-
-
-  <!-- Leaflet map -->
-  <div *ngIf="$ready|async"
-       leaflet
-       class="leaflet-reset-pane-z-index"
-       (leafletMapReady)="onMapReady($event)"
-       [leafletOptions]="mapOptions">
-
-    <div *ngIf="showCountriesLayer" [leafletLayer]="countriesLayer"></div>
-
-    <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
-
   </div>
-
 
 </ion-content>
 

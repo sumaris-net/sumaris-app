@@ -1,4 +1,4 @@
-<ng-container *ngIf="type?.sheetNames as sheetNames">
+<ng-container *ngIf="showSheetsTab && type?.sheetNames as sheetNames">
   <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength:{greaterThan: 1} ">
     <a mat-tab-link *ngFor="let item of sheetNames"
        (click)="setSheetName(item)"
