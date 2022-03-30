@@ -46,9 +46,9 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '30',
     type: 'integer'
   },
-  TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL: <FormFieldDefinition>{
+  TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE: <FormFieldDefinition>{
     key: 'sumaris.trip.onboard.measurements.optional',
-    label: 'PROGRAM.OPTIONS.TRIP_ON_BOARD_MEASUREMENTS_OPTIONAL',
+    label: 'PROGRAM.OPTIONS.TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE',
     defaultValue: 'false',
     type: 'boolean'
   },
@@ -76,6 +76,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_MAP_ZOOM',
     defaultValue: 5,
     type: 'integer'
+  },
+  TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.onboard.measurements.optional',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE',
+    defaultValue: 'true',
+    type: 'boolean'
   },
   TRIP_POSITION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.position.enable',
