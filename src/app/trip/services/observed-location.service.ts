@@ -248,7 +248,7 @@ export class ObservedLocationService
   implements IEntitiesService<ObservedLocation, ObservedLocationFilter>,
     IEntityService<ObservedLocation, number, ObservedLocationLoadOptions>,
     IDataEntityQualityService<ObservedLocation, number>,
-    IDataSynchroService<ObservedLocation, number, ObservedLocationLoadOptions> {
+    IDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationLoadOptions> {
 
   protected loading = false;
 
@@ -783,23 +783,22 @@ export class ObservedLocationService
    * @protected
    * @param opts
    */
-  protected getImportJobs(opts: {
+  protected getImportJobs(filter: Partial<ObservedLocationFilter>, opts: {
     maxProgression: undefined;
   }): Observable<number>[] {
 
-    const feature = this.settings.getOfflineFeature(this.featureName);
-    const landingFilter = ObservedLocationOfflineFilter.toLandingFilter(feature && feature.filter);
-    if (landingFilter) {
+    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+
+    if (filter) {
+      const landingFilter = ObservedLocationFilter.toLandingFilter(filter);
       return [
-        ...super.getImportJobs(opts),
+        ...super.getImportJobs(filter, opts),
+
         // Landing (historical data)
-        JobUtils.defer((p, o) => this.landingService.executeImport(p, {
-          ...o,
-          filter: landingFilter
-        }), opts)
+        JobUtils.defer(o => this.landingService.executeImport(landingFilter, o), opts)
       ];
     } else {
-      return super.getImportJobs(opts);
+      return super.getImportJobs(null, opts);
     }
   }
 

@@ -3,16 +3,19 @@ import {
   Entity,
   EntityClass,
   EntityUtils,
-  FormFieldDefinition,
+  FormFieldDefinition, isNilOrBlank,
   isNotNil,
   Person,
   PropertiesMap,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, removeDuplicatesFromArray
 } from '@sumaris-net/ngx-components';
 import { Strategy } from './strategy.model';
 import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { ProgramProperties, ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
+import { IDenormalizedPmfm, IPmfm } from '@app/referential/services/model/pmfm.model';
+import { DenormalizedPmfmStrategy, PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 @EntityClass({typename: 'ProgramVO'})
 export class Program extends BaseReferential<Program> {
@@ -175,5 +178,29 @@ export class ProgramPerson extends Entity<ProgramPerson> {
 
   equals(other: ProgramPerson): boolean {
     return ProgramPerson.equals(this, other);
+  }
+}
+
+export class ProgramUtils {
+
+  static getAcquisitionLevels(program: Program): string[] {
+
+    const acquisitionLevels = (program.strategies || []).flatMap(strategy => ((strategy.denormalizedPmfms || strategy.pmfms || []) as (IDenormalizedPmfm|PmfmStrategy)[])
+      .map(pmfm => {
+        if (pmfm && pmfm instanceof PmfmStrategy) {
+          return (typeof pmfm.acquisitionLevel === 'string' ? pmfm.acquisitionLevel : pmfm.acquisitionLevel?.label);
+        }
+        if (pmfm && pmfm instanceof DenormalizedPmfmStrategy) {
+          return pmfm.acquisitionLevel;
+        }
+      })
+      .filter(isNotNil)
+    );
+
+    return removeDuplicatesFromArray(acquisitionLevels);
+  }
+
+  static getLocationLevelIds(program) {
+    return ProgramPropertiesUtils.getPropertyAsNumbersByEntityName(program, 'LocationLevel');
   }
 }

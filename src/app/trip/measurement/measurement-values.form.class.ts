@@ -206,8 +206,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.data = null;
     this.applyingValue = false;
     this._measurementValuesForm = null;
-    this.markAsLoading();
-    if (this.$pmfms.value) this.$pmfms.next(undefined);
+    this._$ready.next(false);
+    this.resetPmfms();
   }
 
   translateControlPath(path: string): string {
@@ -274,15 +274,19 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       // Wait form is ready, before applying the data
       await this.ready();
 
-      // Applying value to form (that should be ready).
-      await this.updateView(this.data, opts);
+      // Data is still the same (not changed : applying)
+      if (data === this.data) {
+        // Applying value to form (that should be ready).
+        await this.updateView(this.data, opts);
+        this.markAsLoaded();
+      }
     }
     catch(err) {
       console.error(err);
       this.error = err && err.message || err;
+      this.markAsLoaded();
     }
     finally {
-      this.markAsLoaded();
       this.applyingValue = false;
     }
   }
@@ -349,7 +353,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   protected setGearId(value: number, opts?: {emitEvent?: boolean}) {
-    if (isNotNil(value) && this._gearId !== value) {
+    if (this._gearId !== value) {
       this._gearId = value;
 
       // Reload pmfms

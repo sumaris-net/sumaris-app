@@ -28,7 +28,8 @@ import {
   ShowToastOptions,
   StatusIds,
   suggestFromArray,
-  Toasts,
+  SuggestService,
+  Toasts
 } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
 import { CacheService } from 'ionic-cache';
@@ -39,7 +40,6 @@ import { DenormalizedPmfmStrategy } from './model/pmfm-strategy.model';
 import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 
 import { StrategyFragments } from './strategy.fragments';
-import { AcquisitionLevelCodes } from './model/model.enum';
 import { ProgramFragments } from './program.fragments';
 import { PmfmService } from './pmfm.service';
 import { BaseReferentialService } from './base-referential-service.class';
@@ -152,8 +152,8 @@ const ProgramRefCacheKeys = {
 @Injectable({providedIn: 'root'})
 export class ProgramRefService
   extends BaseReferentialService<Program, ProgramFilter>
-  implements IEntitiesService<Program, ProgramFilter>,
-    IEntityService<Program> {
+  implements IEntitiesService<Program, ProgramFilter>, IEntityService<Program>,
+    SuggestService<Program, Partial<ProgramFilter>> {
 
 
   private _subscriptionCache: {[key: string]: {
@@ -314,10 +314,10 @@ export class ProgramRefService
     cache?: boolean;
     fetchPolicy?: FetchPolicy;
   }): Promise<Program> {
+    const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
 
     // Use cache (enable by default, if no custom query)
-    if (!opts || (opts.cache !== false && !opts.query)) {
-      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
+    if (!opts || (!opts.query && opts.cache !== false && opts.fetchPolicy !== 'no-cache' && opts.fetchPolicy !== 'network-only')) {
       return this.cache.getOrSetItem<Program>(cacheKey,
         () => this.loadByLabel(label, {...opts, cache: false, toEntity: false}),
         ProgramRefCacheKeys.CACHE_GROUP)
@@ -640,10 +640,13 @@ export class ProgramRefService
     }, {});
   }
 
-  async executeImport(progression: BehaviorSubject<number>,
+  async executeImport(filter: Partial<ProgramFilter>,
                       opts?: {
+                        progression?: BehaviorSubject<number>;
                         maxProgression?: number;
                         acquisitionLevels?: string[];
+                        program?: Program;
+                        [key: string]: any;
                       }) {
 
 
@@ -657,37 +660,23 @@ export class ProgramRefService
       await this.clearCache();
 
       // Create search filter
-      let loadFilter: any = {
+      filter = {
+        ...filter,
+        acquisitionLevels: opts?.acquisitionLevels,
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
-
-      // Add filter on acquisition level
-      if (opts && isNotEmptyArray(opts.acquisitionLevels)) {
-        const acquisitionLevels: string[] = opts && opts.acquisitionLevels || Object.keys(AcquisitionLevelCodes).map(key => AcquisitionLevelCodes[key]);
-        if (acquisitionLevels && acquisitionLevels.length === 1) {
-          loadFilter = {
-            ...loadFilter,
-            searchJoin: "strategies/pmfms/acquisitionLevel",
-            searchAttribute: "label",
-            searchText: acquisitionLevels[0]
-          };
-        }
-        else {
-          console.warn('Cannot request on many acquisition level (not implemented)');
-        }
-      }
 
       // Step 1. load all programs
       const importedProgramLabels = [];
       const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
-          this.loadAll(offset, size, 'id', 'asc', loadFilter, {
+          this.loadAll(offset, size, 'id', 'asc', filter, {
             debug: false,
             query: ProgramRefQueries.loadAllWithTotalAndStrategy,
-            fetchPolicy: "no-cache",
+            fetchPolicy: 'no-cache',
             toEntity: false
           }),
-        progression,
         {
+          progression: opts?.progression,
           maxProgression: maxProgression * 0.9,
           onPageLoaded: ({data}) => {
             const labels = (data || []).map(p => p.label) as string[];

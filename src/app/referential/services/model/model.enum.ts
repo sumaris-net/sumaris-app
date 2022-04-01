@@ -29,9 +29,10 @@ export const GearLevelIds = {
   FAO: 1
 };
 
-export const TaxonGroupIds = {
+export const TaxonGroupTypeIds = {
   FAO: 2,
-  METIER: 3
+  DCF_METIER_LVL_5: 3,
+  NATIONAL_METIER: 4
 };
 
 export const TaxonomicLevelIds = {

@@ -284,6 +284,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         subscriptions: LandingSubscriptions
       }
     );
+
+    this._logPrefix = '[landing-service] ';
   }
 
   async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
@@ -819,17 +821,17 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     return undefined;
   }
 
-  async executeImport(progression: BehaviorSubject<number>,
-                opts?: {
-                  maxProgression?: number;
-                  filter?: LandingFilter|any
-                }) {
+  async executeImport(filter?: Partial<LandingFilter>,
+                      opts?: {
+                        progression?: BehaviorSubject<number>,
+                        maxProgression?: number;
+                      }) {
     const now = this._debug && Date.now();
     const maxProgression = opts && opts.maxProgression || 100;
 
-    const filter: any = {
+    filter = {
       startDate: moment().startOf('day').add(-15, 'day'),
-      ...opts?.filter
+      ...filter
     };
 
     console.info('[landing-service] Importing remote landings...', filter);
@@ -840,13 +842,12 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           fullLoad: false,
           toEntity: false
         }),
-      progression,
       {
+        progression: opts?.progression,
         maxProgression: maxProgression * 0.9,
-        fetchSize: 5,
-        logPrefix: '[landing-service]'
+        logPrefix: this._logPrefix,
+        fetchSize: 5
       });
-
 
     // Save locally
     await this.entities.saveAll(data || [], {

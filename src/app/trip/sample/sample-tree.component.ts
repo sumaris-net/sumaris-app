@@ -29,9 +29,9 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
   private static TABS = {
-    SAMPLE_TAB: 0,
-    INDIVIDUAL_MONITORING_TAB: 1,
-    INDIVIDUAL_RELEASE_TAB: 2
+    SAMPLE: 0,
+    INDIVIDUAL_MONITORING: 1,
+    INDIVIDUAL_RELEASE: 2
   }
 
   data: Sample[];
@@ -312,9 +312,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   }
 
   getFirstInvalidTabIndex(): number {
-    if (this.samplesTable.invalid) return 0;
-    if (this.showIndividualMonitoringTable && this.individualMonitoringTable.invalid) return 1;
-    if (this.showIndividualReleaseTable && this.individualReleasesTable.invalid) return 2;
+    if (this.samplesTable.invalid) return SampleTreeComponent.TABS.SAMPLE;
+    if (this.showIndividualMonitoringTable && this.individualMonitoringTable.invalid) return SampleTreeComponent.TABS.INDIVIDUAL_MONITORING;
+    if (this.showIndividualReleaseTable && this.individualReleasesTable.invalid) return SampleTreeComponent.TABS.INDIVIDUAL_RELEASE;
     return -1;
   }
 

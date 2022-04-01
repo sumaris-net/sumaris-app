@@ -27,6 +27,7 @@
     "BTN_YES_DELETE": "Oui, delete",
     "BTN_YES_CONTINUE": "Oui, continue",
     "BTN_VALIDATE": "Validate",
+    "BTN_VALIDATE_WITH_SHORTCUT_HELP": "Validate (Ctrl+Enter)",
     "BTN_VALIDATE_AND_CONTINUE": "Validate and continue",
     "BTN_VALIDATE_AND_NEW": "Valider et new",
     "BTN_NOT_SAVE": "do NOT save",

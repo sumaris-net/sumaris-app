@@ -38,9 +38,6 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
 
   onRefresh = new EventEmitter<any>();
   $types = new BehaviorSubject<T[]>(undefined);
-  typesPopoverOptions: any = {
-    showBackdrop: true
-  };
 
   @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
 
@@ -85,11 +82,6 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
     super.ngOnInit();
 
     this.addChildForm(this.criteriaForm);
-
-    this.registerSubscription(
-      this.translate.get('EXTRACTION.TYPE').subscribe(msg => {
-        this.typesPopoverOptions.header = msg;
-      }));
 
     // Load types
     this.registerSubscription(

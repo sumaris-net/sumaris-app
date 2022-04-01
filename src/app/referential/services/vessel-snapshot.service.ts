@@ -391,17 +391,18 @@ export class VesselSnapshotService
     }
   }
 
-  async executeImport(progression: BehaviorSubject<number>,
+  async executeImport(filter: Partial<VesselSnapshotFilter>,
                       opts?: {
+                        progression?: BehaviorSubject<number>,
                         maxProgression?: number;
-                        dataFilter?: any;
                       }): Promise<void> {
 
     const maxProgression = opts && opts.maxProgression || 100;
-    const filter: Partial<VesselSnapshotFilter> = {
+    filter = {
+      ...filter,
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      // Force the use of the specific program, used for vessels
       program: ReferentialRef.fromObject({label: ProgramLabel.SIH}),
-      ...opts.dataFilter
     };
 
     console.info('[vessel-snapshot-service] Importing vessels (snapshot)...');
@@ -414,8 +415,8 @@ export class VesselSnapshotService
           withTotal: (offset === 0), // Compute total only once
           toEntity: false
         }),
-      progression,
       {
+        progression: opts?.progression,
         maxProgression: maxProgression * 0.9,
         logPrefix: '[vessel-snapshot-service]'
       }

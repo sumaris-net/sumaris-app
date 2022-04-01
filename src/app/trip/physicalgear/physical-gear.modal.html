@@ -19,8 +19,8 @@
       </button>
 
       <!-- copy existing button -->
-      <ion-button *ngIf="isNew"
-                  (click)="copyPreviousGear($event)">
+      <ion-button *ngIf="isNew && onCopyPreviousGearClick.observers|isNotEmptyArray"
+                  (click)="openSearchModal($event)">
         <ion-icon slot="start" name="search"></ion-icon>
         <ion-label>
           <span translate>COMMON.BTN_SEARCH</span>

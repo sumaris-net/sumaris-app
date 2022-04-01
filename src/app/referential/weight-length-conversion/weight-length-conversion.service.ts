@@ -4,11 +4,9 @@ import { WeightLengthConversion } from '@app/referential/weight-length-conversio
 import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
 import { gql } from '@apollo/client/core';
 import { WeightLengthConversionFragments } from '@app/referential/weight-length-conversion/weight-length-conversion.fragments';
-import { ReferentialFragments } from '@app/referential/services/referential.fragments';
-import { ReferentialRefQueries } from '@app/referential/services/referential-ref.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-const QUERIES: BaseEntityGraphqlQueries = {
+const Queries: BaseEntityGraphqlQueries = {
   loadAll: gql`query WeightLengthConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: WeightLengthConversionFilterVOInput){
     data: weightLengthConversions(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...WeightLengthConversionFragment
@@ -26,7 +24,7 @@ const QUERIES: BaseEntityGraphqlQueries = {
 };
 
 
-const MUTATIONS: BaseEntityGraphqlMutations = {
+const Mutations: BaseEntityGraphqlMutations = {
   saveAll: gql`mutation SaveWeightLengthConversions($data: [WeightLengthConversionVOInput]!){
     data: saveWeightLengthConversions(data: $data){
       ...WeightLengthConversionFragment
@@ -38,6 +36,7 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
     deleteWeightLengthConversions(ids: $ids)
   }`,
 };
+
 @Injectable({providedIn: 'root'})
 // @ts-ignore
 export class WeightLengthConversionService extends BaseEntityService<WeightLengthConversion, WeightLengthConversionFilter, number>
@@ -50,8 +49,8 @@ export class WeightLengthConversionService extends BaseEntityService<WeightLengt
     super(graphql, platform,
       WeightLengthConversion, WeightLengthConversionFilter,
       {
-        queries: QUERIES,
-        mutations: MUTATIONS
+        queries: Queries,
+        mutations: Mutations
       });
   }
 

@@ -180,7 +180,7 @@ export class VesselService
   extends RootDataSynchroService<Vessel, VesselFilter>
   implements IEntitiesService<Vessel, VesselFilter>,
     IEntityService<Vessel>,
-    IDataSynchroService<Vessel> {
+    IDataSynchroService<Vessel, VesselFilter> {
 
   constructor(
     injector: Injector,

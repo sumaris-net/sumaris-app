@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input 
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, referentialsToString, referentialToString, SharedValidators } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, referentialsToString, referentialToString, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -14,6 +14,8 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationOfflineFilter } from '../../services/filter/observed-location.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
 const moment = momentImported;
 
@@ -86,9 +88,10 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
     // Program
     this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
-      filter: {
-        entityName: 'Program'
+      service: this.programRefService,
+      filter: <ProgramFilter>{
+        acquisitionLevels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
       mobile: this.mobile
     });
