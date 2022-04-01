@@ -96,7 +96,8 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     // Parent combo
     this.registerAutocompleteField('parent', {
       suggestFn: (value: any, options?: any) => this.suggestParent(value),
-      showAllOnFocus: true
+      showAllOnFocus: true,
+      mobile: this.mobile
     });
 
     this.registerSubscription(

@@ -214,7 +214,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.registerAutocompleteField('parentGroup', {
       suggestFn: (value: any, options?: any) => this.suggestParents(value, options),
       attributes: ['rankOrder'].concat(this._parentAttributes),
-      showAllOnFocus: true
+      showAllOnFocus: true,
+      mobile: this.mobile
     });
 
     // Taxon name

@@ -272,7 +272,10 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
-      this.registerAutocompleteField('vesselSnapshot', opts)
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        mobile: this.mobile
+      })
     );
 
     // Combo location
@@ -283,7 +286,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         entityName: 'Location',
         levelIds: this.locationLevelIds
       },
-      attributes: locationAttributes
+      attributes: locationAttributes,
+      mobile: this.mobile
     });
 
     // Combo: observers
@@ -297,7 +301,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: PersonUtils.personToString
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile
     });
 
     // Combo: metier
@@ -305,12 +310,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerAutocompleteField('metier', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
-      // Default filter. An excludedIds will be add dynamically
+      // Default filter. A excludedIds will be add dynamically
       filter: {
         entityName: 'Metier',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: metierAttributes
+      attributes: metierAttributes,
+      mobile: this.mobile
     });
 
     // Combo: fishingAreas
@@ -326,7 +332,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: fishingAreaAttributes
+      attributes: fishingAreaAttributes,
+      mobile: this.mobile
     });
 
     // Propagate program

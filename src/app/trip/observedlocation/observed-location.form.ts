@@ -143,6 +143,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
+    // TODO: filter by acquisition levels => Need to upgrade ProgramFilter and ProgramService
     const programAttributes = this.settings.getFieldDisplayAttributes('program');
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
@@ -158,7 +159,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     // Combo location
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
-      filter: this.locationFilter
+      filter: this.locationFilter,
+      mobile: this.mobile
     });
 
     // Combo: observers
@@ -172,7 +174,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: PersonUtils.personToString
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile
     });
 
     // Propagate program

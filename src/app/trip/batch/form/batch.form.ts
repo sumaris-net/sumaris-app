@@ -1,32 +1,34 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {Batch, BatchUtils} from '../../services/model/batch.model';
-import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
-import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
   AppFormUtils,
-  EntityUtils, firstArrayValue,
+  EntityUtils,
+  firstArrayValue,
   firstTruePromise,
   FormArrayHelper,
   IReferentialRef,
-  isNil, isNotEmptyArray,
+  isNil,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  PlatformService,
   ReferentialUtils,
-  SharedFormGroupValidators, splitByProperty,
+  SharedFormGroupValidators,
+  splitByProperty,
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
 
 import { debounceTime, delay, filter } from 'rxjs/operators';
-import {AcquisitionLevelCodes, MethodIds, PmfmIds, PmfmLabelPatterns, QualitativeLabels} from '@app/referential/services/model/model.enum';
-import {BehaviorSubject, Observable, Subscription} from 'rxjs';
-import {MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {BatchValidatorService} from '../../services/validator/batch.validator';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, PmfmLabelPatterns, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { BatchValidatorService } from '../../services/validator/batch.validator';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 @Component({
   selector: 'app-batch-form',
@@ -134,6 +136,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return this._requiredIndividualCount;
   }
 
+  get hasAvailableTaxonGroups() {
+    return isNotNil(this.availableTaxonGroups) && (!Array.isArray(this.availableTaxonGroups) || this.availableTaxonGroups.length > 0);
+  }
+
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -171,7 +177,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
     // Taxon group combo
-    if (Array.isArray(this.availableTaxonGroups) ? isNotEmptyArray(this.availableTaxonGroups) : isNotNil(this.availableTaxonGroups)) {
+    if (this.hasAvailableTaxonGroups) {
       // Set items (useful to speed up the batch group modal)
       this.registerAutocompleteField('taxonGroup', {
         items: this.availableTaxonGroups,
