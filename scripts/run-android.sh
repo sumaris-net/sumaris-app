@@ -22,7 +22,7 @@ if [[ -f ${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.apk 
   response=${response,,}    # tolower
 
   # Use confirm: Clean old APK files
-  if [[ ! "$response" =~ ^(yes|y)$ ]]; then
+  if [[ "$response" =~ ^(yes|y)$ ]]; then
 
     if [[ -d "${ANDROID_OUTPUT_APK_RELEASE}" ]]; then
       rm ${ANDROID_OUTPUT_APK_RELEASE}/*.apk
