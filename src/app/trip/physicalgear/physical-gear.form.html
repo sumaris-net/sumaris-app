@@ -13,6 +13,7 @@
                           [tabindex]="tabindex"
                           [required]="true"
                           [readonly]="!canEditGear"
+                          [showSearchBar]="false"
                           (focusout)="focusNextInput($event)">
   </mat-autocomplete-field>
 
@@ -53,7 +54,8 @@
                     [tabindex]="tabindex+2 + i*2"
                     [floatLabel]="floatLabel"
                     (keydown.tab)="focusNextInput($event)"
-                    (keydown.enter)="focusNextInput($event)">
+                    (keydown.enter)="focusNextInput($event)"
+                    [mobile]="mobile">
     </app-pmfm-field>
   </form>
 

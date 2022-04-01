@@ -49,7 +49,7 @@
       <mat-autocomplete #autoCombo="matAutocomplete"
                         autoActiveFirstOption
                         [displayWith]="displayWith">
-        <ion-row class="mat-autocomplete-header ion-no-padding">
+        <ion-row class="mat-autocomplete-header ion-no-padding column">
           <ion-col *ngFor="let attr of searchAttributes"
                    size="{{attr==='label'?3:undefined}}">
             <ion-text>{{ ('REFERENTIAL.' + attr) | uppercase | translate }}</ion-text>

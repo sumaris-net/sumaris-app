@@ -18,7 +18,8 @@
                               [tabindex]="tabindex+j"
                               [floatLabel]="floatLabel"
                               [autofocus]="autofocus"
-                              [placeholder]="placeholder">
+                              [placeholder]="placeholder"
+                              [mobile]="mobile">
               </app-pmfm-field>
             </ion-col>
 
@@ -153,7 +154,8 @@
                   [readonly]="readonly"
                   [compact]="compact"
                   [tabindex]="tabindex"
-                  [autofocus]="autofocus">
+                  [autofocus]="autofocus"
+                  [mobile]="mobile">
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -167,7 +169,8 @@
                        [readonly]="readonly"
                        [compact]="compact"
                        [tabindex]="tabindex"
-                       [autofocus]="autofocus">
+                       [autofocus]="autofocus"
+                       [mobile]="mobile">
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -188,7 +191,8 @@
                      [maxVisibleButtons]="maxVisibleButtons"
                      [buttonsColCount]="maxVisibleButtons"
                      [showButtonIcons]="showButtonIcons"
-                     (keyup.enter)="onPressEnter.emit($event)">
+                     (keyup.enter)="onPressEnter.emit($event)"
+                     [mobile]="mobile">
     <div matAfter>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -226,7 +230,8 @@
                      [required]="required"
                      [tabindex]="tabindex"
                      [latLongPattern]="latLongFormat"
-                     [defaultSign]="defaultLatitudeSign">
+                     [defaultSign]="defaultLatitudeSign"
+                     [mobile]="mobile">
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
@@ -241,7 +246,8 @@
                      [required]="required"
                      [tabindex]="tabindex"
                      [latLongPattern]="latLongFormat"
-                     [defaultSign]="defaultLongitudeSign">
+                     [defaultSign]="defaultLongitudeSign"
+                     [mobile]="mobile">
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>

@@ -340,7 +340,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       attributes: fishingAreaAttributes,
-      suggestLengthThreshold: 2
+      suggestLengthThreshold: 2,
+      mobile: this.mobile
     });
 
     // Taxon group combo

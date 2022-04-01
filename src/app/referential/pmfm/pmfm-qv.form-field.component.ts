@@ -68,7 +68,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   items: Observable<ReferentialRef[]>;
   onShowDropdown = new EventEmitter<UIEvent>(true);
-  mobile = false;
   selectedIndex = -1;
   _tabindex: number;
   showAllButtons = false;
@@ -80,6 +79,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
 
+  @Input() mobile: boolean;
   @Input() pmfm: IPmfm;
   @Input() formControl: FormControl;
   @Input() formControlName: string;

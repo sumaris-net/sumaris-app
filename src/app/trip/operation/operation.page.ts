@@ -758,12 +758,16 @@ export class OperationPage
     const canContinue = await savePromise;
     if (canContinue) {
       if (this.mobile) {
-        return this.load(undefined, {tripId: this.data.tripId, updateTabAndRoute: true});
+        return this.load(undefined, {
+          tripId: this.data.tripId,
+          updateTabAndRoute: true,
+          openTabIndex: OperationPage.TABS.GENERAL
+        });
       } else {
         return this.router.navigate(['..', 'new'], {
           relativeTo: this.route,
           replaceUrl: true,
-          queryParams: {tab: 0}
+          queryParams: {tab: OperationPage.TABS.GENERAL}
         });
       }
     }

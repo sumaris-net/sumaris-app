@@ -120,7 +120,8 @@
                                 [config]="autocompleteFields.physicalGear"
                                 [tabindex]="tabindex+2"
                                 [required]="true"
-                                [readonly]="isChildOperation">
+                                [readonly]="isChildOperation"
+                                [showSearchBar]="false">
           <mat-icon matPrefix *ngIf="mobile">settings</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -134,6 +135,7 @@
                                 [tabindex]="tabindex+3"
                                 [required]="true"
                                 [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
+                                [showSearchBar]="!autocompleteFilters.metier"
                                 [readonly]="disabled || isChildOperation">
           <mat-icon matPrefix visible-xs visible-sm
                     svgIcon="fish"></mat-icon>

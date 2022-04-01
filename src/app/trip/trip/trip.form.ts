@@ -181,6 +181,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
+    // TODO: filter by acquisition levels => Need to upgrade ProgramFilter and ProgramService
     const programAttributes = this.settings.getFieldDisplayAttributes('program');
     this.registerAutocompleteField('program', {
       service: this.referentialRefService,
@@ -195,7 +196,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
-      this.registerAutocompleteField('vesselSnapshot', opts)
+      this.registerAutocompleteField('vesselSnapshot', {
+        ...opts,
+        mobile: this.mobile
+      })
     );
 
     // Combo location
@@ -207,14 +211,14 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         levelIds: this.locationLevelIds
       }),
       filter: <Partial<ReferentialRefFilter>>{
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        entityName: 'Location'
+        entityName: 'Location',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       // Increase default size (=3) of 'label' column
       columnSizes: locationAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
       attributes: locationAttributes,
-      showAllOnFocus: false,
-      suggestLengthThreshold: this._locationSuggestLengthThreshold || 0
+      suggestLengthThreshold: this._locationSuggestLengthThreshold || 0,
+      mobile: this.mobile
     });
 
     // Combo: observers
