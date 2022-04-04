@@ -28,8 +28,6 @@ export abstract class BaseReferentialService<
   >
   extends BaseEntityService<T, F, ID>  {
 
-
-
   protected constructor(
     protected graphql: GraphqlService,
     protected platform: PlatformService,
@@ -54,7 +52,8 @@ export abstract class BaseReferentialService<
                 filter?: Partial<F>,
                 opts?: { [p: string]: any; query?: any; fetchPolicy?: FetchPolicy; debug?: boolean; withTotal?: boolean; toEntity?: boolean }): Promise<LoadResult<T>> {
     // Use search attribute as default sort, is set
-    sortBy = sortBy || filter && filter.searchAttribute;
+    sortBy = sortBy || filter?.searchAttribute;
+
     // Call inherited function
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
@@ -70,7 +69,7 @@ export abstract class BaseReferentialService<
   }
 
   async suggest(value: any, filter?: Partial<F>,
-                sortBy?: string | keyof T,
+                sortBy?: string,
                 sortDirection?: SortDirection,
                 opts?: {
                   fetchPolicy?: FetchPolicy;
@@ -86,7 +85,7 @@ export abstract class BaseReferentialService<
       value = value.trim().replace(TEXT_SEARCH_IGNORE_CHARS_REGEXP, '*');
     }
 
-    return this.loadAll(0, !value ? 30 : 10, undefined, undefined,
+    return this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
       {
         ...filter,
         searchText: value as string

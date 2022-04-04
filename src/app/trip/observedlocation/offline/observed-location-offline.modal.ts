@@ -87,13 +87,12 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     super.ngOnInit();
 
     // Program
-    this.registerAutocompleteField('program', {
+    this.registerAutocompleteField<Program, ProgramFilter>('program', {
       service: this.programRefService,
-      filter: <ProgramFilter>{
-        acquisitionLevels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      },
-      mobile: this.mobile
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING]
+      }
     });
 
     const displayAttributes = this.settings.getFieldDisplayAttributes('location');

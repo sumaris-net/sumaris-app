@@ -7,14 +7,14 @@ import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
-import { Program } from '../../../referential/services/model/program.model';
 import { TripSynchroImportFilter } from '@app/trip/services/filter/trip.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Subject } from 'rxjs';
 import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import { Program } from '@app/referential/services/model/program.model';
 
 const moment = momentImported;
 
@@ -87,13 +87,12 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     super.ngOnInit();
 
     // Program
-    this.registerAutocompleteField('program', {
+    this.registerAutocompleteField<Program, ProgramFilter>('program', {
       service: this.programRefService,
-      filter: <ProgramFilter>{
-        acquisitionLevels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION],
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      },
-      mobile: this.mobile
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
+      }
     });
 
     // Combo: vessels

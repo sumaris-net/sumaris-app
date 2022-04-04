@@ -31,10 +31,32 @@ export class Program extends BaseReferential<Program> {
   departments: ProgramDepartment[] = null;
   persons: ProgramPerson[] = null;
 
+  acquisitionLevelLabels: string[]; // Need to filter local programs
+
   strategies: Strategy[] = null;
 
   constructor() {
     super(Program.TYPENAME);
+  }
+
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    if (source.properties && source.properties instanceof Array) {
+      this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
+    } else {
+      this.properties = {...source.properties};
+    }
+    this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
+    this.taxonGroupType = (source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType)) ||
+      (isNotNil(source.taxonGroupTypeId) ? ReferentialRef.fromObject({id: source.taxonGroupTypeId}) : undefined);
+    this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
+    this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
+    this.departments = source.departments && source.departments.map(ProgramDepartment.fromObject) || [];
+    this.persons = source.persons && source.persons.map(ProgramPerson.fromObject) || [];
+    this.acquisitionLevelLabels = source.acquisitionLevelLabels || [];
+
+    this.strategies = source.strategies && source.strategies.map(Strategy.fromObject) || [];
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {
@@ -54,27 +76,10 @@ export class Program extends BaseReferential<Program> {
     target.persons = this.persons && this.persons.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
 
     target.strategies = this.strategies && this.strategies.map(s => s.asObject(opts));
+
     return target;
   }
 
-  fromObject(source: any) {
-    super.fromObject(source);
-    if (source.properties && source.properties instanceof Array) {
-      this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
-    } else {
-      this.properties = {...source.properties};
-    }
-    this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
-    this.taxonGroupType = (source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType)) ||
-      (isNotNil(source.taxonGroupTypeId) ? ReferentialRef.fromObject({id: source.taxonGroupTypeId}) : undefined);
-    this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
-    this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
-    this.departments = source.departments && source.departments.map(ProgramDepartment.fromObject) || [];
-    this.persons = source.persons && source.persons.map(ProgramPerson.fromObject) || [];
-
-    this.strategies = source.strategies && source.strategies.map(Strategy.fromObject) || [];
-
-  }
 
   equals(other: Program): boolean {
     return (super.equals(other) && isNotNil(this.id))

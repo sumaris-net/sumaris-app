@@ -30,6 +30,8 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { environment } from '@environments/environment';
 import { toDateISOString } from '@sumaris-net/ngx-components';
 import { DateFilterFn } from '@angular/material/datepicker';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 
 @Component({
   selector: 'app-form-observed-location',
@@ -143,24 +145,18 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
-    // TODO: filter by acquisition levels => Need to upgrade ProgramFilter and ProgramService
-    const programAttributes = this.settings.getFieldDisplayAttributes('program');
-    this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
-      attributes: programAttributes,
-      // Increase default column size, for 'label'
-      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-      filter: <ReferentialRefFilter>{
-        entityName: 'Program'
-      },
-      mobile: this.mobile
+    this.registerAutocompleteField<Program, ProgramFilter>('program', {
+      service: this.programRefService,
+      filter: <ProgramFilter>{
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING]
+      }
     });
 
     // Combo location
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
-      filter: this.locationFilter,
-      mobile: this.mobile
+      filter: this.locationFilter
     });
 
     // Combo: observers
@@ -174,8 +170,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: PersonUtils.personToString,
-      mobile: this.mobile
+      displayWith: PersonUtils.personToString
     });
 
     // Propagate program

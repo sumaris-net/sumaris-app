@@ -106,14 +106,14 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
     });
 
     // Sex
-    this.registerAutocompleteField('sex', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('sex', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         ...filter,
         searchAttributes: ['name'],
         levelLabels: ParameterLabelGroups.SEX
       }),
-      filter: <ReferentialRefFilter>{
+      filter: {
         entityName: 'QualitativeValue',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },

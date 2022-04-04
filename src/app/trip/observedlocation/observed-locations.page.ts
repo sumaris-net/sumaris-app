@@ -37,6 +37,7 @@ import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/m
 import {ContextService} from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { Program } from '@app/referential/services/model/program.model';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -128,10 +129,9 @@ export class ObservedLocationsPage extends
     this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: <ProgramFilter>{
-        acquisitionLevels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      },
-      mobile: this.mobile
+      }
     });
 
     // Locations combo (filter)

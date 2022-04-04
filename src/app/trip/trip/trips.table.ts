@@ -35,6 +35,7 @@ import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { Program } from '@app/referential/services/model/program.model';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -134,11 +135,10 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: <ProgramFilter> {
-        acquisitionLevels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION],
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      },
-      mobile: this.mobile
+      filter: <ProgramFilter>{
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
+      }
     });
 
     // Locations combo (filter)

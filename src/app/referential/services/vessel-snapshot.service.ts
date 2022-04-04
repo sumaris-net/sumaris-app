@@ -430,7 +430,7 @@ export class VesselSnapshotService
     return VesselSnapshotFilter.fromObject(source);
   }
 
-  async getAutocompleteFieldOptions(fieldName?: string, defaultAttributes?: string[]): Promise<MatAutocompleteFieldAddOptions> {
+  async getAutocompleteFieldOptions(fieldName?: string, defaultAttributes?: string[]): Promise<MatAutocompleteFieldAddOptions<VesselSnapshot, VesselSnapshotFilter>> {
 
     // Make sure defaults have been loaded
     if (!this.started) await this.ready();
@@ -441,17 +441,16 @@ export class VesselSnapshotService
       ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
       : baseAttributes;
 
-    return <MatAutocompleteFieldAddOptions>{
+    return <MatAutocompleteFieldAddOptions<VesselSnapshot, VesselSnapshotFilter>>{
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggest(value, filter),
       attributes: displayAttributes,
-      filter: <Partial<VesselSnapshotFilter>>{
+      filter: {
         ...this.defaultFilter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         searchAttributes: baseAttributes
       },
-      suggestLengthThreshold: this.suggestLengthThreshold,
-      debounceTime: 450
+      suggestLengthThreshold: this.suggestLengthThreshold
     };
   }
 

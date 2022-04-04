@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {TripValidatorService} from '../services/validator/trip.validator';
 import {ModalController} from '@ionic/angular';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 
 import {
   AppForm,
@@ -15,7 +15,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
-  MatAutocompleteField,
+  MatAutocompleteField, MatAutocompleteFieldAddOptions,
   NetworkService,
   OnReady,
   Person,
@@ -44,6 +44,9 @@ import {MetierFilter} from '@app/referential/services/filter/metier.filter';
 import {Metier} from '@app/referential/services/model/metier.model';
 import {combineLatest} from 'rxjs';
 import {Moment} from 'moment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { Program } from '@app/referential/services/model/program.model';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -159,6 +162,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
+    protected programRefService: ProgramRefService,
     protected metierService: MetierService,
     protected personService: PersonService,
     protected modalCtrl: ModalController,
@@ -181,25 +185,17 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
-    // TODO: filter by acquisition levels => Need to upgrade ProgramFilter and ProgramService
-    const programAttributes = this.settings.getFieldDisplayAttributes('program');
-    this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
-      attributes: programAttributes,
-      // Increase default size (=3) of 'label' column
-      columnSizes: programAttributes.map(attr => attr === 'label' ? 4 : undefined/*auto*/),
-      filter: <ReferentialRefFilter>{
-        entityName: 'Program'
-      },
-      mobile: this.mobile
+    this.registerAutocompleteField<Program, ProgramFilter>('program', {
+      service: this.programRefService,
+      filter: <ProgramFilter>{
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION]
+      }
     });
 
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
-      this.registerAutocompleteField('vesselSnapshot', {
-        ...opts,
-        mobile: this.mobile
-      })
+      this.registerAutocompleteField('vesselSnapshot', opts)
     );
 
     // Combo location

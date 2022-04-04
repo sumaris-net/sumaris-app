@@ -51,6 +51,7 @@ import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { OverlayEventDetail } from '@ionic/core';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { SortDirection } from '@angular/material/sort';
 
 
 export const ProgramRefQueries = {
@@ -234,6 +235,63 @@ export class ProgramRefService
 
     // Check same department
     return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment);
+  }
+
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
+                filter?: Partial<ProgramFilter>,
+                opts?: { [p: string]: any; query?: any; fetchPolicy?: FetchPolicy; debug?: boolean; withTotal?: boolean; toEntity?: boolean }): Promise<LoadResult<Program>> {
+    // Use search attribute as default sort, is set
+    sortBy = sortBy || filter?.searchAttribute
+      || filter?.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
+      || 'label';
+
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+       return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    // Call inherited function
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
+
+  protected async loadAllLocally(offset: number,
+                                 size: number,
+                                 sortBy?: string,
+                                 sortDirection?: SortDirection,
+                                 filter?: Partial<ProgramFilter>,
+                                 opts?: {
+                                   [key: string]: any;
+                                   toEntity?: boolean;
+                                 }): Promise<LoadResult<Program>> {
+
+    filter = this.asFilter(filter);
+
+    const variables = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || filter.searchAttribute
+        || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
+        || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: filter.asFilterFn()
+    };
+
+    const {data, total} = await this.entities.loadAll(Program.TYPENAME, variables);
+
+    const entities = (!opts || opts.toEntity !== false) ?
+      (data || []).map(Program.fromObject) :
+      (data || []) as Program[];
+
+    const res: LoadResult<Program> = {data: entities, total};
+
+    // Add fetch more function
+    const nextOffset = (offset || 0) + entities.length;
+    if (nextOffset < total) {
+      res.fetchMore = () => this.loadAllLocally(nextOffset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    return res;
   }
 
   /**
@@ -662,7 +720,7 @@ export class ProgramRefService
       // Create search filter
       filter = {
         ...filter,
-        acquisitionLevels: opts?.acquisitionLevels,
+        acquisitionLevelLabels: opts?.acquisitionLevels,
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
 

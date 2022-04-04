@@ -44,6 +44,7 @@ import { FishingAreaValidatorService } from '@app/trip/services/validator/fishin
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
 import { Metier } from '@app/referential/services/model/metier.model';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -245,16 +246,12 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // Combo: programs
-    const programAttributes = this.settings.getFieldDisplayAttributes('program');
-    this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
-      attributes: programAttributes,
-      // Increase default column size, for 'label'
-      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-      filter: <ReferentialRefFilter>{
-        entityName: 'Program'
-      },
-      mobile: this.mobile
+    this.registerAutocompleteField<Program, ProgramFilter>('program', {
+      service: this.programRefService,
+      filter: <ProgramFilter> {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING]
+      }
     });
 
     // Combo: strategy
@@ -272,10 +269,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Combo: vessels
     this.vesselSnapshotService.getAutocompleteFieldOptions().then(opts =>
-      this.registerAutocompleteField('vesselSnapshot', {
-        ...opts,
-        mobile: this.mobile
-      })
+      this.registerAutocompleteField('vesselSnapshot', opts)
     );
 
     // Combo location

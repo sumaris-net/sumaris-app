@@ -208,6 +208,9 @@ type DepartmentVO {
   levelId: Int
   logo: String
   name: String
+  "Get referential's parent"
+  parent: ReferentialVO
+  parentId: Int
   rankOrder: Int
   siteUrl: String
   statusId: Int
@@ -383,6 +386,8 @@ type LocationAssociationVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  "Get referential's parent"
+  parent: ReferentialVO
   parentId: Int
   rankOrder: Int
   statusId: Int
@@ -402,6 +407,9 @@ type LocationVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  "Get referential's parent"
+  parent: ReferentialVO
+  parentId: Int
   parents: [LocationAssociationVO]
   rankOrder: Int
   statusId: Int
@@ -442,6 +450,9 @@ type MetierVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  "Get referential's parent"
+  parent: ReferentialVO
+  parentId: Int
   rankOrder: Int
   statusId: Int
   taxonGroup: TaxonGroupVO
@@ -728,6 +739,9 @@ type ParameterVO {
   levelId: Int
   name: String
   parameterGroupId: Int
+  "Get referential's parent"
+  parent: ReferentialVO
+  parentId: Int
   qualitativeValues: [ReferentialVO]
   rankOrder: Int
   statusId: Int
@@ -841,6 +855,9 @@ type PmfmVO {
   "Get PMFM's parameter"
   parameter: ParameterVO
   parameterId: Int
+  "Get referential's parent"
+  parent: ReferentialVO
+  parentId: Int
   qualitativeValues: [ReferentialVO]
   rankOrder: Int
   signifFiguresNumber: Int
@@ -911,6 +928,10 @@ type ProgramPersonVO {
 }
 
 type ProgramVO {
+  "Get program acquisition level's labels"
+  acquisitionLevelLabels: [String]
+  "Get program's acquisition levels"
+  acquisitionLevels: [ReferentialVO]
   comments: String
   creationDate: Date
   departments: [ProgramDepartmentVO]
@@ -991,7 +1012,7 @@ type Query {
   "Get cache statistics"
   cacheStatistics: Map_String_Map_String_LongScalar
   "Clear a single cache or all caches"
-  clearCache(name: String): Boolean!
+  clearCache(name: String = ""): Boolean!
   "Load pod configuration"
   configuration(id: Int, label: String): ConfigurationVO
   "Get a department"
@@ -1107,9 +1128,9 @@ type Query {
   strategyNextLabel(labelPrefix: String = "", nbDigit: Int = 0, programId: Int!): String
   "Get next sample label for strategy"
   strategyNextSampleLabel(labelSeparator: String = "", nbDigit: Int = 0, strategyLabel: String!): String
-  "Get taxon groups from a taxon name"
+  "Search in taxon groups"
   taxonGroups(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [TaxonGroupVO]
-  "Count taxonGroups"
+  "Count taxon groups"
   taxonGroupsCount(filter: ReferentialFilterVOInput): Long
   "Get a Taxon Name"
   taxonName(id: Int, label: String): TaxonNameVO
@@ -1165,6 +1186,9 @@ type ReferentialVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  "Get referential's parent"
+  parent: ReferentialVO
+  parentId: Int
   rankOrder: Int
   statusId: Int
   updateDate: Date
@@ -1385,6 +1409,9 @@ type TaxonGroupVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  "Get referential's parent"
+  parent: ReferentialVO
+  parentId: Int
   rankOrder: Int
   statusId: Int
   "Get taxon group's taxons"
@@ -1417,6 +1444,8 @@ type TaxonNameVO {
   level: ReferentialVO
   levelId: Int
   name: String
+  "Get referential's parent"
+  parent: ReferentialVO
   parentId: Int
   parentTaxonName: TaxonNameVO
   rankOrder: Int
@@ -1635,6 +1664,7 @@ type WeightLengthConversionVO {
   "Get weight length conversion's length parameter"
   lengthParameter: ReferentialVO
   lengthParameterId: Int
+  lengthPmfmIds: [Int]
   "Get weight length conversion's length unit"
   lengthUnit: ReferentialVO
   lengthUnitId: Int
@@ -1911,6 +1941,8 @@ input DepartmentVOInput {
   levelId: Int
   logo: String
   name: String
+  parent: ReferentialVOInput
+  parentId: Int
   rankOrder: Int
   siteUrl: String
   statusId: Int
@@ -2113,6 +2145,7 @@ input LocationAssociationVOInput {
   label: String
   levelId: Int
   name: String
+  parent: ReferentialVOInput
   parentId: Int
   rankOrder: Int
   statusId: Int
@@ -2130,6 +2163,8 @@ input LocationVOInput {
   label: String
   levelId: Int
   name: String
+  parent: ReferentialVOInput
+  parentId: Int
   parents: [LocationAssociationVOInput]
   rankOrder: Int
   statusId: Int
@@ -2190,6 +2225,8 @@ input MetierVOInput {
   label: String
   levelId: Int
   name: String
+  parent: ReferentialVOInput
+  parentId: Int
   rankOrder: Int
   statusId: Int
   taxonGroup: TaxonGroupVOInput
@@ -2361,6 +2398,8 @@ input ParameterVOInput {
   levelId: Int
   name: String
   parameterGroupId: Int
+  parent: ReferentialVOInput
+  parentId: Int
   qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   statusId: Int
@@ -2499,6 +2538,8 @@ input PmfmVOInput {
   minValue: Float
   name: String
   parameterId: Int
+  parent: ReferentialVOInput
+  parentId: Int
   qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   signifFiguresNumber: Int
@@ -2557,6 +2598,7 @@ input ProgramDepartmentVOInput {
 }
 
 input ProgramFilterVOInput {
+  acquisitionLevelLabels: [String]
   excludedIds: [Int]
   id: Int
   includedIds: [Int]
@@ -2590,6 +2632,8 @@ input ProgramSaveOptionsInput {
 }
 
 input ProgramVOInput {
+  acquisitionLevelLabels: [String]
+  acquisitionLevels: [ReferentialVOInput]
   comments: String
   creationDate: Date
   departments: [ProgramDepartmentVOInput]
@@ -2659,6 +2703,8 @@ input ReferentialVOInput {
   label: String
   levelId: Int
   name: String
+  parent: ReferentialVOInput
+  parentId: Int
   rankOrder: Int
   statusId: Int
   updateDate: Date
@@ -2863,6 +2909,8 @@ input TaxonGroupVOInput {
   label: String
   levelId: Int
   name: String
+  parent: ReferentialVOInput
+  parentId: Int
   rankOrder: Int
   statusId: Int
   taxonNames: [TaxonNameVOInput]
@@ -2913,6 +2961,7 @@ input TaxonNameVOInput {
   label: String
   levelId: Int
   name: String
+  parent: ReferentialVOInput
   parentId: Int
   parentTaxonName: TaxonNameVOInput
   rankOrder: Int
@@ -3161,13 +3210,16 @@ input VesselVOInput {
 }
 
 input WeightLengthConversionFilterVOInput {
-  date: Date
   lengthParameterIds: [Int]
+  lengthPmfmIds: [Int]
   lengthUnitIds: [Int]
   locationIds: [Int]
+  month: Int
+  rectangleLabels: [String]
   referenceTaxonIds: [Int]
   sexIds: [Int]
   statusIds: [Int]
+  year: Int
 }
 
 input WeightLengthConversionVOInput {
@@ -3180,6 +3232,7 @@ input WeightLengthConversionVOInput {
   id: Int
   lengthParameter: ReferentialVOInput
   lengthParameterId: Int
+  lengthPmfmIds: [Int]
   lengthUnit: ReferentialVOInput
   lengthUnitId: Int
   location: LocationVOInput
