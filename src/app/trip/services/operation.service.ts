@@ -1154,7 +1154,6 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
-          debug: false,
           fetchPolicy: 'no-cache',
           withTotal: (offset === 0), // Compute total only once
           toEntity: false,

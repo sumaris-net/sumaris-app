@@ -74,7 +74,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   mobile: boolean;
 
   @Input() showComment = true;
-  @Input() showAddVessel = true;
+  @Input() allowAddNewVessel = true;
   @Input() showError = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() metierHistoryNbDays = 60;

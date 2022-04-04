@@ -38,7 +38,7 @@
           <ion-icon matPrefix name="boat"></ion-icon>
 
           <button matAfter type="button" mat-icon-button tabindex="-1"
-                  *ngIf="showAddVessel && network.online"
+                  *ngIf="allowAddNewVessel"
                   [title]="'TRIP.BTN_ADD_VESSEL'|translate"
                   (click)="addVesselModal()">
             <mat-icon>add</mat-icon>

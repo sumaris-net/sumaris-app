@@ -99,8 +99,27 @@ export const ProgramRefQueries = {
   }
   ${ProgramFragments.programRef}`,
 
+  // Load all query with strategies
+  loadAllWithStrategies: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...ProgramRefFragment
+      strategies {
+        ...StrategyRefFragment
+      }
+    }
+  }
+  ${ProgramFragments.programRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
+  ${StrategyFragments.denormalizedPmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}`,
+
   // Load all query (with total, and strategies)
-  loadAllWithTotalAndStrategy: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithStrategiesAndTotal: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ProgramRefFragment
       strategies {
@@ -727,8 +746,7 @@ export class ProgramRefService
       const importedProgramLabels = [];
       const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', filter, {
-            debug: false,
-            query: ProgramRefQueries.loadAllWithTotalAndStrategy,
+            query: (offset === 0) ? ProgramRefQueries.loadAllWithStrategiesAndTotal : ProgramRefQueries.loadAllWithStrategies,
             fetchPolicy: 'no-cache',
             toEntity: false
           }),
@@ -739,7 +757,8 @@ export class ProgramRefService
             const labels = (data || []).map(p => p.label) as string[];
             importedProgramLabels.push(...labels);
           },
-          logPrefix: '[program-ref-service]'
+          logPrefix: '[program-ref-service]',
+          fetchSize: 5 /* limit to 5 program, because a program graph it can be huge ! */
         }
       );
 

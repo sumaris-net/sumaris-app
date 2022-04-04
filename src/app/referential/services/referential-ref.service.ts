@@ -725,7 +725,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                 levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES]
               }, {
                 fetchPolicy: 'no-cache',
-                debug: false,
                 toEntity: false
               }),
             {progression, maxProgression, logPrefix}
@@ -736,7 +735,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
               this.loadAllMetier(offset, size, 'id', null,
                 {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup'}, {
                 fetchPolicy: 'no-cache',
-                debug: false,
                 toEntity: false
               }),
             {progression, maxProgression, logPrefix}
@@ -747,7 +745,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
               this.loadAllWeightLengthConversion(offset, size, 'id', 'asc',
                 {statusIds}, {
                   fetchPolicy: 'no-cache',
-                  debug: true,
                   toEntity: false
                 }),
             {progression, maxProgression, logPrefix}
@@ -777,7 +774,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
         // Fetch using a generic request
         res = await JobUtils.fetchAllPages<any>((offset, size) =>
             this.referentialService.loadAll(offset, size, 'id', null, filter, {
-              debug: false,
               fetchPolicy: 'no-cache',
               withTotal: (offset === 0), // Compute total only once
               toEntity: false
