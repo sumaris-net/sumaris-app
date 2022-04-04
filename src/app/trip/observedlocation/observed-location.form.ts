@@ -145,9 +145,9 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
-    this.registerAutocompleteField<Program, ProgramFilter>('program', {
+    this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: <ProgramFilter>{
+      filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING]
       }

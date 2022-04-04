@@ -185,9 +185,9 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
-    this.registerAutocompleteField<Program, ProgramFilter>('program', {
+    this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: <ProgramFilter>{
+      filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION]
       }
@@ -199,20 +199,15 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     );
 
     // Combo location
-    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         ...filter,
-        searchAttributes: locationAttributes,
         levelIds: this.locationLevelIds
       }),
-      filter: <Partial<ReferentialRefFilter>>{
+      filter: {
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      // Increase default size (=3) of 'label' column
-      columnSizes: locationAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-      attributes: locationAttributes,
       suggestLengthThreshold: this._locationSuggestLengthThreshold || 0,
       mobile: this.mobile
     });

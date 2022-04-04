@@ -10,7 +10,7 @@ import {
   HammerSwipeEvent,
   isNotNil,
   PersonService,
-  PersonUtils,
+  PersonUtils, ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
@@ -36,6 +36,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { Program } from '@app/referential/services/model/program.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -135,14 +136,14 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: <ProgramFilter>{
+      filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
       }
     });
 
     // Locations combo (filter)
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
@@ -157,7 +158,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     );
 
     // Combo: recorder department
-    this.registerAutocompleteField('department', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Department'

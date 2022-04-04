@@ -246,9 +246,9 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // Combo: programs
-    this.registerAutocompleteField<Program, ProgramFilter>('program', {
+    this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: <ProgramFilter> {
+      filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING]
       }

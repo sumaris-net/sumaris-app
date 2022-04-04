@@ -15,7 +15,7 @@ import {
   LocalSettingsService,
   PersonService,
   PersonUtils,
-  PlatformService,
+  PlatformService, ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
@@ -128,14 +128,14 @@ export class ObservedLocationsPage extends
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
       service: this.programRefService,
-      filter: <ProgramFilter>{
+      filter: {
         acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       }
     });
 
     // Locations combo (filter)
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
@@ -145,7 +145,7 @@ export class ObservedLocationsPage extends
     });
 
     // Combo: recorder department
-    this.registerAutocompleteField('department', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Department'

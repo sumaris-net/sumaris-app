@@ -87,7 +87,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     super.ngOnInit();
 
     // Program
-    this.registerAutocompleteField<Program, ProgramFilter>('program', {
+    this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],

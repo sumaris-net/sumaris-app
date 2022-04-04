@@ -71,19 +71,14 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
   protected registerAutocompleteFields() {
 
     // Location
-    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
-        ...filter,
-        searchAttributes: locationAttributes,
-        levelIds: [LocationLevelIds.COUNTRY]
-      }),
-      filter: <Partial<ReferentialRefFilter>>{
+      service: this.referentialRefService,
+      filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+        levelIds: [LocationLevelIds.COUNTRY]
       },
-      attributes: locationAttributes,
       mobile: this.mobile
     });
 

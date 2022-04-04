@@ -87,7 +87,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     super.ngOnInit();
 
     // Program
-    this.registerAutocompleteField<Program, ProgramFilter>('program', {
+    this.registerAutocompleteField('program', {
       service: this.programRefService,
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
