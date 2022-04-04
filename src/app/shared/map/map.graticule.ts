@@ -6,8 +6,7 @@
 
 import * as L from 'leaflet';
 import { GeoJSONOptions } from 'leaflet';
-import { formatLatitude, formatLongitude, LatLongFormatOptions } from '@sumaris-net/ngx-components';
-import { LatLongPattern } from '@sumaris-net/ngx-components/src/app/shared/material/latlong/latlong.utils';
+import { formatLatitude, formatLongitude, LatLongFormatOptions, LatLongPattern } from '@sumaris-net/ngx-components';
 
 export interface Graticule2ZoomInterval {
   start: number;

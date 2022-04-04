@@ -1,8 +1,7 @@
-import { FormFieldDefinition, isNilOrBlank, isNotEmptyArray, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
+import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
 import { LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
-import { FormFieldType } from '@sumaris-net/ngx-components/src/app/shared/form/field.model';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 

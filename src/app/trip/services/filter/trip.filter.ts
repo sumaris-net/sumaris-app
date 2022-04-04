@@ -1,14 +1,23 @@
-import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
-import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotEmptyArray, isNotNil, Person, ReferentialRef, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
+import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  FilterFn,
+  fromDateISOString,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  Person,
+  ReferentialRef,
+  ReferentialUtils,
+  toDateISOString
+} from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { Trip } from '../model/trip.model';
-import { VesselSnapshot } from '../../../referential/services/model/vessel-snapshot.model';
-import moment from 'moment/moment';
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { PhysicalGearFilter } from '@app/trip/services/filter/physical-gear.filter';
 import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
-import { isNil } from '@sumaris-net/ngx-components/src/app/shared/functions';
 
 
 @EntityClass({typename: 'TripFilterVO'})
