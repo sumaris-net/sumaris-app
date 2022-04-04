@@ -64,8 +64,9 @@
                                 required>
           <ion-icon matPrefix name="boat"></ion-icon>
 
+          <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
           <button matAfter type="button" mat-icon-button tabindex="-1"
-                  *ngIf="allowAddNewVessel"
+                  *ngIf="allowAddNewVessel && networkService.online"
                   [title]="'TRIP.BTN_ADD_VESSEL'|translate"
                   (click)="addVesselModal()">
             <mat-icon>add</mat-icon>

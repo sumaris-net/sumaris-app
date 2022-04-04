@@ -16,7 +16,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  MatAutocompleteField,
+  MatAutocompleteField, NetworkService,
   Person,
   PersonService,
   PersonUtils,
@@ -26,7 +26,7 @@ import {
   suggestFromArray,
   toBoolean,
   toDateISOString,
-  UserProfileLabel,
+  UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Landing } from '../services/model/landing.model';
@@ -63,6 +63,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   private _showObservers: boolean; // Disable by default
   private _canEditStrategy: boolean;
 
+  readonly networkService: NetworkService;
   observersHelper: FormArrayHelper<Person>;
   fishingAreasHelper: FormArrayHelper<FishingArea>;
   metiersHelper: FormArrayHelper<FishingArea>;
@@ -221,6 +222,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
 
+    this.networkService = injector.get(NetworkService);
     this._enable = false;
     this.mobile = this.settings.mobile;
 

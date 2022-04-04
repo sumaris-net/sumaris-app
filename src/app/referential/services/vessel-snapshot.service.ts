@@ -28,9 +28,10 @@ import { SortDirection } from '@angular/material/sort';
 import { environment } from '@environments/environment';
 import { VesselSnapshotFilter } from './filter/vessel.filter';
 import { ProgramLabel } from '@app/referential/services/model/model.enum';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { VESSEL_CONFIG_OPTIONS, VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
+import { mergeLoadResult } from '@app/shared/functions';
 
 
 export const VesselSnapshotFragments = {
@@ -236,8 +237,8 @@ export class VesselSnapshotService
       );
     }
 
-    // Online: use GraphQL
     else {
+      // Online: use GraphQL
       const query = withTotal
         ? (opts?.withBasePortLocation ? QUERIES.loadAllWithPortAndTotal : QUERIES.loadAllWithTotal)
         : (opts?.withBasePortLocation ? QUERIES.loadAllWithPort : QUERIES.loadAll);
@@ -247,9 +248,27 @@ export class VesselSnapshotService
           ...variables,
           filter: filter?.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: 'VESSEL.ERROR.LOAD_ERROR'},
+        error: { code: ErrorCodes.LOAD_VESSELS_ERROR, message: 'VESSEL.ERROR.LOAD_ERROR' },
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
       });
+
+      // Add local temporary vessels
+      const needLocalTemporaryVessel = this.settings.hasOfflineFeature(VESSEL_FEATURE_NAME)
+        && (isEmptyArray(filter?.statusIds) || filter.statusIds.includes(StatusIds.TEMPORARY));
+      if (needLocalTemporaryVessel) {
+        const temporaryFilter = filter ? filter.clone() : new VesselSnapshotFilter();
+        temporaryFilter.statusIds = [StatusIds.TEMPORARY];
+        const localRes: LoadResult<VesselSnapshot> = await this.entities.loadAll(VesselSnapshot.TYPENAME,
+          {
+            ...variables,
+            filter: temporaryFilter.asFilterFn()
+          }
+        );
+        // Add to result
+        if (localRes.total) {
+          res = mergeLoadResult(res, localRes);
+        }
+      }
     }
 
     const entities = (!opts || opts.toEntity !== false) ?
