@@ -251,7 +251,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING]
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: strategy

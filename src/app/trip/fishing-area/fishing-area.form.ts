@@ -65,22 +65,26 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: fishingAreaAttributes
+      attributes: fishingAreaAttributes,
+      mobile: this.mobile
     });
 
     // Combo: distance to coast gradient
     this.registerAutocompleteField('distanceToCoastGradient', {
-      suggestFn: (value, options) => this.suggest(value, options, 'DistanceToCoastGradient')
+      suggestFn: (value, options) => this.suggest(value, options, 'DistanceToCoastGradient'),
+      mobile: this.mobile
     });
 
     // Combo: depth gradient
     this.registerAutocompleteField('depthGradient', {
-      suggestFn: (value, options) => this.suggest(value, options, 'DepthToCoastGradient')
+      suggestFn: (value, options) => this.suggest(value, options, 'DepthToCoastGradient'),
+      mobile: this.mobile
     });
 
     // Combo: nearby specific area
     this.registerAutocompleteField('nearbySpecificArea', {
-      suggestFn: (value, options) => this.suggest(value, options, 'NearbySpecificArea')
+      suggestFn: (value, options) => this.suggest(value, options, 'NearbySpecificArea'),
+      mobile: this.mobile
     });
   }
 

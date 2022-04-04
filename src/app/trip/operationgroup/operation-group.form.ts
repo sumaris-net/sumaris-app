@@ -81,6 +81,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
       items: this.metiers,
       attributes: metierAttributes,
       columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
+      mobile: this.mobile
     });
 
     this.registerSubscription(

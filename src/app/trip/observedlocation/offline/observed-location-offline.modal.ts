@@ -92,7 +92,8 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING]
-      }
+      },
+      mobile: this.mobile
     });
 
     const displayAttributes = this.settings.getFieldDisplayAttributes('location');

@@ -92,7 +92,8 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: vessels

@@ -156,7 +156,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     // Combo location
     this.registerAutocompleteField('location', {
       service: this.referentialRefService,
-      filter: this.locationFilter
+      filter: this.locationFilter,
+      mobile: this.mobile
     });
 
     // Combo: observers
@@ -170,7 +171,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
         userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: PersonUtils.personToString
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile
     });
 
     // Propagate program

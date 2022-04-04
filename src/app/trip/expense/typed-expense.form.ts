@@ -87,7 +87,8 @@ export class TypedExpenseForm extends MeasurementsForm {
       showAllOnFocus: true,
       items: this.$packagingPmfms,
       attributes: ['unitLabel'],
-      columnNames: ['REFERENTIAL.PMFM.UNIT']
+      columnNames: ['REFERENTIAL.PMFM.UNIT'],
+      mobile: this.mobile
     });
 
   }

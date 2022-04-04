@@ -284,13 +284,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
+      mobile: this.mobile
     });
 
     // Taxon name combo
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
-      showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
+      showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/,
+      mobile: this.mobile
     });
   }
 

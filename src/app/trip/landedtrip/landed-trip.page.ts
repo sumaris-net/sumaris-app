@@ -139,7 +139,8 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       showAllOnFocus: true,
       items: this.$operationGroups,
       attributes: this.operationGroupAttributes,
-      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME']
+      columnNames: ['REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
+      mobile: this.mobile
     });
 
     // Update available operation groups for catches forms

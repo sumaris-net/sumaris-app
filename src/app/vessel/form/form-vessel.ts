@@ -23,6 +23,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
 
   data: Vessel;
 
+  readonly mobile: boolean
   readonly statusList = StatusList;
   readonly statusById = StatusById;
 
@@ -107,7 +108,7 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
 
     super(injector,
       vesselValidatorService.getFormGroup());
-
+    this.mobile = settings.mobile;
     this.canEditStatus = this.accountService.isAdmin();
   }
 
@@ -125,7 +126,8 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
         entityName: 'Location',
         levelId: LocationLevelIds.PORT,
         statusId: StatusIds.ENABLE
-      }
+      },
+      mobile: this.mobile
     });
     this.registerAutocompleteField('registrationLocation', {
       service: this.referentialRefService,
@@ -133,14 +135,16 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
         entityName: 'Location',
         levelId: LocationLevelIds.COUNTRY,
         statusId: StatusIds.ENABLE
-      }
+      },
+      mobile: this.mobile
     });
     this.registerAutocompleteField('vesselType', {
       service: this.referentialRefService,
       filter: {
         entityName: 'VesselType',
         statusId: StatusIds.ENABLE
-      }
+      },
+      mobile: this.mobile
     });
 
     if (this._defaultStatus) {

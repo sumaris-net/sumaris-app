@@ -131,7 +131,8 @@ export class ObservedLocationsPage extends
       filter: {
         acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
-      }
+      },
+      mobile: this.mobile
     });
 
     // Locations combo (filter)

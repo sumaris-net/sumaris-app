@@ -66,7 +66,9 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     this.usageMode = this.usageMode || this.settings.usageMode;
 
     // Combo: taxonGroup
-    this.registerAutocompleteField('taxonGroup', {});
+    this.registerAutocompleteField('taxonGroup', {
+      mobile: this.mobile
+    });
 
     // Combo: sale types
     this.registerAutocompleteField('saleType', {
@@ -74,7 +76,8 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
       attributes: ['name'],
       filter: {
         entityName: 'SaleType'
-      }
+      },
+      mobile: this.mobile
     });
 
   }

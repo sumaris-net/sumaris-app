@@ -190,7 +190,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION]
-      }
+      },
+      mobile: this.mobile
     });
 
     // Combo: vessels
@@ -223,7 +224,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: PersonUtils.personToString
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile
     });
 
     // Combo: metiers

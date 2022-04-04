@@ -139,7 +139,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       filter: {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
-      }
+      },
+      mobile: this.mobile
     });
 
     // Locations combo (filter)

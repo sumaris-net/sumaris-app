@@ -450,7 +450,8 @@ export class VesselSnapshotService
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         searchAttributes: baseAttributes
       },
-      suggestLengthThreshold: this.suggestLengthThreshold
+      suggestLengthThreshold: this.suggestLengthThreshold,
+      mobile: this.settings.mobile
     };
   }
 
