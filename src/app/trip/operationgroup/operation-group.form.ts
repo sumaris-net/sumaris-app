@@ -77,7 +77,6 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
 
     this.registerAutocompleteField('metier', {
-      mobile: this.mobile,
       items: this.metiers,
       attributes: metierAttributes,
       columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
