@@ -4,9 +4,8 @@ import { Component, Injector, Input } from '@angular/core';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { RoundWeightConversionService } from './round-weight-conversion.service';
 import { Validators } from '@angular/forms';
-import { StatusIds, StatusList } from '@sumaris-net/ngx-components';
+import { ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import { RoundWeightConversionValidatorService } from './round-weight-conversion.validator';
-import { TableElement } from '@e-is/ngx-material-table';
 import moment from 'moment';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { LocationLevelIds, ParameterLabelGroups } from '@app/referential/services/model/model.enum';
@@ -89,13 +88,13 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
     });
 
     // Dressing
-    this.registerAutocompleteField('dressing', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('dressing', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         ...filter,
         levelLabels: ParameterLabelGroups.DRESSING
       }),
-      filter: <ReferentialRefFilter>{
+      filter: {
         entityName: 'QualitativeValue',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
@@ -103,13 +102,13 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
     });
 
     // Preserving
-    this.registerAutocompleteField('preserving', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('preserving', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         ...filter,
         levelLabels: ParameterLabelGroups.PRESERVATION
       }),
-      filter: <ReferentialRefFilter>{
+      filter: {
         entityName: 'QualitativeValue',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },

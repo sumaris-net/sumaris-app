@@ -51,13 +51,12 @@
       <ion-row class="ion-padding-start">
         <ion-col>
           <!-- Location -->
-          <mat-autocomplete-field
-            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
-            formControlName="location"
-            [config]="autocompleteFields.location"
-            [clearable]="true"
-            [multiple]="true"
-            [tabindex]="1">
+          <mat-autocomplete-field formControlName="location"
+                                  [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
+                                  [config]="autocompleteFields.location"
+                                  [clearable]="true"
+                                  [multiple]="true"
+                                  [tabindex]="2">
             <mat-icon matPrefix>room</mat-icon>
           </mat-autocomplete-field>
         </ion-col>

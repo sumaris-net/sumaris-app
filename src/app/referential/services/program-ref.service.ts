@@ -707,7 +707,6 @@ export class ProgramRefService
                         [key: string]: any;
                       }) {
 
-
     const maxProgression = opts && opts.maxProgression || 100;
 
     const now = this._debug && Date.now();
