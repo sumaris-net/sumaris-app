@@ -15,14 +15,14 @@ import {
   LocalSettingsService,
   PersonService,
   PersonUtils,
-  PlatformService,
+  PlatformService, ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
   StatusIds
 } from '@sumaris-net/ngx-components';
 import {ObservedLocationService} from '../services/observed-location.service';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import {ObservedLocation} from '../services/model/observed-location.model';
 import {AppRootDataTable} from '@app/data/table/root-table.class';
 import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
@@ -36,6 +36,8 @@ import {filter, tap} from 'rxjs/operators';
 import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
 import {ContextService} from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { Program } from '@app/referential/services/model/program.model';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -125,15 +127,16 @@ export class ObservedLocationsPage extends
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
-      filter: <ReferentialRefFilter>{
-        entityName: 'Program'
+      service: this.programRefService,
+      filter: {
+        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
       mobile: this.mobile
     });
 
     // Locations combo (filter)
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
@@ -143,7 +146,7 @@ export class ObservedLocationsPage extends
     });
 
     // Combo: recorder department
-    this.registerAutocompleteField('department', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Department'

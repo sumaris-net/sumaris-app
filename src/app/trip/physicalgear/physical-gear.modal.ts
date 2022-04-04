@@ -4,8 +4,9 @@ import { AcquisitionLevelCodes } from '../../referential/services/model/model.en
 import { PhysicalGearForm } from './physical-gear.form';
 import { BehaviorSubject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { Alerts, createPromiseEventEmitter, emitPromiseEvent, isNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { Alerts, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, isNil, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '../services/model/trip.model';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 export interface PhysicalGearModalOptions<T extends PhysicalGear = PhysicalGear, M = PhysicalGearModal> {
   acquisitionLevel: string;
@@ -93,7 +94,7 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
     this.onCopyPreviousGearClick?.unsubscribe();
   }
 
-  async copyPreviousGear(event?: UIEvent) {
+  async openSearchModal(event?: UIEvent) {
 
     if (this.onCopyPreviousGearClick.observers.length === 0) return; // Skip
 
@@ -108,9 +109,10 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
       const data = PhysicalGear.fromObject({
         gear: selectedData.gear,
         rankOrder: selectedData.rankOrder,
-        measurementValues: selectedData.measurementValues,
+        // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
+        measurementValues: MeasurementValuesUtils.asObject(selectedData.measurementValues, {minify: true}),
         measurements: selectedData.measurements,
-      });
+      }).asObject();
 
       if (!this.canEditRankOrder) {
         // Apply computed rankOrder
@@ -119,9 +121,7 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
 
       // Apply to form
       console.debug('[physical-gear-modal] Paste selected gear:', data);
-      this.form.unload();
       this.form.reset(data);
-
       await this.form.waitIdle();
       this.form.markAsDirty();
     }
@@ -153,7 +153,18 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
   }
 
   async save(event?: UIEvent): Promise<boolean> {
-    if (!this.form.valid || this.loading) return false;
+    if (this.loading) return false;
+
+    if (!this.form.valid) {
+      // Wait validation end
+      await AppFormUtils.waitWhilePending(this.form);
+
+      if (this.form.invalid) {
+        AppFormUtils.logFormErrors(this.form.form, '[physical-gear-modal] ');
+        return false;
+      }
+    }
+
     this.loading = true;
 
     // Nothing to save: just leave

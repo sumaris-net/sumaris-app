@@ -330,17 +330,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       // Est-ce que la SFA a besoin des deux info, label et name ? Par ACSOT/PIFIL non, sur les rect stats
       ['label', 'name']
     );
-    this.registerAutocompleteField('fishingAreaLocation', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('fishingAreaLocation', {
       suggestFn: (value, filter) => this.suggestFishingAreaLocations(value, {
         ...filter,
         levelIds: this.fishingAreaLocationLevelIds
       }),
-      filter: <Partial<ReferentialRefFilter>>{
+      filter: {
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       attributes: fishingAreaAttributes,
-      suggestLengthThreshold: 2
+      suggestLengthThreshold: 2,
+      mobile: this.mobile
     });
 
     // Taxon group combo
@@ -1023,7 +1024,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return suggestFromArray(metiers, value, filter);
   }
 
-  protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<IReferentialRef>> {
+  protected async suggestFishingAreaLocations(value: string, filter: any): Promise<LoadResult<ReferentialRef>> {
     const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
 
     // Excluded existing locations, BUT keep the current control value

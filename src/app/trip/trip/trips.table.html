@@ -77,6 +77,7 @@
   <!-- Update offline mode -->
   <button mat-menu-item
           *ngIf="hasOfflineMode"
+          [disabled]="offline"
           (click)="prepareOfflineMode($event)">
     <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
     <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
@@ -85,6 +86,7 @@
   <!-- Init offline mode -->
   <button mat-menu-item
           *ngIf="!hasOfflineMode"
+          [disabled]="offline"
           (click)="prepareOfflineMode($event)">
     <mat-icon>cloud_off</mat-icon>
     <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>

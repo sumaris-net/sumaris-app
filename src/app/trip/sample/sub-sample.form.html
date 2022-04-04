@@ -43,6 +43,7 @@
                                   [config]="autocompleteFields.parent"
                                   [tabindex]="(showLabel ? 1 : 0) + tabindex"
                                   [readonly]="!showParent"
+                                  [showSearchBar]="false"
                                   required>
           </mat-autocomplete-field>
       </ion-col>
@@ -63,6 +64,7 @@
                         [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
                         [maxVisibleButtons]="maxVisibleButtons"
                         [compact]="compact"
+                        [mobile]="mobile"
                         [tabindex]="tabindex+2 + i*maxVisibleButtons"
                         [defaultLatitudeSign]="defaultLatitudeSign"
                         [defaultLongitudeSign]="defaultLongitudeSign"

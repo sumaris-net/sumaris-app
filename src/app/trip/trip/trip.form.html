@@ -14,10 +14,11 @@
         <ion-label>&nbsp;</ion-label>
       </ion-col>
       <ion-col>
-        <mat-autocomplete-field formControlName="program"
+        <mat-autocomplete-field *ngIf="autocompleteFields.vesselSnapshot; else fieldSkeleton"
+                                formControlName="program"
                                 [placeholder]="'TRIP.PROGRAM'|translate"
                                 [config]="autocompleteFields.program"
-                                required>
+                                [required]="true">
           <ion-icon matPrefix name="contract"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -36,8 +37,9 @@
                                 required>
           <ion-icon matPrefix name="boat"></ion-icon>
 
+          <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
           <button matAfter type="button" mat-icon-button tabindex="-1"
-                  *ngIf="showAddVessel && network.online"
+                  *ngIf="allowAddNewVessel && network.online"
                   [title]="'TRIP.BTN_ADD_VESSEL'|translate"
                   (click)="addVesselModal()">
             <mat-icon>add</mat-icon>

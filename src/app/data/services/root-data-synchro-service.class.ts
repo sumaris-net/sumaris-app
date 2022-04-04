@@ -1,4 +1,4 @@
-import { concat, defer, Observable, of, Subject, timer } from 'rxjs';
+import { concat, defer, from, Observable, of, Subject, timer } from 'rxjs';
 import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {DataRootEntityUtils, RootDataEntity} from './model/root-data-entity.model';
 import {
@@ -8,7 +8,7 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   isEmptyArray,
-  isNil,
+  isNil, isNilOrNaN,
   isNotEmptyArray,
   JobUtils,
   LocalSettingsService,
@@ -30,16 +30,26 @@ import {ObservedLocation} from '@app/trip/services/model/observed-location.model
 import {RootDataEntityFilter} from './model/root-data-filter.model';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
+export class DataSynchroImportFilter {
+  programLabel?: string;
+  vesselId?: number;
+  startDate?: Date | Moment;
+  endDate?: Date | Moment
+  periodDuration?: number;
+  periodDurationUnit?: DurationConstructor;
+}
 
 export interface IDataSynchroService<
   T extends RootDataEntity<T, ID>,
+  F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
   ID = number,
   LO extends EntityServiceLoadOptions = EntityServiceLoadOptions> {
 
   load(id: ID, opts?: LO): Promise<T>;
 
-  executeImport(opts?: {
+  executeImport(filter?: Partial<F>, opts?: {
     maxProgression?: number;
   }): Observable<number>;
 
@@ -75,7 +85,7 @@ export abstract class RootDataSynchroService<
   M extends BaseRootEntityGraphqlMutations = BaseRootEntityGraphqlMutations,
   S extends BaseEntityGraphqlSubscriptions = BaseEntityGraphqlSubscriptions>
   extends BaseRootDataService<T, F, ID, WO, LO, Q, M, S>
-  implements IDataSynchroService<T, ID, LO> {
+  implements IDataSynchroService<T, F, ID, LO> {
 
   protected _featureName: string;
 
@@ -87,7 +97,7 @@ export abstract class RootDataSynchroService<
   protected network: NetworkService;
   protected settings: LocalSettingsService;
 
-  protected $importationProgress: Observable<number>;
+  protected importationProgress$: Observable<number>;
   protected loading = false;
 
   get featureName(): string {
@@ -111,75 +121,76 @@ export abstract class RootDataSynchroService<
     this.settings = injector.get(LocalSettingsService);
   }
 
-  executeImport(opts?: {
-    maxProgression?: number;
-  }): Observable<number>{
-    if (this.$importationProgress) return this.$importationProgress; // Avoid many call
+  executeImport(filter?: Partial<F>,
+                opts?: { maxProgression?: number; }
+  ): Observable<number>{
+    if (this.importationProgress$) return this.importationProgress$; // Avoid many call
 
     const totalProgression = opts && opts.maxProgression || 100;
     const jobOpts = { maxProgression: undefined /* set later, when jobs length is known */};
-    const jobDefers: Observable<number>[] = [
+    const jobs: Observable<number>[] = [
       // Clear caches
-      defer(() => timer()
-        .pipe(
-          switchMap(() => this.network.clearCache()),
-          map(() => jobOpts.maxProgression as number)
-        )
+      defer(() => this.network.clearCache()
+        .then(() => jobOpts.maxProgression as number)
       ),
 
       // Execute import Jobs
-      ...this.getImportJobs(jobOpts),
+      ...this.getImportJobs(filter, jobOpts),
 
       // Save data to local storage, then set progression to the max
-      defer(() => timer()
-        .pipe(
-          switchMap(() => this.entities.persist()),
-          map(() => jobOpts.maxProgression as number)
-        ))
+      defer(() => this.entities.persist()
+          .then(() => jobOpts.maxProgression as number))
     ];
-    const jobCount = jobDefers.length;
-    jobOpts.maxProgression = Math.trunc(totalProgression / jobCount);
+    const jobCount = jobs.length;
+    const jobMaxProgression = Math.trunc(totalProgression / jobCount);
+    jobOpts.maxProgression = jobMaxProgression;
 
     const now = Date.now();
-    console.info(`[root-data-service] Starting ${this.featureName} importation (${jobDefers.length} jobs)...`);
+    console.info(`[root-data-service] Starting ${this.featureName} importation (${jobs.length} jobs)...`);
 
     // Execute all jobs, one by one
     let jobIndex = 0;
-    this.$importationProgress = concat(
-      ...jobDefers.map((jobDefer: Observable<number>, index) => {
-        return jobDefer
+    this.importationProgress$ = concat(
+      ...jobs.map((job: Observable<number>, index) => {
+        return job
           .pipe(
             map(jobProgression => {
               jobIndex = index;
-              if (this._debug && jobProgression > jobOpts.maxProgression) {
-                console.warn(`[root-data-service] WARN job #${jobIndex} return a jobProgression > maxProgression (${jobProgression} > ${jobOpts.maxProgression})!`);
+              if (isNilOrNaN(jobProgression) || jobProgression < 0) {
+                if (this._debug) console.warn(`[root-data-service] WARN job #${jobIndex} sent invalid progression ${jobProgression}`);
+                jobProgression = 0;
               }
-              // Compute total progression
-              return index * jobOpts.maxProgression + Math.min(jobProgression || 0, jobOpts.maxProgression);
+              else if (jobProgression > jobMaxProgression) {
+                if (this._debug) console.warn(`[root-data-service] WARN job #${jobIndex} sent invalid progression ${jobProgression} > ${jobMaxProgression}`);
+                jobProgression = jobMaxProgression;
+              }
+              // Compute total progression (= job offset + job progression)
+              return (index * jobMaxProgression) + jobProgression;
             })
           );
       }),
 
-      // Finish (force to reach max value)
+      // Finish (force totalProgression)
       of(totalProgression)
         .pipe(
-          tap(() => this.$importationProgress = null),
-          tap(() => this.finishImport()),
-          tap(() => console.info(`[root-data-service] Importation finished in ${Date.now() - now}ms`))
-        ))
+          tap(() => {
+            this.importationProgress$ = null;
+            this.finishImport();
+            console.info(`[root-data-service] Importation finished in ${Date.now() - now}ms`)
+          })
+        )
+      ) // end of concat
 
       .pipe(
         catchError((err) => {
-          this.$importationProgress = null;
+          this.importationProgress$ = null;
           console.error(`[root-data-service] Error during importation (job #${jobIndex + 1}): ${err && err.message || err}`, err);
           throw err;
         }),
-        // Compute total progression (= job offset + job progression)
-        // (and make ti always <= maxProgression)
         map((progression) =>  Math.min(progression, totalProgression))
       );
 
-    return this.$importationProgress;
+    return this.importationProgress$;
   }
 
 
@@ -315,15 +326,15 @@ export abstract class RootDataSynchroService<
    * @param opts
    * @protected
    */
-  protected getImportJobs(opts: {
-    maxProgression: undefined;
-    dataFilter?: any;
+  protected getImportJobs(filter: Partial<F>, opts: {
+    maxProgression?: number;
+    [key: string]: any;
   }): Observable<number>[] {
     return JobUtils.defers([
-      (p, o) => this.referentialRefService.executeImport(p, o),
-      (p, o) => this.personService.executeImport(p, o),
-      (p, o) => this.vesselSnapshotService.executeImport(p, o),
-      (p, o) => this.programRefService.executeImport(p, o)
+      (o) => this.referentialRefService.executeImport(filter, o),
+      (o) => this.personService.executeImport(filter as any, o),
+      (o) => this.vesselSnapshotService.executeImport(filter as any, o),
+      (o) => this.programRefService.executeImport(filter as any, o)
     ], opts);
   }
 

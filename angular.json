@@ -37,7 +37,8 @@
               "zen-observable",
               "subscriptions-transport-ws",
               "chart.js",
-              "react"
+              "react",
+              "@bepo65/leaflet.fullscreen"
             ],
             "assets": [
               {

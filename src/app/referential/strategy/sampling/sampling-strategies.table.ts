@@ -10,14 +10,14 @@ import {
   isNotNil,
   ObjectMap,
   PersonService,
-  PersonUtils,
+  PersonUtils, ReferentialRef,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
   sleep,
   StatusIds,
-  toBoolean,
+  toBoolean
 } from '@sumaris-net/ngx-components';
 import { Program } from '../../services/model/program.model';
 import { LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
@@ -38,6 +38,8 @@ import { TableElement } from '@e-is/ngx-material-table/src/app/ngx-material-tabl
 import { Subject } from 'rxjs';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { StrategyModal } from '@app/referential/strategy/strategy.modal';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 const moment = momentImported;
 
@@ -186,20 +188,20 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       mobile: this.mobile
     });
 
-    this.registerAutocompleteField('department', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
       showAllOnFocus: false,
       service: this.referentialRefService,
-      filter: <ReferentialFilter>{
+      filter: {
         entityName: 'Department',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
       mobile: this.mobile
     });
 
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       showAllOnFocus: false,
       service: this.referentialRefService,
-      filter: <ReferentialFilter>{
+      filter: {
         entityName: 'Location',
         // TODO BLA: rendre ceci paramètrable par program properties
         levelIds: LocationLevelIds.LOCATIONS_AREA,
@@ -208,11 +210,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       mobile: this.mobile
     });
 
-    this.registerAutocompleteField('taxonName', {
+    this.registerAutocompleteField<TaxonNameRef, ReferentialFilter>('taxonName', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.referentialRefService.suggestTaxonNames(value, filter),
       attributes: ['name'],
-      filter: <ReferentialFilter>{
+      filter: {
         levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },

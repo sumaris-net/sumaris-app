@@ -230,13 +230,15 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     // Parent combo
     this.registerAutocompleteField('parentGroup', {
       suggestFn: (value: any, options?: any) => this.suggestParent(value, options),
-      showAllOnFocus: true
+      showAllOnFocus: true,
+      mobile: this.mobile
     });
     this.updateParentAutocomplete();
 
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
-      showAllOnFocus: true
+      showAllOnFocus: true,
+      mobile: this.mobile
     });
 
     if (this.inlineEdition) { // can be override bu subclasses

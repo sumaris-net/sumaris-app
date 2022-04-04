@@ -12,7 +12,8 @@ import {
   EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
-  FormErrors, FormErrorTranslator,
+  FormErrors,
+  FormErrorTranslator,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -24,11 +25,11 @@ import {
   LoadResult,
   LocalSettingsService,
   NetworkService,
-  PersonService,
+  PersonService, removeDuplicatesFromArray,
   ShowToastOptions,
   Toasts,
   toNumber,
-  UserEventService,
+  UserEventService
 } from '@sumaris-net/ngx-components';
 import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
@@ -36,15 +37,15 @@ import {
   DataEntityAsObjectOptions,
   MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   SAVE_AS_OBJECT_OPTIONS,
-  SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
+  SERIALIZE_FOR_OPTIMISTIC_RESPONSE
 } from '@app/data/services/model/data-entity.model';
-import { Observable } from 'rxjs';
+import { defer, Observable } from 'rxjs';
 import { IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
-import { FISHING_AREAS_LOCATION_REGEXP, Operation, OperationGroup, PhysicalGear, POSITIONS_REGEXP, Trip } from './model/trip.model';
+import { Operation, OperationGroup, PhysicalGear, Trip } from './model/trip.model';
 import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
@@ -57,7 +58,7 @@ import { environment } from '@environments/environment';
 import { Sample } from './model/sample.model';
 import { ErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
-import { TripFilter, TripOfflineFilter } from './filter/trip.filter';
+import { TripFilter } from './filter/trip.filter';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
@@ -66,7 +67,9 @@ import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-ser
 import { TripErrorCodes } from '@app/trip/services/trip.errors';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
-import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { ProgramProperties, ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
+import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 
 const moment = momentImported;
 
@@ -404,7 +407,7 @@ export class TripService
   implements IEntitiesService<Trip, TripFilter>,
     IEntityService<Trip, number, TripLoadOptions>,
     IRootDataEntityQualityService<Trip>,
-    IDataSynchroService<Trip, number, TripLoadOptions> {
+    IDataSynchroService<Trip, TripFilter, number, TripLoadOptions> {
 
   constructor(
     injector: Injector,
@@ -1556,34 +1559,47 @@ export class TripService
    * List of importation jobs.
    *
    * @protected
+   * @param filter
    * @param opts
    */
-  protected getImportJobs(opts: {
-    maxProgression: undefined;
+  protected getImportJobs(filter: Partial<TripFilter>, opts: {
+    maxProgression: number;
+    program?: Program;
+    acquisitionLevels?: string[];
+    [key: string]: any;
   }): Observable<number>[] {
 
-    const feature = this.settings.getOfflineFeature(this.featureName);
-    const tripFilter = TripOfflineFilter.toTripFilter(feature && feature.filter);
-    if (tripFilter) {
-      const filter = {
-        programLabel: tripFilter.program.label,
-        vesselId: tripFilter.vesselId,
-        startDate: tripFilter.startDate
-      };
+    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
+
+    filter = this.asFilter(filter)
+    const programLabel = filter && filter.program?.label;
+
+    if (programLabel) {
 
       return [
-        ...super.getImportJobs({...opts, dataFilter: filter}),
-        JobUtils.defer((p, o) => this.operationService.executeImport(p, {
-          ...o,
-          filter
-        }), opts),
-        JobUtils.defer((p, o) => this.physicalGearService.executeImport(p, {
-          ...o,
-          filter
-        }), opts)
+        // Store program to opts, for other services (e.g. used by OperationService)
+        JobUtils.defer(o => this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'})
+            .then(program => {
+              opts.program = program;
+              opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+            })),
+
+        ...super.getImportJobs(filter, opts),
+
+        // Import operations
+        JobUtils.defer(o => {
+          const operationFilter = TripFilter.toOperationFilter(filter);
+          return this.operationService.executeImport(operationFilter, o);
+        }, opts),
+
+        // Import historical physical gear
+        JobUtils.defer(o => {
+          const gearFilter = TripFilter.toPhysicalGearFilter(filter);
+          return this.physicalGearService.executeImport(gearFilter, o);
+        }, opts)
       ];
     } else {
-      return super.getImportJobs(opts);
+      return super.getImportJobs(null, opts);
     }
   }
 

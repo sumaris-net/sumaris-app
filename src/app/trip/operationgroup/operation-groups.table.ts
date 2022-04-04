@@ -103,7 +103,8 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
       showAllOnFocus: true,
       items: this.metiers,
       attributes: metierAttributes,
-      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined)
+      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
+      mobile: this.mobile
     });
   }
 

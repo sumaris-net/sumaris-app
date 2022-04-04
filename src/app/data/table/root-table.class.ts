@@ -85,7 +85,7 @@ export abstract class AppRootDataTable<
   protected constructor(
     injector: Injector,
     columns: string[],
-    protected dataService: IDataSynchroService<T, ID>,
+    protected dataService: IDataSynchroService<T, F, ID>,
     dataSource?: EntitiesTableDataSource<T, F, ID>,
     filter?: F
   ) {
@@ -204,14 +204,16 @@ export abstract class AppRootDataTable<
     }
 
     this.progressionMessage = 'NETWORK.INFO.IMPORTATION_PCT_DOTS';
+    const maxProgression = 100;
     this.$progression.next(0);
+    this.resetError();
 
     let success = false;
     try {
 
       await new Promise<void>((resolve, reject) => {
         // Run the import
-        this.dataService.executeImport({maxProgression: 100})
+        this.dataService.executeImport(null, {maxProgression})
           .pipe(
             filter(value => value > 0),
             map((progress) => {
@@ -219,17 +221,14 @@ export abstract class AppRootDataTable<
                 this.importing = true;
                 this.markForCheck();
               }
-              return Math.min(Math.trunc(progress), 100);
+              return Math.min(Math.trunc(progress), maxProgression);
             }),
-            catchError(err => {
-              reject(err);
-              throw err;
-            }),
-            throttleTime(100)
+            throttleTime(100),
+            tap(progression => this.$progression.next(progression))
           )
-          .subscribe(progression => this.$progression.next(progression))
-          .add(() => {
-            resolve();
+          .subscribe({
+            error: (err) => reject(err),
+            complete: () => resolve()
           });
       });
 
@@ -250,7 +249,7 @@ export abstract class AppRootDataTable<
     }
     catch (err) {
       success = false;
-      this.error = err && err.message || err;
+      this.setError(err);
       return success;
     }
     finally {

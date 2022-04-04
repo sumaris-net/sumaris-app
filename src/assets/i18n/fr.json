@@ -27,6 +27,7 @@
     "BTN_YES_DELETE": "Oui, supprimer",
     "BTN_YES_CONTINUE": "Oui, continuer",
     "BTN_VALIDATE": "Valider",
+    "BTN_VALIDATE_WITH_SHORTCUT_HELP": "Valider (Ctrl+Entrée)",
     "BTN_VALIDATE_AND_CONTINUE": "Valider et continuer",
     "BTN_VALIDATE_AND_NEW": "Valider et nouveau",
     "BTN_NOT_SAVE": "Ne PAS sauvegarder",
@@ -235,7 +236,10 @@
         "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)",
         "QUALITATIVE_VALUE_LANDING_ID": "Référentiel > Valeur qualitative > Partie retenue (LAN)",
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Référentiel > Valeur qualitative > Présentation de l'espèce / Entier",
-        "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Référentiel > Valeur qualitative > État de l'espèce / Frais"
+        "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Référentiel > Valeur qualitative > État de l'espèce / Frais",
+        "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
+        "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métier nationaux",
+        "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métier DCF 5"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",

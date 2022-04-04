@@ -6,7 +6,7 @@ import {
   PersonFilter,
   PersonService,
   PersonUtils,
-  Referential,
+  Referential, ReferentialRef,
   ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -93,7 +93,7 @@ export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, Perso
 
     this.registerAutocompleteField('privilege', {
       service: this.referentialRefService,
-      filter: <ReferentialFilter>{
+      filter: {
         entityName: 'ProgramPrivilege',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
@@ -102,13 +102,13 @@ export class PersonPrivilegesTable extends AppInMemoryTable<ProgramPerson, Perso
     });
     this.memoryDataService.addSortByReplacement('privilege', 'privilege.name');
 
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialFilter>('location', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         ...filter,
         levelIds: this.locationLevelIds
       }),
-      filter: <ReferentialFilter>{
+      filter: {
         entityName: 'Location',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },

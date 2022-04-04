@@ -79,6 +79,7 @@ import { IDataEntityQualityService } from '@app/data/services/data-quality-servi
 import { TripLoadOptions } from '@app/trip/services/trip.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
+import { Program } from '@app/referential/services/model/program.model';
 
 
 export const OperationFragments = {
@@ -396,6 +397,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     this._mutableWatchQueriesMaxCount = 3;
     this._watchQueriesUpdatePolicy = 'update-cache';
+    this._logPrefix = '[operation-service] ';
 
     // -- For DEV only
     this._debug = !environment.production;
@@ -1116,46 +1118,72 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return currentPosition && PositionUtils.computeDistanceInMiles(currentPosition, position);
   }
 
-  async executeImport(progression: BehaviorSubject<number>,
+  async executeImport(filter: Partial<OperationFilter>,
                       opts?: {
+                        progression?: BehaviorSubject<number>,
                         maxProgression?: number;
-                        filter: OperationFilter | any;
+                        program?: Program;
+                        [key: string]: any;
                       }): Promise<void> {
-
     const maxProgression = opts && opts.maxProgression || 100;
-    const filter = {
-      excludeChildOperation: true,
-      hasNoChildOperation: true,
-      startDate: moment().add(-15, 'day'), // Overrided by opts.filter.startDate
+
+    // Load program
+    const program = opts.program || (filter?.programLabel && (await this.programRefService.loadByLabel(filter.programLabel)));
+    const allowParentOperation = program && program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
+
+    // No parent/child operation : skip
+    if (!allowParentOperation) {
+      if (opts?.progression) opts.progression.next(maxProgression);
+      console.debug(`${this._logPrefix}Importing operation: disabled by program. Skipping`);
+      return;
+    }
+
+    filter = {
+      // Can be overwriting by filter
+      startDate: moment().add(-15, 'day'),
+      // Received filter (e.g. startDate, endDate)
+      ...filter,
+      // Fixed values
       qualityFlagId: QualityFlagIds.NOT_COMPLETED,
-      ...opts.filter
+      excludeChildOperation: true,
+      hasNoChildOperation: true
     };
 
-    console.info('[operation-service] Importing operation...');
+
+    console.info('[operation-service] Importing operations...');
 
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
-          debug: false,
           fetchPolicy: 'no-cache',
           withTotal: (offset === 0), // Compute total only once
           toEntity: false,
           computeRankOrder: false,
           query: OperationQueries.loadAllWithTripAndTotal
         }),
-      progression,
-      { maxProgression: maxProgression * 0.9 }
+      {
+        progression: opts?.progression,
+        maxProgression: maxProgression * 0.9,
+        logPrefix: this._logPrefix,
+        fetchSize: 100
+      }
     );
 
-    //Remove parent operation stayed saved locally which have a child synchronized
-    const resLocal = await this.entities.loadAll<Operation>(Operation.TYPENAME, {}, { fullLoad: false });
-    const ids = (resLocal && resLocal.data || []).filter(ope => !res.data.find(o => o.id === ope.id) && ope.id > 0).map(o => o.id);
+    // Collected ids
+    const importedIds = (res?.data ||[]).map(ope => +ope.id);
 
-    if (ids.length > 0) {
+    // Find data imported previously, that not exists in new imported data
+    const previousRes = (await this.entities.loadAll<Operation>(Operation.TYPENAME, {
+      filter: (ope) => EntityUtils.isRemoteId(ope.id) && !importedIds.includes(+ope.id)
+    }, { fullLoad: false }));
+
+    // Remove from the local storage
+    if (previousRes.data?.length) {
+      const ids = (previousRes.data || []).map(o => +o.id);
       await this.entities.deleteMany<Operation>(ids, { entityName: Operation.TYPENAME, emitEvent: false });
     }
 
     // Save result locally
-    await this.entities.saveAll(res.data, { entityName: Operation.TYPENAME, reset: false });
+    await this.entities.saveAll(res.data, { entityName: Operation.TYPENAME, reset: false /* /!\ keep local operations */ });
   }
 
   /**

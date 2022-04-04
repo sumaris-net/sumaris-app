@@ -186,7 +186,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this._measurementSubscription?.unsubscribe();
   }
 
-  setError(error: any, opts?: {emitEvent?: boolean}) {
+  setError(error: any, opts?: { emitEvent?: boolean; }) {
 
     // If errors in operations
     if (error?.operations) {
@@ -201,7 +201,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       super.setError(error);
 
       // Reset operation filter and error
-      this.operationsTable.resetError();
+      this.operationsTable.resetError(opts);
     }
   }
 

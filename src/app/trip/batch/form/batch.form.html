@@ -17,7 +17,8 @@
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
                                 [tabindex]="tabindex"
                                 [required]="showTaxonGroup"
-                                [config]="autocompleteFields.taxonGroup">
+                                [config]="autocompleteFields.taxonGroup"
+                                [showSearchBar]="!autocompleteFields.taxonGroup.items">
         </mat-autocomplete-field>
       </ion-col>
 

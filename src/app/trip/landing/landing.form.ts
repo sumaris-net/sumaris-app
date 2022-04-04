@@ -16,7 +16,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  MatAutocompleteField,
+  MatAutocompleteField, NetworkService,
   Person,
   PersonService,
   PersonUtils,
@@ -26,7 +26,7 @@ import {
   suggestFromArray,
   toBoolean,
   toDateISOString,
-  UserProfileLabel,
+  UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Landing } from '../services/model/landing.model';
@@ -44,6 +44,7 @@ import { FishingAreaValidatorService } from '@app/trip/services/validator/fishin
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
 import { Metier } from '@app/referential/services/model/metier.model';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -62,6 +63,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   private _showObservers: boolean; // Disable by default
   private _canEditStrategy: boolean;
 
+  readonly networkService: NetworkService;
   observersHelper: FormArrayHelper<Person>;
   fishingAreasHelper: FormArrayHelper<FishingArea>;
   metiersHelper: FormArrayHelper<FishingArea>;
@@ -220,6 +222,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
 
+    this.networkService = injector.get(NetworkService);
     this._enable = false;
     this.mobile = this.settings.mobile;
 
@@ -245,14 +248,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // Combo: programs
-    const programAttributes = this.settings.getFieldDisplayAttributes('program');
     this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
-      attributes: programAttributes,
-      // Increase default column size, for 'label'
-      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-      filter: <ReferentialRefFilter>{
-        entityName: 'Program'
+      service: this.programRefService,
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING]
       },
       mobile: this.mobile
     });
@@ -283,7 +283,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         entityName: 'Location',
         levelIds: this.locationLevelIds
       },
-      attributes: locationAttributes
+      attributes: locationAttributes,
+      mobile: this.mobile
     });
 
     // Combo: observers
@@ -297,7 +298,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: PersonUtils.personToString
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile
     });
 
     // Combo: metier
@@ -305,12 +307,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerAutocompleteField('metier', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
-      // Default filter. An excludedIds will be add dynamically
+      // Default filter. A excludedIds will be add dynamically
       filter: {
         entityName: 'Metier',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: metierAttributes
+      attributes: metierAttributes,
+      mobile: this.mobile
     });
 
     // Combo: fishingAreas
@@ -326,7 +329,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: fishingAreaAttributes
+      attributes: fishingAreaAttributes,
+      mobile: this.mobile
     });
 
     // Propagate program

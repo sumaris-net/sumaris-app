@@ -79,138 +79,152 @@
 
 
   <!-- table -->
-  <mat-table [dataSource]="dataSource" matSort
-             [matSortActive]="defaultSortBy"
-             [matSortDirection]="defaultSortDirection"
-             [trackBy]="trackByFn"
-             matSortDisableClear>
+  <div class="table-container">
+    <mat-table [dataSource]="dataSource" matSort
+               [matSortActive]="defaultSortBy"
+               [matSortDirection]="defaultSortDirection"
+               [trackBy]="trackByFn"
+               matSortDisableClear>
 
-    <ng-container matColumnDef="select">
-      <mat-header-cell *matHeaderCellDef >
-        <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                      [indeterminate]="selection.hasValue() && !isAllSelected()">
-        </mat-checkbox>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-        </mat-checkbox>
-      </mat-cell>
+      <ng-container matColumnDef="select">
+        <mat-header-cell *matHeaderCellDef >
+          <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                        [indeterminate]="selection.hasValue() && !isAllSelected()">
+          </mat-checkbox>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+          </mat-checkbox>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Id Column -->
+      <ng-container matColumnDef="id">
+        <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showIdColumn">
+          <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIdColumn">{{ row.currentData.id | mathAbs }}</mat-cell>
+      </ng-container>
+
+      <!-- Update date Column -->
+      <ng-container matColumnDef="updateDate">
+        <mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label translate>TRIP.TRASH.DELETION_DATE</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">{{ row.currentData.updateDate | dateFormat:{time:true} }}</mat-cell>
+      </ng-container>
+
+      <!-- Program Column -->
+      <ng-container matColumnDef="program">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          {{row.currentData.program | referentialToString:['label']}}
+        </mat-cell>
+      </ng-container>
+
+      <!-- Vessel Column -->
+      <ng-container matColumnDef="vessel">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <ion-label>{{row.currentData.vesselSnapshot | referentialToString:displayedAttributes.vesselSnapshot }}</ion-label>
+        </mat-cell>
+      </ng-container>
+
+      <!-- departure location -->
+      <ng-container matColumnDef="departureLocation">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          {{row.currentData.departureLocation | referentialToString:displayedAttributes.location }}
+        </mat-cell>
+      </ng-container>
+
+      <!-- departure date time  -->
+      <ng-container matColumnDef="departureDateTime">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label translate>TRIP.TABLE.DEPARTURE_DATE_TIME</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <ion-text>{{row.currentData.departureDateTime|dateFormat:{time:true} }}</ion-text>
+        </mat-cell>
+
+      </ng-container>
+
+      <!-- return date time -->
+      <ng-container matColumnDef="returnDateTime">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label translate>TRIP.TABLE.RETURN_DATE_TIME</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <ion-text>{{ row.currentData?.returnDateTime|dateFormat:{time: true} }}</ion-text>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Observers -->
+      <ng-container matColumnDef="observers">
+        <mat-header-cell *matHeaderCellDef>
+          <ion-label translate>TRIP.TABLE.OBSERVERS</ion-label>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <ion-text>{{ row.currentData?.observers | personToString }}</ion-text>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Comments column -->
+      <ng-container matColumnDef="comments">
+        <mat-header-cell *matHeaderCellDef>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row">
+          <mat-icon color="primary"
+                    class="comment"
+                    *ngIf="row.currentData.comments"
+                    [title]="row.currentData.comments"></mat-icon>
+        </mat-cell>
+      </ng-container>
+
+      <!-- Actions buttons column -->
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+        </mat-header-cell>
+        <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+          <button mat-icon-button color="warn"
+                  [title]="'COMMON.BTN_RESTORE'|translate"
+                  (click)="restore($event, [row])">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+          <button mat-icon-button color="warn"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="cleanRemoteTrash($event, [row])">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns;"
+               class="mat-row-disabled"
+               [class.mat-row-selected]="selection.isSelected(row)"
+               (click)="clickRow($event, row)">
+      </mat-row>
+    </mat-table>
+
+    <ng-container *ngIf="loadingSubject|async; else noResult">
+      <ion-item>
+        <ion-skeleton-text animated></ion-skeleton-text>
+      </ion-item>
     </ng-container>
 
-    <!-- Id Column -->
-    <ng-container matColumnDef="id">
-      <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showIdColumn">
-        <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIdColumn">{{ row.currentData.id | mathAbs }}</mat-cell>
-    </ng-container>
-
-    <!-- Update date Column -->
-    <ng-container matColumnDef="updateDate">
-      <mat-header-cell *matHeaderCellDef mat-sort-header>
-        <ion-label translate>TRIP.TRASH.DELETION_DATE</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">{{ row.currentData.updateDate | dateFormat:{time:true} }}</mat-cell>
-    </ng-container>
-
-    <!-- Program Column -->
-    <ng-container matColumnDef="program">
-      <mat-header-cell *matHeaderCellDef>
-        <ion-label translate>TRIP.TABLE.PROGRAM</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        {{row.currentData.program | referentialToString:['label']}}
-      </mat-cell>
-    </ng-container>
-
-    <!-- Vessel Column -->
-    <ng-container matColumnDef="vessel">
-      <mat-header-cell *matHeaderCellDef>
-        <ion-label translate>TRIP.TABLE.VESSEL</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-label>{{row.currentData.vesselSnapshot | referentialToString:displayedAttributes.vesselSnapshot }}</ion-label>
-      </mat-cell>
-    </ng-container>
-
-    <!-- departure location -->
-    <ng-container matColumnDef="departureLocation">
-      <mat-header-cell *matHeaderCellDef>
-        <ion-label translate>TRIP.TABLE.DEPARTURE_LOCATION</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        {{row.currentData.departureLocation | referentialToString:displayedAttributes.location }}
-      </mat-cell>
-    </ng-container>
-
-    <!-- departure date time  -->
-    <ng-container matColumnDef="departureDateTime">
-      <mat-header-cell *matHeaderCellDef>
-        <ion-label translate>TRIP.TABLE.DEPARTURE_DATE_TIME</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{row.currentData.departureDateTime|dateFormat:{time:true} }}</ion-text>
-      </mat-cell>
-
-    </ng-container>
-
-    <!-- return date time -->
-    <ng-container matColumnDef="returnDateTime">
-      <mat-header-cell *matHeaderCellDef>
-        <ion-label translate>TRIP.TABLE.RETURN_DATE_TIME</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{ row.currentData?.returnDateTime|dateFormat:{time: true} }}</ion-text>
-      </mat-cell>
-    </ng-container>
-
-    <!-- Observers -->
-    <ng-container matColumnDef="observers">
-      <mat-header-cell *matHeaderCellDef>
-        <ion-label translate>TRIP.TABLE.OBSERVERS</ion-label>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <ion-text>{{ row.currentData?.observers | personToString }}</ion-text>
-      </mat-cell>
-    </ng-container>
-
-    <!-- Comments column -->
-    <ng-container matColumnDef="comments">
-      <mat-header-cell *matHeaderCellDef>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <mat-icon color="primary"
-                  class="comment"
-                  *ngIf="row.currentData.comments"
-                  [title]="row.currentData.comments"></mat-icon>
-      </mat-cell>
-    </ng-container>
-
-    <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions">
-      <mat-header-cell *matHeaderCellDef>
-      </mat-header-cell>
-      <mat-cell *matCellDef="let row">
-        <button mat-icon-button color="warn"
-                [title]="'COMMON.BTN_RESTORE'|translate"
-                (click)="restore($event, [row])">
-          <mat-icon>open_in_new</mat-icon>
-        </button>
-        <button mat-icon-button color="warn"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="cleanRemoteTrash($event, [row])">
-          <mat-icon>close</mat-icon>
-        </button>
-      </mat-cell>
-    </ng-container>
-
-    <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-    <mat-row *matRowDef="let row; columns: displayedColumns;"
-             class="mat-row-disabled"
-             [class.mat-row-selected]="selection.isSelected(row)"
-             (click)="clickRow($event, row)">
-    </mat-row>
-  </mat-table>
+    <ng-template #noResult>
+      <ion-item *ngIf="totalRowCount === 0">
+        <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+      </ion-item>
+    </ng-template>
+  </div>
 
   <ion-row class="ion-no-padding">
     <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>

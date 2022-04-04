@@ -28,9 +28,10 @@ import { SortDirection } from '@angular/material/sort';
 import { environment } from '@environments/environment';
 import { VesselSnapshotFilter } from './filter/vessel.filter';
 import { ProgramLabel } from '@app/referential/services/model/model.enum';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { VESSEL_CONFIG_OPTIONS, VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { debounceTime, filter, map } from 'rxjs/operators';
 import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
+import { mergeLoadResult } from '@app/shared/functions';
 
 
 export const VesselSnapshotFragments = {
@@ -236,8 +237,8 @@ export class VesselSnapshotService
       );
     }
 
-    // Online: use GraphQL
     else {
+      // Online: use GraphQL
       const query = withTotal
         ? (opts?.withBasePortLocation ? QUERIES.loadAllWithPortAndTotal : QUERIES.loadAllWithTotal)
         : (opts?.withBasePortLocation ? QUERIES.loadAllWithPort : QUERIES.loadAll);
@@ -247,9 +248,27 @@ export class VesselSnapshotService
           ...variables,
           filter: filter?.asPodObject()
         },
-        error: {code: ErrorCodes.LOAD_VESSELS_ERROR, message: 'VESSEL.ERROR.LOAD_ERROR'},
+        error: { code: ErrorCodes.LOAD_VESSELS_ERROR, message: 'VESSEL.ERROR.LOAD_ERROR' },
         fetchPolicy: opts && opts.fetchPolicy || undefined /*use default*/
       });
+
+      // Add local temporary vessels
+      const needLocalTemporaryVessel = this.settings.hasOfflineFeature(VESSEL_FEATURE_NAME)
+        && (isEmptyArray(filter?.statusIds) || filter.statusIds.includes(StatusIds.TEMPORARY));
+      if (needLocalTemporaryVessel) {
+        const temporaryFilter = filter ? filter.clone() : new VesselSnapshotFilter();
+        temporaryFilter.statusIds = [StatusIds.TEMPORARY];
+        const localRes: LoadResult<VesselSnapshot> = await this.entities.loadAll(VesselSnapshot.TYPENAME,
+          {
+            ...variables,
+            filter: temporaryFilter.asFilterFn()
+          }
+        );
+        // Add to result
+        if (localRes.total) {
+          res = mergeLoadResult(res, localRes);
+        }
+      }
     }
 
     const entities = (!opts || opts.toEntity !== false) ?
@@ -391,17 +410,18 @@ export class VesselSnapshotService
     }
   }
 
-  async executeImport(progression: BehaviorSubject<number>,
+  async executeImport(filter: Partial<VesselSnapshotFilter>,
                       opts?: {
+                        progression?: BehaviorSubject<number>,
                         maxProgression?: number;
-                        dataFilter?: any;
                       }): Promise<void> {
 
     const maxProgression = opts && opts.maxProgression || 100;
-    const filter: Partial<VesselSnapshotFilter> = {
+    filter = {
+      ...filter,
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      // Force the use of the specific program, used for vessels
       program: ReferentialRef.fromObject({label: ProgramLabel.SIH}),
-      ...opts.dataFilter
     };
 
     console.info('[vessel-snapshot-service] Importing vessels (snapshot)...');
@@ -414,8 +434,8 @@ export class VesselSnapshotService
           withTotal: (offset === 0), // Compute total only once
           toEntity: false
         }),
-      progression,
       {
+        progression: opts?.progression,
         maxProgression: maxProgression * 0.9,
         logPrefix: '[vessel-snapshot-service]'
       }
@@ -429,7 +449,7 @@ export class VesselSnapshotService
     return VesselSnapshotFilter.fromObject(source);
   }
 
-  async getAutocompleteFieldOptions(fieldName?: string, defaultAttributes?: string[]): Promise<MatAutocompleteFieldAddOptions> {
+  async getAutocompleteFieldOptions(fieldName?: string, defaultAttributes?: string[]): Promise<MatAutocompleteFieldAddOptions<VesselSnapshot, VesselSnapshotFilter>> {
 
     // Make sure defaults have been loaded
     if (!this.started) await this.ready();
@@ -440,17 +460,17 @@ export class VesselSnapshotService
       ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
       : baseAttributes;
 
-    return <MatAutocompleteFieldAddOptions>{
+    return <MatAutocompleteFieldAddOptions<VesselSnapshot, VesselSnapshotFilter>>{
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggest(value, filter),
       attributes: displayAttributes,
-      filter: <Partial<VesselSnapshotFilter>>{
+      filter: {
         ...this.defaultFilter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         searchAttributes: baseAttributes
       },
       suggestLengthThreshold: this.suggestLengthThreshold,
-      debounceTime: 450
+      mobile: this.settings.mobile
     };
   }
 

@@ -182,6 +182,9 @@ export class EntityQualityFormComponent<
         }
       }
       else {
+        // Clean previous error
+        this.editor.resetError(opts);
+
         // Emit event (refresh component with the new data)
         if (!opts || opts.emitEvent !== false) {
           this.updateView(data);

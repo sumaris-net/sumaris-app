@@ -35,7 +35,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     this.excludeId = source.excludeId;
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
-    this.programLabel = source.programLabel;
+    this.programLabel = source.programLabel || source.program?.label;
     this.excludeChildOperation = source.excludeChildOperation;
     this.hasNoChildOperation = source.hasNoChildOperation;
     this.startDate = fromDateISOString(source.startDate);
@@ -51,6 +51,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {
+      delete target.program;
       delete target.excludeId; // Not include in Pod
       delete target.synchronizationStatus;
     }

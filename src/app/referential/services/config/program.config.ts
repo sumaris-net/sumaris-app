@@ -1,6 +1,7 @@
-import { FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
+import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
 import { LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
+import { Program } from '@app/referential/services/model/program.model';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -13,7 +14,13 @@ export const ProgramProperties = Object.freeze({
   TRIP_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.location.level.ids',
     label: 'PROGRAM.OPTIONS.TRIP_LOCATION_LEVEL_IDS',
-    type: 'string',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
     defaultValue: LocationLevelIds.PORT.toString()
   },
   TRIP_LOCATION_FILTER_MIN_LENGTH: <FormFieldDefinition>{
@@ -266,7 +273,7 @@ export const ProgramProperties = Object.freeze({
   TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.fishingArea.locationLevel.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS',
-    type: 'entity',
+    type: 'entities',
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
@@ -474,7 +481,7 @@ export const ProgramProperties = Object.freeze({
   LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.landedTrip.fishingArea.locationLevel.ids',
     label: 'PROGRAM.OPTIONS.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS',
-    type: 'entity',
+    type: 'entities',
     autocomplete: {
       filter: {
         entityName: 'LocationLevel',
@@ -517,7 +524,13 @@ export const ProgramProperties = Object.freeze({
   STRATEGY_EDITOR_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.program.strategy.location.level.ids',
     label: 'PROGRAM.OPTIONS.STRATEGY_EDITOR_LOCATION_LEVEL_IDS',
-    type: 'string',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
     defaultValue: LocationLevelIds.ICES_DIVISION.toString()
   },
 
@@ -553,6 +566,46 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.MEASUREMENTS_MAX_VISIBLE_BUTTONS',
     type: 'integer',
     defaultValue: 4 // Use -1 for all
-  },
+  }
 });
 
+
+export class ProgramPropertiesUtils {
+
+  /**
+   * Refresh default values, (e.g. after enumeration has been update)
+   */
+  static refreshDefaultValues() {
+    console.info('[program-properties] Refreshing ProgramProperties default values...');
+
+    ProgramProperties.TRIP_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
+    ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
+    ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.METIER_DCF_5.toString();
+    ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
+    ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
+  }
+
+  static getPropertiesByType(type: FormFieldType | FormFieldType[]): FormFieldDefinition[] {
+    if (Array.isArray(type)) {
+      return Object.getOwnPropertyNames(ProgramProperties).map(key => ProgramProperties[key])
+        .filter(def => type.includes(def.type));
+    }
+    return Object.getOwnPropertyNames(ProgramProperties).map(key => ProgramProperties[key])
+      .filter(def => type === def.type);
+  }
+
+  static getPropertiesByEntityName(entityName: string): FormFieldDefinition[] {
+    return this.getPropertiesByType(['entity', 'entities'])
+      .filter(def => def.autocomplete?.filter && def.autocomplete.filter.entityName === entityName);
+  }
+
+  static getPropertyAsNumbersByEntityName(program: Program, entityName: string): number[] {
+    if (!program || isNilOrBlank(entityName)) throw new Error('Invalid argument. Missing program or entityName');
+
+    const ids = this.getPropertiesByEntityName(entityName)
+      .flatMap(property => program.getPropertyAsNumbers(property));
+
+    return removeDuplicatesFromArray(ids);
+  }
+
+}

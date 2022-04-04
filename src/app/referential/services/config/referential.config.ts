@@ -9,7 +9,7 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramLabel,
-  QualitativeValueIds,
+  QualitativeValueIds, TaxonGroupTypeIds,
   TaxonomicLevelIds,
   UnitLabelGroups
 } from '../model/model.enum';
@@ -549,6 +549,43 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: QualitativeValueIds.PRESERVATION.FRESH
   },
+
+  TAXON_GROUP_TYPE_FAO_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.TaxonGroupType.FAO.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXON_GROUP_TYPE_FAO_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonGroupType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: TaxonGroupTypeIds.FAO.toString()
+  },
+  TAXON_GROUP_TYPE_NATIONAL_METIER_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.TaxonGroupType.NATIONAL.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXON_GROUP_TYPE_NATIONAL_METIER_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonGroupType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: TaxonGroupTypeIds.NATIONAL_METIER.toString()
+  },
+  TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.TaxonGroupType.DCF_METIER_LVL_5.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonGroupType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: TaxonGroupTypeIds.DCF_METIER_LVL_5.toString()
+  }
 });
 
 export const REFERENTIAL_LOCAL_SETTINGS_OPTIONS = Object.freeze(

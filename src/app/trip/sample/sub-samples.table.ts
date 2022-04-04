@@ -128,7 +128,8 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // the exact list of attributes to display will be set when receiving the pmfms and parents
     this.registerAutocompleteField('parent', {
       suggestFn: (value: any, opts?: any) => this.suggestParent(value, opts),
-      showAllOnFocus: true
+      showAllOnFocus: true,
+      mobile: this.mobile
     });
 
     // Compute parent, when parents or pmfms changed

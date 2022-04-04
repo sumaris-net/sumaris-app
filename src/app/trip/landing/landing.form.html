@@ -63,13 +63,15 @@
                                 [tabindex]="tabindex+3"
                                 required>
           <ion-icon matPrefix name="boat"></ion-icon>
+
+          <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
+          <button matAfter type="button" mat-icon-button tabindex="-1"
+                  *ngIf="allowAddNewVessel && networkService.online"
+                  [title]="'TRIP.BTN_ADD_VESSEL'|translate"
+                  (click)="addVesselModal()">
+            <mat-icon>add</mat-icon>
+          </button>
         </mat-autocomplete-field>
-      </ion-col>
-      <ion-col size="auto" class="ion-align-self-center" *ngIf="allowAddNewVessel">
-        <button mat-icon-button tabindex="-1" [title]="'COMMON.BTN_ADD'|translate" (click)="addVesselModal()"
-                type="button">
-          <mat-icon>add</mat-icon>
-        </button>
       </ion-col>
     </ion-row>
 

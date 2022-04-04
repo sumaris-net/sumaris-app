@@ -79,7 +79,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined)
+      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined),
+      mobile: this.mobile
     });
 
   }

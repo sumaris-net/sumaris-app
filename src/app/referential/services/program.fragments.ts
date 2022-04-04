@@ -28,6 +28,7 @@ export const ProgramFragments = {
       gearClassificationId
       locationClassificationIds
       locationIds
+      acquisitionLevelLabels
     }`,
   program: gql`
     fragment ProgramFragment on ProgramVO {

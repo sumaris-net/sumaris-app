@@ -28,7 +28,8 @@ import {
   ShowToastOptions,
   StatusIds,
   suggestFromArray,
-  Toasts,
+  SuggestService,
+  Toasts
 } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
 import { CacheService } from 'ionic-cache';
@@ -39,7 +40,6 @@ import { DenormalizedPmfmStrategy } from './model/pmfm-strategy.model';
 import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 
 import { StrategyFragments } from './strategy.fragments';
-import { AcquisitionLevelCodes } from './model/model.enum';
 import { ProgramFragments } from './program.fragments';
 import { PmfmService } from './pmfm.service';
 import { BaseReferentialService } from './base-referential-service.class';
@@ -51,6 +51,7 @@ import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { OverlayEventDetail } from '@ionic/core';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { SortDirection } from '@angular/material/sort';
 
 
 export const ProgramRefQueries = {
@@ -98,8 +99,27 @@ export const ProgramRefQueries = {
   }
   ${ProgramFragments.programRef}`,
 
+  // Load all query with strategies
+  loadAllWithStrategies: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...ProgramRefFragment
+      strategies {
+        ...StrategyRefFragment
+      }
+    }
+  }
+  ${ProgramFragments.programRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
+  ${StrategyFragments.denormalizedPmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}`,
+
   // Load all query (with total, and strategies)
-  loadAllWithTotalAndStrategy: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithStrategiesAndTotal: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ProgramRefFragment
       strategies {
@@ -152,8 +172,8 @@ const ProgramRefCacheKeys = {
 @Injectable({providedIn: 'root'})
 export class ProgramRefService
   extends BaseReferentialService<Program, ProgramFilter>
-  implements IEntitiesService<Program, ProgramFilter>,
-    IEntityService<Program> {
+  implements IEntitiesService<Program, ProgramFilter>, IEntityService<Program>,
+    SuggestService<Program, Partial<ProgramFilter>> {
 
 
   private _subscriptionCache: {[key: string]: {
@@ -236,6 +256,63 @@ export class ProgramRefService
     return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment);
   }
 
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
+                filter?: Partial<ProgramFilter>,
+                opts?: { [p: string]: any; query?: any; fetchPolicy?: FetchPolicy; debug?: boolean; withTotal?: boolean; toEntity?: boolean }): Promise<LoadResult<Program>> {
+    // Use search attribute as default sort, is set
+    sortBy = sortBy || filter?.searchAttribute
+      || filter?.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
+      || 'label';
+
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+       return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    // Call inherited function
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
+
+  protected async loadAllLocally(offset: number,
+                                 size: number,
+                                 sortBy?: string,
+                                 sortDirection?: SortDirection,
+                                 filter?: Partial<ProgramFilter>,
+                                 opts?: {
+                                   [key: string]: any;
+                                   toEntity?: boolean;
+                                 }): Promise<LoadResult<Program>> {
+
+    filter = this.asFilter(filter);
+
+    const variables = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || filter.searchAttribute
+        || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
+        || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: filter.asFilterFn()
+    };
+
+    const {data, total} = await this.entities.loadAll(Program.TYPENAME, variables);
+
+    const entities = (!opts || opts.toEntity !== false) ?
+      (data || []).map(Program.fromObject) :
+      (data || []) as Program[];
+
+    const res: LoadResult<Program> = {data: entities, total};
+
+    // Add fetch more function
+    const nextOffset = (offset || 0) + entities.length;
+    if (nextOffset < total) {
+      res.fetchMore = () => this.loadAllLocally(nextOffset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    return res;
+  }
+
   /**
    * Watch program by label
    * @param label
@@ -314,10 +391,10 @@ export class ProgramRefService
     cache?: boolean;
     fetchPolicy?: FetchPolicy;
   }): Promise<Program> {
+    const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
 
     // Use cache (enable by default, if no custom query)
-    if (!opts || (opts.cache !== false && !opts.query)) {
-      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
+    if (!opts || (!opts.query && opts.cache !== false && opts.fetchPolicy !== 'no-cache' && opts.fetchPolicy !== 'network-only')) {
       return this.cache.getOrSetItem<Program>(cacheKey,
         () => this.loadByLabel(label, {...opts, cache: false, toEntity: false}),
         ProgramRefCacheKeys.CACHE_GROUP)
@@ -640,12 +717,14 @@ export class ProgramRefService
     }, {});
   }
 
-  async executeImport(progression: BehaviorSubject<number>,
+  async executeImport(filter: Partial<ProgramFilter>,
                       opts?: {
+                        progression?: BehaviorSubject<number>;
                         maxProgression?: number;
                         acquisitionLevels?: string[];
+                        program?: Program;
+                        [key: string]: any;
                       }) {
-
 
     const maxProgression = opts && opts.maxProgression || 100;
 
@@ -657,43 +736,29 @@ export class ProgramRefService
       await this.clearCache();
 
       // Create search filter
-      let loadFilter: any = {
+      filter = {
+        ...filter,
+        acquisitionLevelLabels: opts?.acquisitionLevels,
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
-
-      // Add filter on acquisition level
-      if (opts && isNotEmptyArray(opts.acquisitionLevels)) {
-        const acquisitionLevels: string[] = opts && opts.acquisitionLevels || Object.keys(AcquisitionLevelCodes).map(key => AcquisitionLevelCodes[key]);
-        if (acquisitionLevels && acquisitionLevels.length === 1) {
-          loadFilter = {
-            ...loadFilter,
-            searchJoin: "strategies/pmfms/acquisitionLevel",
-            searchAttribute: "label",
-            searchText: acquisitionLevels[0]
-          };
-        }
-        else {
-          console.warn('Cannot request on many acquisition level (not implemented)');
-        }
-      }
 
       // Step 1. load all programs
       const importedProgramLabels = [];
       const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
-          this.loadAll(offset, size, 'id', 'asc', loadFilter, {
-            debug: false,
-            query: ProgramRefQueries.loadAllWithTotalAndStrategy,
-            fetchPolicy: "no-cache",
+          this.loadAll(offset, size, 'id', 'asc', filter, {
+            query: (offset === 0) ? ProgramRefQueries.loadAllWithStrategiesAndTotal : ProgramRefQueries.loadAllWithStrategies,
+            fetchPolicy: 'no-cache',
             toEntity: false
           }),
-        progression,
         {
+          progression: opts?.progression,
           maxProgression: maxProgression * 0.9,
           onPageLoaded: ({data}) => {
             const labels = (data || []).map(p => p.label) as string[];
             importedProgramLabels.push(...labels);
           },
-          logPrefix: '[program-ref-service]'
+          logPrefix: '[program-ref-service]',
+          fetchSize: 5 /* limit to 5 program, because a program graph it can be huge ! */
         }
       );
 

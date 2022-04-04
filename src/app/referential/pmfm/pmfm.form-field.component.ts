@@ -71,6 +71,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     return this.controlName;
   }
 
+  @Input() mobile: boolean;
   @Input() pmfm: IPmfm;
   @Input() required: boolean;
   @Input() readonly = false;
@@ -116,6 +117,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     protected pmfmNamePipe: PmfmNamePipe,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
+    this.mobile = settings.mobile;
   }
 
   ngOnInit() {

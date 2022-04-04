@@ -67,7 +67,8 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       attributes: ['name'],
       filter: {
         entityName: 'SaleType'
-      }
+      },
+      mobile: this.mobile
     });
 
   }

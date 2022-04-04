@@ -1,7 +1,7 @@
-import {Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 
-import {FetchPolicy, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {SortDirection} from '@angular/material/sort';
+import { FetchPolicy, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { SortDirection } from '@angular/material/sort';
 
 import {
   BaseEntityService,
@@ -14,9 +14,10 @@ import {
   PlatformService,
   ReferentialUtils
 } from '@sumaris-net/ngx-components';
-import {Directive} from '@angular/core';
-import {BaseReferentialFilter} from './filter/referential.filter';
+import { Directive } from '@angular/core';
+import { BaseReferentialFilter } from './filter/referential.filter';
 
+export const TEXT_SEARCH_IGNORE_CHARS_REGEXP = /[ \t-*]+/g;
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -51,7 +52,8 @@ export abstract class BaseReferentialService<
                 filter?: Partial<F>,
                 opts?: { [p: string]: any; query?: any; fetchPolicy?: FetchPolicy; debug?: boolean; withTotal?: boolean; toEntity?: boolean }): Promise<LoadResult<T>> {
     // Use search attribute as default sort, is set
-    sortBy = sortBy || filter && filter.searchAttribute;
+    sortBy = sortBy || filter?.searchAttribute;
+
     // Call inherited function
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
   }
@@ -66,14 +68,29 @@ export abstract class BaseReferentialService<
     return super.load(id, opts);
   }
 
-  async suggest(value: any, filter?: F): Promise<LoadResult<T>> {
+  async suggest(value: any, filter?: Partial<F>,
+                sortBy?: string,
+                sortDirection?: SortDirection,
+                opts?: {
+                  fetchPolicy?: FetchPolicy;
+                }): Promise<LoadResult<T>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
     value = (typeof value === "string" && value !== '*') && value || undefined;
-    return this.loadAll(0, !value ? 30 : 10, undefined, undefined,
+    // Replace '*' character by undefined
+    if (!value || value === '*') {
+      value = undefined;
+    }
+    // trim search text, and ignore some characters
+    else if (value && typeof value === 'string') {
+      value = value.trim().replace(TEXT_SEARCH_IGNORE_CHARS_REGEXP, '*');
+    }
+
+    return this.loadAll(0, !value ? 30 : 10, sortBy, sortDirection,
       {
         ...filter,
         searchText: value as string
-      }
+      },
+      {withTotal: true /* Used by autocomplete */, ...opts}
     );
   }
 

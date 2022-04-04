@@ -3,16 +3,19 @@ import {
   Entity,
   EntityClass,
   EntityUtils,
-  FormFieldDefinition,
+  FormFieldDefinition, isNilOrBlank,
   isNotNil,
   Person,
   PropertiesMap,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  ReferentialUtils,
+  ReferentialUtils, removeDuplicatesFromArray
 } from '@sumaris-net/ngx-components';
 import { Strategy } from './strategy.model';
 import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { ProgramProperties, ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
+import { IDenormalizedPmfm, IPmfm } from '@app/referential/services/model/pmfm.model';
+import { DenormalizedPmfmStrategy, PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 @EntityClass({typename: 'ProgramVO'})
 export class Program extends BaseReferential<Program> {
@@ -28,10 +31,32 @@ export class Program extends BaseReferential<Program> {
   departments: ProgramDepartment[] = null;
   persons: ProgramPerson[] = null;
 
+  acquisitionLevelLabels: string[]; // Need to filter local programs
+
   strategies: Strategy[] = null;
 
   constructor() {
     super(Program.TYPENAME);
+  }
+
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    if (source.properties && source.properties instanceof Array) {
+      this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
+    } else {
+      this.properties = {...source.properties};
+    }
+    this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
+    this.taxonGroupType = (source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType)) ||
+      (isNotNil(source.taxonGroupTypeId) ? ReferentialRef.fromObject({id: source.taxonGroupTypeId}) : undefined);
+    this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
+    this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
+    this.departments = source.departments && source.departments.map(ProgramDepartment.fromObject) || [];
+    this.persons = source.persons && source.persons.map(ProgramPerson.fromObject) || [];
+    this.acquisitionLevelLabels = source.acquisitionLevelLabels || [];
+
+    this.strategies = source.strategies && source.strategies.map(Strategy.fromObject) || [];
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {
@@ -51,27 +76,10 @@ export class Program extends BaseReferential<Program> {
     target.persons = this.persons && this.persons.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
 
     target.strategies = this.strategies && this.strategies.map(s => s.asObject(opts));
+
     return target;
   }
 
-  fromObject(source: any) {
-    super.fromObject(source);
-    if (source.properties && source.properties instanceof Array) {
-      this.properties = EntityUtils.getPropertyArrayAsObject(source.properties);
-    } else {
-      this.properties = {...source.properties};
-    }
-    this.gearClassification = source.gearClassification && ReferentialRef.fromObject(source.gearClassification);
-    this.taxonGroupType = (source.taxonGroupType && ReferentialRef.fromObject(source.taxonGroupType)) ||
-      (isNotNil(source.taxonGroupTypeId) ? ReferentialRef.fromObject({id: source.taxonGroupTypeId}) : undefined);
-    this.locationClassifications = source.locationClassifications  && source.locationClassifications.map(ReferentialRef.fromObject) || [];
-    this.locations = source.locations && source.locations.map(ReferentialRef.fromObject) || [];
-    this.departments = source.departments && source.departments.map(ProgramDepartment.fromObject) || [];
-    this.persons = source.persons && source.persons.map(ProgramPerson.fromObject) || [];
-
-    this.strategies = source.strategies && source.strategies.map(Strategy.fromObject) || [];
-
-  }
 
   equals(other: Program): boolean {
     return (super.equals(other) && isNotNil(this.id))
@@ -175,5 +183,29 @@ export class ProgramPerson extends Entity<ProgramPerson> {
 
   equals(other: ProgramPerson): boolean {
     return ProgramPerson.equals(this, other);
+  }
+}
+
+export class ProgramUtils {
+
+  static getAcquisitionLevels(program: Program): string[] {
+
+    const acquisitionLevels = (program.strategies || []).flatMap(strategy => ((strategy.denormalizedPmfms || strategy.pmfms || []) as (IDenormalizedPmfm|PmfmStrategy)[])
+      .map(pmfm => {
+        if (pmfm && pmfm instanceof PmfmStrategy) {
+          return (typeof pmfm.acquisitionLevel === 'string' ? pmfm.acquisitionLevel : pmfm.acquisitionLevel?.label);
+        }
+        if (pmfm && pmfm instanceof DenormalizedPmfmStrategy) {
+          return pmfm.acquisitionLevel;
+        }
+      })
+      .filter(isNotNil)
+    );
+
+    return removeDuplicatesFromArray(acquisitionLevels);
+  }
+
+  static getLocationLevelIds(program) {
+    return ProgramPropertiesUtils.getPropertyAsNumbersByEntityName(program, 'LocationLevel');
   }
 }

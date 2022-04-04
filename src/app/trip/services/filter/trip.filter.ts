@@ -1,16 +1,49 @@
-import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
-import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotEmptyArray, isNotNil, Person, ReferentialRef, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
+import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  FilterFn,
+  fromDateISOString,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  Person,
+  ReferentialRef,
+  ReferentialUtils,
+  toDateISOString
+} from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { Trip } from '../model/trip.model';
-import { VesselSnapshot } from '../../../referential/services/model/vessel-snapshot.model';
-import moment from 'moment/moment';
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { PhysicalGearFilter } from '@app/trip/services/filter/physical-gear.filter';
+import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
 
 
 @EntityClass({typename: 'TripFilterVO'})
 export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
   static fromObject: (source: any, opts?: any) => TripFilter;
+
+  static toPhysicalGearFilter(f: Partial<TripFilter>): PhysicalGearFilter {
+    if (!f) return undefined;
+    return PhysicalGearFilter.fromObject({
+      program: f.program,
+      vesselId: f.vesselId,
+      startDate: f.startDate,
+      endDate: f.endDate
+    });
+  }
+
+  static toOperationFilter(f: Partial<TripFilter>): OperationFilter {
+    if (!f) return undefined;
+    return OperationFilter.fromObject({
+      programLabel: f.program?.label,
+      vesselId: f.vesselId,
+      startDate: f.startDate,
+      endDate: f.endDate
+    });
+  }
 
   vesselSnapshot: VesselSnapshot = null;
   vesselId: number = null;
@@ -19,6 +52,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   endDate: Moment = null;
   observers?: Person[];
   includedIds: number[];
+  excludedIds: number[];
 
   constructor() {
     super();
@@ -34,6 +68,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.location = ReferentialRef.fromObject(source.location);
     this.observers = source.observers && source.observers.map(Person.fromObject).filter(isNotNil) || [];
     this.includedIds = source.includedIds;
+    this.excludedIds = source.excludedIds;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -41,6 +76,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
     target.includedIds = this.includedIds;
+    target.excludedIds = this.excludedIds;
 
     if (opts && opts.minify) {
       // Vessel
@@ -65,6 +101,16 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
 
   buildFilter(): FilterFn<Trip>[] {
     const filterFns = super.buildFilter();
+
+    // Filter excluded ids
+    if (isNotEmptyArray(this.excludedIds)) {
+      filterFns.push(t => isNil(t.id) || !this.excludedIds.includes(t.id));
+    }
+
+    // Filter included ids
+    if (isNotEmptyArray(this.includedIds)) {
+      filterFns.push(t => isNotNil(t.id) && this.includedIds.includes(t.id));
+    }
 
     // Vessel
     if (this.vesselId) {
@@ -94,15 +140,9 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   }
 }
 
-export class TripOfflineFilter {
-  programLabel?: string;
-  vesselId?: number;
-  startDate?: Date | Moment;
-  endDate?: Date | Moment
-  periodDuration?: number;
-  periodDurationUnit?: DurationConstructor;
+export class TripSynchroImportFilter extends DataSynchroImportFilter {
 
-  public static toTripFilter(f: TripOfflineFilter): TripFilter {
+  static toTripFilter(f: TripSynchroImportFilter): TripFilter {
     if (!f) return undefined;
     return TripFilter.fromObject({
       program: {label: f.programLabel},
@@ -111,4 +151,5 @@ export class TripOfflineFilter {
       endDate: f.endDate
     });
   }
+
 }

@@ -2,17 +2,19 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { AppForm, AppFormUtils, SharedValidators, slideUpDownAnimation } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, SharedValidators, slideUpDownAnimation, StatusIds } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
-import { Program } from '../../../referential/services/model/program.model';
-import { TripOfflineFilter } from '@app/trip/services/filter/trip.filter';
+import { TripSynchroImportFilter } from '@app/trip/services/filter/trip.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Subject } from 'rxjs';
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import { Program } from '@app/referential/services/model/program.model';
 
 const moment = momentImported;
 
@@ -25,7 +27,7 @@ const moment = momentImported;
   animations: [slideUpDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnInit{
+export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit{
 
   mobile: boolean;
   errorSubject = new Subject<string>();
@@ -86,9 +88,10 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
 
     // Program
     this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
+      service: this.programRefService,
       filter: {
-        entityName: 'Program'
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
       },
       mobile: this.mobile
     });
@@ -98,7 +101,7 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
       this.registerAutocompleteField('vesselSnapshot', opts));
   }
 
-  async setValue(value: TripOfflineFilter | any) {
+  async setValue(value: TripSynchroImportFilter | any) {
     if (!value) return; // skip
 
     const json = {
@@ -145,13 +148,13 @@ export class TripOfflineModal extends AppForm<TripOfflineFilter> implements OnIn
     this.markAsLoaded();
   }
 
-  getValue(): TripOfflineFilter {
+  getValue(): TripSynchroImportFilter {
     const json = this.form.value;
 
     // DEBUG
     console.debug('[trip-offline] Modal form.value:', json);
 
-    const value = new TripOfflineFilter();
+    const value = new TripSynchroImportFilter();
 
     // Set program
     value.programLabel = json.program && json.program.label || json.program;

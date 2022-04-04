@@ -39,8 +39,10 @@ export class ReferentialRefFilter
     const filterFns = super.buildFilter();
 
     // Search on many attributes
-    const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttributes || this.searchAttribute || ['label', 'name'], this.searchText);
-    if (searchTextFilter) filterFns.push(searchTextFilter);
+    if (!this.searchAttribute) {
+      const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttributes || ['label', 'name'], this.searchText);
+      if (searchTextFilter) filterFns.push(searchTextFilter);
+    }
 
     return filterFns;
   }

@@ -17,10 +17,10 @@
                                 [placeholder]="'TRIP.BATCH.EDIT.PARENT_GROUP'|translate"
                                 [config]="autocompleteFields.parentGroup"
                                 [required]="true"
-                                [mobile]="mobile"
                                 [tabindex]="tabindex"
                                 (keydown.tab)="focusNextInput($event)"
-                                (keyup.enter)="focusNextInput($event)">
+                                (keyup.enter)="focusNextInput($event)"
+                                [showSearchBar]="false">
         </mat-autocomplete-field>
       </ion-col>
       <ion-col size="auto" class="ion-no-padding" *ngIf="onNewParentClick">

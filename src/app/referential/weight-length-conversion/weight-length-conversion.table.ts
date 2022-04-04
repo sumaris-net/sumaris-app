@@ -89,31 +89,28 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
   protected registerAutocompleteFields() {
 
     // Location
-    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         ...filter,
-        searchAttributes: locationAttributes,
         levelIds: this._locationLevelIds
       }),
-      filter: <Partial<ReferentialRefFilter>>{
+      filter: {
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: locationAttributes,
       mobile: this.mobile
     });
 
     // Sex
-    this.registerAutocompleteField('sex', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('sex', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         ...filter,
         searchAttributes: ['name'],
         levelLabels: ParameterLabelGroups.SEX
       }),
-      filter: <ReferentialRefFilter>{
+      filter: {
         entityName: 'QualitativeValue',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },

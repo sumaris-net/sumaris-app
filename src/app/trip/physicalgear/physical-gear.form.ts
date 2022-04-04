@@ -108,14 +108,19 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   }
 
   async setValue(data: PhysicalGear, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any; waitIdle?: boolean }) {
+    // For ce to clean previous gearId (to for pmfms recomputation)
+    if (this.gearId) {
+      this.gearId = null;
+    }
 
     // If !tripId, trip was never saved and doesn't have any operation
     if (data?.tripId) {
       this.canEditGear =  await this.operationService.areUsedPhysicalGears(data.tripId,[data.id]);
     }
 
-    super.setValue(data, opts);
+    return super.setValue(data, opts);
   }
+
   /* -- protected methods -- */
 
   protected onApplyingEntity(data: PhysicalGear, opts?: {[key: string]: any;}) {
