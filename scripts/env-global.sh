@@ -6,7 +6,7 @@ if [[ "_" == "_${PROJECT_DIR}" ]]; then
   export PROJECT_DIR
 fi;
 
-echo "Preparing project environment..."
+echo "--- Preparing project environment..."
 echo " - using Project dir: $PROJECT_DIR"
 
 if [[ ! -f "${PROJECT_DIR}/package.json" ]]; then
@@ -48,7 +48,7 @@ GRADLE_OPTS=-Dorg.gradle.jvmargs=-Xmx512m
 
 # Override with a local file, if any
 if [[ -f "${PROJECT_DIR}/.local/env.sh" ]]; then
-  echo "Loading environment variables from: '.local/env.sh'"
+  echo "--- Loading environment variables from: '.local/env.sh'"
   source ${PROJECT_DIR}/.local/env.sh
   [[ $? -ne 0 ]] && exit 1
 else
@@ -137,14 +137,14 @@ CORDOVA_PATH=`which cordova`
 CORDOVA_RES_PATH=`which cordova-res`
 NATIVE_RUN_PATH=`which native-run`
 if [[ "_" == "_${IONIC_PATH}" || "_" == "_${CORDOVA_PATH}" || "_" == "_${CORDOVA_RES_PATH}" || "_" == "_${NATIVE_RUN_PATH}" ]]; then
-  echo "Installing global dependencies..."
+  echo "--- Installing global dependencies..."
   npm install -g cordova cordova-res @ionic/cli native-run yarn
   [[ $? -ne 0 ]] && exit 1
 fi
 
 # Install project dependencies
 if [[ ! -d "${PROJECT_DIR}/node_modules" ]]; then
-    echo "Installing project dependencies..."
+    echo "--- Installing project dependencies..."
     cd ${PROJECT_DIR}
     yarn
 fi

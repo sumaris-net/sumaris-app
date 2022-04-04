@@ -42,7 +42,7 @@ if [[ ! -f "${APK_SIGNED_FILE}" ]]; then
   fi
 
   # Sign APK file
-  . ./scripts/release-android-sign.sh
+  . ${PROJECT_DIR}/scripts/release-android-sign.sh
   [[ $? -ne 0 ]] && exit 1
 else
   echo "Successfully generated signed APK at: ${APK_SIGNED_FILE}"
