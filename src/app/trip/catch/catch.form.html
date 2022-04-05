@@ -64,7 +64,7 @@
         <ng-container *ngFor="let pmfm of pmfms; index as i;">
           <ion-col size="12" [sizeMd]="(pmfm|isMultiplePmfm) ? 9 : 3" [offsetMd]="(pmfm|isMultiplePmfm) || (i % 3 === 0) ? 3 : 0">
             <app-pmfm-field [pmfm]="pmfm"
-                            [controlName]="pmfm.id.toString()"
+                            [controlName]="pmfm|pmfmIdString"
                             [tabindex]="tabindex+40+i*3">
             </app-pmfm-field>
           </ion-col>

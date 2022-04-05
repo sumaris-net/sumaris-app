@@ -14,7 +14,7 @@ import { PmfmQvFormField } from './pmfm/pmfm-qv.form-field.component';
 import { PmfmFormField } from './pmfm/pmfm.form-field.component';
 import { ReferentialToStringPipe } from './services/pipes/referential-to-string.pipe';
 import { TranslateModule } from '@ngx-translate/core';
-import { IsComputedPmfmPipe, IsDatePmfmPipe, IsMultiplePmfmPipe, PmfmFieldStylePipe, PmfmNamePipe, PmfmValuePipe } from './pipes/pmfms.pipe';
+import { IsComputedPmfmPipe, IsDatePmfmPipe, IsMultiplePmfmPipe, PmfmFieldStylePipe, PmfmIdStringPipe, PmfmNamePipe, PmfmValuePipe } from './pipes/pmfms.pipe';
 import { StrategyPage } from './strategy/strategy.page';
 
 import { TextMaskModule } from 'angular2-text-mask';
@@ -47,6 +47,7 @@ import { RoundWeightConversionTable } from '@app/referential/round-weight-conver
   declarations: [
     // Pipes
     ReferentialToStringPipe,
+    PmfmIdStringPipe,
     PmfmNamePipe,
     PmfmValuePipe,
     IsDatePmfmPipe,
@@ -90,6 +91,7 @@ import { RoundWeightConversionTable } from '@app/referential/round-weight-conver
 
     // Pipes
     ReferentialToStringPipe,
+    PmfmIdStringPipe,
     PmfmNamePipe,
     PmfmValuePipe,
     IsDatePmfmPipe,

@@ -126,8 +126,8 @@
               <!-- pmfms -->
               <ng-container *ngFor="let pmfm of pmfms; index as i;">
                 <ion-col size="12" size-md="6">
-                  <app-pmfm-field [controlName]="pmfm.id.toString()"
-                                  [pmfm]="pmfm">
+                  <app-pmfm-field [pmfm]="pmfm"
+                                  [controlName]="pmfm|pmfmIdString">
                   </app-pmfm-field>
                 </ion-col>
                 <ion-col *ngIf="pmfm.id === controlledSpeciesPmfmId && showOtherTaxonGroup"
