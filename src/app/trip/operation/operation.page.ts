@@ -689,15 +689,21 @@ export class OperationPage
     }
 
     // Existing operation
-    if (this.mobile) {
-      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {
-        startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string
-      }).toPromise()) as string;
-    } else {
+    const rankOrder = this.mobile ? null : await this.service.computeRankOrder(data, {fetchPolicy: 'cache-first'});
+    if (rankOrder) {
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
         startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string,
-        rankOrder: await this.service.computeRankOrder(data, {fetchPolicy: 'cache-first'})
+        rankOrder
       }).toPromise()) as string;
+    }
+    // No rankOrder (e.g. if mobile)
+    else {
+      // Display date+time, or time only if today
+      const startDateTime = data.startDateTime && (
+        moment().isSame(data.startDateTime, 'day')
+          ? this.dateFormat.transform(data.startDateTime, {pattern: 'HH:mm'})
+          : this.dateFormat.transform(data.startDateTime, {time: true})) as string;
+      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {startDateTime}).toPromise()) as string;
     }
   }
 

@@ -78,11 +78,19 @@ mat-form-field {
 }
 
 
-// Smaller title on very extra small device
-@media screen and (max-width: $screen-xs-max) {
+// Smaller title on xxs device
+@media screen and (max-width: $screen-xxs-max) {
+  ion-toolbar ion-title {
+    font-size: 16px;
+    padding-inline: 0;
+  }
+}
+
+// Smaller title on xs device
+@media screen and (min-width: $screen-xs) and (max-width: $screen-xs-max)  {
   ion-toolbar ion-title {
     font-size: 18px;
-    padding-inline: 8px;
+    padding-inline: 6px;
   }
 }
 

@@ -60,8 +60,7 @@
                                 [config]="autocompleteFields.location"
                                 [required]="true"
                                 logPrefix="[location]"
-                                [panelWidth]="mobile ? '80vw' : '500px'"
-                                [matAutocompletePosition]="mobile ? 'above': 'auto'">
+                                [panelWidth]="mobile ? '80vw' : '500px'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
 
@@ -85,8 +84,8 @@
                                 [placeholder]="'TRIP.RETURN_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
                                 [required]="returnFieldsRequired"
-                                [panelWidth]="mobile ? '80vw' : '500px'"
-                                [matAutocompletePosition]="mobile ? 'above': 'auto'">
+                                [clearable]="!returnFieldsRequired"
+                                [panelWidth]="mobile ? '80vw' : '500px'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>

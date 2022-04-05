@@ -6,6 +6,23 @@ import { DateFormatPipe, isNotNilOrBlank, LatitudeFormatPipe, LocalSettingsServi
 import {TranslateService} from '@ngx-translate/core';
 
 @Pipe({
+  name: 'pmfmIdString'
+})
+export class PmfmIdStringPipe implements PipeTransform {
+
+  constructor(
+    protected translate: TranslateService,
+    protected translateContext: TranslateContextService
+  ) {
+
+  }
+
+  transform(pmfm: IPmfm): string {
+    return pmfm && pmfm.id?.toString() || null;
+  }
+}
+
+@Pipe({
     name: 'pmfmName'
 })
 @Injectable({providedIn: 'root'})

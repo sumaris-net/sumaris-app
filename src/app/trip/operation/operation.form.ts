@@ -639,7 +639,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
       // Append end time
       if (parentOperation.fishingStartDateTime && !parentOperation.startDateTime.isSame(parentOperation.fishingStartDateTime)) {
-        const endSuffix = this.dateFormat.format(parentOperation.fishingStartDateTime, 'HH:mm');
+        const endSuffix = this.dateFormat.transform(parentOperation.fishingStartDateTime, {pattern: 'HH:mm'});
         parentLabel += ' -> ' + endSuffix;
       }
     }

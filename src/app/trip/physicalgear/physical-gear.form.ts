@@ -21,9 +21,9 @@ import { OperationService } from '@app/trip/services/operation.service';
 })
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit {
 
-  gearsSubject = new BehaviorSubject<ReferentialRef[]>(undefined);
-  mobile: boolean;
+  $gears = new BehaviorSubject<ReferentialRef[]>(undefined);
 
+  @Input() mobile: boolean;
   @Input() showComment = true;
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
@@ -31,7 +31,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   @Input()
   set gears(value: ReferentialRef[]) {
-    this.gearsSubject.next(value);
+    this.$gears.next(value);
   }
 
   @Output() onSubmit = new EventEmitter<any>();
@@ -64,7 +64,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
           distinctUntilChanged(),
           mergeMap(program => this.programRefService.loadGears(program))
         )
-        .subscribe(gears => this.gearsSubject.next(gears))
+        .subscribe(gears => this.$gears.next(gears))
     );
 
     this.debug = !environment.production;
@@ -77,7 +77,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
     // Combo: gears
     this.registerAutocompleteField('gear', {
-      items: this.gearsSubject,
+      items: this.$gears,
       mobile: this.mobile
     });
 
