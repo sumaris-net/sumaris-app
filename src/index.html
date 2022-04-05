@@ -66,6 +66,7 @@
     <!-- Translate the loading text -->
     <script type="text/javascript">
       var userLang = navigator.language || navigator.userLanguage;
+      console.debug('[loading-page] Detected lang: ' + userLang);
       var loadingText = userLang && userLang.startsWith('fr') ? 'Chargement...' : 'Loading...';
       document.getElementById('loadingText').innerText = loadingText;
       document.getElementById('appTitle').innerText = loadingText;
