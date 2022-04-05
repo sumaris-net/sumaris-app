@@ -133,16 +133,6 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
     }
   }
 
-  // async close(event?: UIEvent, opts?: {allowInvalid?: boolean; }): Promise<PhysicalGear | undefined> {
-  //
-  //   const physicalGear = await this.save();
-  //   if (!physicalGear) return;
-  //   await this.vieCtrl.dismiss(physicalGear);
-  //
-  //   return physicalGear;
-  // }
-
-
   async cancel(event: UIEvent) {
     await this.saveIfDirtyAndConfirm(event);
 
@@ -152,7 +142,7 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
     }
   }
 
-  async save(event?: UIEvent): Promise<boolean> {
+  async save(event?: UIEvent, opts?: {dismiss?: boolean}): Promise<boolean> {
     if (this.loading) return false;
 
     if (!this.form.valid) {
@@ -169,7 +159,7 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
 
     // Nothing to save: just leave
     if (!this.isNew && !this.form.dirty) {
-      await this.viewCtrl.dismiss();
+      if (!opts || opts.dismiss !== false) await this.viewCtrl.dismiss();
       return false;
     }
 
@@ -177,9 +167,13 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
       this.form.error = null;
 
       await this.form.waitIdle();
-      const gear = this.form.value;
+      const json = this.form.value;
 
-      return await this.viewCtrl.dismiss(gear);
+      const entity = PhysicalGear.fromObject(json);
+
+      if (!opts || opts.dismiss !== false) await this.viewCtrl.dismiss(entity);
+
+      return true;
     }
     catch (err) {
       this.loading = false;
@@ -216,7 +210,7 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
     }
 
     // If user confirm: save
-    const saved = await this.save(event);
+    const saved = await this.save(event, {dismiss: false});
 
     // Error while saving: avoid to close
     if (!saved) event.preventDefault();

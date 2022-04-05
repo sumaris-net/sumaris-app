@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector,
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
 import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService} from '@sumaris-net/ngx-components';
+import { createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, SharedValidators } from '@sumaris-net/ngx-components';
 import { PhysicalGearModal, PhysicalGearModalOptions } from './physical-gear.modal';
 import {PhysicalGear} from '../services/model/trip.model';
 import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
@@ -10,6 +10,8 @@ import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum
 import {environment} from '../../../environments/environment';
 import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
 import { Subscription } from 'rxjs';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { debounceTime, filter, tap } from 'rxjs/operators';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -32,8 +34,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
 })
 export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
-  protected cd: ChangeDetectorRef;
-  protected memoryDataService: InMemoryEntitiesService<PhysicalGear>;
+  filterForm: FormGroup;
 
   set value(data: PhysicalGear[]) {
     this.memoryDataService.value = data;
@@ -50,6 +51,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   @Input() showToolbar = true;
   @Input() useSticky = false;
   @Input() tripId: number;
+  @Input() showFilter = false;
 
   @Input() set showSelectColumn(show: boolean) {
     this.setShowColumn('select', show);
@@ -59,10 +61,14 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     this.setShowColumn('lastUsed', show);
   }
 
+  protected memoryDataService: InMemoryEntitiesService<PhysicalGear>;
+
   @Output() onSelectPreviousGear = createPromiseEventEmitter();
 
   constructor(
     injector: Injector,
+    formBuilder: FormBuilder,
+    protected cd: ChangeDetectorRef,
     @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
@@ -76,8 +82,13 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
       });
-    this.cd = injector.get(ChangeDetectorRef);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<PhysicalGear>);
+
+    this.filterForm = formBuilder.group({
+      'startDate': [null, Validators.compose([Validators.required, SharedValidators.validDate])],
+      'endDate': [null, Validators.compose([SharedValidators.validDate, SharedValidators.dateRangeEnd('startDate')])],
+    });
+
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = true;
 
@@ -95,12 +106,43 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     super.ngOnInit();
 
     this._enabled = this.canEdit;
+
+    // Update filter when changes
+    this.registerSubscription(
+      this.filterForm.valueChanges
+        .pipe(
+          debounceTime(250),
+          // DEBUG
+          //tap(json => console.debug("filter changed:", json)),
+
+          filter(() => this.filterForm.valid)
+        )
+        // Applying the filter
+        .subscribe((json) => this.setFilter({
+            ...this.filter, // Keep previous filter
+            ...json
+          },
+          {emitEvent: true /*always apply*/}))
+    );
+
   }
 
   ngOnDestroy() {
 
     super.ngOnDestroy();
     this.onSelectPreviousGear.unsubscribe();
+  }
+
+  setFilter(value: Partial<PhysicalGearFilter>, opts?: { emitEvent: boolean }) {
+
+    value = PhysicalGearFilter.fromObject(value);
+
+    // Update the form content
+    if (!opts || opts.emitEvent !== false) {
+      this.filterForm.patchValue(value.asObject(), {emitEvent: false});
+    }
+
+    super.setFilter(value as PhysicalGearFilter, opts);
   }
 
   protected async openNewRowDetail(): Promise<boolean> {

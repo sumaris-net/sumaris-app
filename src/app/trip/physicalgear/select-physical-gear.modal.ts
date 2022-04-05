@@ -9,6 +9,13 @@ import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {Observable} from 'rxjs';
 import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
 
+export interface SelectPhysicalGearModalOptions {
+  allowMultiple?: boolean;
+  filter?: PhysicalGearFilter;
+  acquisitionLevel?: AcquisitionLevelType;
+  programLabel?: string;
+}
+
 @Component({
   selector: 'app-select-physical-gear-modal',
   templateUrl: './select-physical-gear.modal.html',
@@ -20,7 +27,7 @@ import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
     }
   ]
 })
-export class SelectPhysicalGearModal implements OnInit {
+export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalOptions {
 
   selectedTabIndex = 0;
   readonly mobile: boolean;
@@ -31,7 +38,7 @@ export class SelectPhysicalGearModal implements OnInit {
 
   @Input() filter: PhysicalGearFilter | null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
-  @Input() program: string;
+  @Input() programLabel: string;
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;
@@ -56,16 +63,12 @@ export class SelectPhysicalGearModal implements OnInit {
       distinctByRankOrder: true
     };
     this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
-    this.table.programLabel = this.program;
+    this.table.programLabel = this.programLabel;
+    this.table.markAsReady();
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
 
-    // Load landings
-    setTimeout(() => {
-      this.table.onRefresh.next('modal');
-      this.markForCheck();
-    }, 200);
 
   }
 

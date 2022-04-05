@@ -34,7 +34,7 @@
                                 formControlName="vesselSnapshot"
                                 [placeholder]="'TRIP.VESSEL_SNAPSHOT'|translate"
                                 [config]="autocompleteFields.vesselSnapshot"
-                                required>
+                                [required]="true">
           <ion-icon matPrefix name="boat"></ion-icon>
 
           <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->

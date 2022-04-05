@@ -570,7 +570,11 @@
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
         "LAST_USED": "Dernière utilisation",
-        "COMMENTS": "Commentaires"
+        "COMMENTS": "Commentaires",
+        "FILTER": {
+          "START_DATE": "Début de période",
+          "END_DATE": "Fin de période"
+        }
       },
       "SELECT_MODAL": {
         "TITLE": "Engins existants"
