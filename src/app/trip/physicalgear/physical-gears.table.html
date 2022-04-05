@@ -40,6 +40,32 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
+<form *ngIf="showFilter" class="form-container ion-padding-top"
+      [formGroup]="filterForm"
+      (ngSubmit)="onRefresh.emit()">
+  <ion-grid>
+    <ion-row >
+      <!-- Start date -->
+      <ion-col>
+        <mat-date-field [placeholder]="'TRIP.PHYSICAL_GEAR.LIST.FILTER.START_DATE'|translate"
+                        formControlName="startDate"
+                        [required]="true">
+          <ion-icon matPrefix name="calendar-outline"></ion-icon>
+        </mat-date-field>
+      </ion-col>
+
+      <!-- End date -->
+      <ion-col>
+        <mat-date-field [placeholder]="'TRIP.PHYSICAL_GEAR.LIST.FILTER.END_DATE'|translate"
+                        formControlName="endDate"
+                        [startDate]="(filterForm|formGetControl:'startDate').value"
+                        [clearable]="true">
+        </mat-date-field>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</form>
+
 <div class="table-container" [class.has-toolbar]="showToolbar">
 
   <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)" >

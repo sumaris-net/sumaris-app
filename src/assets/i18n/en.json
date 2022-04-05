@@ -566,7 +566,11 @@
         "SELECT_ROW_HELP": "Select a row to edit it",
         "GEAR": "Gear",
         "LAST_USED": "Last use",
-        "COMMENTS": "Comments"
+        "COMMENTS": "Comments",
+        "FILTER": {
+          "START_DATE": "Start period",
+          "END_DATE": "End period"
+        }
       },
       "SELECT_MODAL": {
         "TITLE": "Existing gears"
@@ -581,17 +585,16 @@
       "BTN_SHOW_ALL": "Show all",
       "BTN_HISTORY": "Log",
       "BTN_SHOW_MAP": "Positions map",
-      "COMMENTS": "Comments",
       "LAST_OPERATIONS": "Last operations",
       "NO_LAST_OPERATION": "No previous operation",
       "OPE_PREFIX": "OPE",
       "TITLE_PREFIX": "<small>{{vessel}} - Trip {{departureDateTime}}<br></small>",
       "NEW": {
-        "TITLE": "New operation"
+        "TITLE": "New OPE"
       },
       "EDIT": {
-        "TITLE": "Ope #{{rankOrder}} <small>at {{startDateTime}}</small>",
-        "TITLE_NO_RANK": "Ope {{startDateTime}}",
+        "TITLE": "OPE #{{rankOrder}} <small>at {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "OPE {{startDateTime}}",
         "BTN_DELETE": "Delete this operation",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
         "BTN_EDIT_PARENT" : "Edit setting",

@@ -570,7 +570,11 @@
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
         "LAST_USED": "Dernière utilisation",
-        "COMMENTS": "Commentaires"
+        "COMMENTS": "Commentaires",
+        "FILTER": {
+          "START_DATE": "Début de période",
+          "END_DATE": "Fin de période"
+        }
       },
       "SELECT_MODAL": {
         "TITLE": "Engins existants"
@@ -590,11 +594,11 @@
       "OPE_PREFIX": "OPE",
       "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
       "NEW": {
-        "TITLE": "Nouvelle Opé"
+        "TITLE": "Nouvelle OPE"
       },
       "EDIT": {
-        "TITLE": "Opé #{{rankOrder}} <small>du {{startDateTime}}</small>",
-        "TITLE_NO_RANK": "Opé {{startDateTime}}",
+        "TITLE": "OPE #{{rankOrder}} <small>du {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "OPE {{startDateTime}}",
         "BTN_DELETE": "Supprimer cette opération",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
         "BTN_EDIT_PARENT" : "Modifier le filage...",

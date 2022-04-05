@@ -50,6 +50,7 @@
     <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last" #inputField
                     [pmfm]="pmfm"
                     [controlName]="pmfm|pmfmIdString"
+                    [style]="pmfm|pmfmFieldStyle"
                     [compact]="compact"
                     [tabindex]="tabindex+2 + i*2"
                     [floatLabel]="floatLabel"

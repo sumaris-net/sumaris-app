@@ -4,13 +4,13 @@ import { OperationForm } from './operation.form';
 import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
-  AppEntityEditor, AppErrorWithDetails,
+  AppEntityEditor,
+  AppErrorWithDetails,
   AppHelpModal,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
-  FormErrors,
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
@@ -23,7 +23,7 @@ import {
   ReferentialUtils,
   toBoolean,
   toNumber,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap, throttleTime } from 'rxjs/operators';
@@ -41,11 +41,10 @@ import { BehaviorSubject, from, merge, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { OperationValidators, IPmfmForm } from '@app/trip/services/validator/operation.validator';
+import { IPmfmForm, OperationValidators } from '@app/trip/services/validator/operation.validator';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
-import { ContextService } from '@app/shared/context.service';
 import { SubBatchValidatorService } from '@app/trip/services/validator/sub-batch.validator';
 import { DataContextService } from '@app/data/services/data-context.service';
 
@@ -100,6 +99,10 @@ export class OperationPage
   allowParentOperation = false;
   autoFillBatch = false;
   autoFillDatesFromTrip = false;
+  displayAttributes: {
+    gear?: string[];
+    [key:string]: string[]
+  } = {};
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
   showCatchTab = false;
@@ -166,6 +169,7 @@ export class OperationPage
     });
 
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
+    this.displayAttributes.gear = settings.getFieldDisplayAttributes('gear');
 
     // Init mobile
     this.mobile = settings.mobile;
@@ -179,6 +183,13 @@ export class OperationPage
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
+
+  // TODO Hide lastOperation on to small screen
+  /*@HostListener('window:resize', ['$event'])
+  onResize(event?: UIEvent) {
+    this.showLastOperations = window.innerWidth < ; // XS screen
+    console.debug('[menu] Screen size (px): ' + this._screenWidth);
+  }*/
 
   async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {
     const errors = await this.service.control(data, {
@@ -268,8 +279,8 @@ export class OperationPage
               withBatchTree: false,
               withSamples: false,
               computeRankOrder: false,
-              fetchPolicy: 'cache-and-network',
-              withTotal: true
+              withTotal: true,
+              fetchPolicy: 'cache-and-network'
             })),
           map(res => res && res.data || []),
           tap(data => this.$lastOperations.next(data))

@@ -41,7 +41,7 @@
                size="12" class="ion-no-padding">
           <app-pmfm-field #matInput [pmfm]="pmfm"
                           [hidden]="pmfm.hidden || matInput.formControl?.disabled"
-                          [formControlName]="pmfm.id|toString"
+                          [controlName]="pmfm|pmfmIdString"
                           [style]="pmfm|pmfmFieldStyle"
                           [compact]="compact"
                           [tabindex]="tabindex+2 + i*2">

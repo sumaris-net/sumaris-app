@@ -11,7 +11,7 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { FormGroup, Validators } from '@angular/forms';
 import {
-  Alerts,
+  Alerts, DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
@@ -28,7 +28,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
 import { PhysicalGear, Trip } from '../services/model/trip.model';
-import { SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
+import { SelectPhysicalGearModal, SelectPhysicalGearModalOptions } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -489,17 +489,16 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     const filter = <PhysicalGearFilter>{
       vesselId: vessel.id,
-      endDate: date,
       excludeTripId: trip.id,
-      startDate: moment().add(-1, 'month')
-      // TODO startDate : endDate - 6 month ?
+      startDate: DateUtils.min(moment(), date && date.clone()).add(-1, 'month'),
+      endDate: date && date.clone()
     };
     const modal = await this.modalCtrl.create({
       component: SelectPhysicalGearModal,
-      componentProps: {
+      componentProps: <SelectPhysicalGearModalOptions>{
         filter,
         allowMultiple: false,
-        program: this.$programLabel.getValue(),
+        programLabel: this.$programLabel.getValue(),
         acquisitionLevel: this.physicalGearsTable.acquisitionLevel
       }
     });
