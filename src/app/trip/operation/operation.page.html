@@ -50,19 +50,16 @@
         <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
         <ion-grid>
           <ion-row>
-            <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset -->
-            <!--<ion-col size="3">
+            <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset
+            <ion-col size="3">
               <span translate>TRIP.OPERATION.OPE_PREFIX</span> #{{ item.rankOrderOnPeriod}}
             </ion-col>-->
-            <ion-col>
-              {{ item.startDateTime | dateFormat:{pattern: dateTimePattern} }}
+            <ion-col style="padding-top: 8px !important;">
+              <ion-label>{{ item.physicalGear | referentialToString: opeForm.autocompleteFields.physicalGear.attributes }}</ion-label>
             </ion-col>
-            <ion-col size="auto">
-              <ion-text>
-                <small>
-                  <ion-icon name="time-outline"></ion-icon>&nbsp;
-                  {{item.startDateTime|dateFromNow}}
-                </small>
+            <ion-col size="3">
+              <ion-text>{{ item.startDateTime | dateFormat: {pattern: dateTimePattern} }}
+                <ion-text color="primary"><br/><small>{{ item.startDateTime | dateFromNow }}</small></ion-text>
               </ion-text>
             </ion-col>
           </ion-row>

@@ -470,8 +470,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       return combineLatest([offline$, online$])
         .pipe(
           map(([res1, res2]) => mergeLoadResult(res1, res2)),
-          mergeMap(async ({ data, total }) => {
-            return await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts);
+          mergeMap(({ data, total }) => {
+            return this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts);
           })
         );
     }
@@ -1727,7 +1727,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       entities = await this.sortByDistance(entities, sortDirection, sortBy);
     }
 
-    // Compute rankOrder and re-sort (if enable AND all data fetched)
+    // Compute rankOrder and re-sort (if enable AND total has been fetched)
     if (!opts || opts.computeRankOrder !== false) {
       this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, filter as OperationFilter);
     }

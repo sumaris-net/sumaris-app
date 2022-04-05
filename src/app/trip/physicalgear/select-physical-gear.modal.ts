@@ -1,13 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService} from '../services/physicalgear.service';
-import {TableElement} from '@e-is/ngx-material-table';
-import {PhysicalGear} from '../services/model/trip.model';
-import {IEntitiesService, isNotNil, PlatformService, toBoolean} from '@sumaris-net/ngx-components';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {Observable} from 'rxjs';
-import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService } from '../services/physicalgear.service';
+import { TableElement } from '@e-is/ngx-material-table';
+import { PhysicalGear } from '../services/model/trip.model';
+import { IEntitiesService, isNotNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { Observable } from 'rxjs';
+import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
 
 export interface SelectPhysicalGearModalOptions {
   allowMultiple?: boolean;
@@ -45,12 +45,12 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
   }
 
   constructor(
-    protected viewCtrl: ModalController,
-    platformService: PlatformService,
+    private modalCtrl: ModalController,
+    private settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
     @Inject(PHYSICAL_GEAR_DATA_SERVICE) protected dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
-    this.mobile = platformService.mobile;
+    this.mobile = settings.mobile;
   }
 
   ngOnInit() {
@@ -68,7 +68,6 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
-
 
   }
 
@@ -96,7 +95,7 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
           .map(row => row.currentData)
           .map(PhysicalGear.fromObject)
           .filter(isNotNil);
-        this.viewCtrl.dismiss(gears);
+        this.modalCtrl.dismiss(gears);
       }
       return true;
     } catch (err) {
@@ -106,7 +105,7 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
   }
 
   async cancel() {
-    await this.viewCtrl.dismiss();
+    await this.modalCtrl.dismiss();
   }
 
   hasSelection(): boolean {

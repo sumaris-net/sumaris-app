@@ -199,6 +199,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         disabled: this.disabled,
         value: gear.clone(), // Do a copy, because edition can be cancelled
         isNew,
+        mobile: this.mobile,
         canEditRankOrder: this.canEditRankOrder,
         onInit: (modalComponent: PhysicalGearModal) => {
           // Subscribe to click on copy button, then redirect the event
