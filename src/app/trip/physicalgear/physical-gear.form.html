@@ -13,7 +13,7 @@
                           [tabindex]="tabindex"
                           [required]="true"
                           [readonly]="!canEditGear"
-                          [showSearchBar]="false"
+                          [showSearchBar]="$gears|async|isArrayLength:{greaterThan: 5}"
                           (focusout)="focusNextInput($event)">
   </mat-autocomplete-field>
 
@@ -49,7 +49,7 @@
     <!-- Measurements -->
     <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last" #inputField
                     [pmfm]="pmfm"
-                    [controlName]="pmfm.id.toString()"
+                    [controlName]="pmfm|pmfmIdString"
                     [compact]="compact"
                     [tabindex]="tabindex+2 + i*2"
                     [floatLabel]="floatLabel"
