@@ -78,7 +78,7 @@
         <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
 
         <!-- header -->
-        <ion-row class="mat-select-header ion-no-padding">
+        <ion-row class="mat-select-header ion-no-padding column">
           <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
             <ion-col size="3" *ngSwitchCase="'label'">
               <ion-label translate>REFERENTIAL.LABEL</ion-label>
