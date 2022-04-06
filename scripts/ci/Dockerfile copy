@@ -1,7 +1,7 @@
 ARG IMAGE_REGISTRY
 ARG DOCKER_IMAGE="node:12-slim"
-FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS prepare
-ARG CACHE_DIR=/tmp/.build-cache
+FROM $IMAGE_REGISTRY$DOCKER_IMAGE
+ENV CACHE_DIR=/tmp/.build-cache
 
 # Use a cache dir
 WORKDIR ${CACHE_DIR}
@@ -9,16 +9,6 @@ WORKDIR ${CACHE_DIR}
 # Copy need files, to check deps
 COPY ./package.json ./
 # COPY ./yarn.lock ./ FIXME : comment to fix pipeline
-RUN sed -i 's/version\": \".*\"/version\": \"0.0.0\"/g' package.json
-
-
-# BUILD STAGE
-FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS build
-ARG CACHE_DIR=/tmp/.build-cache
-WORKDIR $CACHE_DIR
-
-# Caching npm depedencies
-COPY --from=prepare $CACHE_DIR/package.json .
 COPY ./scripts/ci/*.sh scripts/ci/
 
 # Store disk usage (before install)

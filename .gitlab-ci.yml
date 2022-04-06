@@ -47,6 +47,25 @@ variables:
   allow_failure: false
 
 # ---------------------------------------------------------------
+# Environment jobs : Create docker image for builds/release, this
+# offers possibility to cache project dependencies so we don't
+# have to download them every time.
+# ---------------------------------------------------------------
+build:env:
+  extends: .docker
+  stage: environment
+  script:
+    # Create the target directory
+    - mkdir -p target/docker
+    - cp -rf scripts/docker/build/* target/docker
+    # Build and push the CI image
+    - docker build --cache-from ${CI_BUILD_IMAGE} -t ${CI_BUILD_IMAGE} --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg="CACHE_DIR=${BUILD_CACHE_DIR}" --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f target/docker/Dockerfile .
+    - docker push ${CI_BUILD_IMAGE}
+  except:
+    - tags
+    - master
+
+# ---------------------------------------------------------------
 # Build jobs
 # ---------------------------------------------------------------
 
@@ -66,7 +85,7 @@ variables:
       - www
     reports:
       dotenv: variables.env
-    expire_in: 72 hours
+    expire_in: 12 hours
 
 build:
   extends: .build
@@ -80,34 +99,34 @@ build:
     - tags
     - master
 
-failsafe-build:
-  extends: .build
-  stage: alt_build
-  when: on_failure
-  before_script:
-    # Install global dependencies
-    - yarn global add @ionic/cli @angular/cli
-    # Update project dependencies
-    - yarn install
-  variables:
-    BUILD_ENVIRONMENT: dev
-  except:
-    - tags
-    - master
+# failsafe-build:
+#   extends: .build
+#   stage: alt_build
+#   when: on_failure
+#   before_script:
+#     # Install global dependencies
+#     - yarn global add @ionic/cli @angular/cli
+#     # Update project dependencies
+#     - yarn install
+#   variables:
+#     BUILD_ENVIRONMENT: dev
+#   except:
+#     - tags
+#     - master
 
-docker:ci:
-  extends: .docker
-  stage: alt_build
-  when: on_failure
-  allow_failure: true
-  script:
-    # Build and push the CI image
-    - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f scripts/ci/Dockerfile .
-    #- docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
-    - docker push ${CI_BUILD_IMAGE}
-  except:
-    - tags
-    - master
+# docker:ci:
+#   extends: .docker
+#   stage: alt_build
+#   when: on_failure
+#   allow_failure: true
+#   script:
+#     # Build and push the CI image
+#     - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f scripts/ci/Dockerfile .
+#     #- docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
+#     - docker push ${CI_BUILD_IMAGE}
+#   except:
+#     - tags
+#     - master
 
 # ---------------------------------------------------------------
 # Release jobs
@@ -171,9 +190,9 @@ release:
     image: ${CI_BUILD_IMAGE}
     needs: [build]
 
-failsafe-release:
-    extends: .release
-    needs: [failsafe-build]
+# failsafe-release:
+#     extends: .release
+#     needs: [failsafe-build]
 
 gitlab-release:
     stage: release
