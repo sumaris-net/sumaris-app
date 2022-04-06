@@ -1,11 +1,11 @@
-import { Entity, EntityAsObjectOptions, EntityClass, IReferentialRef, isNil, isNotNil, ReferentialRef, ReferentialUtils, toNumber } from '@sumaris-net/ngx-components';
-import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from './pmfm.model';
-import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
-import { MethodIds, UnitIds } from './model.enum';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import {Entity, EntityAsObjectOptions, EntityClass, IReferentialRef, isNil, isNotNil, ReferentialRef, ReferentialUtils, toNumber} from '@sumaris-net/ngx-components';
+import {IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion} from './pmfm.model';
+import {PmfmValue, PmfmValueUtils} from './pmfm-value.model';
+import {MethodIds, UnitIds} from './model.enum';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 
 
-@EntityClass({typename: "PmfmStrategyVO"})
+@EntityClass({typename: 'PmfmStrategyVO'})
 export class PmfmStrategy extends Entity<PmfmStrategy> {
 
   static fromObject: (source: any, opts?: any) => PmfmStrategy;
@@ -174,6 +174,7 @@ export class DenormalizedPmfmStrategy
       methodId: source.methodId,
       unitLabel: source.unitLabel,
       qualitativeValues: source.parameter.qualitativeValues && source.parameter.qualitativeValues.map(ReferentialRef.fromObject),
+      displayConversion: source.displayConversion
     });
     return target;
   };
@@ -207,6 +208,8 @@ export class DenormalizedPmfmStrategy
   strategyId: number;
   hidden?: boolean;
 
+  displayConversion?: UnitConversion;
+
   constructor() {
     super(DenormalizedPmfmStrategy.TYPENAME);
   }
@@ -215,6 +218,7 @@ export class DenormalizedPmfmStrategy
     const target: any = super.asObject(options);
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
     target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this));
+    target.displayConversion = this.displayConversion;
     return target;
   }
 
@@ -243,6 +247,7 @@ export class DenormalizedPmfmStrategy
     this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject);
     this.strategyId = source.strategyId;
+    this.displayConversion = source.displayConversion;
   }
 
   get required(): boolean {

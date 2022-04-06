@@ -76,9 +76,9 @@ build:
     - cp -R /tmp/.build-cache/node_modules .
   variables:
     BUILD_ENVIRONMENT: dev
-  only:
-    - develop
-    - /^feature\/.*/
+  except:
+    - tags
+    - master
 
 failsafe-build:
   extends: .build
@@ -91,9 +91,9 @@ failsafe-build:
     - yarn install
   variables:
     BUILD_ENVIRONMENT: dev
-  only:
-    - develop
-    - /^feature\/.*/
+  except:
+    - tags
+    - master
 
 docker:ci:
   extends: .docker
@@ -105,9 +105,9 @@ docker:ci:
     - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f scripts/ci/Dockerfile .
     #- docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
     - docker push ${CI_BUILD_IMAGE}
-  only:
-    - develop
-    - /^feature\/.*/
+  except:
+    - tags
+    - master
 
 # ---------------------------------------------------------------
 # Release jobs
@@ -142,13 +142,13 @@ docker:ci:
       # Git process for release (ISO gitflow)
       - git add .
       - git commit -m "Prepare release ${RELEASE_VERSION}"
-      - git checkout master
+      - git checkout imagine/master
       - git merge --no-ff --no-edit -m "Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
       - git tag -a ${RELEASE_VERSION} -m "${RELEASE_VERSION}"
-      - git checkout develop
+      - git checkout imagine/develop
       - git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
-      - git push origin develop
-      - git push origin master
+      - git push origin imagine/develop
+      - git push origin imagine/master
       - git push --tags
       - git branch -D release/${RELEASE_VERSION}
   after_script:
@@ -163,7 +163,7 @@ docker:ci:
     expire_in: 24 hours
   allow_failure: false
   only:
-      - develop
+      - imagine/develop
   when: manual
 
 release:
@@ -216,7 +216,7 @@ docker:imagine:
     IMAGE_TAG: imagine
   needs: [build]
   only:
-    - feature/imagine
+    - imagine/develop
 
 docker:feature:
   extends: .docker-build
@@ -233,7 +233,7 @@ docker:release:
     IMAGE_TAG: ${APP_VERSION}
   needs: [release]
   only:
-    - develop
+    - imagine/develop
 
 # ---------------------------------------------------------------
 # Docs jobs
@@ -256,6 +256,5 @@ pages:
       - public
   only:
     - develop
-    - feature/imagine
   when: manual
 
