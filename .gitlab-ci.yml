@@ -6,9 +6,9 @@
 image: node:12-slim
 
 stages:
+  - environment
   - build
   - alt_build
-#  - test
   - release
   - docker
   - docs
