@@ -454,6 +454,7 @@
     },
     "LIST": {
       "TITLE": "Utilisateurs",
+      "BTN_SEND_MESSAGE": "Envoyer un message",
       "FILTER": {
         "SEARCH": "Recherche : nom, prénom..."
       }
@@ -823,6 +824,11 @@
       },
       "EDIT": {
         "TITLE": "Individu {{label}}"
+      },
+      "ERROR": {
+        "WEIGHT_LENGTH_CONVERSION_FAILED": "RTP désactivés",
+        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "RTP désactivés (rectangle inconnu)",
+        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "RTP désactivés (paramètre de longueur manquant)"
       }
     },
     "SAMPLE": {
@@ -2127,15 +2133,34 @@
       "BTN_COPY_TO_LOCAL": "Copier localement",
       "INFO": {
         "COPIED_LOCALLY": "Copier localement avec succès"
+      },
+      "TYPE_ENUM": {
+        "DEBUG_DATA": "Donnée de debuggage",
+        "INBOX_MESSAGE": "Message entrant",
+        "FEED": "Actualité"
       }
     },
-    "EVENT_TYPE_ENUM": {
-      "DEBUG_DATA": "Donnée de debuggage",
-      "INBOX_MESSAGE": "Message entrant"
+    "MESSAGE": {
+      "TYPE": "Type d'envoi",
+      "RECIPIENTS": "Destinataires",
+      "SUBJECT": "Objet",
+      "BODY_HELP": "Votre message...",
+      "NEW": {
+        "TITLE": "Nouveau message"
+      },
+      "TYPE_ENUM": {
+        "INBOX_MESSAGE": "Messagerie interne",
+        "EMAIL": "Email",
+        "FEED": "Actualité"
+      }
     },
     "ERROR": {
       "LOAD_USER_EVENTS_ERROR": "Erreur de chargement des notifications",
-      "SAVE_USER_EVENT_ERROR": "Erreur de sauvegarde du message utilisateur"
+      "SAVE_USER_EVENT_ERROR": "Erreur de sauvegarde de la notification",
+      "SEND_MESSAGE_ERROR": "Erreur lors de l'envoi du message"
+    },
+    "INFO": {
+      "MESSAGE_SENT": "Message <b>envoyé</b> !"
     }
   },
   "FILE": {

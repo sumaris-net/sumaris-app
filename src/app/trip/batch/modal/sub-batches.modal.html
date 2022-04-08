@@ -46,10 +46,13 @@
       <ion-col size="12" push="" size-md="4" push-md="8" size-lg="3" push-lg="9"
                class="ion-padding form-container">
 
-        <ion-label color="primary" class="ion-padding-bottom">
-          <span *ngIf="!editedRow" translate>TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS</span>
-          <span *ngIf="editedRow" translate>TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS</span>
-        </ion-label>
+        <!-- error -->
+        <ion-item *ngIf="form.error; let error" lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+        </ion-item>
+
+
         <app-sub-batch-form #form
                             [debug]="debug"
                             [programLabel]="programLabel"
@@ -66,7 +69,9 @@
                             (onSubmit)="doSubmitForm($event, editedRow)"
                             [isNew]="!editedRow"
                             [tabindex]="1"
-                            [maxVisibleButtons]="maxVisibleButtons">
+                            [maxVisibleButtons]="maxVisibleButtons"
+                            [title]="editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'">
+
         </app-sub-batch-form>
       </ion-col>
 

@@ -14,6 +14,11 @@ export class TaxonNameRefFilter extends BaseReferentialFilter<TaxonNameRefFilter
     taxonGroupId?: number;
     taxonGroupIds?: number[];
 
+    constructor() {
+      super();
+      this.entityName = TaxonNameRef.ENTITY_NAME;
+    }
+
     fromObject(source: any, opts?: any) {
         super.fromObject(source);
         this.taxonGroupIds = source.taxonGroupIds;

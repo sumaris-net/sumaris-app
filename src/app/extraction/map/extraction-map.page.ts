@@ -939,10 +939,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
     await this.ready();
 
-    if (!bounds && isEmptyArray(this.layers)) {
+    if ((!bounds && isEmptyArray(this.layers)) || !this.map.getCenter()) {
       // TODO: get center from configuration, or settings ?
       const centerCoords = [46.879966, -10];
       this.map.setView(L.latLng(centerCoords as [number, number]), 5);
+
       return;
     }
 

@@ -40,6 +40,8 @@ import { StrategyFilter } from '@app/referential/services/filter/strategy.filter
 import { StrategyModal } from '@app/referential/strategy/strategy.modal';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
+import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
 
 const moment = momentImported;
 
@@ -99,6 +101,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected samplingStrategyService: SamplingStrategyService,
     protected strategyService: StrategyService,
     protected referentialRefService: ReferentialRefService,
+    protected taxonNameRefService: TaxonNameRefService,
     protected personService: PersonService,
     protected parameterService: ParameterService,
     protected formBuilder: FormBuilder,
@@ -210,9 +213,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       mobile: this.mobile
     });
 
-    this.registerAutocompleteField<TaxonNameRef, ReferentialFilter>('taxonName', {
+    this.registerAutocompleteField<TaxonNameRef, TaxonNameRefFilter>('taxonName', {
       showAllOnFocus: false,
-      suggestFn: (value, filter) => this.referentialRefService.suggestTaxonNames(value, filter),
+      service: this.taxonNameRefService,
       attributes: ['name'],
       filter: {
         levelIds: [TaxonomicLevelIds.SPECIES, TaxonomicLevelIds.SUBSPECIES],

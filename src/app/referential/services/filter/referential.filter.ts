@@ -6,6 +6,39 @@ import {StatusIds}  from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {EntityClass}  from "@sumaris-net/ngx-components";
 import {toDateISOString} from "@sumaris-net/ngx-components";
+import { IEntity } from '@sumaris-net/ngx-components/src/app/core/services/model/entity.model';
+
+
+export declare interface IReferentialFilter<
+  F extends EntityFilter<F, T, ID, AO, FO>,
+  T extends IReferentialRef<T, any>,
+  ID = number,
+  AO extends EntityAsObjectOptions = EntityAsObjectOptions,
+  FO = any
+  >
+  extends EntityFilter<F, T, ID, AO, FO> {
+  entityName?: string;
+
+  label?: string;
+  name?: string;
+
+  statusId?: number;
+  statusIds?: number[];
+
+  levelId?: number;
+  levelIds?: number[];
+
+  levelLabel?: string;
+  levelLabels?: string[];
+
+  searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
+  searchJoinLevelIds?: number[];
+  searchText?: string;
+  searchAttribute?: string;
+
+  includedIds?: ID[];
+  excludedIds?: ID[];
+}
 
 export abstract class BaseReferentialFilter<
   F extends EntityFilter<F, T, ID, AO, FO>,
@@ -13,7 +46,8 @@ export abstract class BaseReferentialFilter<
   ID = number,
   AO extends EntityAsObjectOptions = EntityAsObjectOptions,
   FO = any>
-  extends EntityFilter<F, T, ID, AO, FO> {
+  extends EntityFilter<F, T, ID, AO, FO>
+  implements IReferentialFilter<F, T, ID, AO, FO> {
 
   entityName?: string;
 

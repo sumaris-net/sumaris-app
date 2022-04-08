@@ -37,7 +37,7 @@ import {
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
   LocalSettings,
-  SocialModule,
+  SHARED_TESTING_PAGES,
   TestingPage
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
@@ -70,7 +70,6 @@ import { Downloader } from '@ionic-native/downloader/ngx';
 import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
 import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
 import { AppImageModule } from '@app/image/image.module';
-import { SHARED_TESTING_PAGES } from '@sumaris-net/ngx-components';
 
 @NgModule({
   declarations: [
@@ -120,7 +119,6 @@ import { SHARED_TESTING_PAGES } from '@sumaris-net/ngx-components';
     AppSharedModule.forRoot(environment),
     AppCoreModule.forRoot(),
     AppImageModule.forRoot(),
-    SocialModule.forRoot(),
     AppRoutingModule
   ],
   providers: [
@@ -180,7 +178,6 @@ import { SHARED_TESTING_PAGES } from '@sumaris-net/ngx-components';
         }
       }
     },
-
     {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
 

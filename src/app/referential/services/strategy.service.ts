@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, StoreObject } from '@apollo/client/core';
 import { ReferentialFragments } from './referential.fragments';
 import {
@@ -170,8 +170,7 @@ const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
 export class StrategyService extends BaseReferentialService<Strategy, StrategyFilter> {
 
   constructor(
-    graphql: GraphqlService,
-    platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected cache: CacheService,
@@ -180,7 +179,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected strategyRefService: StrategyRefService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, Strategy, StrategyFilter,
+    super(injector, Strategy, StrategyFilter,
       {
         queries: QUERIES,
         mutations: MUTATIONS,

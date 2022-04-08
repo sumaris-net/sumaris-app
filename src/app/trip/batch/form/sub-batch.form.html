@@ -1,11 +1,23 @@
 <form class="form-container" [formGroup]="form" >
 
-  <!-- (keydown.tab)="focusNextInput($event)" (keydown.shift.tab)="focusPreviousInput($event)" -->
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
+
+  <!-- warning -->
+  <ion-text *ngIf="!error && warning && showWarning" color="accent"
+            style="width: 100%; display: block">
+    <small>
+    <ion-icon name="warning"></ion-icon>
+    <ion-text [innerHTML]="warning|translate"></ion-text>
+    </small><br/>
+  </ion-text>
+
+  <ion-label *ngIf="title" color="primary" class="ion-padding-bottom" style="width: 100%; display: block">
+    {{title|translate}}
+  </ion-label>
 
   <!-- parent combo -->
   <ion-grid class="ion-no-padding" *ngIf="showParentGroup">

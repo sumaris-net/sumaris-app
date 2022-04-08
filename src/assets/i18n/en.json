@@ -2070,15 +2070,34 @@
       "BTN_COPY_TO_LOCAL": "Copy locally",
       "INFO": {
         "COPIED_LOCALLY": "Successfully copied"
+      },
+      "TYPE_ENUM": {
+        "DEBUG_DATA": "Debug data",
+        "INBOX_MESSAGE": "Inbox message",
+        "FEED": "Feed"
       }
     },
-    "EVENT_TYPE_ENUM": {
-      "DEBUG_DATA": "Debug data",
-      "INBOX_MESSAGE": "Inbox message"
+    "MESSAGE": {
+      "TYPE": "Message type",
+      "RECIPIENTS": "Recipients",
+      "SUBJECT": "Object",
+      "BODY_HELP": "Your message...",
+      "NEW": {
+        "TITLE": "New message"
+      },
+      "TYPE_ENUM": {
+        "INBOX_MESSAGE": "Internal message",
+        "EMAIL": "Email",
+        "FEED": "Feed"
+      }
     },
     "ERROR": {
       "LOAD_USER_EVENTS_ERROR": "Error while loading notifications",
-      "SAVE_USER_EVENT_ERROR": "Error while saving user message"
+      "SAVE_USER_EVENT_ERROR": "Error while saving user notification",
+      "SEND_MESSAGE_ERROR": "Error while sending message"
+    },
+    "INFO": {
+      "MESSAGE_SENT": "Message <b>sent</b>!"
     }
   },
   "FILE": {

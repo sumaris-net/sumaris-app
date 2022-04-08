@@ -21,7 +21,7 @@ import { Observable, of } from 'rxjs';
 import { ReferentialFragments } from './referential.fragments';
 import { TaxonName } from './model/taxon-name.model';
 import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
-import { mergeMap } from 'rxjs/internal/operators';
+import { mergeMap } from 'rxjs/operators';
 
 export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists: any; } = {
   loadAll: gql`query TaxonNames($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: TaxonNameFilterVOInput){
