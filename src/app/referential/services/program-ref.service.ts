@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { BehaviorSubject, defer, merge, Observable, Subject, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, finalize, map, takeUntil } from 'rxjs/operators';
@@ -52,6 +52,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { OverlayEventDetail } from '@ionic/core';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { SortDirection } from '@angular/material/sort';
+import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 
 
 export const ProgramRefQueries = {
@@ -183,8 +184,7 @@ export class ProgramRefService
   private _listenAuthorizedSubscription: Subscription = null;
 
   constructor(
-    graphql: GraphqlService,
-    platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected cache: CacheService,
@@ -192,12 +192,13 @@ export class ProgramRefService
     protected configService: ConfigService,
     protected pmfmService: PmfmService,
     protected networkService: NetworkService,
+    protected taxonNameRefService: TaxonNameRefService,
     protected referentialRefService: ReferentialRefService,
     protected toastController: ToastController,
     protected strategyRefService: StrategyRefService,
     protected translate: TranslateService
   ) {
-    super(graphql, platform, Program, ProgramFilter,
+    super(injector, Program, ProgramFilter,
       {
         queries: ProgramRefQueries,
         subscriptions: ProgramRefSubscriptions
@@ -671,8 +672,8 @@ export class ProgramRefService
       }
     }
 
-    // If nothing found in program: search on taxonGroup
-    const res = await this.referentialRefService.suggestTaxonNames(value, {
+    // If nothing found in program: search by taxonGroup
+    const res = await this.taxonNameRefService.suggest(value, {
       levelId: opts.levelId,
       levelIds: opts.levelIds,
       taxonGroupId: opts.taxonGroupId,
@@ -684,7 +685,7 @@ export class ProgramRefService
 
     // Then, retry in all taxon (without taxon groups - Is the link taxon<->taxonGroup missing ?)
     if (isNotNil(opts.taxonGroupId)) {
-      return this.referentialRefService.suggestTaxonNames(value, {
+      return this.taxonNameRefService.suggest(value, {
         levelId: opts.levelId,
         levelIds: opts.levelIds,
         searchAttribute: opts.searchAttribute

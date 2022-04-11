@@ -3,20 +3,21 @@ import {
   Entity,
   EntityAsObjectOptions,
   EntityClass,
-  EntityUtils,
   fromDateISOString,
-  IEntity, isNotNil,
+  IEntity,
+  isNotNil,
   ReferentialRef,
   ReferentialUtils,
   toDateISOString,
-  toFloat, toInt
+  toFloat,
+  toInt
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { StoreObject } from '@apollo/client/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-export abstract class BaseRoundWeightConversion<T extends Entity<T, number, EntityAsObjectOptions>>
-  extends Entity<T, number, EntityAsObjectOptions>
+export abstract class BaseRoundWeightConversion<T extends Entity<T>>
+  extends Entity<T>
   implements IEntity<T> {
 
   startDate: Moment = null;
@@ -62,7 +63,7 @@ export abstract class BaseRoundWeightConversion<T extends Entity<T, number, Enti
 }
 
 
-@EntityClass({typename: 'WeightLengthConversionVO'})
+@EntityClass({typename: 'RoundWeightConversionVO'})
 export class RoundWeightConversionRef
   extends BaseRoundWeightConversion<RoundWeightConversionRef> {
 

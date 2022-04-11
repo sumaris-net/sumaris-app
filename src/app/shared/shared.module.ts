@@ -18,7 +18,7 @@ import { FormatPropertyPipe } from './pipes/format-property.pipe';
     TranslateModule,
 
     // Pipes
-    FormatPropertyPipe,
+    FormatPropertyPipe
   ]
 })
 export class AppSharedModule {

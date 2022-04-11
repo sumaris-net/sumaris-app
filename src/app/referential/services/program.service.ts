@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -93,8 +93,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     IEntityService<Program> {
 
   constructor(
-    protected graphql: GraphqlService,
-    protected platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected referentialService: ReferentialService,
@@ -104,7 +103,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform, Program, ProgramFilter, {
+    super(injector, Program, ProgramFilter, {
       queries: ProgramQueries,
       mutations: ProgramMutations
     });
@@ -203,6 +202,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     // Offline mode
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
+      console.warn('TODO: remove this local entities call. Use program-ref.servie instead !');
       res = await this.entities.loadAll(Program.TYPENAME,
         {
           ...variables,

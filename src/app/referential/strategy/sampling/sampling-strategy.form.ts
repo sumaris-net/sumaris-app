@@ -57,6 +57,7 @@ import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-
 import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.filter';
 import { filter, map } from 'rxjs/operators';
 import { environment } from '@environments/environment';
+import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 
 const moment = momentImported;
 
@@ -257,6 +258,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     protected strategyService: StrategyService,
     protected settings: LocalSettingsService,
     protected taxonNameService: TaxonNameService,
+    protected taxonNameRefService: TaxonNameRefService,
     protected pmfmStrategyValidator: PmfmStrategyValidatorService,
     protected cd: ChangeDetectorRef,
     protected formBuilder: FormBuilder
@@ -758,12 +760,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     if (this.autocompleteFilters.taxonName) {
       return suggestFromArray(this.$filteredTaxonNames.getValue(), value, filter);
     } else {
-      return this.referentialRefService.suggestTaxonNames(value,
-        {
-          ...filter,
-          entityName: 'TaxonName'
-        },
-      );
+      return this.taxonNameRefService.suggest(value, filter);
     }
   }
 

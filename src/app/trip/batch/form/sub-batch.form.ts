@@ -61,10 +61,13 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   freezeQvPmfmControl: FormControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
+  warning: string;
 
+  @Input() title: string;
   @Input() showParentGroup = true;
   @Input() showIndividualCount = true;
   @Input() showError = true;
+  @Input() showWarning = true;
   @Input() showSubmitButton = true;
   @Input() displayParentPmfm: IPmfm;
   @Input() enableWeightConversion: boolean;
@@ -587,15 +590,20 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this._weightConversionSubscription?.unsubscribe();
     if (this.enableWeightConversion) {
       // DEBUG
-      if (this.debug) console.debug('[sub-batch-form] Adding Weight/Length conversion computation...');
+      if (this.debug) console.debug('[sub-batch-form] Enabling Weight/Length conversion...');
 
       this._weightConversionSubscription = this.validatorService.enableWeightLengthConversion(form, {
         pmfms: this.$pmfms.value,
         markForCheck: ()  => this.markForCheck(),
+        onError: (err) => {
+          this.warning = err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED';
+          this.markForCheck();
+        },
         // DEBUG
         debug: this.debug
       });
-      this.registerSubscription(this._weightConversionSubscription);
+
+      if (this._weightConversionSubscription) this.registerSubscription(this._weightConversionSubscription);
     }
 
   }

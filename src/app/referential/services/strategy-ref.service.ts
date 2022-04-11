@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import { Injectable, Injector } from '@angular/core';
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialFragments} from "./referential.fragments";
 import {BaseEntityGraphqlQueries, GraphqlService} from '@sumaris-net/ngx-components';
@@ -132,14 +132,13 @@ const StrategyRefCacheKeys = {
 export class StrategyRefService extends BaseReferentialService<Strategy, StrategyFilter> {
 
   constructor(
-    graphql: GraphqlService,
-    platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform, Strategy, StrategyFilter,
+    super(injector, Strategy, StrategyFilter,
       {
         queries: QUERIES
       });

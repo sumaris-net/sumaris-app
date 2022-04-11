@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {FetchPolicy, gql} from '@apollo/client/core';
 import {ReferentialFragments} from './referential.fragments';
 import {
@@ -94,8 +94,7 @@ const SamplingStrategyQueries = {
 export class SamplingStrategyService extends BaseReferentialService<SamplingStrategy, StrategyFilter> {
 
   constructor(
-    graphql: GraphqlService,
-    platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected cache: CacheService,
@@ -105,7 +104,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, SamplingStrategy, StrategyFilter,
+    super(injector, SamplingStrategy, StrategyFilter,
       {
         queries: SamplingStrategyQueries
       });

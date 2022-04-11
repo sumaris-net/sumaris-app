@@ -2,7 +2,7 @@ import { gql } from '@apollo/client/core';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 
 export const RoundWeightConversionFragments = {
-  ref: gql`fragment RoundWeightConversionRefFragment on RoundWeightConversionVO {
+  reference: gql`fragment RoundWeightConversionRefFragment on RoundWeightConversionVO {
     id
     updateDate
     startDate

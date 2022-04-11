@@ -30,6 +30,8 @@ import { DataContextService } from '@app/data/services/data-context.service';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { Moment } from 'moment';
 import * as momentImported from 'moment';
+import { ErrorCodes } from '@app/data/services/errors';
+import { BatchErrorCodes } from '@app/trip/batch/batch.errors';
 
 const moment = momentImported;
 
@@ -120,6 +122,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     // UI
     debug?: boolean;
     markForCheck?: () => void;
+    onError?: (err) => void;
   }): Subscription {
 
     if (!this.context) {
@@ -130,7 +133,8 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     // Make sure to have a statistical rectangle
     const rectangleLabel = opts?.rectangleLabel || this.getContextualStatisticalRectangle();
     if (!rectangleLabel) {
-      console.warn('[sub-batch-validator] Cannot enable weight conversion. No statistical rectangle found in options or data context');
+      console.warn('[sub-batch-validator] Cannot enable weight conversion. No statistical rectangle (in options or data context)');
+      if (opts?.onError) opts?.onError({code: BatchErrorCodes.WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE, message: 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE'})
       return null;
     }
 
@@ -141,6 +145,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
       || (isNotNil(opts.lengthPmfmId) ? [opts.lengthPmfmId] : undefined);
     if (isEmptyArray(lengthPmfmIds)) {
       console.warn('[sub-batch-validator] Cannot enable weight conversion. No length PMFMs found in list:', opts?.pmfms);
+      if (opts?.onError) opts?.onError({code: BatchErrorCodes.WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM, message: 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM'})
       return null;
     }
 

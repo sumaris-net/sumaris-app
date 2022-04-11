@@ -43,7 +43,7 @@ import { defer, Observable } from 'rxjs';
 import { IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
 import { Operation, OperationGroup, PhysicalGear, Trip } from './model/trip.model';
 import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
@@ -1565,6 +1565,7 @@ export class TripService
   protected getImportJobs(filter: Partial<TripFilter>, opts: {
     maxProgression: number;
     program?: Program;
+    referentialEntityNames?: string[];
     acquisitionLevels?: string[];
     [key: string]: any;
   }): Observable<number>[] {
@@ -1582,6 +1583,16 @@ export class TripService
             .then(program => {
               opts.program = program;
               opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+
+              // Import weight conversion entities, if enable on program
+              const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE);
+              console.log('TODO enable conversion import:' + enableWeightConversion);
+              if (enableWeightConversion) {
+                opts.entityNames = [
+                  ...IMPORT_REFERENTIAL_ENTITIES,
+                  ...WEIGHT_CONVERSION_ENTITIES
+                ];
+              }
             })),
 
         ...super.getImportJobs(filter, opts),
