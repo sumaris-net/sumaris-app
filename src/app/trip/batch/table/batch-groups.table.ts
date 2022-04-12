@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {FormGroup, Validators} from '@angular/forms';
-import {BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter} from './batches.table';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { FormGroup, Validators } from '@angular/forms';
+import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter } from './batches.table';
 import {
   changeCaseToUnderscore,
   ColumnItem,
@@ -22,21 +22,21 @@ import {
   TableSelectColumnsComponent,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import {AcquisitionLevelCodes, MethodIds} from '@app/referential/services/model/model.enum';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {Batch, BatchUtils, BatchWeight} from '../../services/model/batch.model';
-import {BatchGroupModal, IBatchGroupModalOptions} from '../modal/batch-group.modal';
-import {BatchGroup, BatchGroupUtils} from '../../services/model/batch-group.model';
-import {SubBatch} from '../../services/model/subbatch.model';
-import {defer, Observable, Subject, Subscription} from 'rxjs';
-import {filter, map, takeUntil} from 'rxjs/operators';
-import {ISubBatchesModalOptions, SubBatchesModal} from '../modal/sub-batches.modal';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {MatMenuTrigger} from '@angular/material/menu';
-import {BatchGroupValidatorService} from '../../services/validator/batch-group.validator';
-import {IPmfm, Pmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import { AcquisitionLevelCodes, MethodIds } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { Batch, BatchUtils, BatchWeight } from '../../services/model/batch.model';
+import { BatchGroupModal, IBatchGroupModalOptions } from '../modal/batch-group.modal';
+import { BatchGroup, BatchGroupUtils } from '../../services/model/batch-group.model';
+import { SubBatch } from '../../services/model/subbatch.model';
+import { defer, Observable, Subject, Subscription } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
+import { ISubBatchesModalOptions, SubBatchesModal } from '../modal/sub-batches.modal';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { MatMenuTrigger } from '@angular/material/menu';
+import { BatchGroupValidatorService } from '../../services/validator/batch-group.validator';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { environment } from '@environments/environment';
 
@@ -422,23 +422,29 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     try {
       console.debug('[batch-group-table] Auto fill table, using options:', opts);
 
-      // Read existing taxonGroup
-      const rowsTaxonGroups = (await this.dataSource.getRows() || []).map(r => r.currentData)
-        .map(batch => batch.taxonGroup)
+      // Read existing taxonGroups
+      let data = await this.dataSource.getData()
+      const existingTaxonGroups = data.map(batch => batch.taxonGroup)
         .filter(isNotNil);
 
-      const taxonGroups = this.availableTaxonGroups
-        // Exclude species that already exists in table
-        .filter(taxonGroup => !rowsTaxonGroups.some(tg => ReferentialUtils.equals(tg, taxonGroup)));
+      const taxonGroupsToAdd = this.availableTaxonGroups
+        // Exclude if already exists
+        .filter(taxonGroup => !existingTaxonGroups.some(tg => ReferentialUtils.equals(tg, taxonGroup)));
 
-      for (const taxonGroup of taxonGroups) {
-        const batch = new BatchGroup();
-        batch.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
-        const row = await this.addEntityToTable(batch, {confirmCreate: false, keepEditing: false});
-        // FIXME: row.isValid() will always return false, and the row cannot be confirmed
-        if (!this.confirmEditCreate(null, row)) {
-          console.warn('[batch-group-table] Cannot auto fill with many rows, because one cannot be confirmed!', row);
+      if (isNotEmptyArray(taxonGroupsToAdd)) {
+
+        this.focusColumn = undefined;
+        let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
+
+        for (const taxonGroup of taxonGroupsToAdd) {
+          const batch = new BatchGroup();
+          batch.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
+          batch.rankOrder = rankOrder++;
+          await this.addEntityToTable(batch);
         }
+
+        // Mark as dirty
+        this.markAsDirty();
       }
 
     } catch (err) {
