@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, ViewChild} from '@angular/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {SampleValidatorService} from '../services/validator/sample.validator';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, ViewChild } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { SampleValidatorService } from '../services/validator/sample.validator';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
@@ -24,32 +24,32 @@ import {
   suggestFromArray,
   toBoolean,
   toNumber,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
-import {ISampleModalOptions, SampleModal} from './sample.modal';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {Sample, SampleUtils} from '../services/model/sample.model';
-import {AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {debounceTime} from 'rxjs/operators';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {SampleFilter} from '../services/filter/sample.filter';
-import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
-import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
-import {BehaviorSubject, Subscription} from 'rxjs';
-import {MatMenu} from '@angular/material/menu';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
-import {isNilOrNaN} from '@app/shared/functions';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {BatchGroup} from '@app/trip/services/model/batch-group.model';
-import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
-import {MatCellDef} from '@angular/material/table';
-import {OverlayEventDetail} from '@ionic/core';
-import {IPmfmForm} from '@app/trip/services/validator/operation.validator';
+import { Moment } from 'moment';
+import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../measurement/measurements.table.class';
+import { ISampleModalOptions, SampleModal } from './sample.modal';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { Sample, SampleUtils } from '../services/model/sample.model';
+import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { debounceTime } from 'rxjs/operators';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { SampleFilter } from '../services/filter/sample.filter';
+import { PmfmFilter, PmfmService } from '@app/referential/services/pmfm.service';
+import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { MatMenu } from '@angular/material/menu';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { isNilOrNaN } from '@app/shared/functions';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { BatchGroup } from '@app/trip/services/model/batch-group.model';
+import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
+import { MatCellDef } from '@angular/material/table';
+import { OverlayEventDetail } from '@ionic/core';
+import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 
 const moment = momentImported;
 
@@ -65,7 +65,7 @@ export class AppActionCellDef extends MatCellDef {}
 
 export type PmfmValueColorFn = (value: any, pmfm: IPmfm) => ColorName;
 
-export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {
+export interface SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {
 
 }
 
@@ -672,23 +672,20 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   protected async getPreviousSample(): Promise<Sample> {
     if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
-    const row = await this.dataSource.getRow(this.visibleRowCount - 1);
+    const rows = await this.dataSource.getRows();
+    const row = rows.length > 0 ? rows[rows.length - 1] : undefined;
     return row && row.currentData;
   }
 
   protected async getPreviousSampleWithNumericalTagId(): Promise<Sample> {
     if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
-    for (var i = this.visibleRowCount - 1; i >= 0; i--) {
-      const row = await this.dataSource.getRow(i);
-      if (row) {
-        const rowData = row.currentData;
-        const existingTagId = rowData?.measurementValues[PmfmIds.TAG_ID];
-        const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
-        if (existingTagIdAsNumber) {
-          return rowData;
-        }
-
-      }
+    const rows = await this.dataSource.getRows();
+    for (let i = rows.length -1; i >= 0; i--) {
+      const row = rows[0];
+      const rowData = row && row.currentData;
+      const existingTagId = rowData?.measurementValues[PmfmIds.TAG_ID];
+      const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
+      if (existingTagIdAsNumber) return rowData;
     }
   }
 
