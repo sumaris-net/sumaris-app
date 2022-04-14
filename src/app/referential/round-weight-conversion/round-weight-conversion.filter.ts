@@ -26,7 +26,6 @@ export class RoundWeightConversionFilter
   preservingId: number = null;
   preservingIds: number[];
 
-
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
 

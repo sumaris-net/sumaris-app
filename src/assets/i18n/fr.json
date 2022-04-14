@@ -815,7 +815,8 @@
         "WEIGHT": "Poids (kg)",
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
-        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
+        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?",
+        "CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP"
       }
     },
     "SUB_BATCH": {
@@ -823,7 +824,8 @@
         "TITLE": "Nouvel individu"
       },
       "EDIT": {
-        "TITLE": "Individu {{label}}"
+        "TITLE": "Individu {{label}}",
+        "CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP"
       },
       "ERROR": {
         "WEIGHT_LENGTH_CONVERSION_FAILED": "RTP désactivés",

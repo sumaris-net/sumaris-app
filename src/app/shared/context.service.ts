@@ -2,6 +2,8 @@ import { BehaviorSubject, interval } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { Injectable } from '@angular/core';
+import { isMoment, Moment } from 'moment';
+import { fromDateISOString } from '@sumaris-net/ngx-components';
 
 export type Context = {
   program?: Program;
@@ -67,6 +69,10 @@ export class ContextService<S extends Record<string, any> = Context> {
   reset(): void {
     this.observableState && Object.values(this.observableState).forEach(obs => obs.complete());
     this.observableState = this.toObservableValues(this.defaultState);
+  }
+
+  getValueAsDate(key: keyof ObservableValues<S>): Moment {
+    return fromDateISOString(this.getValue(key));
   }
 
   /* -- private functions -- */

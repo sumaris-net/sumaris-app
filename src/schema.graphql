@@ -171,6 +171,7 @@ type DenormalizedPmfmStrategyVO {
   acquisitionNumber: Int
   completeName: String
   defaultValue: Float
+  detectionThreshold: Float
   fractionId: Int
   gearIds: [Int]
   gears: [String]
@@ -184,6 +185,7 @@ type DenormalizedPmfmStrategyVO {
   minValue: Float
   name: String
   parameterId: Int
+  precision: Float
   qualitativeValues: [ReferentialVO]
   rankOrder: Int
   referenceTaxonIds: [Int]
@@ -585,6 +587,8 @@ type Mutation {
   saveWeightLengthConversions(data: [WeightLengthConversionVOInput]): [WeightLengthConversionVO]
   "Resent confirmation email"
   sendAccountConfirmationEmail(email: String, locale: String = "en_GB"): Boolean!
+  "Sent a message"
+  sendMessage(message: MessageVOInput): Boolean!
   "Unvalidate an observed location"
   unvalidateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Unvalidate a trip"
@@ -831,6 +835,7 @@ type PmfmVO {
   creationDate: Date
   defaultValue: Float
   description: String
+  detectionThreshold: Float
   entityName: String
   "Get PMFM's fraction"
   fraction: ReferentialVO
@@ -858,6 +863,7 @@ type PmfmVO {
   "Get referential's parent"
   parent: ReferentialVO
   parentId: Int
+  precision: Float
   qualitativeValues: [ReferentialVO]
   rankOrder: Int
   signifFiguresNumber: Int
@@ -1713,6 +1719,13 @@ enum LocationClassificationEnum {
   SEA
 }
 
+enum MessageTypeEnum {
+  DEBUG_DATA
+  EMAIL
+  FEED
+  INBOX_MESSAGE
+}
+
 enum SortDirection {
   ASC
   DESC
@@ -1888,6 +1901,7 @@ input DenormalizedPmfmStrategyVOInput {
   acquisitionNumber: Int
   completeName: String
   defaultValue: Float
+  detectionThreshold: Float
   fractionId: Int
   gearIds: [Int]
   gears: [String]
@@ -1901,6 +1915,7 @@ input DenormalizedPmfmStrategyVOInput {
   minValue: Float
   name: String
   parameterId: Int
+  precision: Float
   qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   referenceTaxonIds: [Int]
@@ -2189,6 +2204,18 @@ input MeasurementVOInput {
   recorderPerson: PersonVOInput
   updateDate: Date
   validationDate: Date
+}
+
+input MessageVOInput {
+  body: String
+  issuer: PersonVOInput
+  issuerId: Int
+  recipient: PersonVOInput
+  recipientFilter: PersonFilterVOInput
+  recipientId: Int
+  recipients: [PersonVOInput]
+  subject: String
+  type: MessageTypeEnum
 }
 
 input MetierFilterVOInput {
@@ -2524,6 +2551,7 @@ input PmfmVOInput {
   creationDate: Date
   defaultValue: Float
   description: String
+  detectionThreshold: Float
   entityName: String
   fractionId: Int
   id: Int
@@ -2540,6 +2568,7 @@ input PmfmVOInput {
   parameterId: Int
   parent: ReferentialVOInput
   parentId: Int
+  precision: Float
   qualitativeValues: [ReferentialVOInput]
   rankOrder: Int
   signifFiguresNumber: Int

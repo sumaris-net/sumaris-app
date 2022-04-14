@@ -1,5 +1,5 @@
-import { Injectable, Optional } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { Injectable } from '@angular/core';
+import { FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   isEmptyArray,
   isNil,
@@ -9,6 +9,7 @@ import {
   isNotNilOrBlank,
   isNotNilOrNaN,
   LocalSettingsService,
+  ReferentialRef,
   SharedAsyncValidators,
   SharedValidators,
   toNumber
@@ -17,7 +18,7 @@ import { Batch, BatchWeight } from '../model/batch.model';
 import { SubBatch } from '../model/subbatch.model';
 import { Subscription } from 'rxjs';
 import { BatchWeightValidator } from '@app/trip/services/validator/batch.validator';
-import { LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
@@ -25,16 +26,24 @@ import { WeightLengthConversionRefService } from '@app/referential/weight-length
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { LocationUtils } from '@app/referential/location/location.utils';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { DataContextService } from '@app/data/services/data-context.service';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { Moment } from 'moment';
 import * as momentImported from 'moment';
-import { ErrorCodes } from '@app/data/services/errors';
+import { Moment } from 'moment';
 import { BatchErrorCodes } from '@app/trip/batch/batch.errors';
+import { environment } from '@environments/environment';
+import { RoundWeightConversionRefService } from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { convertWeight, isLengthUnitSymbol, isWeightUnitSymbol } from '@app/referential/services/model/model.utils';
+import { DataContext } from '@app/data/services/model/data-context.model';
+import { BatchGroup, BatchGroupUtils } from '@app/trip/services/model/batch-group.model';
+import { ContextService } from '@app/shared/context.service';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 const moment = momentImported;
 
+export interface BatchContext extends DataContext {
+  parentGroup?: BatchGroup;
+}
 export interface SubBatchValidatorValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
   weightRequired?: boolean;
@@ -50,11 +59,12 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
     protected measurementsValidatorService: MeasurementsValidatorService,
-    protected wlcRefService: WeightLengthConversionRefService,
-    @Optional() protected context?: DataContextService
+    protected wlService: WeightLengthConversionRefService,
+    protected rwService: RoundWeightConversionRefService,
+    protected context: ContextService<BatchContext>
     ) {
     super(formBuilder, settings);
-    console.debug(`[sub-batch-validator] Creating validator (context: ${this.context?.constructor.name || 'none'})`);
+    console.debug(`[sub-batch-validator] Creating validator (context: ${this.context.constructor.name})`);
   }
 
   getFormGroupConfig(data?: SubBatch, opts?: SubBatchValidatorValidatorOptions): { [p: string]: any } {
@@ -99,8 +109,10 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
 
     // Add/remove weight form group, if need
     if (withWeight && !form.controls.weight) {
+      const weightPmfm = (opts?.pmfms || []).find(PmfmUtils.isWeight);
       form.addControl('weight', this.getWeightFormGroup(null, {
-        required: opts?.weightRequired
+        required: opts?.weightRequired,
+        pmfm: weightPmfm
       }));
     }
     else if (!withWeight && form.controls.weight) {
@@ -108,30 +120,42 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     }
   }
 
-  enableWeightLengthConversion(form: FormGroup, opts: {
+  async enableWeightLengthConversion(form: FormGroup, opts: {
+    pmfms: IPmfm[];
+    qvPmfm?: IPmfm;
     // Context
     rectangleLabel?: string;
     date?: Moment;
+    parentGroup?: BatchGroup;
+    countryId?: number;
     // Weight
     weightRequired?: boolean;
     weightPath?: string;
     // Length
     lengthPath?: string;
     lengthPmfmId?: number;
-    pmfms?: IPmfm[];
     // UI
     debug?: boolean;
     markForCheck?: () => void;
     onError?: (err) => void;
-  }): Subscription {
+  }): Promise<Subscription> {
 
     if (!this.context) {
       console.warn('[sub-batch-validator] Cannot enable weight conversion. Missing data context');
       return;
     }
+    const date = opts?.date || this.context?.getValueAsDate('date') || moment();
+    const countryId = opts.countryId || (this.context?.getValue('country') as ReferentialRef)?.id;
+    const parentGroup = opts.parentGroup || this.context?.getValue('parentGroup') as BatchGroup;
+    let rectangleLabel = opts?.rectangleLabel || this.getContextualStatisticalRectangle();
+    const qvPmfm = opts?.qvPmfm;
 
+    // DEBUG
+    if (!rectangleLabel && !environment.production) {
+      rectangleLabel = '65F1'
+      console.warn('[sub-batch-validator] TODO: force rectangle label (for DEV) to ' + rectangleLabel);
+    }
     // Make sure to have a statistical rectangle
-    const rectangleLabel = opts?.rectangleLabel || this.getContextualStatisticalRectangle();
     if (!rectangleLabel) {
       console.warn('[sub-batch-validator] Cannot enable weight conversion. No statistical rectangle (in options or data context)');
       if (opts?.onError) opts?.onError({code: BatchErrorCodes.WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE, message: 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE'})
@@ -139,43 +163,57 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     }
 
     // Find the length Pmfm
-    const lengthPmfmIds = opts?.pmfms && opts.pmfms
-        .filter(p => p.id === opts.lengthPmfmId || p.label.indexOf('LENGTH') !== -1)
-        .map(p => p.id)
-      || (isNotNil(opts.lengthPmfmId) ? [opts.lengthPmfmId] : undefined);
-    if (isEmptyArray(lengthPmfmIds)) {
+    const lengthPmfms = isNotNil(opts.lengthPmfmId)
+      ? (opts.pmfms || []).filter(p => p.id === opts.lengthPmfmId)
+      : (opts.pmfms || []).filter(PmfmUtils.isLength);
+    if (isEmptyArray(lengthPmfms)) {
       console.warn('[sub-batch-validator] Cannot enable weight conversion. No length PMFMs found in list:', opts?.pmfms);
       if (opts?.onError) opts?.onError({code: BatchErrorCodes.WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM, message: 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM'})
       return null;
     }
 
-    const date = opts?.date || this.getContextualDate();
-    const month = date.month();
-    const year = date.year();
-    console.info(`[sub-batch-validator] Enable weight length conversion: {month: ${month}, year: ${year}, rectangle: '${rectangleLabel}', pmfms: [${lengthPmfmIds.join(',')}]`);
+    // Get the PMFM to use to store computed weight
+    const weightPmfm = (opts.pmfms || []).find(p => PmfmUtils.isWeight(p) && p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH)
+    || DenormalizedPmfmStrategy.fromObject(<IPmfm>{
+        id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH,
+        required: opts.weightRequired,
+        methodId: MethodIds.CALCULATED_WEIGHT_LENGTH,
+        unitLabel: <WeightUnitSymbol>'kg',
+        minValue: 0,
+        maximumNumberDecimals: SubBatchValidators.DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS
+    });
 
-    // Create weight form if need
+
+    // Create weight form
     if (!form.controls.weight) {
       form.addControl('weight', this.getWeightFormGroup(null, {
-        required: opts?.weightRequired
+        required: opts?.weightRequired,
+        maxDecimals: toNumber(weightPmfm?.maximumNumberDecimals, SubBatchValidators.DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS),
+        pmfm: weightPmfm
       }));
     }
 
+    // DEBUG
+    console.debug('[sub-batch-validator] Enable weight length conversion:',
+      {date, rectangleLabel, countryId, lengthPmfms, weightPmfm, parentGroup, qvPmfm});
+
     return SharedAsyncValidators.registerAsyncValidator(form,
-      SubBatchValidators.weightLengthConversion(this.wlcRefService, {...opts,
-        month, year, rectangleLabel, lengthPmfmIds
+      SubBatchValidators.weightLengthConversion(this.wlService, this.rwService,
+        {...opts,
+          date, rectangleLabel, countryId,
+          lengthPmfms, weightPmfm, parentGroup, qvPmfm
       }),
       {markForCheck: opts?.markForCheck});
   }
 
   protected getWeightFormGroup(data?: BatchWeight, opts? :{
-    required?: boolean
+    required?: boolean;
+    maxDecimals?: number;
+    pmfm?: IPmfm;
   }): FormGroup {
+    // DEBUG
+    console.debug('[sub-batch-validator] Creating weight form group...', opts);
     return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
-  }
-
-  protected getContextualDate(): Moment {
-    return this.context?.getValue('date') as Moment || moment();
   }
 
   protected getContextualStatisticalRectangle(): string | undefined {
@@ -208,76 +246,104 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
 
 export class SubBatchValidators {
 
-  static weightLengthConversion(service: WeightLengthConversionRefService,
+  /**
+   * Default maxDecimals, for a weight calculated by a Weight-Length conversion
+   */
+  static DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS = 6;
+
+  static weightLengthConversion(wlService: WeightLengthConversionRefService,
+                                rwService: RoundWeightConversionRefService,
                                 opts?: {
                                   // Context
                                   rectangleLabel: string;
-                                  month: number;
-                                  year: number;
+                                  date: Moment;
+                                  countryId?: number;
                                   // Weight
                                   weightPath?: string;
+                                  weightPmfm?: IPmfm;
                                   // Length
-                                  lengthPmfmIds: number[];
+                                  lengthPmfms: IPmfm[];
                                   // Reference Taxon
                                   taxonNamePath?: string;
+                                  // Parent
+                                  parentPath?: string;
+                                  parentGroup?: BatchGroup;
+                                  qvPmfm?: IPmfm;
   }): ValidatorFn {
 
 
     return (control) => SubBatchValidators.computeWeightLengthConversion(control as FormGroup,
-      service,
+      wlService, rwService,
       {...opts, emitEvent: false, onlySelf: false})
   }
 
   /**
    * Converting length into a weight
    * @param form
+   * @param wlService
+   * @param rwService
    * @param opts
    */
   private static async computeWeightLengthConversion(form: FormGroup,
-                                               service: WeightLengthConversionRefService,
-                                               opts: {
-                                                 emitEvent?: boolean;
-                                                 onlySelf?: boolean;
-                                                 // Context
-                                                 rectangleLabel: string
-                                                 month: number;
-                                                 year: number;
-                                                 // Weight
-                                                 weightPath?: string;
-                                                 // Reference Taxon
-                                                 taxonNamePath?: string;
-                                                 // Sex
-                                                 sexPmfmId?: number;
-                                                 sexPath?: string;
-                                                 // Length
-                                                 lengthPmfmIds: number[],
-                                                 // nb indiv
-                                                 individualCountPath?: string
-  }) : Promise<ValidationErrors | null> {
+                                                     wlService: WeightLengthConversionRefService,
+                                                     rwService: RoundWeightConversionRefService,
+                                                     opts: {
+                                                       emitEvent?: boolean;
+                                                       onlySelf?: boolean;
+                                                       // Context
+                                                       rectangleLabel: string
+                                                       date: Moment;
+                                                       countryId?: number;
+                                                       // Weight
+                                                       weightPath?: string;
+                                                       weightPmfm?: IPmfm;
+                                                       // Reference Taxon
+                                                       taxonNamePath?: string;
+                                                       // Sex
+                                                       sexPmfmId?: number;
+                                                       sexPath?: string;
+                                                       // Length
+                                                       lengthPmfms: IPmfm[];
+                                                       // nb indiv
+                                                       individualCountPath?: string;
+                                                       // Parent
+                                                       parentPath?: string;
+                                                       parentGroup?: BatchGroup;
+                                                       qvPmfm?: IPmfm;
+                                                     }) : Promise<ValidationErrors | null> {
 
     const taxonNamePath = opts.taxonNamePath || 'taxonName';
     const sexPmfmId = toNumber(opts.sexPmfmId, PmfmIds.SEX).toString();
     const sexPath = opts?.sexPath || `measurementValues.${sexPmfmId}`;
     const individualCountPath = opts.individualCountPath || `individualCount`;
     const weightPath = opts.weightPath || 'weight';
+    const parentPath = opts.parentPath || 'parent';
+    const qvPath = isNotNil(opts.qvPmfm?.id) && `measurementValues.${opts.qvPmfm.id}` || undefined;
 
+    const date = opts.date || moment();
+    const month = date.month();
+    const year = date.year();
+
+    // Find the length Pmfm with a value
     let lengthPmfmIndex = 0;
-    const lengthControl = opts.lengthPmfmIds
-      .map(pmfmId => form.get(`measurementValues.${pmfmId}`))
+    const lengthControl = (opts.lengthPmfms || [])
+      .map(pmfm => form.get(`measurementValues.${pmfm.id}`))
       .find((control, i) => {
         lengthPmfmIndex = i;
         return control && isNotNil(control.value);
       });
     if (!lengthControl) {
-      console.warn('[batch-validator] Cannot apply conversion: no length found');
+      console.warn('[sub-batch-validator] Cannot apply conversion: no length found');
       return;
     }
-    const lengthPmfmId =  opts.lengthPmfmIds[lengthPmfmIndex];
+    const lengthPmfm =  opts.lengthPmfms[lengthPmfmIndex];
 
     const taxonNameControl = form.get(taxonNamePath);
     const individualCountControl = form.get(individualCountPath);
     const sexControl = form.get(sexPath);
     const weightControl = form.get(weightPath);
+    const parentControl = form.get(parentPath);
+    const qvControl = qvPath && form.get(qvPath);
 
     // Check controls
     if (!taxonNameControl) throw Error(`Cannot resolve control with path: '${taxonNamePath}'`);
@@ -292,42 +358,101 @@ export class SubBatchValidators {
     const referenceTaxonId = taxonName?.referenceTaxonId;
     const individualCount = toNumber(individualCountControl?.value, 1);
     const sex = sexControl?.value;
+    const weightUnit = isWeightUnitSymbol(opts.weightPmfm?.unitLabel) ? opts.weightPmfm.unitLabel : 'kg';
+    const qvValue = qvControl?.value;
+    const parentGroup: BatchGroup = parentControl.value || opts.parentGroup;
 
     // DEBUG
-    console.debug('[batch-validator] Start weight-length conversion: ',
-      [opts.month,  opts.year, opts.rectangleLabel, taxonName?.label, sex?.label, lengthPmfmId, length]);
+    console.debug('[sub-batch-validator] Start weight-length conversion: ',
+      {...opts, taxonName: taxonName?.label, sex: sex?.label, lengthPmfm, length});
 
     // Check required values
-    if (isNil(referenceTaxonId) || isNilOrBlank(opts.rectangleLabel) || isNil(lengthPmfmId)) {
-      console.warn('[batch-validator] Cannot apply conversion');
+    if (isNil(referenceTaxonId) || isNilOrBlank(opts.rectangleLabel) || isNil(lengthPmfm)) {
+      console.warn('[sub-batch-validator] Cannot apply conversion');
       return;
     }
 
     // Compute weight, using length
     if (isNotNilOrNaN(length) && length > 0) {
 
-      // Find a conversion
-      const conversion = await service.findAppliedConversion({
-        ...opts, lengthPmfmId, referenceTaxonId, sexId: sex?.id
+      // Find a Weight-Length conversion
+      const wlConversion = await wlService.findAppliedConversion({
+        ...opts, month, year, lengthPmfmId: lengthPmfm.id, referenceTaxonId, sexId: sex?.id
       });
 
-      // Compute the weight
-      let computedWeight = conversion && service.computeWeight(conversion, length, {
-        individualCount, unit: 'kg'
+      // Compute weight
+      let computedWeightKg = wlConversion && wlService.computeWeight(wlConversion, length, {
+        individualCount,
+        lengthUnit: isLengthUnitSymbol(lengthPmfm.unitLabel) ? lengthPmfm.unitLabel : undefined,
+        lengthPrecision: lengthPmfm.precision,
+        weightUnit: 'kg'
       });
 
-      if (isNotNilOrNaN(computedWeight)) {
-        console.debug('[batch-validator] Computed weight :' + computedWeight);
+      // DEBUG
+      if (computedWeightKg) console.debug(`[sub-batch-validator] Computed weight (alive): ${computedWeightKg}kg`);
 
-        // Convert to round weight
+      // Convert from alive weight, into given dressing
+      // Parent
+
+      if (computedWeightKg && parentGroup) {
+        const taxonGroupId = parentGroup.taxonGroup?.id;
+
+        const parent = qvValue ? BatchGroupUtils.findChildByQvValue(parentGroup, qvValue, opts.qvPmfm) : parentGroup;
+        const dressingId = parent.measurementValues && PmfmValueUtils.toModelValue(parent.measurementValues[PmfmIds.DRESSING], {type: 'qualitative_value'});
+        if (isNotNil(taxonGroupId) && isNotNil(dressingId)) {
+          const preservingId = parent.measurementValues && PmfmValueUtils.toModelValue(parent.measurementValues[PmfmIds.PRESERVATION], {type: 'qualitative_value'})
+            || QualitativeValueIds.PRESERVATION.FRESH;
+
+          // Find a round weight conversion
+          const rwConversion = await rwService.findAppliedConversion({
+            ...opts, date, taxonGroupId, dressingId: +dressingId, preservingId: +preservingId, locationId: opts.countryId
+          })
+
+          // Apply round weight (inverse) conversion
+          if (rwConversion) {
+            computedWeightKg = computedWeightKg / rwConversion.conversionCoefficient;
+
+            console.debug(`[sub-batch-validator] Computed weight (dressing): ${computedWeightKg}kg`);
+          }
+        }
+      }
+
+      // Convert to expected weight Unit
+      if (computedWeightKg && weightUnit !== 'kg') {
+        computedWeightKg = convertWeight(computedWeightKg, 'kg', weightUnit);
+      }
+
+
+      if (isNotNilOrNaN(computedWeightKg)) {
+
+        // Round to HALF_UP
+        const maxDecimals = toNumber(opts.weightPmfm?.maximumNumberDecimals, SubBatchValidators.DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS);
+        const precision = Math.pow(10, maxDecimals);
+        const value = (Math.trunc(computedWeightKg * precision + 0.5) / precision).toFixed(maxDecimals);
 
         const weight: BatchWeight = weightControl.value;
-        if (!weight || weight.value !== computedWeight) {
+        if (!weight || +weight.value !== +value) {
+
           // DEBUG
-          console.debug('[batch-validator] New computed weight: ', [computedWeight]);
+          console.info(`[sub-batch-validator] Computed weight, by length conversion: ${value}${weightUnit}`);
+
           weightControl.patchValue({
-            value: computedWeight,
+            value,
             computed: true,
+            estimated: false
+          }, opts);
+        }
+      }
+      else {
+        const previousWeight: BatchWeight = weightControl.value;
+        if (previousWeight.computed === true && isNotNil(previousWeight.value)) {
+
+          // DEBUG
+          console.debug('[sub-batch-validator] Reset previously computed weight');
+
+          weightControl.patchValue({
+            value: null,
+            computed: false,
             estimated: false
           }, opts);
         }

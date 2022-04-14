@@ -11,7 +11,7 @@ import {
   ReferentialUtils,
   toDateISOString,
 } from '@sumaris-net/ngx-components';
-import { IPmfm, Pmfm, PmfmUtils } from './pmfm.model';
+import { IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
 import { isNilOrNaN } from '@app/shared/functions';
 
@@ -21,7 +21,7 @@ export const PMFM_VALUE_SEPARATOR = '|';
 
 export abstract class PmfmValueUtils {
 
-  static toModelValue(value: PmfmValue | PmfmValue[] | any, pmfm: IPmfm, opts?: {applyConversion?: boolean}): string {
+  static toModelValue(value: PmfmValue | PmfmValue[] | any, pmfm: IPmfm | { type: PmfmType; displayConversion?: UnitConversion; }, opts?: {applyConversion?: boolean}): string {
     if (isNil(value) || !pmfm) return undefined;
     if (Array.isArray(value)) {
       return value.map(v => this.toModelValue(v, pmfm)).join(PMFM_VALUE_SEPARATOR);

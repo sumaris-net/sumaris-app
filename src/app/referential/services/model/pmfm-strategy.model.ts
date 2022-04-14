@@ -168,6 +168,8 @@ export class DenormalizedPmfmStrategy
       defaultValue: source.defaultValue,
       maximumNumberDecimals: source.maximumNumberDecimals,
       signifFiguresNumber: source.signifFiguresNumber,
+      detectionThreshold: source.detectionThreshold,
+      precision: source.precision,
       parameterId: source.parameter.id,
       matrixId: source.matrixId,
       fractionId: source.fractionId,
@@ -188,6 +190,8 @@ export class DenormalizedPmfmStrategy
   defaultValue: PmfmValue;
   maximumNumberDecimals: number;
   signifFiguresNumber: number;
+  detectionThreshold: number;
+  precision: number;
   isMandatory: boolean;
   acquisitionNumber: number;
   rankOrder: number;
@@ -266,7 +270,7 @@ export class DenormalizedPmfmStrategy
   }
 
   get isComputed(): boolean {
-    return this.type && (this.methodId === MethodIds.CALCULATED);
+    return this.type && PmfmUtils.isComputed(this);
   }
 
   get isQualitative(): boolean {

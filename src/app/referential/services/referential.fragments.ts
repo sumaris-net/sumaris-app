@@ -214,6 +214,8 @@ export const ReferentialFragments = {
     defaultValue
     maximumNumberDecimals
     signifFiguresNumber
+    detectionThreshold
+    precision
     parameter {
       ...ParameterFragment
     }
@@ -247,6 +249,8 @@ export const ReferentialFragments = {
     defaultValue
     maximumNumberDecimals
     signifFiguresNumber
+    detectionThreshold
+    precision
     parameter {
       ...ParameterFragment
     }

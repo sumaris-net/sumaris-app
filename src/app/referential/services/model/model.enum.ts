@@ -1,3 +1,4 @@
+import { isNil } from '@sumaris-net/ngx-components';
 
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
@@ -53,11 +54,14 @@ export const PmfmIds = {
   DISCARD_REASON: 95,
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102,
-  DRESSING: 151,
-  PRESERVATION: 150,
+  DRESSING: 151, // Présentation (e.g. Entier, Eviscéré, etc.)
+  PRESERVATION: 150, // État de conservation (e.g. Frais, Congelé, etc)
   BATCH_MEASURED_WEIGHT: 91,
   BATCH_ESTIMATED_WEIGHT: 92,
   BATCH_CALCULATED_WEIGHT: 93,
+  BATCH_CALCULATED_WEIGHT_LENGTH: 223, // RTP Weight (ID from SIH-Harmonie)
+  BATCH_CALCULATED_WEIGHT_LENGTH_SUM: 1152, // Sum of RTP weights (ID from SIH-Harmonie)
+
   MEASURE_TIME: 103,
   RELEASE_LATITUDE: 110,
   RELEASE_LONGITUDE: 111,
@@ -134,20 +138,17 @@ export const MethodIds = {
   MEASURED_BY_OBSERVER: 1,
   OBSERVED_BY_OBSERVER: 2,
   ESTIMATED_BY_OBSERVER: 3,
-  CALCULATED: 4
+  CALCULATED: 4,
+  CALCULATED_WEIGHT_LENGTH: 47, // Computed by RTP (ID from SIH-Harmonie)
+  CALCULATED_WEIGHT_LENGTH_SUM: 283 // Computed by SUM(RTP weights) (ID from SIH-Harmonie)
 };
-
+export const MethodIdGroups = {
+  CALCULATED: [MethodIds.CALCULATED, MethodIds.CALCULATED_WEIGHT_LENGTH, MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
+};
 export const MatrixIds = {
   INDIVIDUAL: 2
 }
 
-export const UnitIds = {
-  NONE: 0,
-}
-
-export const UnitLabelGroups = {
-  LENGTH: ['cm', 'mm'] // Unit used for LENGTH Pmfms, on individual
-}
 
 export const ParameterGroupIds = {
   UNKNOWN: 0,
@@ -186,28 +187,57 @@ export const PmfmLabelPatterns = {
   LONGITUDE: /^longitude$/i
 };
 
-export const UnitLabelPatterns = {
-  DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
-  DATE_TIME: /^Date[ &]+Time$/
-};
+export const UnitIds = {
+  NONE: 0
+}
 
 export declare type WeightUnitSymbol = 'kg' | 'g' | 'mg' | 't';
-export const WeightToKgCoefficientConversion = Object.freeze({
+export declare type LengthUnitSymbol = 'km' | 'm' | 'dm' | 'cm' | 'mm';
+
+// TODO Override by config properties ?
+export const UnitLabel = {
+  DECIMAL_HOURS: 'h dec.',
+  DATE_TIME: 'Date & Time',
+  // Weight units
+  TON: <WeightUnitSymbol>'t',
+  KG: <WeightUnitSymbol>'kg',
+  GRAM: <WeightUnitSymbol>'g',
+  MG: <WeightUnitSymbol>'mg',
+  // Length units
+  KM: <LengthUnitSymbol>'km',
+  M: <LengthUnitSymbol>'m',
+  DM: <LengthUnitSymbol>'dm',
+  CM: <LengthUnitSymbol>'cm',
+  MM: <LengthUnitSymbol>'mm'
+};
+
+export const WeightKgConversion: Record<WeightUnitSymbol, number> = Object.freeze({
   't': 1000,
   'kg': 1,
   'g': 1/1000,
   'mg': 1/1000/1000
 });
+export const LengthMeterConversion: Record<LengthUnitSymbol, number> = Object.freeze({
+  'km': 1000,
+  'm': 1,
+  'dm': 1/10,
+  'cm': 1/100,
+  'mm': 1/1000
+});
 
-// TODO Should be override by config properties
-export const UnitLabel = {
-  DECIMAL_HOURS: 'h dec.',
-  DATE_TIME: 'Date & Time',
-  KG: <WeightUnitSymbol>'kg',
-  GRAM: <WeightUnitSymbol>'g',
-  MG: <WeightUnitSymbol>'mg',
-  TON: <WeightUnitSymbol>'t'
+export const UnitLabelPatterns = {
+  DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
+  DATE_TIME: /^Date[ &]+Time$/,
+  LENGTH: /LENGTH/,
+  WEIGHT: /WEIGHT$/
 };
+export const UnitLabelGroups = {
+  WEIGHT: Object.keys(WeightKgConversion),
+  LENGTH: Object.keys(LengthMeterConversion)
+}
+
+
+
 
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,

@@ -1,9 +1,8 @@
-import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
-import {BatchGroup} from "./batch-group.model";
-import {AcquisitionLevelCodes} from "../../../referential/services/model/model.enum";
-import {ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
-import {IPmfm} from "../../../referential/services/model/pmfm.model";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import { Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils } from './batch.model';
+import { BatchGroup } from './batch-group.model';
+import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
+import { EntityClass, ReferentialUtils } from '@sumaris-net/ngx-components';
+import { IPmfm } from '../../../referential/services/model/pmfm.model';
 
 @EntityClass({typename: 'SubBatchVO', fromObjectReuseStrategy: "clone"})
 export class SubBatch extends Batch<SubBatch> {
@@ -51,27 +50,29 @@ export class SubBatchUtils {
   ): SubBatch[] {
     opts = opts || {};
 
-    if (!opts.groupQvPmfm) {
-      return groups.reduce((res, group) => {
-        return res.concat(BatchUtils.getChildrenByLevel(group, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
-          .map(child => SubBatch.fromBatch(child, group)));
-      }, []);
-    }
-    // if need to copy QV pmfm's value
-    else {
+    // If using QV pmfm
+    if (opts.groupQvPmfm) {
       return groups.reduce((res, group) => {
         return res.concat((group.children || []).reduce((res, qvBatch) => {
           const children = BatchUtils.getChildrenByLevel(qvBatch, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL);
           return res.concat(children
             .map(child => {
               const target = SubBatch.fromBatch(child, group);
-              // Copy QV value
+              // Copy the QV value
               target.measurementValues = { ...target.measurementValues };
               target.measurementValues[opts.groupQvPmfm.id] = qvBatch.measurementValues[opts.groupQvPmfm.id];
 
               return target;
             }));
         }, []));
+      }, []);
+    }
+
+    // No QV pmfm
+    else {
+      return groups.reduce((res, group) => {
+        return res.concat(BatchUtils.getChildrenByLevel(group, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
+          .map(child => SubBatch.fromBatch(child, group)));
       }, []);
     }
   }
@@ -101,25 +102,7 @@ export class SubBatchUtils {
   }) {
     opts = opts || {};
 
-    if (!opts.qvPmfm) {
-      (batchGroups || []).forEach(parent => {
-        // Find subbatches, from parentGroup
-        const children = subBatches.filter(sb => sb.parentGroup && Batch.equals(parent, sb.parentGroup));
-
-        // If has sampling batch, use it as parent
-        if (parent.children && parent.children.length === 1 && BatchUtils.isSampleBatch(parent.children[0])) {
-          parent = parent.children[0] as BatchGroup;
-        }
-
-        parent.children = children;
-        children.forEach(c => {
-          c.parentId = parent.id;
-          c.parent = undefined;
-        });
-      });
-    }
-
-    else {
+    if (opts.qvPmfm) {
       const qvPmfmId = opts.qvPmfm.id;
       (batchGroups || []).forEach(batchGroup => {
         // Get group's sub batches
@@ -146,6 +129,24 @@ export class SubBatchUtils {
             c.parentId = parent.id;
             c.parent = undefined; // Not need for model serialization
           });
+        });
+      });
+    }
+
+    else {
+      (batchGroups || []).forEach(parent => {
+        // Find subbatches, from parentGroup
+        const children = subBatches.filter(sb => sb.parentGroup && Batch.equals(parent, sb.parentGroup));
+
+        // If has sampling batch, use it as parent
+        if (parent.children && parent.children.length === 1 && BatchUtils.isSampleBatch(parent.children[0])) {
+          parent = parent.children[0] as BatchGroup;
+        }
+
+        parent.children = children;
+        children.forEach(c => {
+          c.parentId = parent.id;
+          c.parent = undefined;
         });
       });
     }

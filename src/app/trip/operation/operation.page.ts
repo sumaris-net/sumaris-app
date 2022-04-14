@@ -45,8 +45,7 @@ import { IPmfmForm, OperationValidators } from '@app/trip/services/validator/ope
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
-import { SubBatchValidatorService } from '@app/trip/services/validator/sub-batch.validator';
-import { DataContextService } from '@app/data/services/data-context.service';
+import { ContextService } from '@app/shared/context.service';
 
 const moment = momentImported;
 
@@ -58,8 +57,7 @@ const moment = momentImported;
   animations: [fadeInOutAnimation],
   providers: [
     { provide: APP_ENTITY_EDITOR, useExisting: OperationPage },
-    { provide: DataContextService, useExisting: TripContextService},
-    { provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
+    { provide: ContextService, useExisting: TripContextService},
     {
       provide: IonRouterOutlet,
       useValue: {
@@ -1168,7 +1166,7 @@ export class OperationPage
     console.debug('[operation-page] Updating data context...');
     // Date
     const date = this.$lastEndDate.value || this.opeForm.lastStartDateTimeControl?.value;
-    this.tripContext.setValue('date', date);
+    this.tripContext.setValue('date', fromDateISOString(date));
 
     // Fishing area
     if (this.opeForm.showFishingArea) {

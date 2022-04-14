@@ -12,14 +12,12 @@ import {
   isNotNilOrBlank,
   LocalSettingsService,
   toBoolean,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
-import { AlertController, ModalController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { BehaviorSubject, defer } from 'rxjs';
 import { FormGroup } from '@angular/forms';
-import { OperationService } from '../services/operation.service';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
-import { TripService } from '../services/trip.service';
 import { Batch, BatchUtils } from '../services/model/batch.model';
 import { BatchGroup, BatchGroupUtils } from '../services/model/batch-group.model';
 import { BatchGroupsTable } from './table/batch-groups.table';
@@ -34,16 +32,12 @@ import { SubBatch, SubBatchUtils } from '../services/model/subbatch.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { DataContextService } from '@app/data/services/data-context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { ValidatorService } from '@e-is/ngx-material-table';
 import { BatchGroupValidatorService } from '@app/trip/services/validator/batch-group.validator';
 
 @Component({
   selector: 'app-batch-tree',
   templateUrl: './batch-tree.component.html',
   providers: [
-    {provide: DataContextService, useExisting: DataContextService},
     {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -427,6 +421,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
       this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
       this.subBatchesTable.enableWeightConversion = this.batchGroupsTable.enableWeightConversion;
+      this.subBatchesTable.showWeightColumn = this.subBatchesTable.enableWeightConversion;
     }
 
     // Propagate to children components, if need

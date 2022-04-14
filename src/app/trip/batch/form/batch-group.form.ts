@@ -82,7 +82,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     onlySelf?: boolean;
   }) {
     super.markAsDirty(opts);
-    (this.childrenList && []).forEach(child => child.markAsDirty(opts));
+    (this.childrenList || []).forEach(child => child.markAsDirty(opts));
     this.hasSubBatchesControl.markAsDirty(opts);
   }
 

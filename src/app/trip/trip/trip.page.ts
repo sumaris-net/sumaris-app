@@ -244,8 +244,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Sale form
     this.showSaleForm = program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE);
 
-    this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
+    // Measurement form
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
+    this.measurementsForm.forceOptional = this._forceMeasurementAsOptionalOnFieldMode
+
+    // Physical gears
+    this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
+    this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
+
+    // Operation table
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.operationsTable.showPosition = positionEnabled;
     this.operationsTable.showFishingArea = !positionEnabled;
@@ -493,6 +500,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       startDate: DateUtils.min(moment(), date && date.clone()).add(-1, 'month'),
       endDate: date && date.clone()
     };
+    const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SelectPhysicalGearModal,
       componentProps: <SelectPhysicalGearModalOptions>{
@@ -500,7 +508,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
         allowMultiple: false,
         programLabel: this.$programLabel.getValue(),
         acquisitionLevel: this.physicalGearsTable.acquisitionLevel
-      }
+      },
+      backdropDismiss: false,
+      keyboardClose: true,
+      cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large'
     });
 
     // Open the modal

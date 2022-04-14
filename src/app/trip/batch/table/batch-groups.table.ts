@@ -38,7 +38,6 @@ import { BatchGroupValidatorService } from '../../services/validator/batch-group
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { TripContextService } from '@app/trip/services/trip-context.service';
-import { environment } from '@environments/environment';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -259,14 +258,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       }),
       BatchGroup,
       {
-        onRowCreated: (row) => {
-          // Need to set additional validator here
-          // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
-          //       e.g. When we add some validator (see operation page), so new row should always be INVALID with those additional validators
-          if (row.validator) {
-            this.onPrepareRowForm(row.validator);
-          }
-        }
+        // Need to set additional validator here
+        // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
+        //       e.g. When we add some validator (see operation page), so new row should always be INVALID with those additional validators
+        //onRowCreated: (row) => this.onPrepareRowForm(row.validator)
+        onRowValidator: (validator) => this.onPrepareRowForm(validator)
       }
     );
 
@@ -279,8 +275,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH; // Already set in batches-table
 
     // -- For DEV only
-    this.debug = !environment.production;
-    console.log('TODO batch group context=', this.context);
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -645,6 +640,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
                           opts?: { showParent?: boolean; emitLoaded?: boolean; }) {
     if (event) event.preventDefault();
 
+    console.log('TODO toto')
     // Loading spinner
     this.markAsLoading();
 
@@ -914,7 +910,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }): Promise<SubBatch[] | undefined> {
 
     // DEBUG
-    //if (this.debug) console.debug('[batches-table] Open individual measures modal...');
+    if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
@@ -1223,7 +1219,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
   }
 
-  private onPrepareRowForm(form: FormGroup) {
+  private onPrepareRowForm(form?: FormGroup) {
+    if (!form) return; // Skip
     console.debug('[batch-group-table] Initializing form (validators...)');
 
     // Add computation and validation

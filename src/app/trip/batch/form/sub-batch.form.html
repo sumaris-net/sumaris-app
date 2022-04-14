@@ -159,7 +159,7 @@
                     [floatLabel]="floatLabel"
                     (keyup.enter)="focusNextInputOrSubmit($event, last)"
                     [tabindex]="tabindex + 20 + i*2"
-                    [style]="mobile && 'button'"
+                    [style]="pmfm|pmfmFieldStyle: maxVisibleButtons"
                     [maxVisibleButtons]="maxVisibleButtons">
     </app-pmfm-field>
   </form>
@@ -168,6 +168,7 @@
   <ion-grid class="ion-no-padding">
     <ion-row class="ion-no-padding">
       <ion-col class="ion-no-padding">
+
         <!-- Individual count -->
         <mat-form-field *ngIf="showIndividualCount">
           <input matInput #inputField
@@ -201,6 +202,16 @@
           </mat-checkbox>
         </mat-form-field>
       </ion-col>
+
+      <!-- Computed weight -->
+      <ion-col *ngIf="enableWeightConversion && $weight|async; let weight">
+        <mat-form-field [floatLabel]="'always'" class="mat-form-field-disabled computed">
+          <input matInput type="text"
+                 [placeholder]="(weightPmfm|pmfmName) || 'TRIP.SUB_BATCH.EDIT.CALCULATED_WEIGHT_LENGTH'|translate"
+                 hidden>
+          <ion-text>{{weight|weightFormat:{fromUnit: weightPmfm?.unitLabel, toUnit: 'auto', maxDecimals: 3} }}</ion-text>
+        </mat-form-field>
+      </ion-col>
       <ion-col class="ion-no-padding" *ngIf="showSubmitButton">
 
         <ion-button color="tertiary" class="ion-float-end"
@@ -216,6 +227,8 @@
         <ng-content select="[endButton]"></ng-content>
       </ion-col>
     </ion-row>
+
+
   </ion-grid>
 
 

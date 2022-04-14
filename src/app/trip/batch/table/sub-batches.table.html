@@ -26,12 +26,6 @@
 
   <span class="toolbar-spacer"></span>
 
-  <!-- Options menu -->
-  <button mat-icon-button
-          [title]="'COMMON.OPTIONS'|translate"
-          (click)="openSelectColumnsModal($event)">
-    <mat-icon>more_vert</mat-icon>
-  </button>
 </mat-toolbar>
 
 
@@ -176,12 +170,25 @@
       </td>
     </ng-container>
 
+    <!-- Weight column -->
+    <ng-container matColumnDef="weight">
+      <th mat-header-cell *matHeaderCellDef>
+        <ion-label translate>TRIP.BATCH.TABLE.CALCULATED_WEIGHT_LENGTH</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-form-field floatLabel="never" class="computed">
+          <input matInput type="text" hidden>
+          <ion-text >{{row.currentData.weight?.value}}</ion-text>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
     <!-- Comment column -->
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef>
         <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row" (click)="focusColumn='comments'">
+      <td mat-cell *matCellDef="let row" >
         <mat-form-field floatLabel="never" *ngIf="row.editing; else iconComment">
           <input matInput
                  [formControl]="row.validator.controls.comments"
@@ -191,7 +198,9 @@
         </mat-form-field>
 
         <ng-template #iconComment>
-          <mat-icon class="comment" [class.disabled]="!inlineEdition"
+          <mat-icon class="comment"
+                    (click)="openCommentPopover($event, row)"
+                    [class.disabled]="!inlineEdition"
                     *ngIf="row.currentData.comments"
                     [title]="row.currentData.comments"></mat-icon>
         </ng-template>

@@ -1,17 +1,17 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { PhysicalGearValidatorService } from '../services/validator/physicalgear.validator';
+import { AppMeasurementsTable } from '../measurement/measurements.table.class';
 import { createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, SharedValidators } from '@sumaris-net/ngx-components';
-import { PhysicalGearModal, PhysicalGearModalOptions } from './physical-gear.modal';
-import {PhysicalGear} from '../services/model/trip.model';
-import {PHYSICAL_GEAR_DATA_SERVICE} from '../services/physicalgear.service';
-import {AcquisitionLevelCodes} from '../../referential/services/model/model.enum';
-import {environment} from '../../../environments/environment';
-import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
+import { PhysicalGear } from '../services/model/trip.model';
+import { PHYSICAL_GEAR_DATA_SERVICE } from '../services/physicalgear.service';
+import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
+import { environment } from '../../../environments/environment';
+import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
 import { Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { debounceTime, filter, tap } from 'rxjs/operators';
+import { debounceTime, filter } from 'rxjs/operators';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -35,6 +35,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
 export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
   filterForm: FormGroup;
+  modalOptions: Partial<IPhysicalGearModalOptions>;
 
   set value(data: PhysicalGear[]) {
     this.memoryDataService.value = data;
@@ -133,6 +134,11 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     this.onSelectPreviousGear.unsubscribe();
   }
 
+  setModalOption(key: keyof IPhysicalGearModalOptions, value: IPhysicalGearModalOptions[typeof key]) {
+    this.modalOptions = this.modalOptions || {};
+    this.modalOptions[key as any] = value;
+  }
+
   setFilter(value: Partial<PhysicalGearFilter>, opts?: { emitEvent: boolean }) {
 
     value = PhysicalGearFilter.fromObject(value);
@@ -193,7 +199,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     const modal = await this.modalCtrl.create({
       component: PhysicalGearModal,
-      componentProps: <PhysicalGearModalOptions>{
+      componentProps: <IPhysicalGearModalOptions>{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
@@ -207,7 +213,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
             modalComponent.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event))
           );
         },
-        onDelete: (event, PhysicalGear) => this.deleteEntity(event, PhysicalGear)
+        onDelete: (event, PhysicalGear) => this.deleteEntity(event, PhysicalGear),
+        // Override using input options
+        maxVisibleButtons: this.modalOptions?.maxVisibleButtons
       },
       keyboardClose: true,
       backdropDismiss: false

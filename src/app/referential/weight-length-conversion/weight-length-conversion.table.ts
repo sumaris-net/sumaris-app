@@ -4,18 +4,14 @@ import { Component, Injector, Input } from '@angular/core';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { WeightLengthConversionService } from '@app/referential/weight-length-conversion/weight-length-conversion.service';
 import { Validators } from '@angular/forms';
-import { FileEvent, FileResponse, firstNotNilPromise, isNotNil, ReferentialRef, SharedValidators, sleep, StatusIds } from '@sumaris-net/ngx-components';
+import { firstNotNilPromise, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import { WeightLengthConversionValidatorService } from '@app/referential/weight-length-conversion/weight-length-conversion.validator';
-import { TableElement } from '@e-is/ngx-material-table';
 import moment from 'moment';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { LocationLevelIds, ParameterLabelGroups, UnitLabelGroups } from '@app/referential/services/model/model.enum';
 import { ParameterService } from '@app/referential/services/parameter.service';
-import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { ErrorCodes } from '@app/referential/services/errors';
-import { HttpEventType } from '@angular/common/http';
-import { filter, mergeMap } from 'rxjs/operators';
-import { CsvUtils } from '@app/shared/csv.utils';
 
 @Component({
   selector: 'app-weight-length-conversion-table',
@@ -169,15 +165,8 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
       .then(items => this._$lengthParameters.next(items));
 
     // Length units
-    await Promise.all(
-      UnitLabelGroups.LENGTH.map(label => this.referentialRefService.loadAll(0, 1, null, null, { label, entityName: 'Unit'})
-        .then(res => res?.data[0])
-        .catch(err => {
-            if (err && err.code === ErrorCodes.LOAD_REFERENTIAL_ERROR) return undefined; // Skip if not found
-            throw err;
-          })
-      ))
-      .then(items => this._$lengthUnits.next(items.filter(isNotNil)));
+    await this.referentialRefService.loadAllByLabels(UnitLabelGroups.LENGTH, 'Unit', {statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]})
+      .then(items => this._$lengthUnits.next(items));
   }
 
 }

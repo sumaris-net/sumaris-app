@@ -2,6 +2,7 @@ import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from ".
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '../../../referential/services/model/model.enum';
 import { EntityClass, EntityUtils, ReferentialRef } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 @EntityClass({typename: "BatchGroupVO", fromObjectReuseStrategy: "clone"})
 export class BatchGroup extends Batch<BatchGroup> {
@@ -90,5 +91,21 @@ export class BatchGroupUtils {
         }
         return pmfm;
       })
+  }
+
+
+  /**
+   * Find the parent batch, of a subBatches, by the parent group
+   * @param batchGroup
+   * @param qvValue
+   * @param qvPmfm
+   */
+  static findChildByQvValue(batchGroup: BatchGroup, qvValue: PmfmValue, qvPmfm: IPmfm): Batch {
+    const qvPmfmId = qvPmfm.id;
+    const value = PmfmValueUtils.toModelValue(qvValue, qvPmfm);
+    return (batchGroup.children || []).find(parent =>
+      // WARN: use '==' and NOT '===', because measurementValues can use string, for values
+      value == PmfmValueUtils.toModelValue(parent.measurementValues[qvPmfmId], qvPmfm)
+    );
   }
 }

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { isObservable, Observable, Subscription } from 'rxjs';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { TableElement } from '@e-is/ngx-material-table';
 import { FormGroup, Validators } from '@angular/forms';
 import {
   AppFormUtils,
@@ -27,17 +27,21 @@ import { SubBatchValidatorService } from '../../services/validator/sub-batch.val
 import { SubBatchForm } from '../form/sub-batch.form';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { ISubBatchModalOptions, SubBatchModal } from '../modal/sub-batch.modal';
-import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '../../../referential/services/model/model.enum';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SortDirection } from '@angular/material/sort';
-import { SubBatch, SubBatchUtils } from '../../services/model/subbatch.model';
+import { SubBatch } from '../../services/model/subbatch.model';
 import { BatchGroup } from '../../services/model/batch-group.model';
-import { PmfmValidators } from '../../../referential/services/validator/pmfm.validators';
-import { environment } from '../../../../environments/environment';
-import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
+import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
+import { environment } from '@environments/environment';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { PopoverController } from '@ionic/angular';
+import { Popovers } from '@app/shared/popover/popover.utils';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
-export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
+export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'weight', 'comments'];
 
 
 export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<AppMeasurementsTableOptions<Batch>>('SubBatchesTableOptions');
@@ -72,7 +76,8 @@ const subBatchTableOptionsFactory = () => {
   templateUrl: 'sub-batches.table.html',
   styleUrls: ['sub-batches.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: SubBatchValidatorService},
+    {provide: ContextService, useExisting: TripContextService},
+    {provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: subBatchTableOptionsFactory
@@ -88,11 +93,13 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   private _parentSubscription: Subscription;
   private _availableParents: BatchGroup[] = [];
   private _showTaxonNameInParentAutocomplete = true;
+  private _rowValidatorSubscription: Subscription;
   protected _availableSortedParents: BatchGroup[] = [];
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
+  //protected popoverController: PopoverController;
 
   @Input() displayParentPmfm: IPmfm;
   @Input() showForm = false;
@@ -172,6 +179,15 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   @Input()
+  set showWeightColumn(value: boolean) {
+    this.setShowColumn('weight', value);
+  }
+
+  get showWeightColumn(): boolean {
+    return this.getShowColumn('weight');
+  }
+
+  @Input()
   set showCommentsColumn(value: boolean) {
     this.setShowColumn('comments', value);
   }
@@ -188,8 +204,9 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   constructor(
     protected injector: Injector,
-    protected validatorService: ValidatorService,
-    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
+    protected validatorService: SubBatchValidatorService,
+    protected popoverController: PopoverController,
+  @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector,
       SubBatch,
@@ -202,11 +219,16 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       validatorService,
       {
         ...options,
+        // Need to set additional validator here
+        // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
+        //       e.g. When we add some validator (see operation page), so new row should always be INVALID with those additional validators
+        onRowCreated: (row) => this.onPrepareRowForm(row.validator),
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
+    //this.popoverController = injector.get(PopoverController);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<SubBatch, SubBatchFilter>);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.tabindex = 1;
@@ -218,13 +240,14 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
     this.showCommentsColumn = true;
 
-    //this.debug = false;
-    //this.debug = !environment.production;
+    // DEBUG
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
 
+    this.setShowColumn('weight', this.enableWeightConversion);
     this.setShowColumn('comments', this.showCommentsColumn);
 
     // Parent combo
@@ -797,5 +820,44 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   protected markForCheck() {
     this.cd.markForCheck();
+  }
+
+  private async onPrepareRowForm(form: FormGroup) {
+    if (!form) return; // Skip
+    console.debug('[batch-group-table] Initializing form (validators...)');
+
+    this.validatorService.updateFormGroup(form, {
+      withWeight: this.enableWeightConversion && this.showWeightColumn
+    });
+
+    // Add computation and validation
+    this._rowValidatorSubscription?.unsubscribe();
+    this._rowValidatorSubscription = await this.validatorService.enableWeightLengthConversion(form, {
+      qvPmfm: this._qvPmfm,
+      pmfms: this.pmfms,
+      markForCheck: () => this.markForCheck()
+    });
+  }
+
+  async openCommentPopover(event: UIEvent, row: TableElement<SubBatch>) {
+
+    const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
+    const {data} = await Popovers.showText(this.popoverController, event, {
+      editing: this.inlineEdition,
+      autofocus: true,
+      multiline: true,
+      text: row.currentData.comments,
+      placeholder
+    });
+
+    if (this.inlineEdition) {
+      if (row.validator) {
+        row.validator.patchValue({comments: data});
+        row.validator.markAsDirty();
+      }
+      else {
+        row.currentData.comments = data;
+      }
+    }
   }
 }

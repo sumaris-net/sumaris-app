@@ -8,13 +8,14 @@ import { Alerts, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, isNi
 import { PhysicalGear } from '../services/model/trip.model';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
-export interface PhysicalGearModalOptions<T extends PhysicalGear = PhysicalGear, M = PhysicalGearModal> {
+export interface IPhysicalGearModalOptions<T extends PhysicalGear = PhysicalGear, M = PhysicalGearModal> {
   acquisitionLevel: string;
   programLabel: string;
   value: T;
   disabled: boolean;
   isNew: boolean;
   mobile: boolean;
+  maxVisibleButtons?: number;
   canEditRankOrder: boolean;
   onInit: (instance: M) => void;
   onDelete: (event: UIEvent, data: T) => Promise<boolean>;
@@ -25,7 +26,7 @@ export interface PhysicalGearModalOptions<T extends PhysicalGear = PhysicalGear,
   templateUrl: './physical-gear.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, PhysicalGearModalOptions<PhysicalGear, PhysicalGearModal> {
+export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, IPhysicalGearModalOptions<PhysicalGear, PhysicalGearModal> {
 
   loading = false;
   originalData: PhysicalGear;
@@ -36,6 +37,7 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, Phys
   @Input() disabled = false;
   @Input() isNew = false;
   @Input() mobile: boolean;
+  @Input() maxVisibleButtons: number;
   @Input() canEditRankOrder = false;
   @Input() onInit: (instance: PhysicalGearModal) => void;
   @Input() onDelete: (event: UIEvent, data: PhysicalGear) => Promise<boolean>;

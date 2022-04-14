@@ -15,7 +15,7 @@ import {
   fromDateISOString,
   GraphqlService,
   IEntitiesService,
-  isEmptyArray,
+  isEmptyArray, isNotNil,
   JobUtils,
   LoadResult,
   NetworkService,
@@ -30,7 +30,7 @@ import { ReferentialService } from './referential.service';
 import {
   FractionIdGroups,
   LocationLevelIds,
-  MatrixIds,
+  MatrixIds, MethodIdGroups,
   MethodIds,
   ParameterGroupIds,
   ParameterLabelGroups,
@@ -360,6 +360,40 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return data?.length ? data[0] : undefined;
   }
 
+  async loadByLabel(label: string,
+                    entityName: string,
+                    filter?: Partial<ReferentialRefFilter>,
+                    opts?: {
+                      [key: string]: any;
+                      fetchPolicy?: FetchPolicy;
+                      debug?: boolean;
+                      toEntity?: boolean;
+                    }): Promise<ReferentialRef> {
+    const { data } = await this.loadAll(0, 1, null, null,
+      {label, entityName},
+      {...opts, withTotal: false /*not need total*/}
+    );
+    return data?.length ? data[0] : undefined;
+  }
+
+  async loadAllByLabels(labels: string[],
+                        entityName: string,
+                        filter?: Partial<ReferentialRefFilter>,
+                        opts?: {
+                          [key: string]: any;
+                          fetchPolicy?: FetchPolicy;
+                          debug?: boolean;
+                          toEntity?: boolean;
+                        }): Promise<ReferentialRef[]> {
+    const items = await Promise.all(labels.map(label => this.loadByLabel(label, entityName, filter, opts)
+      .catch(err => {
+        if (err && err.code === ErrorCodes.LOAD_REFERENTIAL_ERROR) return undefined; // Skip if not found
+        throw err;
+      })));
+
+    return items.filter(isNotNil);
+  }
+
   async suggest(value: any, filter?: Partial<ReferentialRefFilter>,
                 sortBy?: keyof Referential | 'rankOrder',
                 sortDirection?: SortDirection,
@@ -637,9 +671,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     // Fractions Groups
     FractionIdGroups.CALCIFIED_STRUCTURE = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS);
 
-    // Unit groups
-    UnitLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.UNIT_GROUP_LENGTH_LABELS);
-
     // PMFM
     // TODO generefy this, using Object.keys(PmfmIds) iteration
     PmfmIds.TAG_ID = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TAG_ID);
@@ -658,12 +689,17 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     PmfmIds.REFUSED_SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_REFUSED_SURVEY_ID);
     PmfmIds.GEAR_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_GEAR_LABEL_ID);
     PmfmIds.HAS_ACCIDENTAL_CATCHES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_HAS_ACCIDENTAL_CATCHES_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID);
 
     // Methods
     MethodIds.MEASURED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_MEASURED_BY_OBSERVER_ID);
     MethodIds.OBSERVED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_OBSERVED_BY_OBSERVER_ID);
     MethodIds.ESTIMATED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_ESTIMATED_BY_OBSERVER_ID);
     MethodIds.CALCULATED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_ID);
+    MethodIds.CALCULATED_WEIGHT_LENGTH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_WEIGHT_LENGTH_ID);
+    MethodIds.CALCULATED_WEIGHT_LENGTH_SUM = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID);
+    MethodIdGroups.CALCULATED = [MethodIds.CALCULATED, MethodIds.CALCULATED_WEIGHT_LENGTH, MethodIds.CALCULATED_WEIGHT_LENGTH_SUM];
 
     // Matrix
     MatrixIds.INDIVIDUAL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.FRACTION_INDIVIDUAL_ID);

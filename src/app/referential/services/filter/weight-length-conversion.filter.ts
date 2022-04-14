@@ -6,7 +6,7 @@ import { StoreObject } from '@apollo/client/core';
 
 @EntityClass({typename: 'WeightLengthConversionFilterVO'})
 export class WeightLengthConversionFilter
-  extends EntityFilter<WeightLengthConversionFilter, WeightLengthConversionRef, number, EntityAsObjectOptions>
+  extends EntityFilter<WeightLengthConversionFilter, WeightLengthConversionRef>
   implements IEntityFilter<WeightLengthConversionFilter, WeightLengthConversionRef> {
 
   static fromObject: (source: any, opts?: any) => WeightLengthConversionFilter;

@@ -35,6 +35,7 @@ import { PersonPrivilegesTable } from '@app/referential/program/privilege/person
 import { WeightLengthConversionTable } from '@app/referential/weight-length-conversion/weight-length-conversion.table';
 import { TaxonGroupPage } from '@app/referential/taxon-group/taxon-group.page';
 import { RoundWeightConversionTable } from '@app/referential/round-weight-conversion/round-weight-conversion.table';
+import { WeightFormatPipe } from '@app/referential/pipes/weights.pipe';
 
 @NgModule({
   imports: [
@@ -54,6 +55,7 @@ import { RoundWeightConversionTable } from '@app/referential/round-weight-conver
     IsComputedPmfmPipe,
     IsMultiplePmfmPipe,
     PmfmFieldStylePipe,
+    WeightFormatPipe,
 
     // Components
     ProgramsPage,
@@ -98,6 +100,7 @@ import { RoundWeightConversionTable } from '@app/referential/round-weight-conver
     IsComputedPmfmPipe,
     IsMultiplePmfmPipe,
     PmfmFieldStylePipe,
+    WeightFormatPipe,
 
     // Components
     ProgramsPage,

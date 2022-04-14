@@ -102,7 +102,6 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   @Input() defaultTaxonName: TaxonNameRef;
   @Input() enableWeightConversion: boolean;
 
-
   constructor(
     injector: Injector,
     validatorService: ValidatorService,

@@ -148,11 +148,21 @@
 
           <!-- individualCount column -->
           <ng-container matColumnDef="individualCount">
-            <mat-header-cell *matHeaderCellDef [hidden]="!showIndividualCount">
+            <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showIndividualCount">
               <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
             </mat-header-cell>
-            <mat-cell *matCellDef="let row" [hidden]="!showIndividualCount">
+            <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIndividualCount">
               {{row.currentData.individualCount}}
+            </mat-cell>
+          </ng-container>
+
+          <!-- Weight column -->
+          <ng-container matColumnDef="weight">
+            <mat-header-cell *matHeaderCellDef>
+              <ion-label translate>TRIP.SUB_BATCH.TABLE.CALCULATED_WEIGHT_LENGTH</ion-label>
+            </mat-header-cell>
+            <mat-cell *matCellDef="let row">
+              <ion-text class="computed">{{row.currentData.weight?.value}}</ion-text>
             </mat-cell>
           </ng-container>
 

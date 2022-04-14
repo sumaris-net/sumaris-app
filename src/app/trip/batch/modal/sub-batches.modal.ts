@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { TableElement } from '@e-is/ngx-material-table';
 import { Batch, BatchUtils } from '../../services/model/batch.model';
 import { Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from '../form/sub-batch.form';
 import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
 import { SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from '../table/sub-batches.table';
 import { AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
-import { Animation, IonContent, ModalController } from '@ionic/angular';
-import { isObservable, Observable, of, Subject } from 'rxjs';
+import { IonContent, ModalController, PopoverController } from '@ionic/angular';
+import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from '../../services/model/subbatch.model';
 import { BatchGroup } from '../../services/model/batch-group.model';
@@ -15,7 +15,6 @@ import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { environment } from '@environments/environment';
-import { DataContextService } from '@app/data/services/data-context.service';
 
 export interface ISubBatchesModalOptions {
 
@@ -41,7 +40,7 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // d
   styleUrls: ['sub-batches.modal.scss'],
   templateUrl: 'sub-batches.modal.html',
   providers: [
-    { provide: DataContextService, useExisting: TripContextService},
+    { provide: ContextService, useExisting: TripContextService},
     { provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
@@ -108,6 +107,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   ) {
     super(injector,
       null/*no validator = not editable*/,
+      injector.get(PopoverController),
       options);
     this.inlineEdition = false; // Disable row edition (readonly)
     this.confirmBeforeDelete = true; // Ask confirmation before delete
@@ -119,7 +119,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // TODO: for DEV only ---
     this.debug = !environment.production;
-    console.log(this.context)
+
   }
 
   async ngOnInit() {
@@ -181,7 +181,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
+    console.log('TODO');
     this.scrollToTop();
+
 
     return super.doSubmitForm(event, row);
   }
@@ -291,6 +293,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   protected async onParentChange(parent?: BatchGroup) {
+    console.log('TODO onParentChange', parent);
+
     // Skip if same parent
     if (Batch.equals(this.parentGroup, parent)) return;
 

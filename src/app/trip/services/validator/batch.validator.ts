@@ -110,6 +110,8 @@ export class BatchValidatorService<
 
   protected getWeightFormGroup(data?: BatchWeight, opts?: {
     required?: boolean;
+    maxDecimals?: number;
+    pmfm?: IPmfm;
   }): FormGroup {
     return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
   }
@@ -159,17 +161,26 @@ export class BatchValidatorService<
 
 export class BatchWeightValidator {
 
+  /**
+   *
+   * @param data
+   * @param opts Use 'required' or 'maxDecimals'
+   */
   static getFormGroupConfig(data?: BatchWeight, opts?: {
     required?: boolean;
+    maxDecimals?: number;
+    pmfm?: IPmfm;
   }): {[key: string]: any} {
-    const validator = opts?.required
-      ? Validators.compose([Validators.required, SharedValidators.double({maxDecimals: 2})])
-      : SharedValidators.double({maxDecimals: 2});
+    const maxDecimals = toNumber(opts?.maxDecimals, toNumber(opts?.pmfm && opts.pmfm?.maximumNumberDecimals, 2));
+    const required = toBoolean(opts?.required, toBoolean(opts?.pmfm && opts.pmfm?.required, false));
+    const validator = required
+      ? Validators.compose([Validators.required, SharedValidators.double({maxDecimals})])
+      : SharedValidators.double({maxDecimals});
     return {
-      methodId: [toNumber(data && data.methodId, null), SharedValidators.integer],
-      estimated: [toBoolean(data && data.estimated, null)],
-      computed: [toBoolean(data && data.computed, null)],
-      value: [toNumber(data && data.value, null), validator]
+      methodId: [toNumber(data?.methodId, null), SharedValidators.integer],
+      estimated: [toBoolean(data?.estimated, null)],
+      computed: [toBoolean(data?.computed, null)],
+      value: [toNumber(data?.value, null), validator]
     };
   }
 }

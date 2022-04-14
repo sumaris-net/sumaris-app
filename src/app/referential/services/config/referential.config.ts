@@ -135,6 +135,11 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     type: 'string',
     defaultValue: LocationLevelIds.WEIGHT_LENGTH_CONVERSION_AREA.join(',')
   },
+  ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Location.ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID',
+    type: 'integer'
+  },
   TAXONOMIC_LEVEL_FAMILY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonomicLevel.FAMILY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_FAMILY_ID',
@@ -375,6 +380,30 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: PmfmIds.HAS_ACCIDENTAL_CATCHES
   },
+  PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT_LENGTH.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
+  },
+  PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM
+  },
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_SURVEY_ID',
@@ -435,6 +464,30 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: MethodIds.CALCULATED
   },
+  METHOD_CALCULATED_WEIGHT_LENGTH_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Method.CALCULATED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_CALCULATED_WEIGHT_LENGTH_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Method',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MethodIds.CALCULATED_WEIGHT_LENGTH
+  },
+  METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Method.CALCULATED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Method',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM
+  },
   FRACTION_INDIVIDUAL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Fraction.INDIVIDUAL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.FRACTION_INDIVIDUAL_ID',
@@ -494,12 +547,6 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       }
     },
     defaultValue: MatrixIds.INDIVIDUAL
-  },
-  UNIT_GROUP_LENGTH_LABELS: <FormFieldDefinition>{
-    key: 'sumaris.list.unit.length.labels',
-    label: 'CONFIGURATION.OPTIONS.ENUMERATION.UNIT_GROUP_LENGTH_LABELS',
-    type: 'string',
-    defaultValue: UnitLabelGroups.LENGTH.join(',')
   },
   QUALITATIVE_VALUE_LANDING_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.LANDING.id',

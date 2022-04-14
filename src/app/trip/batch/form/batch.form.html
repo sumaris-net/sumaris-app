@@ -42,7 +42,7 @@
           <app-pmfm-field #matInput [pmfm]="pmfm"
                           [hidden]="pmfm.hidden || matInput.formControl?.disabled"
                           [controlName]="pmfm|pmfmIdString"
-                          [style]="pmfm|pmfmFieldStyle"
+                          [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
                           [compact]="compact"
                           [tabindex]="tabindex+2 + i*2">
           </app-pmfm-field>

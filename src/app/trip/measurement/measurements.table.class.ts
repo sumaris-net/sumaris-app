@@ -31,7 +31,7 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 
 
-export class AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T>{
+export interface AppMeasurementsTableOptions<T extends IEntityWithMeasurement<T>> extends AppTableDataSourceOptions<T>{
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -296,10 +296,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (this.validatorService === validatorService && this._dataSource) return; // Skip if same
 
     // If already exists: destroy previous database
-    if (this._dataSource) {
-      this._dataSource.ngOnDestroy();
-      this._dataSource = null;
-    }
+    this._dataSource?.disconnect();
+    this._dataSource = null;
 
     if (this.debug) console.debug('[measurement-table] Settings validator service to: ', validatorService);
     this.validatorService = validatorService;

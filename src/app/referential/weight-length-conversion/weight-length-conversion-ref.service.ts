@@ -23,7 +23,7 @@ import { Moment } from 'moment';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { WeightToKgCoefficientConversion, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { LengthMeterConversion, LengthUnitSymbol, WeightKgConversion, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`query WeightLengthConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: WeightLengthConversionFilterVOInput){
@@ -77,37 +77,64 @@ export class WeightLengthConversionRefService
    * @param length
    * @param opts
    * */
-  computeWeight(conversion: WeightLengthConversionRef, length: number, opts?: {
-    individualCount?: number;
-    unit?: WeightUnitSymbol
-  }): number | undefined {
+  computeWeight(conversion: WeightLengthConversionRef,
+                length: number,
+                opts?: {
+                  individualCount?: number;
+                  lengthUnit?: LengthUnitSymbol;
+                  lengthPrecision?: number;
+                  weightUnit?: WeightUnitSymbol;
+                }): number | undefined {
     if (isNil(length) || !conversion) return undefined;
 
-    // Apply conversion
-    const weightKg = conversion.conversionCoefficientA
-      * Math.pow(length, conversion.conversionCoefficientB)
-      * toNumber(opts?.individualCount, 1)
-      // Convert g to kg
-      /// WeightToKgCoefficientConversion.g;
+    const lengthPrecision = toNumber(opts?.lengthPrecision, 1);
 
-    // Kilograms expected: nothing to do
-    if (!opts || opts.unit == 'kg') return weightKg;
+    // Find length conversion coefficient
+    let lengthUnitConversion = 1;
+    if (opts.lengthUnit !== conversion.lengthUnit?.label) {
+      if (!opts.lengthUnit) throw new Error(`Unknown unit of length value '${length}'. Cannot compute weight`);
+      if (!conversion.lengthUnit?.label) throw new Error(`Unknown conversion length unit, while received length in '${opts.lengthUnit}'. Cannot apply conversion`);
 
-    const unitConversion = WeightToKgCoefficientConversion[opts.unit];
-    if (isNil(unitConversion)) {
-      console.warn(`Unknown weight unit '${opts?.unit}'. Will use 'kg'`);
-      return weightKg
+      // actual -> meter (pivot) -> expected
+      lengthUnitConversion = LengthMeterConversion[conversion.lengthUnit.label] / LengthMeterConversion[opts.lengthUnit];
     }
 
-    // Apply inverse conversion, from kg to expected unit
-    return weightKg / unitConversion;
+    length = length * lengthUnitConversion
+      // Round to HALP_UP Pmfm's precision - see Allegro implementation (source: CalculatedQuantification.drl)
+      + 0.5 * lengthPrecision * lengthUnitConversion;
+
+    // Apply Weight/Length conversion
+    const weightKg = conversion.conversionCoefficientA
+      * Math.pow(length, conversion.conversionCoefficientB)
+      * toNumber(opts?.individualCount, 1);
+
+    // Convert from alive weight -> expected presentation
+    // TODO
+
+    // Applying weight conversion
+    if (opts && opts.weightUnit !== 'kg') {
+
+      const unitConversion = WeightKgConversion[opts.weightUnit];
+      if (isNil(unitConversion)) {
+        console.warn(`Unknown weight unit '${opts?.weightUnit}'. Will use 'kg'`);
+        return weightKg
+      }
+
+      // Apply inverse conversion, from kg to expected unit
+      return weightKg / unitConversion;
+    }
+
+    return weightKg;
   }
 
-  async findAppliedConversion(filter: Partial<WeightLengthConversionFilter> & {
-    month: number, year: number,
-    referenceTaxonId: number;
-    lengthPmfmId: number;
-  }, opts?: {cache?: boolean}): Promise<WeightLengthConversionRef | undefined> {
+  async findAppliedConversion(filter: Partial<WeightLengthConversionFilter>
+    // Force theis filter's attributes as required
+    & {
+      month: number;
+      year: number;
+      referenceTaxonId: number;
+      lengthPmfmId: number;
+    }, opts?: {cache?: boolean}): Promise<WeightLengthConversionRef | undefined> {
 
     // Use cache
     /*if (!opts || opts.cache !== false) {
