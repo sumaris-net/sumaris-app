@@ -124,10 +124,15 @@
     [isLogin]="isLogin"
     showInstallButton="false"
     showUpgradeWarning="true"
-    showOfflineWarning="false"
-    [showUpdateOfflineFeature]="showUpdateOfflineFeature"
-    (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})">
+    showOfflineWarning="false">
   </app-install-upgrade-card>
+
+  <!-- Update offline mode -->
+  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
+                                (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
+                                [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
+                                [progressionValue]="$progression | async">
+  </app-update-offline-mode-card>
 
   <!-- error -->
   <ion-item *ngIf="errorSubject|async; let error" lines="none" @slideUpDownAnimation>
@@ -324,14 +329,6 @@
       <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
     </a>
   </nav>
-
-  <!-- progress bar -->
-  <ion-list *ngIf="importing" lines="none">
-    <ion-list-header>
-      <ion-label *ngIf="progressionMessage">{{progressionMessage|translate: {pct: $progression | async} }}</ion-label>
-    </ion-list-header>
-    <ion-progress-bar [value]="($progression | async) / 100"></ion-progress-bar>
-  </ion-list>
 
   <!-- table -->
   <div class="table-container"
