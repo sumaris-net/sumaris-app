@@ -1586,8 +1586,8 @@ export class TripService
 
               // Import weight conversion entities, if enable on program
               const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE);
-              console.log('TODO enable conversion import:' + enableWeightConversion);
               if (enableWeightConversion) {
+                console.info('[trip-service] WeightLengthConversion import: enabled by program ' + programLabel);
                 opts.entityNames = [
                   ...IMPORT_REFERENTIAL_ENTITIES,
                   ...WEIGHT_CONVERSION_ENTITIES

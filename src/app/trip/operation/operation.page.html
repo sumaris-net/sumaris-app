@@ -116,16 +116,20 @@
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
   <!-- reset -->
-  <button mat-menu-item (click)="cancel($event)"
-          [disabled]="!dirty">
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
     <ion-label>
       <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
 
+  <mat-divider></mat-divider>
+
   <!-- delete -->
-  <button mat-menu-item [disabled]="isNewData || disabled"
+  <button mat-menu-item class="ion-color-danger"
+          [disabled]="isNewData || disabled"
           (click)="delete($event)">
     <ion-label>
       <mat-icon>delete</mat-icon>&nbsp;

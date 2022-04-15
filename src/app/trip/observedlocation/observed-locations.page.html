@@ -1,6 +1,7 @@
 <app-toolbar [title]="$title|async|translate"
              color="primary"
-             [canGoBack]="false">
+             [canGoBack]="false"
+             [canShowMenu]="true">
 
   <ion-buttons slot="end">
 
@@ -131,10 +132,15 @@
     [isLogin]="isLogin"
     showInstallButton="false"
     showUpgradeWarning="true"
-    showOfflineWarning="false"
-    [showUpdateOfflineFeature]="showUpdateOfflineFeature"
-    (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})">
+    showOfflineWarning="false">
   </app-install-upgrade-card>
+
+  <!-- Update offline mode -->
+  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
+                                (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
+                                [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
+                                [progressionValue]="$progression | async">
+  </app-update-offline-mode-card>
 
   <!-- error -->
   <ion-item *ngIf="errorSubject|async ; let error" lines="none" @slideUpDownAnimation>

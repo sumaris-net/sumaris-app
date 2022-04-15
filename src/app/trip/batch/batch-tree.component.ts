@@ -462,7 +462,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
 
-  async autoFill(opts?: { forceIfDisabled?: boolean; }): Promise<void> {
+  async autoFill(opts = { skipIfDisabled: true, skipIfNotEmpty: false}): Promise<void> {
     return this.batchGroupsTable.autoFillTable(opts);
   }
 

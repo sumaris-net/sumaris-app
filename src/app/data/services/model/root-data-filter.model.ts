@@ -65,11 +65,11 @@ export abstract class RootDataEntityFilter<
     return target;
   }
 
-  buildFilter(): FilterFn<E>[] {
+  buildFilter(opts = {skipProgram: false}): FilterFn<E>[] {
     const filterFns = super.buildFilter();
 
     // Program
-    if (this.program) {
+    if (this.program && !opts.skipProgram) {
       const programId = this.program.id;
       const programLabel = this.program.label;
       if (isNotNil(programId)) {

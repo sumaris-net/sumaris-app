@@ -32,7 +32,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Operation, PhysicalGear, Trip} from '../services/model/trip.model';
-import {BehaviorSubject, combineLatest, merge, Subscription} from 'rxjs';
+import { BehaviorSubject, combineLatest, merge, Observable, Subscription } from 'rxjs';
 import {debounceTime, distinctUntilChanged, filter, map, startWith} from 'rxjs/operators';
 import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
@@ -51,6 +51,7 @@ import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
 import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 import {TaxonGroupTypeIds} from '@app/referential/services/model/taxon-group.model';
 import { VesselPosition } from "@app/data/services/model/vessel-position.model";
+import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
 
 const moment = momentImported;
 
@@ -141,6 +142,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   get showMetierFilter(): boolean {
     return this._showMetierFilter;
+  }
+
+  get metiers$(): Observable<IReferentialRef[]>{
+    return this._metiersSubject.asObservable();
   }
 
   @Input() set allowParentOperation(value: boolean) {
@@ -1018,6 +1023,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   protected async suggestMetiers(value: any, filter: any): Promise<LoadResult<IReferentialRef>> {
     if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
+
+    // Replace '*' character by undefined
+    if (!value || value === '*') {
+      value = undefined;
+    }
+    // trim search text, and ignore some characters
+    else if (value && typeof value === 'string') {
+      value = value.trim().replace(TEXT_SEARCH_IGNORE_CHARS_REGEXP, '*');
+    }
 
     let metiers = this._metiersSubject.value;
     if (isNil(metiers)) metiers = await firstNotNilPromise(this._metiersSubject);

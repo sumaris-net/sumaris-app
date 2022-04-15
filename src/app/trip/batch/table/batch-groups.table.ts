@@ -280,7 +280,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // -- For DEV only
     this.debug = !environment.production;
-    console.log('TODO batch group context=', this.context);
   }
 
   ngOnInit() {
@@ -391,17 +390,21 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
 
   /**
-   * Allow to fill table (e.g. with taxon groups found in strategies) - #176
-   *
-   * @params opts.includeTaxonGroups : include taxon label
+   * Auto fill table (e.g. with taxon groups found in strategies) - #176
    */
-  async autoFillTable(opts?: { forceIfDisabled?: boolean; }) {
+  async autoFillTable(opts  = { skipIfDisabled: true, skipIfNotEmpty: false}) {
     // Wait table ready and loaded
     await Promise.all([this.ready(), this.waitIdle()]);
 
-    // Skip when disabled
-    if ((!opts || opts.forceIfDisabled !== true) && this.disabled) {
+    // Skip if disabled
+    if (opts.skipIfDisabled && this.disabled) {
       console.warn('[batch-group-table] Skipping autofill as table is disabled');
+      return;
+    }
+
+    // Skip if not empty
+    if (opts.skipIfNotEmpty && this.totalRowCount > 0) {
+      console.warn('[batch-group-table] Skipping autofill because table is not empty');
       return;
     }
 
@@ -423,22 +426,32 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       console.debug('[batch-group-table] Auto fill table, using options:', opts);
 
       // Read existing taxonGroup
-      const rowsTaxonGroups = (await this.dataSource.getRows() || []).map(r => r.currentData)
-        .map(batch => batch.taxonGroup)
+      const rowsTaxonGroups = (await this.dataSource.getData())
+        .map(batch => batch?.taxonGroup)
         .filter(isNotNil);
 
       const taxonGroups = this.availableTaxonGroups
         // Exclude species that already exists in table
         .filter(taxonGroup => !rowsTaxonGroups.some(tg => ReferentialUtils.equals(tg, taxonGroup)));
 
-      for (const taxonGroup of taxonGroups) {
-        const batch = new BatchGroup();
-        batch.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
-        const row = await this.addEntityToTable(batch, {confirmCreate: false, keepEditing: false});
-        // FIXME: row.isValid() will always return false, and the row cannot be confirmed
-        if (!this.confirmEditCreate(null, row)) {
-          console.warn('[batch-group-table] Cannot auto fill with many rows, because one cannot be confirmed!', row);
+      if (isNotEmptyArray(taxonGroups)) {
+        for (const taxonGroup of taxonGroups) {
+          const batch = new BatchGroup();
+          batch.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
+          const row = await this.addEntityToTable(batch, { keepEditing: false });
+          if (row.editing && !this.confirmEditCreate(null, row)) {
+            console.warn('[batch-group-table] Cannot auto fill with many rows, because one cannot be confirmed!', row);
+          }
         }
+      }
+
+      // FIXME Update total row count - workaround
+      const rowCount = rowsTaxonGroups.length + taxonGroups.length;
+      if (this.totalRowCount !== rowCount) {
+        console.warn('[batch-group-table] set totalRowCount manually! (should be fixed when table confirmEditCreate() are async ?)');
+        this.totalRowCount = rowsTaxonGroups.length + taxonGroups.length;
+        this.visibleRowCount = this.totalRowCount;
+        this.markForCheck();
       }
 
     } catch (err) {
@@ -540,7 +553,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     data.weight = this.getWeight(data.measurementValues) || undefined;
 
     /*if (data.qualityFlagId === QualityFlagIds.BAD){
-    //console.log('TODO Invalid individual count !', individualCount);
+    // TODO
+    //console.debug('Invalid individual count !', individualCount);
     }*/
 
     // Sampling batch
