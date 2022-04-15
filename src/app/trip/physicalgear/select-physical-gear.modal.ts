@@ -1,19 +1,20 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService } from '../services/physicalgear.service';
+import { PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService, PhysicalGearServiceWatchOptions } from '../services/physicalgear.service';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PhysicalGear } from '../services/model/trip.model';
-import { IEntitiesService, isNotNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { IEntitiesService, isNotNil, LocalSettingsService, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
 import { Observable } from 'rxjs';
 import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
+import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 
 export interface SelectPhysicalGearModalOptions {
   allowMultiple?: boolean;
   filter?: PhysicalGearFilter;
   acquisitionLevel?: AcquisitionLevelType;
   programLabel?: string;
+  distinctBy?: string[];
 }
 
 @Component({
@@ -29,20 +30,19 @@ export interface SelectPhysicalGearModalOptions {
 })
 export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalOptions {
 
-  selectedTabIndex = 0;
   readonly mobile: boolean;
 
-  @ViewChild('table', {static: true}) table: AppMeasurementsTable<PhysicalGear, PhysicalGearFilter>;
-
   @Input() allowMultiple: boolean;
-
   @Input() filter: PhysicalGearFilter | null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
+  @Input() distinctBy: string[];
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;
   }
+
+  @ViewChild(PhysicalGearTable, {static: true}) table: PhysicalGearTable;
 
   constructor(
     private modalCtrl: ModalController,
@@ -58,9 +58,14 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
     // Init table
     this.table.dataService = this.dataService;
     this.filter = PhysicalGearFilter.fromObject(this.filter);
+    this.filter.program = ReferentialRef.fromObject({
+      ...this.filter.program,
+      label: this.programLabel
+    });
     this.table.filter = this.filter;
-    this.table.dataSource.serviceOptions = {
-      distinctByRankOrder: true
+    this.table.dataSource.serviceOptions = <PhysicalGearServiceWatchOptions>{
+      distinctBy: this.distinctBy || ['gear.id', 'rankOrder', `measurementValues.${PmfmIds.GEAR_LABEL}`],
+      withOffline: true
     };
     this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
     this.table.programLabel = this.programLabel;

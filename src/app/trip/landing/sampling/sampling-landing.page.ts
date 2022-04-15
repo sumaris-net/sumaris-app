@@ -181,7 +181,7 @@ export class SamplingLandingPage extends LandingPage {
   }
 
   protected async onEntityLoaded(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
-    console.log('onEntityLoaded', data);
+    //console.debug('Calling onEntityLoaded', data);
     await super.onEntityLoaded(data, options);
 
   }

@@ -194,7 +194,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   }
 
   markAsReady(opts?: { emitEvent?: boolean }) {
-    console.log('TODO marking as ready')
+    // DEBUG console.debug('calling marking as ready');
     super.markAsReady(opts);
   }
 

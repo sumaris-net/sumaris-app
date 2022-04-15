@@ -37,16 +37,6 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
 
-  <!-- delete -->
-  <button mat-menu-item
-          [disabled]="isNewData || disabled"
-          (click)="delete($event)">
-    <ion-label>
-      <mat-icon>delete</mat-icon>&nbsp;
-      <span translate>TRIP.EDIT.BTN_DELETE</span>
-    </ion-label>
-  </button>
-
   <!-- reset -->
   <button mat-menu-item
           [disabled]="!dirty"
@@ -58,23 +48,36 @@
   </button>
 
   <!-- DEV only -->
-  <button mat-menu-item *ngIf="debug && isNewData"
-          (click)="devToggleAutoFillData()">
-    <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
-    <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
-    <ion-label>Autofill test data ?(#developer)
+  <ng-container *ngIf="debug">
+    <button mat-menu-item *ngIf="isNewData"
+            (click)="devToggleAutoFillData()">
+      <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
+      <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
+    </button>
+    <button mat-menu-item *ngIf="!isNewData && data?.id > 0"
+            (click)="copyLocally()">
+      <mat-icon>file_copy</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+    </button>
+    <button mat-menu-item
+            (click)="devToggleOfflineMode()">
+      <mat-icon *ngIf="network.offline">check_box</mat-icon>
+      <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
+      <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+    </button>
+  </ng-container>
+
+  <mat-divider></mat-divider>
+
+  <!-- delete -->
+  <button mat-menu-item class="ion-color-danger"
+          [disabled]="isNewData || disabled"
+          (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>TRIP.OPERATION.EDIT.BTN_DELETE</span>
     </ion-label>
-  </button>
-  <button mat-menu-item *ngIf="debug && !isNewData && data?.id > 0"
-          (click)="copyLocally()">
-    <ion-label>Save locally (#developer)
-    </ion-label>
-  </button>
-  <button mat-menu-item *ngIf="debug"
-          (click)="devToggleOfflineMode()">
-    <mat-icon *ngIf="network.offline">check_box</mat-icon>
-    <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
-    <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
 </mat-menu>
 
@@ -189,13 +192,13 @@
           <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-physicalgears-table #physicalGearsTable
+        <app-physical-gears-table #physicalGearsTable
                                  [programLabel]="$programLabel|async"
                                  [showToolbar]="!mobile"
-                                 (onSelectPreviousGear)="openSelectPreviousGearsModal($event)"
+                                 (openSelectPreviousGearModal)="openSelectPreviousGearModal($event)"
                                  [useSticky]="!mobile"
                                  [debug]="debug">
-        </app-physicalgears-table>
+        </app-physical-gears-table>
 
       </div>
     </mat-tab>

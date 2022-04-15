@@ -1,5 +1,5 @@
 import { EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition } from '@sumaris-net/ngx-components';
-import { Operation, Trip } from '../model/trip.model';
+import { Operation, PhysicalGear, Trip } from '../model/trip.model';
 import { TypePolicies } from '@apollo/client/core';
 import { ObservedLocation } from '../model/observed-location.model';
 import { Landing } from '../model/landing.model';
@@ -128,6 +128,12 @@ export const TRIP_STORAGE_TYPE_POLICIES = <EntitiesStorageTypePolicies>{
   //   skipNonLocalEntities: true,
   //   lightFieldsExcludes: ['metiers']
   // },
+
+  // Entity used to to generate local ids, and store historical data
+  // TODO: use 'Remote#' for historical data
+  'PhysicalGearVO': <EntityStoreTypePolicy<PhysicalGear>>{
+    skipNonLocalEntities: false // Keep remote entities
+  },
 
   // Fake entity, use to store historical data
   'Remote#LandingVO': <EntityStoreTypePolicy<Landing>>{

@@ -106,11 +106,17 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   @Input() locationLevelIds = [LocationLevelIds.PORT];
 
   @Input() set locationSuggestLengthThreshold(value: number) {
-    this._locationSuggestLengthThreshold = value;
-    if (this.autocompleteFields.location) {
-      this.autocompleteFields.location.suggestLengthThreshold = value;
+    if (this._locationSuggestLengthThreshold !== value) {
+      this._locationSuggestLengthThreshold = value;
+
       // Update fields
-      this.locationFields.forEach(field => field.suggestLengthThreshold = value);
+      if (this.autocompleteFields.location) {
+        this.autocompleteFields.location.suggestLengthThreshold = value;
+        this.locationFields.forEach(field => {
+          field.suggestLengthThreshold = value;
+          field.reloadItems();
+        });
+      }
     }
   }
 
@@ -191,7 +197,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
         acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION]
       },
-      mobile: this.mobile
+      mobile: this.mobile,
+      showAllOnFocus: true
     });
 
     // Combo: vessels

@@ -18,8 +18,8 @@
         <mat-icon>more_vert</mat-icon>
       </button>
 
-      <!-- copy existing button -->
-      <ion-button *ngIf="isNew && onCopyPreviousGearClick.observers|isNotEmptyArray"
+      <!-- search button -->
+      <ion-button *ngIf="isNew && onSearchButtonClick.observers|isNotEmptyArray"
                   (click)="openSearchModal($event)">
         <ion-icon slot="start" name="search"></ion-icon>
         <ion-label>

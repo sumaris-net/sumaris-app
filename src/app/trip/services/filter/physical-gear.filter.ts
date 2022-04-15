@@ -1,6 +1,6 @@
 import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
 import { PhysicalGear } from '../model/trip.model';
-import { EntityAsObjectOptions, EntityClass, FilterFn, isNotNil } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil } from '@sumaris-net/ngx-components';
 
 @EntityClass({typename: 'PhysicalGearFilterVO'})
 export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter, PhysicalGear> {
@@ -40,6 +40,20 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
     if (isNotNil(this.excludeTripId)) {
       const excludeTripId = this.excludeTripId;
       filterFns.push(pg => !(pg.tripId === excludeTripId || pg.trip?.id === excludeTripId));
+    }
+
+    // StartDate
+    if (isNotNil(this.startDate)) {
+      const startDate = this.startDate;
+      filterFns.push((pg => ((isNotNil(pg.trip?.returnDateTime) && fromDateISOString(pg.trip.returnDateTime).isAfter(startDate))
+        || (isNotNil(pg.trip?.departureDateTime) && fromDateISOString(pg.trip?.departureDateTime).isAfter(startDate)))));
+    }
+
+    // EndDate
+    if (isNotNil(this.endDate)) {
+      const endDate = this.endDate;
+      filterFns.push((pg => ((isNotNil(pg.trip?.returnDateTime) && fromDateISOString(pg.trip.returnDateTime).isBefore(endDate))
+        || (isNotNil(pg.trip?.departureDateTime) && fromDateISOString(pg.trip?.departureDateTime).isBefore(endDate)))));
     }
 
     // Vessel
