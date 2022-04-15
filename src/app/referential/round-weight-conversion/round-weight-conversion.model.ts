@@ -124,12 +124,12 @@ export class RoundWeightConversion
   equals(other: RoundWeightConversion): boolean {
 
     // -- DEV only
-    /*if (this.conversionCoefficient !== other.conversionCoefficient) console.log('DIFF conversionCoefficient');
-    if (!DateUtils.isSame(this.startDate, other.startDate)) console.log('DIFF startDate');
-    if (!DateUtils.isSame(this.endDate, other.endDate)) console.log('DIFF endDate');
-    if (!ReferentialUtils.equals(this.location, other.location)) console.log('DIFF location');
-    if (!ReferentialUtils.equals(this.dressing, other.dressing)) console.log('DIFF dressing');
-    if (!ReferentialUtils.equals(this.preserving, other.preserving)) console.log('DIFF preserving');*/
+    /*if (this.conversionCoefficient !== other.conversionCoefficient) console.debug('DIFF conversionCoefficient');
+    if (!DateUtils.isSame(this.startDate, other.startDate)) console.debug('DIFF startDate');
+    if (!DateUtils.isSame(this.endDate, other.endDate)) console.debug('DIFF endDate');
+    if (!ReferentialUtils.equals(this.location, other.location)) console.debug('DIFF location');
+    if (!ReferentialUtils.equals(this.dressing, other.dressing)) console.debug('DIFF dressing');
+    if (!ReferentialUtils.equals(this.preserving, other.preserving)) console.debug('DIFF preserving');*/
 
     return (super.equals(other) && isNotNil(this.id)) ||
       // Functional unique key

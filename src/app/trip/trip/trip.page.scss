@@ -1,3 +1,4 @@
+@import 'theme.globals';
 app-toolbar ion-spinner {
   width: 20px;
   height: 20px;
@@ -13,3 +14,8 @@ ion-col>ion-label {
   white-space: normal;
 }
 
+@media screen and (max-width: $screen-sm-max) {
+  .measurements-form {
+    padding-inline-start: 24px;
+  }
+}
