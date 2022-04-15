@@ -62,7 +62,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     const filterFns = super.buildFilter();
 
     // DEBUG
-    //console.debug('TODO filter operations', this);
+    //console.debug('filtering operations...', this);
 
     // Included ids
     if (isNotNil(this.includedIds)){
