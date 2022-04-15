@@ -30,6 +30,7 @@ import { TripFilter } from '@app/trip/services/filter/trip.filter';
 import { ErrorCodes } from '@app/data/services/errors';
 import { mergeLoadResult } from '@app/shared/functions';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
+import { ProgramFragments } from '@app/referential/services/program.fragments';
 
 const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
   loadAll: gql`query PhysicalGears($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
@@ -56,6 +57,9 @@ const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
       trip {
         departureDateTime
         returnDateTime
+        program {
+          ...ProgramRefFragment
+        }
         vesselSnapshot {
           ...LightVesselSnapshotFragment
         }
@@ -65,7 +69,9 @@ const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
   ${PhysicalGearFragments.physicalGear}
   ${ReferentialFragments.referential}
   ${ReferentialFragments.lightDepartment}
-  ${VesselSnapshotFragments.lightVesselSnapshot}`
+  ${ReferentialFragments.lightDepartment}
+  ${VesselSnapshotFragments.lightVesselSnapshot}
+  ${ProgramFragments.programRef}`
 };
 
 
@@ -291,6 +297,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
               // Add metadata on trip, if need
               trip: withTrip ? {
                 id: trip.id,
+                program: trip.program,
                 departureDateTime: trip.departureDateTime,
                 returnDateTime: trip.returnDateTime
               } : undefined

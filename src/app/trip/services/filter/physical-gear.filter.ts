@@ -1,6 +1,6 @@
 import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
 import { PhysicalGear } from '../model/trip.model';
-import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 
 @EntityClass({typename: 'PhysicalGearFilterVO'})
 export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter, PhysicalGear> {
@@ -30,7 +30,19 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
   }
 
   buildFilter(): FilterFn<PhysicalGear>[] {
-    const filterFns = super.buildFilter();
+    const filterFns = super.buildFilter({skipProgram: true});
+
+    // Program
+    if (this.program) {
+      const programId = this.program.id;
+      const programLabel = this.program.label;
+      if (isNotNil(programId)) {
+        filterFns.push(t => (!t.trip?.program || t.trip.program.id === programId));
+      }
+      else if (isNotNilOrBlank(programLabel)) {
+        filterFns.push(t => (!t.trip?.program || t.trip.program.label === programLabel));
+      }
+    }
 
     // Trip
     if (isNotNil(this.tripId)) {
