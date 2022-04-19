@@ -36,7 +36,7 @@ export interface ReferentialType {
   level?: string;
 }
 
-const QUERIES: BaseEntityGraphqlQueries & {count: any; loadTypes: any; loadLevels: any; } = {
+export const ReferentialQueries: BaseEntityGraphqlQueries & {count: any; loadTypes: any; } = {
   // Load all
   loadAll: gql`query Referentials($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -64,17 +64,10 @@ const QUERIES: BaseEntityGraphqlQueries & {count: any; loadTypes: any; loadLevel
       level
       __typename
     }
-  }`,
-
-  loadLevels: gql`query ReferentialLevels($entityName: String) {
-    data: referentialLevels(entityName: $entityName){
-      ...ReferentialFragment
-    }
-  }
-  ${ReferentialFragments.referential}`
+  }`
 };
 
-const MUTATIONS: BaseEntityGraphqlMutations = {
+const ReferentialMutations: BaseEntityGraphqlMutations = {
   saveAll: gql`mutation SaveReferentials($data:[ReferentialVOInput]){
     data: saveReferentials(referentials: $data){
       ...FullReferentialFragment
@@ -88,7 +81,7 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
     }`
 };
 
-const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
+const ReferentialSubscriptions: BaseEntityGraphqlSubscriptions = {
   listenChanges: gql`subscription UpdateReferential($entityName: String!, $id: Int!, $interval: Int){
     data: updateReferential(entityName: $entityName, id: $id, interval: $interval) {
       ...FullReferentialFragment
@@ -107,9 +100,9 @@ export class ReferentialService
   implements IEntitiesService<Referential, ReferentialFilter>,
     IEntityService<Referential, number, ReferentialServiceLoadOptions>{
 
-  private queries = QUERIES;
-  private mutations = MUTATIONS;
-  private subscriptions = SUBSCRIPTIONS;
+  private readonly queries = ReferentialQueries;
+  private readonly mutations = ReferentialMutations;
+  private readonly subscriptions = ReferentialSubscriptions;
 
   constructor(
     protected graphql: GraphqlService,
@@ -336,7 +329,7 @@ export class ReferentialService
     if (this._debug) console.debug(this._logPrefix + `[WS] Listening for changes on ${opts.entityName}#${id}...`);
 
     return this.graphql.subscribe<{data: any}>({
-      query: SUBSCRIPTIONS.listenChanges,
+      query: ReferentialSubscriptions.listenChanges,
       variables,
       error: {
         code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
@@ -499,31 +492,6 @@ export class ReferentialService
           return (data || []);
         })
       );
-  }
-
-  /**
-   * Load entity levels
-   */
-  async loadLevels(entityName: string, options?: {
-    fetchPolicy?: FetchPolicy
-  }): Promise<ReferentialRef[]> {
-    const now = Date.now();
-    if (this._debug) console.debug(`[referential-service] Loading levels for ${entityName}...`);
-
-    const {data} = await this.graphql.query<LoadResult<any[]>>({
-      query: this.queries.loadLevels,
-      variables: {
-        entityName
-      },
-      error: { code: ErrorCodes.LOAD_REFERENTIAL_LEVELS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_LEVELS_ERROR" },
-      fetchPolicy: options && options.fetchPolicy || 'cache-first'
-    });
-
-    const entities = (data || []).map(ReferentialRef.fromObject);
-
-    if (this._debug) console.debug(`[referential-service] Levels for ${entityName} loading in ${Date.now() - now}`, entities);
-
-    return entities;
   }
 
   asFilter(filter: Partial<ReferentialFilter>): ReferentialFilter {

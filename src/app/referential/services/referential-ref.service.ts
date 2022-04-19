@@ -67,7 +67,7 @@ import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.se
 import { EntityServiceLoadOptions, LoadResultByPageFn } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
 
-const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any }>{
+const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any; }>{
   lastUpdateDate: gql`query LastUpdateDate{
     lastUpdateDate
   }`,
@@ -85,6 +85,13 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any 
     }
     total: referentialsCount(entityName: $entityName, filter: $filter)
   }
+  ${ReferentialFragments.referential}`,
+
+  loadLevels: gql`query ReferentialLevels($entityName: String) {
+    data: referentialLevels(entityName: $entityName){
+      ...ReferentialFragment
+    }
+  }
   ${ReferentialFragments.referential}`
 };
 
@@ -98,12 +105,6 @@ export const WEIGHT_CONVERSION_ENTITIES = ['WeightLengthConversion', 'RoundWeigh
 export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, ReferentialRefFilter>
   implements SuggestService<ReferentialRef, ReferentialRefFilter>,
     IEntitiesService<ReferentialRef, ReferentialRefFilter> {
-
-  private _importedEntityNames: string[];
-
-  get importedEntityNames(): string [] {
-    return this._importedEntityNames;
-  }
 
   constructor(
     protected graphql: GraphqlService,
@@ -415,6 +416,31 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     );
   }
 
+  /**
+   * Load entity levels
+   */
+  async loadLevels(entityName: string, options?: {
+    fetchPolicy?: FetchPolicy
+  }): Promise<ReferentialRef[]> {
+    const now = Date.now();
+    if (this._debug) console.debug(`[referential-ref-service] Loading levels for ${entityName}...`);
+
+    const {data} = await this.graphql.query<LoadResult<any[]>>({
+      query: ReferentialRefQueries.loadLevels,
+      variables: {
+        entityName
+      },
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_LEVELS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_LEVELS_ERROR" },
+      fetchPolicy: options && options.fetchPolicy || 'cache-first'
+    });
+
+    const entities = (data || []).map(ReferentialRef.fromObject);
+
+    if (this._debug) console.debug(`[referential-ref-service] Levels for ${entityName} loading in ${Date.now() - now}`, entities);
+
+    return entities;
+  }
+
   saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {
     throw new Error('Not implemented yet');
   }
@@ -523,7 +549,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     } else {
       // Success
       console.info(`[referential-ref-service] Successfully import ${entityNames.length} referential in ${Date.now() - now}ms`);
-      this._importedEntityNames = importedEntityNames;
     }
   }
 

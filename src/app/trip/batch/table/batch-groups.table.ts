@@ -425,6 +425,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       let data = await this.dataSource.getData()
       const existingTaxonGroups = data.map(batch => batch.taxonGroup)
         .filter(isNotNil);
+      let rowCount = data.length;
 
       const taxonGroupsToAdd = this.availableTaxonGroups
         // Exclude if already exists
@@ -439,19 +440,19 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
           const batch = new BatchGroup();
           batch.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
           batch.rankOrder = rankOrder++;
-          await this.addEntityToTable(batch);
+          const newRow = await this.addEntityToTable(batch, { confirmCreate: true });
+          rowCount += (newRow.editing) ? 0 : 1;
         }
 
         // Mark as dirty
         this.markAsDirty();
       }
 
-      // FIXME Update total row count - workaround
-      const rowCount = rowsTaxonGroups.length + taxonGroups.length;
+      // FIXME Workaround to update row count
       if (this.totalRowCount !== rowCount) {
-        console.warn('[batch-group-table] set totalRowCount manually! (should be fixed when table confirmEditCreate() are async ?)');
-        this.totalRowCount = rowsTaxonGroups.length + taxonGroups.length;
-        this.visibleRowCount = this.totalRowCount;
+        console.warn('[batch-group-table] Updateing rowCount manually! (should be fixed when table confirmEditCreate() are async ?)');
+        this.totalRowCount = rowCount;
+        this.visibleRowCount = rowCount;
         this.markForCheck();
       }
 

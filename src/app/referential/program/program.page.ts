@@ -12,31 +12,34 @@ import {
   AppListForm,
   AppPropertiesForm,
   AppTable,
-  changeCaseToUnderscore,
+  changeCaseToUnderscore, EntitiesTableDataSource,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
   FormFieldDefinition,
   FormFieldDefinitionMap,
-  HistoryPageReference,
+  HistoryPageReference, InMemoryEntitiesService,
   isNil,
   isNotNil,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  SharedValidators,
+  SharedValidators, StatusIds
 } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
 import { ProgramProperties, StrategyEditor } from '../services/config/program.config';
 import { ActivatedRoute } from '@angular/router';
-import { SelectReferentialModal } from '../list/select-referential.modal';
+import { ISelectReferentialModalOptions, SelectReferentialModal } from '../list/select-referential.modal';
 import { environment } from '../../../environments/environment';
 import { Strategy } from '../services/model/strategy.model';
 import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategies.table';
 import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
 import { Pmfm } from '@app/referential/services/model/pmfm.model';
+import { ReferentialRefTable } from '@app/referential/list/referential-ref.table';
+import { LocationLevels } from '@app/referential/services/model/model.enum';
+import { IBaseSelectEntityModalOptions } from '@app/referential/list/base-select-entity.modal';
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -69,6 +72,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
   @ViewChild('legacyStrategiesTable', { static: true }) legacyStrategiesTable: StrategiesTable;
   @ViewChild('samplingStrategiesTable', { static: true }) samplingStrategiesTable: SamplingStrategiesTable;
   @ViewChild('personsTable', { static: true }) personsTable: PersonPrivilegesTable;
+  @ViewChild('locationList', { static: true }) locationList: AppListForm<ReferentialRef>;
 
 
   get strategiesTable(): AppTable<Strategy> {
@@ -82,14 +86,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
     protected referentialRefService: ReferentialRefService,
-    protected modalCtrl: ModalController,
-    protected activatedRoute: ActivatedRoute
+    protected modalCtrl: ModalController
   ) {
     super(injector,
       Program,
       programService, {
         pathIdAttribute: 'programId',
-        tabCount: 3
+        tabCount: 5
       });
     this.form = validatorService.getFormGroup();
 
@@ -97,7 +100,6 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this.mobile = this.settings.mobile;
     this.defaultBackHref = "/referential/list?entity=Program";
     this._enabled = this.accountService.isAdmin();
-    this.tabCount = 4;
 
     this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
       if (def.type === 'entity') {
@@ -182,6 +184,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
       this.referentialForm,
       this.propertiesForm,
       this.locationClassificationList,
+      this.locationList,
       this.personsTable
     ]);
   }
@@ -230,7 +233,11 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     // Location classification
     this.locationClassificationList.setValue(data.locationClassifications);
 
-    this.personsTable.setValue(data.persons)
+    // Locations
+    this.locationList.setValue(data.locations || []);
+
+    // Users
+    this.personsTable.setValue(data.persons);
 
     this.markForCheck();
   }
@@ -276,6 +283,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
       .filter(property => this.propertyDefinitions.find(def => def.key === property.key && def.type === 'entity'))
       .forEach(property => property.value = (property.value as any)?.id);
 
+    // Users
     if (this.personsTable.dirty) {
       await this.personsTable.save();
     }
@@ -315,13 +323,42 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     if (this.disabled) return; // Skip
 
     const items = await this.openSelectReferentialModal({
-      filter: {
-        entityName: 'LocationClassification'
-      }
+      allowMultiple: true,
+      entityName: 'LocationClassification'
     });
 
     // Add to list
     (items || []).forEach(item => this.locationClassificationList.add(item));
+
+    this.markForCheck();
+  }
+
+
+  async addLocation() {
+    if (this.disabled) return; // Skip
+
+    const classificationIds = (this.locationClassificationList.value || []).map(item => item.id);
+    const rectangleLocationLevelIds = LocationLevels.getStatisticalRectangleLevelIds();
+    const levelIds = (await this.referentialRefService.loadAll(0, 1000, null, null, {
+      entityName: 'LocationLevel',
+      levelIds: classificationIds,
+      statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+    }))?.data
+      .map(item => item.id)
+      // Exclude rectangle level ids
+      .filter(levelId => !rectangleLocationLevelIds.includes(levelId));
+    const excludedIds = (this.locationList.value || []).map(item => item.id);
+    const items = await this.openSelectReferentialModal({
+      filter: {
+        entityName: 'Location',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
+        levelIds,
+        excludedIds
+      }
+    });
+
+    // Add to list
+    (items || []).forEach(item => this.locationList.add(item));
 
     this.markForCheck();
   }
@@ -353,16 +390,17 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     }
   }
 
-  protected async openSelectReferentialModal(opts: {
-    filter: Partial<ReferentialRefFilter>
-  }): Promise<ReferentialRef[]> {
+  protected async openSelectReferentialModal(opts: Partial<ISelectReferentialModalOptions>): Promise<ReferentialRef[]> {
 
+    const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
-      componentProps: {
+      componentProps: <ISelectReferentialModalOptions>{
+        ...opts,
         filter: ReferentialRefFilter.fromObject(opts.filter)
       },
       keyboardClose: true,
-      cssClass: 'modal-large'
+      backdropDismiss: false,
+      cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large',
     });
 
     await modal.present();

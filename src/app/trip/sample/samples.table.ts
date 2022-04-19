@@ -98,7 +98,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
-  protected currentTagId: string;
 
   // Top group header
   groupHeaderStartColSpan: number;

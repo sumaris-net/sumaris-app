@@ -1,5 +1,5 @@
 <app-modal-toolbar color="secondary"
-                   [title]="$title|async"
+                   [title]="$title|async|translate"
                    (cancel)="cancel()"
                    (validate)="close($event)"
                    [showSpinner]="loading"
@@ -9,6 +9,7 @@
 <ion-content class="ion-no-padding">
   <!-- main table -->
   <app-referential-ref-table #table
+                             [showFilter]="showFilter"
                              (onOpenRow)="selectRow($event)"
                              (onNewRow)="close($event)">
   </app-referential-ref-table>
