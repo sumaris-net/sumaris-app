@@ -386,17 +386,21 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
 
   /**
-   * Allow to fill table (e.g. with taxon groups found in strategies) - #176
-   *
-   * @params opts.includeTaxonGroups : include taxon label
+   * Auto fill table (e.g. with taxon groups found in strategies) - #176
    */
-  async autoFillTable(opts?: { forceIfDisabled?: boolean; }) {
+  async autoFillTable(opts  = { skipIfDisabled: true, skipIfNotEmpty: false}) {
     // Wait table ready and loaded
     await Promise.all([this.ready(), this.waitIdle()]);
 
-    // Skip when disabled
-    if ((!opts || opts.forceIfDisabled !== true) && this.disabled) {
+    // Skip if disabled
+    if (opts.skipIfDisabled && this.disabled) {
       console.warn('[batch-group-table] Skipping autofill as table is disabled');
+      return;
+    }
+
+    // Skip if not empty
+    if (opts.skipIfNotEmpty && this.totalRowCount > 0) {
+      console.warn('[batch-group-table] Skipping autofill because table is not empty');
       return;
     }
 
@@ -440,6 +444,15 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
         // Mark as dirty
         this.markAsDirty();
+      }
+
+      // FIXME Update total row count - workaround
+      const rowCount = rowsTaxonGroups.length + taxonGroups.length;
+      if (this.totalRowCount !== rowCount) {
+        console.warn('[batch-group-table] set totalRowCount manually! (should be fixed when table confirmEditCreate() are async ?)');
+        this.totalRowCount = rowsTaxonGroups.length + taxonGroups.length;
+        this.visibleRowCount = this.totalRowCount;
+        this.markForCheck();
       }
 
     } catch (err) {
@@ -541,7 +554,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     data.weight = this.getWeight(data.measurementValues) || undefined;
 
     /*if (data.qualityFlagId === QualityFlagIds.BAD){
-    //console.log('TODO Invalid individual count !', individualCount);
+    // TODO
+    //console.debug('Invalid individual count !', individualCount);
     }*/
 
     // Sampling batch

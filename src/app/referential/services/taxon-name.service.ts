@@ -55,13 +55,13 @@ export const TaxonNameQueries: BaseEntityGraphqlQueries & { referenceTaxonExists
   }`
 }
 
-const MUTATIONS: BaseEntityGraphqlMutations = {
-  save: gql`mutation saveTaxonName($data: TaxonNameVOInput!){
+const TaxonNameMutations: BaseEntityGraphqlMutations = {
+  save: gql`mutation saveTaxonName($data: TaxonNameVOInput!) {
     data: saveTaxonName(taxonName: $data){
     ...FullTaxonNameFragment
     }
-    }
-    ${ReferentialFragments.fullTaxonName}`
+  }
+  ${ReferentialFragments.fullTaxonName}`
 }
 
 @Injectable({providedIn: 'root'})
@@ -77,7 +77,7 @@ export class TaxonNameService extends BaseEntityService<TaxonName, TaxonNameFilt
     super(graphql, platform,
     TaxonName, TaxonNameFilter, {
       queries: TaxonNameQueries,
-      mutations: MUTATIONS
+      mutations: TaxonNameMutations
     });
   }
 

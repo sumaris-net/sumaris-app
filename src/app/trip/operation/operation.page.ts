@@ -408,7 +408,7 @@ export class OperationPage
     // If PMFM "Has accidental catches ?" exists, then use to enable/disable sample tables
     const hasAccidentalCatchesControl = formGroup?.controls[PmfmIds.HAS_ACCIDENTAL_CATCHES];
     if (isNotNil(hasAccidentalCatchesControl)) {
-      defaultTableStates = true; // Applying defaults (because will not manage the catch
+      defaultTableStates = true; // Applying defaults (because will not manage the catch)
       hasAccidentalCatchesControl.setValidators(Validators.required);
       this._measurementSubscription.add(
         hasAccidentalCatchesControl.valueChanges
@@ -475,6 +475,12 @@ export class OperationPage
             if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
               this.selectedSubTabIndex = 0;
             }
+
+            // Auto fill batches (if new data)
+            if (this.showBatchTables && this.autoFillBatch && this.isNewData) {
+              this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
+            }
+
             this.updateTablesState();
             this.markForCheck();
           })
@@ -516,6 +522,11 @@ export class OperationPage
       this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
       this.updateTablesState();
       this.markForCheck();
+
+      // Auto fill batches (if new data)
+      if (this.showBatchTables && this.autoFillBatch && this.isNewData) {
+        this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
+      }
     }
 
     // Anormal trip => Change comments as required
@@ -814,7 +825,6 @@ export class OperationPage
     // If new data, auto fill the table
     if (this.isNewData) {
       if (this.autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
-      if (this.autoFillBatch) this.batchTree.autoFill({forceIfDisabled: true});
     }
   }
 

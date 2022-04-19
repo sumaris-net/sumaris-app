@@ -128,6 +128,7 @@ export const ReferentialFragments = {
     isNaming
     isVirtual
     taxonomicLevelId
+    taxonGroupIds
     startDate
     endDate
     __typename

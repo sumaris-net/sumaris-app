@@ -119,6 +119,8 @@ import { AppImageModule } from '@app/image/image.module';
     AppSharedModule.forRoot(environment),
     AppCoreModule.forRoot(),
     AppImageModule.forRoot(),
+    // TODO: should be enabled, when start using notifications
+    //SocialModule.forRoot(),
     AppRoutingModule
   ],
   providers: [

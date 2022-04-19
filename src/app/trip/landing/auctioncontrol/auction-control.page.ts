@@ -362,7 +362,8 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   protected registerSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
-    console.log('[auction-control-page] Adding row validator');
+    // DEBUG
+    // console.debug('[auction-control-page] Adding row validator');
     return AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 

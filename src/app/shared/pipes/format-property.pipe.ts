@@ -29,7 +29,8 @@ export class FormatPropertyPipe implements PipeTransform {
         return this.dateFormat.transform(value, {time: true}) as string;
       case 'enum':
       {
-        console.log('TODO getting value for ' +definition.key+ ' => ', value );
+        // DEBUG
+        // console.debug('formatProperty by definition (type='enum', key=' +definition.key+ '):', value );
         const item = (definition.values as any[] || [value]).find(item => (isNotNil(item.key) ? item.key : item) === value);
         return item.value || item;
       }

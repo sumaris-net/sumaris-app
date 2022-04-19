@@ -7,7 +7,7 @@ import { ReferentialFragments } from '@app/referential/services/referential.frag
 import { BaseEntityGraphqlQueries } from '@sumaris-net/ngx-components';
 
 
-const QUERIES: BaseEntityGraphqlQueries = {
+const TaxonGroupQueries: BaseEntityGraphqlQueries = {
   loadAll: gql`query TaxonGroups($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: taxonGroups(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
       ...TaxonGroupFragment
@@ -36,7 +36,7 @@ export class TaxonGroupRefService extends BaseReferentialRefService<TaxonGroupRe
       TaxonGroupRef,
       ReferentialRefFilter,
       {
-        queries: QUERIES
+        queries: TaxonGroupQueries
       });
   }
 

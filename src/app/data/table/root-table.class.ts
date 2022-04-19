@@ -1,33 +1,29 @@
-import {Directive, Injector, Input, ViewChild} from '@angular/core';
-import {ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {FormGroup} from '@angular/forms';
-import {catchError, debounceTime, distinctUntilChanged, filter, map, tap, throttleTime} from 'rxjs/operators';
+import { Directive, Injector, Input, ViewChild } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, filter, map, tap, throttleTime } from 'rxjs/operators';
 import {
-  AccountService, AppFormUtils,
+  AccountService,
+  AppFormUtils,
   AppTable,
   chainPromises,
   ConnectionType,
   EntitiesTableDataSource,
   isEmptyArray,
   isNotNil,
-  LocalSettingsService,
   NetworkService,
-  PlatformService,
   referentialToString,
   toBoolean,
   toDateISOString,
   UserEventService
 } from '@sumaris-net/ngx-components';
-import {BehaviorSubject} from 'rxjs';
-import {DataRootEntityUtils, RootDataEntity} from '../services/model/root-data-entity.model';
-import {qualityFlagToColor, SynchronizationStatus} from '../services/model/model.utils';
-import {IDataSynchroService} from '../services/root-data-synchro-service.class';
+import { BehaviorSubject, timer } from 'rxjs';
+import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
+import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
+import { IDataSynchroService } from '../services/root-data-synchro-service.class';
 import * as momentImported from 'moment';
-import {TableElement} from '@e-is/ngx-material-table';
-import {RootDataEntityFilter} from '../services/model/root-data-filter.model';
-import {MatExpansionPanel} from '@angular/material/expansion';
+import { TableElement } from '@e-is/ngx-material-table';
+import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
+import { MatExpansionPanel } from '@angular/material/expansion';
 
 const moment = momentImported;
 
@@ -254,6 +250,7 @@ export abstract class AppRootDataTable<
     }
     finally {
       this.hasOfflineMode = this.hasOfflineMode || success;
+      this.$progression.next(0);
       this.importing = false;
       this.markForCheck();
     }

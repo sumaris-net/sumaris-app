@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { PhysicalGearValidatorService } from '../services/validator/physicalgear.validator';
+import { TableElement } from '@e-is/ngx-material-table';
+
 import { AppMeasurementsTable } from '../measurement/measurements.table.class';
 import { createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, SharedValidators } from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
@@ -18,11 +18,10 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
 
 
 @Component({
-  selector: 'app-physicalgears-table',
+  selector: 'app-physical-gears-table',
   templateUrl: 'physical-gears.table.html',
   styleUrls: ['physical-gears.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: PhysicalGearValidatorService},
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE,
       useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
@@ -64,7 +63,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
   protected memoryDataService: InMemoryEntitiesService<PhysicalGear>;
 
-  @Output() onSelectPreviousGear = createPromiseEventEmitter();
+  @Output() openSelectPreviousGearModal = createPromiseEventEmitter<PhysicalGear>();
 
   constructor(
     injector: Injector,
@@ -131,7 +130,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   ngOnDestroy() {
 
     super.ngOnDestroy();
-    this.onSelectPreviousGear.unsubscribe();
+    this.openSelectPreviousGearModal.unsubscribe();
   }
 
   setModalOption(key: keyof IPhysicalGearModalOptions, value: IPhysicalGearModalOptions[typeof key]) {
@@ -207,10 +206,10 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         isNew,
         mobile: this.mobile,
         canEditRankOrder: this.canEditRankOrder,
-        onInit: (modalComponent: PhysicalGearModal) => {
+        onInit: (m: PhysicalGearModal) => {
           // Subscribe to click on copy button, then redirect the event
           modalSubscription.add(
-            modalComponent.onCopyPreviousGearClick.subscribe((event) => this.onSelectPreviousGear.emit(event))
+            m.onSearchButtonClick.subscribe(event => this.openSelectPreviousGearModal.emit(event))
           );
         },
         onDelete: (event, PhysicalGear) => this.deleteEntity(event, PhysicalGear),
@@ -239,11 +238,11 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     // Row not exists: OK
     if (!row) return true;
 
-    const canDeleteRow = await this.canDeleteRows([row]);
-    if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+    const confirmed = await this.canDeleteRows([row]);
+    if (confirmed) {
+      return this.deleteRow(null, row, {interactive: false /*already confirmed*/, skipIfLoading: false});
     }
-    return canDeleteRow;
+    return confirmed;
   }
 
   /* -- protected methods -- */

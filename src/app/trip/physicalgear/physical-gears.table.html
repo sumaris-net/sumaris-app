@@ -117,7 +117,7 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
+    <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm|pmfmIdString">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
         <ion-label [innerHTML]="pmfm|pmfmName: {withUnit: true, html: true}"></ion-label>
       </th>
@@ -129,8 +129,8 @@
     <ng-content></ng-content>
 
     <ng-container matColumnDef="lastUsed">
-      <th mat-header-cell *matHeaderCellDef>
-        <ion-label translate>Dernière utilisation</ion-label>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label translate>TRIP.PHYSICAL_GEAR.LIST.LAST_USED</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
         <ion-text>{{row.currentData.trip?.departureDateTime | dateFromNow }}</ion-text>

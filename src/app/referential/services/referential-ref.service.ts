@@ -570,27 +570,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                 {entityName: 'Metier', statusIds, searchJoin: 'TaxonGroup'}, getLoadOptions(offset));
           break;
 
-        // Conversions
-        case 'WeightLengthConversion':
-          // TODO limit to program locationIds ? (if location class = SEA) and referenceTaxon from program (taxon groups) + referenceTaxons ?
-          console.warn('TODO remove to limit to BAUDROIE + some location', filter);
-          loadPageFn = (offset, size) => this.weightLengthConversionRefService
-            .loadAll(offset, size, 'id', 'asc', {statusIds,
-                // DEBUG
-                //referenceTaxonId: 0 /* COD Cabillaud*/, locationIds: [24749, 24752]
-              }, getLoadOptions(offset));
-          break;
-
-        case 'RoundWeightConversion':
-          // TODO limit to program locationIds ? (if location class = SEA) and referenceTaxon from program (taxon groups) + referenceTaxons ?
-          loadPageFn = (offset, size) => this.roundWeightConversionRefService
-            .loadAll(offset, size, 'id', 'asc', {
-              statusIds,
-              // DEBUG
-              //taxonGroupId: 8927 /* COD Cabillaud*/, locationIds: [24749, 24752]
-            }, getLoadOptions(offset));
-          break;
-
         // Locations
         case 'Location':
           filter = {
@@ -603,6 +582,20 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
               //.filter(id => id !== LocationLevelIds.ICES_RECTANGLE
             //  && id !== LocationLevelIds.GFCM_RECTANGLE)
           };
+          break;
+
+        // WeightLengthConversion (RTP)
+        case 'WeightLengthConversion':
+          // TODO limit to program locationIds ? (if location class = SEA) and referenceTaxon from program (taxon groups) + referenceTaxons ?
+          loadPageFn = (offset, size) => this.weightLengthConversionRefService
+            .loadAll(offset, size, 'id', 'asc', {statusIds}, getLoadOptions(offset));
+          break;
+
+        // RoundWeightConversion
+        case 'RoundWeightConversion':
+          // TODO limit to program locationIds ? (if location class = SEA) and referenceTaxon from program (taxon groups) + referenceTaxons ?
+          loadPageFn = (offset, size) => this.roundWeightConversionRefService
+            .loadAll(offset, size, 'id', 'asc', {statusIds}, getLoadOptions(offset));
           break;
 
         // Other entities

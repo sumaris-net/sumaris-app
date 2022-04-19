@@ -486,7 +486,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
    * Open a modal to select a previous gear
    * @param event
    */
-  async openSelectPreviousGearsModal(event: PromiseEvent<PhysicalGear>) {
+  async openSelectPreviousGearModal(event: PromiseEvent<PhysicalGear>) {
     if (!event || !event.detail.success) return; // Skip (missing callback)
 
     const trip = Trip.fromObject(this.tripForm.value);
@@ -498,16 +498,24 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       vesselId: vessel.id,
       excludeTripId: trip.id,
       startDate: DateUtils.min(moment(), date && date.clone()).add(-1, 'month'),
-      endDate: date && date.clone()
+      endDate: date && date.clone(),
+      program: {label: this.$programLabel.getValue()}
     };
+    const distinctBy = ['gear.id', 'rankOrder',
+      ...(this.physicalGearsTable.pmfms||[])
+        .filter(p => p.required && !p.hidden)
+        .map(p => `measurementValues.${p.id}`)
+    ];
+
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SelectPhysicalGearModal,
       componentProps: <SelectPhysicalGearModalOptions>{
-        filter,
         allowMultiple: false,
         programLabel: this.$programLabel.getValue(),
-        acquisitionLevel: this.physicalGearsTable.acquisitionLevel
+        acquisitionLevel: this.physicalGearsTable.acquisitionLevel,
+        filter,
+        distinctBy
       },
       backdropDismiss: false,
       keyboardClose: true,

@@ -452,7 +452,6 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const offline = forceOffline || opts?.withOffline || false;
     const online = !forceOffline;
 
-
     //If we have both online and offline, watch all options has to be apply when all results are merged
     const options: OperationServiceWatchOptions = { ...opts };
     if (offline && online) {

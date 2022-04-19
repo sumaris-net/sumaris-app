@@ -46,7 +46,7 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, IPhy
     this.originalData = value;
   }
 
-  @Output() onCopyPreviousGearClick = createPromiseEventEmitter<PhysicalGear>();
+  @Output() onSearchButtonClick = createPromiseEventEmitter<PhysicalGear>();
 
   @ViewChild('form', {static: true}) form: PhysicalGearForm;
   @ViewChild(IonContent, {static: true}) content: IonContent;
@@ -92,17 +92,17 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, IPhy
   }
 
   ngOnDestroy() {
-    this.onCopyPreviousGearClick?.complete();
-    this.onCopyPreviousGearClick?.unsubscribe();
+    this.onSearchButtonClick?.complete();
+    this.onSearchButtonClick?.unsubscribe();
   }
 
   async openSearchModal(event?: UIEvent) {
 
-    if (this.onCopyPreviousGearClick.observers.length === 0) return; // Skip
+    if (this.onSearchButtonClick.observers.length === 0) return; // Skip
 
     // Emit event, then wait for a result
     try {
-      const selectedData = await emitPromiseEvent(this.onCopyPreviousGearClick, 'copyPreviousGear');
+      const selectedData = await emitPromiseEvent(this.onSearchButtonClick, 'copyPreviousGear');
 
       // No result (user cancelled): skip
       if (!selectedData) return;
