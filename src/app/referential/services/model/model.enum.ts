@@ -68,7 +68,7 @@ export const PmfmIds = {
 
   /* ADAP pmfms */
   LENGTH_TOTAL_CM: 81, // Use for test only
-  SELF_SAMPLING_PROGRAM: 28,
+  SELF_SAMPLING_PROGRAM: 28, // Label should be a join list of TAXON_GROUP.LABEL (See ADAP-MER program)
   HAS_INDIVIDUAL_MEASURES: 121,
   CONTROLLED_SPECIES: 134,
   SAMPLE_MEASURED_WEIGHT: 140,
