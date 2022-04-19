@@ -1080,14 +1080,17 @@ export class OperationPage
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label
-      const contextualTaxonGroups = qualitativeValue?.label
+      const contextualTaxonGroupLabels = qualitativeValue?.label
         .split(/[^\w]+/) // Split by separator (= not a word)
         .filter(isNotNilOrBlank)
         .map(label => label.trim().toUpperCase());
 
       // Limit the program list, using the restricted list
-      if (isNotEmptyArray(contextualTaxonGroups)) {
-        availableTaxonGroups = availableTaxonGroups.filter(tg => contextualTaxonGroups.includes(tg.label));
+      if (isNotEmptyArray(contextualTaxonGroupLabels)) {
+        availableTaxonGroups = availableTaxonGroups.filter(tg => contextualTaxonGroupLabels.some(label =>
+          label === tg.label
+          // Contextual 'RJB' must match RJB_1, RJB_2
+          || tg.label.startsWith(label)));
       }
     }
 
