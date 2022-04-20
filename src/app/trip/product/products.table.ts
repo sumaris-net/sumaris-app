@@ -11,9 +11,10 @@ import { ProductSaleModal } from '../sale/product-sale.modal';
 import { SaleProductUtils } from '../services/model/sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { environment } from '@environments/environment';
-import { SamplesModal } from '../sample/samples.modal';
+import { ISamplesModalOptions, SamplesModal } from '../sample/samples.modal';
 import { ProductModal } from '@app/trip/product/product.modal';
 import { mergeMap } from 'rxjs/operators';
+import moment from 'moment';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -191,11 +192,11 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     const modal = await this.modalCtrl.create({
       component: SamplesModal,
-      componentProps: {
+      componentProps: <ISamplesModalOptions>{
         programLabel: this.programLabel,
         disabled: this.disabled,
-        value: samples,
-        defaultSampleDate: new Date(), // trick to valid sample row, should be set with correct date
+        data: samples,
+        defaultSampleDate: moment(), // trick to valid sample row, should be set with correct date
         defaultTaxonGroup: taxonGroup,
         showLabel: false,
         showTaxonGroup: false,
