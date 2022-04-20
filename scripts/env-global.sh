@@ -82,7 +82,7 @@ if [[ "_" == "_${ANDROID_SDK_ROOT}" || ! -d "${ANDROID_SDK_ROOT}" ]]; then
   if [[ -d "${ANDROID_ALTERNATIVE_SDK_ROOT}" ]]; then
     export ANDROID_SDK_ROOT="${ANDROID_ALTERNATIVE_SDK_ROOT}"
   else
-    echo "ERROR: Please set env variable ANDROID_SDK_ROOT to an existing directory"
+    echo "ERROR: Please set env variable ANDROID_SDK_ROOT to an existing directory. Or create a empty directory at: ${ANDROID_SDK_ROOT}"
     exit 1
   fi
 fi
