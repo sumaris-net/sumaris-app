@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { BehaviorSubject } from 'rxjs';
-import { BatchValidatorService } from '../services/validator/batch.validator';
+import { BatchValidatorService } from '../common/batch.validator';
 import { isNotNil } from '@sumaris-net/ngx-components';
-import { Batch } from '../services/model/batch.model';
+import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { filter } from 'rxjs/operators';

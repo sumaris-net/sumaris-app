@@ -37,14 +37,14 @@
   </button>
 </mat-menu>
 
-<ion-content cdkTrapFocus>
+<ion-content cdkTrapFocus #content>
 
   <!-- sub batch form -->
   <ion-grid [class.disabled]="disabled">
     <ion-row class="ion-no-padding">
       <!-- form -->
       <ion-col size="12" push="" size-md="4" push-md="8" size-lg="3" push-lg="9"
-               class="ion-padding form-container">
+               class="">
 
         <!-- error -->
         <ion-item *ngIf="form.error; let error" lines="none">
@@ -77,119 +77,118 @@
 
       <!-- table -->
       <ion-col size="12" pull="" size-md="8" pull-md="4" size-lg="9" pull-lg="3"
-               class="table-container ion-no-padding">
-        <mat-table [dataSource]="dataSource"
-                   class="table-sub-batches"
+               class="table-container ion-no-padding compact">
+        <table mat-table [dataSource]="dataSource"
                    [trackBy]="trackByFn"
                    matSort
-                   matSortActive="id"
-                   matSortDirection="desc"
+                   [matSortActive]="defaultSortBy"
+                   [matSortDirection]="defaultSortDirection"
                    matSortDisableClear>
 
           <ng-container matColumnDef="select">
-            <mat-header-cell  *matHeaderCellDef hidden>
-            </mat-header-cell>
-            <mat-cell  *matCellDef="let row" hidden>
-            </mat-cell>
+            <th mat-header-cell  *matHeaderCellDef hidden>
+            </th>
+            <td mat-cell  *matCellDef="let row" hidden>
+            </td>
           </ng-container>
 
           <!-- rankOrder Column = id -->
           <ng-container matColumnDef="id">
-            <mat-header-cell *matHeaderCellDef >
+            <th mat-header-cell *matHeaderCellDef >
               <ion-label>#</ion-label>
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row">
+            </th>
+            <td mat-cell *matCellDef="let row">
               <ion-label> {{ row.currentData.rankOrder }}</ion-label>
-            </mat-cell>
+            </td>
           </ng-container>
 
           <!-- parent -->
           <ng-container matColumnDef="parentGroup">
-            <mat-header-cell *matHeaderCellDef [hidden]="!showParentGroup">
+            <th mat-header-cell *matHeaderCellDef [hidden]="!showParentGroup">
               <ion-label>{{ (displayParentPmfm | pmfmName ) || ('TRIP.BATCH.TABLE.PARENT_GROUP' | translate) }}</ion-label>
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row" [hidden]="!showParentGroup">
+            </th>
+            <td mat-cell *matCellDef="let row" [hidden]="!showParentGroup">
               <ion-text>{{ autocompleteFields.parentGroup.displayWith(row.currentData.parentGroup) }}</ion-text>
-            </mat-cell>
+            </td>
           </ng-container>
 
           <!-- QV Pmfm columns -->
           <ng-container *ngIf="qvPmfm" [matColumnDef]="qvPmfm.id.toString()">
-            <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
+            <th mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
               <ion-label [innerHTML]="qvPmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row" [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
+            </th>
+            <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
               <ion-text>{{row.currentData.measurementValues[qvPmfm.id] | pmfmValue: {pmfm: qvPmfm} }}</ion-text>
-            </mat-cell>
+            </td>
           </ng-container>
 
           <!-- taxon name (scientific species) -->
           <ng-container matColumnDef="taxonName">
-            <mat-header-cell *matHeaderCellDef >
+            <th mat-header-cell *matHeaderCellDef >
               <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row">
+            </th>
+            <td mat-cell *matCellDef="let row">
               <ion-text>{{autocompleteFields.taxonName?.displayWith(row.currentData.taxonName) }}</ion-text>
-            </mat-cell>
+            </td>
           </ng-container>
 
           <!-- Pmfms columns -->
           <ng-container *ngFor="let pmfm of $pmfms | async">
             <ng-container *ngIf="pmfm.id !== qvPmfm.id" [matColumnDef]="pmfm.id.toString()">
-              <mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm | isDatePmfm" >
+              <th mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm | isDatePmfm" >
                 <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
-              </mat-header-cell>
-              <mat-cell *matCellDef="let row" class="mat-column-pmfm"
+              </th>
+              <td mat-cell *matCellDef="let row" class="mat-column-pmfm"
                         [class.mat-cell-date-time]="pmfm|isDatePmfm">
                 <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm }"></ion-text>
-              </mat-cell>
+              </td>
             </ng-container>
           </ng-container>
 
           <!-- individualCount column -->
           <ng-container matColumnDef="individualCount">
-            <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showIndividualCount">
+            <th mat-header-cell *matHeaderCellDef >
               <ion-label translate>TRIP.BATCH.TABLE.INDIVIDUAL_COUNT</ion-label>
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIndividualCount">
+            </th>
+            <td mat-cell *matCellDef="let row">
               {{row.currentData.individualCount}}
-            </mat-cell>
+            </td>
           </ng-container>
 
           <!-- Weight column -->
           <ng-container matColumnDef="weight">
-            <mat-header-cell *matHeaderCellDef>
-              <ion-label translate>TRIP.SUB_BATCH.TABLE.CALCULATED_WEIGHT_LENGTH</ion-label>
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row">
-              <ion-text class="computed">{{row.currentData.weight?.value}}</ion-text>
-            </mat-cell>
+            <th mat-header-cell *matHeaderCellDef>
+              <ion-label [innerHTML]="weightPmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
+            </th>
+            <td mat-cell *matCellDef="let row">
+              <ion-text>{{row.currentData.measurementValues[weightPmfm.id] | weightFormat: {fromUnit: weightPmfm.unitLabel, toUnit: weightDisplayUnit, maxDecimals: weightDisplayDecimals} }}</ion-text>
+            </td>
           </ng-container>
 
           <!-- Comment column -->
           <ng-container matColumnDef="comments">
-            <mat-header-cell *matHeaderCellDef>
+            <th mat-header-cell *matHeaderCellDef>
               <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
-            </mat-header-cell>
-            <mat-cell *matCellDef="let row">
+            </th>
+            <td mat-cell *matCellDef="let row">
               <mat-icon color="primary" class="comment"
                         *ngIf="row.currentData.comments"
                         [title]="row.currentData.comments"></mat-icon>
-            </mat-cell>
+            </td>
           </ng-container>
 
           <!-- Actions column -->
           <ng-container matColumnDef="actions">
-            <mat-header-cell *matHeaderCellDef>
+            <th mat-header-cell *matHeaderCellDef>
               <!-- select column modal -->
               <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate"
                       (click)="openSelectColumnsModal($event)"
                       tabindex="-1">
                 <mat-icon>more_vert</mat-icon>
               </button>
-            </mat-header-cell>
+            </th>
 
-            <mat-cell *matCellDef="let row">
+            <td mat-cell *matCellDef="let row">
               <!-- Show options -->
               <button mat-icon-button  [title]="'COMMON.BTN_OPTIONS'|translate"
                       tabindex="-1"
@@ -198,18 +197,18 @@
                 <mat-icon></mat-icon>
               </button>
 
-            </mat-cell>
+            </td>
           </ng-container>
 
-          <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-          <mat-row *matRowDef="let row; columns: displayedColumns;"
-                   class="mat-row-small mat-small"
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                   class="mat-row-small"
                    [class.mat-row-dirty]="isNewRow(row)"
                    [class.mat-row-selected]="selection.isSelected(row)"
                    [matMenuTriggerFor]="rowActionsMenu"
                    (click)="selectRow($event, row)"
-          ></mat-row>
-        </mat-table>
+          ></tr>
+        </table>
       </ion-col>
     </ion-row>
   </ion-grid>

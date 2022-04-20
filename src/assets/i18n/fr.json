@@ -831,6 +831,9 @@
         "TITLE": "Individu {{label}}",
         "CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP"
       },
+      "TABLE": {
+        "CALCULATED_WEIGHT_LENGTH": "Poids calculé"
+      },
       "ERROR": {
         "WEIGHT_LENGTH_CONVERSION_FAILED": "RTP désactivés",
         "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "RTP désactivés (rectangle inconnu)",

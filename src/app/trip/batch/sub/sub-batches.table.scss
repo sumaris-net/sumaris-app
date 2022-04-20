@@ -29,6 +29,11 @@
   .mat-column-95 {
     max-width: 100px;
   }
+
+  .mat-column-weight {
+    color: var(--ion-color-primary-tint) !important;
+    font-style: italic !important;
+  }
 }
 
 .table-container {

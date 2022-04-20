@@ -14,10 +14,10 @@ import {
   SharedValidators,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { Batch, BatchWeight } from '../model/batch.model';
-import { SubBatch } from '../model/subbatch.model';
+import { Batch, BatchWeight } from '../common/batch.model';
+import { SubBatch } from './sub-batch.model';
 import { Subscription } from 'rxjs';
-import { BatchWeightValidator } from '@app/trip/services/validator/batch.validator';
+import { BatchWeightValidator } from '@app/trip/batch/common/batch.validator';
 import { LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
@@ -35,7 +35,7 @@ import { RoundWeightConversionRefService } from '@app/referential/round-weight-c
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { convertWeight, isLengthUnitSymbol, isWeightUnitSymbol } from '@app/referential/services/model/model.utils';
 import { DataContext } from '@app/data/services/model/data-context.model';
-import { BatchGroup, BatchGroupUtils } from '@app/trip/services/model/batch-group.model';
+import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ContextService } from '@app/shared/context.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
@@ -58,7 +58,6 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
   constructor(
     formBuilder: FormBuilder,
     settings: LocalSettingsService,
-    protected measurementsValidatorService: MeasurementsValidatorService,
     protected wlService: WeightLengthConversionRefService,
     protected rwService: RoundWeightConversionRefService,
     protected context: ContextService<BatchContext>
@@ -183,15 +182,17 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
         maximumNumberDecimals: SubBatchValidators.DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS
     });
 
-
     // Create weight form
-    if (!form.controls.weight) {
-      form.addControl('weight', this.getWeightFormGroup(null, {
+    let weightControl = form.get('weight');
+    if (!weightControl) {
+      weightControl = this.getWeightFormGroup(null, {
         required: opts?.weightRequired,
         maxDecimals: toNumber(weightPmfm?.maximumNumberDecimals, SubBatchValidators.DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS),
         pmfm: weightPmfm
-      }));
+      });
+      form.addControl('weight', weightControl);
     }
+    if (weightControl.enabled) weightControl.disable({emitEvent: false});
 
     // DEBUG
     console.debug('[sub-batch-validator] Enable weight length conversion:',
@@ -203,7 +204,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
           date, rectangleLabel, countryId,
           lengthPmfms, weightPmfm, parentGroup, qvPmfm
       }),
-      {markForCheck: opts?.markForCheck});
+      {markForCheck: opts?.markForCheck, debug: true});
   }
 
   protected getWeightFormGroup(data?: BatchWeight, opts? :{
@@ -421,8 +422,6 @@ export class SubBatchValidators {
       if (computedWeightKg && weightUnit !== 'kg') {
         computedWeightKg = convertWeight(computedWeightKg, 'kg', weightUnit);
       }
-
-
       if (isNotNilOrNaN(computedWeightKg)) {
 
         // Round to HALF_UP
@@ -438,6 +437,7 @@ export class SubBatchValidators {
 
           weightControl.patchValue({
             value,
+            methodId: MethodIds.CALCULATED_WEIGHT_LENGTH,
             computed: true,
             estimated: false
           }, opts);
@@ -455,6 +455,7 @@ export class SubBatchValidators {
             computed: false,
             estimated: false
           }, opts);
+
         }
       }
     }

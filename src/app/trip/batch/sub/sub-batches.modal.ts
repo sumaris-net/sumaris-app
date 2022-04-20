@@ -1,20 +1,23 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Batch} from '../common/batch.model';
 import { Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
-import { SubBatchForm } from '../form/sub-batch.form';
-import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
-import { SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from '../table/sub-batches.table';
+import { SubBatchForm } from './sub-batch.form';
+import { SubBatchValidatorService } from './sub-batch.validator';
+import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
 import { IonContent, ModalController, PopoverController } from '@ionic/angular';
 import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
-import { SubBatch } from '../../services/model/subbatch.model';
-import { BatchGroup } from '../../services/model/batch-group.model';
+import { SubBatch } from './sub-batch.model';
+import { BatchGroup } from '../group/batch-group.model';
 import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { environment } from '@environments/environment';
+import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { TranslateService } from '@ngx-translate/core';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 export interface ISubBatchesModalOptions {
 
@@ -22,7 +25,12 @@ export interface ISubBatchesModalOptions {
   showParentGroup: boolean;
   showTaxonNameColumn: boolean;
   showIndividualCount: boolean;
+  showWeightColumn?: boolean;
+
   enableWeightConversion: boolean;
+  weightDisplayUnit?: WeightUnitSymbol|'auto';
+  weightDisplayDecimals?: number;
+
   maxVisibleButtons: number;
 
   parentGroup: BatchGroup;
@@ -33,7 +41,7 @@ export interface ISubBatchesModalOptions {
 }
 
 export const SUB_BATCH_MODAL_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
-export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = ['comments']; // do NOT use individual count
+export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED_END_COLUMNS.filter(col => col !== 'individualCount');
 
 @Component({
   selector: 'app-sub-batches-modal',
@@ -95,7 +103,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
-  @ViewChild(IonContent) content: IonContent;
+  @ViewChild('content') content: IonContent;
 
   constructor(
     protected injector: Injector,
@@ -108,8 +116,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     super(injector,
       null/*no validator = not editable*/,
       injector.get(PopoverController),
+      injector.get(TranslateService),
       options);
-    this.inlineEdition = false; // Disable row edition (readonly)
+    this.inlineEdition = false; // Disable row edition (no validator)
     this.confirmBeforeDelete = true; // Ask confirmation before delete
     this.allowRowDetail = false; // Disable click on a row
 
@@ -119,6 +128,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // TODO: for DEV only ---
     this.debug = !environment.production;
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'desc';
 
   }
 
@@ -149,7 +160,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
         this.form.form.get('parentGroup').valueChanges
           // Init table with existing values
           //.pipe(startWith(() => this._defaultValue && this._defaultValue.parent))
-          .subscribe(parent => this.onParentChange(parent))
+          .subscribe(parent => this.onParentChanges(parent))
       );
     }
 
@@ -181,10 +192,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
-    console.log('TODO');
-    this.scrollToTop();
-
-
+    await this.scrollToTop();
     return super.doSubmitForm(event, row);
   }
 
@@ -292,8 +300,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.$title.next(titlePrefix + (await this.translate.get('TRIP.BATCH.EDIT.INDIVIDUAL.TITLE').toPromise()));
   }
 
-  protected async onParentChange(parent?: BatchGroup) {
-    console.log('TODO onParentChange', parent);
+  protected async onParentChanges(parent?: BatchGroup) {
 
     // Skip if same parent
     if (Batch.equals(this.parentGroup, parent)) return;
@@ -314,7 +321,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     // Call refresh on datasource, to force a data reload (will apply filter calling onLoadData())
     this.onRefresh.emit();
 
-    // TODO BLA: refresh PMFM
+    // TODO BLA: refresh PMFM, with the new parent species ?
 
   }
 

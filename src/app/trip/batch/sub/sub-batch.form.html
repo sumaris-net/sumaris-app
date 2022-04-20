@@ -45,29 +45,28 @@
     </ion-row>
   </ion-grid>
 
-  <form [formGroup]="measurementValuesForm">
-    <!-- QV pmfm -->
-    <app-pmfm-field #inputField
-                       *ngIf="!loading && qvPmfm as pmfm"
-                       [pmfm]="pmfm"
-                       [style]="mobile && 'button'"
-                       [required]="true"
-                       [floatLabel]="floatLabel"
-                       [compact]="compact"
-                       [tabindex]="tabindex+1"
-                       (keyup.enter)="focusNextInput($event)"
-                       [maxVisibleButtons]="pmfm.qualitativeValues.length">
-      <!-- checkbox to freeze -->
-      <mat-checkbox  matSuffix
-                     *ngIf="!mobile"
-                     [formControl]="freezeQvPmfmControl"
-                     [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
-                     (click)="$event.stopPropagation()"
-                     tabindex="-1">
-        <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
-      </mat-checkbox>
-    </app-pmfm-field>
-  </form>
+  <!-- QV pmfm -->
+  <app-pmfm-field #inputField
+                   *ngIf="!loading && qvPmfm as pmfm"
+                   [pmfm]="pmfm"
+                   [control]="form|formGetControl: ('measurementValues.' + pmfm.id)"
+                   [style]="mobile && 'button'"
+                   [required]="true"
+                   [floatLabel]="floatLabel"
+                   [compact]="compact"
+                   [tabindex]="tabindex+1"
+                   (keyup.enter)="focusNextInput($event)"
+                   [maxVisibleButtons]="pmfm.qualitativeValues.length">
+    <!-- checkbox to freeze -->
+    <mat-checkbox  matSuffix
+                   *ngIf="!mobile"
+                   [formControl]="freezeQvPmfmControl"
+                   [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
+                   (click)="$event.stopPropagation()"
+                   tabindex="-1">
+      <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
+    </mat-checkbox>
+  </app-pmfm-field>
 
   <!-- Taxon name -->
   <ng-container *ngIf="showTaxonName">
@@ -154,7 +153,7 @@
 
     <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last"
                     #inputField
-                    [formControlName]="pmfm.id|toString"
+                    [controlName]="pmfm.id|toString"
                     [pmfm]="pmfm"
                     [floatLabel]="floatLabel"
                     (keyup.enter)="focusNextInputOrSubmit($event, last)"
@@ -203,8 +202,8 @@
         </mat-form-field>
       </ion-col>
 
-      <!-- Computed weight -->
-      <ion-col *ngIf="enableWeightConversion && $weight|async; let weight">
+      <!-- Computed weight (DEBUG) -->
+      <ion-col *ngIf="debug && enableWeightConversion && $weight|async; let weight">
         <mat-form-field [floatLabel]="'always'" class="mat-form-field-disabled computed">
           <input matInput type="text"
                  [placeholder]="(weightPmfm|pmfmName) || 'TRIP.SUB_BATCH.EDIT.CALCULATED_WEIGHT_LENGTH'|translate"
@@ -212,6 +211,8 @@
           <ion-text>{{weight|weightFormat:{fromUnit: weightPmfm?.unitLabel, toUnit: 'auto', maxDecimals: 3} }}</ion-text>
         </mat-form-field>
       </ion-col>
+
+      <!-- submit button -->
       <ion-col class="ion-no-padding" *ngIf="showSubmitButton">
 
         <ion-button color="tertiary" class="ion-float-end"

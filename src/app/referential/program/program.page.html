@@ -85,7 +85,7 @@
                          [displayWith]="referentialToString"
                          [formArray]="form|formGetArray: 'locations'"
                          [equals]="referentialEquals"
-                         [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
+                         [options]="{allowEmptyArray: true, allowMultipleSelection: false}"
                          (onNewItem)="addLocation()">
           </app-list-form>
         </mat-form-field>

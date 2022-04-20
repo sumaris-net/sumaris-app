@@ -18,21 +18,22 @@ import { AlertController } from '@ionic/angular';
 import { BehaviorSubject, defer } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
-import { Batch, BatchUtils } from '../services/model/batch.model';
-import { BatchGroup, BatchGroupUtils } from '../services/model/batch-group.model';
-import { BatchGroupsTable } from './table/batch-groups.table';
-import { SubBatchesTable, SubBatchFilter } from './table/sub-batches.table';
-import { CatchBatchForm } from '../catch/catch.form';
+import { Batch} from './common/batch.model';
+import { BatchGroup, BatchGroupUtils } from './group/batch-group.model';
+import { BatchGroupsTable } from './group/batch-groups.table';
+import { SubBatchesTable, SubBatchFilter } from './sub/sub-batches.table';
+import { CatchBatchForm } from './catch/catch.form';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { SubBatch, SubBatchUtils } from '../services/model/subbatch.model';
+import { SubBatch, SubBatchUtils } from './sub/sub-batch.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { BatchGroupValidatorService } from '@app/trip/services/validator/batch-group.validator';
+import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 @Component({
   selector: 'app-batch-tree',

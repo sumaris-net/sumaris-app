@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { BatchValidatorOptions, BatchValidators, BatchValidatorService } from './batch.validator';
-import { BatchGroup } from '../model/batch-group.model';
+import { BatchValidatorOptions, BatchValidators, BatchValidatorService } from '../common/batch.validator';
+import { BatchGroup } from './batch-group.model';
 import { LocalSettingsService, SharedAsyncValidators, SharedValidators } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Subscription } from 'rxjs';

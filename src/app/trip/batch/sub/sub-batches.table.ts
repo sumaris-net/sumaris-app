@@ -22,23 +22,27 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
-import { Batch, BatchUtils } from '../../services/model/batch.model';
-import { SubBatchValidatorService } from '../../services/validator/sub-batch.validator';
-import { SubBatchForm } from '../form/sub-batch.form';
+import { Batch} from '../common/batch.model';
+import { SubBatchValidatorService } from './sub-batch.validator';
+import { SubBatchForm } from './sub-batch.form';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { ISubBatchModalOptions, SubBatchModal } from '../modal/sub-batch.modal';
-import { AcquisitionLevelCodes, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { ISubBatchModalOptions, SubBatchModal } from './sub-batch.modal';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, UnitLabel, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SortDirection } from '@angular/material/sort';
-import { SubBatch } from '../../services/model/subbatch.model';
-import { BatchGroup } from '../../services/model/batch-group.model';
+import { SubBatch } from './sub-batch.model';
+import { BatchGroup } from '../group/batch-group.model';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { environment } from '@environments/environment';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { PopoverController } from '@ionic/angular';
 import { Popovers } from '@app/shared/popover/popover.utils';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { TrashRemoteService } from '@app/core/services/trash-remote.service';
+import { TranslateService } from '@ngx-translate/core';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'weight', 'comments'];
@@ -101,12 +105,16 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
   //protected popoverController: PopoverController;
 
+  weightPmfm: IPmfm;
+
   @Input() displayParentPmfm: IPmfm;
   @Input() showForm = false;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() useSticky = false;
   @Input() enableWeightConversion = false;
+  @Input() weightDisplayUnit: WeightUnitSymbol|'auto' = 'g';
+  @Input() weightDisplayDecimals = 2;
 
   @Input() set qvPmfm(value: IPmfm) {
     this._qvPmfm = value;
@@ -206,7 +214,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     protected injector: Injector,
     protected validatorService: SubBatchValidatorService,
     protected popoverController: PopoverController,
-  @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
+    protected translate: TranslateService,
+    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector,
       SubBatch,
@@ -226,9 +235,9 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
-    this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     //this.popoverController = injector.get(PopoverController);
+    this.cd = injector.get(ChangeDetectorRef);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<SubBatch, SubBatchFilter>);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.tabindex = 1;
@@ -264,7 +273,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       mobile: this.mobile
     });
 
-    if (this.inlineEdition) { // can be override bu subclasses
+    if (this.inlineEdition) { // can be override by subclasses
 
       // Create listener on column 'DISCARD_OR_LANDING' value changes
       this.registerSubscription(
@@ -341,6 +350,12 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     const subBatch = this.form.form.value;
     subBatch.individualCount = isNotNil(subBatch.individualCount) ? subBatch.individualCount : 1;
+
+    // Store computed weight into measurement, if any
+    if (isNotNil(subBatch.weight?.value) && subBatch.weight.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH) {
+      subBatch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH] = subBatch.weight?.value;
+      delete subBatch.weight;
+    }
 
     await this.resetForm(subBatch, {focusFirstEmpty: true});
 
@@ -549,10 +564,23 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       }
     }
 
+    this.weightPmfm = pmfms.find(p => PmfmUtils.isWeight(p) && p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH)?.clone()
+      || DenormalizedPmfmStrategy.fromObject(<IDenormalizedPmfm>{
+        id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH,
+        methodId: MethodIds.CALCULATED_WEIGHT_LENGTH,
+        name: this.translate.instant('TRIP.SUB_BATCH.TABLE.CALCULATED_WEIGHT_LENGTH'),
+        type: 'double',
+        required: false,
+        unitLabel: UnitLabel.KG,
+        minValue: 0,
+        maxValue: 100,
+        maximumNumberDecimals: 6
+      });
+
     // Exclude weight Pmfm
     pmfms = pmfms.filter(p => !PmfmUtils.isWeight(p));
 
-    // Filter on parents taxon groups
+    // Filter on parent taxon groups
     const parentTaxonGroupIds = (this._availableParents || []).map(parent => parent.taxonGroup && parent.taxonGroup.id)
       .filter(isNotNil);
     if (isNotEmptyArray(parentTaxonGroupIds)) {
@@ -835,7 +863,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     this._rowValidatorSubscription = await this.validatorService.enableWeightLengthConversion(form, {
       qvPmfm: this._qvPmfm,
       pmfms: this.pmfms,
-      markForCheck: () => this.markForCheck()
+      markForCheck: () => {
+        console.log('TODO finish conversion');
+        setTimeout(() => this.markForCheck())
+      }
     });
   }
 
@@ -843,8 +874,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
     const {data} = await Popovers.showText(this.popoverController, event, {
-      editing: this.inlineEdition,
-      autofocus: true,
+      editing: this.inlineEdition && this.enabled,
+      autofocus: this.enabled,
       multiline: true,
       text: row.currentData.comments,
       placeholder

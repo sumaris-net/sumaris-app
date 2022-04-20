@@ -13,12 +13,13 @@ import {
   toFloat,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { Batch, BatchUtils, BatchWeight } from '../model/batch.model';
+import { Batch, BatchWeight } from './batch.model';
 import { MethodIds } from '@app/referential/services/model/model.enum';
 import { Subscription } from 'rxjs';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;

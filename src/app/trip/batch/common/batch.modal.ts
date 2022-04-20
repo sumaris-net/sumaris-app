@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Batch} from './batch.model';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { BatchForm } from '../form/batch.form';
+import { BatchForm } from './batch.form';
 import { ModalController } from '@ionic/angular';
 import { AppFormUtils, Entity, IReferentialRef, LocalSettingsService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 
 export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEntityModalOptions<B> {

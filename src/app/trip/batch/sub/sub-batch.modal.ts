@@ -1,16 +1,17 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Batch} from '../common/batch.model';
 import { AppFormUtils, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
-import { PmfmStrategy } from '../../../referential/services/model/pmfm-strategy.model';
-import { SubBatchForm } from '../form/sub-batch.form';
-import { SubBatch } from '../../services/model/subbatch.model';
-import { IBatchModalOptions } from '@app/trip/batch/modal/batch.modal';
-import { BatchGroup } from '@app/trip/services/model/batch-group.model';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { SubBatchForm } from './sub-batch.form';
+import { SubBatch } from './sub-batch.model';
+import { IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
+import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
 import { debounceTime } from 'rxjs/operators';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 
 export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {

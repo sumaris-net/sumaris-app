@@ -45,7 +45,7 @@ import {MatMenu} from '@angular/material/menu';
 import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
 import {isNilOrNaN} from '@app/shared/functions';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {BatchGroup} from '@app/trip/services/model/batch-group.model';
+import {BatchGroup} from '@app/trip/batch/group/batch-group.model';
 import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
 import {MatCellDef} from '@angular/material/table';
 import {OverlayEventDetail} from '@ionic/core';

@@ -137,18 +137,16 @@ export class WeightLengthConversionRefService
     }, opts?: {cache?: boolean}): Promise<WeightLengthConversionRef | undefined> {
 
     // Use cache
-    /*if (!opts || opts.cache !== false) {
+    if (!opts || opts.cache !== false) {
       const cacheKey = [
         WeightLengthConversionRefCacheKeys.FIND_BEST,
         this.cryptoService.sha256(JSON.stringify(filter)).substring(0, 8) // Create a unique hash, from args
       ].join('|');
       return this.cache.getOrSetItem(cacheKey,
-        () => {
-
-        }),
+        () => this.findAppliedConversion(filter, {...opts, cache: false}),
         WeightLengthConversionRefCacheKeys.CACHE_GROUP
       );
-    }*/
+    }
 
     const size = 1;
     let sortBy: keyof WeightLengthConversionRef = isNil(filter.year) ? 'year' : 'startMonth';

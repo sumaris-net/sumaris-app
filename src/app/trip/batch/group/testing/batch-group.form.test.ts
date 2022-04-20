@@ -1,14 +1,15 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { Batch, BatchUtils } from '../../../services/model/batch.model';
+import { Batch} from '../../common/batch.model';
 import { ReferentialRefService } from '../../../../referential/services/referential-ref.service';
 import { mergeMap } from 'rxjs/operators';
 import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, PmfmIds } from '../../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../../referential/services/program-ref.service';
-import { BatchGroupForm } from '@app/trip/batch/form/batch-group.form';
-import { BatchGroup, BatchGroupUtils } from '@app/trip/services/model/batch-group.model';
+import { BatchGroupForm } from '@app/trip/batch/group/batch-group.form';
+import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 function getSortingMeasValues(opts?: {
   weight?: number;

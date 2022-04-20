@@ -1,10 +1,10 @@
 import {ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
-import {Batch} from '../../services/model/batch.model';
+import {Batch} from '../common/batch.model';
 import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
 import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
 import {AbstractControl, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
-import {SubBatchValidatorService} from '../../services/validator/sub-batch.validator';
+import {SubBatchValidatorService} from './sub-batch.validator';
 import {
   AppFormUtils,
   EntityUtils, firstNotNilPromise,
@@ -30,8 +30,8 @@ import { AcquisitionLevelCodes, ParameterLabelGroups, PmfmIds, QualitativeLabels
 import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { PmfmFormField } from '../../../referential/pmfm/pmfm.form-field.component';
-import { SubBatch } from '../../services/model/subbatch.model';
-import { BatchGroup, BatchGroupUtils } from '../../services/model/batch-group.model';
+import { SubBatch } from './sub-batch.model';
+import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { TranslateService } from '@ngx-translate/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
@@ -601,7 +601,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
         methodIdControl = methodIdControl || this.form.get('weight.methodId');
         const methodId = methodIdControl?.value;
         this.weightPmfm = this.weightPmfm || (methodId && (this.$pmfms.value || []).find(p => p.methodId === methodId)) || undefined;
-        this.$weight.next(weightControl?.value)
+        this.$weight.next(weightControl?.value);
       }
       try {
         this._weightConversionSubscription = await this.validatorService.enableWeightLengthConversion(form, {
@@ -655,11 +655,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.data.fromObject(json);
 
     return this.data;
-  }
-
-  doSubmit(event: any, opts?: { checkValid?: boolean }): Promise<void> {
-    //this.onSubmit.emit(event);
-    return super.doSubmit(event, opts);
   }
 
   protected linkToParentGroup(data?: SubBatch) {

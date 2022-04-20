@@ -3,13 +3,13 @@ import {
   fromDateISOString,
   isNil,
   isNilOrBlank,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   isNotNilOrNaN,
   joinPropertiesPath,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
@@ -153,6 +153,10 @@ export abstract class PmfmValueUtils {
 
   static isEmpty(value: PmfmValue | any) {
     return isNilOrBlank(value) || ReferentialUtils.isEmpty(value);
+  }
+
+  static isNotEmpty(value: PmfmValue | any) {
+    return isNotNilOrBlank(value) || ReferentialUtils.isNotEmpty(value);
   }
 
   static equals(v1: PmfmValue, v2: PmfmValue) {

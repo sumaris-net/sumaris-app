@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { FormGroup, Validators } from '@angular/forms';
-import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter } from './batches.table';
+import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter } from '../common/batches.table';
 import {
   changeCaseToUnderscore,
   ColumnItem,
@@ -22,22 +22,23 @@ import {
   TableSelectColumnsComponent,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, MethodIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { Batch, BatchUtils, BatchWeight } from '../../services/model/batch.model';
-import { BatchGroupModal, IBatchGroupModalOptions } from '../modal/batch-group.modal';
-import { BatchGroup, BatchGroupUtils } from '../../services/model/batch-group.model';
-import { SubBatch } from '../../services/model/subbatch.model';
+import { Batch, BatchWeight } from '../common/batch.model';
+import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
+import { BatchGroup, BatchGroupUtils } from './batch-group.model';
+import { SubBatch } from '../sub/sub-batch.model';
 import { defer, Observable, Subject, Subscription } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
-import { ISubBatchesModalOptions, SubBatchesModal } from '../modal/sub-batches.modal';
+import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { MatMenuTrigger } from '@angular/material/menu';
-import { BatchGroupValidatorService } from '../../services/validator/batch-group.validator';
+import { BatchGroupValidatorService } from './batch-group.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { TripContextService } from '@app/trip/services/trip-context.service';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -545,6 +546,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
   protected getFakeMeasurementValuesFromQvChild(data: Batch, qvIndex?: number) {
+    console.log('[batch-group-table] TODO computing QV child', data);
+
     if (isNil(qvIndex)) {
       const qvId = this.qvPmfm && data.measurementValues[this.qvPmfm.id];
       qvIndex = isNotNil(qvId) && this.qvPmfm.qualitativeValues.findIndex(qv => qv.id === +qvId);
@@ -552,18 +555,18 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
 
     // Column: total weight
-    data.weight = this.getWeight(data.measurementValues) || undefined;
+    data.weight = BatchUtils.getWeight(data, this.weightPmfms);
 
-    /*if (data.qualityFlagId === QualityFlagIds.BAD){
-    // TODO
-    //console.debug('Invalid individual count !', individualCount);
-    }*/
+    // DEBUG
+    if (this.debug && data.qualityFlagId === QualityFlagIds.BAD){
+      console.warn('[batch-group-table] Invalid batch (individual count or weight)', data);
+    }
 
     // Sampling batch
     const samplingChild = BatchUtils.getSamplingChild(data);
     if (samplingChild) {
       // Column: sampling weight
-      samplingChild.weight = this.getWeight(samplingChild.measurementValues);
+      samplingChild.weight = BatchUtils.getWeight(samplingChild, this.weightPmfms);
 
       // Transform sampling ratio
       if (this.inlineEdition && isNotNil(samplingChild.samplingRatio)) {
@@ -655,7 +658,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
                           opts?: { showParent?: boolean; emitLoaded?: boolean; }) {
     if (event) event.preventDefault();
 
-    console.log('TODO toto')
     // Loading spinner
     this.markAsLoading();
 
@@ -831,18 +833,16 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
 
     // Else, try to get calculated
-    weightPmfm = this.weightPmfmsByMethod[MethodIds.CALCULATED];
-    value = weightPmfm && measurementValues[weightPmfm.id];
-    if (isNotNil(value)) {
-      return {
-        value,
-        estimated: false,
-        computed: true,
-        methodId: MethodIds.CALCULATED
-      };
-    }
-
-    return undefined;
+    return this.weightPmfms
+      .map(weightPmfm => {
+        value = measurementValues[weightPmfm.id];
+        return isNotNil(value) ? {
+          value,
+          estimated: false,
+          computed: weightPmfm.isComputed,
+          methodId: weightPmfm.methodId
+        }: undefined;
+      }).find(isNotNil);
   }
 
   protected getUserColumns(userColumns?: string[]): string[] {
@@ -915,6 +915,20 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // Update the parent observed individual count
     parent.observedIndividualCount = BatchUtils.sumObservedIndividualCount(children);
 
+    if (this.qvPmfm) {
+      const qvPmfmId = this.qvPmfm.id.toString();
+      this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
+        const qvBatch = (parent.children || []).find(b => b.measurementValues[qvPmfmId] == qv.id);
+        const samplingBatch = BatchUtils.getSamplingChild(qvBatch);
+        if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
+          const qvChildren = children.filter(b => b.measurementValues[qvPmfmId] == qv.id);
+          const weight = BatchUtils.sumCalculatedWeight(qvChildren, this.weightPmfms);
+          if (weight) {
+            samplingBatch.weight = weight;
+          }
+        }
+      })
+    }
     // Return the updated parent
     return parent;
   }

@@ -105,7 +105,6 @@ export const PmfmIds = {
   /* LOGBOOK-SEA-CUCUMBER (SFA)*/
   GPS_USED: 188
 };
-
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
     LANDING: 'LAN',
@@ -148,7 +147,6 @@ export const MethodIdGroups = {
 export const MatrixIds = {
   INDIVIDUAL: 2
 }
-
 
 export const ParameterGroupIds = {
   UNKNOWN: 0,

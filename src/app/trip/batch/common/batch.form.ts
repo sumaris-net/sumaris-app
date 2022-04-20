@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Batch} from './batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -26,9 +26,10 @@ import { debounceTime, delay, filter } from 'rxjs/operators';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, PmfmLabelPatterns, QualitativeLabels } from '@app/referential/services/model/model.enum';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { BatchValidatorService } from '../../services/validator/batch.validator';
+import { BatchValidatorService } from './batch.validator';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 @Component({
   selector: 'app-batch-form',

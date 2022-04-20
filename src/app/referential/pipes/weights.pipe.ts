@@ -10,6 +10,8 @@ import { roundHalfUp } from '@app/shared/functions';
 export class WeightFormatPipe implements PipeTransform {
 
   transform(value: number|string, opts?: {fromUnit?: WeightUnitSymbol|string, toUnit?: WeightUnitSymbol|string|'auto', maxDecimals?: number}): string {
+    if (isNil(value)) return '';
+
     let fromUnit = (opts?.fromUnit || 'kg') as WeightUnitSymbol;
     let toUnit = (opts?.toUnit || 'auto') as WeightUnitSymbol | 'auto';
     // Need conversion
@@ -29,7 +31,10 @@ export class WeightFormatPipe implements PipeTransform {
 
   format(value: number|string, unit: WeightUnitSymbol|string, maxDecimals?: number): string {
     if (isNil(value)) return '';
-    if (isNotNil(maxDecimals)) value = roundHalfUp(value, maxDecimals);
+    if (isNotNil(maxDecimals)) {
+      value = roundHalfUp(value, maxDecimals);
+      return `${value.toFixed(maxDecimals)} ${unit}`;
+    }
     return `${value} ${unit}`;
   }
 

@@ -1,7 +1,7 @@
 import { Trip } from '@app/trip/services/model/trip.model';
 import { Injectable } from '@angular/core';
 import { DataContext } from '@app/data/services/model/data-context.model';
-import { BatchContext } from '@app/trip/services/validator/sub-batch.validator';
+import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { ContextService } from '@app/shared/context.service';
 
 export interface TripContext extends DataContext, BatchContext {

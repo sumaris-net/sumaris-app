@@ -20,9 +20,12 @@
 
 .mat-table {
   .mat-row {
-    height: 50px !important;
     overflow: hidden;
+    /*FIXME not need anymore ?
+    height: calc(min(var(--mat-row-max-height), 48px));
+    */
   }
+
   .mat-header-row,
   .mat-row,
   .mat-footer-row {

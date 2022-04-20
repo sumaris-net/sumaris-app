@@ -1,10 +1,11 @@
-@import '../table/sub-batches.table';
+@import 'sub-batches.table';
 :host {
   --toolbar-min-height: 56px;
 }
 .table-container {
   max-height: calc(100vh - var(--toolbar-min-height, 56px));
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 ion-grid.disabled {
   ion-col.form-container {
@@ -22,6 +23,10 @@ ion-grid.disabled {
   /*Hide selected row (if scale by an animation) */
   overflow-x: hidden;
 
+  .mat-row.mat-row-small {
+    --mat-row-max-height: 33px !important;
+  }
+
   .mat-header-row,
   .mat-row {
     .mat-column-parentGroup,
@@ -30,8 +35,7 @@ ion-grid.disabled {
       min-width: 50px;
     }
 
-    .mat-header-cell.mat-column-id,
-    .mat-cell.mat-column-id {
+    .mat-column-id {
       mat-label,
       ion-label {
         padding: 0 8px;

@@ -1,17 +1,18 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, QueryList, ViewChildren } from '@angular/core';
-import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Batch} from '../common/batch.model';
 import { AbstractControl, FormBuilder, FormControl } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { AppFormUtils, InputElement, isNil, isNotNil, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
-import { BatchGroupValidatorService } from '../../services/validator/batch-group.validator';
+import { BatchGroupValidatorService } from './batch-group.validator';
 import { BehaviorSubject } from 'rxjs';
-import { BatchForm } from './batch.form';
+import { BatchForm } from '../common/batch.form';
 import { filter } from 'rxjs/operators';
-import { BatchGroup, BatchGroupUtils } from '../../services/model/batch-group.model';
+import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 @Component({
   selector: 'app-batch-group-form',

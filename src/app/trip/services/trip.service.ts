@@ -912,10 +912,11 @@ export class TripService
   }
 
   async synchronize(entity: Trip, opts?: TripSaveOptions): Promise<Trip> {
+    const isLandedTrip = isNotNil(entity.observedLocationId);
     opts = {
-      withOperation: true, // Change default to true
-      withLanding: false, // todo manage landedTrip
-      withOperationGroup: false,
+      withOperation: !isLandedTrip, // True by default
+      withLanding: isLandedTrip && !!entity.landing,
+      withOperationGroup: isLandedTrip,
       enableOptimisticResponse: false, // Optimistic response not need
       ...opts
     };
@@ -943,12 +944,12 @@ export class TripService
     if (opts.withOperation) {
 
       // Fill operations
-      const res = await this.operationService.loadAllByTrip({tripId: +localId},
+      const { data } = await this.operationService.loadAllByTrip({tripId: +localId},
         {fullLoad: true, computeRankOrder: false});
 
       //sort operations to saving in good order
-      if (res.data) {
-        res.data.forEach(operation => {
+      if (data) {
+        data.forEach(operation => {
           if (operation.parentOperationId && operation.parentOperationId < 0) {
             childOperations.push(operation);
           } else if (operation.childOperationId && operation.childOperationId < 0) {
@@ -964,7 +965,7 @@ export class TripService
         });
 
         // Remove not used physical gears with synchronizationStatus = "DIRTY" (= Physical gear added automatically)
-        entity.gears = (entity.gears || []).filter(physicalGear => res.data.find(o => o.physicalGear.id === physicalGear.id));
+        entity.gears = (entity.gears || []).filter(physicalGear => data.find(o => o.physicalGear.id === physicalGear.id));
       }
 
       if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {

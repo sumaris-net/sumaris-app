@@ -21,7 +21,7 @@ import { IWithObserversEntity } from '@app/data/services/model/model.utils';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { Landing } from './landing.model';
 import { Sample } from './sample.model';
-import { Batch } from './batch.model';
+import { Batch } from '../../batch/common/batch.model';
 import { IWithProductsEntity, Product } from './product.model';
 import { IWithPacketsEntity, Packet } from './packet.model';
 import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';

@@ -1,8 +1,9 @@
-import {Batch, BatchAsObjectOptions, BatchFromObjectOptions, BatchUtils} from "./batch.model";
+import {Batch, BatchAsObjectOptions, BatchFromObjectOptions} from "../common/batch.model";
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '../../../referential/services/model/model.enum';
 import { EntityClass, EntityUtils, ReferentialRef } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 @EntityClass({typename: "BatchGroupVO", fromObjectReuseStrategy: "clone"})
 export class BatchGroup extends Batch<BatchGroup> {

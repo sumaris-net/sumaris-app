@@ -1,13 +1,18 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { Batch, BatchUtils } from '../../services/model/batch.model';
+import { Batch, BatchWeight } from '../common/batch.model';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { mergeMap } from 'rxjs/operators';
 import { BatchTreeComponent } from '../batch-tree.component';
-import { EntitiesStorage, EntityUtils, firstNotNilPromise, isEmptyArray, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
-import { PmfmIds } from '../../../referential/services/model/model.enum';
+import { EntitiesStorage, EntityUtils, firstNotNilPromise, isEmptyArray, isNotNil, MatAutocompleteConfigHolder, SharedValidators, StatusIds, toNumber, waitFor } from '@sumaris-net/ngx-components';
+import { LocationLevelIds, LocationLevels, PmfmIds } from '../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { ContextService } from '@app/shared/context.service';
+import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
+import { FishingArea } from '@app/data/services/model/fishing-area.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 function getSortingMeasValues(opts?: {
   weight?: number;
@@ -29,6 +34,7 @@ function getSortingMeasValues(opts?: {
 function getIndivMeasValues(opts?: {
   length?: number;
   discardOrLanding: 'LAN'|'DIS';
+  weight?: number;
 }) {
   opts = {
     discardOrLanding: 'LAN',
@@ -40,6 +46,12 @@ function getIndivMeasValues(opts?: {
   if (isNotNil(opts.length)) {
     res[PmfmIds.LENGTH_TOTAL_CM] = opts.length;
   }
+
+  // Computed weight, by Weight/Length conversion
+  if (isNotNil(opts.weight)) {
+    res[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH] = opts.weight;
+  }
+
   return res;
 }
 const TREE_EXAMPLES: {[key: string]: any} = {
@@ -65,14 +77,14 @@ const TREE_EXAMPLES: {[key: string]: any} = {
                       label: 'SORTING_BATCH_INDIVIDUAL#1',
                       rankOrder: 1,
                       taxonName: {id: 1033, label: 'MON', name: 'Lophius piscatorius'},
-                      measurementValues: getIndivMeasValues({discardOrLanding: 'LAN', length: 11}),
+                      measurementValues: getIndivMeasValues({discardOrLanding: 'LAN', length: 11, weight: 0.026051}),
                       individualCount: 1
                     },
                     {
                       label: 'SORTING_BATCH_INDIVIDUAL#3',
                       rankOrder: 3,
                       taxonName: {id: 1034, label: 'ANK', name: 'Lophius budegassa'},
-                      measurementValues: getIndivMeasValues({discardOrLanding: 'LAN', length: 33}),
+                      measurementValues: getIndivMeasValues({discardOrLanding: 'LAN', length: 33, weight: 0.512244}),
                       individualCount: 1
                     }
                   ]
@@ -93,7 +105,7 @@ const TREE_EXAMPLES: {[key: string]: any} = {
                       label: 'SORTING_BATCH_INDIVIDUAL#2',
                       rankOrder: 2,
                       taxonName: {id: 1034, label: 'ANK', name: 'Lophius budegassa'},
-                      measurementValues: getIndivMeasValues({discardOrLanding: 'DIS', length: 22}),
+                      measurementValues: getIndivMeasValues({discardOrLanding: 'DIS', length: 22, weight: 0.162100}),
                       individualCount: 1
                     }
                   ]
@@ -109,7 +121,10 @@ const TREE_EXAMPLES: {[key: string]: any} = {
 
 @Component({
   selector: 'app-batch-tree-test',
-  templateUrl: './batch-tree.test.html'
+  templateUrl: './batch-tree.test.html',
+  providers: [
+    { provide: ContextService, useClass: TripContextService}
+  ]
 })
 export class BatchTreeTestPage implements OnInit {
 
@@ -123,19 +138,25 @@ export class BatchTreeTestPage implements OnInit {
     [key: string]: string;
   } = {};
 
-  @ViewChild('mobileBatchTree', { static: true }) mobileBatchTree: BatchTreeComponent;
-  @ViewChild('desktopBatchTree', { static: true }) desktopBatchTree: BatchTreeComponent;
+  @ViewChild('mobileBatchTree') mobileBatchTree: BatchTreeComponent;
+  @ViewChild('desktopBatchTree') desktopBatchTree: BatchTreeComponent;
+
+  get batchTree(): BatchTreeComponent {
+    return this.mobileBatchTree || this.desktopBatchTree;
+  }
 
   constructor(
     formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
+    protected context: TripContextService,
     private entities: EntitiesStorage
   ) {
 
     this.form = formBuilder.group({
       program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
+      fishingArea: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       example: [null, Validators.required]
     });
   }
@@ -170,8 +191,29 @@ export class BatchTreeTestPage implements OnInit {
       attributes: ['label', 'name']
     });
     this.form.get('gear').valueChanges
-      //.pipe(debounceTime(450))
       .subscribe(g => this.$gearId.next(toNumber(g && g.id, null)));
+
+    // Fishing areas
+    this.autocomplete.add('fishingArea', {
+      service: this.referentialRefService,
+      filter: {
+        entityName: 'Location',
+        levelIds: LocationLevels.getStatisticalRectangleLevelIds(),
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      },
+      attributes: ['label', 'name']
+    });
+    this.form.get('fishingArea').valueChanges
+      .subscribe(location => {
+        if (location) {
+          this.context.setValue('fishingAreas', [FishingArea.fromObject({
+            location
+          })])
+        }
+        else {
+          this.context.resetValue('fishingAreas');
+        }
+      });
 
 
     // Input example
@@ -184,7 +226,9 @@ export class BatchTreeTestPage implements OnInit {
       .subscribe(example => {
         if (example && typeof example.label == 'string') {
           const json = TREE_EXAMPLES[example.label];
-          this.dumpCatchBatch(Batch.fromObject(json), 'example');
+          if (this.outputs.example) {
+            this.dumpCatchBatch(Batch.fromObject(json), 'example');
+          }
         }
       });
 
@@ -193,6 +237,7 @@ export class BatchTreeTestPage implements OnInit {
       //program: {id: 1, label: 'SUMARiS' },
       program: {id: 10, label: 'ADAP-MER' },
       gear: {id: 6, label: 'OTB'},
+      fishingArea: {id: 110, label: '65F1'},
       example: {id: 1, label: 'default'}
     });
 
@@ -205,34 +250,29 @@ export class BatchTreeTestPage implements OnInit {
 
     // Load program's taxon groups
     const programLabel = await firstNotNilPromise(this.$programLabel);
-    let availableTaxonGroups = await this.programRefService.loadTaxonGroups(programLabel);
+    const availableTaxonGroups = await this.programRefService.loadTaxonGroups(programLabel);
 
-    this.mobileBatchTree.availableTaxonGroups = availableTaxonGroups;
-    this.desktopBatchTree.availableTaxonGroups = availableTaxonGroups;
+    await waitFor(() => !!this.batchTree);
+
+    this.batchTree.availableTaxonGroups = availableTaxonGroups;
 
     this.markAsReady();
+    this.batchTree.value = data.clone();
+    this.batchTree.enable();
 
-    this.mobileBatchTree.value = data.clone();
-    this.desktopBatchTree.value = data.clone();
-
-    this.mobileBatchTree.enable();
-    this.desktopBatchTree.enable();
-
-    setTimeout(() => {
+    setTimeout(async () => {
       this.markAsLoaded();
-      this.mobileBatchTree.waitIdle().then( () => this.mobileBatchTree.autoFill());
-      this.desktopBatchTree.waitIdle().then( () => this.desktopBatchTree.autoFill())
+      await this.batchTree.waitIdle()
+      this.batchTree.autoFill();
     });
   }
 
   markAsReady() {
-    this.mobileBatchTree.markAsReady();
-    this.desktopBatchTree.markAsReady();
+    this.batchTree.markAsReady();
   }
 
   markAsLoaded() {
-    this.mobileBatchTree.markAsLoaded();
-    this.desktopBatchTree.markAsLoaded();
+    this.batchTree.markAsLoaded();
   }
 
   doSubmit(event?: UIEvent) {
@@ -262,7 +302,14 @@ export class BatchTreeTestPage implements OnInit {
 
     // Convert into Batch tree
     const catchBatch = Batch.fromObjectArrayAsTree(batches)
+
+    // Compute individual count (see operation-service)
     BatchUtils.computeIndividualCount(catchBatch);
+
+    // Compute weight (see operation-service)
+    BatchUtils.computeWeight(catchBatch);
+
+    BatchUtils.cleanTree(catchBatch);
 
     return catchBatch;
   }
@@ -278,11 +325,11 @@ export class BatchTreeTestPage implements OnInit {
      this.dumpCatchBatch(catchBatch, 'example');
   }
 
-  async dumpBatchTree(batchTree: BatchTreeComponent, outputName?: string) {
+  async dumpBatchTree(batchTree: BatchTreeComponent, outputName?: string, finalize?: boolean) {
 
-    await batchTree.save();
-    const catchBatch = batchTree.value;
+    const catchBatch = await this.getValue(batchTree, finalize);
 
+    // Dump
     this.dumpCatchBatch(catchBatch, outputName);
 
     if (batchTree.mobile) {
@@ -337,7 +384,9 @@ export class BatchTreeTestPage implements OnInit {
     source.disable();
     target.disable();
     try {
-      await target.setValue(source.value);
+      const value = await this.getValue(source, true);
+
+      await target.setValue(value);
     }
     finally {
       source.enable();
@@ -345,12 +394,31 @@ export class BatchTreeTestPage implements OnInit {
     }
   }
 
-  async save(event: UIEvent, table: BatchTreeComponent, outputName: string) {
-    await table.save(event);
-    this.dumpBatchTree(table, outputName);
+  async save(event: UIEvent, batchTree: BatchTreeComponent, outputName: string) {
+    await this.dumpBatchTree(batchTree, outputName, true);
   }
 
   /* -- protected methods -- */
+
+  async getValue(batchTree: BatchTreeComponent, finalize?: boolean): Promise<Batch> {
+
+    await batchTree.save();
+    const catchBatch = batchTree.value;
+
+    if (finalize) {
+
+      // Compute individual count (see operation-service)
+      BatchUtils.computeIndividualCount(catchBatch);
+
+      // Clean
+      BatchUtils.cleanTree(catchBatch);
+
+      // Compute weight (see operation-service)
+      BatchUtils.computeWeight(catchBatch);
+    }
+
+    return catchBatch;
+  }
 
   stringify(value: any) {
     return JSON.stringify(value);
