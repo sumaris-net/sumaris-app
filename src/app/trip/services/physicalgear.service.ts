@@ -334,16 +334,18 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     }
 
     // Sort
-    if (sortBy === 'lastUsed') {
-      if (toEntity && withTrip) {
-        entities.sort(sortByTripDateFn);
-        if (sortDirection === 'desc') {
-          entities.reverse();
+    if (sortBy) {
+      entities = toEntity ? entities : entities.slice(); // Make sure to source array, as it can be a readonly array
+      if (sortBy === 'lastUsed') {
+        if (toEntity && withTrip) {
+          entities.sort(sortByTripDateFn);
+          if (sortDirection === 'desc') {
+            entities.reverse();
+          }
         }
+      } else {
+        EntityUtils.sort(entities, sortBy, sortDirection);
       }
-    }
-    else {
-      EntityUtils.sort(entities, sortBy, sortDirection);
     }
 
     return {data: entities, total};
