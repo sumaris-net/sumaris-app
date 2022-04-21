@@ -57,6 +57,12 @@ export class SaleProduct extends Product {
   }
 }
 
+const ratioProperty = 'ratio';
+const weightProperty = 'weight';
+const averageWeightPriceProperty = 'averageWeightPrice';
+const averagePackagingPriceProperty = 'averagePackagingPrice';
+const totalPriceProperty = 'totalPrice';
+
 export class SaleProductUtils {
 
   static isSaleProductEmpty(saleProduct: SaleProduct): boolean {
@@ -73,6 +79,7 @@ export class SaleProductUtils {
   static isSaleOfProduct(product: Product, saleProduct: Product, pmfms: DenormalizedPmfmStrategy[]): boolean {
     return product && saleProduct
       && product.taxonGroup && saleProduct.taxonGroup && product.taxonGroup.equals(saleProduct.taxonGroup)
+      && product.rankOrder === saleProduct.rankOrder
       && product.measurementValues && saleProduct.measurementValues
       && MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.PACKAGING) === MeasurementValuesUtils.getValue(saleProduct.measurementValues, pmfms, PmfmIds.PACKAGING)
       && MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY) === MeasurementValuesUtils.getValue(saleProduct.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY)
@@ -177,7 +184,7 @@ export class SaleProductUtils {
 
     // even a calculated ratio need to be saved
     MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO, saleProduct.ratio);
-    // add measurements for each non calculated values
+    // add measurements for each non-calculated values
     MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE,
       isNotNilOrNaN(saleProduct.averageWeightPrice) && !saleProduct.averageWeightPriceCalculated ? saleProduct.averageWeightPrice : undefined);
     MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE,
@@ -303,92 +310,102 @@ export class SaleProductUtils {
   ) {
 
     const parentCount = parent[parentCountProperty || countProperty];
-    const parentWeight = parent['weight'];
+    const parentWeight = parent[weightProperty];
 
     if (isNotNil(parentCount)) {
 
       // with saleProduct count (should be < whole parent count)
       const count = getValueFn(saleProduct, countProperty);
+      const ratio = count / parentCount;
+      let useAverageWeightPrice = false;
       if (count) {
-        if (hasValueFn(saleProduct, 'averagePackagingPrice')) {
+        if (hasValueFn(saleProduct, averagePackagingPriceProperty)) {
           // compute total price
-          setValueFn(saleProduct, 'totalPrice', getValueFn(saleProduct, 'averagePackagingPrice') * count);
+          setValueFn(saleProduct, totalPriceProperty, getValueFn(saleProduct, averagePackagingPriceProperty) * count);
 
-        } else if (hasValueFn(saleProduct, 'totalPrice')) {
+        } else if (hasValueFn(saleProduct, totalPriceProperty)) {
           // compute average packaging price
-          setValueFn(saleProduct, 'averagePackagingPrice', getValueFn(saleProduct, 'totalPrice') / count);
+          setValueFn(saleProduct, averagePackagingPriceProperty, getValueFn(saleProduct, totalPriceProperty) / count);
 
+        } else if (useRatioAndWeight && isNotNil(parentWeight) && hasValueFn(saleProduct, averageWeightPriceProperty)) {
+          // compute average packaging price and total price
+          useAverageWeightPrice = true;
+          const total = ratio * parentWeight * getValueFn(saleProduct, averageWeightPriceProperty);
+          setValueFn(saleProduct, totalPriceProperty, total);
+          setValueFn(saleProduct, averagePackagingPriceProperty, total / count);
         }
 
         if (useRatioAndWeight) {
           // compute ratio
-          const ratio = count / parentCount * 100;
-          setValueFn(saleProduct, 'ratio', ratio);
+          // const ratio = count / parentCount * 100;
+          setValueFn(saleProduct, ratioProperty, ratio * 100);
 
           if (isNotNil(parentWeight)) {
             // calculate weight
-            setValueFn(saleProduct, 'weight', ratio * parentWeight / 100);
+            setValueFn(saleProduct, weightProperty, ratio * parentWeight);
 
             // calculate average weight price (with calculated or input total price)
-            if (isNotNil(getValueFn(saleProduct, 'totalPrice'))) {
-              setValueFn(saleProduct, 'averageWeightPrice', getValueFn(saleProduct, 'totalPrice') / parentWeight);
+            if (!useAverageWeightPrice && isNotNil(getValueFn(saleProduct, totalPriceProperty))) {
+              setValueFn(saleProduct, averageWeightPriceProperty, getValueFn(saleProduct, totalPriceProperty) / parentWeight);
             }
           } else {
             // reset weight part
-            resetValueFn(saleProduct, 'weight');
-            resetValueFn(saleProduct, 'averageWeightPrice');
+            resetValueFn(saleProduct, weightProperty);
+            resetValueFn(saleProduct, averageWeightPriceProperty);
           }
         } else {
 
           // compute weigh (always calculated)
-          setValueFn(saleProduct, 'weight', count * parentWeight / parentCount);
+          setValueFn(saleProduct, weightProperty, count * parentWeight / parentCount);
 
         }
 
       } else {
         // reset all
-        resetValueFn(saleProduct, 'averagePackagingPrice');
-        resetValueFn(saleProduct, 'totalPrice');
-        resetValueFn(saleProduct, 'weight');
+        resetValueFn(saleProduct, averagePackagingPriceProperty);
+        resetValueFn(saleProduct, totalPriceProperty);
+        resetValueFn(saleProduct, weightProperty);
         if (useRatioAndWeight) {
-          resetValueFn(saleProduct, 'ratio');
-          resetValueFn(saleProduct, 'averageWeightPrice');
+          resetValueFn(saleProduct, ratioProperty);
+          resetValueFn(saleProduct, averageWeightPriceProperty);
         }
       }
 
-    } else if (useRatioAndWeight && isNotNil(parentWeight)) {
+    } else
+    // Only by weight
+    if (useRatioAndWeight && isNotNil(parentWeight)) {
       // with weight only
-      if (hasValueFn(saleProduct, 'weight')) {
+      if (hasValueFn(saleProduct, weightProperty)) {
         // calculate ratio
-        setValueFn(saleProduct, 'ratio', getValueFn(saleProduct, 'weight') / parentWeight * 100);
+        setValueFn(saleProduct, ratioProperty, getValueFn(saleProduct, weightProperty) / parentWeight * 100);
 
-      } else if (hasValueFn(saleProduct, 'ratio')) {
+      } else if (hasValueFn(saleProduct, ratioProperty)) {
         // calculate weight
-        setValueFn(saleProduct, 'weight', getValueFn(saleProduct, 'ratio') * parentWeight / 100);
+        setValueFn(saleProduct, weightProperty, getValueFn(saleProduct, ratioProperty) * parentWeight / 100);
 
       } else {
         // reset all
-        resetValueFn(saleProduct, 'ratio');
-        resetValueFn(saleProduct, 'weight');
-        resetValueFn(saleProduct, 'averageWeightPrice');
-        resetValueFn(saleProduct, 'totalPrice');
+        resetValueFn(saleProduct, ratioProperty);
+        resetValueFn(saleProduct, weightProperty);
+        resetValueFn(saleProduct, averageWeightPriceProperty);
+        resetValueFn(saleProduct, totalPriceProperty);
       }
 
-      const weight = getValueFn(saleProduct, 'weight');
+      const weight = getValueFn(saleProduct, weightProperty);
       if (isNotNil(weight)) {
 
-        if (hasValueFn(saleProduct, 'averageWeightPrice')) {
+        if (hasValueFn(saleProduct, averageWeightPriceProperty)) {
           // compute total price
-          setValueFn(saleProduct, 'totalPrice', getValueFn(saleProduct, 'averageWeightPrice') * weight);
+          setValueFn(saleProduct, totalPriceProperty, getValueFn(saleProduct, averageWeightPriceProperty) * weight);
 
-        } else if (hasValueFn(saleProduct, 'totalPrice')) {
+        } else if (hasValueFn(saleProduct, totalPriceProperty)) {
           // compute average weight price
-          setValueFn(saleProduct, 'averageWeightPrice', getValueFn(saleProduct, 'totalPrice') / weight);
+          setValueFn(saleProduct, averageWeightPriceProperty, getValueFn(saleProduct, totalPriceProperty) / weight);
 
         } else {
           // reset
-          resetValueFn(saleProduct, 'averageWeightPrice');
-          resetValueFn(saleProduct, 'totalPrice');
+          resetValueFn(saleProduct, averageWeightPriceProperty);
+          resetValueFn(saleProduct, totalPriceProperty);
         }
 
       }

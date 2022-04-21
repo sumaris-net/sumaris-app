@@ -1,7 +1,7 @@
 {
   "name": "sumaris-app",
   "description": "SUMARiS app",
-  "version": "1.24.0",
+  "version": "1.24.1",
   "author": "contact@e-is.pro",
   "license": "AGPL-3.0",
   "readmeFilename": "README.md",
@@ -64,7 +64,7 @@
     "@ngtools/webpack": "^11.2.19",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@sumaris-net/ngx-components": "1.19.11-rc6",
+    "@sumaris-net/ngx-components": "1.19.11",
     "angular-split": "^5.0.0",
     "angular2-text-mask": "^9.0.0",
     "apollo-angular": "^2.6.0",

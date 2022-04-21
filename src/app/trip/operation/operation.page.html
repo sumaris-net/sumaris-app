@@ -22,6 +22,14 @@
       <mat-icon slot="icon-only">history</mat-icon>
     </ion-button>
 
+    <!-- New operation
+    <ion-button hidden-xxs
+                [disabled]="loading"
+                [title]="'TRIP.OPERATION.BTN_SAVE_AND_NEW'|translate"
+                (click)="saveAndNew($event)">
+      <mat-icon slot="icon-only">add_circle_outline</mat-icon>
+    </ion-button>-->
+
     <!-- option menu -->
     <ion-button
             [matMenuTriggerFor]="optionsMenu"
@@ -57,7 +65,7 @@
             <ion-col style="padding-top: 8px !important;">
               <ion-label>{{ item.physicalGear | referentialToString: opeForm.autocompleteFields.physicalGear.attributes }}</ion-label>
             </ion-col>
-            <ion-col size="3">
+            <ion-col size="auto">
               <ion-text>{{ item.startDateTime | dateFormat: {pattern: dateTimePattern} }}
                 <ion-text color="primary"><br/><small>{{ item.startDateTime | dateFromNow }}</small></ion-text>
               </ion-text>
