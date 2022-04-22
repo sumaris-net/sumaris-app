@@ -22,7 +22,7 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
-import { Batch} from '../common/batch.model';
+import { Batch } from '../common/batch.model';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import { SubBatchForm } from './sub-batch.form';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
@@ -34,18 +34,15 @@ import { SubBatch } from './sub-batch.model';
 import { BatchGroup } from '../group/batch-group.model';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { environment } from '@environments/environment';
-import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { PopoverController } from '@ionic/angular';
 import { Popovers } from '@app/shared/popover/popover.utils';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { TrashRemoteService } from '@app/core/services/trash-remote.service';
-import { TranslateService } from '@ngx-translate/core';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
-export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'weight', 'comments'];
+export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
 
 
 export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<AppMeasurementsTableOptions<Batch>>('SubBatchesTableOptions');
@@ -102,8 +99,9 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
+  protected popoverController: PopoverController;
   protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
-  //protected popoverController: PopoverController;
+  protected enableWeightConversion = false;
 
   weightPmfm: IPmfm;
 
@@ -112,8 +110,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() useSticky = false;
-  @Input() enableWeightConversion = false;
-  @Input() weightDisplayUnit: WeightUnitSymbol|'auto' = 'g';
+  @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() weightDisplayDecimals = 2;
 
   @Input() set qvPmfm(value: IPmfm) {
@@ -213,8 +210,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   constructor(
     protected injector: Injector,
     protected validatorService: SubBatchValidatorService,
-    protected popoverController: PopoverController,
-    protected translate: TranslateService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector,
@@ -236,7 +231,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
-    //this.popoverController = injector.get(PopoverController);
+    this.popoverController = injector.get(PopoverController);
     this.cd = injector.get(ChangeDetectorRef);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<SubBatch, SubBatchFilter>);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
@@ -256,7 +251,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   ngOnInit() {
     super.ngOnInit();
 
-    this.setShowColumn('weight', this.enableWeightConversion);
     this.setShowColumn('comments', this.showCommentsColumn);
 
     // Parent combo
@@ -352,8 +346,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     subBatch.individualCount = isNotNil(subBatch.individualCount) ? subBatch.individualCount : 1;
 
     // Store computed weight into measurement, if any
-    if (isNotNil(subBatch.weight?.value) && subBatch.weight.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH) {
-      subBatch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH] = subBatch.weight?.value;
+    if (this.weightPmfm && isNotNil(subBatch.weight?.value)) {
+      // Convert
+
+      subBatch.measurementValues[this.weightPmfm.id] = subBatch.weight?.value;
       delete subBatch.weight;
     }
 
@@ -564,21 +560,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       }
     }
 
-    this.weightPmfm = pmfms.find(p => PmfmUtils.isWeight(p) && p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH)?.clone()
-      || DenormalizedPmfmStrategy.fromObject(<IDenormalizedPmfm>{
-        id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH,
-        methodId: MethodIds.CALCULATED_WEIGHT_LENGTH,
-        name: this.translate.instant('TRIP.SUB_BATCH.TABLE.CALCULATED_WEIGHT_LENGTH'),
-        type: 'double',
-        required: false,
-        unitLabel: UnitLabel.KG,
-        minValue: 0,
-        maxValue: 100,
-        maximumNumberDecimals: 6
-      });
-
-    // Exclude weight Pmfm
-    pmfms = pmfms.filter(p => !PmfmUtils.isWeight(p));
 
     // Filter on parent taxon groups
     const parentTaxonGroupIds = (this._availableParents || []).map(parent => parent.taxonGroup && parent.taxonGroup.id)
@@ -597,6 +578,19 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       });
     }
 
+    // Check weight-length conversion is enabled
+    {
+      const index = pmfms.findIndex(p => p.id === PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
+          || p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH);
+      if (index !== -1) {
+        this.weightPmfm = pmfms[index];
+        this.enableWeightConversion = true;
+        if (this.weightDisplayedUnit) {
+          this.weightPmfm = PmfmUtils.setWeightUnitConversion(this.weightPmfm, this.weightDisplayedUnit);
+        }
+        pmfms[index] = this.weightPmfm;
+      }
+    }
     return pmfms;
   }
 
@@ -855,7 +849,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     console.debug('[batch-group-table] Initializing form (validators...)');
 
     this.validatorService.updateFormGroup(form, {
-      withWeight: this.enableWeightConversion && this.showWeightColumn
+      withWeight: this.enableWeightConversion
     });
 
     // Add computation and validation
@@ -880,6 +874,9 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       text: row.currentData.comments,
       placeholder
     });
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
 
     if (this.inlineEdition) {
       if (row.validator) {

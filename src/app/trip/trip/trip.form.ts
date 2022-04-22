@@ -104,6 +104,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   @Input() locationLevelIds = [LocationLevelIds.PORT];
+  @Input() minDurationInHours: number;
+  @Input() maxDurationInHours: number;
 
   @Input() set locationSuggestLengthThreshold(value: number) {
     if (this._locationSuggestLengthThreshold !== value) {
@@ -501,7 +503,11 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   protected updateFormGroup() {
     console.info('[trip-form] Updating form group...');
-    this.validatorService.updateFormGroup(this.form, {returnFieldsRequired: this._returnFieldsRequired});
+    this.validatorService.updateFormGroup(this.form, {
+      returnFieldsRequired: this._returnFieldsRequired,
+      minDurationInHours: this.minDurationInHours,
+      maxDurationInHours: this.maxDurationInHours
+    });
     this.markForCheck(); // Need to toggle return date time to required
   }
 

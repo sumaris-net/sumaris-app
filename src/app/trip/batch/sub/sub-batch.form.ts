@@ -1,13 +1,13 @@
-import {ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChildren} from '@angular/core';
-import {Batch} from '../common/batch.model';
-import {MeasurementValuesForm} from '../../measurement/measurement-values.form.class';
-import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
-import {AbstractControl, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {ReferentialRefService} from '../../../referential/services/referential-ref.service';
-import {SubBatchValidatorService} from './sub-batch.validator';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Batch } from '../common/batch.model';
+import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { SubBatchValidatorService } from './sub-batch.validator';
 import {
   AppFormUtils,
-  EntityUtils, firstNotNilPromise,
+  EntityUtils,
   focusNextInput,
   focusPreviousInput,
   GetFocusableInputOptions,
@@ -26,8 +26,8 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, ParameterLabelGroups, PmfmIds, QualitativeLabels, UnitLabel } from '../../../referential/services/model/model.enum';
-import { BehaviorSubject, combineLatest, Observable, Subscription } from 'rxjs';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, UnitLabel, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
+import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { PmfmFormField } from '../../../referential/pmfm/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
@@ -38,6 +38,7 @@ import { ProgramRefService } from '../../../referential/services/program-ref.ser
 import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
+import { WeightUtils } from '@app/referential/services/model/model.utils';
 
 
 @Component({
@@ -63,6 +64,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   selectedTaxonNameIndex = -1;
   warning: string;
   weightPmfm: IPmfm;
+  enableWeightConversion: boolean;
   $weight = new BehaviorSubject<number>(undefined);
 
   @Input() title: string;
@@ -72,12 +74,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @Input() showWarning = true;
   @Input() showSubmitButton = true;
   @Input() displayParentPmfm: IPmfm;
-  @Input() enableWeightConversion: boolean;
   @Input() isNew: boolean;
   @Input() tabindex: number;
   @Input() floatLabel: FloatLabelType;
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
+  @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
   @Input() set showTaxonName(show) {
@@ -573,6 +575,21 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
         || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
     }
 
+    // Check weight-length conversion is enabled
+    pmfms = pmfms.filter(p => {
+      // If RTP weight: enable conversion, and hidden pmfms
+      if (p.id === PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
+        || p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH) {
+        this.enableWeightConversion = true;
+        if (this.weightDisplayedUnit) {
+          p = PmfmUtils.setWeightUnitConversion(p, this.weightDisplayedUnit);
+        }
+        this.weightPmfm = p;
+        return false;
+      }
+      return true;
+    });
+
     return pmfms;
   }
 
@@ -594,21 +611,11 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
       // DEBUG
       if (this.debug) console.debug('[sub-batch-form] Enabling weight/length conversion...');
 
-      let weightControl: AbstractControl;
-      let methodIdControl: AbstractControl;
-      const updateWeight = () => {
-        weightControl = weightControl || this.form.get('weight.value');
-        methodIdControl = methodIdControl || this.form.get('weight.methodId');
-        const methodId = methodIdControl?.value;
-        this.weightPmfm = this.weightPmfm || (methodId && (this.$pmfms.value || []).find(p => p.methodId === methodId)) || undefined;
-        this.$weight.next(weightControl?.value);
-      }
       try {
         this._weightConversionSubscription = await this.validatorService.enableWeightLengthConversion(form, {
           pmfms: this.$pmfms.value,
           qvPmfm: this._qvPmfm,
           parentGroup: this.parentGroup,
-          markForCheck: ()  => updateWeight(),
           onError: (err) => {
             this.warning = err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED';
             this.markForCheck();
@@ -619,9 +626,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
         if (this._weightConversionSubscription) {
           this.registerSubscription(this._weightConversionSubscription);
-          const weightSubscription = this.form.get('weight.value')?.valueChanges
-            .subscribe((_) => updateWeight());
-          this._weightConversionSubscription.add(() => weightSubscription.unsubscribe());
+          this._weightConversionSubscription.add(() => this.unregisterSubscription(this._weightConversionSubscription));
         }
       }
       catch (err) {

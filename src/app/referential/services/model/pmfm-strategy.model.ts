@@ -175,6 +175,7 @@ export class DenormalizedPmfmStrategy
       fractionId: source.fractionId,
       methodId: source.methodId,
       unitLabel: source.unitLabel,
+      isComputed: PmfmUtils.isComputed(source),
       qualitativeValues: source.parameter.qualitativeValues && source.parameter.qualitativeValues.map(ReferentialRef.fromObject),
     });
     return target;
@@ -193,6 +194,7 @@ export class DenormalizedPmfmStrategy
   detectionThreshold: number;
   precision: number;
   isMandatory: boolean;
+  isComputed: boolean;
   acquisitionNumber: number;
   rankOrder: number;
   acquisitionLevel: string;
@@ -240,6 +242,7 @@ export class DenormalizedPmfmStrategy
     this.acquisitionNumber = source.acquisitionNumber;
     this.signifFiguresNumber = source.signifFiguresNumber;
     this.isMandatory = source.isMandatory;
+    this.isComputed = source.isComputed;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
     this.gearIds = source.gearIds && [...source.gearIds] || undefined;
@@ -267,10 +270,6 @@ export class DenormalizedPmfmStrategy
 
   get isDate(): boolean {
     return this.type === 'date';
-  }
-
-  get isComputed(): boolean {
-    return this.type && PmfmUtils.isComputed(this);
   }
 
   get isQualitative(): boolean {

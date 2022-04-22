@@ -118,3 +118,30 @@ app-form-buttons-bar {
     max-width: calc(100% - 400px);
   }
 }
+
+// Measurement form
+.measurements-form {
+  /* Add offset = icon width (24px) + margin (2*5px) */
+  padding-inline-start: 34px;
+}
+
+.form-container,
+form.form-container {
+  mat-form-field {
+    ion-icon[matPrefix],
+    mat-icon[matPrefix],
+    .mat-form-field-prefix ion-icon,
+    .mat-form-field-prefix .mat-icon {
+      color: var(--ion-color-medium-shade);
+    }
+
+    &.mat-focused {
+      ion-icon[matPrefix],
+      mat-icon[matPrefix],
+      .mat-form-field-prefix ion-icon,
+      .mat-form-field-prefix .mat-icon {
+        color: var(--ion-color-primary);
+      }
+    }
+  }
+}

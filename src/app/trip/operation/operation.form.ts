@@ -123,6 +123,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() metierTaxonGroupTypeIds: number[] = [TaxonGroupTypeIds.METIER_DCF_5];
   @Input() maxDistanceWarning: number;
   @Input() maxDistanceError: number;
+  @Input() maxShootingDurationInHours: number;
+  @Input() maxTotalDurationInHours: number;
 
   @Input() set usageMode(usageMode: UsageMode) {
     if (this._usageMode != usageMode) {
@@ -145,10 +147,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   get showMetierFilter(): boolean {
     return this._showMetierFilter;
-  }
-
-  get metiers$(): Observable<LoadResult<IReferentialRef>>{
-    return this._metiersSubject.asObservable();
   }
 
   @Input() set allowParentOperation(value: boolean) {
@@ -184,7 +182,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   get boundingBox(): BBox {
     return this._boundingBox;
   }
-
 
   @Input() set showFishingArea(value: boolean) {
     if (this._showFishingArea !== value) {
@@ -611,7 +608,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   async openSelectOperationModal(): Promise<Operation> {
 
     const value = this.form.value as Partial<Operation>;
-    const endDate = value.fishingEndDateTime || this.trip && this.trip.returnDateTime || moment();
     const parent = value.parentOperation;
     const trip = this.trip;
     const startDate = trip && fromDateISOString(trip.departureDateTime).clone().add(-15, 'day') || moment().add(-15, 'day');
@@ -627,8 +623,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
           excludedIds: isNotNil(value.id) ? [value.id] : null,
           excludeChildOperation: true,
           hasNoChildOperation: true,
-          //endDate,
           startDate,
+          //endDate, // No end date
           gearIds
         },
         gearIds,
@@ -820,7 +816,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       withFishingEnd: this.fishingEndDateTimeEnable,
       withEnd: this.endDateTimeEnable,
       maxDistance: this.maxDistanceError,
-      boundingBox: this._boundingBox
+      boundingBox: this._boundingBox,
+      maxShootingDurationInHours: this.maxShootingDurationInHours,
+      maxTotalDurationInHours: this.maxTotalDurationInHours
     };
 
     // DEBUG

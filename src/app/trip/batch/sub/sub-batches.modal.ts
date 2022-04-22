@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { Batch} from '../common/batch.model';
+import { Batch } from '../common/batch.model';
 import { Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
-import { IonContent, ModalController, PopoverController } from '@ionic/angular';
+import { IonContent, ModalController } from '@ionic/angular';
 import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
 import { SubBatch } from './sub-batch.model';
@@ -16,7 +16,6 @@ import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { environment } from '@environments/environment';
 import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { TranslateService } from '@ngx-translate/core';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 export interface ISubBatchesModalOptions {
@@ -27,7 +26,6 @@ export interface ISubBatchesModalOptions {
   showIndividualCount: boolean;
   showWeightColumn?: boolean;
 
-  enableWeightConversion: boolean;
   weightDisplayUnit?: WeightUnitSymbol|'auto';
   weightDisplayDecimals?: number;
 
@@ -115,12 +113,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   ) {
     super(injector,
       null/*no validator = not editable*/,
-      injector.get(PopoverController),
-      injector.get(TranslateService),
       options);
     this.inlineEdition = false; // Disable row edition (no validator)
     this.confirmBeforeDelete = true; // Ask confirmation before delete
     this.allowRowDetail = false; // Disable click on a row
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'desc';
 
     // default values
     this.showCommentsColumn = false;
@@ -128,9 +126,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // TODO: for DEV only ---
     this.debug = !environment.production;
-    this.defaultSortBy = 'id';
-    this.defaultSortDirection = 'desc';
-
   }
 
   async ngOnInit() {

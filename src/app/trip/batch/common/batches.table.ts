@@ -100,7 +100,6 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
   @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;
-  @Input() enableWeightConversion: boolean;
 
   constructor(
     injector: Injector,
@@ -127,6 +126,8 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.referentialRefService = injector.get(ReferentialRefService);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
     this.inlineEdition = this.validatorService && !this.mobile;
+    this.defaultSortBy = 'rankOrder';
+    this.defaultSortDirection = 'asc';
 
     // Set default value
     this.showCommentsColumn = false;

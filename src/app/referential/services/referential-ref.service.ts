@@ -11,13 +11,16 @@ import {
   ConfigService,
   Configuration,
   EntitiesStorage,
+  EntityServiceLoadOptions,
   firstNotNilPromise,
   fromDateISOString,
   GraphqlService,
   IEntitiesService,
-  isEmptyArray, isNotNil,
+  isEmptyArray,
+  isNotNil,
   JobUtils,
   LoadResult,
+  LoadResultByPageFn,
   NetworkService,
   ObjectMap,
   Referential,
@@ -30,8 +33,9 @@ import { ReferentialService } from './referential.service';
 import {
   FractionIdGroups,
   LocationLevelIds,
-  MatrixIds, MethodIdGroups,
+  MatrixIds,
   MethodIds,
+  ModelEnumUtils,
   ParameterGroupIds,
   ParameterLabelGroups,
   PmfmIds,
@@ -39,32 +43,22 @@ import {
   QualitativeValueIds,
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
-  UnitIds,
-  UnitLabelGroups
+  UnitIds
 } from './model/model.enum';
-import { TaxonGroupRef } from './model/taxon-group.model';
-import { TaxonNameRef } from './model/taxon-name.model';
 import { ReferentialFragments } from './referential.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { Moment } from 'moment';
 import { environment } from '@environments/environment';
-import { TaxonNameRefFilter } from './filter/taxon-name-ref.filter';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
-import { TaxonNameQueries } from '@app/referential/services/taxon-name.service';
-import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 import { Metier } from '@app/referential/services/model/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
-import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
-import { WeightLengthConversion, WeightLengthConversionRef } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
+import { WeightLengthConversion } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
 import { WeightLengthConversionRefService } from '@app/referential/weight-length-conversion/weight-length-conversion-ref.service';
 import { ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
 import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
 import { RoundWeightConversionRefService } from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
-import { RoundWeightConversionFilter } from '@app/referential/round-weight-conversion/round-weight-conversion.filter';
-import { RoundWeightConversionRef } from '@app/referential/round-weight-conversion/round-weight-conversion.model';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
-import { EntityServiceLoadOptions, LoadResultByPageFn } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
 
 const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any; }>{
@@ -717,7 +711,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     MethodIds.CALCULATED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_ID);
     MethodIds.CALCULATED_WEIGHT_LENGTH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_WEIGHT_LENGTH_ID);
     MethodIds.CALCULATED_WEIGHT_LENGTH_SUM = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID);
-    MethodIdGroups.CALCULATED = [MethodIds.CALCULATED, MethodIds.CALCULATED_WEIGHT_LENGTH, MethodIds.CALCULATED_WEIGHT_LENGTH_SUM];
 
     // Matrix
     MatrixIds.INDIVIDUAL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.FRACTION_INDIVIDUAL_ID);
@@ -741,7 +734,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // TODO: add all enumerations
 
-    // Force an update of ProgramProperties default values (e.g. when using LocationLevelId)
+    // Force an update default values (e.g. when using LocationLevelId)
+    ModelEnumUtils.refreshDefaultValues();
     ProgramPropertiesUtils.refreshDefaultValues();
 
   }

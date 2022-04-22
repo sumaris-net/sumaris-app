@@ -352,7 +352,7 @@ export class BatchValidators {
         if (samplingWeight !== computedSamplingWeight) {
           sampleForm.patchValue({
             samplingRatioText: `${samplingRatioPct}%`,
-            weight: {
+            weight: <BatchWeight>{
               computed: true,
               estimated: false,
               value: computedSamplingWeight,

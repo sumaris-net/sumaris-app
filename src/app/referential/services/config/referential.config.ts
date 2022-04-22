@@ -465,7 +465,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: MethodIds.CALCULATED
   },
   METHOD_CALCULATED_WEIGHT_LENGTH_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.Method.CALCULATED.id',
+    key: 'sumaris.enumeration.Method.CALCULATED_WEIGHT_LENGTH.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_CALCULATED_WEIGHT_LENGTH_ID',
     type: 'entity',
     autocomplete: {
@@ -477,7 +477,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: MethodIds.CALCULATED_WEIGHT_LENGTH
   },
   METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID: <FormFieldDefinition>{
-    key: 'sumaris.enumeration.Method.CALCULATED.id',
+    key: 'sumaris.enumeration.Method.CALCULATED_WEIGHT_LENGTH_SUM.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID',
     type: 'entity',
     autocomplete: {

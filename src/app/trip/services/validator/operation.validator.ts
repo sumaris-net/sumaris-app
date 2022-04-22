@@ -17,6 +17,7 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { BBox } from 'geojson';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
+import { Geometries } from '@app/shared/geometries.utils';
 
 
 export interface IPmfmForm {
@@ -38,18 +39,21 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   withFishingEnd?: boolean;
   withEnd?: boolean;
   maxDistance?: number;
+  maxShootingDurationInHours?: number;
+  maxTotalDurationInHours?: number;
   boundingBox?: BBox;
   trip?: Trip;
   pmfms?: DenormalizedPmfmStrategy[];
 }
 
-export const OPERATION_MAX_TOTAL_DURATION_DAYS = 100;
-export const OPERATION_MAX_SHOOTING_DURATION_HOURS = 12;
 
 @Injectable({providedIn: 'root'})
 export class OperationValidatorService<O extends OperationValidatorOptions = OperationValidatorOptions>
   extends DataEntityValidatorService<Operation, O>
   implements ValidatorService {
+
+  static readonly DEFAULT_MAX_TOTAL_DURATION_HOURS = 100 * 24; // 100 days
+  static readonly DEFAULT_MAX_SHOOTING_DURATION_HOURS = 12; // 12 hours
 
   constructor(
     formBuilder: FormBuilder,
@@ -159,7 +163,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           // Make sure date range
           SharedFormGroupValidators.dateRange('startDateTime', 'fishingStartDateTime'),
           // Check shooting (=Filage) max duration
-          SharedFormGroupValidators.dateMaxDuration('startDateTime', 'fishingStartDateTime', OPERATION_MAX_SHOOTING_DURATION_HOURS, 'hours')
+          SharedFormGroupValidators.dateMaxDuration('startDateTime', 'fishingStartDateTime', opts?.maxShootingDurationInHours || OperationValidatorService.DEFAULT_MAX_SHOOTING_DURATION_HOURS, 'hour')
         ])
       };
     }
@@ -170,10 +174,10 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         validators: Validators.compose([
           // Make sure date range
           SharedFormGroupValidators.dateRange('fishingEndDateTime', 'endDateTime'),
-          // Check netting (=Relève) max duration
-          SharedFormGroupValidators.dateMaxDuration('fishingEndDateTime', 'endDateTime', OPERATION_MAX_SHOOTING_DURATION_HOURS, 'hours'),
+          // Check shooting (=Virage) max duration
+          SharedFormGroupValidators.dateMaxDuration('fishingEndDateTime', 'endDateTime', opts?.maxShootingDurationInHours || OperationValidatorService.DEFAULT_MAX_SHOOTING_DURATION_HOURS, 'hour'),
           // Check total max duration
-          SharedFormGroupValidators.dateMaxDuration('startDateTime', 'endDateTime', OPERATION_MAX_TOTAL_DURATION_DAYS, 'days'),
+          SharedFormGroupValidators.dateMaxDuration('startDateTime', 'endDateTime', opts?.maxTotalDurationInHours || OperationValidatorService.DEFAULT_MAX_TOTAL_DURATION_HOURS, 'hour'),
         ])
       };
 
@@ -185,7 +189,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         validators: Validators.compose([
           SharedFormGroupValidators.dateRange('startDateTime', 'endDateTime'),
           // Check total max duration
-          SharedFormGroupValidators.dateMaxDuration('startDateTime', 'endDateTime', OPERATION_MAX_TOTAL_DURATION_DAYS, 'days')
+          SharedFormGroupValidators.dateMaxDuration('startDateTime', 'endDateTime', opts?.maxTotalDurationInHours || OperationValidatorService.DEFAULT_MAX_TOTAL_DURATION_HOURS, 'hour')
         ])
       };
 
@@ -513,6 +517,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     opts.withFishingEnd = toBoolean(opts.withFishingEnd, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE), false));
     opts.withEnd = toBoolean(opts.withEnd, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE), true));
     opts.maxDistance = toNumber(opts.maxDistance, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR));
+    opts.boundingBox = opts.boundingBox || Geometries.parseAsBBox(opts.program?.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
+    opts.maxTotalDurationInHours = toNumber(opts.maxTotalDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS));
+    opts.maxShootingDurationInHours = toNumber(opts.maxShootingDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS));
 
     // DEBUG
     //console.debug("[operation-validator] Ope Validator will use options:", opts);

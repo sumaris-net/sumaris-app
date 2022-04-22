@@ -1,9 +1,16 @@
-import { EntityClass, fromDateISOString, isNotNil, toDateISOString } from '@sumaris-net/ngx-components';
+import { EntityClass, fromDateISOString, IEntity, isNotNil, toDateISOString } from '@sumaris-net/ngx-components';
 import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { Moment } from 'moment';
 
+export interface IPosition<T = any> extends IEntity<T> {
+  dateTime: Moment;
+  latitude: number;
+  longitude: number;
+}
+
 @EntityClass({ typename: 'VesselPositionVO' })
-export class VesselPosition extends DataEntity<VesselPosition> {
+export class VesselPosition extends DataEntity<VesselPosition>
+  implements IPosition<VesselPosition> {
 
   static fromObject: (source: any, opts?: any) => VesselPosition;
 

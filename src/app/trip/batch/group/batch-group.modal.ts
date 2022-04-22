@@ -287,13 +287,8 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
     if (!updatedParent) return; // User cancelled
 
-    this.data.observedIndividualCount = updatedParent.observedIndividualCount;
-    this.form.form.patchValue({observedIndividualCount: this.data.observedIndividualCount}, {emitEvent: false});
-
-    if (this.enableWeightConversion) {
-      console.warn('TODO: copy RTP weight ?');
-      // TODO: copy RTP weight if exists ?
-    }
+    this.data = updatedParent;
+    await this.form.setValue(this.data);
 
     this.form.hasSubBatches = (updatedParent.observedIndividualCount > 0);
     this.form.markAsDirty();

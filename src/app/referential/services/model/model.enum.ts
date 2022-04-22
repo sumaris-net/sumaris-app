@@ -59,8 +59,8 @@ export const PmfmIds = {
   BATCH_MEASURED_WEIGHT: 91,
   BATCH_ESTIMATED_WEIGHT: 92,
   BATCH_CALCULATED_WEIGHT: 93,
-  BATCH_CALCULATED_WEIGHT_LENGTH: 223, // RTP Weight (ID from SIH-Harmonie)
-  BATCH_CALCULATED_WEIGHT_LENGTH_SUM: 1152, // Sum of RTP weights (ID from SIH-Harmonie)
+  BATCH_CALCULATED_WEIGHT_LENGTH: 122,
+  BATCH_CALCULATED_WEIGHT_LENGTH_SUM: 123,
 
   MEASURE_TIME: 103,
   RELEASE_LATITUDE: 110,
@@ -138,11 +138,16 @@ export const MethodIds = {
   OBSERVED_BY_OBSERVER: 2,
   ESTIMATED_BY_OBSERVER: 3,
   CALCULATED: 4,
-  CALCULATED_WEIGHT_LENGTH: 47, // Computed by RTP (ID from SIH-Harmonie)
-  CALCULATED_WEIGHT_LENGTH_SUM: 283 // Computed by SUM(RTP weights) (ID from SIH-Harmonie)
+  CALCULATED_WEIGHT_LENGTH: 47,
+  CALCULATED_WEIGHT_LENGTH_SUM: 283
 };
+export class Methods {
+  static getCalculatedIds() {
+    return [MethodIds.CALCULATED, MethodIds.CALCULATED_WEIGHT_LENGTH, MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
+  }
+}
 export const MethodIdGroups = {
-  CALCULATED: [MethodIds.CALCULATED, MethodIds.CALCULATED_WEIGHT_LENGTH, MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
+  CALCULATED: Methods.getCalculatedIds()
 };
 export const MatrixIds = {
   INDIVIDUAL: 2
@@ -298,4 +303,8 @@ export const ProgramPrivilegeIds = {
   QUALIFIER: 5
 };
 
-
+export class ModelEnumUtils {
+  static refreshDefaultValues() {
+    MethodIdGroups.CALCULATED = Methods.getCalculatedIds();
+  }
+}

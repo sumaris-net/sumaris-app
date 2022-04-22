@@ -39,6 +39,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -316,7 +317,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
           if (child) {
 
             // Replace measurement values inside a new map, based on fake pmfms
-            this.getFakeMeasurementValuesFromQvChild(child, qvIndex);
+            this.normalizeChildToRow(child, qvIndex);
 
             // Remember method used for the weight (estimated or not)
             if (!weightMethodValues[qvIndex]) {
@@ -339,7 +340,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         });
       } else if (!this.qvPmfm && batch) {
         // Replace measurement values inside a new map, based on fake pmfms
-        this.getFakeMeasurementValuesFromQvChild(batch, -1);
+        this.normalizeChildToRow(batch, -1);
 
         // Remember method used for the weight (estimated or not)
         if (!weightMethodValues[0]) {
@@ -466,19 +467,17 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
   isComputed(col: ColumnDefinition, row: TableElement<BatchGroup>): boolean {
-    const batch = row.currentData;
+    const batch = col.qvIndex >= 0
+      // With qv pmfm
+      ? row.currentData.children[col.qvIndex]
+      // With no qv pmfm
+      : row.currentData;
 
     const computed = col.computed
-      || (col.qvIndex >= 0 // With qv pmfm
-        && ((col.isWeight && col.isSampling && batch.children[col.qvIndex].children[0].weight.computed) // total weight is computed
-          || (col.isWeight && !col.isSampling && batch.children[col.qvIndex].weight.computed) // sampling weight is computed
-          || (col.key.endsWith('samplingRatio') && (batch.children[col.qvIndex]?.children[0]?.samplingRatioText || '').indexOf('/') !== -1) // sampling ratio is computed
-      ))
-      || (col.qvIndex < 0 // With no qv pmfm
-        && ((col.isWeight && col.isSampling && batch.children[0].weight.computed) // total weight is computed
+      || ((col.isWeight && col.isSampling && batch.children[0].weight.computed) // total weight is computed
           || (col.isWeight && !col.isSampling && batch.weight.computed) // sampling weight is computed
-          || (col.key.endsWith('samplingRatio') && (batch.children[0]?.samplingRatioText || '').indexOf('/') !== -1) // sampling ratio is computed
-      ));
+          || (col.key.endsWith('samplingRatio') && (batch?.children[0]?.samplingRatioText || '').indexOf('/') !== -1) // sampling ratio is computed
+      );
     //DEBUG
     // console.debug('[batch-group-table] col computed', col.path, computed);
     return computed;
@@ -532,9 +531,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
           // tslint:disable-next-line:triple-equals
           const child = batch.children.find(c => c.label === childLabel || c.measurementValues[this.qvPmfm.id] == qv.id);
           if (child) {
-
-            // Replace measurement values inside a new map, based on fake pmfms
-            this.getFakeMeasurementValuesFromQvChild(child, qvIndex);
+            this.normalizeChildToRow(child, qvIndex);
           }
         });
       }
@@ -545,8 +542,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   }
 
-  protected getFakeMeasurementValuesFromQvChild(data: Batch, qvIndex?: number) {
-    console.log('[batch-group-table] TODO computing QV child', data);
+  protected normalizeChildToRow(data: Batch, qvIndex?: number) {
+    if (this.debug) console.debug('[batch-group-table] Normalize QV child batch', data);
 
     if (isNil(qvIndex)) {
       const qvId = this.qvPmfm && data.measurementValues[this.qvPmfm.id];
@@ -591,66 +588,62 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
   }
 
-  protected prepareChildToSave(batch: BatchGroup, qv?: ReferentialRef, qvIndex?: number): Batch {
+  protected prepareChildToSave(source: BatchGroup, qv?: ReferentialRef, qvIndex?: number): Batch {
 
     qvIndex = isNotNil(qvIndex) ? qvIndex : -1;
-
-    const isEstimatedWeight = this.weightMethodForm && this.weightMethodForm.controls[qvIndex].value || false;
-    const weightPmfmId = isEstimatedWeight ? this.estimatedWeightPmfm.id : this.defaultWeightPmfm.id;
-
-    const childLabel = qv ? `${batch.label}.${qv.label}` : batch.label;
+    const isEstimatedWeight = this.weightMethodForm?.controls[qvIndex].value || false;
+    const childLabel = qv ? `${source.label}.${qv.label}` : source.label;
 
     // If qv, add sub level at sorting batch for each qv value
     // If no qv, keep measurements in sorting batch level
-    const child: Batch = !qv ? batch : (batch.children || []).find(b => b.label === childLabel) || new Batch();
-
-    const weight = child.weight?.value || null;
+    const batch: Batch = !qv ? source : (source.children || []).find(b => b.label === childLabel) || new Batch();
 
     // If qv compute rank order with qv index, else keep existing rank order
-    child.rankOrder = qvIndex >= 0 ? qvIndex + 1 : child.rankOrder;
-    child.label = childLabel;
+    batch.rankOrder = qvIndex >= 0 ? qvIndex + 1 : batch.rankOrder;
+    batch.label = childLabel;
 
     if (qv) {
-      child.measurementValues[this.qvPmfm.id.toString()] = qv.id.toString();
+      batch.measurementValues[this.qvPmfm.id.toString()] = qv.id.toString();
     }
     // Clean previous weights
-    this.weightPmfms.forEach(p => child.measurementValues[p.id.toString()] = undefined);
-    if (isNotNilOrNaN(weight)) {
-      child.measurementValues[weightPmfmId.toString()] = weight;
+    this.weightPmfms.forEach(p => batch.measurementValues[p.id.toString()] = undefined);
+
+    // Set weight
+    if (isNotNilOrNaN(batch.weight?.value)) {
+      const weightPmfm = batch.weight?.computed && this.weightPmfmsByMethod[batch.weight.methodId]
+        || (isEstimatedWeight ? this.estimatedWeightPmfm : this.defaultWeightPmfm);
+      batch.measurementValues[weightPmfm.id.toString()] = batch.weight.value;
     }
 
     // If sampling
-    if (isNotEmptyArray(child.children)) {
-      const samplingLabel = childLabel + Batch.SAMPLING_BATCH_SUFFIX;
-      const samplingChild: Batch = (child.children || []).find(b => b.label === samplingLabel) || new Batch();
-      samplingChild.rankOrder = 1;
-      samplingChild.label = samplingLabel;
+    if (isNotEmptyArray(batch.children)) {
+      const samplingBatchLabel = childLabel + Batch.SAMPLING_BATCH_SUFFIX;
+      const samplingBatch: Batch = (batch.children || []).find(b => b.label === samplingBatchLabel) || new Batch();
+      samplingBatch.rankOrder = 1;
+      samplingBatch.label = samplingBatchLabel;
+
       // Clean previous weights
-      this.weightPmfms.forEach(p => samplingChild.measurementValues[p.id.toString()] = undefined);
+      this.weightPmfms.forEach(p => samplingBatch.measurementValues[p.id.toString()] = undefined);
+
       // Set weight
-      if (isNotNilOrNaN(samplingChild.weight?.value)) {
-        const sampleWeightPmfmId = samplingChild.weight.computed && this.weightPmfmsByMethod[MethodIds.CALCULATED]?.id || weightPmfmId;
-        samplingChild.measurementValues[sampleWeightPmfmId.toString()] = samplingChild.weight.value;
+      if (isNotNilOrNaN(samplingBatch.weight?.value)) {
+        const samplingWeightPmfm = samplingBatch.weight?.computed && this.weightPmfmsByMethod[samplingBatch.weight.methodId]
+          || (isEstimatedWeight ? this.estimatedWeightPmfm : this.defaultWeightPmfm);
+        samplingBatch.measurementValues[samplingWeightPmfm.id.toString()] = samplingBatch.weight.value;
       }
+
       // Convert sampling ratio
-      if (this.inlineEdition && isNotNil(samplingChild.samplingRatio)) {
-        samplingChild.samplingRatio = +samplingChild.samplingRatio / 100;
+      if (this.inlineEdition && isNotNil(samplingBatch.samplingRatio)) {
+        samplingBatch.samplingRatio = +samplingBatch.samplingRatio / 100;
       }
-      child.children = [samplingChild];
+
+      batch.children = [samplingBatch];
     }
     // Remove children
     else {
-      child.children = [];
+      batch.children = [];
     }
-    return child;
-  }
-
-  isQvEven(column: ColumnDefinition) {
-    return (column.qvIndex % 2 === 0);
-  }
-
-  isQvOdd(column: ColumnDefinition) {
-    return (column.qvIndex % 2 !== 0);
+    return batch;
   }
 
   async onSubBatchesClick(event: UIEvent,
@@ -696,7 +689,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // Init dynamic columns
     this.computeDynamicColumns(this.qvPmfm);
 
-    //Additionnal pmfms managed by validator on children batch
+    //Additional pmfms managed by validator on children batch
     return [];
   }
 
@@ -727,9 +720,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
 
     this.estimatedWeightPmfm = this.weightPmfmsByMethod && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
-    this.groupColumnStartColSpan = RESERVED_START_COLUMNS.length
-      + (this.showTaxonGroupColumn ? 1 : 0)
-      + (this.showTaxonNameColumn ? 1 : 0);
+
     if (qvPmfm) {
       const groupColumns = [];
       this.dynamicColumns = qvPmfm.qualitativeValues.flatMap((qv, qvIndex) => {
@@ -754,7 +745,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     } else {
       this.groupColumns = [];
       this.dynamicColumns = this.computeDynamicColumnsByQv();
-      this.groupColumnStartColSpan += this.dynamicColumns.filter(c => !c.hidden).length;
       this.showToolbar = !this.mobile;
     }
   }
@@ -807,44 +797,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return pmfmColumns.concat(qvColumns);
   }
 
-  protected getWeight(measurementValues: { [key: number]: any }): BatchWeight | undefined {
-    // Use try default method
-    let value = measurementValues[this.defaultWeightPmfm.id];
-    if (isNotNil(value)) {
-      return {
-        value,
-        estimated: false,
-        computed: false,
-        methodId: this.defaultWeightPmfm.methodId
-      };
-    }
-    if (!this.weightPmfmsByMethod) return undefined;
-
-    // Else, try to get estimated
-    let weightPmfm = this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER];
-    value = weightPmfm && measurementValues[weightPmfm.id];
-    if (isNotNil(value)) {
-      return {
-        value,
-        estimated: true,
-        computed: false,
-        methodId: MethodIds.ESTIMATED_BY_OBSERVER
-      };
-    }
-
-    // Else, try to get calculated
-    return this.weightPmfms
-      .map(weightPmfm => {
-        value = measurementValues[weightPmfm.id];
-        return isNotNil(value) ? {
-          value,
-          estimated: false,
-          computed: weightPmfm.isComputed,
-          methodId: weightPmfm.methodId
-        }: undefined;
-      }).find(isNotNil);
-  }
-
   protected getUserColumns(userColumns?: string[]): string[] {
     userColumns = userColumns || this.settings.getPageSettings(this.settingsId, SETTINGS_DISPLAY_COLUMNS);
 
@@ -859,6 +811,15 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   protected updateColumns() {
     if (!this.dynamicColumns) return; // skip
     this.displayedColumns = this.getDisplayColumns();
+
+    if (this.qvPmfm) {
+      this.groupColumnStartColSpan = RESERVED_START_COLUMNS.length
+        + (this.showTaxonGroupColumn ? 1 : 0)
+        + (this.showTaxonNameColumn ? 1 : 0);
+    }
+    else {
+      this.groupColumnStartColSpan += this.dynamicColumns.filter(c => !c.hidden).length;
+    }
 
     if (!this.loading) this.markForCheck();
   }
@@ -910,27 +871,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     if (isNil(subBatches)) return; // User cancelled
 
-    const children = subBatches.filter(b => BatchGroup.equals(parent, b.parentGroup));
+    const updatedParent = this.updateBatchGroupFromBatches(parent, subBatches);
 
-    // Update the parent observed individual count
-    parent.observedIndividualCount = BatchUtils.sumObservedIndividualCount(children);
-
-    if (this.qvPmfm) {
-      const qvPmfmId = this.qvPmfm.id.toString();
-      this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
-        const qvBatch = (parent.children || []).find(b => b.measurementValues[qvPmfmId] == qv.id);
-        const samplingBatch = BatchUtils.getSamplingChild(qvBatch);
-        if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
-          const qvChildren = children.filter(b => b.measurementValues[qvPmfmId] == qv.id);
-          const weight = BatchUtils.sumCalculatedWeight(qvChildren, this.weightPmfms);
-          if (weight) {
-            samplingBatch.weight = weight;
-          }
-        }
-      })
-    }
     // Return the updated parent
-    return parent;
+    return updatedParent;
   }
 
 
@@ -977,7 +921,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
-        enableWeightConversion: this.enableWeightConversion,
         availableParents,
         data: this.availableSubBatches,
         onNewParentClick,
@@ -1032,7 +975,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         isNew,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
-        enableWeightConversion: this.enableWeightConversion,
         availableTaxonGroups: this.availableTaxonGroups,
         taxonGroupsNoWeight: this.taxonGroupsNoWeight,
         showSamplingBatch: this.showSamplingBatchColumns,
@@ -1125,7 +1067,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     const parent: BatchGroup = row && row.currentData;
     if (!parent) return; // skip
 
-    const updatedParent = this.prepareBatchGroupToRow(parent, subBatches || []);
+    const updatedParent = this.updateBatchGroupFromBatches(parent, subBatches || []);
 
     if (row.validator) {
       row.validator.patchValue(updatedParent, {emitEvent: false});
@@ -1141,32 +1083,44 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    * @param parent
    * @param subBatches
    */
-  protected prepareBatchGroupToRow(parent: BatchGroup, subBatches: SubBatch[]): BatchGroup {
+  protected updateBatchGroupFromBatches(parent: BatchGroup, subBatches: SubBatch[]): BatchGroup {
     if (!parent) return parent; // skip
 
     const children = (subBatches || []).filter(b => Batch.equals(parent, b.parentGroup));
 
-    if (this.debug) console.debug('[batch-group-table] Computing individual count...');
+    if (this.debug) console.debug('[batch-group-table] Updating batch group, from batches...', parent, children);
 
     if (!this.qvPmfm) {
-      console.warn('TODO: check this implementation (computing individual count when NO QV pmfm)');
-      parent.observedIndividualCount = BatchUtils.sumObservedIndividualCount(children);
-    } else {
-      let observedIndividualCount = 0;
-      this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
+      const samplingBatch = BatchUtils.getSamplingChild(parent);
 
-        const qvChildren = children.filter(c => {
-          const qvValue = c.measurementValues[this.qvPmfm.id];
-          // WARN: use '==' a NOT '===' because id can be serialized as string
-          // tslint:disable-next-line:triple-equals
-          return qvValue && (qvValue == qv.id || qvValue.id == qv.id);
-        });
-        const samplingIndividualCount = BatchUtils.sumObservedIndividualCount(qvChildren);
-        const qvOffset = (qvIndex * BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length);
-        const hasSampling = !!(parent.measurementValues[qvOffset + 2] || parent.measurementValues[qvOffset + 3]);
-        parent.measurementValues[qvOffset + 4] = hasSampling || samplingIndividualCount ? samplingIndividualCount : undefined;
-        observedIndividualCount += (samplingIndividualCount || 0);
-      });
+      // Update individual count
+      samplingBatch.individualCount = BatchUtils.sumObservedIndividualCount(children);
+      parent.observedIndividualCount = samplingBatch.individualCount || 0;
+
+      // Update weight
+      if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
+        samplingBatch.weight = BatchUtils.sumCalculatedWeight(children, this.weightPmfms);
+      }
+    } else {
+
+      const qvPmfmId = this.qvPmfm.id.toString();
+      let observedIndividualCount = 0;
+
+      this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
+        const batch = (parent.children || []).find(b => PmfmValueUtils.equals(b.measurementValues[qvPmfmId], qv));
+        const samplingBatch = BatchUtils.getSamplingChild(batch);
+        const qvChildren = children.filter(c => PmfmValueUtils.equals(c.measurementValues[qvPmfmId], qv));
+
+        // Update individual count
+        samplingBatch.individualCount = BatchUtils.sumObservedIndividualCount(qvChildren);
+        observedIndividualCount += (samplingBatch.individualCount || 0);
+
+        // Update weight
+        if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
+          samplingBatch.weight = BatchUtils.sumCalculatedWeight(qvChildren);
+        }
+      })
+
       parent.observedIndividualCount = observedIndividualCount;
     }
 

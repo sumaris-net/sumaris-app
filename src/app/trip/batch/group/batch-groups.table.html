@@ -12,8 +12,8 @@
 
   <table *ngIf="inlineEdition; else readonly"
          mat-table matSort matSortDisableClear
-         matSortActive="rankOrder"
-         matSortDirection="asc"
+         [matSortActive]="defaultSortBy"
+         [matSortDirection]="defaultSortDirection"
          [dataSource]="dataSource"
          [trackBy]="trackByFn">
 
@@ -228,8 +228,8 @@
 
   <ng-template #readonly>
     <table mat-table matSort matSortDisableClear
-           matSortActive="rankOrder"
-           matSortDirection="asc"
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
            [dataSource]="dataSource"
            [trackBy]="trackByFn">
 
@@ -272,12 +272,12 @@
       </ng-container>
 
       <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!inlineEdition">
           <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
                         [indeterminate]="selection.hasValue() && !isAllSelected()">
           </mat-checkbox>
         </th>
-        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+        <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!inlineEdition">
           <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
           </mat-checkbox>
         </td>
@@ -398,9 +398,7 @@
                       [matBadgeHidden]="!row.currentData.observedIndividualCount"
                       matBadgeColor="accent"
                       matBadgeSize="small"
-                      matBadgePosition="above after"
-            >assessment
-            </mat-icon>
+                      matBadgePosition="above after">assessment</mat-icon>
           </button>
 
           <!-- open individual measures -->
@@ -427,8 +425,13 @@
           (click)="clickRow($event, row)">
       </tr>
     </table>
-  </ng-template>
 
+    <!-- DEBUG -->
+    <div *ngIf="debug" class="ion-padding">
+      <i>DEBUG:<br/></i>
+      Displayed columns: [{{displayedColumns.join(', ')}}]<br/>
+    </div>
+  </ng-template>
 
   <ion-item *ngIf="totalRowCount === 0">
     <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>

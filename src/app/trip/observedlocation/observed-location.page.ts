@@ -361,8 +361,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.observedLocationForm.showEndDateTime = true;
         this.observedLocationForm.showStartTime = false;
         this.observedLocationForm.showEndTime = false;
-        this.observedLocationForm.startDateDay = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY));
-        this.observedLocationForm.forceDurationDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
+        this.observedLocationForm.startDateDay = program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_START_DAY);
+        this.observedLocationForm.forceDurationDays = program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT);
       }
       else {
         this.observedLocationForm.timezone = null; // Use local TZ for dates
@@ -389,7 +389,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         console.debug("[observed-location] Init aggregated landings table:", table);
         const aggregatedLandingsTable = table as AggregatedLandingsTable;
         aggregatedLandingsTable.timeZone = timezone;
-        aggregatedLandingsTable.nbDays = parseInt(program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT));
+        aggregatedLandingsTable.nbDays = program.getPropertyAsInt(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_DAY_COUNT);
         aggregatedLandingsTable.programLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
       }
       else {

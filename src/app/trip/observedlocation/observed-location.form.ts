@@ -247,9 +247,7 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     });
 
     // Create a filter for start date picker
-    this.startDatePickerFilter = isNotNil(this.startDateDay)
-      ? (d) => DateUtils.isAtDay(d, this.startDateDay, this.timezone)
-      : null;
+    this.startDatePickerFilter = (d) => isNil(this.startDateDay) || DateUtils.isAtDay(d, this.startDateDay, this.timezone);
   }
 
   addObserver() {

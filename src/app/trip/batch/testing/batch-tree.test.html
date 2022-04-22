@@ -46,14 +46,24 @@
          </mat-autocomplete-field>
        </ion-col>
 
-        <ion-col size="8" size-md="4">
-          <mat-autocomplete-field formControlName="example"
+       <ion-col size="4" size-md="2">
+         <mat-autocomplete-field formControlName="example"
                                   placeholder="Data example"
                                   [tabindex]="3"
                                   [required]="true"
+                                  [showSearchBar]="false"
                                   [config]="autocomplete.fields.example">
-          </mat-autocomplete-field>
-        </ion-col>
+         </mat-autocomplete-field>
+       </ion-col>
+
+       <ion-col size="6" size-md="4">
+         <mat-boolean-field formControlName="autofill"
+                            [placeholder]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL'|translate"
+                            [tabindex]="4"
+                            [required]="true">
+         </mat-boolean-field>
+       </ion-col>
+
        <!-- buttons -->
        <ion-col size="4" size-md="2">
          <!-- show tree -->

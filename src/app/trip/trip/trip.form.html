@@ -68,7 +68,7 @@
         <mat-date-time-field [placeholder]="'TRIP.DEPARTURE_DATE_TIME'|translate"
                              formControlName="departureDateTime"
                              [required]="true">
-          <!-- icon need for small screen -->
+          <!-- icon (need for small screen) -->
           <mat-icon matPrefix class="visible-xs">today</mat-icon>
         </mat-date-time-field>
       </ion-col>
@@ -90,26 +90,26 @@
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="auto">
+      <ion-col size="12" size-sm="auto" *ngVar="form|formGetControl:'returnDateTime'; let control">
         <mat-date-time-field [placeholder]="'TRIP.RETURN_DATE_TIME'|translate"
-                             formControlName="returnDateTime"
+                             [formControl]="control"
                              [startDate]="form.controls.departureDateTime.value"
                              [required]="returnFieldsRequired"
                              [clearable]="!returnFieldsRequired">
-          <!-- icon need for small screen -->
-          <mat-icon matPrefix class="visible-xs">today</mat-icon>
+          <!-- icon (need for small screen) -->
+          <mat-icon matPrefix class="visible-xs">insert_invitation</mat-icon>
           <!-- duration -->
-          <mat-hint align="end" *ngIf="form.controls.returnDateTime.value">
+          <mat-hint align="end" *ngIf="control.valid && control.value as value">
             <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
             startValue: form.controls.departureDateTime.value,
-            endValue: form.controls.returnDateTime.value
+            endValue: value
           } | dateDiffDuration }}
           </mat-hint>
         </mat-date-time-field>
       </ion-col>
     </ion-row>
 
-    <!-- Observers  -->
+    <!-- Observers -->
     <ng-container *ngIf="showObservers">
       <ion-row *ngFor="let observerForm of observersForm?.controls; index as i; first as first">
         <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">

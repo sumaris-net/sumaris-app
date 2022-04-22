@@ -19,7 +19,6 @@ import { SubBatch } from './sub-batch.model';
 import { Subscription } from 'rxjs';
 import { BatchWeightValidator } from '@app/trip/batch/common/batch.validator';
 import { LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { WeightLengthConversionRefService } from '@app/referential/weight-length-conversion/weight-length-conversion-ref.service';
@@ -33,7 +32,7 @@ import { BatchErrorCodes } from '@app/trip/batch/batch.errors';
 import { environment } from '@environments/environment';
 import { RoundWeightConversionRefService } from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { convertWeight, isLengthUnitSymbol, isWeightUnitSymbol } from '@app/referential/services/model/model.utils';
+import { isLengthUnitSymbol, isWeightUnitSymbol, WeightUtils } from '@app/referential/services/model/model.utils';
 import { DataContext } from '@app/data/services/model/data-context.model';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ContextService } from '@app/shared/context.service';
@@ -378,7 +377,7 @@ export class SubBatchValidators {
 
       // Find a Weight-Length conversion
       const wlConversion = await wlService.findAppliedConversion({
-        ...opts, month, year, lengthPmfmId: lengthPmfm.id, referenceTaxonId, sexId: sex?.id
+        month, year, lengthPmfmId: lengthPmfm.id, referenceTaxonId, sexId: sex?.id, rectangleLabel: opts.rectangleLabel
       });
 
       // Compute weight
@@ -406,7 +405,7 @@ export class SubBatchValidators {
 
           // Find a round weight conversion
           const rwConversion = await rwService.findAppliedConversion({
-            ...opts, date, taxonGroupId, dressingId: +dressingId, preservingId: +preservingId, locationId: opts.countryId
+            date, taxonGroupId, dressingId: +dressingId, preservingId: +preservingId, locationId: opts.countryId
           })
 
           // Apply round weight (inverse) conversion
@@ -420,7 +419,7 @@ export class SubBatchValidators {
 
       // Convert to expected weight Unit
       if (computedWeightKg && weightUnit !== 'kg') {
-        computedWeightKg = convertWeight(computedWeightKg, 'kg', weightUnit);
+        computedWeightKg = WeightUtils.convert(computedWeightKg, 'kg', weightUnit);
       }
       if (isNotNilOrNaN(computedWeightKg)) {
 

@@ -265,7 +265,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Fill weight, if a weight PMFM exists
     if (this.defaultWeightPmfm && this.showWeight) {
       const weightPmfm = (this.weightPmfms || []).find(p => isNotNil(data.measurementValues[p.id.toString()]));
-      data.weight = {
+      data.weight = data.weight || {
         methodId: weightPmfm?.methodId,
         computed: weightPmfm && (weightPmfm.isComputed || weightPmfm.methodId === MethodIds.CALCULATED),
         estimated: weightPmfm?.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
@@ -303,7 +303,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       // Read child weight (use the first one)
       if (this.defaultWeightPmfm) {
         const samplingWeightPmfm = (this.weightPmfms || []).find(p => isNotNil(samplingBatch.measurementValues[p.id.toString()]));
-        samplingBatch.weight = {
+        samplingBatch.weight = samplingBatch.weight || {
           methodId: samplingWeightPmfm && samplingWeightPmfm.methodId,
           computed: samplingWeightPmfm && (samplingWeightPmfm.isComputed || samplingWeightPmfm.methodId === MethodIds.CALCULATED),
           estimated: samplingWeightPmfm && samplingWeightPmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,

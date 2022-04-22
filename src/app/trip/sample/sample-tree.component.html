@@ -27,6 +27,7 @@
                        [showLabelColumn]="showLabelColumn"
                        [defaultSampleDate]="defaultSampleDate"
                        (onPrepareRowForm)="onPrepareRowForm.emit($event)"
+                       [weightDisplayedUnit]="weightDisplayedUnit"
                        [mobile]="mobile">
     </app-samples-table>
 
@@ -60,6 +61,7 @@
                                      [useSticky]="useSticky"
                                      [showToolbar]="true"
                                      [showLabelColumn]="showLabelColumn"
+                                     [weightDisplayedUnit]="weightDisplayedUnit"
                                      [mobile]="false">
     </app-individual-monitoring-table>
     <!-- final space-->

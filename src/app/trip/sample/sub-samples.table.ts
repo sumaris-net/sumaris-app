@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { SubSampleValidatorService } from '../services/validator/sub-sample.validator';
 import {
   EntityUtils,
@@ -56,6 +56,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
   @Input() showError = true;
   @Input() showPmfmDetails = false;
   @Input() compactFields = true;
+  @Input() weightDisplayedUnit: WeightUnitSymbol;
 
   @Input()
   set availableParents(parents: Sample[]) {

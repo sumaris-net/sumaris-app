@@ -8,23 +8,17 @@ import {
   isNotNilOrBlank,
   isNotNilOrNaN,
   referentialToString,
-  ReferentialUtils, splitByProperty,
+  ReferentialUtils,
+  splitByProperty,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import {
-  AcquisitionLevelCodes, MatrixIds,
-  MethodIds, ParameterGroupIds, ParameterLabelGroups,
-  PmfmIds,
-  QualitativeValueIds,
-  QualityFlagIds, UnitLabel, WeightUnitSymbol
-} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, QualitativeValueIds, QualityFlagIds, UnitLabel } from '@app/referential/services/model/model.enum';
 import { Batch, BatchWeight } from '@app/trip/batch/common/batch.model';
-import { DEFAULT_MAX_DECIMALS } from '@sumaris-net/ngx-components/src/app/shared/material/duration/duration.utils';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { Parameter } from '@app/referential/services/model/parameter.model';
+import { roundHalfUp } from '@app/shared/functions';
 
 export class BatchUtils {
 
@@ -42,6 +36,14 @@ export class BatchUtils {
 
   static isEmpty(source: Batch, opts = { ignoreChildren: false, ignoreTaxonGroup: false, ignoreTaxonName: false }) {
     return !this.isNotEmpty(source, opts);
+  }
+
+  static isSortingBatch(source: Batch | any): source is Batch {
+    return source?.label && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#');
+  }
+
+  static isIndividualBatch(source: Batch | any): source is Batch {
+    return source?.label && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL + '#');
   }
 
   static parentToString(parent: Batch, opts?: {
@@ -90,12 +92,6 @@ export class BatchUtils {
     return EntityUtils.equals(b1.parent, b2.parent, 'label')
       && ReferentialUtils.equals(b1.taxonName, b2.taxonName)
       && MeasurementValuesUtils.equalsPmfms(b1.measurementValues, b2.measurementValues, pmfms);
-  }
-
-  public static getAcquisitionLevelFromLabel(batch: Batch): string | undefined {
-    if (!batch || !batch.label) return undefined;
-    const parts = batch.label.split('#');
-    return parts.length > 0 && parts[0];
   }
 
   static getOrCreateSamplingChild(parent: Batch) {
@@ -259,13 +255,13 @@ export class BatchUtils {
       }, 0);
   }
 
-  static getWeightPmfms(): IPmfm[]{
+  static getDefaultSortedWeightPmfms(): IPmfm[]{
     return [
       {id: PmfmIds.BATCH_MEASURED_WEIGHT, isComputed: false, methodId: MethodIds.MEASURED_BY_OBSERVER},
       {id: PmfmIds.BATCH_ESTIMATED_WEIGHT, isComputed: false, methodId: MethodIds.MEASURED_BY_OBSERVER},
       {id: PmfmIds.BATCH_CALCULATED_WEIGHT, isComputed: true, methodId: MethodIds.CALCULATED},
       {id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH, maximumNumberDecimals: 6},
-      {id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM, maximumNumberDecimals: 6}
+      {id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM, maximumNumberDecimals: 6}
     ]
     .map(spec => ({
       label: ParameterLabelGroups.WEIGHT[0],
@@ -276,14 +272,14 @@ export class BatchUtils {
       maximumNumberDecimals: 3,
       ...spec
     }))
-    .map(DenormalizedPmfmStrategy.fromObject);
+    .map(json => DenormalizedPmfmStrategy.fromObject(json) as IPmfm);
   }
 
   static sumCalculatedWeight(batches: Batch[], weightPmfms?: IPmfm[], weightPmfmsByMethodId?: { [key: string]: IPmfm }): BatchWeight | undefined {
-    let exhaustiveness = true;
-    weightPmfms = weightPmfms || this.getWeightPmfms();
+    let isExhaustive = true;
+    weightPmfms = weightPmfms && this.getDefaultSortedWeightPmfms();
     weightPmfmsByMethodId = weightPmfmsByMethodId || splitByProperty(weightPmfms, 'methodId');
-    let childrenWeightPmfm = [];
+    let childrenWeightMethodIds: number[] = [];
     const value = (batches || [])
       .map(b => {
         // Recursive call
@@ -291,35 +287,36 @@ export class BatchUtils {
           return BatchUtils.sumCalculatedWeight(b.children, weightPmfms, weightPmfmsByMethodId);
         }
         // If individual batches
-        if (b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+        if (this.isIndividualBatch(b)) {
           const weight = b.weight || this.getWeight(b, weightPmfms);
           if (isNotNil(weight?.value)) {
 
             // Collect method used by children
-            if (!childrenWeightPmfm.includes(weight.methodId)) {
-              childrenWeightPmfm.push(weight.methodId);
+            if (!childrenWeightMethodIds.includes(weight.methodId)) {
+              childrenWeightMethodIds.push(weight.methodId);
             }
             return weight;
           } else {
-            exhaustiveness = false;
+            isExhaustive = false;
           }
         }
         return undefined;// Ignore
       })
       .filter(isNotNil)
       .reduce((sum, weight) => {
-        return sum + weight.value;
+        return sum + +(weight.value || 0);
       }, 0);
 
-    if (isNil(value) || !exhaustiveness) return undefined;
+    if (isNil(value) || !isExhaustive) return undefined;
 
     // Compute method and pmfm for SUM
-    const methodId = childrenWeightPmfm.length === 1 && childrenWeightPmfm[0] === MethodIds.CALCULATED_WEIGHT_LENGTH
-      ? MethodIds.CALCULATED_WEIGHT_LENGTH_SUM
-      : MethodIds.CALCULATED;
+    const weightPmfm = childrenWeightMethodIds.length === 1 && childrenWeightMethodIds[0] === MethodIds.CALCULATED_WEIGHT_LENGTH
+      && weightPmfmsByMethodId[MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
+      || weightPmfmsByMethodId[MethodIds.CALCULATED];
+    const methodId = toNumber(weightPmfm?.methodId, MethodIds.CALCULATED);
 
     return {
-      value,
+      value: roundHalfUp(value, weightPmfm?.maximumNumberDecimals || 3),
       methodId,
       computed: true,
       estimated: false
@@ -329,84 +326,78 @@ export class BatchUtils {
   static computeWeight(source: Batch, weightPmfms?: IPmfm[], weightPmfmsByMethodId?: { [key: string]: IPmfm }): BatchWeight | undefined {
     if (!source.label || !source.children) return; // skip
 
-    weightPmfms = weightPmfms || this.getWeightPmfms();
+    weightPmfms = weightPmfms || this.getDefaultSortedWeightPmfms();
     weightPmfmsByMethodId = weightPmfmsByMethodId || splitByProperty(weightPmfms, 'methodId');
 
-    let sumChildrenWeight: number = 0;
-    let sumExhaustiveness = true;
-    let childrenWeightPmfm = [];
+    console.debug('[batch-utils] Computed batch tree weights...', source);
 
-    if (source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)) {
-      (source.children || []).forEach((b, index) => {
-        if (b.label && b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL) && this.isNotEmpty(b)) {
+    let isExhaustive = true;
+    let childrenWeightMethodIds: number[] = [];
+
+    const value = (source.children || [])
+      .map((b, index) => {
+        // Recursive call
+        if (isNotEmptyArray(b.children)) return this.computeWeight(b, weightPmfms, weightPmfmsByMethodId);
+
+        // If individual batches
+        if (this.isIndividualBatch(b) && this.isNotEmpty(b)) {
           const weight = b.weight || this.getWeight(b, weightPmfms);
           if (isNotNil(weight?.value)) {
-            // Sum
-            sumChildrenWeight += weight.value;
 
-            if (!childrenWeightPmfm.includes(weight.methodId)) {
-              childrenWeightPmfm.push(weight.methodId);
+            // Collect method used by children
+            if (!childrenWeightMethodIds.includes(weight.methodId)) {
+              childrenWeightMethodIds.push(weight.methodId);
             }
+            return weight;
           } else {
-            sumExhaustiveness = false;
+            isExhaustive = false;
           }
-        } else {
-          this.computeWeight(b, weightPmfms, weightPmfmsByMethodId); // Recursive call
         }
-      });
+      })
+      .filter(isNotNil)
+      .reduce((sum, weight) => {
+        return sum + +(weight.value || 0);
+      }, 0);
+
+    if (isNil(value) || value === 0 || !isExhaustive) return undefined;
+
+    // Compute method and pmfm for SUM
+    const weightPmfm = childrenWeightMethodIds.length === 1 && childrenWeightMethodIds[0] === MethodIds.CALCULATED_WEIGHT_LENGTH
+      && weightPmfmsByMethodId[MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
+      || weightPmfmsByMethodId[MethodIds.CALCULATED];
+    const methodId = toNumber(weightPmfm?.id, MethodIds.CALCULATED);
+
+    source.weight = source.weight || this.getWeight(source, weightPmfms);
+
+    // Check weight is valid
+    if (isNotNil(source.weight?.value) && !source.weight.computed && source.weight.value < value) {
+      console.warn(`[batch-utils] Fix batch {${source.label}} weight=${source.weight.value} but children weight = ${value}`);
+      source.qualityFlagId = QualityFlagIds.BAD;
     }
+    // Weight not computed and greater than the sum
+    else {
+      const samplingBatch = this.isSampleBatch(source) ? source : this.getOrCreateSamplingChild(source);
+      samplingBatch.weight = samplingBatch.weight || this.getWeight(samplingBatch, weightPmfms);
 
-    // Can apply sum
-    if (sumExhaustiveness && childrenWeightPmfm.length === 1) {
-
-      // Compute method and pmfm for SUM
-      const methodId = childrenWeightPmfm[0] === MethodIds.CALCULATED_WEIGHT_LENGTH
-        ? MethodIds.CALCULATED_WEIGHT_LENGTH_SUM
-        : MethodIds.CALCULATED;
-      const weightPmfm = weightPmfms[methodId];
-
-      const sourceWeight = this.getWeight(source, weightPmfms);
-      // Source is a sampling batch
-      if (this.isSampleBatch(source)) {
-        if (isNil(sourceWeight?.value) || sourceWeight.computed) {
-          source.weight = {
-            value: sumChildrenWeight,
-            unit: 'kg',
-            methodId,
-            computed: weightPmfm.isComputed,
-            estimated: false
-          };
-          source.measurementValues[weightPmfm.id] = sumChildrenWeight;
-
-          console.log('TODO: computed weight SUM='+sumChildrenWeight, source);
-
-        }
-      }
-
-      // Check weight is valid
-      else if (isNotNil(sourceWeight.value) && !sourceWeight.computed && sourceWeight.value < sumChildrenWeight) {
-          console.warn(`[batch-utils] Fix batch {${source.label}} weight=${source.weight.value} but children weight = ${sumChildrenWeight}`);
-          source.qualityFlagId = QualityFlagIds.BAD;
-      }
-
-      // Weight not computed and greater than the sum: add a sampling batch
-      else {
-        const samplingBatch = this.getOrCreateSamplingChild(source);
+      // Set the sampling weight
+      if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
         samplingBatch.weight = {
-          value: sumChildrenWeight,
+          value: roundHalfUp(value, weightPmfm?.maximumNumberDecimals || 6),
           unit: 'kg',
           methodId,
-          computed: weightPmfm.isComputed,
+          computed: true,
           estimated: false
         };
-        samplingBatch.measurementValues[weightPmfm.id] = sumChildrenWeight;
-        console.log('TODO: computed weight SUM='+sumChildrenWeight, samplingBatch);
+        samplingBatch.measurementValues[weightPmfm.id] = samplingBatch.weight.value;
       }
+      console.debug('[batch-utils] Computed weight sum='+value, source);
     }
   }
 
-  static getWeight(source: Batch, weightPmfms: IPmfm[]): BatchWeight | undefined {
+  static getWeight(source: Batch, weightPmfms?: IPmfm[]): BatchWeight | undefined {
     if (!source) return undefined;
+
+    weightPmfms = weightPmfms || this.getDefaultSortedWeightPmfms();
 
     return weightPmfms
       .map(pmfm => {
@@ -427,6 +418,15 @@ export class BatchUtils {
         return r1-r2;
       })
       .find(isNotNil);
+  }
+
+  /**
+   * Compute individual count, and weights, from a batch tree
+   * @param source
+   */
+  static computeTree(source: Batch) {
+    this.computeIndividualCount(source);
+    this.computeWeight(source);
   }
 
   /**
@@ -500,8 +500,9 @@ export class BatchUtils {
         if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
           message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == QualitativeValueIds.DISCARD_OR_LANDING.LANDING ? 'LAN' : 'DIS');
         }
-        if (isNotNil(batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM])) {
-          message += ' lengthTotal:' + batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM] + 'cm';
+        const length = batch.measurementValues[PmfmIds.LENGTH_TOTAL_CM];
+        if (isNotNil(length)) {
+          message += ' length:' + length + 'cm';
         }
         const weight = batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT]
           || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT];
@@ -511,8 +512,8 @@ export class BatchUtils {
         const computedWeight = batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT]
           || batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH]
           || batch.measurementValues[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM];
-        if (isNotNil(weight)) {
-          message += ' computed weight:' + weight + 'kg';
+        if (isNotNil(computedWeight)) {
+          message += ' weight:~' + computedWeight + 'kg';
         }
         if (BatchUtils.isSampleBatch(batch)) {
           const samplingRatio = batch.samplingRatio;

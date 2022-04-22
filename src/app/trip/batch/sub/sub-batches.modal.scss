@@ -8,9 +8,10 @@
   overflow-y: auto;
 }
 ion-grid.disabled {
-  ion-col.form-container {
+  ion-col.ion-col-form {
     flex: 0 !important;
     display: none;
+    visibility: hidden;
   }
   ion-col.table-container {
     flex: unset !important;

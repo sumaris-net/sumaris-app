@@ -1586,7 +1586,8 @@ export class TripService
               opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
               // Import weight conversion entities, if enable on program
-              const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE);
+              // FIXME: shoudl scan PMFM, to detect if enableWeightConversion = true
+              const enableWeightConversion = true; // program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE);
               if (enableWeightConversion) {
                 console.info('[trip-service] WeightLengthConversion import: enabled by program ' + programLabel);
                 opts.entityNames = [

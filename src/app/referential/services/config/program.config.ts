@@ -288,6 +288,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '0',
     type: 'integer'
   },
+  TRIP_MIN_DURATION_HOURS: <FormFieldDefinition>{
+    key: 'sumaris.trip.minDurationInHours',
+    label: 'PROGRAM.OPTIONS.TRIP_MIN_DURATION_HOURS',
+    defaultValue: '1', // 1 hour
+    type: 'integer'
+  },
+  TRIP_MAX_DURATION_HOURS: <FormFieldDefinition>{
+    key: 'sumaris.trip.maxDurationInHours',
+    label: 'PROGRAM.OPTIONS.TRIP_MAX_DURATION_HOURS',
+    defaultValue: '2400', // 100 days
+    type: 'integer'
+  },
   TRIP_APPLY_DATE_ON_NEW_OPERATION: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.copyTripDates',
     label: 'PROGRAM.OPTIONS.TRIP_APPLY_DATE_ON_NEW_OPERATION',
@@ -329,6 +341,18 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_END_DATE_ENABLE',
     defaultValue: 'true',
     type: 'boolean'
+  },
+  TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.maxShootingDurationInHours',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS',
+    defaultValue: '12', // 12 hours
+    type: 'integer'
+  },
+  TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.maxTotalDurationInHours',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS',
+    defaultValue: '2400', // 100 days
+    type: 'integer'
   },
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{

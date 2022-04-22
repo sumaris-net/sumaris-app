@@ -1,123 +1,30 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { Batch, BatchWeight } from '../common/batch.model';
+import { Batch } from '../common/batch.model';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { mergeMap } from 'rxjs/operators';
 import { BatchTreeComponent } from '../batch-tree.component';
-import { EntitiesStorage, EntityUtils, firstNotNilPromise, isEmptyArray, isNotNil, MatAutocompleteConfigHolder, SharedValidators, StatusIds, toNumber, waitFor } from '@sumaris-net/ngx-components';
-import { LocationLevelIds, LocationLevels, PmfmIds } from '../../../referential/services/model/model.enum';
+import {
+  ConfigService,
+  EntitiesStorage,
+  EntityUtils,
+  firstNotNilPromise,
+  isEmptyArray,
+  MatAutocompleteConfigHolder,
+  SharedValidators,
+  StatusIds,
+  toNumber,
+  waitFor
+} from '@sumaris-net/ngx-components';
+import { LocationLevels } from '../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
-import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
 
-function getSortingMeasValues(opts?: {
-  weight?: number;
-  discardOrLanding: 'LAN'|'DIS';
-}) {
-  opts = {
-    discardOrLanding: 'LAN',
-    ...opts
-  }
-  const res = {};
-
-  res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
-  if (isNotNil(opts.weight)) {
-    res[PmfmIds.BATCH_MEASURED_WEIGHT] = opts.weight;
-  }
-  return res;
-}
-
-function getIndivMeasValues(opts?: {
-  length?: number;
-  discardOrLanding: 'LAN'|'DIS';
-  weight?: number;
-}) {
-  opts = {
-    discardOrLanding: 'LAN',
-    ...opts
-  }
-  const res = {};
-
-  res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
-  if (isNotNil(opts.length)) {
-    res[PmfmIds.LENGTH_TOTAL_CM] = opts.length;
-  }
-
-  // Computed weight, by Weight/Length conversion
-  if (isNotNil(opts.weight)) {
-    res[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH] = opts.weight;
-  }
-
-  return res;
-}
-const TREE_EXAMPLES: {[key: string]: any} = {
-  'default':
-    {
-      label: 'CATCH_BATCH', rankOrder: 1, children: [
-        {
-          label: 'SORTING_BATCH#1',
-          rankOrder: 1,
-          taxonGroup: {id: 1122, label: 'MNZ', name: 'Baudroie nca'},
-          children: [
-            {
-              label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
-              measurementValues: getSortingMeasValues({discardOrLanding: 'LAN', weight: 100}),
-              children: [
-                {
-                  label: 'SORTING_BATCH#1.LAN.%',
-                  rankOrder: 1,
-                  samplingRatio: 0.5,
-                  samplingRatioText: '50%',
-                  children: [
-                    {
-                      label: 'SORTING_BATCH_INDIVIDUAL#1',
-                      rankOrder: 1,
-                      taxonName: {id: 1033, label: 'MON', name: 'Lophius piscatorius'},
-                      measurementValues: getIndivMeasValues({discardOrLanding: 'LAN', length: 11, weight: 0.026051}),
-                      individualCount: 1
-                    },
-                    {
-                      label: 'SORTING_BATCH_INDIVIDUAL#3',
-                      rankOrder: 3,
-                      taxonName: {id: 1034, label: 'ANK', name: 'Lophius budegassa'},
-                      measurementValues: getIndivMeasValues({discardOrLanding: 'LAN', length: 33, weight: 0.512244}),
-                      individualCount: 1
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              label: 'SORTING_BATCH#1.DIS', rankOrder: 2,
-              measurementValues: getSortingMeasValues({discardOrLanding: 'DIS', weight: 0}),
-              children: [
-                {
-                  label: 'SORTING_BATCH#1.DIS.%',
-                  rankOrder: 1,
-                  samplingRatio: 0.5,
-                  samplingRatioText: '50%',
-                  children: [
-                    {
-                      label: 'SORTING_BATCH_INDIVIDUAL#2',
-                      rankOrder: 2,
-                      taxonName: {id: 1034, label: 'ANK', name: 'Lophius budegassa'},
-                      measurementValues: getIndivMeasValues({discardOrLanding: 'DIS', length: 22, weight: 0.162100}),
-                      individualCount: 1
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-  'empty': {id: 100, label: 'CATCH_BATCH', rankOrder: 1}
-};
 
 @Component({
   selector: 'app-batch-tree-test',
@@ -127,7 +34,6 @@ const TREE_EXAMPLES: {[key: string]: any} = {
   ]
 })
 export class BatchTreeTestPage implements OnInit {
-
 
   $programLabel = new BehaviorSubject<string>(undefined);
   $gearId = new BehaviorSubject<number>(undefined);
@@ -150,14 +56,16 @@ export class BatchTreeTestPage implements OnInit {
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     protected context: TripContextService,
-    private entities: EntitiesStorage
+    private entities: EntitiesStorage,
+    private configService: ConfigService
   ) {
 
     this.form = formBuilder.group({
       program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       fishingArea: [null, Validators.compose([Validators.required, SharedValidators.entity])],
-      example: [null, Validators.required]
+      example: [null, Validators.required],
+      autofill: [false, Validators.required]
     });
   }
 
@@ -218,14 +126,14 @@ export class BatchTreeTestPage implements OnInit {
 
     // Input example
     this.autocomplete.add('example', {
-      items: Object.keys(TREE_EXAMPLES).map((label, index) => ({id: index+1, label})),
+      items: EXAMPLES.map((label, index) => ({id: index+1, label})),
       attributes: ['label']
     });
     this.form.get('example').valueChanges
       //.pipe(debounceTime(450))
       .subscribe(example => {
         if (example && typeof example.label == 'string') {
-          const json = TREE_EXAMPLES[example.label];
+          const json = getExampleTree[example.label];
           if (this.outputs.example) {
             this.dumpCatchBatch(Batch.fromObject(json), 'example');
           }
@@ -260,11 +168,9 @@ export class BatchTreeTestPage implements OnInit {
     this.batchTree.value = data.clone();
     this.batchTree.enable();
 
-    setTimeout(async () => {
-      this.markAsLoaded();
-      await this.batchTree.waitIdle()
-      this.batchTree.autoFill();
-    });
+    if (this.form.get('autofill').value === true) {
+      await this.batchTree.autoFill();
+    }
   }
 
   markAsReady() {
@@ -288,7 +194,7 @@ export class BatchTreeTestPage implements OnInit {
     }
 
     // Load example
-    const json = TREE_EXAMPLES[key];
+    const json = getExampleTree(key);
 
     // Convert to array (as Pod should sent) with:
     // - a local ID
@@ -303,19 +209,20 @@ export class BatchTreeTestPage implements OnInit {
     // Convert into Batch tree
     const catchBatch = Batch.fromObjectArrayAsTree(batches)
 
-    // Compute individual count (see operation-service)
-    BatchUtils.computeIndividualCount(catchBatch);
-
-    // Compute weight (see operation-service)
-    BatchUtils.computeWeight(catchBatch);
-
     BatchUtils.cleanTree(catchBatch);
+
+    // Compute (individual count, weight, etc)
+    BatchUtils.computeTree(catchBatch);
 
     return catchBatch;
   }
 
   // Load data into components
   async applyExample(key?: string) {
+
+    // Wait enumerations override
+    await this.referentialRefService.ready();
+
     const catchBatch = await this.getExampleTree(key);
     await this.updateView(catchBatch);
   }
@@ -406,15 +313,11 @@ export class BatchTreeTestPage implements OnInit {
     const catchBatch = batchTree.value;
 
     if (finalize) {
-
-      // Compute individual count (see operation-service)
-      BatchUtils.computeIndividualCount(catchBatch);
-
       // Clean
       BatchUtils.cleanTree(catchBatch);
 
-      // Compute weight (see operation-service)
-      BatchUtils.computeWeight(catchBatch);
+      // Compute (individual count, weight, etc)
+      BatchUtils.computeTree(catchBatch);
     }
 
     return catchBatch;

@@ -43,10 +43,10 @@ const QUERIES: BaseEntityGraphqlQueries = {
 };
 
 
-const WeightLengthConversionRefCacheKeys = {
+const CacheKeys = {
   CACHE_GROUP: WeightLengthConversion.TYPENAME,
 
-  FIND_BEST: 'findBest',
+  FIND_BEST: 'findBest'
 };
 
 @Injectable({providedIn: 'root'})
@@ -127,24 +127,25 @@ export class WeightLengthConversionRefService
     return weightKg;
   }
 
-  async findAppliedConversion(filter: Partial<WeightLengthConversionFilter>
-    // Force theis filter's attributes as required
-    & {
+  async findAppliedConversion(filter: Partial<WeightLengthConversionFilter> & {
       month: number;
       year: number;
       referenceTaxonId: number;
       lengthPmfmId: number;
+      rectangleLabel: string;
     }, opts?: {cache?: boolean}): Promise<WeightLengthConversionRef | undefined> {
+
+    filter = this.asFilter(filter);
 
     // Use cache
     if (!opts || opts.cache !== false) {
       const cacheKey = [
-        WeightLengthConversionRefCacheKeys.FIND_BEST,
-        this.cryptoService.sha256(JSON.stringify(filter)).substring(0, 8) // Create a unique hash, from args
+        CacheKeys.FIND_BEST,
+        this.cryptoService.sha256(JSON.stringify(filter.asObject())).substring(0,8)
       ].join('|');
       return this.cache.getOrSetItem(cacheKey,
         () => this.findAppliedConversion(filter, {...opts, cache: false}),
-        WeightLengthConversionRefCacheKeys.CACHE_GROUP
+        CacheKeys.CACHE_GROUP
       );
     }
 
@@ -178,8 +179,7 @@ export class WeightLengthConversionRefService
 
     filter = this.asFilter(filter);
 
-    // TODO
-    const offline = false; // this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       return this.entities.loadAll<any>(WeightLengthConversion.TYPENAME, {
         offset, size, sortBy, sortDirection,

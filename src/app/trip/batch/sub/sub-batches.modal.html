@@ -15,7 +15,8 @@
       <ion-spinner *ngIf="loadingSubject|async; else closeButton"></ion-spinner>
 
       <ng-template #closeButton>
-        <ion-button (click)="close($event)"
+        <ion-button *ngIf="enabled"
+                    (click)="close($event)"
                     visible-xs visible-sm visible-mobile>
           <ion-icon slot="icon-only" name="checkmark"></ion-icon>
         </ion-button>
@@ -44,7 +45,7 @@
     <ion-row class="ion-no-padding">
       <!-- form -->
       <ion-col size="12" push="" size-md="4" push-md="8" size-lg="3" push-lg="9"
-               class="">
+               class="ion-col-form">
 
         <!-- error -->
         <ion-item *ngIf="form.error; let error" lines="none">
@@ -52,10 +53,10 @@
           <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
         </ion-item>
 
-
         <app-sub-batch-form #form
                             [debug]="debug"
-                            [programLabel]="programLabel"
+                            [programLabel]="undefined"
+                            [pmfms]="$pmfms|async"
                             floatLabel="always"
                             [acquisitionLevel]="acquisitionLevel"
                             [parentGroup]="parentGroup"
@@ -64,7 +65,7 @@
                             [showTaxonName]="showTaxonNameColumn"
                             [showIndividualCount]="showIndividualCount"
                             [displayParentPmfm]="displayParentPmfm"
-                            [enableWeightConversion]="enableWeightConversion"
+                            [weightDisplayedUnit]="weightDisplayedUnit"
                             [onNewParentClick]="onNewParentClick"
                             (onSubmit)="doSubmitForm($event, editedRow)"
                             [isNew]="!editedRow"
@@ -112,16 +113,6 @@
             </td>
           </ng-container>
 
-          <!-- QV Pmfm columns -->
-          <ng-container *ngIf="qvPmfm" [matColumnDef]="qvPmfm.id.toString()">
-            <th mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
-              <ion-label [innerHTML]="qvPmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
-            </th>
-            <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="qvPmfm|isDatePmfm">
-              <ion-text>{{row.currentData.measurementValues[qvPmfm.id] | pmfmValue: {pmfm: qvPmfm} }}</ion-text>
-            </td>
-          </ng-container>
-
           <!-- taxon name (scientific species) -->
           <ng-container matColumnDef="taxonName">
             <th mat-header-cell *matHeaderCellDef >
@@ -134,12 +125,14 @@
 
           <!-- Pmfms columns -->
           <ng-container *ngFor="let pmfm of $pmfms | async">
-            <ng-container *ngIf="pmfm.id !== qvPmfm.id" [matColumnDef]="pmfm.id.toString()">
+            <ng-container [matColumnDef]="pmfm.id.toString()">
               <th mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm | isDatePmfm" >
                 <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
               </th>
-              <td mat-cell *matCellDef="let row" class="mat-column-pmfm"
-                        [class.mat-cell-date-time]="pmfm|isDatePmfm">
+              <td mat-cell *matCellDef="let row"
+                  class="mat-column-pmfm"
+                  [class.mat-cell-date-time]="pmfm|isDatePmfm"
+                  [class.mat-cell-computed]="pmfm|isComputedPmfm">
                 <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: { pmfm: pmfm }"></ion-text>
               </td>
             </ng-container>
@@ -152,16 +145,6 @@
             </th>
             <td mat-cell *matCellDef="let row">
               {{row.currentData.individualCount}}
-            </td>
-          </ng-container>
-
-          <!-- Weight column -->
-          <ng-container matColumnDef="weight">
-            <th mat-header-cell *matHeaderCellDef>
-              <ion-label [innerHTML]="weightPmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
-            </th>
-            <td mat-cell *matCellDef="let row">
-              <ion-text>{{row.currentData.measurementValues[weightPmfm.id] | weightFormat: {fromUnit: weightPmfm.unitLabel, toUnit: weightDisplayUnit, maxDecimals: weightDisplayDecimals} }}</ion-text>
             </td>
           </ng-container>
 
