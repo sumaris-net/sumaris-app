@@ -15,6 +15,8 @@ import { merge, Observable, Subscription } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PositionUtils } from '@app/trip/services/position.utils';
+import { BBox } from 'geojson';
+import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 
 
 export interface IPmfmForm {
@@ -36,6 +38,7 @@ export interface OperationValidatorOptions extends DataEntityValidatorOptions {
   withFishingEnd?: boolean;
   withEnd?: boolean;
   maxDistance?: number;
+  boundingBox?: BBox;
   trip?: Trip;
   pmfms?: DenormalizedPmfmStrategy[];
 }
@@ -79,16 +82,32 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add position
     if (opts.withPosition) {
-      form.addControl('startPosition', this.positionValidator.getFormGroup(data?.startPosition || null, {required: true}));
+      form.addControl('startPosition', this.positionValidator.getFormGroup(data?.startPosition || null, {
+        __typename: VesselPosition.TYPENAME,
+        required: true,
+        boundingBox: opts?.boundingBox
+      }));
 
       if (opts.withFishingStart) {
-        form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(data?.fishingStartPosition || null, {required: opts && !opts.isOnFieldMode}));
+        form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(data?.fishingStartPosition || null, {
+          __typename: VesselPosition.TYPENAME,
+          required: opts && !opts.isOnFieldMode,
+          boundingBox: opts?.boundingBox
+        }));
       }
       if (opts.withFishingEnd) {
-        form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(data?.fishingEndPosition || null, {required: opts && !opts.isOnFieldMode}));
+        form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(data?.fishingEndPosition || null, {
+          __typename: VesselPosition.TYPENAME,
+          required: opts && !opts.isOnFieldMode,
+          boundingBox: opts?.boundingBox
+        }));
       }
       if (opts.withEnd) {
-        form.addControl('endPosition', this.positionValidator.getFormGroup(data?.endPosition || null, {required: opts && !opts.isOnFieldMode}));
+        form.addControl('endPosition', this.positionValidator.getFormGroup(data?.endPosition || null, {
+          __typename: VesselPosition.TYPENAME,
+          required: opts && !opts.isOnFieldMode,
+          boundingBox: opts?.boundingBox
+        }));
       }
     }
 
@@ -183,33 +202,80 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     opts = this.fillDefaultOptions(opts);
 
     // DEBUG
-    //console.debug(`[operation-validator] Updating form group validators`);
+    console.debug(`[operation-validator] Updating form group validators`);
 
-    // Add positions
+    const positionOpts = {
+      __typename: VesselPosition.TYPENAME,
+      boundingBox: opts?.boundingBox
+    }
     // Start position
     if (opts.withPosition) {
-      if (!form.controls.startPosition) form.addControl('startPosition', this.positionValidator.getFormGroup(null, {required: true}));
+      if (!form.controls.startPosition) {
+        form.addControl('startPosition', this.positionValidator.getFormGroup(null, {
+          ...positionOpts,
+          required: true
+        }));
+      }
+      else {
+        this.positionValidator.updateFormGroup(form.controls.startPosition, {
+          ...positionOpts,
+          required: true
+        })
+      }
     } else {
       if (form.controls.startPosition) form.removeControl('startPosition');
     }
 
     // Fishing start position
     if (opts.withPosition && opts.withFishingStart) {
-      if (!form.controls.fishingStartPosition) form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {required: opts && !opts.isOnFieldMode}));
+      if (!form.controls.fishingStartPosition) {
+        form.addControl('fishingStartPosition', this.positionValidator.getFormGroup(null, {
+            ...positionOpts,
+          boundingBox: opts?.boundingBox
+        }));
+      }
+      else {
+        this.positionValidator.updateFormGroup(form.controls.fishingStartPosition, {
+          ...positionOpts,
+          required: opts && !opts.isOnFieldMode
+        });
+      }
     } else {
       if (form.controls.fishingStartPosition) form.removeControl('fishingStartPosition');
     }
 
     // Fishing end position
     if (opts.withPosition && opts.withFishingEnd && !opts.isParent) {
-      if (!form.controls.fishingEndPosition) form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {required: opts && !opts.isOnFieldMode}));
+      if (!form.controls.fishingEndPosition) {
+        form.addControl('fishingEndPosition', this.positionValidator.getFormGroup(null, {
+          ...positionOpts,
+          required: opts && !opts.isOnFieldMode
+        }));
+      }
+      else {
+        this.positionValidator.updateFormGroup(form.controls.fishingEndPosition, {
+          ...positionOpts,
+          required: opts && !opts.isOnFieldMode
+        });
+      }
     } else {
       if (form.controls.fishingEndPosition) form.removeControl('fishingEndPosition');
     }
 
     // End position
     if (opts.withPosition && opts.withEnd && !opts.isParent) {
-      if (!form.controls.endPosition) form.addControl('endPosition', this.positionValidator.getFormGroup(null, {required: opts && !opts.isOnFieldMode}));
+      if (!form.controls.endPosition) {
+        form.addControl('endPosition', this.positionValidator.getFormGroup(null, {
+          ...positionOpts,
+          required: opts && !opts.isOnFieldMode
+        }));
+      }
+      else {
+        this.positionValidator.updateFormGroup(form.controls.endPosition, {
+          ...positionOpts,
+          required: opts && !opts.isOnFieldMode
+        });
+      }
     } else {
       if (form.controls.endPosition) form.removeControl('endPosition');
     }
@@ -421,7 +487,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         const lastEndPositionControl = [endPositionControl, fishingEndPositionControl, fishingStartPositionControl]
           .find(c => c?.enabled);
         if (lastEndPositionControl) {
-          lastEndPositionControl.setValidators(OperationValidators.maxDistance(startPositionControl, opts.maxDistance));
+          lastEndPositionControl.setValidators(
+            OperationValidators.maxDistance(startPositionControl, opts.maxDistance)
+          );
           lastEndPositionControl.updateValueAndValidity({emitEvent: false});
         }
       }
@@ -591,9 +659,9 @@ export class OperationValidators {
   }
 
 
-  static maxDistance(aPosition: FormGroup, maxInMiles: number): ValidatorFn {
+  static maxDistance(otherPositionForm: FormGroup, maxInMiles: number): ValidatorFn {
     return (control): FormErrors => {
-      const distance = PositionUtils.computeDistanceInMiles(aPosition.value, control.value);
+      const distance = PositionUtils.computeDistanceInMiles(otherPositionForm.value, control.value);
       if (distance > maxInMiles) {
         return {maxDistance: {distance, max: maxInMiles}};
       }

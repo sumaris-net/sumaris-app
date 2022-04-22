@@ -12,40 +12,38 @@ import {
   AppListForm,
   AppPropertiesForm,
   AppTable,
-  changeCaseToUnderscore, EntitiesTableDataSource,
+  changeCaseToUnderscore,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
   FormFieldDefinition,
   FormFieldDefinitionMap,
-  HistoryPageReference, InMemoryEntitiesService,
+  HistoryPageReference,
   isNil,
   isNotNil,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  SharedValidators, StatusIds
+  SharedValidators,
+  StatusIds
 } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
 import { ProgramProperties, StrategyEditor } from '../services/config/program.config';
-import { ActivatedRoute } from '@angular/router';
 import { ISelectReferentialModalOptions, SelectReferentialModal } from '../list/select-referential.modal';
 import { environment } from '../../../environments/environment';
 import { Strategy } from '../services/model/strategy.model';
 import { SamplingStrategiesTable } from '../strategy/sampling/sampling-strategies.table';
 import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
-import { Pmfm } from '@app/referential/services/model/pmfm.model';
-import { ReferentialRefTable } from '@app/referential/list/referential-ref.table';
 import { LocationLevels } from '@app/referential/services/model/model.enum';
-import { IBaseSelectEntityModalOptions } from '@app/referential/list/base-select-entity.modal';
 
-export enum AnimationState {
-  ENTER = 'enter',
-  LEAVE = 'leave'
+const PROGRAM_TABS = {
+  LOCATIONS: 1,
+  STRATEGIES: 2,
+  OPTIONS: 3,
+  PERSONS: 4
 }
-
 @Component({
   selector: 'app-program',
   templateUrl: 'program.page.html',
@@ -58,6 +56,7 @@ export enum AnimationState {
 })
 export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
 
+  readonly TABS = PROGRAM_TABS;
   readonly mobile: boolean;
   propertyDefinitions: FormFieldDefinition[];
   fieldDefinitions: FormFieldDefinitionMap = {};

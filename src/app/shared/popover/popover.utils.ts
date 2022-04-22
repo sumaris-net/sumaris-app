@@ -1,4 +1,4 @@
-import { TextPopover, TextPopoverOptions } from '@sumaris-net/ngx-components/src/app/core/text-popover/text-popover.component';
+import { TextPopover, TextPopoverOptions } from '@sumaris-net/ngx-components';
 import { PopoverController, PopoverOptions } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
 

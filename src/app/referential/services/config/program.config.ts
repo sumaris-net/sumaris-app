@@ -90,6 +90,11 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_POSITION_BOUNDING_BOX: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.position.boundingBox',
+    label: 'PROGRAM.OPTIONS.TRIP_POSITION_BOUNDING_BOX',
+    type: 'string' // expected BBox
+  },
   TRIP_POSITION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.position.enable',
     label: 'PROGRAM.OPTIONS.TRIP_POSITION_ENABLE',
@@ -150,6 +155,31 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_DISPLAYED_UNIT: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.individual.weightUnit',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT',
+    type: 'enum',
+    values: [
+      {
+        key: UnitLabel.KG,
+        value: UnitLabel.KG
+      },
+      {
+        key: UnitLabel.GRAM,
+        value: UnitLabel.GRAM
+      },
+      {
+        key: UnitLabel.MG,
+        value: UnitLabel.MG
+      },
+      {
+        key: UnitLabel.TON,
+        value: UnitLabel.TON
+      }
+    ],
+    // No default value (keep PMFM unit)
+    //defaultValue: UnitLabel.KG
+  },
   TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.rankOrder.compute',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE',
@@ -166,12 +196,6 @@ export const ProgramProperties = Object.freeze({
     key: 'sumaris.trip.operation.batch.weight.enable',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_WEIGHT_ENABLE',
     defaultValue: 'true',
-    type: 'boolean'
-  },
-  TRIP_BATCH_WEIGHT_CONVERSION_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.batch.weight.conversion.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE',
-    defaultValue: 'false', // Enable RTP / Equiv poids vif
     type: 'boolean'
   },
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{

@@ -46,6 +46,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
+import { Geometries } from '@app/shared/geometries.utils';
 
 const moment = momentImported;
 
@@ -582,6 +583,7 @@ export class OperationPage
     const enablePosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.opeForm.trip = this.trip;
     this.opeForm.showPosition = enablePosition;
+    this.opeForm.boundingBox = enablePosition && Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
     // TODO: make possible to have both showPosition and showFishingArea at true (ex SFA artisanal logbook program)
     this.opeForm.showFishingArea = !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
     this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
@@ -602,7 +604,7 @@ export class OperationPage
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
-    this.saveOptions.computeBatchWeight = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE);
+    //this.saveOptions.computeBatchWeight = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE);
 
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);

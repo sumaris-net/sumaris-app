@@ -243,7 +243,7 @@
         "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Référentiel > Valeur qualitative > État de l'espèce / Frais",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métier nationaux",
-        "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métier DCF 5"
+        "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métier DCF niv 5"
       },
       "TESTING": "Mode développeur ?",
       "ENTITY_TRASH": "Activer la corbeille du pod ?",
@@ -819,8 +819,7 @@
         "WEIGHT": "Poids (kg)",
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
-        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?",
-        "CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP"
+        "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
       }
     },
     "SUB_BATCH": {
@@ -828,16 +827,12 @@
         "TITLE": "Nouvel individu"
       },
       "EDIT": {
-        "TITLE": "Individu {{label}}",
-        "CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP"
-      },
-      "TABLE": {
-        "CALCULATED_WEIGHT_LENGTH": "Poids calculé"
+        "TITLE": "Individu {{label}}"
       },
       "ERROR": {
-        "WEIGHT_LENGTH_CONVERSION_FAILED": "RTP désactivés",
-        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "RTP désactivés (rectangle inconnu)",
-        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "RTP désactivés (paramètre de longueur manquant)"
+        "WEIGHT_LENGTH_CONVERSION_FAILED": "Poids RTP désactivés",
+        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "Poids RTP désactivés (rectangle inconnu)",
+        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "Poids RTP désactivés (paramètre de longueur manquant)"
       }
     },
     "SAMPLE": {
@@ -1583,6 +1578,7 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : saisir nb indiv. ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : espèces scientifiques ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Capture > Mesures individuelles : espèces commerciales ?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Capture > Mesures individuelles : Unité du poids",
       "TRIP_SAMPLE_ENABLE": "Échantillon : Activer ?",
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Échantillon : Date et heure ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Échantillon : Espèces commerciales ?",
@@ -1590,13 +1586,14 @@
       "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Test de survie : Espèces scientifiques ?",
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Test de survie : Espèces commerciales ?",
       "TRIP_POSITION_ENABLE": "Marée > Position : Activer ?",
+      "TRIP_POSITION_BOUNDING_BOX": "Marée > Position : Boite limite ([x1, y1, x2, y2]) :",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
       "TRIP_METIER_FILTER": "Marée > Opération : Filtrer les métiers déjà saisis ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée > Opération : Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte :",
-      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur : ",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur :",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée > Opération : Zone de pêche: Niveau(x) de lieu",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Marée > Opération : Espèce cible: Niveau(x)",
@@ -2199,9 +2196,9 @@
     "FIELD_MIN_LENGTH_COMPACT": "Valeur trop courte",
     "FIELD_MAX_LENGTH": "Valeur trop longue {{maxLength && (' (' + maxLength + ' caract. max)') }}",
     "FIELD_MAX_LENGTH_COMPACT": "Valeur trop longue",
-    "FIELD_MIN": "La valeur minimale autorisée est {{min}}",
-    "FIELD_MIN_COMPACT": "Min autorisée={{min}}",
-    "FIELD_MAX": "Valeur maximale autorisée: {{max}}",
+    "FIELD_MIN": "Valeur minimale : {{min}}",
+    "FIELD_MIN_COMPACT": "Min {{min}}",
+    "FIELD_MAX": "Valeur maximale : {{max}}",
     "FIELD_MAX_COMPACT": "Max {{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Trop de décimales (max: {{maxDecimals}})",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb décimale > {{maxDecimals}}",

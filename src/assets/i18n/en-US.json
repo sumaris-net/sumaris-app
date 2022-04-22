@@ -128,6 +128,10 @@
     },
     "TABLE": {
       "FILTERED_PARENTHESIS": "(filtered)"
+    },
+    "DEBUG": {
+      "BTN_COPY_LOCALLY": "Copy locally",
+      "BTN_AUTO_FILL": "Auto fill data"
     }
   },
   "CONFIGURATION": {
@@ -208,7 +212,7 @@
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Referential > Location level > CIEM/ICES Division",
         "LOCATION_LEVEL_LOCATIONS_AREA_IDS": "Strategy > Location level(s) for fishing area (ids)",
-        "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Strategy > Location level(s) for areas in Weight-Length Equivalents (ids)",
+        "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Strategy > Location level(s) for areas in Length-Weight conversions (ids)",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Referential > Taxonomic level > Family",
         "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
@@ -236,7 +240,10 @@
         "UNIT_NONE_ID": "Referential > Unit > None (hide by default)",
         "QUALITATIVE_VALUE_LANDING_ID": "Referential > Qualitative value > Landing (LAN)",
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Referential > Qualitative value > Dressing / Whole",
-        "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Referential > Qualitative value > Preservation / Fresh"
+        "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Referential > Qualitative value > Preservation / Fresh",
+        "TAXON_GROUP_TYPE_FAO_ID": "Referential > Taxon group type / FAO",
+        "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Taxon group type / National metier",
+        "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referential > Taxon group type / DCF metier lvl 5"
       },
       "TESTING": "Developer mode ?",
       "ENTITY_TRASH": "Enable trash on pod?",
@@ -252,6 +259,7 @@
       "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process?",
       "DATA_SHOW_RECORDER": "Show recorder person?",
       "DATA_SHOW_OBSERVERS": "Show observers?",
+      "DATA_IMPORT_DEFAULT_PERIOD": "Offline mode > Period to import (by default)",
       "LANDING": {
         "FILTER_PROGRAM": "Landing > Show program filter?",
         "FILTER_LOCATION": "Landing > Show locations filter?",
@@ -819,6 +827,11 @@
       },
       "EDIT": {
         "TITLE": "Individual {{label}}"
+      },
+      "ERROR": {
+        "WEIGHT_LENGTH_CONVERSION_FAILED": "Length-Weight conversions disabled",
+        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "Length-Weight conversions disabled (unknown rectangle)",
+        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "Length-Weight conversions disabled (missing length parameter)"
       }
     },
     "SAMPLE": {
@@ -1363,7 +1376,7 @@
       "TAXONOMIC_LEVEL": "Taxonomic level",
       "START_DATE": "Start date",
       "END_DATE": "End date",
-      "TAB_WEIGHT_LENGTH_CONVERSION": "Weight-Length relations (WLR)",
+      "TAB_WEIGHT_LENGTH_CONVERSION": "Length-Weight relations (WLR)",
       "NEW": {
         "TITLE": "New scientific specie"
       },
@@ -1506,6 +1519,7 @@
   },
   "PROGRAM": {
     "TAB_GENERAL": "Details",
+    "TAB_LOCATIONS": "Locations",
     "TAB_STRATEGIES": "Strategies",
     "TAB_STRATEGIES.SAMPLING": "Samples row",
     "TAB_PRIVILEGES": "Access rights",
@@ -1513,6 +1527,7 @@
     "TAXON_GROUP_TYPE": "Referential for taxon groups",
     "GEAR_CLASSIFICATION": "Referential for gears",
     "LOCATION_CLASSIFICATION": "Referential for locations",
+    "LOCATIONS": "Locations",
     "PROPERTY_KEY": "Setting",
     "PROPERTY_VALUE": "Value",
     "BTN_SHOW_MORE_HELP": "More settings",
@@ -1562,6 +1577,7 @@
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter nb indiv?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Catch > Individual measure: Scientific species?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Catch > Individual measure: Commercial species?",
+      "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Catch > Individual measure: Weight unit",
       "TRIP_SAMPLE_ENABLE": "Sample : Enable ?",
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Sample : Sample date/time?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Sample: Commercial species?",
@@ -1569,6 +1585,7 @@
       "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Survival test: Scientific species?",
       "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Survival test: Commercial species?",
       "TRIP_POSITION_ENABLE": "Trip > Position: Enable?",
+      "TRIP_POSITION_BOUNDING_BOX": "Trip > Position: Bounding box ([x1, y1, x2, y2]) :",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Trip > Position > Latitude: Default direction:",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Trip > Position > Longitude: Default direction:",
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling) ?",
@@ -2126,9 +2143,9 @@
     "FIELD_MAX_LENGTH": "Too long value{{ maxLength && (' (max ' + maxLength + 'characters)') }}.",
     "FIELD_MAX_LENGTH_COMPACT": "Too long value",
     "FIELD_MIN": "Minimal value: {{min}}",
-    "FIELD_MIN_COMPACT": "Min value={{min}}",
+    "FIELD_MIN_COMPACT": "Min {{min}}",
     "FIELD_MAX": "Maximum value: {{max}}",
-    "FIELD_MAX_COMPACT": "Max value={{max}}",
+    "FIELD_MAX_COMPACT": "Max {{max}}",
     "FIELD_MAXIMUM_DECIMALS": "Too many decimals ({{maxDecimals}} max)",
     "FIELD_MAXIMUM_DECIMALS_COMPACT": "Nb decimals > {{max}}",
     "FIELD_INVALID": "Invalid value",

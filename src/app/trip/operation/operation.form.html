@@ -202,11 +202,12 @@
                 <button type="button" mat-icon-button matSuffix
                         (click)="onFillPositionClick($event,'startPosition')"
                         tabindex="-1"
-                        [hidden]="!enableGeolocation">
+                        *ngIf="enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
                 <button type="button" mat-icon-button matSuffix
-                        [hidden]="enableGeolocation || position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
+                        *ngIf="enableCopyPosition"
+                        [class.cdk-visually-hidden]="position.invalid || (!fishingStartDateTimeEnable && isParentOperation)"
                         (click)="copyPosition($event,'startPosition')"
                         [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE_POSITION'|translate">
                   <mat-icon>arrow_downward</mat-icon>
@@ -274,10 +275,12 @@
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <mat-error *ngIf="position.hasError('maxDistance')">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance }}</mat-error>
-                <!--<mat-error *ngIf="distanceError">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-error>-->
-                <mat-hint align="end" *ngIf="distanceWarning">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}</mat-hint>
-                <mat-hint align="end" *ngIf="!distanceWarning && distance">
+                <mat-error *ngIf="position.hasError('maxDistance')">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance}}</mat-error>
+                <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
+                  <mat-icon color="warn">warning</mat-icon>
+                  {{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}
+                </mat-hint>
+                <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
                   {{'TRIP.OPERATION.EDIT.DISTANCE_DOTS'|translate: {distance: distance} }}
                 </mat-hint>
               </mat-latlong-field>
@@ -401,9 +404,12 @@
                         [hidden]="!enableGeolocation">
                   <mat-icon>gps_fixed</mat-icon>
                 </button>
-                <mat-error *ngIf="position.hasError('maxDistance')">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance }}</mat-error>
-                <mat-hint align="end" *ngIf="!position.errors && distance >= 0">
-                  <mat-icon *ngIf="distanceWarning" color="warn">warning</mat-icon>
+                <mat-error *ngIf="position.hasError('maxDistance')">{{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: position.errors.maxDistance}}</mat-error>
+                <mat-hint align="end" *ngIf="position.valid && distanceWarning && distance">
+                  <mat-icon color="warn">warning</mat-icon>
+                  {{'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'|translate: {distance: distance} }}
+                </mat-hint>
+                <mat-hint align="end" *ngIf="position.valid && !distanceWarning && distance >= 0">
                   {{'TRIP.OPERATION.EDIT.DISTANCE_DOTS'|translate: {distance: distance} }}
                 </mat-hint>
               </mat-latlong-field>

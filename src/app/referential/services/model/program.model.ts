@@ -3,18 +3,19 @@ import {
   Entity,
   EntityClass,
   EntityUtils,
-  FormFieldDefinition, isNilOrBlank,
+  FormFieldDefinition,
   isNotNil,
   Person,
   PropertiesMap,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  ReferentialUtils, removeDuplicatesFromArray
+  ReferentialUtils,
+  removeDuplicatesFromArray
 } from '@sumaris-net/ngx-components';
 import { Strategy } from './strategy.model';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
-import { ProgramProperties, ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
-import { IDenormalizedPmfm, IPmfm } from '@app/referential/services/model/pmfm.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
+import { IDenormalizedPmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy, PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 @EntityClass({typename: 'ProgramVO'})
