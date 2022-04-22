@@ -10,7 +10,7 @@
 
       <button mat-menu-item
               [title]="'COMMON.BTN_EDIT'|translate" (click)="openTrip(activity)"
-              [disabled]="!activity || !activity.tripId">
+              [disabled]="!activity || !activity.tripId || !activity.observedLocationId">
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
         <ion-label translate>AGGREGATED_LANDING.OPEN_TRIP</ion-label>
       </button>
