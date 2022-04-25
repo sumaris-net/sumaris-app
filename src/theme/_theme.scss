@@ -132,7 +132,8 @@ form.form-container {
     mat-icon[matPrefix],
     .mat-form-field-prefix ion-icon,
     .mat-form-field-prefix .mat-icon {
-      color: var(--ion-color-medium-shade);
+      color: rgba(0, 0, 0, 0.57);
+      fill: rgba(0, 0, 0, 0.57);
     }
 
     &.mat-focused {
@@ -140,7 +141,8 @@ form.form-container {
       mat-icon[matPrefix],
       .mat-form-field-prefix ion-icon,
       .mat-form-field-prefix .mat-icon {
-        color: var(--ion-color-primary);
+        color: var(--ion-color-dark);
+        fill: var(--ion-color-dark);
       }
     }
   }
