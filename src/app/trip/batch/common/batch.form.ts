@@ -302,13 +302,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
       // Read child weight (use the first one)
       if (this.defaultWeightPmfm) {
-        const samplingWeightPmfm = (this.weightPmfms || []).find(p => isNotNil(samplingBatch.measurementValues[p.id.toString()]));
-        samplingBatch.weight = samplingBatch.weight || {
-          methodId: samplingWeightPmfm && samplingWeightPmfm.methodId,
-          computed: samplingWeightPmfm && (samplingWeightPmfm.isComputed || samplingWeightPmfm.methodId === MethodIds.CALCULATED),
-          estimated: samplingWeightPmfm && samplingWeightPmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
-          value: samplingWeightPmfm && samplingBatch.measurementValues[samplingWeightPmfm.id.toString()],
-        };
+        samplingBatch.weight = BatchUtils.getWeight(samplingBatch, this.weightPmfms);
 
         // Adapt measurement values to form
         MeasurementValuesUtils.normalizeEntityToForm(samplingBatch, [], samplingFormGroup);
@@ -345,9 +339,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Convert weight into measurement
     const totalWeight = this.defaultWeightPmfm && json.weight?.value;
     if (isNotNil(totalWeight)) {
-      const totalWeightPmfm = (json.weight?.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER])
-        || (json.weight.computed && this.weightPmfmsByMethod[MethodIds.CALCULATED])
-        || this.defaultWeightPmfm;
+      const totalWeightPmfm = BatchUtils.getWeightPmfm(json.weight, this.weightPmfms, this.weightPmfmsByMethod);
       json.measurementValues[totalWeightPmfm.id.toString()] = totalWeight;
     }
 
@@ -372,9 +364,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         this.weightPmfms.forEach(p => childJson.measurementValues[p.id.toString()] = undefined);
         // Convert weight into measurement
         if (isNotNil(childJson.weight?.value)) {
-          const childWeightPmfm = (childJson.weight.estimated && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER])
-            || (childJson.weight.computed && this.weightPmfmsByMethod[MethodIds.CALCULATED])
-            || this.defaultWeightPmfm;
+          const childWeightPmfm = BatchUtils.getWeightPmfm(childJson.weight, this.weightPmfms, this.weightPmfmsByMethod);
           childJson.measurementValues[childWeightPmfm.id.toString()] = childJson.weight.value;
         }
 

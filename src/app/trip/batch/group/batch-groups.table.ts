@@ -474,8 +474,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       : row.currentData;
 
     const computed = col.computed
-      || ((col.isWeight && col.isSampling && batch.children[0].weight.computed) // total weight is computed
-          || (col.isWeight && !col.isSampling && batch.weight.computed) // sampling weight is computed
+      || ((col.isWeight && col.isSampling && batch.children[0].weight?.computed) // total weight is computed
+          || (col.isWeight && !col.isSampling && batch.weight?.computed) // sampling weight is computed
           || (col.key.endsWith('samplingRatio') && (batch?.children[0]?.samplingRatioText || '').indexOf('/') !== -1) // sampling ratio is computed
       );
     //DEBUG
@@ -485,10 +485,15 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   isSamplingWeightMissing(col: ColumnDefinition, row: TableElement<BatchGroup>): boolean {
     if (!col.isWeight || !col.isSampling) return false;
-    const batch = row.currentData;
+    const samplingBatch = (col.qvIndex >= 0
+      // With qv pmfm
+      ? row.currentData.children[col.qvIndex]
+      // With no qv pmfm
+      : row.currentData)
+      .children[0];
 
-    const missing = (isNil(batch.children[col.qvIndex].children[0].weight) || isNil(batch.children[col.qvIndex].children[0].weight?.value))
-      && batch.children[col.qvIndex].children[0].individualCount !== null;
+    const missing = (isNil(samplingBatch.weight) || isNil(samplingBatch.weight?.value))
+      && samplingBatch.individualCount !== null;
     //DEBUG
     // console.debug('[batch-group-table] missing sample weight', col.path, missing);
     return missing;
@@ -610,8 +615,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Set weight
     if (isNotNilOrNaN(batch.weight?.value)) {
-      const weightPmfm = batch.weight?.computed && this.weightPmfmsByMethod[batch.weight.methodId]
-        || (isEstimatedWeight ? this.estimatedWeightPmfm : this.defaultWeightPmfm);
+      const weightPmfm = BatchUtils.getWeightPmfm(batch.weight, this.weightPmfms, this.weightPmfmsByMethod);
       batch.measurementValues[weightPmfm.id.toString()] = batch.weight.value;
     }
 
@@ -627,8 +631,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
       // Set weight
       if (isNotNilOrNaN(samplingBatch.weight?.value)) {
-        const samplingWeightPmfm = samplingBatch.weight?.computed && this.weightPmfmsByMethod[samplingBatch.weight.methodId]
-          || (isEstimatedWeight ? this.estimatedWeightPmfm : this.defaultWeightPmfm);
+        const samplingWeightPmfm = BatchUtils.getWeightPmfm(samplingBatch.weight, this.weightPmfms, this.weightPmfmsByMethod);
         samplingBatch.measurementValues[samplingWeightPmfm.id.toString()] = samplingBatch.weight.value;
       }
 
@@ -669,6 +672,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       if (!opts || opts.emitLoaded !== false) {
         this.markAsLoaded();
       }
+      this.markForCheck();
     }
   }
 
@@ -1062,17 +1066,18 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    * Update the batch group row (e.g. observed individual count), from subbatches
    * @param row
    * @param subBatches
+   * @param opts
    */
-  protected updateBatchGroupRow(row: TableElement<BatchGroup>, subBatches: SubBatch[]): BatchGroup {
+  protected updateBatchGroupRow(row: TableElement<BatchGroup>, subBatches: SubBatch[], opts = {emitEvent: true}): BatchGroup {
     const parent: BatchGroup = row && row.currentData;
     if (!parent) return; // skip
 
     const updatedParent = this.updateBatchGroupFromBatches(parent, subBatches || []);
 
     if (row.validator) {
-      row.validator.patchValue(updatedParent, {emitEvent: false});
+      row.validator.patchValue(updatedParent, opts);
     } else {
-      row.currentData = updatedParent;
+      row.currentData = updatedParent.clone(); // Force a refresh (because of propertyGet pipe)
     }
 
     return updatedParent;
@@ -1117,7 +1122,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
         // Update weight
         if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
-          samplingBatch.weight = BatchUtils.sumCalculatedWeight(qvChildren);
+          samplingBatch.weight = BatchUtils.sumCalculatedWeight(qvChildren, this.weightPmfms, this.weightPmfmsByMethod);
         }
       })
 

@@ -314,9 +314,10 @@ export class BatchUtils {
       && weightPmfmsByMethodId[MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
       || weightPmfmsByMethodId[MethodIds.CALCULATED];
     const methodId = toNumber(weightPmfm?.methodId, MethodIds.CALCULATED);
+    const maxDecimals = toNumber(weightPmfm?.maximumNumberDecimals, weightPmfms[0]?.maximumNumberDecimals || 3);
 
     return {
-      value: roundHalfUp(value, weightPmfm?.maximumNumberDecimals || 3),
+      value: roundHalfUp(value, maxDecimals),
       methodId,
       computed: true,
       estimated: false
@@ -396,6 +397,7 @@ export class BatchUtils {
 
   static getWeight(source: Batch, weightPmfms?: IPmfm[]): BatchWeight | undefined {
     if (!source) return undefined;
+    if (source.weight) return source.weight;
 
     weightPmfms = weightPmfms || this.getDefaultSortedWeightPmfms();
 
@@ -418,6 +420,18 @@ export class BatchUtils {
         return r1-r2;
       })
       .find(isNotNil);
+  }
+
+  static getWeightPmfm(weight: BatchWeight, weightPmfms: IPmfm[], weightPmfmsByMethodId?: { [key: string]: IPmfm }): IPmfm {
+    if (!weight) return undefined;
+
+    weightPmfms = weightPmfms || this.getDefaultSortedWeightPmfms();
+    weightPmfmsByMethodId = weightPmfmsByMethodId || splitByProperty(weightPmfms, 'methodId');
+
+    return (weight?.estimated && weightPmfmsByMethodId[MethodIds.ESTIMATED_BY_OBSERVER])
+    || (weight.computed && (weightPmfmsByMethodId[weight.methodId] || weightPmfmsByMethodId[MethodIds.CALCULATED]))
+      // Or default weight
+    || weightPmfms[0];
   }
 
   /**

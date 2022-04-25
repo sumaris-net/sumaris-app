@@ -1,7 +1,7 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions} from "../common/batch.model";
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '../../../referential/services/model/model.enum';
 import { EntityClass, EntityUtils, ReferentialRef } from '@sumaris-net/ngx-components';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
@@ -84,10 +84,15 @@ export class BatchGroupUtils {
             pmfm.hidden = true;
             pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.DRESSING.WHOLE, label: 'WHL' });
           }
-          if (pmfm.id === PmfmIds.PRESERVATION) {
+          else if (pmfm.id === PmfmIds.PRESERVATION) {
             pmfm = pmfm.clone();
             pmfm.hidden = true;
             pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.PRESERVATION.FRESH, label: 'FRE' });
+          }
+          // Hide computed weight
+          else if (pmfm.isComputed && PmfmUtils.isWeight(pmfm)) {
+            pmfm = pmfm.clone();
+            pmfm.hidden = true;
           }
         }
         return pmfm;
