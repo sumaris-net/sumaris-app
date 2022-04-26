@@ -12,6 +12,7 @@ import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
 import { Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -174,7 +175,11 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
       return true;
     }
 
-    const gear = row.validator ? PhysicalGear.fromObject(row.currentData) : row.currentData;
+    const gear = PhysicalGear.fromObject({
+      ...row.currentData,
+      // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
+      measurementValues: MeasurementValuesUtils.asObject(row.currentData.measurementValues, {minify: true})
+    });
 
     const updatedGear = await this.openDetailModal(gear);
     if (updatedGear) {
