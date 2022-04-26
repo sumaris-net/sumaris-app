@@ -92,7 +92,7 @@
           (click)="focusColumn='parentGroup'">
         <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                                 [autofocus]="row.editing && focusColumn === 'parentGroup'"
-                                [formControl]="row.validator.controls.parentGroup"
+                                [formControl]="row.validator|formGetControl:'parentGroup'"
                                 [placeholder]="'TRIP.BATCH.TABLE.PARENT_GROUP'|translate"
                                 [config]="autocompleteFields.parentGroup"
                                 required>
@@ -207,7 +207,7 @@
         [class.mat-row-disabled]="!row.editing"
         (click)="clickRow($event, row)"
         (keydown.escape)="escapeEditingRow($event)"
-        [cdkTrapFocus]="row.validator.invalid"></tr>
+        [cdkTrapFocus]="!row.validator.valid"></tr>
   </table>
 
   <ion-item *ngIf="totalRowCount === 0">

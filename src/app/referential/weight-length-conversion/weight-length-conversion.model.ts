@@ -58,7 +58,9 @@ export class WeightLengthConversionRef
   extends BaseWeightLengthConversion<WeightLengthConversionRef> {
 
   static fromObject: (source: any, opts?: any) => WeightLengthConversionRef;
-
+  static isNotNilOrBlank(source: WeightLengthConversionRef): boolean {
+    return source && isNotNil(source.conversionCoefficientA) && isNotNil(source.conversionCoefficientB);
+  }
   locationId: number = null;
 
   lengthParameterId: number = null;

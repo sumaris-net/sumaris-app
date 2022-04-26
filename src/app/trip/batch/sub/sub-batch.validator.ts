@@ -93,8 +93,10 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
 
     // Add weight sub form
     if (opts?.withWeight) {
+      const weightPmfm = this.getWeightLengthPmfm({required: opts?.weightRequired, pmfms: opts?.pmfms});
       form.addControl('weight', this.getWeightFormGroup(data && data.weight, {
-        required: opts?.weightRequired
+        required: opts?.weightRequired,
+        pmfm: weightPmfm
       }));
     }
 
@@ -107,7 +109,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
 
     // Add/remove weight form group, if need
     if (withWeight && !form.controls.weight) {
-      const weightPmfm = (opts?.pmfms || []).find(PmfmUtils.isWeight);
+      const weightPmfm = this.getWeightLengthPmfm({required: opts?.weightRequired, pmfms: opts?.pmfms});
       form.addControl('weight', this.getWeightFormGroup(null, {
         required: opts?.weightRequired,
         pmfm: weightPmfm
@@ -118,14 +120,29 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     }
   }
 
+  getWeightLengthPmfm(opts: {pmfms?: IPmfm[], required?: boolean}){
+    opts = opts || {};
+    return (opts.pmfms || []).find(p => PmfmUtils.isWeight(p) && p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH)
+    || DenormalizedPmfmStrategy.fromObject(<IPmfm>{
+      id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH,
+      required: opts.required || false,
+      methodId: MethodIds.CALCULATED_WEIGHT_LENGTH,
+      unitLabel: <WeightUnitSymbol>'kg',
+      minValue: 0,
+      maximumNumberDecimals: SubBatchValidators.DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS
+    })
+  }
+
   async enableWeightLengthConversion(form: FormGroup, opts: {
     pmfms: IPmfm[];
     qvPmfm?: IPmfm;
     // Context
     rectangleLabel?: string;
     date?: Moment;
-    parentGroup?: BatchGroup;
     countryId?: number;
+    // Parent
+    parentGroupPath?: string;
+    parentGroup?: BatchGroup;
     // Weight
     weightRequired?: boolean;
     weightPath?: string;
@@ -144,7 +161,9 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     }
     const date = opts?.date || this.context?.getValueAsDate('date') || moment();
     const countryId = opts.countryId || (this.context?.getValue('country') as ReferentialRef)?.id;
-    const parentGroup = opts.parentGroup || this.context?.getValue('parentGroup') as BatchGroup;
+    const parentGroup = opts.parentGroup
+      || (opts?.parentGroupPath && form.get(opts.parentGroupPath))?.value
+      || this.context?.getValue('parentGroup') as BatchGroup;
     let rectangleLabel = opts?.rectangleLabel || this.getContextualStatisticalRectangle();
     const qvPmfm = opts?.qvPmfm;
 
@@ -171,24 +190,16 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     }
 
     // Get the PMFM to use to store computed weight
-    const weightPmfm = (opts.pmfms || []).find(p => PmfmUtils.isWeight(p) && p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH)
-    || DenormalizedPmfmStrategy.fromObject(<IPmfm>{
-        id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH,
-        required: opts.weightRequired,
-        methodId: MethodIds.CALCULATED_WEIGHT_LENGTH,
-        unitLabel: <WeightUnitSymbol>'kg',
-        minValue: 0,
-        maximumNumberDecimals: SubBatchValidators.DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS
-    });
+    const weightPmfm = this.getWeightLengthPmfm({required: opts?.weightRequired, pmfms: opts?.pmfms});
 
     // Create weight form
     let weightControl = form.get('weight');
     if (!weightControl) {
       weightControl = this.getWeightFormGroup(null, {
         required: opts?.weightRequired,
-        maxDecimals: toNumber(weightPmfm?.maximumNumberDecimals, SubBatchValidators.DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS),
         pmfm: weightPmfm
       });
+
       form.addControl('weight', weightControl);
     }
     if (weightControl.enabled) weightControl.disable({emitEvent: false});
@@ -266,7 +277,7 @@ export class SubBatchValidators {
                                   // Reference Taxon
                                   taxonNamePath?: string;
                                   // Parent
-                                  parentPath?: string;
+                                  parentGroupPath?: string;
                                   parentGroup?: BatchGroup;
                                   qvPmfm?: IPmfm;
   }): ValidatorFn {
@@ -307,7 +318,7 @@ export class SubBatchValidators {
                                                        // nb indiv
                                                        individualCountPath?: string;
                                                        // Parent
-                                                       parentPath?: string;
+                                                       parentGroupPath?: string;
                                                        parentGroup?: BatchGroup;
                                                        qvPmfm?: IPmfm;
                                                      }) : Promise<ValidationErrors | null> {
@@ -317,7 +328,7 @@ export class SubBatchValidators {
     const sexPath = opts?.sexPath || `measurementValues.${sexPmfmId}`;
     const individualCountPath = opts.individualCountPath || `individualCount`;
     const weightPath = opts.weightPath || 'weight';
-    const parentPath = opts.parentPath || 'parent';
+    const parentPath = opts.parentGroupPath || 'parentGroup';
     const qvPath = isNotNil(opts.qvPmfm?.id) && `measurementValues.${opts.qvPmfm.id}` || undefined;
 
     const date = opts.date || moment();
@@ -344,6 +355,7 @@ export class SubBatchValidators {
     const weightControl = form.get(weightPath);
     const parentControl = form.get(parentPath);
     const qvControl = qvPath && form.get(qvPath);
+    const weightMeasurementControl = opts?.weightPmfm && form.get(`measurementValues.${opts.weightPmfm.id}`);
 
     // Check controls
     if (!taxonNameControl) throw Error(`Cannot resolve control with path: '${taxonNamePath}'`);
@@ -360,7 +372,7 @@ export class SubBatchValidators {
     const sex = sexControl?.value;
     const weightUnit = isWeightUnitSymbol(opts.weightPmfm?.unitLabel) ? opts.weightPmfm.unitLabel : 'kg';
     const qvValue = qvControl?.value;
-    const parentGroup: BatchGroup = parentControl.value || opts.parentGroup;
+    const parentGroup: BatchGroup = opts.parentGroup || parentControl?.value;
 
     // DEBUG
     console.debug('[sub-batch-validator] Start weight-length conversion: ',
@@ -376,12 +388,12 @@ export class SubBatchValidators {
     if (isNotNilOrNaN(length) && length > 0) {
 
       // Find a Weight-Length conversion
-      const wlConversion = await wlService.findAppliedConversion({
+      const wlConversion = await wlService.loadByFilter({
         month, year, lengthPmfmId: lengthPmfm.id, referenceTaxonId, sexId: sex?.id, rectangleLabel: opts.rectangleLabel
       });
 
       // Compute weight
-      let computedWeightKg = wlConversion && wlService.computeWeight(wlConversion, length, {
+      let value = wlService.computeWeight(wlConversion, length, {
         individualCount,
         lengthUnit: isLengthUnitSymbol(lengthPmfm.unitLabel) ? lengthPmfm.unitLabel : undefined,
         lengthPrecision: lengthPmfm.precision,
@@ -389,72 +401,74 @@ export class SubBatchValidators {
       });
 
       // DEBUG
-      if (computedWeightKg) console.debug(`[sub-batch-validator] Computed weight (alive): ${computedWeightKg}kg`);
+      if (value) console.debug(`[sub-batch-validator] Alive weight = ${value}kg`);
 
       // Convert from alive weight, into given dressing
       // Parent
 
-      if (computedWeightKg && parentGroup) {
+      if (value && parentGroup) {
         const taxonGroupId = parentGroup.taxonGroup?.id;
 
-        const parent = qvValue ? BatchGroupUtils.findChildByQvValue(parentGroup, qvValue, opts.qvPmfm) : parentGroup;
-        const dressingId = parent.measurementValues && PmfmValueUtils.toModelValue(parent.measurementValues[PmfmIds.DRESSING], {type: 'qualitative_value'});
+        const parent = qvValue && BatchGroupUtils.findChildByQvValue(parentGroup, qvValue, opts.qvPmfm) || parentGroup;
+        const dressingId = parent?.measurementValues && PmfmValueUtils.toModelValue(parent.measurementValues[PmfmIds.DRESSING], {type: 'qualitative_value'});
         if (isNotNil(taxonGroupId) && isNotNil(dressingId)) {
           const preservingId = parent.measurementValues && PmfmValueUtils.toModelValue(parent.measurementValues[PmfmIds.PRESERVATION], {type: 'qualitative_value'})
             || QualitativeValueIds.PRESERVATION.FRESH;
 
           // Find a round weight conversion
-          const rwConversion = await rwService.findAppliedConversion({
+          const rwConversion = await rwService.loadByFilter({
             date, taxonGroupId, dressingId: +dressingId, preservingId: +preservingId, locationId: opts.countryId
-          })
+          });
 
           // Apply round weight (inverse) conversion
           if (rwConversion) {
-            computedWeightKg = computedWeightKg / rwConversion.conversionCoefficient;
-
-            console.debug(`[sub-batch-validator] Computed weight (dressing): ${computedWeightKg}kg`);
+            value = rwService.inverseAliveWeight(rwConversion, value);
+            console.debug(`[sub-batch-validator] Dressing/preservation weight = ${value}kg`);
           }
         }
       }
 
       // Convert to expected weight Unit
-      if (computedWeightKg && weightUnit !== 'kg') {
-        computedWeightKg = WeightUtils.convert(computedWeightKg, 'kg', weightUnit);
+      if (value && weightUnit !== 'kg') {
+        // FIXME check this works !
+        value = WeightUtils.convert(value, 'kg', weightUnit);
       }
-      if (isNotNilOrNaN(computedWeightKg)) {
+
+      const weight: BatchWeight = weightControl.value;
+      if (isNotNilOrNaN(value)) {
 
         // Round to HALF_UP
         const maxDecimals = toNumber(opts.weightPmfm?.maximumNumberDecimals, SubBatchValidators.DEFAULT_WEIGHT_LENGTH_CONVERSION_MAX_DECIMALS);
         const precision = Math.pow(10, maxDecimals);
-        const value = (Math.trunc(computedWeightKg * precision + 0.5) / precision).toFixed(maxDecimals);
+        const valueStr = (Math.trunc(value * precision + 0.5) / precision).toFixed(maxDecimals);
 
-        const weight: BatchWeight = weightControl.value;
-        if (!weight || +weight.value !== +value) {
-
+        let weight: BatchWeight = weightControl.value;
+        if (!weight || +weight.value !== +valueStr) {
           // DEBUG
           console.info(`[sub-batch-validator] Computed weight, by length conversion: ${value}${weightUnit}`);
 
-          weightControl.patchValue({
-            value,
+          weightControl.patchValue(<BatchWeight>{
+            value: +valueStr,
             methodId: MethodIds.CALCULATED_WEIGHT_LENGTH,
             computed: true,
             estimated: false
           }, opts);
+          weightMeasurementControl?.setValue(valueStr, opts);
         }
       }
       else {
-        const previousWeight: BatchWeight = weightControl.value;
-        if (previousWeight.computed === true && isNotNil(previousWeight.value)) {
+        if (!weight || weight.computed === true && isNotNil(weight.value)) {
 
           // DEBUG
           console.debug('[sub-batch-validator] Reset previously computed weight');
 
-          weightControl.patchValue({
+          weightControl.patchValue(<BatchWeight>{
             value: null,
             computed: false,
-            estimated: false
+            estimated: false,
+            methodId: null
           }, opts);
-
+          weightMeasurementControl?.setValue(null, opts);
         }
       }
     }

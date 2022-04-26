@@ -198,19 +198,18 @@
   </mat-form-field>
 
   <!-- Computed weight (DEBUG) -->
-  <mat-form-field *ngIf="debug && weightPmfm || ($weight|async)"
+  <mat-form-field *ngIf="debug && weightPmfm"
                   floatLabel="always"
                   class="mat-form-field-disabled computed">
     <input matInput type="number"
            [placeholder]="weightPmfm|pmfmName"
-           [formControl]="form|formGetControl: 'weight.value'"
-           >
+           [formControl]="form|formGetControl: 'weight.value'">
   </mat-form-field>
 
   <!-- submit button -->
   <ion-buttons class="ion-no-padding" *ngIf="showSubmitButton">
 
-    <ion-button color="tertiary" class="ion-float-end"
+    <button mat-button color="tertiary" class="ion-float-end"
                 [fill]="invalid ? 'clear' : 'solid'"
                 [disabled]="loading && !valid"
                 (click)="doSubmit($event)"
@@ -218,7 +217,7 @@
                 [tabindex]="tabindex + 101">
       <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
       <ion-label *ngIf="!isNew" translate>COMMON.BTN_APPLY</ion-label>
-    </ion-button>
+    </button>
 
     <ng-content select="[endButton]"></ng-content>
   </ion-buttons>

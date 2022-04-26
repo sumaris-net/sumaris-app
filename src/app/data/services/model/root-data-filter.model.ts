@@ -10,12 +10,12 @@ import {
   Person,
   ReferentialRef,
   ReferentialUtils,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { DataEntityFilter } from './data-filter.model';
 import { Moment } from 'moment';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export abstract class RootDataEntityFilter<
   T extends RootDataEntityFilter<T, E, EID, AS, FO>,

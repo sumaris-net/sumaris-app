@@ -174,7 +174,7 @@
         [class.mat-row-disabled]="!row.editing"
         (click)="clickRow($event, row)"
         (keydown.escape)="escapeEditingRow($event)"
-        [cdkTrapFocus]="row.validator.invalid"></tr>
+        [cdkTrapFocus]="!row.validator.valid"></tr>
   </table>
 
   <!-- ********************************************************* -->

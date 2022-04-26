@@ -68,6 +68,9 @@ export class RoundWeightConversionRef
   extends BaseRoundWeightConversion<RoundWeightConversionRef> {
 
   static fromObject: (source: any, opts?: any) => RoundWeightConversionRef;
+  static isNotNilOrBlank(source: RoundWeightConversionRef): boolean {
+    return source && isNotNil(source.conversionCoefficient);
+  }
 
   locationId: number = null;
   dressingId: number = null;

@@ -715,5 +715,4 @@ export class VesselPositionUtils {
     }
   }
 
-
 }

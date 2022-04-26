@@ -1,5 +1,5 @@
 import { isNil } from '@sumaris-net/ngx-components';
-import { MultiPolygon, Polygon } from 'geojson';
+import { BBox, MultiPolygon, Polygon } from 'geojson';
 import { Geometries } from '@app/shared/geometries.utils';
 
 export class LocationUtils {
@@ -49,39 +49,48 @@ export class LocationUtils {
     return label && LocationUtils.RECTANGLE_LABEL_REGEXP.test(label) || false;
   }
 
-  static getGeometryFromRectangleLabel<T extends Polygon | MultiPolygon> (rectangleLabel: string): Polygon {
-    if (!this.isStatisticalRectangleLabel(rectangleLabel)) throw new Error(`Invalid statistical rectangle '${rectangleLabel}': unknown format`);
+  static getGeometryFromRectangleLabel<T extends Polygon | MultiPolygon> (rectangleLabel: string, opts = {checkValid: true}): Polygon {
+    const bbox = LocationUtils.getBBoxFromRectangleLabel(rectangleLabel);
+    // Check is valid
+    if (opts.checkValid && !bbox) throw new Error(`Invalid statistical rectangle '${rectangleLabel}': unknown format`);
+
+    return bbox && Geometries.createRectangleGeometry(bbox[0], bbox[1], bbox[2], bbox[3], false) || undefined;
+
+  }
+
+  static getBBoxFromRectangleLabel<T extends Polygon | MultiPolygon> (rectangleLabel: string): BBox|undefined {
+
+    if (!rectangleLabel || !this.isStatisticalRectangleLabel(rectangleLabel)) return undefined; // Skip if invalid
 
     // If rectangle inside "Mediterranean and black sea"
     if (rectangleLabel.startsWith("M")) {
       const rectangleLabelNoLetter = rectangleLabel.substring(1);
-      const nbdemidegreeLat = rectangleLabelNoLetter.substring(0, 2);
+      const nbDemiDegreeLat = rectangleLabelNoLetter.substring(0, 2);
       const letter = rectangleLabelNoLetter.substring(2, 3);
       const rest = rectangleLabelNoLetter.substring(3);
 
-      const latitude = +nbdemidegreeLat * 0.5 + 30;
+      const latitude = +nbDemiDegreeLat * 0.5 + 30;
       const longitude = +rest * 0.5 + (letter.charCodeAt(0) - 65) * 5 - 6;
-      return Geometries.createRectangleGeometry(longitude, latitude, longitude + 0.5, latitude + 0.5, false);
+      return [longitude, latitude, longitude + 0.5, latitude + 0.5];
     }
 
     // If rectangle inside "Atlantic (nord-east)" :
     else {
-      let nbdemidegreeLat = rectangleLabel.substring(0, 2);
+      let nbDemiDegreeLat = rectangleLabel.substring(0, 2);
       let letter = rectangleLabel.substring(2, 3);
       let rest = rectangleLabel.substring(3);
 
       // Special case for '102D0'
       if (rectangleLabel.length == 5) {
-        nbdemidegreeLat = rectangleLabel.substring(0, 3);
+        nbDemiDegreeLat = rectangleLabel.substring(0, 3);
         letter = rectangleLabel.substring(3, 4);
         rest = rectangleLabel.substring(4);
       }
 
-      const latitude = +nbdemidegreeLat * 0.5 + 35.5;
+      const latitude = +nbDemiDegreeLat * 0.5 + 35.5;
       const longitude = +rest + (letter.charCodeAt(0) - 65) * 10 - 50;
 
-      return Geometries.createRectangleGeometry(longitude, latitude,
-        longitude + 1, latitude + 0.5, false);
+      return [longitude, latitude, longitude + 1, latitude + 0.5];
     }
   }
 }

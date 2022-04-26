@@ -41,6 +41,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.offline.import.location.level.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS',
+    type: 'string',
+    defaultValue: undefined // = Import all locations define in LocationLevelIds
+  },
   TRIP_METIERS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.metiers.enable',
     label: 'PROGRAM.OPTIONS.TRIP_METIERS_ENABLE',
@@ -197,6 +203,18 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_WEIGHT_ENABLE',
     defaultValue: 'true',
     type: 'boolean'
+  },
+  TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.lengthWeightConversion.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
+  TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.roundWeightConversion.country.id',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID',
+    type: 'integer',
+    defaultValue: undefined
   },
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.enable',

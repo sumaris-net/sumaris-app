@@ -42,14 +42,16 @@ const QUERIES: BaseEntityGraphqlQueries = {
 const CacheKeys = {
   CACHE_GROUP: RoundWeightConversion.TYPENAME,
 
-  FIND_BEST: 'findBest'
-};
+  LOAD: 'roundWeightConversionByFilter',
 
+  EMPTY_VALUE: new RoundWeightConversionRef()
+};
 
 @Injectable({providedIn: 'root'})
 // @ts-ignore
 export class RoundWeightConversionRefService extends BaseEntityService<RoundWeightConversionRef, RoundWeightConversionFilter>
   implements IEntityService<RoundWeightConversionRef> {
+
 
   constructor(
     protected graphql: GraphqlService,
@@ -66,16 +68,29 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
       });
   }
 
-  async findAppliedConversion(filter: Partial<RoundWeightConversionFilter>
-                              // Force theis filter's attributes as required
-                              & {
-                                date: Moment;
-                                taxonGroupId: number;
-                                locationId: number;
-                                dressingId: number;
-                                preservingId: number;
-                              },
-                              opts?: {cache?: boolean}): Promise<RoundWeightConversionRef | undefined>{
+  /**
+   * Convert a alive weight, into the expected dressing/preservation state
+   * @param conversion
+   * @param value
+   */
+  inverseAliveWeight(conversion: RoundWeightConversionRef|undefined, value: number|undefined): number | undefined {
+    if (isNil(value) || !conversion ) return undefined;
+
+    // Apply round weight (inverse) conversion
+    return value / conversion.conversionCoefficient;
+  }
+
+
+  async loadByFilter(filter: Partial<RoundWeightConversionFilter>
+            // Force theis filter's attributes as required
+            & {
+              date: Moment;
+              taxonGroupId: number;
+              locationId: number;
+              dressingId: number;
+              preservingId: number;
+            },
+             opts?: {cache?: boolean}): Promise<RoundWeightConversionRef | undefined>{
 
     filter = this.asFilter(filter);
 
@@ -83,24 +98,29 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
     if (!opts || opts.cache !== false) {
       // Create a unique hash, from args
       const cacheKey = [
-        CacheKeys.FIND_BEST,
+        CacheKeys.LOAD,
         this.cryptoService.sha256(JSON.stringify(filter.asObject())).substring(0, 8)
       ].join('|');
-      return this.cache.getOrSetItem(cacheKey,
-        () => this.findAppliedConversion(filter, {...opts, cache: false}),
+      return this.cache.getOrSetItem(
+        cacheKey,
+        () => this.loadByFilter(filter, {...opts, cache: false})
+          .then(c => c || CacheKeys.EMPTY_VALUE), // Cache not allowed nil value
         CacheKeys.CACHE_GROUP
-      );
+      )
+        // map EMPTY to undefined
+        .then(c => RoundWeightConversionRef.isNotNilOrBlank(c) ? c : undefined);
     }
 
-    const size = 10;
+    const size = 1;
     let res = await this.loadAll(0, size, 'startDate', 'desc', filter, {withTotal: false, toEntity: false});
 
+    // Not found
     if (isEmptyArray(res?.data)) {
       console.debug(this._logPrefix + 'No conversion found!')
-      return undefined;
+      return null;
     }
 
-    return firstArrayValue(res.data);
+    return res.data[0];
   }
 
   loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<RoundWeightConversionFilter>,
@@ -117,5 +137,10 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
     }
 
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
+  async clearCache() {
+    console.info("[round-weight-conversion-ref-service] Clearing cache...");
+    await this.cache.clearGroup(CacheKeys.CACHE_GROUP);
   }
 }

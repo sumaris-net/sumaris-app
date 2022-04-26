@@ -135,11 +135,11 @@
                  >
           <mat-form-field
               *ngVar="samplingBatchForm|formGetControl:'samplingRatioText' as textControl"
-              [class.computed]="textControl.value|strIncludes:'/'">
+              [class.computed]="textControl|formGetValue|strIncludes:'/'">
             <input matInput
                    autocomplete="off"
                    [formControl]="control"
-                   [readonly]="textControl.value|strIncludes:'/'"
+                   [readonly]="textControl|formGetValue|strIncludes:'/'"
                    type="number"
                    step="1"
                    pattern="[0-9]{1,3}"

@@ -1,8 +1,21 @@
+
 <!-- error -->
 <ion-item *ngIf="showError && error; let error" visible-xs visible-sm visible-mobile lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
+
+<!-- filter form
+<form class="form-container">
+  <nav mat-tab-nav-bar >
+    <a mat-tab-link [active]="true">
+      <ion-text>Engin sélectif #1</ion-text>
+    </a>
+    <a mat-tab-link>
+      <ion-text>Engin standard #2</ion-text>
+    </a>
+  </nav>
+</form>-->
 
 <div class="table-container">
 
@@ -159,15 +172,17 @@
           class="mat-cell-content-start-padding"
           (click)="focusColumn=col.key">
 
-        <app-form-field *ngIf="!col.pmfm; else pmfm"
-                        floatLabel="never"
-                        [definition]="col"
-                        [readonly]="!row.editing || isComputed(col, row)"
-                        [tabindex]="col.computed && -1"
-                        [formControl]="row.validator|formGet: col.path"
-                        [autofocus]="row.editing && focusColumn === col.key"
-                        [compact]="true">
-        </app-form-field>
+        <ng-container *ngIf="!col.pmfm; else pmfm">
+          <app-form-field *ngVar="isComputed(col, row) as computed"
+                          floatLabel="never"
+                          [definition]="col"
+                          [readonly]="!row.editing || computed"
+                          [tabindex]="computed && -1"
+                          [formControl]="row.validator|formGet: col.path"
+                          [autofocus]="row.editing && focusColumn === col.key"
+                          [compact]="true">
+          </app-form-field>
+        </ng-container>
 
         <ng-template #pmfm>
           <app-pmfm-field floatLabel="never"
@@ -218,7 +233,7 @@
         [class.mat-row-disabled]="!row.editing"
         (click)="clickRow($event, row)"
         (keydown.escape)="escapeEditingRow($event)"
-        [cdkTrapFocus]="row.validator.invalid">
+        [cdkTrapFocus]="!row.validator.valid">
     </tr>
   </table>
 
@@ -348,12 +363,12 @@
                    [class.mat-cell-computed]="isComputed(col, row)">
                 <!-- Disable value, if any -->
                 <ion-label *ngIf="row.currentData|propertyGet: col.path; let colValue;  else missingValue ">
-                  {{colValue | numberFormat}}
+                  {{colValue | numberFormat: {maximumFractionDigits: (col.pmfm?.maximumNumberDecimals || 3) } }}
                 </ion-label>
 
                 <ng-template #missingValue>
                   <!-- Warn if not sampling weight nor sampling ratio, BUT individual count -->
-                  <ion-label *ngIf="isSamplingWeightMissing(col, row)"
+                  <ion-label *ngIf="isMissingValue(col, row)"
                              color="danger">
                     <ion-icon color="danger" class="text-size" name="warning"></ion-icon>
                     <ion-text translate>COMMON.MISSING</ion-text>
@@ -427,11 +442,11 @@
       </tr>
     </table>
 
-    <!-- DEBUG -->
+    <!-- DEBUG
     <div *ngIf="debug" class="ion-padding">
       <i>DEBUG:<br/></i>
       Displayed columns: [{{displayedColumns.join(', ')}}]<br/>
-    </div>
+    </div>-->
   </ng-template>
 
   <ion-item *ngIf="totalRowCount === 0">

@@ -60,6 +60,7 @@ import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-
 import { RoundWeightConversionRefService } from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
+import { BBox } from 'geojson';
 
 const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any; }>{
   lastUpdateDate: gql`query LastUpdateDate{
@@ -517,6 +518,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                         maxProgression?: number;
                         entityNames?: string[];
                         progression?: BehaviorSubject<number>;
+                        boundingBox?: BBox;
+                        locationLevelIds?: number[];
+                        countryIds?: number[];
                       }) {
 
     const entityNames = opts?.entityNames || IMPORT_REFERENTIAL_ENTITIES;
@@ -550,6 +554,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                             opts: {
                               progression?: BehaviorSubject<number>;
                               maxProgression?: number;
+                              boundingBox?: BBox;
+                              locationLevelIds?: number[];
+                              countryIds?: number[];
                             }) {
     const entityName = filter?.entityName;
     if (!entityName) throw new Error('Missing \'filter.entityName\'');
@@ -593,13 +600,10 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
         case 'Location':
           filter = {
             ...filter, statusIds,
-            levelIds: Object.keys(LocationLevelIds).reduce((res, item) => {
+            //boundingBox: opts?.boundingBox,
+            levelIds: opts?.locationLevelIds || Object.keys(LocationLevelIds).reduce((res, item) => {
                 return res.concat(LocationLevelIds[item]);
               }, [])
-              // TODO: Exclude rectangles (because more than 7200 rect exists !)
-              // => Maybe find a way to add it, depending on the program properties ?
-              //.filter(id => id !== LocationLevelIds.ICES_RECTANGLE
-            //  && id !== LocationLevelIds.GFCM_RECTANGLE)
           };
           break;
 
@@ -614,7 +618,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
         case 'RoundWeightConversion':
           // TODO limit to program locationIds ? (if location class = SEA) and referenceTaxon from program (taxon groups) + referenceTaxons ?
           loadPageFn = (offset, size) => this.roundWeightConversionRefService
-            .loadAll(offset, size, 'id', 'asc', {statusIds}, getLoadOptions(offset));
+            .loadAll(offset, size, 'id', 'asc', {statusIds, locationIds: opts?.countryIds}, getLoadOptions(offset));
           break;
 
         // Other entities

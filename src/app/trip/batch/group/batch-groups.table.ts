@@ -88,7 +88,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       label: 'TRIP.BATCH.TABLE.TOTAL_WEIGHT',
       minValue: 0,
       maxValue: 10000,
-      maximumNumberDecimals: 1,
+      maximumNumberDecimals: 3,
       isWeight: true,
       classList: 'total mat-column-weight',
       path: 'weight.value'
@@ -123,7 +123,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       label: 'TRIP.BATCH.TABLE.SAMPLING_WEIGHT',
       minValue: 0,
       maxValue: 1000,
-      maximumNumberDecimals: 1,
+      maximumNumberDecimals: 3,
       isWeight: true,
       isSampling: true,
       path: 'children.0.weight.value'
@@ -144,7 +144,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   private _showWeightColumns = true;
   private _rowValidatorSubscription: Subscription;
 
-  readonly qvColumnCount: number = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length;
   weightMethodForm: FormGroup;
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: ColumnDefinition[];
@@ -192,6 +191,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   @Input() useSticky = false;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() availableTaxonGroups: TaxonGroupRef[];
+  @Input() enableWeightLengthConversion: boolean;
 
   @Input() set showSamplingBatchColumns(value: boolean) {
     if (this._showSamplingBatchColumns !== value) {
@@ -242,8 +242,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
-  @ViewChild(MatMenuTrigger) rowMenuTrigger: MatMenuTrigger;
-
   constructor(
     injector: Injector,
     protected settings: LocalSettingsService,
@@ -263,8 +261,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // Need to set additional validator here
         // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
         //       e.g. When we add some validator (see operation page), so new row should always be INVALID with those additional validators
-        //onRowCreated: (row) => this.onPrepareRowForm(row.validator)
-        onRowValidator: (validator) => this.onPrepareRowForm(validator)
+        onRowCreated: (row) => this.onPrepareRowForm(row.validator)
       }
     );
 
@@ -474,22 +471,26 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       : row.currentData;
 
     const computed = col.computed
-      || ((col.isWeight && col.isSampling && batch.children[0].weight?.computed) // total weight is computed
-          || (col.isWeight && !col.isSampling && batch.weight?.computed) // sampling weight is computed
-          || (col.key.endsWith('samplingRatio') && (batch?.children[0]?.samplingRatioText || '').indexOf('/') !== -1) // sampling ratio is computed
-      );
+      // total weight is computed
+      || (col.isWeight && !col.isSampling && batch.weight?.computed)
+      // sampling weight is computed
+      || (col.isWeight && col.isSampling && batch.children[0]?.weight?.computed)
+      // sampling ratio is computed
+      || (col.key.endsWith('samplingRatio') && (batch.children[0]?.samplingRatioText || '').indexOf('/') !== -1)
+    ;
     //DEBUG
     // console.debug('[batch-group-table] col computed', col.path, computed);
     return computed;
   }
 
-  isSamplingWeightMissing(col: ColumnDefinition, row: TableElement<BatchGroup>): boolean {
+  isMissingValue(col: ColumnDefinition, row: TableElement<BatchGroup>): boolean {
     if (!col.isWeight || !col.isSampling) return false;
     const samplingBatch = (col.qvIndex >= 0
       // With qv pmfm
       ? row.currentData.children[col.qvIndex]
       // With no qv pmfm
       : row.currentData)
+      // Get sampling batch
       .children[0];
 
     const missing = (isNil(samplingBatch.weight) || isNil(samplingBatch.weight?.value))
@@ -697,8 +698,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return [];
   }
 
-  protected computeDynamicColumns(qvPmfm: IPmfm, opts?: { forceCompute: boolean }): ColumnDefinition[] {
-    if ((!opts || opts.forceCompute !== true) && this.dynamicColumns) return this.dynamicColumns; // Already init
+  protected computeDynamicColumns(qvPmfm: IPmfm, opts = { forceCompute: false }): ColumnDefinition[] {
+    if (!opts.forceCompute && this.dynamicColumns) return this.dynamicColumns; // Already init
 
     if (this.qvPmfm && this.debug) console.debug('[batch-group-table] Using a qualitative PMFM, to group columns: ' + qvPmfm.label);
 
@@ -720,6 +721,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         }, {}));
       } else {
         // TODO create weightMethodForm when no QV Pmfm
+        console.warn('create weightMethodForm when no QV Pmfm')
       }
     }
 
@@ -1104,7 +1106,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
       // Update weight
       if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
-        samplingBatch.weight = BatchUtils.sumCalculatedWeight(children, this.weightPmfms);
+        samplingBatch.weight = BatchUtils.sumCalculatedWeight(children, this.weightPmfms, this.weightPmfmsByMethod);
       }
     } else {
 
@@ -1209,14 +1211,21 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   private onPrepareRowForm(form?: FormGroup) {
     if (!form) return; // Skip
-    console.debug('[batch-group-table] Initializing form (validators...)');
+    console.debug('[batch-group-table] Init row validator');
 
     // Add computation and validation
-    this._rowValidatorSubscription?.unsubscribe();
-    this._rowValidatorSubscription = this.batchGroupValidator.addSamplingFormRowValidator(form, {
-      qvPmfm: this.qvPmfm,
-      markForCheck: () => this.markForCheck()
-    });
+    {
+      this._rowValidatorSubscription?.unsubscribe();
+      const subscription = this.batchGroupValidator.enableSamplingRatioAndWeight(form, {
+        qvPmfm: this.qvPmfm,
+        markForCheck: () => this.markForCheck()
+      });
+      if (subscription) {
+        this._rowValidatorSubscription = subscription;
+        this.registerSubscription(this._rowValidatorSubscription);
+        subscription.add(() => this.unregisterSubscription(subscription));
+      }
+    }
   }
 }
 

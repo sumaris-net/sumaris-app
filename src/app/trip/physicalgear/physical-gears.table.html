@@ -171,8 +171,8 @@
   </ng-container>
 
   <ng-template #noResult>
-    <ion-item *ngIf="totalRowCount === 0">
-      <ion-text color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+    <ion-item *ngIf="totalRowCount === 0" lines="none">
+      <ion-text  color="primary100" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
   </ng-template>

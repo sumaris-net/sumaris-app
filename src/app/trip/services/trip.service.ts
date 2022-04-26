@@ -20,7 +20,7 @@ import {
   isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   JobUtils,
   LoadResult,
   LocalSettingsService,
@@ -70,6 +70,8 @@ import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { ProgramProperties, ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
+import { Geometries } from '@app/shared/geometries.utils';
+import { BBox } from 'geojson';
 
 const moment = momentImported;
 
@@ -1566,6 +1568,9 @@ export class TripService
   protected getImportJobs(filter: Partial<TripFilter>, opts: {
     maxProgression: number;
     program?: Program;
+    boundingBox?: BBox;
+    locationLevelIds?: number[];
+    countryIds?: number[];
     referentialEntityNames?: string[];
     acquisitionLevels?: string[];
     [key: string]: any;
@@ -1586,15 +1591,25 @@ export class TripService
               opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
 
               // Import weight conversion entities, if enable on program
-              // FIXME: shoudl scan PMFM, to detect if enableWeightConversion = true
-              const enableWeightConversion = true; // program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE);
+              const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
               if (enableWeightConversion) {
                 console.info('[trip-service] WeightLengthConversion import: enabled by program ' + programLabel);
                 opts.entityNames = [
                   ...IMPORT_REFERENTIAL_ENTITIES,
                   ...WEIGHT_CONVERSION_ENTITIES
                 ];
+                // Limit round weight
+                const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
+                if (isNotNilOrBlank(countryId)) {
+                  opts.countryIds = opts.countryIds || [];
+                  if (!opts.countryIds.includes(countryId)) opts.countryIds.push(countryId);
+                }
+
               }
+
+              // Limit locations (e.g. rectangle)
+              opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
+              opts.boundingBox = Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
             })),
 
         ...super.getImportJobs(filter, opts),

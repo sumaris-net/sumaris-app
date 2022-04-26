@@ -28,7 +28,7 @@ import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { BatchValidatorService } from './batch.validator';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 @Component({
@@ -460,7 +460,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this._initialPmfms = pmfms; // Copy original pmfms list
 
     // Read weight PMFMs
-    this.weightPmfms = pmfms.filter(p => PmfmLabelPatterns.BATCH_WEIGHT.test(p.label));
+    this.weightPmfms = pmfms.filter(p => PmfmUtils.isWeight(p));
     this.defaultWeightPmfm = firstArrayValue(this.weightPmfms);
     this.weightPmfmsByMethod = splitByProperty(this.weightPmfms, 'methodId');
 
@@ -570,7 +570,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     // Has sample batch, and weight is enable
     if (this.showSamplingBatch && this.showWeight) {
       // Create a sampling form validator
-      this.samplingFormValidator = this.validatorService.enableSamplingWeightComputation(this.form, {
+      this.samplingFormValidator = this.validatorService.enableSamplingRatioAndWeight(this.form, {
         //requiredSampleWeight: this.requiredSampleWeight,
         markForCheck: () => this.markForCheck()
       });

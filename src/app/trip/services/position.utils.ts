@@ -1,7 +1,8 @@
 import { IPosition } from '@app/trip/services/model/position.model';
 import { isNil } from '@sumaris-net/ngx-components';
-import { GeolocationOptions } from '@ionic-native/geolocation';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { Geolocation, GeolocationOptions, Geoposition } from '@ionic-native/geolocation/ngx';
+import { BBox } from 'geojson';
+import { Geometries } from '@app/shared/geometries.utils';
 
 
 export abstract class PositionUtils {
@@ -44,7 +45,7 @@ export abstract class PositionUtils {
   /**
    * Get the position by geo loc sensor
    */
-  static async getCurrentPosition(geolocation?: Geolocation, options?: GeolocationOptions): Promise<{ latitude: number; longitude: number }> {
+  static async getCurrentPosition(geolocation?: Geolocation, options?: GeolocationOptions): Promise<IPosition> {
     options = {
       maximumAge: 30000/*30s*/,
       timeout: 10000/*10s*/,
@@ -56,10 +57,10 @@ export abstract class PositionUtils {
     if (geolocation) {
       console.info('[position-utils] Get current geo position, using cordova plugin...')
       try {
-        const res = await geolocation.getCurrentPosition(options);
-        return {
-          latitude: res.coords.latitude,
-          longitude: res.coords.longitude
+        const pos: Geoposition = await geolocation.getCurrentPosition(options);
+        return <IPosition>{
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
         };
       } catch (err) {
         console.error('[position-utils] Cannot get current geo position, using cordova plugin:', err);
@@ -69,9 +70,9 @@ export abstract class PositionUtils {
 
     // Or fallback to navigator
     console.info('[position-utils] Get current geo position, using browser...')
-    return new Promise<{ latitude: number; longitude: number }>((resolve, reject) => {
+    return new Promise<IPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition((res) => {
-          resolve({
+          resolve(<IPosition>{
             latitude: res.coords.latitude,
             longitude: res.coords.longitude
           });
@@ -83,5 +84,13 @@ export abstract class PositionUtils {
         options
       );
     });
+  }
+
+  static createBBoxFilter(boundingBox: BBox): (p: IPosition) => boolean {
+    return (p) => PositionUtils.isInsideBBox(p, boundingBox);
+  }
+
+  static isInsideBBox(p: IPosition, boundingBox: BBox): boolean {
+    return p && Geometries.isPositionInsideBBox([p.longitude, p.latitude], boundingBox);
   }
 }

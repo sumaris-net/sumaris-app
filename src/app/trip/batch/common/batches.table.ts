@@ -278,15 +278,15 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
     this._initialPmfms = pmfms; // Copy original pmfms list
 
-    this.weightPmfms = pmfms.filter(p => PmfmLabelPatterns.BATCH_WEIGHT.test(p.label));
+    this.weightPmfms = pmfms.filter(p => PmfmUtils.isWeight(p));
     this.defaultWeightPmfm = firstArrayValue(this.weightPmfms); // First as default
     this.weightPmfmsByMethod = splitByProperty(this.weightPmfms, 'methodId');
 
     // Find the first qualitative PMFM
     this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms);
 
-    // Remove weight pmfms
-    return pmfms.filter(p => !PmfmUtils.isWeight(p));
+    // Exclude weight PMFMs
+    return pmfms.filter(p => !this.weightPmfms.includes(p));
   }
 
   protected async onNewEntity(data: T): Promise<void> {

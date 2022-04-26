@@ -38,6 +38,10 @@ export class BatchUtils {
     return !this.isNotEmpty(source, opts);
   }
 
+  static isCatchBatch(source: Batch | any): source is Batch {
+    return source.label?.startsWith(AcquisitionLevelCodes.CATCH_BATCH + '#');
+  }
+
   static isSortingBatch(source: Batch | any): source is Batch {
     return source?.label && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#');
   }
@@ -261,7 +265,7 @@ export class BatchUtils {
       {id: PmfmIds.BATCH_ESTIMATED_WEIGHT, isComputed: false, methodId: MethodIds.MEASURED_BY_OBSERVER},
       {id: PmfmIds.BATCH_CALCULATED_WEIGHT, isComputed: true, methodId: MethodIds.CALCULATED},
       {id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH, maximumNumberDecimals: 6},
-      {id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM, maximumNumberDecimals: 6}
+      {id: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM, isComputed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM}
     ]
     .map(spec => ({
       label: ParameterLabelGroups.WEIGHT[0],
@@ -269,7 +273,7 @@ export class BatchUtils {
       matrixId: MatrixIds.INDIVIDUAL,
       type: 'double',
       unitLabel: UnitLabel.KG,
-      maximumNumberDecimals: 3,
+      maximumNumberDecimals: 3, // Precision = gram
       ...spec
     }))
     .map(json => DenormalizedPmfmStrategy.fromObject(json) as IPmfm);
@@ -330,7 +334,7 @@ export class BatchUtils {
     weightPmfms = weightPmfms || this.getDefaultSortedWeightPmfms();
     weightPmfmsByMethodId = weightPmfmsByMethodId || splitByProperty(weightPmfms, 'methodId');
 
-    console.debug('[batch-utils] Computed batch tree weights...', source);
+    if (BatchUtils.isCatchBatch(source)) console.debug('[batch-utils] Computed batch tree weights...', source);
 
     let isExhaustive = true;
     let childrenWeightMethodIds: number[] = [];
@@ -383,7 +387,7 @@ export class BatchUtils {
       // Set the sampling weight
       if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
         samplingBatch.weight = {
-          value: roundHalfUp(value, weightPmfm?.maximumNumberDecimals || 6),
+          value: roundHalfUp(value, weightPmfm?.maximumNumberDecimals || 3),
           unit: 'kg',
           methodId,
           computed: true,

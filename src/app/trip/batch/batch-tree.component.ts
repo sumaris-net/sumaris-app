@@ -299,7 +299,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     }
 
     // DEBUG
-    if (this.debug) BatchUtils.logTree(target);
+    //if (this.debug) BatchUtils.logTree(target);
 
     this.data = target;
 
@@ -415,12 +415,17 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       .map(label => label.trim().toUpperCase())
       .filter(isNotNilOrBlank) || undefined;
 
+    // Update context
+    this.enableWeightLengthConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
+    const roundWeightConversionCountryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
+
     // Force taxon name in sub batches, if not filled in root batch
     if (this.subBatchesTable) {
       this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
       this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
       this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
       this.subBatchesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_DISPLAYED_UNIT);
+      this.subBatchesTable.roundWeightConversionCountryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
     }
 
     // Propagate to children components, if need

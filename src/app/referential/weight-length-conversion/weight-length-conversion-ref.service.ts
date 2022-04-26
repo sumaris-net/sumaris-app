@@ -24,6 +24,7 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { LengthMeterConversion, LengthUnitSymbol, WeightKgConversion, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { RoundWeightConversionRef } from '@app/referential/round-weight-conversion/round-weight-conversion.model';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`query WeightLengthConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: WeightLengthConversionFilterVOInput){
@@ -46,14 +47,18 @@ const QUERIES: BaseEntityGraphqlQueries = {
 const CacheKeys = {
   CACHE_GROUP: WeightLengthConversion.TYPENAME,
 
-  FIND_BEST: 'findBest'
+  LOAD: 'weightLengthConversionByFilter',
+
+  EMPTY_VALUE: new WeightLengthConversionRef()
 };
+
 
 @Injectable({providedIn: 'root'})
 // @ts-ignore
 export class WeightLengthConversionRefService
   extends BaseEntityService<WeightLengthConversionRef, WeightLengthConversionFilter, number>
   implements IEntityService<WeightLengthConversionRef> {
+
 
   constructor(
     protected graphql: GraphqlService,
@@ -85,7 +90,7 @@ export class WeightLengthConversionRefService
                   lengthPrecision?: number;
                   weightUnit?: WeightUnitSymbol;
                 }): number | undefined {
-    if (isNil(length) || !conversion) return undefined;
+    if (isNil(length) || !WeightLengthConversionRef.isNotNilOrBlank(conversion)) return undefined;
 
     const lengthPrecision = toNumber(opts?.lengthPrecision, 1);
 
@@ -108,9 +113,6 @@ export class WeightLengthConversionRefService
       * Math.pow(length, conversion.conversionCoefficientB)
       * toNumber(opts?.individualCount, 1);
 
-    // Convert from alive weight -> expected presentation
-    // TODO
-
     // Applying weight conversion
     if (opts && opts.weightUnit !== 'kg') {
 
@@ -127,7 +129,7 @@ export class WeightLengthConversionRefService
     return weightKg;
   }
 
-  async findAppliedConversion(filter: Partial<WeightLengthConversionFilter> & {
+  async loadByFilter(filter: Partial<WeightLengthConversionFilter> & {
       month: number;
       year: number;
       referenceTaxonId: number;
@@ -140,37 +142,44 @@ export class WeightLengthConversionRefService
     // Use cache
     if (!opts || opts.cache !== false) {
       const cacheKey = [
-        CacheKeys.FIND_BEST,
+        CacheKeys.LOAD,
         this.cryptoService.sha256(JSON.stringify(filter.asObject())).substring(0,8)
       ].join('|');
       return this.cache.getOrSetItem(cacheKey,
-        () => this.findAppliedConversion(filter, {...opts, cache: false}),
+        () => this.loadByFilter(filter, {...opts, cache: false})
+            .then(c => c || CacheKeys.EMPTY_VALUE), // Cache not allowed nil value
         CacheKeys.CACHE_GROUP
-      );
+      )
+      // map EMPTY to undefined
+      .then(c => WeightLengthConversionRef.isNotNilOrBlank(c) ? c : undefined);
     }
 
     const size = 1;
-    let sortBy: keyof WeightLengthConversionRef = isNil(filter.year) ? 'year' : 'startMonth';
-    let res = await this.loadAll(0, size, sortBy, 'desc', filter, {withTotal: false, toEntity: false});
+    const loadOptions = {withTotal: false, toEntity: false};
+    const sortBy: keyof WeightLengthConversionRef = isNil(filter.year) ? 'year' : 'startMonth';
 
-    // Retry on year only (without the given month)
+    // First, try with full filter
+    let res = await this.loadAll(0, size, sortBy, 'desc', filter, loadOptions);
+
+    // Retry on year only (without month)
     if (isEmptyArray(res?.data) && isNotNil(filter.month)) {
       console.debug(this._logPrefix + 'No conversion found, for [month, year]. Retrying with year only.')
-      res = await this.loadAll(0, size, sortBy, 'desc', {...filter, month: undefined}, {withTotal: false, toEntity: false});
+      res = await this.loadAll(0, size, sortBy, 'desc', {...filter, month: undefined}, loadOptions);
     }
 
-    // Retry on month only (without the given year)
+    // Retry on month only (without year)
     if (isEmptyArray(res?.data) && isNotNil(filter.month) && isNotNil(filter.year)) {
       console.debug(this._logPrefix + 'No conversion found, for [year]. Retrying without month only.')
-      res = await this.loadAll(0, size, 'year', 'desc', {...filter, year: undefined}, {withTotal: false, toEntity: false});
+      res = await this.loadAll(0, size, 'year', 'desc', {...filter, year: undefined}, loadOptions);
     }
 
+    // Not found
     if (isEmptyArray(res?.data)) {
       console.debug(this._logPrefix + 'No conversion found!')
-      return undefined;
+      return null;
     }
 
-    return firstArrayValue(res.data);
+    return res.data[0];
   }
 
   loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<WeightLengthConversionFilter>,
@@ -188,5 +197,10 @@ export class WeightLengthConversionRefService
     }
 
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
+  async clearCache() {
+    console.info("[weight-length-conversion-ref-service] Clearing cache...");
+    await this.cache.clearGroup(CacheKeys.CACHE_GROUP);
   }
 }

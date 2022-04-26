@@ -64,8 +64,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   selectedTaxonNameIndex = -1;
   warning: string;
   weightPmfm: IPmfm;
-  enableWeightConversion: boolean;
-  $weight = new BehaviorSubject<number>(undefined);
+  enableLengthWeightConversion: boolean;
+  roundWeightConversionCountryId: number;
 
   @Input() title: string;
   @Input() showParentGroup = true;
@@ -580,7 +580,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
       // If RTP weight: enable conversion, and hidden pmfms
       if (p.id === PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
         || p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH) {
-        this.enableWeightConversion = true;
+        this.enableLengthWeightConversion = true;
         if (this.weightDisplayedUnit) {
           p = PmfmUtils.setWeightUnitConversion(p, this.weightDisplayedUnit);
         }
@@ -607,15 +607,16 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
     // Weight/length computation
     this._weightConversionSubscription?.unsubscribe();
-    if (this.enableWeightConversion) {
+    if (this.enableLengthWeightConversion) {
       // DEBUG
       if (this.debug) console.debug('[sub-batch-form] Enabling weight/length conversion...');
 
       try {
-        this._weightConversionSubscription = await this.validatorService.enableWeightLengthConversion(form, {
+        const subscription = await this.validatorService.enableWeightLengthConversion(form, {
           pmfms: this.$pmfms.value,
           qvPmfm: this._qvPmfm,
-          parentGroup: this.parentGroup,
+          countryId: this.roundWeightConversionCountryId,
+          //parentGroup: this.parentGroup,
           onError: (err) => {
             this.warning = err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED';
             this.markForCheck();
@@ -624,9 +625,10 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
           debug: this.debug
         });
 
-        if (this._weightConversionSubscription) {
+        if (subscription) {
+          this._weightConversionSubscription = subscription;
           this.registerSubscription(this._weightConversionSubscription);
-          this._weightConversionSubscription.add(() => this.unregisterSubscription(this._weightConversionSubscription));
+          this._weightConversionSubscription.add(() => this.unregisterSubscription(subscription));
         }
       }
       catch (err) {

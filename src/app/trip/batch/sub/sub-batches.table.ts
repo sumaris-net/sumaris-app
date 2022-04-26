@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { isObservable, Observable, Subscription } from 'rxjs';
+import { isObservable, Observable, Subject, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { FormGroup, Validators } from '@angular/forms';
 import {
@@ -40,6 +40,8 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { PopoverController } from '@ionic/angular';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { ribbon } from 'ionicons/icons';
+import { debounceTime } from 'rxjs/operators';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -96,6 +98,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   private _showTaxonNameInParentAutocomplete = true;
   private _rowValidatorSubscription: Subscription;
   protected _availableSortedParents: BatchGroup[] = [];
+  protected _onPrepareRowForm = new Subject<FormGroup>();
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
@@ -112,6 +115,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   @Input() useSticky = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() weightDisplayDecimals = 2;
+  @Input() roundWeightConversionCountryId: number;
 
   @Input() set qvPmfm(value: IPmfm) {
     this._qvPmfm = value;
@@ -226,7 +230,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
         // Need to set additional validator here
         // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
         //       e.g. When we add some validator (see operation page), so new row should always be INVALID with those additional validators
-        onRowCreated: (row) => this.onPrepareRowForm(row.validator),
+        onRowCreated: (row) => this._onPrepareRowForm.next(row.validator),
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
@@ -269,9 +273,15 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
     if (this.inlineEdition) { // can be override by subclasses
 
+      this.registerSubscription(
+        this._onPrepareRowForm
+          .pipe(debounceTime(450))
+          .subscribe(form => this.onPrepareRowForm(form))
+      );
+
       // Create listener on column 'DISCARD_OR_LANDING' value changes
       this.registerSubscription(
-        this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString())
+        this.registerCellValueChanges('discard', "measurementValues." + PmfmIds.DISCARD_OR_LANDING.toString(), true)
           .subscribe((value) => {
             if (!this.editedRow) return; // Should never occur
             const row = this.editedRow;
@@ -294,7 +304,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
           }));
 
       this.registerSubscription(
-        this.registerCellValueChanges('parentGroup', "parentGroup")
+        this.registerCellValueChanges('parentGroup', 'parentGroup', true)
           .subscribe((parentGroup) => {
             if (!this.editedRow) return; // Skip
 
@@ -307,7 +317,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
             const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
 
             (this.pmfms || []).forEach(pmfm => {
-              const enable = !PmfmUtils.isDenormalizedPmfm(pmfm) || isEmptyArray(pmfm.taxonGroupIds) || pmfm.taxonGroupIds.includes(parenTaxonGroupId);
+              const enable = !pmfm.isComputed &&
+                (!PmfmUtils.isDenormalizedPmfm(pmfm)
+                || isEmptyArray(pmfm.taxonGroupIds)
+                || pmfm.taxonGroupIds.includes(parenTaxonGroupId));
               const control = controls[pmfm.id];
 
               // Update control state
@@ -583,11 +596,16 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       const index = pmfms.findIndex(p => p.id === PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
           || p.methodId === MethodIds.CALCULATED_WEIGHT_LENGTH);
       if (index !== -1) {
-        this.weightPmfm = pmfms[index];
+        this.weightPmfm = pmfms[index]?.clone();
+        //this.weightPmfm.hidden = !this.mobile;
+        this.weightPmfm.maximumNumberDecimals = this.weightPmfm.maximumNumberDecimals || 6;
+        this.weightPmfm.required = false;
         this.enableWeightConversion = true;
-        if (this.weightDisplayedUnit) {
+
+        // FIXME
+        /*if (this.weightDisplayedUnit) {
           this.weightPmfm = PmfmUtils.setWeightUnitConversion(this.weightPmfm, this.weightDisplayedUnit);
-        }
+        }*/
         pmfms[index] = this.weightPmfm;
       }
     }
@@ -846,22 +864,28 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   private async onPrepareRowForm(form: FormGroup) {
     if (!form) return; // Skip
-    console.debug('[batch-group-table] Initializing form (validators...)');
+    console.debug('[batch-group-table] Initializing row validator');
 
     this.validatorService.updateFormGroup(form, {
       withWeight: this.enableWeightConversion
     });
 
     // Add computation and validation
-    this._rowValidatorSubscription?.unsubscribe();
-    this._rowValidatorSubscription = await this.validatorService.enableWeightLengthConversion(form, {
-      qvPmfm: this._qvPmfm,
-      pmfms: this.pmfms,
-      markForCheck: () => {
-        console.log('TODO finish conversion');
-        setTimeout(() => this.markForCheck())
+    {
+      this._rowValidatorSubscription?.unsubscribe();
+      const subscription = await this.validatorService.enableWeightLengthConversion(form, {
+        pmfms: this.pmfms,
+        qvPmfm: this._qvPmfm,
+        countryId: this.roundWeightConversionCountryId,
+        onError: (err) => this.setError(err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),
+        markForCheck: () => this.markForCheck()
+      });
+      if (subscription) {
+        this._rowValidatorSubscription = subscription;
+        this.registerSubscription(this._rowValidatorSubscription);
+        this._rowValidatorSubscription.add(() => this.unregisterSubscription(subscription));
       }
-    });
+    }
   }
 
   async openCommentPopover(event: UIEvent, row: TableElement<SubBatch>) {
