@@ -32,6 +32,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   @Input() showChildrenSamplingBatch = true;
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
+  @Input() showHasSubBatchesButton = true;
 
   @ViewChildren('firstInput') firstInputFields !: QueryList<InputElement>;
   @ViewChildren('childForm') childrenList !: QueryList<BatchForm>;
@@ -309,7 +310,9 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     }
 
     // Apply computed value
-    this.hasSubBatchesControl.setValue(hasSubBatches, {emitEvent: false});
+    if (this.showHasSubBatchesButton || !this.hasSubBatchesControl.value) {
+      this.hasSubBatchesControl.setValue(hasSubBatches, {emitEvent: false});
+    }
 
     // If there is already some measure
     // Not allow to change 'has measure' field

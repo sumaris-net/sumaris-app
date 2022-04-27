@@ -505,6 +505,8 @@ export class OperationPage
             this.batchTree.allowSamplingBatches = hasIndividualMeasures;
             this.batchTree.defaultHasSubBatches = hasIndividualMeasures;
             this.batchTree.allowSubBatches = hasIndividualMeasures;
+            // Hide button to toggle hasSubBatches (yes/no) when value if forced
+            this.batchTree.batchGroupsTable.setModalOption("showHasSubBatchesButton", !hasIndividualMeasures)
             if (!this.allowParentOperation) {
               this.showBatchTables = hasIndividualMeasures && this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;

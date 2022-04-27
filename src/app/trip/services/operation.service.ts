@@ -81,6 +81,7 @@ import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { Geometries } from '@app/shared/geometries.utils';
 
 
 export const OperationFragments = {
@@ -629,6 +630,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Clean error
     entity.qualificationComments = null;
+
+    // Flag anormal operation
+    const isAnormalOperation = entity.measurements
+      .some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0 /*normal = false*/);
+    if (isAnormalOperation && entity.qualityFlagId === QualityFlagIds.NOT_QUALIFIED) {
+      entity.qualityFlagId = QualityFlagIds.BAD;
+      entity.qualificationComments = entity.comments;
+    }
 
     // Save locally if need
     if (entity.tripId < 0) {
@@ -1773,6 +1782,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       withFishingEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
       withEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
       maxDistance: opts.program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR),
+      boundingBox: Geometries.parseAsBBox(opts.program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX)),
+      maxTotalDurationInHours: opts.program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS),
+      maxShootingDurationInHours: opts.program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS),
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true // Need by full validation
     };

@@ -30,12 +30,10 @@
                                 [filter]="taxonNameFilter">
         </mat-autocomplete-field>
       </ion-col>
-    </ion-row>
 
-    <ion-row *ngIf="allowSubBatches">
-      <ion-col>
+      <ion-col *ngIf="allowSubBatches && showHasSubBatchesButton">
         <!-- Has individual measures ? -->
-        <mat-form-field floatLabel="always">
+        <mat-form-field floatLabel="always" >
           <input matInput type="text" hidden
                  [formControl]="hasSubBatchesControl"
                  [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE'|translate"
@@ -69,9 +67,7 @@
         </mat-form-field>
       </ion-col>
       <ion-col>
-        <ion-buttons>
-          <ng-content select="[afterSpeciesButtons]"></ng-content>
-        </ion-buttons>
+          <ng-content select="[afterSpecies]"></ng-content>
       </ion-col>
     </ion-row>
 

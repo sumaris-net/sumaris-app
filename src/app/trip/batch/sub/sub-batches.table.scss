@@ -43,4 +43,14 @@
   mat-table {
     overflow-y: visible;
   }
+
+  .visible-hover {
+    visibility: hidden;
+  }
+
+  .mat-row:hover {
+    .visible-hover {
+      visibility: unset;
+    }
+  }
 }

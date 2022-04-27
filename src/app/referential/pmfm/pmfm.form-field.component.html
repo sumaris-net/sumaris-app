@@ -54,21 +54,26 @@
            [max]="pmfm.maxValue"
            [appAutofocus]="autofocus"
            [placeholder]="placeholder"
+           [formControl]="formControl"
            (keydown.enter)="onPressEnter.emit($event)"
            (keypress)="filterNumberInput($event, false)"
-           [formControl]="formControl"
+           (focus)="focused.emit($event)"
+           (blur)="blurred.emit($event)"
+           (click)="selectInputContent($event)"
            [required]="required"
-           [tabIndex]="tabindex"
-           (click)="selectInputContent($event)">
-    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-    <mat-error *ngIf="formControl.hasError('min')">
-      {{(compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN') | translate:formControl.errors['min'] }}</mat-error>
-    <mat-error *ngIf="formControl.hasError('max')">
-      {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:formControl.errors['max'] }}</mat-error>
-    <mat-error *ngIf="formControl.hasError('pattern')">
-      {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
-    <mat-error *ngIf="formControl.hasError('integer')">
-      {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+           [tabIndex]="tabindex">
+    <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
+      <ng-container [ngSwitch]="errorKey">
+        <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+        <span *ngSwitchCase="'integer'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
+        <span *ngSwitchCase="'pattern'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
+        <span *ngSwitchCase="'min'">
+          {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
+        <span *ngSwitchCase="'max'">
+          {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:control.errors.max }}</span>
+        <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
+      </ng-container>
+    </mat-error>
 
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
@@ -88,6 +93,8 @@
            [step]="numberInputStep"
            (keyup.enter)="onPressEnter.emit($event)"
            (keypress)="filterNumberInput($event, true)"
+           (blur)="blurred.emit($event)"
+           (focus)="focused.emit($event)"
            [formControl]="formControl"
            [required]="required"
            [tabIndex]="tabindex"
@@ -96,12 +103,13 @@
     <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
       <ng-container [ngSwitch]="errorKey">
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+        <span *ngSwitchCase="'decimal'" translate>ERROR.FIELD_NOT_VALID_DECIMAL</span>
         <span *ngSwitchCase="'min'">
           {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
         <span *ngSwitchCase="'max'">
           {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:control.errors.max }}</span>
         <span *ngSwitchCase="'maxDecimals'">
-          {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:control.errors.maxDecimals }}</span>
+          {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:{max: control.errors.maxDecimals?.maxDecimals } }}</span>
         <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
       </ng-container>
     </mat-error>
@@ -209,12 +217,19 @@
            [tabIndex]="tabindex"
            (click)="selectInputContent($event)"
            (keypress)="filterAlphanumericalInput($event)"
-           (keyup.enter)="onPressEnter.emit($event)">
-    <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-    <mat-error *ngIf="formControl.hasError('maxlength')">
-      {{ (compact ? 'ERROR.FIELD_MAX_LENGTH_COMPACT' : 'ERROR.FIELD_MAX_LENGTH') |translate:formControl.errors['maxlength'] }}</mat-error>
-    <mat-error *ngIf="formControl.hasError('minlength')">
-      {{ (compact ? 'ERROR.FIELD_MIN_LENGTH_COMPACT' : 'ERROR.FIELD_MIN_LENGTH') |translate:formControl.errors['minlength'] }}</mat-error>
+           (keyup.enter)="onPressEnter.emit($event)"
+           (focus)="focused.emit($event)"
+           (blur)="blurred.emit($event)">
+
+    <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
+      <ng-container [ngSwitch]="errorKey">
+        <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+        <span *ngSwitchCase="'maxlength'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
+        <span *ngSwitchCase="'minlength'">{{ (compact ? 'ERROR.FIELD_MAX_LENGTH_COMPACT' : 'ERROR.FIELD_MAX_LENGTH') |translate:control.errors.maxlength }}</span>
+        <span *ngSwitchCase="'minlength'">{{ (compact ? 'ERROR.FIELD_MIN_LENGTH_COMPACT' : 'ERROR.FIELD_MIN_LENGTH') |translate:control.errors.minlength }}</span>
+        <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
+      </ng-container>
+    </mat-error>
 
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
@@ -245,8 +260,7 @@
                      [required]="required"
                      [tabindex]="tabindex"
                      [latLongPattern]="latLongFormat"
-                     [defaultSign]="defaultLongitudeSign"
-                     [mobile]="mobile">
+                     [defaultSign]="defaultLongitudeSign">
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>

@@ -1,6 +1,7 @@
 import { Department, EntityAsObjectOptions, IEntity, Person, Referential, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import {PredefinedColors} from '@ionic/core';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { SynchronizationIonIcon } from '@app/data/quality/entity-quality-icon.component';
 
 /* -- Enumerations -- */
 
@@ -125,6 +126,28 @@ export function qualityFlagToColor(qualityFlagId: number): PredefinedColors {
       return 'danger';
     default:
       return 'secondary';
+  }
+}
+
+export declare type QualityIonIcon = SynchronizationIonIcon |'checkmark'|'checkmark-circle'|'flag'|'alert'|'alert-circle'|'alert-circle-outline'|'warning';
+
+export function qualityFlagToIcon(qualityFlagId: number): QualityIonIcon {
+  switch (qualityFlagId) {
+    case QualityFlagIds.NOT_QUALIFIED:
+      return undefined;
+    case QualityFlagIds.GOOD:
+    case QualityFlagIds.FIXED:
+      return 'flag';
+    case QualityFlagIds.OUT_STATS:
+    case QualityFlagIds.DOUBTFUL:
+      return 'warning';
+    case QualityFlagIds.BAD:
+    case QualityFlagIds.MISSING:
+      return 'alert-circle';
+    case QualityFlagIds.NOT_COMPLETED:
+      return 'time-outline';
+    default:
+      return 'flag';
   }
 }
 

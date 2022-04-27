@@ -113,11 +113,11 @@
 
     <!-- Sampling batch -->
     <div formArrayName="children" [class.cdk-visually-hidden]="!showSamplingBatch">
-      <ion-row class="ion-no-padding">
+      <ion-row class="ion-no-padding"  [class.cdk-visually-hidden]="requiredSampleWeight">
         <ion-col class="ion-no-padding">
           <!-- checkbox, when compact -->
           <mat-checkbox [checked]="isSampling"
-                        [disabled]="disabled || requiredSampleWeight"
+                        [disabled]="disabled"
                         labelPosition="after"
                         [tabindex]="tabindex+31"
                         (change)="setIsSampling($event.checked)">

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { Batch } from '../common/batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
@@ -26,7 +26,7 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, UnitLabel, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
 import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { PmfmFormField } from '../../../referential/pmfm/pmfm.form-field.component';
@@ -38,7 +38,7 @@ import { ProgramRefService } from '../../../referential/services/program-ref.ser
 import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
-import { WeightUtils } from '@app/referential/services/model/model.utils';
+import { IonButton } from '@ionic/angular';
 
 
 @Component({
@@ -161,6 +161,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   @ViewChildren(PmfmFormField) measurementFormFields: QueryList<PmfmFormField>;
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
+  @ViewChild('submitButton') submitButton: IonButton;
+
 
   constructor(
     injector: Injector,
@@ -382,6 +384,21 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
   }
 
+  checkIfSubmit(event: FocusEvent|TouchEvent, submitButton?: IonButton): boolean {
+    if (event?.defaultPrevented) return false;
+
+    submitButton = submitButton || this.submitButton;
+    if (event.currentTarget === submitButton['el']) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      event.returnValue = false;
+      this.doSubmit(null);
+      return false;
+    }
+    return true;
+  }
+
   protected onApplyingEntity(data: SubBatch, opts?: { linkToParent?: boolean; }) {
     super.onApplyingEntity(data);
 
@@ -468,6 +485,23 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     }
 
     return this.focusNextInput(event);
+  }
+
+  trySubmit(event: any, opts?: { checkValid?: boolean }): boolean {
+    if (event?.defaultPrevented) return false;
+
+    super.doSubmit(event, opts);
+
+    return true;
+  }
+
+  doSubmit(event: any, opts?: { checkValid?: boolean }): Promise<void> {
+    if (event?.defaultPrevented) {
+      console.log('Avoid submit')
+      return;
+    }
+
+    return super.doSubmit(event, opts);
   }
 
   selectInputContent = AppFormUtils.selectInputContent;

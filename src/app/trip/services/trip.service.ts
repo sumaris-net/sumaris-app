@@ -1135,7 +1135,7 @@ export class TripService
     }
 
     // If trip is Valid, control operations
-    else if (!opts || !opts.withOperationGroup){
+    if (!opts || !opts.withOperationGroup){
       const errors = await this.operationService.controlAllByTrip(entity, {program});
       if (errors) {
         return {operations: errors};

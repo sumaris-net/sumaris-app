@@ -32,12 +32,12 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
         parent: [data?.parent || null, Validators.required],
         rankOrder: [data?.rankOrder || null],
         number: [data?.number || null, Validators.compose([Validators.required, SharedValidators.integer])],
-        weight: [data?.weight || null, Validators.compose([Validators.required, SharedValidators.double({maxDecimals: 2})])]
+        weight: [data?.weight || null, Validators.compose([Validators.required, SharedValidators.decimal({maxDecimals: 2})])]
       });
 
     // add sampledWeights
     PacketIndexes.forEach(index => {
-      formConfig['sampledWeight'+index] = [data?.['sampledWeight'+index] || null, Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])];
+      formConfig['sampledWeight'+index] = [data?.['sampledWeight'+index] || null, Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])];
     })
 
     if (opts.withComposition) {
@@ -106,9 +106,9 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
         subgroupCount: [sale && sale.subgroupCount || null, Validators.compose([SharedValidators.integer, Validators.min(0)])],
         weight: [sale && sale.weight || null],
         weightCalculated: [true],
-        averagePackagingPrice: [sale && sale.averagePackagingPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        averagePackagingPrice: [sale && sale.averagePackagingPrice || null, Validators.compose([SharedValidators.decimal({maxDecimals: 2}), Validators.min(0)])],
         averagePackagingPriceCalculated: [sale && sale.averagePackagingPriceCalculated || null],
-        totalPrice: [sale && sale.totalPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        totalPrice: [sale && sale.totalPrice || null, Validators.compose([SharedValidators.decimal({maxDecimals: 2}), Validators.min(0)])],
         totalPriceCalculated: [sale && sale.totalPriceCalculated || null],
         productIdByTaxonGroup: [sale && sale.productIdByTaxonGroup || null]
       },

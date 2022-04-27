@@ -4,13 +4,15 @@ import { TranslateModule } from '@ngx-translate/core';
 import { Environment, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
 import { FormatPropertyPipe } from './pipes/format-property.pipe';
+import { AutoTitleDirective } from '@app/shared/pipes/auto-title.directive';
 
 @NgModule({
   imports: [
     SharedModule
   ],
   declarations: [
-    FormatPropertyPipe
+    FormatPropertyPipe,
+    AutoTitleDirective // TODO: move it to ngx-components
   ],
   exports: [
     SharedModule,
@@ -18,7 +20,8 @@ import { FormatPropertyPipe } from './pipes/format-property.pipe';
     TranslateModule,
 
     // Pipes
-    FormatPropertyPipe
+    FormatPropertyPipe,
+    AutoTitleDirective
   ]
 })
 export class AppSharedModule {

@@ -35,6 +35,7 @@
                         [taxonGroupsNoWeight]="taxonGroupsNoWeight"
                         [allowSubBatches]="allowSubBatches"
                         [defaultHasSubBatches]="defaultHasSubBatches"
+                        [showHasSubBatchesButton]="showHasSubBatchesButton"
                         [maxVisibleButtons]="maxVisibleButtons"
                         (onSubmit)="close($event)"
                         [pmfms]="pmfms"
@@ -42,11 +43,10 @@
                         [debug]="debug">
 
       <!-- open individual modal -->
-      <ion-button afterSpeciesButtons mat-button
-                  *ngIf="openSubBatchesModal && form.hasSubBatches"
-                  fill="clear" color="tertiary" expand="full"
+      <ion-button afterSpecies class="ion-margin-bottom"
+                  *ngIf="openSubBatchesModal && form.hasSubBatches && allowSubBatches"
+                  color="tertiary" fill="solid" expand="block" shape="round"
                   (click)="onShowSubBatchesButtonClick($event)">
-        <mat-icon slot="start">assessment</mat-icon>
         <ion-label>
           <span translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</span>
           <span *ngIf="data?.observedIndividualCount; let count">&nbsp;({{count}})</span>

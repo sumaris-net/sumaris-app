@@ -62,7 +62,7 @@ export class BatchValidatorService<
       rankOrder: !opts || opts.rankOrderRequired !== false ? [rankOrder, Validators.required] : [rankOrder],
       label: !opts || opts.labelRequired !== false ? [label, Validators.required] : [label],
       individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
-      samplingRatio: [toNumber(data && data.samplingRatio, null), SharedValidators.double()],
+      samplingRatio: [toNumber(data && data.samplingRatio, null), SharedValidators.decimal()],
       samplingRatioText: [data && data.samplingRatioText || null],
       taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],
       taxonName: [data && data.taxonName || null, SharedValidators.entity],
@@ -139,7 +139,7 @@ export class BatchValidatorService<
 
     // Sampling ratio: should be a percentage
     form.get('samplingRatio')?.setValidators(
-      Validators.compose([Validators.min(0), Validators.max(100), SharedValidators.double({maxDecimals: 2})])
+      Validators.compose([Validators.min(0), Validators.max(100), SharedValidators.decimal({maxDecimals: 2})])
     );
 
     return SharedAsyncValidators.registerAsyncValidator(form,
@@ -175,8 +175,8 @@ export class BatchWeightValidator {
     const maxDecimals = toNumber(opts?.pmfm && opts.pmfm?.maximumNumberDecimals, opts?.maxDecimals || 3);
     const required = toBoolean(opts?.required, toBoolean(opts?.pmfm && opts.pmfm?.required, false));
     const validator = required
-      ? Validators.compose([Validators.required, SharedValidators.double({maxDecimals})])
-      : SharedValidators.double({maxDecimals});
+      ? Validators.compose([Validators.required, SharedValidators.decimal({maxDecimals})])
+      : SharedValidators.decimal({maxDecimals});
     return {
       methodId: [toNumber(data?.methodId, null), SharedValidators.integer],
       estimated: [toBoolean(data?.estimated, null)],

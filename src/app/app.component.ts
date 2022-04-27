@@ -1,5 +1,5 @@
 import {Component, Inject} from '@angular/core';
-import {ConfigService} from "@sumaris-net/ngx-components";
+import { ConfigService, StatusIds } from '@sumaris-net/ngx-components';
 import {DOCUMENT} from "@angular/common";
 import {Configuration}  from "@sumaris-net/ngx-components";
 import {PlatformService}  from "@sumaris-net/ngx-components";
@@ -157,11 +157,13 @@ export class AppComponent {
       label: 'USER.DEPARTMENT.TITLE',
       type: 'entity',
       autocomplete: {
-        service: this.referentialRefService,
+        suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
+          statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+          ...filter
+        }),
         filter: {entityName: 'Department'},
         displayWith: (value) => value && joinPropertiesPath(value, attributes),
-        attributes: attributes,
-        columnSizes: attributes.map(attr => attr === 'label' ? 3 : undefined)
+        attributes
       },
       extra: {
         registration: {
@@ -169,7 +171,7 @@ export class AppComponent {
         },
         account: {
           required: true,
-          disable: true
+          disabled: true
         }
       }
     };

@@ -188,6 +188,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: TaxonomicLevelIds.SUBSPECIES
   },
+  PMFM_TRIP_PROGRESS: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.TRIP_PROGRESS.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRIP_PROGRESS',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.TRIP_PROGRESS
+  },
   PMFM_STRATEGY_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.STRATEGY_LABEL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_STRATEGY_LABEL_ID',

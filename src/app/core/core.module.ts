@@ -5,6 +5,7 @@ import {CacheModule} from 'ionic-cache';
 import { AppGraphQLModule, CoreModule, Environment } from '@sumaris-net/ngx-components';
 import {AppSharedModule} from '@app/shared/shared.module';
 import { TranslateModule } from '@ngx-translate/core';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 @NgModule({
   imports: [

@@ -320,9 +320,11 @@
       <th mat-header-cell *matHeaderCellDef>
       </th>
       <td mat-cell *matCellDef="let row">
-        <mat-icon class="comment"
-                  *ngIf="row.currentData.comments"
-                  [title]="row.currentData.comments"></mat-icon>
+        <mat-icon *ngIf="row.currentData.comments"
+                  class="comment"
+                  color="primary"
+                  [title]="row.currentData.comments">
+        </mat-icon>
       </td>
     </ng-container>
 

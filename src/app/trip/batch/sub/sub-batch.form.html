@@ -207,20 +207,23 @@
   </mat-form-field>
 
   <!-- submit button -->
-  <ion-buttons class="ion-no-padding" *ngIf="showSubmitButton">
+  <div class="ion-no-padding ion-align-items-end" *ngIf="showSubmitButton">
 
-    <button mat-button color="tertiary" class="ion-float-end"
-                [fill]="invalid ? 'clear' : 'solid'"
-                [disabled]="loading && !valid"
-                (click)="doSubmit($event)"
-                (keyup.enter)="doSubmit($event)"
+    <ion-button #submitButton
+                color="tertiary"
+                expand="block" fill="solid" shape="round"
+                [disabled]="invalid"
+                (click)="!mobile && doSubmit($event)"
+                (keyup.enter)="mobile ? checkIfSubmit($event) : doSubmit($event)"
+                (mousedown)="mobile && checkIfSubmit($event)"
+                (touchstart)="mobile && checkIfSubmit($event)"
                 [tabindex]="tabindex + 101">
       <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
       <ion-label *ngIf="!isNew" translate>COMMON.BTN_APPLY</ion-label>
-    </button>
+    </ion-button>
 
     <ng-content select="[endButton]"></ng-content>
-  </ion-buttons>
+  </div>
 
 
 </form>

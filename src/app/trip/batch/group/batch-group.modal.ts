@@ -25,6 +25,7 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   enableWeightConversion: boolean;
 
   // Sub batches modal
+  showHasSubBatchesButton: boolean;
   allowSubBatches: boolean;
   defaultHasSubBatches: boolean;
   openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
@@ -64,6 +65,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() showIndividualCount = false;
   @Input() showSamplingBatch: boolean;
   @Input() allowSubBatches = true;
+  @Input() showHasSubBatchesButton: boolean;
   @Input() defaultHasSubBatches: boolean;
   @Input() taxonGroupsNoWeight: string[];
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
@@ -290,7 +292,6 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.data = updatedParent;
     await this.form.setValue(this.data);
 
-    this.form.hasSubBatches = (updatedParent.observedIndividualCount > 0);
     this.form.markAsDirty();
   }
 

@@ -41,8 +41,13 @@
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
         </div>
 
-        <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+        <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey">
+          <ng-container [ngSwitch]="errorKey">
+            <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+            <span *ngSwitchCase="'entity'" translate>ERROR.FIELD_INVALID</span>
+            <span *ngSwitchCase="'msg'">{{(formControl.errors.msg?.key || formControl.errors.msg) | translate: formControl.errors.msg?.params}}</span>
+          </ng-container>
+        </mat-error>
       </mat-form-field>
 
       <!-- combo -->
@@ -120,8 +125,13 @@
         <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
       </div>
 
-      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+      <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey">
+        <ng-container [ngSwitch]="errorKey">
+          <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+          <span *ngSwitchCase="'entity'" translate>ERROR.FIELD_INVALID</span>
+          <span *ngSwitchCase="'msg'">{{(formControl.errors.msg?.key || formControl.errors.msg) | translate: formControl.errors.msg?.params}}</span>
+        </ng-container>
+      </mat-error>
     </mat-form-field>
 
     <!-- Buttons -->
@@ -160,7 +170,12 @@
         <ion-icon [name]="showAllButtons && 'chevron-up-outline' || 'chevron-down-outline'"></ion-icon>
       </ion-fab-button>
 
-      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+      <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey">
+        <ng-container [ngSwitch]="errorKey">
+          <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+          <span *ngSwitchCase="'msg'">{{(formControl.errors.msg?.key || formControl.errors.msg) | translate: formControl.errors.msg?.params}}</span>
+        </ng-container>
+      </mat-error>
     </mat-form-field>
   </ng-container>
 

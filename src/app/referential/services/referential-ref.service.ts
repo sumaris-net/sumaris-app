@@ -689,6 +689,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // PMFM
     // TODO generefy this, using Object.keys(PmfmIds) iteration
+    PmfmIds.TRIP_PROGRESS = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TRIP_PROGRESS);
     PmfmIds.TAG_ID = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TAG_ID);
     PmfmIds.DRESSING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DRESSING);
     PmfmIds.PRESERVATION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_PRESERVATION);
