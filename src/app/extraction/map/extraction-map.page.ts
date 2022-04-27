@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, NgZone, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
 import {
   AccountService,
   AppFormUtils,
@@ -6,9 +6,11 @@ import {
   Color,
   ColorScale,
   ColorScaleLegendItem,
+  ConfigService,
   DurationPipe,
   fadeInAnimation,
-  fadeInOutAnimation, firstTruePromise,
+  fadeInOutAnimation,
+  firstNotNilPromise,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -18,10 +20,8 @@ import {
   isNumberRange,
   LoadResult,
   LocalSettingsService,
-  PlatformService, ProgressBarService,
-  sleep,
-  StatusIds,
-  waitFor, waitForTrue
+  PlatformService,
+  StatusIds
 } from '@sumaris-net/ngx-components';
 import { ExtractionService } from '../services/extraction.service';
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
@@ -29,9 +29,9 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion } from '../services/model/extraction-type.model';
 import { Location } from '@angular/common';
 import * as L from 'leaflet';
-import { Control, ControlOptions, CRS, DomUtil, GeoJSON, MapOptions, WMSParams } from 'leaflet';
+import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
-import { debounceTime, distinctUntilChanged, filter, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { SelectProductModal } from '../product/modal/select-product.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../form/extraction-abstract.page';
@@ -52,6 +52,7 @@ import 'leaflet-easybutton';
 import 'leaflet-easybutton/src/easy-button.css';
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { FetchPolicy } from '@apollo/client';
+import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/services/config/extraction.config';
 
 declare interface LegendOptions {
   min: number;
@@ -68,7 +69,7 @@ declare interface TechChartOptions extends ChartOptions {
   aggMax: number;
 }
 
-const MAX_ZOOM = 10;
+const maxZoom = 18;
 
 const REGEXP_NAME_WITH_UNIT = /^([^(]+)(?: \(([^)]+)\))?$/;
 
@@ -104,18 +105,18 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: MAX_ZOOM,
+    maxZoom,
     attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
   });
   sextantBaseLayer = L.tileLayer(
     'https://sextant.ifremer.fr/geowebcache/service/wmts'
       + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
     {
-      maxZoom: MAX_ZOOM,
+      maxZoom,
       attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
     });
   countriesLayer = L.tileLayer.wms('http://www.ifremer.fr/services/wms/dcsmm', {
-    maxZoom: MAX_ZOOM,
+    maxZoom,
     version: '1.3.0',
     crs: CRS.EPSG3857,
     format: "image/png",
@@ -127,30 +128,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     service: 'WMS',
     sld_body: BASE_LAYER_SLD_BODY
   } as WMSParams);
-  baseLayer: L.TileLayer = this.sextantBaseLayer;
-  availableBaseLayers = [
-    {title: 'Sextant (Ifremer)', layer: this.sextantBaseLayer},
-    {title: 'Open Street Map', layer: this.osmBaseLayer}
-  ];
-  layersControl = <LeafletControlLayersConfig>{
-    baseLayers: {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      'Sextant (Ifremer)': this.sextantBaseLayer,
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      'Open Street Map': this.osmBaseLayer
-    },
-    overlays: {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      // Graticule: this.sextantGraticuleLayer,
-    }
-  };
-  mapOptions = <L.MapOptions>{
+  mapOptions = <MapOptions>{
     preferCanvas: true,
-    layers: [this.baseLayer],
+    attributionControl: false,
+    layers: [this.sextantBaseLayer],
     zoomControl: false,
     minZoom: 1,
-    maxZoom: MAX_ZOOM,
-    attributionControl: false,
+    maxZoom,
 
     // FIXME: cards not shown
     fullscreenControl: true,
@@ -160,6 +144,17 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       titleCancel: this.translate.instant('MAP.EXIT_FULLSCREEN'),
     }
   };
+  layersControl = <LeafletControlLayersConfig>{
+    baseLayers: {
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      'Sextant (Ifremer)': this.sextantBaseLayer,
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      'Open Street Map': this.osmBaseLayer
+    },
+    overlays: {
+    }
+  };
+
   map: L.Map;
   showGraticule = false;
   showCountriesLayer = true;
@@ -209,6 +204,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   columnNames = {}; // cache for i18n column name
   productFilter: Partial<ExtractionProductFilter>;
+  $fitToBounds = new Subject<L.LatLngBounds>();
+  $center = new BehaviorSubject<{center: L.LatLng, zoom: number}>(undefined);
   $title = new BehaviorSubject<string>(undefined);
   $sheetNames = new BehaviorSubject<string[]>(undefined);
   $timeColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
@@ -325,6 +322,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     protected aggregationService: ExtractionProductService,
     protected durationPipe: DurationPipe,
     protected aggregationStrataValidator: AggregationTypeValidatorService,
+    protected configService: ConfigService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
@@ -366,6 +364,17 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         switchMap(() => this.loadGeoData())
       ).subscribe(() => this.markAsPristine()));
 
+    this.registerSubscription(
+      this.configService.config.subscribe(config => {
+        let centerCoords = config.getPropertyAsNumbers(EXTRACTION_CONFIG_OPTIONS.EXTRACTION_MAP_CENTER_LAT_LNG);
+        centerCoords = (centerCoords?.length === 2) ? centerCoords : [0, 0];
+        const zoom = config.getPropertyAsInt(EXTRACTION_CONFIG_OPTIONS.EXTRACTION_MAP_CENTER_ZOOM);
+        this.$center.next({
+          center: L.latLng(centerCoords as [number, number]),
+          zoom: zoom || 5
+        });
+      })
+    );
   }
 
   ngOnInit() {
@@ -388,8 +397,14 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         ).subscribe(() => this.markForCheck())
     );
 
-
     this.addCustomControls();
+
+  }
+
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
+
+    this.fitToBounds();
   }
 
   ngOnDestroy() {
@@ -411,8 +426,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   }
 
   async onMapReady(leafletMap: L.Map) {
-    this.map = leafletMap;
-
+    const map = leafletMap;
 
     // Wait settings to be loaded
     const settings = await this.settings.ready();
@@ -420,7 +434,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       // Add scale control
     L.control.scale({
       position: 'topright'
-    }).addTo(this.map);
+    }).addTo(map);
 
     // Add customized zoom control
     L.control
@@ -428,7 +442,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         zoomInTitle: this.translate.instant('MAP.ZOOM_IN'),
         zoomOutTitle: this.translate.instant('MAP.ZOOM_OUT'),
       })
-      .addTo(this.map);
+      .addTo(map);
 
     // Create graticule
     this.graticule = new MapGraticule({latLngPattern: settings.latLongFormat});
@@ -456,10 +470,35 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
           },
         },
       ],
-    }).addTo(this.map);
+    }).addTo(map);
+
+    // DEBUG zoom
+    //map.on('zoom', () => console.debug(`[extraction-map] zoom=${map.getZoom()}`));
+
+    // Center map
+    const {center, zoom} = await firstNotNilPromise(this.$center);
 
     // Call ready in a timeout to let leaflet map to initialize
-    setTimeout(() => this._$ready.next(true), 400);
+    setTimeout(() => {
+      if (center && (center.lat !== 0 || center.lng !== 0)) {
+        console.debug(`[extraction-map] Center: `, center);
+        map.setView(center, zoom);
+      }
+      else {
+        map.fitWorld();
+      }
+      this.map = map;
+      this.markAsReady();
+    });
+  }
+
+  markAsReady(opts?: { emitEvent?: boolean }) {
+    if (!this.map || !this.$types.value) return; // Skip if missing types or map
+
+    // DEBUG
+    //console.debug(`[extraction-map] Mark as ready !`);
+
+    super.markAsReady(opts);
   }
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionProduct>> {
@@ -617,13 +656,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
 
   async ready(): Promise<void> {
-    if (this._$ready.value) return;
 
     await this.platform.ready();
-
-    //if (!this.map) await sleep(500);
-
-    return waitForTrue(this._$ready);
+    return super.ready();
   }
 
   protected async updateColumns(opts?: {
@@ -935,43 +970,51 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   }
 
-  async fitToBounds(bounds?: L.LatLngBounds) {
+  protected goTo(bounds: L.LatLngBounds) {
+    if (bounds?.isValid()) {
+      this.map.flyToBounds(bounds, { maxZoom, duration: 1 });
+    } else {
+      console.warn('[extraction-map] Cannot go to bound. GeoJSON layer not found.');
+    }
+  }
 
-    await this.ready();
+  async fitToBounds(opts = {skipDebounce : false}) {
 
-    if ((!bounds && isEmptyArray(this.layers)) || !this.map.getCenter()) {
-      // TODO: get center from configuration, or settings ?
-      const centerCoords = [46.879966, -10];
-      this.map.setView(L.latLng(centerCoords as [number, number]), 5);
+    if (!opts.skipDebounce) {
+      if (!this.$fitToBounds.observers.length) {
+        this.registerSubscription(
+          this.$fitToBounds
+            .pipe(
+              debounceTime(450),
+              mergeMap(() => this.ready())
+            )
+            .subscribe(b => this.fitToBounds({skipDebounce: true}))
+        );
+      }
 
+      this.$fitToBounds.next();
       return;
     }
 
-      // Use given bounds, if any
-    if (bounds) {
-      if (bounds.isValid()) {
-        this.map.flyToBounds(bounds, { maxZoom: MAX_ZOOM, duration: 1 });
-      } else {
-        console.warn('[map] Cannot fit to bound. Invalid bounds.');
-        this.map.fitWorld();
-      }
+    if (isEmptyArray(this.layers)) {
+      console.debug('[extraction-map] Skip fit to bounds (no layers)');
       return;
     }
 
     // Create bounds, from layers
-    let layerBounds: L.LatLngBounds;
+    let bounds: L.LatLngBounds;
     this.layers
       .filter((layer) => layer instanceof L.GeoJSON)
       .forEach((layer) => {
-        if (!layerBounds) {
-          layerBounds = (layer as L.GeoJSON).getBounds();
+        if (!bounds) {
+          bounds = (layer as L.GeoJSON).getBounds();
         } else {
-          layerBounds.extend((layer as L.GeoJSON).getBounds());
+          bounds.extend((layer as L.GeoJSON).getBounds());
         }
       });
 
-    // Loop with layer bounds
-    return this.fitToBounds(layerBounds);
+    console.debug('[extraction-map] fit to bounds:', bounds);
+    this.goTo(bounds);
   }
 
   async loadAnimationOverrides(type: ExtractionProduct, strata: IAggregationStrata, filter: ExtractionFilter):
