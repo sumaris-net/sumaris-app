@@ -109,7 +109,7 @@
         <span *ngSwitchCase="'max'">
           {{(compact ? 'ERROR.FIELD_MAX_COMPACT' : 'ERROR.FIELD_MAX') | translate:control.errors.max }}</span>
         <span *ngSwitchCase="'maxDecimals'">
-          {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:{max: control.errors.maxDecimals?.maxDecimals } }}</span>
+          {{ (compact ? 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT' : 'ERROR.FIELD_MAXIMUM_DECIMALS') | translate:control.errors.maxDecimals }}</span>
         <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
       </ng-container>
     </mat-error>
