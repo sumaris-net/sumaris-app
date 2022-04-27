@@ -3,7 +3,14 @@ import {FormFieldDefinition, PRIORITIZED_AUTHORITIES} from '@sumaris-net/ngx-com
 
 export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'ExtractionTypeVO': {
-    keyFields: ['category', 'label']
+    keyFields: ['category', 'label'],
+    merge: (existing, incoming, options) => {
+      console.warn('[extraction_config] TODO: check merging function for ExtractionTypeVO', existing, incoming, options);
+      return {
+        ...existing,
+        ...incoming
+      };
+    }
   }
 };
 
@@ -28,6 +35,18 @@ export const EXTRACTION_CONFIG_OPTIONS = Object.freeze({
     label: 'EXTRACTION.OPTIONS.PRODUCT_ENABLE',
     type: 'boolean',
     defaultValue: 'false'
+  },
+  EXTRACTION_MAP_CENTER_LAT_LNG: <FormFieldDefinition>{
+    key: 'sumaris.extraction.map.center.latLng',
+    label: 'EXTRACTION.OPTIONS.MAP_CENTER_LAT_LNG',
+    type: 'string',
+    defaultValue: '46.879966, -10' // Atlantique France
+  },
+  EXTRACTION_MAP_CENTER_ZOOM: <FormFieldDefinition>{
+    key: 'sumaris.extraction.map.center.zoom',
+    label: 'EXTRACTION.OPTIONS.MAP_CENTER_ZOOM',
+    type: 'integer',
+    defaultValue: 5
   },
   EXTRACTION_ACCESS_NOT_SELF_ROLE: <FormFieldDefinition>{
     key: "sumaris.extraction.accessNotSelfExtraction.role",

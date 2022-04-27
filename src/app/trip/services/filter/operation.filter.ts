@@ -1,11 +1,15 @@
-import { EntityClass, FilterFn, fromDateISOString, isNil, isNotNil, isNotNilOrNaN, toDateISOString } from '@sumaris-net/ngx-components';
+import { EntityClass, FilterFn, fromDateISOString, isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, toDateISOString } from '@sumaris-net/ngx-components';
 import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
-import {Operation} from '@app/trip/services/model/trip.model';
+import { Operation, VesselPositionUtils } from '@app/trip/services/model/trip.model';
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Moment} from 'moment';
 import {DataQualityStatusIdType, SynchronizationStatus} from '@app/data/services/model/model.utils';
 import {Util} from 'leaflet';
 import isArray = Util.isArray;
+import { BBox } from 'geojson';
+import { Geometries } from '@app/shared/geometries.utils';
+import { PositionUtils } from '@app/trip/services/position.utils';
+import { FishingAreaUtils } from '@app/data/services/model/fishing-area.model';
 
 @EntityClass({typename: 'OperationFilterVO'})
 export class OperationFilter extends DataEntityFilter<OperationFilter, Operation> {
@@ -25,6 +29,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
   taxonGroupLabels?: string[];
   synchronizationStatus?: SynchronizationStatus[];
   dataQualityStatus?: DataQualityStatusIdType;
+  boundingBox?: BBox;
 
   static fromObject: (source: any, opts?: any) => OperationFilter;
 
@@ -44,6 +49,7 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
     this.physicalGearIds = source.physicalGearIds;
     this.taxonGroupLabels = source.taxonGroupLabels;
     this.dataQualityStatus = source.dataQualityStatus;
+    this.boundingBox = source.boundingBox;
   }
 
   asObject(opts?: DataEntityAsObjectOptions): any {
@@ -132,6 +138,14 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
       if (this.dataQualityStatus === 'CONTROLLED') {
         filterFns.push((o => (isNotNil(o.controlDate))));
       }
+    }
+
+    // Filter on position
+    if (Geometries.checkBBox(this.boundingBox)) {
+      const positionFilter = PositionUtils.createBBoxFilter(this.boundingBox);
+      const fishingAreaFilter = FishingAreaUtils.createBBoxFilter(this.boundingBox);
+      filterFns.push(o => (o.positions || []).some(positionFilter)
+        || (o.fishingAreas || []).some(fishingAreaFilter));
     }
 
     // Filter on parent trip

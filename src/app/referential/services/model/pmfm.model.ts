@@ -1,5 +1,5 @@
-import { BaseReferential, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
-import { MethodIds, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelPatterns, WeightToKgCoefficientConversion, WeightUnitSymbol } from './model.enum';
+import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
+import { MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol } from './model.enum';
 import { Parameter, ParameterType } from './parameter.model';
 import { PmfmValue } from './pmfm-value.model';
 import { Moment } from 'moment';
@@ -26,6 +26,8 @@ export interface IPmfm<
   defaultValue: number|PmfmValue;
   maximumNumberDecimals: number;
   signifFiguresNumber: number;
+  detectionThreshold: number;
+  precision: number;
 
   matrixId: number;
   fractionId: number;
@@ -107,6 +109,8 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
   defaultValue: number;
   maximumNumberDecimals: number;
   signifFiguresNumber: number;
+  detectionThreshold: number;
+  precision: number;
 
   parameter: Parameter;
   matrix: ReferentialRef;
@@ -165,6 +169,8 @@ export class Pmfm extends FullReferential<Pmfm> implements IFullPmfm<Pmfm> {
     this.defaultValue = source.defaultValue;
     this.maximumNumberDecimals = source.maximumNumberDecimals;
     this.signifFiguresNumber = source.signifFiguresNumber;
+    this.detectionThreshold = source.detectionThreshold;
+    this.precision = source.precision;
 
     this.parameter = source.parameter && Parameter.fromObject(source.parameter);
     this.matrix = source.matrix && ReferentialRef.fromObject(source.matrix);
@@ -232,13 +238,21 @@ export abstract class PmfmUtils {
     return pmfm.type as ExtendedPmfmType;
   }
 
+  static getVisiblePmfms<P extends IPmfm>(pmfms: P[]): P[] {
+    return pmfms.filter(p => p && !p.hidden);
+  }
+
   static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[]): P {
-    let qvPmfm = pmfms.find(p => p.type === 'qualitative_value'
-      // exclude hidden pmfm (see batch modal)
-      && !p.hidden
-    );
+    // exclude hidden pmfm (see batch modal)
+    let qvPmfm = this.getVisiblePmfms(pmfms)
+      .find((p, index) => {
+        return p.type === 'qualitative_value'
+          // Should be the first visible pmfms. If not (e.g. a numeric pmfm is before: not a group pmfm)
+          && index === 0;
+      });
+
     // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
-    if (qvPmfm && qvPmfm.id === PmfmIds.DISCARD_OR_LANDING) {
+    if (qvPmfm?.id === PmfmIds.DISCARD_OR_LANDING) {
       qvPmfm = qvPmfm.clone() as P; // copy, to keep original array
       qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
     }
@@ -257,8 +271,25 @@ export abstract class PmfmUtils {
     return pmfm.type === 'date';
   }
 
+  /**
+  * Check if individual weight (e.g. for batches, products)
+  * @param pmfm
+  */
   static isWeight(pmfm: IPmfm): boolean {
-    return pmfm.unitLabel === UnitLabel.KG || pmfm.label?.endsWith("WEIGHT") || (pmfm instanceof Pmfm && (pmfm as Pmfm).parameter?.label?.endsWith("WEIGHT"));
+    return pmfm.unitLabel === UnitLabel.KG
+      || UnitLabelPatterns.WEIGHT.test(pmfm.label)
+      || (pmfm instanceof Pmfm && UnitLabelPatterns.WEIGHT.test(pmfm.parameter?.label));
+  }
+
+  /**
+   * Check if individual length (e.g. for batches, products)
+   * @param pmfm
+   */
+  static isLength(pmfm: IPmfm): boolean {
+    return pmfm && (
+      (UnitLabelGroups.LENGTH.includes(pmfm.unitLabel) && (UnitLabelPatterns.LENGTH.test(pmfm.label)))
+      || (pmfm instanceof Pmfm && UnitLabelGroups.LENGTH.includes(pmfm.unit?.label) && UnitLabelPatterns.LENGTH.test(pmfm.parameter?.label))
+    );
   }
 
   static hasParameterLabelIncludes(pmfm: Pmfm, labels: string[]): boolean {
@@ -266,7 +297,8 @@ export abstract class PmfmUtils {
   }
 
   static isComputed(pmfm: IPmfm) {
-    return pmfm.methodId === MethodIds.CALCULATED;
+    return (isNotNil(pmfm.methodId) && MethodIdGroups.CALCULATED.includes(pmfm.methodId))
+      || (pmfm instanceof Pmfm && MethodIdGroups.CALCULATED.includes(pmfm.method?.id));
   }
 
   static isDenormalizedPmfm(pmfm: IPmfm): pmfm is IDenormalizedPmfm {
@@ -347,30 +379,28 @@ export abstract class PmfmUtils {
    * @param expectedWeightSymbol
    * @param opts
    */
-  static setWeightUnitConversions<P extends IPmfm>(pmfms: P[], expectedWeightSymbol: WeightUnitSymbol, opts?: {
-    clone?: boolean;
-  }): P[] {
+  static setWeightUnitConversions<P extends IPmfm>(pmfms: P[],
+                                                   expectedWeightSymbol: WeightUnitSymbol,
+                                                   opts = { clone: true }): P[] {
     (pmfms || []).forEach((pmfm, i) => {
       pmfms[i] = this.setWeightUnitConversion(pmfm, expectedWeightSymbol, opts);
     });
     return pmfms;
   }
 
-  static setWeightUnitConversion<P extends IPmfm>(source: P, expectedWeightSymbol: WeightUnitSymbol, opts?: {
-    clone?: boolean;
-  }): P {
+  static setWeightUnitConversion<P extends IPmfm>(source: P,
+                                                  expectedWeightSymbol: WeightUnitSymbol,
+                                                  opts = { clone: true }): P {
     if (!this.isWeight(source)) return source;
 
-    const actualWeightUnit = source.unitLabel || UnitLabel.KG;
+    const actualWeightUnit = source.unitLabel?.toLowerCase() || UnitLabel.KG;
     if (actualWeightUnit === expectedWeightSymbol) return; // Conversion not need
 
-    // actual -> kg (= pivot) -> expected
-    const conversionCoefficient = WeightToKgCoefficientConversion[actualWeightUnit] / WeightToKgCoefficientConversion[expectedWeightSymbol];
+    // actual -> kg (pivot) -> expected
+    const conversionCoefficient = WeightKgConversion[actualWeightUnit] / WeightKgConversion[expectedWeightSymbol];
 
-    // Clone, to keep existing pmfm unchanged
-    const target = (!opts || opts.clone !== false)
-      ? source.clone() as P
-      : source;
+    // Clone to keep existing pmfm unchanged
+    const target = opts.clone ? source.clone() as P : source;
 
     target.displayConversion =  UnitConversion.fromObject({conversionCoefficient});
 

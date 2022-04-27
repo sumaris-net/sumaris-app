@@ -11,7 +11,6 @@ import {
   EntitiesStorage,
   firstArrayValue,
   firstNotNilPromise,
-  GraphqlService,
   IEntitiesService,
   IEntityService,
   IReferentialRef,
@@ -21,7 +20,6 @@ import {
   JobUtils,
   LoadResult,
   NetworkService,
-  PlatformService,
   propertiesPathComparator,
   ReferentialRef,
   ReferentialUtils,
@@ -851,7 +849,7 @@ export class ProgramRefService
           // Clear all program/strategies cache
           this.graphql.clearCache(),
           this.strategyRefService.clearCache(),
-          // Clear Apollo cache used by autocomplete fields
+          // Clear cache (e.g. used by autocomplete fields)
           this.clearCache()
         ]);
 

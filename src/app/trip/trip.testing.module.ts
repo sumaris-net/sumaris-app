@@ -7,7 +7,7 @@ import {TripModule} from "./trip.module";
 import {SharedModule} from "@sumaris-net/ngx-components";
 import {TranslateModule} from "@ngx-translate/core";
 import {TestingPage} from "@sumaris-net/ngx-components";
-import { BatchGroupFormTestPage } from '@app/trip/batch/form/testing/batch-group.form.test';
+import { BatchGroupFormTestPage } from '@app/trip/batch/group/testing/batch-group.form.test';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SampleTreeTestPage } from '@app/trip/sample/testing/sample-tree.test';
 

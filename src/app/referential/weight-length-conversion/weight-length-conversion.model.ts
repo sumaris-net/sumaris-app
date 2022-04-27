@@ -3,8 +3,8 @@ import { Moment } from 'moment';
 import { StoreObject } from '@apollo/client/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-export abstract class BaseWeightLengthConversion<T extends Entity<T, number, EntityAsObjectOptions>>
-  extends Entity<T, number, EntityAsObjectOptions>
+export abstract class BaseWeightLengthConversion<T extends Entity<T>>
+  extends Entity<T>
   implements IEntity<T> {
 
   year: number = null;
@@ -58,16 +58,19 @@ export class WeightLengthConversionRef
   extends BaseWeightLengthConversion<WeightLengthConversionRef> {
 
   static fromObject: (source: any, opts?: any) => WeightLengthConversionRef;
-
+  static isNotNilOrBlank(source: WeightLengthConversionRef): boolean {
+    return source && isNotNil(source.conversionCoefficientA) && isNotNil(source.conversionCoefficientB);
+  }
   locationId: number = null;
-  rectangleLabels: string[];
 
   lengthParameterId: number = null;
   lengthUnitId: number = null;
-  lengthUnitLabel: string = null;
-  lengthPmfmIds: number[] = null;
-
+  lengthUnit: ReferentialRef = null;
   sexId: number = null;
+
+  // Computed fields (on the pod):
+  rectangleLabels: string[];
+  lengthPmfmIds: number[] = null;
 
   constructor() {
     super(WeightLengthConversionRef.TYPENAME);
@@ -77,14 +80,13 @@ export class WeightLengthConversionRef
     super.fromObject(source, opts);
 
     this.locationId = source.locationId;
-    this.rectangleLabels = source.rectangleLabels;
-
     this.lengthParameterId = source.lengthParameterId;
     this.lengthUnitId = toNumber(source.lengthUnitId, source.lengthUnit?.id);
-    this.lengthUnitLabel = source.lengthUnitLabel || source.lengthUnit?.label;
-    this.lengthPmfmIds = source.lengthPmfmIds;
-
+    this.lengthUnit = source.lengthUnit && ReferentialRef.fromObject(source.lengthUnit);
     this.sexId = source.sexId;
+
+    this.rectangleLabels = source.rectangleLabels;
+    this.lengthPmfmIds = source.lengthPmfmIds;
   }
 }
 

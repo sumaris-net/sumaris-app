@@ -11,13 +11,16 @@ import {
   ConfigService,
   Configuration,
   EntitiesStorage,
+  EntityServiceLoadOptions,
   firstNotNilPromise,
   fromDateISOString,
   GraphqlService,
   IEntitiesService,
   isEmptyArray,
+  isNotNil,
   JobUtils,
   LoadResult,
+  LoadResultByPageFn,
   NetworkService,
   ObjectMap,
   Referential,
@@ -32,6 +35,7 @@ import {
   LocationLevelIds,
   MatrixIds,
   MethodIds,
+  ModelEnumUtils,
   ParameterGroupIds,
   ParameterLabelGroups,
   PmfmIds,
@@ -39,35 +43,26 @@ import {
   QualitativeValueIds,
   TaxonGroupTypeIds,
   TaxonomicLevelIds,
-  UnitIds,
-  UnitLabelGroups
+  UnitIds
 } from './model/model.enum';
-import { TaxonGroupRef } from './model/taxon-group.model';
-import { TaxonNameRef } from './model/taxon-name.model';
 import { ReferentialFragments } from './referential.fragments';
 import { SortDirection } from '@angular/material/sort';
 import { Moment } from 'moment';
 import { environment } from '@environments/environment';
-import { TaxonNameRefFilter } from './filter/taxon-name-ref.filter';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
-import { TaxonNameQueries } from '@app/referential/services/taxon-name.service';
-import { MetierFilter } from '@app/referential/services/filter/metier.filter';
 import { Metier } from '@app/referential/services/model/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
-import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
-import { WeightLengthConversion, WeightLengthConversionRef } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
+import { WeightLengthConversion } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
 import { WeightLengthConversionRefService } from '@app/referential/weight-length-conversion/weight-length-conversion-ref.service';
 import { ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
 import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
 import { RoundWeightConversionRefService } from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
-import { RoundWeightConversionFilter } from '@app/referential/round-weight-conversion/round-weight-conversion.filter';
-import { RoundWeightConversionRef } from '@app/referential/round-weight-conversion/round-weight-conversion.model';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
-import { EntityServiceLoadOptions, LoadResultByPageFn } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
+import { BBox } from 'geojson';
 
-const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any }>{
+const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any; }>{
   lastUpdateDate: gql`query LastUpdateDate{
     lastUpdateDate
   }`,
@@ -85,6 +80,13 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any 
     }
     total: referentialsCount(entityName: $entityName, filter: $filter)
   }
+  ${ReferentialFragments.referential}`,
+
+  loadLevels: gql`query ReferentialLevels($entityName: String) {
+    data: referentialLevels(entityName: $entityName){
+      ...ReferentialFragment
+    }
+  }
   ${ReferentialFragments.referential}`
 };
 
@@ -98,12 +100,6 @@ export const WEIGHT_CONVERSION_ENTITIES = ['WeightLengthConversion', 'RoundWeigh
 export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, ReferentialRefFilter>
   implements SuggestService<ReferentialRef, ReferentialRefFilter>,
     IEntitiesService<ReferentialRef, ReferentialRefFilter> {
-
-  private _importedEntityNames: string[];
-
-  get importedEntityNames(): string [] {
-    return this._importedEntityNames;
-  }
 
   constructor(
     protected graphql: GraphqlService,
@@ -360,6 +356,40 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return data?.length ? data[0] : undefined;
   }
 
+  async loadByLabel(label: string,
+                    entityName: string,
+                    filter?: Partial<ReferentialRefFilter>,
+                    opts?: {
+                      [key: string]: any;
+                      fetchPolicy?: FetchPolicy;
+                      debug?: boolean;
+                      toEntity?: boolean;
+                    }): Promise<ReferentialRef> {
+    const { data } = await this.loadAll(0, 1, null, null,
+      {label, entityName},
+      {...opts, withTotal: false /*not need total*/}
+    );
+    return data?.length ? data[0] : undefined;
+  }
+
+  async loadAllByLabels(labels: string[],
+                        entityName: string,
+                        filter?: Partial<ReferentialRefFilter>,
+                        opts?: {
+                          [key: string]: any;
+                          fetchPolicy?: FetchPolicy;
+                          debug?: boolean;
+                          toEntity?: boolean;
+                        }): Promise<ReferentialRef[]> {
+    const items = await Promise.all(labels.map(label => this.loadByLabel(label, entityName, filter, opts)
+      .catch(err => {
+        if (err && err.code === ErrorCodes.LOAD_REFERENTIAL_ERROR) return undefined; // Skip if not found
+        throw err;
+      })));
+
+    return items.filter(isNotNil);
+  }
+
   async suggest(value: any, filter?: Partial<ReferentialRefFilter>,
                 sortBy?: keyof Referential | 'rankOrder',
                 sortDirection?: SortDirection,
@@ -379,6 +409,31 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       {...filter, searchText: value},
       {withTotal: true /* Used by autocomplete */, ...opts}
     );
+  }
+
+  /**
+   * Load entity levels
+   */
+  async loadLevels(entityName: string, options?: {
+    fetchPolicy?: FetchPolicy
+  }): Promise<ReferentialRef[]> {
+    const now = Date.now();
+    if (this._debug) console.debug(`[referential-ref-service] Loading levels for ${entityName}...`);
+
+    const {data} = await this.graphql.query<LoadResult<any[]>>({
+      query: ReferentialRefQueries.loadLevels,
+      variables: {
+        entityName
+      },
+      error: { code: ErrorCodes.LOAD_REFERENTIAL_LEVELS_ERROR, message: "REFERENTIAL.ERROR.LOAD_REFERENTIAL_LEVELS_ERROR" },
+      fetchPolicy: options && options.fetchPolicy || 'cache-first'
+    });
+
+    const entities = (data || []).map(ReferentialRef.fromObject);
+
+    if (this._debug) console.debug(`[referential-ref-service] Levels for ${entityName} loading in ${Date.now() - now}`, entities);
+
+    return entities;
   }
 
   saveAll(data: ReferentialRef[], options?: any): Promise<ReferentialRef[]> {
@@ -463,6 +518,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                         maxProgression?: number;
                         entityNames?: string[];
                         progression?: BehaviorSubject<number>;
+                        boundingBox?: BBox;
+                        locationLevelIds?: number[];
+                        countryIds?: number[];
                       }) {
 
     const entityNames = opts?.entityNames || IMPORT_REFERENTIAL_ENTITIES;
@@ -489,7 +547,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     } else {
       // Success
       console.info(`[referential-ref-service] Successfully import ${entityNames.length} referential in ${Date.now() - now}ms`);
-      this._importedEntityNames = importedEntityNames;
     }
   }
 
@@ -497,6 +554,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
                             opts: {
                               progression?: BehaviorSubject<number>;
                               maxProgression?: number;
+                              boundingBox?: BBox;
+                              locationLevelIds?: number[];
+                              countryIds?: number[];
                             }) {
     const entityName = filter?.entityName;
     if (!entityName) throw new Error('Missing \'filter.entityName\'');
@@ -540,13 +600,10 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
         case 'Location':
           filter = {
             ...filter, statusIds,
-            levelIds: Object.keys(LocationLevelIds).reduce((res, item) => {
+            //boundingBox: opts?.boundingBox,
+            levelIds: opts?.locationLevelIds || Object.keys(LocationLevelIds).reduce((res, item) => {
                 return res.concat(LocationLevelIds[item]);
               }, [])
-              // TODO: Exclude rectangles (because more than 7200 rect exists !)
-              // => Maybe find a way to add it, depending on the program properties ?
-              //.filter(id => id !== LocationLevelIds.ICES_RECTANGLE
-            //  && id !== LocationLevelIds.GFCM_RECTANGLE)
           };
           break;
 
@@ -561,7 +618,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
         case 'RoundWeightConversion':
           // TODO limit to program locationIds ? (if location class = SEA) and referenceTaxon from program (taxon groups) + referenceTaxons ?
           loadPageFn = (offset, size) => this.roundWeightConversionRefService
-            .loadAll(offset, size, 'id', 'asc', {statusIds}, getLoadOptions(offset));
+            .loadAll(offset, size, 'id', 'asc', {statusIds, locationIds: opts?.countryIds}, getLoadOptions(offset));
           break;
 
         // Other entities
@@ -630,11 +687,9 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     // Fractions Groups
     FractionIdGroups.CALCIFIED_STRUCTURE = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS);
 
-    // Unit groups
-    UnitLabelGroups.LENGTH = config.getPropertyAsStrings(REFERENTIAL_CONFIG_OPTIONS.UNIT_GROUP_LENGTH_LABELS);
-
     // PMFM
     // TODO generefy this, using Object.keys(PmfmIds) iteration
+    PmfmIds.TRIP_PROGRESS = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TRIP_PROGRESS);
     PmfmIds.TAG_ID = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_TAG_ID);
     PmfmIds.DRESSING = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_DRESSING);
     PmfmIds.PRESERVATION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_PRESERVATION);
@@ -651,12 +706,16 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     PmfmIds.REFUSED_SURVEY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_REFUSED_SURVEY_ID);
     PmfmIds.GEAR_LABEL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_GEAR_LABEL_ID);
     PmfmIds.HAS_ACCIDENTAL_CATCHES = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_HAS_ACCIDENTAL_CATCHES_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID);
+    PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID);
 
     // Methods
     MethodIds.MEASURED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_MEASURED_BY_OBSERVER_ID);
     MethodIds.OBSERVED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_OBSERVED_BY_OBSERVER_ID);
     MethodIds.ESTIMATED_BY_OBSERVER = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_ESTIMATED_BY_OBSERVER_ID);
     MethodIds.CALCULATED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_ID);
+    MethodIds.CALCULATED_WEIGHT_LENGTH = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_WEIGHT_LENGTH_ID);
+    MethodIds.CALCULATED_WEIGHT_LENGTH_SUM = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID);
 
     // Matrix
     MatrixIds.INDIVIDUAL = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.FRACTION_INDIVIDUAL_ID);
@@ -680,7 +739,8 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
     // TODO: add all enumerations
 
-    // Force an update of ProgramProperties default values (e.g. when using LocationLevelId)
+    // Force an update default values (e.g. when using LocationLevelId)
+    ModelEnumUtils.refreshDefaultValues();
     ProgramPropertiesUtils.refreshDefaultValues();
 
   }

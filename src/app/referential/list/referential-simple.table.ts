@@ -1,22 +1,22 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import {
   AccountService,
   AppInMemoryTable,
-  InMemoryEntitiesService,
-  LocalSettingsService,
-  Referential, ReferentialUtils,
+  InMemoryEntitiesService, isNil,
+  Referential,
+  ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   StatusById,
-  StatusList,
+  StatusList
 } from '@sumaris-net/ngx-components';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {ReferentialValidatorService} from '../services/validator/referential.validator';
-import {ReferentialFilter} from '../services/filter/referential.filter';
-import {environment} from '@environments/environment';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { environment } from '@environments/environment';
+import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
+import { Popovers } from '@app/shared/popover/popover.utils';
+import { PopoverController } from '@ionic/angular';
 
 
 @Component({
@@ -55,11 +55,13 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
   @Input() canEdit = false;
   @Input() canDelete = false;
   @Input() hasRankOrder: boolean;
+  @Input() useSticky = false;
 
   @Input() set showUpdateDateColumn(value: boolean) {
     this.setShowColumn('updateDate', value);
   }
 
+  protected popoverController: PopoverController;
 
   constructor(
     injector: Injector,
@@ -91,11 +93,14 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
         entityName: 'Program'
       });
 
+    this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.inlineEdition = true;
     this.confirmBeforeDelete = true;
     this.autoLoad = false; // waiting parent to load
     this.showUpdateDateColumn = false;
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     this.debug = !environment.production;
   }
@@ -106,6 +111,56 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
     }
 
     super.ngOnInit();
+  }
+
+  async openDescriptionPopover(event: UIEvent, row: TableElement<Referential>) {
+
+    const placeholder = this.translate.instant(this.i18nColumnPrefix + 'DESCRIPTION');
+    const {data} = await Popovers.showText(this.popoverController, event, {
+      editing: this.inlineEdition && this.enabled,
+      autofocus: this.enabled,
+      multiline: true,
+      text: row.currentData.description,
+      placeholder
+    });
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
+
+    if (this.inlineEdition) {
+      if (row.validator) {
+        row.validator.patchValue({description: data});
+        row.validator.markAsDirty();
+      }
+      else {
+        row.currentData.description = data;
+      }
+    }
+  }
+
+  async openCommentPopover(event: UIEvent, row: TableElement<Referential>) {
+
+    const placeholder = this.translate.instant(this.i18nColumnPrefix + 'COMMENTS');
+    const {data} = await Popovers.showText(this.popoverController, event, {
+      editing: this.inlineEdition && this.enabled,
+      autofocus: this.enabled,
+      multiline: true,
+      text: row.currentData.comments,
+      placeholder
+    });
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
+
+    if (this.inlineEdition) {
+      if (row.validator) {
+        row.validator.patchValue({comments: data});
+        row.validator.markAsDirty();
+      }
+      else {
+        row.currentData.comments = data;
+      }
+    }
   }
 
   protected onRowCreated(row: TableElement<Referential>) {

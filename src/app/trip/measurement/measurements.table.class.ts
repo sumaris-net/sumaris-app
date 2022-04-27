@@ -45,6 +45,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
 
   private _programLabel: string;
   private _autoLoadAfterPmfm = true;
+  private _addingRow = false
 
   protected _acquisitionLevel: AcquisitionLevelType = null;
   protected _strategyLabel: string;
@@ -295,10 +296,8 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
     if (this.validatorService === validatorService && this._dataSource) return; // Skip if same
 
     // If already exists: destroy previous database
-    if (this._dataSource) {
-      this._dataSource.ngOnDestroy();
-      this._dataSource = null;
-    }
+    this._dataSource?.disconnect();
+    this._dataSource = null;
 
     if (this.debug) console.debug('[measurement-table] Settings validator service to: ', validatorService);
     this.validatorService = validatorService;
@@ -449,26 +448,34 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       if (res instanceof Promise) await res;
     }
 
-    const data = row.currentData; // if validator enable, this will call a getter function
+    if (this._addingRow) return; // Skip if already adding a row (e.g. when calling addEntityToTable)
 
-    await this.onNewEntity(data);
+    this._addingRow = true;
+    try {
+      const data = row.currentData; // if validator enable, this will call a getter function
 
-    // Normalize measurement values
-    this.normalizeEntityToRow(data, row);
+      await this.onNewEntity(data);
 
-    // Set row data
-    if (row.validator) {
-      row.validator.patchValue(data);
+      // Normalize measurement values
+      this.normalizeEntityToRow(data, row);
+
+      // Set row data
+      if (row.validator) {
+        row.validator.patchValue(data);
+      }
+      else {
+        row.currentData = data;
+      }
+
+      this.markForCheck();
     }
-    else {
-      row.currentData = data;
+    finally {
+      this._addingRow = false;
     }
-
-    this.markForCheck();
   }
 
   /**
-   * Insert an entity into the table. This can be usefull when entity is created by a modal (e.g. BatchGroupTable).
+   * Insert an entity into the table. This can be useful when entity is created by a modal (e.g. BatchGroupTable).
    *
    * If hasRankOrder=true, then rankOrder is computed only once.
    * Will call method normalizeEntityToRow().
@@ -477,7 +484,7 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; keepEditing?: boolean }): Promise<TableElement<T>> {
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
     if (!data) throw new Error("Missing data to add");
     if (this.debug) console.debug("[measurement-table] Adding new entity", data);
 
@@ -490,45 +497,57 @@ export abstract class AppMeasurementsTable<T extends IEntityWithMeasurement<T>, 
       }
     }
 
-    const row = await this.addRowToTable();
-    if (!row) throw new Error("Could not add row to table");
-
-    // Override rankOrder (with a computed value)
-    if (this.hasRankOrder
-      // Do NOT override if can edit it and set
-      && (!this.canEditRankOrder || isNil(data.rankOrder))) {
-      data.rankOrder = row.currentData.rankOrder;
+    if (this._addingRow) {
+      console.warn("[measurement-table] Skipping add new row. Another add is in progress.");
+      return;
     }
+    this._addingRow = true;
 
-    await this.onNewEntity(data);
+    try {
 
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(data, row);
+      const row = await this.addRowToTable();
+      if (!row) throw new Error("Could not add row to table");
 
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(data);
-      row.validator.markAsDirty();
-    } else {
-      row.currentData = data;
+      // Override rankOrder (with a computed value)
+      if (this.hasRankOrder
+        // Do NOT override if can edit it and set
+        && (!this.canEditRankOrder || isNil(data.rankOrder))) {
+        data.rankOrder = row.currentData.rankOrder;
+      }
+
+      await this.onNewEntity(data);
+
+      // Adapt measurement values to row
+      this.normalizeEntityToRow(data, row);
+
+      // Affect new row
+      if (row.validator) {
+        row.validator.patchValue(data);
+        row.validator.markAsDirty();
+      } else {
+        row.currentData = data;
+      }
+
+      // Confirm the created row
+      if (!opts || opts.confirmCreate !== false) {
+        if (row.validator?.pending) {
+          await AppFormUtils.waitWhilePending(row.validator);
+        }
+        const confirmed = this.confirmEditCreate(null, row);
+        this.editedRow = confirmed ? null : row /*confirmation failed*/;
+      }
+      // Keep editing
+      else {
+        this.editedRow = row;
+      }
+
+      this.markAsDirty({emitEvent: false});
+
+      return row;
     }
-
-    // Confirm the created row
-    if (!opts || opts.confirmCreate !== false) {
-      this.confirmEditCreate(null, row);
-      this.editedRow = null;
+    finally {
+      this._addingRow = false;
     }
-    else if (!opts || opts.keepEditing !== false) {
-      row.editing = false;
-      this.editedRow = undefined;
-    }
-    else {
-      this.editedRow = row;
-    }
-
-    this.markAsDirty();
-
-    return row;
   }
 
   /**

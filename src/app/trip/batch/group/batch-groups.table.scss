@@ -1,0 +1,96 @@
+
+:host {
+  width: 100%;
+}
+
+.mat-table {
+  background-color: transparent !important;
+  --mat-cell-vertical-padding: 4px;
+
+  /* First header row (group) */
+  .mat-header-row.first-header-row {
+    background-color: var(--mat-toolbar-background-color, whitesmoke);
+    height: var(--mat-toolbar-height, 64px);
+    --mat-cell-vertical-padding: 0;
+
+    .mat-header-cell {
+      background-color: transparent;
+
+      &.mat-column-top-start {
+        padding-inline-start: 8px;
+        color: unset;
+      }
+
+      &.mat-column-qv-group {
+        text-align: center;
+        background-color: var(--ion-color-light-shade, lightgray);
+        border-top: 8px solid var(--mat-toolbar-background-color);
+        &.even {
+          background-color: var(--ion-color-medium) !important;
+        }
+        ion-label,
+        mat-label {
+          text-align: center !important;
+          margin: 0;
+          width: 100%;
+
+          mat-checkbox {
+            margin-left: 5px;
+            margin-right: 5px;
+          }
+        }
+      }
+    }
+  }
+
+
+  .mat-header-row,
+  .mat-row {
+
+
+    .mat-header-cell.total {
+      background-color: var(--ion-color-light-tint, lightgray) !important;
+    }
+    .mat-cell.total {
+      background-color: var(--ion-color-light-tint, lightgray);
+    }
+
+    &.mat-row-selected {
+      .mat-cell.total {
+        background-color: rgba(0,0,0, 0.1) !important;
+      }
+    }
+    .mat-column-id {
+      min-width: 30px;
+      max-width: 30px;
+    }
+
+    .mat-column-taxonName,
+    .mat-column-taxonGroup {
+      min-width: 150px;
+    }
+
+    .mat-column-weight,
+    .mat-column-weight{
+      text-align: center;
+    }
+
+    .mat-column-LAN_samplingIndividualCount,
+    .mat-column-DIS_samplingIndividualCount,
+    .mat-column-samplingIndividualCount {
+      max-width: 60px;
+    }
+
+    .mat-column-comments {
+      max-width: inherit; // Override default limitation
+    }
+
+    .mat-column-top-end,
+    .mat-column-actions {
+      max-width: 40px;
+      padding-inline-start: 0;
+      padding-inline-end: 0;
+      color: unset;
+    }
+  }
+}

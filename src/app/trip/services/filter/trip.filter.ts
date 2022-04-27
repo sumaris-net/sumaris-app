@@ -18,6 +18,7 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { PhysicalGearFilter } from '@app/trip/services/filter/physical-gear.filter';
 import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
+import { BBox } from 'geojson';
 
 
 @EntityClass({typename: 'TripFilterVO'})
@@ -41,7 +42,8 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
       programLabel: f.program?.label,
       vesselId: f.vesselId,
       startDate: f.startDate,
-      endDate: f.endDate
+      endDate: f.endDate,
+      boundingBox: f.boundingBox
     });
   }
 
@@ -53,6 +55,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   observers?: Person[];
   includedIds: number[];
   excludedIds: number[];
+  boundingBox?: BBox;
 
   constructor() {
     super();
@@ -69,14 +72,13 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.observers = source.observers && source.observers.map(Person.fromObject).filter(isNotNil) || [];
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
+    this.boundingBox = source.boundingBox;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
-    target.includedIds = this.includedIds;
-    target.excludedIds = this.excludedIds;
 
     if (opts && opts.minify) {
       // Vessel

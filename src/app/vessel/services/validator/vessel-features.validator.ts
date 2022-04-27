@@ -34,9 +34,9 @@ export class VesselFeaturesValidatorService<O extends VesselValidatorOptions = V
       name: ['', opts.withNameRequired ? Validators.required : null],
       exteriorMarking: ['', Validators.required],
       administrativePower: ['', Validators.compose([Validators.min(0), SharedValidators.integer])],
-      lengthOverAll: ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-      grossTonnageGrt: ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
-      grossTonnageGt: ['', Validators.compose([Validators.min(0), SharedValidators.double({maxDecimals: 2})])],
+      lengthOverAll: ['', Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])],
+      grossTonnageGrt: ['', Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])],
+      grossTonnageGt: ['', Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])],
       basePortLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
       comments: ['', Validators.maxLength(2000)],
       qualityFlagId: [data && data.qualityFlagId || QualityFlagIds.NOT_QUALIFIED]

@@ -8,6 +8,7 @@ export const RoundWeightConversionFragments = {
     startDate
     endDate
     conversionCoefficient
+    locationId
     taxonGroupId
     dressingId
     preservingId

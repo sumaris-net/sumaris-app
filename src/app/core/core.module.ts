@@ -4,6 +4,8 @@ import {HttpClientModule} from '@angular/common/http';
 import {CacheModule} from 'ionic-cache';
 import { AppGraphQLModule, CoreModule, Environment } from '@sumaris-net/ngx-components';
 import {AppSharedModule} from '@app/shared/shared.module';
+import { TranslateModule } from '@ngx-translate/core';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 @NgModule({
   imports: [
@@ -11,6 +13,7 @@ import {AppSharedModule} from '@app/shared/shared.module';
     HttpClientModule,
     CacheModule,
     IonicStorageModule,
+    TranslateModule.forChild(),
 
     // App modules
     AppSharedModule,
@@ -20,7 +23,8 @@ import {AppSharedModule} from '@app/shared/shared.module';
   ],
   exports: [
     CoreModule,
-    AppSharedModule
+    AppSharedModule,
+    TranslateModule
   ]
 })
 export class AppCoreModule {

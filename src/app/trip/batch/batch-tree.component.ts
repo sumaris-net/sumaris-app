@@ -12,38 +12,33 @@ import {
   isNotNilOrBlank,
   LocalSettingsService,
   toBoolean,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
-import { AlertController, ModalController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { BehaviorSubject, defer } from 'rxjs';
 import { FormGroup } from '@angular/forms';
-import { OperationService } from '../services/operation.service';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
-import { TripService } from '../services/trip.service';
-import { Batch, BatchUtils } from '../services/model/batch.model';
-import { BatchGroup, BatchGroupUtils } from '../services/model/batch-group.model';
-import { BatchGroupsTable } from './table/batch-groups.table';
-import { SubBatchesTable, SubBatchFilter } from './table/sub-batches.table';
-import { CatchBatchForm } from '../catch/catch.form';
+import { Batch} from './common/batch.model';
+import { BatchGroup, BatchGroupUtils } from './group/batch-group.model';
+import { BatchGroupsTable } from './group/batch-groups.table';
+import { SubBatchesTable, SubBatchFilter } from './sub/sub-batches.table';
+import { CatchBatchForm } from './catch/catch.form';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { SubBatch, SubBatchUtils } from '../services/model/subbatch.model';
+import { SubBatch, SubBatchUtils } from './sub/sub-batch.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { DataContextService } from '@app/data/services/data-context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { ValidatorService } from '@e-is/ngx-material-table';
-import { BatchGroupValidatorService } from '@app/trip/services/validator/batch-group.validator';
+import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 @Component({
   selector: 'app-batch-tree',
   templateUrl: './batch-tree.component.html',
   providers: [
-    {provide: DataContextService, useExisting: DataContextService},
     {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -304,7 +299,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     }
 
     // DEBUG
-    if (this.debug) BatchUtils.logTree(target);
+    //if (this.debug) BatchUtils.logTree(target);
 
     this.data = target;
 
@@ -412,7 +407,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
     this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
-    this.batchGroupsTable.enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE);
     this.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
 
     // Some specific taxon groups have no weight collected
@@ -421,12 +415,17 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       .map(label => label.trim().toUpperCase())
       .filter(isNotNilOrBlank) || undefined;
 
+    // Update context
+    this.enableWeightLengthConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
+    const roundWeightConversionCountryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
+
     // Force taxon name in sub batches, if not filled in root batch
     if (this.subBatchesTable) {
       this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
       this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
       this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
-      this.subBatchesTable.enableWeightConversion = this.batchGroupsTable.enableWeightConversion;
+      this.subBatchesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_DISPLAYED_UNIT);
+      this.subBatchesTable.roundWeightConversionCountryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
     }
 
     // Propagate to children components, if need

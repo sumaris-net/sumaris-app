@@ -47,7 +47,7 @@
                   <input matInput class="cdk-visually-hidden" type="text"
                          [placeholder]="'PROGRAM.LOCATION_CLASSIFICATION'|translate">
                   <app-list-form #locationClassificationList
-                                 [formArray]="form.controls.locationClassifications"
+                                 [formArray]="form|formGetArray:'locationClassifications'"
                                  [displayWith]="referentialToString"
                                  [equals]="referentialEquals"
                                  [options]="{allowEmptyArray: false, allowMultipleSelection: false}"
@@ -67,6 +67,30 @@
       </div>
     </mat-tab>
 
+    <!-- TAB: locations  -->
+    <mat-tab label="{{'PROGRAM.TAB_LOCATIONS'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>room</mat-icon>
+        <ion-label translate>PROGRAM.TAB_LOCATIONS</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && locationList.invalid"></ion-icon>
+      </ng-template>
+
+      <div class="form-container ion-padding">
+
+        <mat-form-field floatLabel="always">
+          <input matInput class="cdk-visually-hidden" type="text"
+                 [placeholder]="'PROGRAM.LOCATIONS'|translate">
+
+          <app-list-form #locationList
+                         [displayWith]="referentialToString"
+                         [formArray]="form|formGetArray: 'locations'"
+                         [equals]="referentialEquals"
+                         [options]="{allowEmptyArray: true, allowMultipleSelection: false}"
+                         (onNewItem)="addLocation()">
+          </app-list-form>
+        </mat-form-field>
+      </div>
+    </mat-tab>
 
     <!-- TAB: strategies -->
     <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="isNewData">
@@ -171,7 +195,7 @@
 
   <!-- add strategy -->
   <ion-fab slot="fixed" vertical="bottom" horizontal="end"
-           *ngSwitchCase="1"
+           *ngSwitchCase="TABS.STRATEGIES"
            [class.cdk-visually-hidden]="strategiesTable?.disabled"
            @fadeInOutAnimation>
     <ion-fab-button color="tertiary" (click)="onNewStrategy($event)">
@@ -181,7 +205,7 @@
 
   <!-- add person -->
   <ion-fab slot="fixed" vertical="bottom" horizontal="end"
-           *ngSwitchCase="3"
+           *ngSwitchCase="TABS.PERSONS"
            [class.cdk-visually-hidden]="personsTable?.disabled"
            @fadeInOutAnimation>
     <ion-fab-button color="tertiary" (click)="personsTable.addRow($event)">

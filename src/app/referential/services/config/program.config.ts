@@ -41,6 +41,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.offline.import.location.level.ids',
+    label: 'PROGRAM.OPTIONS.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS',
+    type: 'string',
+    defaultValue: undefined // = Import all locations define in LocationLevelIds
+  },
   TRIP_METIERS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.metiers.enable',
     label: 'PROGRAM.OPTIONS.TRIP_METIERS_ENABLE',
@@ -89,6 +95,11 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE',
     defaultValue: 'true',
     type: 'boolean'
+  },
+  TRIP_POSITION_BOUNDING_BOX: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.position.boundingBox',
+    label: 'PROGRAM.OPTIONS.TRIP_POSITION_BOUNDING_BOX',
+    type: 'string' // expected BBox
   },
   TRIP_POSITION_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.position.enable',
@@ -150,6 +161,31 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
+  TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_DISPLAYED_UNIT: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.individual.weightUnit',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT',
+    type: 'enum',
+    values: [
+      {
+        key: UnitLabel.KG,
+        value: UnitLabel.KG
+      },
+      {
+        key: UnitLabel.GRAM,
+        value: UnitLabel.GRAM
+      },
+      {
+        key: UnitLabel.MG,
+        value: UnitLabel.MG
+      },
+      {
+        key: UnitLabel.TON,
+        value: UnitLabel.TON
+      }
+    ],
+    // No default value (keep PMFM unit)
+    //defaultValue: UnitLabel.KG
+  },
   TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.rankOrder.compute',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE',
@@ -168,11 +204,17 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
-  TRIP_BATCH_WEIGHT_CONVERSION_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.batch.weight.conversion.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_BATCH_WEIGHT_CONVERSION_ENABLE',
-    defaultValue: 'false', // Enable RTP / Equiv poids vif
-    type: 'boolean'
+  TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.lengthWeightConversion.enable',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
+  TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.roundWeightConversion.country.id',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID',
+    type: 'integer',
+    defaultValue: undefined
   },
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.sample.enable',
@@ -264,6 +306,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '0',
     type: 'integer'
   },
+  TRIP_MIN_DURATION_HOURS: <FormFieldDefinition>{
+    key: 'sumaris.trip.minDurationInHours',
+    label: 'PROGRAM.OPTIONS.TRIP_MIN_DURATION_HOURS',
+    defaultValue: '1', // 1 hour
+    type: 'integer'
+  },
+  TRIP_MAX_DURATION_HOURS: <FormFieldDefinition>{
+    key: 'sumaris.trip.maxDurationInHours',
+    label: 'PROGRAM.OPTIONS.TRIP_MAX_DURATION_HOURS',
+    defaultValue: '2400', // 100 days
+    type: 'integer'
+  },
   TRIP_APPLY_DATE_ON_NEW_OPERATION: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.copyTripDates',
     label: 'PROGRAM.OPTIONS.TRIP_APPLY_DATE_ON_NEW_OPERATION',
@@ -305,6 +359,18 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_END_DATE_ENABLE',
     defaultValue: 'true',
     type: 'boolean'
+  },
+  TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.maxShootingDurationInHours',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS',
+    defaultValue: '12', // 12 hours
+    type: 'integer'
+  },
+  TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.maxTotalDurationInHours',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS',
+    defaultValue: '2400', // 100 days
+    type: 'integer'
   },
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{

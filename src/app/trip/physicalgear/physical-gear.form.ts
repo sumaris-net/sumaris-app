@@ -28,6 +28,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
   @Input() canEditGear = true;
+  @Input() maxVisibleButtons: number;
 
   @Input()
   set gears(value: ReferentialRef[]) {

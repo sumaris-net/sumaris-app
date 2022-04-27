@@ -48,7 +48,7 @@ $app-select-option-border-color: rgba(0, 0, 0, 0.12);
 $app-table-border-color: rgba(0, 0, 0, 0.08);
 $app-card-status-font-size: 0.9em;
 $app-card-status-font-color: var(--ion-color-step-850);
-
+$app-text-color-disable: rgba(0, 0, 0, 0.57);
 
 // Load defaults
 @import "~@sumaris-net/ngx-components/src/theme/globals";

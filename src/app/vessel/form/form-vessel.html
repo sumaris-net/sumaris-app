@@ -128,7 +128,7 @@
                  formControlName="lengthOverAll" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('pattern')">
-            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
+            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{maxDecimals: 2} }}</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.lengthOverAll').hasError('min')">
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>
@@ -141,7 +141,7 @@
                  formControlName="administrativePower" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('pattern')">
-            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
+            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{maxDecimals: 2} }}</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.administrativePower').hasError('min')">
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>
@@ -154,7 +154,7 @@
                  formControlName="grossTonnageGt" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('pattern')">
-            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
+            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{maxDecimals: 2} }}</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGt').hasError('min')">
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>
@@ -167,7 +167,7 @@
                  formControlName="grossTonnageGrt" (keypress)="filterNumberInput($event, true)">
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGrt').hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
           <mat-error *ngIf="form.get('vesselFeatures.grossTonnageGrt').hasError('pattern')">
-            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{max: 2} }}</mat-error>
+            {{ 'ERROR.FIELD_MAXIMUM_DECIMALS'| translate:{maxDecimals: 2} }}</mat-error>
           <mat-error *ngIf="form.get(['features.grossTonnageGrt').hasError('min')">
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>

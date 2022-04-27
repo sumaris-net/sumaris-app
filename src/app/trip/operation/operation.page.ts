@@ -45,8 +45,8 @@ import { IPmfmForm, OperationValidators } from '@app/trip/services/validator/ope
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
-import { SubBatchValidatorService } from '@app/trip/services/validator/sub-batch.validator';
-import { DataContextService } from '@app/data/services/data-context.service';
+import { ContextService } from '@app/shared/context.service';
+import { Geometries } from '@app/shared/geometries.utils';
 
 const moment = momentImported;
 
@@ -58,8 +58,7 @@ const moment = momentImported;
   animations: [fadeInOutAnimation],
   providers: [
     { provide: APP_ENTITY_EDITOR, useExisting: OperationPage },
-    { provide: DataContextService, useExisting: TripContextService},
-    { provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
+    { provide: ContextService, useExisting: TripContextService},
     {
       provide: IonRouterOutlet,
       useValue: {
@@ -506,6 +505,8 @@ export class OperationPage
             this.batchTree.allowSamplingBatches = hasIndividualMeasures;
             this.batchTree.defaultHasSubBatches = hasIndividualMeasures;
             this.batchTree.allowSubBatches = hasIndividualMeasures;
+            // Hide button to toggle hasSubBatches (yes/no) when value if forced
+            this.batchTree.batchGroupsTable.setModalOption("showHasSubBatchesButton", !hasIndividualMeasures)
             if (!this.allowParentOperation) {
               this.showBatchTables = hasIndividualMeasures && this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
@@ -584,6 +585,7 @@ export class OperationPage
     const enablePosition = isGPSUsed && program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
     this.opeForm.trip = this.trip;
     this.opeForm.showPosition = enablePosition;
+    this.opeForm.boundingBox = enablePosition && Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
     // TODO: make possible to have both showPosition and showFishingArea at true (ex SFA artisanal logbook program)
     this.opeForm.showFishingArea = !enablePosition; // Trip has gps in use, so active positions controls else active fishing area control
     this.opeForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS);
@@ -601,9 +603,12 @@ export class OperationPage
     this.opeForm.fishingStartDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
     this.opeForm.fishingEndDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
     this.opeForm.endDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
+    this.opeForm.maxShootingDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS);
+    this.opeForm.maxTotalDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS);
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
-    this.saveOptions.computeBatchIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
+    this.saveOptions.computeBatchIndividualCount = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
+    this.saveOptions.computeBatchWeight = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
 
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
@@ -1082,14 +1087,17 @@ export class OperationPage
       const qualitativeValue = (pmfm && pmfm.qualitativeValues || []).find(qv => qv.id === qvMeasurement.qualitativeValue.id);
 
       // Transform QV.label has a list of TaxonGroup.label
-      const contextualTaxonGroups = qualitativeValue?.label
+      const contextualTaxonGroupLabels = qualitativeValue?.label
         .split(/[^\w]+/) // Split by separator (= not a word)
         .filter(isNotNilOrBlank)
         .map(label => label.trim().toUpperCase());
 
       // Limit the program list, using the restricted list
-      if (isNotEmptyArray(contextualTaxonGroups)) {
-        availableTaxonGroups = availableTaxonGroups.filter(tg => contextualTaxonGroups.includes(tg.label));
+      if (isNotEmptyArray(contextualTaxonGroupLabels)) {
+        availableTaxonGroups = availableTaxonGroups.filter(tg => contextualTaxonGroupLabels.some(label =>
+          label === tg.label
+          // Contextual 'RJB' must match RJB_1, RJB_2
+          || tg.label.startsWith(label)));
       }
     }
 
@@ -1174,11 +1182,15 @@ export class OperationPage
     super.startListenRemoteChanges();
   }
 
+  /**
+   * S context, for batch validator
+   * @protected
+   */
   protected updateDataContext() {
     console.debug('[operation-page] Updating data context...');
     // Date
     const date = this.$lastEndDate.value || this.opeForm.lastStartDateTimeControl?.value;
-    this.tripContext.setValue('date', date);
+    this.tripContext.setValue('date', fromDateISOString(date));
 
     // Fishing area
     if (this.opeForm.showFishingArea) {

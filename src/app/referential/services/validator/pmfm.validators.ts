@@ -39,7 +39,7 @@ export class PmfmValidators {
       }
       // Double with a N decimal
       else if (pmfm.maximumNumberDecimals >= 1) {
-        validatorFns.push(SharedValidators.double({maxDecimals: pmfm.maximumNumberDecimals}));
+        validatorFns.push(SharedValidators.decimal({maxDecimals: pmfm.maximumNumberDecimals}));
       }
     } else if (pmfm.type === 'qualitative_value') {
       validatorFns.push(SharedValidators.entity);

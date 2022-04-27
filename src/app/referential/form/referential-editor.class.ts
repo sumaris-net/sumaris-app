@@ -207,7 +207,7 @@ export abstract class AppReferentialEditor<
   }
 
   async loadLevels() {
-    const levels = await this.referentialService.loadLevels(this.entityName);
+    const levels = await this.referentialRefService.loadLevels(this.entityName);
 
     const sortAttributes = this.fieldDefinitions.level?.autocomplete.attributes;
     if (sortAttributes.length) {

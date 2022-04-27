@@ -4,6 +4,7 @@ import {ReferentialRef}  from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {isNotEmptyArray} from "@sumaris-net/ngx-components";
 import {EntityClass}  from "@sumaris-net/ngx-components";
+import { BBox } from 'geojson';
 
 @EntityClass({typename: 'ReferentialFilterVO'})
 export class ReferentialRefFilter
@@ -12,6 +13,7 @@ export class ReferentialRefFilter
   static fromObject: (source, opts?: any) => ReferentialRefFilter;
 
   searchAttributes: string[] = null;
+  boundingBox?: BBox;
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);

@@ -19,8 +19,8 @@ export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
     const config = super.getFormGroupConfig(data, opts);
     return {
       ...config,
-      minValue: [toNumber(data && data.minValue, null), SharedValidators.double()],
-      maxValue: [toNumber(data && data.maxValue, null), SharedValidators.double()],
+      minValue: [toNumber(data && data.minValue, null), SharedValidators.decimal()],
+      maxValue: [toNumber(data && data.maxValue, null), SharedValidators.decimal()],
       defaultValue: [isNotNil(data && data.defaultValue) ? data.defaultValue : null],
       maximumNumberDecimals: [toNumber(data && data.maximumNumberDecimals, null), SharedValidators.integer],
       signifFiguresNumber: [toNumber(data && data.signifFiguresNumber, null), SharedValidators.integer],

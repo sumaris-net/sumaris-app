@@ -1,6 +1,9 @@
-import {DataEntity, DataEntityAsObjectOptions} from './data-entity.model';
+import { DataEntity, DataEntityAsObjectOptions } from './data-entity.model';
 import { EntityClass, isNotNil, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { Geometries } from '@app/shared/geometries.utils';
+import { BBox } from 'geojson';
+import { LocationUtils } from '@app/referential/location/location.utils';
 
 @EntityClass({typename: 'FishingAreaVO'})
 export class FishingArea extends DataEntity<FishingArea> {
@@ -53,4 +56,13 @@ export class FishingArea extends DataEntity<FishingArea> {
       );
   }
 
+}
+
+export class FishingAreaUtils {
+  static createBBoxFilter(boundingBox: BBox): (f: FishingArea) => boolean {
+    return (fa) => {
+      const rectBbox = LocationUtils.getBBoxFromRectangleLabel(fa.location?.label);
+      return rectBbox && Geometries.isBBoxInside(rectBbox, boundingBox);
+    };
+  }
 }

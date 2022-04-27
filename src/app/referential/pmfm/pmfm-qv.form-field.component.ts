@@ -164,7 +164,9 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
-    if (!this.mobile) {
+    if (this.mobile) {
+    }
+    else {
       if (!this._sortedQualitativeValues.length) {
         this.items = of([]);
       } else {

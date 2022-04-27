@@ -60,8 +60,8 @@ export class PmfmStrategyValidatorService implements ValidatorService {
       config.rankOrder = [data && data.rankOrder || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
       config.isMandatory = [data && data.isMandatory || false, Validators.required];
       config.acquisitionNumber = [data && data.acquisitionNumber || 1, Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])];
-      config.minValue = [data && data.minValue || null, SharedValidators.double()];
-      config.maxValue = [data && data.maxValue || null, SharedValidators.double()];
+      config.minValue = [data && data.minValue || null, SharedValidators.decimal()];
+      config.maxValue = [data && data.maxValue || null, SharedValidators.decimal()];
       config.defaultValue = [isNotNil(data && data.defaultValue) ? data.defaultValue : null];
       config.gearIds = [data && data.gearIds || null];
       config.taxonGroupIds = [data && data.taxonGroupIds || null];

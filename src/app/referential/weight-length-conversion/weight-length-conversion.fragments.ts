@@ -12,6 +12,7 @@ export const WeightLengthConversionFragments = {
     conversionCoefficientB
     referenceTaxonId
     lengthPmfmIds
+    lengthPmfmIds
     lengthParameterId
     lengthUnit {
       id

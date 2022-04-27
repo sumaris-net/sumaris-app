@@ -12,7 +12,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   NetworkService,
-  referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean
@@ -23,10 +22,8 @@ import { AggregatedLanding, VesselActivity } from '../services/model/aggregated-
 import { AggregatedLandingService } from '../services/aggregated-landing.service';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
-import * as momentTZImported from 'moment-timezone';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { TableElement } from '@e-is/ngx-material-table';
-import { MeasurementValuesUtils } from '../services/model/measurement.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -38,7 +35,6 @@ import { AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
 
 const moment = momentImported;
-const tz = momentTZImported;
 
 @Component({
   selector: 'app-aggregated-landings-table',
@@ -51,16 +47,11 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   canEdit: boolean;
   canDelete: boolean;
   isAdmin: boolean;
-  filterIsEmpty = true;
-  offline = false;
   showLabelForPmfmIds: number[];
 
   $currentDate = new BehaviorSubject<Moment>(undefined);
   $dates = new BehaviorSubject<Moment[]>(undefined);
   $pmfms = new BehaviorSubject<DenormalizedPmfmStrategy[]>(undefined);
-  referentialToString = referentialToString;
-  measurementValueToString = MeasurementValuesUtils.valueToString;
-
   loadingPmfms = false;
 
   private _onRefreshDates = new EventEmitter<any>();
@@ -171,9 +162,6 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.isAdmin = this.accountService.isAdmin();
     this.canEdit = this.isAdmin || this.accountService.isUser();
     this.canDelete = this.isAdmin;
-
-    // Listen network
-    this.offline = this.network.offline;
 
     this.registerSubscription(this._onRefreshDates.subscribe(() => this.refreshDates()));
 
@@ -295,13 +283,19 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
         await this.save();
       }
 
-      if (res.data.tripToOpen) {
-        // navigate to trip
+      const trip: {observedLocationId: number, tripId: number} = res.data.tripToOpen;
+      if (trip) {
+        if (isNil(trip.observedLocationId) || isNil(trip.tripId)) {
+          console.warn(`Something is missing to open trip: observedLocationId=${trip.observedLocationId}, tripId=${trip.tripId}`);
+          return;
+        }
+
+          // navigate to trip
         this.markAsLoading();
         this.markForCheck();
 
         try {
-          await this.router.navigateByUrl(`/observations/${res.data.tripToOpen.observedLocationId}/trip/${res.data.tripToOpen.tripId}`);
+          await this.router.navigateByUrl(`/observations/${trip.observedLocationId}/trip/${trip.tripId}`);
         } finally {
           this.markAsLoaded();
           this.markForCheck();

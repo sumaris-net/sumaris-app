@@ -319,7 +319,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     if (this.showSamplesTable && data.samples) {
       const taxonGroup = this.taxonGroupControl.value;
       // Apply the selected taxon group, if any
-      if (ReferentialUtils.isNotEmpty(taxonGroup)) {
+      if (ReferentialUtils.isNotEmpty<TaxonGroupRef>(taxonGroup)) {
         (data.samples || []).forEach(sample => sample.taxonGroup = taxonGroup);
       }
     }

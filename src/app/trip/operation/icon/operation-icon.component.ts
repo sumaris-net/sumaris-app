@@ -1,10 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewEncapsulation} from '@angular/core';
-import {isNil, isNotNil, MatBadgeFill} from '@sumaris-net/ngx-components';
-import {qualityFlagToColor} from '@app/data/services/model/model.utils';
-import {Operation} from '@app/trip/services/model/trip.model';
-import {QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {AppColors} from '@app/shared/colors.utils';
-import {QualityIonIcon} from '@app/data/quality/entity-quality-icon.component';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewEncapsulation } from '@angular/core';
+import { isNil, isNotNil, MatBadgeFill } from '@sumaris-net/ngx-components';
+import { qualityFlagToColor, qualityFlagToIcon, QualityIonIcon } from '@app/data/services/model/model.utils';
+import { Operation } from '@app/trip/services/model/trip.model';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AppColors } from '@app/shared/colors.utils';
 import { MatBadgeSize } from '@angular/material/badge';
 
 export declare type OperationMatSvgIcons = 'down-arrow' | 'rollback-arrow';
@@ -102,7 +101,7 @@ export class OperationIconComponent {
 
       // With error (stored in the qualification comments)
       if (this.showError && value.qualificationComments) {
-        this.badgeIcon = 'alert' as QualityIonIcon;
+        this.badgeIcon = 'alert';
         this.badgeColor = 'danger';
         this.badgeFill = 'solid';
         this.badgeSize = 'small';
@@ -116,6 +115,13 @@ export class OperationIconComponent {
       if (this.icon == 'navigate') {
         this.icon = 'checkmark' as OperationIonIcon;
         this.color = 'tertiary';
+        if (isNotNil(value.qualityFlagId) && value.qualificationComments) {
+          this.badgeIcon = qualityFlagToIcon(value.qualityFlagId);
+          this.badgeColor = qualityFlagToColor(value.qualityFlagId);
+          this.badgeFill = 'clear';
+          this.badgeSize = 'medium';
+          this.title = value.qualificationComments;
+        }
       }
       else {
         this.badgeIcon = 'checkmark';

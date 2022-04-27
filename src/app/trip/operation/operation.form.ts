@@ -53,6 +53,7 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
+import { BBox } from 'geojson';
 
 const moment = momentImported;
 
@@ -85,6 +86,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   private _showMetierFilter = false;
   private _allowParentOperation = false;
   private _showPosition = true;
+  private _boundingBox: BBox;
   private _showFishingArea = false;
   private _requiredComment = false;
   private _positionSubscription: Subscription;
@@ -92,10 +94,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
+  enableCopyPosition: boolean;
   latLongFormat: LatLongPattern;
   mobile: boolean;
   distance: number;
-  distanceError: boolean;
   distanceWarning: boolean;
 
   isParentOperationControl: FormControl;
@@ -121,6 +123,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() metierTaxonGroupTypeIds: number[] = [TaxonGroupTypeIds.METIER_DCF_5];
   @Input() maxDistanceWarning: number;
   @Input() maxDistanceError: number;
+  @Input() maxShootingDurationInHours: number;
+  @Input() maxTotalDurationInHours: number;
 
   @Input() set usageMode(usageMode: UsageMode) {
     if (this._usageMode != usageMode) {
@@ -145,10 +149,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return this._showMetierFilter;
   }
 
-  get metiers$(): Observable<LoadResult<IReferentialRef>>{
-    return this._metiersSubject.asObservable();
-  }
-
   @Input() set allowParentOperation(value: boolean) {
     if (this._allowParentOperation !== value) {
       this._allowParentOperation = value;
@@ -169,6 +169,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   get showPosition(): boolean {
     return this._showPosition;
+  }
+
+  @Input() set boundingBox(value: BBox) {
+    if (this._boundingBox !== value) {
+      this._boundingBox = value;
+      console.debug('[operation-form] Position BBox: ' + value);
+      if (!this.loading) this.updateFormGroup();
+    }
+  }
+
+  get boundingBox(): BBox {
+    return this._boundingBox;
   }
 
   @Input() set showFishingArea(value: boolean) {
@@ -230,7 +242,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   get isParentOperation(): boolean {
-    return this.isParentOperationControl.value === true;
+    return this._allowParentOperation && this.isParentOperationControl.value === true;
   }
 
   @Input()
@@ -312,11 +324,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   ngOnInit() {
-    this.usageMode = this.settings.isOnFieldMode(this.usageMode) ? 'FIELD' : 'DESK';
+    const isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
+    this.usageMode = isOnFieldMode ? 'FIELD' : 'DESK';
     this.latLongFormat = this.settings.latLongFormat;
 
-    this.enableGeolocation = (this.usageMode === 'FIELD') && this.settings.mobile;
-    this.allowParentOperation = toBoolean(this.allowParentOperation, false);
+    this.enableGeolocation = isOnFieldMode && this.mobile;
+    this._allowParentOperation = toBoolean(this._allowParentOperation, false);
+    this.enableCopyPosition = !this.enableGeolocation;
 
     super.ngOnInit();
 
@@ -582,6 +596,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
     if (!target) return; // Skip
 
+    this.distanceWarning = false;
+    this.distance = 0;
     this.form.get(target).patchValue({
       latitude: value.latitude,
       longitude: value.longitude
@@ -592,7 +608,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   async openSelectOperationModal(): Promise<Operation> {
 
     const value = this.form.value as Partial<Operation>;
-    const endDate = value.fishingEndDateTime || this.trip && this.trip.returnDateTime || moment();
     const parent = value.parentOperation;
     const trip = this.trip;
     const startDate = trip && fromDateISOString(trip.departureDateTime).clone().add(-15, 'day') || moment().add(-15, 'day');
@@ -608,8 +623,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
           excludedIds: isNotNil(value.id) ? [value.id] : null,
           excludeChildOperation: true,
           hasNoChildOperation: true,
-          //endDate,
           startDate,
+          //endDate, // No end date
           gearIds
         },
         gearIds,
@@ -786,6 +801,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   /* -- protected methods -- */
 
+  private _optsCache = '';
+
   protected updateFormGroup(opts?: { emitEvent?: boolean }) {
 
     const validatorOpts = <OperationValidatorOptions>{
@@ -793,12 +810,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       trip: this.trip,
       isParent: this.allowParentOperation && this.isParentOperation,
       isChild: this.allowParentOperation && this.isChildOperation,
-      withPosition: this.showPosition,
-      withFishingAreas: this.showFishingArea,
+      withPosition: this._showPosition,
+      withFishingAreas: this._showFishingArea,
       withFishingStart: this.fishingStartDateTimeEnable,
       withFishingEnd: this.fishingEndDateTimeEnable,
       withEnd: this.endDateTimeEnable,
-      maxDistance: this.maxDistanceError
+      maxDistance: this.maxDistanceError,
+      boundingBox: this._boundingBox,
+      maxShootingDurationInHours: this.maxShootingDurationInHours,
+      maxTotalDurationInHours: this.maxTotalDurationInHours
     };
 
     // DEBUG
@@ -1015,25 +1035,40 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     longitudeControl.patchValue(position && position.longitude || null);
   }
 
-  protected updateDistance(opts?: { emitEvent?: boolean }) {
+  protected updateDistance(opts = { emitEvent: true }) {
     if (!this._showPosition) return; // Skip
 
-    this.distanceWarning = false;
     let startPosition = this.form.get('startPosition').value;
-    let endPosition = this.lastActivePositionControl?.value;
-    if (!startPosition || !endPosition) return;
+    const endPositionControl = this.lastActivePositionControl;
+    let endPosition = endPositionControl?.value;
+    if (!startPosition || !endPosition) {
+      this.distance = undefined;
+      this.distanceWarning = false;
 
-    const distance = PositionUtils.computeDistanceInMiles(startPosition, endPosition);
-    if (this.debug) console.debug('[operation-form] Distance between position: ' + distance);
-
-    // Distance > max warn distance
-    if (isNotNilOrNaN(distance) && this.maxDistanceWarning > 0 && distance > this.maxDistanceWarning) {
-      console.warn('Too long distance (> ' + this.maxDistanceWarning + ') between start and end positions');
-      this.distanceWarning = true;
+      // Force to update the end control error
+      if (endPositionControl?.hasError('maxDistance')) {
+        endPositionControl.updateValueAndValidity({emitEvent: false});
+      }
     }
-    this.distance = distance;
 
-    if (!opts || !opts.emitEvent !== false) this.markForCheck();
+    else {
+      this.distance = PositionUtils.computeDistanceInMiles(startPosition, endPosition);
+      if (this.debug) console.debug('[operation-form] Distance between position: ' + this.distance);
+
+      // Distance > max distance warn
+      const distanceError = isNotNilOrNaN(this.distance) && this.maxDistanceError > 0 && this.distance > this.maxDistanceError;
+      this.distanceWarning = isNotNilOrNaN(this.distance) && !distanceError
+        && this.maxDistanceWarning > 0 && this.distance > this.maxDistanceWarning;
+
+      // Force to update the end control error
+      if (distanceError || endPositionControl.hasError('maxDistance')) {
+        endPositionControl.updateValueAndValidity({emitEvent: false});
+      }
+    }
+
+    if (!opts || !opts.emitEvent !== false) {
+      this.markForCheck();
+    }
   }
 
   protected async suggestMetiers(value: any, filter: any): Promise<LoadResult<IReferentialRef>> {
@@ -1106,7 +1141,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   protected initPositionSubscription() {
-    if (this._positionSubscription) this._positionSubscription.unsubscribe();
+    if (this._positionSubscription) {
+      this._positionSubscription.unsubscribe();
+      this.unregisterSubscription(this._positionSubscription);
+    }
     if (!this.showPosition) return;
 
     this._positionSubscription = (
@@ -1117,6 +1155,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         .pipe(debounceTime(200))
         .subscribe(_ => this.updateDistance())
     );
+    this.registerSubscription(this._positionSubscription);
   }
 
   protected markForCheck() {

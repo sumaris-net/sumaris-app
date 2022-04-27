@@ -37,6 +37,7 @@ export interface OperationsMapModalOptions {
   latLongPattern: LatLongPattern;
   programLabel: string;
 }
+const maxZoom = 18;
 
 @Component({
   selector: 'app-operations-map',
@@ -52,29 +53,17 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
+    maxZoom,
     attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
   });
   sextantBaseLayer = L.tileLayer(
     'https://sextant.ifremer.fr/geowebcache/service/wmts'
       + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
-    {maxZoom: 18, attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"});
-  sextantGraticuleLayer = L.tileLayer.wms('https://www.ifremer.fr/services/wms1', {
-    maxZoom: 18,
-    version: '1.3.0',
-    crs: CRS.EPSG4326,
-    format: "image/png",
-    transparent: true
-  }).setParams({
-    layers: "graticule_4326",
-    service: 'WMS'
-  });
+    {maxZoom, attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"});
 
   options = <MapOptions>{
     layers: [this.sextantBaseLayer],
-    maxZoom: 10, // max zoom to sextant layer
-    zoom: 5, // (can be override by a program property)
-    center: L.latLng(46.879966, -10) // Atlantic (can be override by a program property)
+    maxZoom, // max zoom to sextant layer
   };
   layersControl = <LeafletControlLayersConfig>{
     baseLayers: {
@@ -82,9 +71,9 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
       'Open Street Map': this.osmBaseLayer
     },
     overlays: {
-      'Graticule': this.sextantGraticuleLayer
     }
   };
+
   map: L.Map;
   $layers = new BehaviorSubject<L.GeoJSON<L.Polygon>[]>(null);
   $onOverFeature = new Subject<Feature>();
@@ -253,7 +242,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
 
         // Add trip layer to control
         const tripLayerName = this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER');
-        //this.layersControl.overlays[tripLayerName] = tripLayer;
+        this.layersControl.overlays[tripLayerName] = tripLayer;
 
       }
 

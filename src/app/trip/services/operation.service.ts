@@ -50,7 +50,7 @@ import {
   Trip,
   VesselPositionUtils
 } from './model/trip.model';
-import { Batch, BatchUtils } from './model/batch.model';
+import { Batch} from '../batch/common/batch.model';
 import { Sample } from './model/sample.model';
 import { SortDirection } from '@angular/material/sort';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
@@ -80,6 +80,8 @@ import { TripLoadOptions } from '@app/trip/services/trip.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { Program } from '@app/referential/services/model/program.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { Geometries } from '@app/shared/geometries.utils';
 
 
 export const OperationFragments = {
@@ -330,6 +332,8 @@ export declare interface OperationSaveOptions extends EntitySaveOptions {
   trip?: Trip;
   computeBatchRankOrder?: boolean;
   computeBatchIndividualCount?: boolean;
+  computeBatchWeight?: boolean;
+  cleanBatchTree?: boolean;
   updateLinkedOperation?: boolean;
 }
 
@@ -626,6 +630,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Clean error
     entity.qualificationComments = null;
+
+    // Flag anormal operation
+    const isAnormalOperation = entity.measurements
+      .some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0 /*normal = false*/);
+    if (isAnormalOperation && entity.qualityFlagId === QualityFlagIds.NOT_QUALIFIED) {
+      entity.qualityFlagId = QualityFlagIds.BAD;
+      entity.qualificationComments = entity.comments;
+    }
 
     // Save locally if need
     if (entity.tripId < 0) {
@@ -1468,7 +1480,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         entity.catchBatch.label = AcquisitionLevelCodes.CATCH_BATCH;
       }
 
-      // Fill sum and rank order
+      // Fill batch tree default (rank order, sum, etc.)
       this.fillBatchTreeDefaults(entity.catchBatch, options);
     }
   }
@@ -1520,15 +1532,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
-  protected fillBatchTreeDefaults(catchBatch: Batch, options?: Partial<OperationSaveOptions>) {
+  protected fillBatchTreeDefaults(catchBatch: Batch, opts?: Partial<OperationSaveOptions>) {
 
-    if (!options) return;
+    if (!opts) return;
+
+    // CLean empty
+    if (opts.cleanBatchTree) BatchUtils.cleanTree(catchBatch);
 
     // Compute rankOrder (and label)
-    if (options.computeBatchRankOrder) BatchUtils.computeRankOrder(catchBatch);
+    if (opts.computeBatchRankOrder) BatchUtils.computeRankOrder(catchBatch);
 
     // Compute individual count
-    if (options.computeBatchIndividualCount) BatchUtils.computeIndividualCount(catchBatch);
+    if (opts.computeBatchIndividualCount) BatchUtils.computeIndividualCount(catchBatch);
+
+    // Compute weight
+    if (opts.computeBatchWeight) BatchUtils.computeWeight(catchBatch);
   }
 
   protected copyIdAndUpdateDate(source: Operation | undefined | any, target: Operation) {
@@ -1764,6 +1782,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       withFishingEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
       withEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
       maxDistance: opts.program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR),
+      boundingBox: Geometries.parseAsBBox(opts.program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX)),
+      maxTotalDurationInHours: opts.program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS),
+      maxShootingDurationInHours: opts.program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS),
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true // Need by full validation
     };

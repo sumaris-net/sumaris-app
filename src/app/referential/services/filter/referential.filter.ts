@@ -1,12 +1,20 @@
-import { EntityFilter, getPropertyByPath, ReferentialRef, uncapitalizeFirstLetter } from '@sumaris-net/ngx-components';
-import {IReferentialRef, Referential}  from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
-import {isNil, isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {FilterFn} from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
-import {toDateISOString} from "@sumaris-net/ngx-components";
-import { IEntity } from '@sumaris-net/ngx-components/src/app/core/services/model/entity.model';
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  EntityUtils,
+  FilterFn,
+  getPropertyByPath,
+  IReferentialRef,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  Referential,
+  ReferentialRef,
+  StatusIds,
+  toDateISOString,
+  uncapitalizeFirstLetter
+} from '@sumaris-net/ngx-components';
 
 
 export declare interface IReferentialFilter<

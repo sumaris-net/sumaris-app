@@ -15,7 +15,7 @@ import { environment } from '@environments/environment';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MatTabChangeEvent } from '@angular/material/tabs';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
@@ -48,6 +48,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
   @Input() requiredStrategy = false;
+  @Input() weightDisplayedUnit: WeightUnitSymbol;
 
 
   @Input() set defaultSampleDate(value: Moment) {

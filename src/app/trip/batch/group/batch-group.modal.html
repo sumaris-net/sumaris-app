@@ -1,0 +1,87 @@
+<app-modal-toolbar color="secondary"
+                   [title]="$title|async"
+                   (cancel)="cancel()"
+                   (validate)="close($event)"
+                   [canValidate]="!loading"
+                   [showSpinner]="loading">
+
+    <ion-buttons slot="end" >
+      <!-- Options menu -->
+      <button mat-icon-button *ngIf="!loading"
+              [title]="'COMMON.OPTIONS'|translate"
+              [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </ion-buttons>
+</app-modal-toolbar>
+
+<!-- Options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="before">
+  <button mat-menu-item
+          (click)="delete($event)"
+          [disabled]="disabled">
+    <mat-icon>delete_outline</mat-icon>
+    <ion-label translate>COMMON.BTN_DELETE</ion-label>
+  </button>
+</mat-menu>
+
+<ion-content cdkTrapFocus class="ion-padding">
+
+  <app-batch-group-form #form
+                        [showTaxonGroup]="showTaxonGroup"
+                        [showTaxonName]="showTaxonName"
+                        [showChildrenSamplingBatch]="showSamplingBatch"
+                        [availableTaxonGroups]="availableTaxonGroups"
+                        [taxonGroupsNoWeight]="taxonGroupsNoWeight"
+                        [allowSubBatches]="allowSubBatches"
+                        [defaultHasSubBatches]="defaultHasSubBatches"
+                        [showHasSubBatchesButton]="showHasSubBatchesButton"
+                        [maxVisibleButtons]="maxVisibleButtons"
+                        (onSubmit)="close($event)"
+                        [pmfms]="pmfms"
+                        [qvPmfm]="qvPmfm"
+                        [debug]="debug">
+
+      <!-- open individual modal -->
+      <ion-button afterSpecies class="ion-margin-bottom"
+                  *ngIf="openSubBatchesModal && form.hasSubBatches && allowSubBatches"
+                  color="tertiary" fill="solid" expand="block" shape="round"
+                  (click)="onShowSubBatchesButtonClick($event)">
+        <ion-label>
+          <span translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</span>
+          <span *ngIf="data?.observedIndividualCount; let count">&nbsp;({{count}})</span>
+        </ion-label>
+        <ion-icon slot="end" name="arrow-forward"></ion-icon>
+      </ion-button>
+
+  </app-batch-group-form>
+
+
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <ion-toolbar>
+
+    <ion-row class="ion-no-padding" nowrap>
+      <ion-col></ion-col>
+
+      <!-- buttons -->
+      <ion-col size="auto">
+        <ion-button fill="clear" color="dark" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button [fill]="invalid ? 'clear' : 'solid'"
+                    [disabled]="loading || invalid"
+                    (keyup.enter)="close($event)"
+                    (click)="close($event)" color="tertiary">
+          <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
+          <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+
+  </ion-toolbar>
+</ion-footer>

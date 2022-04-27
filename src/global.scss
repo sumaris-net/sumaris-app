@@ -18,6 +18,7 @@
   @include css-variables-to-root();
   --mat-tab-link-height: #{$mat-tab-link-height};
   --mat-toolbar-background-color: #{$mat-toolbar-background-color};
+  --ion-text-color-disable: #{$app-text-color-disable};
 
   ion-app {
     @include css-variables-to-root();

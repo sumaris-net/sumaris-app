@@ -168,11 +168,14 @@ export class DenormalizedPmfmStrategy
       defaultValue: source.defaultValue,
       maximumNumberDecimals: source.maximumNumberDecimals,
       signifFiguresNumber: source.signifFiguresNumber,
+      detectionThreshold: source.detectionThreshold,
+      precision: source.precision,
       parameterId: source.parameter.id,
       matrixId: source.matrixId,
       fractionId: source.fractionId,
       methodId: source.methodId,
       unitLabel: source.unitLabel,
+      isComputed: PmfmUtils.isComputed(source),
       qualitativeValues: source.parameter.qualitativeValues && source.parameter.qualitativeValues.map(ReferentialRef.fromObject),
     });
     return target;
@@ -188,7 +191,10 @@ export class DenormalizedPmfmStrategy
   defaultValue: PmfmValue;
   maximumNumberDecimals: number;
   signifFiguresNumber: number;
+  detectionThreshold: number;
+  precision: number;
   isMandatory: boolean;
+  isComputed: boolean;
   acquisitionNumber: number;
   rankOrder: number;
   acquisitionLevel: string;
@@ -236,6 +242,7 @@ export class DenormalizedPmfmStrategy
     this.acquisitionNumber = source.acquisitionNumber;
     this.signifFiguresNumber = source.signifFiguresNumber;
     this.isMandatory = source.isMandatory;
+    this.isComputed = source.isComputed;
     this.rankOrder = source.rankOrder;
     this.acquisitionLevel = source.acquisitionLevel;
     this.gearIds = source.gearIds && [...source.gearIds] || undefined;
@@ -263,10 +270,6 @@ export class DenormalizedPmfmStrategy
 
   get isDate(): boolean {
     return this.type === 'date';
-  }
-
-  get isComputed(): boolean {
-    return this.type && (this.methodId === MethodIds.CALCULATED);
   }
 
   get isQualitative(): boolean {

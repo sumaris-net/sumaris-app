@@ -96,6 +96,9 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Output('keyup.enter')
   onPressEnter = new EventEmitter<any>();
 
+  @Output('focus') focused = new EventEmitter<FocusEvent>();
+  @Output('blur') blurred = new EventEmitter<FocusEvent>();
+
   get value(): any {
     return this.formControl.value;
   }

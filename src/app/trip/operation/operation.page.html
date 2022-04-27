@@ -194,7 +194,7 @@
                     <ion-col size="12" size-md="3" size-lg="3">
                       <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
                     </ion-col>
-                    <ion-col class="measurements-form">
+                    <ion-col [class.measurements-form]="mobile">
                       <app-form-measurements #measurementsForm
                                              entityName="VesselUseMeasurement"
                                              [programLabel]="$programLabel|async"

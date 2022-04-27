@@ -20,9 +20,12 @@
 
 .mat-table {
   .mat-row {
-    height: 50px !important;
     overflow: hidden;
+    /*FIXME not need anymore ?
+    height: calc(min(var(--mat-row-max-height), 48px));
+    */
   }
+
   .mat-header-row,
   .mat-row,
   .mat-footer-row {
@@ -113,5 +116,34 @@ ion-toast {
 app-form-buttons-bar {
   ion-col:first-of-type {
     max-width: calc(100% - 400px);
+  }
+}
+
+// Measurement form
+.measurements-form {
+  /* Add offset = icon width (24px) + margin (2*5px) */
+  padding-inline-start: 34px;
+}
+
+.form-container,
+form.form-container {
+  mat-form-field {
+    ion-icon[matPrefix],
+    mat-icon[matPrefix],
+    .mat-form-field-prefix ion-icon,
+    .mat-form-field-prefix .mat-icon {
+      color: rgba(0, 0, 0, 0.57);
+      fill: rgba(0, 0, 0, 0.57);
+    }
+
+    &.mat-focused {
+      ion-icon[matPrefix],
+      mat-icon[matPrefix],
+      .mat-form-field-prefix ion-icon,
+      .mat-form-field-prefix .mat-icon {
+        color: var(--ion-color-dark);
+        fill: var(--ion-color-dark);
+      }
+    }
   }
 }

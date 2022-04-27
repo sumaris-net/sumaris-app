@@ -1,9 +1,9 @@
-import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
-import {debounceTime, filter, map, tap} from 'rxjs/operators';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {ReferentialValidatorService} from '../services/validator/referential.validator';
-import {ReferentialService} from '../services/referential.service';
+import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ReferentialService } from '../services/referential.service';
 import {
   AccountService,
   AppTable,
@@ -15,7 +15,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService,
   Referential,
   ReferentialRef,
   RESERVED_END_COLUMNS,
@@ -24,17 +23,15 @@ import {
   sort,
   StatusById,
   StatusList,
-  toBoolean,
+  toBoolean
 } from '@sumaris-net/ngx-components';
-import {ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
-import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
-import {ReferentialFilter} from '../services/filter/referential.filter';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
+import { environment } from '../../../environments/environment';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { ReferentialI18nKeys } from '@app/referential/referential.utils';
 
 
 export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
@@ -54,7 +51,6 @@ export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
   static DEFAULT_ENTITY_NAME = "Pmfm";
-  static DEFAULT_I18N_LEVEL_NAME = 'REFERENTIAL.LEVEL';
 
   private _entityName: string;
 
@@ -116,6 +112,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     protected accountService: AccountService,
     protected validatorService: ReferentialValidatorService,
     protected referentialService: ReferentialService,
+    protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
     protected translate: TranslateService
   ) {
@@ -212,7 +209,8 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // Level autocomplete
     this.registerAutocompleteField('level', {
-      items: this.$levels
+      items: this.$levels,
+      mobile: this.mobile
     });
 
     // Restore compact mode
@@ -324,7 +322,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   }
 
   async loadLevels(entityName: string): Promise<ReferentialRef[]> {
-    const res = await this.referentialService.loadLevels(entityName, {
+    const res = await this.referentialRefService.loadLevels(entityName, {
       fetchPolicy: 'network-only'
     });
 
@@ -335,10 +333,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       const typeName = levels[0].entityName;
       const i18nLevelName = "REFERENTIAL.ENTITY." + changeCaseToUnderscore(typeName).toUpperCase();
       const levelName = this.translate.instant(i18nLevelName);
-      this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
+      this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }
     else {
-      this.i18nLevelName = ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
+      this.i18nLevelName = ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }
 
     if (this.canSelectEntity) {
