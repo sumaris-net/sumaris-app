@@ -46,12 +46,12 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
   constructor(
     injector: Injector,
-    protected saleValidatorService: SaleValidatorService,
+    protected validatorService: SaleValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector, saleValidatorService.getFormGroup());
+    super(injector, validatorService.getFormGroup());
   }
 
   ngOnInit() {
@@ -95,7 +95,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
   protected updateFormGroup(opts?: { emitEvent?: boolean; }) {
     console.info('[sale-form] Updating form group...');
-    this.saleValidatorService.updateFormGroup(this.form, {
+    this.validatorService.updateFormGroup(this.form, {
       required: this.required, // Set if required or not
       minDate: this._minDate
     });
