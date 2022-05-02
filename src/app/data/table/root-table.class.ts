@@ -13,7 +13,7 @@ import {
   NetworkService,
   referentialToString,
   toBoolean,
-  toDateISOString,
+  toDateISOString, UsageMode,
   UserEventService
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, timer } from 'rxjs';
@@ -296,16 +296,43 @@ export abstract class AppRootDataTable<
   }
 
   async addRowWithSynchronizationStatus(event: UIEvent, value: SynchronizationStatus) {
-    if (!value) return;
+    if (!value || !this.mobile) return;
 
     // Set the synchronization status, if changed
     if (this.synchronizationStatus !== value) {
       const ok = await this.setSynchronizationStatus(value);
       if (!ok) return;
+
+      // Make sure status changed
+      if (this.synchronizationStatus !== value) {
+        console.warn('[root-table] Cannot switch to synchronization status: ' + value + '. Cannot add new row !');
+        return;
+      }
+    }
+
+    // Force settings the expected usageMode
+    const forceUsageMode: UsageMode = this.synchronizationStatus === 'SYNC' ? 'DESK': 'FIELD' ;
+    if (this.settings.usageMode !== forceUsageMode) {
+      console.info('[root-table] Changing usage mode to: ' + forceUsageMode);
+      await this.settings.applyProperty('usageMode', forceUsageMode);
     }
 
     // Add new row
     this.addRow(event);
+  }
+
+  protected async openRow(id: ID, row: TableElement<T>): Promise<boolean> {
+
+    // Force settings the expected usageMode
+    if (this.mobile && this.hasOfflineMode) {
+      const forceUsageMode: UsageMode = this.synchronizationStatus === 'SYNC' ? 'DESK': 'FIELD' ;
+      if (this.settings.usageMode !== forceUsageMode) {
+        console.info('[root-table] Changing usage mode to: ' + forceUsageMode);
+        await this.settings.applyProperty('usageMode', forceUsageMode);
+      }
+    }
+
+    return super.openRow(id, row);
   }
 
   closeFilterPanel() {
