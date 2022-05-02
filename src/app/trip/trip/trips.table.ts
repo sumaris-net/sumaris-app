@@ -29,7 +29,7 @@ import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
 import { filter, tap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
-import { TripOfflineModal } from '@app/trip/trip/offline/trip-offline.modal';
+import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -57,7 +57,6 @@ export const TripsPageSettingsEnum = {
 export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
   $title = new BehaviorSubject<string>('');
-  highlightedRow: TableElement<Trip>;
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
 
@@ -213,11 +212,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.resetContext();
   }
 
-  clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
-    console.debug('[trips] click row');
-    this.highlightedRow = row;
-    return super.clickRow(event, row);
-  }
 
   /**
    * Action triggered when user swipes
@@ -277,7 +271,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       };
       const modal = await this.modalCtrl.create({
         component: TripOfflineModal,
-        componentProps: {
+        componentProps: <TripOfflineModalOptions>{
           value
         }, keyboardClose: true
       });

@@ -6,6 +6,7 @@ import { AppGraphQLModule, CoreModule, Environment } from '@sumaris-net/ngx-comp
 import {AppSharedModule} from '@app/shared/shared.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { IsEmptyReferentialPipe, IsNotEmptyReferentialPipe } from '@app/core/pipes/core.pipe';
 
 @NgModule({
   imports: [
@@ -20,11 +21,18 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
     AppGraphQLModule
   ],
   declarations: [
+    // Pipes
+    IsNotEmptyReferentialPipe,
+    IsEmptyReferentialPipe
   ],
   exports: [
     CoreModule,
     AppSharedModule,
-    TranslateModule
+    TranslateModule,
+
+    // Pipes
+    IsNotEmptyReferentialPipe,
+    IsEmptyReferentialPipe
   ]
 })
 export class AppCoreModule {

@@ -1,6 +1,6 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
-import {TripValidatorService} from '../services/validator/trip.validator';
-import {ModalController} from '@ionic/angular';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { TripValidatorOptions, TripValidatorService } from '../services/validator/trip.validator';
+import { ModalController } from '@ionic/angular';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 
 import {
@@ -15,7 +15,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LoadResult,
-  MatAutocompleteField, MatAutocompleteFieldAddOptions,
+  MatAutocompleteField,
   NetworkService,
   OnReady,
   Person,
@@ -29,24 +29,22 @@ import {
   toDateISOString,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {FormArray, FormBuilder} from '@angular/forms';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { FormArray, FormBuilder } from '@angular/forms';
 
-import {Vessel} from '@app/vessel/services/model/vessel.model';
-import {METIER_DEFAULT_FILTER, MetierService} from '@app/referential/services/metier.service';
-import {Trip} from '../services/model/trip.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {debounceTime, filter} from 'rxjs/operators';
-import {VesselModal} from '@app/vessel/modal/vessel-modal';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {MetierFilter} from '@app/referential/services/filter/metier.filter';
-import {Metier} from '@app/referential/services/model/metier.model';
-import {combineLatest} from 'rxjs';
-import {Moment} from 'moment';
+import { Vessel } from '@app/vessel/services/model/vessel.model';
+import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
+import { Trip } from '../services/model/trip.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { debounceTime, filter } from 'rxjs/operators';
+import { VesselModal } from '@app/vessel/modal/vessel-modal';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { MetierFilter } from '@app/referential/services/filter/metier.filter';
+import { Metier } from '@app/referential/services/model/metier.model';
+import { combineLatest } from 'rxjs';
+import { Moment } from 'moment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { ProgramFilter } from '@app/referential/services/filter/program.filter';
-import { Program } from '@app/referential/services/model/program.model';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -63,6 +61,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
   private _locationSuggestLengthThreshold: number;
+  private _lastValidatorOptsStr: any;
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
@@ -501,13 +500,23 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     }
   }
 
+
   protected updateFormGroup() {
     console.info('[trip-form] Updating form group...');
-    this.validatorService.updateFormGroup(this.form, {
+    const validatorOpts: TripValidatorOptions = {
       returnFieldsRequired: this._returnFieldsRequired,
       minDurationInHours: this.minDurationInHours,
       maxDurationInHours: this.maxDurationInHours
-    });
+    };
+    const validatorOptsStr = JSON.stringify(validatorOpts);
+
+    if (this._lastValidatorOptsStr && validatorOptsStr == this._lastValidatorOptsStr) return; // Skip if same
+
+    this.validatorService.updateFormGroup(this.form, validatorOpts);
+
+    // Remember, for next call
+    this._lastValidatorOptsStr = validatorOptsStr;
+
     this.markForCheck(); // Need to toggle return date time to required
   }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { FormGroup, Validators } from '@angular/forms';
 import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable, BatchFilter } from '../common/batches.table';
@@ -25,7 +25,7 @@ import {
 import { AcquisitionLevelCodes, MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { Batch, BatchWeight } from '../common/batch.model';
+import { Batch } from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
@@ -33,7 +33,6 @@ import { defer, Observable, Subject, Subscription } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { MatMenuTrigger } from '@angular/material/menu';
 import { BatchGroupValidatorService } from './batch-group.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -877,7 +876,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     if (isNil(subBatches)) return; // User cancelled
 
-    const updatedParent = this.updateBatchGroupFromBatches(parent, subBatches);
+    const updatedParent = this.updateBatchGroupFromSubBatches(parent, subBatches);
 
     // Return the updated parent
     return updatedParent;
@@ -1074,7 +1073,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     const parent: BatchGroup = row && row.currentData;
     if (!parent) return; // skip
 
-    const updatedParent = this.updateBatchGroupFromBatches(parent, subBatches || []);
+    const updatedParent = this.updateBatchGroupFromSubBatches(parent, subBatches || []);
 
     if (row.validator) {
       row.validator.patchValue(updatedParent, opts);
@@ -1090,42 +1089,48 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    * @param parent
    * @param subBatches
    */
-  protected updateBatchGroupFromBatches(parent: BatchGroup, subBatches: SubBatch[]): BatchGroup {
+  protected updateBatchGroupFromSubBatches(parent: BatchGroup, subBatches: SubBatch[]): BatchGroup {
     if (!parent) return parent; // skip
 
     const children = (subBatches || []).filter(b => Batch.equals(parent, b.parentGroup));
 
     if (this.debug) console.debug('[batch-group-table] Updating batch group, from batches...', parent, children);
 
-    if (!this.qvPmfm) {
-      const samplingBatch = BatchUtils.getSamplingChild(parent);
-
+    const updateSortingBatch = (batch: Batch, children: SubBatch[]) => {
+      const samplingBatch = BatchUtils.getSamplingChild(batch);
       // Update individual count
       samplingBatch.individualCount = BatchUtils.sumObservedIndividualCount(children);
       parent.observedIndividualCount = samplingBatch.individualCount || 0;
 
-      // Update weight
-      if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
-        samplingBatch.weight = BatchUtils.sumCalculatedWeight(children, this.weightPmfms, this.weightPmfmsByMethod);
+      // Update weight, if Length-Weight conversion enabled
+      if (this.enableWeightLengthConversion) {
+        if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
+          console.debug('[batch-group-table] Computing SUM of subbatches RTP weights...');
+          samplingBatch.weight = BatchUtils.sumCalculatedWeight(children, this.weightPmfms, this.weightPmfmsByMethod);
+        }
       }
-    } else {
 
+      return {
+        individualCount: samplingBatch.individualCount
+      };
+    }
+
+    if (!this.qvPmfm) {
+      const {individualCount} = updateSortingBatch(parent, children);
+      parent.observedIndividualCount = individualCount || 0;
+    } else {
       const qvPmfmId = this.qvPmfm.id.toString();
       let observedIndividualCount = 0;
 
       this.qvPmfm.qualitativeValues.forEach((qv, qvIndex) => {
-        const batch = (parent.children || []).find(b => PmfmValueUtils.equals(b.measurementValues[qvPmfmId], qv));
-        const samplingBatch = BatchUtils.getSamplingChild(batch);
+        const batchGroup = (parent.children || []).find(b => PmfmValueUtils.equals(b.measurementValues[qvPmfmId], qv));
         const qvChildren = children.filter(c => PmfmValueUtils.equals(c.measurementValues[qvPmfmId], qv));
 
-        // Update individual count
-        samplingBatch.individualCount = BatchUtils.sumObservedIndividualCount(qvChildren);
-        observedIndividualCount += (samplingBatch.individualCount || 0);
+        const {individualCount} = updateSortingBatch(batchGroup, qvChildren);
 
-        // Update weight
-        if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
-          samplingBatch.weight = BatchUtils.sumCalculatedWeight(qvChildren, this.weightPmfms, this.weightPmfmsByMethod);
-        }
+        // Update individual count
+        observedIndividualCount += (individualCount || 0);
+
       })
 
       parent.observedIndividualCount = observedIndividualCount;

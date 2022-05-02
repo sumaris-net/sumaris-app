@@ -515,13 +515,34 @@
   </mat-paginator>
 </ion-footer>
 
-<!-- Add button -->
+<!-- Add button (mobile) -->
 <ion-fab vertical="bottom" horizontal="end"
          *ngIf="canEdit && mobile">
-  <ion-fab-button color="tertiary" (click)="addRow()">
+  <ion-fab-button color="tertiary"
+                  [disabled]="importing">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
+
+  <ion-fab-list side="top">
+
+    <ion-fab-button [disabled]="offline || importing"
+                    [title]="'TRIP.TABLE.BTN_NEW_ONLINE'|translate"
+                    (click)="addRowToSyncStatus($event, 'SYNC')">
+      <mat-icon color="primary">cloud_done</mat-icon>
+      <ion-icon name="add" class="icon-secondary"></ion-icon>
+    </ion-fab-button>
+
+    <ion-fab-button [disabled]="importing"
+                    [title]="'TRIP.TABLE.BTN_NEW_OFFLINE'|translate"
+                    (click)="addRowToSyncStatus($event, 'DIRTY')">
+      <mat-icon color="primary">cloud_off</mat-icon>
+      <ion-icon name="add" class="icon-secondary"></ion-icon>
+    </ion-fab-button>
+
+  </ion-fab-list>
+
 </ion-fab>
+
 
 <ng-template #fieldSkeleton>
   <mat-form-field>

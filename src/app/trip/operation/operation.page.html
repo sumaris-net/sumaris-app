@@ -97,7 +97,8 @@
   <!-- new operation fab button (mobile) -->
   <ion-fab-button color="tertiary"
                   size="small"
-                  class="visible-mobile visible-sm visible-xs"
+                  class="visible-xs visible-sm visible-mobile"
+                  [disabled]="loading"
                   style="margin-left: calc(100% - 50px); margin-top: -46px;"
                   (click)="saveAndNew($event)">
     <ion-icon name="add"></ion-icon>

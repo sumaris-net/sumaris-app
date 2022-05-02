@@ -14,9 +14,10 @@ import {
   referentialToString,
   toBoolean,
   toDateISOString,
+  UsageMode,
   UserEventService
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, timer } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
 import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
@@ -40,6 +41,7 @@ export abstract class AppRootDataTable<
   >
   extends AppTable<T, F, ID> {
 
+
   protected network: NetworkService;
   protected userEventService: UserEventService;
   protected accountService: AccountService;
@@ -58,6 +60,7 @@ export abstract class AppRootDataTable<
   $progression = new BehaviorSubject<number>(0);
   hasOfflineMode = false;
   featureId: string;
+  highlightedRow: TableElement<T>;
 
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
@@ -192,11 +195,14 @@ export abstract class AppRootDataTable<
 
     // If offline, warn user and ask to reconnect
     if (this.network.offline) {
-      return this.network.showOfflineToast({
-        // Allow to retry to connect
-        showRetryButton: true,
-        onRetrySuccess: () => this.prepareOfflineMode(null, opts)
-      });
+      if (opts?.showToast !== false) {
+        return this.network.showOfflineToast({
+          // Allow to retry to connect
+          showRetryButton: true,
+          onRetrySuccess: () => this.prepareOfflineMode(null, opts)
+        });
+      }
+      return false;
     }
 
     this.progressionMessage = 'NETWORK.INFO.IMPORTATION_PCT_DOTS';
@@ -256,27 +262,31 @@ export abstract class AppRootDataTable<
     }
   }
 
-  async setSynchronizationStatus(value: SynchronizationStatus) {
-    if (!value) return; // Skip if empty
+  async setSynchronizationStatus(value: SynchronizationStatus, opts = {showToast : true}): Promise<boolean> {
+    if (!value) return false; // Skip if empty
 
     // Make sure network is UP
     if (this.offline && value === 'SYNC') {
-      this.network.showOfflineToast({
-        // Allow to retry to connect
-        showRetryButton: true,
-        onRetrySuccess: () => this.setSynchronizationStatus(value) // Loop
-      });
-      return;
+      if (opts.showToast) {
+        this.network.showOfflineToast({
+          // Allow to retry to connect
+          showRetryButton: true,
+          onRetrySuccess: () => this.setSynchronizationStatus(value) // Loop
+        });
+      }
+      return false;
     }
 
     console.debug("[trips] Applying filter to synchronization status: " + value);
-    this.error = null;
+    this.resetError();
     this.filterForm.patchValue({synchronizationStatus: value}, {emitEvent: false});
     const json = { ...this.filter, synchronizationStatus: value};
     this.setFilter(json, {emitEvent: true});
 
     // Save filter to settings (need to be done here, because entity creation can need it - e.g. to apply Filter as default values)
     await this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY);
+
+    return true;
   }
 
   toggleSynchronizationStatus() {
@@ -291,6 +301,72 @@ export abstract class AppRootDataTable<
   toggleFilterPanelFloating() {
     this.filterPanelFloating = !this.filterPanelFloating;
     this.markForCheck();
+  }
+
+  async addRowToSyncStatus(event: UIEvent, value: SynchronizationStatus) {
+    if (!value || !this.mobile || this.importing) return; // Skip
+
+    // If 'DIRTY' but offline not init : init this mode
+    if (value !== 'SYNC' && !this.hasOfflineMode) {
+
+      // If offline, warn user and ask to reconnect
+      if (this.network.offline) {
+        return this.network.showOfflineToast({
+          // Allow to retry to connect
+          showRetryButton: true,
+          onRetrySuccess: () => this.addRowToSyncStatus(null, value)
+        });
+      }
+
+      const done = await this.prepareOfflineMode(null, {toggleToOfflineMode: false, showToast: false});
+      if (!done || !this.hasOfflineMode) return; // Skip if failed
+    }
+
+    // Set the synchronization status, if changed
+    if (this.synchronizationStatus !== value) {
+      const ok = await this.setSynchronizationStatus(value, {showToast: false});
+      if (!ok) return;
+
+      // Make sure status changed
+      if (this.synchronizationStatus !== value) {
+        console.warn('[root-table] Cannot switch to synchronization status: ' + value + '. Cannot add new row !');
+        return;
+      }
+    }
+
+    // Force settings the expected usageMode
+    const forceUsageMode: UsageMode = this.synchronizationStatus === 'SYNC' ? 'DESK': 'FIELD' ;
+    if (this.settings.usageMode !== forceUsageMode) {
+      console.info('[root-table] Changing usage mode to: ' + forceUsageMode);
+      await this.settings.applyProperty('usageMode', forceUsageMode);
+    }
+
+    // Add new row
+    this.addRow(event);
+  }
+
+
+  clickRow(event: UIEvent|undefined, row: TableElement<T>): boolean {
+    if (this.importing) return; // Skip
+
+    console.debug('[root-table] click row');
+    this.highlightedRow = row;
+
+    return super.clickRow(event, row);
+  }
+
+  protected async openRow(id: ID, row: TableElement<T>): Promise<boolean> {
+
+    // Force settings the expected usageMode
+    if (this.mobile && this.hasOfflineMode) {
+      const forceUsageMode: UsageMode = this.synchronizationStatus === 'SYNC' ? 'DESK': 'FIELD' ;
+      if (this.settings.usageMode !== forceUsageMode) {
+        console.info('[root-table] Changing usage mode to: ' + forceUsageMode);
+        await this.settings.applyProperty('usageMode', forceUsageMode);
+      }
+    }
+
+    return super.openRow(id, row);
   }
 
   closeFilterPanel() {

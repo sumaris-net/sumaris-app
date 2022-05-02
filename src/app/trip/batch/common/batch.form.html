@@ -10,8 +10,7 @@
     <ion-row>
 
       <!-- Taxon group -->
-      <ion-col size="12" size-md="6"
-               [hidden]="!showTaxonGroup">
+      <ion-col size="12" size-md="6" [class.cdk-visually-hidden]="!showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
                                 [autofocus]="enabled && !mobile && showTaxonGroup"
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"

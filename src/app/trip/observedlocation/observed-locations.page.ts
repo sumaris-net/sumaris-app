@@ -55,7 +55,6 @@ export const ObservedLocationsPageSettingsEnum = {
 export class ObservedLocationsPage extends
   AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
-  highlightedRow: TableElement<ObservedLocation>;
   $title = new BehaviorSubject<string>('');
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
@@ -213,11 +212,6 @@ export class ObservedLocationsPage extends
 
     // Clear the context
     this.resetContext();
-  }
-
-  clickRow(event: MouseEvent|undefined, row: TableElement<ObservedLocation>): boolean {
-    this.highlightedRow = row;
-    return super.clickRow(event, row);
   }
 
   /**
