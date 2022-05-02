@@ -256,8 +256,8 @@ export abstract class AppRootDataTable<
     }
   }
 
-  async setSynchronizationStatus(value: SynchronizationStatus) {
-    if (!value) return; // Skip if empty
+  async setSynchronizationStatus(value: SynchronizationStatus): Promise<boolean> {
+    if (!value) return false; // Skip if empty
 
     // Make sure network is UP
     if (this.offline && value === 'SYNC') {
@@ -266,17 +266,19 @@ export abstract class AppRootDataTable<
         showRetryButton: true,
         onRetrySuccess: () => this.setSynchronizationStatus(value) // Loop
       });
-      return;
+      return false;
     }
 
     console.debug("[trips] Applying filter to synchronization status: " + value);
-    this.error = null;
+    this.resetError();
     this.filterForm.patchValue({synchronizationStatus: value}, {emitEvent: false});
     const json = { ...this.filter, synchronizationStatus: value};
     this.setFilter(json, {emitEvent: true});
 
     // Save filter to settings (need to be done here, because entity creation can need it - e.g. to apply Filter as default values)
     await this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY);
+
+    return true;
   }
 
   toggleSynchronizationStatus() {
@@ -291,6 +293,19 @@ export abstract class AppRootDataTable<
   toggleFilterPanelFloating() {
     this.filterPanelFloating = !this.filterPanelFloating;
     this.markForCheck();
+  }
+
+  async addRowWithSynchronizationStatus(event: UIEvent, value: SynchronizationStatus) {
+    if (!value) return;
+
+    // Set the synchronization status, if changed
+    if (this.synchronizationStatus !== value) {
+      const ok = await this.setSynchronizationStatus(value);
+      if (!ok) return;
+    }
+
+    // Add new row
+    this.addRow(event);
   }
 
   closeFilterPanel() {

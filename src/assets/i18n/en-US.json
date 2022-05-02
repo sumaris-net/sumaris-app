@@ -518,6 +518,8 @@
       "RECORDER_PERSON": "Recorder",
       "COMMENTS": "Comments",
       "NO_LOCAL_RESULT": "No result (in trips NOT sent)",
+      "BTN_NEW_OFFLINE": "Field input mode (offline)",
+      "BTN_NEW_ONLINE": "Desktop input mode (online)",
       "FILTER": {
         "PROGRAM": "Data collection program",
         "START_DATE": "Start period",
