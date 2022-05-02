@@ -1571,6 +1571,7 @@
       "TRIP_MAP_ENABLE": "Trip > Map: Enable?",
       "TRIP_MAP_CENTER": "Trip > Map: cernter position",
       "TRIP_MAP_ZOOM": "Trip > Map: Zoom level",
+      "TRIP_MIN_DURATION_HOURS": "Trip > Minimal duration (hours)",
       "TRIP_MAX_DURATION_HOURS": "Trip > Maximum duration (hours)",
       "TRIP_BATCH_AUTO_FILL": "Catch > Species batch: Auto-fill?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch: Commercial species?",
