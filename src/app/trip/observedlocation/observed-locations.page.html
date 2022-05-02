@@ -478,40 +478,28 @@
 <!-- Add button (mobile) -->
 <ion-fab vertical="bottom" horizontal="end"
          *ngIf="canEdit && mobile">
-  <!-- Select offline/online mode -->
-  <ng-container *ngIf="hasOfflineMode; else singleFabButton">
-    <ion-fab-button color="tertiary" #fabButton
-                    [disabled]="importing">
-      <ion-icon name="add"></ion-icon>
+  <ion-fab-button color="tertiary"
+                  [disabled]="importing">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+
+  <ion-fab-list side="top">
+
+    <ion-fab-button [disabled]="offline || importing"
+                    [title]="'TRIP.TABLE.BTN_NEW_ONLINE'|translate"
+                    (click)="addRowToSyncStatus($event, 'SYNC')">
+      <mat-icon color="primary">cloud_done</mat-icon>
+      <ion-icon name="add" class="icon-secondary"></ion-icon>
     </ion-fab-button>
 
-    <ion-fab-list side="top" *ngIf="hasOfflineMode" >
-
-      <ion-fab-button [disabled]="offline || importing"
-                      [title]="'TRIP.TABLE.BTN_NEW_ONLINE'|translate"
-                      (click)="addRowWithSynchronizationStatus($event, 'SYNC')">
-        <mat-icon color="primary">cloud_done</mat-icon>
-        <ion-icon name="add" class="icon-secondary"></ion-icon>
-      </ion-fab-button>
-
-      <ion-fab-button [disabled]="importing"
-                      [title]="'TRIP.TABLE.BTN_NEW_OFFLINE'|translate"
-                      (click)="addRowWithSynchronizationStatus($event, 'DIRTY')">
-        <mat-icon color="primary">cloud_off</mat-icon>
-        <ion-icon name="add" class="icon-secondary"></ion-icon>
-      </ion-fab-button>
-
-    </ion-fab-list>
-  </ng-container>
-
-  <!-- single button -->
-  <ng-template #singleFabButton>
-    <ion-fab-button color="tertiary"
-                    [disabled]="importing"
-                    (click)="addRow()">
-      <ion-icon name="add"></ion-icon>
+    <ion-fab-button [disabled]="importing"
+                    [title]="'TRIP.TABLE.BTN_NEW_OFFLINE'|translate"
+                    (click)="addRowToSyncStatus($event, 'DIRTY')">
+      <mat-icon color="primary">cloud_off</mat-icon>
+      <ion-icon name="add" class="icon-secondary"></ion-icon>
     </ion-fab-button>
-  </ng-template>
+
+  </ion-fab-list>
 
 </ion-fab>
 
