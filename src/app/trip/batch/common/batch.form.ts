@@ -197,7 +197,8 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonNames(value, filter),
       filter: this.taxonNameFilter,
-      mobile: this.mobile
+      mobile: this.mobile,
+      showAllOnFocus: this.showTaxonName
     });
 
     this.registerSubscription(

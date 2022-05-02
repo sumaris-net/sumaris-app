@@ -11,12 +11,14 @@ import { TripSynchroImportFilter } from '@app/trip/services/filter/trip.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Subject } from 'rxjs';
 import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
-import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
-import { Program } from '@app/referential/services/model/program.model';
 
 const moment = momentImported;
+
+export interface  TripOfflineModalOptions {
+  value?: TripSynchroImportFilter
+}
 
 @Component({
   selector: 'app-trip-offline-modal',
@@ -27,7 +29,7 @@ const moment = momentImported;
   animations: [slideUpDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit{
+export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit, TripOfflineModalOptions{
 
   mobile: boolean;
   errorSubject = new Subject<string>();

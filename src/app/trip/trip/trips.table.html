@@ -518,7 +518,9 @@
 <!-- Add button -->
 <ion-fab vertical="bottom" horizontal="end"
          *ngIf="canEdit && mobile">
-  <ion-fab-button color="tertiary" (click)="addRow()">
+  <ion-fab-button color="tertiary"
+                  [disabled]="importing"
+                  (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>

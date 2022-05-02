@@ -47,6 +47,8 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
+import { WaitForOptions } from '@sumaris-net/ngx-components/src/app/shared/observables';
+import { AppFormUtils } from '@sumaris-net/ngx-components/src/app/core/form/form.utils';
 
 const moment = momentImported;
 
@@ -94,7 +96,6 @@ export class OperationPage
   saveOptions: OperationSaveOptions = {};
   rankOrder: number;
   selectedSubTabIndex = 0;
-  copyTripDates = false;
   allowParentOperation = false;
   autoFillBatch = false;
   autoFillDatesFromTrip = false;
@@ -445,7 +446,7 @@ export class OperationPage
         this.opeForm.onParentChanges
           .pipe(
             startWith<Operation>(this.opeForm.parentControl.value as Operation),
-            map(parent => !!parent), // into boolean
+            map(parent => !!parent), // Convert to boolean
             distinctUntilChanged()
           )
           .subscribe((hasParent) => {
@@ -622,7 +623,7 @@ export class OperationPage
     this.markAsReady();
   }
 
-  load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateTabAndRoute?: boolean; [p: string]: any }): Promise<void> {
+  load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean; [p: string]: any }): Promise<void> {
     return super.load(id, {...opts, withLinkedOperation: true});
   }
 
@@ -735,6 +736,9 @@ export class OperationPage
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+
+    if (this.mobile) return; // Skip if mobile
+
     return {
       ...(await super.computePageHistory(title)),
       icon: 'navigate'
@@ -758,10 +762,17 @@ export class OperationPage
     return changed;
   }
 
+  waitIdle(opts?: WaitForOptions): Promise<void> {
+    return AppFormUtils.waitIdle(this, opts);
+  }
+
   async onLastOperationClick(event: UIEvent, id: number): Promise<any> {
-    if (event && event.defaultPrevented) return; // Skip
+    if (event?.defaultPrevented) return; // Skip
 
     if (isNil(id) || this.data.id === id) return; // skip
+
+    // Avoid reloading while saving or still loading
+    await this.waitIdle();
 
     const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty && this.valid
       // If on field mode: try to save silently
@@ -778,22 +789,24 @@ export class OperationPage
   }
 
   async saveAndNew(event: UIEvent): Promise<any> {
-    if (event && event.defaultPrevented) return Promise.resolve(); // Skip
-    if (event) event.preventDefault(); // Avoid propagation to <ion-item>
+    if (event?.defaultPrevented) return Promise.resolve(); // Skip
+    event?.preventDefault(); // Avoid propagation to <ion-item>
 
-    const savePromise: Promise<boolean> = (this.isOnFieldMode && this.dirty && this.valid)
+    // Avoid reloading while saving or still loading
+    await this.waitIdle();
+
+    const saved = (this.isOnFieldMode && this.dirty && this.valid)
       // If on field mode AND valid: save silently
-      ? this.save(event)
+      ? await this.save(event)
       // Else If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm(null, {
+      : await this.saveIfDirtyAndConfirm(null, {
         emitEvent: false /*do not update view*/
       });
-    const canContinue = await savePromise;
-    if (canContinue) {
+    if (saved) {
       if (this.mobile) {
         return this.load(undefined, {
           tripId: this.data.tripId,
-          updateTabAndRoute: true,
+          updateRoute: true,
           openTabIndex: OperationPage.TABS.GENERAL
         });
       } else {
@@ -857,10 +870,6 @@ export class OperationPage
   }
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
-
-    // DEBUG
-    console.debug('[operation] Saving...');
-
     // Save new gear to the trip
     const gearSaved = await this.saveNewPhysicalGear();
     if (!gearSaved) return false; // Stop if failed
@@ -895,7 +904,7 @@ export class OperationPage
         let children = this.children.filter(f => f.dirty);
         if (isNotEmptyArray(children)) {
           children = this.batchTree.children.filter(f => f.dirty);
-          console.debug('[operation] Still dirty children: ', children);
+          console.warn('[operation] Still dirty children: ', children);
         }
         console.debug('[operation] Batch tree ready ? ' + this.batchTree.batchGroupsTable.isReady());
       }
@@ -912,11 +921,17 @@ export class OperationPage
   }
 
   async saveNewPhysicalGear(): Promise<boolean> {
+    if (this.loading || this.saving) return false;
+    if (!this.dirty) return true; // Skip
+
     const physicalGear = this.opeForm.physicalGearControl.value;
     if (!physicalGear || isNotNil(physicalGear.id)) return true; // Skip
 
+    // DEBUG
+    console.debug('[operation] Saving new physical gear...');
+
     this.markAsSaving();
-    this.error = undefined;
+    this.resetError();
 
     try {
       const savedPhysicalGear = await this.tripService.addGear(this.trip.id, physicalGear);

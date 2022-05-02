@@ -219,6 +219,7 @@
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "PMFM_STRATEGY_LABEL_ID": "Referential > PSFM > Strategy label",
         "PMFM_TAG_ID": "Referential > PSFM > Sample Tag-ID",
+        "PMFM_TRIP_PROGRESS": "Referential > PSFM > Trip progress ? (Booleen)",
         "PMFM_DRESSING": "Referential > PSFM > Dressing (Whole, ...)",
         "PMFM_PRESERVATION": "Referential > PSFM > Preservation (Fresh, ...)",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
@@ -458,6 +459,7 @@
     },
     "LIST": {
       "TITLE": "Users",
+      "BTN_SEND_MESSAGE": "Send a message",
       "FILTER": {
         "SEARCH": "Search"
       }
@@ -717,7 +719,9 @@
         "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Before setting's end",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
-        "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)"
+        "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)",
+        "CANNOT_ENABLE_FILTER": "Filtering not available",
+        "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "No practiced metiers found in the available data."
       }
     },
     "OPERATION_GROUP": {
@@ -1557,6 +1561,7 @@
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Trip > Location: Min nb char. to search",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
       "TRIP_OBSERVERS_ENABLE": "Trip: Enter observers?",
+      "TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Trip> Offline > Location level(x) to import (ids)",
       "TRIP_METIERS_ENABLE": "Trip: Enter metiers?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
@@ -1564,6 +1569,7 @@
       "TRIP_MAP_ENABLE": "Trip > Map: Enable?",
       "TRIP_MAP_CENTER": "Trip > Map: cernter position",
       "TRIP_MAP_ZOOM": "Trip > Map: Zoom level",
+      "TRIP_MAX_DURATION_HOURS": "Trip > Maximum duration (hours)",
       "TRIP_BATCH_AUTO_FILL": "Catch > Species batch: Auto-fill?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch: Commercial species?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Catch > Species batch: Commercial species without weight:",
@@ -1573,11 +1579,12 @@
       "TRIP_BATCH_ENABLE": "Catch > Species batch?",
       "TRIP_BATCH_MEASURE_ENABLE": "Catch > Species batch: Enable individual measures?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Catch > Species batch: Enter weight?",
-      "TRIP_BATCH_WEIGHT_CONVERSION_ENABLE": "Catch > Species batch: Compute sampling weight (WLR, alive weight) ?",
+      "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Catch > Individual measure: Compute weight by WLR?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter nb indiv?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Catch > Individual measure: Scientific species?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_GROUP_ENABLE": "Catch > Individual measure: Commercial species?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_UNIT": "Catch > Individual measure: Weight unit",
+      "TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID": "Catch > Country (ID) for alive weight equivalences",
       "TRIP_SAMPLE_ENABLE": "Sample : Enable ?",
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Sample : Sample date/time?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Sample: Commercial species?",
@@ -1593,6 +1600,8 @@
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip > Operation: Are other features optional, when on field?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation: Max travelled distance before warning :",
       "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation: Max travelled distance before error : ",
+      "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Trip > Operation: Maximum duration of shooting (hours)",
+      "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Trip > Operation: Maximum total duration (hours)",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Trip > Operation: Fishing area: Location level(s)",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Trip > Operation: Target species: Level(s)",
@@ -1979,6 +1988,8 @@
     "OPTIONS": {
       "ENABLE": "Extraction > Enable?",
       "MAP_ENABLE": "Extraction > Map: enable?",
+      "MAP_CENTER_LAT_LNG": "Extraction > Map: Default position (lat,lng)",
+      "MAP_CENTER_ZOOM": "Extraction > Map: Default zoom (1 à 18)",
       "PRODUCT_ENABLE": "Extraction > Products: Enable?",
       "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions"
     },

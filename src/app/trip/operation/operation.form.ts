@@ -3,7 +3,7 @@ import { OperationValidatorOptions, OperationValidatorService } from '../service
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
-  AccountService,
+  AccountService, Alerts,
   AppForm,
   DateFormatPipe,
   DateUtils,
@@ -39,7 +39,7 @@ import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service'
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { OperationService } from '@app/trip/services/operation.service';
-import { ModalController } from '@ionic/angular';
+import { AlertController, ModalController } from '@ionic/angular';
 import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
@@ -305,10 +305,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     protected validatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
+    protected alertCtrl: AlertController,
     protected accountService: AccountService,
     protected operationService: OperationService,
     protected physicalGearService: PhysicalGearService,
-    protected tripService: TripService,
     protected pmfmService: PmfmService,
     protected formBuilder: FormBuilder,
     protected fishingAreaValidatorService: FishingAreaValidatorService,
@@ -777,7 +777,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     if (!this.loading) {
       // Refresh metiers
       const physicalGear = this.form.get('physicalGear').value;
-      await this.loadMetiers(physicalGear);
+      await this.loadMetiers(physicalGear, {showAlertIfFailed: true, reloadIfFailed: false});
 
       if (field) field.reloadItems();
     }
@@ -862,7 +862,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
   }
 
-  protected async loadMetiers(physicalGear?: PhysicalGear | any): Promise<void> {
+  protected async loadMetiers(physicalGear?: PhysicalGear | any, opts = {
+    showAlertIfFailed: false,
+    reloadIfFailed: true
+  }): Promise<void> {
 
     // Reset previous value
     if (isNotNil(this._metiersSubject.value)) this._metiersSubject.next(null);
@@ -902,8 +905,22 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     // No result in filtered metier: retry with all metiers
     if (this.autocompleteFilters.metier && isEmptyArray(res.data)) {
+
+      // Warn the user
+      if (opts.showAlertIfFailed) {
+        await Alerts.showError('TRIP.OPERATION.ERROR.CANNOT_ENABLE_FILTER_METIER_NO_DATA',
+          this.alertCtrl, this.translate, {
+            titleKey: 'TRIP.OPERATION.ERROR.CANNOT_ENABLE_FILTER'
+          }, {});
+      }
+
+      // Back to unfiltered list, then loop
       this.toggleFilter('metier');
-      return this.loadMetiers(physicalGear); // Loop
+
+      if (opts.reloadIfFailed) {
+        return this.loadMetiers(physicalGear);
+      }
+      return;
     }
 
     const metierControl = this.form.get('metier');

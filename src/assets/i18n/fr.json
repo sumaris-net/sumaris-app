@@ -719,7 +719,9 @@
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
-        "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)"
+        "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)",
+        "CANNOT_ENABLE_FILTER": "Filtrage non disponible",
+        "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Aucun métier pratiqué trouvé dans les données disponibles."
       }
     },
     "OPERATION_GROUP": {

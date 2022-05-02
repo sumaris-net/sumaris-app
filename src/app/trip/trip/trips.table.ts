@@ -29,7 +29,7 @@ import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
 import { filter, tap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
-import { TripOfflineModal } from '@app/trip/trip/offline/trip-offline.modal';
+import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -214,8 +214,11 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
+    if (this.importing) return; // Skip
+
     console.debug('[trips] click row');
     this.highlightedRow = row;
+
     return super.clickRow(event, row);
   }
 
@@ -277,7 +280,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       };
       const modal = await this.modalCtrl.create({
         component: TripOfflineModal,
-        componentProps: {
+        componentProps: <TripOfflineModalOptions>{
           value
         }, keyboardClose: true
       });
