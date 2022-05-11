@@ -1656,7 +1656,7 @@
       "TAXON_NAMES": "Espèce cible",
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
-      "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
+      "BTN_REMOVE_FROM_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplication",
         "HELP": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :"

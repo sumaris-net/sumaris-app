@@ -1656,7 +1656,7 @@
       "TAXON_NAMES": "Target species",
       "SCIENTIFIC_TAXON_NAMES": "Scientific species",
       "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFMs",
-      "BTN_REMOVE_TO_SELECTED_PMFM": "Remove from selected PMFMs",
+      "BTN_REMOVE_FROM_SELECTED_PMFM": "Remove from selected PMFMs",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplicate",
         "HELP": "Select a year for the new sampling plan: "
