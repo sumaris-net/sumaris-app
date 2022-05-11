@@ -1,27 +1,20 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from "@angular/core";
-import {ExtractionCategories, ExtractionColumn} from "../../services/model/extraction-type.model";
-import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
-import {AggregationTypeValidatorService} from "../../services/validator/aggregation-type.validator";
-import {ExtractionService} from "../../services/extraction.service";
-import {Router} from "@angular/router";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import { EntityServiceLoadOptions, isNotEmptyArray } from '@sumaris-net/ngx-components';
-import {ProductForm} from "../form/product.form";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {ExtractionProduct} from "../../services/model/extraction-product.model";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {isEmptyArray, isNil} from "@sumaris-net/ngx-components";
-import {ExtractionProductService} from "../../services/extraction-product.service";
-import {AppEntityEditor}  from "@sumaris-net/ngx-components";
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ExtractionCategories, ExtractionColumn } from '../type/extraction-type.model';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, isEmptyArray, isNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { ProductForm } from './product.form';
+import { ExtractionProduct } from '@app/extraction/product/product.model';
+import { ExtractionProductValidatorService } from '@app/extraction/product/product.validator';
+import { ProductService } from '@app/extraction/product/product.service';
 
 @Component({
   selector: 'app-product-page',
   templateUrl: './product.page.html',
   styleUrls: ['./product.page.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: AggregationTypeValidatorService}
+    {provide: ValidatorService, useExisting: ExtractionProductValidatorService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -38,10 +31,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
   constructor(protected injector: Injector,
               protected router: Router,
               protected formBuilder: FormBuilder,
-              protected extractionService: ExtractionService,
-              protected productService: ExtractionProductService,
+              protected productService: ProductService,
               protected accountService: AccountService,
-              protected validatorService: AggregationTypeValidatorService,
+              protected validatorService: ExtractionProductValidatorService,
               protected settings: LocalSettingsService) {
     super(injector,
       ExtractionProduct,

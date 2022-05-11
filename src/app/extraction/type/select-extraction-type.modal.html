@@ -7,7 +7,7 @@
       </ion-button>
     </ion-buttons>
 
-    <ion-title translate>EXTRACTION.MAP.SELECT_MODAL.TITLE</ion-title>
+    <ion-title [innerHTML]="title|translate"></ion-title>
 
   </ion-toolbar>
 </ion-header>
@@ -16,9 +16,10 @@
 
   <ion-list>
 
-    <ion-list-header>
+    <!-- Help message -->
+    <ion-list-header *ngIf="helpText">
       <ion-label class="ion-text-wrap">
-        <p translate>EXTRACTION.MAP.SELECT_MODAL.HELP</p>
+        <p [innerHTML]="helpText|translate"></p>
       </ion-label>
     </ion-list-header>
 

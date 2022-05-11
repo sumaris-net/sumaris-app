@@ -1,5 +1,5 @@
-import {Directive, EventEmitter, ViewChild} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
+import { Directive, EventEmitter, ViewChild } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
 import {
   AccountService,
   AppTabEditor,
@@ -8,28 +8,29 @@ import {
   isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil, LoadResult,
+  isNotNil,
+  LoadResult,
   LocalSettingsService,
-  PlatformService, propertyComparator,
+  PlatformService,
+  propertyComparator
 } from '@sumaris-net/ngx-components';
-import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils } from '../services/model/extraction-type.model';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first, map, mergeMap } from 'rxjs/operators';
-import {ExtractionCriteriaForm} from './extraction-criteria.form';
-import {TranslateService} from '@ngx-translate/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ExtractionService} from '../services/extraction.service';
-import {AlertController, ModalController, ToastController} from '@ionic/angular';
-import {ExtractionProduct} from '../services/model/extraction-product.model';
-import {ExtractionUtils} from '../services/extraction.utils';
-import {ExtractionHelpModal} from '../help/help.modal';
+import { ExtractionCriteriaForm } from '../criteria/extraction-criteria.form';
+import { TranslateService } from '@ngx-translate/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { ExtractionService } from './extraction.service';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { ExtractionUtils } from './extraction.utils';
+import { ExtractionHelpModal, ExtractionHelpModalOptions } from '../help/help.modal';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class ExtractionAbstractPage<T extends ExtractionType | ExtractionProduct> extends AppTabEditor<T> {
+export abstract class ExtractionAbstractPage<T extends ExtractionType> extends AppTabEditor<T> {
 
   type: T;
   form: FormGroup;
@@ -257,22 +258,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
     }
   }
 
-  getI18nTypeName(type?: T): string {
-    if (isNil(type)) return undefined;
-    const key = `EXTRACTION.${type.category}.${type.format}.TITLE`.toUpperCase();
-    let message = this.translate.instant(key, type);
-
-    if (message !== key) return message;
-    // No I18n translation: continue
-
-    // Use name, or label (but replace underscore with space)
-    message = type.name || (type.label && type.label.replace(/[_-]+/g, " ").toUpperCase());
-    // First letter as upper case
-    return capitalizeFirstLetter(message.toLowerCase());
-  }
-
   async load(id?: number, options?: any): Promise<any> {
-    const type = this.$types.value.find(t => t.id === id);
+    const type = (this.$types.value || []).find(t => t.id === id);
     if (type) {
       await this.setType(type, {emitEvent: false});
 
@@ -291,7 +278,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
   protected abstract loadData(): Promise<void>;
 
   async reload(): Promise<any> {
-    return this.load(this.type && this.type.id);
+    return this.load(this.type?.id);
   }
 
   async openHelpModal(event?: UIEvent) {
@@ -303,7 +290,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
 
     const modal = await this.modalCtrl.create({
       component: ExtractionHelpModal,
-      componentProps: {
+      componentProps: <ExtractionHelpModalOptions>{
         type: this.type
       },
       keyboardClose: true,
@@ -426,7 +413,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType | Extracti
 
   getI18nColumnName(columnName?: string) {
     if (!columnName) return '';
-    let key = `EXTRACTION.TABLE.${this.type.category.toUpperCase()}.${columnName.toUpperCase()}`;
+    let key = `EXTRACTION.TABLE.${this.type.format.toUpperCase()}.${columnName.toUpperCase()}`;
     let message = this.translate.instant(key);
 
     // No I18n translation

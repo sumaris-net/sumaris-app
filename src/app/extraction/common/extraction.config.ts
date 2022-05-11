@@ -3,7 +3,7 @@ import {FormFieldDefinition, PRIORITIZED_AUTHORITIES} from '@sumaris-net/ngx-com
 
 export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'ExtractionTypeVO': {
-    keyFields: ['category', 'label'],
+    keyFields: ['label'],
     merge: (existing, incoming, options) => {
       console.warn('[extraction_config] TODO: check merging function for ExtractionTypeVO', existing, incoming, options);
       return {

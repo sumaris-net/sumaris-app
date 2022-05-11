@@ -1,25 +1,21 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { ExtractionColumn, ExtractionFilterCriterion } from '../../services/model/extraction-type.model';
+import { ExtractionColumn, ExtractionFilterCriterion } from '../type/extraction-type.model';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import { AggregationTypeValidatorService } from '../../services/validator/aggregation-type.validator';
-import { ReferentialForm } from '../../../referential/form/referential.form';
+import { ReferentialForm } from '../../referential/form/referential.form';
 import { BehaviorSubject } from 'rxjs';
 import { AppForm, arraySize, EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, LocalSettingsService, StatusIds } from '@sumaris-net/ngx-components';
-import { ExtractionService } from '../../services/extraction.service';
 import { debounceTime } from 'rxjs/operators';
-import { AggregationStrata, ExtractionProduct, ProcessingFrequency, ProcessingFrequencyIds, ProcessingFrequencyItems } from '../../services/model/extraction-product.model';
-import { ExtractionUtils } from '../../services/extraction.utils';
-import { ExtractionProductService } from '../../services/extraction-product.service';
-import { ExtractionCriteriaForm } from '@app/extraction/form/extraction-criteria.form';
+import { ExtractionUtils } from '../common/extraction.utils';
+import { ExtractionCriteriaForm } from '@app/extraction/criteria/extraction-criteria.form';
+import { ExtractionProductValidatorService } from '@app/extraction/product/product.validator';
+import { ProductService } from '@app/extraction/product/product.service';
+import { ExtractionProduct, ProcessingFrequencyIds, ProcessingFrequencyItems } from '@app/extraction/product/product.model';
+import { AggregationStrata } from '@app/extraction/strata/strata.model';
+import { splitById } from '@sumaris-net/ngx-components/src/app/shared/functions';
 
 declare interface ColumnMap {
   [sheetName: string]: ExtractionColumn[];
 }
-
-const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFrequencyItems.reduce((res, frequency) => {
-  res[frequency.id] = frequency;
-  return res;
-}, {});
 
 @Component({
   selector: 'app-product-form',
@@ -30,8 +26,8 @@ const FrequenciesById: { [id: number]: ProcessingFrequency; } = ProcessingFreque
 export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
   data: ExtractionProduct;
-  frequenciesById = FrequenciesById;
   frequencyItems = ProcessingFrequencyItems;
+  frequenciesById = splitById(ProcessingFrequencyItems);
 
   $sheetNames = new BehaviorSubject<String[]>(undefined);
   $timeColumns = new BehaviorSubject<ColumnMap>(undefined);
@@ -100,9 +96,8 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   constructor(injector: Injector,
               protected formBuilder: FormBuilder,
               protected settings: LocalSettingsService,
-              protected validatorService: AggregationTypeValidatorService,
-              protected extractionService: ExtractionService,
-              protected aggregationService: ExtractionProductService,
+              protected validatorService: ExtractionProductValidatorService,
+              protected service: ProductService,
               protected cd: ChangeDetectorRef) {
     super(injector,
       validatorService.getFormGroup());
@@ -149,7 +144,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
       const map: {[key: string]: ColumnMap} = {};
       await Promise.all(sheetNames.map(sheetName => {
-        return this.aggregationService.loadColumns(type, sheetName)
+        return this.service.loadColumns(type, sheetName)
           .then(columns => {
             columns = columns || [];
             const columnMap = ExtractionUtils.dispatchColumns(columns);

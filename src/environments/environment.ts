@@ -56,10 +56,6 @@ export const environment = Object.freeze(<AppEnvironment>{
       port: 8080
     },
     {
-      host: '192.168.0.29',
-      port: 8080
-    },
-    {
       host: 'server.e-is.pro',
       port: 443
     },

@@ -1,10 +1,9 @@
 /* -- Extraction -- */
 
-import { BaseReferential, capitalizeFirstLetter, Department, Entity, EntityAsObjectOptions, EntityClass, isNil, isNotEmptyArray, isNotNilOrBlank, Person } from '@sumaris-net/ngx-components';
-import {Moment} from 'moment';
-import { ExtractionProduct } from '@app/extraction/services/model/extraction-product.model';
+import { BaseReferential, capitalizeFirstLetter, Department, Entity, EntityAsObjectOptions, EntityClass, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, Person } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
@@ -16,18 +15,17 @@ export type ExtractionCacheDurationType = 'short'|'default'|'medium'|'long'|'ete
 
 @EntityClass({typename: 'ExtractionTypeVO'})
 export class ExtractionType<
-  T extends ExtractionType<T, ID> = ExtractionType<any, any>,
-  ID = number
+  T extends ExtractionType<T> = ExtractionType<any>,
   >
-  extends BaseReferential<T, ID> {
+  extends BaseReferential<T> {
 
   static fromObject: (source: any, opts?: any) => ExtractionType;
   static equals(o1: ExtractionType, o2: ExtractionType): boolean {
-    return o1 && o2 ? o1.label === o2.label && o1.category === o2.category : o1 === o2;
+    return o1 && o2 ? o1.label === o2.label && o1.format === o2.format && o1.version === o2.version : o1 === o2;
   }
 
-  category: string = null;
-  version?: string = null;
+  format: string = null;
+  version: string = null;
   sheetNames: string[] = null;
   isSpatial: boolean = null;
   docUrl: string = null;
@@ -42,8 +40,7 @@ export class ExtractionType<
 
   fromObject(source: any, opts?: EntityAsObjectOptions) {
     super.fromObject(source, opts);
-    this.label = source.label;
-    this.category = source.category;
+    this.format = source.format;
     this.version = source.version;
     this.sheetNames = source.sheetNames;
     this.isSpatial = source.isSpatial;
@@ -59,11 +56,8 @@ export class ExtractionType<
     return target;
   }
 
-  get format(): string {
-    if (!this.label) return undefined;
-    const lastIndex = this.label.lastIndexOf('-');
-    if (lastIndex === -1) return this.label;
-    return this.label.substr(0, lastIndex);
+  get category(): ExtractionCategoryType {
+    return (isNil(this.id) || this.id < 0) ? 'LIVE' : 'PRODUCT';
   }
 }
 
@@ -207,5 +201,19 @@ export class ExtractionTypeUtils {
     type.name = name;
 
     return type;
+  }
+
+  static minify(type: ExtractionType): any {
+    return {
+      id: type.id,
+      label: type.label,
+      //category: type.category,
+      format: type.format,
+      version: type.version
+    };
+  }
+
+  static isProduct(type: ExtractionType): boolean {
+    return isNotNil(type.id) && type.id >= 0;
   }
 }

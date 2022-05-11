@@ -7,7 +7,7 @@ import {
   AccountService,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
-  BaseEntityService,
+  BaseEntityService, BaseGraphqlService,
   EntitiesServiceWatchOptions,
   EntitySaveOptions,
   EntityServiceLoadOptions,
@@ -21,34 +21,17 @@ import {
   PlatformService,
   trimEmptyToNull
 } from '@sumaris-net/ngx-components';
-import { ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType } from './model/extraction-type.model';
+import { ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import { DataCommonFragments } from '../../trip/services/trip.queries';
 import { SortDirection } from '@angular/material/sort';
 import { DataEntityAsObjectOptions } from '../../data/services/model/data-entity.model';
-import { ExtractionErrorCodes } from '@app/extraction/services/extraction.errors';
-import { ExtractionTypeFilter } from '@app/extraction/services/filter/extraction-type.filter';
+import { ExtractionErrorCodes } from '@app/extraction/common/extraction.errors';
+import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { ExtractionTypeFragments } from '@app/extraction/type/extraction-type.service';
 
 
 export const ExtractionFragments = {
-  type: gql`fragment ExtractionTypeFragment on ExtractionTypeVO {
-    id
-    category
-    label
-    name
-    description
-    docUrl
-    comments
-    version
-    sheetNames
-    isSpatial
-    statusId
-    recorderDepartment {
-      ...LightDepartmentFragment
-    }
-  }
-  ${DataCommonFragments.lightDepartment}`,
-
   column: gql`fragment ExtractionColumnFragment on ExtractionTableColumnVO {
     label
     name
@@ -60,24 +43,15 @@ export const ExtractionFragments = {
 };
 
 
-export const ExtractionQueries: BaseEntityGraphqlQueries & {
-  loadRows: any;
-  getFile: any;
-} = {
-  loadAll: gql`query ExtractionTypes {
-      data: extractionTypes {
-        ...ExtractionTypeFragment
-      }
-    }
-    ${ExtractionFragments.type}`,
+export const ExtractionQueries = {
 
   loadRows: gql`query ExtractionRows($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: extractionRows(type: $type, filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      rows
+      total
       columns {
         ...ExtractionColumnFragment
       }
-      rows
-      total
     }
   }
   ${ExtractionFragments.column}`,
@@ -87,73 +61,18 @@ export const ExtractionQueries: BaseEntityGraphqlQueries & {
   }`
 }
 
-export const ExtractionMutation: BaseEntityGraphqlMutations = {
-  save: gql`mutation SaveExtraction($data: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput) {
-    data: saveExtraction(type: $data, filter: $filter) {
-      ...ExtractionTypeFragment
-    }
-  }
-  ${ExtractionFragments.type}`
-};
-
-const fixWorkaroundDataFn = ({data, total}) => {
-  // Workaround because saveAggregation() doest not add NEW extraction type correctly
-  data = (data || []).filter(e => {
-    if (isNil(e?.label)) {
-      console.warn('[extraction-service] FIXME: Invalid extraction type (no label)... bad cache insertion in saveAggregation() ?');
-      return false;
-    }
-    return true;
-  });
-  return {data, total}
-};
-
 @Injectable({providedIn: 'root'})
-export class ExtractionService extends BaseEntityService<ExtractionType, ExtractionTypeFilter> {
-
-
+export class ExtractionService extends BaseGraphqlService<ExtractionType, ExtractionTypeFilter> {
 
   constructor(
     protected graphql: GraphqlService,
-    protected platformService: PlatformService,
     protected accountService: AccountService,
   ) {
-    super(graphql, platformService,
-      ExtractionType, ExtractionTypeFilter,
-      {
-        queries: ExtractionQueries,
-        mutations: ExtractionMutation
-      });
-  }
-
-  loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
-          filter?: Partial<ExtractionTypeFilter>,
-          opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }): Promise<LoadResult<ExtractionType>> {
-    return super.loadAll(offset, size, sortBy, sortDirection, filter, {
-      ...opts,
-      withTotal: false // Always false (loadAllWithTotal query not defined yet)
-    })
-      .then(fixWorkaroundDataFn);
+    super(graphql);
   }
 
   /**
-   * Watch extraction types
-   */
-  watchAll(
-    offset: number, size: number,
-    sortAttribute?: string,
-    sortDirection?: SortDirection,
-    filter?: ExtractionTypeFilter,
-    opts?: EntitiesServiceWatchOptions & {query?: any}): Observable<LoadResult<ExtractionType>> {
-
-    return super.watchAll(offset, size, sortAttribute, sortDirection, filter, {
-      ...opts,
-      withTotal: false // Always false (loadAllWithTotal query not defined yet)
-    }).pipe(map(fixWorkaroundDataFn));
-  }
-
-  /**
-   * Load many trips
+   * Load extraction rows
    * @param type
    * @param offset
    * @param size
@@ -174,10 +93,7 @@ export class ExtractionService extends BaseEntityService<ExtractionType, Extract
     }): Promise<ExtractionResult> {
 
     const variables: any = {
-      type: {
-        category: type.category,
-        label: type.label
-      },
+      type: ExtractionTypeUtils.minify(type),
       offset: offset || 0,
       size: size || 100,
       sortBy: sortBy || undefined,
@@ -238,66 +154,6 @@ export class ExtractionService extends BaseEntityService<ExtractionType, Extract
     if (this._debug) console.debug(`[extraction-service] Extraction ${type.category} ${type.label} done in ${Date.now() - now}ms: ${fileUrl}`, res);
 
     return fileUrl;
-  }
-
-
-  async save(entity: ExtractionType, opts?: EntitySaveOptions & {
-    filter: ExtractionFilter
-  }): Promise<ExtractionType> {
-    const filter = opts && opts.filter;
-    if (this._debug) console.debug("[extraction-service] Saving extraction...", entity, filter);
-
-    this.fillDefaultProperties(entity);
-
-    const json = this.asObject(entity);
-
-    const isNew = isNil(entity.id) || entity.id < 0; // Exclude live types
-
-    await this.graphql.mutate<{ data: any }>({
-      mutation: ExtractionMutation.save,
-      variables: { data: json, filter },
-      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
-      update: (cache, {data}) => {
-        const savedEntity = data && data.data;
-
-        this.copyIdAndUpdateDate(savedEntity, entity);
-
-        // Insert into cache
-        if (isNew) {
-          this.insertIntoCache(cache, savedEntity);
-        }
-      }
-    });
-
-    return entity;
-  }
-
-  insertIntoCache(cache: ApolloCache<{data: any}>, entity: ExtractionType) {
-    if (!entity || isNil(entity.id)) throw new Error('Extraction type (with an id) is required, to insert into the cache.');
-
-    console.info('[extraction-service] Inserting into cache:', entity);
-    this.insertIntoMutableCachedQueries(cache, {
-      queries: this.getLoadQueries(),
-      data: entity
-    });
-  }
-
-  updateCache(cache: ApolloCache<{data: any}>, entity: ExtractionType) {
-    if (!entity || isNil(entity.id)) throw new Error('Extraction type (with an id) is required, to update the cache.');
-
-    console.info('[extraction-service] Updating cache:', entity);
-
-    // Remove, then insert, from extraction types
-    const exists = this.removeFromMutableCachedQueriesByIds(cache, {
-      queries: this.getLoadQueries(),
-      ids: entity.id
-    }) > 0;
-    if (exists) {
-      this.insertIntoMutableCachedQueries(cache, {
-        queries: this.getLoadQueries(),
-        data: entity
-      });
-    }
   }
 
   prepareFilter(source?: ExtractionFilter | any): ExtractionFilter {
@@ -402,9 +258,8 @@ export class ExtractionService extends BaseEntityService<ExtractionType, Extract
 
     EntityUtils.copyIdAndUpdateDate(source, target);
 
-    // Copy category and label
+    // Copy label
     target.label = source.label;
-    target.category = source.category;
 
   }
 }

@@ -2,17 +2,17 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import { arrayGroupBy, isNil, isNotNil, LoadResult, propertyComparator, sleep } from '@sumaris-net/ngx-components';
 import {TableDataSource} from "@e-is/ngx-material-table";
-import {ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType} from "../services/model/extraction-type.model";
+import { ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import {TableSelectColumnsComponent}  from "@sumaris-net/ngx-components";
 import {DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, SETTINGS_DISPLAY_COLUMNS}  from "@sumaris-net/ngx-components";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
 import {Location} from "@angular/common";
 import {filter, map} from "rxjs/operators";
 import {firstNotNilPromise} from "@sumaris-net/ngx-components";
-import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../form/extraction-abstract.page';
+import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
 import {ActivatedRoute, Router} from "@angular/router";
 import {TranslateService} from "@ngx-translate/core";
-import {ExtractionService} from "../services/extraction.service";
+import {ExtractionService} from "../common/extraction.service";
 import {FormBuilder} from "@angular/forms";
 import {AccountService}  from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
@@ -22,8 +22,9 @@ import {MatTable} from "@angular/material/table";
 import {MatPaginator} from "@angular/material/paginator";
 import {MatSort} from "@angular/material/sort";
 import {MatExpansionPanel} from "@angular/material/expansion";
-import {ExtractionProduct} from "../services/model/extraction-product.model";
-import {ExtractionProductService} from "../services/extraction-product.service";
+import { ProductService } from '@app/extraction/product/product.service';
+import { ExtractionProduct } from '@app/extraction/product/product.model';
+import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
 
 
 @Component({
@@ -69,7 +70,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
-    protected productService: ExtractionProductService,
+    protected productService: ProductService,
+    protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
@@ -275,23 +277,29 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         {name: this.type.name})
         .toPromise();
 
-      const aggType = ExtractionProduct.fromObject({
-        label: `${this.type.label}-${this.accountService.account.id}_${Date.now()}`,
-        category: this.type.category,
-        name: name
+      const format = `agg_${this.type.format}}`;
+
+      // Create a unique label
+      const label = `${format}-${this.accountService.account.id}_${Date.now()}`;
+
+      const entity = ExtractionProduct.fromObject({
+        label,
+        name,
+        format,
+        parent: ExtractionTypeUtils.minify(this.type)
       });
 
       // Save aggregation
-      const savedAggType = await this.productService.save(aggType, filter);
+      const savedEntity = await this.productService.save(entity, filter);
 
       // Wait for types cache updates
       await sleep(1000);
 
       // Open the new aggregation (no wait)
-      await this.openProduct(savedAggType);
+      await this.openProduct(savedEntity);
 
       // Change current type
-      await this.setType(savedAggType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
+      await this.setType(savedEntity, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
 
 
     } catch (err) {
@@ -314,17 +322,22 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.disable();
 
     try {
+      // Compute a new name
+      const name = await this.translate.get('EXTRACTION.PRODUCT.NEW_NAME',
+        {name: this.type.name})
+        .toPromise();
 
-      const entity = ExtractionType.fromObject(this.type.asObject());
-      if (isNil(entity.id)) {
-        // Compute a new name
-        entity.name = await this.translate.get('EXTRACTION.PRODUCT.NEW_NAME',
-          {name: this.type.name})
-          .toPromise();
-      }
+      // Create a unique label
+      const label = `${this.type.format}-${this.accountService.account.id}_${Date.now()}`;
+
+      const entity = ExtractionProduct.fromObject({
+        ...ExtractionTypeUtils.minify(this.type),
+        label,
+        name
+      });
 
       // Save extraction
-      const savedEntity = await this.service.save(entity, {filter});
+      const savedEntity = await this.productService.save(entity, filter);
 
       // Wait for types cache updates
       await sleep(1000);
@@ -437,7 +450,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   /* -- protected method -- */
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {
-    return this.service.watchAll(0, 1000);
+    return this.extractionTypeService.watchAll(0, 1000);
   }
 
   protected async loadData() {

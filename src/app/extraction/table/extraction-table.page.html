@@ -212,9 +212,11 @@
   </ion-item>
 
   <div class="table-container">
-    <table mat-table [dataSource]="dataSource" [hidden]="!data?.total"
-               matSort
-               matSortDisableClear>
+    <table mat-table
+           [dataSource]="dataSource"
+           [class.c-visually-hidden]="!data || data.total === 0"
+           matSort
+           matSortDisableClear>
 
       <!-- iterate on columns -->
       <ng-container *ngFor="let column of $columns | async" matColumnDef="{{column.columnName}}">
@@ -224,10 +226,9 @@
         </th>
         <td mat-cell *matCellDef="let row" [class.mat-cell-date-time]="column.type=='date'"
                   [class.mat-cell-numeric]="column.type=='integer'">
-          <a ion-text (click)="onCellValueClick($event, column, row.currentData[column.index])"
-             color="dark"
-             [title]="row.currentData[column.index]">
-            {{row.currentData[column.index]}}
+          <a [title]="row.currentData[column.index]"
+             (click)="onCellValueClick($event, column, row.currentData[column.index])">
+            <ion-text color="dark">{{row.currentData[column.index]}}</ion-text>
           </a>
         </td>
       </ng-container>

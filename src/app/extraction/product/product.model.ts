@@ -1,12 +1,11 @@
 /* -- Extraction -- */
 
-import {Entity, EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
-import {isNotEmptyArray, toBoolean} from "@sumaris-net/ngx-components";
-import {Moment} from "moment";
-import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from "../../../data/services/model/model.utils";
-import {ExtractionColumn, ExtractionFilter, ExtractionType} from "./extraction-type.model";
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
+import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, toDateISOString } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { IWithRecorderDepartmentEntity, IWithRecorderPersonEntity } from '../../data/services/model/model.utils';
+import { ExtractionColumn, ExtractionFilter, ExtractionType } from '../type/extraction-type.model';
+import { AggregationStrata } from '@app/extraction/strata/strata.model';
+import { splitById } from '@sumaris-net/ngx-components/src/app/shared/functions';
 
 export type StrataAreaType = 'area' | 'statistical_rectangle' | 'sub_polygon' | 'square';
 export type StrataTimeType = 'year' | 'quarter' | 'month';
@@ -52,15 +51,16 @@ export const ProcessingFrequencyItems = Object.freeze([
 ]);
 
 
-@EntityClass({typename: 'AggregationTypeVO'})
+@EntityClass({typename: 'ExtractionProductVO'})
 export class ExtractionProduct extends ExtractionType<ExtractionProduct>
   implements IWithRecorderDepartmentEntity<ExtractionProduct>,
              IWithRecorderPersonEntity<ExtractionProduct> {
 
   static fromObject: (source: any, opts?: any) => ExtractionProduct;
 
-  category: 'PRODUCT' = null;
+  filterContent: string = null;
   filter: ExtractionFilter = null;
+
   documentation: string = null;
   processingFrequencyId: number = null;
   creationDate: Date | Moment = null;
@@ -93,63 +93,8 @@ export class ExtractionProduct extends ExtractionType<ExtractionProduct>
       delete json.__typename;
       return json;
     }) || undefined;
-    target.filter = this.filter && (typeof this.filter === 'object') ? JSON.stringify(this.filter) : this.filter;
+    target.filterContent = this.filter && (typeof this.filter === 'object') ? JSON.stringify(this.filter) : this.filterContent;
     return target;
   }
 }
 
-export declare interface IAggregationStrata {
-  spatialColumnName: StrataAreaType;
-  timeColumnName: StrataTimeType;
-  techColumnName?: string;
-  aggColumnName?: string;
-  aggFunction?: string;
-}
-
-export class AggregationStrata extends Entity<AggregationStrata> implements IAggregationStrata {
-
-  static TYPENAME = 'AggregationStrataVO';
-
-  static fromObject(source: any): AggregationStrata {
-    if (!source) return source;
-    const res = new AggregationStrata();
-    res.fromObject(source);
-    return res;
-  }
-
-  isDefault: boolean;
-  sheetName: string;
-
-  spatialColumnName: StrataAreaType;
-  timeColumnName: StrataTimeType;
-  aggColumnName: string;
-  aggFunction: string;
-  techColumnName: string;
-
-  constructor() {
-    super();
-    this.__typename = AggregationStrata.TYPENAME;
-  }
-
-  copy(target: AggregationStrata): AggregationStrata {
-    target.fromObject(this);
-    return target;
-  }
-
-// TODO : Check if clone is needed
-  clone(): AggregationStrata {
-    return this.copy(new AggregationStrata());
-  }
-
-  fromObject(source: any): AggregationStrata {
-    super.fromObject(source);
-    this.sheetName = source.sheetName;
-    this.isDefault = toBoolean(source.isDefault, false);
-    this.spatialColumnName = source.spatialColumnName;
-    this.timeColumnName = source.timeColumnName;
-    this.aggColumnName = source.aggColumnName;
-    this.aggFunction = source.aggFunction;
-    this.techColumnName = source.techColumnName;
-    return this;
-  }
-}
