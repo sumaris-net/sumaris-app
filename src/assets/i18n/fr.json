@@ -1833,16 +1833,21 @@
   "EXTRACTION": {
     "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
     "BTN_SAVE_HELP": "Permet de créer un produit",
-    "SPATIAL_AGGREGATION": "Aggréger en produit carto.",
-    "NEW_PRODUCT": "Enregistrer en produit simple",
+    "NEW_SPATIAL_AGGREGATION": "Créer une agrégation spatiale...",
+    "NEW_PRODUCT": "Créer un nouveau produit",
     "BTN_PUBLISH": "Rendre public",
     "BTN_UNPUBLISH": "Rendre privé",
     "BTN_OPEN_MAP": "Visualiser les données sur une carte",
     "TYPE": "Type d'extraction",
+    "TYPES_MENU": {
+      "PRODUCT_DIVIDER": "Produits",
+      "LIVE_DIVIDER": "Formats temps réel",
+      "PROGRAM_DIVIDER": "Programmes de collecte"
+    },
     "AGGREGATION": {
-      "NEW_NAME": "Nouveau produit / {{name}}",
       "NEW": {
-        "TITLE": "Nouveau produit"
+        "TITLE": "Nouveau produit",
+        "DEFAULT_NAME": "Nouvel agrégation {{format}}"
       },
       "EDIT": {
         "TITLE": "<small>Produit<br/></small>{{name}}",
@@ -1971,6 +1976,8 @@
       "RECORD_TYPE": "Type",
       "HARBOUR": "Port",
       "PROJECT": "Projet",
+      "TRIP_CODE": "Code marée",
+      "STATION_NUMBER": "Numéro de station",
       "YEAR": "Année",
       "QUARTER": "Trimestre",
       "MONTH": "Mois",
@@ -2050,7 +2057,10 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres"
     },
     "PRODUCT": {
-      "NEW_NAME": "Produit {{name}}",
+      "NEW": {
+        "DEFAULT_NAME": "Nouveau produit {{format}}",
+        "DEFAULT_DESCRIPTION": "Créé par {{firstName}} {{lastName}}"
+      },
       "P01_RDB": {
         "TITLE": "Appel à données CIEM (RDB v1.3)"
       }
@@ -2084,7 +2094,8 @@
         "TITLE": "Marées Pocheteaux (RJB v{{version}})"
       },
       "PMFM_TRIP": {
-        "TITLE": "Marées brutes (PMFM v{{version}})"
+        "TITLE": "Marées brutes > Programme",
+        "TITLE_PROGRAM": "Marées brutes {{label}}"
       },
       "STRAT": {
         "TITLE": "Stratégies de collecte",

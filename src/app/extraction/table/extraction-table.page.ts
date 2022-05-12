@@ -1,8 +1,8 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
-import { arrayGroupBy, isNil, isNotNil, LoadResult, propertyComparator, sleep } from '@sumaris-net/ngx-components';
+import { arrayGroupBy, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, LoadResult, propertyComparator, ReferentialRef, sleep, StatusIds } from '@sumaris-net/ngx-components';
 import {TableDataSource} from "@e-is/ngx-material-table";
-import { ExtractionCategories, ExtractionColumn, ExtractionResult, ExtractionRow, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
+import { ExtractionCategories, ExtractionColumn, ExtractionFilterCriterion, ExtractionResult, ExtractionRow, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import {TableSelectColumnsComponent}  from "@sumaris-net/ngx-components";
 import {DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, SETTINGS_DISPLAY_COLUMNS}  from "@sumaris-net/ngx-components";
 import {AlertController, ModalController, ToastController} from "@ionic/angular";
@@ -25,6 +25,12 @@ import {MatExpansionPanel} from "@angular/material/expansion";
 import { ProductService } from '@app/extraction/product/product.service';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
 import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { Program } from '@app/referential/services/model/program.model';
+import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+
 
 
 @Component({
@@ -45,12 +51,13 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   dataSource: TableDataSource<ExtractionRow>;
   settingsId: string;
-  showHelp = true;
   canCreateProduct = false;
   isAdmin = false;
 
   typesByCategory$: Observable<{key: string, value: ExtractionType[]}[]>;
   criteriaCount$: Observable<number>;
+  $programs = new BehaviorSubject<Program[]>(null);
+  $selectedProgram = new BehaviorSubject<Program>(null);
 
   @ViewChild(MatTable, {static: true}) table: MatSort;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -71,6 +78,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     modalCtrl: ModalController,
     protected location: Location,
     protected productService: ProductService,
+    protected programRefService: ProgramRefService,
     protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
@@ -96,13 +104,18 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       );
 
     // If the user changes the sort order, reset back to the first page.
-    if (this.sort && this.paginator) this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0);
+    if (this.sort && this.paginator) {
+      this.registerSubscription(
+        this.sort.sortChange.subscribe(() => this.paginator.pageIndex = 0)
+      );
+    }
 
-    merge(
-      this.sort && this.sort.sortChange || EMPTY,
-      this.paginator && this.paginator.page || EMPTY,
-      this.onRefresh
-    )
+    this.registerSubscription(
+      merge(
+        this.sort?.sortChange || EMPTY,
+        this.paginator?.page || EMPTY,
+        this.onRefresh
+      )
       .subscribe(() => {
         if (this.loading || isNil(this.type)) return; // avoid multiple load
 
@@ -112,12 +125,20 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         }
 
         return this.loadData();
-      });
+      }));
 
     this.criteriaCount$ = this.criteriaForm.form.valueChanges
       .pipe(
         map(_ => this.criteriaForm.criteriaCount)
       );
+
+    this.registerSubscription(
+      this.programRefService.watchAll(0, 100, 'label', 'asc', <ProgramFilter>{
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
+      })
+      .subscribe(({data}) => this.$programs.next(data))
+    )
   }
 
   async updateView(data: ExtractionResult) {
@@ -171,17 +192,45 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       this.canCreateProduct = this.type && this.accountService.isSupervisor();
 
       this.resetPaginatorAndSort();
+      this.updateTitle();
 
       // Close the filter panel
       if (this.filterExpansionPanel && this.filterExpansionPanel.expanded) {
         this.filterExpansionPanel.close();
       }
 
+      // Reset program
+      this.$selectedProgram.next(null);
+
       this.markAsReady();
     }
 
     return changed;
 
+  }
+
+  async setTypeAndProgram(type: ExtractionType, program: Program, opts = {emitEvent: true}) {
+
+    // Apply type
+    await this.setType(type, {emitEvent: false});
+
+    // Apply filter
+    if (this.criteriaForm.sheetName && isNotNilOrBlank(program.label)) {
+      this.criteriaForm.setValue([
+        ExtractionFilterCriterion.fromObject({
+          sheetName: this.criteriaForm.sheetName,
+          name: 'project',
+          operator: '=',
+          value: program.label
+        })], {emitEvent: false});
+    }
+
+    this.$selectedProgram.next(program);
+
+    // Refresh data
+    if (opts.emitEvent === true) {
+      this.onRefresh.emit();
+    }
   }
 
   setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
@@ -261,7 +310,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }
   }
 
-
   async aggregateAndSave(event?: UIEvent) {
     if (!this.type || !this.canCreateProduct) return; // Skip
 
@@ -271,22 +319,22 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.disable();
 
     try {
+      console.info('[extraction-table] Aggregating and saving as new product...');
 
-      // Compute a new name
-      const name = await this.translate.get('EXTRACTION.AGGREGATION.NEW_NAME',
-        {name: this.type.name})
-        .toPromise();
-
-      const format = `agg_${this.type.format}}`;
-
-      // Create a unique label
-      const label = `${format}-${this.accountService.account.id}_${Date.now()}`;
+      // Compute format, label and name
+      const parentFormat = this.type.format.toUpperCase();
+      const format = parentFormat.startsWith('AGG_') ? parentFormat : `AGG_${parentFormat}`;
+      const [label, name] = await Promise.all([
+        this.productService.computeNextLabel(format, this.$types.value),
+        this.computeNextProductName(format)
+      ]);
 
       const entity = ExtractionProduct.fromObject({
         label,
         name,
         format,
-        parent: ExtractionTypeUtils.minify(this.type)
+        isSpatial: this.type.isSpatial,
+        parent: this.type.id >= 0 ? ExtractionTypeUtils.minify(this.type) : null
       });
 
       // Save aggregation
@@ -310,7 +358,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       this.markAsLoaded()
       this.enable();
     }
-
   }
 
   async save(event?: UIEvent) {
@@ -321,19 +368,21 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     const filter = this.getFilterValue();
     this.disable();
 
+    let newType: ExtractionType;
     try {
-      // Compute a new name
-      const name = await this.translate.get('EXTRACTION.PRODUCT.NEW_NAME',
-        {name: this.type.name})
-        .toPromise();
+      console.info('[extraction-table] Saving as new product...');
 
-      // Create a unique label
-      const label = `${this.type.format}-${this.accountService.account.id}_${Date.now()}`;
-
+      // Compute label and name
+      const [label, name] = await Promise.all([
+        this.productService.computeNextLabel(this.type.format, this.$types.value),
+        this.computeNextProductName(this.type.format)
+        ]);
       const entity = ExtractionProduct.fromObject({
-        ...ExtractionTypeUtils.minify(this.type),
         label,
-        name
+        name,
+        format: this.type.format,
+        version: this.type.version,
+        parent: this.type.id >= 0 ? ExtractionTypeUtils.minify(this.type) : null
       });
 
       // Save extraction
@@ -343,7 +392,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       await sleep(1000);
 
       // Change current type
-      await this.setType(savedEntity, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
+      newType = await this.findTypeByFilter(ExtractionTypeUtils.minify(savedEntity));
 
     } catch (err) {
       console.error(err);
@@ -352,6 +401,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     } finally {
       this.markAsLoaded();
       this.enable();
+    }
+
+    if (newType) {
+      await this.setType(newType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
     }
   }
 
@@ -398,7 +451,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   }
 
   async openMap(event?: UIEvent) {
-    if (!this.type || !this.type.isSpatial) return; // Skip
+    if (this.type?.isSpatial !== true) return; // Skip
 
     if (event) {
       event.preventDefault();
@@ -450,16 +503,19 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   /* -- protected method -- */
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {
-    return this.extractionTypeService.watchAll(0, 1000);
+    return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', <ExtractionTypeFilter>{
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      isSpatial: false
+    });
   }
 
   protected async loadData() {
 
-    if (!this.type || !this.type.category || !this.type.label) return; // skip
+    if (!this.type || !this.type.label) return; // skip
 
     this.settingsId = this.generateTableId();
     this.error = null;
-    console.debug(`[extraction-table] Loading ${this.type.category} ${this.type.label}`);
+    console.debug(`[extraction-table] Loading ${this.type.label}`);
 
     this.markAsLoading();
     const filter = this.getFilterValue();
@@ -469,10 +525,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     try {
       // Load rows
       const data = await this.service.loadRows(this.type,
-        this.paginator && this.paginator.pageIndex * this.paginator.pageSize,
-        this.paginator && this.paginator.pageSize || DEFAULT_PAGE_SIZE,
-        this.sort && this.sort.active,
-        this.sort && this.sort.direction,
+        this.paginator ? this.paginator.pageIndex * this.paginator.pageSize : null,
+        this.paginator?.pageSize || DEFAULT_PAGE_SIZE,
+        this.sort?.active,
+        this.sort?.direction,
         filter
       );
 
@@ -503,17 +559,47 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   /* -- private method -- */
 
+  private async computeNextProductName(format: string): Promise<string> {
+    if (!format) return null;
+
+    // Use program as format, if any
+    const program = this.$selectedProgram.value;
+    if (isNotNilOrBlank(program?.label)) {
+      format = program.label;
+    }
+
+    const i18nPrefix = format?.startsWith('AGG_') ? 'EXTRACTION.AGGREGATION.NEW.' : 'EXTRACTION.PRODUCT.NEW.';
+    const defaultName = await this.translate.get(i18nPrefix + 'DEFAULT_NAME', { format }).toPromise();
+
+    return this.productService.computeNextName(defaultName, this.$types.value);
+  }
+
   private async updateTitle() {
+    if (!this.type) {
+      this.$title.next('');
+      return;
+    }
 
     const categoryKey = `EXTRACTION.CATEGORY.${this.type.category.toUpperCase()}`;
     const categoryName = await this.translate.get(categoryKey).toPromise();
-    if (categoryName === categoryKey) {
+    const titlePrefix = (categoryName !== categoryKey) ? `<small>${categoryName}<br/></small>` : '';
+    if (isNilOrBlank(titlePrefix)) {
       console.warn("Missing i18n key '" + categoryKey + "'");
-      this.$title.next(this.type.name);
     }
-    else {
-      this.$title.next(`<small>${categoryName}<br/></small>${this.type.name}`);
+
+    // Try to get a title with the program
+    const program = this.$selectedProgram.value;
+    if (isNotNilOrBlank(program?.label)) {
+      const titleKey = `EXTRACTION.LIVE.${this.type.format.toUpperCase()}.TITLE_PROGRAM`;
+      const title = await this.translate.get(titleKey, program).toPromise();
+      if (title !== titleKey) {
+        this.$title.next(titlePrefix + title);
+        return;
+      }
     }
+
+    // By default: use type name (should have been translated before)
+    this.$title.next(titlePrefix + this.type.name);
   }
 
   private generateTableId() {
@@ -524,4 +610,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
+
+
 }

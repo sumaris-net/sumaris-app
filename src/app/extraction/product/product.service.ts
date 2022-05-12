@@ -8,11 +8,14 @@ import {
   AccountService,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
-  BaseGraphqlService,
-  EntityUtils,
+  BaseGraphqlService, CryptoService,
+  EntityUtils, escapeRegExp,
+  firstNotNilPromise,
   GraphqlService,
   IEntityService,
+  isEmptyArray,
   isNil,
+  isNilOrBlank,
   isNotNil,
   LoadResult,
   ReferentialUtils,
@@ -22,12 +25,13 @@ import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionTyp
 import { DataCommonFragments } from '../../trip/services/trip.queries';
 import { SAVE_AS_OBJECT_OPTIONS } from '../../data/services/model/data-entity.model';
 import { ExtractionProduct } from './product.model';
-import { ExtractionFragments, ExtractionService } from '../common/extraction.service';
+import { ExtractionFragments } from '../common/extraction.service';
 import { environment } from '@environments/environment';
 import { ErrorCodes } from '@app/data/services/errors';
 import { ExtractionErrorCodes } from '@app/extraction/common/extraction.errors';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
+import { TranslateService } from '@ngx-translate/core';
 
 
 export const ExtractionProductFragments = {
@@ -86,7 +90,7 @@ const Queries: BaseEntityGraphqlQueries & { loadColumns: any; } = {
     }
     ${ExtractionProductFragments.product}`,
 
-  loadColumns: gql` query ExtractionColumns($type: ExtractionProductVOInput, $sheet: String){
+  loadColumns: gql` query ExtractionColumns($type: ExtractionTypeVOInput!, $sheet: String){
       data: extractionColumns(type: $type, sheet: $sheet){
         ...ExtractionColumnFragment
         values
@@ -95,24 +99,24 @@ const Queries: BaseEntityGraphqlQueries & { loadColumns: any; } = {
     ${ExtractionFragments.column}`
 }
 
-const ExtractionProductMutations: BaseEntityGraphqlMutations & { update: any } = {
-  save: gql`mutation SaveProduct($type: ExtractionProductVOInput, $filter: ExtractionFilterVOInput){
-    data: saveProduct(type: $type, filter: $filter){
+const Mutations: BaseEntityGraphqlMutations & { update: any } = {
+  save: gql`mutation SaveExtractionProduct($product: ExtractionProductVOInput!){
+    data: saveExtractionProduct(product: $product){
       ...ExtractionProductFragment
       documentation
     }
   }
   ${ExtractionProductFragments.product}`,
 
-  update: gql`mutation UpdateProduct($id: Int!){
-    data: updateProduct(id: $id){
+  update: gql`mutation UpdateExtractionProduct($id: Int!){
+    data: updateExtractionProduct(id: $id){
       ...ExtractionProductFragment
       documentation
     }
   }
   ${ExtractionProductFragments.product}`,
 
-  deleteAll: gql`mutation DeleteProducts($ids:[Int]){
+  deleteAll: gql`mutation DeleteProducts($ids:[Int]!){
     deleteProducts(ids: $ids)
   }`
 
@@ -126,7 +130,9 @@ export class ProductService
   constructor(
     protected graphql: GraphqlService,
     protected extractionTypeService: ExtractionTypeService,
-    protected accountService: AccountService
+    protected cryptoService: CryptoService,
+    protected accountService: AccountService,
+    protected translateService: TranslateService
   ) {
     super(graphql, environment);
   }
@@ -180,8 +186,45 @@ export class ProductService
     return data && ExtractionProduct.fromObject(data) || null;
   }
 
+  async computeNextLabel(format: string, types?: ExtractionType[]): Promise<string> {
+    let unique = false;
+    while (!unique) {
+      const hash = this.cryptoService.sha512(`${format}-${Date.now()}`).substr(0, 8);
+      const label = `${format}-${hash}`;
+      if (types) {
+        unique = !types.some(t => label.toUpperCase() == t.label.toUpperCase());
+      }
+      else {
+        unique = !(await this.extractionTypeService.existsByLabel(label, {fetchPolicy: "no-cache"}));
+      }
+      if (unique) return label;
+    }
+  }
+
+
+  async computeNextName(name: string, types?: ExtractionType[]) {
+    if (isNilOrBlank(name)) return name; // Skip if blank
+
+    // Fetch all types
+    types = types || (await firstNotNilPromise(this.watchAll({
+      searchAttribute: 'name', searchText: name
+    })))?.data;
+
+    if (isEmptyArray(types)) return name; // Skip if no other types
+
+    name = name.trim();
+    const nameRegExp = new RegExp(`^${escapeRegExp(name)}(?:\\s*\\((\\d+)\\)\\s*)$`);
+    const maxIncrement = (types || [])
+      .filter(type => type.name && type.name.startsWith(name))
+      .map(type => {
+          const matches = nameRegExp.exec(type.name);
+          return matches && +matches[1] || 0;
+        })
+      .reduce((max, n) => Math.max(max, n), 0) || 0;
+    return `${name} (${maxIncrement + 1})`;
+  }
+
   listenChanges(id: number, opts?: any): Observable<ExtractionProduct | undefined> {
-    // TODO use BaseEntityService
     console.warn('listenChanges() not implemented yet');
     return of();
   }
@@ -199,7 +242,7 @@ export class ProductService
       fetchPolicy?: FetchPolicy
     }): Promise<ExtractionColumn[]> {
 
-    const variables: any = {
+    const variables = {
       type: ExtractionTypeUtils.minify(type),
       sheet: sheetName
     };
@@ -208,7 +251,7 @@ export class ProductService
     if (this._debug) console.debug("[product-service] Loading columns... using options:", variables);
     const res = await this.graphql.query<{ data: ExtractionColumn[] }>({
       query: Queries.loadColumns,
-      variables: variables,
+      variables,
       error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
@@ -235,22 +278,24 @@ export class ProductService
     const now = Date.now();
     if (this._debug) console.debug("[product-service] Saving product...");
 
-    // Make sure to have an entity
+    // Make sure to have entities
     entity = ExtractionProduct.fromObject(entity);
+    filter = ExtractionFilter.fromObject(filter);
 
     this.fillDefaultProperties(entity);
 
     const isNew = isNil(entity.id);
+
+    entity.filter = filter || entity.filter;
 
     // Transform to json
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[product-service] Using minify object, to send:", json);
 
     await this.graphql.mutate<{ data: any }>({
-      mutation: ExtractionProductMutations.save,
+      mutation: Mutations.save,
       variables: {
-        type: json,
-        filter
+        product: json
       },
       error: {code: ErrorCodes.SAVE_ENTITY_ERROR, message: "ERROR.SAVE_ENTITY_ERROR"},
       update: (cache, {data}) => {
@@ -259,9 +304,8 @@ export class ProductService
         console.debug(`[product-service] Product saved in ${Date.now() - now}ms`, savedEntity);
 
         // Convert into the extraction type
-        const savedExtractionType = new ExtractionType();
-        savedExtractionType.copy(savedEntity, {keepTypename: false});
-        savedExtractionType.__typename = ExtractionType.TYPENAME;
+        const savedType = ExtractionType.fromObject(savedEntity).asObject();
+        savedType.__typename = ExtractionType.TYPENAME; // Restore typename
 
         // Insert into cached queries
         if (isNew) {
@@ -271,12 +315,12 @@ export class ProductService
           });
 
           // Insert as an extraction types
-          this.extractionTypeService.insertIntoCache(cache, savedExtractionType);
+          this.extractionTypeService.insertIntoCache(cache, savedType);
         }
 
         // Update from cached queries
         else {
-          this.extractionTypeService.updateCache(cache, savedExtractionType);
+          this.extractionTypeService.updateCache(cache, savedType);
         }
 
       }
@@ -292,7 +336,7 @@ export class ProductService
     if (this._debug) console.debug(`[product-service] Deleting product {id: ${type.id}'}`);
 
     await this.graphql.mutate<any>({
-      mutation: ExtractionProductMutations.deleteAll,
+      mutation: Mutations.deleteAll,
       variables: {
         ids: [type.id]
       },
@@ -326,7 +370,7 @@ export class ProductService
 
     let savedEntity: ExtractionProduct;
     await this.graphql.mutate<{ data: ExtractionProduct }>({
-      mutation: ExtractionProductMutations.update,
+      mutation: Mutations.update,
       variables: { id },
       error: {code: ExtractionErrorCodes.UPDATE_PRODUCT_ERROR, message: "EXTRACTION.ERROR.UPDATE_PRODUCT_ERROR"},
       update: (cache, {data}) => {
@@ -334,12 +378,11 @@ export class ProductService
         console.debug(`[product-service] Product updated in ${Date.now() - now}ms`, savedEntity);
 
         // Convert into the extraction type
-        const savedExtractionType = new ExtractionType();
-        savedExtractionType.copy(savedEntity, {keepTypename: false});
-        savedExtractionType.__typename = ExtractionType.TYPENAME;
+        const savedType = ExtractionType.fromObject(savedEntity).asObject();
+        savedType.__typename = ExtractionType.TYPENAME;
 
         // Update from cached queries
-        this.extractionTypeService.updateCache(cache, savedExtractionType);
+        this.extractionTypeService.updateCache(cache, savedType);
       }
     });
 
@@ -350,11 +393,11 @@ export class ProductService
 
   protected fillDefaultProperties(entity: ExtractionProduct) {
 
-    // If new trip
+    // If new product
     if (isNil(entity.id)) {
 
       // Compute label
-      entity.label = `${entity.format}-${Date.now()}`;
+      entity.label = entity.label || `${entity.format}-${Date.now()}`;
 
       // Recorder department
       entity.recorderDepartment = ReferentialUtils.isNotEmpty(entity.recorderDepartment) ? entity.recorderDepartment : this.accountService.department;
@@ -363,13 +406,12 @@ export class ProductService
       entity.recorderPerson = entity.recorderPerson || this.accountService.person;
     }
 
-    entity.name = entity.name || `Aggregation on ${entity.label}`;
+    entity.name = entity.name || this.translateService.instant('EXTRACTION.PRODUCT.NEW.DEFAULT_NAME', entity);
     entity.statusId = isNotNil(entity.statusId) ? entity.statusId : StatusIds.TEMPORARY;
 
     // Description
     if (!entity.description) {
-      const person = this.accountService.person;
-      entity.description = `Created by ${person.firstName} ${person.lastName}`;
+      entity.description = this.translateService.instant('EXTRACTION.PRODUCT.NEW.DEFAULT_DESCRIPTION', this.accountService.person);
     }
   }
 

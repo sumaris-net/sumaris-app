@@ -1,6 +1,19 @@
 /* -- Extraction -- */
 
-import { BaseReferential, capitalizeFirstLetter, Department, Entity, EntityAsObjectOptions, EntityClass, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, Person } from '@sumaris-net/ngx-components';
+import {
+  BaseReferential,
+  capitalizeFirstLetter,
+  Department,
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter, IEntity,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  Person, toNumber
+} from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
@@ -29,6 +42,10 @@ export class ExtractionType<
   sheetNames: string[] = null;
   isSpatial: boolean = null;
   docUrl: string = null;
+  processingFrequencyId: number = null;
+
+  parent: ExtractionType = null;
+  parentId: number = null;
 
   recorderPerson: Person = null;
   recorderDepartment: Department = null;
@@ -45,14 +62,24 @@ export class ExtractionType<
     this.sheetNames = source.sheetNames;
     this.isSpatial = source.isSpatial;
     this.docUrl = source.docUrl;
+    this.parent = source.parent && ExtractionType.fromObject(source.parent);
+    this.parentId = toNumber(source.parentId, source.parent?.id);
+    this.processingFrequencyId = source.processingFrequencyId;
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson) || null;
     this.recorderDepartment = source.recorderDepartment && Department.fromObject(source.recorderDepartment);
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
-    const target = super.asObject({...options, ...NOT_MINIFY_OPTIONS});
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
-    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
+  asObject(opts?: EntityAsObjectOptions): any {
+    const target = super.asObject({...opts, ...NOT_MINIFY_OPTIONS});
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts) || undefined;
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts) || undefined;
+    if (opts?.minify) {
+      target.parentId = toNumber(this.parent?.id, this.parentId);
+      delete target.parent;
+    }
+    else {
+      target.parent = this.parent && this.parent.asObject(opts);
+    }
     return target;
   }
 
@@ -83,13 +110,9 @@ export class ExtractionResult {
 }
 
 
+@EntityClass({typename: 'ExtractionColumnVO'})
 export class ExtractionColumn {
-  static fromObject(source: any): ExtractionColumn {
-    if (!source || source instanceof ExtractionColumn) return source;
-    const target = new ExtractionColumn();
-    target.fromObject(source);
-    return target;
-  }
+  static fromObject: (source: any) => ExtractionColumn;
 
   id: number;
   creationDate: Moment;
@@ -123,21 +146,30 @@ export class ExtractionRow extends Array<any> {
   }
 }
 
-export class ExtractionFilter {
+@EntityClass({typename: 'ExtractionFilterVO'})
+export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any>> {
+
+  static fromObject: (source: any, opts?: any) => ExtractionFilter;
+
   searchText?: string;
-  criteria?: ExtractionFilterCriterion[];
   sheetName?: string;
+  criteria?: ExtractionFilterCriterion[];
+
+  fromObject(source: any): ExtractionFilter {
+    super.fromObject(source);
+    this.searchText = source.searchText;
+    this.criteria = source.criteria && source.criteria.map(ExtractionFilterCriterion.fromObject);
+    this.sheetName = source.sheetName;
+    return this;
+  }
 }
 
 export declare type CriterionOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'BETWEEN' | 'NULL' | 'NOT NULL';
 
+@EntityClass({typename: 'ExtractionFilterCriterionVO'})
 export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion> {
 
-  static fromObject(source: any): ExtractionFilterCriterion {
-    const res = new ExtractionFilterCriterion();
-    res.fromObject(source);
-    return res;
-  }
+  static fromObject: (source: any, opts?: any) => ExtractionFilterCriterion;
 
   static isNotEmpty(criterion: ExtractionFilterCriterion): boolean {
     return criterion && (
@@ -147,7 +179,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
       || criterion.operator === 'NOT NULL');
   }
 
-  name?: string;
+  name: string;
   operator: CriterionOperator;
   value?: string;
   values?: string[];
@@ -155,7 +187,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
   sheetName?: string;
 
   constructor() {
-    super();
+    super(ExtractionFilterCriterion.TYPENAME);
   }
 
   fromObject(source: any): ExtractionFilterCriterion {
@@ -207,7 +239,6 @@ export class ExtractionTypeUtils {
     return {
       id: type.id,
       label: type.label,
-      //category: type.category,
       format: type.format,
       version: type.version
     };

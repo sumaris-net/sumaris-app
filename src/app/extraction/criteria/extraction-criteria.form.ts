@@ -14,6 +14,7 @@ import {FormFieldDefinition, FormFieldType} from "@sumaris-net/ngx-components";
 import {AccountService}  from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {AppForm}  from "@sumaris-net/ngx-components";
+import { AppFormUtils } from '@sumaris-net/ngx-components/src/app/core/form/form.utils';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -337,7 +338,28 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
 
 
-  getValueAsCriteriaArray(): ExtractionFilterCriterion[] {
+
+  setValue(data: ExtractionFilterCriterion[], opts?: {emitEvent?: boolean; onlySelf?: boolean }): Promise<void> | void {
+
+    // Create a map (using sheetname as key)
+    const json = (data || [])
+      .reduce((res, criterion) => {
+        criterion.sheetName = criterion.sheetName || this.sheetName;
+        criterion.operator = criterion.operator || DEFAULT_CRITERION_OPERATOR
+        res[criterion.sheetName] = res[criterion.sheetName] || [];
+        res[criterion.sheetName].push(criterion);
+      return res;
+    }, {});
+
+    // Convert object to json, then apply it to form (e.g. convert 'undefined' into 'null')
+    AppFormUtils.copyEntity2Form(json, this.form, {emitEvent: false, onlySelf: true, ...opts});
+
+    if (!opts || opts.emitEvent !== true) {
+      this.markForCheck();
+    }
+  }
+
+  getValue(): ExtractionFilterCriterion[] {
     if (!this._enable) this.form.enable({emitEvent: false});
     const json = this.form.value;
     if (!this._enable) this.form.disable({emitEvent: false});

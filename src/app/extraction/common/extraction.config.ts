@@ -2,7 +2,7 @@ import {TypePolicies} from "@apollo/client/core";
 import {FormFieldDefinition, PRIORITIZED_AUTHORITIES} from '@sumaris-net/ngx-components';
 
 export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
-  'ExtractionTypeVO': {
+  /*'ExtractionTypeVO': {
     keyFields: ['label'],
     merge: (existing, incoming, options) => {
       console.warn('[extraction_config] TODO: check merging function for ExtractionTypeVO', existing, incoming, options);
@@ -11,7 +11,7 @@ export const EXTRACTION_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
         ...incoming
       };
     }
-  }
+  }*/
 };
 
 /**

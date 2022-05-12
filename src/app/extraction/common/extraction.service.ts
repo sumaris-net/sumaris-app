@@ -1,34 +1,16 @@
 import { Injectable } from '@angular/core';
-import { ApolloCache, FetchPolicy, gql } from '@apollo/client/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { FetchPolicy, gql } from '@apollo/client/core';
 
-import {
-  AccountService,
-  BaseEntityGraphqlMutations,
-  BaseEntityGraphqlQueries,
-  BaseEntityService, BaseGraphqlService,
-  EntitiesServiceWatchOptions,
-  EntitySaveOptions,
-  EntityServiceLoadOptions,
-  EntityUtils,
-  GraphqlService,
-  isNil,
-  isNotNil,
-  isNotNilOrBlank,
-  LoadResult,
-  Person,
-  PlatformService,
-  trimEmptyToNull
-} from '@sumaris-net/ngx-components';
+import { AccountService, BaseGraphqlService, EntityUtils, GraphqlService, isNil, isNotNil, isNotNilOrBlank, Person, trimEmptyToNull } from '@sumaris-net/ngx-components';
 import { ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
-import { DataCommonFragments } from '../../trip/services/trip.queries';
 import { SortDirection } from '@angular/material/sort';
 import { DataEntityAsObjectOptions } from '../../data/services/model/data-entity.model';
 import { ExtractionErrorCodes } from '@app/extraction/common/extraction.errors';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { ExtractionTypeFragments } from '@app/extraction/type/extraction-type.service';
+import { ExtractionProduct } from '@app/extraction/product/product.model';
+import { IAggregationStrata } from '@app/extraction/strata/strata.model';
+import { FeatureCollection } from 'geojson';
 
 
 export const ExtractionFragments = {
@@ -43,10 +25,13 @@ export const ExtractionFragments = {
 };
 
 
-export const ExtractionQueries = {
+const Queries = {
 
-  loadRows: gql`query ExtractionRows($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-    data: extractionRows(type: $type, filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+  loadRows: gql`query ExtractionRows($type: ExtractionTypeVOInput!, $filter: ExtractionFilterVOInput,
+    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $cacheDuration: String
+  ){
+    data: extractionRows(type: $type, filter: $filter,
+      offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, cacheDuration: $cacheDuration){
       rows
       total
       columns {
@@ -58,9 +43,40 @@ export const ExtractionQueries = {
 
   getFile: gql`query ExtractionFile($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput){
     data: extractionFile(type: $type, filter: $filter)
-  }`
-}
+  }`,
 
+  loadGeoJson: gql`query AggregationGeoJson(
+    $type: ExtractionTypeVOInput,
+    $filter: ExtractionFilterVOInput,
+    $strata: AggregationStrataVOInput,
+    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    aggregationGeoJson(
+      type: $type, filter: $filter, strata: $strata,
+      offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection
+    )
+  }`,
+
+  loadTech: gql`query AggregationTech(
+      $type: ExtractionTypeVOInput,
+      $filter: ExtractionFilterVOInput,
+      $strata: AggregationStrataVOInput,
+      $sortBy: String, $sortDirection: String
+    ) {
+      data: aggregationTech(type: $type, filter: $filter, strata: $strata, sortBy: $sortBy, sortDirection: $sortDirection) {
+        data
+      }
+    }`,
+  techMinMax: gql`query AggregationTechMinMax(
+      $type: ExtractionTypeVOInput,
+      $filter: ExtractionFilterVOInput,
+      $strata: AggregationStrataVOInput
+    ) {
+      data: aggregationTechMinMax(type: $type, filter: $filter, strata: $strata) {
+        min
+        max
+      }
+    }`
+};
 @Injectable({providedIn: 'root'})
 export class ExtractionService extends BaseGraphqlService<ExtractionType, ExtractionTypeFilter> {
 
@@ -79,7 +95,7 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
    * @param sortBy
    * @param sortDirection
    * @param filter
-   * @param options
+   * @param opts
    */
   async loadRows(
     type: ExtractionType,
@@ -88,9 +104,11 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
     sortBy?: string,
     sortDirection?: SortDirection,
     filter?: ExtractionFilter,
-    options?: {
+    opts?: {
       fetchPolicy?: FetchPolicy
     }): Promise<ExtractionResult> {
+
+    filter = ExtractionFilter.fromObject(filter);
 
     const variables: any = {
       type: ExtractionTypeUtils.minify(type),
@@ -98,16 +116,16 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
       size: size || 100,
       sortBy: sortBy || undefined,
       sortDirection: sortDirection || 'asc',
-      filter
+      filter: filter && filter.asPodObject()
     };
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading rows... using options:", variables);
     const res = await this.graphql.query<{ data: ExtractionResult }>({
-      query: ExtractionQueries.loadRows,
+      query: Queries.loadRows,
       variables,
       error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_ROWS_ERROR, message: "EXTRACTION.ERROR.LOAD_ROWS_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || 'no-cache'
+      fetchPolicy: opts && opts.fetchPolicy || 'no-cache'
     });
     if (!res || !res.data) return null;
     const data = ExtractionResult.fromObject(res.data);
@@ -132,18 +150,17 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
       fetchPolicy?: FetchPolicy
     }): Promise<string | undefined> {
 
-    const variables: any = {
-      type: {
-        category: type.category,
-        label: type.label
-      },
-      filter: filter
+    filter = this.asFilter(filter);
+
+    const variables = {
+      type: ExtractionTypeUtils.minify(type),
+      filter: filter && filter.asPodObject()
     };
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Download extraction file... using options:", variables);
     const res = await this.graphql.query<{ data: string }>({
-      query: ExtractionQueries.getFile,
+      query: Queries.getFile,
       variables: variables,
       error: {code: ExtractionErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
@@ -156,13 +173,12 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
     return fileUrl;
   }
 
-  prepareFilter(source?: ExtractionFilter | any): ExtractionFilter {
+  asFilter(source?: Partial<ExtractionFilter> | any): ExtractionFilter {
     if (isNil(source)) return undefined;
 
-    const target: ExtractionFilter = {
-      sheetName: source.sheetName
-    };
+    const target = ExtractionFilter.fromObject(source);
 
+    // Remove empty criterion
     target.criteria = (source.criteria || [])
       .filter(criterion => isNotNil(criterion.name))
       .map(criterion => {
@@ -210,8 +226,90 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
     return target;
   }
 
+  /**
+   * Load aggregation as GeoJson
+   */
+  async loadGeoJson(type: ExtractionProduct,
+                    strata: IAggregationStrata,
+                    offset: number,
+                    size: number,
+                    sortBy?: string,
+                    sortDirection?: SortDirection,
+                    filter?: ExtractionFilter,
+                    options?: {
+                      fetchPolicy?: FetchPolicy
+                    }): Promise<FeatureCollection> {
+    options = options || {};
+
+    filter = this.asFilter(filter);
+
+    const variables: any = {
+      type: ExtractionTypeUtils.minify(type),
+      strata,
+      offset: offset || 0,
+      size: size >= 0 ? size : 1000,
+      filter: filter && filter.asPodObject()
+    };
+
+    const res = await this.graphql.query<{ aggregationGeoJson: any }>({
+      query: Queries.loadGeoJson,
+      variables: variables,
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_JSON_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_JSON_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || 'network-only'
+    });
+    if (!res || !res.aggregationGeoJson) return null;
+
+    return Object.assign({}, res.aggregationGeoJson);
+  }
+
+  async loadAggByTech(type: ExtractionType,
+                      strata: IAggregationStrata,
+                      filter: ExtractionFilter,
+                      options?: { fetchPolicy?: FetchPolicy; }): Promise<Map<string, any>> {
+
+    filter = this.asFilter(filter);
+
+    const variables = {
+      type: ExtractionTypeUtils.minify(type),
+      strata,
+      filter: filter && filter.asPodObject()
+    };
+
+    const { data } = await this.graphql.query<{ data: {data: Map<string, any>} }>({
+      query: Queries.loadTech,
+      variables: variables,
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_TECH_ERROR"},
+      fetchPolicy: options && options.fetchPolicy || 'network-only'
+    });
+
+    return (data && data.data) || null;
+  }
+
+  async loadAggMinMaxByTech(type: ExtractionType,
+                            strata: IAggregationStrata,
+                            filter: ExtractionFilter,
+                            opts?: { fetchPolicy?: FetchPolicy; }): Promise<{min: number; max: number; }> {
+
+    filter = this.asFilter(filter);
+
+    const variables = {
+      type: ExtractionTypeUtils.minify(type),
+      filter: filter && filter.asPodObject(),
+      strata: strata
+    };
+
+    const res = await this.graphql.query<{ data: {min: number; max: number; } }>({
+      query: Queries.techMinMax,
+      variables: variables,
+      error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_MIN_MAX_TECH_ERROR, message: "EXTRACTION.ERROR.LOAD_MIN_MAX_ERROR"},
+      fetchPolicy: opts && opts.fetchPolicy || 'network-only'
+    });
+
+    return res && { min: 0, max: 0, ...res.data} || null;
+  }
 
   /* -- protected functions -- */
+
 
   protected fillDefaultProperties(entity: ExtractionType) {
     // If new entity

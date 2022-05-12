@@ -19,9 +19,8 @@ export class ExtractionProductValidatorService extends AppValidatorService<Extra
 
   getFormGroup(data?: ExtractionProduct): FormGroup {
     return this.formBuilder.group({
-      __typename: ['AggregationTypeVO'],
+      __typename: ExtractionProduct.TYPENAME,
       id: [data && data.id || null],
-      category: [data && data.category || null],
       format: [data && data.format || null, Validators.required],
       version: [data && data.version || null, Validators.maxLength(10)],
       label: [data && data.label || null, Validators.required],
@@ -30,6 +29,7 @@ export class ExtractionProductValidatorService extends AppValidatorService<Extra
       comments: [data && data.comments || null, Validators.maxLength(2000)],
       updateDate: [data && data.updateDate || null],
       creationDate: [data && data.creationDate || null],
+      filter: [data && data.filter || null],
       filterContent: [data && data.filterContent || null, Validators.maxLength(10000)],
       documentation: [data && data.documentation || null, Validators.maxLength(10000)],
       statusId: [toNumber(data && data.statusId, null), Validators.required],

@@ -125,6 +125,22 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     return this.getShowColumn('fishingArea');
   }
 
+  @Input() set showEndDateTime(show: boolean) {
+    this.setShowColumn('endDateTime', show);
+  }
+
+  get showEndDateTime(): boolean {
+    return this.getShowColumn('endDateTime');
+  }
+
+  @Input() set showFishingEndDateTime(show: boolean) {
+    this.setShowColumn('fishingEndDateTime', show);
+  }
+
+  get showFishingEndDateTime(): boolean {
+    return this.getShowColumn('fishingEndDateTime');
+  }
+
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
   }
@@ -153,6 +169,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
               'targetSpecies',
               'startDateTime',
               'endDateTime',
+              'fishingEndDateTime',
               'fishingArea'] :
             ['quality',
               'physicalGear',
@@ -160,6 +177,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
               'startDateTime',
               'startPosition',
               'endDateTime',
+              'fishingEndDateTime',
               'endPosition',
               'fishingArea',
               'comments'])

@@ -6,9 +6,15 @@ import { ExtractionCategoryType, ExtractionType } from '@app/extraction/type/ext
 export class ExtractionTypeFilter extends BaseReferentialFilter<ExtractionTypeFilter, ExtractionType> {
 
   static fromObject: (source: any, opts?: any) => ExtractionTypeFilter;
+  static fromType(source: ExtractionType): ExtractionTypeFilter {
+    source = ExtractionType.fromObject(source);
+    const target = ExtractionTypeFilter.fromObject(source.asObject({keepTypename: false}));
+    return target;
+  }
 
   category: ExtractionCategoryType = null;
   format: string = null;
+  version: string = null;
   isSpatial: boolean = null;
 
   fromObject(source: any, opts?: EntityAsObjectOptions) {
@@ -16,6 +22,7 @@ export class ExtractionTypeFilter extends BaseReferentialFilter<ExtractionTypeFi
     this.isSpatial = source.isSpatial;
     this.category = source.category;
     this.format = source.format;
+    this.version = source.version;
   }
 
   protected buildFilter(): FilterFn<ExtractionType>[] {
@@ -30,9 +37,19 @@ export class ExtractionTypeFilter extends BaseReferentialFilter<ExtractionTypeFi
       filterFns.push(entity => this.category === entity.category);
     }
 
+    // Filter by label
+    if (isNotNil(this.label)) {
+      filterFns.push(entity => this.label === entity.label);
+    }
+
     // Filter by format
     if (isNotNil(this.format)) {
       filterFns.push(entity => this.format === entity.format);
+    }
+
+    // Filter by version
+    if (isNotNil(this.version)) {
+      filterFns.push(entity => this.version === entity.version);
     }
 
     return filterFns;

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ApolloCache, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { ApolloCache, FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -11,9 +11,9 @@ import {
   EntityServiceLoadOptions,
   GraphqlService,
   IEntitiesService,
-  isNil,
+  isNil, isNilOrBlank,
   LoadResult,
-  PlatformService
+  PlatformService, ReferentialUtils
 } from '@sumaris-net/ngx-components';
 import { ExtractionType } from './extraction-type.model';
 import { DataCommonFragments } from '@app/trip/services/trip.queries';
@@ -88,13 +88,22 @@ export class ExtractionTypeService
 
 
   loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
-          filter?: Partial<ExtractionTypeFilter>,
+          filter?: ExtractionTypeFilter,
           opts?: EntityServiceLoadOptions & { query?: any; debug?: boolean; withTotal?: boolean }): Promise<LoadResult<ExtractionType>> {
     return super.loadAll(offset, size, sortBy, sortDirection, filter, {
       ...opts,
       withTotal: false // Always false (loadAllWithTotal query not defined yet)
     })
       .then(fixWorkaroundDataFn);
+  }
+
+  async existsByLabel(label: string, opts?: {fetchPolicy?: FetchPolicy}): Promise<boolean> {
+    if (isNilOrBlank(label)) return false;
+
+    const { data } = await this.loadAll(0,1,null, null, <ExtractionTypeFilter>{
+      label
+    }, opts);
+    return ReferentialUtils.isNotEmpty(data && data[0]);
   }
 
   /**

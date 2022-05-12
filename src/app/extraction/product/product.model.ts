@@ -1,6 +1,6 @@
 /* -- Extraction -- */
 
-import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, toDateISOString } from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, MINIFY_ENTITY_FOR_POD, toDateISOString } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { IWithRecorderDepartmentEntity, IWithRecorderPersonEntity } from '../../data/services/model/model.utils';
 import { ExtractionColumn, ExtractionFilter, ExtractionType } from '../type/extraction-type.model';
@@ -62,7 +62,6 @@ export class ExtractionProduct extends ExtractionType<ExtractionProduct>
   filter: ExtractionFilter = null;
 
   documentation: string = null;
-  processingFrequencyId: number = null;
   creationDate: Date | Moment = null;
   stratum: AggregationStrata[] = null;
 
@@ -74,12 +73,10 @@ export class ExtractionProduct extends ExtractionType<ExtractionProduct>
 
   fromObject(source: any, opts?: EntityAsObjectOptions) {
     super.fromObject(source, opts);
-
-    this.processingFrequencyId = source.processingFrequencyId;
     this.documentation = source.documentation;
     this.creationDate = fromDateISOString(source.creationDate);
     this.stratum = isNotEmptyArray(source.stratum) && source.stratum.map(AggregationStrata.fromObject) || [];
-    this.filter = source.filter && (typeof source.filter === 'string') ? JSON.parse(source.filter) as ExtractionFilter : source.filter;
+    this.filter = source.filter || (typeof source.filterContent === 'string' && ExtractionFilter.fromObject(JSON.parse(source.filterContent)));
   }
 
   asObject(options?: EntityAsObjectOptions): any {
@@ -93,7 +90,8 @@ export class ExtractionProduct extends ExtractionType<ExtractionProduct>
       delete json.__typename;
       return json;
     }) || undefined;
-    target.filterContent = this.filter && (typeof this.filter === 'object') ? JSON.stringify(this.filter) : this.filterContent;
+    target.filterContent = this.filter && JSON.stringify(this.filter.asObject(MINIFY_ENTITY_FOR_POD)) || this.filterContent;
+    delete target.filter;
     return target;
   }
 }

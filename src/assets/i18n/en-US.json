@@ -1805,8 +1805,8 @@
   "EXTRACTION": {
     "BTN_DOWNLOAD_HELP": "Download data (CSV)",
     "BTN_SAVE_HELP": "Allow to create a product",
-    "SPATIAL_AGGREGATION": "Aggregate into a spatial product",
-    "NEW_PRODUCT": "Save a simple produt",
+    "SPATIAL_AGGREGATION": "Create a spatial aggregation...",
+    "NEW_PRODUCT": "Create a new product",
     "BTN_PUBLISH": "Publish",
     "BTN_UNPUBLISH": "Make private",
     "BTN_OPEN_MAP": "View data on a map",

@@ -50,7 +50,6 @@ import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { FetchPolicy } from '@apollo/client';
 import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
-import { ExtractionMapService } from '@app/extraction/map/extraction-map.service';
 import { ProductService } from '@app/extraction/product/product.service';
 import { AggregationStrataValidatorService } from '@app/extraction/strata/strata.validator';
 import { IAggregationStrata } from '@app/extraction/strata/strata.model';
@@ -321,7 +320,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
-    protected mapService: ExtractionMapService,
     protected productService: ProductService,
     protected durationPipe: DurationPipe,
     protected strataValidatorService: AggregationStrataValidatorService,
@@ -796,7 +794,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       while (hasMore) {
 
         // Get geo json using slice
-        const geoJson = await this.mapService.loadGeoJson(this.type,
+        const geoJson = await this.service.loadGeoJson(this.type,
           strata,
           offset, size,
           null, null,
@@ -892,7 +890,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     const techColumnName = strata.techColumnName;
 
     try {
-      let map = await this.mapService.loadAggByTech(type, strata, filter, {
+      let map = await this.service.loadAggByTech(type, strata, filter, {
         fetchPolicy: isAnimated ? 'cache-first' : undefined /*default*/
       });
       if (isAnimated) {
@@ -1031,12 +1029,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       const opts = this.techChartOptions;
 
       // Create new filter, without criterion on time (.e.g on year)
-      const filterNoTimes = { ...filter,
+      const filterNoTimes = ExtractionFilter.fromObject({ ...filter,
         criteria: (filter.criteria || []).filter(criterion => criterion.name !== strata.timeColumnName)
-      };
-      const {min, max} = await this.mapService.loadAggMinMaxByTech(type, strata, filterNoTimes, {
-        fetchPolicy: 'cache-first'
       });
+      const {min, max} = await this.service.loadAggMinMaxByTech(type, strata, filterNoTimes,
+        { fetchPolicy: 'cache-first' });
       console.debug(`[extraction-map] Changing tech chart options: {min: ${min}, max: ${max}}`);
       this.animationOverrides.techChartOptions = {
         ...opts,
@@ -1214,7 +1211,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   toggleShowCountriesLayer() {
     this.showCountriesLayer = !this.showCountriesLayer;
-    this.markForCheck();
+
+    // Reload data
+    if (!this.isAnimated) this.loadGeoData();
   }
 
   setTechChartOption(value: Partial<TechChartOptions>, opts?: { emitEvent?: boolean; }) {

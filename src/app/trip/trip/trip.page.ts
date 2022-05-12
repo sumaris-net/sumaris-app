@@ -261,6 +261,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const allowParentOperation = program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
     this.operationsTable.allowParentOperation = allowParentOperation;
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
+    this.operationsTable.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
+    this.operationsTable.showFishingEndDateTime = !this.operationsTable.showEndDateTime && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {

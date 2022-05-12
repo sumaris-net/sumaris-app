@@ -24,6 +24,7 @@ import { ExtractionService } from './extraction.service';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { ExtractionUtils } from './extraction.utils';
 import { ExtractionHelpModal, ExtractionHelpModalOptions } from '../help/help.modal';
+import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -156,13 +157,13 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     if (!type) return false;
 
     // If same: skip
-    const typeChanged = !this.isEquals(type, this.type);
+    const typeChanged = !this.type || !this.isEquals(type, this.type);
     if (!typeChanged) {
       type = this.type;
     }
     else {
       // Replace by the full entity
-      type = await this.getFullType(type);
+      type = await this.findTypeByFilter(ExtractionTypeFilter.fromType(type));
       if (!type) {
         console.warn("[extraction-form] Type not found:", type);
         return false;
@@ -313,18 +314,20 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
 
   protected abstract isEquals(t1: T, t2: T): boolean;
 
-  async getFullType(type: T) {
-    return (await firstNotNilPromise(this.$types))
-      .find(t => this.isEquals(t, type));
+  async findTypeByFilter(filter: Partial<ExtractionTypeFilter>) {
+    if (!filter) throw new Error('Missing \'filter\'');
+    filter = filter instanceof ExtractionTypeFilter ? filter : ExtractionTypeFilter.fromObject(filter);
+    const types = await firstNotNilPromise(this.$types);
+    return (types || []).find(filter.asFilterFn());
   }
 
   protected getFilterValue(): ExtractionFilter {
     const res = {
       sheetName: this.sheetName,
-      criteria: this.criteriaForm.getValueAsCriteriaArray()
+      criteria: this.criteriaForm.getValue()
     };
 
-    return this.service.prepareFilter(res);
+    return this.service.asFilter(res);
   }
 
   getFilterAsQueryParams(): any {

@@ -293,6 +293,16 @@
       </td>
     </ng-container>
 
+    <!-- fishing end date time -->
+    <ng-container matColumnDef="fishingEndDateTime">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header class="mat-cell-date-time">
+        <ion-label translate>TRIP.OPERATION.LIST.FISHING_END_DATE_TIME</ion-label>
+      </th>
+      <td mat-cell class="mat-cell-date-time" *matCellDef="let row">
+        {{row.currentData.fishingEndDateTime|dateFormat:{time: true} }}
+      </td>
+    </ng-container>
+
     <!-- End position -->
     <ng-container matColumnDef="endPosition">
       <th mat-header-cell *matHeaderCellDef>
