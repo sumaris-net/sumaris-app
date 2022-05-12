@@ -1601,8 +1601,8 @@
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling) ?",
       "TRIP_METIER_FILTER": "Trip > Operation: Filter already used metiers ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip > Operation: Are other features optional, when on field?",
-      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation: Max travelled distance before warning :",
-      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation: Max travelled distance before error : ",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation: Max travelled distance before warning (miles):",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation: Max travelled distance before error (miles): ",
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Trip > Operation: Maximum duration of shooting (hours)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Trip > Operation: Maximum total duration (hours)",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
@@ -1805,16 +1805,21 @@
   "EXTRACTION": {
     "BTN_DOWNLOAD_HELP": "Download data (CSV)",
     "BTN_SAVE_HELP": "Allow to create a product",
-    "SPATIAL_AGGREGATION": "Create a spatial aggregation...",
+    "NEW_SPATIAL_AGGREGATION": "Create a spatial aggregation...",
     "NEW_PRODUCT": "Create a new product",
     "BTN_PUBLISH": "Publish",
     "BTN_UNPUBLISH": "Make private",
     "BTN_OPEN_MAP": "View data on a map",
     "TYPE": "Extraction type",
+    "TYPES_MENU": {
+      "PRODUCT_DIVIDER": "Products",
+      "LIVE_DIVIDER": "Real time formats",
+      "PROGRAM_DIVIDER": "Data collection programs"
+    },
     "AGGREGATION": {
-      "NEW_NAME": "New product / {{name}}",
       "NEW": {
-        "TITLE": "New product"
+        "TITLE": "New product",
+        "DEFAULT_NAME": "New aggregation {{format}}"
       },
       "EDIT": {
         "TITLE": "<small>Product <br/></small>{{name}}",
@@ -1997,7 +2002,10 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions"
     },
     "PRODUCT": {
-      "NEW_NAME": "Product {{name}}",
+      "NEW": {
+        "DEFAULT_NAME": "New product {{format}}",
+        "DEFAULT_DESCRIPTION": "Created by {{firstName}} {{lastName}}"
+      },
       "P01_RDB": {
         "TITLE": "ICES Data call (RDB v1.3)"
       }
@@ -2009,7 +2017,7 @@
       "COST": {
         "TITLE": "Raw trips (COST v1.4)"
       },
-      "FREE1": {
+      "FREE": {
         "TITLE": "Raw trips (FREE v{{version}})"
       },
       "FREE2": {
@@ -2027,11 +2035,12 @@
       "SURVIVAL_TEST": {
         "TITLE": "Raw trips (SUMARiS v1.0)"
       },
-      "RJB": {
+      "RJB_TRIP": {
         "TITLE": "Raw RJB trips (RJB v{{version}})"
       },
       "PMFM_TRIP": {
-        "TITLE": "Raw trips (dynamic format)"
+        "TITLE": "Raw trips (dynamic format)",
+        "TITLE_PROGRAM": "Raw trips {{label}}"
       },
       "STRAT": {
         "TITLE": "Data collection strategies",
