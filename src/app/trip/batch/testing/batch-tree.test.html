@@ -11,7 +11,7 @@
 
 <ion-content>
 
-  <form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+  <form class="form-container ion-padding" [formGroup]="filterForm" (ngSubmit)="doSubmit($event)">
    <ion-grid class="ion-no-padding">
 
      <!-- Filter -->
@@ -64,7 +64,7 @@
          </mat-boolean-field>
        </ion-col>
 
-       <!-- buttons -->
+       <!-- Action  buttons -->
        <ion-col size="4" size-md="2">
          <!-- show tree -->
          <ion-button (click)="dumpExample()" *ngIf="!outputs.example"

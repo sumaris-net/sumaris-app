@@ -19,6 +19,7 @@ import { AcquisitionLevelCodes, MatrixIds, MethodIds, ParameterLabelGroups, Pmfm
 import { Batch, BatchWeight } from '@app/trip/batch/common/batch.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { roundHalfUp } from '@app/shared/functions';
+import { SamplingRatioType } from '@app/trip/batch/common/batch.form';
 
 export class BatchUtils {
 
@@ -90,6 +91,70 @@ export class BatchUtils {
       || Object.getOwnPropertyNames(sampleBatch.measurementValues || {})
         .filter(key => isNotNil(sampleBatch.measurementValues[key]))
         .length > 0;
+  }
+
+  static isSamplingRatioComputed(batch: Batch | {samplingRatioText: string; }, type?: SamplingRatioType): boolean {
+    if (!batch || !batch.samplingRatioText) return false;
+    type = type || this.getSamplingRatioType(batch);
+    switch (type) {
+      case '%':
+        return !batch.samplingRatioText.endsWith('%') || batch.samplingRatioText.includes('/');
+      case '1/w':
+        return !batch.samplingRatioText.startsWith('1/');
+    }
+  }
+
+  static getSamplingRatioType(batch: Batch | {samplingRatioText: string; }, defaultType?: SamplingRatioType): SamplingRatioType {
+    if (batch.samplingRatioText?.endsWith('%')) return '%';
+    if (batch.samplingRatioText?.startsWith('1/')) return '1/w';
+    return defaultType; // Default
+  }
+
+  static normalizedSamplingRatioToModel(batch: Batch | {samplingRatio: number; samplingRatioText: string; samplingRatioComputed?: boolean; }, type: SamplingRatioType) {
+    const computed = isNotNil(batch.samplingRatioComputed) ? batch.samplingRatioComputed : this.isSamplingRatioComputed(batch, type);
+    if (isNil(batch.samplingRatio) || batch.samplingRatio <= 0) {
+      if (!computed) batch.samplingRatioText = null;
+      batch.samplingRatio = null;
+      return;
+    }
+    switch (type) {
+      case '%':
+        if (!computed) batch.samplingRatioText = `${batch.samplingRatio}%`;
+        batch.samplingRatio = +batch.samplingRatio / 100;
+        break;
+      case '1/w':
+        if (!computed) batch.samplingRatioText = `1/${batch.samplingRatio}`;
+        batch.samplingRatio = 1 / (+batch.samplingRatio);
+        break;
+    }
+  }
+
+  static normalizedSamplingRatioToForm(batch: Batch | {samplingRatio: number; samplingRatioText: string; samplingRatioComputed?: boolean; }, type: SamplingRatioType) {
+    const actualType = this.getSamplingRatioType(batch, type);
+    batch.samplingRatioComputed = isNotNil(batch.samplingRatioComputed) ? batch.samplingRatioComputed : this.isSamplingRatioComputed(batch, actualType);
+    switch (type) {
+      case '%':
+        batch.samplingRatio = Math.min(100, roundHalfUp(batch.samplingRatio * 100, 2));
+        break;
+      case '1/w':
+        if (batch.samplingRatioText && batch.samplingRatioText.startsWith('1/')) {
+          batch.samplingRatio = +(batch.samplingRatioText.substr(2));
+        }
+        else {
+          batch.samplingRatio = roundHalfUp(1 / batch.samplingRatio, 2);
+        }
+        break;
+    }
+    if (type !== actualType && !batch.samplingRatioComputed) {
+      switch (type) {
+        case '%':
+          batch.samplingRatioText = `${batch.samplingRatio}%`;
+          break;
+        case '1/w':
+          batch.samplingRatioText = `1/${batch.samplingRatio}`;
+          break;
+      }
+    }
   }
 
   public static canMergeSubBatch(b1: Batch, b2: Batch, pmfms: IPmfm[]): boolean {
@@ -433,7 +498,7 @@ export class BatchUtils {
     weightPmfmsByMethodId = weightPmfmsByMethodId || splitByProperty(weightPmfms, 'methodId');
 
     return (weight?.estimated && weightPmfmsByMethodId[MethodIds.ESTIMATED_BY_OBSERVER])
-    || (weight.computed && (weightPmfmsByMethodId[weight.methodId] || weightPmfmsByMethodId[MethodIds.CALCULATED]))
+    || (weight?.computed && (weightPmfmsByMethodId[weight.methodId] || weightPmfmsByMethodId[MethodIds.CALCULATED]))
       // Or default weight
     || weightPmfms[0];
   }

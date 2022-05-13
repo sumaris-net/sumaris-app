@@ -15,6 +15,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
 import { ContextService } from '@app/shared/context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { SamplingRatioType } from '@app/trip/batch/common/batch.form';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
@@ -71,6 +72,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() enableWeightConversion: boolean;
   @Input() maxVisibleButtons: number;
+  @Input() samplingRatioType: SamplingRatioType;
 
   @Input() openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
   @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;

@@ -8,6 +8,7 @@ import {SharedModule} from "@sumaris-net/ngx-components";
 import {TranslateModule} from "@ngx-translate/core";
 import {TestingPage} from "@sumaris-net/ngx-components";
 import { BatchGroupFormTestPage } from '@app/trip/batch/group/testing/batch-group.form.test';
+import { BatchSamplingRatioTestPage } from '@app/trip/batch/testing/batch-sampling-ratio.test';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SampleTreeTestPage } from '@app/trip/sample/testing/sample-tree.test';
 
@@ -15,6 +16,7 @@ export const TRIP_TESTING_PAGES: TestingPage[] = [
   {label: 'Trip module', divider: true},
   {label: 'Batch tree', page: '/testing/trip/batchTree'},
   {label: 'Batch group form', page: '/testing/trip/batchGroupForm'},
+  {label: 'Batch sampling ratio', page: '/testing/trip/batchSamplingRatioTest'},
   {label: 'Sample tree', page: '/testing/trip/sampleTree'}
 ];
 
@@ -28,6 +30,11 @@ const routes: Routes = [
     path: 'batchGroupForm',
     pathMatch: 'full',
     component: BatchGroupFormTestPage
+  },
+  {
+    path: 'batchSamplingRatioTest',
+    pathMatch: 'full',
+    component: BatchSamplingRatioTestPage
   },
   {
     path: 'sampleTree',

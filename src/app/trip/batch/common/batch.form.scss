@@ -26,3 +26,10 @@ ion-card.qv.odd{
   background-color: var(--ion-color-light, whitesmoke) !important;
 
 }
+
+.mat-form-field .prefix-label {
+  opacity: 0;
+}
+.mat-form-field.mat-form-field-should-float .prefix-label {
+  opacity: 1;
+}

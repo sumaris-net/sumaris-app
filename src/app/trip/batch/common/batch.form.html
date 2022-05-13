@@ -14,7 +14,7 @@
         <mat-autocomplete-field formControlName="taxonGroup"
                                 [autofocus]="enabled && !mobile && showTaxonGroup"
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
-                                [tabindex]="tabindex"
+                                [tabindex]="showTaxonGroup ? tabindex : -1"
                                 [required]="showTaxonGroup"
                                 [config]="autocompleteFields.taxonGroup"
                                 [showSearchBar]="!autocompleteFields.taxonGroup.items">
@@ -51,11 +51,10 @@
     <!-- Total weight -->
     <ion-row *ngIf="defaultWeightPmfm && showWeight">
       <ion-col class="ion-no-padding">
-        <app-pmfm-field #matInput
-                        [class.computed]="weightForm.controls.computed.value"
-                        [readonly]="weightForm.controls.computed.value"
+        <app-pmfm-field [class.computed]="(form|formGetControl: 'weight.computed').value"
+                        [readonly]="(form|formGetControl: 'weight.computed').value"
                         [pmfm]="defaultWeightPmfm"
-                        [formControl]="weightForm.controls.value"
+                        [formControl]="form|formGetControl: 'weight.value'"
                         [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                         [compact]="compact"
                         [tabindex]="tabindex+28"
@@ -76,9 +75,9 @@
 
           <!-- checkbox, when compact -->
           <mat-checkbox matPrefix
-                        [formControl]="weightForm.controls.estimated"
+                        [formControl]="form|formGetControl:'weight.estimated'"
                         labelPosition="after"
-                        [tabindex]="tabindex+29">
+                        [tabIndex]="tabindex+29">
             <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
           </mat-checkbox>
         </mat-form-field>
@@ -112,84 +111,125 @@
 
     <!-- Sampling batch -->
     <div formArrayName="children" [class.cdk-visually-hidden]="!showSamplingBatch">
-      <ion-row class="ion-no-padding"  [class.cdk-visually-hidden]="requiredSampleWeight">
+      <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="requiredSampleWeight">
         <ion-col class="ion-no-padding">
           <!-- checkbox, when compact -->
           <mat-checkbox [checked]="isSampling"
                         [disabled]="disabled"
                         labelPosition="after"
-                        [tabindex]="tabindex+31"
+                        [tabIndex]="showSamplingBatch && !requiredSampleWeight ? tabindex+31 : -1"
                         (change)="setIsSampling($event.checked)">
             <ion-text>{{'TRIP.BATCH.EDIT.IS_SAMPLING'|translate}}</ion-text>
           </mat-checkbox>
         </ion-col>
       </ion-row>
 
-      <ion-row class="ion-no-padding"
-               *ngFor="let samplingBatchForm of childrenArray.controls">
+      <ng-container *ngFor="let samplingBatchForm of children.controls">
+        <ion-row class="ion-no-padding" *ngVar="{
+                            samplingRatio: samplingBatchForm|formGetControl:'samplingRatio',
+                            samplingRatioComputed: samplingBatchForm|formGetControl:'samplingRatioComputed',
+                            weightValue: samplingBatchForm|formGetControl: 'weight.value',
+                            weightComputed: samplingBatchForm|formGetControl: 'weight.computed'
+                         } as controls">
 
-        <!-- Sampling ratio -->
-        <ion-col size="4" class="ion-no-padding"
-                 *ngVar="samplingBatchForm|formGetControl:'samplingRatio' as control"
-                 >
-          <mat-form-field
-              *ngVar="samplingBatchForm|formGetControl:'samplingRatioText' as textControl"
-              [class.computed]="textControl|formGetValue|strIncludes:'/'">
-            <input matInput
-                   autocomplete="off"
-                   [formControl]="control"
-                   [readonly]="textControl|formGetValue|strIncludes:'/'"
-                   type="number"
-                   step="1"
-                   pattern="[0-9]{1,3}"
-                   (click)="selectInputContent($event)"
-                   [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_RATIO'|translate"
-                   [tabindex]="tabindex + 32">
-            <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-            <mat-error *ngIf="control.hasError('min')">
-              {{'ERROR.FIELD_MIN' | translate: control.errors['min'] }}</mat-error>
-            <mat-error *ngIf="control.hasError('max')">
-              {{'ERROR.FIELD_MAX' | translate: control.errors['max'] }}</mat-error>
-            <mat-error *ngIf="control.hasError('pattern')">
-              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
-            <mat-error *ngIf="control.hasError('integer')">
-              {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
-          </mat-form-field>
-        </ion-col>
+          <!-- Sampling ratio -->
+          <ion-col size="4" class="ion-no-padding" [ngSwitch]="samplingRatioType">
 
-        <!-- Sampling weight -->
-        <ion-col class="ion-no-padding"
-                 *ngIf="defaultWeightPmfm && showSampleWeight && (samplingBatchForm|formGetControl: 'weight.value'); let control">
+            <!-- Percent -->
+            <ng-container *ngSwitchCase="'%'">
+              <mat-form-field [class.computed]="controls.samplingRatioComputed.value">
+                <input matInput
+                       autocomplete="off"
+                       [formControl]="controls.samplingRatio"
+                       [readonly]="controls.samplingRatioComputed.value"
+                       type="number"
+                       step="1"
+                       pattern="[0-9]{1,3}([.][0-9]{0,2})?"
+                       min="0" max="100"
+                       (click)="selectInputContent($event)"
+                       [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_RATIO_PCT'|translate"
+                       [tabindex]="tabindex + 32">
 
-          <app-pmfm-field #matInput
-                          *ngVar="samplingBatchForm|formGetControl:'weight.computed' as computedControl"
-                          [class.computed]="computedControl.value"
-                          [readonly]="computedControl.value"
-                          [pmfm]="defaultWeightPmfm"
-                          [formControl]="control"
-                          [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
-                          [compact]="compact"
-                          [required]="requiredSampleWeight"
-                          [tabindex]="tabindex+33"
-                          [listenStatusChanges]="true">
-          </app-pmfm-field>
-        </ion-col>
+                <mat-error *ngIf="controls.samplingRatio.touched && controls.samplingRatio.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+                  <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+                  <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: controls.samplingRatio.errors.min }}</span>
+                  <span *ngSwitchCase="'max'">
+                    {{'ERROR.FIELD_MAX' | translate: controls.samplingRatio.errors.max }}</span>
+                  <span *ngSwitchCase="'pattern'">
+                    {{ 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT'| translate:{maxDecimals: 2} }}</span>
+                </mat-error>
+              </mat-form-field>
+            </ng-container>
 
-        <!-- Sampling individual count -->
-        <ion-col size="4" class="ion-no-padding" *ngIf="showSampleIndividualCount">
-          <mat-form-field>
-            <input matInput
-                   autocomplete="off"
-                   [formControl]="samplingBatchForm|formGetControl: 'individualCount'"
-                   type="number"
-                   step="1"
-                   pattern="[0-9]*"
-                   (click)="selectInputContent($event)"
-                   [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_INDIVIDUAL_COUNT'|translate"
-                   [tabindex]="tabindex + 34">
-          </mat-form-field>
-        </ion-col>
-      </ion-row>
+            <!-- Sampling coefficient (1/w) -->
+            <ng-container *ngSwitchCase="'1/w'">
+              <mat-form-field [class.computed]="controls.samplingRatioComputed.value">
+                <ion-text class="prefix-label">1/</ion-text>
+                <input matInput style="width: 80%"
+                       autocomplete="off"
+                       [formControl]="controls.samplingRatio"
+                       [readonly]="controls.samplingRatioComputed.value"
+                       type="text"
+                       pattern="[0-9]{1,3}([.][0-9]{0,2})?"
+                       (click)="selectInputContent($event)"
+                       [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_COEFFICIENT'|translate"
+                       [tabindex]="tabindex + 32">
+                <mat-error *ngIf="controls.samplingRatio.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+                  <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+                  <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: controls.samplingRatio.errors.min }}</span>
+                  <span *ngSwitchCase="'pattern'">
+                    {{ 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT'| translate:{maxDecimals: 2} }}</span>
+                  <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
+                </mat-error>
+              </mat-form-field>
+            </ng-container>
+
+          </ion-col>
+
+          <!-- Sampling weight -->
+          <ion-col class="ion-no-padding" *ngIf="defaultWeightPmfm && showSampleWeight">
+
+            <app-pmfm-field [pmfm]="defaultWeightPmfm"
+                            [formControl]="controls.weightValue"
+                            [readonly]="controls.weightComputed.value"
+                            [class.computed]="controls.weightComputed.value"
+                            [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
+                            [compact]="compact"
+                            [tabindex]="tabindex+33"
+                            [listenStatusChanges]="true">
+            </app-pmfm-field>
+          </ion-col>
+
+          <!-- Sampling individual count -->
+          <ion-col size="4" class="ion-no-padding" *ngIf="showSampleIndividualCount">
+            <mat-form-field>
+              <input matInput
+                     autocomplete="off"
+                     [formControl]="samplingBatchForm|formGetControl: 'individualCount'"
+                     type="number"
+                     step="1"
+                     pattern="[0-9]*"
+                     (click)="selectInputContent($event)"
+                     [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_INDIVIDUAL_COUNT'|translate"
+                     [tabindex]="tabindex + 34">
+            </mat-form-field>
+          </ion-col>
+
+
+          <!-- DEBUG -->
+          <ion-col size="12" *ngIf="debug">
+            <ion-text color="primary">
+              Sampling ratio: {{controls.samplingRatio.value}}
+              {{controls.samplingRatioComputed.value ? '(computed)' : ''}} - type: {{samplingRatioType||'null'}})<br/>
+              Sampling ratio text: {{(samplingBatchForm|formGetControl:'samplingRatioText').value }}<br/>
+              Sampling weight: {{controls.weightValue.value }} {{controls.weightComputed.value?'(computed)':'' }})<br/>
+              <br/>
+              defaultWeightPmfm: {{defaultWeightPmfm?.label}} (maxDecimals: {{defaultWeightPmfm?.maximumNumberDecimals}})<br/>
+            </ion-text>
+          </ion-col>
+
+        </ion-row>
+      </ng-container>
     </div>
 
     <ng-content></ng-content>

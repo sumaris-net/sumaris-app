@@ -10,7 +10,7 @@ import {
   EntitiesStorage,
   EntityUtils,
   firstNotNilPromise,
-  isEmptyArray,
+  isEmptyArray, isNil,
   MatAutocompleteConfigHolder,
   SharedValidators,
   StatusIds,
@@ -23,7 +23,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
+import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
 
 
 @Component({
@@ -37,7 +37,7 @@ export class BatchTreeTestPage implements OnInit {
 
   $programLabel = new BehaviorSubject<string>(undefined);
   $gearId = new BehaviorSubject<number>(undefined);
-  form: FormGroup;
+  filterForm: FormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
 
   outputs: {
@@ -60,7 +60,7 @@ export class BatchTreeTestPage implements OnInit {
     private configService: ConfigService
   ) {
 
-    this.form = formBuilder.group({
+    this.filterForm = formBuilder.group({
       program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       fishingArea: [null, Validators.compose([Validators.required, SharedValidators.entity])],
@@ -79,7 +79,7 @@ export class BatchTreeTestPage implements OnInit {
       }),
       attributes: ['label', 'name']
     });
-    this.form.get('program').valueChanges
+    this.filterForm.get('program').valueChanges
       //.pipe(debounceTime(450))
       .subscribe(p => {
         const label = p && p.label;
@@ -96,9 +96,10 @@ export class BatchTreeTestPage implements OnInit {
           return this.programRefService.loadGears(programLabel);
         })
       ),
-      attributes: ['label', 'name']
+      attributes: ['label', 'name'],
+      showAllOnFocus: true
     });
-    this.form.get('gear').valueChanges
+    this.filterForm.get('gear').valueChanges
       .subscribe(g => this.$gearId.next(toNumber(g && g.id, null)));
 
     // Fishing areas
@@ -111,7 +112,7 @@ export class BatchTreeTestPage implements OnInit {
       },
       attributes: ['label', 'name']
     });
-    this.form.get('fishingArea').valueChanges
+    this.filterForm.get('fishingArea').valueChanges
       .subscribe(location => {
         if (location) {
           this.context.setValue('fishingAreas', [FishingArea.fromObject({
@@ -126,14 +127,15 @@ export class BatchTreeTestPage implements OnInit {
 
     // Input example
     this.autocomplete.add('example', {
-      items: EXAMPLES.map((label, index) => ({id: index+1, label})),
-      attributes: ['label']
+      items: BATCH_TREE_EXAMPLES.map((label, index) => ({id: index+1, label})),
+      attributes: ['label'],
+      showAllOnFocus: true
     });
-    this.form.get('example').valueChanges
+    this.filterForm.get('example').valueChanges
       //.pipe(debounceTime(450))
       .subscribe(example => {
         if (example && typeof example.label == 'string') {
-          const json = getExampleTree[example.label];
+          const json = getExampleTree(example.label);
           if (this.outputs.example) {
             this.dumpCatchBatch(Batch.fromObject(json), 'example');
           }
@@ -141,7 +143,7 @@ export class BatchTreeTestPage implements OnInit {
       });
 
 
-    this.form.patchValue({
+    this.filterForm.patchValue({
       //program: {id: 1, label: 'SUMARiS' },
       program: {id: 10, label: 'ADAP-MER' },
       gear: {id: 6, label: 'OTB'},
@@ -168,7 +170,7 @@ export class BatchTreeTestPage implements OnInit {
     this.batchTree.value = data.clone();
     this.batchTree.enable();
 
-    if (this.form.get('autofill').value === true) {
+    if (this.filterForm.get('autofill').value === true) {
       await this.batchTree.autoFill();
     }
   }
@@ -189,7 +191,7 @@ export class BatchTreeTestPage implements OnInit {
   async getExampleTree(key?: string): Promise<Batch> {
 
     if (!key) {
-      const example = this.form.get('example').value;
+      const example = this.filterForm.get('example').value;
       key = example && example.label || 'default';
     }
 
@@ -219,6 +221,9 @@ export class BatchTreeTestPage implements OnInit {
 
   // Load data into components
   async applyExample(key?: string) {
+    if (isNil(key)) {
+      key = this.filterForm.get('example').value?.label;
+    }
 
     // Wait enumerations override
     await this.referentialRefService.ready();

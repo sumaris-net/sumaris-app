@@ -11,7 +11,7 @@
 
 <ion-content class="ion-padding">
 
-  <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+  <form class="form-container" [formGroup]="filterForm" (ngSubmit)="doSubmit($event)">
    <ion-grid class="ion-no-padding">
 
      <!-- Filter -->
@@ -43,45 +43,106 @@
                                  placeholder="Data example"
                                  [tabindex]="3"
                                  [required]="true"
+                                 [showSearchBar]="false"
                                  [config]="autocomplete.fields.example">
          </mat-autocomplete-field>
        </ion-col>
-     </ion-row>
-     <ion-row>
-       <!-- Is sampling -->
-       <ion-col>
-         <mat-checkbox (change)="hasSamplingBatch=!hasSamplingBatch"
-                       [checked]="hasSamplingBatch">
-           <mat-label>Is Sampling ?</mat-label>
-         </mat-checkbox>
-       </ion-col>
-     </ion-row>
 
-     <!-- examples data -->
-     <ion-row><ion-col><ion-text><h4>Input data</h4></ion-text></ion-col></ion-row>
-     <ion-row>
-
-       <!-- buttons -->
-       <ion-col size="auto">
-         <!-- dump -->
-         <ion-button (click)="dumpExample()"
+       <!-- Action buttons -->
+       <ion-col size="4" size-md="2">
+         <!-- show tree -->
+         <ion-button (click)="dumpExample()" *ngIf="!outputs.example"
                      fill="outline">
-           <ion-label>Dump</ion-label>
+           <ion-icon name="eye" slot="icon-only"></ion-icon>
          </ion-button>
-         <!-- apply to form -->
+         <!-- hide tree -->
+         <ion-button (click)="outputs.example = undefined" *ngIf="outputs.example"
+                     fill="outline">
+           <ion-icon name="eye-off" slot="icon-only"></ion-icon>
+         </ion-button>
+         <!-- copy to -->
          <ion-button (click)="applyExample()"
                      fill="outline">
-           <ion-label>Apply</ion-label>
+           <ion-icon name="arrow-down" slot="icon-only"></ion-icon>
          </ion-button>
        </ion-col>
-       <ion-col size="10" *ngIf="outputs.example; let content">
-         <ion-text color="medium">
-           <h4>Output: </h4>
-           <p [innerHTML]="content">
-           </p>
-         </ion-text>
-       </ion-col>
      </ion-row>
+
+     <!-- Form options -->
+     <ion-row >
+       <!-- Show sampling batch -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showSamplingBatch=!showSamplingBatch"
+                       [checked]="showSamplingBatch">
+           <mat-label>Show sampling batch ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- allowSubBatches -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="allowSubBatches=!allowSubBatches"
+                       [checked]="allowSubBatches">
+           <mat-label>Allow "Individual measure" ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- Has individual measure -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="hasSubBatches=!hasSubBatches"
+                       [disabled]="!allowSubBatches"
+                       [checked]="hasSubBatches">
+           <mat-label>Force "with individual measure" ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- Default has individual measure ? -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="defaultHasSubBatches=!defaultHasSubBatches"
+                       [disabled]="!allowSubBatches"
+                       [checked]="defaultHasSubBatches">
+           <mat-label>Default "Has individual measure" ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showHasSubBatchesButton -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showHasSubBatchesButton=!showHasSubBatchesButton"
+                       [disabled]="!allowSubBatches"
+                       [checked]="showHasSubBatchesButton">
+           <mat-label>Show "Individual measure" button ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- Sampling ratio type -->
+       <ion-col class="ion-padding">
+         <ion-grid>
+           <ion-row>
+             <ion-col class="ion-float-end" size="auto">
+               <label>Sampling type:&nbsp;</label>
+             </ion-col>
+             <ion-col>
+               <mat-select (valueChange)="samplingRatioType=$event"
+                           [value]="samplingRatioType">
+                 <mat-option *ngFor="let item of samplingRatioTypes" [value]="item.key">{{item.value|translate}}</mat-option>
+               </mat-select>
+             </ion-col>
+           </ion-row>
+         </ion-grid>
+       </ion-col>
+
+     </ion-row>
+
+   </ion-grid>
+
+   <div class="ion-padding" *ngIf="outputs.example">
+     <ion-text color="medium">
+       <h4>Output: </h4>
+       <p [innerHTML]="outputs.example">
+       </p>
+     </ion-text>
+   </div>
+
+   <ion-grid>
 
 
       <!-- mobile -->
@@ -89,11 +150,15 @@
       <ion-row>
         <ion-col size="12">
 
-          <app-batch-group-form #mobileForm
+          <app-batch-group-form #form
                                 [programLabel]="$programLabel | async"
                                 [showTaxonName]="false"
-                                [showChildrenSamplingBatch]="hasSamplingBatch"
-                                [allowSubBatches]="hasSamplingBatch"
+                                [showChildrenSamplingBatch]="allowSubBatches && showSamplingBatch"
+                                [allowSubBatches]="allowSubBatches"
+                                [defaultHasSubBatches]="defaultHasSubBatches"
+                                [hasSubBatches]="hasSubBatches"
+                                [showHasSubBatchesButton]="showHasSubBatchesButton"
+                                [samplingRatioType]="samplingRatioType"
                                 [gearId]="$gearId|async"
                                 [usageMode]="'FIELD'"
                                 [debug]="true">
@@ -103,14 +168,14 @@
         <!-- buttons -->
         <ion-col size="2">
           <!-- log tree -->
-          <ion-button (click)="dumpBatchGroupForm(mobileForm, 'mobile')"
+          <ion-button (click)="dumpBatchGroupForm(form, 'mobile')"
                       matTooltip="Output data to log"
                       fill="outline">
             <ion-label>Dump</ion-label>
           </ion-button>
 
           <!-- Reload from himself -->
-          <ion-button (click)="copyBatchGroup(mobileForm, mobileForm)"
+          <ion-button (click)="copyBatchGroup(form, form)"
                       matTooltip="Reload from himself data"
                       fill="outline">
             <ion-label>Reload</ion-label>

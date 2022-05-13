@@ -615,6 +615,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Set weight
     if (isNotNilOrNaN(batch.weight?.value)) {
+      batch.weight.estimated = isEstimatedWeight;
       const weightPmfm = BatchUtils.getWeightPmfm(batch.weight, this.weightPmfms, this.weightPmfmsByMethod);
       batch.measurementValues[weightPmfm.id.toString()] = batch.weight.value;
     }
@@ -631,6 +632,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
       // Set weight
       if (isNotNilOrNaN(samplingBatch.weight?.value)) {
+        samplingBatch.weight.estimated = isEstimatedWeight;
         const samplingWeightPmfm = BatchUtils.getWeightPmfm(samplingBatch.weight, this.weightPmfms, this.weightPmfmsByMethod);
         samplingBatch.measurementValues[samplingWeightPmfm.id.toString()] = samplingBatch.weight.value;
       }
@@ -985,6 +987,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showSamplingBatch: this.showSamplingBatchColumns,
         allowSubBatches: this.allowSubBatches,
         defaultHasSubBatches: this.defaultHasSubBatches,
+        samplingRatioType: this.samplingRatioType,
         openSubBatchesModal: (batchGroup) => this.openSubBatchesModalFromParentModal(batchGroup),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         // Override using given options
@@ -1097,17 +1100,18 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (this.debug) console.debug('[batch-group-table] Updating batch group, from batches...', parent, children);
 
     const updateSortingBatch = (batch: Batch, children: SubBatch[]) => {
-      const samplingBatch = BatchUtils.getSamplingChild(batch);
+      const samplingBatch = BatchUtils.getOrCreateSamplingChild(batch);
       // Update individual count
       samplingBatch.individualCount = BatchUtils.sumObservedIndividualCount(children);
       parent.observedIndividualCount = samplingBatch.individualCount || 0;
 
       // Update weight, if Length-Weight conversion enabled
       if (this.enableWeightLengthConversion) {
-        if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
-          console.debug('[batch-group-table] Computing SUM of subbatches RTP weights...');
-          samplingBatch.weight = BatchUtils.sumCalculatedWeight(children, this.weightPmfms, this.weightPmfmsByMethod);
-        }
+        console.debug('[batch-group-table] Computing SUM of individual weight (RTP)...');
+        samplingBatch.sumIndividualWeight = BatchUtils.sumCalculatedWeight(children, this.weightPmfms, this.weightPmfmsByMethod);
+      }
+      else {
+        samplingBatch.sumIndividualWeight = null;
       }
 
       return {
@@ -1219,17 +1223,24 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     console.debug('[batch-group-table] Init row validator');
 
     // Add computation and validation
-    {
-      this._rowValidatorSubscription?.unsubscribe();
-      const subscription = this.batchGroupValidator.enableSamplingRatioAndWeight(form, {
-        qvPmfm: this.qvPmfm,
-        markForCheck: () => this.markForCheck()
+    this._rowValidatorSubscription?.unsubscribe();
+    const requiredSampleWeight = (form && form.value?.observedIndividualCount || 0) > 0;
+    const subscription = this.batchGroupValidator.enableSamplingRatioAndWeight(form, {
+      qvPmfm: this.qvPmfm,
+      samplingRatioType: this.samplingRatioType,
+      requiredSampleWeight,
+      weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
+      markForCheck: () => this.markForCheck()
+    });
+    if (subscription) {
+      // Register subscription
+      this.registerSubscription(subscription);
+      this._rowValidatorSubscription = subscription;
+      // When unsubscribe, unregister
+      subscription.add(() => {
+        this.unregisterSubscription(subscription);
+        this._rowValidatorSubscription = undefined;
       });
-      if (subscription) {
-        this._rowValidatorSubscription = subscription;
-        this.registerSubscription(this._rowValidatorSubscription);
-        subscription.add(() => this.unregisterSubscription(subscription));
-      }
     }
   }
 }

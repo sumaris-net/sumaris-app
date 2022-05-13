@@ -407,6 +407,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
     this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+    this.batchGroupsTable.samplingRatioType = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_TYPE);
     this.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
 
     // Some specific taxon groups have no weight collected
@@ -417,7 +418,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     // Update context
     this.enableWeightLengthConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
-    const roundWeightConversionCountryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
 
     // Force taxon name in sub batches, if not filled in root batch
     if (this.subBatchesTable) {

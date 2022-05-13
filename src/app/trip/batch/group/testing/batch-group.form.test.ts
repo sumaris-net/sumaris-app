@@ -1,131 +1,51 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { Batch} from '../../common/batch.model';
+import { Batch } from '../../common/batch.model';
 import { ReferentialRefService } from '../../../../referential/services/referential-ref.service';
-import { mergeMap } from 'rxjs/operators';
-import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, PmfmIds } from '../../../../referential/services/model/model.enum';
+import { filter, mergeMap } from 'rxjs/operators';
+import { EntitiesStorage, EntityUtils, firstNotNilPromise, isNotNilOrBlank, MatAutocompleteConfigHolder, Property, SharedValidators, toNumber, waitFor } from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes } from '../../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../../referential/services/program-ref.service';
 import { BatchGroupForm } from '@app/trip/batch/group/batch-group.form';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
+import { SamplingRatioType, SamplingRatioTypes } from '@app/trip/batch/common/batch.form';
+import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
-function getSortingMeasValues(opts?: {
-  weight?: number;
-  discardOrLanding: 'LAN' | 'DIS';
-}) {
-  opts = {
-    discardOrLanding: 'LAN',
-    ...opts,
-  };
-  const res = {};
-
-  res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
-  if (isNotNil(opts.weight)) {
-    res[PmfmIds.BATCH_MEASURED_WEIGHT] = opts.weight;
-  }
-  return res;
-}
-
-function getIndivMeasValues(opts?: {
-  length?: number;
-  discardOrLanding: 'LAN' | 'DIS';
-}) {
-  opts = {
-    discardOrLanding: 'LAN',
-    ...opts,
-  };
-  const res = {};
-
-  res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
-  if (isNotNil(opts.length)) {
-    res[PmfmIds.LENGTH_TOTAL_CM] = opts.length;
-  }
-  return res;
-}
-
-const DATA_EXAMPLE: { [key: string]: any } = {
-  'default': {
-    label: 'CATCH_BATCH',
-    rankOrder: 1,
-    children: [{
-      label: 'SORTING_BATCH#1',
-      rankOrder: 1,
-      taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
-      children: [{
-        label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
-        measurementValues: getSortingMeasValues({ discardOrLanding: 'LAN', weight: 100 }),
-        children: [
-          {
-            label: 'SORTING_BATCH#1.LAN.%',
-            rankOrder: 1,
-            samplingRatio: 0.5,
-            samplingRatioText: '50%',
-            children: [
-              {
-                label: 'SORTING_BATCH_INDIVIDUAL#1',
-                rankOrder: 1,
-                taxonName: { id: 1033, label: 'MON', name: 'Lophius piscatorius' },
-                measurementValues: getIndivMeasValues({ discardOrLanding: 'LAN', length: 11 }),
-                individualCount: 1,
-              },
-              {
-                label: 'SORTING_BATCH_INDIVIDUAL#3',
-                rankOrder: 3,
-                taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
-                measurementValues: getIndivMeasValues({ discardOrLanding: 'LAN', length: 33 }),
-                individualCount: 1,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        label: 'SORTING_BATCH#1.DIS', rankOrder: 2,
-        measurementValues: getSortingMeasValues({ discardOrLanding: 'DIS', weight: 0 }),
-        children: [
-          {
-            label: 'SORTING_BATCH#1.DIS.%',
-            rankOrder: 1,
-            samplingRatio: 0.5,
-            samplingRatioText: '50%',
-            children: [
-              {
-                label: 'SORTING_BATCH_INDIVIDUAL#2',
-                rankOrder: 2,
-                taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
-                measurementValues: getIndivMeasValues({ discardOrLanding: 'DIS', length: 22 }),
-                individualCount: 1,
-              },
-            ],
-          },
-        ],
-      },
-    ],
-    }]
-  },
-  'empty': { id: 100, label: 'SORTING_BATCH#2', rankOrder: 2 },
-};
 
 @Component({
   selector: 'app-batch-group-form-test',
   templateUrl: './batch-group.form.test.html',
+  providers: [
+    {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService}
+  ]
 })
 export class BatchGroupFormTestPage implements OnInit {
 
 
   $programLabel = new BehaviorSubject<string>(undefined);
   $gearId = new BehaviorSubject<number>(undefined);
-  form: FormGroup;
+  filterForm: FormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
-  hasSamplingBatch = true;
+  showSamplingBatch = true;
+  allowSubBatches = true;
+  defaultHasSubBatches = false;
+  hasSubBatches = false;
+  showHasSubBatchesButton = true;
+  samplingRatioType: SamplingRatioType;
+
+  samplingRatioTypes = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_TYPE.values as Property[];
+  $program = new BehaviorSubject<Program>(null);
 
   outputs: {
     [key: string]: string;
   } = {};
 
-  @ViewChild('mobileForm', { static: true }) mobileForm: BatchGroupForm;
+  @ViewChild(BatchGroupForm, { static: true }) form: BatchGroupForm;
 
   constructor(
     formBuilder: FormBuilder,
@@ -134,7 +54,7 @@ export class BatchGroupFormTestPage implements OnInit {
     private entities: EntitiesStorage,
   ) {
 
-    this.form = formBuilder.group({
+    this.filterForm = formBuilder.group({
       program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       gear: [null, Validators.compose([Validators.required, SharedValidators.entity])],
       example: [null, Validators.required],
@@ -151,7 +71,7 @@ export class BatchGroupFormTestPage implements OnInit {
       }),
       attributes: ['label', 'name'],
     });
-    this.form.get('program').valueChanges
+    this.filterForm.get('program').valueChanges
       //.pipe(debounceTime(450))
       .subscribe(p => {
         const label = p && p.label;
@@ -159,6 +79,14 @@ export class BatchGroupFormTestPage implements OnInit {
           this.$programLabel.next(label);
         }
       });
+
+    this.$programLabel
+      .pipe(
+        filter(isNotNilOrBlank),
+        mergeMap(programLabel => this.referentialRefService.ready()
+          .then(() => this.programRefService.loadByLabel(programLabel)))
+      )
+      .subscribe(program => this.setProgram(program));
 
     // Gears (from program)
     this.autocomplete.add('gear', {
@@ -169,29 +97,32 @@ export class BatchGroupFormTestPage implements OnInit {
         }),
       ),
       attributes: ['label', 'name'],
+      showAllOnFocus: true
     });
-    this.form.get('gear').valueChanges
+    this.filterForm.get('gear').valueChanges
       //.pipe(debounceTime(450))
       .subscribe(g => this.$gearId.next(toNumber(g && g.id, null)));
 
 
     // Input example
     this.autocomplete.add('example', {
-      items: Object.keys(DATA_EXAMPLE).map((label, index) => ({ id: index + 1, label })),
+      items: BATCH_TREE_EXAMPLES.map((label, index) => ({id: index+1, label})),
       attributes: ['label'],
+      showAllOnFocus: true
     });
-    this.form.get('example').valueChanges
+    this.filterForm.get('example').valueChanges
       //.pipe(debounceTime(450))
+      .pipe()
       .subscribe(example => {
-        if (example && typeof example.label == 'string') {
-          const json = DATA_EXAMPLE[example.label];
+        if (example && typeof example.label == 'string' && this.outputs.example) {
+          const json = this.getExampleBatchGroup(example.label);
           this.dumpBatchGroup(BatchGroup.fromObject(json), 'example');
         }
       });
 
-
-    this.form.patchValue({
-      program: { id: 10, label: 'ADAP-MER' },
+    this.filterForm.patchValue({
+      //program: { id: 10, label: 'ADAP-MER' },
+      program: { id: 70, label: 'APASE' },
       gear: { id: 6, label: 'OTB' },
       example: { id: 1, label: 'default' },
     });
@@ -199,16 +130,41 @@ export class BatchGroupFormTestPage implements OnInit {
     this.applyExample();
   }
 
-
-  // Load data into components
-  async updateView(data: BatchGroup) {
+  setProgram(program: Program) {
 
     // DEBUG
-    //console.debug('[batch-group-form] Applying data:', data);
+    console.debug('[batch-group-form-test] Applying program:', program);
 
-    this.mobileForm.value = data.clone();
-    this.mobileForm.enable();
+    const hasBatchMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
+    this.allowSubBatches = hasBatchMeasure;
+    this.showSamplingBatch = hasBatchMeasure;
+    this.samplingRatioType = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_TYPE);
 
+    this.$program.next(program);
+  }
+
+  // Load data into components
+  async updateView(data?: BatchGroup) {
+
+    await waitFor(() => !!this.form);
+
+    await firstNotNilPromise(this.$program);
+
+    // DEBUG
+    //console.debug('[batch-group-form-test] Applying data:', data);
+    this.markAsReady();
+    this.form.value = data && data.clone() || new BatchGroup();
+    this.form.enable();
+
+  }
+
+
+  markAsReady() {
+    this.form.markAsReady();
+  }
+
+  markAsLoaded() {
+    this.form.markAsLoaded();
   }
 
   doSubmit(event?: UIEvent) {
@@ -219,12 +175,12 @@ export class BatchGroupFormTestPage implements OnInit {
   async getExampleBatchGroup(key?: string, index?: number): Promise<BatchGroup> {
 
     if (!key) {
-      const example = this.form.get('example').value;
+      const example = this.filterForm.get('example').value;
       key = example && example.label || 'default';
     }
 
     // Load example
-    const json = DATA_EXAMPLE[key];
+    const json = getExampleTree(key);
 
     // Convert to array (as Pod should sent) with:
     // - a local ID
@@ -237,23 +193,27 @@ export class BatchGroupFormTestPage implements OnInit {
     });
 
     // Convert into Batch tree
-    const batchGroup = Batch.fromObjectArrayAsTree(batches);
-    BatchUtils.computeIndividualCount(batchGroup);
+    const catchBatch = Batch.fromObjectArrayAsTree(batches);
+    BatchUtils.computeIndividualCount(catchBatch);
 
-    const batchGroups = BatchGroupUtils.fromBatchTree(batchGroup);
+    const batchGroups = BatchGroupUtils.fromBatchTree(catchBatch);
 
     return batchGroups[index || 0];
   }
 
   // Load data into components
   async applyExample(key?: string) {
+
+    // Wait enumerations override
+    await this.referentialRefService.ready();
+
     const batchGroup = await this.getExampleBatchGroup(key);
     await this.updateView(batchGroup);
   }
 
   async dumpExample(key?: string) {
-    const catchBatch = await this.getExampleBatchGroup(key);
-    this.dumpBatchGroup(catchBatch, 'example');
+    const batchGroup = await this.getExampleBatchGroup(key);
+    this.dumpBatchGroup(batchGroup, 'example');
   }
 
   async dumpBatchGroupForm(form: BatchGroupForm, outputName?: string) {

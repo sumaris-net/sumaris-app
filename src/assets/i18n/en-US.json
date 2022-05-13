@@ -792,7 +792,8 @@
         "WITHOUT_MEASURE": "No measurement",
         "IS_SAMPLING": "If measurement, enter the sampling weight:",
         "SAMPLING_WEIGHT": "Sampling weight (kg)",
-        "SAMPLING_RATIO": "Sampling fraction (%)",
+        "SAMPLING_RATIO_PCT": "Sampling fraction (%)",
+        "SAMPLING_COEFFICIENT": "Sampling ratio (1/w)",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Batch {{label}}<br/></small>",
