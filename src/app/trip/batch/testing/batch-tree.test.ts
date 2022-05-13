@@ -24,6 +24,7 @@ import { ContextService } from '@app/shared/context.service';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
+import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 
 
 @Component({
@@ -55,9 +56,8 @@ export class BatchTreeTestPage implements OnInit {
     formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
-    protected context: TripContextService,
     private entities: EntitiesStorage,
-    private configService: ConfigService
+    private context: ContextService<BatchContext>
   ) {
 
     this.filterForm = formBuilder.group({

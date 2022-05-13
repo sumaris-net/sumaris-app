@@ -1,11 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
-import { AlertController, ModalController, Platform } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
 import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
-import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
   AppFormUtils,
@@ -17,7 +13,7 @@ import {
   LocalSettingsService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  toBoolean,
+  toBoolean
 } from '@sumaris-net/ngx-components';
 import { OperationsMap, OperationsMapModalOptions } from './map/operations.map';
 import { environment } from '@environments/environment';
@@ -29,7 +25,6 @@ import { MatExpansionPanel } from '@angular/material/expansion';
 import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
-
 
 @Component({
   selector: 'app-operations-table',

@@ -115,7 +115,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   @Input() useSticky = false;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() weightDisplayDecimals = 2;
-  @Input() roundWeightConversionCountryId: number;
 
   @Input() set qvPmfm(value: IPmfm) {
     this._qvPmfm = value;
@@ -876,7 +875,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       const subscription = await this.validatorService.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
-        countryId: this.roundWeightConversionCountryId,
         onError: (err) => this.setError(err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),
         markForCheck: () => this.markForCheck()
       });

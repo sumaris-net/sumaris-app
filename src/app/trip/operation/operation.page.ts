@@ -1215,7 +1215,8 @@ export class OperationPage
       this.tripContext.setValue('fishingAreas', fishingAreas);
       this.tripContext.resetValue('vesselPositions');
     }
-    // Or vessel position
+
+    // Or vessel positions
     else if (this.opeForm.showPosition) {
       const position = this.opeForm.lastActivePositionControl?.value;
       this.tripContext.setValue('vesselPositions', [position]);

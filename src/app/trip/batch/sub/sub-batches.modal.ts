@@ -28,7 +28,6 @@ export interface ISubBatchesModalOptions {
 
   weightDisplayUnit?: WeightUnitSymbol|'auto';
   weightDisplayDecimals?: number;
-  roundWeightConversionCountryId?: number;
 
   maxVisibleButtons: number;
 
