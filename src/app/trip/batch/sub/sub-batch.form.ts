@@ -78,6 +78,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @Input() floatLabel: FloatLabelType;
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
+  @Input() i18nSuffix: string;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
@@ -189,6 +190,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
     // Set default values
     this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
+    this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
 
     // Control for indiv. count enable
     this.enableIndividualCountControl = this.formBuilder.control(false, Validators.required);

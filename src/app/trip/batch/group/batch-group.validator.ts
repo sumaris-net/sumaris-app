@@ -31,7 +31,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
   }
 
   getFormGroup(data?: BatchGroup, opts?: BatchGroupValidatorOptions): FormGroup {
-    return super.getFormGroup(data, {withWeight: true, withChildren: true, qvPmfm: this.qvPmfm, ...opts});
+    return super.getFormGroup(data, {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this.qvPmfm, ...opts});
   }
 
   getFormGroupConfig(data?: BatchGroup, opts?: BatchGroupValidatorOptions): { [key: string]: any } {
@@ -67,7 +67,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
 
   protected fillDefaultOptions(opts?: BatchGroupValidatorOptions): BatchGroupValidatorOptions {
     opts = super.fillDefaultOptions(opts);
-    return {withWeight: true, withChildren: true, qvPmfm: this.qvPmfm, ...opts};
+    return {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this.qvPmfm, ...opts};
   }
 }
 

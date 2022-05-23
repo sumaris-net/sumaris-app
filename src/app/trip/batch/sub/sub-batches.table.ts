@@ -238,6 +238,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     this.cd = injector.get(ChangeDetectorRef);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<SubBatch, SubBatchFilter>);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
+    this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
     this.tabindex = 1;
     this.inlineEdition = !this.mobile;
     this.defaultSortBy = 'rankOrder';

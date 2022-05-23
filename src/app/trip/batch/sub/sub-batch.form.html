@@ -153,6 +153,7 @@
                     #inputField
                     [control]="form|formGetControl: ['measurementValues', pmfm.id]"
                     [pmfm]="pmfm"
+                    [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix}"
                     [floatLabel]="floatLabel"
                     (keyup.enter)="focusNextInputOrSubmit($event, last)"
                     [tabindex]="tabindex + 20 + i*2"
@@ -196,12 +197,13 @@
 
   </mat-form-field>
 
-  <!-- Computed weight (DEBUG) -->
-  <mat-form-field *ngIf="debug && weightPmfm"
+  <!-- Computed weight -->
+  <mat-form-field *ngIf="weightPmfm"
                   floatLabel="always"
                   class="mat-form-field-disabled computed">
     <input matInput type="number"
-           [placeholder]="weightPmfm|pmfmName"
+           readonly
+           [placeholder]="weightPmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix}"
            [formControl]="form|formGetControl: 'weight.value'">
   </mat-form-field>
 

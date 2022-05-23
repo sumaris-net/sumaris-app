@@ -116,7 +116,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
   comments: string = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = {};
   weight: BatchWeight = null;
-  sumIndividualWeight: BatchWeight = null;
+  childrenWeight: BatchWeight = null;
 
   operationId: number = null;
   parentId: number = null;
@@ -147,7 +147,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
       // Remove computed properties
       delete target.samplingRatioComputed;
       delete target.weight;
-      delete target.sumIndividualWeight;
+      delete target.childrenWeight;
       if (target.measurementValues) delete target.measurementValues.__typename
     }
 
@@ -171,7 +171,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
     this.parent = source.parent;
 
     this.weight = source.weight || undefined;
-    this.sumIndividualWeight = source.sumIndividualWeight || undefined;
+    this.childrenWeight = source.childrenWeight || undefined;
 
     if (source.measurementValues) {
       this.measurementValues = {...source.measurementValues};

@@ -24,6 +24,7 @@ export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEn
   taxonGroupsNoWeight?: string[]; // TODO: voir pour utiliser des IReferentialRef
 
   // UI Options
+  i18nSuffix: string;
   maxVisibleButtons: number;
   samplingRatioType: SamplingRatioType;
 }
@@ -55,6 +56,7 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() usageMode: UsageMode;
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
   @Input() samplingRatioType: SamplingRatioType;
+  @Input() i18nSuffix: string;
 
   @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
 

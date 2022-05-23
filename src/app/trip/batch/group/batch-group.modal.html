@@ -38,6 +38,7 @@
                         [showHasSubBatchesButton]="showHasSubBatchesButton"
                         [maxVisibleButtons]="maxVisibleButtons"
                         [samplingRatioType]="samplingRatioType"
+                        [i18nSuffix]="i18nSuffix"
                         (onSubmit)="close($event)"
                         [pmfms]="pmfms"
                         [qvPmfm]="qvPmfm"
@@ -73,8 +74,8 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || invalid"
+        <ion-button [fill]="loading ? 'clear' : 'solid'"
+                    [disabled]="loading"
                     (keyup.enter)="close($event)"
                     (click)="close($event)" color="tertiary">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>

@@ -73,6 +73,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() enableWeightConversion: boolean;
   @Input() maxVisibleButtons: number;
   @Input() samplingRatioType: SamplingRatioType;
+  @Input() i18nSuffix: string;
 
   @Input() openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
   @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;

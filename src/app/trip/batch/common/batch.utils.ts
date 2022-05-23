@@ -338,7 +338,7 @@ export class BatchUtils {
       matrixId: MatrixIds.INDIVIDUAL,
       type: 'double',
       unitLabel: UnitLabel.KG,
-      maximumNumberDecimals: 3, // Precision = gram
+      maximumNumberDecimals: 3, // Default precision = grams
       ...spec
     }))
     .map(json => DenormalizedPmfmStrategy.fromObject(json) as IPmfm);
@@ -455,7 +455,7 @@ export class BatchUtils {
           value: roundHalfUp(value, weightPmfm?.maximumNumberDecimals || 3),
           unit: 'kg',
           methodId,
-          computed: true,
+          computed: false,
           estimated: false
         };
         samplingBatch.measurementValues[weightPmfm.id] = samplingBatch.weight.value;

@@ -25,8 +25,8 @@ import { roundHalfUp } from '@app/shared/functions';
 
 export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
+  withChildrenWeight?: boolean;
   weightRequired?: boolean;
-  //withSamplingRatio?: boolean;
   rankOrderRequired?: boolean;
   labelRequired?: boolean;
   withChildren?: boolean;
@@ -87,27 +87,28 @@ export class BatchValidatorService<
 
     if (opts && opts.withChildren) {
       // there is a second level of children only if there is qvPmfm and sampling batch columns
-      const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm && this.showSamplingBatchColumns});
+      const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm && this.showSamplingBatchColumns, withChildrenWeight: true});
       formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
     }
 
     // Add weight sub form
-    if (opts && opts.withWeight) {
+    if (opts?.withWeight) {
       const weightPmfms = opts.pmfms?.filter(PmfmUtils.isWeight);
       form.addControl('weight', this.getWeightFormGroup(data && data.weight, {
           required: opts?.weightRequired,
           pmfm: BatchUtils.getWeightPmfm(data?.weight, weightPmfms)
         })
       );
-    }
 
-    // Add weight sub form
-    /*if (opts && opts.withSamplingRatio) {
-      form.addControl('samplingRatio', this.getSamplingRatioFormGroup(data && data.samplingRatio, {
-          //required: opts?.weightRequired
-        })
-      );
-    }*/
+      // Add weight sub form
+      if (opts?.withChildrenWeight) {
+        form.addControl('childrenWeight', this.getWeightFormGroup(data && data.childrenWeight, {
+          required: false,
+          pmfm: BatchUtils.getWeightPmfm(data?.childrenWeight, weightPmfms),
+          noValidator: true
+        }));
+      }
+    }
 
     // Add measurement values
     if (opts && opts.withMeasurements && opts.pmfms) {
@@ -121,26 +122,16 @@ export class BatchValidatorService<
     return form;
   }
 
-
-
   protected getWeightFormGroup(data?: BatchWeight, opts?: {
     required?: boolean;
     maxDecimals?: number;
     pmfm?: IPmfm;
+    noValidator?: boolean;
   }): FormGroup {
     return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
   }
 
-  protected getSamplingRatioFormGroup(data?: BatchSamplingRatio, opts?: {
-    required?: boolean;
-    maxDecimals?: number;
-  }): FormGroup {
-    // DEBUG
-    console.debug('[batch-validator] Creating sampling ratio form group...', opts);
-    return this.formBuilder.group(BatchSamplingRatioValidator.getFormGroupConfig(data, opts));
-  }
-
-  protected getChildrenFormHelper(form: FormGroup, opts?: { withChildren: boolean }): FormArrayHelper<T> {
+  protected getChildrenFormHelper(form: FormGroup, opts?: { withChildren: boolean; withChildrenWeight: boolean }): FormArrayHelper<T> {
     let arrayControl = form.get('children') as FormArray;
     if (!arrayControl) {
       arrayControl = this.formBuilder.array([]);
@@ -196,12 +187,14 @@ export class BatchWeightValidator {
     required?: boolean;
     maxDecimals?: number;
     pmfm?: IPmfm;
+    noValidator?: boolean;
   }): {[key: string]: any} {
     const maxDecimals = toNumber(opts?.pmfm && opts.pmfm?.maximumNumberDecimals, opts?.maxDecimals || 3);
     const required = toBoolean(opts?.required, toBoolean(opts?.pmfm && opts.pmfm?.required, false));
-    const validator = required
+
+    const validator = opts?.noValidator === true ? null : (required
       ? Validators.compose([Validators.required, SharedValidators.decimal({maxDecimals})])
-      : SharedValidators.decimal({maxDecimals});
+      : SharedValidators.decimal({maxDecimals}));
     return {
       methodId: [toNumber(data?.methodId, null), SharedValidators.integer],
       estimated: [toBoolean(data?.estimated, null)],
@@ -211,28 +204,6 @@ export class BatchWeightValidator {
   }
 }
 
-
-export class BatchSamplingRatioValidator {
-
-  /**
-   *
-   * @param data
-   * @param opts Use 'required' or 'maxDecimals'
-   */
-  static getFormGroupConfig(data?: BatchSamplingRatio, opts?: {
-    required?: boolean;
-    maxDecimals?: number;
-  }): {[key: string]: any} {
-    const maxDecimals = toNumber(opts?.maxDecimals, 2);
-    return {
-      value: [toNumber(data?.value, null), opts?.required
-          ? Validators.compose([Validators.required, SharedValidators.decimal({maxDecimals})])
-          : SharedValidators.decimal({maxDecimals})],
-      computed: [toBoolean(data?.computed, null)],
-      text: [data?.text || null]
-    };
-  }
-}
 
 export class BatchValidators {
 

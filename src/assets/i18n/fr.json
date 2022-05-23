@@ -784,6 +784,7 @@
         "PARENT_GROUP": "Lot espèce",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures",
+        "BTN_APPLY_CHILDREN_WEIGHT": "Appliquer ce poids",
         "ESTIMATED_WEIGHT": "Poids estimé ?",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
         "TOTAL_WEIGHT": "Poids total (kg)",
@@ -792,6 +793,7 @@
         "WITHOUT_MEASURE": "Sans mesure",
         "IS_SAMPLING": "Saisir le poids échantillonné (si mesure) :",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
+        "SAMPLING_CHILDREN_WEIGHT": "Poids calculé par RTP",
         "SAMPLING_RATIO_PCT": "Taux échant. (%)",
         "SAMPLING_COEFFICIENT": "Coef. échant. (1/m)",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
@@ -826,6 +828,10 @@
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
+      },
+      "PMFM": {
+        "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids RTP (kg)",
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids individus mesurés (kg)"
       }
     },
     "SUB_BATCH": {
