@@ -13,25 +13,36 @@ import {
   TaxonomicLevelIds,
   UnitLabelGroups
 } from '../model/model.enum';
+import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
+
+// Keep existing cache object, when incoming is minified (without entityName)
+const mergeNotMinified: FieldMergeFunction = (existing, incoming) =>
+  (incoming?.__ref?.includes('"entityName":null') ? existing : incoming);
 
 export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'MetierVO': {
-    keyFields: ['entityName', 'id']
+    keyFields: ['entityName', 'id'],
+    merge: mergeNotMinified
   },
   'PmfmVO': {
-    keyFields: ['entityName', 'id']
+    keyFields: ['entityName', 'id'],
+    merge: mergeNotMinified
   },
   'TaxonGroupVO': {
-    keyFields: ['entityName', 'id']
+    keyFields: ['entityName', 'id'],
+    merge: mergeNotMinified
   },
   'TaxonNameVO': {
-    keyFields: ['entityName', 'id']
+    keyFields: ['entityName', 'id'],
+    merge: mergeNotMinified
   },
   'LocationVO': {
-    keyFields: ['entityName', 'id']
+    keyFields: ['entityName', 'id'],
+    merge: mergeNotMinified
   },
   'ReferentialVO': {
-    keyFields: ['entityName', 'id']
+    keyFields: ['entityName', 'id'],
+    merge: mergeNotMinified
   },
   'TaxonGroupStrategyVO': {
     keyFields: ['__typename', 'strategyId', 'taxonGroup', ['entityName', 'id']]
