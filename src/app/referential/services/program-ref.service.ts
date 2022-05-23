@@ -460,13 +460,13 @@ export class ProgramRefService
       .pipe(
         map(program => {
           // Find strategy
-          const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
+          const strategy = (program?.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
 
           const pmfmIds = []; // used to avoid duplicated pmfms
           const data = (strategy && strategy.denormalizedPmfms || [])
             // Filter on acquisition level and gear
             .filter(p =>
-              pmfmIds.indexOf(p.id) === -1
+              (!pmfmIds.includes(p.id) || isNotEmptyArray(p.taxonGroupIds) || isNotEmptyArray(p.referenceTaxonIds))
               && (
                 !opts || (
                   (!opts.acquisitionLevel || p.acquisitionLevel === opts.acquisitionLevel)
