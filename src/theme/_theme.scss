@@ -1,5 +1,5 @@
 // --------------------------------------------------
-// Import SUMARiS style
+// Import SUMARiS themes variables
 // --------------------------------------------------
 @import "theme.globals";
 
@@ -7,6 +7,10 @@
 // Import ngx-components theme
 // --------------------------------------------------
 @import "~@sumaris-net/ngx-components/src/theme/theme";
+
+// --------------------------------------------------
+// SUMARiS theme
+// --------------------------------------------------
 
 .mat-tab-fixed-content {
   .mat-tab-body-content {
