@@ -830,8 +830,8 @@
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
       },
       "PMFM": {
-        "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids RTP (kg)",
-        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids individus mesurés (kg)"
+        "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)"
       }
     },
     "SUB_BATCH": {
