@@ -1,11 +1,10 @@
 /* -- Extraction -- */
 
-import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, MINIFY_ENTITY_FOR_POD, toDateISOString } from '@sumaris-net/ngx-components';
-import { Moment } from 'moment';
-import { IWithRecorderDepartmentEntity, IWithRecorderPersonEntity } from '../../data/services/model/model.utils';
-import { ExtractionColumn, ExtractionFilter, ExtractionType } from '../type/extraction-type.model';
-import { AggregationStrata } from '@app/extraction/strata/strata.model';
-import { splitById } from '@sumaris-net/ngx-components/src/app/shared/functions';
+import {EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, MINIFY_ENTITY_FOR_POD, toDateISOString} from '@sumaris-net/ngx-components';
+import {Moment} from 'moment';
+import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from '../../data/services/model/model.utils';
+import {ExtractionColumn, ExtractionFilter, ExtractionType} from '../type/extraction-type.model';
+import {AggregationStrata} from '@app/extraction/strata/strata.model';
 
 export type StrataAreaType = 'area' | 'statistical_rectangle' | 'sub_polygon' | 'square';
 export type StrataTimeType = 'year' | 'quarter' | 'month';
