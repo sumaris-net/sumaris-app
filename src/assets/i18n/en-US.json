@@ -793,7 +793,7 @@
         "IS_SAMPLING": "If measurement, enter the sampling weight:",
         "SAMPLING_WEIGHT": "Sampling weight (kg)",
         "SAMPLING_RATIO_PCT": "Sampling fraction (%)",
-        "SAMPLING_COEFFICIENT": "Sampling ratio (1/w)",
+        "SAMPLING_COEFFICIENT": "Sampling coeff. (1/w)",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Batch {{label}}<br/></small>",
@@ -826,6 +826,10 @@
         "COMMENTS": "Comments",
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Estim. wht?"
+      },
+      "PMFM": {
+        "BATCH_CALCULATED_WEIGHT_LENGTH": "Computed weight LWR (kg)",
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)"
       }
     },
     "SUB_BATCH": {
@@ -836,9 +840,9 @@
         "TITLE": "Individual {{label}}"
       },
       "ERROR": {
-        "WEIGHT_LENGTH_CONVERSION_FAILED": "Length-Weight conversions disabled",
-        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "Length-Weight conversions disabled (unknown rectangle)",
-        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "Length-Weight conversions disabled (missing length parameter)"
+        "WEIGHT_LENGTH_CONVERSION_FAILED": "Length-Weight relationship disabled",
+        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "Length-Weight relationship disabled (unknown rectangle)",
+        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "Length-Weight relationship disabled (missing length parameter)"
       }
     },
     "SAMPLE": {
@@ -1383,7 +1387,7 @@
       "TAXONOMIC_LEVEL": "Taxonomic level",
       "START_DATE": "Start date",
       "END_DATE": "End date",
-      "TAB_WEIGHT_LENGTH_CONVERSION": "Length-Weight relations (WLR)",
+      "TAB_WEIGHT_LENGTH_CONVERSION": "Length-Weight relationships (LWR)",
       "NEW": {
         "TITLE": "New scientific specie"
       },

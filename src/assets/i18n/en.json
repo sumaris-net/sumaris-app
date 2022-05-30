@@ -826,6 +826,10 @@
         "COMMENTS": "Comments",
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Estim. wht?"
+      },
+      "PMFM": {
+        "BATCH_CALCULATED_WEIGHT_LENGTH": "Computed weight LWR (kg)",
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)"
       }
     },
     "SUB_BATCH": {
@@ -1383,7 +1387,7 @@
       "TAXONOMIC_LEVEL": "Taxonomic level",
       "START_DATE": "Start date",
       "END_DATE": "End date",
-      "TAB_WEIGHT_LENGTH_CONVERSION": "Length-Weight relations (WLR)",
+      "TAB_WEIGHT_LENGTH_CONVERSION": "Length-Weight relations (LWR)",
       "NEW": {
         "TITLE": "New scientific specie"
       },
