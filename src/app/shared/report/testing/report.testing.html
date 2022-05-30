@@ -1,0 +1,161 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Slides Reveal.js</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="slides.print()" >
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <app-slides [options]="slidesOptions" #slides>
+    <section>
+      <section markdown ngPreserveWhitespaces>
+        # Title 1
+        ## Title 2
+        ### Title 3
+
+        Paragraph **bold** with a [link](https://www.sumaris.net)
+
+        > A quoted text
+
+      </section>
+
+      <section markdown ngPreserveWhitespaces>
+        # A table
+
+        | Item         | Price     | # In stock |
+        |--------------|-----------|------------|
+        | Juicy Apples | 1.99      | *7*        |
+        | Bananas      | **1.89**  | 5234       |
+      </section>
+    </section>
+
+    <section data-markdown>
+				<textarea data-template>
+					# Démo [Reveal.js](https://revealjs.com/)
+
+					La démo utilise d'autres plugins utiles :<br/>
+					`Markdown`, `HighLight`, `Chart`
+				</textarea>
+    </section>
+    <!-- Markdown -->
+    <section>
+      <section data-markdown data-separator-notes="^FAKE:">
+					<textarea data-template>
+						# Markdown
+
+						Ecrivez vos diapos directement au format [Markdown](https://www.markdownguide.org/basic-syntax).
+
+						Exemple :
+
+						```html
+						&lt;section data-markdown&gt;
+							&lt;textarea data-template&gt;
+								## Diapo 1
+								Un paragraphe avec un [lien](https://www.sumaris.net).
+
+								---
+								## Diapo 2
+								![image](assets/img/logo/logo-sumaris.png)
+							&lt;/textarea&gt;
+						&lt;/section&gt;
+						```
+					</textarea>
+      </section>
+
+      <section data-markdown>
+					<textarea data-template>
+            ## Diapo 1
+            Un paragraphe avec un [lien](https://www.sumaris.net).
+
+            ---
+            ## Diapo 2
+            ![image](assets/img/logo/logo-sumaris.png)
+          </textarea>
+      </section>
+      <section data-markdown>
+					<textarea data-template>
+						# Documentation
+
+						- [Guide de la syntaxe Markdown](https://www.markdownguide.org/basic-syntax)
+						- [Configuration du plugin Reveal.js Markdown](https://revealjs.com/markdown/)
+					</textarea>
+      </section>
+    </section>
+
+    <section>
+      <section data-markdown>
+					<textarea data-template>
+						# Highlights
+						La coloration syntaxique peut être utilisé, par exemple pour afficher du code.
+
+						Exemple :
+
+						```
+							&lt;section data-markdown&gt;
+							```js
+							if (array.length) {
+								console.debug("Hello World");
+							}
+							```
+							&lt;/section&gt;
+						```
+
+						Résultat :
+
+						```js
+							if (array.length) {
+								console.debug("Hello World");
+							}
+						```
+
+						---
+						# Language
+
+						La syntaxe est mise en surbrillance,<br/>
+						en fonction du language indiqué (`js`, `html`, etc.)
+
+						Si aucun language n'est précisé, il sera détecter automatiquement.
+
+					</textarea>
+      </section>
+    </section>
+
+    <!-- Chart -->
+    <section>
+      <section>
+        <div markdown ngPreserveWhitespaces>
+          # Chart
+
+          Insérez des graphiques [Chart.js](https://www.chartjs.org/) dans vos diapos.
+        </div>
+
+        <div style="height:480px">
+          <canvas baseChart
+                  [datasets]="chart.datasets"
+                  [labels]="chart.labels"
+                  [chartType]="'bar'">
+          </canvas>
+        </div>
+      </section>
+
+      <section markdown ngPreserveWhitespaces>
+        # Documentation
+
+        - [Documentation de Chart.js](https://www.chartjs.org/)
+        - [Documentation du plugin Reveal.js Chart](https://github.com/rajgoel/reveal.js-plugins/tree/master/chart) ([démo](https://rajgoel.github.io/reveal.js-demos/chart-demo.html#/))
+      </section>
+    </section>
+  </app-slides>
+
+</ion-content>

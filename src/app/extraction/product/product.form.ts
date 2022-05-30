@@ -11,7 +11,7 @@ import { ExtractionProductValidatorService } from '@app/extraction/product/produ
 import { ProductService } from '@app/extraction/product/product.service';
 import { ExtractionProduct, ProcessingFrequencyIds, ProcessingFrequencyItems } from '@app/extraction/product/product.model';
 import { AggregationStrata } from '@app/extraction/strata/strata.model';
-import { splitById } from '@sumaris-net/ngx-components/src/app/shared/functions';
+import { splitById } from '@sumaris-net/ngx-components';
 
 declare interface ColumnMap {
   [sheetName: string]: ExtractionColumn[];

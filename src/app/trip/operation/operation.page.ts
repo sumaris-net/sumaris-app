@@ -47,8 +47,8 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
-import { WaitForOptions } from '@sumaris-net/ngx-components/src/app/shared/observables';
-import { AppFormUtils } from '@sumaris-net/ngx-components/src/app/core/form/form.utils';
+import { WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppFormUtils } from '@sumaris-net/ngx-components';
 
 const moment = momentImported;
 

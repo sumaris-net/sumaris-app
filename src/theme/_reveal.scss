@@ -1,0 +1,83 @@
+// --------------------------------------------------
+// Import globals
+// --------------------------------------------------
+@import "theme.globals";
+
+// --------------------------------------------------
+// Import Reveal.js
+// --------------------------------------------------
+@import "~reveal.js/dist/reveal.css";
+@import "~reveal.js/dist/theme/simple.css";
+
+@import "~reveal.js/plugin/highlight/zenburn.css";
+@import "~reveal.js-plugins/chalkboard/style.css";
+@import "~reveal.js-plugins/customcontrols/style.css";
+@import "~reveal.js-plugins/menu/menu.css";
+
+// --------------------------------------------------
+// Reveal globals variables
+// --------------------------------------------------
+
+:root {
+  --hightlight-color: yellow;
+  --r-background-color: #fff;
+  --r-main-font: 'Roboto', Helvetica, Arial, sans-serif;
+  --r-main-font-size: 30px;
+  --r-main-color: $dark;
+  --r-block-margin: 10px;
+  --r-heading-margin: 0 0 10px 0;
+  --r-heading-font: 'Roboto', Helvetica, Arial, sans-serif;
+  --r-heading-color: var(--ion-color-secondary);
+  --r-heading-line-height: 1.2;
+  --r-heading-letter-spacing: normal;
+  --r-heading-text-transform: none;
+  --r-heading-text-shadow: none;
+  --r-heading-font-weight: normal;
+  --r-heading1-text-shadow: none;
+  --r-heading1-size: 3.77em;
+  --r-heading2-size: 2.11em;
+  --r-heading3-size: 1.55em;
+  --r-heading4-size: 1em;
+  --r-code-font: monospace;
+  --r-link-color: var(--ion-color-secondary);
+  --r-link-color-dark: var(--ion-color-primary900);
+  --r-link-color-hover: var(--ion-color-primary900);
+  --r-selection-background-color: rgba(0, 0, 0, 0.99);
+  --r-selection-color: #fff;
+}
+
+// --------------------------------------------------
+// Override for app
+// --------------------------------------------------
+
+.slides img{
+  border: 0 !important;
+  background:none !important;
+  box-shadow: none !important;
+}
+
+.hidden {
+  visibility: hidden;
+  display: none;
+}
+
+
+.reveal b, .reveal strong {
+  color: var(--r-link-color)
+}
+.reveal canvas[data-chart].theme-black {
+  background-color: rgba(0,0,0,0.5);
+}
+
+/*********************************************
+ * PRINT BACKGROUND
+ *********************************************/
+@media print {
+  .backgrounds {
+    background-color: var(--r-background-color);
+  }
+  html:not(.print-pdf) body {
+    width: 100%;
+    margin: 0;
+  }
+}

@@ -1,8 +1,7 @@
-import { NgModule } from '@angular/core';
-import { ExtraOptions, RouterModule, Routes } from '@angular/router';
-import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
-import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
-import { IonicModule } from '@ionic/angular';
+import {NgModule} from '@angular/core';
+import {ExtraOptions, RouterModule, Routes} from '@angular/router';
+import {AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule} from '@sumaris-net/ngx-components';
+import {QuicklinkModule, QuicklinkStrategy} from 'ngx-quicklink';
 
 const routes: Routes = [
   // Core path
@@ -84,7 +83,7 @@ const routes: Routes = [
     loadChildren: () => import('./extraction/extraction-routing.module').then(m => m.AppExtractionRoutingModule)
   },
 
-  // Test module (disable in menu, by default - can be enable by the Pod configuration page)
+  // Test module (disable in menu, by default - can be enabled by the Pod configuration page)
   {
     path: 'testing',
     children: [
@@ -94,9 +93,13 @@ const routes: Routes = [
         redirectTo: 'shared',
       },
       // Shared module
-      {
+      /*{
         path: 'shared',
         loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SharedTestingModule)
+      },*/
+      {
+        path: 'shared',
+        loadChildren: () => import('./shared/shared.testing.module').then(m => m.AppSharedTestingModule)
       },
       // Trip module
       {

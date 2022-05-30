@@ -2,11 +2,13 @@
 // Import SUMARiS themes variables
 // --------------------------------------------------
 @import "theme.globals";
-
 // --------------------------------------------------
 // Import ngx-components theme
 // --------------------------------------------------
 @import "~@sumaris-net/ngx-components/src/theme/theme";
+
+@import "mixins";
+@import "print";
 
 // --------------------------------------------------
 // SUMARiS theme
