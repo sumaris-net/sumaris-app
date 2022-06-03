@@ -840,9 +840,9 @@
         "TITLE": "Individual {{label}}"
       },
       "ERROR": {
-        "WEIGHT_LENGTH_CONVERSION_FAILED": "Length-Weight conversions disabled",
-        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "Length-Weight conversions disabled (unknown rectangle)",
-        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "Length-Weight conversions disabled (missing length parameter)"
+        "WEIGHT_LENGTH_CONVERSION_FAILED": "Length-Weight relationship disabled",
+        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "Length-Weight relationship disabled (unknown rectangle)",
+        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "Length-Weight relationship disabled (missing length parameter)"
       }
     },
     "SAMPLE": {
@@ -1387,7 +1387,7 @@
       "TAXONOMIC_LEVEL": "Taxonomic level",
       "START_DATE": "Start date",
       "END_DATE": "End date",
-      "TAB_WEIGHT_LENGTH_CONVERSION": "Length-Weight relations (LWR)",
+      "TAB_WEIGHT_LENGTH_CONVERSION": "Length-Weight relationships (LWR)",
       "NEW": {
         "TITLE": "New scientific specie"
       },
@@ -1832,7 +1832,7 @@
         "PARENT": "Extraction parente",
         "BTN_OPEN_MAP": "Show the map",
         "BTN_UPDATE": "Execute now",
-        "BTN_UPDATE_HELP": "Exécuter",
+        "BTN_UPDATE_HELP": "Execute",
         "BTN_PREVIEW_DOC": "Preview doc",
         "FILTER_DOTS": "Filter on source dataset:",
         "STRATUM_DOTS": "Spatial layers:",
@@ -2271,7 +2271,7 @@
   },
   "INFO": {
     "ALERT_HEADER": "Information",
-    "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server.",
+    "SYNCHRONIZATION_SUCCEED": "Synchronization completed!<br/> The data has been received by the server.",
     "DEBUG_DATA_SEND": "Help request sent to administrator",
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
     "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!",

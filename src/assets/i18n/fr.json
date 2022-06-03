@@ -1363,7 +1363,7 @@
         "TITLE": "Espèce commerciale {{label}} - {{name}}"
       },
       "ROUND_WEIGHT_CONVERSION": {
-        "EXPORT_CSV_FILENAME": "EPV-{{taxonGroupId}}.csv",
+        "EXPORT_CSV_FILENAME": "Equivalent_poids_vifs-{{taxonGroupId}}.csv",
         "CONVERSION_COEFFICIENT": "Coef. conversion",
         "COMMENTS": "Commentaires",
         "CREATION_DATE": "Date création",
