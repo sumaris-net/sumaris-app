@@ -3,7 +3,7 @@ import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from
 import { toNumber } from '@sumaris-net/ngx-components';
 import { IPosition } from '@app/data/services/model/vessel-position.model';
 import { BBox } from 'geojson';
-import { SharedValidators } from '@sumaris-net/ngx-components/src/app/shared/validator/validators';
+import { SharedValidators } from '@sumaris-net/ngx-components';
 
 @Injectable({providedIn: 'root'})
 export class PositionValidatorService {

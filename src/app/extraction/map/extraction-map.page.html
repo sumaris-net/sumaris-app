@@ -10,7 +10,7 @@
     <button mat-icon-button
             *ngIf="type?.description"
             class="hidden-xs hidden-sm"
-            [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+            [title]="'COMMON.BTN_SHOW_HELP'|translate"
             (click)="openHelpModal($event)">
       <mat-icon>help_outline</mat-icon>
     </button>
@@ -18,7 +18,7 @@
     <ion-button (click)="openSelectTypeModal($event)"
                 color="accent"
                 fill="solid"
-                [matTooltip]="'EXTRACTION.MAP.BTN_SELECT_TYPE_HELP'|translate">
+                [title]="'EXTRACTION.MAP.BTN_SELECT_TYPE_HELP'|translate">
       <ion-icon slot="start" name="list" ></ion-icon>
       <ion-label class="hidden-xs hidden-sm" translate>EXTRACTION.MAP.BTN_MAP_LIST</ion-label>
       <ion-label class="visible-xs visible-sm" translate>EXTRACTION.MAP.BTN_MAPS</ion-label>
@@ -48,7 +48,8 @@
 
 <!-- options menu -->
 <mat-menu #optionMenu="matMenu">
-  <button mat-menu-item [routerLink]="'/extraction/product/' + type?.id">
+  <button mat-menu-item [routerLink]="'/extraction/product/' + type?.id"
+          [disabled]="!canEdit">
     <mat-icon>edit</mat-icon>
     <ion-label translate>COMMON.BTN_EDIT</ion-label>
   </button>

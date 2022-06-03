@@ -47,8 +47,8 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
-import { WaitForOptions } from '@sumaris-net/ngx-components/src/app/shared/observables';
-import { AppFormUtils } from '@sumaris-net/ngx-components/src/app/core/form/form.utils';
+import { WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppFormUtils } from '@sumaris-net/ngx-components';
 
 const moment = momentImported;
 
@@ -599,7 +599,7 @@ export class OperationPage
     this.opeForm.maxDistanceError = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR);
     this.opeForm.allowParentOperation = this.allowParentOperation;
     this.opeForm.startProgram = program.creationDate;
-    this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
+    this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_FILTER);
     this.opeForm.programLabel = program.label;
     this.opeForm.fishingStartDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
     this.opeForm.fishingEndDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
@@ -1215,7 +1215,8 @@ export class OperationPage
       this.tripContext.setValue('fishingAreas', fishingAreas);
       this.tripContext.resetValue('vesselPositions');
     }
-    // Or vessel position
+
+    // Or vessel positions
     else if (this.opeForm.showPosition) {
       const position = this.opeForm.lastActivePositionControl?.value;
       this.tripContext.setValue('vesselPositions', [position]);

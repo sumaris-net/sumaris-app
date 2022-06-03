@@ -9,14 +9,14 @@
 
   <ion-grid class="ion-no-padding">
 
-    <!-- DEBUG
+    <!-- DEBUG -->
     <ion-row *ngIf="debug" style="pointer-events: auto; user-select: text;">
       <ion-col size="0" size-md="3" size-lg="3">
         <ion-label class="ion-float-end" hidden-xs hidden-sm>DEBUG :</ion-label>
       </ion-col>
       <ion-col>
         <ion-text>
-          startDateTime: {{form.controls.startDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
+          startDateTime: {{form|formGetValue:'startDateTime'|dateFormat: {time: true} }}<br/>
           fishingStartDateTime: {{form.controls.fishingStartDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
           fishingEndDateTime: {{form.controls.fishingEndDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
           endDateTime: {{form.controls.endDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
@@ -34,7 +34,7 @@
           </span>
         </ion-text>
       </ion-col>
-    </ion-row>-->
+    </ion-row>
 
     <ion-row [class.has-buttons]="mobile && canEditType" *ngIf="allowParentOperation">
       <ion-col size="0" size-md="3" size-lg="3">

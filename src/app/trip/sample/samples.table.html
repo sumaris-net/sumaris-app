@@ -242,7 +242,7 @@
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
           [class.mat-cell-content-start-padding]="showGroupHeader">
-        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nContext: i18nColumnSuffix}"></ion-label>
+        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
       </th>
       <td mat-cell *matCellDef="let row"
           class="mat-column-pmfm mat-column-{{pmfm.label}}"

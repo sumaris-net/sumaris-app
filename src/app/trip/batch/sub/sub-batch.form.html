@@ -46,8 +46,7 @@
   </ion-grid>
 
   <!-- QV pmfm -->
-  <app-pmfm-field #inputField
-                   *ngIf="!loading && qvPmfm as pmfm"
+  <app-pmfm-field #inputField *ngIf="!loading && qvPmfm as pmfm"
                    [pmfm]="pmfm"
                    [control]="form|formGetControl: ['measurementValues', pmfm.id]"
                    [style]="mobile && 'button'"
@@ -63,13 +62,13 @@
                    [formControl]="freezeQvPmfmControl"
                    [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
                    (click)="$event.stopPropagation()"
-                   tabindex="-1">
+                   [tabIndex]="-1">
       <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
     </mat-checkbox>
   </app-pmfm-field>
 
   <!-- Taxon name -->
-  <ng-container *ngIf="showTaxonName">
+  <div [class.cdk-visually-hidden]="!showTaxonName">
 
     <!-- Taxon name (desktop) -->
     <mat-autocomplete-field #inputField *ngIf="!mobile || freezeTaxonName; else taxonNameMobile"
@@ -85,7 +84,7 @@
                      [formControl]="freezeTaxonNameControl"
                      [title]="'COMMON.BTN_FREEZE_VALUE_HELP'|translate"
                      (click)="$event.stopPropagation()"
-                     tabindex="-1">
+                     [tabIndex]="-1">
         <ion-text><small translate>COMMON.BTN_FREEZE_VALUE</small></ion-text>
       </mat-checkbox>
     </mat-autocomplete-field>
@@ -95,7 +94,7 @@
       <mat-form-field floatLabel="always"
                       *ngIf="$taxonNames | async as taxonNames; else loadingTaxonNames"
                       [class.computed]="taxonNames.length === 1">
-        <input matInput type="text" hidden
+        <input matInput type="text" hidden tabindex="-1"
                formControlName="taxonName"
                [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                required>
@@ -140,13 +139,13 @@
 
       <ng-template #loadingTaxonNames>
         <mat-form-field floatLabel="auto">
-          <input matInput type="text"
+          <input matInput type="text" tabindex="-1"
                  [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                  required>
         </mat-form-field>
       </ng-template>
     </ng-template>
-  </ng-container>
+  </div>
 
   <!-- pmfms -->
   <ng-container *ngIf="$pmfms | async as pmfms; else loadingSpinner">
@@ -154,6 +153,7 @@
                     #inputField
                     [control]="form|formGetControl: ['measurementValues', pmfm.id]"
                     [pmfm]="pmfm"
+                    [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix}"
                     [floatLabel]="floatLabel"
                     (keyup.enter)="focusNextInputOrSubmit($event, last)"
                     [tabindex]="tabindex + 20 + i*2"
@@ -191,18 +191,19 @@
     <!-- checkbox (to manually set the individual count, otherwise it increment one by one) -->
     <mat-checkbox matSuffix [formControl]="enableIndividualCountControl"
                   labelPosition="after"
-                  tabindex="-1">
+                  [tabIndex]="-1">
       <ion-text><small translate>TRIP.BATCH.EDIT.INDIVIDUAL.BTN_MANUAL_ENTRY</small></ion-text>
     </mat-checkbox>
 
   </mat-form-field>
 
-  <!-- Computed weight (DEBUG) -->
-  <mat-form-field *ngIf="debug && weightPmfm"
+  <!-- Computed weight -->
+  <mat-form-field *ngIf="weightPmfm"
                   floatLabel="always"
                   class="mat-form-field-disabled computed">
     <input matInput type="number"
-           [placeholder]="weightPmfm|pmfmName"
+           readonly
+           [placeholder]="weightPmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix}"
            [formControl]="form|formGetControl: 'weight.value'">
   </mat-form-field>
 

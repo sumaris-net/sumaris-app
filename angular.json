@@ -72,6 +72,11 @@
                 "output": "/"
               },
               {
+                "glob": "**/*.*",
+                "input": "node_modules/reveal.js-plugins/chalkboard/img",
+                "output": "/lib/img"
+              },
+              {
                 "glob": "sitemap.xml",
                 "input": "src/assets",
                 "output": "/"

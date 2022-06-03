@@ -792,7 +792,8 @@
         "WITHOUT_MEASURE": "No measurement",
         "IS_SAMPLING": "If measurement, enter the sampling weight:",
         "SAMPLING_WEIGHT": "Sampling weight (kg)",
-        "SAMPLING_RATIO": "Sampling fraction (%)",
+        "SAMPLING_RATIO_PCT": "Sampling fraction (%)",
+        "SAMPLING_COEFFICIENT": "Sampling coeff. (1/w)",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Batch {{label}}<br/></small>",
@@ -825,6 +826,10 @@
         "COMMENTS": "Comments",
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Estim. wht?"
+      },
+      "PMFM": {
+        "BATCH_CALCULATED_WEIGHT_LENGTH": "Computed weight LWR (kg)",
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)"
       }
     },
     "SUB_BATCH": {
@@ -835,9 +840,9 @@
         "TITLE": "Individual {{label}}"
       },
       "ERROR": {
-        "WEIGHT_LENGTH_CONVERSION_FAILED": "Length-Weight conversions disabled",
-        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "Length-Weight conversions disabled (unknown rectangle)",
-        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "Length-Weight conversions disabled (missing length parameter)"
+        "WEIGHT_LENGTH_CONVERSION_FAILED": "Length-Weight relationship disabled",
+        "WEIGHT_LENGTH_CONVERSION_NO_RECTANGLE": "Length-Weight relationship disabled (unknown rectangle)",
+        "WEIGHT_LENGTH_CONVERSION_NO_LENGTH_PMFM": "Length-Weight relationship disabled (missing length parameter)"
       }
     },
     "SAMPLE": {
@@ -1382,7 +1387,7 @@
       "TAXONOMIC_LEVEL": "Taxonomic level",
       "START_DATE": "Start date",
       "END_DATE": "End date",
-      "TAB_WEIGHT_LENGTH_CONVERSION": "Length-Weight relations (WLR)",
+      "TAB_WEIGHT_LENGTH_CONVERSION": "Length-Weight relationships (LWR)",
       "NEW": {
         "TITLE": "New scientific specie"
       },
@@ -1599,7 +1604,7 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Trip > Position > Latitude: Default direction:",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Trip > Position > Longitude: Default direction:",
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling) ?",
-      "TRIP_METIER_FILTER": "Trip > Operation: Filter already used metiers ?",
+      "TRIP_OPERATION_METIER_FILTER": "Trip > Operation: Filter on already used metiers ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip > Operation: Are other features optional, when on field?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation: Max travelled distance before warning (miles):",
       "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Trip > Operation: Max travelled distance before error (miles): ",
@@ -1656,7 +1661,7 @@
       "TAXON_NAMES": "Target species",
       "SCIENTIFIC_TAXON_NAMES": "Scientific species",
       "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFMs",
-      "BTN_REMOVE_TO_SELECTED_PMFM": "Remove from selected PMFMs",
+      "BTN_REMOVE_FROM_SELECTED_PMFM": "Remove from selected PMFMs",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplicate",
         "HELP": "Select a year for the new sampling plan: "
@@ -1805,23 +1810,29 @@
   "EXTRACTION": {
     "BTN_DOWNLOAD_HELP": "Download data (CSV)",
     "BTN_SAVE_HELP": "Allow to create a product",
-    "SPATIAL_AGGREGATION": "Aggregate into a spatial product",
-    "NEW_PRODUCT": "Save a simple produt",
+    "NEW_SPATIAL_AGGREGATION": "Create a spatial aggregation...",
+    "NEW_PRODUCT": "Create a new product",
     "BTN_PUBLISH": "Publish",
     "BTN_UNPUBLISH": "Make private",
     "BTN_OPEN_MAP": "View data on a map",
     "TYPE": "Extraction type",
+    "TYPES_MENU": {
+      "PRODUCT_DIVIDER": "Products",
+      "LIVE_DIVIDER": "Real time formats",
+      "PROGRAM_DIVIDER": "Data collection programs"
+    },
     "AGGREGATION": {
-      "NEW_NAME": "New product / {{name}}",
       "NEW": {
-        "TITLE": "New product"
+        "TITLE": "New product",
+        "DEFAULT_NAME": "New aggregation {{format}}"
       },
       "EDIT": {
         "TITLE": "<small>Product <br/></small>{{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
+        "PARENT": "Extraction parente",
         "BTN_OPEN_MAP": "Show the map",
         "BTN_UPDATE": "Execute now",
-        "BTN_UPDATE_HELP": "Executer",
+        "BTN_UPDATE_HELP": "Execute",
         "BTN_PREVIEW_DOC": "Preview doc",
         "FILTER_DOTS": "Filter on source dataset:",
         "STRATUM_DOTS": "Spatial layers:",
@@ -1997,7 +2008,10 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions"
     },
     "PRODUCT": {
-      "NEW_NAME": "Product {{name}}",
+      "NEW": {
+        "DEFAULT_NAME": "New product {{format}}",
+        "DEFAULT_DESCRIPTION": "Created by {{firstName}} {{lastName}}"
+      },
       "P01_RDB": {
         "TITLE": "ICES Data call (RDB v1.3)"
       }
@@ -2009,7 +2023,7 @@
       "COST": {
         "TITLE": "Raw trips (COST v1.4)"
       },
-      "FREE1": {
+      "FREE": {
         "TITLE": "Raw trips (FREE v{{version}})"
       },
       "FREE2": {
@@ -2027,11 +2041,12 @@
       "SURVIVAL_TEST": {
         "TITLE": "Raw trips (SUMARiS v1.0)"
       },
-      "RJB": {
+      "RJB_TRIP": {
         "TITLE": "Raw RJB trips (RJB v{{version}})"
       },
       "PMFM_TRIP": {
-        "TITLE": "Raw trips (dynamic format)"
+        "TITLE": "Raw trips (dynamic format)",
+        "TITLE_PROGRAM": "Raw trips {{label}}"
       },
       "STRAT": {
         "TITLE": "Data collection strategies",
@@ -2256,7 +2271,7 @@
   },
   "INFO": {
     "ALERT_HEADER": "Information",
-    "SYNCHRONIZATION_SUCCEED": "Synchronization completed! <br/> The data has been received by the server.",
+    "SYNCHRONIZATION_SUCCEED": "Synchronization completed!<br/> The data has been received by the server.",
     "DEBUG_DATA_SEND": "Help request sent to administrator",
     "DATA_MIGRATION_STARTED": "Data recovery in progress. <br/><b>Please wait ...</b>",
     "DATA_MIGRATION_SUCCEED": "Data recovery <b>completed successfully</b>!",

@@ -120,8 +120,13 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   @Input()
   set hasSubBatches(value: boolean) {
     this.hasSubBatchesControl.setValue(value);
+    // Enable control if need
     if (!value && this.hasSubBatchesControl.disabled && this.enabled) {
       this.hasSubBatchesControl.enable();
+    }
+    // Disable control if need
+    else if (value && this.hasSubBatchesControl.enabled && this.enabled) {
+      this.hasSubBatchesControl.disable();
     }
   }
 

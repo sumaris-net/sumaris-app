@@ -1,11 +1,9 @@
-import {ModuleWithProviders, NgModule} from '@angular/core';
-import {IonicStorageModule} from '@ionic/storage';
-import {HttpClientModule} from '@angular/common/http';
-import {CacheModule} from 'ionic-cache';
-import { AppGraphQLModule, CoreModule, Environment } from '@sumaris-net/ngx-components';
-import {AppSharedModule} from '@app/shared/shared.module';
-import { TranslateModule } from '@ngx-translate/core';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { ModuleWithProviders, NgModule } from '@angular/core';
+import { IonicStorageModule } from '@ionic/storage';
+import { HttpClientModule } from '@angular/common/http';
+import { CacheModule } from 'ionic-cache';
+import { AppGraphQLModule, CoreModule } from '@sumaris-net/ngx-components';
+import { AppSharedModule } from '@app/shared/shared.module';
 import { IsEmptyReferentialPipe, IsNotEmptyReferentialPipe } from '@app/core/pipes/core.pipe';
 
 @NgModule({
@@ -14,7 +12,6 @@ import { IsEmptyReferentialPipe, IsNotEmptyReferentialPipe } from '@app/core/pip
     HttpClientModule,
     CacheModule,
     IonicStorageModule,
-    TranslateModule.forChild(),
 
     // App modules
     AppSharedModule,
@@ -28,7 +25,6 @@ import { IsEmptyReferentialPipe, IsNotEmptyReferentialPipe } from '@app/core/pip
   exports: [
     CoreModule,
     AppSharedModule,
-    TranslateModule,
 
     // Pipes
     IsNotEmptyReferentialPipe,

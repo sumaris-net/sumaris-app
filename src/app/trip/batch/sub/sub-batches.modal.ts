@@ -28,9 +28,10 @@ export interface ISubBatchesModalOptions {
 
   weightDisplayUnit?: WeightUnitSymbol|'auto';
   weightDisplayDecimals?: number;
-  roundWeightConversionCountryId?: number;
 
+  // UI options
   maxVisibleButtons: number;
+  i18nSuffix: string;
 
   parentGroup: BatchGroup;
 
@@ -89,6 +90,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() showParentGroup: boolean;
   @Input() parentGroup: BatchGroup;
   @Input() maxVisibleButtons: number;
+
+  @Input() set i18nSuffix(value: string) {
+    this.i18nColumnSuffix = value;
+  }
+
+  get i18nSuffix(): string {
+    return this.i18nColumnSuffix;
+  }
 
   @Input() set disabled(value: boolean) {
     if (value) {

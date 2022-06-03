@@ -13,6 +13,7 @@ import {environment} from '@environments/environment';
 import {Operation} from '../../services/model/trip.model';
 import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
 import { splitByProperty } from '@sumaris-net/ngx-components';
+import { SamplingRatioType } from '@app/trip/batch/common/batch.form';
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;
@@ -100,6 +101,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
   @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;
+  @Input() samplingRatioType: SamplingRatioType = '%';
 
   constructor(
     injector: Injector,
@@ -125,6 +127,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
+    this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
     this.inlineEdition = this.validatorService && !this.mobile;
     this.defaultSortBy = 'rankOrder';
     this.defaultSortDirection = 'asc';

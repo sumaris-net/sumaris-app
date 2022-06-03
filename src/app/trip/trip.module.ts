@@ -5,25 +5,13 @@ import { TripForm } from './trip/trip.form';
 import { SaleForm } from './sale/sale.form';
 import { OperationForm } from './operation/operation.form';
 import { OperationPage } from './operation/operation.page';
-import { MeasurementsForm } from './measurement/measurements.form.component';
-import { CatchBatchForm } from './batch/catch/catch.form';
 import { PhysicalGearForm } from './physicalgear/physical-gear.form';
 import { PhysicalGearTable } from './physicalgear/physical-gears.table';
 import { OperationsTable } from './operation/operations.table';
 import { AppActionCellDef, SamplesTable } from './sample/samples.table';
 import { SubSamplesTable } from './sample/sub-samples.table';
-import { BatchGroupsTable } from './batch/group/batch-groups.table';
-import { BatchesTable } from './batch/common/batches.table';
-import { SubBatchesTable } from './batch/sub/sub-batches.table';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { SubBatchesModal } from './batch/sub/sub-batches.modal';
-import { SubBatchForm } from './batch/sub/sub-batch.form';
 import { PhysicalGearModal } from './physicalgear/physical-gear.modal';
-import { BatchForm } from './batch/common/batch.form';
-import { BatchTreeComponent } from './batch/batch-tree.component';
-import { BatchGroupForm } from './batch/group/batch-group.form';
-import { BatchGroupModal } from './batch/group/batch-group.modal';
-import { SubBatchModal } from './batch/sub/sub-batch.modal';
 import { AppReferentialModule } from '../referential/referential.module';
 import { SampleForm } from './sample/sample.form';
 import { SampleModal } from './sample/sample.modal';
@@ -31,7 +19,6 @@ import { SelectPhysicalGearModal } from './physicalgear/select-physical-gear.mod
 import { AppDataModule } from '../data/data.module';
 import { OperationsMap } from './operation/map/operations.map';
 import { SocialModule } from '@sumaris-net/ngx-components';
-import { BatchModal } from './batch/common/batch.modal';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { TripTrashModal } from './trip/trash/trip-trash.modal';
@@ -47,6 +34,8 @@ import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.
 import { IndividualMonitoringTable } from '@app/trip/sample/individualmonitoring/individual-monitoring.table';
 import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/individual-releases.table';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
+import { AppBatchModule } from '@app/trip/batch/batch.module';
+import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 
 @NgModule({
   imports: [
@@ -54,13 +43,19 @@ import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
     LeafletModule,
     TranslateModule.forChild(),
 
+    SocialModule,
+    A11yModule,
+
     // App module
     AppCoreModule,
     AppReferentialModule,
     AppDataModule,
     VesselModule,
-    SocialModule,
-    A11yModule
+
+    // Functional modules
+    AppMeasurementModule,
+    AppBatchModule
+
   ],
   declarations: [
     TripTable,
@@ -79,22 +74,9 @@ import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
     OperationsMap,
     SelectOperationModal,
     SelectOperationByTripTable,
-    MeasurementsForm,
-    CatchBatchForm,
     SamplesTable,
     SubSamplesTable,
-    BatchGroupsTable,
-    BatchesTable,
-    BatchForm,
-    BatchModal,
-    SubBatchesTable,
-    SubBatchForm,
-    SubBatchModal,
-    SubBatchesModal,
-    BatchGroupsTable,
-    BatchGroupForm,
-    BatchGroupModal,
-    BatchTreeComponent,
+
     SamplesTable,
     SampleForm,
     SampleModal,
@@ -116,6 +98,7 @@ import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
     AppCoreModule,
     AppDataModule,
     AppReferentialModule,
+    AppBatchModule,
 
     // Pipes
 
@@ -130,15 +113,9 @@ import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
     OperationForm,
     OperationPage,
     OperationsTable,
-    MeasurementsForm,
-    BatchForm,
-    BatchTreeComponent,
-    SubBatchForm,
-    SubBatchModal,
     SampleForm,
     SamplesTable,
     SubSamplesTable,
-    BatchGroupForm,
     SampleTreeComponent
   ]
 })

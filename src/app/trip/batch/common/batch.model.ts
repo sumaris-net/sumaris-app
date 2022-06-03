@@ -10,6 +10,12 @@ export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
 }
 
+export declare interface BatchSamplingRatio {
+  computed: boolean;
+  value: number;
+  text: string;
+}
+
 export interface BatchAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
 }
@@ -103,12 +109,14 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
   exhaustiveInventory: boolean = null;
   samplingRatio: number = null;
   samplingRatioText: string = null;
+  samplingRatioComputed: boolean = null;
   individualCount: number = null;
   taxonGroup: TaxonGroupRef = null;
   taxonName: TaxonNameRef = null;
   comments: string = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = {};
   weight: BatchWeight = null;
+  childrenWeight: BatchWeight = null;
 
   operationId: number = null;
   parentId: number = null;
@@ -128,8 +136,6 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
     target.taxonName = this.taxonName && this.taxonName.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
-    target.samplingRatio = isNotNil(this.samplingRatio) ? this.samplingRatio : null;
-    target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject && c.asObject(opts) || c) || undefined;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
@@ -139,7 +145,9 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
       delete target.parent;
       delete target.parentId;
       // Remove computed properties
+      delete target.samplingRatioComputed;
       delete target.weight;
+      delete target.childrenWeight;
       if (target.measurementValues) delete target.measurementValues.__typename
     }
 
@@ -153,6 +161,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
     this.exhaustiveInventory = source.exhaustiveInventory;
     this.samplingRatio = isNotNilOrBlank(source.samplingRatio) ? parseFloat(source.samplingRatio) : null;
     this.samplingRatioText = source.samplingRatioText;
+    this.samplingRatioComputed = source.samplingRatioComputed;
     this.individualCount = isNotNilOrBlank(source.individualCount) ? parseInt(source.individualCount) : null;
     this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
@@ -162,6 +171,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
     this.parent = source.parent;
 
     this.weight = source.weight || undefined;
+    this.childrenWeight = source.childrenWeight || undefined;
 
     if (source.measurementValues) {
       this.measurementValues = {...source.measurementValues};
