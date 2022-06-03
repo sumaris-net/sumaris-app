@@ -9,7 +9,6 @@ import { MatBadgeSize } from '@angular/material/badge';
 export declare type OperationMatSvgIcons = 'down-arrow' | 'rollback-arrow';
 export declare type OperationIonIcon = 'navigate';
 
-
 @Component({
   selector: 'app-operation-icon',
   templateUrl: 'operation-icon.component.html',

@@ -1154,24 +1154,39 @@ export class OperationPage
 
   protected async loadLinkedOperation(data: Operation): Promise<void> {
 
-    try {
-      // Load child operation
-      const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
-      if (isNotNil(childOperationId)) {
+    const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
+    // Load child operation
+    if (isNotNil(childOperationId)) {
+      try {
         data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
+        data.childOperationId = undefined;
+      } catch (err) {
+        console.error('Cannot load child operation: reset', err);
+        data.childOperation = undefined;
+        data.childOperationId = undefined;
+        data.parentOperation = undefined;
       }
+    }
+
+    else {
 
       // Load parent operation
-      else {
-        const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
-        if (isNotNil(parentOperationId)) {
+      const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
+      if (isNotNil(parentOperationId)) {
+        try {
           data.parentOperation = await this.dataService.load(parentOperationId, {fullLoad: false, fetchPolicy: 'cache-first'});
+          data.parentOperationId = undefined;
+        } catch (err) {
+          console.error('Cannot load parent operation: keep existing, to force user to fix it', err);
+          data.parentOperationId = undefined;
+          data.parentOperation = Operation.fromObject({
+            id: parentOperationId,
+            startDateTime: data.startDateTime,
+            fishingStartDateTime: data.fishingStartDateTime,
+            qualityFlagId: QualityFlagIds.MISSING
+          });
         }
       }
-    } catch (err) {
-      console.error('Cannot load child/parent operation', err);
-      data.childOperation = undefined;
-      data.parentOperation = undefined;
     }
   }
 

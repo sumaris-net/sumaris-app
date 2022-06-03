@@ -18,6 +18,7 @@ import { PositionUtils } from '@app/trip/services/position.utils';
 import { BBox } from 'geojson';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { Geometries } from '@app/shared/geometries.utils';
+import { DataValidators } from '@app/data/services/validator/data.validators';
 
 
 export interface IPmfmForm {
@@ -144,9 +145,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.object])],
         comments: [data && data.comments || null, Validators.maxLength(2000)],
 
-        // TODO: move into update form group
-        parentOperation: [data && data.parentOperation || null],
-
+        parentOperation: [data && data.parentOperation || null], // Validators define later, int updateFormGroup
         parentOperationId: [toNumber(data && data.parentOperationId, null)],
         childOperationId: [toNumber(data && data.childOperationId, null)]
       });
@@ -370,7 +369,10 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // Is a child
     else if (opts.isChild) {
       console.info('[operation-validator] Updating validator -> Child operation');
-      parentControl.setValidators(Validators.compose([Validators.required, SharedValidators.entity]));
+      parentControl.setValidators(Validators.compose([Validators.required,
+        SharedValidators.entity,
+        DataValidators.excludeQualityFlag(QualityFlagIds.MISSING, 'TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION')
+      ]));
       parentControl.enable();
 
       if (childControl) {

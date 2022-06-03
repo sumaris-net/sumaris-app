@@ -1,22 +1,22 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { ValidatorService } from '@e-is/ngx-material-table';
 import { TripValidatorService } from '../services/validator/trip.validator';
-import { TripService } from '../services/trip.service';
+import { TripLoadOptions, TripService } from '../services/trip.service';
 import { TripFilter, TripSynchroImportFilter } from '../services/filter/trip.filter';
 import { FormArray, FormBuilder, FormControl } from '@angular/forms';
 import {
   ConfigService,
-  EntitiesTableDataSource,
-  HammerSwipeEvent,
+  EntitiesTableDataSource, FilesUtils,
+  HammerSwipeEvent, isEmptyArray, isNotEmptyArray,
   isNotNil,
   PersonService,
-  PersonUtils, ReferentialRef,
+  PersonUtils,
+  ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
   slideUpDownAnimation,
-  StatusIds,
-  UserEventService
+  StatusIds
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Trip } from '../services/model/trip.model';
@@ -34,9 +34,8 @@ import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { ProgramFilter } from '@app/referential/services/filter/program.filter';
-import { Program } from '@app/referential/services/model/program.model';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { OperationServiceLoadOptions } from '@app/trip/services/operation.service';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -63,6 +62,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
+  @Input() canDownload = false;
+  @Input() canUpload = false;
 
   get filterObserversForm(): FormArray {
     return this.filterForm.controls.observers as FormArray;
@@ -75,7 +76,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   constructor(
     injector: Injector,
     protected dataService: TripService,
-    protected userEventService: UserEventService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
@@ -121,6 +121,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.defaultSortBy = 'departureDateTime';
     this.defaultSortDirection = 'desc';
     this.confirmBeforeDelete = true;
+    this.canDownload = this.accountService.isSupervisor();
+    this.canUpload = this.canDownload;
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureId = TripsPageSettingsEnum.FEATURE_ID;
@@ -294,6 +296,51 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return super.prepareOfflineMode(event, opts);
   }
 
+  async importFromFile(event: UIEvent): Promise<Trip[]> {
+    const data = await super.importFromFile(event);
+    if (isEmptyArray(data)) return; // Skip
+
+    let entities: Trip[] = [];
+    let errors = [];
+    for (let json of data) {
+      try {
+        const entity = Trip.fromObject(json);
+        const savedEntity = await this.dataService.copyLocally(entity);
+        entities.push(savedEntity);
+      } catch (err) {
+        const message = err && err.message || err;
+        errors.push(message);
+        console.error(message, err);
+      }
+    }
+    if (isEmptyArray(entities) && isEmptyArray(errors)) {
+      // Nothing to import (empty file ?)
+      return;
+    }
+    else if (isEmptyArray(entities) && isNotEmptyArray(errors)) {
+      await this.showToast({
+        type: 'error',
+        message: 'TRIP.TABLE.ERROR.IMPORT_FILE_FAILED', messageParams: {error: errors.join('\n')}});
+    }
+    else if (isNotEmptyArray(errors)) {
+      await this.showToast({
+        type: 'warning',
+        message: 'TRIP.TABLE.INFO.IMPORT_FILE_SUCCEED_WITH_ERRORS', messageParams: {inserts: entities.length, errors: errors.length}});
+    }
+    else {
+      await this.showToast({
+        type: 'info',
+        message: 'TRIP.TABLE.INFO.IMPORT_FILE_SUCCEED', messageParams: {inserts: entities.length}});
+    }
+    return entities;
+  }
+
+  async downloadSelectionAsFile(event?: UIEvent) {
+    const ids = (this.selection.selected || [])
+      .map(row => row.currentData?.id);
+    return this.downloadAsFile(ids);
+  }
+
   clearFilterValue(key: keyof TripFilter, event?: UIEvent) {
     if (event) {
       event.preventDefault();
@@ -312,5 +359,19 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   protected resetContext() {
     this.context.reset();
     this.tripContext.reset();
+  }
+
+  protected async downloadAsFile(ids: number[]) {
+    if (isEmptyArray(ids)) return; // Skip if empty
+
+    // Create file content
+    const entities = await Promise.all(ids.map(id => this.dataService.load(id, {fullLoad: true, withOperation: true, toEntity: false})));
+    const content = JSON.stringify(entities);
+
+    // Write to file
+    FilesUtils.writeTextToFile(content, {
+      filename: this.translate.instant("TRIP.TABLE.EXPORT_FILENAME"),
+      type: 'application/json'
+    });
   }
 }

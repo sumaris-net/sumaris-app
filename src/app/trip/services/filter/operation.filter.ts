@@ -90,53 +90,54 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
 
     // Only operation with no parents
     if (isNotNil(this.excludeChildOperation) && this.excludeChildOperation) {
-      filterFns.push((o => (isNil(o.parentOperationId) && isNil(o.parentOperation))));
+      filterFns.push(o => (isNil(o.parentOperationId) && isNil(o.parentOperation)));
     }
 
     // Only operation with no child
     if (isNotNil(this.hasNoChildOperation) && this.hasNoChildOperation) {
-      filterFns.push((o => (isNil(o.childOperationId) && isNil(o.childOperation))));
+      filterFns.push(o => isNil(o.childOperationId) && isNil(o.childOperation));
     }
 
     // StartDate
     if (isNotNil(this.startDate)) {
       const startDate = this.startDate;
-      filterFns.push((o => ((isNotNil(o.endDateTime) && fromDateISOString(o.endDateTime).isAfter(startDate))
-        || (isNotNil(o.fishingStartDateTime) && fromDateISOString(o.fishingStartDateTime).isAfter(startDate)))));
+      filterFns.push(o => ((o.endDateTime && startDate.isSameOrBefore(o.endDateTime))
+        || (o.fishingStartDateTime && startDate.isSameOrBefore(o.fishingStartDateTime)))
+      );
     }
 
     // EndDate
     if (isNotNil(this.endDate)) {
       const endDate = this.endDate;
-      filterFns.push((o => ((isNotNil(o.endDateTime) && fromDateISOString(o.endDateTime).isBefore(endDate))
-        || (isNotNil(o.fishingStartDateTime) && fromDateISOString(o.fishingStartDateTime).isBefore(endDate)))));
+      filterFns.push(o => ((o.endDateTime && endDate.isSameOrAfter(o.endDateTime))
+        || (o.fishingStartDateTime && endDate.isSameOrAfter(o.fishingStartDateTime))));
     }
 
     // GearIds;
-    if (isNotNil(this.gearIds) && (isNotNilOrNaN(this.gearIds) || this.gearIds.length > 0)) {
-      const gearIds = (isArray(this.gearIds) ? this.gearIds : [this.gearIds]) as number[];
-      filterFns.push((o => isNotNil(o.physicalGear?.gear) && gearIds.includes(o.physicalGear.gear.id)));
+    if (isNotEmptyArray(this.gearIds) || (!Array.isArray(this.gearIds) && isNotNilOrNaN(this.gearIds))) {
+      const gearIds = Array.isArray(this.gearIds) ? this.gearIds : [this.gearIds as number];
+      filterFns.push(o => isNotNil(o.physicalGear?.gear) && gearIds.indexOf(o.physicalGear.gear.id) !== -1);
     }
 
     // PhysicalGearIds;
-    if (isNotNil(this.physicalGearIds) && this.physicalGearIds.length > 0) {
+    if (isNotEmptyArray(this.physicalGearIds)) {
       const physicalGearIds = this.physicalGearIds;
-      filterFns.push((o => isNotNil(o.physicalGear) && physicalGearIds.includes(o.physicalGear.id)));
+      filterFns.push(o => isNotNil(o.physicalGear?.id) && physicalGearIds.indexOf(o.physicalGear.id) !== -1);
     }
 
     // taxonGroupIds
-    if (isNotNil(this.taxonGroupLabels) && this.taxonGroupLabels.length > 0) {
+    if (isNotEmptyArray(this.taxonGroupLabels)) {
       const targetSpecieLabels = this.taxonGroupLabels;
-      filterFns.push((o => isNotNil(o.metier) && isNotNil(o.metier.taxonGroup) && targetSpecieLabels.indexOf(o.metier.taxonGroup.label) !== -1));
+      filterFns.push(o => isNotNil(o.metier?.taxonGroup) && targetSpecieLabels.indexOf(o.metier.taxonGroup.label) !== -1);
     }
 
     // Filter on dataQualityStatus
     if (isNotNil(this.dataQualityStatus)) {
       if (this.dataQualityStatus === 'MODIFIED') {
-        filterFns.push((o => (isNil(o.controlDate))));
+        filterFns.push(o => isNil(o.controlDate));
       }
       if (this.dataQualityStatus === 'CONTROLLED') {
-        filterFns.push((o => (isNotNil(o.controlDate))));
+        filterFns.push(o => isNotNil(o.controlDate));
       }
     }
 

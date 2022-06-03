@@ -55,7 +55,9 @@
       </ion-col>
 
       <ion-col size="12" size-sm="6" size-md="" size-lg="">
-        <mat-form-field [class.cdk-visually-hidden]="!isChildOperation" >
+        <mat-form-field [class.cdk-visually-hidden]="!isChildOperation"
+                        [class.mat-form-field-invalid]="control.invalid"
+                        *ngVar="parentControl as control">
           <input matInput type="text" hidden
                  [placeholder]="'TRIP.OPERATION.EDIT.PARENT_OPERATION'|translate"
                  formControlName="parentOperation">
@@ -64,15 +66,21 @@
                  (click)="addParentOperation()"
                  [tabindex]="tabindex+1"
                  readonly>
-
-          <button *ngIf="!form.controls.parentOperation.value else optionsButton"
-                  matSuffix mat-icon-button type="button"
-                  tabindex="-1"
+          <button *ngIf="!(control|formGetValue); else otherButtons"
+                  matSuffix mat-icon-button type="button" tabindex="-1"
                   (click)="addParentOperation()">
             <mat-icon>more_horiz</mat-icon>
           </button>
-          <ng-template #optionsButton>
+          <ng-template #otherButtons>
+            <button *ngIf="control.errors|mapGet:'msg' as msg"
+                    matSuffix mat-icon-button type="button" tabindex="-1"
+                    style="color: var(--ion-color-danger)"
+                    (click)="addParentOperation()"
+                    [title]="msg|translate">
+              <mat-icon >error</mat-icon>
+            </button>
             <button matSuffix mat-icon-button type="button"
+                    *ngIf="control.valid"
                     [matMenuTriggerFor]="optionsMenu"
                     tabindex="-1"
                     [title]=" 'COMMON.BTN_OPTIONS'|translate">
@@ -90,7 +98,7 @@
                   <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
                 </ion-label>
               </button>
-              <button mat-menu-item type="button" [disabled]="parentControl.value | isNilOrBlank"
+              <button mat-menu-item type="button" [disabled]="control.value | isNilOrBlank"
                       tabindex="-1"
                       (click)="updateParentOperation()">
                 <ion-label>
@@ -101,8 +109,11 @@
               </button>
             </mat-menu>
           </ng-template>
-          <mat-error *ngIf="parentControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
 
+          <mat-error [ngSwitch]="control.errors|mapKeys|arrayFirst">
+            <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+            <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
+          </mat-error>
         </mat-form-field>
       </ion-col>
     </ion-row>

@@ -14,7 +14,6 @@ import {
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
 import { ReferentialFilter } from '../services/filter/referential.filter';
 import { environment } from '@environments/environment';
-import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { PopoverController } from '@ionic/angular';
 
