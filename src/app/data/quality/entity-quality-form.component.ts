@@ -197,6 +197,7 @@ export class EntityQualityFormComponent<
     finally {
       this.editor.enable(opts);
       this.busy = false;
+      this.markForCheck();
     }
 
     return valid;
@@ -236,6 +237,7 @@ export class EntityQualityFormComponent<
     finally {
       this.editor.enable(opts);
       this.busy = false;
+      this.markForCheck();
     }
   }
 
@@ -298,13 +300,32 @@ export class EntityQualityFormComponent<
   }
 
   async validate(event: Event) {
+    if (this.busy) return;
+
     // Control data
-    const controlled = await this.control(event, {emitEvent: false});
+    const controlled = await this.control(event, { emitEvent: false });
     if (!controlled || event.defaultPrevented) return;
 
-    console.debug("[quality] Mark entity as validated...");
-    const data = await this.serviceForRootEntity.validate(this.data);
-    this.updateEditor(data);
+    try {
+      this.busy = true;
+
+      console.debug("[quality] Mark entity as validated...");
+      const data = await this.serviceForRootEntity.validate(this.data);
+      this.updateEditor(data);
+    }
+    catch (error) {
+      this.editor.setError(error);
+      const context = error && error.context || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
+      this.userEventService.showToastErrorWithContext({
+        error,
+        context
+      });
+    }
+    finally {
+      this.editor.enable();
+      this.busy = false;
+      this.markForCheck();
+    }
   }
 
   async unvalidate(event: Event) {
