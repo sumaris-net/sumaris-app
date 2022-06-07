@@ -446,7 +446,9 @@ export class TripService
       name: 'copyToLocal',
       title: 'SOCIAL.USER_EVENT.BTN_COPY_TO_LOCAL',
       color: 'primary',
-      executeAction: (event, context) => this.copyLocally(Trip.fromObject(context), {displaySuccessToast: true})
+      executeAction: (event, context) => {
+        return this.copyLocally(Trip.fromObject(context), {displaySuccessToast: true})
+      }
     });
 
     // Register self (avoid loop dependency)
@@ -609,24 +611,19 @@ export class TripService
 
     // use landedTrip option if itself or withOperationGroups is present in service options
     const isLandedTrip = opts && (opts.isLandedTrip || opts.withOperationGroup);
+    const isLocalTrip = id < 0;
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
     this.loading = true;
 
     try {
-      let data: any;
+      let source: any;
 
       // If local entity
-      if (id < 0) {
-        data = await this.entities.load<Trip>(id, Trip.TYPENAME, opts);
-        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
-
-        if (opts && opts.withOperation) {
-          data.operations = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
-            filter: this.asFilter({tripId: id}).asFilterFn()
-          });
-        }
+      if (isLocalTrip) {
+        source = await this.entities.load<Trip>(id, Trip.TYPENAME, opts);
+        if (!source) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
       } else {
         const query = isLandedTrip ? TripQueries.loadLandedTrip : TripQueries.load;
 
@@ -637,14 +634,27 @@ export class TripService
           error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
-        data = res && res.data;
+        source = res && res.data;
+      }
+
+      // Add operations
+      if (opts?.withOperation) {
+        source = {...source}; // Copy because remote object is not extensible
+
+        const { data } = await this.operationService.loadAllByTrip({tripId: id}, {
+          fetchPolicy: !isLocalTrip && 'network-only' || undefined,
+          fullLoad: isLocalTrip
+        });
+        source.operations = isLocalTrip ? data
+          // Full load entities remotely
+          : await Promise.all(data.map(lightOperation => this.operationService.load(lightOperation.id)));
       }
 
       // Transform to entity
-      const entity = (!opts || opts.toEntity !== false) ? Trip.fromObject(data) : (data as Trip);
+      const target = (!opts || opts.toEntity !== false) ? Trip.fromObject(source) : (source as Trip);
 
-      if (entity && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, entity);
-      return entity;
+      if (target && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, target);
+      return target;
     } finally {
       this.loading = false;
     }
@@ -1078,12 +1088,12 @@ export class TripService
 
         // Saved locally new parent operation which wait child operation
         if (operationToSaveLocally.length > 0) {
-          const operations = await this.operationService.loadAll(0, 999, null, null,
+          const { data } = await this.operationService.loadAll(0, 999, null, null,
             {
               includedIds: operationToSaveLocally,
               programLabel: entity.program.label
             });
-          await this.operationService.saveAllLocally(operations.data);
+          await this.operationService.saveAllLocally(data);
         }
       }
 

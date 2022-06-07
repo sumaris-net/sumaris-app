@@ -47,8 +47,8 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
-import { WaitForOptions } from '@sumaris-net/ngx-components/src/app/shared/observables';
-import { AppFormUtils } from '@sumaris-net/ngx-components/src/app/core/form/form.utils';
+import { WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppFormUtils } from '@sumaris-net/ngx-components';
 
 const moment = momentImported;
 
@@ -599,7 +599,7 @@ export class OperationPage
     this.opeForm.maxDistanceError = program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR);
     this.opeForm.allowParentOperation = this.allowParentOperation;
     this.opeForm.startProgram = program.creationDate;
-    this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_FILTER_METIER);
+    this.opeForm.showMetierFilter = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_METIER_FILTER);
     this.opeForm.programLabel = program.label;
     this.opeForm.fishingStartDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE);
     this.opeForm.fishingEndDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
@@ -1154,24 +1154,39 @@ export class OperationPage
 
   protected async loadLinkedOperation(data: Operation): Promise<void> {
 
-    try {
-      // Load child operation
-      const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
-      if (isNotNil(childOperationId)) {
+    const childOperationId = toNumber(data.childOperationId, data.childOperation?.id);
+    // Load child operation
+    if (isNotNil(childOperationId)) {
+      try {
         data.childOperation = await this.dataService.load(childOperationId, {fetchPolicy: 'cache-first'});
+        data.childOperationId = undefined;
+      } catch (err) {
+        console.error('Cannot load child operation: reset', err);
+        data.childOperation = undefined;
+        data.childOperationId = undefined;
+        data.parentOperation = undefined;
       }
+    }
+
+    else {
 
       // Load parent operation
-      else {
-        const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
-        if (isNotNil(parentOperationId)) {
+      const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
+      if (isNotNil(parentOperationId)) {
+        try {
           data.parentOperation = await this.dataService.load(parentOperationId, {fullLoad: false, fetchPolicy: 'cache-first'});
+          data.parentOperationId = undefined;
+        } catch (err) {
+          console.error('Cannot load parent operation: keep existing, to force user to fix it', err);
+          data.parentOperationId = undefined;
+          data.parentOperation = Operation.fromObject({
+            id: parentOperationId,
+            startDateTime: data.startDateTime,
+            fishingStartDateTime: data.fishingStartDateTime,
+            qualityFlagId: QualityFlagIds.MISSING
+          });
         }
       }
-    } catch (err) {
-      console.error('Cannot load child/parent operation', err);
-      data.childOperation = undefined;
-      data.parentOperation = undefined;
     }
   }
 
@@ -1215,7 +1230,8 @@ export class OperationPage
       this.tripContext.setValue('fishingAreas', fishingAreas);
       this.tripContext.resetValue('vesselPositions');
     }
-    // Or vessel position
+
+    // Or vessel positions
     else if (this.opeForm.showPosition) {
       const position = this.opeForm.lastActivePositionControl?.value;
       this.tripContext.setValue('vesselPositions', [position]);

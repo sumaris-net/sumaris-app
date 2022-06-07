@@ -1,13 +1,15 @@
 import {
   BaseEntityGraphqlQueries,
   BaseEntityService,
-  CryptoService, EntitiesStorage, EntityServiceLoadOptions,
-  firstArrayValue,
+  CryptoService,
+  EntitiesStorage,
+  EntityServiceLoadOptions,
   GraphqlService,
   IEntityService,
   isEmptyArray,
   isNil,
-  isNotNil, LoadResult, NetworkService,
+  LoadResult,
+  NetworkService,
   PlatformService
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
@@ -15,9 +17,7 @@ import { RoundWeightConversion, RoundWeightConversionRef } from '@app/referentia
 import { gql } from '@apollo/client/core';
 import { RoundWeightConversionFragments } from '@app/referential/round-weight-conversion/round-weight-conversion.fragments';
 import { RoundWeightConversionFilter } from '@app/referential/round-weight-conversion/round-weight-conversion.filter';
-import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
-import { WeightLengthConversion, WeightLengthConversionRef } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
-import { isMoment, Moment } from 'moment';
+import { Moment } from 'moment';
 import { CacheService } from 'ionic-cache';
 import { SortDirection } from '@angular/material/sort';
 
@@ -69,12 +69,12 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
   }
 
   /**
-   * Convert a alive weight, into the expected dressing/preservation state
+   * Convert an alive weight, into the expected dressing/preservation state
    * @param conversion
    * @param value
    */
   inverseAliveWeight(conversion: RoundWeightConversionRef|undefined, value: number|undefined): number | undefined {
-    if (isNil(value) || !conversion ) return undefined;
+    if (isNil(value) || !conversion) return undefined;
 
     // Apply round weight (inverse) conversion
     return value / conversion.conversionCoefficient;

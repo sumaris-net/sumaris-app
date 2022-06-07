@@ -552,12 +552,19 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
 
     if (source.operations) {
+      if (!Array.isArray(source.operations) && Array.isArray(source.operations.data)) {
+        console.warn('[trip] Fix invalid operations model (was found a LoadResult, instead of an array) - fixed');
+        source.operations = source.operations.data;
+      }
+
       this.operations = source.operations
         .map(Operation.fromObject)
         .map((o: Operation) => {
           o.tripId = this.id;
-          // Ling to trip's gear
-          o.physicalGear = o.physicalGear && (this.gears || []).find(g => o.physicalGear.equals(g));
+          // Link to trip's gear
+          o.physicalGear = o.physicalGear && (this.gears || []).find(g => o.physicalGear.equals(g))
+            // Or keep existing gear, if not exists
+            || o.physicalGear;
           return o;
         });
     }

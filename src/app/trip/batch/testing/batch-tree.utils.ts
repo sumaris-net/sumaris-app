@@ -42,7 +42,7 @@ function getIndivMeasValues(opts?: {
   return res;
 }
 
-export const EXAMPLES = ['default', 'empty'];
+export const BATCH_TREE_EXAMPLES = ['default', 'empty'];
 
 export function getExampleTree(key: string): any {
   switch (key) {

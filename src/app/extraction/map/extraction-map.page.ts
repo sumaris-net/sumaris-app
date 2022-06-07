@@ -23,36 +23,37 @@ import {
   PlatformService,
   StatusIds
 } from '@sumaris-net/ngx-components';
-import { ExtractionService } from '../services/extraction.service';
+import { ExtractionService } from '../common/extraction.service';
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion } from '../services/model/extraction-type.model';
+import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion } from '../type/extraction-type.model';
 import { Location } from '@angular/common';
 import * as L from 'leaflet';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
 import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
-import { SelectProductModal } from '../product/modal/select-product.modal';
-import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../form/extraction-abstract.page';
+import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
+import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { AggregationTypeValidatorService } from '../services/validator/aggregation-type.validator';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { Label, SingleOrMultiDataSet } from 'ng2-charts';
 import { ChartLegendOptions, ChartOptions, ChartType } from 'chart.js';
-import { AggregationStrata, ExtractionProduct, IAggregationStrata } from '../services/model/extraction-product.model';
-import { ExtractionUtils } from '../services/extraction.utils';
-import { ExtractionProductService } from '../services/extraction-product.service';
+import { ExtractionUtils } from '../common/extraction.utils';
 import { UnitLabel, UnitLabelPatterns } from '@app/referential/services/model/model.enum';
-import { ExtractionProductFilter } from '../services/filter/extraction-product.filter';
 import { MapGraticule } from '@app/shared/map/map.graticule';
 import '@bepo65/leaflet.fullscreen';
 import 'leaflet-easybutton';
 import 'leaflet-easybutton/src/easy-button.css';
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { FetchPolicy } from '@apollo/client';
-import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/services/config/extraction.config';
+import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
+import { ExtractionProduct } from '@app/extraction/product/product.model';
+import { ProductService } from '@app/extraction/product/product.service';
+import { AggregationStrataValidatorService } from '@app/extraction/strata/strata.validator';
+import { IAggregationStrata } from '@app/extraction/strata/strata.model';
+import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 
 declare interface LegendOptions {
   min: number;
@@ -203,7 +204,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   };
 
   columnNames = {}; // cache for i18n column name
-  productFilter: Partial<ExtractionProductFilter>;
+  productFilter: Partial<ExtractionTypeFilter>;
   $fitToBounds = new Subject<L.LatLngBounds>();
   $center = new BehaviorSubject<{center: L.LatLng, zoom: number}>(undefined);
   $title = new BehaviorSubject<string>(undefined);
@@ -319,16 +320,16 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
-    protected aggregationService: ExtractionProductService,
+    protected productService: ProductService,
     protected durationPipe: DurationPipe,
-    protected aggregationStrataValidator: AggregationTypeValidatorService,
+    protected strataValidatorService: AggregationStrataValidatorService,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
 
     // Add controls to form
-    this.form.addControl('strata', this.aggregationStrataValidator.getStrataFormGroup());
+    this.form.addControl('strata', this.strataValidatorService.getFormGroup());
     this.form.addControl('year', this.formBuilder.control(null, Validators.required));
     this.form.addControl('month', this.formBuilder.control(null));
     this.form.addControl('quarter', this.formBuilder.control(null));
@@ -502,7 +503,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   }
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionProduct>> {
-    return this.aggregationService.watchAll(this.productFilter);
+    return this.productService.watchAll(this.productFilter);
   }
 
   protected fromObject(json: any): ExtractionProduct {
@@ -669,7 +670,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
     // Update filter columns
     const sheetName = this.sheetName;
-    const columns = sheetName && (await this.aggregationService.loadColumns(this.type, sheetName)) || [];
+    const columns = sheetName && (await this.productService.loadColumns(this.type, sheetName)) || [];
 
     // Translate names
     this.translateColumns(columns);
@@ -793,7 +794,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       while (hasMore) {
 
         // Get geo json using slice
-        const geoJson = await this.aggregationService.loadGeoJson(this.type,
+        const geoJson = await this.service.loadGeoJson(this.type,
           strata,
           offset, size,
           null, null,
@@ -875,7 +876,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }
   }
 
-  async loadTechData(type?: ExtractionProduct, strata?: IAggregationStrata,
+  async loadTechData(type?: ExtractionProduct,
+                     strata?: IAggregationStrata,
                      filter?: ExtractionFilter) {
     type = type || this.type;
     strata = type && (strata || this.getStrataValue());
@@ -888,7 +890,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     const techColumnName = strata.techColumnName;
 
     try {
-      let map = await this.aggregationService.loadAggByTech(type, strata, filter, {
+      let map = await this.service.loadAggByTech(type, strata, filter, {
         fetchPolicy: isAnimated ? 'cache-first' : undefined /*default*/
       });
       if (isAnimated) {
@@ -1027,12 +1029,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       const opts = this.techChartOptions;
 
       // Create new filter, without criterion on time (.e.g on year)
-      const filterNoTimes = { ...filter,
+      const filterNoTimes = ExtractionFilter.fromObject({ ...filter,
         criteria: (filter.criteria || []).filter(criterion => criterion.name !== strata.timeColumnName)
-      };
-      const {min, max} = await this.aggregationService.loadAggMinMaxByTech(type, strata, filterNoTimes, {
-        fetchPolicy: 'cache-first'
       });
+      const {min, max} = await this.service.loadAggMinMaxByTech(type, strata, filterNoTimes,
+        { fetchPolicy: 'cache-first' });
       console.debug(`[extraction-map] Changing tech chart options: {min: ${min}, max: ${max}}`);
       this.animationOverrides.techChartOptions = {
         ...opts,
@@ -1162,15 +1163,19 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       event.preventDefault();
     }
     // If supervisor, allow to see all aggregations types
-    const filter: Partial<ExtractionProductFilter> = {
+    const filter: Partial<ExtractionTypeFilter> = {
       statusIds: this.accountService.hasMinProfile('SUPERVISOR')
         ? [StatusIds.DISABLE, StatusIds.ENABLE, StatusIds.TEMPORARY]
         : [StatusIds.ENABLE],
       isSpatial: true
     };
     const modal = await this.modalCtrl.create({
-      component: SelectProductModal,
-      componentProps: { filter },
+      component: SelectExtractionTypeModal,
+      componentProps: <SelectExtractionTypeModalOptions>{
+        filter,
+        title: 'EXTRACTION.MAP.SELECT_MODAL.TITLE',
+        helpText: 'EXTRACTION.MAP.SELECT_MODAL.HELP'
+      },
       keyboardClose: true
     });
 
@@ -1206,7 +1211,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   toggleShowCountriesLayer() {
     this.showCountriesLayer = !this.showCountriesLayer;
-    this.markForCheck();
+
+    // Reload data
+    if (!this.isAnimated) this.loadGeoData();
   }
 
   setTechChartOption(value: Partial<TechChartOptions>, opts?: { emitEvent?: boolean; }) {
@@ -1399,7 +1406,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   protected getStrataValue(): IAggregationStrata {
     const json = this.form.get('strata').value;
     delete json.__typename;
-    return json as AggregationStrata;
+    return json as IAggregationStrata;
   }
 
   protected floatToLocaleString(value: number|string): string|undefined {

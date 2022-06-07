@@ -307,7 +307,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   resetFilter(json?: any) {
     json = {
       ...json,
-      levelId: json.levelId || this._program?.id
+      levelId: json?.levelId || this._program?.id
     };
     const filter = this.asFilter(json);
     AppFormUtils.copyEntity2Form(json, this.filterForm);

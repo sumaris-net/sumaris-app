@@ -39,6 +39,7 @@ import { ProductModal } from '@app/trip/product/product.modal';
 import { OperationGroupModal } from '@app/trip/operationgroup/operation-group.modal';
 import { OperationGroupForm } from '@app/trip/operationgroup/operation-group.form';
 import { AppCoreModule } from '@app/core/core.module';
+import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 
 
 @NgModule({
@@ -46,8 +47,9 @@ import { AppCoreModule } from '@app/core/core.module';
     AppCoreModule,
     AppDataModule,
     TripModule,
-    AppReferentialModule,
     VesselModule,
+    AppReferentialModule,
+    AppMeasurementModule,
     TranslateModule.forChild()
   ],
   declarations: [

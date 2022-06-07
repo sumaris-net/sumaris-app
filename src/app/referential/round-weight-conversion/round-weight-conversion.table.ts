@@ -9,7 +9,6 @@ import { RoundWeightConversionValidatorService } from './round-weight-conversion
 import moment from 'moment';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { LocationLevelIds, ParameterLabelGroups } from '@app/referential/services/model/model.enum';
-import { ParameterService } from '@app/referential/services/parameter.service';
 
 @Component({
   selector: 'app-round-weight-conversion-table',
@@ -44,8 +43,7 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
 
   constructor(injector: Injector,
               entityService: RoundWeightConversionService,
-              validatorService: RoundWeightConversionValidatorService,
-              protected parameterService: ParameterService
+              validatorService: RoundWeightConversionValidatorService
   ) {
     super(injector,
       RoundWeightConversion,

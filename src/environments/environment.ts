@@ -29,10 +29,15 @@ export const environment = Object.freeze(<AppEnvironment>{
   // TODO: make this works
   //offline: true,
 
-  peerMinVersion: '1.25.0',
+  peerMinVersion: '1.25.2',
 
   // Not need during DEV
   //checkAppVersionIntervalInSeconds: 0,
+
+  defaultPeer: {
+    host: 'test.sumaris.net',
+    port: 443
+  },
 
   defaultPeers: [
     {
@@ -53,10 +58,6 @@ export const environment = Object.freeze(<AppEnvironment>{
     },
     {
       host: '192.168.0.24',
-      port: 8080
-    },
-    {
-      host: '192.168.0.29',
       port: 8080
     },
     {
@@ -82,10 +83,6 @@ export const environment = Object.freeze(<AppEnvironment>{
     },
     {
       host: 'open.sumaris.net',
-      port: 443
-    },
-    {
-      host: 'adap.e-is.pro',
       port: 443
     },
     {

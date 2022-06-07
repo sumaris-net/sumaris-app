@@ -5,7 +5,8 @@
 
 <ion-content>
 
-  <mat-tab-group class="mat-tab-disabled-hidden" #tabGroup
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"

@@ -3,25 +3,16 @@ import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { Environment, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
-import { FormatPropertyPipe } from './pipes/format-property.pipe';
-import { AutoTitleDirective } from '@app/shared/pipes/auto-title.directive';
 
 @NgModule({
   imports: [
     SharedModule
   ],
-  declarations: [
-    FormatPropertyPipe,
-    AutoTitleDirective // TODO: move it to ngx-components
-  ],
+  declarations: [],
   exports: [
     SharedModule,
     RouterModule,
-    TranslateModule,
-
-    // Pipes
-    FormatPropertyPipe,
-    AutoTitleDirective
+    TranslateModule
   ]
 })
 export class AppSharedModule {

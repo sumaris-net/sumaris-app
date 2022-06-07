@@ -16,6 +16,7 @@
     "BTN_DONE": "Terminer",
     "BTN_DOWNLOAD": "Télécharger",
     "BTN_IMPORT": "Importer",
+    "BTN_IMPORT_FROM_FILE_DOTS": "Importer depuis un fichier...",
     "BTN_DUPLICATE": "Dupliquer",
     "BTN_DELETE": "Supprimer",
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
@@ -520,6 +521,7 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
+      "EXPORT_FILENAME": "Marées.json",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "START_DATE": "Début de période",
@@ -535,6 +537,13 @@
         "DIRTY_HELP": "Marées hors-ligne",
         "READY_TO_SYNC_HELP": "Marées en attente d'envoi",
         "SYNC_HELP": "Marées synchronisées"
+      },
+      "INFO": {
+        "IMPORT_FILE_SUCCEED" : "Importation des marées terminée :<br><b>{{inserts}} marée(s) importée(s) !",
+        "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Importation des marées terminée :<br><ul><li>{{inserts}} importée(s);<li>{{errors}} ignorée(s)"
+      },
+      "ERROR": {
+        "IMPORT_FILE_FAILED" : "<b>Aucune marée n'a pu être importée</b> !<br/><small>Erreur technique: {{error}}</small>"
       }
     },
     "TRASH": {
@@ -719,6 +728,7 @@
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
+        "MISSING_PARENT_OPERATION": "Opération parente supprimée",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
         "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)",
@@ -784,6 +794,7 @@
         "PARENT_GROUP": "Lot espèce",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures",
+        "BTN_APPLY_CHILDREN_WEIGHT": "Appliquer ce poids",
         "ESTIMATED_WEIGHT": "Poids estimé ?",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
         "TOTAL_WEIGHT": "Poids total (kg)",
@@ -792,7 +803,9 @@
         "WITHOUT_MEASURE": "Sans mesure",
         "IS_SAMPLING": "Saisir le poids échantillonné (si mesure) :",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
-        "SAMPLING_RATIO": "Taux échant. (%)",
+        "SAMPLING_CHILDREN_WEIGHT": "Poids calculé par RTP",
+        "SAMPLING_RATIO_PCT": "Taux échant. (%)",
+        "SAMPLING_COEFFICIENT": "Coef. échant. (1/m)",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
@@ -825,6 +838,10 @@
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
+      },
+      "PMFM": {
+        "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)"
       }
     },
     "SUB_BATCH": {
@@ -1356,7 +1373,7 @@
         "TITLE": "Espèce commerciale {{label}} - {{name}}"
       },
       "ROUND_WEIGHT_CONVERSION": {
-        "EXPORT_CSV_FILENAME": "EPV-{{taxonGroupId}}.csv",
+        "EXPORT_CSV_FILENAME": "Equivalent_poids_vifs-{{taxonGroupId}}.csv",
         "CONVERSION_COEFFICIENT": "Coef. conversion",
         "COMMENTS": "Commentaires",
         "CREATION_DATE": "Date création",
@@ -1571,16 +1588,18 @@
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
       "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",
       "TRIP_MAP_ZOOM": "Marée > Carte: Niveau du zoom",
+      "TRIP_MIN_DURATION_HOURS": "Marée > Durée minimale (heures)",
       "TRIP_MAX_DURATION_HOURS": "Marée > Durée maximale (heures)",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientifiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: Calcul auto nb indiv. échantillonné ?",
-      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : Réordonné à la sauvegarde ?",
+      "TRIP_BATCH_SAMPLING_RATIO_TYPE": "Capture > Lot espèce: Format de saisie de la fraction",
       "TRIP_BATCH_ENABLE": "Capture > Lot espèce: Activer ?",
       "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lot espèce : Activer les mesures individuelles ?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Capture > Lot espèce : Saisir les poids ?",
+      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : Réordonné à la sauvegarde ?",
       "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Capture > Mesures individuelles : Calcul poids par RTP ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Capture > Mesures individuelles : Saisir nb indiv. ?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Capture > Mesures individuelles : Espèces scientifiques ?",
@@ -1598,10 +1617,10 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
-      "TRIP_METIER_FILTER": "Marée > Opération : Filtrer les métiers déjà saisis ?",
+      "TRIP_OPERATION_METIER_FILTER": "Marée > Opération : Filtrer sur les métiers déjà saisis ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée > Opération : Caractéristiques optionnelles si saisie terrain ?",
-      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte :",
-      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur :",
+      "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte (miles) :",
+      "TRIP_OPERATION_DISTANCE_MAX_ERROR" : "Marée > Opération : Distance max parcourue avant erreur (miles) :",
       "TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS": "Marée > Opération : Durée maximale de pose ou relève (heures)",
       "TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS": "Marée > Opération : Durée maximale totale (heures)",
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Marée > Opération : Initialiser les dates avec celles de la marée ?",
@@ -1655,7 +1674,7 @@
       "TAXON_NAMES": "Espèce cible",
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
-      "BTN_REMOVE_TO_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
+      "BTN_REMOVE_FROM_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplication",
         "HELP": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :"
@@ -1832,16 +1851,21 @@
   "EXTRACTION": {
     "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
     "BTN_SAVE_HELP": "Permet de créer un produit",
-    "SPATIAL_AGGREGATION": "Aggréger en produit carto.",
-    "NEW_PRODUCT": "Enregistrer en produit simple",
+    "NEW_SPATIAL_AGGREGATION": "Créer une agrégation spatiale...",
+    "NEW_PRODUCT": "Créer un nouveau produit",
     "BTN_PUBLISH": "Rendre public",
     "BTN_UNPUBLISH": "Rendre privé",
     "BTN_OPEN_MAP": "Visualiser les données sur une carte",
     "TYPE": "Type d'extraction",
+    "TYPES_MENU": {
+      "PRODUCT_DIVIDER": "Produits",
+      "LIVE_DIVIDER": "Formats temps réel",
+      "PROGRAM_DIVIDER": "Programmes de collecte"
+    },
     "AGGREGATION": {
-      "NEW_NAME": "Nouveau produit / {{name}}",
       "NEW": {
-        "TITLE": "Nouveau produit"
+        "TITLE": "Nouveau produit",
+        "DEFAULT_NAME": "Nouvel agrégation {{format}}"
       },
       "EDIT": {
         "TITLE": "<small>Produit<br/></small>{{name}}",
@@ -1970,6 +1994,8 @@
       "RECORD_TYPE": "Type",
       "HARBOUR": "Port",
       "PROJECT": "Projet",
+      "TRIP_CODE": "Code marée",
+      "STATION_NUMBER": "Numéro de station",
       "YEAR": "Année",
       "QUARTER": "Trimestre",
       "MONTH": "Mois",
@@ -2049,7 +2075,10 @@
       "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres"
     },
     "PRODUCT": {
-      "NEW_NAME": "Produit {{name}}",
+      "NEW": {
+        "DEFAULT_NAME": "Nouveau produit {{format}}",
+        "DEFAULT_DESCRIPTION": "Créé par {{firstName}} {{lastName}}"
+      },
       "P01_RDB": {
         "TITLE": "Appel à données CIEM (RDB v1.3)"
       }
@@ -2083,7 +2112,8 @@
         "TITLE": "Marées Pocheteaux (RJB v{{version}})"
       },
       "PMFM_TRIP": {
-        "TITLE": "Marées brutes (PMFM v{{version}})"
+        "TITLE": "Marées brutes > Programme",
+        "TITLE_PROGRAM": "Marées brutes {{label}}"
       },
       "STRAT": {
         "TITLE": "Stratégies de collecte",

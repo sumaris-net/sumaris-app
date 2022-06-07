@@ -60,6 +60,15 @@
         <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
       </ion-button>
 
+      <!-- download -->
+      <button mat-button
+              *ngIf="canUpload"
+              (click)="downloadSelectionAsFile()">
+        <mat-icon>download</mat-icon>
+        <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
+      </button>
+
+
       <!-- delete -->
       <button mat-icon-button class="hidden-xs hidden-sm"
               *ngIf="canDelete"
@@ -94,6 +103,14 @@
   </button>
 
   <mat-divider></mat-divider>
+
+  <!-- upload button -->
+  <button mat-menu-item
+          *ngIf="synchronizationStatus !== 'SYNC'"
+          (click)="importFromFile($event)">
+    <mat-icon>upload</mat-icon>
+    <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
+  </button>
 
   <!-- trash -->
   <button mat-menu-item

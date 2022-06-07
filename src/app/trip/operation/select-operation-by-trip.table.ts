@@ -32,6 +32,8 @@ import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {BehaviorSubject, from, merge} from 'rxjs';
 import {mergeLoadResult} from '@app/shared/functions';
+import { PhysicalGearServiceWatchOptions } from '@app/trip/services/physicalgear.service';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 class OperationDivider extends Operation {
   trip: Trip;

@@ -39,6 +39,7 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -245,7 +246,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     injector: Injector,
     protected settings: LocalSettingsService,
     protected batchGroupValidator: BatchGroupValidatorService,
-    protected context: TripContextService
+    protected context: TripContextService,
+    protected pmfmNamePipe: PmfmNamePipe
   ) {
     super(injector,
       // Force no validator (readonly mode, if mobile)
@@ -267,6 +269,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // Set default values
     this.confirmBeforeDelete = this.mobile;
     this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
+    this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
     this.keepEditedRowOnSave = !this.mobile;
     this.saveBeforeDelete = false;
     // this.showCommentsColumn = false; // Already set in batches-table
@@ -615,6 +618,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Set weight
     if (isNotNilOrNaN(batch.weight?.value)) {
+      batch.weight.estimated = isEstimatedWeight;
       const weightPmfm = BatchUtils.getWeightPmfm(batch.weight, this.weightPmfms, this.weightPmfmsByMethod);
       batch.measurementValues[weightPmfm.id.toString()] = batch.weight.value;
     }
@@ -631,6 +635,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
       // Set weight
       if (isNotNilOrNaN(samplingBatch.weight?.value)) {
+        samplingBatch.weight.estimated = isEstimatedWeight;
         const samplingWeightPmfm = BatchUtils.getWeightPmfm(samplingBatch.weight, this.weightPmfms, this.weightPmfmsByMethod);
         samplingBatch.measurementValues[samplingWeightPmfm.id.toString()] = samplingBatch.weight.value;
       }
@@ -786,7 +791,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         const hidden = this.mobile || pmfm.hidden;
         return <ColumnDefinition>{
           type: pmfm.type,
-          label: PmfmUtils.getPmfmName(pmfm),
+          label: this.pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nColumnSuffix}),
           key,
           qvIndex,
           rankOrder,
@@ -795,6 +800,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
           isIndividualCount: false,
           isSampling: false,
           pmfm,
+          unitLabel: pmfm.unitLabel,
           path: qvIndex >= 0 ? `children.${qvIndex}.measurementValues.${pmfm.id}` : pmfm.id.toString()
         };
       });
@@ -929,6 +935,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         availableParents,
         data: this.availableSubBatches,
         onNewParentClick,
+        i18nSuffix: this.i18nColumnSuffix,
         // Override using input options
         maxVisibleButtons: this.modalOptions?.maxVisibleButtons
       },
@@ -985,6 +992,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showSamplingBatch: this.showSamplingBatchColumns,
         allowSubBatches: this.allowSubBatches,
         defaultHasSubBatches: this.defaultHasSubBatches,
+        samplingRatioType: this.samplingRatioType,
         openSubBatchesModal: (batchGroup) => this.openSubBatchesModalFromParentModal(batchGroup),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         // Override using given options
@@ -1097,26 +1105,29 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (this.debug) console.debug('[batch-group-table] Updating batch group, from batches...', parent, children);
 
     const updateSortingBatch = (batch: Batch, children: SubBatch[]) => {
-      const samplingBatch = BatchUtils.getSamplingChild(batch);
+      const samplingBatch = BatchUtils.getOrCreateSamplingChild(batch);
       // Update individual count
       samplingBatch.individualCount = BatchUtils.sumObservedIndividualCount(children);
       parent.observedIndividualCount = samplingBatch.individualCount || 0;
 
       // Update weight, if Length-Weight conversion enabled
       if (this.enableWeightLengthConversion) {
-        if (isNil(samplingBatch.weight?.value) || samplingBatch.weight.computed) {
-          console.debug('[batch-group-table] Computing SUM of subbatches RTP weights...');
-          samplingBatch.weight = BatchUtils.sumCalculatedWeight(children, this.weightPmfms, this.weightPmfmsByMethod);
-        }
+        samplingBatch.childrenWeight = BatchUtils.sumCalculatedWeight(children, this.weightPmfms, this.weightPmfmsByMethod);
+        console.debug('[batch-group-table] Computed children weight: ', samplingBatch.childrenWeight);
+      }
+      else {
+        samplingBatch.childrenWeight = null;
       }
 
+      // return some values, to compute sum on the batch group
       return {
-        individualCount: samplingBatch.individualCount
+        individualCount: samplingBatch.individualCount,
+        childrenWeight: samplingBatch.childrenWeight
       };
     }
 
     if (!this.qvPmfm) {
-      const {individualCount} = updateSortingBatch(parent, children);
+      const {individualCount, childrenWeight} = updateSortingBatch(parent, children);
       parent.observedIndividualCount = individualCount || 0;
     } else {
       const qvPmfmId = this.qvPmfm.id.toString();
@@ -1219,17 +1230,24 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     console.debug('[batch-group-table] Init row validator');
 
     // Add computation and validation
-    {
-      this._rowValidatorSubscription?.unsubscribe();
-      const subscription = this.batchGroupValidator.enableSamplingRatioAndWeight(form, {
-        qvPmfm: this.qvPmfm,
-        markForCheck: () => this.markForCheck()
+    this._rowValidatorSubscription?.unsubscribe();
+    const requiredSampleWeight = (form && form.value?.observedIndividualCount || 0) > 0;
+    const subscription = this.batchGroupValidator.enableSamplingRatioAndWeight(form, {
+      qvPmfm: this.qvPmfm,
+      samplingRatioType: this.samplingRatioType,
+      requiredSampleWeight,
+      weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
+      markForCheck: () => this.markForCheck()
+    });
+    if (subscription) {
+      // Register subscription
+      this.registerSubscription(subscription);
+      this._rowValidatorSubscription = subscription;
+      // When unsubscribe, unregister
+      subscription.add(() => {
+        this.unregisterSubscription(subscription);
+        this._rowValidatorSubscription = undefined;
       });
-      if (subscription) {
-        this._rowValidatorSubscription = subscription;
-        this.registerSubscription(this._rowValidatorSubscription);
-        subscription.add(() => this.unregisterSubscription(subscription));
-      }
     }
   }
 }

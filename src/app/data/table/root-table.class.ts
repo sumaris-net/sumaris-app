@@ -1,6 +1,6 @@
 import { Directive, Injector, Input, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, map, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
   AppFormUtils,
@@ -8,16 +8,20 @@ import {
   chainPromises,
   ConnectionType,
   EntitiesTableDataSource,
-  isEmptyArray,
+  FileEvent,
+  FileResponse,
+  FormFieldDefinition,
+  isEmptyArray, isNil,
   isNotNil,
+  isNotNilOrBlank,
   NetworkService,
-  referentialToString,
+  referentialToString, sleep,
   toBoolean,
   toDateISOString,
   UsageMode,
   UserEventService
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
 import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
@@ -25,6 +29,9 @@ import * as momentImported from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
+import { HttpEventType } from '@angular/common/http';
+import { FilesUtils } from '@sumaris-net/ngx-components';
+import { PopoverController } from '@ionic/angular';
 
 const moment = momentImported;
 
@@ -45,6 +52,7 @@ export abstract class AppRootDataTable<
   protected network: NetworkService;
   protected userEventService: UserEventService;
   protected accountService: AccountService;
+  protected popoverController: PopoverController;
 
   canEdit: boolean;
   canDelete: boolean;
@@ -54,6 +62,7 @@ export abstract class AppRootDataTable<
   filterPanelFloating = true;
   showUpdateOfflineFeature = false;
   offline = false;
+  logPrefix = '[root-data-table] ';
 
   importing = false;
   progressionMessage: string = null;
@@ -93,6 +102,7 @@ export abstract class AppRootDataTable<
     this.network = injector && injector.get(NetworkService);
     this.accountService = injector && injector.get(AccountService);
     this.userEventService = injector && injector.get(UserEventService);
+    this.popoverController = injector && injector?.get(PopoverController);
 
     this.readOnly = false;
     this.inlineEdition = false;
@@ -553,6 +563,21 @@ export abstract class AppRootDataTable<
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
 
+  async importFromFile(event?: UIEvent): Promise<any[]> {
+    const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
+      uniqueFile: true,
+      fileExtension: '.json',
+      instantUpload: true,
+      uploadFn: (file) => this.uploadFile(file)
+    });
+
+    const entities = (data || []).flatMap(file => file.response?.body || []);
+    if (isEmptyArray(entities)) return; // No entities: skip
+
+    console.info(this.logPrefix + `Loaded ${entities.length} entities from file`);
+    return entities;
+  }
+
   referentialToString = referentialToString;
   qualityFlagToColor = qualityFlagToColor;
 
@@ -635,5 +660,45 @@ export abstract class AppRootDataTable<
     }
   }
 
+  protected getJsonEncoding(): string {
+    const key = 'FILE.JSON.ENCODING';
+    const encoding = this.translate.instant(key);
+    if (encoding !== key) return encoding;
+    return 'UTF-8'; // Default encoding
+  }
+
+  protected uploadFile(file: File): Observable<FileEvent<T[]>> {
+    console.info(this.logPrefix + `Importing JSON file ${file.name}...`);
+
+    const encoding = this.getJsonEncoding();
+
+    return FilesUtils.readAsText(file, encoding)
+      .pipe(
+        map(event => {
+          if (event.type === HttpEventType.UploadProgress) {
+            const loaded = Math.round(event.loaded * 0.8);
+            return {...event, loaded};
+          }
+          else if (event instanceof FileResponse){
+            console.debug(this.logPrefix + 'File content: \n' + event.body);
+            try {
+              let data = JSON.parse(event.body);
+              if (Array.isArray(data)) {
+                return new FileResponse<T[]>({body: data});
+              }
+              return new FileResponse<T[]>({body: [data]});
+            } catch (err) {
+              console.error(this.logPrefix + 'Error while parsing JSON file', err);
+              throw new Error('Invalid JSON file'); // TODO translate
+            }
+          }
+          // Unknown event: skip
+          else {
+            return null;
+          }
+        }),
+        filter(isNotNil)
+      );
+  }
 }
 

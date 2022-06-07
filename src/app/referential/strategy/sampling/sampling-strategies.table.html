@@ -231,7 +231,9 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar" [class.full-height]="!showToolbar">
+<div class="table-container" [class.has-toolbar]="showToolbar"
+     [class.has-paginator]="showPaginator"
+     [class.full-height]="!showToolbar">
   <table mat-table  matSort
          [matSortActive]="defaultSortBy"
          [matSortDirection]="defaultSortDirection"
@@ -409,11 +411,20 @@
   </ng-template>
 </div>
 
-<ion-row class="ion-no-padding" *ngIf="showPaginator"
-         [class.cdk-visually-hidden]="!totalRowCount">
-  <ion-col [class.cdk-visually-hidden]="mobile"></ion-col>
-  <ion-col class="ion-no-padding" size="auto">
-    <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
-    </mat-paginator>
-  </ion-col>
-</ion-row>
+<ion-footer *ngIf="showPaginator">
+  <mat-paginator #paginator class="mat-paginator-footer"
+                 [length]="totalRowCount" [pageSize]="pageSize"
+                 [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>
+
+
+<ng-template #addRowButton>
+  <span *ngIf="!mobile && enabled">&nbsp;
+    <ion-button color="medium"
+                (click)="addRow()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      <span translate>COMMON.BTN_ADD</span>
+    </ion-button>
+  </span>
+</ng-template>

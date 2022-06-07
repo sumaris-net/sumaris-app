@@ -137,6 +137,22 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_BATCH_SAMPLING_RATIO_TYPE: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.samplingRatio.type',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_SAMPLING_RATIO_TYPE',
+    defaultValue: '%',
+    type: 'enum',
+    values: [
+      {
+        key: '%',
+        value: 'TRIP.BATCH.EDIT.SAMPLING_RATIO_PCT'
+      },
+      {
+        key: '1/w',
+        value: 'TRIP.BATCH.EDIT.SAMPLING_COEFFICIENT'
+      }
+    ]
+  },
   TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.individualCount.compute',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE',
@@ -288,12 +304,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
-  TRIP_FILTER_METIER: <FormFieldDefinition>{
-    key: 'sumaris.trip.metier.filter',
-    label: 'PROGRAM.OPTIONS.TRIP_METIER_FILTER',
-    defaultValue: 'false',
-    type: 'boolean'
-  },
   TRIP_DISTANCE_MAX_WARNING: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.distanceMaxWarning',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_DISTANCE_MAX_WARNING',
@@ -321,6 +331,12 @@ export const ProgramProperties = Object.freeze({
   TRIP_APPLY_DATE_ON_NEW_OPERATION: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.copyTripDates',
     label: 'PROGRAM.OPTIONS.TRIP_APPLY_DATE_ON_NEW_OPERATION',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+  TRIP_OPERATION_METIER_FILTER: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.metier.filter',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_FILTER',
     defaultValue: 'false',
     type: 'boolean'
   },

@@ -55,7 +55,7 @@ import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
 import { TypePolicies } from '@apollo/client/core';
 import { TRIP_TESTING_PAGES } from './trip/trip.testing.module';
-import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/services/config/extraction.config';
+import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/common/extraction.config';
 import { REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS } from './referential/services/config/referential.config';
 import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/services/config/data.config';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS } from './vessel/services/config/vessel.config';
@@ -70,6 +70,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
 import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
 import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
 import { AppImageModule } from '@app/image/image.module';
+import {APP_SHARED_TESTING_PAGES} from '@app/shared/shared.testing.module';
 
 @NgModule({
   declarations: [
@@ -343,7 +344,7 @@ import { AppImageModule } from '@app/image/image.module';
 
     // Testing pages
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
-        ...SHARED_TESTING_PAGES,
+        ...APP_SHARED_TESTING_PAGES,
         ...REFERENTIAL_TESTING_PAGES,
         ...IMAGE_TESTING_PAGES,
         ...TRIP_TESTING_PAGES

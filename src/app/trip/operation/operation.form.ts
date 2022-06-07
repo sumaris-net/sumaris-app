@@ -28,7 +28,7 @@ import {
   removeDuplicatesFromArray,
   StatusIds,
   suggestFromArray,
-  toBoolean,
+  toBoolean, toDateISOString,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -54,6 +54,7 @@ import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.m
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
 import { BBox } from 'geojson';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 
 const moment = momentImported;
 
@@ -610,16 +611,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     const value = this.form.value as Partial<Operation>;
     const parent = value.parentOperation;
     const trip = this.trip;
-    const startDate = trip && fromDateISOString(trip.departureDateTime).clone().add(-15, 'day') || moment().add(-15, 'day');
+    const tripDate = trip && fromDateISOString(trip.departureDateTime).clone() || moment();
+    const startDate = tripDate.add(-15, 'day').startOf('day');
 
     const gearIds = removeDuplicatesFromArray((this._physicalGearsSubject.value || []).map(physicalGear => physicalGear.gear.id));
 
     const modal = await this.modalCtrl.create({
       component: SelectOperationModal,
       componentProps: <SelectOperationModalOptions>{
-        filter: {
+        filter: <OperationFilter>{
           programLabel: this.programLabel,
-          vesselId: trip.vesselSnapshot?.id,
+          vesselId: trip && trip.vesselSnapshot?.id,
           excludedIds: isNotNil(value.id) ? [value.id] : null,
           excludeChildOperation: true,
           hasNoChildOperation: true,

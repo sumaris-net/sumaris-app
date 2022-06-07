@@ -7,6 +7,7 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Subscription } from 'rxjs';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { environment } from '@environments/environment';
+import { SamplingRatioType } from '@app/trip/batch/common/batch.form';
 
 export interface BatchGroupValidatorOptions extends BatchValidatorOptions {
 }
@@ -30,19 +31,21 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
   }
 
   getFormGroup(data?: BatchGroup, opts?: BatchGroupValidatorOptions): FormGroup {
-    return super.getFormGroup(data, {withWeight: true, withChildren: true, qvPmfm: this.qvPmfm, ...opts});
+    return super.getFormGroup(data, {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this.qvPmfm, ...opts});
   }
 
   getFormGroupConfig(data?: BatchGroup, opts?: BatchGroupValidatorOptions): { [key: string]: any } {
-    const config = super.getFormGroupConfig(data, opts);
+    const formConfig = super.getFormGroupConfig(data, opts);
 
-    config.observedIndividualCount = [data && data.observedIndividualCount, SharedValidators.integer];
+    formConfig.observedIndividualCount = [data && data.observedIndividualCount, SharedValidators.integer];
 
-    return config;
+    return formConfig;
   }
 
   enableSamplingRatioAndWeight(form: FormGroup, opts?: {
-    requiredSampleWeight?: boolean;
+    samplingRatioType: SamplingRatioType;
+    requiredSampleWeight: boolean;
+    weightMaxDecimals: number;
     qvPmfm?: IPmfm,
     markForCheck?: () => void;
   }): Subscription {
@@ -64,7 +67,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
 
   protected fillDefaultOptions(opts?: BatchGroupValidatorOptions): BatchGroupValidatorOptions {
     opts = super.fillDefaultOptions(opts);
-    return {withWeight: true, withChildren: true, qvPmfm: this.qvPmfm, ...opts};
+    return {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this.qvPmfm, ...opts};
   }
 }
 
@@ -75,7 +78,9 @@ export class BatchGroupValidators {
    * @param opts
    */
   static samplingRatioAndWeight(opts: {
-    requiredSampleWeight?: boolean;
+    samplingRatioType: SamplingRatioType;
+    requiredSampleWeight: boolean;
+    weightMaxDecimals: number;
     qvPmfm?: IPmfm;
   }): ValidatorFn {
     if (!opts?.qvPmfm) {

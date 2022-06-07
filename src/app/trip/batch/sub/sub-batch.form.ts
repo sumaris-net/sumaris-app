@@ -3,7 +3,7 @@ import { Batch } from '../common/batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import {
   AppFormUtils,
@@ -65,7 +65,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   warning: string;
   weightPmfm: IPmfm;
   enableLengthWeightConversion: boolean;
-  roundWeightConversionCountryId: number;
 
   @Input() title: string;
   @Input() showParentGroup = true;
@@ -79,6 +78,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @Input() floatLabel: FloatLabelType;
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
+  @Input() i18nSuffix: string;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
@@ -190,6 +190,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
     // Set default values
     this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
+    this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
 
     // Control for indiv. count enable
     this.enableIndividualCountControl = this.formBuilder.control(false, Validators.required);
@@ -649,8 +650,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
         const subscription = await this.validatorService.enableWeightLengthConversion(form, {
           pmfms: this.$pmfms.value,
           qvPmfm: this._qvPmfm,
-          countryId: this.roundWeightConversionCountryId,
-          //parentGroup: this.parentGroup,
+          parentGroup: !this.showParentGroup ? this.parentGroup : undefined /*will use parent control*/,
           onError: (err) => {
             this.warning = err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED';
             this.markForCheck();

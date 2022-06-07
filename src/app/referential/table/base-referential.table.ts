@@ -1,37 +1,39 @@
 import { AfterViewInit, Directive, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
-  AppFormUtils, chainPromises,
-  changeCaseToUnderscore, CryptoService,
+  AppFormUtils,
+  changeCaseToUnderscore,
+  CryptoService,
   EntitiesServiceWatchOptions,
   Entity,
-  EntityFilter, EntityUtils,
+  EntityFilter,
   FileEvent,
   FileResponse,
   FilesUtils,
   firstNotNilPromise,
   FormFieldDefinition,
   FormFieldType,
-  IEntitiesService, IEntity,
-  isEmptyArray, isNil,
-  isNotNil, isNotNilOrBlank, IStatus,
-  joinProperties,
-  LoadResult, sleep,
-  StartableService, StatusById, StatusList,
-  suggestFromArray, toNumber
+  IEntitiesService,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  IStatus,
+  LoadResult,
+  sleep,
+  StartableService,
+  StatusById,
+  StatusList,
+  suggestFromArray, PropertyFormatPipe, CsvUtils
 } from '@sumaris-net/ngx-components';
 import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableOptions } from '@app/shared/table/base.table';
 import { FormBuilder } from '@angular/forms';
-import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { IonInfiniteScroll, PopoverController } from '@ionic/angular';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { CsvUtils } from '@app/shared/csv.utils';
-import { FormatPropertyPipe } from '@app/shared/pipes/format-property.pipe';
 import { BehaviorSubject, isObservable, Observable, of, Subject } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
-import { DebugUtils } from '@app/shared/debug.utils';
-import { Sample } from '@app/trip/services/model/sample.model';
 
 export class BaseReferentialTableOptions<
   T extends Entity<T, ID>,
@@ -83,7 +85,7 @@ export abstract class BaseReferentialTable<
   columnDefinitions: FormFieldDefinition[];
 
   protected popoverController: PopoverController;
-  protected formatPropertyPipe: FormatPropertyPipe;
+  protected propertyFormatPipe: PropertyFormatPipe;
   protected referentialRefService: ReferentialRefService;
   protected cryptoService: CryptoService;
 
@@ -109,7 +111,7 @@ export abstract class BaseReferentialTable<
     );
 
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.formatPropertyPipe = injector.get(FormatPropertyPipe);
+    this.propertyFormatPipe = injector.get(PropertyFormatPipe);
     this.popoverController = injector.get(PopoverController);
     this.cryptoService = injector.get(CryptoService);
     this.title = this.i18nColumnPrefix && (this.i18nColumnPrefix + 'TITLE') || '';
@@ -201,7 +203,7 @@ export abstract class BaseReferentialTable<
     const headers = this.columnDefinitions.map(def => def.key);
     const rows = (await this.dataSource.getRows())
       .map(element => element.currentData)
-      .map(data => this.columnDefinitions.map(definition => this.formatPropertyPipe.transform(data, definition)));
+      .map(data => this.columnDefinitions.map(definition => this.propertyFormatPipe.transform(data, definition)));
 
     CsvUtils.exportToFile(rows, {filename, headers, separator, encoding});
   }
