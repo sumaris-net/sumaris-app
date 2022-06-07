@@ -153,7 +153,7 @@
                     #inputField
                     [control]="form|formGetControl: ['measurementValues', pmfm.id]"
                     [pmfm]="pmfm"
-                    [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix}"
+                    [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
                     [floatLabel]="floatLabel"
                     (keyup.enter)="focusNextInputOrSubmit($event, last)"
                     [tabindex]="tabindex + 20 + i*2"
@@ -203,7 +203,7 @@
                   class="mat-form-field-disabled computed">
     <input matInput type="number"
            readonly
-           [placeholder]="weightPmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nSuffix: i18nSuffix}"
+           [placeholder]="weightPmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
            [formControl]="form|formGetControl: 'weight.value'">
   </mat-form-field>
 
