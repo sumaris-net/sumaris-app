@@ -1,0 +1,17 @@
+
+
+
+.mat-form-field.with-prefix {
+  .prefix-label {
+    opacity: 0;
+    width: 19px;
+  }
+  &.mat-form-field-should-float .prefix-label {
+    opacity: 1;
+  }
+
+  input {
+    width: calc(100% - 25px);
+    margin-inline-start: 6px;
+  }
+}
