@@ -126,6 +126,11 @@ export abstract class BaseReferentialFilter<
   protected buildFilter(): FilterFn<T>[] {
     const filterFns = super.buildFilter() || [];
 
+    // Filter by label
+    if (isNotNil(this.label)) {
+      filterFns.push(entity => entity.label === this.label);
+    }
+
     // Filter by status
     const statusIds = this.statusIds || (isNotNil(this.statusId) && [this.statusId]) || undefined;
     if (statusIds) {

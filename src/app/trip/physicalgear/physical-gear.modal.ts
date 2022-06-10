@@ -26,7 +26,7 @@ export interface IPhysicalGearModalOptions<T extends PhysicalGear = PhysicalGear
   templateUrl: './physical-gear.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, IPhysicalGearModalOptions<PhysicalGear, PhysicalGearModal> {
+export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, IPhysicalGearModalOptions {
 
   loading = false;
   originalData: PhysicalGear;

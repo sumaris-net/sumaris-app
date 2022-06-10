@@ -1,7 +1,7 @@
 import { BehaviorSubject, isObservable, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, first, map, switchMap, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { EntityUtils, firstNotNilPromise, IEntitiesService, isNil, isNotNil, LoadResult } from '@sumaris-net/ngx-components';
+import { EntityUtils, firstNotNilPromise, IEntitiesService, IEntityFilter, isNil, isNotNil, LoadResult } from '@sumaris-net/ngx-components';
 import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
 import { IPmfm, PMFM_ID_REGEXP } from '../../referential/services/model/pmfm.model';
 import { SortDirection } from '@angular/material/sort';
@@ -9,8 +9,10 @@ import { ProgramRefService } from '../../referential/services/program-ref.servic
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
-    implements IEntitiesService<T, F> {
+export class MeasurementsDataService<T extends IEntityWithMeasurement<T, ID>,
+  F extends IEntityFilter<any, T, any>,
+  ID = number>
+  implements IEntitiesService<T, F> {
 
   private readonly _debug: boolean;
   private _subscription = new Subscription();

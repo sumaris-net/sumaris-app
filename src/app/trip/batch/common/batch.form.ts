@@ -13,7 +13,6 @@ import {
   IReferentialRef,
   isNil,
   isNotNil,
-  isNotNilOrBlank,
   ReferentialUtils,
   SharedFormGroupValidators,
   splitByProperty,
@@ -31,10 +30,8 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { roundHalfUp } from '@app/shared/functions';
-
-export declare type SamplingRatioType = '%'|'1/w';
-export const SamplingRatioTypes = ['%','1/w'];
+import { equals, roundHalfUp } from '@app/shared/functions';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 @Component({
   selector: 'app-batch-form',
@@ -45,6 +42,9 @@ export const SamplingRatioTypes = ['%','1/w'];
 export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementValuesForm<T>
   implements OnInit, OnDestroy, AfterViewInit {
 
+  private _formValidatorSubscription: Subscription;
+  private _formValidatorOpts: any;
+
   protected _$afterViewInit = new BehaviorSubject<boolean>(false);
   protected _requiredWeight = false;
   protected _showWeight = true;
@@ -52,16 +52,15 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   protected _requiredIndividualCount = false;
   protected _initialPmfms: IPmfm[];
   protected _disableByDefaultControls: AbstractControl[] = [];
-  private _formValidatorSubscription: Subscription;
 
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
   weightPmfmsByMethod: { [key: string]: IPmfm };
   isSampling = false;
-  mobile: boolean;
   childrenFormHelper: FormArrayHelper<Batch>;
   taxonNameFilter: any;
 
+  @Input() mobile: boolean;
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() showTaxonGroup = true;
@@ -73,15 +72,14 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   @Input() showSamplingBatch = false;
   @Input() showError = true;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
-  @Input() mapPmfmFn: (pmfms: IPmfm[]) => IPmfm[];
   @Input() maxVisibleButtons: number;
-  @Input() samplingRatioType: SamplingRatioType = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_TYPE.defaultValue;
+  @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
   @Input() i18nSuffix: string;
 
   @Input() set showWeight(value: boolean) {
     if (this._showWeight !== value) {
       this._showWeight = value;
-      this.onUpdateFormGroup();
+      if (!this.starting) this.onUpdateFormGroup();
     }
   }
 
@@ -116,7 +114,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   set requiredSampleWeight(value: boolean) {
     if (this._requiredSampleWeight !== value) {
       this._requiredSampleWeight = value;
-      this.onUpdateFormGroup();
+      if (!this.starting) this.onUpdateFormGroup();
     }
   }
 
@@ -128,7 +126,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   set requiredWeight(value: boolean) {
     if (this._requiredWeight !== value) {
       this._requiredWeight = value;
-      this.onUpdateFormGroup();
+      if (!this.starting) this.onUpdateFormGroup();
     }
   }
 
@@ -140,7 +138,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   set requiredIndividualCount(value: boolean) {
     if (this._requiredIndividualCount !== value) {
       this._requiredIndividualCount = value;
-      this.onUpdateFormGroup();
+      if (!this.starting) this.onUpdateFormGroup();
     }
   }
 
@@ -170,7 +168,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
       });
-    this.mobile = this.settings.mobile;
 
     // Set default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -187,6 +184,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     super.ngOnInit();
 
     // Default values
+    this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
     // Taxon group combo
@@ -201,7 +199,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, {...filter, program: this.programLabel}),
         mobile: this.mobile
       });
-
     }
 
     // Taxon name combo
@@ -322,9 +319,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       }
 
       // Convert sampling ratio
-      if (isNotNil(samplingBatch.samplingRatio)) {
+      //samplingBatch.samplingRatio = BatchUtils.getSamplingRatio(samplingBatch, this.samplingRatioType);
+      /*if (isNotNil(samplingBatch.samplingRatio)) {
         BatchUtils.normalizedSamplingRatioToForm(samplingBatch, this.samplingRatioType);
-      }
+      }*/
 
     } else {
       this.childrenFormHelper.resize((data.children || []).length);
@@ -382,20 +380,14 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         }
 
         // Convert measurements
-        const wasFormValues = MeasurementValuesUtils.isMeasurementFormValues(childJson.measurementValues);
         childJson.measurementValues = Object.assign({},
           child.measurementValues,  // Keep existing extra measurements
           MeasurementValuesUtils.normalizeValuesToModel(childJson.measurementValues, this.weightPmfms));
 
-        // Normalize samplingRatio to model
-        if (isNotNilOrBlank(childJson.samplingRatio) && wasFormValues) {
-          BatchUtils.normalizedSamplingRatioToModel(childJson, this.samplingRatioType);
-        }
-
         // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
         if (!this.showWeight && isNotNil(childJson.individualCount) && isNotNil(json.individualCount)) {
           console.debug('Computing samplingRatio, using individualCount (e.g. special case like RJB species)');
-          childJson.samplingRatio = Math.round(childJson.individualCount / json.individualCount);
+          childJson.samplingRatio = childJson.individualCount / json.individualCount;
           childJson.samplingRatioText = `${childJson.individualCount}/${json.individualCount}`;
         }
 
@@ -437,7 +429,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
   }
 
-  copyChildrenWeight(event: UIEvent, samplingBatchForm: FormGroup) {
+  copyChildrenWeight(event: UIEvent, samplingBatchForm: AbstractControl) {
 
     const source = samplingBatchForm.get('childrenWeight')?.value as BatchWeight;
     if (isNil(source?.value)) return; // Nothing to copy
@@ -607,27 +599,38 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     );
   }
 
-  protected disableSamplingWeightComputation() {
-    // Unregister to previous validator
-    this._formValidatorSubscription?.unsubscribe();
-  }
-
   protected async enableSamplingWeightComputation() {
 
-    await waitFor(() => !!this.samplingRatioType && !!this.defaultWeightPmfm);
+    if (!this.showSamplingBatch || !this.showWeight) {
+      // Unregister to previous validator
+      this._formValidatorSubscription?.unsubscribe();
+      return;
+    }
+
+    await waitFor(() => !!this.samplingRatioFormat && !!this.defaultWeightPmfm, {timeout: 2000});
+
+    if (!this.samplingRatioFormat || !this.defaultWeightPmfm) {
+      console.warn(this.logPrefix + 'Missing samplingRatioFormat or weight Pmfm. Skipping sampling ratio and weight computation');
+      return;
+    }
+
+    const opts = {
+      requiredSampleWeight: this.requiredSampleWeight,
+      samplingRatioFormat: this.samplingRatioFormat,
+      weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
+      markForCheck: () => this.markForCheck(),
+      debounceTime: this.mobile ? 650 : 0
+    };
+
+    // Skip if unchanged
+    if (equals(opts, this._formValidatorOpts)) return;
+    this._formValidatorOpts = opts;
 
     // Unregister to previous validator
-    this.disableSamplingWeightComputation();
-
-    if (!this.showSamplingBatch || !this.showWeight) return; // Skip
+    this._formValidatorSubscription?.unsubscribe();
 
     // Create a sampling form validator
-    const subscription = this.validatorService.enableSamplingRatioAndWeight(this.form, {
-      requiredSampleWeight: this.requiredSampleWeight,
-      samplingRatioType: this.samplingRatioType,
-      weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
-      markForCheck: () => this.markForCheck()
-    });
+    const subscription = this.validatorService.enableSamplingRatioAndWeight(this.form, this._formValidatorOpts);
 
     // Register subscription
     this.registerSubscription(subscription);

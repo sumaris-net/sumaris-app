@@ -30,7 +30,7 @@
 
 </mat-toolbar>
 
-<div class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
 
   <!-- table -->
   <table mat-table [dataSource]="dataSource"
@@ -85,7 +85,7 @@
             (click)="clickCell($event, row, currentDate)">
           <ng-container *ngIf="getActivities(row, currentDate); let activities">
             <div *ngFor="let activity of activities">
-              <div *ngFor="let pmfm of $pmfms | async">
+              <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
                 {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds} }}
               </div>
               <div *ngFor="let metier of activity.metiers; last as last">
@@ -107,7 +107,7 @@
         </th>
         <td mat-cell *matCellDef="let row" class="td mat-cell-selected ion-padding-start" (click)="clickCell($event, row, date)">
           <div *ngFor="let activity of getActivities(row, date)">
-            <div *ngFor="let pmfm of $pmfms | async">
+            <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
               {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds} }}
             </div>
             <div *ngFor="let metier of activity.metiers; last as last">

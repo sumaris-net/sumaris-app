@@ -5,13 +5,14 @@ import {AppMeasurementsTable} from '../measurement/measurements.table.class';
 import {OperationGroupValidatorService} from '../services/validator/operation-group.validator';
 import {Observable} from 'rxjs';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {InMemoryEntitiesService, isNil, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
+import { InMemoryEntitiesService, isNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
 import {MetierService} from '@app/referential/services/metier.service';
 import {OperationGroup} from '../services/model/trip.model';
 import {environment} from '@environments/environment';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
+import { OperationGroupFilter } from '@app/trip/services/filter/operation-group.filter';
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier'];
 export const OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE: string[] = ['gear', 'targetSpecies'];
@@ -25,14 +26,14 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
     {provide: ValidatorService, useExisting: OperationGroupValidatorService},
     {
       provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationFilter>(OperationGroup, OperationFilter,  {
+      useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationGroupFilter>(OperationGroup, OperationGroupFilter,  {
         equals: OperationGroup.equals
       })
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, OperationFilter> implements OnInit, OnDestroy {
+export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, OperationGroupFilter> implements OnInit, OnDestroy {
 
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
@@ -59,24 +60,23 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
 
   constructor(
     injector: Injector,
-    protected platform: Platform,
+    platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationFilter>,
+    protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
     protected metierService: MetierService,
     protected cd: ChangeDetectorRef,
   ) {
     super(injector,
-      OperationGroup,
+      OperationGroup, OperationGroupFilter,
       memoryDataService,
       validatorService,
       {
-        prependNewElements: false,
-        suppressErrors: environment.production,
-        reservedStartColumns: platform.is('mobile') ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
-        reservedEndColumns: platform.is('mobile') ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
+        reservedStartColumns: platform.mobile ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
+        reservedEndColumns: platform.mobile ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        i18nColumnPrefix: 'TRIP.OPERATION.LIST.'
       });
-    this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;

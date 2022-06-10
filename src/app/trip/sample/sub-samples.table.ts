@@ -91,7 +91,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     protected injector: Injector
   ) {
     super(injector,
-      Sample,
+      Sample, SampleFilter,
       new InMemoryEntitiesService(Sample, SampleFilter, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),

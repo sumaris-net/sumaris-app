@@ -20,12 +20,13 @@ import {
   isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   JobUtils,
   LoadResult,
   LocalSettingsService,
   NetworkService,
-  PersonService, removeDuplicatesFromArray,
+  PersonService,
   ShowToastOptions,
   Toasts,
   toNumber,
@@ -39,7 +40,7 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE
 } from '@app/data/services/model/data-entity.model';
-import { defer, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -68,7 +69,7 @@ import { TripErrorCodes } from '@app/trip/services/trip.errors';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { ProgramProperties, ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { Geometries } from '@app/shared/geometries.utils';
 import { BBox } from 'geojson';
@@ -402,6 +403,13 @@ const TripSubscriptions = {
   ${TripFragments.lightTrip}`
 };
 
+export class TripComparators {
+  static sortByDepartureDateFn(n1: Trip, n2: Trip): number {
+    const d1 = n1.departureDateTime;
+    const d2 = n2.departureDateTime;
+    return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
+  }
+}
 
 @Injectable({providedIn: 'root'})
 export class TripService

@@ -5,7 +5,7 @@ import { AppMeasurementsTable } from '../measurement/measurements.table.class';
 import { createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, SharedValidators } from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
 import { PhysicalGear } from '../services/model/trip.model';
-import { PHYSICAL_GEAR_DATA_SERVICE } from '../services/physicalgear.service';
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '../services/physicalgear.service';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { environment } from '../../../environments/environment';
 import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
@@ -24,7 +24,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
   styleUrls: ['physical-gears.table.scss'],
   providers: [
     {
-      provide: PHYSICAL_GEAR_DATA_SERVICE,
+      provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
         equals: PhysicalGear.equals
       })
@@ -45,7 +45,6 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     return this.memoryDataService.value;
   }
 
-  @Input() canEdit = true;
   @Input() canDelete = true;
   @Input() canSelect = true;
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
@@ -70,15 +69,13 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     injector: Injector,
     formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE) dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
-      PhysicalGear,
+      PhysicalGear, PhysicalGearFilter,
       dataService,
       null, // No validator = no inline edition
       {
-        prependNewElements: false,
-        suppressErrors: environment.production,
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
@@ -92,6 +89,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
     this.autoLoad = true;
+    this.canEdit = true;
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;

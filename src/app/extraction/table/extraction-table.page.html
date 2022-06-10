@@ -251,7 +251,7 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <div class="table-container">
+  <div #tableContainer class="table-container">
     <table mat-table
            [dataSource]="dataSource"
            [class.c-visually-hidden]="!data || data.total === 0"

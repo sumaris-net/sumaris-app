@@ -7,7 +7,7 @@ import {AppSharedReportModule} from '@app/shared/report/report.module';
 import {ReportTestPage} from '@app/shared/report/testing/report.testing';
 import {ChartsModule} from 'ng2-charts';
 
-export const REFERENTIAL_TESTING_PAGES: TestingPage[] = [
+export const REPORT_TESTING_PAGES: TestingPage[] = [
   {label: 'Report', page: '/testing/shared/report'}
 ];
 

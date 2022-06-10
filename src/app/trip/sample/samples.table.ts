@@ -124,8 +124,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() showIndividualReleaseButton = false;
   @Input() showIndividualMonitoringButton = false;
   @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: ReferentialRef;
-  @Input() defaultTaxonName: ReferentialRef;
+  @Input() defaultTaxonGroup: TaxonGroupRef;
+  @Input() defaultTaxonName: TaxonNameRef;
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
@@ -206,19 +206,16 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     @Optional() options?: SamplesTableOptions
   ) {
     super(injector,
-      Sample,
+      Sample, SampleFilter,
       new InMemoryEntitiesService(Sample, SampleFilter, {
         equals: Sample.equals,
         sortByReplacement: {'id': 'rankOrder'}
       }),
       injector.get(PlatformService).mobile ? null : injector.get(AppValidatorService),
       {
-        prependNewElements: false,
-        suppressErrors: environment.production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
         requiredStrategy: false,
-        debug: !environment.production,
         ...options,
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),

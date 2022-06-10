@@ -25,6 +25,7 @@ import { MatExpansionPanel } from '@angular/material/expansion';
 import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
+import { AppBaseTable } from '@app/shared/table/base.table';
 
 @Component({
   selector: 'app-operations-table',
@@ -35,7 +36,7 @@ import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } fr
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationsTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
+export class OperationsTable extends AppBaseTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
   displayAttributes: {
     [key: string]: string[]
@@ -156,32 +157,30 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     protected cd: ChangeDetectorRef,
   ) {
     super(injector,
-      RESERVED_START_COLUMNS
-        .concat(
-          settings.mobile ?
-            ['quality',
-              'physicalGear',
-              'targetSpecies',
-              'startDateTime',
-              'endDateTime',
-              'fishingEndDateTime',
-              'fishingArea'] :
-            ['quality',
-              'physicalGear',
-              'targetSpecies',
-              'startDateTime',
-              'startPosition',
-              'endDateTime',
-              'fishingEndDateTime',
-              'endPosition',
-              'fishingArea',
-              'comments'])
-        .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(Operation,
+      Operation, OperationFilter,
+      settings.mobile ?
+        ['quality',
+          'physicalGear',
+          'targetSpecies',
+          'startDateTime',
+          'endDateTime',
+          'fishingEndDateTime',
+          'fishingArea'] :
+        ['quality',
+          'physicalGear',
+          'targetSpecies',
+          'startDateTime',
+          'startPosition',
+          'endDateTime',
+          'fishingEndDateTime',
+          'endPosition',
+          'fishingArea',
+          'comments'],
         dataService,
         null,
         // DataSource options
         {
+          i18nColumnPrefix: 'TRIP.OPERATION.LIST.',
           prependNewElements: false,
           suppressErrors: environment.production,
           dataServiceOptions: {
@@ -190,9 +189,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
             withSamples: false,
             withTotal: true
           }
-        })
+        }
     );
-    this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
     this.filterForm = formBuilder.group({
       tripId: [null],
       dataQualityStatus: [null]
@@ -269,12 +267,12 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     const res = await this.dataService.loadAllByTrip({
       tripId: this.tripId
-    }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true});
+    }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/});
 
     const modal = await this.modalCtrl.create({
       component: OperationsMap,
       componentProps: <OperationsMapModalOptions>{
-        data: res.data,
+        data: [res.data],
         latLongPattern: this.latLongPattern,
         programLabel: this.programLabel
       },
@@ -288,10 +286,15 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data instanceof Operation) {
-      // Select the row
+      console.info('[operation-table] User select an operation from the map:', data);
+
+      // Open the row
       const row = (await this.dataSource.getRows()).find(row => row.currentData.id === data.id);
       if (row) {
         this.clickRow(null, row);
+      }
+      else {
+        this.openRow(data.id, null);
       }
     }
 
@@ -375,7 +378,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       if (!opts || opts.showOnlyInvalidRows !== false) {
         this.showRowError = true;
         const filter = this.filter || new OperationFilter();
-        filter.dataQualityStatus = 'MODIFIED';
+        filter.dataQualityStatus = 'MODIFIED'; // = not controlled operations
         this.setFilter(filter);
       }
     }

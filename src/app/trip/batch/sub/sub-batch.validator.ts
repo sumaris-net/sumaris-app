@@ -37,6 +37,7 @@ import { DataContext } from '@app/data/services/model/data-context.model';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ContextService } from '@app/shared/context.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 
 const moment = momentImported;
 
@@ -67,24 +68,24 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
 
   getFormGroupConfig(data?: SubBatch, opts?: SubBatchValidatorValidatorOptions): { [p: string]: any } {
 
-    const rankOrder = toNumber(data && data.rankOrder, null);
+    const rankOrder = toNumber(data?.rankOrder, null);
     return {
       __typename: [Batch.TYPENAME],
-      id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
+      id: [toNumber(data?.id, null)],
+      updateDate: [data?.updateDate || null],
       rankOrder: !opts || opts.rankOrderRequired !== false ? [rankOrder, Validators.required] : [rankOrder],
-      label: [data && data.label || null],
-      individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(1), SharedValidators.integer])],
-      samplingRatio: [toNumber(data && data.samplingRatio, null), SharedValidators.empty], // Make no sense to have sampling ratio
-      samplingRatioText: [data && data.samplingRatioText || null, SharedValidators.empty], // Make no sense to have sampling ratio
-      taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],
-      taxonName: [data && data.taxonName || null, SharedValidators.entity],
-      comments: [data && data.comments || null],
-      parent: [data && data.parent || null, SharedValidators.object],
+      label: [data?.label || null],
+      individualCount: [toNumber(data?.individualCount, null), Validators.compose([Validators.min(1), SharedValidators.integer])],
+      samplingRatio: [typeof data?.samplingRatio === 'object' ? null : toNumber(data?.samplingRatio, null), SharedValidators.empty], // Make no sense to have sampling ratio
+      samplingRatioText: [data?.samplingRatioText || null, SharedValidators.empty], // Make no sense to have sampling ratio
+      taxonGroup: [data?.taxonGroup || null, SharedValidators.entity],
+      taxonName: [data?.taxonName || null, SharedValidators.entity],
+      comments: [data?.comments || null],
+      parent: [data?.parent || null, SharedValidators.object],
       measurementValues: this.formBuilder.group({}),
 
       // Specific for SubBatch
-      parentGroup: [data && data.parentGroup || null, Validators.compose([Validators.required, SharedValidators.object])]
+      parentGroup: [data?.parentGroup || null, Validators.compose([Validators.required, SharedValidators.object])]
     };
   }
 
@@ -94,7 +95,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     // Add weight sub form
     if (opts?.withWeight) {
       const weightPmfm = this.getWeightLengthPmfm({required: opts?.weightRequired, pmfms: opts?.pmfms});
-      form.addControl('weight', this.getWeightFormGroup(data && data.weight, {
+      form.addControl('weight', this.getWeightFormGroup(data?.weight, {
         required: opts?.weightRequired,
         pmfm: weightPmfm
       }));
@@ -105,17 +106,17 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
 
   updateFormGroup(form: FormGroup, opts?: SubBatchValidatorValidatorOptions) {
 
-    const withWeight = opts?.withWeight || false;
-
     // Add/remove weight form group, if need
-    if (withWeight && !form.controls.weight) {
-      const weightPmfm = this.getWeightLengthPmfm({required: opts?.weightRequired, pmfms: opts?.pmfms});
-      form.addControl('weight', this.getWeightFormGroup(null, {
-        required: opts?.weightRequired,
-        pmfm: weightPmfm
-      }));
+    if (opts?.withWeight) {
+      if (!form.controls.weight) {
+        const weightPmfm = this.getWeightLengthPmfm({ required: opts?.weightRequired, pmfms: opts?.pmfms });
+        form.addControl('weight', this.getWeightFormGroup(null, {
+          required: opts?.weightRequired,
+          pmfm: weightPmfm
+        }));
+      }
     }
-    else if (!withWeight && form.controls.weight) {
+    else if (form.controls.weight) {
       form.removeControl('weight');
     }
   }

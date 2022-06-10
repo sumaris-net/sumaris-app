@@ -10,12 +10,6 @@ export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';
 }
 
-export declare interface BatchSamplingRatio {
-  computed: boolean;
-  value: number;
-  text: string;
-}
-
 export interface BatchAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
 }
@@ -169,7 +163,6 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
     this.operationId = source.operationId;
     this.parentId = source.parentId;
     this.parent = source.parent;
-
     this.weight = source.weight || undefined;
     this.childrenWeight = source.childrenWeight || undefined;
 

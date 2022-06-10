@@ -3,7 +3,8 @@ import { FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, Valid
 import {
   EntityUtils,
   FormArrayHelper,
-  isNil, isNotNil,
+  isNil,
+  isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
   LocalSettingsService,
@@ -13,15 +14,15 @@ import {
   toFloat,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { Batch, BatchSamplingRatio, BatchWeight } from './batch.model';
+import { Batch, BatchWeight } from './batch.model';
 import { MethodIds } from '@app/referential/services/model/model.enum';
 import { Subscription } from 'rxjs';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { SamplingRatioType } from '@app/trip/batch/common/batch.form';
 import { roundHalfUp } from '@app/shared/functions';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
@@ -67,7 +68,7 @@ export class BatchValidatorService<
       individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
       samplingRatio: [toNumber(data && data.samplingRatio, null), SharedValidators.decimal()],
       samplingRatioText: [data && data.samplingRatioText || null],
-      samplingRatioComputed: [isNotNil(data?.samplingRatioComputed) ? data.samplingRatioComputed : BatchUtils.isSamplingRatioComputed(data)],
+      samplingRatioComputed: [isNotNil(data?.samplingRatioComputed) ? data.samplingRatioComputed : BatchUtils.isSamplingRatioComputed(data?.samplingRatioText)],
       taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],
       taxonName: [data && data.taxonName || null, SharedValidators.entity],
       comments: [data && data.comments || null],
@@ -85,24 +86,27 @@ export class BatchValidatorService<
   getFormGroup(data?: T, opts?: O): FormGroup {
     const form = super.getFormGroup(data, opts);
 
-    if (opts && opts.withChildren) {
+    if (opts?.withChildren) {
       // there is a second level of children only if there is qvPmfm and sampling batch columns
       const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm && this.showSamplingBatchColumns, withChildrenWeight: true});
       formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
     }
 
-    // Add weight sub form
-    if (opts?.withWeight) {
+    if (opts?.withWeight || opts?.withChildrenWeight) {
       const weightPmfms = opts.pmfms?.filter(PmfmUtils.isWeight);
-      form.addControl('weight', this.getWeightFormGroup(data && data.weight, {
-          required: opts?.weightRequired,
-          pmfm: BatchUtils.getWeightPmfm(data?.weight, weightPmfms)
-        })
-      );
+
+      // Add weight sub form
+      if (opts?.withWeight) {
+        form.addControl('weight', this.getWeightFormGroup(data?.weight, {
+            required: opts?.weightRequired,
+            pmfm: BatchUtils.getWeightPmfm(data?.weight, weightPmfms)
+          })
+        );
+      }
 
       // Add weight sub form
       if (opts?.withChildrenWeight) {
-        form.addControl('childrenWeight', this.getWeightFormGroup(data && data.childrenWeight, {
+        form.addControl('childrenWeight', this.getWeightFormGroup(data?.childrenWeight, {
           required: false,
           pmfm: BatchUtils.getWeightPmfm(data?.childrenWeight, weightPmfms),
           noValidator: true
@@ -147,21 +151,17 @@ export class BatchValidatorService<
   }
 
   enableSamplingRatioAndWeight(form: FormGroup, opts?: {
-    samplingRatioType: SamplingRatioType;
+    samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
     markForCheck?: () => void;
+    debounceTime?: number;
   }): Subscription {
-
-    // Sampling ratio: should be a percentage
-    form.get('samplingRatio')?.setValidators(
-      SharedValidators.decimal({maxDecimals: 2})
-    );
-
     return SharedAsyncValidators.registerAsyncValidator(form,
       BatchValidators.samplingRatioAndWeight(opts),
-      {markForCheck: opts?.markForCheck}
+      {markForCheck: opts?.markForCheck, debounceTime: opts?.debounceTime}
     );
+
   }
 
   enableRoundWeightConversion(form: FormGroup, opts?: {
@@ -204,7 +204,6 @@ export class BatchWeightValidator {
   }
 }
 
-
 export class BatchValidators {
 
   /**
@@ -212,7 +211,7 @@ export class BatchValidators {
    * @param opts
    */
   static samplingRatioAndWeight(opts?: {
-    samplingRatioType: SamplingRatioType;
+    samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
   }): ValidatorFn {
@@ -232,7 +231,7 @@ export class BatchValidators {
     emitEvent?: boolean;
     onlySelf?: boolean;
     // Weight
-    samplingRatioType: SamplingRatioType;
+    samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
     // Control path (used by batch group row validator)
@@ -243,28 +242,29 @@ export class BatchValidators {
     // UI function
     //markForCheck?: () => void
   }): ValidationErrors | null {
-    if (!opts.samplingRatioType) throw Error('[batch-validator] Missing sampling ratio type. Skip computation');
+    if (!opts.samplingRatioFormat) throw Error('[batch-validator] Missing sampling ratio format. Skip computation');
 
     const qvSuffix = opts && isNotNilOrNaN(opts.qvIndex) ? 'children.' + opts.qvIndex.toString() : '';
-    const sampleFormSuffix = qvSuffix + (qvSuffix ? '.' : '') + 'children.0';
+    const sampleFormSuffix = (qvSuffix ? `${qvSuffix}.` : '') + 'children.0';
 
     const samplingForm = form.get(sampleFormSuffix);
     if (!samplingForm) return; // No sample batch: skip
 
-    const weightPath = opts && opts.weightPath || 'weight';
-    const samplingWeightPath = opts && opts.samplingWeightPath || sampleFormSuffix + '.' + weightPath;
+    const weightPath = opts?.weightPath || 'weight';
+    const samplingWeightPath = opts?.samplingWeightPath || sampleFormSuffix + '.' + weightPath;
     const samplingRatioPath = opts && opts.samplingRatioPath || sampleFormSuffix + '.samplingRatio';
 
     const totalWeightControl = form.get(weightPath);
+    const totalWeightValueControl = totalWeightControl.get("value");
     const samplingRatioControl = form.get(samplingRatioPath);
-    const samplingWeightControl = form.get(samplingWeightPath);
-    const samplingWeightValueControl = form.get(samplingWeightPath + ".value");
+    const samplingWeightForm = form.get(samplingWeightPath);
+    const samplingWeightValueControl = samplingWeightForm.get("value");
 
     const totalWeight = toFloat(totalWeightControl.value?.value);
 
     if (totalWeightControl.disabled) totalWeightControl.enable(opts);
     if (samplingRatioControl.disabled) samplingRatioControl.enable(opts);
-    if (samplingWeightControl.disabled) samplingWeightControl.enable(opts);
+    if (samplingWeightForm.disabled) samplingWeightForm.enable(opts);
 
     const batch = isNotNilOrBlank(qvSuffix) ? form.get(qvSuffix).value : form.value;
     if (!batch.weight) {
@@ -274,10 +274,12 @@ export class BatchValidators {
         estimated: false
       };
     }
+    const isTotalWeightComputed = batch.weight.computed;
+    const isTotalWeightValid = !isTotalWeightComputed && isNotNilOrNaN(totalWeight) && totalWeight > 0;
 
     let samplingBatch = BatchUtils.getSamplingChild(batch);
-    const samplingWeight: BatchWeight = samplingWeightControl?.value || samplingBatch.weight;
-    const samplingWeightComputed = samplingWeight.computed == true && samplingWeight.methodId !== MethodIds.CALCULATED_WEIGHT_LENGTH_SUM;
+    const samplingWeight: BatchWeight = samplingWeightForm?.value || samplingBatch.weight;
+    const isSamplingWeightComputed = samplingWeight.computed == true && samplingWeight.methodId !== MethodIds.CALCULATED_WEIGHT_LENGTH_SUM;
     if (!samplingBatch) {
       samplingBatch = samplingForm.value;
       batch.children.push(samplingBatch);
@@ -290,28 +292,30 @@ export class BatchValidators {
         methodId: toNumber(samplingWeight?.methodId, batch.weight.methodId)
       };
     }
+    const isSamplingWeightValid = !isSamplingWeightComputed && isNotNilOrNaN(samplingWeight?.value) && samplingWeight.value > 0;
 
-    opts.samplingRatioType = opts.samplingRatioType || BatchUtils.getSamplingRatioType(samplingBatch);
-    if (!opts.samplingRatioType) {
+    opts.samplingRatioFormat = opts.samplingRatioFormat || BatchUtils.getSamplingRatioFormat(samplingBatch.samplingRatioText);
+    if (!opts.samplingRatioFormat) {
       console.warn('[batch-validator] Missing sampling ratio type. Skip computation');
       return;
     }
-    const samplingRatioComputed = isNotNil(samplingBatch.samplingRatioComputed) ? samplingBatch.samplingRatioComputed
-      : BatchUtils.isSamplingRatioComputed(samplingBatch, opts.samplingRatioType);
-    BatchUtils.normalizedSamplingRatioToModel(samplingBatch, opts.samplingRatioType);
-    const samplingRatioValid = !samplingRatioComputed && isNotNilOrNaN(samplingBatch.samplingRatio) && samplingBatch.samplingRatio > 0
-      && samplingBatch.samplingRatio <= 1;
+    const isSamplingRatioComputed = isNotNil(samplingBatch.samplingRatioComputed)
+      ? samplingBatch.samplingRatioComputed
+      : BatchUtils.isSamplingRatioComputed(samplingBatch.samplingRatioText, opts.samplingRatioFormat);
+    const samplingRatio = samplingBatch.samplingRatio;
+    const isSamplingRatioValid = !isSamplingRatioComputed && isNotNilOrNaN(samplingRatio) && samplingRatio > 0 && samplingRatio <= 1;
 
     // DEBUG
-    console.debug(`[batch-validator] Start computing: totalWeight=${totalWeight}, samplingRatio=${samplingBatch.samplingRatio} (${samplingRatioValid ? 'valid' : 'invalid'}), samplingWeight=${samplingWeight?.value}`, );
+    console.debug(`[batch-validator] Start computing: totalWeight=${totalWeight}, samplingRatio=${samplingRatio}${isSamplingRatioComputed ? ' (computed)' : ''}, samplingWeight=${samplingWeight?.value}`, );
 
-    // Compute samplingRatio, using totalWeight/samplingWeight
-    if (!batch.weight.computed && isNotNilOrNaN(totalWeight) && totalWeight > 0
-      && !samplingWeightComputed && isNotNilOrNaN(samplingWeight?.value) && samplingWeight.value > 0) {
+    // ***********
+    // samplingRatio = totalWeight/samplingWeight
+    // ***********
+    if (isTotalWeightValid && isSamplingWeightValid) {
 
-      // Sampling weight must be under total weight
-      if (toNumber(samplingWeight?.value) > toNumber(totalWeight)) {
-        if (!samplingWeightControl.hasError('max') || samplingWeightValueControl.errors['max'] !== totalWeight) {
+      // If samplingWeight < totalWeight => Error
+      if (toNumber(samplingWeight.value) > toNumber(totalWeight)) {
+        if (samplingWeightValueControl.errors?.max?.max !== totalWeight) {
           samplingWeightValueControl.markAsPending({ onlySelf: true, emitEvent: true }); //{onlySelf: true, emitEvent: false});
           samplingWeightValueControl.markAsTouched({ onlySelf: true });
           samplingWeightValueControl.setErrors({ ...samplingWeightValueControl.errors, max: { max: totalWeight } }, opts);
@@ -322,46 +326,43 @@ export class BatchValidators {
       }
 
       // Update sampling ratio
-      samplingBatch.samplingRatio = samplingWeight.value / totalWeight;
-      samplingBatch.samplingRatioText = null; // Force recompute
-      samplingBatch.samplingRatioComputed = true;
-      BatchUtils.normalizedSamplingRatioToForm(samplingBatch, opts.samplingRatioType);
-      if (samplingRatioControl.value !== samplingBatch.samplingRatio) {
+      const computedSamplingRatio = samplingWeight.value / totalWeight;
+      if (samplingRatioControl.value !== computedSamplingRatio || !isSamplingRatioComputed) {
         console.debug('[batch-validator] Applying computed sampling ratio = ' + samplingBatch.samplingRatio);
         samplingForm.patchValue({
-          samplingRatio: samplingBatch.samplingRatio,
-          samplingRatioText: samplingBatch.samplingRatioText,
+          samplingRatio: computedSamplingRatio,
+          samplingRatioText: `${samplingWeight.value}/${totalWeight}`,
           samplingRatioComputed: true
         }, opts);
       }
       return;
     }
 
-    // Compute sampling weight, form total weight and ratio
-    else if (samplingRatioValid && !batch.weight.computed && isNotNilOrNaN(totalWeight) && totalWeight >= 0) {
+    // ***********
+    // samplingWeight = totalWeight * samplingRatio
+    // ***********
+    else if (isSamplingRatioValid && isTotalWeightValid) {
 
-      if (samplingWeightComputed || isNil(samplingWeight?.value)) {
-        const computedSamplingWeight = roundHalfUp(totalWeight * samplingBatch.samplingRatio, opts.weightMaxDecimals || 3);
+      if (isSamplingWeightComputed || isNil(samplingWeight?.value)) {
+        const computedSamplingWeight = roundHalfUp(totalWeight * samplingRatio, opts.weightMaxDecimals || 3);
         if (samplingWeight?.value !== computedSamplingWeight) {
-          samplingForm.patchValue({
-            samplingRatioText: null,
-            samplingRatioComputed: false,
-            weight: <BatchWeight>{
+          samplingWeightForm.patchValue(<BatchWeight>{
               computed: true,
               estimated: false,
               value: computedSamplingWeight,
               methodId: MethodIds.CALCULATED
-            }
-          }, opts);
+            }, opts);
         }
         return;
       }
     }
 
-    // Compute total weight using ratio and sample weight
-    else if (samplingRatioValid && !samplingWeightComputed && isNotNilOrNaN(samplingWeight?.value) && samplingWeight.value >= 0) {
-      if (batch.weight.computed || isNil(totalWeight)) {
-        const computedTotalWeight = roundHalfUp(samplingWeight.value / samplingBatch.samplingRatio, opts.weightMaxDecimals || 3)
+    // ***********
+    // totalWeight = samplingWeight / samplingRatio
+    // ***********
+    else if (isSamplingRatioValid && isSamplingWeightValid) {
+      if (isTotalWeightComputed || isNil(totalWeight)) {
+        const computedTotalWeight = roundHalfUp(samplingWeight.value / samplingRatio, opts.weightMaxDecimals || 3)
         if (totalWeight !== computedTotalWeight) {
           totalWeightControl.patchValue({
             computed: true,
@@ -369,45 +370,46 @@ export class BatchValidators {
             value: computedTotalWeight,
             methodId: MethodIds.CALCULATED
           }, opts);
-          samplingForm.patchValue({
-            samplingRatioText: null, //opts.samplingRatioType === '1/w' ? `1/${samplingRatio}` : `${samplingRatio}%`,
-            samplingRatioComputed: false,
-            weight: {
-              computed: false
-            }
-          }, opts);
+          samplingWeightForm.patchValue({computed: false}, opts);
           return;
         }
       }
     }
-
+    // ***********
     // Nothing can be computed: enable all controls
+    // ***********
     else {
 
       // Enable total weight (and remove computed value, if any)
-      if (batch.weight.computed) {
+      if (isTotalWeightComputed) {
         totalWeightControl.patchValue({
           value: null,
           computed: false,
           estimated: false
         }, opts);
+
+        if (!isTotalWeightValid && !totalWeightValueControl.hasError('required')) {
+          totalWeightValueControl.markAsPending({ onlySelf: true, emitEvent: true });
+          totalWeightValueControl.markAsTouched({ onlySelf: true });
+          totalWeightValueControl.setErrors({ ...totalWeightValueControl.errors, required: true }, opts);
+        }
       }
       if (totalWeightControl.disabled) totalWeightControl.enable(opts);
 
       if (samplingForm.enabled) {
         // Clear computed sampling ratio
-        if (samplingRatioComputed) {
+        if (isSamplingRatioComputed) {
           samplingForm.patchValue({
             samplingRatio: null,
-            samplingRatioComputed: false,
+            samplingRatioText: null
           }, opts);
         }
         // Enable sampling ratio
         if (samplingRatioControl.disabled) samplingRatioControl.enable({ ...opts, emitEvent: true/*force repaint*/ });
 
         // Enable sampling weight (and remove computed value, if any)
-        if (samplingWeightComputed) {
-          samplingWeightControl.patchValue({
+        if (isSamplingWeightComputed) {
+          samplingWeightForm.patchValue({
             value: null,
             computed: false,
             estimated: false
@@ -416,24 +418,20 @@ export class BatchValidators {
 
         // If sampling weight is required
         if (opts && opts.requiredSampleWeight === true) {
-          if (!samplingWeightControl.hasError('required')) {
-            samplingWeightControl.setErrors({ ...samplingWeightControl.errors, required: true }, opts);
+          if (!samplingWeightValueControl.hasError('required')) {
+            samplingWeightValueControl.setErrors({ ...samplingWeightValueControl.errors, required: true }, opts);
           }
         }
-
-        // If sampling weight is NOT required
         else {
-          samplingWeightControl.setErrors(null, opts);
+          SharedValidators.clearError(samplingWeightValueControl, 'required');
         }
-        if (!samplingWeightControl.enabled) {
-          samplingWeightControl.enable(opts);
-        }
-
+        if (samplingWeightForm.disabled) samplingWeightForm.enable(opts);
       }
+
       // Disable sampling fields
       else {
         if (samplingRatioControl.enabled) samplingRatioControl.disable({ ...opts, emitEvent: true/*force repaint*/ });
-        if (samplingWeightControl.enabled) samplingWeightControl.disable(opts);
+        if (samplingWeightForm.enabled) samplingWeightForm.disable(opts);
       }
     }
   }

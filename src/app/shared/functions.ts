@@ -39,23 +39,20 @@ export function equals(item1, item2) {
 
   // If an object or array, compare recursively
   if (['[object Array]', '[object Object]'].indexOf(itemType) >= 0) {
-    if (!arrayEquals(item1, item2)) return false;
+    return arrayEquals(item1, item2);
   }
 
   // Otherwise, do a simple comparison
-  else {
+  // If the two items are not the same type, return false
+  if (itemType !== Object.prototype.toString.call(item2)) return false;
 
-    // If the two items are not the same type, return false
-    if (itemType !== Object.prototype.toString.call(item2)) return false;
-
-    // Else if it's a function, convert to a string and compare
-    // Otherwise, just compare
-    if (itemType === '[object Function]') {
-      if (item1.toString() !== item2.toString()) return false;
-    } else {
-      if (item1 !== item2) return false;
-    }
+  // Else if it's a function, convert to a string and compare
+  if (itemType === '[object Function]') {
+    return item1.toString() === item2.toString();
   }
+
+  // Otherwise, just compare
+  return item1 === item2;
 }
 
 export function arrayEquals<T>(value: T[], other:T[]): boolean {
@@ -81,9 +78,7 @@ export function arrayEquals<T>(value: T[], other:T[]): boolean {
     }
   } else {
     for (let key in value) {
-      if (value.hasOwnProperty(key)) {
-        if (equals(value[key], other[key]) === false) return false;
-      }
+      if (!equals(value[key], other[key])) return false;
     }
   }
 

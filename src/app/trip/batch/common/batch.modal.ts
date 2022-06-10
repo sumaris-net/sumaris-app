@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { Batch} from './batch.model';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { BatchForm, SamplingRatioType } from './batch.form';
+import { BatchForm} from './batch.form';
 import { ModalController } from '@ionic/angular';
-import { AppFormUtils, Entity, IReferentialRef, LocalSettingsService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { AppFormUtils, Entity, IReferentialRef, isNotNil, LocalSettingsService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { SamplingRatioFormat } from "@app/shared/material/sampling-ratio/material.sampling-ratio";
 
 
 export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEntityModalOptions<B> {
@@ -26,7 +27,8 @@ export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEn
   // UI Options
   i18nSuffix: string;
   maxVisibleButtons: number;
-  samplingRatioType: SamplingRatioType;
+  samplingRatioFormat: SamplingRatioFormat;
+  mobile: boolean;
 }
 
 @Component({
@@ -38,7 +40,6 @@ export class BatchModal implements OnInit, IBatchModalOptions {
 
   debug = false;
   loading = false;
-  mobile: boolean;
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() data: Batch;
@@ -55,8 +56,9 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() maxVisibleButtons: number;
   @Input() usageMode: UsageMode;
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
-  @Input() samplingRatioType: SamplingRatioType;
+  @Input() samplingRatioFormat: SamplingRatioFormat;
   @Input() i18nSuffix: string;
+  @Input() mobile: boolean;
 
   @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
 
@@ -83,7 +85,6 @@ export class BatchModal implements OnInit, IBatchModalOptions {
     ) {
         // Default value
         this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
-        this.mobile = this.settings.mobile;
 
         // TODO: for DEV only
         //this.debug = !environment.production;
@@ -91,21 +92,23 @@ export class BatchModal implements OnInit, IBatchModalOptions {
 
 
     ngOnInit() {
-        this.disabled = toBoolean(this.disabled, false);
+      // Default values
+      this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
+      this.disabled = toBoolean(this.disabled, false);
 
-        if (this.disabled) {
-            this.form.disable();
-        }
+      if (this.disabled) {
+          this.form.disable();
+      }
 
-        this.form.value = this.data || new Batch();
+      this.form.value = this.data || new Batch();
 
-        // Compute the title
-        this.computeTitle();
+      // Compute the title
+      this.computeTitle();
 
-        if (!this.isNew) {
-            // Update title each time value changes
-            this.form.valueChanges.subscribe(batch => this.computeTitle(batch));
-        }
+      if (!this.isNew) {
+          // Update title each time value changes
+          this.form.valueChanges.subscribe(batch => this.computeTitle(batch));
+      }
 
     }
 

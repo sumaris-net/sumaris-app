@@ -7,7 +7,7 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Subscription } from 'rxjs';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { environment } from '@environments/environment';
-import { SamplingRatioType } from '@app/trip/batch/common/batch.form';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 export interface BatchGroupValidatorOptions extends BatchValidatorOptions {
 }
@@ -43,11 +43,12 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
   }
 
   enableSamplingRatioAndWeight(form: FormGroup, opts?: {
-    samplingRatioType: SamplingRatioType;
+    samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
     qvPmfm?: IPmfm,
     markForCheck?: () => void;
+    debounceTime?: number;
   }): Subscription {
 
     if (!form) {
@@ -59,6 +60,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
       BatchGroupValidators.samplingRatioAndWeight({qvPmfm: this.qvPmfm, ...opts}),
       {
         markForCheck: opts?.markForCheck,
+        debounceTime: opts?.debounceTime,
         debug: !environment.production
       });
   }
@@ -78,7 +80,7 @@ export class BatchGroupValidators {
    * @param opts
    */
   static samplingRatioAndWeight(opts: {
-    samplingRatioType: SamplingRatioType;
+    samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
     qvPmfm?: IPmfm;

@@ -51,6 +51,8 @@ import { OverlayEventDetail } from '@ionic/core';
 import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
 import { SortDirection } from '@angular/material/sort';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
+import { DenormalizedPmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 
 export const ProgramRefQueries = {
@@ -167,6 +169,8 @@ const ProgramRefCacheKeys = {
   TAXON_NAME_BY_GROUP: 'programTaxonNameByGroup',
   TAXON_NAMES: 'taxonNameByGroup'
 };
+
+const noopFilter = (() => true);
 
 @Injectable({providedIn: 'root'})
 export class ProgramRefService
@@ -456,37 +460,33 @@ export class ProgramRefService
         );
     }
 
+    // TODO add period start/end ?
+    const strategyFilterFn = StrategyFilter.fromObject({
+      label: opts?.strategyLabel
+    }).asFilterFn() || noopFilter;
+    const pmfmStrategyFilterFn = DenormalizedPmfmStrategyFilter.fromObject(opts).asFilterFn();
+    if (!pmfmStrategyFilterFn) throw new Error('Missing opts to filter pmfm (.e.g opts.acquisitionLevel)!');
+
     return this.watchByLabel(programLabel, {toEntity: false, debug: false}) // Watch the program
       .pipe(
-        map(program => {
-          // Find strategy
-          const strategy = (program?.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
-
-          const pmfmIds = []; // used to avoid duplicated pmfms
-          const data = (strategy && strategy.denormalizedPmfms || [])
-            // Filter on acquisition level and gear
-            .filter(p =>
-              (!pmfmIds.includes(p.id) || isNotEmptyArray(p.taxonGroupIds) || isNotEmptyArray(p.referenceTaxonIds))
-              && (
-                !opts || (
-                  (!opts.acquisitionLevel || p.acquisitionLevel === opts.acquisitionLevel)
-                  // Filter on gear (if PMFM has gears = compatible with all gears)
-                  && (!opts.gearId || !p.gearIds || !p.gearIds.length || p.gearIds.findIndex(id => id === opts.gearId) !== -1)
-                  // Filter on taxon group
-                  && (!opts.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === opts.taxonGroupId) !== -1)
-                  // Filter on reference taxon
-                  && (!opts.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === opts.referenceTaxonId) !== -1)
-                  // Add to list of IDs
-                  && pmfmIds.push(p.id)
-                )
-              ))
-
-            // Sort on rank order
-            .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
-
+        // Find first strategy to applied
+        map(program => (program?.strategies || []).find(strategyFilterFn)),
+        // Filter strategy's pmfms
+        map(strategy => (strategy?.denormalizedPmfms || []).filter(pmfmStrategyFilterFn)),
+        // Merge duplicated pmfms (make to a unique pmfm, by id)
+        map(data => (data || []).reduce((res, p) => {
+            let index = res.findIndex(other => other.id === p.id);
+            if (index !== -1) {
+              res[index] = DenormalizedPmfmStrategy.merge(res[index], p);
+              return res;
+            }
+            return res.concat(p);
+          }, [])
+        ),
+        // Sort on rank order (asc)
+        map(data => data.sort((p1, p2) => p1.rankOrder - p2.rankOrder)),
+        map(data => {
           if (debug) console.debug(`[program-ref-service] PMFM for ${opts.acquisitionLevel} (filtered):`, data);
-
-          // TODO: translate name/label using translate service ?
 
           // Convert into entities
           return (!opts || opts.toEntity !== false)

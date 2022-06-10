@@ -1,8 +1,21 @@
-import { Entity, EntityAsObjectOptions, EntityClass, IReferentialRef, isNil, isNotNil, ReferentialRef, ReferentialUtils, toNumber } from '@sumaris-net/ngx-components';
+import {
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  IReferentialRef,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  ReferentialRef,
+  ReferentialUtils,
+  removeDuplicatesFromArray,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import { IDenormalizedPmfm, IPmfm, Pmfm, PmfmType, PmfmUtils } from './pmfm.model';
 import { PmfmValue, PmfmValueUtils } from './pmfm-value.model';
 import { MethodIds, UnitIds } from './model.enum';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { arrayEquals } from '@app/shared/functions';
 
 
 @EntityClass({typename: "PmfmStrategyVO"})
@@ -19,11 +32,11 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
     || (o1 && o2 && (
       // Same ID
       (isNotNil(o1.id) && o1.id === o2.id)
-      // Or same strategy, rankOrder and acquisitionLevel
+      // Or same strategy, rankOrder and acquisitionLevel, etc.
       || (o1.strategyId === o2.strategyId
         && o1.rankOrder === o2.rankOrder
         && (PmfmStrategy.getAcquisitionLevelLabel(o1) === PmfmStrategy.getAcquisitionLevelLabel(o2))
-        // or same Pmfm
+        // And same Pmfm
         && (PmfmStrategy.getPmfmId(o1) === PmfmStrategy.getPmfmId(o2)
           // or same Pmfm parts (parameter/matrix/fraction/method)
           || (ReferentialUtils.equals(o1.parameter, o2.parameter)
@@ -31,6 +44,12 @@ export class PmfmStrategy extends Entity<PmfmStrategy> {
             && ReferentialUtils.equals(o1.fraction, o2.fraction)
             && ReferentialUtils.equals(o1.method, o2.method)
         ))
+        // And same gears
+        && arrayEquals(o1.gearIds, o2.gearIds)
+        // And same taxon groups
+        && arrayEquals(o1.taxonGroupIds, o2.taxonGroupIds)
+        // And same taxon names
+        && arrayEquals(o1.referenceTaxonIds, o2.referenceTaxonIds)
       )));
 
   pmfmId: number;
@@ -181,6 +200,69 @@ export class DenormalizedPmfmStrategy
     return target;
   };
 
+  /**
+   * Allow to merge, using the children property
+   * @param other
+   */
+  static merge(pmfm: DenormalizedPmfmStrategy, other: DenormalizedPmfmStrategy): DenormalizedPmfmStrategy {
+    if (!pmfm || !other || pmfm.id !== other.id) throw new Error('Cannot only merge pmfm with same id')
+    let result: DenormalizedPmfmStrategy;
+
+    // Clone current (if not already clone)
+    if (isNil(pmfm.children)) {
+      result = DenormalizedPmfmStrategy.fromObject(pmfm).asObject(); // Clone
+      result.children = [pmfm, other];
+    }
+    else {
+      result = pmfm; // Already clone
+      result.children.push(other);
+    }
+
+    // rankOrder
+    result.rankOrder = Math.min(result.rankOrder || 1, other.rankOrder || 1);
+
+    // Min value
+    if (isNotNil(result.minValue) && isNotNil(other.minValue)) {
+      result.minValue = Math.min(result.minValue, other.minValue);
+    }
+    else {
+      result.minValue = null;
+    }
+
+    // Max value
+    if (isNotNil(result.maxValue) && isNotNil(other.maxValue)) {
+      result.maxValue = Math.max(result.maxValue, other.maxValue);
+    }
+    else {
+      result.maxValue = null;
+    }
+
+    // Merge gears
+    if (isNotEmptyArray(result.gearIds) && isNotEmptyArray(other.gearIds)) {
+      result.gearIds = removeDuplicatesFromArray([...result.gearIds, ...other.gearIds]);
+    }
+    else {
+      result.gearIds = null;
+    }
+
+    // Merge taxonGroupIds
+    if (isNotEmptyArray(result.taxonGroupIds) && isNotEmptyArray(other.taxonGroupIds)) {
+      result.taxonGroupIds = removeDuplicatesFromArray([...result.taxonGroupIds, ...other.taxonGroupIds]);
+    }
+    else {
+      result.taxonGroupIds = null;
+    }
+
+    // Merge referenceTaxonIds
+    if (isNotEmptyArray(result.referenceTaxonIds) && isNotEmptyArray(other.referenceTaxonIds)) {
+      result.referenceTaxonIds = removeDuplicatesFromArray([...result.referenceTaxonIds, ...other.referenceTaxonIds]);
+    }
+    else {
+      result.referenceTaxonIds = null;
+    }
+    return result;
+  }
+
   label: string;
   name: string;
   completeName: string;
@@ -212,6 +294,7 @@ export class DenormalizedPmfmStrategy
 
   strategyId: number;
   hidden?: boolean;
+  children?: DenormalizedPmfmStrategy[];
 
   constructor() {
     super(DenormalizedPmfmStrategy.TYPENAME);
@@ -221,6 +304,7 @@ export class DenormalizedPmfmStrategy
     const target: any = super.asObject(options);
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
     target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this));
+    target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;
     return target;
   }
 
@@ -250,6 +334,7 @@ export class DenormalizedPmfmStrategy
     this.referenceTaxonIds = source.referenceTaxonIds && [...source.referenceTaxonIds] || undefined;
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject);
     this.strategyId = source.strategyId;
+    this.children = source.children && source.children.map(DenormalizedPmfmStrategy.fromObject) || undefined;
   }
 
   get required(): boolean {

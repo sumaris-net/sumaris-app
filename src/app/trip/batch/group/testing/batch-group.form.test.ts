@@ -2,19 +2,19 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Batch } from '../../common/batch.model';
-import { ReferentialRefService } from '../../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { filter, mergeMap } from 'rxjs/operators';
 import { EntitiesStorage, EntityUtils, firstNotNilPromise, isNotNilOrBlank, MatAutocompleteConfigHolder, Property, SharedValidators, toNumber, waitFor } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes } from '../../../../referential/services/model/model.enum';
-import { ProgramRefService } from '../../../../referential/services/program-ref.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchGroupForm } from '@app/trip/batch/group/batch-group.form';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
-import { SamplingRatioType, SamplingRatioTypes } from '@app/trip/batch/common/batch.form';
 import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 
 @Component({
@@ -35,10 +35,11 @@ export class BatchGroupFormTestPage implements OnInit {
   allowSubBatches = true;
   defaultHasSubBatches = false;
   hasSubBatches = false;
-  showHasSubBatchesButton = true;
-  samplingRatioType: SamplingRatioType;
+  showHasSubBatchesButton = true
+  ;
+  samplingRatioFormat: SamplingRatioFormat;
+  samplingRatioFormats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.values as Property[];
 
-  samplingRatioTypes = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_TYPE.values as Property[];
   $program = new BehaviorSubject<Program>(null);
 
   outputs: {
@@ -121,8 +122,8 @@ export class BatchGroupFormTestPage implements OnInit {
       });
 
     this.filterForm.patchValue({
-      //program: { id: 10, label: 'ADAP-MER' },
-      program: { id: 70, label: 'APASE' },
+      program: { id: 10, label: 'ADAP-MER' },
+      //program: { id: 70, label: 'APASE' },
       gear: { id: 6, label: 'OTB' },
       example: { id: 1, label: 'default' },
     });
@@ -138,7 +139,7 @@ export class BatchGroupFormTestPage implements OnInit {
     const hasBatchMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
     this.allowSubBatches = hasBatchMeasure;
     this.showSamplingBatch = hasBatchMeasure;
-    this.samplingRatioType = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_TYPE);
+    this.samplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);
 
     this.$program.next(program);
   }

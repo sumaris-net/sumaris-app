@@ -1,27 +1,25 @@
 import { Directive, Injector, Input, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
   AppFormUtils,
-  AppTable,
   chainPromises,
   ConnectionType,
-  EntitiesTableDataSource,
   FileEvent,
   FileResponse,
-  FormFieldDefinition,
-  isEmptyArray, isNil,
+  FilesUtils,
+  IEntitiesService,
+  isEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   NetworkService,
-  referentialToString, sleep,
+  referentialToString,
   toBoolean,
   toDateISOString,
   UsageMode,
   UserEventService
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
 import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
@@ -30,8 +28,9 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { HttpEventType } from '@angular/common/http';
-import { FilesUtils } from '@sumaris-net/ngx-components';
 import { PopoverController } from '@ionic/angular';
+import { AppBaseTable, BaseTableOptions } from '@app/shared/table/base.table';
+import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 
 const moment = momentImported;
 
@@ -44,17 +43,17 @@ export const AppRootTableSettingsEnum = {
 export abstract class AppRootDataTable<
   T extends RootDataEntity<T, ID>,
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+  V extends BaseValidatorService<T, ID> = any,
   ID = number
   >
-  extends AppTable<T, F, ID> {
+  extends AppBaseTable<T, F, V, ID> {
 
 
-  protected network: NetworkService;
-  protected userEventService: UserEventService;
-  protected accountService: AccountService;
-  protected popoverController: PopoverController;
+  protected readonly network: NetworkService;
+  protected readonly userEventService: UserEventService;
+  protected readonly accountService: AccountService;
+  protected readonly popoverController: PopoverController;
 
-  canEdit: boolean;
   canDelete: boolean;
   isAdmin: boolean;
   filterForm: FormGroup;
@@ -92,17 +91,22 @@ export abstract class AppRootDataTable<
 
   protected constructor(
     injector: Injector,
-    columns: string[],
-    protected dataService: IDataSynchroService<T, F, ID>,
-    dataSource?: EntitiesTableDataSource<T, F, ID>,
-    filter?: F
+    protected dataType: new () => T,
+    protected filterType: new () => F,
+    columnNames: string[],
+    protected dataService: IDataSynchroService<T, F, ID> & IEntitiesService<T, F>,
+    protected validatorService: V,
+    options?: BaseTableOptions<T, ID>
   ) {
-
-    super(injector, columns, dataSource, filter || null);
-    this.network = injector && injector.get(NetworkService);
-    this.accountService = injector && injector.get(AccountService);
-    this.userEventService = injector && injector.get(UserEventService);
-    this.popoverController = injector && injector?.get(PopoverController);
+    super(injector,
+      dataType, filterType,
+      columnNames,
+      dataService, validatorService,
+      options);
+    this.network = injector.get(NetworkService);
+    this.accountService = injector.get(AccountService);
+    this.userEventService = injector.get(UserEventService);
+    this.popoverController = injector.get(PopoverController);
 
     this.readOnly = false;
     this.inlineEdition = false;

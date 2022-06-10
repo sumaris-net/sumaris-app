@@ -17,8 +17,9 @@ import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { VesselModule } from '@app/vessel/vessel.module';
-import { IsSamplingRatioComputedPipe } from '@app/trip/batch/common/batch.pipes';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { MatSamplingRatioFieldModule } from '@app/shared/material/sampling-ratio/material.sampling-ratio.module';
+import { IsSamplingRatioComputedPipe } from '@app/trip/batch/common/batch.pipes';
 
 @NgModule({
   imports: [
@@ -30,7 +31,10 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
     AppReferentialModule,
     AppDataModule,
     VesselModule,
-    AppMeasurementModule
+    AppMeasurementModule,
+
+    // Components
+    MatSamplingRatioFieldModule
   ],
   declarations: [
     // Pipes

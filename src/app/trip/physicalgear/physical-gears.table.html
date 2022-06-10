@@ -66,7 +66,7 @@
   </ion-grid>
 </form>
 
-<div class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
 
   <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)" >
     <ion-refresher-content></ion-refresher-content>
@@ -117,7 +117,7 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm|pmfmIdString">
+    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm|pmfmIdString">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
         <ion-label [innerHTML]="pmfm|pmfmName: {withUnit: true, html: true}"></ion-label>
       </th>

@@ -12,9 +12,9 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 export class AppSamplingRatioTestPage implements OnInit {
 
   form: FormGroup;
-  format: SamplingRatioFormat = '%';
   maxDecimals: number = 6;
-  formats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_TYPE.values as Property[];
+  format: SamplingRatioFormat = '%';
+  formats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.values as Property[];
 
   constructor(
     protected formBuilder: FormBuilder

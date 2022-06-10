@@ -18,7 +18,7 @@ import {BaseReferentialService} from "./base-referential-service.class";
 import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 
 
-export class StrategyFilter extends ReferentialFilter {
+export class StrategyRefFilter extends ReferentialFilter {
   //entityName: 'Strategy';
 }
 
@@ -129,7 +129,7 @@ const StrategyRefCacheKeys = {
 
 
 @Injectable({providedIn: 'root'})
-export class StrategyRefService extends BaseReferentialService<Strategy, StrategyFilter> {
+export class StrategyRefService extends BaseReferentialService<Strategy, StrategyRefFilter> {
 
   constructor(
     injector: Injector,
@@ -138,7 +138,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(injector, Strategy, StrategyFilter,
+    super(injector, Strategy, StrategyRefFilter,
       {
         queries: QUERIES
       });

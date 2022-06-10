@@ -81,7 +81,7 @@ const sortByTripDateFn = (n1: PhysicalGear, n2: PhysicalGear) => {
   return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
 };
 
-export const PHYSICAL_GEAR_DATA_SERVICE = new InjectionToken<IEntitiesService<PhysicalGear, PhysicalGearFilter>>('PhysicalGearDataService');
+export const PHYSICAL_GEAR_DATA_SERVICE_TOKEN = new InjectionToken<IEntitiesService<PhysicalGear, PhysicalGearFilter>>('PhysicalGearDataService');
 
 
 export declare interface PhysicalGearServiceWatchOptions extends EntitiesServiceWatchOptions {

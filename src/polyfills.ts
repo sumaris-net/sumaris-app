@@ -64,5 +64,4 @@ import 'zone.js/dist/zone';  // Included with Angular CLI.
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
-// Import Hammer JS (need to manage 'tap' events)
-import 'hammerjs/hammer';
+

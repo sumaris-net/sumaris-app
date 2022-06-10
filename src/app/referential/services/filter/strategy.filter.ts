@@ -4,17 +4,16 @@ import {
   EntityUtils,
   FilterFn,
   fromDateISOString,
-  isNil,
   isNotEmptyArray,
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
-import {BaseReferentialFilter} from '@app/referential/services/filter/referential.filter';
+import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
 import { AppliedPeriod, Strategy } from '@app/referential/services/model/strategy.model';
-import {Moment} from 'moment';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import { Moment } from 'moment';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 
 @EntityClass({typename: 'StrategyFilterVO'})
 export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strategy> {
@@ -74,7 +73,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
   buildFilter(): FilterFn<Strategy>[] {
     const levelId = this.levelId;
     const levelIds = this.levelIds;
-    const programId = this.programId || levelId || (isNotEmptyArray(levelIds) && levelIds[0]);
+    const programId = this.programId || levelId || (isNotEmptyArray(levelIds) ? levelIds[0] : null);
 
     // Remove, to avoid filter on LevelId and levelIds
     this.levelId = null;

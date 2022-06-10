@@ -8,6 +8,7 @@ import { AuctionControlValidators } from '../../services/validator/auction-contr
 import { ModalController } from '@ionic/angular';
 import {
   AppHelpModal,
+  AppHelpModalOptions,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
   filterNotNil,
@@ -145,21 +146,22 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           }))
         );
 
-    // Get the taxon group control control
+    // Get the taxon group control
     this.selectedTaxonGroup$ = this.$taxonGroupPmfm
       .pipe(
         map(pmfm => pmfm && this.form.get( `measurementValues.${pmfm.id}`)),
         filter(isNotNil),
+        distinctUntilChanged(),
         switchMap(control => control.valueChanges
           .pipe(
             startWith<any, any>(control.value),
             debounceTime(250)
-          )),
+          ))
+      ).pipe(
         // Update the help content
         tap(qv => {
-          // TODO BLA load description, in the executeImport process
-          //console.warn("TODO: update help modal with QV=", qv);
-          this.helpContent = qv && qv.description || undefined;
+          this.helpContent = qv && qv.description || null;
+          this.markForCheck();
         }),
         map(qv => {
           return ReferentialUtils.isNotEmpty(qv)
@@ -268,10 +270,14 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   async openHelpModal(event?: UIEvent) {
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
     const modal = await this.modalCtrl.create({
       component: AppHelpModal,
-      componentProps: {
-        title: 'COMMON.BTN_SHOW_HELP',
+      componentProps: <AppHelpModalOptions>{
+        title: this.translate.instant('COMMON.HELP.TITLE'),
         markdownContent: this.helpContent
       },
       keyboardClose: true,

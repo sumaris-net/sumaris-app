@@ -10,12 +10,13 @@ import { SamplesTable } from './samples.table';
 import { Moment } from 'moment';
 import { IPmfm } from '../../referential/services/model/pmfm.model';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModalOptions<Sample[]>{
   canEdit: boolean;
 
   defaultSampleDate: Moment;
-  defaultTaxonGroup: ReferentialRef;
+  defaultTaxonGroup: TaxonGroupRef;
   showTaxonGroup: boolean;
   showTaxonName: boolean;
   showLabel: boolean;
@@ -49,7 +50,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   @Input() canEdit: boolean;
 
   @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
   @Input() showLabel = false;

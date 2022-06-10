@@ -362,7 +362,7 @@ export class MeasurementValuesUtils {
     return target;
   }
 
-  static normalizeEntityToForm(data: IEntityWithMeasurement<any>,
+  static normalizeEntityToForm(data: IEntityWithMeasurement<any, any>,
                                pmfms: IPmfm[],
                                form?: FormGroup,
                                opts?: {

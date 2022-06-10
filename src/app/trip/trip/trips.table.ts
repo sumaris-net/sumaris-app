@@ -1,14 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { TripValidatorService } from '../services/validator/trip.validator';
-import { TripLoadOptions, TripService } from '../services/trip.service';
+import { TripComparators, TripLoadOptions, TripService } from '../services/trip.service';
 import { TripFilter, TripSynchroImportFilter } from '../services/filter/trip.filter';
 import { FormArray, FormBuilder, FormControl } from '@angular/forms';
 import {
-  ConfigService,
+  arrayDistinct,
+  chainPromises,
+  ConfigService, DateUtils,
   EntitiesTableDataSource, FilesUtils,
-  HammerSwipeEvent, isEmptyArray, isNotEmptyArray,
-  isNotNil,
+  HammerSwipeEvent, Hotkeys, isEmptyArray, isNilOrBlank, isNotEmptyArray,
+  isNotNil, isNotNilOrBlank, MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
   PersonUtils,
   ReferentialRef,
@@ -19,7 +21,7 @@ import {
   StatusIds
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { Trip } from '../services/model/trip.model';
+import { Operation, Trip } from '../services/model/trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
@@ -27,7 +29,7 @@ import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
-import { filter, tap } from 'rxjs/operators';
+import { filter, mergeMap, tap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
@@ -35,7 +37,10 @@ import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { OperationServiceLoadOptions } from '@app/trip/services/operation.service';
+import { OperationService, OperationServiceLoadOptions } from '@app/trip/services/operation.service';
+import { OperationsMap, OperationsMapModalOptions } from '@app/trip/operation/map/operations.map';
+import { Popovers } from '@app/shared/popover/popover.utils';
+import { MatTable } from '@angular/material/table';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -64,6 +69,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   @Input() showObservers = true;
   @Input() canDownload = false;
   @Input() canUpload = false;
+  @Input() canOpenMap = false;
 
   get filterObserversForm(): FormArray {
     return this.filterForm.controls.observers as FormArray;
@@ -76,6 +82,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   constructor(
     injector: Injector,
     protected dataService: TripService,
+    protected operationService: OperationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
@@ -88,20 +95,18 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   ) {
 
     super(injector,
-      RESERVED_START_COLUMNS
-        .concat([
-          'quality',
-          'program',
-          'vessel',
-          'departureLocation',
-          'departureDateTime',
-          'returnDateTime',
-          'observers',
-          'recorderPerson',
-          'comments'])
-        .concat(RESERVED_END_COLUMNS),
+      Trip, TripFilter,
+      ['quality',
+      'program',
+      'vessel',
+      'departureLocation',
+      'departureDateTime',
+      'returnDateTime',
+      'observers',
+      'recorderPerson',
+      'comments'],
         dataService,
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService)
+      null
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({
@@ -121,8 +126,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.defaultSortBy = 'departureDateTime';
     this.defaultSortDirection = 'desc';
     this.confirmBeforeDelete = true;
-    this.canDownload = this.accountService.isSupervisor();
-    this.canUpload = this.canDownload;
+    this.canEdit = this.accountService.isUser();
+
+    const showAdvancedFeatures = this.accountService.isAdmin();
+    this.canDownload = showAdvancedFeatures;
+    this.canUpload = showAdvancedFeatures;
+    this.canOpenMap = showAdvancedFeatures;
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureId = TripsPageSettingsEnum.FEATURE_ID;
@@ -335,10 +344,77 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return entities;
   }
 
-  async downloadSelectionAsFile(event?: UIEvent) {
+  async downloadSelectionAsJson(event?: UIEvent) {
     const ids = (this.selection.selected || [])
       .map(row => row.currentData?.id);
-    return this.downloadAsFile(ids);
+    return this.downloadAsJson(ids);
+  }
+
+  async openDownloadPage(event?: UIEvent) {
+    const trips = (this.selection.selected || [])
+      .map(row => row.currentData).filter(isNotNil)
+      .sort(TripComparators.sortByDepartureDateFn);
+    if (isEmptyArray(trips)) return // Skip if empty
+
+    const programs = arrayDistinct(trips.map(t => t.program), ['label']);
+    if (programs.length == 1) {
+      this.showToast({
+        type: 'warning',
+        message: 'TRIP.TABLE.WARNING.NEED_ONE_PROGRAM'
+      });
+      return; // Skip if no program
+    }
+    const programLabel = programs[0].label;
+
+  }
+
+  async openSelectionMap(event?: UIEvent) {
+    const trips = (this.selection.selected || [])
+      .map(row => row.currentData).filter(isNotNil)
+      .sort(TripComparators.sortByDepartureDateFn);
+    if (isEmptyArray(trips)) return // Skip if empty
+
+    const programs = arrayDistinct(trips.map(t => t.program), ['label']);
+    if (programs.length > 1) {
+      this.showToast({
+        type: 'warning',
+        message: 'TRIP.TABLE.WARNING.NEED_ONE_PROGRAM'
+      });
+      return; // Skip if no program
+    }
+    const programLabel = programs[0].label;
+
+
+    const operations = await chainPromises(trips.map(
+      trip => () =>
+        this.operationService.loadAllByTrip({tripId: trip.id},{fetchPolicy: 'cache-first', fullLoad: false, withTotal: true/*better chance to get a cached value*/})
+          .then(res => ({...trip, operations: res.data} as Trip))
+      ));
+
+    const modal = await this.modalCtrl.create({
+      component: OperationsMap,
+      componentProps: <OperationsMapModalOptions>{
+        data: operations,
+        programLabel,
+        latLongPattern: this.settings.latLongFormat
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+    if (data instanceof Operation) {
+      console.info('[trips-table] User select an operation from the map:', data);
+
+      // Open the operation
+      return this.router.navigate([data.tripId, 'operation', data.id], {
+        relativeTo: this.route
+      });
+    }
   }
 
   clearFilterValue(key: keyof TripFilter, event?: UIEvent) {
@@ -361,16 +437,17 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.tripContext.reset();
   }
 
-  protected async downloadAsFile(ids: number[]) {
+  protected async downloadAsJson(ids: number[]) {
     if (isEmptyArray(ids)) return; // Skip if empty
 
     // Create file content
-    const entities = await Promise.all(ids.map(id => this.dataService.load(id, {fullLoad: true, withOperation: true, toEntity: false})));
+    const entities = (await Promise.all(ids.map(id => this.dataService.load(id, {fullLoad: true, withOperation: true}))))
+      .map(entity => entity.asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE));
     const content = JSON.stringify(entities);
 
     // Write to file
     FilesUtils.writeTextToFile(content, {
-      filename: this.translate.instant("TRIP.TABLE.EXPORT_FILENAME"),
+      filename: this.translate.instant("TRIP.TABLE.DOWNLOAD_JSON_FILENAME"),
       type: 'application/json'
     });
   }

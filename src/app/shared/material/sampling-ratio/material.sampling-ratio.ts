@@ -9,7 +9,7 @@ import { isNilOrNaN, roundHalfUp } from '@app/shared/functions';
 const noop = () => {
 };
 
-export declare type SamplingRatioFormat = '%'|'1/w';
+export declare type SamplingRatioFormat = '%' | '1/w';
 
 export const DEFAULT_MAX_DECIMALS = 6;
 
@@ -37,8 +37,9 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   _inputFormControl: FormControl;
   _inputMaxDecimals: number;
   _pattern: string;
-  _placeholder: string;
   _format: SamplingRatioFormat = '%';
+  _defaultPlaceholder: string;
+  _placeholder: string;
 
   get disabled(): any {
     return this.readonly || this.formControl.disabled;
@@ -50,6 +51,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   @Input() floatLabel: FloatLabelType = 'auto';
   @Input() tabindex: number;
   @Input() maxDecimals: number = DEFAULT_MAX_DECIMALS;
+  @Input() autofocus: boolean;
   @Input('class') classList: string;
 
   @Input() set readonly(value: boolean){
@@ -63,7 +65,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     return this._readonly;
   }
 
-  @Input() set placeholder(value: string) {
+  @Input() set placeholder(value: string){
     if (this._placeholder !== value) {
       this._placeholder = value;
       this.markForCheck();
@@ -71,14 +73,13 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   }
 
   get placeholder(): string {
-    return this._placeholder
-      || (this._format === '1/w' ? 'TRIP.BATCH.EDIT.SAMPLING_RATIO_PCT' : 'TRIP.BATCH.EDIT.SAMPLING_RATIO_PCT');
+    return this._placeholder || this._defaultPlaceholder;
   }
 
   @Input() set format(value: SamplingRatioFormat) {
     if (this._format !== value) {
       this._format = value;
-      this.updatePatternAndMaxDecimals();
+      this.onFormatChanged();
       this.markForCheck();
     }
   }
@@ -108,8 +109,9 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
     if (!this.formControl) throw new Error('Missing mandatory attribute \'formControl\' or \'formControlName\' in <mat-latlong-field>.');
 
+
     this._inputFormControl = this.formBuilder.control([null]);
-    this.updatePatternAndMaxDecimals();
+    this.onFormatChanged();
 
     this._subscription.add(
         this._inputFormControl.valueChanges
@@ -182,18 +184,20 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     return '';
   }
 
-  private updatePatternAndMaxDecimals() {
+  private onFormatChanged() {
     switch (this._format) {
       case '1/w':
         this._inputMaxDecimals = Math.max(0, this.maxDecimals - 2);
         const ngDigits = Math.max(3, this.maxDecimals);
-        this._pattern = `[0-9]{1,${ngDigits}([.][0-9]{0,${this._inputMaxDecimals}})?`;
+        this._pattern = `[0-9]{1,${ngDigits}}([.][0-9]{0,${this._inputMaxDecimals}})?`;
+        this._defaultPlaceholder = 'TRIP.BATCH.EDIT.SAMPLING_COEFFICIENT';
         break;
       case '%':
       default:
         // max 2 decimals
         this._inputMaxDecimals = Math.min(2, Math.max(0, this.maxDecimals - 2));
         this._pattern = `(100|[0-9]{1,2}([.][0-9]{0,${this._inputMaxDecimals}})?)`;
+        this._defaultPlaceholder = 'TRIP.BATCH.EDIT.SAMPLING_RATIO_PCT';
         break;
     }
   }

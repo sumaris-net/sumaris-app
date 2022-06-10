@@ -54,7 +54,7 @@
         </ion-item>
 
         <app-sub-batch-form #form
-                            [debug]="debug"
+                            [title]="editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'"
                             [programLabel]="undefined"
                             [pmfms]="$pmfms|async"
                             floatLabel="always"
@@ -72,7 +72,8 @@
                             [tabindex]="1"
                             [maxVisibleButtons]="maxVisibleButtons"
                             [i18nSuffix]="i18nColumnSuffix"
-                            [title]="editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'">
+                            [mobile]="mobile"
+                            [debug]="debug">
 
         </app-sub-batch-form>
       </ion-col>
@@ -125,7 +126,7 @@
           </ng-container>
 
           <!-- Pmfms columns -->
-          <ng-container *ngFor="let pmfm of $pmfms | async">
+          <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
             <ng-container [matColumnDef]="pmfm.id.toString()">
               <th mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm | isDatePmfm" >
                 <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix}"></ion-label>

@@ -6,7 +6,9 @@ import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
   AppEntityEditor,
   AppErrorWithDetails,
+  AppFormUtils,
   AppHelpModal,
+  AppHelpModalOptions,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
@@ -23,7 +25,8 @@ import {
   ReferentialUtils,
   toBoolean,
   toNumber,
-  UsageMode
+  UsageMode,
+  WaitForOptions
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap, throttleTime } from 'rxjs/operators';
@@ -47,8 +50,6 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
-import { WaitForOptions } from '@sumaris-net/ngx-components';
-import { AppFormUtils } from '@sumaris-net/ngx-components';
 
 const moment = momentImported;
 
@@ -175,9 +176,15 @@ export class OperationPage
     this.mobile = settings.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
 
+    // Shortcut
     this.registerSubscription(
       hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
         .subscribe((event) => this.openHelpModal(event)),
+    );
+    this.registerSubscription(
+      hotkeys.addShortcut({ keys: 'control.a', description: 'COMMON.BTN_ADD', preventDefault: true })
+        .pipe(filter(e => !this.disabled && this.showFabButton))
+        .subscribe((event) => this.onNewFabButtonClick(event)),
     );
 
     // FOR DEV ONLY ----
@@ -228,8 +235,8 @@ export class OperationPage
     console.debug('[operation-page] Open help page...');
     const modal = await this.modalCtrl.create({
       component: AppHelpModal,
-      componentProps: {
-        title: 'COMMON.BTN_SHOW_HELP',
+      componentProps: <AppHelpModalOptions>{
+        title: this.translate.instant('COMMON.HELP.TITLE'),
         docUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc/-/blob/master/user-manual/index_fr.md'
       },
       backdropDismiss: true

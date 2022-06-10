@@ -41,6 +41,7 @@
 
   <span class="toolbar-spacer"></span>
 
+  <ng-content select="ion-buttons[slot=end]"></ng-content>
 </mat-toolbar>
 
 
@@ -73,7 +74,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container"
+<div #tableContainer class="table-container"
      [class.mobile]="mobile"
      [class.has-toolbar]="showToolbar"
      [class.has-group-header]="showGroupHeader"

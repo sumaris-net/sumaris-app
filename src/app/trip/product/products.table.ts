@@ -87,16 +87,14 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     protected cd: ChangeDetectorRef,
   ) {
     super(injector,
-      Product,
+      Product, ProductFilter,
       memoryDataService,
       validatorService,
       {
-        prependNewElements: false,
-        suppressErrors: environment.production,
         reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
-        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS
+        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS,
+        i18nColumnPrefix: 'TRIP.PRODUCT.LIST.'
       });
-    this.i18nColumnPrefix = 'TRIP.PRODUCT.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;

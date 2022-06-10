@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService, PhysicalGearServiceWatchOptions } from '../services/physicalgear.service';
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN, PhysicalGearService, PhysicalGearServiceWatchOptions } from '../services/physicalgear.service';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PhysicalGear } from '../services/model/trip.model';
 import { IEntitiesService, isNotNil, LocalSettingsService, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
@@ -23,7 +23,7 @@ export interface SelectPhysicalGearModalOptions {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
-      provide: PHYSICAL_GEAR_DATA_SERVICE,
+      provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useExisting: PhysicalGearService
     }
   ]
@@ -48,7 +48,7 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
     private modalCtrl: ModalController,
     private settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE) protected dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) protected dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     this.mobile = settings.mobile;
   }

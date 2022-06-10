@@ -99,7 +99,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   sampleDate: Moment = null;
   individualCount: number = null;
   taxonGroup: TaxonGroupRef  = null;
-  taxonName: ReferentialRef = null;
+  taxonName: TaxonNameRef = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = {};
   matrixId: number = null;
   batchId: number = null;

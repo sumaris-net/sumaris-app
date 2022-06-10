@@ -37,7 +37,7 @@
 
             <app-list-form #acquisitionLevelList
                            [displayWith]="getReferentialName"
-                           [formArray]="filterForm.controls.acquisitionLevels"
+                           [formArray]="filterForm|formGetArray:'acquisitionLevels'"
                            [equals]="referentialEquals"
                            [options]="{allowEmptyArray: true, allowMultipleSelection: false}"
                            (selectionChanges)="updateFilterAcquisitionLevel($event && $event[0])"
@@ -58,7 +58,7 @@
             </mat-expansion-panel-header>
 
             <app-list-form #locationList
-                           [formArray]="filterForm.controls.locations"
+                           [formArray]="filterForm|formGetArray:'locations'"
                            [displayWith]="referentialToString"
                            [equals]="referentialEquals"
                            [options]="{allowEmptyArray: true, allowMultipleSelection: true}"

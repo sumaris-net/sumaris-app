@@ -25,7 +25,11 @@
   <ng-container [ngSwitch]="format">
 
     <!-- Percent -->
-    <mat-form-field *ngSwitchCase="'%'" [class]="classList">
+    <mat-form-field *ngSwitchCase="'%'"
+                    [floatLabel]="floatLabel"
+                    [class]="classList">
+
+      <mat-label>{{placeholder|translate}}</mat-label>
 
       <div matPrefix>
         <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
@@ -40,7 +44,7 @@
              [required]="required"
              [pattern]="_pattern"
              (click)="selectInputContent($event)"
-             [placeholder]="placeholder|translate"
+             [appAutofocus]="autofocus"
              [tabindex]="tabindex">
 
       <div matSuffix>
@@ -48,7 +52,7 @@
       </div>
 
       <!-- errors -->
-      <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+      <mat-error *ngIf="(formControl.errors || _inputFormControl.errors)|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
         <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: formControl.errors.min }}</span>
         <span *ngSwitchCase="'max'">{{'ERROR.FIELD_MAX' | translate: formControl.errors.max }}</span>
@@ -60,8 +64,12 @@
     </mat-form-field>
 
     <!-- Sampling coefficient (1/w) -->
-    <mat-form-field *ngSwitchCase="'1/w'" [class]="classList" class="with-prefix">
+    <mat-form-field *ngSwitchCase="'1/w'"
+                    [floatLabel]="floatLabel"
+                    [class]="classList" class="with-prefix">
       <ion-text class="prefix-label">1/</ion-text>
+
+      <mat-label>{{placeholder|translate}}</mat-label>
 
       <div matPrefix>
         <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
@@ -74,7 +82,7 @@
              [pattern]="_pattern"
              (click)="selectInputContent($event)"
              [required]="required"
-             [placeholder]="placeholder|translate"
+             [appAutofocus]="autofocus"
              [tabindex]="tabindex">
 
       <div matSuffix>
@@ -82,7 +90,7 @@
       </div>
 
       <!-- errors -->
-      <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+      <mat-error *ngIf="(formControl.errors || _inputFormControl.errors)|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
         <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
         <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: formControl.errors.min }}</span>
         <span *ngSwitchCase="'max'">{{'ERROR.FIELD_MAX' | translate: formControl.errors.max }}</span>

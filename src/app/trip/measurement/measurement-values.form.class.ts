@@ -210,6 +210,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.resetPmfms();
   }
 
+  /**
+   * Use in ngFor, for trackBy
+   * @param index
+   * @param pmfm
+   */
+  trackPmfmFn(index: number, pmfm: IPmfm): any {
+    return pmfm.id;
+  }
+
   translateControlPath(path: string): string {
     if (path.startsWith('measurementValues.')) {
       const pmfmId = parseInt(path.split('.')[1]);
@@ -526,7 +535,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (!pmfms) return; // Skip
 
     const form = this.form;
-    this._measurementValuesForm = form.controls.measurementValues as FormGroup;
+    this._measurementValuesForm = form.get('measurementValues') as FormGroup;
 
     if (this.debug) console.debug(`${this.logPrefix} Updating form controls, force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 

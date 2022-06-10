@@ -17,7 +17,7 @@
   </nav>
 </form>-->
 
-<div class="table-container">
+<div #tableContainer class="table-container">
 
   <!-- ********************************************************** -->
   <!-- ***********  Writable table (e.g. for desktop) *********** -->
@@ -159,7 +159,8 @@
     </ng-container>
 
     <!-- Dynamic columns -->
-    <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnDef; let index;" [matColumnDef]="col.key">
+    <ng-container *ngFor="let col of dynamicColumns; trackBy: trackColumnFn; let index;"
+                  [matColumnDef]="col.key">
 
       <th mat-header-cell *matHeaderCellDef
           [class]="col.classList"
@@ -177,28 +178,37 @@
           class="mat-cell-content-start-padding"
           (click)="focusColumn=col.key">
 
-        <ng-container *ngIf="!col.pmfm; else pmfm">
-          <app-form-field *ngVar="isComputed(col, row) as computed"
-                          floatLabel="never"
-                          [definition]="col"
-                          [readonly]="!row.editing || computed"
-                          [tabindex]="computed && -1"
-                          [formControl]="row.validator|formGet: col.path"
-                          [autofocus]="row.editing && focusColumn === col.key"
-                          [compact]="true">
-          </app-form-field>
-        </ng-container>
+        <ng-container [ngSwitch]="col.type" *ngVar="isComputed(col, row) as computed">
 
-        <ng-template #pmfm>
-          <app-pmfm-field floatLabel="never"
+          <app-pmfm-field *ngSwitchCase="'pmfm'"
+                          floatLabel="never"
                           [pmfm]="col.pmfm"
-                          [control]="row.validator|formGet: col.path"
+                          [control]="row.validator|formGetControl: col.path"
                           [tabindex]="col.computed && -1"
                           [autofocus]="row.editing && focusColumn === col.key"
                           [readonly]="!row.editing"
                           [compact]="true">
           </app-pmfm-field>
-        </ng-template>
+
+          <mat-sampling-ratio-field *ngSwitchCase="'samplingRatio'"
+                                    floatLabel="never"
+                                    [formControl]="row.validator|formGetControl: col.path"
+                                    [format]="samplingRatioFormat"
+                                    [readonly]="!row.editing || computed"
+                                    [autofocus]="row.editing && focusColumn === col.key"
+                                    [tabindex]="computed && -1">
+          </mat-sampling-ratio-field>
+
+          <app-form-field *ngSwitchDefault
+                          floatLabel="never"
+                          [definition]="col"
+                          [readonly]="!row.editing || computed"
+                          [tabindex]="computed && -1"
+                          [formControl]="row.validator|formGetControl: col.path"
+                          [autofocus]="row.editing && focusColumn === col.key"
+                          [compact]="true">
+          </app-form-field>
+        </ng-container>
       </td>
     </ng-container>
 

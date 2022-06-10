@@ -32,6 +32,7 @@ export interface ISubBatchesModalOptions {
   // UI options
   maxVisibleButtons: number;
   i18nSuffix: string;
+  mobile: boolean;
 
   parentGroup: BatchGroup;
 
@@ -90,6 +91,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() showParentGroup: boolean;
   @Input() parentGroup: BatchGroup;
   @Input() maxVisibleButtons: number;
+  @Input() mobile: boolean;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;

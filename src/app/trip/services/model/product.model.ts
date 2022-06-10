@@ -12,6 +12,7 @@ import {Sample} from "./sample.model";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {DataEntityFilter} from '@app/data/services/model/data-filter.model';
 import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 export interface IWithProductsEntity<T, ID = number>
   extends IEntity<T, ID> {
@@ -69,7 +70,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
   rankOrder: number;
   individualCount: number;
   subgroupCount: number;
-  taxonGroup: ReferentialRef;
+  taxonGroup: TaxonGroupRef;
   weight: number;
   weightCalculated: boolean;
   saleType: ReferentialRef;
@@ -138,7 +139,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     this.rankOrder = +source.rankOrder;
     this.individualCount = isNotNilOrBlank(source.individualCount) ? parseInt(source.individualCount) : null;
     this.subgroupCount = isNotNilOrBlank(source.subgroupCount) ? parseFloat(source.subgroupCount) : null;
-    this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
+    this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
     this.weight = source.weight || undefined;
     this.weightCalculated = source.weightCalculated || false;
     this.saleType = source.saleType && ReferentialRef.fromObject(source.saleType) || undefined;
