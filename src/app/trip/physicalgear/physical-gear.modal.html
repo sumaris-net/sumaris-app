@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar color="secondary">
     <ion-buttons slot="start">
-      <ion-button class="back-button" (click)="cancel($event)" visible-xs visible-sm visible-mobile>
+      <ion-button class="back-button" (click)="close($event)" visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -29,7 +29,7 @@
 
       <ion-spinner *ngIf="loading"></ion-spinner>
 
-      <ion-button class="back-button" (click)="save($event)"
+      <ion-button class="back-button" (click)="onSubmit($event)"
                   *ngIf="!loading"
                   [disabled]="!form.valid"
                   visible-xs visible-sm visible-mobile>
@@ -49,7 +49,7 @@
   </button>
 </mat-menu>
 
-<ion-content class="ion-padding" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+<ion-content cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
 
   <ion-item *ngIf="form.error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -59,9 +59,38 @@
   <app-physical-gear-form #form
                           [programLabel]="programLabel"
                           [acquisitionLevel]="acquisitionLevel"
+                          [canEditGear]="canEditGear"
                           [canEditRankOrder]="canEditRankOrder"
-                          (onSubmit)="save($event)"
+                          [allowChildrenGears]="allowChildrenGears"
+                          [i18nSuffix]="i18nSuffix"
+                          (onSubmit)="onSubmit($event)"
                           [mobile]="mobile">
+
+    <!-- children table -->
+    <!--<ion-col size=12 size-lg="6" class="ion-padding-bottom"
+             *ngIf="allowChildrenGears"
+             [class.cdk-visually-hidden]="!allowChildrenGears || !_showChildrenTable">
+      &lt;!&ndash; DEBUG &ndash;&gt;
+      <ion-label *ngIf="debug"
+                 class="text-italic ion-padding" color="primary">
+        allowChildrenGears: {{allowChildrenGears}}<br/>
+        childrenGearId: {{childrenTable.gearId}}<br/>
+      </ion-label>
+
+      <app-physical-gears-table #childrenTable
+                                [title]="'TRIP.PHYSICAL_GEAR.EDIT.SUB_GEARS_TITLE'|translate"
+                                [programLabel]="programLabel"
+                                [acquisitionLevel]="_childAcquisitionLevel"
+                                [showGearColumn]="false"
+                                [defaultGear]="form|formGetValue:'gear'"
+                                [canEditGear]="false"
+                                [gearId]="gearId"
+                                [allowChildrenGears]="false"
+                                [requiredGear]="true"
+                                [disabled]="disabled"
+                                [mobile]="false">
+      </app-physical-gears-table>
+    </ion-col>-->
   </app-physical-gear-form>
 
 </ion-content>
@@ -76,14 +105,14 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="cancel($event)">
+        <ion-button fill="clear" color="dark" (click)="close($event)">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
         <ion-button [fill]="form.invalid ? 'clear' : 'solid'"
                     [disabled]="loading || form.invalid"
-                    (keyup.enter)="save($event)"
-                    (click)="save($event)" color="tertiary">
+                    (keyup.enter)="onSubmit($event)"
+                    (click)="onSubmit($event)" color="tertiary">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_APPLY</ion-label>
           <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>

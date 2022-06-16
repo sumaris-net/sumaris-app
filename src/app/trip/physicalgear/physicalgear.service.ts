@@ -16,21 +16,22 @@ import {
   LoadResult,
   NetworkService
 } from '@sumaris-net/ngx-components';
-import { PhysicalGear, Trip } from './model/trip.model';
+import { Trip } from '../services/model/trip.model';
 import { environment } from '@environments/environment';
 import { BehaviorSubject, combineLatest, EMPTY, Observable } from 'rxjs';
 import { filter, first, map, throttleTime } from 'rxjs/operators';
 import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { PhysicalGearFragments } from './trip.queries';
+import { PhysicalGearFragments } from '../services/trip.queries';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { SortDirection } from '@angular/material/sort';
-import { PhysicalGearFilter } from './filter/physical-gear.filter';
+import { PhysicalGearFilter } from './physical-gear.filter';
 import moment from 'moment';
 import { TripFilter } from '@app/trip/services/filter/trip.filter';
 import { ErrorCodes } from '@app/data/services/errors';
 import { mergeLoadResult } from '@app/shared/functions';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { ProgramFragments } from '@app/referential/services/program.fragments';
+import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
 
 const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
   loadAll: gql`query PhysicalGears($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
@@ -425,7 +426,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
 
     const maxProgression = opts && opts.maxProgression || 100;
     filter = {
-      startDate: moment().add(-1, 'month'), // Can be overwrite by given filter
+      startDate: moment().add(-1, 'month'), // Can be overwritten by given filter
       ...filter
     };
 

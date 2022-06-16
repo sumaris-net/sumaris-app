@@ -27,10 +27,10 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
-import { PhysicalGear, Trip } from '../services/model/trip.model';
+import { Trip } from '../services/model/trip.model';
 import { SelectPhysicalGearModal, SelectPhysicalGearModalOptions } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
-import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
+import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
@@ -45,6 +45,7 @@ import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { Sale } from '@app/trip/services/model/sale.model';
+import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
 
 const moment = momentImported;
 
@@ -253,6 +254,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Physical gears
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
+    this.physicalGearsTable.allowChildrenGears = true; // TODO add an option
 
     // Operation table
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);

@@ -1,8 +1,9 @@
 import { EntitiesStorageTypePolicies, EntityStoreTypePolicy, FormFieldDefinition } from '@sumaris-net/ngx-components';
-import { Operation, PhysicalGear, Trip } from '../model/trip.model';
+import { Operation, Trip } from '../model/trip.model';
 import { TypePolicies } from '@apollo/client/core';
 import { ObservedLocation } from '../model/observed-location.model';
 import { Landing } from '../model/landing.model';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 /**
  * Name of the features (e.g. to be used by settings)

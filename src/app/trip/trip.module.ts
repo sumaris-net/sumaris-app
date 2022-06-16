@@ -5,17 +5,13 @@ import { TripForm } from './trip/trip.form';
 import { SaleForm } from './sale/sale.form';
 import { OperationForm } from './operation/operation.form';
 import { OperationPage } from './operation/operation.page';
-import { PhysicalGearForm } from './physicalgear/physical-gear.form';
-import { PhysicalGearTable } from './physicalgear/physical-gears.table';
 import { OperationsTable } from './operation/operations.table';
 import { AppActionCellDef, SamplesTable } from './sample/samples.table';
 import { SubSamplesTable } from './sample/sub-samples.table';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
-import { PhysicalGearModal } from './physicalgear/physical-gear.modal';
 import { AppReferentialModule } from '../referential/referential.module';
 import { SampleForm } from './sample/sample.form';
 import { SampleModal } from './sample/sample.modal';
-import { SelectPhysicalGearModal } from './physicalgear/select-physical-gear.modal';
 import { AppDataModule } from '../data/data.module';
 import { OperationsMap } from './operation/map/operations.map';
 import { SocialModule } from '@sumaris-net/ngx-components';
@@ -36,6 +32,7 @@ import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/indi
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { AppBatchModule } from '@app/trip/batch/batch.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
 
 @NgModule({
   imports: [
@@ -54,8 +51,8 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 
     // Functional modules
     AppMeasurementModule,
-    AppBatchModule
-
+    AppBatchModule,
+    AppPhysicalGearModule
   ],
   declarations: [
     TripTable,
@@ -63,10 +60,6 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
     TripPage,
     TripTrashModal,
     TripOfflineModal,
-    PhysicalGearTable,
-    PhysicalGearForm,
-    PhysicalGearModal,
-    SelectPhysicalGearModal,
     SaleForm,
     OperationsTable,
     OperationForm,
@@ -99,6 +92,7 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
     AppDataModule,
     AppReferentialModule,
     AppBatchModule,
+    AppPhysicalGearModule,
 
     // Pipes
 
@@ -106,10 +100,7 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
     TripTable,
     TripPage,
     TripForm,
-    PhysicalGearModal,
     SaleForm,
-    PhysicalGearForm,
-    PhysicalGearTable,
     OperationForm,
     OperationPage,
     OperationsTable,

@@ -123,9 +123,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() showFabButton = false;
   @Input() showIndividualReleaseButton = false;
   @Input() showIndividualMonitoringButton = false;
-  @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: TaxonGroupRef;
-  @Input() defaultTaxonName: TaxonNameRef;
+  @Input() defaultSampleDate: Moment = null;
+  @Input() defaultTaxonGroup: TaxonGroupRef = null;
+  @Input() defaultTaxonName: TaxonNameRef = null;
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
@@ -327,12 +327,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       await this.onNewEntity(dataToOpen);
     }
 
-    const onModalReady = (modal) => {
-      const form = modal.form.form;
-      const markForCheck = () => modal.markForCheck();
-      this.onPrepareRowForm.emit({form, pmfms, markForCheck});
-    };
-
     this.markAsLoading();
 
     const options: Partial<ISampleModalOptions> = {
@@ -351,7 +345,12 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton,
-      onReady: onModalReady,
+      onReady: (modal) => {
+        this.onPrepareRowForm.emit({
+          form: modal.form.form,
+          pmfms,
+          markForCheck: () => modal.markForCheck()});
+      },
       onDelete: (event, data) => this.deleteEntity(event, data),
       onSaveAndNew: async (dataToSave) => {
         if (isNew) {

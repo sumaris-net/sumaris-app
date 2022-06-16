@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN, PhysicalGearService, PhysicalGearServiceWatchOptions } from '../services/physicalgear.service';
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN, PhysicalGearService, PhysicalGearServiceWatchOptions } from './physicalgear.service';
 import { TableElement } from '@e-is/ngx-material-table';
-import { PhysicalGear } from '../services/model/trip.model';
 import { IEntitiesService, isNotNil, LocalSettingsService, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
 import { Observable } from 'rxjs';
-import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
+import { PhysicalGearFilter } from './physical-gear.filter';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
+import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
 
 export interface SelectPhysicalGearModalOptions {
   allowMultiple?: boolean;

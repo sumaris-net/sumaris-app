@@ -32,25 +32,23 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
   static SAMPLING_BATCH_SUFFIX = '.%';
   static fromObject: (source: any, opts?: { withChildren?: boolean; }) => Batch;
 
-  static fromObjectArrayAsTree(source: any[]): Batch {
-    if (!source) return null;
-    const batches = (source || []).map((json) => Batch.fromObject(json));
+  static fromObjectArrayAsTree(sources: any[]): Batch {
+    if (!sources) return null;
+    const batches = (sources || []).map(json => Batch.fromObject(json));
     const catchBatch = batches.find(b => isNil(b.parentId) && (isNilOrBlank(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
-    if (catchBatch) {
-      batches.forEach(s => {
-        // Link to parent
-        s.parent = isNotNil(s.parentId) && batches.find(p => p.id === s.parentId) || undefined;
-        s.parentId = undefined; // Avoid redundant info on parent
-      });
-      // Link to children
-      batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
-      // Fill catch children
-      if (!catchBatch.children || !catchBatch.children.length) {
-        catchBatch.children = batches.filter(b => b.parent === catchBatch);
-      }
+    if (!catchBatch) return undefined;
+    batches.forEach(s => {
+      // Link to parent
+      s.parent = isNotNil(s.parentId) && batches.find(p => p.id === s.parentId) || undefined;
+      s.parentId = undefined; // Avoid redundant info on parent
+    });
+    // Link to children
+    batches.forEach(s => s.children = batches.filter(p => p.parent && p.parent === s) || []);
+    // Fill catch children
+    if (!catchBatch.children || !catchBatch.children.length) {
+      catchBatch.children = batches.filter(b => b.parent === catchBatch);
     }
-
-    //console.debug("[trip-model] Operation.catchBatch as tree:", this.catchBatch);
+    //console.debug("[batch-model] fromObjectArrayAsTree()", this.catchBatch);
     return catchBatch;
   }
 

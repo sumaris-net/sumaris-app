@@ -30,7 +30,12 @@
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <span class="toolbar-spacer"></span>
+
+  <!-- separator -->
+  <ion-text class="toolbar-spacer ion-text-center">
+    <!-- title -->
+    <span *ngIf="title" [innerHTML]="title"></span>
+  </ion-text>
 
 </mat-toolbar>
 
@@ -185,14 +190,15 @@
   </ion-item>-->
 </div>
 
-<!-- Add Button
-<ion-fab vertical="bottom" horizontal="end"
-         *ngIf="enabled"
+<!-- Add Fab Button  -->
+<ion-fab slot="fixed"
+         vertical="bottom" horizontal="end"
+         *ngIf="enabled && showFabButton"
          visible-xs visible-sm visible-mobile>
   <ion-fab-button color="tertiary" (click)="addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
-</ion-fab>-->
+</ion-fab>
 
 <ng-template #addRowButton>
   <span *ngIf="!mobile && enabled">&nbsp;

@@ -8,7 +8,7 @@ import {Trip} from './model/trip.model';
 import {TranslateService} from '@ngx-translate/core';
 import {ToastController} from '@ionic/angular';
 import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
+import {PhysicalGearService} from '@app/trip/physicalgear/physicalgear.service';
 import {TripService} from '@app/trip/services/trip.service';
 
 @Injectable({providedIn: 'root'})

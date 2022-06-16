@@ -1002,7 +1002,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     const modal = await this.modalCtrl.create({
       component: BatchGroupModal,
-      backdropDismiss: false,
       componentProps: <IBatchGroupModalOptions>{
         acquisitionLevel: this.acquisitionLevel,
         pmfms: this._initialPmfms,
@@ -1025,6 +1024,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         ...this.modalOptions
       },
       cssClass: 'modal-large',
+      backdropDismiss: false,
       keyboardClose: true
     });
 

@@ -16,7 +16,7 @@ import { Moment } from 'moment';
 import { Trip } from '../model/trip.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { PhysicalGearFilter } from '@app/trip/services/filter/physical-gear.filter';
+import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
 import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
 import { BBox } from 'geojson';
 

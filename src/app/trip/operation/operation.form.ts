@@ -3,7 +3,8 @@ import { OperationValidatorOptions, OperationValidatorService } from '../service
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
-  AccountService, Alerts,
+  AccountService,
+  Alerts,
   AppForm,
   DateFormatPipe,
   DateUtils,
@@ -28,12 +29,12 @@ import {
   removeDuplicatesFromArray,
   StatusIds,
   suggestFromArray,
-  toBoolean, toDateISOString,
+  toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Operation, PhysicalGear, Trip } from '../services/model/trip.model';
-import { BehaviorSubject, combineLatest, merge, Observable, Subscription } from 'rxjs';
+import { Operation, Trip } from '../services/model/trip.model';
+import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -47,14 +48,14 @@ import { PositionUtils } from '@app/trip/services/position.utils';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 import { LocationLevelIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { TripService } from '@app/trip/services/trip.service';
-import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
 import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 const moment = momentImported;
 

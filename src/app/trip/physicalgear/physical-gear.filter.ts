@@ -1,6 +1,6 @@
-import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
-import { PhysicalGear } from '../model/trip.model';
+import { RootDataEntityFilter } from '../../data/services/model/root-data-filter.model';
 import { EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
 
 @EntityClass({typename: 'PhysicalGearFilterVO'})
 export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter, PhysicalGear> {
@@ -10,12 +10,14 @@ export class PhysicalGearFilter extends RootDataEntityFilter<PhysicalGearFilter,
   tripId?: number;
   excludeTripId?: number;
   vesselId?: number;
+  excludeChildGear?: boolean;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.tripId = source.tripId;
     this.vesselId = source.vesselId;
     this.excludeTripId = source.excludeTripId;
+    this.excludeChildGear = source.excludeChildGear;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {

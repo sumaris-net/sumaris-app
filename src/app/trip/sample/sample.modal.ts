@@ -63,7 +63,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 })
 export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
-  private _subscription = new Subscription();
+  private readonly _subscription = new Subscription();
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
@@ -184,7 +184,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       );
     }
 
-
     this.setValue(this.data);
   }
 
@@ -259,7 +258,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     // DEBUG
     //console.debug('[sample-modal] Calling onSubmitAndNext()');
 
-    const data = this.getDataToSave();
+    const data = await this.getDataToSave();
     if (!data) return; // invalid
 
     this.markAsLoading();
@@ -281,14 +280,14 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   async onSubmit(event?: UIEvent) {
     if (this.loading) return undefined; // avoid many call
 
-    // Leave without saving
+    // No changes: leave
     if (!this.dirty) {
       this.markAsLoading();
       await this.modalCtrl.dismiss();
     }
-    // Convert and dismiss
+    // Convert then dismiss
     else {
-      const data = this.getDataToSave();
+      const data = await this.getDataToSave();
       if (!data) return; // invalid
 
       this.markAsLoading();
@@ -346,18 +345,23 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   /* -- protected methods -- */
 
-  protected getDataToSave(opts?: {disable?: boolean;}): Sample {
+  protected async getDataToSave(opts?: {disable?: boolean;}): Promise<Sample> {
 
-    if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
-      const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
-        controlPathTranslator: this.form,
-        separator: '<br/>'
-      })
-      this.setError(error || 'COMMON.FORM.HAS_ERROR');
-      this.form.markAllAsTouched();
-      this.scrollToTop();
-      return undefined;
+    if (!this.valid) {
+      // Wait validation end
+      await AppFormUtils.waitWhilePending(this.form);
+
+      if (this.invalid) {
+        if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
+        const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
+          controlPathTranslator: this.form,
+          separator: '<br/>'
+        })
+        this.setError(error || 'COMMON.FORM.HAS_ERROR');
+        this.form.markAllAsTouched();
+        this.scrollToTop();
+        return;
+      }
     }
 
     this.markAsLoading();

@@ -20,7 +20,7 @@ import {
   waitFor
 } from '@sumaris-net/ngx-components';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { MeasurementsDataService } from './measurements.service';
+import { EntitiesWithMeasurementService } from './measurements.service';
 import { AcquisitionLevelType } from '../../referential/services/model/model.enum';
 import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '../../referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
@@ -42,6 +42,7 @@ export class AppMeasurementsTableOptions<
   onPrepareRowForm?: (form: FormGroup) => void | Promise<void>;
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
   requiredStrategy?: boolean;
+  requiredGear?: boolean;
   i18nPmfmPrefix?: string;
 }
 
@@ -62,9 +63,10 @@ export abstract class AppMeasurementsTable<
   private _addingRow = false
 
   protected _acquisitionLevel: AcquisitionLevelType = null;
-  protected _strategyLabel: string;
+  protected _strategyLabel: string = null;
+  protected _gearId: number = null;
 
-  protected measurementsDataService: MeasurementsDataService<T, F, ID>;
+  protected measurementsDataService: EntitiesWithMeasurementService<T, F, ID>;
   protected measurementsValidatorService: MeasurementsValidatorService;
 
   protected programRefService: ProgramRefService;
@@ -75,17 +77,6 @@ export abstract class AppMeasurementsTable<
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
-
-  @Input() set requiredStrategy(value: boolean) {
-    this.options.requiredStrategy = value;
-    if (this.measurementsDataService) {
-      this.measurementsDataService.requiredStrategy = value;
-    }
-  }
-
-  get requiredStrategy(): boolean {
-    return this.options.requiredStrategy;
-  }
 
   /**
    * Allow to override the rankOrder. See physical-gear, on ADAP program
@@ -126,6 +117,40 @@ export abstract class AppMeasurementsTable<
 
   get strategyLabel(): string {
     return this._strategyLabel;
+  }
+
+
+  @Input() set requiredStrategy(value: boolean) {
+    this.options.requiredStrategy = value;
+    if (this.measurementsDataService) {
+      this.measurementsDataService.requiredStrategy = value;
+    }
+  }
+
+  get requiredStrategy(): boolean {
+    return this.options.requiredStrategy;
+  }
+
+  @Input() set requiredGear(value: boolean) {
+    this.options.requiredGear = value;
+    if (this.measurementsDataService) {
+      this.measurementsDataService.requiredGear = value;
+    }
+  }
+
+  get requiredGear(): boolean {
+    return this.options.requiredGear;
+  }
+
+  @Input() set gearId(value: number) {
+    if (this._gearId !== value) {
+      this._gearId = value;
+      this.measurementsDataService.gearId = this._gearId;
+    }
+  }
+
+  get gearId(): number {
+    return this._gearId;
   }
 
   @Input()
@@ -207,7 +232,7 @@ export abstract class AppMeasurementsTable<
     this.markAsLoaded({emitEvent: false});
     this.i18nPmfmPrefix = options?.i18nPmfmPrefix;
 
-    this.measurementsDataService = new MeasurementsDataService<T, F, ID>(injector, this.dataType, dataService, {
+    this.measurementsDataService = new EntitiesWithMeasurementService<T, F, ID>(injector, this.dataType, dataService, {
       mapPmfms: this.options.mapPmfms || undefined,
       requiredStrategy: this.options.requiredStrategy,
       debug: this.options.debug || false
@@ -226,9 +251,12 @@ export abstract class AppMeasurementsTable<
     this.i18nPmfmPrefix = this.i18nPmfmPrefix || this.i18nColumnPrefix;
 
     this.measurementsDataService.programLabel = this._programLabel;
-    this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
+    this.measurementsDataService.requiredStrategy = this.options.requiredStrategy || false;
     this.measurementsDataService.strategyLabel = this._strategyLabel;
-    this.measurementsDataService.requiredStrategy = this.options.requiredStrategy;
+    this.measurementsDataService.requiredGear = this.options.requiredGear || false;
+    this.measurementsDataService.gearId = this._gearId;
+    this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
+    this.measurementsDataService.start();
 
     super.ngOnInit();
 
@@ -252,15 +280,6 @@ export abstract class AppMeasurementsTable<
           }
         }));
 
-    // Make sure to copy acquisition level to the data service
-    if (this._acquisitionLevel && !this.measurementsDataService.acquisitionLevel) {
-      this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
-    }
-    // Make sure to copy strategyLabel to the data service
-    if (this._strategyLabel && !this.measurementsDataService.strategyLabel) {
-      this.measurementsDataService.strategyLabel = this._strategyLabel;
-    }
-
     if (this.inlineEdition) {
       if (this.options.onRowCreated) {
         this.registerSubscription(this.onStartEditingRow
@@ -280,7 +299,7 @@ export abstract class AppMeasurementsTable<
   ngOnDestroy() {
     super.ngOnDestroy();
 
-    this.measurementsDataService.ngOnDestroy();
+    this.measurementsDataService.stop();
     this.measurementsDataService = null;
   }
 

@@ -202,6 +202,7 @@ export const PhysicalGearFragments = {
   physicalGear: gql`fragment PhysicalGearFragment on PhysicalGearVO {
     id
     rankOrder
+    parentId
     updateDate
     creationDate
     comments

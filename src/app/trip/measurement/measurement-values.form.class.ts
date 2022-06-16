@@ -91,10 +91,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   @Input()
   set acquisitionLevel(value: string) {
-    if (isNotNil(value) && this._acquisitionLevel !== value) {
-      this._acquisitionLevel = value;
-      if (!this.starting) this._onRefreshPmfms.emit();
-    }
+    this.setAcquisitionLevel(value);
   }
 
   get acquisitionLevel(): string {
@@ -347,7 +344,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       this.$programLabel.next(value);
 
       // Reload pmfms
-      if (!opts || opts.emitEvent !== false) this._onRefreshPmfms.emit();
+      if (opts.emitEvent !== false) this._onRefreshPmfms.emit();
     }
   }
 
@@ -357,16 +354,25 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       this.$strategyLabel.next(value);
 
       // Reload pmfms
-      if (!opts || opts.emitEvent !== false) this._onRefreshPmfms.emit();
+      if (opts.emitEvent !== false) this._onRefreshPmfms.emit();
     }
   }
 
-  protected setGearId(value: number, opts?: {emitEvent?: boolean}) {
+  protected setAcquisitionLevel(value: string, opts = {emitEvent: true}) {
+    if (isNotNil(value) && this._acquisitionLevel !== value) {
+      this._acquisitionLevel = value;
+
+      // Reload pmfms
+      if (opts.emitEvent !== false) this._onRefreshPmfms.emit();
+    }
+  }
+
+  protected setGearId(value: number, opts = {emitEvent: true}) {
     if (this._gearId !== value) {
       this._gearId = value;
 
       // Reload pmfms
-      if (!opts || opts.emitEvent !== false) this._onRefreshPmfms.emit();
+      if (opts.emitEvent !== false) this._onRefreshPmfms.emit();
     }
   }
 

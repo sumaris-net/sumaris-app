@@ -260,13 +260,14 @@ export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => 
   };
 });
 
-export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
+export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CHILD_PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
   | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' | 'CHILD_OPERATION' ;
 
 export const AcquisitionLevelCodes = {
   TRIP: <AcquisitionLevelType>'TRIP',
   PHYSICAL_GEAR: <AcquisitionLevelType>'PHYSICAL_GEAR',
+  CHILD_PHYSICAL_GEAR: <AcquisitionLevelType>'CHILD_PHYSICAL_GEAR',
   OPERATION: <AcquisitionLevelType>'OPERATION',
   CATCH_BATCH: <AcquisitionLevelType>'CATCH_BATCH',
   SORTING_BATCH: <AcquisitionLevelType>'SORTING_BATCH',

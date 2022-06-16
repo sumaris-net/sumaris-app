@@ -584,13 +584,22 @@
       "RANK_ORDER": "#",
       "SEARCH_EXISTING_BTN": "Chercher parmi les données déjà saisis",
       "NEW": {
-        "TITLE": "Nouvel engin"
+        "TITLE": "Nouvel engin",
+        "CHILD": {
+          "TITLE": "Nouveau sous-engin"
+        }
       },
       "EDIT": {
-        "TITLE": "Engin #{{rankOrder}}",
+        "TITLE": "Engin {{label}}",
         "GEAR": "Code de l'engin",
         "RANK_ORDER": "Numéro de l'engin",
-        "FEATURES": "Caractéristiques physiques :"
+        "FEATURES": "Caractéristiques physiques :",
+        "SUB_GEARS_TITLE": "Sous-engins",
+        "CHILD": {
+          "GEAR": "Code du sous-engin",
+          "RANK_ORDER": "Numéro du sous-engin",
+          "TITLE": "Sous-engin {{label}}"
+        }
       },
       "LIST": {
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",

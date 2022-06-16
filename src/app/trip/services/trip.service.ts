@@ -46,7 +46,7 @@ import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
-import { Operation, OperationGroup, PhysicalGear, Trip } from './model/trip.model';
+import { Operation, OperationGroup, Trip } from './model/trip.model';
 import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
@@ -61,7 +61,7 @@ import { ErrorCodes } from '@app/data/services/errors';
 import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { TripFilter } from './filter/trip.filter';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
-import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Packet } from '@app/trip/services/model/packet.model';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
@@ -73,6 +73,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 import { Geometries } from '@app/shared/geometries.utils';
 import { BBox } from 'geojson';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 const moment = momentImported;
 
