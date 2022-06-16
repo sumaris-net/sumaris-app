@@ -1,166 +1,153 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
-import { AlertController, IonContent, ModalController } from '@ionic/angular';
-import { AcquisitionLevelCodes, PmfmIds } from '../../referential/services/model/model.enum';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '../../referential/services/model/model.enum';
 import { PhysicalGearForm } from './physical-gear.form';
-import { BehaviorSubject, Subscription } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
-import { Alerts, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, FormErrorTranslator, isNil, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
+import {
+  AppEntityEditorModal,
+  createPromiseEventEmitter,
+  emitPromiseEvent,
+  IEntityEditorModalOptions, isNil,
+  ReferentialRef,
+  toBoolean,
+  toNumber,
+  TranslateContextService,
+  waitFor
+} from '@sumaris-net/ngx-components';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
-import { debounceTime } from 'rxjs/operators';
+import { FormGroup } from '@angular/forms';
+import { AppMeasurementsTable } from '@app/trip/measurement/measurements.table.class';
+import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
+import { BehaviorSubject } from 'rxjs';
 
-export interface IPhysicalGearModalOptions<T extends PhysicalGear = PhysicalGear, M = PhysicalGearModal> {
+export interface IPhysicalGearModalOptions
+  extends IEntityEditorModalOptions<PhysicalGear> {
   acquisitionLevel: string;
   programLabel: string;
-  data: T;
-  disabled: boolean;
-  isNew: boolean;
 
   canEditGear: boolean;
   canEditRankOrder: boolean;
   allowChildrenGears: boolean;
 
-  onReady: (instance: M) => void;
-  onDelete: (event: UIEvent, data: T) => Promise<boolean>;
-
   // UI
-  mobile: boolean;
   maxVisibleButtons?: number;
-  i18nSuffix?: string;
 }
+
+const INVALID_GEAR_ID = -999;
 
 @Component({
   selector: 'app-physical-gear-modal',
   templateUrl: './physical-gear.modal.html',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./physical-gear.modal.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
-export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, IPhysicalGearModalOptions {
+export class PhysicalGearModal
+  extends AppEntityEditorModal<PhysicalGear>
+  implements OnInit, OnDestroy, AfterViewInit, IPhysicalGearModalOptions {
 
-  private readonly _subscription = new Subscription();
-  loading = false;
-  $title = new BehaviorSubject<string>(undefined);
-  debug = false;
+  _showChildrenTable = false;
+  $gear = new BehaviorSubject<ReferentialRef>(null);
+  $gearId = new BehaviorSubject<number>(INVALID_GEAR_ID);
 
   @Input() acquisitionLevel: string;
+  @Input() childAcquisitionLevel: AcquisitionLevelType = 'CHILD_PHYSICAL_GEAR';
   @Input() programLabel: string;
-  @Input() disabled = false;
-  @Input() data: PhysicalGear;
-  @Input() isNew = false;
   @Input() canEditGear = false;
   @Input() canEditRankOrder = false;
   @Input() allowChildrenGears: boolean
   @Input() showGear = true;
-  @Input() i18nSuffix: string = null;
-
-  @Input() onReady: (instance: PhysicalGearModal) => Promise<void> | void;
-  @Input() onDelete: (event: UIEvent, data: PhysicalGear) => Promise<boolean>;
-
-  @Input() mobile: boolean;
   @Input() maxVisibleButtons: number;
 
   @Output() onSearchButtonClick = createPromiseEventEmitter<PhysicalGear>();
 
-  @ViewChild('form', {static: true}) form: PhysicalGearForm;
-  @ViewChild(IonContent, {static: true}) content: IonContent;
+  @ViewChild(PhysicalGearForm, {static: true}) physicalGearForm: PhysicalGearForm;
+  @ViewChild('childrenTable') childrenTable: AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> & {value: PhysicalGear[]};
 
-  get dirty(): boolean {
-    return this.form.dirty;
-  }
-
-  get enabled(): boolean {
-    return !this.disabled;
-  }
-
-  get invalid(): boolean {
-    return this.form.invalid;
+  get form(): FormGroup {
+    return this.physicalGearForm.form;
   }
 
   get valid(): boolean {
-    return this.form.valid;
+    return super.valid && (!this._showChildrenTable || (this.childrenTable && this.childrenTable.totalRowCount > 0));
   }
 
-  get pending(): boolean {
-    return this.form.pending;
+  get invalid(): boolean {
+    return super.invalid || (this._showChildrenTable && (!this.childrenTable || this.childrenTable.totalRowCount <= 0));
   }
 
-  constructor(
-    protected alertCtrl: AlertController,
-    protected modalCtrl: ModalController,
-    protected translate: TranslateService,
+  constructor(injector: Injector,
     protected translateContext: TranslateContextService,
-    protected settings: LocalSettingsService,
-    protected errorTranslator: FormErrorTranslator,
     protected cd: ChangeDetectorRef
   ) {
+    super(injector, PhysicalGear, {
+      tabCount: 2,
+      i18nPrefix: 'TRIP.PHYSICAL_GEAR.EDIT.',
+      enableSwipe: false
+    })
 
     // Default values
+    this._logPrefix = '[physical-gear-modal] ';
     this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
-    this.mobile = settings.mobile;
+    this.tabGroupAnimationDuration = this.mobile ? this.tabGroupAnimationDuration : '0s';
 
     // TODO: for DEV only
     this.debug = !environment.production;
   }
 
-  async ngOnInit() {
-    if (this.disabled) {
-      this.form.disable();
-    }
+  async ngOnInit(): Promise<void> {
+    this.allowChildrenGears = toBoolean(this.allowChildrenGears, true);
 
-    // Update title each time value changes
-    if (!this.isNew) {
-      this._subscription.add(
-        this.form.valueChanges
-          .pipe(debounceTime(250))
-          .subscribe(json => this.computeTitle(json))
-      );
-    }
+    await super.ngOnInit();
 
-    this.setValue(this.data);
+  }
+
+  protected registerForms() {
+    this.addChildForms([
+      this.physicalGearForm,
+      this.childrenTable
+    ])
   }
 
   ngOnDestroy() {
-    this._subscription.unsubscribe();
+    super.ngOnDestroy();
     this.onSearchButtonClick?.complete();
     this.onSearchButtonClick?.unsubscribe();
   }
 
-  private async setValue(data: PhysicalGear) {
-
-    console.debug('[physical-gear-modal] Applying value to form...', data);
-
-    this.form.markAsReady();
-    await this.form.setValue(this.data);
-
-    // Call ready callback
-    if (this.onReady) {
-      const promiseOrVoid = this.onReady(this);
-      if (promiseOrVoid) await promiseOrVoid;
-    }
-
-    // Compute the title
-    await this.computeTitle();
-  }
-
-  ngAfterViewInit(): void {
-    // Focus on the first field, is not in mobile
-     if (this.isNew && !this.mobile && this.enabled) {
-       setTimeout(() => this.form.focusFirstInput(), 400);
-     }
+  async ngAfterViewInit() {
+    await super.ngAfterViewInit();
 
     // Show/Hide children table
-    // if (this.allowChildrenGears) {
-    //   this.registerSubscription(
-    //     this.childrenTable.$pmfms
-    //       .subscribe(pmfms => {
-    //         const hasChildrenPmfms = (pmfms||[]).filter(p => p.id !== PmfmIds.GEAR_LABEL).length > 0;
-    //         if (this._showChildrenTable !== hasChildrenPmfms) {
-    //           this._showChildrenTable = hasChildrenPmfms;
-    //           this.markForCheck();
-    //         }
-    //       })
-    //   );
-    // }
+    if (this.allowChildrenGears) {
+      this.registerSubscription(
+        this.physicalGearForm.form.get('gear').valueChanges
+          .subscribe(gear =>{
+            this.$gear.next(gear);
+            const gearId = gear?.id;
+            this.$gearId.next(toNumber(gearId, INVALID_GEAR_ID));
+            if (this._showChildrenTable && isNil(gearId)) {
+              this._showChildrenTable = false;
+              this.markForCheck();
+            }
+          })
+      )
+      this.registerSubscription(
+        this.childrenTable.$pmfms
+          .subscribe(pmfms => {
+            const hasChildrenPmfms = (pmfms||[]).filter(p => p.id !== PmfmIds.GEAR_LABEL).length > 0;
+            if (this._showChildrenTable !== hasChildrenPmfms) {
+              this._showChildrenTable = hasChildrenPmfms;
+              this.markForCheck();
+            }
+          })
+      );
+    }
+    // Focus on the first field, is not in mobile
+     if (this.isNewData && !this.mobile && this.enabled) {
+       setTimeout(() => this.physicalGearForm.focusFirstInput(), 400);
+     }
+
   }
 
   async openSearchModal(event?: UIEvent) {
@@ -190,149 +177,56 @@ export class PhysicalGearModal implements OnInit, OnDestroy, AfterViewInit, IPhy
 
       // Apply to form
       console.debug('[physical-gear-modal] Paste selected gear:', data);
-      this.form.reset(data);
-      await this.form.waitIdle();
-      this.form.markAsDirty();
+      await this.setValue(data);
+      this.markAsDirty();
     }
     catch (err) {
       if (err === 'CANCELLED') return; // Skip
-      console.error(err);
-      this.form.error = err && err.message || err;
+      this.setError(err);
       this.scrollToTop();
-    }
-  }
-
-  async close(event: UIEvent): Promise<void> {
-    if (this.dirty) {
-      const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
-
-      // User cancelled
-      if (isNil(saveBeforeLeave) || event && event.defaultPrevented) {
-        return;
-      }
-
-      // Is user confirm: close normally
-      if (saveBeforeLeave === true) {
-        await this.onSubmit(event);
-        return;
-      }
-    }
-
-    await this.modalCtrl.dismiss();
-  }
-
-  async onSubmit(event?: UIEvent) {
-    if (this.loading) return undefined; // avoid many call
-
-    // No changes: leave
-    if (!this.dirty) {
-      this.markAsLoading();
-      await this.modalCtrl.dismiss();
-    }
-    // Convert then dismiss
-    else {
-      const data = await this.getDataToSave();
-      if (!data) return; // invalid
-
-      this.markAsLoading();
-      await this.modalCtrl.dismiss(data);
-    }
-  }
-
-  async delete(event?: UIEvent) {
-    if (!this.onDelete) return; // Skip
-    const result = await this.onDelete(event, this.data);
-    if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
-
-    if (result) {
-      await this.modalCtrl.dismiss(this.data);
     }
   }
 
   /* -- protected functions -- */
 
-  protected async getDataToSave(opts?: {disable?: boolean;}): Promise<PhysicalGear> {
+  protected async setValue(data: PhysicalGear) {
 
-    if (this.dirty) {
-      const saved = await this.form.save();
+    await this.physicalGearForm.setValue(this.data);
 
-      if (!saved) {
-        if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[physical-gear-modal] ');
-        const error = this.errorTranslator.translateFormErrors(this.form.form, {
-          controlPathTranslator: this.form,
-          separator: '<br/>'
-        })
-        this.setError(error || 'COMMON.FORM.HAS_ERROR');
-        this.form.markAllAsTouched();
-        this.scrollToTop();
-        return;
-      }
-    }
-
-    this.markAsLoading();
-    this.resetError();
-
-    // To force enable, to get computed values
-    this.enable();
-
-    try {
-      // Get form value
-      const json = this.form.value;
-
-      return PhysicalGear.fromObject(json);
-    } finally {
-      if (!opts || opts.disable !== false) {
-        this.disable();
-      }
+    if (this.allowChildrenGears) {
+      await waitFor(() => !!this.childrenTable);
+      this.childrenTable.markAsReady();
+      this.childrenTable.gearId = data.gear?.id;
+      this.childrenTable.value = data.children || [];
     }
   }
 
-  protected markAsLoading() {
-    this.loading = true;
-    this.markForCheck();
-  }
+  protected async getJsonValueToSave(): Promise<any> {
+    const data = await super.getJsonValueToSave();
 
-  protected markAsLoaded() {
-    this.loading = false;
-    this.markForCheck();
-  }
-
-
-  protected enable() {
-    this.form.enable();
-  }
-
-  protected disable() {
-    this.form.disable();
-  }
-
-  protected setError(error: any) {
-    this.form.error = error;
-  }
-
-  protected resetError() {
-    this.form.error = null;
-  }
-
-  protected async scrollToTop(duration?: number) {
-    if (this.content) {
-      return this.content.scrollToTop(duration);
+    if (this.allowChildrenGears) {
+      data.children = this.childrenTable.value;
     }
+    else {
+      data.children = null;
+    }
+    return data;
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  protected async computeTitle(data?: PhysicalGear) {
+  protected computeTitle(data?: PhysicalGear): Promise<string> {
     data = data || this.data;
 
-    if (this.isNew || !data) {
-      this.$title.next(this.translateContext.instant('TRIP.PHYSICAL_GEAR.NEW.TITLE', this.i18nSuffix));
+    if (this.isNewData || !data) {
+      return this.translateContext.instant('TRIP.PHYSICAL_GEAR.NEW.TITLE', this.i18nSuffix);
     }
     else {
       const label = data?.measurementValues[PmfmIds.GEAR_LABEL] || ('#' + data.rankOrder);
-      this.$title.next(this.translateContext.instant('TRIP.PHYSICAL_GEAR.EDIT.TITLE', this.i18nSuffix, { label }));
+      return this.translateContext.instant('TRIP.PHYSICAL_GEAR.EDIT.TITLE', this.i18nSuffix, { label });
     }
+  }
+
+  protected getFirstInvalidTabIndex(): number {
+    if (this.allowChildrenGears && this.childrenTable?.invalid) return 1;
+    return 0;
   }
 }

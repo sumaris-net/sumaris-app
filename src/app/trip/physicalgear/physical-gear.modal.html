@@ -12,14 +12,14 @@
 
     <ion-buttons slot="end">
       <!-- Options menu -->
-      <button mat-icon-button *ngIf="!isNew && mobile"
+      <button mat-icon-button *ngIf="!isNewData && mobile"
               [title]="'COMMON.OPTIONS'|translate"
               [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
 
       <!-- search button -->
-      <ion-button *ngIf="isNew && onSearchButtonClick.observers|isNotEmptyArray"
+      <ion-button *ngIf="isNewData && onSearchButtonClick.observers|isNotEmptyArray"
                   (click)="openSearchModal($event)">
         <ion-icon slot="start" name="search"></ion-icon>
         <ion-label>
@@ -27,14 +27,16 @@
         </ion-label>
       </ion-button>
 
-      <ion-spinner *ngIf="loading"></ion-spinner>
-
-      <ion-button class="back-button" (click)="onSubmit($event)"
-                  *ngIf="!loading"
+      <ion-button class="back-button" (click)="saveAndClose($event)"
+                  *ngIf="!loading; else spinner"
                   [disabled]="!form.valid"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
       </ion-button>
+
+      <ng-template #spinner>
+        <ion-spinner color="light" class="ion-margin-end"></ion-spinner>
+      </ng-template>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -49,51 +51,101 @@
   </button>
 </mat-menu>
 
-<ion-content cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+<ion-content cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="ion-no-padding">
 
-  <ion-item *ngIf="form.error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="form.error|translate"></ion-label>
-  </ion-item>
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+                 [class.mat-tab-group-header-hidden]="!_showChildrenTable"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
+                 [disablePagination]="true"
+                 [dynamicHeight]="false">
 
-  <app-physical-gear-form #form
-                          [programLabel]="programLabel"
-                          [acquisitionLevel]="acquisitionLevel"
-                          [canEditGear]="canEditGear"
-                          [canEditRankOrder]="canEditRankOrder"
-                          [allowChildrenGears]="allowChildrenGears"
-                          [i18nSuffix]="i18nSuffix"
-                          (onSubmit)="onSubmit($event)"
-                          [mobile]="mobile">
+    <!-- TAB: general -->
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger"
+                  *ngIf="error || (submitted && physicalGearForm.invalid)"></ion-icon>
+      </ng-template>
 
-    <!-- children table -->
-    <!--<ion-col size=12 size-lg="6" class="ion-padding-bottom"
-             *ngIf="allowChildrenGears"
-             [class.cdk-visually-hidden]="!allowChildrenGears || !_showChildrenTable">
-      &lt;!&ndash; DEBUG &ndash;&gt;
-      <ion-label *ngIf="debug"
-                 class="text-italic ion-padding" color="primary">
-        allowChildrenGears: {{allowChildrenGears}}<br/>
-        childrenGearId: {{childrenTable.gearId}}<br/>
-      </ion-label>
+      <div >
+        <!-- error -->
+        <ion-item *ngIf="(error || physicalGearForm.error) as errorMsg" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
+        </ion-item>
+
+        <!-- base form -->
+        <app-physical-gear-form #physicalGearForm
+                                (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)"
+                                [programLabel]="programLabel"
+                                [acquisitionLevel]="acquisitionLevel"
+                                [canEditGear]="canEditGear"
+                                [canEditRankOrder]="canEditRankOrder"
+                                [i18nSuffix]="i18nSuffix"
+                                (onSubmit)="saveAndClose($event)"
+                                [showError]="false"
+                                [mobile]="mobile">
+
+        </app-physical-gear-form>
+
+        <!-- DEBUG -->
+     <ion-text *ngIf="debug"
+                class="text-italic ion-margin-start" color="primary">
+       allowChildrenGears: {{allowChildrenGears}}<br/>
+       <ng-container *ngIf="childrenTable">
+         table.gearId: {{childrenTable.gearId}}<br/>
+         table.ready: {{childrenTable.readySubject|async}}<br/>
+         table.loading: {{childrenTable.loadingSubject|async}}<br/>
+         table.visibleRowCount: {{childrenTable.visibleRowCount}}<br/>
+         table.totalRowCount: {{childrenTable.totalRowCount}}<br/>
+       </ng-container>
+     </ion-text>
+      </div>
+    </mat-tab>
+
+    <!-- TAB: sub-gears -->
+    <mat-tab label="{{'TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS'|translate}}"
+             [disabled]="!_showChildrenTable">
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger"
+                  *ngIf="childrenTable && (childrenTable.invalid || !childrenTable.totalRowCount)"></ion-icon>
+      </ng-template>
 
       <app-physical-gears-table #childrenTable
-                                [title]="'TRIP.PHYSICAL_GEAR.EDIT.SUB_GEARS_TITLE'|translate"
+                                *ngIf="allowChildrenGears"
+                                (ngInit)="addChildForm(childrenTable)"
                                 [programLabel]="programLabel"
-                                [acquisitionLevel]="_childAcquisitionLevel"
+                                [acquisitionLevel]="childAcquisitionLevel"
                                 [showGearColumn]="false"
-                                [defaultGear]="form|formGetValue:'gear'"
+                                [defaultGear]="$gear|async"
                                 [canEditGear]="false"
-                                [gearId]="gearId"
+                                [gearId]="$gearId|async"
                                 [allowChildrenGears]="false"
                                 [requiredGear]="true"
+                                [showToolbar]="!mobile"
                                 [disabled]="disabled"
-                                [mobile]="false">
+                                [showFabButton]="mobile"
+                                [mobile]="mobile">
       </app-physical-gears-table>
-    </ion-col>-->
-  </app-physical-gear-form>
-
+    </mat-tab>
+  </mat-tab-group>
 </ion-content>
+
+
+<!-- Add Fab Button  -->
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="enabled && mobile && selectedTabIndex === 1"
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="childrenTable.addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
 
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
@@ -111,10 +163,10 @@
 
         <ion-button [fill]="form.invalid ? 'clear' : 'solid'"
                     [disabled]="loading || form.invalid"
-                    (keyup.enter)="onSubmit($event)"
-                    (click)="onSubmit($event)" color="tertiary">
-          <ion-label *ngIf="!isNew" translate>COMMON.BTN_APPLY</ion-label>
-          <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
+                    (keyup.enter)="saveAndClose($event)"
+                    (click)="saveAndClose($event)" color="tertiary">
+          <ion-label *ngIf="!isNewData" translate>COMMON.BTN_APPLY</ion-label>
+          <ion-label *ngIf="isNewData" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>

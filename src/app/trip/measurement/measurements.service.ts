@@ -34,7 +34,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   set programLabel(value: string) {
     if (this._programLabel !== value && isNotNil(value)) {
       this._programLabel = value;
-      if (this.started) this._onRefreshPmfms.emit('set program');
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set program');
     }
   }
 
@@ -46,7 +46,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   set acquisitionLevel(value: string) {
     if (this._acquisitionLevel !== value && isNotNil(value)) {
       this._acquisitionLevel = value;
-      if (this.started) this._onRefreshPmfms.emit();
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit();
     }
   }
 
@@ -58,7 +58,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   set strategyLabel(value: string) {
     if (this._strategyLabel !== value && isNotNil(value)) {
       this._strategyLabel = value;
-      if (this.started) this._onRefreshPmfms.emit();
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit();
     }
   }
 
@@ -69,7 +69,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   @Input() set requiredStrategy(value: boolean) {
     if (this._requiredStrategy !== value && isNotNil(value)) {
       this._requiredStrategy = value;
-      if (this.started) this._onRefreshPmfms.emit('set required strategy');
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set required strategy');
     }
   }
 
@@ -79,9 +79,9 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
 
   @Input()
   set gearId(value: number) {
-    if (this._gearId !== value && isNotNil(value)) {
+    if (this._gearId !== value) {
       this._gearId = value;
-      if (this.started) this._onRefreshPmfms.emit('set gear id');
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set gear id');
     }
   }
 
@@ -92,7 +92,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   @Input() set requiredGear(value: boolean) {
     if (this._requiredGear !== value && isNotNil(value)) {
       this._requiredGear = value;
-      if (this.started) this._onRefreshPmfms.emit('set required gear');
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set required gear');
     }
   }
 
@@ -112,8 +112,6 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   get delegate(): IEntitiesService<T, F> {
     return this._delegate;
   }
-
-  protected weightDisplayedUnit: string;
 
   constructor(
     injector: Injector,
@@ -146,9 +144,9 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     );
   }
 
-  protected async ngOnStart(): Promise<IPmfm[]> {
+  protected ngOnStart(): Promise<IPmfm[]> {
     this._onRefreshPmfms.emit('start');
-    return await firstNotNilPromise(this.$pmfms);
+    return this.$pmfms.toPromise();
   }
 
   protected async ngOnStop() {

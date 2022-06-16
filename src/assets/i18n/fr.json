@@ -594,7 +594,8 @@
         "GEAR": "Code de l'engin",
         "RANK_ORDER": "Numéro de l'engin",
         "FEATURES": "Caractéristiques physiques :",
-        "SUB_GEARS_TITLE": "Sous-engins",
+        "TAB_GENERAL": "Détails",
+        "TAB_SUB_GEARS": "Sous-engins",
         "CHILD": {
           "GEAR": "Code du sous-engin",
           "RANK_ORDER": "Numéro du sous-engin",

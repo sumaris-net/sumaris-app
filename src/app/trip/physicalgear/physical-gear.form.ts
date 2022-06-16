@@ -39,14 +39,14 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   _showChildrenTable = false;
   $gears = new BehaviorSubject<ReferentialRef[]>(undefined);
 
-  @Input() mobile: boolean;
-  @Input() showComment: boolean;
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
   @Input() canEditGear = true;
   @Input() maxVisibleButtons: number;
-  @Input() allowChildrenGears: boolean;
   @Input() i18nSuffix: string = null;
+  @Input() showError = false;
+  @Input() mobile: boolean;
+  @Input() showComment: boolean;
 
   @Input()
   set gears(value: ReferentialRef[]) {
@@ -57,28 +57,10 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     return isNil(this.data?.parent);
   }
 
-  get dirty(): boolean {
-    return super.dirty || (this.allowChildrenGears && this.childrenTable?.dirty) || false;
-  }
-
-  get valid(): boolean {
-    return super.valid && (!this.allowChildrenGears || !this.childrenTable || this.childrenTable.valid) || false;
-  }
-
-  get invalid(): boolean {
-    return super.invalid && (this.allowChildrenGears && this.childrenTable?.invalid) || false;
-  }
-
-  get pending(): boolean {
-    return super.pending || (this.allowChildrenGears && this.childrenTable?.pending) || false;
-  }
-
   @Output() onSubmit = new EventEmitter<any>();
 
   @ViewChild('firstInput', {static: true}) firstInputField: InputElement;
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
-
-  @ViewChild('childrenTable') childrenTable: AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> & {value: PhysicalGear[]};
 
   constructor(
     injector: Injector,
@@ -95,7 +77,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
     // Set default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
-    this._childAcquisitionLevel = AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR;
 
     // Load gears from program
     this.registerSubscription(
@@ -113,8 +94,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.allowChildrenGears = toBoolean(this.allowChildrenGears, true);
     this.mobile = toBoolean(this.mobile, this.settings.mobile);
     this.tabindex = toNumber(this.tabindex, 1);
     this.showComment = !this.mobile || isNotNilOrBlank(this.data?.comments);
@@ -147,19 +126,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   }
 
   ngAfterViewInit() {
-    // Show/Hide children table
-    if (this.allowChildrenGears) {
-      this.registerSubscription(
-        this.childrenTable.$pmfms
-          .subscribe(pmfms => {
-            const hasChildrenPmfms = (pmfms||[]).filter(p => p.id !== PmfmIds.GEAR_LABEL).length > 0;
-            if (this._showChildrenTable !== hasChildrenPmfms) {
-              this._showChildrenTable = hasChildrenPmfms;
-              this.markForCheck();
-            }
-          })
-      );
-    }
+
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -195,43 +162,16 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     this.showComment = this.showComment || isNotNilOrBlank(data.comments);
 
     await super.setValue(data, opts);
-
-    if (this.allowChildrenGears) {
-      this.childrenTable.gearId = this.gearId;
-      this.childrenTable.value = data.children || [];
-    }
-  }
-
-  markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsReady(opts);
-    if (this.allowChildrenGears) {
-      waitFor(() => !!this.childrenTable).then(() => this.childrenTable.markAsReady());
-    }
   }
 
   toggleComment() {
+    if (this.disabled) return;
+
     this.showComment = !this.showComment;
     if (!this.showComment) {
       this.form.get('comments').setValue(null);
     }
     this.markForCheck();
-  }
-
-
-  async save(): Promise<boolean> {
-    if (!this.form.valid) {
-      await AppFormUtils.waitWhilePending(this.form);
-
-      if (this.form.invalid) {
-        return false;
-      }
-    }
-
-    if (this.allowChildrenGears && this.childrenTable.dirty) {
-      return await this.childrenTable.save();
-    }
-
-    return true;
   }
 
   /* -- protected methods -- */
@@ -246,18 +186,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     if (ReferentialUtils.isNotEmpty(data.gear)) {
       this.gearId = data.gear.id;
     }
-  }
-
-  protected getValue(): PhysicalGear {
-    const data = super.getValue();
-
-    if (this.allowChildrenGears) {
-      data.children = this.childrenTable.value;
-    }
-    else {
-      data.children = null;
-    }
-    return data;
   }
 
   selectInputContent = selectInputContent;

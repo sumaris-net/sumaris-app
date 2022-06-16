@@ -1,107 +1,71 @@
 
-<ion-grid class="ion-no-padding">
-  <ion-row>
-    <ion-col>
-      <form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)" >
+<form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)" >
 
-        <ion-item *ngIf="error" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-        </ion-item>
+  <ion-item *ngIf="showError && error" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
 
-        <!-- GEAR -->
-        <mat-autocomplete-field #firstInput
-                                *ngIf="showGear"
-                                formControlName="gear"
-                                [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translateContext: i18nSuffix"
-                                [config]="autocompleteFields.gear"
-                                [tabindex]="tabindex"
-                                [required]="true"
-                                [showSearchBar]="$gears|async|isArrayLength:{greaterThan: 5}"
-                                (focusout)="focusNextInput($event)">
-        </mat-autocomplete-field>
+  <!-- GEAR -->
+  <mat-autocomplete-field #firstInput
+                          *ngIf="showGear"
+                          formControlName="gear"
+                          [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translateContext: i18nSuffix"
+                          [config]="autocompleteFields.gear"
+                          [tabindex]="tabindex"
+                          [required]="true"
+                          [showSearchBar]="$gears|async|isArrayLength:{greaterThan: 5}"
+                          (focusout)="focusNextInput($event)">
+  </mat-autocomplete-field>
 
-        <!-- rankOrder -->
-        <mat-form-field *ngIf="canEditRankOrder">
-          <input matInput #inputField
-                 formControlName="rankOrder"
-                 autocomplete="off"
-                 type="number"
-                 step="1"
-                 pattern="[0-9]*"
-                 min="1"
-                 (click)="selectInputContent($event)"
-                 [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER'|translateContext: i18nSuffix"
-                 [tabindex]="tabindex + 1">
+  <!-- rankOrder -->
+  <mat-form-field *ngIf="canEditRankOrder">
+    <input matInput #inputField
+           formControlName="rankOrder"
+           autocomplete="off"
+           type="number"
+           step="1"
+           pattern="[0-9]*"
+           min="1"
+           (click)="selectInputContent($event)"
+           [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER'|translateContext: i18nSuffix"
+           [tabindex]="tabindex + 1">
 
-          <mat-error *ngIf="form.controls.rankOrder.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-          <mat-error *ngIf="form.controls.rankOrder.hasError('min')">
-            {{'ERROR.FIELD_MIN' | translate:form.controls.rankOrder.errors['min'] }}</mat-error>
-          <mat-error *ngIf="form.controls.rankOrder.hasError('integer')">
-            {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
-        </mat-form-field>
+    <mat-error *ngIf="form.controls.rankOrder.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+    <mat-error *ngIf="form.controls.rankOrder.hasError('min')">
+      {{'ERROR.FIELD_MIN' | translate:form.controls.rankOrder.errors['min'] }}</mat-error>
+    <mat-error *ngIf="form.controls.rankOrder.hasError('integer')">
+      {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+  </mat-form-field>
 
-        <ng-content></ng-content>
+  <ng-content></ng-content>
 
         <!-- DEBUG
         <ion-col class="ion-no-padding" size="6" *ngFor="let pmfm of $pmfms | async">
           {{pmfm.name}}
         </ion-col>-->
 
-        <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
+    <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
 
-          <!-- Measurements -->
-          <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last" #inputField
-                          [pmfm]="pmfm"
-                          [controlName]="pmfm|pmfmIdString"
-                          [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
-                          [compact]="compact"
-                          [tabindex]="tabindex+2 + i*2"
-                          [floatLabel]="floatLabel"
-                          (keydown.tab)="focusNextInput($event)"
-                          (keydown.enter)="focusNextInput($event)"
-                          [mobile]="mobile">
-          </app-pmfm-field>
-        </form>
+      <!-- Measurements -->
+      <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last" #inputField
+                      [pmfm]="pmfm"
+                      [controlName]="pmfm|pmfmIdString"
+                      [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
+                      [compact]="compact"
+                      [tabindex]="tabindex+2 + i*2"
+                      [floatLabel]="floatLabel"
+                      (keydown.tab)="focusNextInput($event)"
+                      (keydown.enter)="focusNextInput($event)"
+                      [mobile]="mobile">
+      </app-pmfm-field>
+    </form>
 
-      </form>
-    </ion-col>
-
-    <!-- children table -->
-    <ion-col size=12 size-lg="6" class="ion-padding-bottom"
-             *ngIf="allowChildrenGears"
-              [class.cdk-visually-hidden]="!allowChildrenGears || !_showChildrenTable">
-      <!-- DEBUG -->
-      <ion-label *ngIf="debug"
-                 class="text-italic ion-padding" color="primary">
-        allowChildrenGears: {{allowChildrenGears}}<br/>
-        childrenGearId: {{childrenTable.gearId}}<br/>
-      </ion-label>
-
-      <app-physical-gears-table #childrenTable
-                                [title]="'TRIP.PHYSICAL_GEAR.EDIT.SUB_GEARS_TITLE'|translate"
-                                [programLabel]="$programLabel|async"
-                                [acquisitionLevel]="_childAcquisitionLevel"
-                                [showGearColumn]="false"
-                                [defaultGear]="form|formGetValue:'gear'"
-                                [canEditGear]="false"
-                                [gearId]="gearId"
-                                [allowChildrenGears]="false"
-                                [requiredGear]="true"
-                                [disabled]="disabled"
-                                [i18nSuffix]="'CHILD'"
-                                [mobile]="mobile"
-                                [showFabButton]="mobile">
-      </app-physical-gears-table>
-    </ion-col>
-
-    <!-- <ng-content></ng-content> -->
-  </ion-row>
 
   <ion-row>
     <ion-col size="12" class="form-container ion-padding">
       <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable>
-        <ion-toggle [checked]="showComment" ></ion-toggle>
+        <ion-toggle [checked]="showComment" [disabled]="disabled"></ion-toggle>
         <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
       </ion-item>
 
@@ -121,7 +85,6 @@
       </mat-form-field>
     </ion-col>
   </ion-row>
-</ion-grid>
 
 <ng-template #measurementsSkeleton>
   <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>

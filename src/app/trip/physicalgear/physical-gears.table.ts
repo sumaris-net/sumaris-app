@@ -2,12 +2,11 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector
 import { TableElement } from '@e-is/ngx-material-table';
 
 import { AppMeasurementsTable } from '../measurement/measurements.table.class';
-import { createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isNotNil, ReferentialRef, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';
-import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PhysicalGearFilter } from './physical-gear.filter';
-import { Subscription } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
@@ -154,6 +153,10 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     this.openSelectPreviousGearModal.unsubscribe();
   }
 
+  updateView(res: LoadResult<PhysicalGear> | undefined, opts?: { emitEvent?: boolean }): Promise<void> {
+    return super.updateView(res, opts);
+  }
+
   setModalOption(key: keyof IPhysicalGearModalOptions, value: IPhysicalGearModalOptions[typeof key]) {
     this.modalOptions = this.modalOptions || {};
     this.modalOptions[key as any] = value;
@@ -217,8 +220,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
   async openDetailModal(dataToOpen?: PhysicalGear): Promise<PhysicalGear | undefined> {
 
-    const isNew = !dataToOpen && true;
-    if (isNew) {
+    const isNewData = !dataToOpen && true;
+    if (isNewData) {
       dataToOpen = new PhysicalGear();
       await this.onNewEntity(dataToOpen);
     }
@@ -233,15 +236,15 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         data: dataToOpen.clone(), // Do a copy, because edition can be cancelled
-        isNew,
+        isNewData,
         canEditGear: this.canEditGear,
         canEditRankOrder: this.canEditRankOrder,
-        onReady: (modal) => {
+        onAfterModalInit: (modal: PhysicalGearModal) => {
           if (this.openSelectPreviousGearModal.observers.length) {
             modal.onSearchButtonClick.subscribe(event => this.openSelectPreviousGearModal.emit(event))
           }
         },
-        onDelete: (event, PhysicalGear) => this.deleteEntity(event, PhysicalGear),
+        onDelete: (event, data) => this.deleteEntity(event, data),
         mobile: this.mobile,
         i18nSuffix: this.i18nSuffix,
         // Override using given options
