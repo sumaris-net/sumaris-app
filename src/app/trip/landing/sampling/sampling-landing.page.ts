@@ -2,19 +2,9 @@ import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { FormGroup, ValidationErrors } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import {
-  AccountService,
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  firstNotNilPromise,
-  firstTruePromise,
-  HistoryPageReference,
-  isNil,
-  isNotNil,
-  SharedValidators
-} from '@sumaris-net/ngx-components';
+import { AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, SharedValidators } from '@sumaris-net/ngx-components';
 import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
 import { LandingPage } from '../landing.page';
 import { Landing } from '../../services/model/landing.model';
@@ -67,12 +57,8 @@ export class SamplingLandingPage extends LandingPage {
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    // Show table, if there is some pmfms
-    firstTruePromise(this.samplesTable.$hasPmfms)
-      .then(() => {
-        this.showSamplesTable = true;
-        this.markForCheck();
-      });
+    // Set sample table acquisition level
+    this.samplesTable.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
 
     // Load Pmfm IDs
     this.pmfmService.loadIdsGroupByParameterLabels(SampleParameterLabelsGroups)

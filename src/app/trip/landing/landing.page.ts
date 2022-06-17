@@ -399,12 +399,11 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
 
     // Configure samples table
-    if (this.samplesTable) {
+    if (this.samplesTable && this.samplesTable.acquisitionLevel) {
       this.samplesTable.strategyLabel = strategy.label;
       const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
       this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
       this.samplesTable.showTaxonGroupColumn = false;
-      this.samplesTable.acquisitionLevel = this.samplesTable.acquisitionLevel || AcquisitionLevelCodes.SAMPLE;
 
       // Load strategy's pmfms
       let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(this.$program.value.label,
@@ -435,6 +434,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
       // Give it to samples table (but exclude STRATEGY_LABEL)
       this.samplesTable.pmfms = samplesPmfms.filter(p => p.id !== PmfmIds.STRATEGY_LABEL);
+      // Avoid to load by program, because PMFM are already known
       //this.samplesTable.programLabel = this.$programLabel.value;
     }
 
