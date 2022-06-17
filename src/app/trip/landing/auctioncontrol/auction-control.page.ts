@@ -61,12 +61,12 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
-      tabGroupAnimationDuration: '0s' // Disable tab animation
+      tabGroupAnimationDuration: '0s', // Disable tab animation
+      i18nPrefix: 'AUCTION_CONTROL.EDIT.'
     });
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
   }
-
 
   ngOnInit() {
     super.ngOnInit();

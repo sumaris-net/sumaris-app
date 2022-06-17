@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
-import {FormGroup, ValidationErrors} from '@angular/forms';
-import {Subscription} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import { LocationLevelIds, ParameterLabelGroups, PmfmIds } from '@app/referential/services/model/model.enum';
-import {PmfmService} from '@app/referential/services/pmfm.service';
+import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
+import { FormGroup, ValidationErrors } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
+import { PmfmService } from '@app/referential/services/pmfm.service';
 import {
   AccountService,
   EntityServiceLoadOptions,
@@ -13,21 +13,22 @@ import {
   HistoryPageReference,
   isNil,
   isNotNil,
-  SharedValidators,
+  SharedValidators
 } from '@sumaris-net/ngx-components';
-import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
-import {LandingPage} from '../landing.page';
-import {Landing} from '../../services/model/landing.model';
-import {ObservedLocation} from '../../services/model/observed-location.model';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
-import {Strategy} from '@app/referential/services/model/strategy.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {LandingService} from '@app/trip/services/landing.service';
+import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
+import { LandingPage } from '../landing.page';
+import { Landing } from '../../services/model/landing.model';
+import { ObservedLocation } from '../../services/model/observed-location.model';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { LandingService } from '@app/trip/services/landing.service';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {Trip} from '@app/trip/services/model/trip.model';
+import { Moment } from 'moment';
+import { Trip } from '@app/trip/services/model/trip.model';
 
 const moment = momentImported;
+
 
 @Component({
   selector: 'app-sampling-landing-page',
@@ -74,7 +75,7 @@ export class SamplingLandingPage extends LandingPage {
       });
 
     // Load Pmfm IDs
-    this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups)
+    this.pmfmService.loadIdsGroupByParameterLabels(SampleParameterLabelsGroups)
       .then(pmfmGroups => this.samplesTable.pmfmGroups = pmfmGroups);
   }
 
@@ -148,6 +149,7 @@ export class SamplingLandingPage extends LandingPage {
       // No effort defined
       if (!strategyEffort) {
         this.noEffortError = true;
+        this.samplesTable.disable();
         this.zeroEffortWarning = false;
         this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
       }
@@ -163,6 +165,13 @@ export class SamplingLandingPage extends LandingPage {
         this.noEffortError = false;
         SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
       }
+    }
+
+    if (this.noEffortError) {
+      this.samplesTable.disable();
+    }
+    else if (this.enabled) {
+      this.samplesTable.enable();
     }
 
     this.markForCheck();
@@ -307,5 +316,15 @@ export class SamplingLandingPage extends LandingPage {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
       strategyLabel: strategy && strategy.label
     }).toPromise());
+  }
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): boolean {
+    const done = super.enable(opts);
+
+    // Keep sample table disabled, when no effort
+    if (done && this.noEffortError) {
+      this.samplesTable.disable(opts);
+    }
+    return done;
   }
 }

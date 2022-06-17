@@ -643,6 +643,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'ACCIDENTAL_CATCH.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ACCIDENTAL_CATCH'
+      },
+      {
+        key: 'AUCTION_CONTROL.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_AUCTION_CONTROL'
       }
     ],
     defaultValue: 'legacy'

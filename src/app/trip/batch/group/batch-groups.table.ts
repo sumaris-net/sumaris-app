@@ -6,6 +6,7 @@ import {
   changeCaseToUnderscore,
   ColumnItem,
   FormFieldDefinition,
+  FormFieldType,
   InMemoryEntitiesService,
   isEmptyArray,
   isNil,
@@ -41,7 +42,6 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { FormFieldType } from '@sumaris-net/ngx-components/src/app/shared/form/field.model';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 

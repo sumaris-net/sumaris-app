@@ -961,17 +961,20 @@
         "OTHER": "Other"
       },
       "PMFM": {
+        "ACCIDENTAL_CATCH": {
+          "MEASURE_TIME": "Release date",
+          "IS_DEAD": "Is dead?",
+          "TAG_ID": "Tag-ID"
+        },
+        "AUCTION_CONTROL": {
+          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon"
+        },
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Release date",
           "ACCIDENTAL_CATCH": {
             "MEASURE_TIME": "Release hour",
             "TAG_ID": "Tag-ID"
           }
-        },
-        "ACCIDENTAL_CATCH": {
-          "MEASURE_TIME": "Release date",
-          "IS_DEAD": "Is dead?",
-          "TAG_ID": "Tag-ID"
         },
         "SAMPLING": {
           "TAG_ID": "Sample Tag-ID",

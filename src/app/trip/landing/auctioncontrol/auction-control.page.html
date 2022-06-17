@@ -171,8 +171,10 @@
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
                            (onPrepareRowForm)="onPrepareSampleForm($event)"
+                           [compactFields]="true"
+                           [i18nSuffix]="i18nContext.suffix"
                            [debug]="debug"
-                           [compactFields]="true">
+                           >
           <ion-buttons slot="end">
             <!-- Help button -->
             <button mat-icon-button *ngIf="helpContent"

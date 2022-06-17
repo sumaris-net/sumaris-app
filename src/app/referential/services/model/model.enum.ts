@@ -1,4 +1,5 @@
 import { isNil } from '@sumaris-net/ngx-components';
+import { ObjectMap } from '@sumaris-net/ngx-components/public_api';
 
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
@@ -167,7 +168,7 @@ export const autoCompleteFractions = {
 }
 
 export const ParameterLabelGroups = {
-  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */, 'DRESSING'],
+  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */, 'DRESSING', 'PRESERVATION'],
   LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
   WEIGHT: ['WEIGHT'],
   SEX: ['SEX'],
@@ -177,6 +178,15 @@ export const ParameterLabelGroups = {
   DRESSING: ['DRESSING'],
   PRESERVATION: ['PRESERVATION']
 };
+// Remove duplication in label
+export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups).reduce((res, key) => {
+  const labels = ParameterLabelGroups[key]
+    // Exclude label already in another previous group
+    .filter(label => !Object.values(res).some((previousLabels: string[]) => previousLabels.includes(label)));
+  // Add to result, only if not empty
+  if (labels.length) res[key] = labels;
+  return res;
+}, {})
 
 export const FractionIdGroups = {
   CALCIFIED_STRUCTURE: [10, 11, 12, 13]

@@ -903,7 +903,7 @@
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
         "AUCTION_CONTROL": {
-          "TITLE": "Lot {{label}}",
+          "TITLE": "Lot n°{{label}}",
           "LABEL_PLACEHOLDER": "Numéro du lot"
         },
         "ACCIDENTAL_CATCH": {
@@ -939,8 +939,8 @@
         "BTN_INDIVIDUAL_MONITORING": "Saisir le sous-prélèvement",
         "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
         "AUCTION_CONTROL": {
-          "LABEL": "Lot",
-          "LABEL_PLACEHOLDER": "Lot"
+          "LABEL": "N° Lot",
+          "LABEL_PLACEHOLDER": "N° Lot"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Mesures individuelles",
@@ -962,18 +962,20 @@
         "OTHER": "Autre"
       },
       "PMFM": {
-        "WEIGHT": "Poids",
+        "ACCIDENTAL_CATCH": {
+          "MEASURE_TIME": "Date de remise à l'eau",
+          "IS_DEAD": "Mort ?",
+          "TAG_ID": "Référence de la marque"
+        },
+        "AUCTION_CONTROL": {
+          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon (kg)"
+        },
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "ACCIDENTAL_CATCH": {
             "MEASURE_TIME": "Heure de remise à l'eau",
             "TAG_ID": "Référence de la marque"
           }
-        },
-        "ACCIDENTAL_CATCH": {
-          "MEASURE_TIME": "Date de remise à l'eau",
-          "IS_DEAD": "Mort ?",
-          "TAG_ID": "Référence de la marque"
         },
         "SAMPLING": {
           "TAG_ID": "Code prélèvement",
@@ -1075,6 +1077,9 @@
       "OBSERVERS": "Observateurs :",
       "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
       "FISHING_AREAS": "Zones de pêche :",
+      "AUCTION_CONTROL": {
+        "TITLE": "{{location}} - Contrôle du {{dateTime}}"
+      },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
         "TAB_LANDINGS": "Échantillonnages"
@@ -1605,6 +1610,7 @@
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
       "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
+      "I18N_SUFFIX_AUCTION_CONTROL": "Contrôle criée",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",

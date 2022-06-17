@@ -43,13 +43,14 @@ import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {MatMenu} from '@angular/material/menu';
 import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
-import {isNilOrNaN} from '@app/shared/functions';
+import { arrayPluck, isNilOrNaN } from '@app/shared/functions';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {BatchGroup} from '@app/trip/batch/group/batch-group.model';
 import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
 import {MatCellDef} from '@angular/material/table';
 import {OverlayEventDetail} from '@ionic/core';
 import {IPmfmForm} from '@app/trip/services/validator/operation.validator';
+import { IPhysicalGearModalOptions } from '@app/trip/physicalgear/physical-gear.modal';
 
 const moment = momentImported;
 
@@ -194,6 +195,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   getRowError(row, opts): string {
     return super.getRowError(row, opts);
+  }
+
+  setModalOption(key: keyof ISampleModalOptions, value: ISampleModalOptions[typeof key]) {
+    this.modalOptions = this.modalOptions || {};
+    this.modalOptions[key as any] = value;
+  }
+
+  getModalOption(key: keyof ISampleModalOptions): ISampleModalOptions[typeof key] {
+    return this.modalOptions[key];
   }
 
   @Output() onPrepareRowForm = new EventEmitter<IPmfmForm>();
@@ -797,13 +807,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups);
 
       // Create a list of known pmfm ids
-      const groupedPmfmIds = Object.values(groupedPmfmIdsMap).reduce((res, pmfmIds) => res.concat(...pmfmIds), []);
+      const groupedPmfmIds: number[] = Object.values(groupedPmfmIdsMap).flatMap(pmfmIds => pmfmIds);
 
       // Create pmfms group
       const orderedPmfmIds: number[] = [];
       const orderedPmfms: IPmfm[] = [];
       let groupIndex = 0;
-      const pmfmGroupColumns: GroupColumnDefinition[] = ParameterGroups.concat('OTHER').reduce((pmfmGroups, group) => {
+      const groupNames = ParameterGroups.concat('OTHER');
+      const pmfmGroupColumns: GroupColumnDefinition[] = groupNames.reduce((pmfmGroups, group) => {
         let groupPmfms: IPmfm[];
         if (group === 'OTHER') {
           groupPmfms = pmfms.filter(p => !groupedPmfmIds.includes(p.id));
@@ -832,7 +843,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           }
 
           // Add pmfm into the final list of ordered pmfms
-          orderedPmfms.push(pmfm);
+          if (!orderedPmfms.includes(pmfm)) orderedPmfms.push(pmfm);
         });
 
         return pmfmGroups.concat(
@@ -853,7 +864,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.pmfmGroupColumns$.next(pmfmGroupColumns);
       this.groupHeaderColumnNames =
         ['top-start']
-          .concat(pmfmGroupColumns.map(g => g.key))
+          .concat(arrayPluck(pmfmGroupColumns, 'key') as string[])
           .concat(['top-end']);
       this.groupHeaderStartColSpan = RESERVED_START_COLUMNS.length
         + (this.showLabelColumn ? 1 : 0)

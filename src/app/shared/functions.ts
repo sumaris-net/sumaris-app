@@ -2,6 +2,7 @@
 // TODO: remove after then updating to last version of ngx-components
 
 import { isNil, LoadResult } from '@sumaris-net/ngx-components';
+import { isNotNil } from '@sumaris-net/ngx-components/src/app/shared/functions';
 
 export function isNilOrNaN<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null || (typeof obj === 'number' && isNaN(obj));
@@ -84,4 +85,10 @@ export function arrayEquals<T>(value: T[], other:T[]): boolean {
 
   // If nothing failed, return true
   return true;
+}
+
+export function arrayPluck<T>(array: T[], key: keyof T, omitNil?: boolean): T[typeof key][] {
+  return (omitNil !== true) ?
+    (array || []).map(value => value && value[key]):
+    (array || []).map(value => value && value[key]).filter(isNotNil);
 }
