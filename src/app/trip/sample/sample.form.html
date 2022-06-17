@@ -80,14 +80,17 @@
         </ion-col>-->
         <ion-col
                  [size]="mobile && (pmfm.isQualitative || pmfm.type === 'boolean') ? 12 : 6"
+                 *ngVar="pmfm|isComputedPmfm as computed"
                  class="pmfm-{{pmfm.id}}">
           <app-pmfm-field #matInput
                          [pmfm]="pmfm"
+                         [class.computed]="computed"
+                         [readonly]="computed"
                          [style]="mobile && 'button'"
                          [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
                          [maxVisibleButtons]="maxVisibleButtons"
                          [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
-                         [tabindex]="tabindex+4 + i*maxVisibleButtons"
+                         [tabindex]="computed ? -1 : (tabindex+4 + i*maxVisibleButtons)"
                          (keyup.enter)="last && onSubmit.emit($event)">
           </app-pmfm-field>
         </ion-col>

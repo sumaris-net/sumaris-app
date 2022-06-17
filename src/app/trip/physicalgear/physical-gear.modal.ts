@@ -25,6 +25,7 @@ export interface IPhysicalGearModalOptions
   acquisitionLevel: string;
   programLabel: string;
 
+  showGear: boolean;
   canEditGear: boolean;
   canEditRankOrder: boolean;
   allowChildrenGears: boolean;

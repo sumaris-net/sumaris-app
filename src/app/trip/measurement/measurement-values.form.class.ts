@@ -338,7 +338,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   }
 
-  protected setProgramLabel(value: string, opts?: {emitEvent?: boolean}) {
+  protected setProgramLabel(value: string,  opts = {emitEvent: true}) {
     if (isNotNil(value) && this.$programLabel.value !== value) {
 
       this.$programLabel.next(value);
@@ -348,7 +348,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  protected setStrategyLabel(value: string, opts?: {emitEvent?: boolean}) {
+  protected setStrategyLabel(value: string,  opts = {emitEvent: true}) {
     if (isNotNil(value) && this.$strategyLabel.value !== value) {
 
       this.$strategyLabel.next(value);

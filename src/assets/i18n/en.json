@@ -16,6 +16,7 @@
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
     "BTN_IMPORT": "Import",
+    "BTN_IMPORT_FROM_FILE_DOTS": "Import from file...",
     "BTN_DUPLICATE": "Duplicate",
     "BTN_DELETE": "Delete",
     "BTN_DELETE_FOREVER": "Delete forever",
@@ -132,6 +133,9 @@
     "DEBUG": {
       "BTN_COPY_LOCALLY": "Copy locally",
       "BTN_AUTO_FILL": "Auto fill data"
+    },
+    "HELP": {
+      "TITLE": "Online help"
     }
   },
   "CONFIGURATION": {
@@ -213,6 +217,7 @@
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Referential > Location level > CIEM/ICES Division",
         "LOCATION_LEVEL_LOCATIONS_AREA_IDS": "Strategy > Location level(s) for fishing area (ids)",
         "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Strategy > Location level(s) for areas in Length-Weight conversions (ids)",
+        "ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID": "Referential > Default country for alive weight conversion (id)",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Referential > Taxonomic level > Family",
         "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
@@ -520,6 +525,9 @@
       "NO_LOCAL_RESULT": "No result (in trips NOT sent)",
       "BTN_NEW_OFFLINE": "Field input mode (offline)",
       "BTN_NEW_ONLINE": "Desktop input mode (online)",
+      "BTN_DOWNLOAD_DOTS": "Download wizard...",
+      "BTN_DOWNLOAD_JSON": "Download (JSON)",
+      "DOWNLOAD_JSON_FILENAME": "Trips.json",
       "FILTER": {
         "PROGRAM": "Data collection program",
         "START_DATE": "Start period",
@@ -535,6 +543,16 @@
         "DIRTY_HELP": "Not-synchronized trips",
         "READY_TO_SYNC_HELP": "Ready to sync trips",
         "SYNC_HELP": "Online trips"
+      },
+      "INFO": {
+        "IMPORT_FILE_SUCCEED" : "Import completed:<br><b>{{inserts}} trip(s) imported!",
+        "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Import completed:<br><ul><li>{{inserts}} trip(s) imported;<li>{{errors}} trip(s) ignored."
+      },
+      "WARNING": {
+        "NEED_ONE_PROGRAM": "Please <b>filter on a collection program</b> first."
+      },
+      "ERROR": {
+        "IMPORT_FILE_FAILED" : "<b>No trip could be imported</b>!<br/><small>Technical error: {{error}}</small>"
       }
     },
     "TRASH": {
@@ -566,15 +584,25 @@
       "RANK_ORDER": "#",
       "SEARCH_EXISTING_BTN": "Search among the data already entered",
       "NEW": {
-        "TITLE": "New gear"
+        "TITLE": "New gear",
+        "CHILD": {
+          "TITLE": "New sub-gear"
+        }
       },
       "EDIT": {
         "TITLE": "Gear #",
         "GEAR": "Gear code",
         "RANK_ORDER": "Gear number",
-        "FEATURES": "Physical parameters:"
+        "FEATURES": "Physical parameters:",
+        "TAB_GENERAL": "Details",
+        "TAB_SUB_GEARS": "Sub-gears",
+        "CHILD": {
+          "GEAR": "Sub-gear code",
+          "RANK_ORDER": "Sub-gear number",
+          "TITLE": "Sub-gear {{label}}"
+        }
       },
-      "LIST": {
+      "TABLE": {
         "SELECT_ROW_HELP": "Select a row to edit it",
         "GEAR": "Gear",
         "LAST_USED": "Last use",
@@ -586,6 +614,12 @@
       },
       "SELECT_MODAL": {
         "TITLE": "Existing gears"
+      },
+      "PMFM": {
+        "GEAR_LABEL": "Gear label",
+        "CHILD": {
+          "GEAR_LABEL": "Sub-gear label"
+        }
       },
       "ERROR": {
         "LOAD_PHYSICAL_GEARS_ERROR": "Error while loading gears.",
@@ -686,6 +720,8 @@
       },
       "MAP": {
         "TITLE": "Positions map",
+        "TRIP_LAYER_WITH_DETAILS": "{{vessel}} - Trip {{departureDateTime}}",
+        "OPERATIONS_LAYER_WITH_DETAILS": "{{trip}} - Operations",
         "TRIP_LAYER": "Trip",
         "OPERATIONS_LAYER": "Operations"
       },
@@ -719,6 +755,7 @@
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
         "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
         "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
+        "MISSING_PARENT_OPERATION": "Associée operation not found",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Before setting's end",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
         "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)",
@@ -784,6 +821,7 @@
         "PARENT_GROUP": "Species batch",
         "BTN_AUTO_INCREMENT": "Auto increment",
         "BTN_INDIVIDUAL_MEASURE": "Fill measurements",
+        "BTN_APPLY_CHILDREN_WEIGHT": "Apply this weight",
         "ESTIMATED_WEIGHT": "Estimated weight",
         "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
         "TOTAL_WEIGHT": "Total weight (kg)",
@@ -792,6 +830,7 @@
         "WITHOUT_MEASURE": "No measurement",
         "IS_SAMPLING": "If measurement, enter the sampling weight:",
         "SAMPLING_WEIGHT": "Sampling weight (kg)",
+        "SAMPLING_CHILDREN_WEIGHT": "Calculated weight by LWR",
         "SAMPLING_RATIO_PCT": "Sampling fraction (%)",
         "SAMPLING_COEFFICIENT": "Sampling coeff. (1/w)",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
@@ -1573,6 +1612,7 @@
       "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
+      "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Trip > Gear: Allow sub-gears?",
       "TRIP_MAP_ENABLE": "Trip > Map: Enable?",
       "TRIP_MAP_CENTER": "Trip > Map: cernter position",
       "TRIP_MAP_ZOOM": "Trip > Map: Zoom level",
@@ -1583,10 +1623,11 @@
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Catch > Species batch: Commercial species without weight:",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Catch > Species batch: Scientific species?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Catch > Species batch: Compute sampling nb indiv?",
-      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Catch > Individual measure: Sort items on save?",
       "TRIP_BATCH_ENABLE": "Catch > Species batch?",
+      "TRIP_BATCH_SAMPLING_RATIO_FORMAT": "Catch > Species batch: Fraction format",
       "TRIP_BATCH_MEASURE_ENABLE": "Catch > Species batch: Enable individual measures?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Catch > Species batch: Enter weight?",
+      "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Catch > Individual measure: Sort items on save?",
       "TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE": "Catch > Individual measure: Compute weight by WLR?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE": "Catch > Individual measure: Enter nb indiv?",
       "TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE": "Catch > Individual measure: Scientific species?",
@@ -1954,6 +1995,8 @@
       "RECORD_TYPE": "Type",
       "HARBOUR": "Harbour",
       "PROJECT": "Project",
+      "TRIP_CODE": "Trip code",
+      "STATION_NUMBER": "Station number",
       "YEAR": "Year",
       "QUARTER": "Quarter",
       "MONTH": "Month",

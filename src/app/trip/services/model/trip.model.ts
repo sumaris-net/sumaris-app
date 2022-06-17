@@ -520,12 +520,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     // Physical gears
     if (!opts || opts.gearAsTree !== false) {
-      target.gears = this.gears && this.gears.reduce((res, g) => {
-        if (g.children?.length) {
-          return res.concat([g, ...g.children.map(child => child.asObject(opts))]);
-        }
-        return res.concat(g)
-      }, []) || undefined;
+      target.gears = this.gears && this.gears.map(g => g.asObject({...opts, withChildren: true})) || undefined;
     }
     // Serialize as batches array (this will fill parentId, and remove children and parent properties)
     else {

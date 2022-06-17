@@ -153,8 +153,10 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear, number, PhysicalG
   asObject(opts?: PhysicalGearAsObjectOptions): any {
     const target = super.asObject(opts);
     target.gear = this.gear && this.gear.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }) || undefined;
-    // Fixme gear entityName here
-    if (target.gear) target.gear.entityName = 'GearVO';
+    if (target.gear && !target.gear.entityName) {
+      console.warn("Fixme : manually set gear entityName!");
+      target.gear.entityName = 'GearVO';
+    }
 
     target.rankOrder = this.rankOrder;
 

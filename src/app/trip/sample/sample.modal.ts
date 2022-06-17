@@ -47,7 +47,6 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 
   // UI Options
   maxVisibleButtons: number;
-  enableBurstMode: boolean;
   i18nSuffix?: string;
 
   // Callback actions
@@ -86,7 +85,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showComment: boolean;
   @Input() showIndividualReleaseButton: boolean;
   @Input() maxVisibleButtons: number;
-  @Input() enableBurstMode: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   @Input() defaultSampleDate: Moment;
   tagIdPmfm: IPmfm;
@@ -141,16 +139,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
-    if (isNil(this.enableBurstMode)) {
-      this.enableBurstMode = this.settings.getPropertyAsBoolean(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE,
-        this.usageMode === 'FIELD');
-    }
 
     // Show/Hide individual release button
     this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
     if (this.tagIdPmfm) {
       this.showIndividualReleaseButton =  !!this.openSubSampleModal
-        && !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]);
+        && toBoolean(this.showIndividualReleaseButton, !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]));
 
       this.form.ready().then(() => {
         this.registerSubscription(
@@ -164,7 +158,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       });
     }
     else {
-      this.showIndividualReleaseButton =  !!this.openSubSampleModal;
+      this.showIndividualReleaseButton = !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
     }
 
     if (this.disabled) {
@@ -241,7 +235,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
       // Is user confirm: close normally
       if (saveBeforeLeave === true) {
-        this.enableBurstMode = false; // Force onSubmit to close
         await this.onSubmit(event);
         return;
       }
@@ -281,7 +274,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     if (this.loading) return undefined; // avoid many call
 
     // No changes: leave
-    if (!this.dirty) {
+    if (!this.dirty && !this.isNew) {
       this.markAsLoading();
       await this.modalCtrl.dismiss();
     }
@@ -329,13 +322,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       this.loading = false;
       this.form.enable();
     }
-  }
-
-  toggleBurstMode() {
-    this.enableBurstMode = !this.enableBurstMode;
-
-    // Remember (store in local settings)
-    this.settings.setProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE.key, this.enableBurstMode);
   }
 
   toggleComment() {

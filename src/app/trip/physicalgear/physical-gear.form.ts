@@ -1,31 +1,28 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { PhysicalGearValidatorService } from './physicalgear.validator';
-import { BehaviorSubject, from, merge, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { FormBuilder } from '@angular/forms';
 import {
-  AppFormUtils,
   focusNextInput,
   GetFocusableInputOptions,
-  InputElement, isNil, isNotEmptyArray,
+  InputElement,
   isNotNil,
   isNotNilOrBlank,
   ReferentialRef,
   ReferentialUtils,
   selectInputContent,
   toBoolean,
-  toNumber, waitFor
+  toNumber
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { OperationService } from '@app/trip/services/operation.service';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { AppMeasurementsTable } from '@app/trip/measurement/measurements.table.class';
-import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -35,26 +32,21 @@ import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter'
 })
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit, AfterViewInit {
 
-  _childAcquisitionLevel: AcquisitionLevelType;
-  _showChildrenTable = false;
   $gears = new BehaviorSubject<ReferentialRef[]>(undefined);
 
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
   @Input() canEditGear = true;
   @Input() maxVisibleButtons: number;
-  @Input() i18nSuffix: string = null;
+  @Input() showGear = true;
   @Input() showError = false;
-  @Input() mobile: boolean;
   @Input() showComment: boolean;
+  @Input() i18nSuffix: string = null;
+  @Input() mobile: boolean;
 
   @Input()
   set gears(value: ReferentialRef[]) {
     this.$gears.next(value);
-  }
-
-  get showGear(): boolean {
-    return isNil(this.data?.parent);
   }
 
   @Output() onSubmit = new EventEmitter<any>();
@@ -75,8 +67,9 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     this._enable = true;
     this.requiredGear = true;
 
-    // Set default acquisition level
+    // Set defaults
     this._acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
+    this.i18nPmfmPrefix = 'TRIP.PHYSICAL_GEAR.PMFM.';
 
     // Load gears from program
     this.registerSubscription(

@@ -53,8 +53,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   @Input() defaultGear: ReferentialRef = null;
   @Input() canEditGear = true;
   @Input() showFilter = false;
+  @Input() showPmfmDetails = false;
+  @Input() compactFields = true;
   @Input() mobile: boolean;
-  @Input() i18nSuffix: string;
   @Input() showFabButton = false;
 
   @Input() set showSelectColumn(show: boolean) {
@@ -107,7 +108,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
       'endDate': [null, Validators.compose([SharedValidators.validDate, SharedValidators.dateRangeEnd('startDate')])],
     });
 
-    this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.LIST.';
+    this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.TABLE.';
+    this.i18nPmfmPrefix = 'TRIP.PHYSICAL_GEAR.PMFM.';
     this.autoLoad = true;
     this.canEdit = true;
 
@@ -246,7 +248,8 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         },
         onDelete: (event, data) => this.deleteEntity(event, data),
         mobile: this.mobile,
-        i18nSuffix: this.i18nSuffix,
+        i18nSuffix: this.i18nColumnSuffix,
+        showGear: this.showGearColumn,
         // Override using given options
         ...this.modalOptions
       },

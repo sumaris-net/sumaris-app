@@ -60,36 +60,38 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && observedLocationForm.invalid)"></ion-icon>
       </ng-template>
 
-      <!-- error -->
-      <ion-item *ngIf="error || observedLocationForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
-      </ion-item>
+      <div>
+        <!-- error -->
+        <ion-item *ngIf="error || observedLocationForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
+        </ion-item>
 
-      <ion-grid class="ion-no-padding">
-        <ion-row class="ion-no-padding">
-          <ion-col class="ion-padding">
+        <ion-grid class="ion-no-padding">
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-padding">
 
-            <!-- observed location -->
-            <app-form-observed-location #observedLocationForm
-                                        [programLabel]="$programLabel|async"
-                                        [showError]="false"
-                                        [showEndDateTime]="false"
-                                        [debug]="debug"
-                                        (onSubmit)="save($event)"
-                                        [timezone]="$timezone|async">
-            </app-form-observed-location>
-          </ion-col>
+              <!-- observed location -->
+              <app-form-observed-location #observedLocationForm
+                                          [programLabel]="$programLabel|async"
+                                          [showError]="false"
+                                          [showEndDateTime]="false"
+                                          [debug]="debug"
+                                          (onSubmit)="save($event)"
+                                          [timezone]="$timezone|async">
+              </app-form-observed-location>
+            </ion-col>
 
-          <!-- quality data -->
-          <ion-col size="12" size-xl="3" class="ion-no-padding">
-            <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
-              <app-entity-quality-form>
-              </app-entity-quality-form>
-            </app-entity-metadata>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+            <!-- quality data -->
+            <ion-col size="12" size-xl="3" class="ion-no-padding">
+              <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
+                <app-entity-quality-form>
+                </app-entity-quality-form>
+              </app-entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
     </mat-tab>
 
     <!-- TAB: Landings -->

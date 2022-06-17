@@ -344,7 +344,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       showSampleDate: !this.defaultSampleDate ? true : this.showSampleDateColumn, // Show sampleDate, if no default date
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
-      showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton,
+      showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
       onReady: (modal) => {
         this.onPrepareRowForm.emit({
           form: modal.form.form,

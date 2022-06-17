@@ -72,6 +72,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN: <FormFieldDefinition>{
+    key: 'sumaris.trip.gear.allowChildren',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
   // Trip map
   TRIP_MAP_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.map.enable',

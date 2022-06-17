@@ -13,7 +13,7 @@
     <ion-buttons slot="end">
       <!-- Options menu -->
       <button mat-icon-button *ngIf="!isNewData && mobile"
-              [title]="'COMMON.OPTIONS'|translate"
+              [title]="'COMMON.BTN_OPTIONS'|translate"
               [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
@@ -80,16 +80,15 @@
 
         <!-- base form -->
         <app-physical-gear-form #physicalGearForm
-                                (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)"
                                 [programLabel]="programLabel"
                                 [acquisitionLevel]="acquisitionLevel"
                                 [canEditGear]="canEditGear"
                                 [canEditRankOrder]="canEditRankOrder"
+                                [showGear]="showGear"
+                                [showError]="false"
                                 [i18nSuffix]="i18nSuffix"
                                 (onSubmit)="saveAndClose($event)"
-                                [showError]="false"
                                 [mobile]="mobile">
-
         </app-physical-gear-form>
 
         <!-- DEBUG -->
@@ -111,7 +110,8 @@
     <mat-tab label="{{'TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS'|translate}}"
              [disabled]="!_showChildrenTable">
       <ng-template mat-tab-label>
-        <mat-icon>information-circle</mat-icon>
+        <mat-icon>settings</mat-icon>
+        <mat-icon class="icon-secondary" style="left: 12px; top: 7px; font-size: 16px">settings</mat-icon>
         <ion-label translate>TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger"
                   *ngIf="childrenTable && (childrenTable.invalid || !childrenTable.totalRowCount)"></ion-icon>
@@ -131,6 +131,7 @@
                                 [showToolbar]="!mobile"
                                 [disabled]="disabled"
                                 [showFabButton]="mobile"
+                                [i18nColumnSuffix]="'CHILD'"
                                 [mobile]="mobile">
       </app-physical-gears-table>
     </mat-tab>

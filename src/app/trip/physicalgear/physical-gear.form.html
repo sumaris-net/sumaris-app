@@ -40,51 +40,48 @@
 
   <ng-content></ng-content>
 
-        <!-- DEBUG
-        <ion-col class="ion-no-padding" size="6" *ngFor="let pmfm of $pmfms | async">
-          {{pmfm.name}}
-        </ion-col>-->
+      <!-- DEBUG
+      <ion-col class="ion-no-padding" size="6" *ngFor="let pmfm of $pmfms | async">
+        {{pmfm.name}}
+      </ion-col>-->
 
-    <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
+  <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
 
-      <!-- Measurements -->
-      <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last" #inputField
-                      [pmfm]="pmfm"
-                      [controlName]="pmfm|pmfmIdString"
-                      [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
-                      [compact]="compact"
-                      [tabindex]="tabindex+2 + i*2"
-                      [floatLabel]="floatLabel"
-                      (keydown.tab)="focusNextInput($event)"
-                      (keydown.enter)="focusNextInput($event)"
-                      [mobile]="mobile">
-      </app-pmfm-field>
-    </form>
+    <!-- Measurements -->
+    <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last" #inputField
+                    [pmfm]="pmfm"
+                    [controlName]="pmfm|pmfmIdString"
+                    [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
+                    [compact]="compact"
+                    [tabindex]="tabindex+2 + i*2"
+                    [floatLabel]="floatLabel"
+                    [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
+                    (keydown.tab)="focusNextInput($event)"
+                    (keydown.enter)="focusNextInput($event)"
+                    [mobile]="mobile">
+    </app-pmfm-field>
+  </form>
 
+  <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable>
+    <ion-toggle [checked]="showComment" [disabled]="disabled"></ion-toggle>
+    <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+  </ion-item>
 
-  <ion-row>
-    <ion-col size="12" class="form-container ion-padding">
-      <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable>
-        <ion-toggle [checked]="showComment" [disabled]="disabled"></ion-toggle>
-        <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
-      </ion-item>
-
-      <mat-form-field appearance="outline" *ngIf="showComment">
-        <textarea matInput #comments #inputField
-                  [formControl]="form|formGetControl:'comments'"
-                  [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
-                  matTextareaAutosize="true"
-                  matAutosizeMinRows="4"
-                  maxlength="2000"
-                  tabindex="100"
-                  (keydown.tab)="focusNextInput($event)"
-                  (keydown.enter)="onSubmit.emit($event)">
-        </textarea>
-        <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
-        <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-    </ion-col>
-  </ion-row>
+  <mat-form-field appearance="outline" *ngIf="showComment">
+    <textarea matInput #comments #inputField
+              [formControl]="form|formGetControl:'comments'"
+              [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
+              matTextareaAutosize="true"
+              matAutosizeMinRows="4"
+              maxlength="2000"
+              tabindex="100"
+              (keydown.tab)="focusNextInput($event)"
+              (keydown.enter)="onSubmit.emit($event)">
+    </textarea>
+    <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
+    <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+  </mat-form-field>
+</form>
 
 <ng-template #measurementsSkeleton>
   <ng-container *ngTemplateOutlet="measurementSkeleton"></ng-container>

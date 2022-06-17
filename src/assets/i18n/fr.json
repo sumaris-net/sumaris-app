@@ -28,6 +28,7 @@
     "BTN_YES_DELETE": "Oui, supprimer",
     "BTN_YES_CONTINUE": "Oui, continuer",
     "BTN_VALIDATE": "Valider",
+    "BTN_VALIDATE_AND_CLOSE": "Valider et fermer",
     "BTN_VALIDATE_WITH_SHORTCUT_HELP": "Valider (Ctrl+Entrée)",
     "BTN_VALIDATE_AND_CONTINUE": "Valider et continuer",
     "BTN_VALIDATE_AND_NEW": "Valider et nouveau",
@@ -526,7 +527,7 @@
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
       "BTN_DOWNLOAD_DOTS": "Assistant de téléchargement...",
-      "BTN_DOWNLOAD_JSON": "Télécharger au format JSON",
+      "BTN_DOWNLOAD_JSON": "Télécharger (JSON)",
       "DOWNLOAD_JSON_FILENAME": "Marées.json",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
@@ -545,8 +546,8 @@
         "SYNC_HELP": "Marées synchronisées"
       },
       "INFO": {
-        "IMPORT_FILE_SUCCEED" : "Importation des marées terminée :<br><b>{{inserts}} marée(s) importée(s) !",
-        "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Importation des marées terminée :<br><ul><li>{{inserts}} importée(s);<li>{{errors}} ignorée(s)"
+        "IMPORT_FILE_SUCCEED" : "Importation terminée :<br><b>{{inserts}} marée(s) importée(s) !",
+        "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Importation terminée :<br><ul><li>{{inserts}} marée(s) importée(s);<li>{{errors}} marée(s) ignorée(s)."
       },
       "WARNING": {
         "NEED_ONE_PROGRAM": "Veuillez d'abord <b>filtrer sur un programme</b> de collecte."
@@ -602,7 +603,7 @@
           "TITLE": "Sous-engin {{label}}"
         }
       },
-      "LIST": {
+      "TABLE": {
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
         "LAST_USED": "Dernière utilisation",
@@ -614,6 +615,12 @@
       },
       "SELECT_MODAL": {
         "TITLE": "Engins existants"
+      },
+      "PMFM": {
+        "GEAR_LABEL": "Libellé de l'engin",
+        "CHILD": {
+          "GEAR_LABEL": "Libellé du sous-engin"
+        }
       },
       "ERROR": {
         "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins.",
@@ -749,7 +756,7 @@
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
-        "MISSING_PARENT_OPERATION": "Opération parente supprimée",
+        "MISSING_PARENT_OPERATION": "Opération associée inexistante",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
         "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)",
@@ -955,6 +962,7 @@
         "OTHER": "Autre"
       },
       "PMFM": {
+        "WEIGHT": "Poids",
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "ACCIDENTAL_CATCH": {
@@ -1606,6 +1614,7 @@
       "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
+      "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
       "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",
       "TRIP_MAP_ZOOM": "Marée > Carte: Niveau du zoom",
@@ -1616,8 +1625,8 @@
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientifiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: Calcul auto nb indiv. échantillonné ?",
-      "TRIP_BATCH_SAMPLING_RATIO_FORMAT": "Capture > Lot espèce: Format de la fraction",
       "TRIP_BATCH_ENABLE": "Capture > Lot espèce: Activer ?",
+      "TRIP_BATCH_SAMPLING_RATIO_FORMAT": "Capture > Lot espèce: Format de la fraction",
       "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lot espèce : Activer les mesures individuelles ?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Capture > Lot espèce : Saisir les poids ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : Réordonné à la sauvegarde ?",

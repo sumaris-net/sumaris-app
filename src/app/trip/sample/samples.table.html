@@ -301,9 +301,9 @@
                         (backward)="confirmAndBackward($event.event, $event.row)"
                         (forward)="confirmAndForward($event.event, $event.row)"
                         [canCancel]="false">
-      <!-- display columns -->
+      <!-- Options menu -->
       <button mat-icon-button matHeader
-              [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+              [title]="'COMMON.BTN_OPTIONS'|translate"
               [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
@@ -493,9 +493,9 @@
       <!-- Actions buttons column -->
       <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
         <th mat-header-cell *matHeaderCellDef>
-          <!-- display columns -->
+          <!-- Options menu -->
           <button mat-icon-button matHeader
-                  [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+                  [title]="'COMMON.BTN_OPTIONS'|translate"
                   [matMenuTriggerFor]="optionsMenu">
             <mat-icon>more_vert</mat-icon>
           </button>
