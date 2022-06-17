@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector
 import { TableElement } from '@e-is/ngx-material-table';
 
 import { AppMeasurementsTable } from '../measurement/measurements.table.class';
-import { createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { createPromiseEventEmitter, IEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -11,6 +11,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -20,14 +21,15 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
   selector: 'app-physical-gears-table',
   templateUrl: 'physical-gears.table.html',
   styleUrls: ['physical-gears.table.scss'],
-  providers: [
+  /*providers: [
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
-      useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
+      useExisting: PhysicalGearService
+      /!*useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
         equals: PhysicalGear.equals
-      })
+      })*!/
     }
-  ],
+  ],*/
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
@@ -35,20 +37,11 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   filterForm: FormGroup;
   modalOptions: Partial<IPhysicalGearModalOptions>;
 
-  set value(data: PhysicalGear[]) {
-    this.memoryDataService.value = data;
-  }
-
-  get value(): PhysicalGear[] {
-    return this.memoryDataService.value;
-  }
-
   @Input() canDelete = true;
   @Input() canSelect = true;
   @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
   @Input() showToolbar = true;
   @Input() useSticky = false;
-  @Input() tripId: number;
   @Input() title: string = null;
   @Input() defaultGear: ReferentialRef = null;
   @Input() canEditGear = true;
@@ -56,7 +49,14 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   @Input() showPmfmDetails = false;
   @Input() compactFields = true;
   @Input() mobile: boolean;
-  @Input() showFabButton = false;
+
+  @Input() set tripId(tripId: number) {
+    this.setTripId(tripId);
+  }
+
+  get tripId(): number {
+    return this.filterForm.get('tripId').value;
+  }
 
   @Input() set showSelectColumn(show: boolean) {
     this.setShowColumn('select', show);
@@ -82,15 +82,13 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     return this.getModalOption('allowChildrenGears') as boolean;
   }
 
-  protected memoryDataService: InMemoryEntitiesService<PhysicalGear>;
-
   @Output() openSelectPreviousGearModal = createPromiseEventEmitter<PhysicalGear>();
 
   constructor(
     injector: Injector,
     formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
       PhysicalGear, PhysicalGearFilter,
@@ -101,13 +99,14 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
       });
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<PhysicalGear>);
 
     this.filterForm = formBuilder.group({
+      'tripId': [null],
       'startDate': [null, Validators.compose([Validators.required, SharedValidators.validDate])],
       'endDate': [null, Validators.compose([SharedValidators.validDate, SharedValidators.dateRangeEnd('startDate')])],
     });
 
+    this.defaultSortBy = 'rankOrder';
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.TABLE.';
     this.i18nPmfmPrefix = 'TRIP.PHYSICAL_GEAR.PMFM.';
     this.autoLoad = true;
@@ -150,9 +149,15 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
   }
 
   ngOnDestroy() {
-
     super.ngOnDestroy();
     this.openSelectPreviousGearModal.unsubscribe();
+  }
+
+  setTripId(tripId: number, opts?: { emitEvent: boolean; }) {
+    this.setFilter(<PhysicalGearFilter>{
+      ...this.filterForm.value,
+      tripId
+    }, opts);
   }
 
   updateView(res: LoadResult<PhysicalGear> | undefined, opts?: { emitEvent?: boolean }): Promise<void> {
@@ -229,6 +234,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     }
     dataToOpen.tripId = this.tripId;
 
+    const showSearchButton = isNewData && this.openSelectPreviousGearModal.observers.length > 0;
     const hasTopModal = !!(await this.modalCtrl.getTop());
 
     const modal = await this.modalCtrl.create({
@@ -241,9 +247,10 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         isNewData,
         canEditGear: this.canEditGear,
         canEditRankOrder: this.canEditRankOrder,
+        showSearchButton: showSearchButton,
         onAfterModalInit: (modal: PhysicalGearModal) => {
-          if (this.openSelectPreviousGearModal.observers.length) {
-            modal.onSearchButtonClick.subscribe(event => this.openSelectPreviousGearModal.emit(event))
+          if (showSearchButton) {
+            modal.onSearchButtonClick.subscribe(event => this.openSelectPreviousGearModal.emit(event));
           }
         },
         onDelete: (event, data) => this.deleteEntity(event, data),

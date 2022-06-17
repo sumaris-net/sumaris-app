@@ -203,6 +203,7 @@ export const PhysicalGearFragments = {
     id
     rankOrder
     parentId
+    tripId
     updateDate
     creationDate
     comments

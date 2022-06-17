@@ -15,6 +15,7 @@ export interface SelectPhysicalGearModalOptions {
   acquisitionLevel?: AcquisitionLevelType;
   programLabel?: string;
   distinctBy?: string[];
+  withOffline?: boolean;
 }
 
 @Component({
@@ -37,6 +38,7 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
   @Input() distinctBy: string[];
+  @Input() withOffline: boolean;
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;
@@ -65,11 +67,12 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
     this.table.filter = this.filter;
     this.table.dataSource.serviceOptions = <PhysicalGearServiceWatchOptions>{
       distinctBy: this.distinctBy || ['gear.id', 'rankOrder', `measurementValues.${PmfmIds.GEAR_LABEL}`],
-      withOffline: true
+      withOffline: this.withOffline
     };
     this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
     this.table.programLabel = this.programLabel;
     this.table.markAsReady();
+    this.table.onRefresh.emit();
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);

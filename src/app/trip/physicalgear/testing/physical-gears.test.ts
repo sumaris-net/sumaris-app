@@ -1,19 +1,40 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
-import { EntitiesStorage, EntityUtils, firstNotNilPromise, isNil, isNotEmptyArray, MatAutocompleteConfigHolder, SharedValidators, sleep, waitFor } from '@sumaris-net/ngx-components';
+import {
+  EntitiesStorage,
+  EntityUtils,
+  firstNotNilPromise,
+  InMemoryEntitiesService,
+  isNil,
+  isNotEmptyArray,
+  MatAutocompleteConfigHolder,
+  SharedValidators,
+  sleep,
+  waitFor
+} from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 import { PhysicalGearTestUtils } from '@app/trip/physicalgear/testing/physical-gears.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { IPhysicalGearModalOptions } from '@app/trip/physicalgear/physical-gear.modal';
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
+import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
 
 
 @Component({
   selector: 'app-physical-gears-test',
-  templateUrl: './physical-gears.test.html'
+  templateUrl: './physical-gears.test.html',
+  providers: [
+    {
+      provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
+      useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
+        equals: PhysicalGear.equals
+      })
+    }
+  ]
 })
 export class PhysicalGearsTestPage implements OnInit {
 
@@ -36,7 +57,8 @@ export class PhysicalGearsTestPage implements OnInit {
     formBuilder: FormBuilder,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
-    private entities: EntitiesStorage
+    private entities: EntitiesStorage,
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) private dataService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
 
     this.filterForm = formBuilder.group({
@@ -110,8 +132,12 @@ export class PhysicalGearsTestPage implements OnInit {
     await firstNotNilPromise(this.$programLabel);
     await waitFor(() => !!this.table);
 
+    this.dataService.value = data;
     this.markAsReady();
-    this.table.value = data;
+    this.table.enable();
+  }
+
+  enable() {
     this.table.enable();
   }
 
@@ -230,7 +256,7 @@ export class PhysicalGearsTestPage implements OnInit {
     try {
       const value = await this.getValue(source);
 
-      target.value = value;
+      this.dataService.value = value;
 
       await target.ready();
     }
@@ -249,7 +275,7 @@ export class PhysicalGearsTestPage implements OnInit {
   async getValue(table: PhysicalGearTable): Promise<PhysicalGear[]> {
 
     await table.save();
-    const data = table.value;
+    const data = this.dataService.value;
 
     return data;
   }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, OnDestroy, ViewChild } from '@angular/core';
 
 import { TripService } from '../services/trip.service';
 import { TripForm } from './trip.form';
@@ -13,9 +13,9 @@ import { FormGroup, Validators } from '@angular/forms';
 import {
   Alerts, DateUtils,
   EntitiesStorage,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, EntityUtils,
   fadeInOutAnimation,
-  HistoryPageReference,
+  HistoryPageReference, InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -46,6 +46,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { Sale } from '@app/trip/services/model/sale.model';
 import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN, PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 
 const moment = momentImported;
 
@@ -65,7 +66,13 @@ export const TripPageSettingsEnum = {
   styleUrls: ['./trip.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
-    {provide: APP_ENTITY_EDITOR, useExisting: TripPage}
+    {provide: APP_ENTITY_EDITOR, useExisting: TripPage},
+    {
+      provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
+      useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
+        equals: PhysicalGear.equals
+      })
+    }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -102,11 +109,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     protected entities: EntitiesStorage,
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
-    protected programRef: ProgramRefService,
     protected operationService: OperationService,
     protected context: ContextService,
     protected tripContext: TripContextService,
-    public network: NetworkService
+    public network: NetworkService,
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) private physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
       Trip,
@@ -387,9 +394,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.saleForm.value = data && data.sale || new Sale();
     this.measurementsForm.value = data && data.measurements || [];
 
-    // Physical gear table
-    this.physicalGearsTable.value = data && data.gears || [];
+    // Set physical gears
     this.physicalGearsTable.tripId = data.id;
+    //this.physicalGearsTable.value = data && data.gears || [];
+    this.physicalGearService.value = data && data.gears || [];
 
     // Operations table
     if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
@@ -498,6 +506,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const trip = Trip.fromObject(this.tripForm.value);
     const vessel = trip.vesselSnapshot;
     const date = trip.departureDateTime || trip.returnDateTime;
+    const withOffline = EntityUtils.isLocal(trip) || trip.synchronizationStatus === 'DIRTY';
     if (!vessel || !date) return; // Skip
 
     const filter = <PhysicalGearFilter>{
@@ -521,7 +530,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
         programLabel: this.$programLabel.getValue(),
         acquisitionLevel: this.physicalGearsTable.acquisitionLevel,
         filter,
-        distinctBy
+        distinctBy,
+        withOffline
       },
       backdropDismiss: false,
       keyboardClose: true,
@@ -593,7 +603,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (this.physicalGearsTable.dirty) {
       await this.physicalGearsTable.save();
     }
-    json.gears = this.physicalGearsTable.value;
+    json.gears = this.physicalGearService.value;
 
     return json;
   }

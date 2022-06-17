@@ -62,7 +62,7 @@
     </app-pmfm-field>
   </form>
 
-  <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable>
+  <ion-item lines="none" class="ion-no-padding" *ngIf="mobile" (click)="toggleComment()" tappable>
     <ion-toggle [checked]="showComment" [disabled]="disabled"></ion-toggle>
     <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
   </ion-item>

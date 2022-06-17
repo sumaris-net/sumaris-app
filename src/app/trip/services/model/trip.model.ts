@@ -562,10 +562,13 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
         .sort(EntityUtils.sortComparator('rankOrder')) || undefined;
     }
     else {
-      this.gears = source.gears && source.gears.filter(isNotNil).map(PhysicalGear.fromObject)
+      this.gears = source.gears && source.gears.filter(isNotNil)
+        .map(PhysicalGear.fromObject)
         // Sort by rankOrder (useful for gears combo, in the operation form)
         .sort(EntityUtils.sortComparator('rankOrder')) || undefined;
     }
+    // Set gears tripId (e. Old local DB may miss it)
+    (this.gears || []).forEach(g => g.tripId = this.id);
 
     if (source.operations) {
       if (!Array.isArray(source.operations) && Array.isArray(source.operations.data)) {

@@ -1,46 +1,31 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button class="back-button" (click)="close($event)" visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+<app-modal-toolbar modalName="PhysicalGearModal"
+                   color="secondary"
+                   [title]="$title | async"
+                   [showSpinner]="loading && !isNewData"
+                   [canValidate]="!disabled"
+                   (cancel)="close($event)"
+                   (validate)="saveAndClose($event)">
 
-    <ion-title>
-      {{$title | async}}
-    </ion-title>
+  <ion-buttons slot="end" >
 
-    <ion-buttons slot="end">
-      <!-- Options menu -->
-      <button mat-icon-button *ngIf="!isNewData && mobile"
-              [title]="'COMMON.BTN_OPTIONS'|translate"
-              [matMenuTriggerFor]="optionsMenu">
-        <mat-icon>more_vert</mat-icon>
-      </button>
+    <!-- search button -->
+    <ion-button *ngIf="showSearchButton"
+                (click)="openSearchModal($event)">
+      <ion-icon slot="start" name="search"></ion-icon>
+      <ion-label>
+        <span translate>COMMON.BTN_SEARCH</span>
+      </ion-label>
+    </ion-button>
 
-      <!-- search button -->
-      <ion-button *ngIf="isNewData && onSearchButtonClick.observers|isNotEmptyArray"
-                  (click)="openSearchModal($event)">
-        <ion-icon slot="start" name="search"></ion-icon>
-        <ion-label>
-          <span translate>COMMON.BTN_SEARCH</span>
-        </ion-label>
-      </ion-button>
+    <!-- Options menu -->
+    <button mat-icon-button *ngIf="!isNewData && mobile"
+            [title]="'COMMON.BTN_OPTIONS'|translate"
+            [matMenuTriggerFor]="optionsMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </ion-buttons>
 
-      <ion-button class="back-button" (click)="saveAndClose($event)"
-                  *ngIf="!loading; else spinner"
-                  [disabled]="!form.valid"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-      </ion-button>
-
-      <ng-template #spinner>
-        <ion-spinner color="light" class="ion-margin-end"></ion-spinner>
-      </ng-template>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
+</app-modal-toolbar>
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu">
   <button mat-menu-item
@@ -119,7 +104,7 @@
 
       <app-physical-gears-table #childrenTable
                                 *ngIf="allowChildrenGears"
-                                (ngInit)="addChildForm(childrenTable)"
+                                (ngInit)="$childrenTable.next(childrenTable)"
                                 [programLabel]="programLabel"
                                 [acquisitionLevel]="childAcquisitionLevel"
                                 [showGearColumn]="false"
@@ -130,7 +115,6 @@
                                 [requiredGear]="true"
                                 [showToolbar]="!mobile"
                                 [disabled]="disabled"
-                                [showFabButton]="mobile"
                                 [i18nColumnSuffix]="'CHILD'"
                                 [mobile]="mobile">
       </app-physical-gears-table>

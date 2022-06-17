@@ -124,6 +124,9 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       console.warn('[physical-gear-service] Missing physical gears filter. At least \'program\' and \'vesselId\' or \'startDate\'. Skipping.');
       return EMPTY;
     }
+    // Fix sortBy
+    sortBy = sortBy !== 'id' ? sortBy : 'rankOrder';
+    sortBy = sortBy !== 'label' ? sortBy : 'gear.label';
 
     const forceOffline = this.network.offline || (isNotNil(dataFilter.tripId) && dataFilter.tripId < 0);
     const offline = forceOffline || opts?.withOffline || false;

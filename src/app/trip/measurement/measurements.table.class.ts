@@ -256,7 +256,13 @@ export abstract class AppMeasurementsTable<
     this.measurementsDataService.requiredGear = this.options.requiredGear || false;
     this.measurementsDataService.gearId = this._gearId;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
-    this.measurementsDataService.start();
+
+    this.registerSubscription(
+      this.readySubject.subscribe(() => {
+        console.info(this.logPrefix + 'Starting measurements data service...');
+        this.measurementsDataService.start();
+      })
+    );
 
     super.ngOnInit();
 
