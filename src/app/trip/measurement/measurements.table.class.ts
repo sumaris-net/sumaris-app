@@ -286,19 +286,14 @@ export abstract class AppMeasurementsTable<
           }
         }));
 
-    if (this.inlineEdition) {
-      if (this.options.onRowCreated) {
-        this.registerSubscription(this.onStartEditingRow
-          .pipe(filter(row => row.id !== -1)) // Skip new row, because already processed by this.onRowCreated()
-          .subscribe(row => this.options.onRowCreated(row))
-        );
-      }
-      if (this.options.onPrepareRowForm) {
-        this.registerSubscription(this.onStartEditingRow
-          .pipe(filter(row => row.id !== -1)) // Skip new row, because already processed by this.onRowCreated()
-          .subscribe(row => this.options.onPrepareRowForm(row.validator))
-        );
-      }
+    if (this.inlineEdition && (this.options.onRowCreated || this.options.onPrepareRowForm)) {
+      this.registerSubscription(this.onStartEditingRow
+        .pipe(filter(row => row.id !== -1)) // Skip new row, because already processed by this.onRowCreated()
+        .subscribe(row => {
+          if (this.options.onRowCreated) this.options.onRowCreated(row);
+          if (this.options.onPrepareRowForm) this.options.onPrepareRowForm(row.validator);
+        })
+      );
     }
   }
 

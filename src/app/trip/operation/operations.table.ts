@@ -45,9 +45,10 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   statusList = DataQualityStatusList
     .filter(s => s.id !== DataQualityStatusIds.VALIDATED);
   statusById = DataQualityStatusEnum;
-  filterForm: FormGroup;
-  filterCriteriaCount = 0;
-  filterPanelFloating = true;
+  readonly filterForm: FormGroup = this.formBuilder.group({
+    tripId: [null],
+    dataQualityStatus: [null]
+  });
 
   @Input() latLongPattern: LatLongPattern;
   @Input() showMap: boolean;
@@ -191,11 +192,6 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
           }
         }
     );
-    this.filterForm = formBuilder.group({
-      tripId: [null],
-      dataQualityStatus: [null]
-    });
-
     this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
@@ -316,30 +312,6 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   // Changed as public
   getI18nColumnName(columnName: string): string {
     return super.getI18nColumnName(columnName);
-  }
-
-  setFilter(filter: OperationFilter, opts?: { emitEvent: boolean }) {
-
-    filter = this.asFilter(filter);
-
-    // Update criteria count
-    const criteriaCount = filter.countNotEmptyCriteria() - 1 /* remove tripId */;
-    if (criteriaCount !== this.filterCriteriaCount) {
-      this.filterCriteriaCount = criteriaCount;
-      this.markForCheck();
-    }
-
-    // Update the form content
-    if (!opts || opts.emitEvent !== false) {
-      this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
-    }
-
-    super.setFilter(filter, opts);
-  }
-
-  applyFilterAndClosePanel(event?: UIEvent) {
-    this.onRefresh.emit(event);
-    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
 
   resetFilter(event?: UIEvent) {
