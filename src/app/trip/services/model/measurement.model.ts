@@ -1,15 +1,11 @@
-import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {AbstractControl, FormControl, FormGroup} from '@angular/forms';
-import {arraySize, isEmptyArray, isNil, isNotNil, notNilOrDefault} from '@sumaris-net/ngx-components';
+import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { FormGroup } from '@angular/forms';
+import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, notNilOrDefault, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import {isMoment} from 'moment';
-import {IEntity} from '@sumaris-net/ngx-components';
-import {IPmfm, Pmfm} from '@app/referential/services/model/pmfm.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {PmfmValue, PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
-import {AppFormUtils} from '@sumaris-net/ngx-components';
-import {ReferentialRef} from '@sumaris-net/ngx-components';
-import {fromDateISOString, toDateISOString} from '@sumaris-net/ngx-components';
+import { isMoment } from 'moment';
+import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 const moment = momentImported;
 
@@ -228,7 +224,7 @@ export class MeasurementUtils {
     });
   }
 
-  static areEquals(array1: Measurement[], array2: Measurement[]): boolean {
+  static equals(array1: Measurement[], array2: Measurement[]): boolean {
     if (arraySize(array1) !== arraySize(array2)) return false;
     return MeasurementValuesUtils.equals(MeasurementUtils.toMeasurementValues(array1), MeasurementUtils.toMeasurementValues(array2));
   }
@@ -248,7 +244,8 @@ export class MeasurementValuesUtils {
 
   static equals(m1: MeasurementFormValues | MeasurementModelValues, m2: MeasurementFormValues | MeasurementModelValues): boolean {
     return (isNil(m1) && isNil(m2))
-      || !(Object.getOwnPropertyNames(m1).find(pmfmId => !this.valueEquals(m1[pmfmId], m2[pmfmId])));
+      || (m1 && !(Object.getOwnPropertyNames(m1).some(pmfmId => !this.valueEquals(m1[pmfmId], m2[pmfmId]))))
+      || false;
   }
 
   static equalsPmfms(m1: { [pmfmId: number]: any },
@@ -308,10 +305,12 @@ export class MeasurementValuesUtils {
    *  - keepSourceObject: keep existing map unchanged (useful to keep extra pmfms) - false by default
    *  - onlyExistingPmfms: Will not init all pmfms, but only those that exists in the source map - false by default
    */
-  static normalizeValuesToForm(source: MeasurementModelValues | MeasurementFormValues, pmfms: IPmfm[], opts?: {
-    keepSourceObject?: boolean;
-    onlyExistingPmfms?: boolean;
-  }): MeasurementFormValues {
+  static normalizeValuesToForm(source: MeasurementModelValues | MeasurementFormValues,
+                               pmfms: IPmfm[],
+                               opts?: {
+                                 keepSourceObject?: boolean;
+                                 onlyExistingPmfms?: boolean;
+                               }): MeasurementFormValues {
     pmfms = pmfms || [];
 
     // DEBUG
@@ -341,7 +340,12 @@ export class MeasurementValuesUtils {
             console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
             return;
           }
-          target[pmfmId.toString()] = source[pmfmId];
+          let value = source[pmfmId];
+          // Apply default value, if any
+          if (isNil(value) && isNotNil(pmfm.defaultValue)) {
+            value = PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm);
+          }
+          target[pmfmId.toString()] = value;
         });
       }
       // Copy from source, WITH value conversion
@@ -379,7 +383,7 @@ export class MeasurementValuesUtils {
         // Remove extra PMFMS values (before adapt to form)
         const measurementValues = AppFormUtils.getFormValueFromEntity(data.measurementValues || {}, measFormGroup);
 
-        // Adapt to form (e.g. transform a QV_ID into a an object)
+        // Adapt to form (e.g. transform a QV_ID into an object)
         data.measurementValues = this.normalizeValuesToForm(measurementValues, pmfms, {
           keepSourceObject: opts?.keepOtherExistingPmfms || false,
           onlyExistingPmfms: opts?.onlyExistingPmfms || false

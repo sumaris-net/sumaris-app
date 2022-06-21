@@ -63,6 +63,9 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _locationSuggestLengthThreshold: number;
   private _lastValidatorOptsStr: any;
 
+  readonly mobile = this.settings.mobile;
+  //readonly appearance = this.mobile ? 'outline' : 'legacy';
+
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
   enableMetierFilter = false;
@@ -70,7 +73,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   metiersHelper: FormArrayHelper<ReferentialRef>;
   metierFocusIndex = -1;
   canFilterMetier = false;
-  mobile: boolean;
 
   @Input() showComment = true;
   @Input() allowAddNewVessel = true;
@@ -178,7 +180,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   ) {
 
     super(injector, validatorService.getFormGroup());
-    this.mobile = this.settings.mobile;
   }
 
   ngOnInit() {
@@ -330,7 +331,12 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     super.setValue(data, opts);
   }
 
-  async addVesselModal(): Promise<any> {
+  async addVesselModal(event?: UIEvent): Promise<any> {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
     const maxDate = this.form.get('departureDateTime').value;
 
     const modal = await this.modalCtrl.create({

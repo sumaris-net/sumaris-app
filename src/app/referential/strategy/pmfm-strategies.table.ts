@@ -26,7 +26,7 @@ import { ReferentialRefService } from '../services/referential-ref.service';
 import { BehaviorSubject, merge, Observable, of } from 'rxjs';
 import { PmfmFilter, PmfmService } from '../services/pmfm.service';
 import { Pmfm } from '../services/model/pmfm.model';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { PmfmStrategy } from '../services/model/pmfm-strategy.model';
 import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { Parameter } from '../services/model/parameter.model';
@@ -238,7 +238,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         showAllOnFocus: false,
         class: 'mat-autocomplete-panel-full-size'
       })
-    }, );
+    });
 
 
     // PMFM.PARAMETER
@@ -312,7 +312,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
             filter(isNotEmptyArray)
 
             // DEBUG
-            //tap(items => console.debug("TODO Check Pmfm QV", items))
+            //,tap(items => console.debug("TODO Check Pmfm QV", items))
           ),
         class: 'mat-autocomplete-panel-large-size'
       },

@@ -1,6 +1,3 @@
-import { isNil } from '@sumaris-net/ngx-components';
-import { ObjectMap } from '@sumaris-net/ngx-components/public_api';
-
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
 }

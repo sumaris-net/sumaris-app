@@ -12,6 +12,7 @@ import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { environment } from '@environments/environment';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -21,15 +22,6 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
   selector: 'app-physical-gears-table',
   templateUrl: 'physical-gears.table.html',
   styleUrls: ['physical-gears.table.scss'],
-  /*providers: [
-    {
-      provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
-      useExisting: PhysicalGearService
-      /!*useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
-        equals: PhysicalGear.equals
-      })*!/
-    }
-  ],*/
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
@@ -119,7 +111,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     this.excludesColumns.push('lastUsed');
 
     // FOR DEV ONLY ----
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

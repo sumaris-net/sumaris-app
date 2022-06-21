@@ -124,6 +124,16 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
+  <!-- online help -->
+  <button mat-menu-item
+          *ngIf="!mobile"
+          (click)="openHelpModal($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="icon-only" name="help-circle-outline"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_SHOW_HELP</span>
+    </ion-label>
+  </button>
+
   <!-- reset -->
   <button mat-menu-item
           [disabled]="!dirty"
@@ -190,15 +200,15 @@
                                   [debug]="debug">
 
                 <!-- Other features (Measurements) -->
-                <ion-grid class="ion-no-padding ion-padding-top" [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray">
+                <ion-grid class="ion-no-padding ion-padding-top"
+                          [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray">
                   <ion-row>
                     <ion-col size="12" size-md="3" size-lg="3">
                       <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
                     </ion-col>
-                    <ion-col [class.measurements-form]="mobile">
+                    <ion-col [class.measurements-form-padding-start]="mobile">
                       <app-form-measurements #measurementsForm
                                              entityName="VesselUseMeasurement"
-                                             [programLabel]="$programLabel|async"
                                              [acquisitionLevel]="$acquisitionLevel|async"
                                              [forceOptional]="forceMeasurementAsOptional"
                                              [tabindex]="30"
@@ -228,8 +238,7 @@
              [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
-        <ion-label
-          [matBadge]="batchTree.batchGroupsTable.visibleRowCount"
+        <ion-label [matBadge]="batchTree.batchGroupsTable.visibleRowCount"
           [matBadgeHidden]="batchTree.invalid || !batchTree.batchGroupsTable.visibleRowCount"
           matBadgeOverlap="false"
           matBadgeColor="primary"

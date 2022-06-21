@@ -124,7 +124,8 @@
                 [class.mat-cell-computed]="pmfm|isComputedPmfm">
         <app-pmfm-field
           [readonly]="!row.editing"
-          [pmfm]="pmfm" [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
+          [pmfm]="pmfm"
+          [control]="row.validator|formGetControl:['measurementValues', pmfm.id]"
           [compact]="true" floatLabel="never"></app-pmfm-field>
       </td>
 

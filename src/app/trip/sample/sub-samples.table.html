@@ -100,15 +100,21 @@
           <ion-label>{{'TRIP.SAMPLE.TABLE.PARENT'|translateContext: i18nColumnSuffix }}</ion-label>
         </ng-template>
       </th>
-      <td mat-cell *matCellDef="let row"
-          (click)="focusColumn='parent'">
-        <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+      <td mat-cell *matCellDef="let row" (click)="focusColumn='parent'">
+        <mat-autocomplete-field *ngIf="row.editing; else readonlyPmfmField"
+                                floatLabel="never" class="min-width-medium"
                                 [autofocus]="row.editing && focusColumn === 'parent'"
-                                [formControl]="row.validator.controls.parent"
+                                [formControl]="row.validator|formGetControl:'parent'"
                                 [placeholder]="'TRIP.SAMPLE.TABLE.PARENT'|translateContext: i18nColumnSuffix"
                                 [config]="autocompleteFields.parent"
                                 required>
         </mat-autocomplete-field>
+
+        <!--TOTO {{autocompleteFields.parent.attributes.join(', ')}}-->
+        <!-- readonly value-->
+        <ng-template #readonlyPmfmField>
+          <ion-label [innerHTML]="row.currentData.parent|displayWith: autocompleteFields.parent.displayWith"></ion-label>
+        </ng-template>
       </td>
     </ng-container>
 
@@ -121,9 +127,10 @@
       <td mat-cell *matCellDef="let row"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           (click)="focusColumn=pmfm.id.toString()">
-        <app-pmfm-field floatLabel="never"
+        <app-pmfm-field *ngIf="row.editing; else readonlyPmfmField"
+                        floatLabel="never"
                         [pmfm]="pmfm"
-                        [formControl]="row.validator.controls.measurementValues.controls[pmfm.id]"
+                        [control]="row.validator|formGetControl: ['measurementValues', pmfm.id]"
                         [autofocus]="row.editing && focusColumn == pmfm.id"
                         [i18nPrefix]="i18nPmfmPrefix"
                         [i18nSuffix]="i18nColumnSuffix"
@@ -132,6 +139,11 @@
                         [readonly]="!row.editing"
                         [compact]="true" >
         </app-pmfm-field>
+
+        <!-- readonly value-->
+        <ng-template #readonlyPmfmField>
+          <ion-label [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-label>
+        </ng-template>
       </td>
     </ng-container>
 

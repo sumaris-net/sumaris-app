@@ -77,7 +77,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   get programLabel(): string {
-    return this.$programLabel.getValue();
+    return this.$programLabel.value;
   }
 
   @Input()
@@ -86,12 +86,12 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   get strategyLabel(): string {
-    return this.$strategyLabel.getValue();
+    return this.$strategyLabel.value;
   }
 
   @Input()
   set acquisitionLevel(value: string) {
-    this.setAcquisitionLevel(value);
+    this.setAcquisitionLevel(value, {emitEvent: !this.starting});
   }
 
   get acquisitionLevel(): string {
@@ -227,7 +227,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   markAsLoading(opts?: {step?: number; emitEvent?: boolean;}) {
 
-    // /!\ do NOT used STARTING step anymore (only used to avoid to many refresh, BEFORE ngOnInit())
+    // /!\ do NOT use STARTING step here (only used to avoid to many refresh, BEFORE ngOnInit())
     const step = toNumber(opts && opts.step, MeasurementFormLoadingSteps.LOADING_PMFMS);
 
     // Emit, if changed

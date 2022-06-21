@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild, ViewEncapsulation } from '@angular/core';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearForm } from './physical-gear.form';
 import {
@@ -23,7 +23,7 @@ import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter'
 import { BehaviorSubject } from 'rxjs';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
-import { tap, switchMap } from 'rxjs/operators';
+import { tap, switchMap, startWith } from 'rxjs/operators';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 export interface IPhysicalGearModalOptions
@@ -99,7 +99,7 @@ export class PhysicalGearModal
 
   constructor(injector: Injector,
               protected translateContext: TranslateContextService,
-              @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) protected childrenGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>,
+              @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) protected childrenGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>,
               protected cd: ChangeDetectorRef
   ) {
     super(injector, PhysicalGear, {
@@ -141,38 +141,45 @@ export class PhysicalGearModal
   async ngAfterViewInit() {
     await super.ngAfterViewInit();
 
-    // Show/Hide children table
+    this.registerSubscription(
+      this.physicalGearForm.form.get('gear')
+        .valueChanges
+        .subscribe(gear =>{
+          this.$gear.next(gear);
+          const gearId = gear?.id;
+
+          // Always put a not nil id
+          this.$gearId.next(toNumber(gearId, INVALID_GEAR_ID));
+
+          // Auto-hide children table, if new gear is null
+          if (this._showChildrenTable && isNil(gearId)) {
+            this._showChildrenTable = false;
+            this.markForCheck();
+          }
+        })
+    )
+
     if (this.allowChildrenGears) {
-      this.registerSubscription(
-        this.physicalGearForm.form.get('gear').valueChanges
-          .subscribe(gear =>{
-            this.$gear.next(gear);
-            const gearId = gear?.id;
-            this.$gearId.next(toNumber(gearId, INVALID_GEAR_ID));
-            // Hide children, is gear has been cleared
-            if (this._showChildrenTable && isNil(gearId)) {
-              this._showChildrenTable = false;
-              this.markForCheck();
-            }
-          })
-      )
-      //firstNotNilPromise(this.$childrenTable)
+
       this.registerSubscription(
         firstNotNil(this.$childrenTable)
           .pipe(
             // Add children table to the editor
             tap(table => this.addChildForm(table)),
             // Listen pmfm changed
-            switchMap((_) => this.childrenTable.$pmfms)
+            switchMap(table => table.$pmfms)
           )
           .subscribe(pmfms => {
+
             // Check if table has something to display (some PMFM in the strategy)
-            const hasSomePmfms = (pmfms||[]).some(p =>
-              // Exclude label
+            const childrenHasSomePmfms = (pmfms||[]).some(p =>
+              // Exclude label PMFM
               p.id !== PmfmIds.GEAR_LABEL
+              // Exclude Pmfm on all gears (e.g. GEAR_LABEL)
               && (!PmfmUtils.isDenormalizedPmfm(p) || isNotEmptyArray(p.gearIds)));
-            if (this._showChildrenTable !== hasSomePmfms) {
-              this._showChildrenTable = hasSomePmfms;
+
+            if (this._showChildrenTable !== childrenHasSomePmfms) {
+              this._showChildrenTable = childrenHasSomePmfms;
               this.markForCheck();
             }
           })
@@ -231,21 +238,30 @@ export class PhysicalGearModal
 
   protected async setValue(data: PhysicalGear) {
 
-    await this.physicalGearForm.setValue(this.data);
+    try {
+      // Set main form
+      await this.physicalGearForm.setValue(data);
 
-    if (this.allowChildrenGears) {
-      await waitFor(() => !!this.childrenTable);
-      this.childrenTable.gearId = data.gear?.id;
-      this.childrenGearService.value = data.children || [];
+      if (this.allowChildrenGears) {
+        await waitFor(() => !!this.childrenTable);
 
-      if (!this.childrenTable.isReady()) {
-        this.childrenTable.markAsReady();
+        this.$gear.next(data.gear);
+        this.childrenTable.gearId = data.gear?.id;
+        this.childrenGearService.value = data.children || [];
+
+        if (!this.childrenTable.isReady()) {
+          this.childrenTable.markAsReady();
+        }
       }
+    }
+    catch (err) {
+      if (err === 'CANCELLED') return; // Skip
+      this.setError(err);
     }
   }
 
   protected async getJsonValueToSave(): Promise<any> {
-    const data = await super.getJsonValueToSave();
+    const data = await this.physicalGearForm.value;
 
     if (this.allowChildrenGears) {
       data.children = this.childrenGearService.value;

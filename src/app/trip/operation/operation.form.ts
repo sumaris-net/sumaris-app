@@ -34,7 +34,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Operation, Trip } from '../services/model/trip.model';
-import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, merge, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -296,6 +296,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return isNil(this.form?.controls.id.value);
   }
 
+  get $ready(): Observable<boolean> {
+    return this._$ready.asObservable();
+  }
 
   @Output() onParentChanges = new EventEmitter<Operation>();
   @Output() lastEndDateChanges = new EventEmitter<Moment>();

@@ -11,11 +11,12 @@
   </ion-item>
 
   <!-- pmfms -->
-  <ng-container *ngIf="$pmfms | async as pmfms; else measurementsSkeleton">
-    <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
+  <ng-container *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton">
+    <app-pmfm-field *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;"
                     [pmfm]="pmfm"
                     [compact]="compact"
                     [style]="pmfm|pmfmFieldStyle: maxVisibleButtons"
+                    [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
                     [maxVisibleButtons]="maxVisibleButtons"
                     [showButtonIcons]="showButtonIcons"
                     [tabindex]="(tabindex || 0) + i*2"
@@ -31,7 +32,7 @@
 </ng-template>
 
 <ng-template #measurementSkeleton>
-  <mat-form-field>
+  <mat-form-field class="mat-form-field-disabled">
     <input matInput hidden>
     <ion-skeleton-text [animated]="animated" style="width: 60%"></ion-skeleton-text>
   </mat-form-field>

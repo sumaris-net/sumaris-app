@@ -950,7 +950,8 @@
         "SURVIVAL_TEST": {
           "TAB_SAMPLES": "Mesures individuelles",
           "TAB_SUB_SAMPLES": "Suivi individuel",
-          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel"
+          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
+          "TAG_COUNT": "<b>{{tagCount}}</b> Tag-ID"
         }
       },
       "PMFM_GROUP": {
@@ -2099,7 +2100,7 @@
       "CA": "Sex-Age",
       "CL": "Débarquements",
       "CE": "Efforts",
-      "ST": "Tests de survie",
+      "ST": "Mesures individuelles",
       "RL": "Relâché"
     },
     "OPTIONS": {

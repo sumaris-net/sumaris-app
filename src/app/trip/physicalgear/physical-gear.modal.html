@@ -93,13 +93,20 @@
 
     <!-- TAB: sub-gears -->
     <mat-tab label="{{'TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS'|translate}}"
+             *ngVar="childrenTable; let table"
              [disabled]="!_showChildrenTable">
       <ng-template mat-tab-label>
         <mat-icon>settings</mat-icon>
         <mat-icon class="icon-secondary" style="left: 12px; top: 7px; font-size: 16px">settings</mat-icon>
-        <ion-label translate>TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS</ion-label>
+        <ion-label *ngIf="table"
+                   [matBadge]="table.totalRowCount"
+                   [matBadgeHidden]="table.invalid || !table.totalRowCount || table.error"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+          translate>TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger"
-                  *ngIf="childrenTable && (childrenTable.invalid || !childrenTable.totalRowCount)"></ion-icon>
+                  *ngIf="table && (table.invalid || !table.totalRowCount)"></ion-icon>
       </ng-template>
 
       <app-physical-gears-table #childrenTable

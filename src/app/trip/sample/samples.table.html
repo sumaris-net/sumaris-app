@@ -236,7 +236,7 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of pmfms; index as index;" [matColumnDef]="(pmfm.id || index)|toString">
+    <ng-container *ngFor="let pmfm of pmfms; index as index; trackBy: trackPmfmFn" [matColumnDef]="(pmfm.id || index)|toString">
       <th mat-header-cell *matHeaderCellDef
           mat-sort-header
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
@@ -254,12 +254,14 @@
           (click)="focusColumn=(pmfm.id || index).toString()">
 
         <app-pmfm-field *ngIf="row.editing; else readonlyPmfmField"
+                        floatLabel="never"
                         [pmfm]="pmfm"
                         [i18nPrefix]="i18nPmfmPrefix"
                         [i18nSuffix]="i18nColumnSuffix"
                         [control]="row.validator|formGetControl: ['measurementValues', pmfm.id]"
                         [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
-                        [compact]="compactFields" floatLabel="never"></app-pmfm-field>
+                        [compact]="compactFields">
+        </app-pmfm-field>
 
         <!-- readonly value-->
         <ng-template #readonlyPmfmField>

@@ -9,7 +9,7 @@ import { PhysicalGearFilter } from './physical-gear.filter';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
 
-export interface SelectPhysicalGearModalOptions {
+export interface ISelectPhysicalGearModalOptions {
   allowMultiple?: boolean;
   filter?: PhysicalGearFilter;
   acquisitionLevel?: AcquisitionLevelType;
@@ -29,7 +29,7 @@ export interface SelectPhysicalGearModalOptions {
     }
   ]
 })
-export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalOptions {
+export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModalOptions {
 
   readonly mobile: boolean;
 

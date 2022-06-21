@@ -95,7 +95,8 @@
     </mat-tab>
 
     <!-- TAB: Landings -->
-    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}" [disabled]="!showLandingTab" #landingsTab>
+    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}"
+             [disabled]="!showLandingTab" #landingsTab>
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>

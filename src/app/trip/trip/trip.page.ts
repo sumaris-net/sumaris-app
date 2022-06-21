@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, OnDestroy, ViewChild } from '@angular/core';
 
 import { TripService } from '../services/trip.service';
 import { TripForm } from './trip.form';
@@ -11,11 +11,14 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { FormGroup, Validators } from '@angular/forms';
 import {
-  Alerts, DateUtils,
+  Alerts,
+  DateUtils,
   EntitiesStorage,
-  EntityServiceLoadOptions, EntityUtils,
+  EntityServiceLoadOptions,
+  EntityUtils,
   fadeInOutAnimation,
-  HistoryPageReference, InMemoryEntitiesService,
+  HistoryPageReference,
+  InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -28,7 +31,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
 import { Trip } from '../services/model/trip.model';
-import { SelectPhysicalGearModal, SelectPhysicalGearModalOptions } from '../physicalgear/select-physical-gear.modal';
+import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
@@ -37,7 +40,6 @@ import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith,
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
 import { Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
@@ -45,8 +47,8 @@ import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { Sale } from '@app/trip/services/model/sale.model';
-import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
-import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN, PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
 const moment = momentImported;
 
@@ -233,7 +235,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   protected async setProgram(program: Program) {
-    if (!program) return; // SkiploadTrip
+    if (!program) return; // Skip load Trip
 
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
 
@@ -277,7 +279,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (this.operationsTable.showMap) {
       const subscription = this.network.onNetworkStatusChanges
         .pipe(filter(status => status === 'none'))
-        .subscribe(status => {
+        .subscribe(_ => {
           this.operationsTable.showMap = false;
           this.markForCheck();
           subscription.unsubscribe(); // Remove the subscription (not need anymore)
@@ -396,7 +398,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Set physical gears
     this.physicalGearsTable.tripId = data.id;
-    //this.physicalGearsTable.value = data && data.gears || [];
     this.physicalGearService.value = data && data.gears || [];
 
     // Operations table
@@ -509,12 +510,16 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const withOffline = EntityUtils.isLocal(trip) || trip.synchronizationStatus === 'DIRTY';
     if (!vessel || !date) return; // Skip
 
+    const programLabel = this.$programLabel.getValue();
+    const acquisitionLevel = this.physicalGearsTable.acquisitionLevel;
     const filter = <PhysicalGearFilter>{
+      program: {label: programLabel},
       vesselId: vessel.id,
       excludeTripId: trip.id,
       startDate: DateUtils.min(moment(), date && date.clone()).add(-1, 'month'),
       endDate: date && date.clone(),
-      program: {label: this.$programLabel.getValue()}
+      excludeChildGear: (acquisitionLevel === AcquisitionLevelCodes.PHYSICAL_GEAR),
+      excludeParentGear: (acquisitionLevel === AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR)
     };
     const distinctBy = ['gear.id', 'rankOrder',
       ...(this.physicalGearsTable.pmfms||[])
@@ -525,10 +530,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
       component: SelectPhysicalGearModal,
-      componentProps: <SelectPhysicalGearModalOptions>{
+      componentProps: <ISelectPhysicalGearModalOptions>{
         allowMultiple: false,
-        programLabel: this.$programLabel.getValue(),
-        acquisitionLevel: this.physicalGearsTable.acquisitionLevel,
+        programLabel,
+        acquisitionLevel,
         filter,
         distinctBy,
         withOffline

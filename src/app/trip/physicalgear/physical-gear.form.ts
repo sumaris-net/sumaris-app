@@ -157,6 +157,16 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     await super.setValue(data, opts);
   }
 
+  protected getValue(): PhysicalGear {
+    const target = super.getValue();
+
+    // Re Add gear, if control has been disabled
+    const jsonGear = this.form.get('gear').value;
+    target.gear = jsonGear && ReferentialRef.fromObject(jsonGear);
+
+    return target;
+  }
+
   toggleComment() {
     if (this.disabled) return;
 

@@ -6,7 +6,8 @@ import { DataEntityAsObjectOptions, IDataEntity } from '@app/data/services/model
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { Moment } from 'moment';
 import { TripRef } from '@app/trip/trip/trip-ref.model';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 export interface PhysicalGearAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -21,33 +22,36 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear, number, PhysicalG
 
   static fromObject: (source: any, opts?: any) => PhysicalGear;
 
-  static equals(s1: PhysicalGear, s2: PhysicalGear) {
+  static equals(s1: PhysicalGear, s2: PhysicalGear, opts = {withRankOrder: true, withMeasurementValues: false}) {
     return s1 && s2 && s1.id === s2.id
       // Or
       || (
         // Same gear
         (s1.gear && s2.gear && s1.gear.id === s2.gear.id)
         // Same rankOrder
-        && (s1.rankOrder === s2.rankOrder)
+        && (opts.withRankOrder === false || s1.rankOrder === s2.rankOrder)
+        // Same measurementValues
+        && (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(s1.measurementValues, s2.measurementValues))
         // WARN: compare parent (e.g. same trip) is to complicated, because it can be not set yet, before saving
       );
   }
 
-  static computeSameAsScore(reference: PhysicalGear, source?: PhysicalGear): number {
+  static computeSameAsScore(reference: PhysicalGear, source?: PhysicalGear, opts?: {measurementValues?: boolean; rankOrder?: boolean; tripId?: boolean}): number {
     if (!source) return -1;
-    return (reference.gear?.id === source.gear?.id ? 1 : 0) * 100
-      + (reference.rankOrder === source.rankOrder ? 1 : 0) * 10
-      + (reference.tripId === source.tripId ? 1 : 0) * 1;
+
+    return (reference.gear?.id === source.gear?.id ? 1 : 0) * 1000
+      + (opts?.measurementValues !== false && MeasurementValuesUtils.equals(reference.measurementValues, source.measurementValues) ? 1 : 0) * 100
+      + (opts?.rankOrder !== false && reference.rankOrder === source.rankOrder ? 1 : 0) * 10
+      + (opts?.tripId !== false && reference.tripId === source.tripId ? 1 : 0) * 1;
   }
 
-  static sameAsComparator(gear: PhysicalGear, sortDirection?: SortDirection): (g1: PhysicalGear, g2: PhysicalGear) => number {
+  static scoreComparator(gear: PhysicalGear, sortDirection?: SortDirection): (g1: PhysicalGear, g2: PhysicalGear) => number {
     const direction = !sortDirection || sortDirection === 'desc' ? -1 : 1;
     return (g1, g2) => {
       const score1 = this.computeSameAsScore(gear, g1);
       const score2 = this.computeSameAsScore(gear, g2);
       return score1 === score2 ? 0 : (score1 > score2 ? direction : -direction);
     };
-
   }
 
   static fromObjectArrayAsTree(sources: any[], opts?: PhysicalGearFromObjectOptions): PhysicalGear[] {
@@ -178,13 +182,15 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear, number, PhysicalG
   }
 
 
-  equals(other: PhysicalGear): boolean {
+  equals(other: PhysicalGear, opts = {withMeasurementValues : false}): boolean {
     return (super.equals(other) && isNotNil(this.id))
       || (
         // Same gear
         (this.gear && other.gear && this.gear.id === other.gear.id)
         // Same rankOrder
         && (this.rankOrder === other.rankOrder)
+        // Same measurementsValues
+        && (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues))
       );
   }
 }

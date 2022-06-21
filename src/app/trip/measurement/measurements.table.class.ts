@@ -16,7 +16,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
+  RESERVED_START_COLUMNS, toNumber,
   waitFor
 } from '@sumaris-net/ngx-components';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
@@ -411,7 +411,7 @@ export abstract class AppMeasurementsTable<
    * @param pmfm
    */
   trackPmfmFn(index: number, pmfm: IPmfm): any {
-    return pmfm?.id || null;
+    return toNumber(pmfm?.id, index);
   }
 
   translateControlPath(path: string): string {

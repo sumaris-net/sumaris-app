@@ -3,16 +3,23 @@ import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { Environment, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
+import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 
 @NgModule({
   imports: [
     SharedModule
   ],
-  declarations: [],
+  declarations: [
+    // Pipes
+    DisplayWithPipe
+  ],
   exports: [
     SharedModule,
     RouterModule,
-    TranslateModule
+    TranslateModule,
+
+    // Pipes
+    DisplayWithPipe
   ]
 })
 export class AppSharedModule {

@@ -119,14 +119,13 @@ export class TypedExpenseForm extends MeasurementsForm {
     return values;
   }
 
-  setValue(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
+  protected updateView(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     // filter measurements on rank order if provided
     if (this.rankOrder) {
       data = (data || []).filter(value => value.rankOrder === this.rankOrder);
     }
 
-    super.setValue(data, opts);
+    super.updateView(data, opts);
 
     // set packaging and amount value
     const packaging = (this.$packagingPmfms.getValue() || [])

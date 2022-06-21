@@ -40,7 +40,7 @@ import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels
 import { BatchTreeComponent } from '../batch/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, from, merge, Subscription } from 'rxjs';
+import { BehaviorSubject, from, merge, Observable, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
@@ -86,7 +86,7 @@ export class OperationPage
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
   readonly mobile: boolean;
-  readonly $acquisitionLevel = new BehaviorSubject<string>(AcquisitionLevelCodes.OPERATION);
+  readonly $acquisitionLevel = new BehaviorSubject<string>(null);
   readonly $programLabel = new BehaviorSubject<string>(null);
   readonly $tripId = new BehaviorSubject<number>(null);
   readonly $lastOperations = new BehaviorSubject<Operation[]>(null);
@@ -176,16 +176,18 @@ export class OperationPage
     this.mobile = settings.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
 
-    // Shortcut
-    this.registerSubscription(
-      hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
-        .subscribe((event) => this.openHelpModal(event)),
-    );
-    this.registerSubscription(
-      hotkeys.addShortcut({ keys: 'control.a', description: 'COMMON.BTN_ADD', preventDefault: true })
-        .pipe(filter(e => !this.disabled && this.showFabButton))
-        .subscribe((event) => this.onNewFabButtonClick(event)),
-    );
+    // Add shortcut
+    if (!this.mobile) {
+      this.registerSubscription(
+        hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
+          .subscribe((event) => this.openHelpModal(event)),
+      );
+      this.registerSubscription(
+        hotkeys.addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
+          .pipe(filter(e => !this.disabled && this.showFabButton))
+          .subscribe((event) => this.onNewFabButtonClick(event)),
+      );
+    }
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -237,7 +239,7 @@ export class OperationPage
       component: AppHelpModal,
       componentProps: <AppHelpModalOptions>{
         title: this.translate.instant('COMMON.HELP.TITLE'),
-        docUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc/-/blob/master/user-manual/index_fr.md'
+        markdownUrl: 'https://gitlab.ifremer.fr/sih-public/sumaris/sumaris-doc/-/raw/master/user-manual/index_fr'
       },
       backdropDismiss: true
     });
@@ -332,7 +334,6 @@ export class OperationPage
       this.registerSubscription(
         this.measurementsForm.$pmfms
           .pipe(
-            debounceTime(400),
             filter(isNotNil),
             mergeMap(_ => this.measurementsForm.ready())
           )
@@ -456,7 +457,7 @@ export class OperationPage
             map(parent => !!parent), // Convert to boolean
             distinctUntilChanged()
           )
-          .subscribe((hasParent) => {
+          .subscribe(async (hasParent) => {
             let acquisitionLevel: AcquisitionLevelType;
             if (hasParent) {
               if (this.debug) console.debug('[operation] Enable batch tables');
@@ -476,7 +477,6 @@ export class OperationPage
 
             // Change acquisition level, if need
             if (this.$acquisitionLevel.value !== acquisitionLevel) {
-              this.measurementsForm.setAcquisitionLevel(acquisitionLevel, []/* force cleaning previous values*/);
               this.$acquisitionLevel.next(acquisitionLevel);
             }
 
@@ -516,9 +516,8 @@ export class OperationPage
             // Hide button to toggle hasSubBatches (yes/no) when value if forced
             this.batchTree.batchGroupsTable.setModalOption("showHasSubBatchesButton", !hasIndividualMeasures)
             if (!this.allowParentOperation) {
-              this.showBatchTables = hasIndividualMeasures && this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-              this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
+              this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
             }
           })
       );
@@ -620,6 +619,10 @@ export class OperationPage
 
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
+
+    if (!this.allowParentOperation) {
+      this.$acquisitionLevel.next(AcquisitionLevelCodes.OPERATION);
+    }
 
     this.batchTree.program = program;
     this.sampleTree.program = program;
@@ -835,12 +838,15 @@ export class OperationPage
     // Set measurements form
     this.measurementsForm.gearId = gearId;
     this.measurementsForm.programLabel = this.$programLabel.value;
-    if (isNotNil(data.parentOperationId)) {
-      await this.measurementsForm.setAcquisitionLevel(AcquisitionLevelCodes.CHILD_OPERATION, data && data.measurements || []);
-      this.$acquisitionLevel.next(AcquisitionLevelCodes.CHILD_OPERATION);
-    } else {
-      this.measurementsForm.setValue(data && data.measurements || []);
+    const isChildOperation = data.parentOperation || isNotNil(data.parentOperationId);
+    const acquisitionLevel = isChildOperation ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
+    if (this.measurementsForm.acquisitionLevel !== acquisitionLevel && !this.measurementsForm.loading) {
+      await this.measurementsForm.unload();
     }
+    if (this.$acquisitionLevel.value !== acquisitionLevel) {
+      this.$acquisitionLevel.next(acquisitionLevel);
+    }
+    await this.measurementsForm.setValue(data && data.measurements || []);
 
     // Set batch tree
     this.batchTree.gearId = gearId;
