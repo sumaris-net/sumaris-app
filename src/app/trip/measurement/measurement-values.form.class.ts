@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
-import { BehaviorSubject, isObservable, Observable } from 'rxjs';
+import { BehaviorSubject, isObservable, Observable, Subject } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { filter, map, switchMap } from 'rxjs/operators';
@@ -244,14 +244,19 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   ready(opts?: WaitForOptions): Promise<void> {
-    return waitForTrue(
-      this._$ready
-      .pipe(
-        filter(value => value === true),
-        switchMap(_ => this.$loadingStep),
-        map(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
-      )
-    , opts);
+    try {
+      return waitForTrue(
+        this._$ready
+        .pipe(
+          filter(value => value === true),
+          switchMap(_ => this.$loadingStep),
+          map(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
+        )
+      , opts);
+    } catch(err) {
+      if (err?.message === 'object unsubscribed') throw 'CANCELLED'; // Cancelled
+      throw err;
+    }
   }
 
 
@@ -295,6 +300,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     finally {
       this.applyingValue = false;
     }
+  }
+
+  markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsReady(opts);
   }
 
   protected onApplyingEntity(data: T, opts?: {[key: string]: any;}) {

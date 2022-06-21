@@ -229,15 +229,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         ...options,
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onRowCreated: (row) => {
-          // Need to set additional validator here
-          // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
-          //       e.g. IMAGINE add some validator (see biological sampling page), so new row should always be INVALID with those additional validators
-          if (row.validator) {
-            const event = {form: row.validator, pmfms: this.pmfms, markForCheck: () => this.markForCheck()};
-            this.onPrepareRowForm.emit(event);
-          }
-        }
+        onPrepareRowForm: (form) => this.onPrepareRowForm.emit({form, pmfms: this.pmfms, markForCheck: () => this.markForCheck()})
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
