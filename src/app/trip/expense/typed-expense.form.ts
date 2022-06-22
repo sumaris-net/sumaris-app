@@ -27,8 +27,7 @@ export class TypedExpenseForm extends MeasurementsForm {
 
   @Input() expenseType = 'UNKNOWN';
 
-  @Input()
-  set pmfms(pmfms: IPmfm[]) {
+  @Input() set pmfms(pmfms: IPmfm[]) {
     this.setPmfms(pmfms);
   }
 
@@ -62,15 +61,14 @@ export class TypedExpenseForm extends MeasurementsForm {
     };
 
 
-    this.registerSubscription(filterNotNil(this.$pmfms).subscribe(pmfms => {
-
-      // Wait form controls ready
-      this.ready().then(() => {
+    this.registerSubscription(
+      this.$pmfms.subscribe(async (pmfms) => {
+        // Wait form is ready
+        await this.ready();
         // dispatch pmfms
         this.parsePmfms(pmfms);
-      });
-
-    }));
+      })
+    );
 
     this.registerSubscription(filterNotNil(this.$totalPmfm)
       .subscribe(totalPmfm => {

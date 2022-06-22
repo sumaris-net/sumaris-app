@@ -234,7 +234,7 @@
           </ng-template>
         </th>
         <td mat-cell *matCellDef="let row">
-          <ion-label>{{autocompleteFields.parent.displayWith(row.currentData.parent) }}</ion-label>
+          <ion-label>{{row.currentData.parent|displayWith: autocompleteFields.parent.displayWith }}</ion-label>
         </td>
 
       </ng-container>

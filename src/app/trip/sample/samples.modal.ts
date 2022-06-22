@@ -22,6 +22,7 @@ export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModal
   showLabel: boolean;
   title: string;
   i18nSuffix: string;
+  mobile: boolean;
 
   onReady: (modal: M) => Promise<void> | void;
 }
@@ -33,11 +34,11 @@ export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModal
 })
 export class SamplesModal implements OnInit, ISamplesModalOptions {
 
-  debug = false;
+  readonly debug = !environment.production;
   loading = false;
-  mobile: boolean;
   $title = new BehaviorSubject<string>(undefined);
 
+  @Input() mobile = this.settings.mobile;
   @Input() isNew = false;
   @Input() data: Sample[];
   @Input() disabled: boolean;
@@ -64,6 +65,10 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
     return this.table.dirty;
   }
 
+  get enabled() {
+    return this.table.enabled;
+  }
+
   get invalid(): boolean {
     return this.table.invalid;
   }
@@ -85,10 +90,6 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
-    this.mobile = settings.mobile;
-
-    // TODO: for DEV only
-    this.debug = !environment.production;
   }
 
   ngOnInit() {

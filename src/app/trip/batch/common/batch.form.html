@@ -43,7 +43,8 @@
                           [controlName]="pmfm|pmfmIdString"
                           [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
                           [compact]="compact"
-                          [tabindex]="tabindex+2 + i*2">
+                          [tabindex]="tabindex+2 + i*2"
+                          [maxVisibleButtons]="maxVisibleButtons">
           </app-pmfm-field>
       </ion-col>
     </ion-row>
@@ -186,6 +187,9 @@
                               [compact]="compact"
                               [tabindex]="tabindex+33"
                               [listenStatusChanges]="true">
+
+                <!--<ion-button matSuffix>RTP</ion-button>
+                <mat-hint>0.026</mat-hint>-->
               </app-pmfm-field>
 
             </ion-col>

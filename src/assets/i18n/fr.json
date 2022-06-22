@@ -1019,8 +1019,8 @@
     }
   },
   "EXPECTED_SALE": {
-    "FEATURES": "Caractéristiques:",
-    "CALCULATED_TOTAL": "Total calculé:"
+    "FEATURES": "Caractéristiques :",
+    "CALCULATED_TOTAL": "Total calculé :"
   },
   "SALE": {
     "TITLE": "Vente",

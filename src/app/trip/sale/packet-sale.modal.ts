@@ -1,39 +1,47 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { AppFormUtils } from '@sumaris-net/ngx-components';
 import { Packet } from '../services/model/packet.model';
 import { PacketSaleForm } from './packet-sale.form';
-import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { TranslateService } from '@ngx-translate/core';
+
+export interface IPacketSaleModalOptions {
+  disabled: boolean;
+  data: Packet;
+  packetSalePmfms: DenormalizedPmfmStrategy[];
+  mobile: boolean;
+}
 
 @Component({
   selector: 'app-packet-sale-modal',
   templateUrl: './packet-sale.modal.html'
 })
-export class PacketSaleModal implements OnInit, OnDestroy {
+export class PacketSaleModal implements OnInit, OnDestroy, IPacketSaleModalOptions {
 
   loading = false;
   subscription = new Subscription();
-  $title = new Subject<string>();
+  $title = new BehaviorSubject<string>(null);
 
   @ViewChild('packetSaleForm', {static: true}) packetSaleForm: PacketSaleForm;
 
-  @Input() packet: Packet;
-  @Input() packetSalePmfms: PmfmStrategy[];
-
-  get disabled() {
-    return this.packetSaleForm.disabled;
-  }
+  @Input() data: Packet;
+  @Input() mobile: boolean;
+  @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
+  @Input() disabled: boolean;
 
   get enabled() {
     return this.packetSaleForm.enabled;
   }
 
-  get valid() {
-    return this.packetSaleForm && this.packetSaleForm.valid || false;
+  get valid(): boolean {
+    return this.packetSaleForm?.valid || false;
   }
 
+  get invalid(): boolean {
+    return this.packetSaleForm?.invalid || false;
+  }
 
   constructor(
     protected viewCtrl: ModalController,
@@ -43,13 +51,16 @@ export class PacketSaleModal implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.enable();
     this.updateTitle();
-    setTimeout(() => this.packetSaleForm.setValue(Packet.fromObject(this.packet)));
+    this.packetSaleForm.markAsReady();
+    setTimeout(async () => {
+      await this.packetSaleForm.setValue(Packet.fromObject(this.data))
+      if (!this.disabled) this.enable();
+    });
   }
 
-  protected async updateTitle() {
-    const title = await this.translate.get('PACKET.SALE.TITLE', {rankOrder: this.packet.rankOrder}).toPromise();
+  protected updateTitle() {
+    const title = this.translate.instant('PACKET.SALE.TITLE', {rankOrder: this.data.rankOrder});
     this.$title.next(title);
   }
 
@@ -62,7 +73,7 @@ export class PacketSaleModal implements OnInit, OnDestroy {
 
     if (this.packetSaleForm.invalid) {
       AppFormUtils.logFormErrors(this.packetSaleForm.form);
-      this.packetSaleForm.markAsTouched({emitEvent: true});
+      this.packetSaleForm.markAllAsTouched({emitEvent: true});
       return;
     }
 
@@ -82,10 +93,12 @@ export class PacketSaleModal implements OnInit, OnDestroy {
   }
 
   disable() {
+    this.disabled = true;
     this.packetSaleForm.disable();
   }
 
   enable() {
+    this.disabled = false;
     this.packetSaleForm.enable();
   }
 

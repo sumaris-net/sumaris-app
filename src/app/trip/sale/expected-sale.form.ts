@@ -1,19 +1,15 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { Injector } from '@angular/core';
-import { Moment } from 'moment';
-import { FormBuilder, FormGroup } from '@angular/forms';
-import { AppTabEditor, firstNotNilPromise, isNotNil, LocalSettingsService, round } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { FormBuilder } from '@angular/forms';
+import { AppForm, AppFormProvider, firstNotNilPromise, isNotNil, LocalSettingsService, round } from '@sumaris-net/ngx-components';
 import { ProductsTable } from '../product/products.table';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
-import { TranslateService } from '@ngx-translate/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
 import { Product } from '@app/trip/services/model/product.model';
 import { SaleProductUtils } from '@app/trip/services/model/sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-expected-sale-form',
@@ -21,7 +17,9 @@ import { PmfmIds } from '@app/referential/services/model/model.enum';
   styleUrls: ['./expected-sale.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExpectedSaleForm extends AppTabEditor<ExpectedSale> implements OnInit {
+export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implements OnInit {
+
+  readonly debug = !environment.production;
 
   @Input() programLabel: string;
   @Input() showError = false;
@@ -31,13 +29,10 @@ export class ExpectedSaleForm extends AppTabEditor<ExpectedSale> implements OnIn
   @ViewChild('productsTable', {static: true}) productsTable: ProductsTable;
 
   data: ExpectedSale;
-  form: FormGroup;
   totalPriceCalculated: number;
 
   get value(): ExpectedSale {
-    this.data.measurements = this.saleMeasurementsForm.value;
-    this.data.products = null; // don't return readonly table value
-    return this.data;
+    return this.getValue();
   }
 
   set value(data: ExpectedSale) {
@@ -45,17 +40,15 @@ export class ExpectedSaleForm extends AppTabEditor<ExpectedSale> implements OnIn
   }
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
-    protected formBuilder: FormBuilder,
+    protected injector: Injector,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, translate);
+    super(() => this.saleMeasurementsForm);
+  }
 
-    this.form = formBuilder.group({});
+  ngOnInit() {
+    this.productsTable.disable(); // Readonly
   }
 
   setValue(data: ExpectedSale, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
@@ -64,6 +57,12 @@ export class ExpectedSaleForm extends AppTabEditor<ExpectedSale> implements OnIn
     this.saleMeasurementsForm.value = data.measurements || [];
 
     this.updateProducts(data.products);
+  }
+
+  getValue() {
+    this.data.measurements = this.saleMeasurementsForm.value;
+    this.data.products = null; // don't return readonly table value
+    return this.data;
   }
 
   async updateProducts(value: Product[]) {
@@ -105,33 +104,8 @@ export class ExpectedSaleForm extends AppTabEditor<ExpectedSale> implements OnIn
 
   }
 
-
-  ngOnInit() {
-    super.ngOnInit();
-
-
-    this.addChildForms([this.saleMeasurementsForm]);
-  }
-
-
   protected markForCheck() {
     this.cd.markForCheck();
-  }
-
-  get isNewData(): boolean {
-    return false;
-  }
-
-  load(id: number | undefined, options: any): Promise<void> {
-    return Promise.resolve(undefined);
-  }
-
-  reload(): Promise<void> {
-    return Promise.resolve(undefined);
-  }
-
-  save(event: Event | undefined, options: any): Promise<boolean> {
-    return Promise.resolve(false);
   }
 
 }

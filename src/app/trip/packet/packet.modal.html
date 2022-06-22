@@ -49,7 +49,7 @@
 
   </app-packet-form>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="enabled">
 
     <ion-fab-button color="tertiary" (click)="form.addComposition()">
       <ion-icon name="add"></ion-icon>
@@ -72,8 +72,10 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button [fill]="disabled? 'clear' : 'solid'" (click)="onSave($event)" (keyup.enter)="onSave($event)"
-                    color="tertiary" [disabled]="disabled">
+        <ion-button [fill]="invalid ? 'clear' : 'solid'"
+                    [disabled]="disabled || loading || invalid"
+                    (click)="onSave($event)" (keyup.enter)="onSave($event)"
+                    color="tertiary" >
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>
       </ion-col>

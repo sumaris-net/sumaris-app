@@ -2,7 +2,7 @@
                    (cancel)="cancel()"
                    [title]="$title | async"
                    [showSpinner]="loading"
-                   [canValidate]="!loading"
+                   [canValidate]="!loading && enabled"
                    (validate)="onSubmit($event)">
 </app-modal-toolbar>
 
@@ -14,6 +14,7 @@
                      [defaultTaxonGroup]="defaultTaxonGroup"
                      [defaultSampleDate]="defaultSampleDate"
                      [showLabelColumn]="showLabel"
+                     [showToolbar]="!mobile"
                      [showSampleDateColumn]="false"
                      [showTaxonNameColumn]="showTaxonName"
                      [showTaxonGroupColumn]="showTaxonGroup"
@@ -47,7 +48,7 @@
         </ion-button>
 
         <ion-button [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || invalid"
+                    [disabled]="disabled || loading || invalid"
                     (keyup.enter)="onSubmit($event)"
                     (click)="onSubmit($event)" color="tertiary">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>
@@ -59,7 +60,7 @@
 </ion-footer>
 
 <!-- FAB button -->
-<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+<ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="enabled"
          visible-xs visible-sm visible-mobile>
 
   <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">

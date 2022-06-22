@@ -19,19 +19,19 @@ import { DenormalizedPmfmStrategy } from '../../referential/services/model/pmfm-
 })
 export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy {
 
+  private _saleSubscription: Subscription;
+  private _data: Packet;
+
   computing = false;
   salesHelper: FormArrayHelper<SaleProduct>;
   salesFocusIndex = -1;
-  private saleSubscription = new Subscription();
+  adding = false;
 
   get saleFormArray(): FormArray {
     return this.form.controls.saleProducts as FormArray;
   }
 
-  mobile: boolean;
-  adding = false;
-  private _packet: Packet;
-
+  @Input() mobile: boolean;
   @Input() showError = true;
   @Input() usageMode: UsageMode;
   @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
@@ -43,7 +43,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     fillRankOrder(json.saleProducts);
 
     // Convert aggregated products sales to products
-    json.saleProducts = json.saleProducts && SaleProductUtils.aggregatedSaleProductsToProducts(this._packet, json.saleProducts, this.packetSalePmfms);
+    json.saleProducts = json.saleProducts && SaleProductUtils.aggregatedSaleProductsToProducts(this._data, json.saleProducts, this.packetSalePmfms);
 
     return json;
   }
@@ -77,15 +77,21 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
       filter: {
         entityName: 'SaleType'
       },
+      showAllOnFocus: true,
       mobile: this.mobile
     });
 
   }
 
+  ngOnDestroy() {
+    this._saleSubscription?.unsubscribe();
+    super.ngOnDestroy();
+  }
+
   setValue(data: Packet, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
     if (!data) return;
-    this._packet = data;
+    this._data = data;
 
     // Initialize product sales by converting products to aggregated sale products
     const aggregatedSaleProducts = isNotEmptyArray(data.saleProducts) ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.packetSalePmfms) : [{}];
@@ -108,15 +114,17 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   private initSubscription() {
 
     // clear and re-create
-    this.saleSubscription.unsubscribe();
-    this.saleSubscription = new Subscription();
+    this._saleSubscription?.unsubscribe();
+    this._saleSubscription = new Subscription();
 
     // add subscription on each sale form
-    for (const saleControl of this.saleFormArray.controls) {
-      this.saleSubscription.add(saleControl.valueChanges.subscribe(() => {
-        this.computePrices(this.asFormGroup(saleControl).controls);
-        saleControl.markAsPristine();
-      }));
+    for (const saleForm of this.saleFormArray.controls as FormGroup[] || []) {
+      this._saleSubscription.add(
+        saleForm.valueChanges
+          .subscribe(() => {
+            this.computePrices(saleForm.controls);
+            saleForm.markAsPristine();
+          }));
     }
 
   }
@@ -171,10 +179,6 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
 
   }
 
-  asFormGroup(control): FormGroup {
-    return control;
-  }
-
   addSale() {
     this.salesHelper.add();
     this.initSubscription();
@@ -194,8 +198,4 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     this.cd.markForCheck();
   }
 
-  ngOnDestroy() {
-    this.saleSubscription.unsubscribe();
-    super.ngOnDestroy();
-  }
 }

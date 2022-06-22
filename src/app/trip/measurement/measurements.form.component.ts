@@ -203,16 +203,14 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     }
   }
 
-  ready(opts?: WaitForOptions): Promise<void> {
+  async ready(opts?: WaitForOptions): Promise<void> {
     try {
-      return waitForTrue(
-        this._$ready
-          .pipe(
-            filter(value => value === true),
-            switchMap(_ => this.$loadingStep),
-            map(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
-          )
-        , opts);
+      await waitForTrue(this._$ready.pipe(
+        filter(value => value === true),
+        // Wait form ready
+        switchMap(_ => this.$loadingStep),
+        map(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
+      ), opts);
     } catch(err) {
       if (err?.message === 'object unsubscribed') throw 'CANCELLED'; // Cancelled
       throw err;

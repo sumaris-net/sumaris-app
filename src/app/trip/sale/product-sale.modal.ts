@@ -1,39 +1,48 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {AlertController, ModalController} from '@ionic/angular';
-import { Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import {Alerts, AppFormUtils, isNil, referentialToString} from '@sumaris-net/ngx-components';
 import { ProductSaleForm } from './product-sale.form';
 import { Product } from '../services/model/product.model';
-import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { DenormalizedPmfmStrategy, PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { TranslateService } from '@ngx-translate/core';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+
+export interface IProductSaleModalOptions {
+  disabled: boolean;
+  data: Product;
+  productSalePmfms: DenormalizedPmfmStrategy[];
+  mobile: boolean;
+}
 
 @Component({
   selector: 'app-product-sale-modal',
   templateUrl: './product-sale.modal.html'
 })
-export class ProductSaleModal implements OnInit, OnDestroy {
+export class ProductSaleModal implements OnInit,  OnDestroy, IProductSaleModalOptions {
 
   loading = false;
   subscription = new Subscription();
-  $title = new Subject<string>();
+  $title = new BehaviorSubject<string>(null);
 
   @ViewChild('productSaleForm', {static: true}) productSaleForm: ProductSaleForm;
 
-  @Input() product: Product;
-  @Input() productSalePmfms: PmfmStrategy[];
+  @Input() mobile: boolean;
+  @Input() data: Product;
+  @Input() productSalePmfms: DenormalizedPmfmStrategy[];
+  @Input() disabled: boolean;
 
-  get disabled() {
-    return this.productSaleForm.disabled;
-  }
-
-  get enabled() {
+  get enabled(): boolean {
     return this.productSaleForm.enabled;
   }
 
-  get valid() {
-    return this.productSaleForm && this.productSaleForm.valid || false;
+  get valid(): boolean {
+    return this.productSaleForm?.valid || false;
   }
 
+  get invalid(): boolean {
+    return this.productSaleForm?.invalid || false;
+  }
 
   constructor(
     protected viewCtrl: ModalController,
@@ -43,18 +52,20 @@ export class ProductSaleModal implements OnInit, OnDestroy {
 
   }
 
-  ngOnInit(): void {
-    this.enable();
+  ngOnInit() {
     this.updateTitle();
-    setTimeout(() => this.productSaleForm.setValue(Product.fromObject(this.product)));
+    setTimeout(async () => {
+      await this.productSaleForm.setValue(Product.fromObject(this.data))
+      if (!this.disabled) this.enable();
+    });
+
+    this.productSaleForm.markAsReady();
   }
 
-
-  protected async updateTitle() {
-    const title = await this.translate.get('TRIP.PRODUCT.SALE.TITLE', {taxonGroupLabel: referentialToString(this.product.taxonGroup)}).toPromise();
+  protected updateTitle() {
+    const title = this.translate.instant('TRIP.PRODUCT.SALE.TITLE', {taxonGroupLabel: referentialToString(this.data.taxonGroup)});
     this.$title.next(title);
   }
-
 
   async onSave(event: any): Promise<any> {
 
@@ -85,10 +96,12 @@ export class ProductSaleModal implements OnInit, OnDestroy {
   }
 
   disable() {
+    this.disabled = true;
     this.productSaleForm.disable();
   }
 
   enable() {
+    this.disabled = false;
     this.productSaleForm.enable();
   }
 

@@ -1,20 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
-import {
-  AppForm, AppFormUtils,
-  FormArrayHelper,
-  IReferentialRef,
-  isNotEmptyArray,
-  isNotNilOrNaN,
-  LoadResult,
-  LocalSettingsService,
-  round,
-  selectInputContent,
-  toNumber,
-  UsageMode,
-} from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { AppForm, AppFormUtils, FormArrayHelper, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, round, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from '../services/model/packet.model';
-import { Injector } from '@angular/core';
-import { Moment } from 'moment';
 import { PacketValidatorService } from '../services/validator/packet.validator';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -35,7 +21,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   computing = false;
   compositionHelper: FormArrayHelper<PacketComposition>;
   compositionFocusIndex = -1;
-  packetIndexes = PacketIndexes;
   compositionEditedIndex: number;
   $packetCount = new BehaviorSubject<number>(undefined);
   $packetIndexes = new BehaviorSubject<number[]>(undefined);
@@ -142,10 +127,9 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     this.computeSampledRatios();
     this.computeTaxonGroupWeight();
 
-    this.registerSubscription(this.form.controls.number.valueChanges
-      .pipe(
-        startWith(this.form.controls.number.value)
-      )
+    const numberControl = this.form.get('number');
+    this.registerSubscription(numberControl.valueChanges
+      .pipe(startWith(numberControl.value))
       .subscribe((packetCount) => {
         this.$packetCount.next(Math.max(1, Math.min(6, packetCount||0)));
         this.$packetIndexes.next([...Array(this.$packetCount.value).keys()]);
@@ -154,13 +138,13 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
       }));
 
     PacketIndexes.forEach(index => {
-      this.registerSubscription(this.form.controls['sampledWeight' + index].valueChanges.subscribe(() => {
+      this.registerSubscription(this.form.get('sampledWeight' + index).valueChanges.subscribe(() => {
         this.computeTotalWeight();
         this.computeTaxonGroupWeight();
       }));
     })
 
-    this.registerSubscription(this.form.controls.composition.valueChanges.subscribe(() => {
+    this.registerSubscription(this.form.get('composition').valueChanges.subscribe(() => {
       this.computeSampledRatios();
       this.computeTaxonGroupWeight();
     }));
@@ -258,10 +242,6 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
         this.compositionFocusIndex = undefined
       }, 500);
     }
-  }
-
-  asFormGroup(control): FormGroup {
-    return control;
   }
 
   protected markForCheck() {

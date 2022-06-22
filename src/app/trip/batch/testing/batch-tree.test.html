@@ -67,13 +67,14 @@
        <!-- Action  buttons -->
        <ion-col size="4" size-md="2">
          <!-- show tree -->
-         <ion-button (click)="dumpExample()" *ngIf="!outputs.example"
-                     fill="outline">
+         <ion-button *ngIf="!outputs.example" fill="outline"
+                     (click)="dumpExample()">
            <ion-icon name="eye" slot="icon-only"></ion-icon>
          </ion-button>
          <!-- hide tree -->
-         <ion-button (click)="outputs.example = undefined" *ngIf="outputs.example"
-                     fill="outline">
+         <ion-button *ngIf="outputs.example"
+                     fill="outline"
+                     (click)="outputs.example=undefined">
            <ion-icon name="eye-off" slot="icon-only"></ion-icon>
          </ion-button>
          <!-- copy to -->

@@ -21,7 +21,7 @@
       <ion-spinner *ngIf="loading"></ion-spinner>
 
       <ion-button class="back-button" (click)="save($event)"
-                  *ngIf="!loading"
+                  *ngIf="!loading && enabled"
                   [disabled]="!form.valid"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>

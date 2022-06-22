@@ -376,8 +376,13 @@ export class OperationGroup extends DataEntity<OperationGroup>
   static equals(o1: OperationGroup | any, o2: OperationGroup | any): boolean {
     return o1 && o2 && ((isNotNil(o1.id) && o1.id === o2.id)
       // Or by functional attributes
-      || o1.metier.equals(o2.metier) && ((!o1.rankOrderOnPeriod && !o2.rankOrderOnPeriod) || (o1 === o2.rankOrderOnPeriod))
-      );
+      || (
+        // Same metier
+        (o1.metier && o1.metier.equals(o2.metier))
+        // Same rankOrderOnPeriod
+        && ((isNil(o1.rankOrderOnPeriod) && isNil(o2.rankOrderOnPeriod)) || (o1.rankOrderOnPeriod === o2.rankOrderOnPeriod))
+      )
+    );
   }
 
   asObject(opts?: DataEntityAsObjectOptions & { batchAsTree?: boolean }): any {

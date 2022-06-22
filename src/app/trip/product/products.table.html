@@ -235,8 +235,7 @@
         <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
                 [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"
                 (click)="openProductSale($event, row)"
-                [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined"
-                [hidden]="readOnly">
+                [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined">
           <mat-icon [matBadge]="row.currentData.saleProducts?.length"
                     [matBadgeHidden]="row.currentData.saleProducts | isEmptyArray"
                     matBadgeColor="accent"

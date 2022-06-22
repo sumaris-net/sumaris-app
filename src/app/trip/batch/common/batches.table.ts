@@ -8,7 +8,7 @@ import {Landing} from '../../services/model/landing.model';
 import {AcquisitionLevelCodes, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {BatchModal} from './batch.modal';
+import { BatchModal, IBatchModalOptions } from './batch.modal';
 import {environment} from '@environments/environment';
 import {Operation} from '../../services/model/trip.model';
 import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
@@ -203,29 +203,33 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     return true;
   }
 
-  protected async openDetailModal(batch?: T): Promise<T | undefined> {
-    const isNew = !batch && true;
+  protected async openDetailModal(dataToOpen?: T): Promise<T | undefined> {
+    const isNew = !dataToOpen && true;
     if (isNew) {
-      batch = new this.dataType();
-      await this.onNewEntity(batch);
+      dataToOpen = new this.dataType();
+      await this.onNewEntity(dataToOpen);
     }
 
     this.markAsLoading();
 
     const modal = await this.modalCtrl.create({
       component: BatchModal,
-      componentProps: {
+      componentProps: <Partial<IBatchModalOptions>>{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
-        value: batch,
+        data: dataToOpen,
         isNew,
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
         // Not need on a root species batch (fill in sub-batches)
         showTotalIndividualCount: false,
-        showIndividualCount: false
+        showIndividualCount: false,
+        mobile: this.mobile,
+        usageMode: this.usageMode,
+        i18nSuffix: this.i18nColumnSuffix,
+        maxVisibleButtons: 3
       },
       keyboardClose: true
     });

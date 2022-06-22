@@ -111,7 +111,7 @@
               <ion-label>{{ (displayParentPmfm | pmfmName ) || ('TRIP.BATCH.TABLE.PARENT_GROUP' | translate) }}</ion-label>
             </th>
             <td mat-cell *matCellDef="let row" [hidden]="!showParentGroup">
-              <ion-text>{{ autocompleteFields.parentGroup.displayWith(row.currentData.parentGroup) }}</ion-text>
+              <ion-text>{{ row.currentData.parentGroup|displayWith: autocompleteFields.parentGroup.displayWith }}</ion-text>
             </td>
           </ng-container>
 
@@ -121,7 +121,7 @@
               <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
             </th>
             <td mat-cell *matCellDef="let row">
-              <ion-text>{{autocompleteFields.taxonName?.displayWith(row.currentData.taxonName) }}</ion-text>
+              <ion-text>{{ autocompleteFields.taxonName && row.currentData.taxonName|displayWith: autocompleteFields.taxonName.displayWith }}</ion-text>
             </td>
           </ng-container>
 

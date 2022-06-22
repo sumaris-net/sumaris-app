@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Alerts, isNil, LocalSettingsService, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { Alerts, isNil, LocalSettingsService, ReferentialRef, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import { AlertController, ModalController } from '@ionic/angular';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -8,39 +8,35 @@ import { environment } from '@environments/environment';
 import { OperationGroup } from '@app/trip/services/model/trip.model';
 import { OperationGroupForm } from '@app/trip/operationgroup/operation-group.form';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+
+export interface IOperationGroupModalOptions extends IDataEntityModalOptions<OperationGroup> {
+  mobile: boolean;
+  metiers: Observable<ReferentialRef[]> | ReferentialRef[];
+}
 
 @Component({
   selector: 'app-operation-group-modal',
   templateUrl: 'operation-group.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationGroupModal implements OnInit, OnDestroy {
+export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupModalOptions {
 
   private _subscription = new Subscription();
 
-  debug = false;
+  readonly debug = !environment.production;
   loading = false;
-  mobile: boolean;
-  data: OperationGroup;
   $title = new BehaviorSubject<string>(undefined);
 
+  @Input() mobile = this.settings.mobile;
   @Input() acquisitionLevel: string;
-
   @Input() programLabel: string;
-
   @Input() disabled: boolean;
-
   @Input() isNew: boolean;
-
-  @Input()
-  set value(value: OperationGroup) {
-    this.data = value;
-  }
-
+  @Input() data: OperationGroup;
   @Input() pmfms: IPmfm[];
-
+  @Input() usageMode: UsageMode;
   @Input() onDelete: (event: UIEvent, data: OperationGroup) => Promise<boolean>;
-
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
   @ViewChild('form', { static: true }) form: OperationGroupForm;
@@ -89,10 +85,6 @@ export class OperationGroupModal implements OnInit, OnDestroy {
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
-    this.mobile = this.settings.mobile;
-
-    // TODO: for DEV only
-    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -113,6 +105,8 @@ export class OperationGroupModal implements OnInit, OnDestroy {
 
     // Compute the title
     this.computeTitle();
+
+    this.form.markAsReady();
 
     if (!this.isNew) {
       // Update title each time value changes

@@ -11,7 +11,7 @@ import {OperationGroup} from '../services/model/trip.model';
 import {environment} from '@environments/environment';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
+import { IOperationGroupModalOptions, OperationGroupModal } from '@app/trip/operationgroup/operation-group.modal';
 import { OperationGroupFilter } from '@app/trip/services/filter/operation-group.filter';
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier'];
@@ -108,23 +108,24 @@ export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, Op
     });
   }
 
-  async openDetailModal(operationGroup?: OperationGroup): Promise<OperationGroup | undefined> {
-    const isNew = !operationGroup && true;
+  async openDetailModal(dataToOpen?: OperationGroup): Promise<OperationGroup | undefined> {
+    const isNew = !dataToOpen && true;
     if (isNew) {
-      operationGroup = new this.dataType();
-      await this.onNewEntity(operationGroup);
+      dataToOpen = new this.dataType();
+      await this.onNewEntity(dataToOpen);
     }
 
     this.markAsLoading();
 
     const modal = await this.modalCtrl.create({
       component: OperationGroupModal,
-      componentProps: {
+      componentProps: <IOperationGroupModalOptions>{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         metiers: this.metiers,
         disabled: this.disabled,
-        value: operationGroup,
+        mobile: this.mobile,
+        data: dataToOpen,
         isNew,
         onDelete: (event, OperationGroup) => this.deleteOperationGroup(event, OperationGroup)
       },

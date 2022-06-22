@@ -5,7 +5,7 @@ import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { AppForm, firstNotNilPromise, isNil, isNotNil, toNumber, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
+import { AppForm, filterTrue, firstNotNilPromise, isNil, isNotNil, toNumber, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
@@ -243,22 +243,19 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  ready(opts?: WaitForOptions): Promise<void> {
+  async ready(opts?: WaitForOptions): Promise<void> {
     try {
-      return waitForTrue(
-        this._$ready
-        .pipe(
-          filter(value => value === true),
-          switchMap(_ => this.$loadingStep),
-          map(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
-        )
-      , opts);
+      await waitForTrue(this._$ready.pipe(
+        filter(value => value === true),
+        // Wait form ready
+        switchMap(_ => this.$loadingStep),
+        map(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
+      ), opts);
     } catch(err) {
       if (err?.message === 'object unsubscribed') throw 'CANCELLED'; // Cancelled
       throw err;
     }
   }
-
 
   setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}): Promise<void> | void {
     return this.applyValue(data, opts);

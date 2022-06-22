@@ -124,7 +124,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       type: 'samplingRatio',
       key: 'samplingRatio',
       label: 'TRIP.BATCH.TABLE.SAMPLING_RATIO',
-      flags: BatchGroupColumnFlags.IS_SAMPLING & BatchGroupColumnFlags.IS_SAMPLING_RATIO,
+      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_SAMPLING_RATIO,
       isSampling: true,
       path: 'children.0.samplingRatio',
       computed: (batch, samplingRatioFormat) => BatchUtils.isSamplingRatioComputed(batch.children[0]?.samplingRatioText, samplingRatioFormat)
@@ -138,7 +138,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       maximumNumberDecimals: 3,
       isWeight: true,
       isSampling: true,
-      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_SAMPLING,
+      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_WEIGHT,
       path: 'children.0.weight.value',
       computed: (batch) => batch.children[0]?.weight?.computed
     },
@@ -779,19 +779,19 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   protected computeDynamicColumnsByQv(qvGroup?: ReferentialRef, qvIndex?: number): BatchGroupColumnDefinition[] {
     qvIndex = isNotNil(qvIndex) ? qvIndex : -1;
     const offset = qvIndex * (BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length + (this._initialPmfms || []).filter(pmfm => !pmfm.hidden && !this.mobile).length);
-    const hideWeightColumns = !this.showWeightColumns;
+    const hideWeightColumns = !this._showWeightColumns;
     const hideIndividualCountColumns = !this.showIndividualCountColumns;
-    const hideSamplingRatioColumns = hideIndividualCountColumns;
     const hideSamplingColumns = !this._showSamplingBatchColumns;
+    const hideSamplingRatioColumns = hideSamplingColumns;
 
     const qvColumns = BatchGroupsTable.BASE_DYNAMIC_COLUMNS
       .map((def, index) => {
         const key = qvGroup ? `${qvGroup.label}_${def.key}` : def.key;
         const rankOrder = offset + index;
-        const hidden = (hideWeightColumns && !!(def.flags & BatchGroupColumnFlags.IS_WEIGHT))
-          || (hideIndividualCountColumns && !!(def.flags & BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT))
-          || (hideSamplingColumns && !!(def.flags & BatchGroupColumnFlags.IS_SAMPLING))
-          || (hideSamplingRatioColumns && !!(def.flags & BatchGroupColumnFlags.IS_SAMPLING_RATIO))
+        const hidden = (hideWeightColumns && ((def.flags & BatchGroupColumnFlags.IS_WEIGHT) !== 0))
+          || (hideIndividualCountColumns && ((def.flags & BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT) !== 0))
+          || (hideSamplingColumns && ((def.flags & BatchGroupColumnFlags.IS_SAMPLING) !== 0))
+          || (hideSamplingRatioColumns && ((def.flags & BatchGroupColumnFlags.IS_SAMPLING_RATIO) !== 0))
         ;
         // const hidden = (hideWeightColumns && def.isWeight)
         //   || (hideIndividualCountColumns && (def.isIndividualCount || def.key === 'samplingRatio'))
