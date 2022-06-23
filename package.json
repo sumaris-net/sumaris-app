@@ -20,7 +20,8 @@
     "build.android.prod": "ionic cordova build android --prod --release",
     "build.i18n": "node scripts/node/build-i18n.js",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "lint.fix": "ng lint --fix"
   },
   "peerDependencies": {
     "@apollo/client": "~3.5.10"
