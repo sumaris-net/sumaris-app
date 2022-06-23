@@ -226,6 +226,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
         requiredStrategy: false,
+        i18nColumnPrefix: 'TRIP.SAMPLE.TABLE.',
+        i18nPmfmPrefix: 'TRIP.SAMPLE.PMFM.',
         ...options,
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
@@ -235,8 +237,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.pmfmService = injector.get(PmfmService);
-    this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
-    this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.inlineEdition = !this.mobile;
     this.defaultSortBy = 'rankOrder';
     this.defaultSortDirection = 'asc';

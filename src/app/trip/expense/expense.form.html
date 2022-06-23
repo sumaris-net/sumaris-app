@@ -50,7 +50,7 @@
           <!-- fuel -->
           <ion-row [hidden]="!($fuelTypePmfm | async) && ($fuelPmfms|async|isEmptyArray)">
             <ion-col size="12" size-md="3" size-lg="3">
-              <app-pmfm-field  *ngIf="$fuelTypePmfm | async; let pmfm; index as index"
+              <app-pmfm-field  *ngIf="$fuelTypePmfm | async; let pmfm; index as i"
                                [pmfm]="pmfm"
                                [compact]="false"
                                [tabindex]="tabindex+3 + i*2"
@@ -64,7 +64,7 @@
                                 [hidden]="pmfm.hidden"
                                 [compact]="compact"
                                 [class.computed]="fuelTuple[pmfm.id]?.computed"
-                                [tabindex]="tabindex+4 + i*maxVisibleButtons"
+                                [tabindex]="tabindex+10 + i*maxVisibleButtons"
                                 [style]="pmfm|pmfmFieldStyle: maxVisibleButtons"
                                 [maxVisibleButtons]="maxVisibleButtons">
                 </app-pmfm-field>

@@ -42,11 +42,11 @@ export class ExtractionHelpModal extends AppHelpModal implements OnInit, Extract
     }
     if (this.type.docUrl) {
       this.loading = true;
-      let docUrl = this.type.docUrl;
-      if (docUrl && !docUrl.endsWith('.md')) {
-        docUrl += '.md';
+      let url = this.type.docUrl;
+      if (url && !url.endsWith('.md')) {
+        url += '.md';
       }
-      this.markdownUrl = docUrl;
+      this.markdownUrl = url;
     }
     else {
       this.markAsLoaded(); // Nothing to load
