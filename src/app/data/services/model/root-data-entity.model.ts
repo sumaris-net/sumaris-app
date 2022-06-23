@@ -14,7 +14,7 @@ export interface IRootDataEntity<T = any,
 }
 
 
-export abstract class RootDataEntity<
+export class RootDataEntity<
   T extends RootDataEntity<any, ID, AO>,
   ID = number,
   AO extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
@@ -23,6 +23,12 @@ export abstract class RootDataEntity<
   implements IWithRecorderPersonEntity<T, ID>,
     IWithProgramEntity<T, ID>,
     IRootDataEntity<T, ID, AO, FO> {
+
+  static fromObject(source: any): RootDataEntity<any> {
+    const target = new RootDataEntity();
+    target.fromObject(source);
+    return target;
+  }
 
   creationDate: Moment = null;
   validationDate: Moment = null;

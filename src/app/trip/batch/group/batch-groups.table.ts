@@ -6,6 +6,7 @@ import {
   changeCaseToUnderscore,
   ColumnItem,
   FormFieldDefinition,
+  FormFieldType,
   InMemoryEntitiesService,
   isEmptyArray,
   isNil,
@@ -40,14 +41,23 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
-declare type BaseColumnKeyType = 'totalWeight' | 'totalIndividualCount' | 'samplingRatio' | 'samplingWeight' | 'samplingIndividualCount';
+declare type BatchGroupColumnKey = 'totalWeight' | 'totalIndividualCount' | 'samplingRatio' | 'samplingWeight' | 'samplingIndividualCount';
 
-declare interface ColumnDefinition extends FormFieldDefinition {
-  key: BaseColumnKeyType;
-  computed: boolean;
+export const BatchGroupColumnFlags = Object.freeze({
+  IS_WEIGHT: 0x0001,
+  IS_INDIVIDUAL_COUNT: 0x0010,
+  IS_SAMPLING: 0x0100,
+  IS_SAMPLING_RATIO: 0x1000,
+});
+
+declare type BatchGroupColumnType = FormFieldType | 'samplingRatio' | 'pmfm';
+declare interface BatchGroupColumnDefinition extends FormFieldDefinition<BatchGroupColumnKey, BatchGroupColumnType> {
+
+  computed: boolean | ((batch: Batch, samplingRatioFormat: SamplingRatioFormat) => boolean);
   hidden: boolean;
   unitLabel?: string;
   rankOrder: number;
@@ -56,6 +66,7 @@ declare interface ColumnDefinition extends FormFieldDefinition {
   path?: string;
 
   // Describe column
+  flags: number;
   isWeight?: boolean;
   isIndividualCount?: boolean;
   isSampling?: boolean;
@@ -80,7 +91,7 @@ declare interface GroupColumnDefinition {
 })
 export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
-  static BASE_DYNAMIC_COLUMNS: Partial<ColumnDefinition>[] = [
+  static BASE_DYNAMIC_COLUMNS: Partial<BatchGroupColumnDefinition>[] = [
     // Column on total (weight, nb indiv)
     {
       type: 'double',
@@ -90,8 +101,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       maxValue: 10000,
       maximumNumberDecimals: 3,
       isWeight: true,
+      flags: BatchGroupColumnFlags.IS_WEIGHT,
       classList: 'total mat-column-weight',
-      path: 'weight.value'
+      path: 'weight.value',
+      computed: (batch) => batch.weight?.computed
     },
     {
       type: 'double',
@@ -101,21 +114,20 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       maxValue: 10000,
       maximumNumberDecimals: 2,
       isIndividualCount: true,
+      flags: BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT,
       classList: 'total',
       path: 'individualCount'
     },
 
     // Column on sampling (ratio, nb indiv, weight)
     {
-      type: 'integer',
+      type: 'samplingRatio',
       key: 'samplingRatio',
       label: 'TRIP.BATCH.TABLE.SAMPLING_RATIO',
-      unitLabel: '%',
-      minValue: 0,
-      maxValue: 100,
-      maximumNumberDecimals: 2,
+      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_SAMPLING_RATIO,
       isSampling: true,
-      path: 'children.0.samplingRatio'
+      path: 'children.0.samplingRatio',
+      computed: (batch, samplingRatioFormat) => BatchUtils.isSamplingRatioComputed(batch.children[0]?.samplingRatioText, samplingRatioFormat)
     },
     {
       type: 'double',
@@ -126,16 +138,19 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       maximumNumberDecimals: 3,
       isWeight: true,
       isSampling: true,
-      path: 'children.0.weight.value'
+      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_WEIGHT,
+      path: 'children.0.weight.value',
+      computed: (batch) => batch.children[0]?.weight?.computed
     },
     {
       type: 'string',
       key: 'samplingIndividualCount',
       label: 'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT',
-      computed: true,
       isIndividualCount: true,
       isSampling: true,
-      path: 'children.0.individualCount'
+      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT,
+      path: 'children.0.individualCount',
+      computed: true,
     }
   ];
 
@@ -146,7 +161,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   weightMethodForm: FormGroup;
   estimatedWeightPmfm: IPmfm;
-  dynamicColumns: ColumnDefinition[];
+  dynamicColumns: BatchGroupColumnDefinition[];
   modalOptions: Partial<IBatchGroupModalOptions>;
 
   showToolbar = true; // False only if no group columns AND mobile
@@ -232,7 +247,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   @Input() showError = true;
 
   get additionalPmfms(): IPmfm[] {
-    return this._initialPmfms.filter(pmfm => (!this.qvPmfm || pmfm.id !== this.qvPmfm.id) && !PmfmUtils.isWeight(pmfm));
+    return this._initialPmfms && this._initialPmfms
+        .filter(pmfm => (!this.qvPmfm || pmfm.id !== this.qvPmfm.id) && !PmfmUtils.isWeight(pmfm)) || [];
   }
 
   @Input() allowSubBatches = true;
@@ -250,14 +266,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     protected pmfmNamePipe: PmfmNamePipe
   ) {
     super(injector,
-      // Force no validator (readonly mode, if mobile)
-      settings.mobile ? null : batchGroupValidator,
+      BatchGroup, BatchFilter,
       new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, BatchFilter, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
         equals: Batch.equals
       }),
-      BatchGroup,
+      // Force no validator (readonly mode, if mobile)
+      settings.mobile ? null : batchGroupValidator,
       {
         // Need to set additional validator here
         // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
@@ -465,28 +481,23 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     }
   }
 
-  isComputed(col: ColumnDefinition, row: TableElement<BatchGroup>): boolean {
+  isComputed(col: BatchGroupColumnDefinition, row: TableElement<BatchGroup>): boolean {
+
+    if (typeof col.computed !== 'function') return col.computed === true;
+
     const batch = col.qvIndex >= 0
       // With qv pmfm
       ? row.currentData.children[col.qvIndex]
       // With no qv pmfm
       : row.currentData;
 
-    const computed = col.computed
-      // total weight is computed
-      || (col.isWeight && !col.isSampling && batch.weight?.computed)
-      // sampling weight is computed
-      || (col.isWeight && col.isSampling && batch.children[0]?.weight?.computed)
-      // sampling ratio is computed
-      || (col.key.endsWith('samplingRatio') && (batch.children[0]?.samplingRatioText || '').indexOf('/') !== -1)
-    ;
-    //DEBUG
-    // console.debug('[batch-group-table] col computed', col.path, computed);
-    return computed;
+    return col.computed(batch, this.samplingRatioFormat);
   }
 
-  isMissingValue(col: ColumnDefinition, row: TableElement<BatchGroup>): boolean {
-    if (!col.isWeight || !col.isSampling) return false;
+  isMissingValue(col: BatchGroupColumnDefinition, row: TableElement<BatchGroup>): boolean {
+    if (!(col.flags & BatchGroupColumnFlags.IS_WEIGHT)
+      || !(col.flags & BatchGroupColumnFlags.IS_SAMPLING)) return false;
+    //if (!col.isWeight || !col.isSampling) return false;
     const samplingBatch = (col.qvIndex >= 0
       // With qv pmfm
       ? row.currentData.children[col.qvIndex]
@@ -508,7 +519,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
    * @param index
    * @param column
    */
-  trackColumnDef(index: number, column: ColumnDefinition) {
+  trackColumnFn(index: number, column: BatchGroupColumnDefinition): any {
     return column.rankOrder;
   }
 
@@ -575,7 +586,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
       // Transform sampling ratio
       if (this.inlineEdition && isNotNil(samplingChild.samplingRatio)) {
-        samplingChild.samplingRatio = +samplingChild.samplingRatio * 100;
+        samplingChild.samplingRatioComputed = BatchUtils.isSamplingRatioComputed(samplingChild.samplingRatioText, this.samplingRatioFormat);
       }
     }
 
@@ -642,7 +653,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
       // Convert sampling ratio
       if (this.inlineEdition && isNotNil(samplingBatch.samplingRatio)) {
-        samplingBatch.samplingRatio = +samplingBatch.samplingRatio / 100;
+        const detectedFormat = BatchUtils.getSamplingRatioFormat(samplingBatch.samplingRatioText, this.samplingRatioFormat)
+        if (detectedFormat !== this.samplingRatioFormat) {
+          // TODO adapt text if format change ?
+          console.warn('TODO: adapt samplingRatioText to new format=' + this.samplingRatioFormat);
+        }
       }
 
       batch.children = [samplingBatch];
@@ -702,7 +717,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return [];
   }
 
-  protected computeDynamicColumns(qvPmfm: IPmfm, opts = { forceCompute: false }): ColumnDefinition[] {
+  protected computeDynamicColumns(qvPmfm: IPmfm, opts = { forceCompute: false }): BatchGroupColumnDefinition[] {
     if (!opts.forceCompute && this.dynamicColumns) return this.dynamicColumns; // Already init
 
     if (this.qvPmfm && this.debug) console.debug('[batch-group-table] Using a qualitative PMFM, to group columns: ' + qvPmfm.label);
@@ -731,7 +746,13 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     this.estimatedWeightPmfm = this.weightPmfmsByMethod && this.weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER] || this.defaultWeightPmfm;
 
-    if (qvPmfm) {
+    // No QV pmfm (no grouped columns)
+    if (!qvPmfm) {
+      this.groupColumns = [];
+      this.dynamicColumns = this.computeDynamicColumnsByQv();
+      this.showToolbar = !this.mobile;
+    }
+    else {
       const groupColumns = [];
       this.dynamicColumns = qvPmfm.qualitativeValues.flatMap((qv, qvIndex) => {
         const qvColumns = this.computeDynamicColumnsByQv(qv, qvIndex);
@@ -752,28 +773,30 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
       this.groupColumns = groupColumns;
       this.showToolbar = true;
-    } else {
-      this.groupColumns = [];
-      this.dynamicColumns = this.computeDynamicColumnsByQv();
-      this.showToolbar = !this.mobile;
     }
   }
 
-  protected computeDynamicColumnsByQv(qvGroup?: ReferentialRef, qvIndex?: number): ColumnDefinition[] {
+  protected computeDynamicColumnsByQv(qvGroup?: ReferentialRef, qvIndex?: number): BatchGroupColumnDefinition[] {
     qvIndex = isNotNil(qvIndex) ? qvIndex : -1;
-    const offset = qvIndex * (BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length + this._initialPmfms.filter(pmfm => !pmfm.hidden && !this.mobile).length);
-    const hideWeightColumns = !this.showWeightColumns;
+    const offset = qvIndex * (BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length + (this._initialPmfms || []).filter(pmfm => !pmfm.hidden && !this.mobile).length);
+    const hideWeightColumns = !this._showWeightColumns;
     const hideIndividualCountColumns = !this.showIndividualCountColumns;
     const hideSamplingColumns = !this._showSamplingBatchColumns;
+    const hideSamplingRatioColumns = hideSamplingColumns;
 
     const qvColumns = BatchGroupsTable.BASE_DYNAMIC_COLUMNS
       .map((def, index) => {
         const key = qvGroup ? `${qvGroup.label}_${def.key}` : def.key;
         const rankOrder = offset + index;
-        const hidden = (hideWeightColumns && def.isWeight)
-          || (hideIndividualCountColumns && (def.isIndividualCount || def.key === 'samplingRatio'))
-          || (hideSamplingColumns && def.isSampling);
-        return <ColumnDefinition>{
+        const hidden = (hideWeightColumns && ((def.flags & BatchGroupColumnFlags.IS_WEIGHT) !== 0))
+          || (hideIndividualCountColumns && ((def.flags & BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT) !== 0))
+          || (hideSamplingColumns && ((def.flags & BatchGroupColumnFlags.IS_SAMPLING) !== 0))
+          || (hideSamplingRatioColumns && ((def.flags & BatchGroupColumnFlags.IS_SAMPLING_RATIO) !== 0))
+        ;
+        // const hidden = (hideWeightColumns && def.isWeight)
+        //   || (hideIndividualCountColumns && (def.isIndividualCount || def.key === 'samplingRatio'))
+        //   || (hideSamplingColumns && def.isSampling);
+        return <BatchGroupColumnDefinition>{
           ...(def.isWeight && this.defaultWeightPmfm || {}),
           ...def,
           key,
@@ -784,13 +807,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         };
       });
 
+    // Add Pmfm columns
     const pmfmColumns = BatchGroupUtils.computeChildrenPmfmsByQvPmfm((qvGroup?.id || -1), this.additionalPmfms)
       .map((pmfm, index) => {
         const key = qvGroup ? `${qvGroup.label}_${pmfm.id}` : pmfm.id;
         const rankOrder = offset + qvColumns.length + index;
         const hidden = this.mobile || pmfm.hidden;
-        return <ColumnDefinition>{
-          type: pmfm.type,
+        return <BatchGroupColumnDefinition>{
+          type: 'pmfm',
           label: this.pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nColumnSuffix}),
           key,
           qvIndex,
@@ -936,6 +960,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         data: this.availableSubBatches,
         onNewParentClick,
         i18nSuffix: this.i18nColumnSuffix,
+        mobile: this.mobile,
         // Override using input options
         maxVisibleButtons: this.modalOptions?.maxVisibleButtons
       },
@@ -977,7 +1002,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     const modal = await this.modalCtrl.create({
       component: BatchGroupModal,
-      backdropDismiss: false,
       componentProps: <IBatchGroupModalOptions>{
         acquisitionLevel: this.acquisitionLevel,
         pmfms: this._initialPmfms,
@@ -992,13 +1016,15 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showSamplingBatch: this.showSamplingBatchColumns,
         allowSubBatches: this.allowSubBatches,
         defaultHasSubBatches: this.defaultHasSubBatches,
-        samplingRatioType: this.samplingRatioType,
+        samplingRatioFormat: this.samplingRatioFormat,
+        mobile: this.mobile,
         openSubBatchesModal: (batchGroup) => this.openSubBatchesModalFromParentModal(batchGroup),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         // Override using given options
         ...this.modalOptions
       },
       cssClass: 'modal-large',
+      backdropDismiss: false,
       keyboardClose: true
     });
 
@@ -1007,7 +1033,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug('[batch-group-table] Batch group modal result: ', JSON.stringify(data));
+    if (data && this.debug) console.debug('[batch-group-table] Batch group modal result: ', data);
     this.markAsLoaded();
 
     return data instanceof BatchGroup ? data : undefined;
@@ -1234,7 +1260,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     const requiredSampleWeight = (form && form.value?.observedIndividualCount || 0) > 0;
     const subscription = this.batchGroupValidator.enableSamplingRatioAndWeight(form, {
       qvPmfm: this.qvPmfm,
-      samplingRatioType: this.samplingRatioType,
+      samplingRatioFormat: this.samplingRatioFormat,
       requiredSampleWeight,
       weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
       markForCheck: () => this.markForCheck()

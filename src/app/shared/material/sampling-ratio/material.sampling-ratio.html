@@ -1,0 +1,114 @@
+<!-- readonly -->
+<mat-form-field *ngIf="readonly; else writable"
+                [floatLabel]="floatLabel"
+                [class]="classList"
+                class="mat-form-field-disabled">
+
+  <div matPrefix>
+    <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+  </div>
+
+  <input matInput hidden type="text"
+         readonly
+         [placeholder]="placeholder|translate"
+         [formControl]="formControl">
+  <ion-text>{{displayValue(formControl.value)}}</ion-text>
+
+  <div matSuffix>
+    <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+  </div>
+</mat-form-field>
+
+<!-- writable -->
+<ng-template #writable>
+
+  <ng-container [ngSwitch]="format">
+
+    <!-- Percent -->
+    <mat-form-field *ngSwitchCase="'%'"
+                    [floatLabel]="floatLabel"
+                    [class]="classList">
+
+      <mat-label>{{placeholder|translate}}</mat-label>
+
+      <div matPrefix>
+        <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+      </div>
+
+      <input matInput
+             autocomplete="off"
+             type="number"
+             step="1"
+             min="0" [max]="100"
+             [formControl]="_inputFormControl"
+             [required]="required"
+             [pattern]="_pattern"
+             (click)="selectInputContent($event)"
+             [appAutofocus]="autofocus"
+             [tabindex]="tabindex">
+
+      <div matSuffix>
+        <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+      </div>
+
+      <!-- errors -->
+      <mat-error *ngIf="(formControl.errors || _inputFormControl.errors)|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+        <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+        <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: formControl.errors.min }}</span>
+        <span *ngSwitchCase="'max'">{{'ERROR.FIELD_MAX' | translate: formControl.errors.max }}</span>
+        <span *ngSwitchCase="'pattern'">
+          {{ (_inputFormControl.value > 100 ? 'ERROR.FIELD_MAX' : 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT') | translate:{maxDecimals: _inputMaxDecimals, max: 100} }}
+        </span>
+        <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Sampling coefficient (1/w) -->
+    <mat-form-field *ngSwitchCase="'1/w'"
+                    [floatLabel]="floatLabel"
+                    [class]="classList" class="with-prefix">
+      <ion-text class="prefix-label">1/</ion-text>
+
+      <mat-label>{{placeholder|translate}}</mat-label>
+
+      <div matPrefix>
+        <ng-container *ngTemplateOutlet="matPrefixTemplate"></ng-container>
+      </div>
+
+      <input matInput
+             autocomplete="off"
+             type="number"
+             [formControl]="_inputFormControl"
+             [pattern]="_pattern"
+             (click)="selectInputContent($event)"
+             [required]="required"
+             [appAutofocus]="autofocus"
+             [tabindex]="tabindex">
+
+      <div matSuffix>
+        <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
+      </div>
+
+      <!-- errors -->
+      <mat-error *ngIf="(formControl.errors || _inputFormControl.errors)|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+        <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+        <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: formControl.errors.min }}</span>
+        <span *ngSwitchCase="'max'">{{'ERROR.FIELD_MAX' | translate: formControl.errors.max }}</span>
+        <!--<span *ngSwitchCase="'pattern'">{{ 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT'| translate:{maxDecimals: maxDecimals} }}</span>-->
+        <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
+      </mat-error>
+
+    </mat-form-field>
+  </ng-container>
+
+
+</ng-template>
+
+<ng-template #matPrefixTemplate>
+  <ng-content select="[matPrefix]"></ng-content>
+</ng-template>
+
+<ng-template #matSuffixTemplate>
+  <ng-content select="[matSuffix]"></ng-content>
+</ng-template>
+

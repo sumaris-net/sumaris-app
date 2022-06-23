@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppTable,
   AppTableDataSourceOptions,
@@ -7,9 +7,10 @@ import {
   Entity,
   EntityFilter,
   EntityUtils,
-  ENVIRONMENT,
+  Hotkeys,
   IEntitiesService,
   isNil,
+  isNotEmptyArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from '@sumaris-net/ngx-components';
@@ -19,6 +20,7 @@ import { FormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
+import { filter, mergeMap } from 'rxjs/operators';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -38,8 +40,9 @@ export class BaseTableOptions<
 export abstract class AppBaseTable<E extends Entity<E, ID>,
   F extends EntityFilter<any, E, any>,
   V extends BaseValidatorService<E, ID> = any,
-  ID = number>
-  extends AppTable<E, F, ID> implements OnInit {
+  ID = number,
+  O extends BaseTableOptions<E, ID> = BaseTableOptions<E, ID>>
+  extends AppTable<E, F, ID> implements OnInit, AfterViewInit {
 
 
   @Input() canGoBack = false;
@@ -53,6 +56,15 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   @Input() stickyEnd = false;
   @Input() compact = false;
 
+  @Input() set canEdit(value: boolean) {
+    this._canEdit = value;
+    this.keepEditedRowOnSave = value;
+  }
+
+  get canEdit(): boolean {
+    return this._canEdit && !this.readOnly;
+  }
+
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
@@ -64,7 +76,10 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return this.filterCriteriaCount === 0;
   }
 
+  protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
+
+  private _canEdit: boolean;
 
   constructor(
     protected injector: Injector,
@@ -73,7 +88,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     columnNames: string[],
     protected entityService: IEntitiesService<E, F>,
     protected validatorService?: V,
-    options?: BaseTableOptions<E, ID>
+    protected options?: O
   ) {
     super(
       injector,
@@ -83,27 +98,55 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
       new EntitiesTableDataSource<E, F, ID>(dataType, entityService, validatorService, {
           prependNewElements: false,
           keepOriginalDataAfterConfirm: true,
-          suppressErrors: injector.get(ENVIRONMENT).production,
+          suppressErrors: environment.production,
           onRowCreated: (row) => this.onDefaultRowCreated(row),
+          ...options,
           dataServiceOptions: {
             saveOnlyDirtyRows: true,
-          },
-          ...options
+            ...options?.dataServiceOptions
+          }
         }),
         null
     );
 
+    this.hotkeys = injector.get(Hotkeys);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
     this.logPrefix = '[base-table]';
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
-    this.debug = !environment.production;
+    this.debug = options?.debug && !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
 
     this.restoreCompactMode();
+  }
+
+  ngAfterViewInit() {
+    super.ngAfterViewInit();
+
+    // Add shortcut
+    if (!this.mobile && this.tableContainerRef) {
+      this.registerSubscription(
+        this.hotkeys
+          .addShortcut({ keys: 'control.a', element: this.tableContainerRef.nativeElement })
+          .pipe(
+            filter(() => this.canEdit),
+            mergeMap(() => this.dataSource?.getRows()),
+            filter(isNotEmptyArray)
+          )
+          .subscribe(rows => {
+            this.selection.select(...rows);
+            this.markForCheck();
+          })
+      );
+      this.registerSubscription(
+        this.hotkeys.addShortcut({keys: 'control.shift.+', element: this.tableContainerRef.nativeElement, description: 'COMMON.BTN_ADD'})
+          .pipe(filter(e => !this.disabled && this.canEdit))
+          .subscribe((event) => this.addRow(event))
+      );
+    }
   }
 
   scrollToBottom() {
@@ -127,7 +170,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     }
 
     // Update the form content
-    if (!opts || opts.emitEvent !== false) {
+    if (this.filterForm && (!opts || opts.emitEvent !== false)) {
       this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
     }
 

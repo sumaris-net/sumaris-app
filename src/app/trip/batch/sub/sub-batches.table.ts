@@ -15,7 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  ReferentialUtils,
+  ReferentialUtils, removeDuplicatesFromArray,
   selectInputContent,
   startsWithUpperCase,
   toBoolean,
@@ -42,6 +42,8 @@ import { Popovers } from '@app/shared/popover/popover.utils';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ribbon } from 'ionicons/icons';
 import { debounceTime } from 'rxjs/operators';
+import { BatchFilter } from '@app/trip/batch/common/batches.table';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -97,8 +99,8 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   private _availableParents: BatchGroup[] = [];
   private _showTaxonNameInParentAutocomplete = true;
   private _rowValidatorSubscription: Subscription;
+  protected _initialPmfms: IPmfm[];
   protected _availableSortedParents: BatchGroup[] = [];
-  protected _onPrepareRowForm = new Subject<FormGroup>();
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
@@ -117,10 +119,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   @Input() weightDisplayDecimals = 2;
 
   @Input() set qvPmfm(value: IPmfm) {
-    this._qvPmfm = value;
-    // If already loaded, re apply pmfms, to be able to execute mapPmfms
-    if (value) {
-      this.refreshPmfms();
+    if (this._qvPmfm !== value) {
+      this._qvPmfm = value;
+      // If already loaded, re apply pmfms, to be able to execute mapPmfms
+      if (!this.loading) this.refreshPmfms();
     }
   }
 
@@ -216,7 +218,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
   ) {
     super(injector,
-      SubBatch,
+      SubBatch, SubBatchFilter,
       new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, SubBatchFilter, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
@@ -226,19 +228,16 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       validatorService,
       {
         ...options,
-        // Need to set additional validator here
-        // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
-        //       e.g. When we add some validator (see operation page), so new row should always be INVALID with those additional validators
-        onRowCreated: (row) => this._onPrepareRowForm.next(row.validator),
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
+        i18nColumnPrefix: 'TRIP.BATCH.TABLE.',
+        i18nPmfmPrefix: 'TRIP.BATCH.PMFM.',
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form)
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
     this.popoverController = injector.get(PopoverController);
     this.cd = injector.get(ChangeDetectorRef);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<SubBatch, SubBatchFilter>);
-    this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
-    this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
     this.tabindex = 1;
     this.inlineEdition = !this.mobile;
     this.defaultSortBy = 'rankOrder';
@@ -272,12 +271,6 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     });
 
     if (this.inlineEdition) { // can be override by subclasses
-
-      this.registerSubscription(
-        this._onPrepareRowForm
-          .pipe(debounceTime(450))
-          .subscribe(form => this.onPrepareRowForm(form))
-      );
 
       // Create listener on column 'DISCARD_OR_LANDING' value changes
       this.registerSubscription(
@@ -559,6 +552,9 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected mapPmfms(pmfms: IPmfm[]) {
+    if (!pmfms || !pmfms.length) return pmfms; // Skip (no pmfms)
+
+    this._initialPmfms = pmfms; // Copy original pmfms list
 
     if (this._qvPmfm) {
       // Make sure QV Pmfm is required (need to link with parent batch)
@@ -568,24 +564,21 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
         const qvPmfm = this._qvPmfm.clone();
         qvPmfm.hidden = false;
         qvPmfm.required = true;
-
         pmfms[index] = qvPmfm;
       }
     }
 
-
     // Filter on parent taxon groups
-    const parentTaxonGroupIds = (this._availableParents || []).map(parent => parent.taxonGroup && parent.taxonGroup.id)
-      .filter(isNotNil);
-    if (isNotEmptyArray(parentTaxonGroupIds)) {
+    const taxonGroupIds = (this._availableParents || []).map(parent => parent.taxonGroup?.id).filter(isNotNil);
+    if (isNotEmptyArray(taxonGroupIds)) {
       pmfms = pmfms.map(pmfm => {
-        // Hidden PMFM that are not for existing taxon groups
-        if (PmfmUtils.isDenormalizedPmfm(pmfm)
-          && isNotEmptyArray(pmfm.taxonGroupIds)
-          && pmfm.taxonGroupIds.findIndex(id => parentTaxonGroupIds.includes(id)) === -1) {
-          pmfm = pmfm.clone(); // Keep original
-          pmfm.hidden = true;
-          pmfm.required = false;
+        if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
+          // Hidden PMFM that are not for existing taxon groups
+          if (isNotEmptyArray(pmfm.taxonGroupIds) && !pmfm.taxonGroupIds.some(id => taxonGroupIds.includes(id))) {
+            pmfm = pmfm.clone(); // Keep original
+            pmfm.hidden = true;
+            pmfm.required = false;
+          }
         }
         return pmfm;
       });
@@ -607,6 +600,9 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
           this.weightPmfm = PmfmUtils.setWeightUnitConversion(this.weightPmfm, this.weightDisplayedUnit);
         }*/
         pmfms[index] = this.weightPmfm;
+      }
+      else {
+        this.enableWeightConversion = false;
       }
     }
     return pmfms;
@@ -848,10 +844,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   }
 
   protected refreshPmfms() {
-    const pmfms = this.pmfms;
+    const pmfms = this._initialPmfms;
     if (!pmfms) return; // Not loaded
 
-    this.measurementsDataService.pmfms = pmfms;
+    this.measurementsDataService.pmfms = this._initialPmfms;
 
     this.updateColumns();
   }
@@ -864,15 +860,16 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
 
   private async onPrepareRowForm(form: FormGroup) {
     if (!form) return; // Skip
-    console.debug('[batch-group-table] Initializing row validator');
+    console.debug('[sub-batches-table] Initializing row validator');
 
     this.validatorService.updateFormGroup(form, {
-      withWeight: this.enableWeightConversion
+      withWeight: this.enableWeightConversion,
+      pmfms: this.pmfms
     });
 
-    // Add computation and validation
-    {
-      this._rowValidatorSubscription?.unsubscribe();
+    // Add length -> weight conversion
+    this._rowValidatorSubscription?.unsubscribe();
+    if (this.enableWeightConversion) {
       const subscription = await this.validatorService.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
@@ -882,7 +879,10 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
       if (subscription) {
         this._rowValidatorSubscription = subscription;
         this.registerSubscription(this._rowValidatorSubscription);
-        this._rowValidatorSubscription.add(() => this.unregisterSubscription(subscription));
+        this._rowValidatorSubscription.add(() => {
+          this.unregisterSubscription(subscription);
+          this._rowValidatorSubscription = null;
+        });
       }
     }
   }

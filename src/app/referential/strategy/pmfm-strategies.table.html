@@ -87,23 +87,26 @@
       <ion-label>{{fieldDefinitionsMap.defaultValue.label | translate}}</ion-label>
     </th>
     <td mat-cell *matCellDef="let row" (click)="focusColumn='defaultValue'">
-      <ng-container *ngIf="row.validator.controls.pmfm.value; let pmfm">
+      <ng-container *ngIf="row.editing && row.validator|formGetValue:'pmfm' as pmfm; else readonlyDefaultValue">
 
         <app-form-field floatLabel="never" *ngIf="pmfm.isQualitative; else simplePmfmType"
-                        [formControl]="row.validator.controls.defaultValue"
+                        [formControl]="row.validator|formGetControl:'defaultValue'"
                         [definition]="fieldDefinitionsMap['defaultQualitativeValue']"
                         [autofocus]="row.editing && focusColumn === 'defaultValue'"
                         [compact]="true">
         </app-form-field>
         <ng-template #simplePmfmType>
           <app-pmfm-field floatLabel="never" *ngIf="pmfm?.id"
-                          [formControl]="row.validator.controls.defaultValue"
                           [pmfm]="pmfm"
+                          [control]="row.validator|formGetControl:'defaultValue'"
                           [autofocus]="row.editing && focusColumn === 'defaultValue'"
                           [compact]="true">
           </app-pmfm-field>
         </ng-template>
       </ng-container>
+      <ng-template #readonlyDefaultValue>
+        <ion-text [innerHTML]="row.currentData.defaultValue|pmfmValue:{pmfm: row.currentData.pmfm, html: true}"></ion-text>
+      </ng-template>
     </td>
   </ng-container>
 

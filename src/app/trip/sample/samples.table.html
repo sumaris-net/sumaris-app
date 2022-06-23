@@ -41,6 +41,7 @@
 
   <span class="toolbar-spacer"></span>
 
+  <ng-content select="ion-buttons[slot=end]"></ng-content>
 </mat-toolbar>
 
 
@@ -73,7 +74,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container"
+<div #tableContainer class="table-container"
      [class.mobile]="mobile"
      [class.has-toolbar]="showToolbar"
      [class.has-group-header]="showGroupHeader"
@@ -235,7 +236,7 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of pmfms; index as index;" [matColumnDef]="(pmfm.id || index)|toString">
+    <ng-container *ngFor="let pmfm of pmfms; index as index; trackBy: trackPmfmFn" [matColumnDef]="(pmfm.id || index)|toString">
       <th mat-header-cell *matHeaderCellDef
           mat-sort-header
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
@@ -253,12 +254,14 @@
           (click)="focusColumn=(pmfm.id || index).toString()">
 
         <app-pmfm-field *ngIf="row.editing; else readonlyPmfmField"
+                        floatLabel="never"
                         [pmfm]="pmfm"
                         [i18nPrefix]="i18nPmfmPrefix"
                         [i18nSuffix]="i18nColumnSuffix"
-                        [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
+                        [control]="row.validator|formGetControl: ['measurementValues', pmfm.id]"
                         [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
-                        [compact]="compactFields" floatLabel="never"></app-pmfm-field>
+                        [compact]="compactFields">
+        </app-pmfm-field>
 
         <!-- readonly value-->
         <ng-template #readonlyPmfmField>
@@ -300,9 +303,9 @@
                         (backward)="confirmAndBackward($event.event, $event.row)"
                         (forward)="confirmAndForward($event.event, $event.row)"
                         [canCancel]="false">
-      <!-- display columns -->
+      <!-- Options menu -->
       <button mat-icon-button matHeader
-              [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+              [title]="'COMMON.BTN_OPTIONS'|translate"
               [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
@@ -492,9 +495,9 @@
       <!-- Actions buttons column -->
       <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
         <th mat-header-cell *matHeaderCellDef>
-          <!-- display columns -->
+          <!-- Options menu -->
           <button mat-icon-button matHeader
-                  [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+                  [title]="'COMMON.BTN_OPTIONS'|translate"
                   [matMenuTriggerFor]="optionsMenu">
             <mat-icon>more_vert</mat-icon>
           </button>

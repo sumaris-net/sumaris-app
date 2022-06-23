@@ -103,7 +103,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="paginator && true">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar" [class.has-paginator]="paginator && true">
 
   <!-- search -->
   <mat-expansion-panel #filterExpansionPanel

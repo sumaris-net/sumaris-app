@@ -69,7 +69,7 @@ export abstract class AppRootDataEditor<
   }
 
   set strategy(value: Strategy) {
-    if (isNotNil(value) && this.$strategy.getValue() !== value) {
+    if (this.$strategy.getValue() !== value) {
       this.$strategy.next(value);
     }
   }
@@ -211,6 +211,7 @@ export abstract class AppRootDataEditor<
     if (!this.isNewData) this.programControl.disable(opts);
 
     this.markForCheck();
+    return true;
   }
 
   protected async setProgram(program: Program) {

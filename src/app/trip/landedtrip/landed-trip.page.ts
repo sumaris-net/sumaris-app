@@ -383,7 +383,9 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     const tripMeasurements = data.measurements || [];
     this.measurementsForm.value = tripMeasurements;
     // Expenses
+    this.expenseForm.markAsReady();
     this.expenseForm.value = tripMeasurements;
+    await this.expenseForm.ready();
 
     // Operations table
     const operationGroups = data.operationGroups || [];
@@ -421,7 +423,9 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       fillRankOrder(allPackets);
 
     // Send Expected Sale to the expected sale form
+    this.expectedSaleForm.markAsReady();
     this.expectedSaleForm.value = data.expectedSale;
+    await this.expectedSaleForm.ready();
 
     // Dispatch product and packet sales
     if (this.productSalePmfms && isNotEmptyArray(data.expectedSale?.products)) {
@@ -710,6 +714,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
       this.tripForm.invalid || this.measurementsForm.invalid,
       this.operationGroupTable.invalid,
       this.productsTable.invalid || this.packetsTable.invalid,
+      this.expectedSaleForm.invalid,
       this.expenseForm.invalid
     ];
 

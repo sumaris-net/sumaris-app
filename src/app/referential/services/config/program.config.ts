@@ -2,6 +2,7 @@ import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromA
 import { LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 
@@ -71,6 +72,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN: <FormFieldDefinition>{
+    key: 'sumaris.trip.gear.allowChildren',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
   // Trip map
   TRIP_MAP_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.map.enable',
@@ -137,18 +144,18 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
-  TRIP_BATCH_SAMPLING_RATIO_TYPE: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.batch.samplingRatio.type',
-    label: 'PROGRAM.OPTIONS.TRIP_BATCH_SAMPLING_RATIO_TYPE',
+  TRIP_BATCH_SAMPLING_RATIO_FORMAT: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.samplingRatio.format',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_SAMPLING_RATIO_FORMAT',
     defaultValue: '%',
     type: 'enum',
     values: [
       {
-        key: '%',
+        key: <SamplingRatioFormat>'%',
         value: 'TRIP.BATCH.EDIT.SAMPLING_RATIO_PCT'
       },
       {
-        key: '1/w',
+        key: <SamplingRatioFormat>'1/w',
         value: 'TRIP.BATCH.EDIT.SAMPLING_COEFFICIENT'
       }
     ]
@@ -636,6 +643,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'ACCIDENTAL_CATCH.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_ACCIDENTAL_CATCH'
+      },
+      {
+        key: 'AUCTION_CONTROL.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_AUCTION_CONTROL'
       }
     ],
     defaultValue: 'legacy'

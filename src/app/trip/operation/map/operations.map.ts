@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnInit } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import * as L from 'leaflet';
-import { CRS, LayerGroup, MapOptions, PathOptions } from 'leaflet';
+import { LayerGroup, MapOptions, PathOptions } from 'leaflet';
 import {
   AppTabEditor,
   DateDiffDurationPipe,
@@ -9,9 +9,10 @@ import {
   EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
+  isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
+  isNotNilOrBlank, joinProperties, joinPropertiesPath,
   LatLongPattern,
   LocalSettingsService,
   PlatformService,
@@ -27,13 +28,15 @@ import { ProgramProperties } from '../../../referential/services/config/program.
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet/src/leaflet/layers/control/leaflet-control-layers-config.model';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
 import { Program } from '../../../referential/services/model/program.model';
-import { Operation, VesselPositionUtils } from '../../services/model/trip.model';
+import { Operation, Trip, VesselPositionUtils } from '../../services/model/trip.model';
 import { environment } from '@environments/environment';
 import { LocationUtils } from '@app/referential/location/location.utils';
 import { Geometries } from '@app/shared/geometries.utils';
+import { Moment } from 'moment';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
 export interface OperationsMapModalOptions {
-  data: Operation[];
+  data: (Trip|Operation[])[];
   latLongPattern: LatLongPattern;
   programLabel: string;
 }
@@ -80,6 +83,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
   $onOutFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature>(null);
   modalReady = false; // Need to be false. Will be set to true after a delay
+  vesselSnapshotAttributes: string[];
 
   get isNewData(): boolean {
     return false;
@@ -89,7 +93,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
     return this.constructor.name;
   }
 
-  @Input() data: Operation[];
+  @Input() data: (Trip|Operation[])[];
   @Input() latLongPattern: LatLongPattern;
 
   @Input()
@@ -113,6 +117,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
     protected dateFormatPipe: DateFormatPipe,
     protected dateDiffDurationPipe: DateDiffDurationPipe,
     protected settings: LocalSettingsService,
+    protected vesselSnapshotService: VesselSnapshotService,
     protected zone: NgZone,
     protected cd: ChangeDetectorRef,
     protected programRefService: ProgramRefService
@@ -129,7 +134,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programRefService.watchByLabel(programLabel)),
+          switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {fetchPolicy: 'cache-first'})),
           tap(program => this.$program.next(program))
         )
         .subscribe());
@@ -187,6 +192,9 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
       emitEvent: false // Refresh not need here, as not loading yet
     });
 
+    // Get vessel display mode
+    this.vesselSnapshotAttributes = (await this.vesselSnapshotService.getAutocompleteFieldOptions())?.attributes;
+
     // Load layers
     await this.loadLayers();
   }
@@ -195,7 +203,7 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
     // Should never call load() without leaflet map
     if (!this.map) return; // Skip
 
-    if (this.debug) console.debug('[operations-map] Creating layers...', this.data);
+    if (this.debug) console.debug('[operations-map] Creating layers...');
     this.markAsLoading();
     this.error = null;
 
@@ -203,57 +211,86 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
       // Clean existing layers, if any
       this.cleanMapLayers();
 
-      const operationLayer = L.geoJSON(null, {
-        onEachFeature: this.onEachFeature.bind(this),
-        style: (feature) => this.getOperationLayerStyle(feature)
-      });
-      const layers = [operationLayer];
-      let tripCoordinates: Position[] = [];
+      const layers = [];
+      let bounds: L.LatLngBounds;
 
-      // Add operation to layer
-      (this.data || [])
-        .sort(EntityUtils.sortComparator('rankOrderOnPeriod', 'asc'))
-        .forEach((ope, index) => {
-          const feature = this.getOperationFeature(ope, index);
-          if (!feature) return; // Skip if empty
+      (this.data || []).forEach(tripContent => {
 
-          // Add feature to layer
-          operationLayer.addData(feature);
-
-          // Add to all position array
-          if (Geometries.isLineString(feature.geometry)) {
-            tripCoordinates = tripCoordinates.concat(feature.geometry.coordinates);
-          }
-        });
-
-      // Add trip feature to layer
-      if (tripCoordinates.length) {
-        const tripLayer = L.geoJSON(<Feature>{
-          type: 'Feature',
-          id: 'trip',
-          geometry: <LineString>{
-            type: 'LineString',
-            coordinates: tripCoordinates
-          }
-        }, {
-          style: this.getTripLayerStyle()
-        });
-        layers.push(tripLayer);
-
+        let tripCoordinates: Position[] = [];
+        const trip = !Array.isArray(tripContent) ? tripContent : undefined;
         // Add trip layer to control
-        const tripLayerName = this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER');
-        this.layersControl.overlays[tripLayerName] = tripLayer;
+        const tripTitle = trip
+          && this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER_WITH_DETAILS', {
+            vessel: joinPropertiesPath(trip.vesselSnapshot, this.vesselSnapshotAttributes),
+            departureDateTime: this.dateFormatPipe.transform(trip.departureDateTime, { time: false })
+          });
 
-      }
+        const operations = Array.isArray(tripContent) ? tripContent : trip.operations;
 
-      // Add operations layer to control
-      const operationLayerName = this.translate.instant('TRIP.OPERATION.MAP.OPERATIONS_LAYER');
-      this.layersControl.overlays[operationLayerName] = operationLayer;
+        // Create a layer for all trip's operations
+        const operationLayer = L.geoJSON(null, {
+          onEachFeature: this.onEachFeature.bind(this),
+          style: (feature) => this.getOperationLayerStyle(feature)
+        });
+        layers.push(operationLayer);
 
-      // Center to start position
-      const operationBounds = operationLayer.getBounds();
-      if (operationBounds.isValid()) {
-        this.map.fitBounds(operationBounds, {maxZoom: 10});
+        // Add each operation to layer
+        (operations || [])
+          .sort(EntityUtils.sortComparator('rankOrderOnPeriod', 'asc'))
+          .forEach((ope, index) => {
+            const feature = this.getOperationFeature(ope, index);
+            if (!feature) return; // Skip if empty
+
+            // Add trip to feature
+            feature.properties.source = ope;
+            if (tripTitle) feature.properties.trip = tripTitle;
+
+            // Add feature to layer
+            operationLayer.addData(feature);
+
+            // Add to all position array
+            if (Geometries.isLineString(feature.geometry)) {
+              tripCoordinates = tripCoordinates.concat(feature.geometry.coordinates);
+            }
+          });
+
+        // Add trip feature to layer
+        if (tripCoordinates.length) {
+          const tripLayer = L.geoJSON(<Feature>{
+            type: 'Feature',
+            id: 'trip',
+            geometry: <LineString>{
+              type: 'LineString',
+              coordinates: tripCoordinates
+            }
+          }, {
+            style: this.getTripLayerStyle()
+          });
+          layers.push(tripLayer);
+
+          // Add trip layer to control
+          const tripLayerName = tripTitle || this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER');
+          this.layersControl.overlays[tripLayerName] = tripLayer;
+        }
+
+        // Add operations layer to control
+        const operationLayerName = tripTitle
+        ? this.translate.instant('TRIP.OPERATION.MAP.OPERATIONS_LAYER_WITH_DETAILS', {
+            trip: tripTitle
+          })
+        : this.translate.instant('TRIP.OPERATION.MAP.OPERATIONS_LAYER');
+        this.layersControl.overlays[operationLayerName] = operationLayer;
+
+        // Update layers bounds
+        if (!bounds) {
+          bounds = operationLayer.getBounds();
+        } else {
+          bounds.extend(operationLayer.getBounds());
+        }
+      });
+
+      if (bounds.isValid()) {
+        this.map.fitBounds(bounds, {maxZoom: 10});
       }
 
       // Refresh layer
@@ -292,7 +329,13 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
   }
 
   protected getOperationFromFeature(feature: Feature): Operation|undefined {
-    return feature && (this.data || []).find(ope => ope.id === feature.id) || undefined;
+    if (isNil(feature?.id) || !this.data) return undefined;
+    return this.data
+      .map(tripContent => {
+        const operations = Array.isArray(tripContent) ? tripContent : tripContent.operations;
+        return (operations || []).find(ope => ope.id === feature.id);
+      })
+      .find(isNotNil) || undefined;
   }
 
   protected markForCheck() {

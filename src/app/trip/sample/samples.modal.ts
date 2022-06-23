@@ -10,17 +10,19 @@ import { SamplesTable } from './samples.table';
 import { Moment } from 'moment';
 import { IPmfm } from '../../referential/services/model/pmfm.model';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModalOptions<Sample[]>{
   canEdit: boolean;
 
   defaultSampleDate: Moment;
-  defaultTaxonGroup: ReferentialRef;
+  defaultTaxonGroup: TaxonGroupRef;
   showTaxonGroup: boolean;
   showTaxonName: boolean;
   showLabel: boolean;
   title: string;
   i18nSuffix: string;
+  mobile: boolean;
 
   onReady: (modal: M) => Promise<void> | void;
 }
@@ -32,11 +34,11 @@ export interface ISamplesModalOptions<M = SamplesModal> extends IDataEntityModal
 })
 export class SamplesModal implements OnInit, ISamplesModalOptions {
 
-  debug = false;
+  readonly debug = !environment.production;
   loading = false;
-  mobile: boolean;
   $title = new BehaviorSubject<string>(undefined);
 
+  @Input() mobile = this.settings.mobile;
   @Input() isNew = false;
   @Input() data: Sample[];
   @Input() disabled: boolean;
@@ -49,7 +51,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   @Input() canEdit: boolean;
 
   @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: ReferentialRef;
+  @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
   @Input() showLabel = false;
@@ -61,6 +63,10 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
 
   get dirty(): boolean {
     return this.table.dirty;
+  }
+
+  get enabled() {
+    return this.table.enabled;
   }
 
   get invalid(): boolean {
@@ -84,10 +90,6 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
-    this.mobile = settings.mobile;
-
-    // TODO: for DEV only
-    this.debug = !environment.production;
   }
 
   ngOnInit() {

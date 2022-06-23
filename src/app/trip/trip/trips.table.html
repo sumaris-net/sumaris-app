@@ -61,13 +61,21 @@
       </ion-button>
 
       <!-- download -->
-      <button mat-button
-              *ngIf="canUpload"
-              (click)="downloadSelectionAsFile()">
+      <button mat-icon-button
+              [title]="'COMMON.BTN_DOWNLOAD'|translate"
+              [matMenuTriggerFor]="downloadMenu">
         <mat-icon>download</mat-icon>
-        <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
       </button>
 
+      <!-- map -->
+      <button mat-icon-button
+              *ngIf="canOpenMap"
+              [title]="'EXTRACTION.BTN_OPEN_MAP'|translate"
+              (click)="openSelectionMap($event)">
+        <mat-icon>
+          <ion-icon name="earth"></ion-icon>
+        </mat-icon>
+      </button>
 
       <!-- delete -->
       <button mat-icon-button class="hidden-xs hidden-sm"
@@ -125,6 +133,29 @@
           (click)="toggleOfflineMode($event)">
     <mat-icon>signal_wifi_off</mat-icon>
     <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+  </button>
+
+</mat-menu>
+
+<!-- Download menu -->
+<mat-menu #downloadMenu="matMenu" xPosition="after">
+
+  <!-- Download as JSON -->
+  <button mat-menu-item
+          *ngIf="canDownload"
+          [disabled]="offline"
+          (click)="openDownloadPage($event)">
+    <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
+    <ion-label translate>TRIP.TABLE.BTN_DOWNLOAD_DOTS</ion-label>
+  </button>
+
+  <!-- Download as JSON -->
+  <button mat-menu-item
+          *ngIf="canDownload"
+          [disabled]="offline"
+          (click)="downloadSelectionAsJson($event)">
+    <mat-icon>download</mat-icon>
+    <ion-label translate>TRIP.TABLE.BTN_DOWNLOAD_JSON</ion-label>
   </button>
 
 </mat-menu>
@@ -349,7 +380,7 @@
   </nav>
 
   <!-- table -->
-  <div class="table-container"
+  <div #tableContainer class="table-container"
        [class.has-offline-nav]="hasOfflineMode">
     <table mat-table [dataSource]="dataSource"
                matSort

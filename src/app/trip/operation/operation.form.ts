@@ -3,7 +3,8 @@ import { OperationValidatorOptions, OperationValidatorService } from '../service
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
-  AccountService, Alerts,
+  AccountService,
+  Alerts,
   AppForm,
   DateFormatPipe,
   DateUtils,
@@ -28,11 +29,11 @@ import {
   removeDuplicatesFromArray,
   StatusIds,
   suggestFromArray,
-  toBoolean, toDateISOString,
+  toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { Operation, PhysicalGear, Trip } from '../services/model/trip.model';
+import { Operation, Trip } from '../services/model/trip.model';
 import { BehaviorSubject, combineLatest, merge, Observable, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
@@ -40,21 +41,21 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { OperationService } from '@app/trip/services/operation.service';
 import { AlertController, ModalController } from '@ionic/angular';
-import { SelectOperationModal, SelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
+import { SelectOperationModal, ISelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 import { LocationLevelIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { TripService } from '@app/trip/services/trip.service';
-import { PhysicalGearService } from '@app/trip/services/physicalgear.service';
+import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
 import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 const moment = momentImported;
 
@@ -82,8 +83,8 @@ export const IS_CHILD_OPERATION_ITEMS = Object.freeze([
 export class OperationForm extends AppForm<Operation> implements OnInit, OnReady {
 
   private _trip: Trip;
-  private _physicalGearsSubject = new BehaviorSubject<PhysicalGear[]>(undefined);
-  private _metiersSubject = new BehaviorSubject<LoadResult<IReferentialRef>>(undefined);
+  private _$physicalGears = new BehaviorSubject<PhysicalGear[]>(undefined);
+  private _$metiers = new BehaviorSubject<LoadResult<IReferentialRef>>(undefined);
   private _showMetierFilter = false;
   private _allowParentOperation = false;
   private _showPosition = true;
@@ -295,6 +296,9 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return isNil(this.form?.controls.id.value);
   }
 
+  get $ready(): Observable<boolean> {
+    return this._$ready.asObservable();
+  }
 
   @Output() onParentChanges = new EventEmitter<Operation>();
   @Output() lastEndDateChanges = new EventEmitter<Moment>();
@@ -340,7 +344,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       .concat(this.settings.getFieldDisplayAttributes('gear')
         .map(key => 'gear.' + key));
     this.registerAutocompleteField('physicalGear', {
-      items: this._physicalGearsSubject,
+      items: this._$physicalGears,
       attributes: physicalGearAttributes,
       mobile: this.mobile
     });
@@ -427,8 +431,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this._physicalGearsSubject.complete();
-    this._metiersSubject.complete();
+    this._$physicalGears.complete();
+    this._$metiers.complete();
     this.$parentOperationLabel.complete();
     this._positionSubscription?.unsubscribe();
   }
@@ -446,7 +450,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
     // Use trip physical gear Object (if possible)
     let physicalGear = data.physicalGear;
-    const physicalGears = this._physicalGearsSubject.value;
+    const physicalGears = this._$physicalGears.value;
     if (physicalGear && isNotNil(physicalGear.id) && isNotEmptyArray(physicalGears)) {
       data.physicalGear = physicalGears.find(g => g.id === physicalGear.id) || physicalGear;
     }
@@ -510,7 +514,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         }
         return physicalGear;
       });
-      this._physicalGearsSubject.next(physicalGears);
+      this._$physicalGears.next(physicalGears);
 
       // Use trip physical gear Object (if possible)
       const physicalGearControl = this.form.get('physicalGear');
@@ -608,21 +612,21 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   async openSelectOperationModal(): Promise<Operation> {
 
-    const value = this.form.value as Partial<Operation>;
-    const parent = value.parentOperation;
+    const currentOperation = this.form.value as Partial<Operation>;
+    const parent = currentOperation.parentOperation;
     const trip = this.trip;
     const tripDate = trip && fromDateISOString(trip.departureDateTime).clone() || moment();
     const startDate = tripDate.add(-15, 'day').startOf('day');
 
-    const gearIds = removeDuplicatesFromArray((this._physicalGearsSubject.value || []).map(physicalGear => physicalGear.gear.id));
+    const gearIds = removeDuplicatesFromArray((this._$physicalGears.value || []).map(physicalGear => physicalGear.gear.id));
 
     const modal = await this.modalCtrl.create({
       component: SelectOperationModal,
-      componentProps: <SelectOperationModalOptions>{
+      componentProps: <ISelectOperationModalOptions>{
         filter: <OperationFilter>{
           programLabel: this.programLabel,
           vesselId: trip && trip.vesselSnapshot?.id,
-          excludedIds: isNotNil(value.id) ? [value.id] : null,
+          excludedIds: isNotNil(currentOperation.id) ? [currentOperation.id] : null,
           excludeChildOperation: true,
           hasNoChildOperation: true,
           startDate,
@@ -704,27 +708,43 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
     // Parent is not on the same trip
     else {
-      const physicalGears = (await firstNotNilPromise(this._physicalGearsSubject))
-        .sort(PhysicalGear.sameAsComparator(parentOperation.physicalGear));
+      // Load physical gear with measurements
+      let physicalGear = await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId);
 
-      if (physicalGears.length > 1) {
-        if (this.debug) {
-          console.warn('[operation-form] several matching physical gear on trip',
-            physicalGears,
-            physicalGears.map(g => PhysicalGear.computeSameAsScore(parentOperation.physicalGear, g)));
-        } else console.warn('[operation-form] several matching physical gear on trip', physicalGears);
-      } else if (physicalGears.length === 0) {
+      // Find trip's similar gears
+      const physicalGears = (await firstNotNilPromise(this._$physicalGears))
+        .filter(pg => PhysicalGear.equals(physicalGear, pg, {withMeasurementValues: true, withRankOrder: false}));
+
+      if (isEmptyArray(physicalGears)) {
         // Make a copy of parent operation physical gear's on current trip
-        const physicalGear = await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId, {toEntity: false});
+        physicalGear = physicalGear.clone();
         physicalGear.id = undefined;
         physicalGear.trip = undefined;
         physicalGear.tripId = this.trip.id;
+        physicalGear.rankOrder = null; // Will be computed when saving
 
-        physicalGears.push(physicalGear);
-        this._physicalGearsSubject.next(physicalGears);
+        // Use gear label, if any
+        const physicalGearLabel = getPropertyByPath(physicalGear, `measurementValues.${PmfmIds.GEAR_LABEL}`);
+        if (isNotNilOrBlank(physicalGearLabel)) {
+          physicalGear.gear.name = physicalGearLabel;
+        }
+
+        // Append this gear to the list
+        this._$physicalGears.next([...physicalGears, physicalGear]);
+      }
+      else {
+        if (physicalGears.length > 1) {
+          if (this.debug) {
+            console.warn('[operation-form] several matching physical gear on trip',
+              physicalGears,
+              physicalGears.map(g => PhysicalGear.computeSameAsScore(parentOperation.physicalGear, g)));
+          } else {
+            console.warn('[operation-form] several matching physical gear on trip', physicalGears);
+          }
+        }
+        physicalGear = physicalGears[0];
       }
 
-      const physicalGear = physicalGears[0];
       physicalGearControl.setValue(physicalGear);
 
       // Use the parent metier
@@ -843,7 +863,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     const physicalGearControl = this.form.get('physicalGear');
 
     const hasPhysicalGear = EntityUtils.isNotEmpty(physicalGear, 'id');
-    const gears = this._physicalGearsSubject.getValue() || this._trip && this._trip.gears;
+    const gears = this._$physicalGears.getValue() || this._trip && this._trip.gears;
     // Use same trip's gear Object (if found)
     if (hasPhysicalGear && isNotEmptyArray(gears)) {
       physicalGear = (gears || []).find(g => g.id === physicalGear.id);
@@ -870,7 +890,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }): Promise<void> {
 
     // Reset previous value
-    if (isNotNil(this._metiersSubject.value)) this._metiersSubject.next(null);
+    if (isNotNil(this._$metiers.value)) this._$metiers.next(null);
 
     // No gears selected: skip
     if (EntityUtils.isEmpty(physicalGear, 'id')) {
@@ -958,7 +978,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       metierControl.patchValue(res.data[0]);
     }
 
-    this._metiersSubject.next(res);
+    this._$metiers.next(res);
 
     return res;
   }
@@ -1102,10 +1122,10 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       value = value.trim().replace(TEXT_SEARCH_IGNORE_CHARS_REGEXP, '*');
     }
 
-    let res = this._metiersSubject.value;
+    let res = this._$metiers.value;
     if (isNil(res?.data)) {
       console.debug('[operation-form] Waiting metier to be loaded...');
-      res = await firstNotNilPromise(this._metiersSubject);
+      res = await firstNotNilPromise(this._$metiers);
     }
     return suggestFromArray(res.data, value, filter);
   }

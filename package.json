@@ -1,7 +1,7 @@
 {
   "name": "sumaris-app",
   "description": "SUMARiS app",
-  "version": "1.25.2",
+  "version": "1.26.0",
   "author": "contact@e-is.pro",
   "license": "AGPL-3.0",
   "readmeFilename": "README.md",
@@ -20,7 +20,8 @@
     "build.android.prod": "ionic cordova build android --prod --release",
     "build.i18n": "node scripts/node/build-i18n.js",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "lint.fix": "ng lint --fix"
   },
   "peerDependencies": {
     "@apollo/client": "~3.5.10"
@@ -64,7 +65,7 @@
     "@ngtools/webpack": "^11.2.19",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@sumaris-net/ngx-components": "1.20.7",
+    "@sumaris-net/ngx-components": "1.20.28",
     "angular-split": "^5.0.0",
     "angular2-text-mask": "^9.0.0",
     "apollo-angular": "^2.6.0",

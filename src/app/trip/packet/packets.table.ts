@@ -8,8 +8,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { PacketModal, PacketModalOptions } from './packet.modal';
-import { PacketSaleModal } from '../sale/packet-sale.modal';
+import { PacketModal, IPacketModalOptions } from './packet.modal';
+import { IPacketSaleModalOptions, PacketSaleModal } from '../sale/packet-sale.modal';
 import { SaleProductUtils } from '../services/model/sale-product.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
@@ -213,25 +213,26 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     return true;
   }
 
-  async openDetailModal(packet?: Packet): Promise<{ data: Packet, role: string }> {
-    const isNew = !packet && true;
+  async openDetailModal(dataToOpen?: Packet): Promise<{ data: Packet, role: string }> {
+    const isNew = !dataToOpen && true;
     if (isNew) {
-      packet = new Packet();
+      dataToOpen = new Packet();
 
       if (this.filter?.parent) {
-        packet.parent = this.filter.parent;
+        dataToOpen.parent = this.filter.parent;
       } else if (this.$parents.value?.length === 1) {
-        packet.parent =  this.$parents.value[0];
+        dataToOpen.parent =  this.$parents.value[0];
       }
     }
 
     const modal = await this.modalCtrl.create({
       component: PacketModal,
-      componentProps: <PacketModalOptions>{
+      componentProps: <IPacketModalOptions>{
+        disabled: this.disabled,
         mobile: this.mobile,
         parents: this.$parents.value,
         parentAttributes: this.parentAttributes,
-        data: packet,
+        data: dataToOpen,
         isNew,
         onDelete: (event, packet) => this.deletePacket(event, packet)
       },
@@ -243,13 +244,13 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     await modal.present();
 
     // Wait until closed
-    const res = await modal.onDidDismiss();
+    const { data, role } = await modal.onDidDismiss();
     this.markAsLoaded();
 
-    if (res?.data) {
-      if (this.debug) console.debug('[packet-table] packet modal result: ', res);
+    if (data) {
+      if (this.debug) console.debug('[packet-table] packet modal result: ', {data, role});
 
-      return {data: res.data as Packet, role: res.role};
+      return {data: data as Packet, role};
     }
   }
 
@@ -306,9 +307,11 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     const modal = await this.modalCtrl.create({
       component: PacketSaleModal,
-      componentProps: {
-        packet: row.currentData,
-        packetSalePmfms: this.packetSalePmfms
+      componentProps: <IPacketSaleModalOptions> {
+        data: row.currentData,
+        packetSalePmfms: this.packetSalePmfms,
+        disabled: this.disabled,
+        mobile: this.disabled
       },
       backdropDismiss: false,
       cssClass: 'modal-large'

@@ -86,18 +86,16 @@ export class ObservedLocationsPage extends
     protected cd: ChangeDetectorRef
   ) {
     super(injector,
-      RESERVED_START_COLUMNS
-        .concat([
-          'quality',
-          'program',
-          'location',
-          'startDateTime',
-          'observers',
-          'recorderPerson',
-          'comments'])
-        .concat(RESERVED_END_COLUMNS),
+      ObservedLocation, ObservedLocationFilter,
+      ['quality',
+      'program',
+      'location',
+      'startDateTime',
+      'observers',
+      'recorderPerson',
+      'comments'],
       dataService,
-      new EntitiesTableDataSource(ObservedLocation, dataService),
+      null
     );
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({

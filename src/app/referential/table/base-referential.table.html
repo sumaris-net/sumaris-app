@@ -86,7 +86,7 @@
 
 </mat-menu>
 
-<div class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
 
   <table *ngIf="columnDefinitions|isNotEmptyArray"
     mat-table

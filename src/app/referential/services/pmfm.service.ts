@@ -32,6 +32,7 @@ import { ReferentialRefService } from './referential-ref.service';
 import { CacheService } from 'ionic-cache';
 import { BaseReferentialFilter } from './filter/referential.filter';
 import { ParameterLabelGroups } from '@app/referential/services/model/model.enum';
+import { arrayPluck } from '@app/shared/functions';
 
 
 const LoadAllQuery = gql`query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -454,7 +455,7 @@ export class PmfmService
     }
 
     // Load pmfms grouped by parameter labels
-    const map = await this.referentialRefService.loadAllGroupByLevels({
+    const groupedPmfms = await this.referentialRefService.loadAllGroupByLevels({
         entityName: 'Pmfm',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
@@ -462,8 +463,8 @@ export class PmfmService
       { toEntity: false, debug: this._debug });
 
     // Keep only id
-    return Object.keys(map).reduce((res, key) => {
-      res[key] = map[key].map(e => e.id);
+    return Object.keys(groupedPmfms).reduce((res, key) => {
+      res[key] = arrayPluck(groupedPmfms[key], 'id')
       return res;
     }, {});
   }

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Batch} from '../common/batch.model';
-import { Alerts, AppFormUtils, IReferentialRef, isNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { Alerts, AppFormUtils, IReferentialRef, isNil, isNotNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import { AlertController, ModalController } from '@ionic/angular';
 import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -15,7 +15,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
 import { ContextService } from '@app/shared/context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { SamplingRatioType } from '@app/trip/batch/common/batch.form';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
@@ -30,6 +30,8 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   allowSubBatches: boolean;
   defaultHasSubBatches: boolean;
   openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
+
+  mobile: boolean;
 }
 
 @Component({
@@ -48,13 +50,13 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
   debug = false;
   loading = false;
-  mobile: boolean;
   $title = new BehaviorSubject<string>(undefined);
 
   @Input() data: BatchGroup;
   @Input() isNew: boolean;
   @Input() disabled: boolean;
   @Input() usageMode: UsageMode;
+  @Input() mobile: boolean;
 
   @Input() qvPmfm: IPmfm;
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
@@ -72,7 +74,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() enableWeightConversion: boolean;
   @Input() maxVisibleButtons: number;
-  @Input() samplingRatioType: SamplingRatioType;
+  @Input() samplingRatioFormat: SamplingRatioFormat;
   @Input() i18nSuffix: string;
 
   @Input() openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
@@ -125,13 +127,13 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
-    this.mobile = settings.mobile;
 
     // TODO: for DEV only
     this.debug = !environment.production;
   }
 
   ngOnInit() {
+    this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);

@@ -39,6 +39,7 @@ import { IPmfm, PmfmUtils } from '../../../referential/services/model/pmfm.model
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { environment } from '@environments/environment';
 import { IonButton } from '@ionic/angular';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 
 @Component({
@@ -56,7 +57,6 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected _disableByDefaultControls: AbstractControl[] = [];
   protected _weightConversionSubscription: Subscription;
 
-  mobile: boolean;
   enableIndividualCountControl: FormControl;
   freezeTaxonNameControl: FormControl;
   freezeQvPmfmControl: FormControl;
@@ -79,6 +79,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
   @Input() i18nSuffix: string;
+  @Input() mobile: boolean;
   @Input() weightDisplayedUnit: WeightUnitSymbol;
   @Input() onNewParentClick: () => Promise<BatchGroup | undefined>;
 
@@ -200,9 +201,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.freezeQvPmfmControl = this.formBuilder.control(true, Validators.required);
     this.freezeQvPmfmControl.setValue(true, {emitEvent: false});
 
-    // Freeze taxon name value control (default: true if NOT mobile)
     this.freezeTaxonNameControl = this.formBuilder.control(!this.mobile, Validators.required);
-    this.freezeTaxonNameControl.setValue(!this.mobile, {emitEvent: false});
 
     // For DEV only
     this.debug = !environment.production;
@@ -211,9 +210,11 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   ngOnInit() {
     super.ngOnInit();
 
+    // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
     this.isNew = toBoolean(this.isNew, false);
     this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
+    this.freezeTaxonNameControl.setValue(!this.mobile, {emitEvent: false});
 
     // Get display attributes for parent
     this._parentAttributes = this.settings.getFieldDisplayAttributes('taxonGroup').map(attr => 'taxonGroup.' + attr)

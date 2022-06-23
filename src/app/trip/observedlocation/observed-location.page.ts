@@ -9,16 +9,20 @@ import {
   AccountService,
   Alerts,
   AppTable,
-  ConfigService, CORE_CONFIG_OPTIONS,
+  ConfigService,
+  CORE_CONFIG_OPTIONS,
   EntityServiceLoadOptions,
-  fadeInOutAnimation, firstNotNilPromise, fromDateISOString,
-  HistoryPageReference, isNil,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  HistoryPageReference,
+  isNil,
   isNotNil,
   LocalSettingsService,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
   toBoolean,
+  TranslateContextService,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
@@ -75,7 +79,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showVesselType: boolean;
   showVesselBasePortLocation: boolean;
   addLandingUsingHistoryModal: boolean;
-  showQualityForm = false;
   showRecorder = true;
   showObservers = true;
   landingEditor: LandingEditor = undefined;
@@ -96,6 +99,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     protected settings: LocalSettingsService,
     protected configService: ConfigService,
     protected accountService: AccountService,
+    protected translateContext: TranslateContextService,
     protected context: ContextService
   ) {
     super(injector,
@@ -541,7 +545,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     await this.ready();
 
     // Existing data
-    return this.translate.get(`OBSERVED_LOCATION.EDIT.${this.i18nContext.suffix}TITLE`, {
+    return this.translateContext.get(`OBSERVED_LOCATION.EDIT.TITLE`, this.i18nContext.suffix, {
       location: data.location && (data.location.name || data.location.label),
       dateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime) as string
     }).toPromise();

@@ -125,13 +125,24 @@
             <ion-row class="ion-no-padding" >
               <!-- pmfms -->
               <ng-container *ngFor="let pmfm of pmfms; index as i;">
-                <ion-col size="12" size-md="6">
+
+                <ion-col size="11" size-md="5" >
                   <app-pmfm-field [pmfm]="pmfm"
                                   [controlName]="pmfm|pmfmIdString">
                   </app-pmfm-field>
                 </ion-col>
+
+                <ion-col size="auto" class="ion-col-button">
+                  <button mat-icon-button color="primary"
+                          *ngIf="mobile && pmfm.id === controlledSpeciesPmfmId && this.helpContent"
+                          tabindex="-1"
+                          (click)="openHelpModal($event)">
+                    <mat-icon>help_outline</mat-icon>
+                  </button>
+                </ion-col>
+
                 <ion-col *ngIf="pmfm.id === controlledSpeciesPmfmId && showOtherTaxonGroup"
-                         size="12" size-md="6">
+                         size="1" size-md="5">
 
                   <!-- Special case for controlled species: add a combo, for 'MZZ' species -->
                   <mat-autocomplete-field [formControl]="taxonGroupControl"
@@ -160,13 +171,16 @@
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
                            (onPrepareRowForm)="onPrepareSampleForm($event)"
+                           [compactFields]="true"
+                           [i18nColumnSuffix]="i18nContext.suffix"
                            [debug]="debug"
-                           [compactFields]="true">
+                           >
           <ion-buttons slot="end">
             <!-- Help button -->
             <button mat-icon-button *ngIf="helpContent"
                     [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
-                    (click)="openHelpModal($event)">
+                    (click)="openHelpModal($event)"
+            >
               <mat-icon>help_outline</mat-icon>
             </button>
           </ion-buttons>
@@ -214,7 +228,7 @@
 
 <ng-template #measurementSkeleton>
     <ion-col size="12" size-md="6">
-      <mat-form-field>
+      <mat-form-field class="mat-form-field-disabled">
         <input matInput hidden>
         <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
       </mat-form-field>

@@ -54,7 +54,7 @@
         </ion-item>
 
         <app-sub-batch-form #form
-                            [debug]="debug"
+                            [title]="editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'"
                             [programLabel]="undefined"
                             [pmfms]="$pmfms|async"
                             floatLabel="always"
@@ -72,7 +72,8 @@
                             [tabindex]="1"
                             [maxVisibleButtons]="maxVisibleButtons"
                             [i18nSuffix]="i18nColumnSuffix"
-                            [title]="editedRow ? 'TRIP.BATCH.EDIT.INDIVIDUAL.EDIT_MEASURE_DOTS' : 'TRIP.BATCH.EDIT.INDIVIDUAL.ADD_MEASURE_DOTS'">
+                            [mobile]="mobile"
+                            [debug]="debug">
 
         </app-sub-batch-form>
       </ion-col>
@@ -110,7 +111,7 @@
               <ion-label>{{ (displayParentPmfm | pmfmName ) || ('TRIP.BATCH.TABLE.PARENT_GROUP' | translate) }}</ion-label>
             </th>
             <td mat-cell *matCellDef="let row" [hidden]="!showParentGroup">
-              <ion-text>{{ autocompleteFields.parentGroup.displayWith(row.currentData.parentGroup) }}</ion-text>
+              <ion-text>{{ row.currentData.parentGroup|displayWith: autocompleteFields.parentGroup.displayWith }}</ion-text>
             </td>
           </ng-container>
 
@@ -120,12 +121,12 @@
               <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
             </th>
             <td mat-cell *matCellDef="let row">
-              <ion-text>{{autocompleteFields.taxonName?.displayWith(row.currentData.taxonName) }}</ion-text>
+              <ion-text>{{ autocompleteFields.taxonName && row.currentData.taxonName|displayWith: autocompleteFields.taxonName.displayWith }}</ion-text>
             </td>
           </ng-container>
 
           <!-- Pmfms columns -->
-          <ng-container *ngFor="let pmfm of $pmfms | async">
+          <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
             <ng-container [matColumnDef]="pmfm.id.toString()">
               <th mat-header-cell *matHeaderCellDef  [class.mat-cell-date-time]="pmfm | isDatePmfm" >
                 <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix}"></ion-label>

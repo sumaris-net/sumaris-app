@@ -23,7 +23,7 @@
   height: calc(100%);
 
   &.has-offline-nav {
-    height: calc(100% - var(--mat-tab-link-height)) !important;
+    height: calc(100% - var(--mat-tab-link-height) - 2px) !important;
   }
 }
 

@@ -36,7 +36,7 @@ import { ProgramFilter } from './filter/program.filter';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { ProgramPrivilegeIds } from '@app/referential/services/model/model.enum';
 import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
-import { mergeMap } from 'rxjs/internal/operators';
+import { mergeMap } from 'rxjs/operators';
 
 export interface ProgramSaveOptions extends EntitySaveOptions {
   withStrategies?: boolean; // False by default

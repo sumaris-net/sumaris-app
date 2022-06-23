@@ -38,10 +38,10 @@
           <ion-icon matPrefix name="boat"></ion-icon>
 
           <!-- FIXME: need to export temporary vessel (from synchronize() function ?) before enabling this button in the offline mode -->
-          <button matAfter type="button" mat-icon-button tabindex="-1"
+          <button matSuffix type="button" mat-icon-button tabindex="-1"
                   *ngIf="allowAddNewVessel && network.online"
                   [title]="'TRIP.BTN_ADD_VESSEL'|translate"
-                  (click)="addVesselModal()">
+                  (click)="addVesselModal($event)">
             <mat-icon>add</mat-icon>
           </button>
         </mat-autocomplete-field>
@@ -64,7 +64,7 @@
         </mat-autocomplete-field>
 
       </ion-col>
-      <ion-col size="12" size-sm="auto">
+      <ion-col size="12" size-sm="3">
         <mat-date-time-field [placeholder]="'TRIP.DEPARTURE_DATE_TIME'|translate"
                              formControlName="departureDateTime"
                              [required]="true">
@@ -90,10 +90,11 @@
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="auto" *ngVar="form|formGetControl:'returnDateTime'; let control">
+      <ion-col size="12" size-sm="3" *ngVar="form|formGetControl:'returnDateTime'; let control">
         <mat-date-time-field [placeholder]="'TRIP.RETURN_DATE_TIME'|translate"
                              [formControl]="control"
-                             [startDate]="form.controls.departureDateTime.value"
+
+                             [startDate]="form|formGetValue:'departureDateTime'"
                              [required]="returnFieldsRequired"
                              [clearable]="!returnFieldsRequired">
           <!-- icon (need for small screen) -->

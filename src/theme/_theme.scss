@@ -126,9 +126,11 @@ app-form-buttons-bar {
 }
 
 // Measurement form
-.measurements-form {
-  /* Add offset = icon width (24px) + margin (2*5px) */
-  padding-inline-start: 34px;
+@media screen and (max-width: $screen-sm-max) {
+  .measurements-form-padding-start {
+    /* Add offset = icon width (24px) + margin (2*5px) */
+    padding-inline-start: 34px;
+  }
 }
 
 .form-container,

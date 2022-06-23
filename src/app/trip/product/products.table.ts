@@ -7,12 +7,12 @@ import { Platform } from '@ionic/angular';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { BehaviorSubject } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
-import { ProductSaleModal } from '../sale/product-sale.modal';
+import { IProductSaleModalOptions, ProductSaleModal } from '../sale/product-sale.modal';
 import { SaleProductUtils } from '../services/model/sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { environment } from '@environments/environment';
 import { ISamplesModalOptions, SamplesModal } from '../sample/samples.modal';
-import { ProductModal } from '@app/trip/product/product.modal';
+import { IProductModalOptions, ProductModal } from '@app/trip/product/product.modal';
 import { mergeMap } from 'rxjs/operators';
 import moment from 'moment';
 
@@ -87,16 +87,14 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     protected cd: ChangeDetectorRef,
   ) {
     super(injector,
-      Product,
+      Product, ProductFilter,
       memoryDataService,
       validatorService,
       {
-        prependNewElements: false,
-        suppressErrors: environment.production,
         reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
-        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS
+        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS,
+        i18nColumnPrefix: 'TRIP.PRODUCT.LIST.'
       });
-    this.i18nColumnPrefix = 'TRIP.PRODUCT.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;
@@ -164,8 +162,10 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     const modal = await this.modalCtrl.create({
       component: ProductSaleModal,
-      componentProps: {
-        product: row.currentData,
+      componentProps: <IProductSaleModalOptions>{
+        disabled: this.disabled,
+        mobile: this.mobile,
+        data: row.currentData,
         productSalePmfms: this.productSalePmfms
       },
       backdropDismiss: false,
@@ -173,11 +173,11 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     });
 
     await modal.present();
-    const res = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
-    if (res && res.data) {
+    if (data) {
       // patch saleProducts only
-      row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
+      row.validator.patchValue({saleProducts: data.saleProducts}, {emitEvent: true});
       this.markAsDirty({emitEvent: false});
       this.markForCheck();
     }
@@ -279,7 +279,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     const modal = await this.modalCtrl.create({
       component: ProductModal,
-      componentProps: {
+      componentProps: <IProductModalOptions>{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         data: product,

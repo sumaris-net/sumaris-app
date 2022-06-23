@@ -99,10 +99,7 @@
 
     <ion-row>
       <ion-col>
-        <ion-buttons class="ion-justify-content-between">
-          <ng-content select="[samplingButtons]"></ng-content>
-          <ng-content select="[productSaleButtons]"></ng-content>
-        </ion-buttons>
+          <ng-content select="[endButtons]"></ng-content>
       </ion-col>
     </ion-row>
 
@@ -116,7 +113,7 @@
 </ng-template>
 
 <ng-template #measurementSkeleton>
-  <mat-form-field>
+  <mat-form-field class="mat-form-field-disabled">
     <input matInput hidden>
     <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
   </mat-form-field>

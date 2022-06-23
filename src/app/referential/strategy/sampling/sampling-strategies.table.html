@@ -231,7 +231,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar"
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar"
      [class.has-paginator]="showPaginator"
      [class.full-height]="!showToolbar">
   <table mat-table  matSort

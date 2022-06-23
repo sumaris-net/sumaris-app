@@ -198,7 +198,7 @@
   </mat-expansion-panel>
 
   <!-- table -->
-  <div class="table-container">
+  <div #tableContainer class="table-container">
     <table #table mat-table matSort matSortDisableClear
            [class.compact]="compact"
            [dataSource]="dataSource"

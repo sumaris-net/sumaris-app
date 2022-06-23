@@ -378,7 +378,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         if (this.subBatchesTable) {
           this.subBatchesTable.qvPmfm = groupQvPmfm;
           await this.subBatchesTable.setAvailableParents(batchGroups, {
-            emitEvent: false,
+            emitEvent: true, // Force refresh pmfms
             linkDataToParent: false // Not need here
           });
           this.subBatchesTable.value = subBatches;
@@ -420,7 +420,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
     this.batchGroupsTable.showTaxonGroupColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.batchGroupsTable.showTaxonNameColumn = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
-    this.batchGroupsTable.samplingRatioType = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_TYPE);
+    this.batchGroupsTable.samplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);
     this.batchGroupsTable.enableWeightLengthConversion = this.enableWeightLengthConversion;
     this.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     this.batchGroupsTable.i18nColumnSuffix = i18nSuffix;

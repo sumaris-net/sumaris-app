@@ -14,7 +14,7 @@ import {
   ReferentialUtils,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { PmfmStrategiesTable, PmfmStrategyFilter } from './pmfm-strategies.table';
+import { PmfmStrategiesTable} from './pmfm-strategies.table';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { SelectReferentialModal } from '../list/select-referential.modal';
 import { ModalController } from '@ionic/angular';
@@ -28,6 +28,7 @@ import { Program } from '../services/model/program.model';
 import { ReferentialFilter } from '../services/filter/referential.filter';
 import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { PmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 
 @Component({
   selector: 'app-strategy-form',

@@ -16,21 +16,22 @@ import {
   LoadResult,
   NetworkService
 } from '@sumaris-net/ngx-components';
-import { PhysicalGear, Trip } from './model/trip.model';
+import { Trip } from '../services/model/trip.model';
 import { environment } from '@environments/environment';
 import { BehaviorSubject, combineLatest, EMPTY, Observable } from 'rxjs';
 import { filter, first, map, throttleTime } from 'rxjs/operators';
 import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { PhysicalGearFragments } from './trip.queries';
+import { PhysicalGearFragments } from '../services/trip.queries';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { SortDirection } from '@angular/material/sort';
-import { PhysicalGearFilter } from './filter/physical-gear.filter';
+import { PhysicalGearFilter } from './physical-gear.filter';
 import moment from 'moment';
 import { TripFilter } from '@app/trip/services/filter/trip.filter';
 import { ErrorCodes } from '@app/data/services/errors';
 import { mergeLoadResult } from '@app/shared/functions';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { ProgramFragments } from '@app/referential/services/program.fragments';
+import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
 
 const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
   loadAll: gql`query PhysicalGears($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
@@ -81,7 +82,7 @@ const sortByTripDateFn = (n1: PhysicalGear, n2: PhysicalGear) => {
   return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
 };
 
-export const PHYSICAL_GEAR_DATA_SERVICE = new InjectionToken<IEntitiesService<PhysicalGear, PhysicalGearFilter>>('PhysicalGearDataService');
+export const PHYSICAL_GEAR_DATA_SERVICE_TOKEN = new InjectionToken<IEntitiesService<PhysicalGear, PhysicalGearFilter>>('PhysicalGearDataService');
 
 
 export declare interface PhysicalGearServiceWatchOptions extends EntitiesServiceWatchOptions {
@@ -123,6 +124,9 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       console.warn('[physical-gear-service] Missing physical gears filter. At least \'program\' and \'vesselId\' or \'startDate\'. Skipping.');
       return EMPTY;
     }
+    // Fix sortBy
+    sortBy = sortBy !== 'id' ? sortBy : 'rankOrder';
+    sortBy = sortBy !== 'label' ? sortBy : 'gear.label';
 
     const forceOffline = this.network.offline || (isNotNil(dataFilter.tripId) && dataFilter.tripId < 0);
     const offline = forceOffline || opts?.withOffline || false;
@@ -425,7 +429,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
 
     const maxProgression = opts && opts.maxProgression || 100;
     filter = {
-      startDate: moment().add(-1, 'month'), // Can be overwrite by given filter
+      startDate: moment().add(-1, 'month'), // Can be overwritten by given filter
       ...filter
     };
 

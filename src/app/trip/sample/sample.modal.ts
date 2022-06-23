@@ -47,7 +47,6 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 
   // UI Options
   maxVisibleButtons: number;
-  enableBurstMode: boolean;
   i18nSuffix?: string;
 
   // Callback actions
@@ -63,7 +62,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 })
 export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
-  private _subscription = new Subscription();
+  private readonly _subscription = new Subscription();
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
@@ -86,7 +85,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showComment: boolean;
   @Input() showIndividualReleaseButton: boolean;
   @Input() maxVisibleButtons: number;
-  @Input() enableBurstMode: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   @Input() defaultSampleDate: Moment;
   tagIdPmfm: IPmfm;
@@ -141,16 +139,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
-    if (isNil(this.enableBurstMode)) {
-      this.enableBurstMode = this.settings.getPropertyAsBoolean(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE,
-        this.usageMode === 'FIELD');
-    }
 
     // Show/Hide individual release button
     this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
     if (this.tagIdPmfm) {
       this.showIndividualReleaseButton =  !!this.openSubSampleModal
-        && !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]);
+        && toBoolean(this.showIndividualReleaseButton, !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]));
 
       this.form.ready().then(() => {
         this.registerSubscription(
@@ -164,7 +158,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       });
     }
     else {
-      this.showIndividualReleaseButton =  !!this.openSubSampleModal;
+      this.showIndividualReleaseButton = !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
     }
 
     if (this.disabled) {
@@ -183,7 +177,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
           .subscribe(json => this.computeTitle(json))
       );
     }
-
 
     this.setValue(this.data);
   }
@@ -242,7 +235,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
       // Is user confirm: close normally
       if (saveBeforeLeave === true) {
-        this.enableBurstMode = false; // Force onSubmit to close
         await this.onSubmit(event);
         return;
       }
@@ -259,7 +251,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     // DEBUG
     //console.debug('[sample-modal] Calling onSubmitAndNext()');
 
-    const data = this.getDataToSave();
+    const data = await this.getDataToSave();
     if (!data) return; // invalid
 
     this.markAsLoading();
@@ -281,14 +273,14 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   async onSubmit(event?: UIEvent) {
     if (this.loading) return undefined; // avoid many call
 
-    // Leave without saving
-    if (!this.dirty) {
+    // No changes: leave
+    if (!this.dirty && !this.isNew) {
       this.markAsLoading();
       await this.modalCtrl.dismiss();
     }
-    // Convert and dismiss
+    // Convert then dismiss
     else {
-      const data = this.getDataToSave();
+      const data = await this.getDataToSave();
       if (!data) return; // invalid
 
       this.markAsLoading();
@@ -332,13 +324,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  toggleBurstMode() {
-    this.enableBurstMode = !this.enableBurstMode;
-
-    // Remember (store in local settings)
-    this.settings.setProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE.key, this.enableBurstMode);
-  }
-
   toggleComment() {
     this.showComment = !this.showComment;
     this.markForCheck();
@@ -346,18 +331,23 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   /* -- protected methods -- */
 
-  protected getDataToSave(opts?: {disable?: boolean;}): Sample {
+  protected async getDataToSave(opts?: {disable?: boolean;}): Promise<Sample> {
 
-    if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
-      const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
-        controlPathTranslator: this.form,
-        separator: '<br/>'
-      })
-      this.setError(error || 'COMMON.FORM.HAS_ERROR');
-      this.form.markAllAsTouched();
-      this.scrollToTop();
-      return undefined;
+    if (!this.valid) {
+      // Wait validation end
+      await AppFormUtils.waitWhilePending(this.form);
+
+      if (this.invalid) {
+        if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
+        const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
+          controlPathTranslator: this.form,
+          separator: '<br/>'
+        })
+        this.setError(error || 'COMMON.FORM.HAS_ERROR');
+        this.form.markAllAsTouched();
+        this.scrollToTop();
+        return;
+      }
     }
 
     this.markAsLoading();

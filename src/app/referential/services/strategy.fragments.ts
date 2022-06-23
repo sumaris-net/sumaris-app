@@ -240,6 +240,7 @@ export const StrategyFragments = {
       id
       label
       name
+      description
       statusId
       entityName
       __typename

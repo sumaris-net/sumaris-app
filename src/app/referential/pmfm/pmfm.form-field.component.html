@@ -140,6 +140,7 @@
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
                      [required]="required"
+                     [readonly]="readonly"
                      [compact]="compact"
                      [tabindex]="tabindex"
                      [buttonsColCount]="maxVisibleButtons"
@@ -201,7 +202,7 @@
                      [showButtonIcons]="showButtonIcons"
                      (keyup.enter)="onPressEnter.emit($event)"
                      [mobile]="mobile">
-    <div matAfter>
+    <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
     </div>
   </app-pmfm-qv-field>

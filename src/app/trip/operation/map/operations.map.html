@@ -27,8 +27,13 @@
         <!-- Details card -->
         <ion-card color="light" class="details ng-hide" *ngIf="$selectedFeature | async as item" [@fadeInOutAnimation]>
 
+          <ion-item color="secondary" *ngIf="item.properties.trip">
+            <ion-label>{{ item.properties.trip }}</ion-label>
+          </ion-item>
+
           <ion-card-header>
             <ion-card-title>
+              <app-operation-icon [value]="item.properties.source"></app-operation-icon>
               {{'TRIP.OPERATION.OPE_PREFIX'|translate}} #{{item.properties.rankOrderOnPeriod}}
             </ion-card-title>
             <ion-card-subtitle>

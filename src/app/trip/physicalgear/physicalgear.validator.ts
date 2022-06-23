@@ -3,7 +3,7 @@ import {ValidatorService} from "@e-is/ngx-material-table";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "@sumaris-net/ngx-components";
 import {toNumber} from "@sumaris-net/ngx-components";
-import {PhysicalGear} from "../model/trip.model";
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 @Injectable({providedIn: 'root'})
 export class PhysicalGearValidatorService implements ValidatorService {

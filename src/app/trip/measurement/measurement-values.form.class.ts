@@ -1,11 +1,11 @@
 import { ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
-import { BehaviorSubject, isObservable, Observable } from 'rxjs';
+import { BehaviorSubject, isObservable, Observable, Subject } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { AppForm, firstNotNilPromise, isNil, isNotNil, toNumber, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
+import { AppForm, filterTrue, firstNotNilPromise, isNil, isNotNil, toNumber, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
@@ -77,7 +77,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   get programLabel(): string {
-    return this.$programLabel.getValue();
+    return this.$programLabel.value;
   }
 
   @Input()
@@ -86,15 +86,12 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   get strategyLabel(): string {
-    return this.$strategyLabel.getValue();
+    return this.$strategyLabel.value;
   }
 
   @Input()
   set acquisitionLevel(value: string) {
-    if (isNotNil(value) && this._acquisitionLevel !== value) {
-      this._acquisitionLevel = value;
-      if (!this.starting) this._onRefreshPmfms.emit();
-    }
+    this.setAcquisitionLevel(value, {emitEvent: !this.starting});
   }
 
   get acquisitionLevel(): string {
@@ -210,6 +207,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     this.resetPmfms();
   }
 
+  /**
+   * Use in ngFor, for trackBy
+   * @param index
+   * @param pmfm
+   */
+  trackPmfmFn(index: number, pmfm: IPmfm): any {
+    return pmfm.id;
+  }
+
   translateControlPath(path: string): string {
     if (path.startsWith('measurementValues.')) {
       const pmfmId = parseInt(path.split('.')[1]);
@@ -221,7 +227,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   markAsLoading(opts?: {step?: number; emitEvent?: boolean;}) {
 
-    // /!\ do NOT used STARTING step anymore (only used to avoid to many refresh, BEFORE ngOnInit())
+    // /!\ do NOT use STARTING step here (only used to avoid to many refresh, BEFORE ngOnInit())
     const step = toNumber(opts && opts.step, MeasurementFormLoadingSteps.LOADING_PMFMS);
 
     // Emit, if changed
@@ -237,17 +243,19 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
-  ready(opts?: WaitForOptions): Promise<void> {
-    return waitForTrue(
-      this._$ready
-      .pipe(
+  async ready(opts?: WaitForOptions): Promise<void> {
+    try {
+      await waitForTrue(this._$ready.pipe(
         filter(value => value === true),
+        // Wait form ready
         switchMap(_ => this.$loadingStep),
         map(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY)
-      )
-    , opts);
+      ), opts);
+    } catch(err) {
+      if (err?.message === 'object unsubscribed') throw 'CANCELLED'; // Cancelled
+      throw err;
+    }
   }
-
 
   setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}): Promise<void> | void {
     return this.applyValue(data, opts);
@@ -291,6 +299,10 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
   }
 
+  markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsReady(opts);
+  }
+
   protected onApplyingEntity(data: T, opts?: {[key: string]: any;}) {
     if (data.program?.label) {
       // Propagate program
@@ -332,32 +344,41 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
   }
 
-  protected setProgramLabel(value: string, opts?: {emitEvent?: boolean}) {
+  protected setProgramLabel(value: string,  opts = {emitEvent: true}) {
     if (isNotNil(value) && this.$programLabel.value !== value) {
 
       this.$programLabel.next(value);
 
       // Reload pmfms
-      if (!opts || opts.emitEvent !== false) this._onRefreshPmfms.emit();
+      if (opts.emitEvent !== false) this._onRefreshPmfms.emit();
     }
   }
 
-  protected setStrategyLabel(value: string, opts?: {emitEvent?: boolean}) {
+  protected setStrategyLabel(value: string,  opts = {emitEvent: true}) {
     if (isNotNil(value) && this.$strategyLabel.value !== value) {
 
       this.$strategyLabel.next(value);
 
       // Reload pmfms
-      if (!opts || opts.emitEvent !== false) this._onRefreshPmfms.emit();
+      if (opts.emitEvent !== false) this._onRefreshPmfms.emit();
     }
   }
 
-  protected setGearId(value: number, opts?: {emitEvent?: boolean}) {
+  protected setAcquisitionLevel(value: string, opts = {emitEvent: true}) {
+    if (isNotNil(value) && this._acquisitionLevel !== value) {
+      this._acquisitionLevel = value;
+
+      // Reload pmfms
+      if (opts.emitEvent !== false) this._onRefreshPmfms.emit();
+    }
+  }
+
+  protected setGearId(value: number, opts = {emitEvent: true}) {
     if (this._gearId !== value) {
       this._gearId = value;
 
       // Reload pmfms
-      if (!opts || opts.emitEvent !== false) this._onRefreshPmfms.emit();
+      if (opts.emitEvent !== false) this._onRefreshPmfms.emit();
     }
   }
 
@@ -526,7 +547,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (!pmfms) return; // Skip
 
     const form = this.form;
-    this._measurementValuesForm = form.controls.measurementValues as FormGroup;
+    this._measurementValuesForm = form.get('measurementValues') as FormGroup;
 
     if (this.debug) console.debug(`${this.logPrefix} Updating form controls, force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 

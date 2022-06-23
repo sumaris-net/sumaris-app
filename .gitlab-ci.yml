@@ -86,14 +86,14 @@ failsafe-build:
   when: on_failure
   before_script:
     # Install global dependencies
-    - yarn global add @ionic/cli @angular/cli
+    - yarn global add @ionic/cli@6.19.1 @angular/cli@11.2.19
     # Update project dependencies
     - yarn install
   variables:
     BUILD_ENVIRONMENT: dev
   only:
     - develop
-    - /^feature\/.*/
+##    - /^feature\/.*/
 
 docker:ci:
   extends: .docker

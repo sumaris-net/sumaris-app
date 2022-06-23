@@ -1,44 +1,31 @@
-<ion-header>
-  <ion-toolbar color="secondary">
-    <ion-buttons slot="start">
-      <ion-button class="back-button" (click)="cancel($event)" visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-      </ion-button>
-    </ion-buttons>
+<app-modal-toolbar modalName="PhysicalGearModal"
+                   color="secondary"
+                   [title]="$title | async"
+                   [showSpinner]="loading && !isNewData"
+                   [canValidate]="!disabled"
+                   (cancel)="close($event)"
+                   (validate)="saveAndClose($event)">
 
-    <ion-title>
-      {{$title | async}}
-    </ion-title>
+  <ion-buttons slot="end" >
 
-    <ion-buttons slot="end">
-      <!-- Options menu -->
-      <button mat-icon-button *ngIf="!isNew && mobile"
-              [title]="'COMMON.OPTIONS'|translate"
-              [matMenuTriggerFor]="optionsMenu">
-        <mat-icon>more_vert</mat-icon>
-      </button>
+    <!-- search button -->
+    <ion-button *ngIf="showSearchButton"
+                (click)="openSearchModal($event)">
+      <ion-icon slot="start" name="search"></ion-icon>
+      <ion-label>
+        <span translate>COMMON.BTN_SEARCH</span>
+      </ion-label>
+    </ion-button>
 
-      <!-- search button -->
-      <ion-button *ngIf="isNew && onSearchButtonClick.observers|isNotEmptyArray"
-                  (click)="openSearchModal($event)">
-        <ion-icon slot="start" name="search"></ion-icon>
-        <ion-label>
-          <span translate>COMMON.BTN_SEARCH</span>
-        </ion-label>
-      </ion-button>
+    <!-- Options menu -->
+    <button mat-icon-button *ngIf="!isNewData && mobile"
+            [title]="'COMMON.BTN_OPTIONS'|translate"
+            [matMenuTriggerFor]="optionsMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </ion-buttons>
 
-      <ion-spinner *ngIf="loading"></ion-spinner>
-
-      <ion-button class="back-button" (click)="save($event)"
-                  *ngIf="!loading"
-                  [disabled]="!form.valid"
-                  visible-xs visible-sm visible-mobile>
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
+</app-modal-toolbar>
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu">
   <button mat-menu-item
@@ -49,22 +36,108 @@
   </button>
 </mat-menu>
 
-<ion-content class="ion-padding" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+<ion-content cdkTrapFocus [cdkTrapFocusAutoCapture]="true" class="ion-no-padding">
 
-  <ion-item *ngIf="form.error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="form.error|translate"></ion-label>
-  </ion-item>
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+                 [class.mat-tab-group-header-hidden]="!_showChildrenTable"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="tabGroupAnimationDuration"
+                 [disablePagination]="true"
+                 [dynamicHeight]="false">
 
-  <app-physical-gear-form #form
-                          [programLabel]="programLabel"
-                          [acquisitionLevel]="acquisitionLevel"
-                          [canEditRankOrder]="canEditRankOrder"
-                          (onSubmit)="save($event)"
-                          [mobile]="mobile">
-  </app-physical-gear-form>
+    <!-- TAB: general -->
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger"
+                  *ngIf="error || (submitted && physicalGearForm.invalid)"></ion-icon>
+      </ng-template>
 
+      <div >
+        <!-- error -->
+        <ion-item *ngIf="(error || physicalGearForm.error) as errorMsg" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
+        </ion-item>
+
+        <!-- base form -->
+        <app-physical-gear-form #physicalGearForm
+                                [programLabel]="programLabel"
+                                [acquisitionLevel]="acquisitionLevel"
+                                [canEditGear]="canEditGear"
+                                [canEditRankOrder]="canEditRankOrder"
+                                [showGear]="showGear"
+                                [showError]="false"
+                                [i18nSuffix]="i18nSuffix"
+                                (onSubmit)="saveAndClose($event)"
+                                [mobile]="mobile">
+        </app-physical-gear-form>
+
+        <!-- DEBUG -->
+     <ion-text *ngIf="debug"
+                class="text-italic ion-margin-start" color="primary">
+       allowChildrenGears: {{allowChildrenGears}}<br/>
+       <ng-container *ngIf="childrenTable">
+         table.gearId: {{childrenTable.gearId}}<br/>
+         table.ready: {{childrenTable.readySubject|async}}<br/>
+         table.loading: {{childrenTable.loadingSubject|async}}<br/>
+         table.visibleRowCount: {{childrenTable.visibleRowCount}}<br/>
+         table.totalRowCount: {{childrenTable.totalRowCount}}<br/>
+       </ng-container>
+     </ion-text>
+      </div>
+    </mat-tab>
+
+    <!-- TAB: sub-gears -->
+    <mat-tab label="{{'TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS'|translate}}"
+             *ngVar="childrenTable; let table"
+             [disabled]="!_showChildrenTable">
+      <ng-template mat-tab-label>
+        <mat-icon>settings</mat-icon>
+        <mat-icon class="icon-secondary" style="left: 12px; top: 7px; font-size: 16px">settings</mat-icon>
+        <ion-label *ngIf="table"
+                   [matBadge]="table.totalRowCount"
+                   [matBadgeHidden]="table.invalid || !table.totalRowCount || table.error"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+          translate>TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger"
+                  *ngIf="table && (table.invalid || !table.totalRowCount)"></ion-icon>
+      </ng-template>
+
+      <app-physical-gears-table #childrenTable
+                                *ngIf="allowChildrenGears"
+                                (ngInit)="$childrenTable.next(childrenTable)"
+                                [programLabel]="programLabel"
+                                [acquisitionLevel]="childAcquisitionLevel"
+                                [showGearColumn]="false"
+                                [defaultGear]="$gear|async"
+                                [canEditGear]="false"
+                                [gearId]="$gearId|async"
+                                [allowChildrenGears]="false"
+                                [requiredGear]="true"
+                                [showToolbar]="!mobile"
+                                [disabled]="disabled"
+                                [i18nColumnSuffix]="'CHILD'"
+                                [mobile]="mobile">
+      </app-physical-gears-table>
+    </mat-tab>
+  </mat-tab-group>
 </ion-content>
+
+
+<!-- Add Fab Button  -->
+<ion-fab vertical="bottom" horizontal="end"
+         *ngIf="enabled && mobile && selectedTabIndex === 1"
+         visible-xs visible-sm visible-mobile>
+  <ion-fab-button color="tertiary" (click)="childrenTable.addRow()">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
 
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
@@ -76,16 +149,16 @@
 
       <!-- buttons -->
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="cancel($event)">
+        <ion-button fill="clear" color="dark" (click)="close($event)">
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
         <ion-button [fill]="form.invalid ? 'clear' : 'solid'"
                     [disabled]="loading || form.invalid"
-                    (keyup.enter)="save($event)"
-                    (click)="save($event)" color="tertiary">
-          <ion-label *ngIf="!isNew" translate>COMMON.BTN_APPLY</ion-label>
-          <ion-label *ngIf="isNew" translate>COMMON.BTN_ADD</ion-label>
+                    (keyup.enter)="saveAndClose($event)"
+                    (click)="saveAndClose($event)" color="tertiary">
+          <ion-label *ngIf="!isNewData" translate>COMMON.BTN_APPLY</ion-label>
+          <ion-label *ngIf="isNewData" translate>COMMON.BTN_ADD</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>

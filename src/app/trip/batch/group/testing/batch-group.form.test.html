@@ -48,6 +48,16 @@
          </mat-autocomplete-field>
        </ion-col>
 
+       <!-- Sampling ratio type -->
+       <ion-col>
+         <mat-form-field>
+           <mat-select (valueChange)="samplingRatioFormat=$event"
+                       [value]="samplingRatioFormat" placeholder="Sampling ratio">
+             <mat-option *ngFor="let item of samplingRatioFormats" [value]="item.key">{{item.value|translate}}</mat-option>
+           </mat-select>
+         </mat-form-field>
+       </ion-col>
+
        <!-- Action buttons -->
        <ion-col size="4" size-md="2">
          <!-- show tree -->
@@ -113,23 +123,6 @@
          </mat-checkbox>
        </ion-col>
 
-       <!-- Sampling ratio type -->
-       <ion-col class="ion-padding">
-         <ion-grid>
-           <ion-row>
-             <ion-col class="ion-float-end" size="auto">
-               <label>Sampling type:&nbsp;</label>
-             </ion-col>
-             <ion-col>
-               <mat-select (valueChange)="samplingRatioType=$event"
-                           [value]="samplingRatioType">
-                 <mat-option *ngFor="let item of samplingRatioTypes" [value]="item.key">{{item.value|translate}}</mat-option>
-               </mat-select>
-             </ion-col>
-           </ion-row>
-         </ion-grid>
-       </ion-col>
-
      </ion-row>
 
    </ion-grid>
@@ -158,9 +151,10 @@
                                 [defaultHasSubBatches]="defaultHasSubBatches"
                                 [hasSubBatches]="hasSubBatches"
                                 [showHasSubBatchesButton]="showHasSubBatchesButton"
-                                [samplingRatioType]="samplingRatioType"
+                                [samplingRatioFormat]="samplingRatioFormat"
                                 [gearId]="$gearId|async"
                                 [usageMode]="'FIELD'"
+                                [mobile]="true"
                                 [debug]="true">
           </app-batch-group-form>
         </ion-col>

@@ -8,7 +8,7 @@
     <ion-buttons slot="end" >
       <!-- Options menu -->
       <button mat-icon-button *ngIf="!loading"
-              [title]="'COMMON.OPTIONS'|translate"
+              [title]="'COMMON.BTN_OPTIONS'|translate"
               [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
@@ -37,11 +37,12 @@
                         [defaultHasSubBatches]="defaultHasSubBatches"
                         [showHasSubBatchesButton]="showHasSubBatchesButton"
                         [maxVisibleButtons]="maxVisibleButtons"
-                        [samplingRatioType]="samplingRatioType"
+                        [samplingRatioFormat]="samplingRatioFormat"
                         [i18nSuffix]="i18nSuffix"
                         (onSubmit)="close($event)"
                         [pmfms]="pmfms"
                         [qvPmfm]="qvPmfm"
+                        [mobile]="mobile"
                         [debug]="debug">
 
       <!-- open individual modal -->

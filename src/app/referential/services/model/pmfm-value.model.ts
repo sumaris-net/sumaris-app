@@ -159,7 +159,7 @@ export abstract class PmfmValueUtils {
             .find(qv => qv.id === qvId) || null;
         }
         // eslint-disable-next-line eqeqeq
-        if (value && value.id == opts.pmfm.defaultValue && opts.hideIfDefaultValue) {
+        if (opts.hideIfDefaultValue && value.id == opts.pmfm.defaultValue) {
           return null;
         }
         let result = value && ((opts.propertyNames && joinPropertiesPath(value, opts.propertyNames)) || value.name || value.label) || null;

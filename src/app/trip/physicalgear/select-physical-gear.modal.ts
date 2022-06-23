@@ -1,20 +1,21 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService, PhysicalGearServiceWatchOptions } from '../services/physicalgear.service';
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN, PhysicalGearService, PhysicalGearServiceWatchOptions } from './physicalgear.service';
 import { TableElement } from '@e-is/ngx-material-table';
-import { PhysicalGear } from '../services/model/trip.model';
 import { IEntitiesService, isNotNil, LocalSettingsService, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
 import { Observable } from 'rxjs';
-import { PhysicalGearFilter } from '../services/filter/physical-gear.filter';
+import { PhysicalGearFilter } from './physical-gear.filter';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
+import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
 
-export interface SelectPhysicalGearModalOptions {
+export interface ISelectPhysicalGearModalOptions {
   allowMultiple?: boolean;
   filter?: PhysicalGearFilter;
   acquisitionLevel?: AcquisitionLevelType;
   programLabel?: string;
   distinctBy?: string[];
+  withOffline?: boolean;
 }
 
 @Component({
@@ -23,12 +24,12 @@ export interface SelectPhysicalGearModalOptions {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
-      provide: PHYSICAL_GEAR_DATA_SERVICE,
+      provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useExisting: PhysicalGearService
     }
   ]
 })
-export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalOptions {
+export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModalOptions {
 
   readonly mobile: boolean;
 
@@ -37,6 +38,7 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
   @Input() acquisitionLevel: AcquisitionLevelType;
   @Input() programLabel: string;
   @Input() distinctBy: string[];
+  @Input() withOffline: boolean;
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;
@@ -48,7 +50,7 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
     private modalCtrl: ModalController,
     private settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE) protected dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) protected dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     this.mobile = settings.mobile;
   }
@@ -65,11 +67,12 @@ export class SelectPhysicalGearModal implements OnInit, SelectPhysicalGearModalO
     this.table.filter = this.filter;
     this.table.dataSource.serviceOptions = <PhysicalGearServiceWatchOptions>{
       distinctBy: this.distinctBy || ['gear.id', 'rankOrder', `measurementValues.${PmfmIds.GEAR_LABEL}`],
-      withOffline: true
+      withOffline: this.withOffline
     };
     this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
     this.table.programLabel = this.programLabel;
     this.table.markAsReady();
+    this.table.onRefresh.emit();
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);

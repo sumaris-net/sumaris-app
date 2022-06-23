@@ -172,4 +172,13 @@ export class OperationFilter extends DataEntityFilter<OperationFilter, Operation
 
     return filterFns;
   }
+
+  protected isCriteriaNotEmpty(key: string, value: any): boolean {
+    switch (key) {
+      case 'tripId':
+        return false; // Ignore tripId
+      default:
+        return super.isCriteriaNotEmpty(key, value);
+    }
+  }
 }

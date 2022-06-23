@@ -8,12 +8,13 @@ import {Landing} from '../../services/model/landing.model';
 import {AcquisitionLevelCodes, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {BatchModal} from './batch.modal';
+import { BatchModal, IBatchModalOptions } from './batch.modal';
 import {environment} from '@environments/environment';
 import {Operation} from '../../services/model/trip.model';
 import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
 import { splitByProperty } from '@sumaris-net/ngx-components';
-import { SamplingRatioType } from '@app/trip/batch/common/batch.form';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;
@@ -32,7 +33,8 @@ export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTableDataType');
+export const DATA_TYPE_TOKEN = new InjectionToken<new() => Batch>('BatchesTableDataType');
+export const FILTER_TYPE_TOKEN = new InjectionToken<new() => BatchFilter>('BatchesTableFilterType');
 
 @Component({
   selector: 'app-batches-table',
@@ -47,8 +49,12 @@ export const DATA_TYPE_ACCESSOR = new InjectionToken<new() => Batch>('BatchesTab
       })
     },
     {
-      provide: DATA_TYPE_ACCESSOR,
+      provide: DATA_TYPE_TOKEN,
       useValue: Batch
+    },
+    {
+      provide: FILTER_TYPE_TOKEN,
+      useValue: BatchFilter
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -101,33 +107,32 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
 
   @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;
-  @Input() samplingRatioType: SamplingRatioType = '%';
+  @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
 
   constructor(
     injector: Injector,
-    validatorService: ValidatorService,
+    @Inject(DATA_TYPE_TOKEN) dataType: new() => T,
+    @Inject(FILTER_TYPE_TOKEN) filterType: new() => F,
     protected memoryDataService: InMemoryEntitiesService<T, F>,
-    @Inject(DATA_TYPE_ACCESSOR) dataType?: new() => T,
+    validatorService: ValidatorService,
     @Optional() options?: AppMeasurementsTableOptions<T>
   ) {
     super(injector,
       dataType || ((Batch as any) as (new() => T)),
+      filterType || ((BatchFilter as any) as (new() => F)),
       memoryDataService,
       validatorService,
       {
         ...options,
-        prependNewElements: false,
-        suppressErrors: environment.production,
         reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
         reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
-        debug: !environment.production,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
+        i18nColumnPrefix: 'TRIP.BATCH.TABLE.',
+        i18nPmfmPrefix: 'TRIP.BATCH.PMFM.'
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.i18nColumnPrefix = 'TRIP.BATCH.TABLE.';
-    this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
     this.inlineEdition = this.validatorService && !this.mobile;
     this.defaultSortBy = 'rankOrder';
     this.defaultSortDirection = 'asc';
@@ -198,29 +203,33 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     return true;
   }
 
-  protected async openDetailModal(batch?: T): Promise<T | undefined> {
-    const isNew = !batch && true;
+  protected async openDetailModal(dataToOpen?: T): Promise<T | undefined> {
+    const isNew = !dataToOpen && true;
     if (isNew) {
-      batch = new this.dataType();
-      await this.onNewEntity(batch);
+      dataToOpen = new this.dataType();
+      await this.onNewEntity(dataToOpen);
     }
 
     this.markAsLoading();
 
     const modal = await this.modalCtrl.create({
       component: BatchModal,
-      componentProps: {
+      componentProps: <Partial<IBatchModalOptions>>{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
-        value: batch,
+        data: dataToOpen,
         isNew,
         qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
         // Not need on a root species batch (fill in sub-batches)
         showTotalIndividualCount: false,
-        showIndividualCount: false
+        showIndividualCount: false,
+        mobile: this.mobile,
+        usageMode: this.usageMode,
+        i18nSuffix: this.i18nColumnSuffix,
+        maxVisibleButtons: 3
       },
       keyboardClose: true
     });

@@ -319,7 +319,7 @@
   </nav>
 
   <!-- table -->
-  <div class="table-container" [class.has-offline-nav]="hasOfflineMode">
+  <div #tableContainer class="table-container" [class.has-offline-nav]="hasOfflineMode">
 
     <table mat-table  matSort matSortDisableClear
            [dataSource]="dataSource"

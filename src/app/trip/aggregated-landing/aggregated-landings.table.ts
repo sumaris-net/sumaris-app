@@ -33,6 +33,7 @@ import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 const moment = momentImported;
 
@@ -191,6 +192,10 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
 
     // Wait pmfms load, and controls load
     await firstNotNilPromise(this.$pmfms);
+  }
+
+  trackPmfmFn(index: number, pmfm: IPmfm): any {
+    return pmfm.id;
   }
 
   setParent(parent: ObservedLocation|undefined) {

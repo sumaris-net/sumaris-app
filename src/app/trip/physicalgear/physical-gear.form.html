@@ -1,18 +1,19 @@
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)" cdkTrapFocus>
 
-  <ion-item *ngIf="error" lines="none">
+<form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)" >
+
+  <ion-item *ngIf="showError && error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <!-- GEAR -->
   <mat-autocomplete-field #firstInput
+                          *ngIf="showGear"
                           formControlName="gear"
-                          [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translate"
+                          [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translateContext: i18nSuffix"
                           [config]="autocompleteFields.gear"
                           [tabindex]="tabindex"
                           [required]="true"
-                          [readonly]="!canEditGear"
                           [showSearchBar]="$gears|async|isArrayLength:{greaterThan: 5}"
                           (focusout)="focusNextInput($event)">
   </mat-autocomplete-field>
@@ -27,7 +28,7 @@
            pattern="[0-9]*"
            min="1"
            (click)="selectInputContent($event)"
-           [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER'|translate"
+           [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER'|translateContext: i18nSuffix"
            [tabindex]="tabindex + 1">
 
     <mat-error *ngIf="form.controls.rankOrder.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -39,35 +40,45 @@
 
   <ng-content></ng-content>
 
-  <!-- DEBUG
-  <ion-col no-padding size="6" *ngFor="let pmfm of $pmfms | async">
-    {{pmfm.name}}
-  </ion-col>-->
-
+      <!-- DEBUG
+      <ion-col class="ion-no-padding" size="6" *ngFor="let pmfm of $pmfms | async">
+        {{pmfm.name}}
+      </ion-col>-->
   <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col size="12" size-md="6" *ngFor="let pmfm of pmfms; index as i; last as last" #inputField>
 
-    <!-- Measurements -->
-    <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last" #inputField
-                    [pmfm]="pmfm"
-                    [controlName]="pmfm|pmfmIdString"
-                    [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
-                    [compact]="compact"
-                    [tabindex]="tabindex+2 + i*2"
-                    [floatLabel]="floatLabel"
-                    (keydown.tab)="focusNextInput($event)"
-                    (keydown.enter)="focusNextInput($event)"
-                    [mobile]="mobile">
-    </app-pmfm-field>
+          <!-- Measurements -->
+          <app-pmfm-field
+                          [pmfm]="pmfm"
+                          [controlName]="pmfm|pmfmIdString"
+                          [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
+                          [compact]="compact"
+                          [tabindex]="tabindex+2 + i*2"
+                          [floatLabel]="floatLabel"
+                          [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
+                          (keydown.tab)="focusNextInput($event)"
+                          (keydown.enter)="focusNextInput($event)"
+                          [mobile]="mobile">
+          </app-pmfm-field>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   </form>
 
-  <!-- Comments -->
+  <ion-item lines="none" class="ion-no-padding" *ngIf="mobile" (click)="toggleComment()" tappable>
+    <ion-toggle [checked]="showComment" [disabled]="disabled"></ion-toggle>
+    <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+  </ion-item>
+
   <mat-form-field appearance="outline" *ngIf="showComment">
     <textarea matInput #comments #inputField
+              [formControl]="form|formGetControl:'comments'"
+              [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
               matTextareaAutosize="true"
               matAutosizeMinRows="4"
               maxlength="2000"
-              [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
-              formControlName="comments"
               tabindex="100"
               (keydown.tab)="focusNextInput($event)"
               (keydown.enter)="onSubmit.emit($event)">
@@ -75,7 +86,6 @@
     <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
     <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
   </mat-form-field>
-
 </form>
 
 <ng-template #measurementsSkeleton>
@@ -86,7 +96,7 @@
 </ng-template>
 
 <ng-template #measurementSkeleton>
-  <mat-form-field>
+  <mat-form-field class="mat-form-field-disabled">
     <input matInput hidden>
     <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
   </mat-form-field>

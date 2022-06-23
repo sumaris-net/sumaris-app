@@ -238,16 +238,19 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     console.debug(`[extraction-form] Downloading ${this.type.category} ${this.type.label}...`);
 
     this.markAsLoading();
-    this.error = null;
+    this.resetError();
+
+    // Get filter
     const filter = this.getFilterValue();
     delete filter.sheetName; // Force to download all sheets
+
     this.disable();
 
     try {
       // Download file
-      const file = await this.service.downloadFile(this.type, filter);
-      if (isNotNil((file))) {
-        this.platform.open(file);
+      const uri = await this.service.downloadFile(this.type, filter);
+      if (isNotNil((uri))) {
+        await this.platform.download({uri});
       }
 
     } catch (err) {
@@ -307,6 +310,13 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
 
 
   /* -- protected method -- */
+
+  protected resetError(opts = {emitEvent: true}) {
+    this.error = null;
+    if (opts.emitEvent !== false){
+      this.markForCheck();
+    }
+  }
 
   protected abstract watchAllTypes(): Observable<LoadResult<T>>;
 

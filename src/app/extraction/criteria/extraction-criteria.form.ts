@@ -14,7 +14,7 @@ import {FormFieldDefinition, FormFieldType} from "@sumaris-net/ngx-components";
 import {AccountService}  from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {AppForm}  from "@sumaris-net/ngx-components";
-import { AppFormUtils } from '@sumaris-net/ngx-components/src/app/core/form/form.utils';
+import { AppFormUtils } from '@sumaris-net/ngx-components';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';

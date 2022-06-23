@@ -27,7 +27,7 @@ import {
   StatusIds,
   suggestFromArray,
   toBoolean,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
 import { Program } from '../../services/model/program.model';
@@ -43,7 +43,7 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramPrivilegeIds,
-  TaxonomicLevelIds,
+  TaxonomicLevelIds
 } from '../../services/model/model.enum';
 import { ProgramProperties } from '../../services/config/program.config';
 import { BehaviorSubject, merge } from 'rxjs';
@@ -203,14 +203,14 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
     return this.form.untouched;
   }
 
-  $filteredAnalyticsReferences: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
-  $filteredLocations: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
-  $filteredDepartments: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  $filteredAnalyticsReferences: BehaviorSubject<IReferentialRef[]> = new BehaviorSubject(null);
+  $filteredLocations: BehaviorSubject<IReferentialRef[]> = new BehaviorSubject(null);
+  $filteredDepartments: BehaviorSubject<IReferentialRef[]> = new BehaviorSubject(null);
   $filteredTaxonNames: BehaviorSubject<TaxonNameRef[]> = new BehaviorSubject(null);
-  $filteredLengthPmfms: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
-  $filteredWeightPmfms: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
-  $filteredMaturityPmfms: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
-  $filteredFractionPmfms: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
+  $filteredLengthPmfms: BehaviorSubject<IReferentialRef[]> = new BehaviorSubject(null);
+  $filteredWeightPmfms: BehaviorSubject<IReferentialRef[]> = new BehaviorSubject(null);
+  $filteredMaturityPmfms: BehaviorSubject<IReferentialRef[]> = new BehaviorSubject(null);
+  $filteredFractionPmfms: BehaviorSubject<IReferentialRef[]> = new BehaviorSubject(null);
 
   $allFractions: BehaviorSubject<ReferentialRef[]> = new BehaviorSubject(null);
 
@@ -594,7 +594,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
       // Analytic References
       this.strategyService.loadStrategiesReferentials(program.id, 'AnalyticReference', undefined, 0, fetchSize)
-        .then(analyticReferences => {
+        .then((analyticReferences: ReferentialRef[]) => {
           analyticReferences = removeDuplicatesFromArray(analyticReferences, 'id');
           this.$filteredAnalyticsReferences.next(analyticReferences);
           this.autocompleteFilters.analyticReference = autoEnableFilter && isNotEmptyArray(analyticReferences); // Enable filtering, if need by program
@@ -606,7 +606,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
       // Departments
       this.strategyService.loadStrategiesReferentials(program.id, 'Department', undefined, 0, fetchSize)
-        .then(departments => {
+        .then((departments : ReferentialRef[]) => {
           this.$filteredDepartments.next(departments);
           this.autocompleteFilters.department = autoEnableFilter && isNotEmptyArray(departments); // Enable filtering, if need by program
         })
@@ -627,9 +627,9 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
         }),
 
       // Taxons
-      this.strategyService.loadStrategiesReferentials(program.id, 'TaxonName', undefined, 0, fetchSize)
+      this.strategyService.loadStrategiesReferentials<TaxonNameRef>(program.id, 'TaxonName', undefined, 0, fetchSize)
         .then(taxons => {
-          this.$filteredTaxonNames.next(taxons as TaxonNameRef[]);
+          this.$filteredTaxonNames.next(taxons);
           this.autocompleteFilters.taxonName = autoEnableFilter && isNotEmptyArray(taxons); // Enable filtering, if need by program
         })
         .catch(err => {
@@ -660,7 +660,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
       // Fractions pmfm
       this.strategyService.loadStrategiesReferentials(program.id, 'Fraction', undefined, 0, fetchSize)
-        .then(fractions => {
+        .then((fractions: ReferentialRef[]) => {
           this.$filteredFractionPmfms.next(fractions);
           this.autocompleteFilters.fractionPmfm = autoEnableFilter && isNotEmptyArray(fractions); // Enable filtering, if need by program
         })

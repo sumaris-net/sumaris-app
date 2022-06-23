@@ -28,6 +28,7 @@
     "BTN_YES_DELETE": "Oui, supprimer",
     "BTN_YES_CONTINUE": "Oui, continuer",
     "BTN_VALIDATE": "Valider",
+    "BTN_VALIDATE_AND_CLOSE": "Valider et fermer",
     "BTN_VALIDATE_WITH_SHORTCUT_HELP": "Valider (Ctrl+Entrée)",
     "BTN_VALIDATE_AND_CONTINUE": "Valider et continuer",
     "BTN_VALIDATE_AND_NEW": "Valider et nouveau",
@@ -133,6 +134,9 @@
     "DEBUG": {
       "BTN_COPY_LOCALLY": "Copier en local",
       "BTN_AUTO_FILL": "Remplissage auto"
+    },
+    "HELP": {
+      "TITLE": "Aide en ligne"
     }
   },
   "CONFIGURATION": {
@@ -213,7 +217,8 @@
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Référentiel > Niveau de lieu > Rectangle statistique CIEM/ICES",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Référentiel > Niveau de lieu > Division CIEM/ICES",
         "LOCATION_LEVEL_LOCATIONS_AREA_IDS": "Référentiel > Niveau(x) de lieu pour les zones de pêche (ids)",
-        "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Stratégie > Niveau(x) de lieu pour les zones des RTP (ids)",
+        "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Référentiel > Niveau(x) de lieu pour les zones des RTP (ids)",
+        "ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID": "Référentiel > Pays par défaut pour les équivalents poids vifs (id)",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Référentiel > Niveau taxinomique > Famille",
         "TAXONOMIC_LEVEL_GENUS_ID": "Référentiel > Niveau taxinomique > Genre",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Référentiel > Niveau taxinomique > Espèce",
@@ -521,7 +526,9 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
-      "EXPORT_FILENAME": "Marées.json",
+      "BTN_DOWNLOAD_DOTS": "Assistant de téléchargement...",
+      "BTN_DOWNLOAD_JSON": "Télécharger (JSON)",
+      "DOWNLOAD_JSON_FILENAME": "Marées.json",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
         "START_DATE": "Début de période",
@@ -539,8 +546,11 @@
         "SYNC_HELP": "Marées synchronisées"
       },
       "INFO": {
-        "IMPORT_FILE_SUCCEED" : "Importation des marées terminée :<br><b>{{inserts}} marée(s) importée(s) !",
-        "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Importation des marées terminée :<br><ul><li>{{inserts}} importée(s);<li>{{errors}} ignorée(s)"
+        "IMPORT_FILE_SUCCEED" : "Importation terminée :<br><b>{{inserts}} marée(s) importée(s) !",
+        "IMPORT_FILE_SUCCEED_WITH_ERRORS" : "Importation terminée :<br><ul><li>{{inserts}} marée(s) importée(s);<li>{{errors}} marée(s) ignorée(s)."
+      },
+      "WARNING": {
+        "NEED_ONE_PROGRAM": "Veuillez d'abord <b>filtrer sur un programme</b> de collecte."
       },
       "ERROR": {
         "IMPORT_FILE_FAILED" : "<b>Aucune marée n'a pu être importée</b> !<br/><small>Erreur technique: {{error}}</small>"
@@ -575,15 +585,25 @@
       "RANK_ORDER": "#",
       "SEARCH_EXISTING_BTN": "Chercher parmi les données déjà saisis",
       "NEW": {
-        "TITLE": "Nouvel engin"
+        "TITLE": "Nouvel engin",
+        "CHILD": {
+          "TITLE": "Nouveau sous-engin"
+        }
       },
       "EDIT": {
-        "TITLE": "Engin #{{rankOrder}}",
+        "TITLE": "Engin {{label}}",
         "GEAR": "Code de l'engin",
         "RANK_ORDER": "Numéro de l'engin",
-        "FEATURES": "Caractéristiques physiques :"
+        "FEATURES": "Caractéristiques physiques :",
+        "TAB_GENERAL": "Détails",
+        "TAB_SUB_GEARS": "Sous-engins",
+        "CHILD": {
+          "GEAR": "Code du sous-engin",
+          "RANK_ORDER": "Numéro du sous-engin",
+          "TITLE": "Sous-engin {{label}}"
+        }
       },
-      "LIST": {
+      "TABLE": {
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
         "LAST_USED": "Dernière utilisation",
@@ -595,6 +615,12 @@
       },
       "SELECT_MODAL": {
         "TITLE": "Engins existants"
+      },
+      "PMFM": {
+        "GEAR_LABEL": "Libellé de l'engin",
+        "CHILD": {
+          "GEAR_LABEL": "Libellé du sous-engin"
+        }
       },
       "ERROR": {
         "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins.",
@@ -695,6 +721,8 @@
       },
       "MAP": {
         "TITLE": "Carte des positions",
+        "TRIP_LAYER_WITH_DETAILS": "{{vessel}} - Marée {{departureDateTime}}",
+        "OPERATIONS_LAYER_WITH_DETAILS": "{{trip}} - Opérations",
         "TRIP_LAYER": "Marée",
         "OPERATIONS_LAYER": "Opérations"
       },
@@ -728,7 +756,7 @@
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
-        "MISSING_PARENT_OPERATION": "Opération parente supprimée",
+        "MISSING_PARENT_OPERATION": "Opération associée inexistante",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
         "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)",
@@ -875,7 +903,7 @@
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
         "AUCTION_CONTROL": {
-          "TITLE": "Lot {{label}}",
+          "TITLE": "Lot n°{{label}}",
           "LABEL_PLACEHOLDER": "Numéro du lot"
         },
         "ACCIDENTAL_CATCH": {
@@ -911,8 +939,8 @@
         "BTN_INDIVIDUAL_MONITORING": "Saisir le sous-prélèvement",
         "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
         "AUCTION_CONTROL": {
-          "LABEL": "Lot",
-          "LABEL_PLACEHOLDER": "Lot"
+          "LABEL": "N° Lot",
+          "LABEL_PLACEHOLDER": "N° Lot"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Mesures individuelles",
@@ -922,7 +950,8 @@
         "SURVIVAL_TEST": {
           "TAB_SAMPLES": "Mesures individuelles",
           "TAB_SUB_SAMPLES": "Suivi individuel",
-          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel"
+          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
+          "TAG_COUNT": "<b>{{tagCount}}</b> Tag-ID"
         }
       },
       "PMFM_GROUP": {
@@ -934,17 +963,20 @@
         "OTHER": "Autre"
       },
       "PMFM": {
+        "ACCIDENTAL_CATCH": {
+          "MEASURE_TIME": "Date de remise à l'eau",
+          "IS_DEAD": "Mort ?",
+          "TAG_ID": "Référence de la marque"
+        },
+        "AUCTION_CONTROL": {
+          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon (kg)"
+        },
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Date de remise à l'eau",
           "ACCIDENTAL_CATCH": {
             "MEASURE_TIME": "Heure de remise à l'eau",
             "TAG_ID": "Référence de la marque"
           }
-        },
-        "ACCIDENTAL_CATCH": {
-          "MEASURE_TIME": "Date de remise à l'eau",
-          "IS_DEAD": "Mort ?",
-          "TAG_ID": "Référence de la marque"
         },
         "SAMPLING": {
           "TAG_ID": "Code prélèvement",
@@ -987,8 +1019,8 @@
     }
   },
   "EXPECTED_SALE": {
-    "FEATURES": "Caractéristiques:",
-    "CALCULATED_TOTAL": "Total calculé:"
+    "FEATURES": "Caractéristiques :",
+    "CALCULATED_TOTAL": "Total calculé :"
   },
   "SALE": {
     "TITLE": "Vente",
@@ -1046,6 +1078,9 @@
       "OBSERVERS": "Observateurs :",
       "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
       "FISHING_AREAS": "Zones de pêche :",
+      "AUCTION_CONTROL": {
+        "TITLE": "{{location}} - Contrôle du {{dateTime}}"
+      },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
         "TAB_LANDINGS": "Échantillonnages"
@@ -1576,6 +1611,7 @@
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
       "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
       "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
+      "I18N_SUFFIX_AUCTION_CONTROL": "Contrôle criée",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
@@ -1585,18 +1621,19 @@
       "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
+      "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
       "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",
       "TRIP_MAP_ZOOM": "Marée > Carte: Niveau du zoom",
       "TRIP_MIN_DURATION_HOURS": "Marée > Durée minimale (heures)",
       "TRIP_MAX_DURATION_HOURS": "Marée > Durée maximale (heures)",
-      "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplisage ?",
+      "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplissage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientifiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: Calcul auto nb indiv. échantillonné ?",
-      "TRIP_BATCH_SAMPLING_RATIO_TYPE": "Capture > Lot espèce: Format de saisie de la fraction",
       "TRIP_BATCH_ENABLE": "Capture > Lot espèce: Activer ?",
+      "TRIP_BATCH_SAMPLING_RATIO_FORMAT": "Capture > Lot espèce: Format de la fraction",
       "TRIP_BATCH_MEASURE_ENABLE": "Capture > Lot espèce : Activer les mesures individuelles ?",
       "TRIP_BATCH_WEIGHT_ENABLE": "Capture > Lot espèce : Saisir les poids ?",
       "TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE": "Capture > Mesures individuelles : Réordonné à la sauvegarde ?",
@@ -2063,7 +2100,7 @@
       "CA": "Sex-Age",
       "CL": "Débarquements",
       "CE": "Efforts",
-      "ST": "Tests de survie",
+      "ST": "Mesures individuelles",
       "RL": "Relâché"
     },
     "OPTIONS": {

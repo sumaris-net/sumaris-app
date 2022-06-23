@@ -41,7 +41,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import * as momentImported from 'moment';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
@@ -332,7 +332,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     // Emit program, strategy
     if (programLabel) this.$programLabel.next(programLabel);
-    if (strategyLabel) this.$strategyLabel.next('20LEUCCIR003');
+    if (strategyLabel) this.$strategyLabel.next(strategyLabel);
   }
 
   protected async setProgram(program: Program) {
@@ -357,11 +357,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
     if (this.samplesTable) {
       this.samplesTable.i18nColumnSuffix = i18nSuffix;
-      this.samplesTable.modalOptions = {
-        ...this.samplesTable.modalOptions,
-        maxVisibleButtons: program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS)
-      };
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
+      this.samplesTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
       this.samplesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT);
 
       // Send programLabel to samples tables: will start loading pmfms
@@ -402,7 +399,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.landingForm.enableFishingAreaFilter = isNotEmptyArray(fishingAreaLocations); // Enable filter should be done AFTER setting locations, to reload items
 
     // Configure samples table
-    if (this.samplesTable) {
+    if (this.samplesTable && this.samplesTable.acquisitionLevel) {
       this.samplesTable.strategyLabel = strategy.label;
       const taxonNameStrategy = firstArrayValue(strategy.taxonNames);
       this.samplesTable.defaultTaxonName = taxonNameStrategy && taxonNameStrategy.taxonName;
@@ -437,6 +434,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
       // Give it to samples table (but exclude STRATEGY_LABEL)
       this.samplesTable.pmfms = samplesPmfms.filter(p => p.id !== PmfmIds.STRATEGY_LABEL);
+      // Avoid to load by program, because PMFM are already known
+      //this.samplesTable.programLabel = this.$programLabel.value;
     }
 
     this.markAsReady();

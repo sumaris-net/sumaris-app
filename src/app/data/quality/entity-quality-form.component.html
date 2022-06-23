@@ -57,11 +57,17 @@
   </ion-button>
 
 
-  <ion-button *ngIf="canValidate" (click)="validate($event)" expand="block" color="success">
+  <ion-button *ngIf="canValidate"
+              expand="block" color="success"
+              [disabled]="busy"
+              (click)="validate($event)">
     <ion-icon slot="start" name="checkmark-circle" class="ion-float-start"></ion-icon>&nbsp;
     <ion-text translate>QUALITY.BTN_VALIDATE</ion-text>
   </ion-button>
-  <ion-button *ngIf="canUnvalidate" (click)="unvalidate($event)" expand="block" color="light">
+  <ion-button *ngIf="canUnvalidate"
+              expand="block" color="light"
+              [disabled]="busy"
+              (click)="unvalidate($event)">
     <ion-text color="danger" translate>QUALITY.BTN_UNVALIDATE</ion-text>
   </ion-button>
 

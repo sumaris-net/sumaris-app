@@ -91,7 +91,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     protected injector: Injector
   ) {
     super(injector,
-      Sample,
+      Sample, SampleFilter,
       new InMemoryEntitiesService(Sample, SampleFilter, {
         onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
@@ -289,9 +289,11 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // DEBUG
     console.debug('[sub-samples-table] Mapping PMFMs...', pmfms);
 
-    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID)
-    const tagIdPmfm = tagIdPmfmIndex!== -1 && pmfms[tagIdPmfmIndex];
-    this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
+    const tagIdPmfmIndex = pmfms.findIndex(p => p.id === PmfmIds.TAG_ID);
+    if (tagIdPmfmIndex !== -1) {
+      const tagIdPmfm = pmfms[tagIdPmfmIndex];
+      this.displayParentPmfm = tagIdPmfm?.required ? tagIdPmfm : null;
+    }
 
     // Force the parent PMFM to be hidden, and NOT required
     if (this.displayParentPmfm && !this.displayParentPmfm.hidden) {
@@ -320,10 +322,10 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
 
     // If display parent using by a pmfm
     if (this.displayParentPmfm) {
-      const parentDisplayPmfmIdStr = this.displayParentPmfm.id.toString();
-      const parentDisplayPmfmPath = `measurementValues.${parentDisplayPmfmIdStr}`;
-      // Keep parents without this pmfms
-      const filteredParents = parents.filter(s => isNotNil(s.measurementValues[parentDisplayPmfmIdStr]));
+      const parentDisplayPmfmId = this.displayParentPmfm.id;
+      const parentDisplayPmfmPath = `measurementValues.${parentDisplayPmfmId}`;
+      // Keep parents with this pmfms
+      const filteredParents = parents.filter(s => isNotNil(s.measurementValues[parentDisplayPmfmId]));
       this._availableSortedParents = EntityUtils.sort(filteredParents, parentDisplayPmfmPath);
 
       this.autocompleteFields.parent.attributes = [parentDisplayPmfmPath].concat(baseDisplayAttributes);
@@ -331,9 +333,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         // If label then col size = 2
         attr.endsWith('label') ? 2 : undefined));
       this.autocompleteFields.parent.columnNames = [PmfmUtils.getPmfmName(this.displayParentPmfm)];
-      this.autocompleteFields.parent.displayWith = (obj) => obj && obj.measurementValues
-        && PmfmValueUtils.valueToString(obj.measurementValues[parentDisplayPmfmIdStr], {pmfm: this.displayParentPmfm})
-        || undefined;
+      this.autocompleteFields.parent.displayWith = (obj) => PmfmValueUtils.valueToString(obj?.measurementValues[parentDisplayPmfmId], {pmfm: this.displayParentPmfm}) || undefined;
     }
     else {
       const displayAttributes = ['rankOrder'].concat(baseDisplayAttributes);
@@ -427,10 +427,10 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     //console.debug("[sub-samples-table] Calling linkDataToParent()");
 
     data.forEach(s => {
-      s.parent = this._availableParents.find(p => Sample.equals(p, {
-        id: toNumber(s.parentId, s.parent && s.parent.id),
-        label: s.parent && s.parent.label
-      }));
+      const parentId = toNumber(s.parentId, s.parent?.id);
+      s.parent = this._availableParents.find(p => p.id === parentId
+        || (s.parent && p.label === s.parent.label && p.rankOrder === s.parent.rankOrder))
+        || s.parent;
       if (!s.parent) console.warn("[sub-samples-table] linkDataToParent() - Could not found parent for sub-sample:", s);
     });
   }
@@ -450,7 +450,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     const data = rows
       .filter(row => {
         const item = row.currentData;
-        const parentId = item.parentId || (item.parent && item.parent.id);
+        const parentId = toNumber(item.parentId, item.parent?.id);
 
         let parent;
         if (isNotNil(parentId)) {

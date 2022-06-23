@@ -36,14 +36,15 @@
 
     <!-- Measurements -->
     <ion-row class="ion-no-padding" [formGroup]="measurementValuesForm">
-      <ion-col *ngFor="let pmfm of $pmfms | async; index as i;"
+      <ion-col *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn; index as i;"
                size="12" class="ion-no-padding">
           <app-pmfm-field #matInput [pmfm]="pmfm"
                           [hidden]="pmfm.hidden || matInput.formControl?.disabled"
                           [controlName]="pmfm|pmfmIdString"
                           [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
                           [compact]="compact"
-                          [tabindex]="tabindex+2 + i*2">
+                          [tabindex]="tabindex+2 + i*2"
+                          [maxVisibleButtons]="maxVisibleButtons">
           </app-pmfm-field>
       </ion-col>
     </ion-row>
@@ -58,8 +59,7 @@
                         [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                         [compact]="compact"
                         [tabindex]="tabindex+28"
-                        [listenStatusChanges]="true"
-                        [required]="requiredWeight">
+                        [listenStatusChanges]="true">
         </app-pmfm-field>
 
       </ion-col>
@@ -127,6 +127,7 @@
       <ng-container *ngFor="let samplingBatchForm of children.controls; index as index" >
         <ng-container *ngVar="{
                             samplingRatio: samplingBatchForm|formGetControl:'samplingRatio',
+                            samplingRatioText: samplingBatchForm|formGetControl:'samplingRatioText',
                             samplingRatioComputed: samplingBatchForm|formGetControl:'samplingRatioComputed',
                             weightValue: samplingBatchForm|formGetControl: 'weight.value',
                             weightComputed: samplingBatchForm|formGetControl: 'weight.computed',
@@ -166,57 +167,13 @@
           <ion-row class="ion-no-padding" >
 
             <!-- Sampling ratio -->
-            <ion-col size="4" class="ion-no-padding" [ngSwitch]="samplingRatioType">
-
-              <!-- Percent -->
-              <ng-container *ngSwitchCase="'%'">
-                <mat-form-field [class.computed]="controls.samplingRatioComputed.value">
-                  <input matInput
-                         autocomplete="off"
-                         [formControl]="controls.samplingRatio"
-                         [readonly]="controls.samplingRatioComputed.value"
-                         type="number"
-                         step="1"
-                         pattern="[0-9]{1,3}([.][0-9]{0,2})?"
-                         min="0" max="100"
-                         (click)="selectInputContent($event)"
-                         [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_RATIO_PCT'|translate"
-                         [tabindex]="tabindex + 32">
-
-                  <mat-error *ngIf="controls.samplingRatio.touched && controls.samplingRatio.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
-                    <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-                    <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: controls.samplingRatio.errors.min }}</span>
-                    <span *ngSwitchCase="'max'">
-                      {{'ERROR.FIELD_MAX' | translate: controls.samplingRatio.errors.max }}</span>
-                    <span *ngSwitchCase="'pattern'">
-                      {{ 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT'| translate:{maxDecimals: 2} }}</span>
-                  </mat-error>
-                </mat-form-field>
-              </ng-container>
-
-              <!-- Sampling coefficient (1/w) -->
-              <ng-container *ngSwitchCase="'1/w'">
-                <mat-form-field [class.computed]="controls.samplingRatioComputed.value">
-                  <ion-text class="prefix-label">1/</ion-text>
-                  <input matInput style="width: 80%"
-                         autocomplete="off"
-                         [formControl]="controls.samplingRatio"
-                         [readonly]="controls.samplingRatioComputed.value"
-                         type="text"
-                         pattern="[0-9]{1,3}([.][0-9]{0,2})?"
-                         (click)="selectInputContent($event)"
-                         [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_COEFFICIENT'|translate"
-                         [tabindex]="tabindex + 32">
-                  <mat-error *ngIf="controls.samplingRatio.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
-                    <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-                    <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: controls.samplingRatio.errors.min }}</span>
-                    <span *ngSwitchCase="'pattern'">
-                      {{ 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT'| translate:{maxDecimals: 2} }}</span>
-                    <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
-                  </mat-error>
-                </mat-form-field>
-              </ng-container>
-
+            <ion-col size="4" class="ion-no-padding">
+              <mat-sampling-ratio-field [class.computed]="controls.samplingRatioComputed.value"
+                                        [readonly]="controls.samplingRatioComputed.value"
+                                        [formControl]="controls.samplingRatio"
+                                        [format]="samplingRatioFormat"
+                                        [tabindex]="tabindex + 32">
+              </mat-sampling-ratio-field>
             </ion-col>
 
             <!-- Sampling weight -->
@@ -230,7 +187,11 @@
                               [compact]="compact"
                               [tabindex]="tabindex+33"
                               [listenStatusChanges]="true">
+
+                <!--<ion-button matSuffix>RTP</ion-button>
+                <mat-hint>0.026</mat-hint>-->
               </app-pmfm-field>
+
             </ion-col>
 
             <!-- Sampling individual count -->
@@ -251,9 +212,8 @@
             <!-- DEBUG -->
             <ion-col size="12" *ngIf="debug">
               <ion-text color="primary">
-                Sampling ratio: {{controls.samplingRatio.value}}
-                {{controls.samplingRatioComputed.value ? '(computed)' : ''}} (type: {{samplingRatioType||'null'}})<br/>
-                Sampling ratio text: {{(samplingBatchForm|formGetControl:'samplingRatioText').value }}<br/>
+                Sampling ratio: {{controls.samplingRatio.value}} <br/>
+                Sampling ratio text: {{controls.samplingRatioText.value}} (type: {{samplingRatioFormat||'null'}}{{ (controls.samplingRatioComputed.value) ? ', computed' : ''}})<br/>
                 Sampling weight: {{controls.weightValue.value }} {{controls.weightComputed.value?'(computed)':'' }}<br/>
                 Sampling children weight: {{controls.childrenWeightValue.value }} {{controls.childrenWeightComputed.value?'(computed)':'' }}<br/>
                 <br/>

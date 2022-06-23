@@ -11,7 +11,7 @@ import {
   EntitySaveOptions,
   EntityUtils,
   fromDateISOString,
-  GraphqlService,
+  IReferentialRef,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -19,7 +19,6 @@ import {
   isNotNil,
   LoadResult,
   NetworkService,
-  PlatformService,
   Referential,
   ReferentialRef,
   ReferentialUtils,
@@ -158,8 +157,8 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
 };
 
 const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
-  listenChanges: gql`subscription UpdateReferential($entityName: String!, $id: Int!, $interval: Int){
-    updateReferential(entityName: $entityName, id: $id, interval: $interval) {
+  listenChanges: gql`subscription UpdateReferential($id: Int!, $interval: Int){
+    updateReferential(entityName: "Strategy", id: $id, interval: $interval) {
       ...ReferentialFragment
     }
   }
@@ -240,17 +239,18 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return res && res.data;
   }
 
-  async loadStrategiesReferentials(programId: number,
-                               entityName: string,
-                               locationClassification?: string,
-                               offset?: number,
-                               size?: number,
-                               sortBy?: string,
-                               sortDirection?: SortDirection
-                               ): Promise<ReferentialRef[]> {
-    if (this._debug) console.debug(`[strategy-service] Loading strategies referentials (predoc) for ${entityName}...`);
+  async loadStrategiesReferentials<T extends IReferentialRef = ReferentialRef>(
+       programId: number,
+       entityName: string,
+       locationClassification?: string,
+       offset?: number,
+       size?: number,
+       sortBy?: string,
+       sortDirection?: SortDirection
+       ): Promise<T[]> {
+    if (this._debug) console.debug(`[strategy-service] Loading strategies referential (predoc) for ${entityName}...`);
 
-    const res = await this.graphql.query<LoadResult<ReferentialRef>>({
+    const res = await this.graphql.query<LoadResult<T>>({
       query: FindStrategiesReferentials,
       variables: {
         programId: programId,
@@ -265,7 +265,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       fetchPolicy: 'network-only'
     });
 
-    return (res && res.data || []) as ReferentialRef[];
+    return (res?.data || []) as T[];
   }
 
   async loadAllAnalyticReferences(

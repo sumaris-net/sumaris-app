@@ -34,9 +34,9 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
 
   static fromObject: (source, opts?: SampleFromObjectOptions) => Sample;
 
-  static fromObjectArrayAsTree(source: any[]): Sample[] {
+  static fromObjectArrayAsTree(source: any[], opts?: SampleFromObjectOptions): Sample[] {
     if (!source) return null;
-    const samples = (source || []).map((json) => Sample.fromObject(json, {withChildren: false}));
+    const samples = (source || []).map((json) => Sample.fromObject(json, {...opts, withChildren: false}));
     // Link to parent (using parentId)
     samples.forEach(s => {
       s.parent = isNotNil(s.parentId) && samples.find(p => p.id === s.parentId) || undefined;
@@ -62,7 +62,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     return sources && sources
       // Reduce to array
       .reduce((res, source) => {
-        // Convert entity into object, WITHOUT children (will be add later)
+        // Convert entity into object, WITHOUT children (will be set later)
         const target = source.asObject ? source.asObject({...opts, withChildren: false}) : {...source, children: undefined};
 
         // Link target with the given parent
@@ -99,7 +99,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   sampleDate: Moment = null;
   individualCount: number = null;
   taxonGroup: TaxonGroupRef  = null;
-  taxonName: ReferentialRef = null;
+  taxonName: TaxonNameRef = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = {};
   matrixId: number = null;
   batchId: number = null;

@@ -1,5 +1,3 @@
-import { isNil } from '@sumaris-net/ngx-components';
-
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
 }
@@ -167,7 +165,7 @@ export const autoCompleteFractions = {
 }
 
 export const ParameterLabelGroups = {
-  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */, 'DRESSING'],
+  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */, 'DRESSING', 'PRESERVATION'],
   LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
   WEIGHT: ['WEIGHT'],
   SEX: ['SEX'],
@@ -177,6 +175,15 @@ export const ParameterLabelGroups = {
   DRESSING: ['DRESSING'],
   PRESERVATION: ['PRESERVATION']
 };
+// Remove duplication in label
+export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups).reduce((res, key) => {
+  const labels = ParameterLabelGroups[key]
+    // Exclude label already in another previous group
+    .filter(label => !Object.values(res).some((previousLabels: string[]) => previousLabels.includes(label)));
+  // Add to result, only if not empty
+  if (labels.length) res[key] = labels;
+  return res;
+}, {})
 
 export const FractionIdGroups = {
   CALCIFIED_STRUCTURE: [10, 11, 12, 13]
@@ -260,13 +267,14 @@ export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => 
   };
 });
 
-export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
+export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CHILD_PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
   | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' | 'CHILD_OPERATION' ;
 
 export const AcquisitionLevelCodes = {
   TRIP: <AcquisitionLevelType>'TRIP',
   PHYSICAL_GEAR: <AcquisitionLevelType>'PHYSICAL_GEAR',
+  CHILD_PHYSICAL_GEAR: <AcquisitionLevelType>'CHILD_PHYSICAL_GEAR',
   OPERATION: <AcquisitionLevelType>'OPERATION',
   CATCH_BATCH: <AcquisitionLevelType>'CATCH_BATCH',
   SORTING_BATCH: <AcquisitionLevelType>'SORTING_BATCH',
