@@ -1,17 +1,26 @@
-import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { isNotNil } from '@sumaris-net/ngx-components';
 
 function getSortingMeasValues(opts?: {
+  gearPosition?: 'B'|'T';
   weight?: number;
-  discardOrLanding: 'LAN'|'DIS';
+  discardOrLanding?: 'LAN'|'DIS';
 }) {
-  opts = {
-    discardOrLanding: 'LAN',
-    ...opts
-  }
+
   const res = {};
 
-  res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
+  if (isNotNil(opts.gearPosition)) {
+    res[PmfmIds.GEAR_POSITION] = opts.gearPosition === 'B' ? QualitativeValueIds.GEAR_POSITION.PORT : QualitativeValueIds.GEAR_POSITION.STARBOARD; // Bâbord, Tribord
+  }
+  else {
+    opts = {
+      discardOrLanding: 'LAN',
+      ...opts
+    }
+  }
+  if (isNotNil(opts.discardOrLanding)) {
+    res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD;
+  }
   if (isNotNil(opts.weight)) {
     res[PmfmIds.BATCH_MEASURED_WEIGHT] = opts.weight;
   }
@@ -29,7 +38,9 @@ function getIndivMeasValues(opts?: {
   }
   const res = {};
 
-  res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? 190 : 191;
+  if (isNotNil(opts.discardOrLanding)) {
+    res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD;
+  }
   if (isNotNil(opts.length)) {
     res[PmfmIds.LENGTH_TOTAL_CM] = opts.length;
   }
@@ -44,7 +55,7 @@ function getIndivMeasValues(opts?: {
 
 export const BATCH_TREE_EXAMPLES = ['default', 'empty'];
 
-export function getExampleTree(key: string): any {
+export function getExampleTree(key: string, programLabel?: string): any {
   switch (key) {
     case 'default':
       return {
@@ -53,6 +64,7 @@ export function getExampleTree(key: string): any {
             label: 'SORTING_BATCH#1',
             rankOrder: 1,
             taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
+            measurementValues: (programLabel === 'APASE' ? getSortingMeasValues({ gearPosition: 'B' }) : undefined),
             children: [
               {
                 label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
