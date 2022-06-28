@@ -41,12 +41,10 @@
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
         </div>
 
-        <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey">
-          <ng-container [ngSwitch]="errorKey">
-            <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-            <span *ngSwitchCase="'entity'" translate>ERROR.FIELD_INVALID</span>
-            <span *ngSwitchCase="'msg'">{{(formControl.errors.msg?.key || formControl.errors.msg) | translate: formControl.errors.msg?.params}}</span>
-          </ng-container>
+        <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+          <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+          <span *ngSwitchCase="'entity'" translate>ERROR.FIELD_INVALID</span>
+          <span *ngSwitchCase="'msg'">{{(formControl.errors.msg?.key || formControl.errors.msg) | translate: formControl.errors.msg?.params}}</span>
         </mat-error>
       </mat-form-field>
 
