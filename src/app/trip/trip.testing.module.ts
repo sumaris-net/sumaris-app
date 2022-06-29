@@ -11,6 +11,9 @@ import { BatchGroupFormTestPage } from '@app/trip/batch/group/testing/batch-grou
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SampleTreeTestPage } from '@app/trip/sample/testing/sample-tree.test';
 import { PhysicalGearsTestPage } from '@app/trip/physicalgear/testing/physical-gears.test';
+import { AppSampleModule } from '@app/trip/sample/sample.module';
+import { AppBatchModule } from '@app/trip/batch/batch.module';
+import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
 
 export const TRIP_TESTING_PAGES: TestingPage[] = [
   {label: 'Trip module', divider: true},
@@ -51,6 +54,9 @@ const routes: Routes = [
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
     AppTripModule,
+    AppSampleModule,
+    AppBatchModule,
+    AppPhysicalGearModule,
     MatCheckboxModule,
   ],
   declarations: [
