@@ -29,7 +29,7 @@ import {
   PersonService,
   ShowToastOptions,
   Toasts,
-  toNumber,
+  toNumber, UserEventFilter,
   UserEventService
 } from '@sumaris-net/ngx-components';
 import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
@@ -449,7 +449,11 @@ export class TripService
     this._featureName = TRIP_FEATURE_NAME;
 
     // Register user event actions
-    userEventService.registerAction({
+    /*userEventService.registerListener(
+      UserEventFilter.fromObject(<UserEventFilter>{
+        types: ['DEBUG_DATA']
+      }).asFilterFn(),
+      {
       __typename: Trip.TYPENAME,
       matIcon: 'content_copy',
       name: 'copyToLocal',
@@ -458,7 +462,7 @@ export class TripService
       executeAction: (event, context) => {
         return this.copyLocally(Trip.fromObject(context), {displaySuccessToast: true})
       }
-    });
+    });*/
 
     // Register self (avoid loop dependency)
     operationService.tripService = this;
