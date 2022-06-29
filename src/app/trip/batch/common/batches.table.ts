@@ -1,36 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import { EntityFilter, FilterFn, firstArrayValue, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, UsageMode } from '@sumaris-net/ngx-components';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { firstArrayValue, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, splitByProperty, UsageMode } from '@sumaris-net/ngx-components';
 import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {Batch} from './batch.model';
-import {Landing} from '../../services/model/landing.model';
-import {AcquisitionLevelCodes, PmfmLabelPatterns} from '@app/referential/services/model/model.enum';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { Batch } from './batch.model';
+import { Landing } from '../../services/model/landing.model';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { BatchModal, IBatchModalOptions } from './batch.modal';
-import {environment} from '@environments/environment';
-import {Operation} from '../../services/model/trip.model';
-import { TaxonNameRef } from "@app/referential/services/model/taxon-name.model";
-import { splitByProperty } from '@sumaris-net/ngx-components';
+import { Operation } from '../../services/model/trip.model';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-
-export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
-  operationId?: number;
-  landingId?: number;
-
-
-  protected buildFilter(): FilterFn<Batch>[] {
-    const filterFns = super.buildFilter();
-
-    if (isNotNil(this.operationId)) {
-      filterFns.push(b => b.operationId === this.operationId)
-    }
-
-    return filterFns;
-  }
-}
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -297,7 +280,9 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.weightPmfmsByMethod = splitByProperty(this.weightPmfms, 'methodId');
 
     // Find the first qualitative PMFM
-    this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms);
+    this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms, {
+      excludeHidden: true,
+      excludePmfmIds: [PmfmIds.BATCH_GEAR_POSITION]});
 
     // Exclude weight PMFMs
     return pmfms.filter(p => !this.weightPmfms.includes(p));

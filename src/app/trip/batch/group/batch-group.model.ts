@@ -75,10 +75,10 @@ export class BatchGroupUtils {
     return (pmfms || [])
       // Exclude DISCARD_REASON if NOT on DISCARD
       .filter(pmfm => qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD || pmfm.id !== PmfmIds.DISCARD_REASON)
-      // If DISCARD
       .map(pmfm => {
+        // If DISCARD
         if (qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD) {
-          // Hide pmfm DRESSING or PRESERVATION
+          // Hide pmfm DRESSING and PRESERVATION, and force default values
           if (pmfm.id === PmfmIds.DRESSING) {
             pmfm = pmfm.clone();
             pmfm.hidden = true;

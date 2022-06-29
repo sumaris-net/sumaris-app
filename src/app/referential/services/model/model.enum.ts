@@ -104,7 +104,8 @@ export const PmfmIds = {
   GPS_USED: 188,
 
   /* APASE */
-  GEAR_POSITION: 400
+  BATCH_GEAR_POSITION: 411
+
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -132,7 +133,7 @@ export const QualitativeValueIds = {
   PRESERVATION: {
     FRESH: 332
   },
-  GEAR_POSITION: {
+  BATCH_GEAR_POSITION: {
     PORT: 473, // Bâbord
     STARBOARD: 474 // Tribord
   }
@@ -155,7 +156,9 @@ export const MethodIdGroups = {
   CALCULATED: Methods.getCalculatedIds()
 };
 export const MatrixIds = {
-  INDIVIDUAL: 2
+  BATCH: 1,
+  INDIVIDUAL: 2,
+  GEAR: 3
 }
 
 export const ParameterGroupIds = {

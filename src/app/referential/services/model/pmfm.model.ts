@@ -238,13 +238,23 @@ export abstract class PmfmUtils {
     return pmfm.type as ExtendedPmfmType;
   }
 
-  static getVisiblePmfms<P extends IPmfm>(pmfms: P[]): P[] {
-    return pmfms.filter(p => p && !p.hidden);
+  static filterPmfms<P extends IPmfm>(pmfms: P[], opts?: {
+    excludeHidden?: boolean;
+    excludePmfmIds?: number[];
+  }): P[] {
+    return pmfms.filter(p => p
+      // Exclude hidden pmfms
+      && (!opts || !opts.excludeHidden || !p.hidden)
+      // Exclude some pmfm by ids
+      && (!opts || !opts.excludePmfmIds?.length || !opts.excludePmfmIds.includes(p.id)));
   }
 
-  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[]): P {
+  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[], opts?: {
+    excludeHidden?: boolean;
+    excludePmfmIds?: number[];
+  }): P {
     // exclude hidden pmfm (see batch modal)
-    let qvPmfm = this.getVisiblePmfms(pmfms)
+    let qvPmfm = this.filterPmfms(pmfms, opts)
       .find((p, index) => {
         return p.type === 'qualitative_value'
           // Should be the first visible pmfms. If not (e.g. a numeric pmfm is before: not a group pmfm)

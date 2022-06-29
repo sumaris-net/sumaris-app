@@ -54,6 +54,24 @@
             </ion-row>
           </ion-grid>
         </ion-col>
+
+
+        <!-- floatLabel -->
+        <ion-col class="ion-padding">
+          <ion-grid>
+            <ion-row>
+              <ion-col class="ion-float-end" size="auto">
+                <label>floatLabel: </label>
+              </ion-col>
+              <ion-col>
+                <mat-select (valueChange)="setFloatLabel($event)"
+                            [value]="floatLabel">
+                  <mat-option *ngFor="let item of floatLabels" [value]="item">{{item}}</mat-option>
+                </mat-select>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-col>
       </ion-row>
 
       <ion-row>
@@ -76,6 +94,7 @@
               <mat-sampling-ratio-field formControlName="empty"
                                         [format]="format"
                                         [maxDecimals]="maxDecimals"
+                                        [floatLabel]="floatLabel"
                                         [required]="true">
               </mat-sampling-ratio-field>
             </ion-card-content>
@@ -101,7 +120,8 @@
             <ion-card-content>
               <mat-sampling-ratio-field formControlName="enable"
                                         [format]="format"
-                                        [maxDecimals]="maxDecimals">
+                                        [maxDecimals]="maxDecimals"
+                                        [floatLabel]="floatLabel">
               </mat-sampling-ratio-field>
             </ion-card-content>
           </ion-card>
@@ -125,7 +145,8 @@
             <ion-card-content>
               <mat-sampling-ratio-field formControlName="disable"
                                         [format]="format"
-                                        [maxDecimals]="maxDecimals">
+                                        [maxDecimals]="maxDecimals"
+                                        [floatLabel]="floatLabel">
               </mat-sampling-ratio-field>
             </ion-card-content>
           </ion-card>
@@ -150,11 +171,13 @@
               <mat-sampling-ratio-field formControlName="disable" class="computed"
                                         readonly="true"
                                         [format]="format"
-                                        placeholder="Sampling Ratio">
+                                        placeholder="Sampling Ratio"
+                                        [floatLabel]="floatLabel">
               </mat-sampling-ratio-field>
             </ion-card-content>
           </ion-card>
         </ion-col>
+
       </ion-row>
     </ion-grid>
 

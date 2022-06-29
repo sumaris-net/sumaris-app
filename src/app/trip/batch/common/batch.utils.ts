@@ -533,8 +533,8 @@ export class BatchUtils {
       }
       // Measurement
       if (opts.showMeasure !== false && batch.measurementValues) {
-        if (batch.measurementValues[PmfmIds.GEAR_POSITION]) {
-          message += ' gearPosition:' + (batch.measurementValues[PmfmIds.GEAR_POSITION] == QualitativeValueIds.GEAR_POSITION.PORT ? 'B' : 'T');
+        if (batch.measurementValues[PmfmIds.BATCH_GEAR_POSITION]) {
+          message += ' batchGearPosition:' + (batch.measurementValues[PmfmIds.BATCH_GEAR_POSITION] == QualitativeValueIds.BATCH_GEAR_POSITION.PORT ? 'B' : 'T');
         }
         if (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING]) {
           message += ' discardOrLanding:' + (batch.measurementValues[PmfmIds.DISCARD_OR_LANDING] == QualitativeValueIds.DISCARD_OR_LANDING.LANDING ? 'LAN' : 'DIS');

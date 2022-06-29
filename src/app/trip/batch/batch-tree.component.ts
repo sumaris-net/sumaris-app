@@ -10,7 +10,8 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService, ReferentialRef,
+  LocalSettingsService,
+  ReferentialRef,
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
@@ -36,10 +37,13 @@ import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.va
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
+import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 
 @Component({
   selector: 'app-batch-tree',
   templateUrl: './batch-tree.component.html',
+  styleUrls: ['./batch-tree.component.scss'],
   providers: [
     {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService},
     { provide: ContextService, useExisting: TripContextService}
@@ -64,6 +68,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() usageMode: UsageMode;
   @Input() showCatchForm: boolean;
   @Input() showBatchTables: boolean;
+  @Input() showFilter = false;
   @Input() enableWeightLengthConversion: boolean;
 
   @Input() set allowSamplingBatches(allow: boolean) {
@@ -151,10 +156,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return super.dirty || (this._subBatchesService && this._subBatchesService.dirty) || false;
   }
 
+  @ViewChild('filterForm', {static: false}) filterForm: BatchFilterForm;
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
   @ViewChild('batchGroupsTable', {static: true}) batchGroupsTable: BatchGroupsTable;
   @ViewChild('subBatchesTable', {static: false}) subBatchesTable: SubBatchesTable;
-
 
   constructor(
     protected route: ActivatedRoute,
@@ -214,6 +219,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         })
     );
 
+    // Register forms
     this.registerForms();
   }
 
@@ -283,7 +289,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.$programLabel.complete();
     this.$program.complete();
   }
-
 
   async save(event?: UIEvent, options?: any): Promise<any> {
 
@@ -399,6 +404,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   protected registerForms() {
     this.addChildForms([
+      //this.filterForm,
       this.catchBatchForm,
       this.batchGroupsTable,
       () => this.subBatchesTable
@@ -494,6 +500,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     if (this.tabGroup && this.showBatchTables) {
       //this.tabGroup.selectedIndex = this.selectedTabIndex;
       this.tabGroup.realignInkBar();
+      if (this.filterForm) this.filterForm.realignInkBar();
     }
   }
 
@@ -517,6 +524,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   waitIdle(): Promise<any> {
     return AppFormUtils.waitIdle(this);
+  }
+
+  setFilter(dataFilter: BatchFilter) {
+    this.catchBatchForm.setFilter(dataFilter);
+    this.batchGroupsTable.setFilter(dataFilter);
   }
 
   /* -- protected methods -- */

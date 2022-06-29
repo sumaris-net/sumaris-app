@@ -1,7 +1,8 @@
-import {NgModule} from '@angular/core';
-import {ExtraOptions, RouterModule, Routes} from '@angular/router';
-import {AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule} from '@sumaris-net/ngx-components';
-import {QuicklinkModule, QuicklinkStrategy} from 'ngx-quicklink';
+import { NgModule } from '@angular/core';
+import { ExtraOptions, RouterModule, Routes } from '@angular/router';
+import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
+import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
+import { AppObservedLocationRoutingModule } from '@app/trip/observed-location-routing.module';
 
 const routes: Routes = [
   // Core path
@@ -60,7 +61,7 @@ const routes: Routes = [
     data: {
       profile: 'USER'
     },
-    loadChildren: () => import('./trip/trip-routing.module').then(m => m.TripRoutingModule)
+    loadChildren: () => import('./trip/trip-routing.module').then(m => m.AppTripRoutingModule)
   },
 
   // Observations
@@ -70,7 +71,7 @@ const routes: Routes = [
     data: {
       profile: 'USER'
     },
-    loadChildren: () => import('./trip/landed-trip-routing.module').then(m => m.LandedTripRoutingModule)
+    loadChildren: () => import('./trip/observed-location-routing.module').then(m => m.AppObservedLocationRoutingModule)
   },
 
   // Extraction path
@@ -141,7 +142,8 @@ export const ROUTE_OPTIONS: ExtraOptions = {
     RouterModule.forRoot(routes, ROUTE_OPTIONS)
   ],
   exports: [
-    RouterModule
+    RouterModule,
+    SharedRoutingModule
   ]
 })
 export class AppRoutingModule {

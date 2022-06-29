@@ -1,11 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { OperationPage } from './operation/operation.page';
-import { LandingPage } from './landing/landing.page';
-import { ComponentDirtyGuard, SharedRoutingModule } from '@sumaris-net/ngx-components';
+import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 import { TripTable } from './trip/trips.table';
 import { TripPage } from './trip/trip.page';
-import { TripModule } from './trip.module';
+import { AppTripModule } from './trip/trip.module';
 
 const routes: Routes = [
   {
@@ -29,45 +27,27 @@ const routes: Routes = [
         canDeactivate: [ComponentDirtyGuard]
       },
       {
-        path: 'operation/:operationId',
-        runGuardsAndResolvers: 'pathParamsChange',
-        data: {
-          pathIdParam: 'operationId'
-        },
-        children: [
-          {
-            path: '',
-            pathMatch: 'full',
-            component: OperationPage,
-            runGuardsAndResolvers: 'pathParamsChange',
-            canDeactivate: [ComponentDirtyGuard]
-          }
-        ]
+        path: 'operation',
+        loadChildren: () => import('./operation/operation-routing.module').then(m => m.AppOperationRoutingModule)
+      },
+      {
+        path: 'landing',
+        loadChildren: () => import('./landing/landing-routing.module').then(m => m.AppLandingRoutingModule)
       }
     ]
-  },
-
-  {
-    path: ':tripId/landing/:landingId',
-    component: LandingPage,
-    runGuardsAndResolvers: 'pathParamsChange',
-    data: {
-      profile: 'USER',
-      pathIdParam: 'landingId'
-    }
   }
+
 ];
 
 
 @NgModule({
   imports: [
-    SharedRoutingModule,
-    TripModule,
+    AppTripModule,
     RouterModule.forChild(routes)
   ],
   exports: [
     RouterModule
   ]
 })
-export class TripRoutingModule {
+export class AppTripRoutingModule {
 }

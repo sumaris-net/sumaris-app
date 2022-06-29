@@ -81,7 +81,7 @@
         <ion-label class="ion-float-end">{{'LANDING.EDIT.LANDING'|translateContext: i18nSuffix}}</ion-label>
       </ion-col>
       <!-- location -->
-      <ion-col *ngIf="showLocation">
+      <ion-col *ngIf="showLocation" size="12" size-md="">
         <mat-autocomplete-field formControlName="location"
                                 [placeholder]="'LANDING.EDIT.LOCATION'|translateContext: i18nSuffix"
                                 [config]="autocompleteFields.location"
@@ -90,7 +90,7 @@
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="" offset-lg="3" *ngIf="showDateTime">
+      <ion-col *ngIf="showDateTime" size="12" size-md="" [offsetLg]="showLocation ? 3 : undefined">
         <mat-date-time-field [placeholder]="'LANDING.EDIT.DATE'|translateContext: i18nSuffix"
                              formControlName="dateTime"
                              [tabindex]="tabindex+5"

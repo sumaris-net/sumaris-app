@@ -152,38 +152,44 @@ export class OperationPage
   get entityQualityService(): IDataEntityQualityService<Operation> {
     return this;
   }
+  protected tripService: TripService;
+  protected tripContext: TripContextService;
+  protected programRefService: ProgramRefService;
+  protected settings: LocalSettingsService;
+  protected modalCtrl: ModalController;
+  protected hotkeys: Hotkeys;
 
   constructor(
     injector: Injector,
-    hotkeys: Hotkeys,
-    dataService: OperationService,
-    protected tripService: TripService,
-    protected tripContext: TripContextService,
-    protected programRefService: ProgramRefService,
-    protected settings: LocalSettingsService,
-    protected modalCtrl: ModalController,
+    dataService: OperationService
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
-      autoOpenNextTab: !settings.mobile,
+      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
     });
 
+    this.tripService = injector.get(TripService);
+    this.tripContext = injector.get(TripContextService);
+    this.programRefService = injector.get(ProgramRefService);
+    this.settings = injector.get(LocalSettingsService);
+    this.modalCtrl = injector.get(ModalController);
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
-    this.displayAttributes.gear = settings.getFieldDisplayAttributes('gear');
+    this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
+    this.hotkeys = injector.get(Hotkeys);
 
-    // Init mobile
-    this.mobile = settings.mobile;
+    // Init defaults
+    this.mobile = this.settings.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
 
     // Add shortcut
     if (!this.mobile) {
       this.registerSubscription(
-        hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
+        this.hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
           .subscribe((event) => this.openHelpModal(event)),
       );
       this.registerSubscription(
-        hotkeys.addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
+        this.hotkeys.addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
           .pipe(filter(e => !this.disabled && this.showFabButton))
           .subscribe((event) => this.onNewFabButtonClick(event)),
       );

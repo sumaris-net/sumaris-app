@@ -33,10 +33,10 @@ import {
   referentialToString,
   ReferentialUtils,
   SharedValidators,
-  sort,
+  sort, StatusIds,
   suggestFromArray,
   toBoolean,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
@@ -136,14 +136,17 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
-    this._qualitativeValues = this.pmfm.qualitativeValues || [];
-    if (isEmptyArray(this._qualitativeValues) && PmfmUtils.isFullPmfm(this.pmfm)) {
+    let qualitativeValues = this.pmfm.qualitativeValues || [];
+    if (!qualitativeValues.length && PmfmUtils.isFullPmfm(this.pmfm)) {
       // Get qualitative values from parameter
-      this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
-      if (isEmptyArray(this._qualitativeValues)) {
+      qualitativeValues = this.pmfm.parameter?.qualitativeValues || [];
+      if (!qualitativeValues.length) {
         console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values, neither the parent PmfmStrategy!`, this.pmfm);
       }
     }
+    // Exclude disabled values
+    this._qualitativeValues = qualitativeValues.filter(qv => qv.statusId !== StatusIds.DISABLE);
+
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);

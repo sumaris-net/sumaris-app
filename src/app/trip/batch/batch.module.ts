@@ -20,6 +20,7 @@ import { VesselModule } from '@app/vessel/vessel.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { MatSamplingRatioFieldModule } from '@app/shared/material/sampling-ratio/material.sampling-ratio.module';
 import { IsSamplingRatioComputedPipe } from '@app/trip/batch/common/batch.pipes';
+import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
 
 @NgModule({
   imports: [
@@ -51,6 +52,7 @@ import { IsSamplingRatioComputedPipe } from '@app/trip/batch/common/batch.pipes'
     BatchesTable,
     BatchForm,
     BatchModal,
+    BatchFilterForm,
 
     SubBatchesTable,
     SubBatchForm,

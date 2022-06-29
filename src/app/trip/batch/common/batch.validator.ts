@@ -30,9 +30,12 @@ export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   weightRequired?: boolean;
   rankOrderRequired?: boolean;
   labelRequired?: boolean;
-  withChildren?: boolean;
   withMeasurements?: boolean;
   pmfms?: IPmfm[];
+
+  // Children
+  withChildren?: boolean;
+  childrenPmfms?: IPmfm[];
   qvPmfm?: IPmfm;
 }
 
@@ -42,7 +45,9 @@ export class BatchValidatorService<
   O extends BatchValidatorOptions = BatchValidatorOptions
   > extends DataEntityValidatorService<T, O> {
 
+
   pmfms: IPmfm[];
+  childrenPmfms: IPmfm[];
   showSamplingBatchColumns: boolean = true;
 
   protected constructor(
@@ -88,12 +93,15 @@ export class BatchValidatorService<
 
     if (opts?.withChildren) {
       // there is a second level of children only if there is qvPmfm and sampling batch columns
-      const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm && this.showSamplingBatchColumns, withChildrenWeight: true});
+      const formChildrenHelper = this.getChildrenFormHelper(form, {
+        withChildren: !!opts.qvPmfm && this.showSamplingBatchColumns,
+        withChildrenWeight: true
+      });
       formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
     }
 
     if (opts?.withWeight || opts?.withChildrenWeight) {
-      const weightPmfms = opts.pmfms?.filter(PmfmUtils.isWeight);
+      const weightPmfms = opts.childrenPmfms?.filter(PmfmUtils.isWeight);
 
       // Add weight sub form
       if (opts?.withWeight) {
@@ -115,10 +123,10 @@ export class BatchValidatorService<
     }
 
     // Add measurement values
-    if (opts && opts.withMeasurements && opts.pmfms) {
+    if (opts && opts.withMeasurements && opts.childrenPmfms) {
       if (form.contains('measurementValues')) form.removeControl('measurementValues')
       form.addControl('measurementValues', this.measurementsValidatorService.getFormGroup(null, {
-        pmfms: opts.pmfms,
+        pmfms: opts.childrenPmfms,
         forceOptional: true
       }));
     }
@@ -143,7 +151,7 @@ export class BatchValidatorService<
     }
     return new FormArrayHelper<T>(
       arrayControl,
-      (value) => this.getFormGroup(value, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, pmfms: this.pmfms, ...opts}),
+      (value) => this.getFormGroup(value, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, childrenPmfms: this.childrenPmfms, ...opts}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
       (value) => isNil(value),
       {allowEmptyArray: true}

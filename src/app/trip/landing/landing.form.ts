@@ -376,33 +376,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Init trip form (if enable)
     if (this.showTrip) {
-      // DEBUG
-      //console.debug('[landing-form] Enable trip form');
-
-      let tripForm = this.tripForm;
-      if (!tripForm) {
-        const tripFormConfig = this.tripValidatorService.getFormGroupConfig(null, {
-          withMetiers: this.showMetier,
-          withFishingAreas: this.showFishingArea,
-          withSale: false,
-          withObservers: false,
-          withMeasurements: false,
-          departureDateTimeRequired: false
-        });
-
-        // Excluded some trip's fields
-        TRIP_FORM_EXCLUDED_FIELD_NAMES
-          .filter(key => {
-            if (!this.showTripDepartureDateTime || key != 'departureDateTime') {
-              delete tripFormConfig[key]
-            }
-          });
-
-        tripForm = this.formBuilder.group(tripFormConfig);
-
-        this.form.addControl('trip', tripForm);
-      }
-
+      const tripForm = this.initTripForm();
       if (this.showMetier) this.initMetiersHelper(tripForm);
       if (this.showFishingArea) this.initFishingAreas(tripForm);
     }
@@ -445,6 +419,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     if (!trip && (this.showMetier || this.showFishingArea)) {
       trip = new Trip();
       data.trip = trip;
+    }
+
+    let tripForm = this.tripForm;
+    if (this.showTrip && !tripForm) {
+      tripForm = this.initTripForm();
+      if (this.showMetier) this.initMetiersHelper(tripForm);
+      if (this.showFishingArea) this.initFishingAreas(tripForm);
     }
 
     // Resize metiers array
@@ -687,6 +668,37 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     else if (this.observersHelper.size() > 0) {
       this.observersHelper.resize(0);
     }
+  }
+
+  protected initTripForm(): FormGroup {
+    let tripForm = this.tripForm;
+    if (!tripForm) {
+      // DEBUG
+      //console.debug('[landing-form] Creating trip form');
+
+      const tripFormConfig = this.tripValidatorService.getFormGroupConfig(null, {
+        withMetiers: this.showMetier,
+        withFishingAreas: this.showFishingArea,
+        withSale: false,
+        withObservers: false,
+        withMeasurements: false,
+        departureDateTimeRequired: false
+      });
+
+      // Excluded some trip's fields
+      TRIP_FORM_EXCLUDED_FIELD_NAMES
+        .filter(key => {
+          if (!this.showTripDepartureDateTime || key != 'departureDateTime') {
+            delete tripFormConfig[key]
+          }
+        });
+
+      tripForm = this.formBuilder.group(tripFormConfig);
+
+      this.form.addControl('trip', tripForm);
+    }
+
+    return tripForm;
   }
 
   protected initMetiersHelper(form: FormGroup) {
