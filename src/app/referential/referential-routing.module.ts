@@ -1,20 +1,17 @@
-import {RouterModule, Routes} from "@angular/router";
-import {NgModule} from "@angular/core";
-import {ReferentialsPage} from "./list/referentials.page";
-import {ProgramPage} from "./program/program.page";
-import {SoftwarePage} from "./software/software.page";
-import {ParameterPage} from "./pmfm/parameter.page";
-import {PmfmPage} from "./pmfm/pmfm.page";
-import { ComponentDirtyGuard, SharedRoutingModule } from '@sumaris-net/ngx-components';
-import {AppReferentialModule} from "./referential.module";
-import {StrategyPage} from "./strategy/strategy.page";
-import {ProgramsPage} from "./program/programs.page";
-import {SamplingStrategyPage} from "./strategy/sampling/sampling-strategy.page";
-import {TaxonNamePage} from "./taxon/taxon-name.page";
-import {StrategiesPage} from "./strategy/strategies.page";
-import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { BrowserModule } from '@angular/platform-browser';
+import { RouterModule, Routes } from '@angular/router';
+import { NgModule } from '@angular/core';
+import { ReferentialsPage } from './list/referentials.page';
+import { ProgramPage } from './program/program.page';
+import { SoftwarePage } from './software/software.page';
+import { ParameterPage } from './pmfm/parameter.page';
+import { PmfmPage } from './pmfm/pmfm.page';
+import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
+import { AppReferentialModule } from './referential.module';
+import { StrategyPage } from './strategy/strategy.page';
+import { ProgramsPage } from './program/programs.page';
+import { SamplingStrategyPage } from './strategy/sampling/sampling-strategy.page';
+import { TaxonNamePage } from './taxon/taxon-name.page';
+import { StrategiesPage } from './strategy/strategies.page';
 import { TaxonGroupPage } from '@app/referential/taxon-group/taxon-group.page';
 
 const routes: Routes = [
