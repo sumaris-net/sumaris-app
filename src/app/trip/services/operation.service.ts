@@ -600,7 +600,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Adapt options to the current operation
     if (opts.allowParentOperation) {
-      opts.isChild = isNotNil(entity.parentOperationId);
+      opts.isChild = isNotNil(entity.parentOperationId) || isNotNil(entity.parentOperation);
       opts.isParent = !opts.isChild;
     } else {
       opts.isChild = false;

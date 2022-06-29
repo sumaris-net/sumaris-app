@@ -42,8 +42,8 @@ import { Popovers } from '@app/shared/popover/popover.utils';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ribbon } from 'ionicons/icons';
 import { debounceTime } from 'rxjs/operators';
-import { BatchFilter } from '@app/trip/batch/common/batches.table';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { BatchFilter } from "@app/trip/batch/common/batch.filter";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];

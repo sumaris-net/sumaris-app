@@ -141,7 +141,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     let formValue: number = this.toFormValue(value);
 
     // DEBUG
-    console.debug("[mat-sampling-ratio] formValue: " + formValue);
+    //console.debug("[mat-sampling-ratio] formValue: " + formValue);
 
     this._inputFormControl.patchValue(formValue, {emitEvent: false});
     this._writing = false;
@@ -230,7 +230,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
       }
     }
     // DEBUG
-    console.debug('[mat-sampling-ratio] modelValue=', modelValue);
+    //console.debug('[mat-sampling-ratio] modelValue=', modelValue);
 
     // Set model value
     this.emitChange(modelValue);
@@ -241,9 +241,9 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     if (this.formControl.value !== value) {
 
       // DEBUG
-      console.debug('[mat-sampling-ratio] Emit new value: ' + value);
+      //console.debug('[mat-sampling-ratio] Emit new value: ' + value);
 
-      // Changes comes from inside function: use the callback
+      // Changes come from inside function: use the callback
       this._onChangeCallback(value);
 
       // Check if need to update controls

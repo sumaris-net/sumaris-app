@@ -54,16 +54,6 @@ import { IPhysicalGearModalOptions } from '@app/trip/physicalgear/physical-gear.
 
 const moment = momentImported;
 
-/**
- * Cell definition for the mat-table.
- * Captures the template of a column's data row cell as well as cell-specific properties.
- */
-@Directive({
-  selector: '[appActionCellDef]',
-  providers: [{provide: MatCellDef, useExisting: AppActionCellDef}],
-})
-export class AppActionCellDef extends MatCellDef {}
-
 export type PmfmValueColorFn = (value: any, pmfm: IPmfm) => ColorName;
 
 export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {

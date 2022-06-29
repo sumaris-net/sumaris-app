@@ -271,14 +271,14 @@ export class MeasurementValuesUtils {
     return value.__typename !== MeasurementValuesTypes.MeasurementFormValue;
   }
 
-  static normalizeValuesToModel(source: MeasurementFormValues, pmfms: IPmfm[], opts?: {
-    keepSourceObject?: boolean;
+  static normalizeValuesToModel(source: MeasurementFormValues | MeasurementModelValues, pmfms: IPmfm[], opts = {
+    keepSourceObject: false
   }): MeasurementModelValues {
 
     // DEBUG
     //console.debug('calling normalizeValuesToModel() from ' +  source.__typename);
 
-    const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
+    const target: MeasurementModelValues = opts.keepSourceObject ? source as MeasurementModelValues : {};
 
     if (this.isMeasurementFormValues(source)) {
       (pmfms || []).forEach(pmfm => {
@@ -287,6 +287,14 @@ export class MeasurementValuesUtils {
       // DO NOT delete __typename, but force it to MeasurementModelValues
       // If not: there is a bug when edition a row, saving and editing it again: the conversion to form is not applied!
       //delete target.__typename;
+      target.__typename = MeasurementValuesTypes.MeasurementModelValues;
+    }
+
+    // Source = model values. Copy pmfm's values if need
+    else if (!opts.keepSourceObject){
+      (pmfms || []).forEach(pmfm => {
+        target[pmfm.id] = source[pmfm.id];
+      });
       target.__typename = MeasurementValuesTypes.MeasurementModelValues;
     }
 

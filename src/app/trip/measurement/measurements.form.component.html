@@ -12,14 +12,13 @@
 
   <!-- pmfms -->
   <ng-container *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton">
-    <app-pmfm-field *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;"
+    <app-pmfm-field *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn"
                     [pmfm]="pmfm"
                     [compact]="compact"
                     [style]="pmfm|pmfmFieldStyle: maxVisibleButtons"
                     [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
                     [maxVisibleButtons]="maxVisibleButtons"
                     [showButtonIcons]="showButtonIcons"
-                    [tabindex]="(tabindex || 0) + i*2"
                     [floatLabel]="floatLabel">
     </app-pmfm-field>
   </ng-container>

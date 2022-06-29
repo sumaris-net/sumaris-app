@@ -1,13 +1,13 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { LandingPage } from './landing/landing.page';
-import { ComponentDirtyGuard, SharedRoutingModule } from '@sumaris-net/ngx-components';
+import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 import { ObservedLocationsPage } from './observedlocation/observed-locations.page';
 import { ObservedLocationPage } from './observedlocation/observed-location.page';
 import { AuctionControlPage } from './landing/auctioncontrol/auction-control.page';
 import { LandedTripPage } from './landedtrip/landed-trip.page';
-import { LandedTripModule } from './landed-trip.module';
 import { SamplingLandingPage } from './landing/sampling/sampling-landing.page';
+import { AppObservedLocationModule } from '@app/trip/observedlocation/observed-location.module';
 
 const routes: Routes = [
   {
@@ -76,13 +76,12 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    SharedRoutingModule,
-    LandedTripModule,
+    AppObservedLocationModule,
     RouterModule.forChild(routes)
   ],
   exports: [
     RouterModule
   ]
 })
-export class LandedTripRoutingModule {
+export class AppObservedLocationRoutingModule {
 }

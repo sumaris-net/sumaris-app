@@ -157,7 +157,6 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    SharedRoutingModule,
     AppReferentialModule,
     RouterModule.forChild(routes)
   ],

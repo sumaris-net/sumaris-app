@@ -60,8 +60,6 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
   };
   startDatePickerFilter: DateFilterFn<Moment>;
   mobile: boolean;
-  referentialToString = referentialToString;
-
 
   @Input() set locationLevelIds(value: number[]) {
     if (this.locationFilter.levelIds !== value) {

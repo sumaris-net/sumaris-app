@@ -1,0 +1,322 @@
+
+<!-- Top toolbar -->
+<app-toolbar color="primary"
+             [hasValidate]="!loading && dirty"
+             (onValidate)="save($event)"
+             (onValidateAndClose)="saveAndClose($event)"
+             [hasClose]="!loading && !dirty"
+             (onClose)="close($event)"
+             [defaultBackHref]="defaultBackHref"
+             [canGoBack]="true">
+
+  <ion-title [innerHTML]="$title|async"></ion-title>
+
+  <ion-buttons slot="end">
+
+    <!-- last operation (history) -->
+    <ion-button *ngIf="showLastOperations"
+                hidden-xxs
+                [disabled]="loading"
+                [title]="'TRIP.OPERATION.LAST_OPERATIONS'|translate"
+                [matMenuTriggerFor]="lastOperationsMenu">
+      <mat-icon slot="icon-only">history</mat-icon>
+    </ion-button>
+
+    <!-- New operation
+    <ion-button hidden-xxs
+                [disabled]="loading"
+                [title]="'TRIP.OPERATION.BTN_SAVE_AND_NEW'|translate"
+                (click)="saveAndNew($event)">
+      <mat-icon slot="icon-only">add_circle_outline</mat-icon>
+    </ion-button>-->
+
+    <!-- option menu -->
+    <ion-button
+      [matMenuTriggerFor]="optionsMenu"
+      [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+  </ion-buttons>
+</app-toolbar>
+
+<!-- Last operations menu -->
+<mat-menu #lastOperationsMenu="matMenu" class="mat-menu-size-75vw ion-no-padding">
+
+  <ion-row class="mat-menu-header ion-no-padding column">
+    <ion-col>
+      <ion-label translate>TRIP.OPERATION.LAST_OPERATIONS</ion-label>
+    </ion-col>
+  </ion-row>
+
+  <ion-list class="ion-no-padding">
+    <ng-container *ngIf="$lastOperations|async as items; else noLastOperation">
+
+      <ion-item *ngFor="let item of items"
+                tappable class="text-1x"
+                [color]="isCurrentData(item) ? 'secondary100' : undefined"
+                (click)="onLastOperationClick($event, item.id)">
+        <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
+        <ion-grid>
+          <ion-row>
+            <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset
+            <ion-col size="3">
+              <span translate>TRIP.OPERATION.OPE_PREFIX</span> #{{ item.rankOrderOnPeriod}}
+            </ion-col>-->
+            <ion-col style="padding-top: 8px !important;">
+              <ion-label>{{ item.physicalGear | referentialToString: opeForm.autocompleteFields.physicalGear.attributes }}</ion-label>
+            </ion-col>
+            <ion-col size="auto">
+              <ion-text>{{ item.startDateTime | dateFormat: {pattern: dateTimePattern} }}
+                <ion-text color="primary"><br/><small>{{ item.startDateTime | dateFromNow }}</small></ion-text>
+              </ion-text>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+      </ion-item>
+
+      <!-- no result-->
+      <ng-container *ngIf="!items.length" [ngTemplateOutlet]="noLastOperation">
+      </ng-container>
+
+    </ng-container>
+
+    <!-- No last operations -->
+    <ng-template #noLastOperation>
+      <ion-item>
+        <ion-text color="medium" class="text-italic">
+          <span translate>TRIP.OPERATION.NO_LAST_OPERATION</span>
+        </ion-text>
+      </ion-item>
+    </ng-template>
+  </ion-list>
+
+  <!-- final space (need by fab button)-->
+  <p visible-xs visible-sm visible-mobile>&nbsp;</p>
+
+  <!-- new operation fab button (mobile) -->
+  <ion-fab-button color="tertiary"
+                  size="small"
+                  class="visible-xs visible-sm visible-mobile"
+                  [disabled]="loading"
+                  style="margin-left: calc(100% - 50px); margin-top: -46px;"
+                  (click)="saveAndNew($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+
+  <ion-footer hidden-mobile hidden-xs hidden-sm>
+    <ion-toolbar>
+      <div slot="end" class="ion-padding-end">
+        <!-- Show all button -->
+        <ion-button fill="clear"
+                    (click)="toolbar.doBackClick($event)"
+                    routerDirection="back"
+                    translate>TRIP.OPERATION.BTN_SHOW_ALL</ion-button>
+
+        <!-- New operation button -->
+        <ion-button color="tertiary" fill="solid"
+                    (click)="saveAndNew($event)" translate>COMMON.BTN_ADD</ion-button>
+      </div>
+    </ion-toolbar>
+  </ion-footer>
+</mat-menu>
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- online help -->
+  <!-- TODO: enable this -->
+  <button mat-menu-item
+          *ngIf="!mobile && debug"
+          (click)="openHelpModal($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="icon-only" name="help-circle-outline"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_SHOW_HELP</span>
+    </ion-label>
+  </button>
+
+  <!-- reset -->
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- delete -->
+  <button mat-menu-item class="ion-color-danger"
+          [disabled]="isNewData || disabled"
+          (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>TRIP.OPERATION.EDIT.BTN_DELETE</span>
+    </ion-label>
+  </button>
+
+</mat-menu>
+
+<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [disablePagination]="true"
+                 [dynamicHeight]="false">
+
+    <!-- TAB: general -->
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger"
+                  *ngIf="error || (submitted && (opeForm.invalid || measurementsForm.invalid))"></ion-icon>
+      </ng-template>
+
+      <div>
+        <!-- error -->
+        <ion-item *ngIf="(error || opeForm.error) as errorMsg" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
+        </ion-item>
+
+        <ion-grid class="ion-no-padding">
+
+          <ion-row>
+            <ion-col class="ion-padding">
+              <!-- form -->
+              <app-form-operation #opeForm
+                                  [programLabel]="$programLabel|async"
+                                  [showError]="false"
+                                  [usageMode]="usageMode"
+                                  [tabindex]="1"
+                                  (onSubmit)="save($event)"
+                                  (lastEndDateChanges)="$lastEndDate.next($event)"
+                                  [debug]="debug">
+
+                <!-- Other features (Measurements) -->
+                <ion-grid class="ion-no-padding ion-padding-top"
+                          [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray">
+                  <ion-row>
+                    <ion-col size="12" size-md="3" size-lg="3">
+                      <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
+                    </ion-col>
+                    <ion-col [class.measurements-form-padding-start]="mobile">
+                      <app-form-measurements #measurementsForm
+                                             entityName="VesselUseMeasurement"
+                                             [acquisitionLevel]="$acquisitionLevel|async"
+                                             [forceOptional]="forceMeasurementAsOptional"
+                                             [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
+                                             [tabindex]="30"
+                                             [mobile]="mobile"
+                                             [compact]="false"
+                                             [debug]="debug">
+                      </app-form-measurements>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </app-form-operation>
+            </ion-col>
+            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile">
+              <app-entity-metadata [value]="data"
+                                   [showRecorder]="data && !!data.updateDate">
+                <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
+              </app-entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+    </mat-tab>
+
+    <!-- TAB: Catch -->
+    <mat-tab #catchTab
+             [label]="'TRIP.OPERATION.EDIT.TAB_CATCH'|translateContext: i18nContext.suffix"
+             [disabled]="!showCatchTab">
+      <ng-template mat-tab-label>
+        <mat-icon>line_style</mat-icon>
+        <ion-label *ngVar="batchTree.batchGroupsTable.totalRowCount as count"
+                   [matBadge]="count"
+                   [matBadgeHidden]="batchTree.invalid || !count"
+                   matBadgeOverlap="false"
+                   matBadgeColor="primary"
+                   matBadgeSize="small"
+                   matBadgePosition="above after">{{catchTab.textLabel}}
+        </ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid"></ion-icon>
+      </ng-template>
+
+      <app-batch-tree #batchTree
+                      queryTabIndexParamName="subtab"
+                      [showBatchTables]="showBatchTables"
+                      [selectedTabIndex]="selectedSubTabIndex"
+                      [usageMode]="usageMode"
+                      [useSticky]="mobile"
+                      [mobile]="mobile"
+                      [debug]="debug">
+      </app-batch-tree>
+    </mat-tab>
+
+    <!-- TAB: Samples  -->
+    <mat-tab #sampleTab
+             [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
+             [disabled]="!showSamplesTab">
+      <ng-template mat-tab-label>
+        <mat-icon svgIcon="fish-oblique"></mat-icon>
+        <ion-label *ngVar="sampleTree.samplesTable.totalRowCount as count"
+                   [matBadge]="count"
+                   [matBadgeHidden]="sampleTree.invalid || !count"
+                   matBadgeOverlap="false"
+                   matBadgeColor="primary"
+                   matBadgeSize="small"
+                   matBadgePosition="above after">{{sampleTab.textLabel}}
+        </ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && sampleTree.invalid"></ion-icon>
+      </ng-template>
+
+      <app-sample-tree #sampleTree queryTabIndexParamName="subtab"
+                       [selectedTabIndex]="selectedSubTabIndex"
+                       [defaultSampleDate]="$lastEndDate|async"
+                       [usageMode]="usageMode"
+                       (onPrepareRowForm)="onPrepareSampleForm($event)"
+                       [useSticky]="mobile"
+                       [mobile]="mobile"
+                       [debug]="debug">
+      </app-sample-tree>
+    </mat-tab>
+
+  </mat-tab-group>
+
+</ion-content>
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <app-form-buttons-bar (onCancel)="reloadWithConfirmation()"
+                        [disabledCancel]="!dirty || loading"
+                        (onSave)="save($event)"
+                        [disabled]="!dirty || loading">
+
+    <!-- error -->
+    <ion-item *ngIf="error" lines="none" [title]="error|translate">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+  </app-form-buttons-bar>
+</ion-footer>
+
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         *ngIf="mobile && showFabButton" @fadeInOutAnimation
+         visible-xs visible-sm visible-mobile>
+
+  <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+
+</ion-fab>

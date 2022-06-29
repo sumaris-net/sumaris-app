@@ -748,6 +748,10 @@
         "START_DATE" : "Début de période",
         "QUALITY": "État"
       },
+      "PMFM": {
+        "GEAR_B": "Engin babord",
+        "GEAR_T": "Engin tribord"
+      },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
         "FIELD_DATE_AFTER_TRIP": "Après le retour de la marée",
@@ -832,8 +836,8 @@
         "IS_SAMPLING": "Saisir le poids échantillonné (si mesure) :",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
         "SAMPLING_CHILDREN_WEIGHT": "Poids calculé par RTP",
-        "SAMPLING_RATIO_PCT": "Taux échant. (%)",
-        "SAMPLING_COEFFICIENT": "Coef. échant. (1/m)",
+        "SAMPLING_RATIO_PCT": "Taux éch. (%)",
+        "SAMPLING_COEFFICIENT": "Coef. éch.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",

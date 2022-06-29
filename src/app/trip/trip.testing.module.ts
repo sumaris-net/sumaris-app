@@ -3,7 +3,7 @@ import {RouterModule, Routes} from "@angular/router";
 import {CommonModule} from "@angular/common";
 import {CoreModule}  from "@sumaris-net/ngx-components";
 import {BatchTreeTestPage} from "./batch/testing/batch-tree.test";
-import {TripModule} from "./trip.module";
+import {AppTripModule} from "./trip/trip.module";
 import {SharedModule} from "@sumaris-net/ngx-components";
 import {TranslateModule} from "@ngx-translate/core";
 import {TestingPage} from "@sumaris-net/ngx-components";
@@ -50,7 +50,7 @@ const routes: Routes = [
     CoreModule,
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
-    TripModule,
+    AppTripModule,
     MatCheckboxModule,
   ],
   declarations: [

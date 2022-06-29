@@ -2,95 +2,109 @@
 :host {
   width: 100%;
 }
+.table-container {
+  --table-toolbar-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
+  min-width: 100%;
+  overflow: auto;
 
-.mat-table {
-  background-color: transparent !important;
-  --mat-cell-vertical-padding: 4px;
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
 
-  /* First header row (group) */
-  .mat-header-row.first-header-row {
-    background-color: var(--mat-toolbar-background-color, whitesmoke);
-    height: var(--mat-toolbar-height, 64px);
-    --mat-cell-vertical-padding: 0;
+  .mat-table {
+    background-color: transparent !important;
+    --mat-cell-vertical-padding: 4px;
 
-    .mat-header-cell {
-      background-color: transparent;
+    /* First header row (group) */
+    .mat-header-row.first-header-row {
+      background-color: var(--mat-toolbar-background-color, whitesmoke);
+      height: var(--mat-toolbar-height, 64px);
+      --mat-cell-vertical-padding: 0;
 
-      &.mat-column-top-start {
-        padding-inline-start: 8px;
-        color: unset;
-      }
+      .mat-header-cell {
+        background-color: transparent;
 
-      &.mat-column-qv-group {
-        text-align: center;
-        background-color: var(--ion-color-light-shade, lightgray);
-        border-top: 8px solid var(--mat-toolbar-background-color);
-        &.even {
-          background-color: var(--ion-color-medium) !important;
+        &.mat-column-top-start {
+          padding-inline-start: 8px;
+          color: unset;
         }
-        ion-label,
-        mat-label {
-          text-align: center !important;
-          margin: 0;
-          width: 100%;
 
-          mat-checkbox {
-            margin-left: 5px;
-            margin-right: 5px;
+        &.mat-column-qv-group {
+          text-align: center;
+          background-color: var(--ion-color-light-shade, lightgray);
+          border-top: 8px solid var(--mat-toolbar-background-color);
+
+          &.even {
+            background-color: var(--ion-color-medium) !important;
+          }
+
+          ion-label,
+          mat-label {
+            text-align: center !important;
+            margin: 0;
+            width: 100%;
+
+            mat-checkbox {
+              margin-left: 5px;
+              margin-right: 5px;
+            }
           }
         }
       }
     }
-  }
 
 
-  .mat-header-row,
-  .mat-row {
+    .mat-header-row,
+    .mat-row {
 
 
-    .mat-header-cell.total {
-      background-color: var(--ion-color-light-tint, lightgray) !important;
-    }
-    .mat-cell.total {
-      background-color: var(--ion-color-light-tint, lightgray);
-    }
-
-    &.mat-row-selected {
-      .mat-cell.total {
-        background-color: rgba(0,0,0, 0.1) !important;
+      .mat-header-cell.total {
+        background-color: var(--ion-color-light-tint, lightgray) !important;
       }
-    }
-    .mat-column-id {
-      min-width: 30px;
-      max-width: 30px;
-    }
 
-    .mat-column-taxonName,
-    .mat-column-taxonGroup {
-      min-width: 150px;
-    }
+      .mat-cell.total {
+        background-color: var(--ion-color-light-tint, lightgray);
+      }
 
-    .mat-column-weight,
-    .mat-column-weight{
-      text-align: center;
-    }
+      &.mat-row-selected {
+        .mat-cell.total {
+          background-color: rgba(0, 0, 0, 0.1) !important;
+        }
+      }
 
-    .mat-column-LAN_samplingIndividualCount,
-    .mat-column-DIS_samplingIndividualCount,
-    .mat-column-samplingIndividualCount {
-      max-width: 60px;
-    }
+      .mat-column-id {
+        min-width: 30px;
+        max-width: 30px;
+      }
 
-    .mat-column-comments {
-      max-width: inherit; // Override default limitation
-    }
+      .mat-column-taxonName,
+      .mat-column-taxonGroup {
+        min-width: 150px;
+      }
 
-    .mat-column-top-end,
-    .mat-column-actions {
-      max-width: 40px;
-      padding-inline-start: 0;
-      padding-inline-end: 0;
-      color: unset;
+      .mat-column-weight,
+      .mat-column-weight {
+        text-align: center;
+      }
+
+      .mat-column-LAN_samplingIndividualCount,
+      .mat-column-DIS_samplingIndividualCount,
+      .mat-column-samplingIndividualCount {
+        max-width: 60px;
+      }
+
+      .mat-column-comments {
+        max-width: inherit; // Override default limitation
+      }
+
+      .mat-column-top-end,
+      .mat-column-actions {
+        max-width: 40px;
+        padding-inline-start: 0;
+        padding-inline-end: 0;
+        color: unset;
+      }
     }
   }
 }

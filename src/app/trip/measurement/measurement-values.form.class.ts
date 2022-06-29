@@ -403,7 +403,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
       if (filteredPmfms.length) {
         json.measurementValues = Object.assign(this.data?.measurementValues || {},
-          MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, filteredPmfms));
+          MeasurementValuesUtils.normalizeValuesToModel(json.measurementValues, filteredPmfms, {keepSourceObject: false}));
       }
     }
 

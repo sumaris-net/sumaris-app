@@ -28,7 +28,6 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    SharedRoutingModule,
     AppAdminModule,
     RouterModule.forChild(routes)
   ],

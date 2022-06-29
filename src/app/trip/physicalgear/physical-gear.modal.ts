@@ -122,6 +122,9 @@ export class PhysicalGearModal
 
     await super.ngOnInit();
 
+    if (this.enabled && this.isNewData) {
+      this.markAsLoaded();
+    }
   }
 
   protected registerForms() {
