@@ -145,8 +145,10 @@ export class BatchTreeTestPage implements OnInit {
 
     this.filterForm.patchValue({
       //program: {id: 1, label: 'SUMARiS' },
-      program: {id: 10, label: 'ADAP-MER' },
-      gear: {id: 6, label: 'OTB'},
+      //program: {id: 10, label: 'ADAP-MER' },
+      program: {id: 70, label: 'APASE' },
+      //gear: {id: 6, label: 'OTB'},
+      gear: {id: 7, label: 'OTT'},
       fishingArea: {id: 110, label: '65F1'},
       example: {id: 1, label: 'default'}
     });
@@ -195,8 +197,11 @@ export class BatchTreeTestPage implements OnInit {
       key = example && example.label || 'default';
     }
 
+    // Get program
+    const programLabel = this.filterForm.get('program').value?.label
+
     // Load example
-    const json = getExampleTree(key);
+    const json = getExampleTree(key, programLabel);
 
     // Convert to array (as Pod should sent) with:
     // - a local ID

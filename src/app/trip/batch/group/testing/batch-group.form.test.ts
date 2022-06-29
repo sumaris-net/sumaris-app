@@ -122,8 +122,8 @@ export class BatchGroupFormTestPage implements OnInit {
       });
 
     this.filterForm.patchValue({
-      program: { id: 10, label: 'ADAP-MER' },
-      //program: { id: 70, label: 'APASE' },
+      //program: { id: 10, label: 'ADAP-MER' },
+      program: { id: 70, label: 'APASE' },
       gear: { id: 6, label: 'OTB' },
       example: { id: 1, label: 'default' },
     });
@@ -180,8 +180,11 @@ export class BatchGroupFormTestPage implements OnInit {
       key = example && example.label || 'default';
     }
 
+    // Get program
+    const programLabel = this.filterForm.get('program').value?.label
+
     // Load example
-    const json = getExampleTree(key);
+    const json = getExampleTree(key, programLabel);
 
     // Convert to array (as Pod should sent) with:
     // - a local ID

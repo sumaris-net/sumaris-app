@@ -100,8 +100,11 @@ export const PmfmIds = {
   INDIVIDUAL_ON_DECK: 397,
   GEAR_LABEL: 120,
 
-  /* LOGBOOK-SEA-CUCUMBER (SFA)*/
-  GPS_USED: 188
+  /* PIFIL + LOGBOOK-SEA-CUCUMBER (SFA)*/
+  GPS_USED: 188,
+
+  /* APASE */
+  GEAR_POSITION: 400
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -128,6 +131,10 @@ export const QualitativeValueIds = {
   },
   PRESERVATION: {
     FRESH: 332
+  },
+  GEAR_POSITION: {
+    PORT: 473, // Bâbord
+    STARBOARD: 474 // Tribord
   }
 };
 

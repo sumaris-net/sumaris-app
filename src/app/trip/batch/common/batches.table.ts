@@ -20,13 +20,15 @@ export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId?: number;
   landingId?: number;
 
-  asFilterFn<E extends Batch>(): FilterFn<E> {
-    return (data) =>
-      (isNil(this.operationId) || data.operationId === this.operationId)
 
-      // TODO enable this:
-      // && (isNil(this.landingId) || data.landingId === this.landingId))
-      ;
+  protected buildFilter(): FilterFn<Batch>[] {
+    const filterFns = super.buildFilter();
+
+    if (isNotNil(this.operationId)) {
+      filterFns.push(b => b.operationId === this.operationId)
+    }
+
+    return filterFns;
   }
 }
 
