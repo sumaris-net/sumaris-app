@@ -29,7 +29,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   // TODO: make this works
   //offline: true,
 
-  peerMinVersion: '1.25.0',
+  peerMinVersion: '1.27.0',
 
   // Not need during DEV
   //checkAppVersionIntervalInSeconds: 0,
@@ -66,6 +66,10 @@ export const environment = Object.freeze(<AppEnvironment>{
     },
     {
       host: 'adap.pecheursdebretagne.eu',
+      port: 443
+    },
+    {
+      host: 'adap-test.pecheursdebretagne.eu',
       port: 443
     },
     {
