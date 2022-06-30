@@ -50,7 +50,6 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   templateUrl: 'sub-batches.modal.html',
   providers: [
     { provide: ContextService, useExisting: TripContextService},
-    { provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => {
@@ -408,9 +407,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   protected onRowChanged(row: TableElement<SubBatch>) {
 
     // Play a beep, if on field
-    if (this.isOnFieldMode) {
-      this.audio.playBeepConfirm();
-    }
+    if (this.isOnFieldMode) this.audio.playBeepConfirm();
 
     // Unselect previous selected rows
     this.selection.clear();

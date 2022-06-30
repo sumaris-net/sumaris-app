@@ -276,11 +276,11 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
     // Row not exists: OK
     if (!row) return true;
 
-    const canDeleteRow = await this.canDeleteRows([row]);
-    if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+    const confirmed = await this.canDeleteRows([row]);
+    if (confirmed === true) {
+      return this.deleteRow(null, row, {interactive: false /*already confirmed*/});
     }
-    return canDeleteRow;
+    return confirmed;
   }
 
   /* -- protected methods -- */

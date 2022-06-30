@@ -8,13 +8,17 @@ import { TranslateModule } from '@ngx-translate/core';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { SaleForm } from '@app/trip/sale/sale.form';
+import { AppProductModule } from '@app/trip/product/product.module';
 
 
 @NgModule({
   imports: [
     AppCoreModule,
     TranslateModule.forChild(),
-    AppMeasurementModule
+
+    // Functional modules
+    AppMeasurementModule,
+    AppProductModule
   ],
   declarations: [
     SaleForm,

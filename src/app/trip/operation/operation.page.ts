@@ -167,6 +167,7 @@ export class OperationPage
       pathIdAttribute: 'operationId',
       tabCount: 3,
       autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
+      i18nPrefix: 'TRIP.OPERATION.EDIT.'
     });
 
     this.tripService = injector.get(TripService);

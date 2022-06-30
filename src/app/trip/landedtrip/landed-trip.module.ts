@@ -9,15 +9,20 @@ import { AppExpenseModule } from '@app/trip/expense/expense.module';
 import { AppOperationGroupModule } from '@app/trip/operationgroup/operation-group.module';
 import { AppProductModule } from '@app/trip/product/product.module';
 import { AppPacketModule } from '@app/trip/packet/packet.module';
+import { AppTripModule } from '@app/trip/trip/trip.module';
+import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppCoreModule } from '@app/core/core.module';
 
 
 @NgModule({
   imports: [
-    AppSharedModule,
+    AppCoreModule,
     AppDataModule,
     TranslateModule.forChild(),
 
     // Functional modules
+    AppTripModule,
+    AppMeasurementModule,
     AppFishingAreaModule,
     AppExpenseModule,
     AppSaleModule,

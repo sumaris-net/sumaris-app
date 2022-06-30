@@ -214,7 +214,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       this._showSamplingBatchColumns = value;
 
       if (this.batchGroupValidator && this.inlineEdition) {
-        this.batchGroupValidator.showSamplingBatchColumns = value;
+        this.batchGroupValidator.enableSamplingBatch = value;
       }
       this.setModalOption('showSamplingBatch', value);
       // updateColumns only if pmfms are ready
@@ -294,6 +294,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.keepEditedRowOnSave = !this.mobile;
     this.saveBeforeDelete = true;
     this.saveBeforeFilter = true;
+    this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this};
     // this.showCommentsColumn = false; // Already set in batches-table
     // this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH; // Already set in batches-table
 
@@ -310,6 +311,36 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (this.debug && this.mobile) this.setValidatorService(null);
 
     super.ngOnInit();
+  }
+
+  translateControlPath(path: string): string {
+    if (path.startsWith('.measurementValues.')) {
+      const parts = path.split('.');
+      const pmfmId = parseInt(parts[parts.length-1]);
+      const pmfm = (this._speciesPmfms || []).find(p => p.id === pmfmId);
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
+    }
+    else if (path.includes('.measurementValues.')) {
+      const parts = path.split('.');
+      const pmfmId = parseInt(parts[parts.length-1]);
+      const pmfm = (this._childrenPmfms || []).find(p => p.id === pmfmId);
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
+    }
+    else if (path.startsWith('children.')){
+      const parts = path.split('.');
+      if (this.qvPmfm) {
+        const qvIndex = parseInt(parts[1]);
+        const qv = this.qvPmfm.qualitativeValues[qvIndex];
+        const subPath = parts.slice(2).join('.');
+        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === subPath);
+        if (qv && col) return `${qv.name} - ${this.translate.instant(col.label)}`;
+      }
+      else {
+        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === path);
+        if (col) `${this.translate.instant(col.label)}`;
+      }
+    }
+    return super.translateControlPath(path);
   }
 
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
@@ -512,10 +543,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       // Get sampling batch
       .children[0];
 
-    const missing = (isNil(samplingBatch.weight) || isNil(samplingBatch.weight?.value))
+    const missing = (isNil(samplingBatch.weight?.value) || samplingBatch.weight.value <= 0)
       && samplingBatch.individualCount !== null;
-    //DEBUG
-    // console.debug('[batch-group-table] missing sample weight', col.path, missing);
+
+    // DEBUG
+    //console.debug('[batch-group-table] missing sample weight', col.path, missing);
+
     return missing;
   }
 
@@ -734,12 +767,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       this._childrenPmfms = this._initialPmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
     }
 
-    if (this.batchGroupValidator && this.inlineEdition) {
-      this.batchGroupValidator.pmfms = this._speciesPmfms;
-      this.batchGroupValidator.showSamplingBatchColumns = this.showSamplingBatchColumns;
-      // Children
+    // Configure row validator
+    if (this.inlineEdition && this.batchGroupValidator) {
       this.batchGroupValidator.qvPmfm = this.qvPmfm;
+      this.batchGroupValidator.pmfms = this._speciesPmfms;
       this.batchGroupValidator.childrenPmfms = this._childrenPmfms;
+      this.batchGroupValidator.enableSamplingBatch = this.showSamplingBatchColumns;
     }
 
     // Init dynamic columns
@@ -1117,8 +1150,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // Row not exists: OK
     if (!row) return true;
 
-    const deleted = await this.deleteRow(null, row, {skipIfLoading: false});
+    const confirmed = await this.canDeleteRows([row]);
+    if (!confirmed) return false;
 
+    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
     if (!deleted) event?.preventDefault(); // Mark as cancelled
 
     return deleted;
@@ -1240,7 +1275,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         // Update individual count
         observedIndividualCount += (individualCount || 0);
 
-      })
+      });
 
       parent.observedIndividualCount = observedIndividualCount;
     }

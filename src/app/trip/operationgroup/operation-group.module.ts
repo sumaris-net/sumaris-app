@@ -5,6 +5,7 @@ import { OperationGroupModal } from './operation-group.modal';
 import { OperationGroupForm } from './operation-group.form';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppReferentialModule } from '@app/referential/referential.module';
 
 
 @NgModule({
@@ -13,6 +14,7 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
     TranslateModule.forChild(),
 
     // Functional modules
+    AppReferentialModule,
     AppMeasurementModule,
   ],
   declarations: [

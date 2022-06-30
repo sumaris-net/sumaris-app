@@ -141,6 +141,9 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
       delete target.weight;
       delete target.childrenWeight;
       if (target.measurementValues) delete target.measurementValues.__typename
+
+      // Can occur on SubBatch
+      delete target.parentGroup;
     }
 
     return target;

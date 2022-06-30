@@ -160,9 +160,8 @@
 
 </mat-menu>
 
-<ion-content class="ion-no-padding" scroll-y="false"
-             (swiperight)="onSwipeTab($event)"
-             (swipeleft)="onSwipeTab($event)">
+<!-- (swiperight)="onSwipeTab($event)" (swipeleft)="onSwipeTab($event)" -->
+<ion-content class="ion-no-padding" scroll-y="false">
 
   <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)" >
     <ion-refresher-content></ion-refresher-content>

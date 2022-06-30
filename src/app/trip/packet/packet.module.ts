@@ -4,16 +4,16 @@ import { PacketForm } from './packet.form';
 import { PacketModal } from './packet.modal';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppCoreModule } from '@app/core/core.module';
+import { AppReferentialModule } from '@app/referential/referential.module';
 
 
 @NgModule({
   imports: [
     AppCoreModule,
-    //AppDataModule,
-    //AppReferentialModule,
     TranslateModule.forChild(),
 
     // Functional modules
+    AppReferentialModule,
     //AppMeasurementModule,
   ],
   declarations: [

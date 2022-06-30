@@ -251,6 +251,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   ngOnInit() {
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
+    this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
 
     // in DEBUG only: force validator = null
@@ -380,10 +381,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Wait until closed
     const {data, role} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug('[samples-table] Modal result: ', data);
+
+
+    if (data && this.debug) console.debug('[samples-table] Sample modal result: ', data, role);
+
     this.markAsLoaded();
 
-    return {data:(data instanceof Sample ? data : undefined), role};
+    return {data: (data instanceof Sample ? data : undefined), role};
   }
 
   async onIndividualMonitoringClick(event: UIEvent, row: TableElement<Sample>) {
@@ -682,9 +686,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const {data} = await this.openDetailModal();
+    const {data, role} = await this.openDetailModal();
     if (data) {
-      await this.addEntityToTable(data);
+      if (role === 'DELETE') {
+        // Nothing to DO, because is not created yet
+        return false;
+      }
+      else {
+        await this.addEntityToTable(data);
+      }
     }
     return true;
   }
@@ -702,9 +712,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Prepare entity measurement values
     this.prepareEntityToSave(dataToOpen);
 
-    const {data} = await this.openDetailModal(dataToOpen, row);
+    const {data, role} = await this.openDetailModal(dataToOpen, row);
     if (data) {
-      await this.updateEntityToTable(data, row);
+      if (role === 'DELETE') {
+        await this.deleteEntity(null, data);
+        return false;
+      }
+      else {
+        await this.updateEntityToTable(data, row);
+      }
     } else {
       this.editedRow = null;
     }
@@ -727,11 +743,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Row not exists: OK
     if (!row) return true;
 
-    const canDeleteRow = await this.canDeleteRows([row]);
-    if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
-    }
-    return canDeleteRow;
+    const confirmed = await this.canDeleteRows([row]);
+    if (!confirmed) return false;
+
+    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
+    if (!deleted) event?.preventDefault(); // Mark as cancelled
+
+    return deleted;
   }
 
 
@@ -894,7 +912,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   addRow(event?: Event, insertAt?: number): boolean {
-    this.focusColumn = this.firstUserColumn;
+    // TODO remove this after upgrading ngx component
+    if (this.inlineEdition) this.focusColumn = this.firstUserColumn;
     return super.addRow(event, insertAt);
   }
 

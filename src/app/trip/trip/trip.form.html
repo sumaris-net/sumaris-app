@@ -161,7 +161,7 @@
             <ion-icon matPrefix name="locate"></ion-icon>
             <button matAfter type="button" mat-icon-button
                     tabindex="-1"
-                    [disabled]="!canFilterMetier"
+                    [disabled]="disabled || !canFilterMetier"
                     [title]="'TRIP.BTN_FILTER_METIER'|translate"
                     (click)="toggleFilteredMetier()"
                     [color]="enableMetierFilter ? 'primary' : undefined">

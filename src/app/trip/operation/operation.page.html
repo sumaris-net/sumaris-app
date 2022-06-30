@@ -159,13 +159,13 @@
 
 </mat-menu>
 
-<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+<!--<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">-->
+<ion-content>
 
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)"
                  [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
                  [disablePagination]="true"
                  [dynamicHeight]="false">

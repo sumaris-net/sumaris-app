@@ -263,7 +263,7 @@ export class MeasurementValuesUtils {
     return PmfmValueUtils.toModelValue(value, pmfm);
   }
 
-  static isMeasurementFormValues(value: MeasurementFormValues | MeasurementModelValues): value is MeasurementFormValues {
+  static isMeasurementFormValues(value: MeasurementFormValues | MeasurementModelValues | any): value is MeasurementFormValues {
     return value.__typename === MeasurementValuesTypes.MeasurementFormValue;
   }
 

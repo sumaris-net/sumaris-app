@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   Alerts,
-  AppFormUtils,
+  AppFormUtils, AudioProvider,
   EntityUtils,
   FormErrorTranslator,
   isNil,
@@ -12,7 +12,7 @@ import {
   referentialToString,
   toBoolean,
   TranslateContextService,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
@@ -63,6 +63,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   private readonly _subscription = new Subscription();
+  private isOnFieldMode: boolean;
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
@@ -109,12 +110,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     return this.form.valid;
   }
 
-
-  get isOnFieldMode() {
-    return this.usageMode === 'FIELD';
-  }
-
-
   constructor(
     protected injector: Injector,
     protected modalCtrl: ModalController,
@@ -123,6 +118,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     protected translate: TranslateService,
     protected translateContext: TranslateContextService,
     protected formErrorTranslator: FormErrorTranslator,
+    protected audio: AudioProvider,
     protected cd: ChangeDetectorRef
   ) {
     // Default value
@@ -135,8 +131,10 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   }
 
   ngOnInit() {
+    // Default values
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
+    this.isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
 
@@ -251,14 +249,25 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     // DEBUG
     //console.debug('[sample-modal] Calling onSubmitAndNext()');
 
+    // If new AND pristine BUT valud (e.g. all PMFMs are optional): avoid to validate
+    if (this.isNew && !this.dirty && this.valid) {
+      return; // skip
+    }
+
     const data = await this.getDataToSave();
-    if (!data) return; // invalid
+    // invalid
+    if (!data) {
+      if (this.isOnFieldMode) this.audio.playBeepError();
+      return;
+    }
 
     this.markAsLoading();
 
     try {
       const newData = await this.onSaveAndNew(data);
       await this.reset(newData);
+      this.isNew = true;
+      if (this.isOnFieldMode) this.audio.playBeepConfirm();
 
       await this.scrollToTop();
     } finally {
@@ -274,7 +283,9 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     if (this.loading) return undefined; // avoid many call
 
     // No changes: leave
-    if (!this.dirty && !this.isNew) {
+    if ((!this.dirty && !this.isNew)
+      // If new, not changed but valid (e.g. if all PMFM are optional) : avoid to save an empty entity => skip
+      || (this.isNew && !this.dirty && this.valid)) {
       this.markAsLoading();
       await this.modalCtrl.dismiss();
     }
@@ -289,14 +300,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   }
 
   async delete(event?: UIEvent) {
-    let canDelete = true;
-
     if (this.onDelete) {
-      canDelete = await this.onDelete(event, this.data);
-      if (isNil(canDelete) || (event && event.defaultPrevented)) return; // User cancelled
+      const deleted = await this.onDelete(event, this.data);
+      if (isNil(deleted) || (event && event.defaultPrevented)) return; // User cancelled
+      if (deleted) await this.modalCtrl.dismiss();
     }
-
-    if (canDelete) {
+    else {
       await this.modalCtrl.dismiss(this.data, 'DELETE');
     }
   }

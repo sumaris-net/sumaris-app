@@ -341,7 +341,8 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
       Object.assign(row.currentData, this.defaultNewRowValue());
     }
 
-    this.clickRow(undefined, row);
+    // Start row edition
+    if (this.inlineEdition) this.clickRow(undefined, row);
     this.scrollToBottom();
   }
 

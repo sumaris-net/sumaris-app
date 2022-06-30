@@ -45,12 +45,6 @@ import { AppSaleModule } from '@app/trip/sale/sale.module';
     TripOfflineModal
   ],
   exports: [
-
-    // App modules
-    AppOperationModule,
-
-    // Pipes
-
     // Components
     TripTable,
     TripPage,

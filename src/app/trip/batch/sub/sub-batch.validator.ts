@@ -52,7 +52,7 @@ export interface SubBatchValidatorValidatorOptions extends DataEntityValidatorOp
   pmfms?: IPmfm[];
 }
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class SubBatchValidatorService extends DataEntityValidatorService<SubBatch, SubBatchValidatorValidatorOptions> {
 
   constructor(

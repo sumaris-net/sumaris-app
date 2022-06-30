@@ -31,7 +31,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
       withWeight: true,
       pmfms: this.pmfms,
       // Children
-      withChildren: !!this.qvPmfm || this.showSamplingBatchColumns,
+      withChildren: !!this.qvPmfm || this.enableSamplingBatch,
       qvPmfm: this.qvPmfm,
       childrenPmfms: !!this.qvPmfm && this.childrenPmfms
     });

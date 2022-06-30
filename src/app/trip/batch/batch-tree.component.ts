@@ -538,7 +538,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     if (this.subBatchesTable) {
       return this.getTableValue(this.subBatchesTable);
     } else {
-      return this._subBatchesService.value;
+      return (this._subBatchesService.value || [])
+        // make sure to convert into model
+        .map(source => SubBatch.fromObject(source));
     }
   }
 

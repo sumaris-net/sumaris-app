@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { isObservable, Observable, Subject, Subscription } from 'rxjs';
+import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
 import { FormGroup, Validators } from '@angular/forms';
 import {
@@ -15,8 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  ReferentialUtils, removeDuplicatesFromArray,
-  selectInputContent,
+  ReferentialUtils,
   startsWithUpperCase,
   toBoolean,
   UsageMode
@@ -27,7 +26,7 @@ import { SubBatchValidatorService } from './sub-batch.validator';
 import { SubBatchForm } from './sub-batch.form';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { ISubBatchModalOptions, SubBatchModal } from './sub-batch.modal';
-import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, UnitLabel, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SortDirection } from '@angular/material/sort';
 import { SubBatch } from './sub-batch.model';
@@ -40,10 +39,6 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { PopoverController } from '@ionic/angular';
 import { Popovers } from '@app/shared/popover/popover.utils';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { ribbon } from 'ionicons/icons';
-import { debounceTime } from 'rxjs/operators';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { BatchFilter } from "@app/trip/batch/common/batch.filter";
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
@@ -82,7 +77,6 @@ const subBatchTableOptionsFactory = () => {
   styleUrls: ['sub-batches.table.scss'],
   providers: [
     {provide: ContextService, useExisting: TripContextService},
-    {provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: subBatchTableOptionsFactory
@@ -852,7 +846,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
     this.updateColumns();
   }
 
-  selectInputContent = selectInputContent;
+  selectInputContent = AppFormUtils.selectInputContent;
 
   protected markForCheck() {
     this.cd.markForCheck();

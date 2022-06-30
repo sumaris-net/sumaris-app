@@ -4,20 +4,21 @@ import { MeasurementsValidatorService } from '../../services/validator/measureme
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { BehaviorSubject } from 'rxjs';
 import { BatchValidatorService } from '../common/batch.validator';
-import { EntityUtils, isNil, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
+import { isNotNil } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { filter } from 'rxjs/operators';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { MatrixIds, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
-import { deepEqual } from 'assert';
-import { equals } from '@app/shared/functions';
 
 @Component({
   selector: 'form-catch-batch',
   templateUrl: './catch.form.html',
   styleUrls: ['./catch.form.scss'],
+  providers: [
+    {provide: BatchValidatorService, useClass: BatchValidatorService}
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnInit {

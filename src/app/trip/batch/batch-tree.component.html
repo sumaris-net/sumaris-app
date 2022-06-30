@@ -7,7 +7,7 @@
 <!--  ></app-batch-filter-form>-->
 
   <!-- catch batch form -->
-  <div [class.cdk-visually-hidden]="!showCatchForm">
+  <div class="ion-padding" [class.cdk-visually-hidden]="!showCatchForm">
     <form-catch-batch #catchBatchForm
                       [programLabel]="$programLabel|async"
                       acquisitionLevel="CATCH_BATCH"
@@ -17,7 +17,6 @@
                       [debug]="debug">
     </form-catch-batch>
   </div>
-
 
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden mat-tab-group-header-pagination-hidden"

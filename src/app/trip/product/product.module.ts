@@ -8,6 +8,7 @@ import { AppLandingModule } from '@app/trip/landing/landing.module';
 import { AppLandedTripModule } from '@app/trip/landedtrip/landed-trip.module';
 import { AppDataModule } from '@app/data/data.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
+import { AppReferentialModule } from '@app/referential/referential.module';
 
 
 @NgModule({
@@ -17,6 +18,7 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
     TranslateModule.forChild(),
 
     // Functional modules
+    AppReferentialModule,
     AppMeasurementModule
   ],
   declarations: [
