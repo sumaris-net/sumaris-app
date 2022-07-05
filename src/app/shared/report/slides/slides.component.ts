@@ -1,10 +1,8 @@
-import {AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
-import {fadeInAnimation, sleep, waitFor} from '@sumaris-net/ngx-components';
-import Reveal from 'reveal.js/dist/reveal.esm.js';
-import Markdown from 'reveal.js/plugin/markdown/markdown.esm.js';
-import Highlight from 'reveal.js/plugin/highlight/highlight.esm.js';
-import {MarkdownComponent} from 'ngx-markdown';
-import {Subject, Subscription} from 'rxjs';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { fadeInAnimation, waitFor } from '@sumaris-net/ngx-components';
+import Reveal from 'reveal.js/dist/reveal.esm';
+import { MarkdownComponent } from 'ngx-markdown';
+import { Subscription } from 'rxjs';
 
 
 export interface IRevealOptions {
@@ -77,12 +75,8 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
       ...this.options,
 
       embedded: true, // Required for multi .reveal div
-      keyboardCondition: 'focused',
+      keyboardCondition: 'focused'
 
-      plugins: [
-        Markdown,
-        Highlight
-      ],
     });
 
     await reveal.initialize();
