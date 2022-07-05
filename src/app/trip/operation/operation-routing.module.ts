@@ -15,16 +15,16 @@ const routes: Routes = [
     component: OperationPage,
     canDeactivate: [ComponentDirtyGuard]
   },
-  // {
-  //   path: ':operationId/selectivity',
-  //   pathMatch: 'full',
-  //   runGuardsAndResolvers: 'pathParamsChange',
-  //   data: {
-  //     pathIdParam: 'operationId'
-  //   },
-  //   component: SelectivityOperationPage,
-  //   canDeactivate: [ComponentDirtyGuard]
-  // }
+  {
+    path: ':operationId/selectivity',
+    pathMatch: 'full',
+    runGuardsAndResolvers: 'pathParamsChange',
+    data: {
+      pathIdParam: 'operationId'
+    },
+    component: SelectivityOperationPage,
+    canDeactivate: [ComponentDirtyGuard]
+  }
 ];
 
 

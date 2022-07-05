@@ -18,6 +18,7 @@ import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.modu
 import { SelectivityOperationPage } from '@app/trip/operation/selectivity/selectivity-operation.page';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.component';
+import { BatchTreeWrapperComponent } from '@app/trip/operation/selectivity/batch-tree-wrapper.component';
 
 @NgModule({
   imports: [
@@ -45,7 +46,8 @@ import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.
     OperationsMap,
     SelectOperationModal,
     SelectOperationByTripTable,
-    OperationIconComponent
+    OperationIconComponent,
+    BatchTreeWrapperComponent
   ],
   exports: [
     // Components
