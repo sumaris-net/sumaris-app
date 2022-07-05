@@ -1,8 +1,8 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { fadeInAnimation, waitFor } from '@sumaris-net/ngx-components';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { fadeInAnimation, firstFalsePromise, waitFor, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 import Reveal from 'reveal.js/dist/reveal.esm';
 import { MarkdownComponent } from 'ngx-markdown';
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 
 
 export interface IRevealOptions {
@@ -10,13 +10,11 @@ export interface IRevealOptions {
   progress: boolean;
   history: boolean;
   center: boolean;
+  autoInitialize: boolean;
+  disableLayout: boolean;
+  touch: boolean
 }
-export interface IRevealMenu {
-  toggle();
-}
-export interface IRevealNotes {
-  open();
-}
+
 @Component({
   selector: 'app-slides',
   templateUrl: './slides.component.html',
@@ -26,7 +24,8 @@ export interface IRevealNotes {
 })
 export class AppSlidesComponent implements AfterViewInit, OnDestroy
 {
-  private _loading = true;
+  private _reveal: Reveal;
+  private _$loading = new BehaviorSubject(true);
   private _subscription = new Subscription();
 
   @Input() options: Partial<IRevealOptions>;
@@ -35,12 +34,22 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
   @ViewChild('reveal') revealDiv!: ElementRef;
   @ViewChildren('[markdown]') markdownList!: QueryList<MarkdownComponent>;
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event){
+    this._reveal?.layout();
+  }
+
+  get loading(): boolean {
+    return this._$loading.value;
+  }
 
   constructor() {
   }
 
   ngAfterViewInit() {
-    setTimeout(() => this.initialize(), 100);
+    if (this.options.autoInitialize !== false) {
+      setTimeout(() => this.initialize(), 100);
+    }
   }
 
   ngOnDestroy(): void {
@@ -58,7 +67,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
     // Full list of configuration options available here:
     // https://github.com/hakimel/reveal.js#configuration
-    const reveal = new Reveal(this.revealDiv.nativeElement, {
+    this._reveal = new Reveal(this.revealDiv.nativeElement, {
       controls: true,
       progress: true,
       history: true,
@@ -68,7 +77,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
       keyboard: true,
       fragments: true,
       controlsBackArrows: 'faded',
-      pdfMaxPagesPerSlide: 1,
+      //pdfMaxPagesPerSlide: 1,
       hideInactiveCursor: true,
       touch: true,
 
@@ -79,20 +88,36 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
     });
 
-    await reveal.initialize();
+    await this._reveal.initialize();
 
     console.info(`[slides] Reveal initialized in ${Date.now()-now}ms`);
     this.onReady.emit();
-    this._loading = false;
+    this.markAsLoaded();
 
     this._subscription.add(() => {
-      reveal.destroy();
+      this._reveal.destroy();
       this.revealDiv.nativeElement.innerHTML = '';
     });
   }
 
-  async print() {
-    await waitFor(() => !this._loading, {timeout: 1000});
+  configure(options: Partial<IRevealOptions>){
+    this._reveal?.configure(options);
+  }
+
+  async print(event?: UIEvent) {
+    await this.waitIdle();
     window.print();
+  }
+
+  waitIdle(opts?: WaitForOptions): Promise<void> {
+    return waitFor(() => !this.loading, opts);
+  }
+
+  protected markAsLoading() {
+    this._$loading.next(true);
+  }
+
+  protected markAsLoaded() {
+    this._$loading.next(false);
   }
 }

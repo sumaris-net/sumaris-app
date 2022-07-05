@@ -31,8 +31,7 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
     LandingForm,
     LandingPage,
     SamplingLandingPage,
-    SelectLandingsModal,
-    AuctionControlPage
+    SelectLandingsModal
   ],
   exports: [
     // Components
@@ -40,8 +39,7 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
     LandingForm,
     LandingPage,
     SamplingLandingPage,
-    SelectLandingsModal,
-    AuctionControlPage
+    SelectLandingsModal
   ]
 })
 export class AppLandingModule {

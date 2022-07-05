@@ -29,25 +29,23 @@ const routes: Routes = [
         runGuardsAndResolvers: 'pathParamsChange',
         canDeactivate: [ComponentDirtyGuard]
       },
+      // {
+      //   path: 'landing/:landingId',
+      //   data: {
+      //     pathIdParam: 'landingId'
+      //   },
+      //   pathMatch: 'full',
+      //   component: LandingPage,
+      //   runGuardsAndResolvers: 'pathParamsChange',
+      //   canDeactivate: [ComponentDirtyGuard]
+      // },
       {
-        path: 'landing/:landingId',
-        data: {
-          pathIdParam: 'landingId'
-        },
-        pathMatch: 'full',
-        component: LandingPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        canDeactivate: [ComponentDirtyGuard]
+        path: 'landing',
+        loadChildren: () => import('./landing/landing-routing.module').then(m => m.AppLandingRoutingModule)
       },
       {
-        path: 'control/:controlId',
-        data: {
-          pathIdParam: 'controlId'
-        },
-        pathMatch: 'full',
-        component: AuctionControlPage,
-        runGuardsAndResolvers: 'pathParamsChange',
-        canDeactivate: [ComponentDirtyGuard]
+        path: 'control',
+        loadChildren: () => import('./landing/auctioncontrol/auction-control-routing.module').then(m => m.AppAuctionControlRoutingModule)
       },
       {
         path: 'sampling/:samplingId',

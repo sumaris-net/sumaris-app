@@ -1,0 +1,38 @@
+:root {
+  --slide-width: calc(100%);
+}
+
+app-slides {
+  /*--slide-width: calc(100%) !important;*/
+
+  table {
+    width: calc(100%);
+
+
+    --col-count: 12;
+    --r-cell-font-size: 0.6em;
+
+    th {
+      small::before {
+        content: '\A';
+        white-space: pre-line;
+      }
+    }
+
+    th, td {
+      /*font-size: 0.7em;*/
+      font-size: var(--r-cell-font-size);
+      max-width: calc(var(--slide-width) / var(--col-count));
+
+    }
+  }
+}
+
+
+.loader {
+  height: calc(100vh);
+  width: calc(100vw);
+  text-align: center;
+  vertical-align: middle;
+  padding-top: calc(50vh - var(--app-toolbar-height));
+}

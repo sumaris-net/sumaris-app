@@ -1243,15 +1243,16 @@
   },
   "AUCTION_CONTROL": {
     "TITLE_PREFIX": "<small>{{location}} - Contrôle {{date}}<br/></small>",
+    "TAB_SAMPLES": "Points de contrôle",
+    "TAXON_GROUP_PLACEHOLDER": "Espèce controllée",
     "NEW": {
       "TITLE": "Nouveau navire contrôlé"
     },
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
-      "OTHER_TAXON_GROUP": "Espèce commerciale (FAO)"
+      "OTHER_TAXON_GROUP": "Espèce commerciale (FAO)",
+      "BTN_REPORT": "Générer le rapport"
     },
-    "TAB_SAMPLES": "Points de contrôle",
-    "TAXON_GROUP_PLACEHOLDER": "Espèce controllée",
     "SAMPLE": {
       "NEW": {
         "TITLE": "Nouveau lot controlé"
@@ -1259,6 +1260,9 @@
       "EDIT": {
         "TITLE": "Lot controlé {{label}}"
       }
+    },
+    "REPORT": {
+      "TITLE": "Rapport de contrôle - {{vessel}} - {{date}}"
     }
   },
   "EXPENSE": {
