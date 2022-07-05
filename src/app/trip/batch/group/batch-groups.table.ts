@@ -857,7 +857,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   protected computeDynamicColumnsByQv(qvGroup?: ReferentialRef, qvIndex?: number): BatchGroupColumnDefinition[] {
     qvIndex = isNotNil(qvIndex) ? qvIndex : -1;
-    const offset = qvIndex * (BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length + (this._initialPmfms || []).filter(pmfm => !pmfm.hidden && !this.mobile).length);
+    const offset = (this._speciesPmfms.length - 1)
+      + qvIndex * (BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length + (!this.mobile && this._childrenPmfms.length || 0));
     const hideWeightColumns = !this._showWeightColumns;
     const hideIndividualCountColumns = !this.showIndividualCountColumns;
     const hideSamplingColumns = !this._showSamplingBatchColumns;
@@ -955,7 +956,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       this.groupColumnStartColSpan = RESERVED_START_COLUMNS.length
         + (this.showTaxonGroupColumn ? 1 : 0)
         + (this.showTaxonNameColumn ? 1 : 0)
-        + (this._speciesPmfms ? PmfmUtils.filterPmfms(this._speciesPmfms, {excludeHidden: true}).length : 0);
+        + (this._speciesPmfms ? this.dynamicColumns.filter(c => c.pmfm && !c.hidden && !this.excludesColumns.includes(c.key)).length : 0);
     }
     else {
       this.groupColumnStartColSpan += this.dynamicColumns.filter(c => !c.hidden).length;
@@ -978,8 +979,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       .map(c => ({
         key: c.key,
         hidden: c.hidden,
-        rankOrder: c.rankOrder + (inverseOrder &&
-          ((c.isWeight && 1) || (c.isIndividualCount && -1)) || 0),
+        rankOrder: c.rankOrder
+          + (inverseOrder ? ((c.isWeight && 1) || (c.isIndividualCount && -1)) : 0),
       }))
       .sort((c1, c2) => c1.rankOrder - c2.rankOrder)
       .filter(c => !c.hidden)

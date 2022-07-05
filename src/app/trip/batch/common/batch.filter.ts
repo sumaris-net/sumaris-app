@@ -1,7 +1,7 @@
 import { EntityClass, EntityFilter, FilterFn, isNotNil } from '@sumaris-net/ngx-components';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
-import { EntityAsObjectOptions } from '@sumaris-net/ngx-components/src/app/core/services/model/entity.model';
+import { EntityAsObjectOptions } from '@sumaris-net/ngx-components';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 @EntityClass({typename: 'BatchFilterVO'})

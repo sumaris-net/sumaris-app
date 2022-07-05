@@ -5,7 +5,6 @@ import {
   AccountService,
   BaseGraphqlService,
   CryptoService,
-  EntityClass,
   EntityServiceLoadOptions,
   EntityUtils,
   GraphqlService,
@@ -16,23 +15,22 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   ObjectMap,
-  Referential,
   ReferentialUtils,
   StatusIds,
   SuggestService
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { ReferentialService } from './referential.service';
-import { IPmfm, Pmfm } from './model/pmfm.model';
+import { Pmfm } from './model/pmfm.model';
 import { Observable, of } from 'rxjs';
 import { ReferentialFragments } from './referential.fragments';
 import { map } from 'rxjs/operators';
 import { SortDirection } from '@angular/material/sort';
 import { ReferentialRefService } from './referential-ref.service';
 import { CacheService } from 'ionic-cache';
-import { BaseReferentialFilter } from './filter/referential.filter';
 import { ParameterLabelGroups } from '@app/referential/services/model/model.enum';
 import { arrayPluck } from '@app/shared/functions';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 
 const LoadAllQuery = gql`query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -153,16 +151,6 @@ ${ReferentialFragments.pmfm}
 ${ReferentialFragments.referential}
 ${ReferentialFragments.fullReferential}
 ${ReferentialFragments.parameter}`;
-
-
-@EntityClass({typename: 'PmfmFilterVO'})
-export class PmfmFilter extends BaseReferentialFilter<PmfmFilter, Pmfm> {
-
-  static fromObject: (source: any, opts?: any) => PmfmFilter;
-
-  entityName?: 'Pmfm';
-
-}
 
 
 const PmfmCacheKeys = {

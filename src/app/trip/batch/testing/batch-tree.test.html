@@ -95,7 +95,7 @@
     </ion-text>
   </div>
 
-  <mat-tab-group>
+  <mat-tab-group [style.height.px]="600" dynamicHeight>
     <mat-tab label="Mobile">
       <ng-template matTabContent>
         <app-batch-tree #mobileBatchTree

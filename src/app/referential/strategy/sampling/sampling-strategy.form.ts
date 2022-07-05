@@ -47,7 +47,7 @@ import {
 } from '../../services/model/model.enum';
 import { ProgramProperties } from '../../services/config/program.config';
 import { BehaviorSubject, merge } from 'rxjs';
-import { PmfmFilter, PmfmService } from '../../services/pmfm.service';
+import { PmfmService } from '../../services/pmfm.service';
 import { SamplingStrategy, StrategyEffort } from '@app/referential/services/model/sampling-strategy.model';
 import { TaxonName, TaxonNameRef, TaxonUtils } from '@app/referential/services/model/taxon-name.model';
 import { TaxonNameService } from '@app/referential/services/taxon-name.service';
@@ -58,6 +58,7 @@ import { TaxonNameFilter } from '@app/referential/services/filter/taxon-name.fil
 import { filter, map } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 const moment = momentImported;
 

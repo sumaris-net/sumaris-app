@@ -11,7 +11,7 @@ import { BatchGroupValidators, BatchGroupValidatorService } from '@app/trip/batc
 import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
+import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
@@ -64,9 +64,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     // Control batch groups
     if (isNotEmptyArray(entity.children)) {
       const pmfms = await this.programRefService.loadProgramPmfms(opts.program.label, {acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH});
-      const qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms, {
-        excludeHidden: true,
-        excludePmfmIds: [PmfmIds.BATCH_GEAR_POSITION]});
+      const qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
 
       // Compute species pmfms (at species batch level)
       let speciesPmfms: IPmfm[], childrenPmfms: IPmfm[];

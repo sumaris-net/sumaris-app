@@ -14,9 +14,9 @@ export const PMFM_ID_REGEXP = /\d+/;
 export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\/(]+)((?:\s+\/\s+[^/]+)|(?:\([^\)]+\)))$/);
 
 export interface IPmfm<
-  T extends Entity<T, ID> = Entity<any, any>,
+  T extends IPmfm<T, ID> = IPmfm<any, any>,
   ID = number
-  > extends IEntity<IPmfm<T, ID>, ID> {
+  > extends IEntity<T, ID> {
   id: ID;
   label: string;
 
@@ -48,13 +48,14 @@ export interface IPmfm<
 }
 
 export interface IDenormalizedPmfm<
-  T extends Entity<T, ID> = Entity<any, any>,
+  T extends IDenormalizedPmfm<T, ID> = IDenormalizedPmfm<any, any>,
   ID = number
   > extends IPmfm<T, ID> {
 
   completeName?: string;
   name?: string;
   acquisitionNumber?: number;
+  acquisitionLevel?: string;
 
   gearIds: number[];
   taxonGroupIds: number[];
@@ -64,7 +65,7 @@ export interface IDenormalizedPmfm<
 
 
 export interface IFullPmfm<
-  T extends Entity<T, ID> = Entity<any, any>,
+  T extends IFullPmfm<T, ID> = IFullPmfm<any, any>,
   ID = number
   > extends IPmfm<T, ID> {
 
@@ -260,12 +261,6 @@ export abstract class PmfmUtils {
           // Should be the first visible pmfms. If not (e.g. a numeric pmfm is before: not a group pmfm)
           && index === 0;
       });
-
-    // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
-    if (qvPmfm?.id === PmfmIds.DISCARD_OR_LANDING) {
-      qvPmfm = qvPmfm.clone() as P; // copy, to keep original array
-      qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
-    }
     return qvPmfm;
   }
 

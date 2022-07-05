@@ -38,7 +38,7 @@ import {environment} from '@environments/environment';
 import {debounceTime} from 'rxjs/operators';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {SampleFilter} from '../services/filter/sample.filter';
-import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
+import {PmfmService} from '@app/referential/services/pmfm.service';
 import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {MatMenu} from '@angular/material/menu';
@@ -51,6 +51,7 @@ import {MatCellDef} from '@angular/material/table';
 import {OverlayEventDetail} from '@ionic/core';
 import {IPmfmForm} from '@app/trip/services/validator/operation.validator';
 import { IPhysicalGearModalOptions } from '@app/trip/physicalgear/physical-gear.modal';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 const moment = momentImported;
 

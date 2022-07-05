@@ -227,7 +227,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
     if (this.debug) console.debug('[batch-group-form] mapPmfm()...');
 
-    this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms, {excludeHidden: true});
+    this.qvPmfm = this.qvPmfm || BatchGroupUtils.getQvPmfm(pmfms);
     if (this.qvPmfm) {
 
       // Create a copy, to keep original pmfm unchanged

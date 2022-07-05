@@ -1,13 +1,9 @@
-<ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn;"
-              [ngSwitch]="pmfm.type">
-  <ng-container *ngSwitchCase="'qualitative_value'">
-    <nav #navBar mat-tab-nav-bar *ngVar="(form|formGetValue: ['measurementValues', pmfm.id]) as value">
-      <a *ngFor="let qv of pmfm.qualitativeValues"
-         mat-tab-link
-         [active]="value == qv.id"
-         (click)="applyPmfmValue(pmfm, qv)">
-        <mat-label>{{qv.name}}</mat-label>
-      </a>
-    </nav>
-  </ng-container>
-</ng-container>
+<form class="form-container" [formGroup]="form|formGetGroup: 'measurementValues'" (ngSubmit)="doSubmit($event)">
+ <ion-grid>
+   <ion-row>
+    <ion-col *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn;">
+      <app-pmfm-field [pmfm]="pmfm"></app-pmfm-field>
+    </ion-col>
+   </ion-row>
+ </ion-grid>
+</form>
