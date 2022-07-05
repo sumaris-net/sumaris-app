@@ -707,6 +707,9 @@
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Captures accidentelles"
+        },
+        "SELECTIVITY": {
+          "TAB_CATCH": "Capture - {{name}}"
         }
       },
       "PARENT": {
@@ -778,6 +781,7 @@
     },
     "CATCH": {
       "FORM": {
+        "SUB_GEAR": "Sous-engin :",
         "ON_DECK": "Arrivée sur pont :",
         "SORTING": "Debut/fin de tri :",
         "TOTAL_CATCH": "Capture (toutes espèces) :"
@@ -1651,8 +1655,6 @@
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Échantillon : Date et heure ?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Échantillon : Espèces commerciales ?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Échantillon : Espèces scientifiques ?",
-      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Test de survie : Espèces scientifiques ?",
-      "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Test de survie : Espèces commerciales ?",
       "TRIP_POSITION_ENABLE": "Marée > Position : Activer ?",
       "TRIP_POSITION_BOUNDING_BOX": "Marée > Position : Boite limite ([x1, y1, x2, y2]) :",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",

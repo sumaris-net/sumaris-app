@@ -1,13 +1,13 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
 import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
 import {AppTable, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList} from '@sumaris-net/ngx-components';
-import {PmfmFilter} from '../services/pmfm.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ModalController, Platform} from '@ionic/angular';
 import {Location} from '@angular/common';
 import {debounceTime, filter} from 'rxjs/operators';
 import {environment} from '../../../environments/environment';
 import {Pmfm} from '../services/model/pmfm.model';
+import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
 
 @Component({
   selector: 'app-pmfms-table',

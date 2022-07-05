@@ -14,6 +14,7 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -280,9 +281,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     this.weightPmfmsByMethod = splitByProperty(this.weightPmfms, 'methodId');
 
     // Find the first qualitative PMFM
-    this.qvPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms, {
-      excludeHidden: true,
-      excludePmfmIds: [PmfmIds.BATCH_GEAR_POSITION]});
+    this.qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
 
     // Exclude weight PMFMs
     return pmfms.filter(p => !this.weightPmfms.includes(p));

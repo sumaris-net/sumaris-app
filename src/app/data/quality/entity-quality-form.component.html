@@ -32,6 +32,7 @@
 
   <!-- Control (only if local) -->
   <ion-button mat-icon-button *ngIf="canControl && !canSynchronize && !canTerminate"
+              [disabled]="busy"
               (click)="control($event)" expand="block" color="tertiary">
     <ion-icon slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
     <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
@@ -39,6 +40,7 @@
 
   <!-- Terminate -->
   <ion-button mat-icon-button *ngIf="canTerminate"
+              [disabled]="busy"
               (click)="terminate($event)"
               expand="block" color="tertiary"
               class="large-text">

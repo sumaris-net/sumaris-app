@@ -198,6 +198,9 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     return typeChanged;
   }
 
+  protected getFirstInvalidTabIndex(): number {
+    return 0;
+  }
 
   setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
     if (sheetName === this.sheetName) return; //skip

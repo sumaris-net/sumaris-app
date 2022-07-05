@@ -9,15 +9,29 @@
   <ion-grid class="ion-no-padding">
 
     <!-- on deck  -->
-    <ng-container *ngIf="$onDeckPmfms | async as pmfms"> <!-- loading -->
+    <ng-container *ngIf="$gearPmfms | async as pmfms">
       <ion-row *ngIf="pmfms.length" class="form-container ion-no-padding">
-        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+        <ion-col size="12" size-md="2" size-lg="3">
+          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SUB_GEAR</ion-label>
+        </ion-col>
+
+        <ion-col size="6" size-md="auto" *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
+          <app-pmfm-field [pmfm]="pmfm"
+                          [tabindex]="tabindex+10+i">
+          </app-pmfm-field>
+        </ion-col>
+      </ion-row>
+    </ng-container>
+
+    <!-- on deck  -->
+    <ng-container *ngIf="$onDeckPmfms | async as pmfms">
+      <ion-row *ngIf="pmfms.length" class="form-container ion-no-padding">
+        <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.ON_DECK</ion-label>
         </ion-col>
 
         <ion-col size="6" size-md="auto" *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
           <app-pmfm-field [pmfm]="pmfm"
-                          [formControlName]="pmfm.id.toString()"
                           [tabindex]="tabindex+10+i">
           </app-pmfm-field>
         </ion-col>
@@ -27,13 +41,12 @@
     <!-- Sorting -->
     <ng-container *ngIf="$sortingPmfms | async as pmfms">
       <ion-row *ngIf="pmfms.length" class="ion-no-padding">
-        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+        <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SORTING</ion-label>
         </ion-col>
 
         <ion-col size="6" size-md="3" *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
           <app-pmfm-field [pmfm]="pmfm"
-                          [formControlName]="pmfm.id.toString()"
                           [tabindex]="tabindex+20+i">
           </app-pmfm-field>
         </ion-col>
@@ -44,11 +57,11 @@
     <!-- Weight pmfms -->
     <ng-container *ngIf="$weightPmfms | async as pmfms">
       <ion-row *ngIf="pmfms.length" class="ion-padding">
-        <ion-col size="12" size-md="2" size-lg="3" class="ion-align-self-end">
+        <ion-col size="12" size-md="2" size-lg="3">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
         </ion-col>
         <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
-          <ion-col size="6" size-md="3" *ngIf="!pmfm.hidden">
+          <ion-col size="6" size-md="2" *ngIf="!pmfm.hidden">
             <app-pmfm-field [pmfm]="pmfm"
                             [tabindex]="tabindex+30+i">
             </app-pmfm-field>
@@ -63,7 +76,6 @@
         <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
           <ion-col size="6" [sizeMd]="(pmfm|isMultiplePmfm) ? 9 : 3" [offsetMd]="(pmfm|isMultiplePmfm) || (i % 3 === 0) ? 3 : 0">
             <app-pmfm-field [pmfm]="pmfm"
-                            [controlName]="pmfm|pmfmIdString"
                             [tabindex]="tabindex+40+i*3">
             </app-pmfm-field>
           </ion-col>
@@ -78,7 +90,7 @@
 
 <ng-template #rowSkeleton>
   <ion-row class="ion-no-padding">
-    <ion-col size="12" size-md="3" class="ion-align-self-end">
+    <ion-col size="12" size-md="3">
       <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
     </ion-col>
     <ion-col size="6" size-md="auto">

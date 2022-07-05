@@ -254,7 +254,7 @@
   <div #tableContainer class="table-container">
     <table mat-table
            [dataSource]="dataSource"
-           [class.c-visually-hidden]="!data || data.total === 0"
+           [class.cdk-visually-hidden]="!data?.total || loading"
            matSort
            matSortDisableClear>
 
@@ -291,13 +291,26 @@
     </table>
 
     <ng-container *ngIf="loading; else noResult">
-      <ion-item>
-        <ion-skeleton-text animated></ion-skeleton-text>
-      </ion-item>
+      <table class="mat-table">
+        <tr class="mat-header-row">
+          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
+          <th class="mat-header-cell" colspan="4">&nbsp;</th>
+        </tr>
+        <tr class="mat-row">
+          <td class="mat-cell" colspan="12"><ion-skeleton-text animated></ion-skeleton-text></td>
+        </tr>
+      </table>
     </ng-container>
 
     <ng-template #noResult>
-      <ion-item *ngIf="data && data.total === 0">
+      <ion-item *ngIf="data?.total === 0">
         <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       </ion-item>
     </ng-template>

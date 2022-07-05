@@ -114,4 +114,22 @@ export class BatchGroupUtils {
       value == PmfmValueUtils.toModelValue(parent.measurementValues[qvPmfmId], qvPmfm)
     );
   }
+
+  static getQvPmfm(pmfms: IPmfm[]): IPmfm | undefined {
+    let qvPmfm = (
+      // Use the LAN/DIS if exists
+      pmfms?.find(p => p.id === PmfmIds.DISCARD_OR_LANDING)
+      // Or get the first QV pmfm
+      || PmfmUtils.getFirstQualitativePmfm(pmfms, {
+      excludeHidden: true,
+      excludePmfmIds: [PmfmIds.BATCH_GEAR_POSITION]})
+    );
+
+    // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
+    if (qvPmfm?.id === PmfmIds.DISCARD_OR_LANDING) {
+      qvPmfm = qvPmfm.clone(); // copy, to keep original array
+      qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
+    }
+    return qvPmfm;
+  }
 }

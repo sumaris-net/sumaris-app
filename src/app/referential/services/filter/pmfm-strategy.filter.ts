@@ -1,4 +1,4 @@
-import { EntityClass, EntityFilter, EntityUtils, FilterFn, isEmptyArray, isNotEmptyArray } from '@sumaris-net/ngx-components';
+import { EntityClass, EntityFilter, EntityUtils, FilterFn, isEmptyArray, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
 import { DenormalizedPmfmStrategy, PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 @EntityClass({ typename: 'PmfmStrategyFilterVO' })
@@ -56,6 +56,7 @@ export class DenormalizedPmfmStrategyFilter extends EntityFilter<DenormalizedPmf
   gearIds?: number[];
   taxonGroupIds?: number[];
   referenceTaxonIds?: number[];
+  fractionIdByMatrixId: {[key: number]: number};
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -64,6 +65,7 @@ export class DenormalizedPmfmStrategyFilter extends EntityFilter<DenormalizedPmf
     this.gearIds = source.gearId ? [source.gearId] : source.gearIds;
     this.taxonGroupIds = source.taxonGroupId ? [source.taxonGroupId] : source.taxonGroupIds;
     this.referenceTaxonIds = source.referenceTaxonId ? [source.referenceTaxonId] : source.referenceTaxonIds;
+    this.fractionIdByMatrixId = source.fractionIdByMatrixId || {};
   }
 
   buildFilter(): FilterFn<DenormalizedPmfmStrategy>[] {
@@ -91,6 +93,18 @@ export class DenormalizedPmfmStrategyFilter extends EntityFilter<DenormalizedPmf
     if (isNotEmptyArray(this.referenceTaxonIds)) {
       const referenceTaxonIds = this.referenceTaxonIds;
       filterFns.push(t => isEmptyArray(t.referenceTaxonIds) || t.referenceTaxonIds.findIndex(id => referenceTaxonIds.includes(id)) !== -1);
+    }
+
+    // Filter on fraction, by matrix
+    if (this.fractionIdByMatrixId) {
+      Object.keys(this.fractionIdByMatrixId)
+        .map(parseInt)
+        .forEach(matrixId => {
+          const fractionId = this.fractionIdByMatrixId[matrixId];
+          if (isNotNil(fractionId)) {
+            filterFns.push(t => t.matrixId !== matrixId || t.fractionId === fractionId);
+          }
+        });
     }
 
     return filterFns;

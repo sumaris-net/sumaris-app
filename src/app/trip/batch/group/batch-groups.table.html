@@ -73,7 +73,7 @@
           <ion-label class="ion-text-wrap mat-cell-content-start-padding ion-text-center">
             <span>{{item.name}}</span><br/>
             <mat-checkbox *ngIf="weightMethodForm"
-                          [formControl]="weightMethodForm.controls[item.qvIndex]"
+                          [formControl]="weightMethodForm|formGetControl:item.qvIndex.toString()"
                           labelPosition="before">
               <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
               <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>

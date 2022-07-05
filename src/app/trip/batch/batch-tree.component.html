@@ -1,10 +1,11 @@
 <div #container>
 
-<!--  <app-batch-filter-form #filterForm beforeWeight-->
-<!--                         [class.cdk-visually-hidden]="filterForm.pmfms|isEmptyArray"-->
-<!--                         [pmfms]="batchGroupsTable.$pmfms|async"-->
-<!--                         (valueChanges)="setFilter($event)"-->
-<!--  ></app-batch-filter-form>-->
+  <!--
+  <app-batch-filter-form #filterForm
+                         [pmfms]="batchGroupsTable.$pmfms|async"
+                         [class.cdk-visually-hidden]="filterForm.pmfms|isEmptyArray"
+                         (valueChanges)="setFilter($event)"
+  ></app-batch-filter-form>-->
 
   <!-- catch batch form -->
   <div class="ion-padding" [class.cdk-visually-hidden]="!showCatchForm">

@@ -39,6 +39,30 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
+import { IAppTabEditor } from '@sumaris-net/ngx-components';
+
+export interface IBatchTreeComponent extends IAppTabEditor {
+  program: Program;
+  gearId: number;
+  showCatchForm: boolean;
+  defaultHasSubBatches: boolean;
+  allowSamplingBatches: boolean;
+  allowSubBatches: boolean;
+  availableTaxonGroups: TaxonGroupRef[];
+  setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]);
+
+  // Value
+  value: Batch;
+  setValue(data: Batch, opts?: {emitEvent?: boolean});
+  getValue(): Batch;
+
+  // Methods
+  autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean}): Promise<void>;
+  addRow(event: UIEvent);
+  getFirstInvalidTabIndex(): number;
+
+}
 
 @Component({
   selector: 'app-batch-tree',
@@ -50,7 +74,7 @@ import { BatchFilter } from '@app/trip/batch/common/batch.filter';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit {
+export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit, IBatchTreeComponent {
 
   private _gearId: number;
   private _allowSubBatches: boolean;
@@ -99,7 +123,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   get isNewData(): boolean {
-    return false;
+    return isNil(this.data?.id);
   }
 
   @Input()
@@ -288,6 +312,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
     this.$programLabel.complete();
     this.$program.complete();
+  }
+
+  setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
+    this.batchGroupsTable.setModalOption(key, value);
   }
 
   async save(event?: UIEvent, options?: any): Promise<any> {
@@ -494,14 +522,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       realignInkBar: !this.mobile, // Tab header are NOT visible on mobile
       ...opts
     });
-  }
-
-  realignInkBar() {
-    if (this.tabGroup && this.showBatchTables) {
-      //this.tabGroup.selectedIndex = this.selectedTabIndex;
-      this.tabGroup.realignInkBar();
-      if (this.filterForm) this.filterForm.realignInkBar();
-    }
   }
 
   addRow(event: UIEvent) {
