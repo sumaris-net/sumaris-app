@@ -34,7 +34,7 @@ import { ParameterService } from '@app/referential/services/parameter.service';
 import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { MatExpansionPanel } from '@angular/material/expansion';
-import { TableElement } from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
+import { TableElement } from '@e-is/ngx-material-table';
 import { Subject } from 'rxjs';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { StrategyModal } from '@app/referential/strategy/strategy.modal';

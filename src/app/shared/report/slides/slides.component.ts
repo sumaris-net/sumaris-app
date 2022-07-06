@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnDestroy, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { fadeInAnimation, firstFalsePromise, waitFor, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
+import { waitFor, WaitForOptions } from '@sumaris-net/ngx-components';
 import Reveal from 'reveal.js/dist/reveal.esm';
 import { MarkdownComponent } from 'ngx-markdown';
 import { BehaviorSubject, Subscription } from 'rxjs';
@@ -18,9 +18,7 @@ export interface IRevealOptions {
 @Component({
   selector: 'app-slides',
   templateUrl: './slides.component.html',
-  styleUrls: ['./slides.component.scss'],
-  animations: [fadeInAnimation],
-  //changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./slides.component.scss']
 })
 export class AppSlidesComponent implements AfterViewInit, OnDestroy
 {

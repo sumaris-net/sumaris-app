@@ -2,18 +2,28 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, I
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
-import { isInt, isNilOrBlank, isNotNilOrBlank } from '@sumaris-net/ngx-components/src/app/shared/functions';
+import {
+  AppErrorWithDetails,
+  DateFormatPipe,
+  EntityServiceLoadOptions,
+  isInt,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  PlatformService,
+  WaitForOptions,
+  waitForTrue
+} from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { TranslateService } from '@ngx-translate/core';
-import { DateFormatPipe, isNil, isNotNil, LocalSettingsService, PlatformService, sleep, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { AppErrorWithDetails } from '@sumaris-net/ngx-components/src/app/core/form/entity-editor.class';
-import { EntityServiceLoadOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 
 export class AppDataReportOptions {
   pathIdAttribute?: string;
