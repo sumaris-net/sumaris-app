@@ -3,7 +3,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import * as L from 'leaflet';
 import { LayerGroup, MapOptions, PathOptions } from 'leaflet';
 import {
-  AppTabEditor,
+  AppEditor,
   DateDiffDurationPipe,
   DateFormatPipe,
   EntityUtils,
@@ -12,7 +12,8 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank, joinProperties, joinPropertiesPath,
+  isNotNilOrBlank,
+  joinPropertiesPath,
   LatLongPattern,
   LocalSettingsService,
   PlatformService,
@@ -24,15 +25,14 @@ import { AlertController, ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { distinctUntilChanged, filter, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ProgramProperties } from '../../../referential/services/config/program.config';
-import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet/src/leaflet/layers/control/leaflet-control-layers-config.model';
-import { ProgramRefService } from '../../../referential/services/program-ref.service';
-import { Program } from '../../../referential/services/model/program.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { Program } from '@app/referential/services/model/program.model';
 import { Operation, Trip, VesselPositionUtils } from '../../services/model/trip.model';
 import { environment } from '@environments/environment';
 import { LocationUtils } from '@app/referential/location/location.utils';
 import { Geometries } from '@app/shared/geometries.utils';
-import { Moment } from 'moment';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
 export interface OperationsMapModalOptions {
@@ -49,7 +49,7 @@ const maxZoom = 18;
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, OperationsMapModalOptions {
+export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OperationsMapModalOptions {
 
   private readonly $programLabel = new BehaviorSubject<string>(undefined);
   private readonly $program = new BehaviorSubject<Program>(undefined);
@@ -175,6 +175,10 @@ export class OperationsMap extends AppTabEditor<Operation[]> implements OnInit, 
 
   async cancel(event?: Event) {
     await this.viewCtrl.dismiss(null, 'cancel');
+  }
+
+  protected getFirstInvalidTabIndex(): number {
+    return 0;
   }
 
   /* -- protected functions -- */

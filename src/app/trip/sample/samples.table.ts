@@ -38,7 +38,7 @@ import {environment} from '@environments/environment';
 import {debounceTime} from 'rxjs/operators';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {SampleFilter} from '../services/filter/sample.filter';
-import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
+import {PmfmService} from '@app/referential/services/pmfm.service';
 import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {MatMenu} from '@angular/material/menu';
@@ -51,18 +51,9 @@ import {MatCellDef} from '@angular/material/table';
 import {OverlayEventDetail} from '@ionic/core';
 import {IPmfmForm} from '@app/trip/services/validator/operation.validator';
 import { IPhysicalGearModalOptions } from '@app/trip/physicalgear/physical-gear.modal';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 const moment = momentImported;
-
-/**
- * Cell definition for the mat-table.
- * Captures the template of a column's data row cell as well as cell-specific properties.
- */
-@Directive({
-  selector: '[appActionCellDef]',
-  providers: [{provide: MatCellDef, useExisting: AppActionCellDef}],
-})
-export class AppActionCellDef extends MatCellDef {}
 
 export type PmfmValueColorFn = (value: any, pmfm: IPmfm) => ColorName;
 
@@ -261,6 +252,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   ngOnInit() {
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
+    this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
 
     // in DEBUG only: force validator = null
@@ -390,10 +382,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Wait until closed
     const {data, role} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug('[samples-table] Modal result: ', data);
+
+
+    if (data && this.debug) console.debug('[samples-table] Sample modal result: ', data, role);
+
     this.markAsLoaded();
 
-    return {data:(data instanceof Sample ? data : undefined), role};
+    return {data: (data instanceof Sample ? data : undefined), role};
   }
 
   async onIndividualMonitoringClick(event: UIEvent, row: TableElement<Sample>) {
@@ -692,9 +687,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const {data} = await this.openDetailModal();
+    const {data, role} = await this.openDetailModal();
     if (data) {
-      await this.addEntityToTable(data);
+      if (role === 'DELETE') {
+        // Nothing to DO, because is not created yet
+        return false;
+      }
+      else {
+        await this.addEntityToTable(data);
+      }
     }
     return true;
   }
@@ -712,9 +713,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Prepare entity measurement values
     this.prepareEntityToSave(dataToOpen);
 
-    const {data} = await this.openDetailModal(dataToOpen, row);
+    const {data, role} = await this.openDetailModal(dataToOpen, row);
     if (data) {
-      await this.updateEntityToTable(data, row);
+      if (role === 'DELETE') {
+        await this.deleteEntity(null, data);
+        return false;
+      }
+      else {
+        await this.updateEntityToTable(data, row);
+      }
     } else {
       this.editedRow = null;
     }
@@ -737,11 +744,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Row not exists: OK
     if (!row) return true;
 
-    const canDeleteRow = await this.canDeleteRows([row]);
-    if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
-    }
-    return canDeleteRow;
+    const confirmed = await this.canDeleteRows([row]);
+    if (!confirmed) return false;
+
+    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
+    if (!deleted) event?.preventDefault(); // Mark as cancelled
+
+    return deleted;
   }
 
 
@@ -904,7 +913,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   addRow(event?: Event, insertAt?: number): boolean {
-    this.focusColumn = this.firstUserColumn;
+    // TODO remove this after upgrading ngx component
+    if (this.inlineEdition) this.focusColumn = this.firstUserColumn;
     return super.addRow(event, insertAt);
   }
 

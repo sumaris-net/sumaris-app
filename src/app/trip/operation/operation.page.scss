@@ -17,3 +17,6 @@ ion-col>ion-label {
   white-space: normal;
 }
 
+.mat-tab-body.mat-tab-body-active {
+  overflow-y: visible; // Workaround for iPad
+}

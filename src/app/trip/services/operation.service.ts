@@ -50,7 +50,7 @@ import {
   Trip,
   VesselPositionUtils
 } from './model/trip.model';
-import { Batch} from '../batch/common/batch.model';
+import { Batch } from '../batch/common/batch.model';
 import { Sample } from './model/sample.model';
 import { SortDirection } from '@angular/material/sort';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
@@ -82,6 +82,7 @@ import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { Geometries } from '@app/shared/geometries.utils';
+import { BatchService } from '@app/trip/batch/common/batch.service';
 
 
 export const OperationFragments = {
@@ -391,6 +392,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     protected metierService: MetierService,
     protected entities: EntitiesStorage,
     protected validatorService: OperationValidatorService,
+    protected batchService: BatchService,
     protected progressBarService: ProgressBarService,
     protected programRefService: ProgramRefService,
     protected translate: TranslateService,
@@ -600,7 +602,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Adapt options to the current operation
     if (opts.allowParentOperation) {
-      opts.isChild = isNotNil(entity.parentOperationId);
+      opts.isChild = isNotNil(entity.parentOperationId) || isNotNil(entity.parentOperation);
       opts.isParent = !opts.isChild;
     } else {
       opts.isChild = false;
@@ -621,6 +623,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         console.info(`[operation-service] Control operation {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
         return errors;
       }
+    }
+
+    // Control batches
+    if (entity.catchBatch && opts?.program) {
+      console.warn('[operation-service] TODO: enable/test batch control() !!')
+      // TODO enable batch control
+      // - make sure to translate all errors
+      // - add sub batches validation
+      // - Optimize validator form creation
+
+      /*const errors = await this.batchService.control(entity.catchBatch, {program: opts.program, controlName: 'catch'});
+      if (errors) {
+        console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
+        return errors;
+      }*/
     }
 
     console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
@@ -1417,7 +1434,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }
 
   translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
-    opts = { i18nPrefix: 'TRIP.OPERATION.EDIT.', ...opts };
+    opts = opts || {};
+    if (isNilOrBlank(opts.i18nPrefix)) opts.i18nPrefix = 'TRIP.OPERATION.EDIT.';
     // Translate PMFM field
     if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
       const pmfmId = parseInt(path.split('.').pop());
@@ -1426,12 +1444,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
     // Translate location, inside any fishing areas
     if (FISHING_AREAS_LOCATION_REGEXP.test(path)) {
-      return this.translate.instant((opts.i18nPrefix || '') + 'FISHING_AREAS');
+      return this.translate.instant(opts.i18nPrefix + 'FISHING_AREAS');
     }
 
     // Translate location, inside any fishing areas
     if (POSITIONS_REGEXP.test(path)) {
-      return this.translate.instant((opts.i18nPrefix || '') + 'POSITIONS');
+      return this.translate.instant(opts.i18nPrefix + 'POSITIONS');
     }
 
     // Default translation

@@ -10,7 +10,8 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService, ReferentialRef,
+  LocalSettingsService,
+  ReferentialRef,
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
@@ -36,17 +37,44 @@ import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.va
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
+import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
+import { IAppTabEditor } from '@sumaris-net/ngx-components';
+
+export interface IBatchTreeComponent extends IAppTabEditor {
+  program: Program;
+  gearId: number;
+  showCatchForm: boolean;
+  defaultHasSubBatches: boolean;
+  allowSamplingBatches: boolean;
+  allowSubBatches: boolean;
+  availableTaxonGroups: TaxonGroupRef[];
+  setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]);
+
+  // Value
+  value: Batch;
+  setValue(data: Batch, opts?: {emitEvent?: boolean});
+  getValue(): Batch;
+
+  // Methods
+  autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean}): Promise<void>;
+  addRow(event: UIEvent);
+  getFirstInvalidTabIndex(): number;
+
+}
 
 @Component({
   selector: 'app-batch-tree',
   templateUrl: './batch-tree.component.html',
+  styleUrls: ['./batch-tree.component.scss'],
   providers: [
     {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService},
     { provide: ContextService, useExisting: TripContextService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit {
+export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit, IBatchTreeComponent {
 
   private _gearId: number;
   private _allowSubBatches: boolean;
@@ -64,6 +92,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() usageMode: UsageMode;
   @Input() showCatchForm: boolean;
   @Input() showBatchTables: boolean;
+  @Input() showFilter = false;
   @Input() enableWeightLengthConversion: boolean;
 
   @Input() set allowSamplingBatches(allow: boolean) {
@@ -94,7 +123,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   }
 
   get isNewData(): boolean {
-    return false;
+    return isNil(this.data?.id);
   }
 
   @Input()
@@ -151,10 +180,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return super.dirty || (this._subBatchesService && this._subBatchesService.dirty) || false;
   }
 
+  @ViewChild('filterForm', {static: false}) filterForm: BatchFilterForm;
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
   @ViewChild('batchGroupsTable', {static: true}) batchGroupsTable: BatchGroupsTable;
   @ViewChild('subBatchesTable', {static: false}) subBatchesTable: SubBatchesTable;
-
 
   constructor(
     protected route: ActivatedRoute,
@@ -214,6 +243,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         })
     );
 
+    // Register forms
     this.registerForms();
   }
 
@@ -284,6 +314,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.$program.complete();
   }
 
+  setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
+    this.batchGroupsTable.setModalOption(key, value);
+  }
 
   async save(event?: UIEvent, options?: any): Promise<any> {
 
@@ -399,6 +432,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   protected registerForms() {
     this.addChildForms([
+      //this.filterForm,
       this.catchBatchForm,
       this.batchGroupsTable,
       () => this.subBatchesTable
@@ -490,13 +524,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     });
   }
 
-  realignInkBar() {
-    if (this.tabGroup && this.showBatchTables) {
-      //this.tabGroup.selectedIndex = this.selectedTabIndex;
-      this.tabGroup.realignInkBar();
-    }
-  }
-
   addRow(event: UIEvent) {
     switch (this.selectedTabIndex) {
       case 0:
@@ -519,6 +546,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return AppFormUtils.waitIdle(this);
   }
 
+  setFilter(dataFilter: BatchFilter) {
+    this.catchBatchForm.setFilter(dataFilter);
+    this.batchGroupsTable.setFilter(dataFilter);
+  }
+
   /* -- protected methods -- */
 
   async getSubBatches(): Promise<SubBatch[]> {
@@ -526,7 +558,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     if (this.subBatchesTable) {
       return this.getTableValue(this.subBatchesTable);
     } else {
-      return this._subBatchesService.value;
+      return (this._subBatchesService.value || [])
+        // make sure to convert into model
+        .map(source => SubBatch.fromObject(source));
     }
   }
 

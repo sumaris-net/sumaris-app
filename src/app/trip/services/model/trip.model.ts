@@ -164,7 +164,10 @@ export class Operation
     delete target.endPosition;
 
     // Physical gear
-    target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts, ...NOT_MINIFY_OPTIONS /*Avoid minify, to keep gear for operations tables cache*/});
+    target.physicalGear = this.physicalGear && this.physicalGear.asObject({...opts,
+      ...NOT_MINIFY_OPTIONS, /*Avoid minify, to keep gear for operations tables cache*/
+      withChildren: false
+    });
     if (target.physicalGear) delete target.physicalGear.measurementValues;
     target.physicalGearId = this.physicalGear && this.physicalGear.id;
     if (opts && opts.keepLocalId === false && target.physicalGearId < 0) {

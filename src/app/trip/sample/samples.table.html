@@ -152,16 +152,18 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row"
-          [title]="row.validator | translateFormError: errorTranslatorOptions">
-        <ion-text matBadge="!"
-                  [matBadgeHidden]="!row.editing || !row.validator.invalid"
-                  matBadgeOverlap="false"
-                  matBadgeColor="accent"
-                  matBadgeSize="small">
-          {{ row.currentData?.rankOrder }}
-        </ion-text>
-      </td>
+      <ng-container *matCellDef="let row">
+        <td mat-cell *ngVar="row.editing && row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions) as error"
+            [title]="error">
+          <ion-text matBadge="!"
+                    [matBadgeHidden]="!error"
+                    matBadgeOverlap="false"
+                    matBadgeColor="accent"
+                    matBadgeSize="small">
+            {{ row.currentData?.rankOrder }}
+          </ion-text>
+        </td>
+      </ng-container>
     </ng-container>
 
     <!-- Label column -->

@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Property } from '@sumaris-net/ngx-components';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { FloatLabelType } from '@angular/material/form-field';
 
 
 @Component({
@@ -15,6 +16,9 @@ export class AppSamplingRatioTestPage implements OnInit {
   maxDecimals: number = 6;
   format: SamplingRatioFormat = '%';
   formats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.values as Property[];
+  floatLabel: FloatLabelType;
+  floatLabels = ['never', 'auto', 'always']
+
 
   constructor(
     protected formBuilder: FormBuilder
@@ -44,6 +48,11 @@ export class AppSamplingRatioTestPage implements OnInit {
 
   setMaxDecimals(maxDecimals: number) {
     this.maxDecimals = maxDecimals;
+    this.refresh();
+  }
+
+  setFloatLabel(type: FloatLabelType) {
+    this.floatLabel = type;
     this.refresh();
   }
 

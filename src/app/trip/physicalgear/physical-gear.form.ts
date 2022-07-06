@@ -6,7 +6,8 @@ import { MeasurementValuesForm } from '../measurement/measurement-values.form.cl
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { FormBuilder } from '@angular/forms';
 import {
-  focusNextInput,
+  focusInput,
+  focusNextInput, getFocusableInputElements,
   GetFocusableInputOptions,
   InputElement,
   isNotNil,
@@ -15,7 +16,7 @@ import {
   ReferentialUtils,
   selectInputContent,
   toBoolean,
-  toNumber
+  toNumber, waitFor, waitIdle
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -30,7 +31,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
   styleUrls: ['./physical-gear.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit, AfterViewInit {
+export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit {
 
   $gears = new BehaviorSubject<ReferentialRef[]>(undefined);
 
@@ -51,7 +52,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   @Output() onSubmit = new EventEmitter<any>();
 
-  @ViewChild('firstInput', {static: true}) firstInputField: InputElement;
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
 
   constructor(
@@ -118,9 +118,6 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     );
   }
 
-  ngAfterViewInit() {
-
-  }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.enable(opts);
@@ -129,8 +126,11 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     }
   }
 
-  focusFirstInput() {
-    this.firstInputField?.focus();
+  async focusFirstInput() {
+    await waitFor(() => this.enabled, {timeout: 2000});
+
+    const inputElements = getFocusableInputElements(this.inputFields);
+    if (inputElements.length) inputElements[0].focus();
   }
 
   focusNextInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {

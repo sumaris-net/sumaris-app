@@ -37,7 +37,6 @@ import {
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
   LocalSettings,
-  SHARED_TESTING_PAGES,
   TestingPage
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';

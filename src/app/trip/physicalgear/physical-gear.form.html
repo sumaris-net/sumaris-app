@@ -7,15 +7,16 @@
   </ion-item>
 
   <!-- GEAR -->
-  <mat-autocomplete-field #firstInput
-                          *ngIf="showGear"
+  <mat-autocomplete-field #inputField
+                          [class.cdk-visually-hidden]="!showGear"
                           formControlName="gear"
                           [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translateContext: i18nSuffix"
                           [config]="autocompleteFields.gear"
                           [tabindex]="tabindex"
                           [required]="true"
                           [showSearchBar]="$gears|async|isArrayLength:{greaterThan: 5}"
-                          (focusout)="focusNextInput($event)">
+                          (keydown.tab)="focusNextInput($event)"
+                          (keydown.enter)="focusNextInput($event)">
   </mat-autocomplete-field>
 
   <!-- rankOrder -->
@@ -27,6 +28,8 @@
            step="1"
            pattern="[0-9]*"
            min="1"
+           (keydown.tab)="focusNextInput($event)"
+           (keydown.enter)="focusNextInput($event)"
            (click)="selectInputContent($event)"
            [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER'|translateContext: i18nSuffix"
            [tabindex]="tabindex + 1">
@@ -50,7 +53,7 @@
         <ion-col size="12" size-md="6" *ngFor="let pmfm of pmfms; index as i; last as last" #inputField>
 
           <!-- Measurements -->
-          <app-pmfm-field
+          <app-pmfm-field #inputField
                           [pmfm]="pmfm"
                           [controlName]="pmfm|pmfmIdString"
                           [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"

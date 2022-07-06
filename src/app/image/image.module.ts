@@ -6,7 +6,6 @@ import { ImagePicker } from '@ionic-native/image-picker/ngx';
 import { MediaCapture } from '@ionic-native/media-capture/ngx';
 import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
 
-
 @NgModule({
   imports: [
     CoreModule,

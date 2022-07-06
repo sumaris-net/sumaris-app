@@ -10,7 +10,7 @@ function getSortingMeasValues(opts?: {
   const res = {};
 
   if (isNotNil(opts.gearPosition)) {
-    res[PmfmIds.GEAR_POSITION] = opts.gearPosition === 'B' ? QualitativeValueIds.GEAR_POSITION.PORT : QualitativeValueIds.GEAR_POSITION.STARBOARD; // Bâbord, Tribord
+    res[PmfmIds.BATCH_GEAR_POSITION] = opts.gearPosition === 'B' ? QualitativeValueIds.BATCH_GEAR_POSITION.PORT : QualitativeValueIds.BATCH_GEAR_POSITION.STARBOARD; // Bâbord, Tribord
   }
   else {
     opts = {

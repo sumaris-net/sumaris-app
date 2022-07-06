@@ -177,8 +177,8 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     return value;
   }
 
-  cancel() {
-    this.viewCtrl.dismiss(null, 'CANCEL');
+  async cancel() {
+    await this.viewCtrl.dismiss(null, 'CANCEL');
   }
 
   async validate(event?: UIEvent) {

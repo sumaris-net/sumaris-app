@@ -14,9 +14,9 @@ export const PMFM_ID_REGEXP = /\d+/;
 export const PMFM_NAME_ENDS_WITH_PARENTHESIS_REGEXP = new RegExp(/^\s*([^\/(]+)((?:\s+\/\s+[^/]+)|(?:\([^\)]+\)))$/);
 
 export interface IPmfm<
-  T extends Entity<T, ID> = Entity<any, any>,
+  T extends IPmfm<T, ID> = IPmfm<any, any>,
   ID = number
-  > extends IEntity<IPmfm<T, ID>, ID> {
+  > extends IEntity<T, ID> {
   id: ID;
   label: string;
 
@@ -48,13 +48,14 @@ export interface IPmfm<
 }
 
 export interface IDenormalizedPmfm<
-  T extends Entity<T, ID> = Entity<any, any>,
+  T extends IDenormalizedPmfm<T, ID> = IDenormalizedPmfm<any, any>,
   ID = number
   > extends IPmfm<T, ID> {
 
   completeName?: string;
   name?: string;
   acquisitionNumber?: number;
+  acquisitionLevel?: string;
 
   gearIds: number[];
   taxonGroupIds: number[];
@@ -64,7 +65,7 @@ export interface IDenormalizedPmfm<
 
 
 export interface IFullPmfm<
-  T extends Entity<T, ID> = Entity<any, any>,
+  T extends IFullPmfm<T, ID> = IFullPmfm<any, any>,
   ID = number
   > extends IPmfm<T, ID> {
 
@@ -238,24 +239,28 @@ export abstract class PmfmUtils {
     return pmfm.type as ExtendedPmfmType;
   }
 
-  static getVisiblePmfms<P extends IPmfm>(pmfms: P[]): P[] {
-    return pmfms.filter(p => p && !p.hidden);
+  static filterPmfms<P extends IPmfm>(pmfms: P[], opts?: {
+    excludeHidden?: boolean;
+    excludePmfmIds?: number[];
+  }): P[] {
+    return pmfms.filter(p => p
+      // Exclude hidden pmfms
+      && (!opts || !opts.excludeHidden || !p.hidden)
+      // Exclude some pmfm by ids
+      && (!opts || !opts.excludePmfmIds?.length || !opts.excludePmfmIds.includes(p.id)));
   }
 
-  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[]): P {
+  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[], opts?: {
+    excludeHidden?: boolean;
+    excludePmfmIds?: number[];
+  }): P {
     // exclude hidden pmfm (see batch modal)
-    let qvPmfm = this.getVisiblePmfms(pmfms)
+    let qvPmfm = this.filterPmfms(pmfms, opts)
       .find((p, index) => {
         return p.type === 'qualitative_value'
           // Should be the first visible pmfms. If not (e.g. a numeric pmfm is before: not a group pmfm)
           && index === 0;
       });
-
-    // If landing/discard: 'Landing' is always before 'Discard (see issue #122)
-    if (qvPmfm?.id === PmfmIds.DISCARD_OR_LANDING) {
-      qvPmfm = qvPmfm.clone() as P; // copy, to keep original array
-      qvPmfm.qualitativeValues.sort((qv1, qv2) => qv1.label === 'LAN' ? -1 : 1);
-    }
     return qvPmfm;
   }
 

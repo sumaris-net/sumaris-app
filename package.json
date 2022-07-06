@@ -1,7 +1,7 @@
 {
   "name": "sumaris-app",
   "description": "SUMARiS app",
-  "version": "1.27.0",
+  "version": "1.27.1",
   "author": "contact@e-is.pro",
   "license": "AGPL-3.0",
   "readmeFilename": "README.md",
@@ -24,7 +24,8 @@
     "lint.fix": "ng lint --fix"
   },
   "peerDependencies": {
-    "@apollo/client": "~3.5.10"
+    "@apollo/client": "~3.5.10",
+    "localforage": "1.7.4"
   },
   "dependencies": {
     "@angular/animations": "^11.2.14",
@@ -58,14 +59,14 @@
     "@ionic-native/splash-screen": "^5.36.0",
     "@ionic-native/status-bar": "^5.36.0",
     "@ionic-native/vibration": "^5.36.0",
-    "@ionic/angular": "^5.9.3",
-    "@ionic/core": "^5.9.3",
+    "@ionic/angular": "^5.9.4",
+    "@ionic/core": "^5.9.4",
     "@ionic/pwa-elements": "^3.0.3",
     "@ionic/storage": "^2.3.1",
     "@ngtools/webpack": "^11.2.19",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@sumaris-net/ngx-components": "1.20.28",
+    "@sumaris-net/ngx-components": "1.20.38",
     "angular-split": "^5.0.0",
     "angular2-text-mask": "^9.0.0",
     "apollo-angular": "^2.6.0",
@@ -94,7 +95,7 @@
     "cordova-plugin-whitelist": "^1.3.5",
     "cordova-res": "^0.15.3",
     "cordova-sqlite-storage": "^6.0.0",
-    "core-js": "^3.19.1",
+    "core-js": "^3.23.3",
     "cors": "^2.8.5",
     "ember-cli-roboto-fontface": "^2.0.5",
     "geojson": "^0.5.0",
@@ -132,7 +133,7 @@
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",
     "uuid": "^3.4.0",
-    "zone.js": "~0.11.5"
+    "zone.js": "~0.11.6"
   },
   "devDependencies": {
     "@angular-devkit/architect": "^0.1102.19",

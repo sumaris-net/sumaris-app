@@ -3,7 +3,7 @@ import { FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, Valid
 import {
   EntityUtils,
   FormArrayHelper,
-  isNil,
+  isNil, isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
@@ -23,6 +23,7 @@ import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/dat
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { MeasurementFormValues, MeasurementUtils, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
@@ -30,22 +31,28 @@ export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   weightRequired?: boolean;
   rankOrderRequired?: boolean;
   labelRequired?: boolean;
-  withChildren?: boolean;
   withMeasurements?: boolean;
+  withMeasurementTypename?: boolean;
   pmfms?: IPmfm[];
+
+  // Children
+  withChildren?: boolean;
+  childrenPmfms?: IPmfm[];
   qvPmfm?: IPmfm;
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable()
 export class BatchValidatorService<
   T extends Batch<T> = Batch,
   O extends BatchValidatorOptions = BatchValidatorOptions
   > extends DataEntityValidatorService<T, O> {
 
-  pmfms: IPmfm[];
-  showSamplingBatchColumns: boolean = true;
 
-  protected constructor(
+  pmfms: IPmfm[];
+  childrenPmfms: IPmfm[];
+  enableSamplingBatch: boolean = true;
+
+  constructor(
     formBuilder: FormBuilder,
     protected measurementsValidatorService: MeasurementsValidatorService,
     settings?: LocalSettingsService
@@ -86,14 +93,27 @@ export class BatchValidatorService<
   getFormGroup(data?: T, opts?: O): FormGroup {
     const form = super.getFormGroup(data, opts);
 
+    // there is a second level of children only if there is qvPmfm and sampling batch columns
     if (opts?.withChildren) {
-      // there is a second level of children only if there is qvPmfm and sampling batch columns
-      const formChildrenHelper = this.getChildrenFormHelper(form, {withChildren: !!opts.qvPmfm && this.showSamplingBatchColumns, withChildrenWeight: true});
-      formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
+      if (isNotEmptyArray(data?.children)) {
+        console.warn('MAKE thi working. Trip control => Operation control => batch control')
+        form.addControl('children', this.formBuilder.array(
+          data.children
+            .filter(BatchUtils.isSortingBatch)
+            .map(source => this.getFormGroup(source as T, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, childrenPmfms: this.childrenPmfms, ...opts}))
+        ));
+      }
+      else {
+        const formChildrenHelper = this.getChildrenFormHelper(form, {
+          withChildren: !!opts.qvPmfm && this.enableSamplingBatch,
+          withChildrenWeight: true
+        });
+        formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
+      }
     }
 
     if (opts?.withWeight || opts?.withChildrenWeight) {
-      const weightPmfms = opts.pmfms?.filter(PmfmUtils.isWeight);
+      const weightPmfms = opts.childrenPmfms?.filter(PmfmUtils.isWeight);
 
       // Add weight sub form
       if (opts?.withWeight) {
@@ -115,12 +135,15 @@ export class BatchValidatorService<
     }
 
     // Add measurement values
-    if (opts && opts.withMeasurements && opts.pmfms) {
-      if (form.contains('measurementValues')) form.removeControl('measurementValues')
-      form.addControl('measurementValues', this.measurementsValidatorService.getFormGroup(null, {
-        pmfms: opts.pmfms,
-        forceOptional: true
-      }));
+    if (opts?.withMeasurements && isNotEmptyArray(opts.childrenPmfms)) {
+      if (form.contains('measurementValues')) form.removeControl('measurementValues');
+      const measurementValues = data && data.measurementValues && MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, opts.childrenPmfms);
+      const measControl = this.measurementsValidatorService.getFormGroup(measurementValues, {
+        pmfms: opts.childrenPmfms,
+        forceOptional: opts.isOnFieldMode,
+        withTypename: opts.withMeasurementTypename
+      });
+      form.addControl('measurementValues', measControl);
     }
 
     return form;
@@ -143,7 +166,7 @@ export class BatchValidatorService<
     }
     return new FormArrayHelper<T>(
       arrayControl,
-      (value) => this.getFormGroup(value, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, pmfms: this.pmfms, ...opts}),
+      (value) => this.getFormGroup(value, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, childrenPmfms: this.childrenPmfms, ...opts}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
       (value) => isNil(value),
       {allowEmptyArray: true}
@@ -417,7 +440,7 @@ export class BatchValidators {
         }
 
         // If sampling weight is required
-        if (opts && opts.requiredSampleWeight === true) {
+        if (!isSamplingWeightValid && opts?.requiredSampleWeight === true) {
           if (!samplingWeightValueControl.hasError('required')) {
             samplingWeightValueControl.setErrors({ ...samplingWeightValueControl.errors, required: true }, opts);
           }

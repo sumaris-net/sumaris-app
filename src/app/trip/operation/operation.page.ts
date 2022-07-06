@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
 import { OperationSaveOptions, OperationService } from '../services/operation.service';
 import { OperationForm } from './operation.form';
 import { TripService } from '../services/trip.service';
@@ -37,10 +37,10 @@ import { Program } from '@app/referential/services/model/program.model';
 import { Operation, Trip } from '../services/model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { BatchTreeComponent } from '../batch/batch-tree.component';
+import { IBatchTreeComponent } from '../batch/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, from, merge, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, from, merge, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
@@ -50,6 +50,7 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
+import { AppEditorOptions } from '@sumaris-net/ngx-components';
 
 const moment = momentImported;
 
@@ -121,7 +122,7 @@ export class OperationPage
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
 
   // Catch batch, sorting batches, individual measure
-  @ViewChild('batchTree', { static: true }) batchTree: BatchTreeComponent;
+  @ViewChild('batchTree', { static: true }) batchTree: IBatchTreeComponent;
 
   // Sample tables
   @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
@@ -152,38 +153,47 @@ export class OperationPage
   get entityQualityService(): IDataEntityQualityService<Operation> {
     return this;
   }
+  protected tripService: TripService;
+  protected tripContext: TripContextService;
+  protected programRefService: ProgramRefService;
+  protected settings: LocalSettingsService;
+  protected modalCtrl: ModalController;
+  protected hotkeys: Hotkeys;
 
   constructor(
     injector: Injector,
-    hotkeys: Hotkeys,
     dataService: OperationService,
-    protected tripService: TripService,
-    protected tripContext: TripContextService,
-    protected programRefService: ProgramRefService,
-    protected settings: LocalSettingsService,
-    protected modalCtrl: ModalController,
+    @Optional() options?: AppEditorOptions
   ) {
     super(injector, Operation, dataService, {
       pathIdAttribute: 'operationId',
       tabCount: 3,
-      autoOpenNextTab: !settings.mobile,
+      autoOpenNextTab: !injector.get(LocalSettingsService).mobile,
+      i18nPrefix: 'TRIP.OPERATION.EDIT.',
+      ...options
     });
 
+    this.tripService = injector.get(TripService);
+    this.tripContext = injector.get(TripContextService);
+    this.programRefService = injector.get(ProgramRefService);
+    this.settings = injector.get(LocalSettingsService);
+    this.modalCtrl = injector.get(ModalController);
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
-    this.displayAttributes.gear = settings.getFieldDisplayAttributes('gear');
+    this.displayAttributes.gear = this.settings.getFieldDisplayAttributes('gear');
+    this.hotkeys = injector.get(Hotkeys);
 
-    // Init mobile
-    this.mobile = settings.mobile;
+    // Init defaults
+    this.mobile = this.settings.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
 
     // Add shortcut
     if (!this.mobile) {
       this.registerSubscription(
-        hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
+        this.hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
           .subscribe((event) => this.openHelpModal(event)),
       );
       this.registerSubscription(
-        hotkeys.addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
+        this.hotkeys.addShortcut({ keys: 'control.+', description: 'COMMON.BTN_ADD', preventDefault: true })
           .pipe(filter(e => !this.disabled && this.showFabButton))
           .subscribe((event) => this.onNewFabButtonClick(event)),
       );
@@ -326,7 +336,7 @@ export class OperationPage
         .subscribe((res) => {
           const gearId = res && res.gear && res.gear.id || null;
           this.measurementsForm.gearId = gearId;
-          this.batchTree.gearId = gearId;
+          if (this.batchTree) this.batchTree.gearId = gearId;
         })
     );
 
@@ -369,7 +379,7 @@ export class OperationPage
 
     // If PMFM "Sampling type" exists (e.g. SUMARiS), then use to enable/disable some tables
     const samplingTypeControl = formGroup?.controls[PmfmIds.SURVIVAL_SAMPLING_TYPE];
-    if (isNotNil(samplingTypeControl)) {
+    if (isNotNil(samplingTypeControl) && this.batchTree) {
       defaultTableStates = false;
       this.showCatchTab = this.batchTree.showCatchForm;
       this._measurementSubscription.add(
@@ -435,7 +445,7 @@ export class OperationPage
             // Enable samples, when has accidental catches
             this.showSampleTablesByProgram = hasAccidentalCatches;
             this.showSamplesTab = this.showSampleTablesByProgram;
-            this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
+            this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
             this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
 
             // Force first tab index
@@ -462,7 +472,7 @@ export class OperationPage
             if (hasParent) {
               if (this.debug) console.debug('[operation] Enable batch tables');
               this.showBatchTables = this.showBatchTablesByProgram;
-              this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
+              this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
               this.showSamplesTab = this.showSampleTablesByProgram;
               this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
               acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
@@ -486,7 +496,7 @@ export class OperationPage
             }
 
             // Auto fill batches (if new data)
-            if (this.showBatchTables && this.autoFillBatch && this.isNewData) {
+            if (this.showBatchTables && this.autoFillBatch && this.batchTree && this.isNewData) {
               this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
             }
 
@@ -497,7 +507,7 @@ export class OperationPage
     }
 
     const hasIndividualMeasuresControl = formGroup?.controls[PmfmIds.HAS_INDIVIDUAL_MEASURES];
-    if (isNotNil(hasIndividualMeasuresControl)) {
+    if (isNotNil(hasIndividualMeasuresControl) && this.batchTree) {
       if (!this.allowParentOperation) {
         defaultTableStates = true;
       }
@@ -514,11 +524,12 @@ export class OperationPage
             this.batchTree.defaultHasSubBatches = hasIndividualMeasures;
             this.batchTree.allowSubBatches = hasIndividualMeasures;
             // Hide button to toggle hasSubBatches (yes/no) when value if forced
-            this.batchTree.batchGroupsTable.setModalOption("showHasSubBatchesButton", !hasIndividualMeasures)
+            this.batchTree.setModalOption("showHasSubBatchesButton", !hasIndividualMeasures)
             if (!this.allowParentOperation) {
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
               this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
             }
+            this.updateTablesState();
           })
       );
     }
@@ -527,14 +538,14 @@ export class OperationPage
     if (defaultTableStates) {
       if (this.debug) console.debug('[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)');
       this.showBatchTables = this.showBatchTablesByProgram;
-      this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
+      this.showCatchTab = this.showBatchTables || this.batchTree?.showCatchForm || false;
       this.showSamplesTab = this.showSampleTablesByProgram;
       this.tabCount = this.showSamplesTab ? 3 : (this.showCatchTab ? 2 : 1);
       this.updateTablesState();
       this.markForCheck();
 
       // Auto fill batches (if new data)
-      if (this.showBatchTables && this.autoFillBatch && this.isNewData) {
+      if (this.showBatchTables && this.autoFillBatch && this.batchTree && this.isNewData) {
         this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
       }
     }
@@ -624,8 +635,8 @@ export class OperationPage
       this.$acquisitionLevel.next(AcquisitionLevelCodes.OPERATION);
     }
 
-    this.batchTree.program = program;
-    this.sampleTree.program = program;
+    if (this.batchTree) this.batchTree.program = program;
+    if (this.sampleTree) this.sampleTree.program = program;
 
     // Load available taxon groups (e.g. with taxon groups found in strategies)
     await this.initAvailableTaxonGroups(program.label);
@@ -849,11 +860,13 @@ export class OperationPage
     await this.measurementsForm.setValue(data && data.measurements || []);
 
     // Set batch tree
-    this.batchTree.gearId = gearId;
-    await this.batchTree.setValue(data && data.catchBatch || null);
+    if (this.batchTree) {
+      this.batchTree.gearId = gearId;
+      await this.batchTree.setValue(data && data.catchBatch || null);
+    }
 
     // Set sample tree
-    await this.sampleTree.setValue(data && data.samples || []);
+    if (this.sampleTree) await this.sampleTree.setValue(data && data.samples || []);
 
     // If new data, auto fill the table
     if (this.isNewData) {
@@ -912,18 +925,9 @@ export class OperationPage
     }
 
     else if (this.dirty) {
-      // DEBUG - dump still dirty children
-      if (this.debug) {
-        let children = this.children.filter(f => f.dirty);
-        if (isNotEmptyArray(children)) {
-          children = this.batchTree.children.filter(f => f.dirty);
-          console.warn('[operation] Still dirty children: ', children);
-        }
-        console.debug('[operation] Batch tree ready ? ' + this.batchTree.batchGroupsTable.isReady());
-      }
-
-      // Make editor has pristine
-      this.batchTree.markAsPristine();
+      // Mark component has pristine
+      this.batchTree?.markAsPristine();
+      this.sampleTree?.markAsPristine();
     }
 
     return saved;
@@ -1002,8 +1006,8 @@ export class OperationPage
     // find invalids tabs (keep order)
     const invalidTabs = [
       this.opeForm.invalid || this.measurementsForm.invalid,
-      this.showCatchTab && this.batchTree.invalid,
-      this.showSamplesTab && this.sampleTree.invalid
+      this.showCatchTab && this.batchTree?.invalid || false,
+      this.showSamplesTab && this.sampleTree?.invalid || false
     ];
 
     // Open the first invalid tab
@@ -1130,8 +1134,8 @@ export class OperationPage
     }
 
     // Set table's default taxon groups
-    this.sampleTree.availableTaxonGroups = availableTaxonGroups;
-    this.batchTree.availableTaxonGroups = availableTaxonGroups;
+    if (this.batchTree) this.batchTree.availableTaxonGroups = availableTaxonGroups;
+    if (this.sampleTree) this.sampleTree.availableTaxonGroups = availableTaxonGroups;
   }
 
   protected updateTablesState() {
@@ -1149,17 +1153,17 @@ export class OperationPage
         }
       }
     } else {
-      if (this.showCatchTab && this.batchTree.enabled) {
+      if (this.showCatchTab && this.batchTree?.enabled) {
         this.batchTree.disable();
       }
-      if (this.showSamplesTab && this.sampleTree.enabled) {
+      if (this.showSamplesTab && this.sampleTree?.enabled) {
         this.sampleTree.disable();
       }
     }
     // Force expected sub tab index
-    if (this.showBatchTables && this.batchTree.selectedTabIndex !== this.selectedSubTabIndex) {
+    if (this.showBatchTables && this.batchTree && this.batchTree.selectedTabIndex !== this.selectedSubTabIndex) {
       this.batchTree.setSelectedTabIndex(this.selectedSubTabIndex);
-    } else if (this.showSamplesTab && this.sampleTree.selectedTabIndex !== this.selectedSubTabIndex) {
+    } else if (this.showSamplesTab && this.sampleTree && this.sampleTree.selectedTabIndex !== this.selectedSubTabIndex) {
       this.sampleTree.setSelectedTabIndex(this.selectedSubTabIndex);
     }
 

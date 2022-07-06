@@ -44,7 +44,8 @@
 
 </mat-menu>
 
-<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+<!-- (swiperight)="onSwipeTab($event)" (swipeleft)="onSwipeTab($event)" -->
+<ion-content>
   <mat-tab-group #tabGroup
                  class="mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"

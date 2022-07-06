@@ -184,3 +184,18 @@ ion-fab {
     }
   }
 }
+
+/* special case for sampling ratio: override the 'left' style, of placeholder field */
+mat-sampling-ratio-field {
+  .mat-form-field.with-prefix {
+
+    &.mat-form-field-should-float {
+      .mat-form-field-label-wrapper {
+        left: 0;
+      }
+    }
+    .mat-form-field-label-wrapper {
+      left: 19px;
+    }
+  }
+}

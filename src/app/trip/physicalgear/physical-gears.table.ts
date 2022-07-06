@@ -275,7 +275,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     const confirmed = await this.canDeleteRows([row]);
     if (confirmed) {
-      return this.deleteRow(null, row, {interactive: false /*already confirmed*/, skipIfLoading: false});
+      return this.deleteRow(null, row, {interactive: false /*already confirmed*/});
     }
     return confirmed;
   }

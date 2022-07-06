@@ -27,7 +27,14 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
 
   getRowValidator(): FormGroup {
     // The first level of children can be qvPmfm or samplingColumns
-    return super.getFormGroup(null, {withWeight: true, withChildren: !!this.qvPmfm || this.showSamplingBatchColumns, qvPmfm: this.qvPmfm, pmfms:this.pmfms});
+    return super.getFormGroup(null, {
+      withWeight: true,
+      pmfms: this.pmfms,
+      // Children
+      withChildren: !!this.qvPmfm || this.enableSamplingBatch,
+      qvPmfm: this.qvPmfm,
+      childrenPmfms: !!this.qvPmfm && this.childrenPmfms
+    });
   }
 
   getFormGroup(data?: BatchGroup, opts?: BatchGroupValidatorOptions): FormGroup {
@@ -101,14 +108,16 @@ export class BatchGroupValidators {
         };
         return (control) => {
           const form = control as FormGroup;
-          // Enable total individual count
-          if (form.get(qvSuffix + 'individualCount').disabled) {
-            form.get(qvSuffix + 'individualCount').enable();
-          }
-          // Enable sampling individual count
-          if (form.get(qvSuffix + 'children.0.individualCount').disabled) {
-            form.get(qvSuffix + 'children.0.individualCount').enable();
-          }
+          const individualCount = form.get(qvSuffix + 'individualCount');
+          const samplingIndividualCount = form.get(qvSuffix + 'children.0.individualCount');
+
+          if (!samplingIndividualCount) return; // Nothing to compute
+
+          // Enable controls
+          if (individualCount.disabled) individualCount.enable();
+          if (samplingIndividualCount?.disabled) samplingIndividualCount.enable();
+
+          // Start computation
           return BatchValidators.computeSamplingRatioAndWeight(form, {...qvOpts, emitEvent: false, onlySelf: false});
         }
       }));

@@ -223,8 +223,8 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     return value;
   }
 
-  cancel() {
-    this.viewCtrl.dismiss(null, 'CANCEL');
+  async cancel() {
+    await this.viewCtrl.dismiss(null, 'CANCEL');
   }
 
   async validate(event?: UIEvent) {

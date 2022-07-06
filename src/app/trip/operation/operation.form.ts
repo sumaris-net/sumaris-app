@@ -507,6 +507,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       const gearLabelPath = 'measurementValues.' + PmfmIds.GEAR_LABEL;
       const physicalGears = (trip.gears || []).map((ps, i) => {
         const physicalGear = PhysicalGear.fromObject(ps).clone();
+        physicalGear.children = null;
         // Use physical gear label, if any (see issue #314)
         const physicalGearLabel = getPropertyByPath(ps, gearLabelPath);
         if (isNotNilOrBlank(physicalGearLabel)) {

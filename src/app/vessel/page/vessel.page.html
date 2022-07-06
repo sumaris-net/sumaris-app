@@ -27,7 +27,8 @@
   <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
 </mat-menu>
 
-<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+<!-- (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)" -->
+<ion-content>
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden"
                  [(selectedIndex)]="selectedTabIndex"

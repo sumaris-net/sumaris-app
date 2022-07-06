@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Batch} from '../common/batch.model';
+import { Batch } from '../common/batch.model';
 import { Alerts, AppFormUtils, IReferentialRef, isNil, isNotNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import { AlertController, ModalController } from '@ionic/angular';
 import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
@@ -12,7 +12,6 @@ import { environment } from '@environments/environment';
 import { IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TripContextService } from '@app/trip/services/trip-context.service';
-import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
 import { ContextService } from '@app/shared/context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
@@ -39,8 +38,7 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   templateUrl: 'batch-group.modal.html',
   styleUrls: ['batch-group.modal.scss'],
   providers: [
-    { provide: ContextService, useExisting: TripContextService},
-    { provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService}
+    { provide: ContextService, useExisting: TripContextService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -1,0 +1,65 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title [innerHTML]="$title|async"></ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="slides.print($event)" >
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <!-- error -->
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <app-slides #slides *ngIf="!error"
+              [options]="slidesOptions">
+    <section *ngIf="loaded; else loadingTemplate">
+      <section markdown ngPreserveWhitespaces>
+        ## Rapport de contrôle
+        - Criée : {{data.location?.name}}
+        - Date/Heure : {{data.dateTime|dateFormat: {time: true} }}
+        - Contrôleur : {{parent.observers|personToString}}
+        - Navire : **{{data.vesselSnapshot.name}}**
+        - Espèce : **{{stats.taxonGroup?.name || '?'}}**
+      </section>
+
+      <section markdown ngPreserveWhitespaces *ngIf="data.samples | isNotEmptyArray">
+        ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}}
+
+        <table [style.--col-count]="pmfms.length + 1">
+          <thead>
+            <tr>
+              <th>{{'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nContext.suffix}}</th>
+              <th *ngFor="let pmfm of pmfms" [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true }"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let sample of data.samples">
+              <td>n°{{sample.label}}</td>
+              <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true}"></td>
+            </tr>
+          </tbody>
+        </table>
+
+      </section>
+    </section>
+  </app-slides>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+</ion-content>

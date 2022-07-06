@@ -263,18 +263,6 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'true',
     type: 'boolean'
   },
-  TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.survivalTest.taxonName.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE',
-    defaultValue: 'true',
-    type: 'boolean'
-  },
-  TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.survivalTest.taxonGroup.enable',
-    label: 'PROGRAM.OPTIONS.TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE',
-    defaultValue: 'true',
-    type: 'boolean'
-  },
   TRIP_LATITUDE_SIGN: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.latitude.defaultSign',
     label: 'PROGRAM.OPTIONS.TRIP_LATITUDE_DEFAULT_SIGN',

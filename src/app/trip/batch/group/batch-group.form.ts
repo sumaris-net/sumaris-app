@@ -13,11 +13,16 @@ import { MeasurementsValidatorService } from '../../services/validator/measureme
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 
 @Component({
   selector: 'app-batch-group-form',
   templateUrl: 'batch-group.form.html',
   styleUrls: ['batch-group.form.scss'],
+  providers: [
+    { provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService},
+    { provide: BatchValidatorService, useClass: BatchValidatorService}
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchGroupForm extends BatchForm<BatchGroup> {
@@ -222,7 +227,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
     if (this.debug) console.debug('[batch-group-form] mapPmfm()...');
 
-    this.qvPmfm = this.qvPmfm || PmfmUtils.getFirstQualitativePmfm(pmfms);
+    this.qvPmfm = this.qvPmfm || BatchGroupUtils.getQvPmfm(pmfms);
     if (this.qvPmfm) {
 
       // Create a copy, to keep original pmfm unchanged

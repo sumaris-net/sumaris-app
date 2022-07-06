@@ -1,0 +1,9 @@
+<form class="form-container" [formGroup]="form|formGetGroup: 'measurementValues'" (ngSubmit)="doSubmit($event)">
+ <ion-grid>
+   <ion-row>
+    <ion-col *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn;">
+      <app-pmfm-field [pmfm]="pmfm"></app-pmfm-field>
+    </ion-col>
+   </ion-row>
+ </ion-grid>
+</form>

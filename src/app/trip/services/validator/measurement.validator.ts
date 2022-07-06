@@ -3,7 +3,7 @@ import {ValidatorService} from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import {LocalSettingsService, SharedFormArrayValidators, toBoolean} from '@sumaris-net/ngx-components';
-import {Measurement, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils} from '../model/measurement.model';
+import { Measurement, MeasurementFormValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from '../model/measurement.model';
 import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
@@ -13,6 +13,7 @@ export interface MeasurementsValidatorOptions {
   pmfms?: IPmfm[];
   protectedAttributes?: string[];
   forceOptional?: boolean;
+  withTypename?: boolean; // Default to true
 }
 
 @Injectable({providedIn: 'root'})
@@ -28,7 +29,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     return this.getFormGroup(null, opts);
   }
 
-  getFormGroup(data: T[], opts?: O): FormGroup {
+  getFormGroup(data: T[] | MeasurementFormValues, opts?: O): FormGroup {
     opts = this.fillDefaultOptions(opts);
 
     return this.formBuilder.group(
@@ -37,19 +38,20 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     );
   }
 
-  getFormGroupConfig(data: T[], opts?: O): { [key: string]: any } {
+  getFormGroupConfig(data: T[] | MeasurementFormValues, opts?: O): { [key: string]: any } {
     opts = this.fillDefaultOptions(opts);
 
     // Convert the array of Measurement into a normalized map of form values
-    const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as Measurement[]),
-      opts.pmfms,
-      {
-        keepSourceObject: true,
-        onlyExistingPmfms: false
-      }) || undefined;
+    const measurementValues = data
+      && (MeasurementValuesUtils.isMeasurementFormValues(data) ? data
+        : MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as unknown as Measurement[]),
+          opts.pmfms,
+          {
+            keepSourceObject: true,
+            onlyExistingPmfms: false
+          })) || undefined;
 
-    return {
-      ...opts.pmfms.reduce((res, pmfm) => {
+    const config = opts.pmfms.reduce((res, pmfm) => {
         const validator = PmfmValidators.create(pmfm, null, opts);
         if (validator) {
           res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null, validator];
@@ -57,12 +59,17 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
           res[pmfm.id] = [measurementValues ? measurementValues[pmfm.id] : null];
         }
         return res;
-      }, {}),
-      __typename: [measurementValues ? measurementValues.__typename : MeasurementValuesTypes.MeasurementFormValue, Validators.required]
-    };
+      }, {});
+
+    // Validate __typename
+    if (!opts || opts.withTypename !== false) {
+      config['__typename'] = [measurementValues ? measurementValues.__typename : MeasurementValuesTypes.MeasurementFormValue, Validators.required];
+    }
+
+    return config;
   }
 
-  getFormGroupOptions(data?: T[], opts?: O): AbstractControlOptions | null {
+  getFormGroupOptions(data?: T[] | MeasurementFormValues, opts?: O): AbstractControlOptions | null {
     return null;
   }
 

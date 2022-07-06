@@ -44,6 +44,7 @@
   --r-link-color-hover: var(--ion-color-primary900);
   --r-selection-background-color: rgba(0, 0, 0, 0.99);
   --r-selection-color: #fff;
+  --r-table-cell-font-size: 0.65em;
 }
 
 // --------------------------------------------------
@@ -67,6 +68,21 @@
 }
 .reveal canvas[data-chart].theme-black {
   background-color: rgba(0,0,0,0.5);
+}
+
+/*********************************************
+ * TABLE
+ *********************************************/
+
+.reveal table {
+
+  th small {
+    display: block;
+  }
+
+  th, td {
+    font-size: var(--r-table-cell-font-size);
+  }
 }
 
 /*********************************************

@@ -42,12 +42,13 @@
 
   </ion-grid>
 
-  <app-products-table #productsTable
-                      [programLabel]="programLabel"
-                      acquisitionLevel="PRODUCT_SALE"
-                      [showParent]='false'
-                      [readOnly]="true"
-                      [showIdColumn]="false"
-                      [showToolbar]="!mobile">
-  </app-products-table>
 </form>
+
+<app-products-table #productsTable
+                    [programLabel]="programLabel"
+                    acquisitionLevel="PRODUCT_SALE"
+                    [showParent]='false'
+                    [readOnly]="true"
+                    [showIdColumn]="false"
+                    [showToolbar]="!mobile">
+</app-products-table>
