@@ -1,17 +1,19 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
-import { isNilOrBlank } from '@sumaris-net/ngx-components/src/app/shared/functions';
+import { isInt, isNilOrBlank, isNotNilOrBlank } from '@sumaris-net/ngx-components/src/app/shared/functions';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { TranslateService } from '@ngx-translate/core';
-import { DateFormatPipe, LocalSettingsService, PlatformService, sleep } from '@sumaris-net/ngx-components';
+import { DateFormatPipe, isNil, isNotNil, LocalSettingsService, PlatformService, sleep, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AppErrorWithDetails } from '@sumaris-net/ngx-components/src/app/core/form/entity-editor.class';
+import { EntityServiceLoadOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 
 export class AppDataReportOptions {
   pathIdAttribute?: string;
@@ -23,13 +25,17 @@ export class AppDataReportOptions {
   templateUrl: './auction-control.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AuctionControlReport implements OnInit {
+export class AuctionControlReport implements OnInit, AfterViewInit {
 
   private readonly _pathParentIdAttribute: string;
   private readonly _pathIdAttribute: string;
-  private readonly _$loading = new BehaviorSubject(true);
+  private readonly _autoLoad = true;
+  private readonly _autoLoadDelay = 0;
+  protected readonly _$ready = new BehaviorSubject<boolean>(false);
+  protected readonly _$loading = new BehaviorSubject(true);
 
   $title = new Subject();
+  error: string;
   slidesOptions: Partial<IRevealOptions>;
   data: Landing;
   parent: ObservedLocation;
@@ -41,14 +47,16 @@ export class AuctionControlReport implements OnInit {
     suffix: ''
   }
 
+  @Input() showError = true;
+
+  @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+
   get loading(): boolean {
     return this._$loading.value;
   }
   get loaded(): boolean {
     return !this._$loading.value;
   }
-
-  @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
 
   constructor(
     private route: ActivatedRoute,
@@ -71,36 +79,61 @@ export class AuctionControlReport implements OnInit {
       disableLayout: mobile,
       touch: mobile
     }
-  }
-
-  ngOnInit() {
-    const route = this.route.snapshot;
     if (!route || isNilOrBlank(this._pathIdAttribute)) {
       throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
     }
-    const parentId = route.params[this._pathParentIdAttribute];
-    const id = route.params[this._pathIdAttribute];
-    this.load(id, parentId);
+  }
+
+  ngOnInit() {
   }
 
   ngAfterViewInit() {
+
+    // Load data
+    if (this._autoLoad) {
+      setTimeout(() => this.start(), this._autoLoadDelay);
+    }
+  }
+
+  async start() {
+    await this.platform.ready();
+    this.markAsReady();
+
+    try {
+      await this.loadFromRoute();
+    }
+    catch(err) {
+      this.setError(err);
+    }
+    finally {
+      this.markAsLoaded();
+    }
   }
 
 
-  async load(id: number, parentId: number) {
+  async load(id?: number, opts?: EntityServiceLoadOptions & {[key: string]: string}) {
 
-    await this.platform.ready();
+    let parentId = opts && opts[this._pathParentIdAttribute] || undefined;
 
-    //await sleep(5000);
+    //await sleep(2000);
 
-    const [data, parent] = await Promise.all([
+    let [data, parent] = await Promise.all([
       this.landingService.load(id),
-      this.observedLocationService.load(parentId)
+      isNotNil(parentId) ? this.observedLocationService.load(parentId) : Promise.resolve(null)
     ]);
 
+    // Make sure to load the parent
+    if (!parent || (data && parent.id !== data.observedLocationId)) {
+      parent = await this.observedLocationService.load(data.observedLocationId);
+    }
+
+    if (!data || !parent) {
+      throw new Error('ERROR.LOAD_ENTITY_ERROR');
+    }
 
     this.data = data;
     this.parent = parent;
+
 
     // Compute agg data
     this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup || {};
@@ -109,7 +142,7 @@ export class AuctionControlReport implements OnInit {
     this.pmfms = await this.programRefService.loadProgramPmfms(parent.program.label, {
       acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
       taxonGroupId: this.stats.taxonGroup?.id
-    })
+    });
 
     const title = await this.translate.get('AUCTION_CONTROL.REPORT.TITLE', {
       vessel: data.vesselSnapshot.name,
@@ -123,4 +156,76 @@ export class AuctionControlReport implements OnInit {
     await this.slides.initialize();
 
   }
+
+  async ready(opts?: WaitForOptions): Promise<void> {
+    if (this._$ready.value) return;
+    await waitForTrue(this._$ready, opts);
+  }
+
+  setError(err: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
+    if (!err) {
+      this.error = undefined;
+    }
+    else if (typeof err === 'string') {
+      console.error('[report] Error: ' + (err || ''));
+      this.error = err as string;
+    }
+    else {
+      console.error('[report] Error: ' + err.message || '', err);
+      let userMessage = err.message && this.translate.instant(err.message) || err;
+
+      // Add details error (if any) under the main message
+      const detailMessage = (!err.details || typeof err.details === 'string')
+        ? err.details as string
+        : err.details.message;
+      if (isNotNilOrBlank(detailMessage)) {
+        const cssClass = opts?.detailsCssClass || 'hidden-xs hidden-sm';
+        userMessage += `<br/><small class="${cssClass}" title="${detailMessage}">`;
+        userMessage += detailMessage.length < 70 ? detailMessage : detailMessage.substring(0, 67) + '...';
+        userMessage += '</small>';
+      }
+      this.error = userMessage;
+    }
+    if (!opts || opts.emitEvent !== false) this.markForCheck();
+  }
+
+  /* -- protected function -- */
+
+
+  protected loadFromRoute(): Promise<void> {
+    const route = this.route.snapshot;
+    if (!route || isNilOrBlank(this._pathIdAttribute)) {
+      throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
+    }
+    let id = route.params[this._pathIdAttribute];
+    if (isNil(id) || id === 'new') {
+      return this.load(undefined, route.params);
+    } else {
+      // Convert as number, if need
+      if (isInt(id)) {
+        id = parseInt(id);
+      }
+      return this.load(id, route.params);
+    }
+  }
+
+  protected markAsReady() {
+    this._$ready.next(true);
+  }
+
+  protected markAsLoaded(opts = {emitEvent: true}) {
+    this._$loading.next(false);
+    if (opts.emitEvent !== false) this.markForCheck();
+  }
+
+  protected markAsLoading(opts = {emitEvent: true}) {
+    this._$loading.next(true);
+    if (opts.emitEvent !== false) this.markForCheck();
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
+
+
 }

@@ -17,7 +17,13 @@
 
 <ion-content>
 
-  <app-slides #slides
+  <!-- error -->
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <app-slides #slides *ngIf="!error"
               [options]="slidesOptions">
     <section *ngIf="loaded; else loadingTemplate">
       <section markdown ngPreserveWhitespaces>
@@ -25,11 +31,10 @@
         - Criée : {{data.location?.name}}
         - Date/Heure : {{data.dateTime|dateFormat: {time: true} }}
         - Contrôleur : {{parent.observers|personToString}}
-
-
         - Navire : **{{data.vesselSnapshot.name}}**
         - Espèce : **{{stats.taxonGroup?.name || '?'}}**
       </section>
+
       <section markdown ngPreserveWhitespaces *ngIf="data.samples | isNotEmptyArray">
         ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}}
 
