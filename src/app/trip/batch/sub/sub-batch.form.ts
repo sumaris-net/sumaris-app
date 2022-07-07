@@ -499,7 +499,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   doSubmit(event: any, opts?: { checkValid?: boolean }): Promise<void> {
     if (event?.defaultPrevented) {
-      console.log('Avoid submit')
+      console.debug('[sub-batch-form] Cancel submit (event.defaultPrevented=true)');
       return;
     }
 

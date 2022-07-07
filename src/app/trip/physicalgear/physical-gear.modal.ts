@@ -5,10 +5,11 @@ import {
   AppEntityEditorModal,
   createPromiseEventEmitter,
   emitPromiseEvent,
-  firstNotNil, firstNotNilPromise,
+  firstNotNil,
   IEntityEditorModalOptions,
   InMemoryEntitiesService,
-  isNil, isNotEmptyArray,
+  isNil,
+  isNotEmptyArray,
   ReferentialRef,
   toBoolean,
   toNumber,
@@ -23,7 +24,7 @@ import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter'
 import { BehaviorSubject } from 'rxjs';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
-import { tap, switchMap, startWith } from 'rxjs/operators';
+import { switchMap, tap } from 'rxjs/operators';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 export interface IPhysicalGearModalOptions
@@ -117,10 +118,10 @@ export class PhysicalGearModal
     this.debug = !environment.production;
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit() {
     this.allowChildrenGears = toBoolean(this.allowChildrenGears, true);
 
-    await super.ngOnInit();
+    super.ngOnInit();
 
     if (this.enabled && this.isNewData) {
       this.markAsLoaded();
@@ -195,6 +196,10 @@ export class PhysicalGearModal
 
   }
 
+  registerChildrenTable(value: PhysicalGearTable) {
+    this.$childrenTable.next(value);
+  }
+
   async openSearchModal(event?: UIEvent) {
 
     if (this.onSearchButtonClick.observers.length === 0) return; // Skip
@@ -242,6 +247,10 @@ export class PhysicalGearModal
   protected async setValue(data: PhysicalGear) {
 
     try {
+      // Save children, before reset (not need in the main form)
+      const children = data.children;
+      data.children = undefined;
+
       // Set main form
       await this.physicalGearForm.setValue(data);
 
@@ -250,11 +259,8 @@ export class PhysicalGearModal
 
         this.$gear.next(data.gear);
         this.childrenTable.gearId = data.gear?.id;
-        this.childrenGearService.value = data.children || [];
-
-        if (!this.childrenTable.isReady()) {
-          this.childrenTable.markAsReady();
-        }
+        this.childrenGearService.value = children || [];
+        this.childrenTable.markAsReady();
       }
     }
     catch (err) {
@@ -263,16 +269,25 @@ export class PhysicalGearModal
     }
   }
 
-  protected async getJsonValueToSave(): Promise<any> {
-    const data = await this.physicalGearForm.value;
+  protected async getValue(): Promise<PhysicalGear> {
+    const data = this.physicalGearForm.value;
 
     if (this.allowChildrenGears) {
+      if (this.childrenTable.dirty) {
+        await this.childrenTable.save();
+      }
       data.children = this.childrenGearService.value;
     }
     else {
       data.children = null;
     }
     return data;
+  }
+
+  protected async getJsonValueToSave(): Promise<any> {
+    console.warn('Should not used this method! Because form and childrenTable always return Entities!');
+    const data = await this.getValue();
+    return data.asObject();
   }
 
   protected computeTitle(data?: PhysicalGear): Promise<string> {

@@ -11,7 +11,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { environment } from '@environments/environment';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];

@@ -751,7 +751,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
    */
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
 
-    if (this.debug) console.debug(`${this.logPrefix} calling mapPmfms()`);
+    if (this.debug) console.debug(`${this._logPrefix} calling mapPmfms()`);
 
     // Create the missing Pmfm, to hold strategy (if need)
     if (this.showStrategy) {

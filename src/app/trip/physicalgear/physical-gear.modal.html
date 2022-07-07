@@ -56,7 +56,7 @@
                   *ngIf="error || (submitted && physicalGearForm.invalid)"></ion-icon>
       </ng-template>
 
-      <div >
+      <div>
         <!-- error -->
         <ion-item *ngIf="(error || physicalGearForm.error) as errorMsg" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -77,17 +77,44 @@
         </app-physical-gear-form>
 
         <!-- DEBUG -->
-     <ion-text *ngIf="debug"
-                class="text-italic ion-margin-start" color="primary">
-       allowChildrenGears: {{allowChildrenGears}}<br/>
-       <ng-container *ngIf="childrenTable">
-         table.gearId: {{childrenTable.gearId}}<br/>
-         table.ready: {{childrenTable.readySubject|async}}<br/>
-         table.loading: {{childrenTable.loadingSubject|async}}<br/>
-         table.visibleRowCount: {{childrenTable.visibleRowCount}}<br/>
-         table.totalRowCount: {{childrenTable.totalRowCount}}<br/>
-       </ng-container>
-     </ion-text>
+        <ion-grid *ngIf="debug" class="ion-padding">
+          <ion-row>
+            <ion-col>
+               <ion-text class="text-italic" color="primary">
+                 <small>
+                   loading: {{loading}}<br/>
+                   ready: {{readySubject|async}}<br/>
+                   dirty: {{dirty}}<br/>
+                   valid: {{valid}}<br/>
+                   allowChildrenGears: {{allowChildrenGears}}<br/>
+                 </small>
+               </ion-text>
+            </ion-col>
+            <ion-col>
+              <ion-text class="text-italic" color="primary">
+                <small>
+                  physicalGearForm.loading: {{physicalGearForm.loading}}<br/>
+                  physicalGearForm.ready: {{physicalGearForm.readySubject|async}}<br/>
+                  physicalGearForm.dirty: {{physicalGearForm.dirty}}<br/>
+                  physicalGearForm.valid: {{physicalGearForm.valid}}<br/>
+                </small>
+              </ion-text>
+            </ion-col>
+            <ion-col *ngIf="_showChildrenTable">
+               <ion-text *ngIf="childrenTable; let table" class="text-italic" color="primary">
+                 <small>
+                   table.gearId: {{table.gearId}}<br/>
+                   table.ready: {{table.readySubject|async}}<br/>
+                   table.loading: {{table.loadingSubject|async}}<br/>
+                   table.dirty: {{table.dirtySubject|async}}<br/>
+                   table.visibleRowCount: {{table.visibleRowCount}}<br/>
+                   table.totalRowCount: {{table.totalRowCount}}<br/>
+                 </small>
+               </ion-text>
+<!--              <ion-button (click)="saveAndClose($event)" translate>COMMON.BTN_VALIDATE</ion-button>-->
+            </ion-col>
+          </ion-row>
+        </ion-grid>
       </div>
     </mat-tab>
 
@@ -100,7 +127,7 @@
         <mat-icon class="icon-secondary" style="left: 12px; top: 7px; font-size: 16px">settings</mat-icon>
         <ion-label *ngIf="table"
                    [matBadge]="table.totalRowCount"
-                   [matBadgeHidden]="table.invalid || !table.totalRowCount || table.error"
+                   [matBadgeHidden]="!table || table.invalid || !table.totalRowCount || table.error"
                    matBadgeColor="primary"
                    matBadgeOverlap="false"
                    matBadgeSize="small"
@@ -109,9 +136,9 @@
                   *ngIf="table && (table.invalid || !table.totalRowCount)"></ion-icon>
       </ng-template>
 
-      <app-physical-gears-table #childrenTable
+      <app-physical-gears-table #table
                                 *ngIf="allowChildrenGears"
-                                (ngInit)="$childrenTable.next(childrenTable)"
+                                (ngInit)="registerChildrenTable(table)"
                                 [programLabel]="programLabel"
                                 [acquisitionLevel]="childAcquisitionLevel"
                                 [showGearColumn]="false"

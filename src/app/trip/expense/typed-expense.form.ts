@@ -24,7 +24,6 @@ export class TypedExpenseForm extends MeasurementsForm {
   amountDefinition: FormFieldDefinition;
 
   @Input() rankOrder: number;
-
   @Input() expenseType = 'UNKNOWN';
 
   @Input() set pmfms(pmfms: IPmfm[]) {
@@ -117,13 +116,13 @@ export class TypedExpenseForm extends MeasurementsForm {
     return values;
   }
 
-  protected updateView(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  protected async updateView(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     // filter measurements on rank order if provided
     if (this.rankOrder) {
       data = (data || []).filter(value => value.rankOrder === this.rankOrder);
     }
 
-    super.updateView(data, opts);
+    await super.updateView(data, opts);
 
     // set packaging and amount value
     const packaging = (this.$packagingPmfms.getValue() || [])

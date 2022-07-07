@@ -1,30 +1,51 @@
-import {Injectable} from "@angular/core";
-import {ValidatorService} from "@e-is/ngx-material-table";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
-import {toNumber} from "@sumaris-net/ngx-components";
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { AbstractControlOptions, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { LocalSettingsService, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
+
+
+export interface PhysicalGearValidatorOptions extends DataRootEntityValidatorOptions {
+  withChildren?: boolean;
+}
 
 @Injectable({providedIn: 'root'})
-export class PhysicalGearValidatorService implements ValidatorService {
+export class PhysicalGearValidatorService
+  extends DataRootEntityValidatorService<PhysicalGear, PhysicalGearValidatorOptions>
+  implements ValidatorService {
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(formBuilder: FormBuilder,
+              settings?: LocalSettingsService) {
+    super(formBuilder, settings);
   }
 
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
-  }
-
-  getFormGroup(data?: PhysicalGear): FormGroup {
-    return this.formBuilder.group({
+  getFormGroupConfig(data?: PhysicalGear, opts?: PhysicalGearValidatorOptions): { [key: string]: any } {
+    const config = {
+      ...super.getFormGroupConfig(data, opts),
       __typename: [PhysicalGear.TYPENAME],
-      id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
-      rankOrder: [toNumber(data && data.rankOrder, null), Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
-      creationDate: [data && data.creationDate || null],
-      gear: [data && data.gear || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      rankOrder: [toNumber(data?.rankOrder, null), Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
+      gear: [data?.gear || null, Validators.compose([Validators.required, SharedValidators.entity])],
       measurementValues: this.formBuilder.group({}),
-      comments: [data && data.comments || null, Validators.maxLength(2000)]
-    });
+    };
+
+    // Change program is optional
+    config['program'] = [data?.program || null];
+
+    if (!opts || opts.withChildren !== false) {
+      config['children'] = this.getChildrenArray(data?.children, opts);
+    }
+
+    return config;
+  }
+
+  getFormGroupOptions(data?: PhysicalGear, opts?: PhysicalGearValidatorOptions): AbstractControlOptions | null {
+    return null;
+  }
+
+  getChildrenArray(data?: PhysicalGear[], opts?: PhysicalGearValidatorOptions): FormArray {
+    return this.formBuilder.array(
+      (data || []).map(child => this.getFormGroup(child, {...opts, withChildren: false /*Allow only one level*/}))
+    );
   }
 }

@@ -346,7 +346,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this.registerAutocompleteField('physicalGear', {
       items: this._$physicalGears,
       attributes: physicalGearAttributes,
-      mobile: this.mobile
+      mobile: this.mobile,
+      showAllOnFocus: true
     });
 
     // Combo: fishingAreas

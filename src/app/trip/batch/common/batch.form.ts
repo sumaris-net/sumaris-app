@@ -610,7 +610,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     await waitFor(() => !!this.samplingRatioFormat && !!this.defaultWeightPmfm, {timeout: 2000});
 
     if (!this.samplingRatioFormat || !this.defaultWeightPmfm) {
-      console.warn(this.logPrefix + 'Missing samplingRatioFormat or weight Pmfm. Skipping sampling ratio and weight computation');
+      console.warn(this._logPrefix + 'Missing samplingRatioFormat or weight Pmfm. Skipping sampling ratio and weight computation');
       return;
     }
 

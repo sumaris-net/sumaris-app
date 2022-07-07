@@ -1645,7 +1645,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
         const source = sources.find(json => target.equals(json));
         if (!source) {
-          console.warn('Missing sample sources, equals to target: ', target)
+          console.warn('Missing a sample, equals to this target: ', target)
         }
         else {
           EntityUtils.copyIdAndUpdateDate(source, target);
@@ -1656,7 +1656,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           target.parent = null;
 
           // Apply to children
-          if (target.children && target.children.length) {
+          if (target.children?.length) {
             this.copyIdAndUpdateDateOnSamples(sources, target.children, savedOperation);
           }
         }

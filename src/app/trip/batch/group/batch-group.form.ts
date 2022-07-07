@@ -156,13 +156,10 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this.hasSubBatchesControl = new FormControl(false);
     this.showSamplingBatch = false;
+    this._logPrefix = '[batch-group-form]';
 
     // DEBUG
     //this.debug = !environment.production;
-  }
-
-  protected get logPrefix(): string {
-    return '[batch-group-form]';
   }
 
   ngOnInit() {

@@ -2,17 +2,19 @@ import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@an
 import { FormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { BatchValidatorService } from '../common/batch.validator';
-import { isNotNil, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
+import { firstNotNilPromise, isEmptyArray, isNil, isNotEmptyArray, isNotNil, ReferentialRef, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { filter } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, mergeMap, takeUntil, tap } from 'rxjs/operators';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { MatrixIds, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { equals } from '@app/shared/functions';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 
 @Component({
   selector: 'form-catch-batch',
@@ -26,6 +28,8 @@ import { equals } from '@app/shared/functions';
 export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnInit {
 
   private _pmfmFilter: Partial<DenormalizedPmfmFilter> = null;
+  private _$dispatchingPmfms = new Subject();
+  private _$physicalGearId = new BehaviorSubject<number>(undefined);
 
   $gearPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $onDeckPmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -43,12 +47,17 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     }
   }
 
-   constructor(
+  @Input() set physicalGearId(value: number) {
+    this._$physicalGearId.next(value);
+  }
+
+  constructor(
     injector: Injector,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
-    protected validatorService: BatchValidatorService
+    protected validatorService: BatchValidatorService,
+    protected physicalGearService: PhysicalGearService
   ) {
 
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
@@ -63,16 +72,17 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
         .pipe(filter(isNotNil))
         .subscribe(pmfms => this.dispatchPmfms(pmfms))
     );
+
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
-
-    this.$gearPmfms.complete();
-    this.$onDeckPmfms.complete();
-    this.$sortingPmfms.complete();
-    this.$weightPmfms.complete();
-    this.$otherPmfms.complete();
+    this._$physicalGearId.unsubscribe();
+    this.$gearPmfms.unsubscribe();
+    this.$onDeckPmfms.unsubscribe();
+    this.$sortingPmfms.unsubscribe();
+    this.$weightPmfms.unsubscribe();
+    this.$otherPmfms.unsubscribe();
   }
 
   onApplyingEntity(data: Batch, opts?: any) {
@@ -129,12 +139,13 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   }
 
   // @ts-ignore
-  protected dispatchPmfms(pmfms?: IPmfm[]) {
+  protected async dispatchPmfms(pmfms?: IPmfm[]) {
     pmfms = pmfms || this.$pmfms.value;
     if (!pmfms) return; // Skip
 
     // DEBUG
-    //console.debug('[catch-form] Dispatch pmfms by form', pmfms);
+    console.debug('[catch-form] Dispatch pmfms...');
+    this._$dispatchingPmfms.next();
 
     // Filter pmfm
     if (this._pmfmFilter) {
@@ -151,15 +162,57 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
     this.$onDeckPmfms.next(pmfms.filter(p => p.label?.indexOf('ON_DECK_') === 0));
     this.$sortingPmfms.next(pmfms.filter(p => p.label?.indexOf('SORTING_') === 0));
-    this.$weightPmfms.next(pmfms.filter(p => PmfmUtils.isWeight(p)
+    this.$weightPmfms.next(pmfms.filter(p => (PmfmUtils.isWeight(p) || p.label?.indexOf('_WEIGHT') !== -1)
       && !this.$onDeckPmfms.value.includes(p)
       && !this.$sortingPmfms.value.includes(p)));
-    this.$gearPmfms.next(pmfms.filter(p => p.matrixId === MatrixIds.GEAR));
 
-    this.$otherPmfms.next(pmfms.filter(p => !this.$onDeckPmfms.value.includes(p)
+    const gearPmfms = pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.label?.indexOf('CHILD_GEAR') === 0);
+    const otherPmfms = pmfms.filter(p => !this.$onDeckPmfms.value.includes(p)
       && !this.$sortingPmfms.value.includes(p)
       && !this.$weightPmfms.value.includes(p)
-      && !this.$gearPmfms.value.includes(p)));
+      && !gearPmfms.includes(p));
+
+
+    const childGearPmfmIndexes = gearPmfms
+      .map((p, index) => p.label?.indexOf('CHILD_GEAR') === 0 ? index : undefined)
+      .filter(isNotNil);
+    if (isNotEmptyArray(childGearPmfmIndexes)) {
+
+      // DEBUG
+      console.debug('[catch-form] Waiting children physical gears...');
+      let now = Date.now();
+
+      this.registerSubscription(
+        this._$physicalGearId.pipe(
+          takeUntil(this._$dispatchingPmfms),
+          filter(isNotNil),
+          // Load children gears
+          mergeMap(physicalGearId => this.physicalGearService.loadAllByParentId(physicalGearId, {toEntity: false, withTotal: false})),
+          // Convert to referential item
+          map(({data}) => data.map(pg => ReferentialRef.fromObject({
+              id: pg.rankOrder,
+              label: pg.rankOrder,
+              name: pg.measurementValues[PmfmIds.GEAR_LABEL]
+            })))
+        ).subscribe(items => {
+          if (now) console.debug(`[catch-form] Waiting children physical gears [OK] after ${Date.now() - now}ms`, items);
+
+          const finalGearPmfms = gearPmfms.map((p, index) => {
+            if (childGearPmfmIndexes.includes(index)) {
+              p = p.clone();
+              p.qualitativeValues = items;
+            }
+            return p;
+          })
+          this.$gearPmfms.next(finalGearPmfms);
+          this.$otherPmfms.next(otherPmfms);
+        })
+      );
+    }
+    else {
+      this.$gearPmfms.next(gearPmfms);
+      this.$otherPmfms.next(otherPmfms);
+    }
 
     this.hasPmfms = pmfms.length > 0;
     this.markForCheck();

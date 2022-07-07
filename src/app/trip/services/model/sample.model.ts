@@ -34,18 +34,25 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
 
   static fromObject: (source, opts?: SampleFromObjectOptions) => Sample;
 
-  static fromObjectArrayAsTree(source: any[], opts?: SampleFromObjectOptions): Sample[] {
-    if (!source) return null;
-    const samples = (source || []).map((json) => Sample.fromObject(json, {...opts, withChildren: false}));
+  static fromObjectArrayAsTree(sources: any[], opts?: SampleFromObjectOptions): Sample[] {
+    if (!sources) return null;
+    // Convert to entities
+    const targets = (sources || []).map(json => Sample.fromObject(json, {...opts, withChildren: false}));
+
+    // Find roots
+    const roots = targets.filter(g => isNil(g.parentId));
+
     // Link to parent (using parentId)
-    samples.forEach(s => {
-      s.parent = isNotNil(s.parentId) && samples.find(p => p.id === s.parentId) || undefined;
-      s.parentId = undefined; // Avoid redundant info on parent
+    targets.forEach(t => {
+      t.parent = isNotNil(t.parentId) && roots.find(p => p.id === t.parentId) || undefined;
+      t.parentId = undefined; // Avoid redundant info on parent
     });
+
     // Link to children
-    samples.forEach(s => s.children = samples.filter(p => p.parent && p.parent === s) || []);
-    // Return root samples
-    return samples.filter(b => isNil(b.parent));
+    roots.forEach(s => s.children = targets.filter(p => p.parent && p.parent === s) || []);
+
+    // Return root
+    return roots;
   }
 
   /**

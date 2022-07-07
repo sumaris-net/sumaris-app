@@ -532,7 +532,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     }
     // Serialize as batches array (this will fill parentId, and remove children and parent properties)
     else {
-      target.gears = PhysicalGear.treeAsObjectArray(target.catchBatch, opts);
+      target.gears = PhysicalGear.treeAsObjectArray(this.gears, opts);
     }
 
     // Operations

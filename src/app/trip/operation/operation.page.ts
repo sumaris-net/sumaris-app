@@ -40,7 +40,7 @@ import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels
 import { IBatchTreeComponent } from '../batch/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, from, merge, Subscription } from 'rxjs';
+import { BehaviorSubject, from, merge, Observable, Subscription } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
@@ -83,6 +83,17 @@ export class OperationPage
     CATCH: 1,
     SAMPLE: 2,
   };
+  private _lastOperationsTripId: number;
+  private _measurementSubscription: Subscription;
+  private _sampleRowSubscription: Subscription;
+  private _forceMeasurementAsOptionalOnFieldMode = false;
+
+  protected tripService: TripService;
+  protected tripContext: TripContextService;
+  protected programRefService: ProgramRefService;
+  protected settings: LocalSettingsService;
+  protected modalCtrl: ModalController;
+  protected hotkeys: Hotkeys;
 
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
@@ -112,11 +123,6 @@ export class OperationPage
   showBatchTables = false;
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
-
-  private _lastOperationsTripId: number;
-  private _measurementSubscription: Subscription;
-  private _sampleRowSubscription: Subscription;
-  private _forceMeasurementAsOptionalOnFieldMode = false;
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -153,12 +159,10 @@ export class OperationPage
   get entityQualityService(): IDataEntityQualityService<Operation> {
     return this;
   }
-  protected tripService: TripService;
-  protected tripContext: TripContextService;
-  protected programRefService: ProgramRefService;
-  protected settings: LocalSettingsService;
-  protected modalCtrl: ModalController;
-  protected hotkeys: Hotkeys;
+
+  get $ready(): Observable<boolean> {
+    return this._$ready.asObservable();
+  }
 
   constructor(
     injector: Injector,
@@ -333,10 +337,13 @@ export class OperationPage
           // skip if loading
           filter(() => !this.loading)
         )
-        .subscribe((res) => {
-          const gearId = res && res.gear && res.gear.id || null;
+        .subscribe(physicalGear => {
+          const gearId = toNumber(physicalGear?.gear?.id, null);
           this.measurementsForm.gearId = gearId;
-          if (this.batchTree) this.batchTree.gearId = gearId;
+          if (this.batchTree) {
+            this.batchTree.physicalGearId = physicalGear.id;
+            this.batchTree.gearId = gearId;
+          }
         })
     );
 
@@ -844,7 +851,8 @@ export class OperationPage
     await this.opeForm.setValue(data);
 
     // Get gear, from the physical gear
-    const gearId = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.id || null;
+    const physicalGearId = toNumber(data.physicalGear?.id, null);
+    const gearId = toNumber(data?.physicalGear?.gear?.id, null);
 
     // Set measurements form
     this.measurementsForm.gearId = gearId;
@@ -861,6 +869,7 @@ export class OperationPage
 
     // Set batch tree
     if (this.batchTree) {
+      this.batchTree.physicalGearId = physicalGearId;
       this.batchTree.gearId = gearId;
       await this.batchTree.setValue(data && data.catchBatch || null);
     }
@@ -872,6 +881,10 @@ export class OperationPage
     if (this.isNewData) {
       if (this.autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
     }
+  }
+
+  unload(): Promise<void> {
+    return super.unload();
   }
 
   updateViewState(data: Operation, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
