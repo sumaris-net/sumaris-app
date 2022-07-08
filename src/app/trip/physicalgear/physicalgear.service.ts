@@ -120,8 +120,8 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     opts?: PhysicalGearServiceWatchOptions
   ): Observable<LoadResult<PhysicalGear>> {
 
-    if (!dataFilter || isNil(dataFilter.program) || (isNil(dataFilter.vesselId) && isNil(dataFilter.startDate))) {
-      console.warn('[physical-gear-service] Missing physical gears filter. At least \'program\' and \'vesselId\' or \'startDate\'. Skipping.');
+    if (!dataFilter || (isNil(dataFilter.parentGearId) && (isNil(dataFilter.program) || (isNil(dataFilter.vesselId) && isNil(dataFilter.startDate))))) {
+      console.warn('[physical-gear-service] Missing physical gears filter. At least \'parentGearId\', or \'program\' and \'vesselId\' or \'startDate\'. Skipping.');
       return EMPTY;
     }
     // Fix sortBy
@@ -164,8 +164,8 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     dataFilter?: Partial<PhysicalGearFilter>,
     opts?: PhysicalGearServiceWatchOptions): Observable<LoadResult<PhysicalGear>> {
 
-    if (!dataFilter || isNil(dataFilter.program) || (isNil(dataFilter.vesselId) && isNil(dataFilter.startDate))) {
-      console.warn('[physical-gear-service] Missing physical gears filter. At least \'program\', \'vesselId\' and \'startDate\'. Skipping.');
+    if (!dataFilter || (isNil(dataFilter.parentGearId) && (isNil(dataFilter.program) || (isNil(dataFilter.vesselId) && isNil(dataFilter.startDate))))) {
+      console.warn('[physical-gear-service] Missing physical gears filter. Expected at least \'parentGearId\', or \'program\' and \'vesselId\' or \'startDate\'. Skipping.');
       return EMPTY;
     }
 
@@ -224,8 +224,9 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     dataFilter?: Partial<PhysicalGearFilter>,
     opts?: PhysicalGearServiceWatchOptions
   ): Observable<LoadResult<PhysicalGear>> {
-    if (!dataFilter || isNil(dataFilter.vesselId)) {
-      console.warn('[physical-gear-service] Trying to load gears without \'filter.vesselId\'. Skipping.');
+
+    if (!dataFilter || (isNil(dataFilter.parentGearId) && isNil(dataFilter.vesselId))) {
+      console.warn('[physical-gear-service] Missing physical gears filter. Expected at least \'vesselId\' or \'parentGearId\'. Skipping.');
       return EMPTY;
     }
 
@@ -419,6 +420,16 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
                   query?: any;
                 }): Promise<LoadResult<PhysicalGear>> {
     return firstNotNilPromise(this.watchAll(offset, size, sortBy, sortDirection, dataFilter, opts));
+  }
+
+
+  async loadAllByParentId(parentGearId: number,
+            opts?: {
+              fetchPolicy?: WatchQueryFetchPolicy;
+              toEntity?: boolean;
+              withTotal?: boolean;
+            }): Promise<LoadResult<PhysicalGear>> {
+    return this.loadAll(0, 100, 'rankOrder', 'asc', {parentGearId}, opts);
   }
 
   async executeImport(filter: Partial<PhysicalGearFilter>,

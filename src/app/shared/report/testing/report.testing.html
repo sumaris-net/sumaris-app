@@ -40,94 +40,33 @@
       </section>
     </section>
 
-    <section data-markdown>
-				<textarea data-template>
-					# Démo [Reveal.js](https://revealjs.com/)
+    <section markdown ngPreserveWhitespaces>
+      # Démo [Reveal.js](https://revealjs.com/)
 
-					La démo utilise d'autres plugins utiles :<br/>
-					`Markdown`, `HighLight`, `Chart`
-				</textarea>
+      La démo utilise d'autres plugins utiles :<br/>
+      `Markdown`, `Chart`
     </section>
     <!-- Markdown -->
     <section>
-      <section data-markdown data-separator-notes="^FAKE:">
-					<textarea data-template>
-						# Markdown
-
-						Ecrivez vos diapos directement au format [Markdown](https://www.markdownguide.org/basic-syntax).
-
-						Exemple :
-
-						```html
-						&lt;section data-markdown&gt;
-							&lt;textarea data-template&gt;
-								## Diapo 1
-								Un paragraphe avec un [lien](https://www.sumaris.net).
-
-								---
-								## Diapo 2
-								![image](assets/img/logo/logo-sumaris.png)
-							&lt;/textarea&gt;
-						&lt;/section&gt;
-						```
-					</textarea>
+      <section markdown ngPreserveWhitespaces>
+        # Markdown
+        Écrivez vos diapos directement au format [Markdown](https://www.markdownguide.org/basic-syntax).
       </section>
 
-      <section data-markdown>
-					<textarea data-template>
-            ## Diapo 1
-            Un paragraphe avec un [lien](https://www.sumaris.net).
-
-            ---
-            ## Diapo 2
-            ![image](assets/img/logo/logo-sumaris.png)
-          </textarea>
+      <section markdown ngPreserveWhitespaces>
+        ## Diapo 1
+        Un paragraphe avec un [lien](https://www.sumaris.net).
       </section>
-      <section data-markdown>
-					<textarea data-template>
-						# Documentation
 
-						- [Guide de la syntaxe Markdown](https://www.markdownguide.org/basic-syntax)
-						- [Configuration du plugin Reveal.js Markdown](https://revealjs.com/markdown/)
-					</textarea>
+      <section markdown ngPreserveWhitespaces>
+        ## Diapo 2
+        ![image](assets/img/logo/logo-sumaris.png)
       </section>
-    </section>
+      <section markdown ngPreserveWhitespaces>
+        # Documentation
 
-    <section>
-      <section data-markdown>
-					<textarea data-template>
-						# Highlights
-						La coloration syntaxique peut être utilisé, par exemple pour afficher du code.
-
-						Exemple :
-
-						```
-							&lt;section data-markdown&gt;
-							```js
-							if (array.length) {
-								console.debug("Hello World");
-							}
-							```
-							&lt;/section&gt;
-						```
-
-						Résultat :
-
-						```js
-							if (array.length) {
-								console.debug("Hello World");
-							}
-						```
-
-						---
-						# Language
-
-						La syntaxe est mise en surbrillance,<br/>
-						en fonction du language indiqué (`js`, `html`, etc.)
-
-						Si aucun language n'est précisé, il sera détecter automatiquement.
-
-					</textarea>
+        - [Guide de la syntaxe Markdown](https://www.markdownguide.org/basic-syntax)
+        - [Configuration du plugin Reveal.js Markdown](https://revealjs.com/markdown/)
       </section>
     </section>
 
@@ -140,12 +79,16 @@
           Insérez des graphiques [Chart.js](https://www.chartjs.org/) dans vos diapos.
         </div>
 
-        <div style="height:480px">
+        <div style="height:450px">
           <canvas baseChart
                   [datasets]="chart.datasets"
                   [labels]="chart.labels"
                   [chartType]="'bar'">
           </canvas>
+        </div>
+
+        <div markdown ngPreserveWhitespaces>
+          Cool, non ?
         </div>
       </section>
 

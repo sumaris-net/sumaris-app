@@ -9,7 +9,7 @@ import {SingleOrMultiDataSet} from 'ng2-charts';
 })
 export class ReportTestPage {
 
-  slidesOptions: Partial<IRevealOptions>;
+  slidesOptions: Partial<IRevealOptions> = {};
 
   chart = {
     backgroundColor: "rgba(100,100,100,1)",
@@ -31,13 +31,9 @@ export class ReportTestPage {
   @ViewChild(AppSlidesComponent) slides: AppSlidesComponent;
 
   constructor() {
-
-    this.slidesOptions = {
-
-    };
   }
 
   print() {
-    window.print();
+    return this.slides.print();
   }
 }

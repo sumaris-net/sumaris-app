@@ -5,6 +5,7 @@ import {
   AppTable,
   Entity,
   firstTruePromise,
+  IAppTabEditor,
   InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
@@ -16,7 +17,7 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AlertController } from '@ionic/angular';
-import { BehaviorSubject, defer } from 'rxjs';
+import { BehaviorSubject, defer, Observable } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { Batch } from './common/batch.model';
@@ -40,10 +41,10 @@ import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
-import { IAppTabEditor } from '@sumaris-net/ngx-components';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   program: Program;
+  physicalGearId: number;
   gearId: number;
   showCatchForm: boolean;
   defaultHasSubBatches: boolean;
@@ -94,6 +95,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() showBatchTables: boolean;
   @Input() showFilter = false;
   @Input() enableWeightLengthConversion: boolean;
+  @Input() physicalGearId: number;
 
   @Input() set allowSamplingBatches(allow: boolean) {
     this.batchGroupsTable.showSamplingBatchColumns = allow;
@@ -391,8 +393,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       // Set catch batch
       this.catchBatchForm.gearId = this._gearId;
-      const promiseOrVoid = this.catchBatchForm.setValue(catchBatch.clone({ withChildren: false }), opts);
-      if (promiseOrVoid) await promiseOrVoid;
+      this.catchBatchForm.markAsReady();
+      await this.catchBatchForm.setValue(catchBatch.clone({ withChildren: false }), opts);
 
       if (this.batchGroupsTable) {
         // Retrieve batch group (make sure label start with acquisition level)

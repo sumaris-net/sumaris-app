@@ -12,12 +12,40 @@
     <form-catch-batch #catchBatchForm
                       [programLabel]="$programLabel|async"
                       acquisitionLevel="CATCH_BATCH"
+                      [physicalGearId]="physicalGearId"
                       (onSubmit)="save($event)"
                       [tabindex]="200"
                       [showError]="false"
                       [debug]="debug">
     </form-catch-batch>
   </div>
+
+  <ion-grid *ngIf="debug">
+    <ion-row>
+      <ion-col size="0" size-md="3" size-lg="3">
+        <ion-label class="ion-float-end">Debug :</ion-label>
+      </ion-col>
+      <ion-col>
+        <ion-text color="primary" class="text-italic">
+          <small>
+            batchTree.loading: {{loading}}<br/>
+            batchTree.ready: {{$ready|async}}<br/>
+            batchTree.dirty: {{dirty}}<br/>
+          </small>
+        </ion-text>
+      </ion-col>
+      <ion-col>
+        <ion-text color="primary" class="text-italic">
+          <small>
+            catchBatchForm.loading: {{catchBatchForm.loading}}<br/>
+            catchBatchForm.ready: {{catchBatchForm.readySubject|async}}<br/>
+            catchBatchForm.dirty: {{catchBatchForm.dirty}}<br/>
+          </small>
+        </ion-text>
+      </ion-col>
+    </ion-row>
+
+  </ion-grid>
 
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden mat-tab-group-header-pagination-hidden"
@@ -82,4 +110,5 @@
 
     <ng-content></ng-content>
   </mat-tab-group>
+
 </div>

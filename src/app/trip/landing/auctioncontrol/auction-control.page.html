@@ -22,6 +22,18 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
 
+  <!-- report -->
+  <button mat-menu-item
+          [disabled]="isNewData || disabled"
+          (click)="openReport($event)">
+    <ion-label>
+      <mat-icon>description</mat-icon>&nbsp;
+      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
+    </ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
   <!-- delete -->
   <button mat-menu-item
           [disabled]="isNewData || disabled"

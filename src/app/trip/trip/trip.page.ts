@@ -41,7 +41,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -100,6 +100,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   get dirty(): boolean {
     // Ignore operation table, when computing dirty state
     return this._dirty || (this.children?.filter(form => form !== this.operationsTable).findIndex(c => c.dirty) !== -1);
+  }
+
+  get $ready(): Observable<boolean> {
+    return this._$ready.asObservable();
   }
 
   get forceMeasurementAsOptional(): boolean {
@@ -172,7 +176,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.registerSubscription(
         this.measurementsForm.$pmfms
           .pipe(
-            debounceTime(400),
+            //debounceTime(400),
             filter(isNotNil),
             mergeMap(_ => this.measurementsForm.ready())
           )
@@ -184,7 +188,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (!environment.production) {
       this.registerSubscription(
         this.$program
-          .pipe(filter(() => this.isNewData && this.devAutoFillData))
+          .pipe(
+            filter(isNotNil),
+            filter(() => this.isNewData && this.devAutoFillData)
+          )
           .subscribe(program => this.setTestValue(program))
       );
     }
@@ -603,14 +610,21 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const json = await super.getJsonValueToSave();
 
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
-    json.measurements = this.measurementsForm.value;
+
+    return json;
+  }
+
+  protected async getValue(): Promise<Trip> {
+    const data = await super.getValue();
+
+    data.measurements = this.measurementsForm.value;
 
     if (this.physicalGearsTable.dirty) {
       await this.physicalGearsTable.save();
     }
-    json.gears = this.physicalGearService.value;
+    data.gears = this.physicalGearService.value;
 
-    return json;
+    return data;
   }
 
   protected getFirstInvalidTabIndex(): number {

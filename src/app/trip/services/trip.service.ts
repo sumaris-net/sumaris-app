@@ -29,7 +29,7 @@ import {
   PersonService,
   ShowToastOptions,
   Toasts,
-  toNumber, UserEventFilter,
+  toNumber,
   UserEventService
 } from '@sumaris-net/ngx-components';
 import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
@@ -1382,22 +1382,9 @@ export class TripService
       });
     }
 
-    // Update gears
-    if (source.gears && target.gears) {
-      target.gears.forEach(targetGear => {
-        const sourceGear = source.gears.find(json => targetGear.equals(json));
-        EntityUtils.copyIdAndUpdateDate(sourceGear, targetGear);
-        DataRootEntityUtils.copyControlAndValidationDate(sourceGear, targetGear);
-
-        // Update measurements
-        if (sourceGear && sourceGear.measurements && targetGear.measurements) {
-          targetGear.measurements.forEach(targetMeasurement => {
-            const sourceMeasurement = sourceGear.measurements.find(m => targetMeasurement.equals(m));
-            EntityUtils.copyIdAndUpdateDate(sourceMeasurement, targetMeasurement);
-          });
-        }
-      });
-
+    // Update gears (recursively)
+    if (target.gears && source.gears) {
+      this.copyIdAndUpdateDateOnGears(source.gears, target.gears, source);
     }
 
     // Update measurements
@@ -1455,6 +1442,44 @@ export class TripService
       });
     }
   }
+
+  /**
+   * Copy Id and update, in gear tree (recursively)
+   *
+   * @param sources
+   * @param targets
+   */
+  protected copyIdAndUpdateDateOnGears(sources: (PhysicalGear | any)[], targets: PhysicalGear[], savedTrip: Trip) {
+    // DEBUG
+    //console.debug("[trip-service] Calling copyIdAndUpdateDateOnGears()");
+
+    // Update gears
+    if (sources && targets) {
+      targets.forEach(target => {
+        // Set the trip id (required by equals function)
+        target.tripId = savedTrip.id;
+
+        const source = sources.find(json => target.equals(json));
+        if (!source) {
+          console.warn('Missing a gear, equals to this target: ', target)
+        }
+        else {
+          EntityUtils.copyIdAndUpdateDate(source, target);
+          DataRootEntityUtils.copyControlAndValidationDate(source, target);
+
+          // Copy parent Id (need for link to parent)
+          target.parentId = source.parentId;
+          target.parent = null;
+
+          // Apply to children
+          if (target.children?.length) {
+            this.copyIdAndUpdateDateOnGears(sources, target.children, savedTrip);
+          }
+        }
+      });
+    }
+  }
+
 
   /***
    * Add gear on trip from a physical gear of another trip

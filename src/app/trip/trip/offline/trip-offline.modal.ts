@@ -5,11 +5,10 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { AppForm, AppFormUtils, SharedValidators, slideUpDownAnimation, StatusIds } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
-import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { ProgramRefQueries, ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TripSynchroImportFilter } from '@app/trip/services/filter/trip.filter';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { Subject } from 'rxjs';
 import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
@@ -32,7 +31,6 @@ export interface  TripOfflineModalOptions {
 export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implements OnInit, TripOfflineModalOptions{
 
   mobile: boolean;
-  errorSubject = new Subject<string>();
   periodDurationLabels: { key: string; label: string; startDate: Moment; }[];
 
   @Input() title = 'TRIP.OFFLINE_MODAL.TITLE';
@@ -121,7 +119,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
         console.error(err);
         json.program = null;
         if (err && err.message) {
-          this.errorSubject.next(err.message);
+          this.setError(err.message);
         }
       }
     }

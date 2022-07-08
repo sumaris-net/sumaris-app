@@ -136,18 +136,22 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     // DEBUG
     //console.debug('[catch-form] Dispatch pmfms by form', pmfms);
 
-    // Filter pmfm
-    if (this._pmfmFilter) {
-      const filterFn = DenormalizedPmfmFilter.fromObject(this._pmfmFilter).asFilterFn();
-      pmfms = pmfms.map(p => {
-        const hidden = PmfmUtils.isDenormalizedPmfm(p) && !filterFn(p);
-        if (toBoolean(p.hidden, false) !== hidden) {
-          p = p.clone();
-          p.hidden = hidden;
-        }
-        return p;
-      });
-    }
+    // Filter by matrix/fraction
+    // if (this.fractionIdByMatrixId) {
+    //   const matrixIds = Object.keys(this.fractionIdByMatrixId)
+    //     .filter(matrixId => isNotNil(this.fractionIdByMatrixId[matrixId]))
+    //     .map(parseInt);
+    //   if (isNotEmptyArray(matrixIds)) {
+    //     pmfms = pmfms.map(p => {
+    //       const hidden = matrixIds.includes(p.matrixId) && (this.fractionIdByMatrixId[p.matrixId] !== p.fractionId);
+    //       if (p.hidden !== hidden) {
+    //         p = p.clone();
+    //         p.hidden = hidden;
+    //       }
+    //       return p;
+    //     });
+    //   }
+    // }
 
     this.$onDeckPmfms.next(pmfms.filter(p => p.label?.indexOf('ON_DECK_') === 0));
     this.$sortingPmfms.next(pmfms.filter(p => p.label?.indexOf('SORTING_') === 0));

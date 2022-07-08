@@ -58,22 +58,8 @@ import './zone-flags';
  * Zone JS is required by default for Angular itself.
  */
 import 'zone.js/dist/zone'; // Included with Angular CLI.
+
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
 
-import 'tweetnacl';
-import 'tweetnacl-util';
-import 'scrypt-async';
-import 'hammerjs';
-
-// Force moment-timezone to be loaded, otherwise moment().tz() will failed
-import { Moment } from 'moment';
-import * as momentImported from 'moment';
-const moment = momentImported;
-
-// Force moment-timezone to be loaded, otherwise moment().tz() will failed
-import * as momentTZImported from 'moment-timezone';
-const tz = momentTZImported;
-
-export { moment, tz, Moment };

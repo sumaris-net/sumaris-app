@@ -1,12 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, QueryList, ViewChildren } from '@angular/core';
-import { AppEditor, AppForm, AppTabEditor, fadeInOutAnimation, InputElement, isNil } from '@sumaris-net/ngx-components';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { AlertController, IonRouterOutlet } from '@ionic/angular';
-import { OperationPage } from '@app/trip/operation/operation.page';
-import { OperationService } from '@app/trip/services/operation.service';
-import { Operation } from '@app/trip/services/model/trip.model';
+import { AppEditor, isNil } from '@sumaris-net/ngx-components';
+import { AlertController } from '@ionic/angular';
 import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/batch-tree.component';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
@@ -14,7 +8,6 @@ import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { AppTabEditorOptions } from '@sumaris-net/ngx-components/src/app/core/form/editor.class';
 
 @Component({
   selector: 'app-batch-tree-wrapper',
@@ -96,8 +89,14 @@ export class BatchTreeWrapperComponent extends AppEditor<Batch> implements IBatc
 
   }
 
-  getValue(): Batch {
-    return this.data;
+  // getValue(): Batch {
+  //   return this.data;
+  // }
+
+  protected async getValue(): Promise<Batch> {
+    const data = new Batch();
+   // TODO
+    return data;
   }
 
   // Unused

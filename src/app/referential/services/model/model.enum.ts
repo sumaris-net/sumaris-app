@@ -199,6 +199,13 @@ export const FractionIdGroups = {
   CALCIFIED_STRUCTURE: [10, 11, 12, 13]
 };
 
+export const FractionId = {
+  ALL: 1,
+
+  // Babord
+
+};
+
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
 
 export const PmfmLabelPatterns = {
