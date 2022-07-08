@@ -218,6 +218,10 @@ export const UnitIds = {
   NONE: 0
 }
 
+export const GearIds = {
+  //OTT: 7 // Not used - WARN id=21 in the SIH database
+}
+
 export declare type WeightUnitSymbol = 'kg' | 'g' | 'mg' | 't';
 export declare type LengthUnitSymbol = 'km' | 'm' | 'dm' | 'cm' | 'mm';
 

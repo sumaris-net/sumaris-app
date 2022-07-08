@@ -564,11 +564,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
   setFilter(filterData: BatchFilter, opts?: { emitEvent: boolean }) {
 
-    const filteredPmfmIds = filterData && Object.keys(filterData.measurementValues);
-    if (isNotEmptyArray(filteredPmfmIds)) {
+    const filteredSpeciesPmfmIds = filterData && Object.keys(filterData.measurementValues);
+    if (isNotEmptyArray(filteredSpeciesPmfmIds)) {
       let changed = false;
-      filteredPmfmIds
-        .forEach(pmfmId => {
+      filteredSpeciesPmfmIds.forEach(pmfmId => {
           const shouldExcludeColumn = PmfmValueUtils.isNotEmpty(filterData.measurementValues[pmfmId]);
           if (shouldExcludeColumn !== this.excludesColumns.includes(pmfmId)) {
             this.setShowSpeciesPmfmColumn(+pmfmId, false, {emitEvent: false});
@@ -1300,6 +1299,21 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (isNotNil(this.defaultTaxonGroup)) {
       data.taxonGroup = TaxonGroupRef.fromObject(this.defaultTaxonGroup);
     }
+
+    // Default measurements
+    const filter = this.filter;
+    const filteredSpeciesPmfmIds = filter && Object.keys(filter.measurementValues);
+    if (isNotEmptyArray(filteredSpeciesPmfmIds)) {
+      data.measurementValues = data.measurementValues || {};
+      filteredSpeciesPmfmIds.forEach(pmfmId => {
+        const pmfm = (this._speciesPmfms || []).find(p => p.id === +pmfmId);
+        const filterValue = pmfm && filter.measurementValues[pmfmId];
+        if (isNil(data.measurementValues[pmfmId]) && isNotNil(filterValue)) {
+          data.measurementValues[pmfmId] = PmfmValueUtils.fromModelValue(filterValue, pmfm);
+        }
+      })
+    }
+
 
     if (this.qvPmfm) {
       data.children = (this.qvPmfm && this.qvPmfm.qualitativeValues || []).reduce((res, qv, qvIndex: number) => {

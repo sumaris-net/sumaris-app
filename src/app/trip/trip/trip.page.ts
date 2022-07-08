@@ -34,7 +34,7 @@ import { Trip } from '../services/model/trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -87,6 +87,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   mobile = false;
   settingsId: string;
   devAutoFillData = false;
+  operationEditor: OperationEditor;
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
   private _measurementSubscription: Subscription;
@@ -246,6 +247,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
 
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nContext.suffix = i18nSuffix;
+    this.operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
+
     // Trip form
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
     if (!this.tripForm.showObservers && this.data?.observers) {
@@ -281,6 +287,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
     this.operationsTable.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
     this.operationsTable.showFishingEndDateTime = !this.operationsTable.showEndDateTime && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
+    this.operationsTable.i18nColumnSuffix = i18nSuffix;
+    this.operationsTable.detailEditor = this.operationEditor;
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -425,10 +433,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Propagate the usage mode (e.g. when try to 'terminate' the trip)
       this.tripContext?.setValue('usageMode', this.usageMode);
 
+
       setTimeout(async () => {
-        await this.router.navigate(['trips', this.data.id, 'operation', id], {
-          queryParams: {}
-        });
+        const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+        await this.router.navigate(['trips', this.data.id, 'operation', ...editor, id], {queryParams: {} /*reset query params*/ });
 
         this.markAsLoaded();
       });
@@ -453,7 +461,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.tripContext?.setValue('usageMode', this.usageMode);
 
       setTimeout(async () => {
-        await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {
+        const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+        await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
           queryParams: {}
         });
         this.markAsLoaded();

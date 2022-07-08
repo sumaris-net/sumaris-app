@@ -4,7 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import { Batch } from '../common/batch.model';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { mergeMap } from 'rxjs/operators';
-import { BatchTreeComponent } from '../batch-tree.component';
+import { BatchTreeComponent } from '../tree/batch-tree.component';
 import {
   ConfigService,
   EntitiesStorage,

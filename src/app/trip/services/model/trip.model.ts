@@ -168,6 +168,10 @@ export class Operation
       ...NOT_MINIFY_OPTIONS, /*Avoid minify, to keep gear for operations tables cache*/
       withChildren: false
     });
+    if (opts?.minify) {
+      delete target.physicalGear.synchronizationStatus;
+    }
+
     if (target.physicalGear) delete target.physicalGear.measurementValues;
     target.physicalGearId = this.physicalGear && this.physicalGear.id;
     if (opts && opts.keepLocalId === false && target.physicalGearId < 0) {

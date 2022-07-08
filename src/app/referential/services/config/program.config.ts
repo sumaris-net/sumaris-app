@@ -5,7 +5,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
-
+export type OperationEditor = 'legacy' | 'selectivity';
 export type StrategyEditor = 'legacy' | 'sampling';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
@@ -329,6 +329,24 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+
+  // Operation
+  TRIP_OPERATION_EDITOR: <FormFieldDefinition>{
+    key: 'sumaris.operation.editor',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR',
+    type: 'enum',
+    values: [
+      {
+        key: <OperationEditor>'legacy',
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR_LEGACY'
+      },
+      {
+        key: <OperationEditor>'selectivity',
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_EDITOR_SELECTIVITY'
+      }
+    ],
+    defaultValue: <OperationEditor>'legacy'
+  },
   TRIP_OPERATION_METIER_FILTER: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.metier.filter',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_FILTER',
@@ -460,23 +478,23 @@ export const ProgramProperties = Object.freeze({
     type: 'enum',
     values: [
       {
-        key: 'landing',
+        key: <LandingEditor>'landing',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_LANDING'
       },
       {
-        key: 'control',
+        key: <LandingEditor>'control',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_CONTROL'
       },
       {
-        key: 'trip',
+        key: <LandingEditor>'trip',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_TRIP'
       },
       {
-        key: 'sampling',
+        key: <LandingEditor>'sampling',
         value: 'PROGRAM.OPTIONS.LANDING_EDITOR_SAMPLING'
       }
     ],
-    defaultValue: 'landing'
+    defaultValue: <LandingEditor>'landing'
   },
   LANDING_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.landing.dateTime.enable',
@@ -635,6 +653,10 @@ export const ProgramProperties = Object.freeze({
       {
         key: 'AUCTION_CONTROL.',
         value: 'PROGRAM.OPTIONS.I18N_SUFFIX_AUCTION_CONTROL'
+      },
+      {
+        key: 'TRAWL_SELECTIVITY.',
+        value: 'PROGRAM.OPTIONS.I18N_SUFFIX_TRAWL_SELECTIVITY'
       }
     ],
     defaultValue: 'legacy'

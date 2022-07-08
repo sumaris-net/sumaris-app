@@ -296,10 +296,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     return isNil(this.form?.controls.id.value);
   }
 
-  get $ready(): Observable<boolean> {
-    return this._$ready.asObservable();
-  }
-
   @Output() onParentChanges = new EventEmitter<Operation>();
   @Output() lastEndDateChanges = new EventEmitter<Moment>();
 

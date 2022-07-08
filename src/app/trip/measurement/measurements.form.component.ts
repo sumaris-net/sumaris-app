@@ -232,7 +232,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
           filter(step => step >= MeasurementFormLoadingSteps.FORM_GROUP_READY),
           first()
         )
-          .subscribe(() => super.markAsReady(opts))
+        .subscribe(() => super.markAsReady(opts))
       )
     }
     else {

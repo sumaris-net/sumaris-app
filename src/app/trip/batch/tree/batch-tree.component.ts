@@ -1,5 +1,6 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, InjectionToken, Input, OnInit, ViewChild } from '@angular/core';
 import {
+  AppEntityEditor,
   AppFormUtils,
   AppTabEditor,
   AppTable,
@@ -20,17 +21,17 @@ import { AlertController } from '@ionic/angular';
 import { BehaviorSubject, defer, Observable } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
-import { Batch } from './common/batch.model';
-import { BatchGroup, BatchGroupUtils } from './group/batch-group.model';
-import { BatchGroupsTable } from './group/batch-groups.table';
-import { SubBatchesTable, SubBatchFilter } from './sub/sub-batches.table';
-import { CatchBatchForm } from './catch/catch.form';
+import { Batch } from '../common/batch.model';
+import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
+import { BatchGroupsTable } from '../group/batch-groups.table';
+import { SubBatchesTable, SubBatchFilter } from '../sub/sub-batches.table';
+import { CatchBatchForm } from '../catch/catch.form';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { SubBatch, SubBatchUtils } from './sub/sub-batch.model';
+import { SubBatch, SubBatchUtils } from '../sub/sub-batch.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
@@ -43,27 +44,38 @@ import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
+  programLabel: string;
   program: Program;
   physicalGearId: number;
   gearId: number;
+  usageMode: UsageMode;
   showCatchForm: boolean;
+  showBatchTables: boolean;
   defaultHasSubBatches: boolean;
   allowSamplingBatches: boolean;
   allowSubBatches: boolean;
   availableTaxonGroups: TaxonGroupRef[];
-  setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]);
+  mobile: boolean;
+  filter: BatchFilter;
 
   // Value
+  disabled: boolean;
   value: Batch;
-  setValue(data: Batch, opts?: {emitEvent?: boolean});
+  setValue(data: Batch, opts?: {emitEvent?: boolean}): Promise<void>;
   getValue(): Batch;
 
   // Methods
+  setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]);
   autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean}): Promise<void>;
   addRow(event: UIEvent);
   getFirstInvalidTabIndex(): number;
-
+  addChildTree(batchTree: IBatchTreeComponent);
+  removeChildTree(batchTree: IBatchTreeComponent);
 }
+
+
+export const APP_BATCH_TREE_PARENT = new InjectionToken<AppEntityEditor<any, any, any>>('AppEditor');
+
 
 @Component({
   selector: 'app-batch-tree',
@@ -93,9 +105,22 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() usageMode: UsageMode;
   @Input() showCatchForm: boolean;
   @Input() showBatchTables: boolean;
-  @Input() showFilter = false;
   @Input() enableWeightLengthConversion: boolean;
   @Input() physicalGearId: number;
+  @Input() i18nPmfmPrefix: string;
+
+  @Input() set disabled(value: boolean) {
+    if (value && this._enabled) {
+      this.disable();
+    }
+    else if (!value && !this._enabled) {
+      this.enable();
+    }
+  }
+
+  get disabled(): boolean {
+    return !super.enabled;
+  }
 
   @Input() set allowSamplingBatches(allow: boolean) {
     this.batchGroupsTable.showSamplingBatchColumns = allow;
@@ -178,11 +203,18 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return this.batchGroupsTable.defaultHasSubBatches;
   }
 
+  @Input() set filter(value: BatchFilter) {
+    this.setFilter(value);
+  }
+
+  get filter(): BatchFilter {
+    return this.catchBatchForm?.filter;
+  }
+
   get dirty(): boolean {
     return super.dirty || (this._subBatchesService && this._subBatchesService.dirty) || false;
   }
 
-  @ViewChild('filterForm', {static: false}) filterForm: BatchFilterForm;
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
   @ViewChild('batchGroupsTable', {static: true}) batchGroupsTable: BatchGroupsTable;
   @ViewChild('subBatchesTable', {static: false}) subBatchesTable: SubBatchesTable;
@@ -316,6 +348,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.$program.complete();
   }
 
+  addChildTree(batchTree: IBatchTreeComponent) {
+    this.addChildForm(batchTree);
+  }
+
+  removeChildTree(batchTree: IBatchTreeComponent): IBatchTreeComponent {
+    return this.removeChildForm(batchTree) as IBatchTreeComponent;
+  }
+
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
     this.batchGroupsTable.setModalOption(key, value);
   }
@@ -434,7 +474,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   protected registerForms() {
     this.addChildForms([
-      //this.filterForm,
       this.catchBatchForm,
       this.batchGroupsTable,
       () => this.subBatchesTable
@@ -485,6 +524,13 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     // Propagate to children components, if need
     // This should be need when $program has been set by parent, and not from the $programLabel observable
     if (this.$programLabel.value !== program?.label) this.$programLabel.next(program?.label);
+  }
+
+  markAsLoaded(opts?: {
+    onlySelf?: boolean;
+    emitEvent?: boolean;
+  }){
+    super.markAsLoaded(opts);
   }
 
   async onSubBatchesChanges(subbatches: SubBatch[]) {

@@ -38,7 +38,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { Operation, Trip } from '../services/model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { IBatchTreeComponent } from '../batch/batch-tree.component';
+import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BehaviorSubject, from, merge, Subscription } from 'rxjs';
@@ -51,6 +51,7 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 const moment = momentImported;
 
@@ -78,7 +79,7 @@ export class OperationPage
   extends AppEntityEditor<Operation, OperationService>
   implements IDataEntityQualityService<Operation> {
 
-  private static TABS = {
+  protected static TABS = {
     GENERAL: 0,
     CATCH: 1,
     SAMPLE: 2,
@@ -333,14 +334,7 @@ export class OperationPage
           // skip if loading
           filter(() => !this.loading)
         )
-        .subscribe(physicalGear => {
-          const gearId = toNumber(physicalGear?.gear?.id, null);
-          this.measurementsForm.gearId = gearId;
-          if (this.batchTree) {
-            this.batchTree.physicalGearId = physicalGear.id;
-            this.batchTree.gearId = gearId;
-          }
-        })
+        .subscribe(physicalGear => this.setPhysicalGear(physicalGear))
     );
 
     if (this.measurementsForm) {
@@ -645,6 +639,17 @@ export class OperationPage
     await this.initAvailableTaxonGroups(program.label);
 
     this.markAsReady();
+  }
+
+  protected setPhysicalGear(physicalGear: PhysicalGear) {
+    const gearId = toNumber(physicalGear?.gear?.id, null);
+    this.measurementsForm.gearId = gearId;
+    if (this.readySubject.value) this.measurementsForm.markAsReady();
+    if (this.batchTree) {
+      this.batchTree.physicalGearId = physicalGear.id;
+      this.batchTree.gearId = gearId;
+      if (this.readySubject.value) this.batchTree.markAsReady();
+    }
   }
 
   load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean; [p: string]: any }): Promise<void> {

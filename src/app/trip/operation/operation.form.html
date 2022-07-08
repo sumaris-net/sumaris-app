@@ -13,7 +13,7 @@
         <ion-label class="ion-float-end" hidden-xs hidden-sm
                    translate>TRIP.OPERATION.EDIT.TYPE.TITLE</ion-label>
       </ion-col>
-      <ng-container *ngIf="$ready|async; else colsSkeleton">
+      <ng-container *ngIf="readySubject|async; else colsSkeleton">
         <ion-col size="12" size-sm="6" size-md="" size-lg="">
 
           <mat-boolean-field [style]="mobile && 'button' || 'radio'"

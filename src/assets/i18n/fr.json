@@ -708,8 +708,8 @@
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Captures accidentelles"
         },
-        "SELECTIVITY": {
-          "TAB_CATCH": "Capture - {{name}}"
+        "TRAWL_SELECTIVITY": {
+          "TAB_CATCH_POSITION": "Capture - {{name}}"
         }
       },
       "PARENT": {
@@ -752,8 +752,7 @@
         "QUALITY": "État"
       },
       "PMFM": {
-        "GEAR_B": "Engin babord",
-        "GEAR_T": "Engin tribord"
+
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
@@ -877,7 +876,15 @@
       },
       "PMFM": {
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
-        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)"
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
+        "TRAWL_SELECTIVITY": {
+          "CHILD_GEAR_B": "Sous-engin Bâbord",
+          "CHILD_GEAR_T": "Sous-engin Tribord",
+          "CATCH_WEIGHT_B": "Poids capture Bâbord",
+          "CATCH_WEIGHT_T": "Poids capture Tribord",
+          "DISCARD_WEIGHT_B": "Poids rejet Bâbord",
+          "DISCARD_WEIGHT_T": "Poids rejet Tribord"
+        }
       }
     },
     "SUB_BATCH": {
@@ -1624,6 +1631,7 @@
       "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
       "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
       "I18N_SUFFIX_AUCTION_CONTROL": "Contrôle criée",
+      "I18N_SUFFIX_TRAWL_SELECTIVITY": "Sélectivité chalut",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
@@ -1664,6 +1672,9 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
+      "TRIP_OPERATION_EDITOR": "Marée > Opération : éditeur",
+      "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
+      "TRIP_OPERATION_EDITOR_SELECTIVITY": "Sélectivité chalut",
       "TRIP_OPERATION_METIER_FILTER": "Marée > Opération : Filtrer sur les métiers déjà saisis ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée > Opération : Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte (miles) :",

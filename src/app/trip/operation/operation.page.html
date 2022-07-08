@@ -230,7 +230,7 @@
                       <ion-text color="primary" class="text-italic">
                         <small>
                           editor.loading: {{loading}}<br/>
-                          editor.ready: {{$ready|async}}<br/>
+                          editor.ready: {{readySubject|async}}<br/>
                           editor.dirty: {{dirty}}<br/>
                         </small>
                       </ion-text>
@@ -239,7 +239,7 @@
                       <ion-text color="primary" class="text-italic">
                         <small>
                           opeForm.loading: {{opeForm.loading}}<br/>
-                          opeForm.ready: {{opeForm.$ready|async}}<br/>
+                          opeForm.ready: {{opeForm.readySubject|async}}<br/>
                           opeForm.dirty: {{opeForm.dirty}}<br/>
                         </small>
                         <small>
@@ -312,6 +312,7 @@
                       [selectedTabIndex]="selectedSubTabIndex"
                       [usageMode]="usageMode"
                       [useSticky]="mobile"
+                      [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
                       [mobile]="mobile"
                       [debug]="debug">
       </app-batch-tree>

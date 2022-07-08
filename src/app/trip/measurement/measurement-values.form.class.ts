@@ -268,7 +268,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       )
     }
     else {
-      super.markAsLoaded()
+      super.markAsLoaded();
     }
   }
 

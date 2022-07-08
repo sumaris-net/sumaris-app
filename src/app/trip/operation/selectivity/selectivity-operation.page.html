@@ -161,111 +161,121 @@
 
 <ion-content>
 
-  <app-batch-tree-wrapper #batchTree>
-    <mat-tab-group #tabGroup
-                   class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
-                   [(selectedIndex)]="selectedTabIndex"
-                   (selectedTabChange)="onTabChange($event)"
-                   [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
-                   [disablePagination]="true"
-                   [dynamicHeight]="false">
+  <!-- batch tree container -->
+  <app-batch-tree-container #batchTree
+                            [showBatchTables]="showBatchTables"
+                            [selectedTabIndex]="selectedSubTabIndex"
+                            [usageMode]="usageMode"
+                            [mobile]="mobile"
+                            [debug]="debug">
+  </app-batch-tree-container>
 
-      <!-- TAB: general -->
-      <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
-        <ng-template mat-tab-label>
-          <mat-icon>information-circle</mat-icon>
-          <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
-          <ion-icon slot="end" name="alert-circle" color="danger"
-                    *ngIf="error || (submitted && (opeForm.invalid || measurementsForm.invalid))"></ion-icon>
-        </ng-template>
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+                 [(selectedIndex)]="selectedTabIndex"
+                 (selectedTabChange)="onTabChange($event)"
+                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
+                 [disablePagination]="true"
+                 [dynamicHeight]="false">
 
-        <div>
-          <!-- error -->
-          <ion-item *ngIf="(error || opeForm.error) as errorMsg" visible-xs visible-sm visible-mobile lines="none">
-            <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-            <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
-          </ion-item>
+    <!-- TAB: general -->
+    <mat-tab label="{{'TRIP.OPERATION.EDIT.TAB_GENERAL'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>information-circle</mat-icon>
+        <ion-label translate>TRIP.OPERATION.EDIT.TAB_GENERAL</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger"
+                  *ngIf="error || (submitted && (opeForm.invalid || measurementsForm.invalid))"></ion-icon>
+      </ng-template>
 
-          <ion-grid class="ion-no-padding">
+      <div>
+        <!-- error -->
+        <ion-item *ngIf="(error || opeForm.error) as errorMsg" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
+        </ion-item>
 
-            <ion-row>
-              <ion-col class="ion-padding">
-                <!-- form -->
-                <app-form-operation #opeForm
-                                    [programLabel]="$programLabel|async"
-                                    [showError]="false"
-                                    [usageMode]="usageMode"
-                                    [tabindex]="1"
-                                    (onSubmit)="save($event)"
-                                    (lastEndDateChanges)="$lastEndDate.next($event)"
-                                    [debug]="debug">
+        <ion-grid class="ion-no-padding">
 
-                  <!-- Other features (Measurements) -->
-                  <ion-grid class="ion-no-padding ion-padding-top"
-                            [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray">
-                    <ion-row>
-                      <ion-col size="12" size-md="3" size-lg="3">
-                        <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
-                      </ion-col>
-                      <ion-col [class.measurements-form-padding-start]="mobile">
-                        <app-form-measurements #measurementsForm
-                                               entityName="VesselUseMeasurement"
-                                               [acquisitionLevel]="$acquisitionLevel|async"
-                                               [forceOptional]="forceMeasurementAsOptional"
-                                               [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
-                                               [tabindex]="30"
-                                               [mobile]="mobile"
-                                               [compact]="false"
-                                               [debug]="debug">
-                        </app-form-measurements>
-                      </ion-col>
-                    </ion-row>
-                  </ion-grid>
-                </app-form-operation>
-              </ion-col>
-              <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile">
-                <app-entity-metadata [value]="data"
-                                     [showRecorder]="data && !!data.updateDate">
-                  <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
-                </app-entity-metadata>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </div>
-      </mat-tab>
+          <ion-row>
+            <ion-col class="ion-padding">
+              <!-- form -->
+              <app-form-operation #opeForm
+                                  [programLabel]="$programLabel|async"
+                                  [showError]="false"
+                                  [usageMode]="usageMode"
+                                  [tabindex]="1"
+                                  (onSubmit)="save($event)"
+                                  (lastEndDateChanges)="$lastEndDate.next($event)"
+                                  [debug]="debug">
 
-      <!-- TAB: Catch -->
-      <mat-tab #catchTab
-               *ngFor="let position of gearPositions"
-               [label]="'TRIP.OPERATION.EDIT.TAB_CATCH'|translateContext: i18nContext.suffix: position"
-               [disabled]="disabled">
-        <ng-template mat-tab-label>
-          <mat-icon>line_style</mat-icon>
-          <ion-label *ngVar="subBatchTree.batchGroupsTable.totalRowCount as count"
-                     [matBadge]="count"
-                     [matBadgeHidden]="subBatchTree.invalid || !count"
-                     matBadgeOverlap="false"
-                     matBadgeColor="primary"
-                     matBadgeSize="small"
-                     matBadgePosition="above after">{{catchTab.textLabel}}
-          </ion-label>
-          <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && subBatchTree.invalid"></ion-icon>
-        </ng-template>
+                <!-- Other features (Measurements) -->
+                <ion-grid class="ion-no-padding ion-padding-top"
+                          [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray">
+                  <ion-row>
+                    <ion-col size="12" size-md="3" size-lg="3">
+                      <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
+                    </ion-col>
+                    <ion-col [class.measurements-form-padding-start]="mobile">
+                      <app-form-measurements #measurementsForm
+                                             entityName="VesselUseMeasurement"
+                                             [acquisitionLevel]="$acquisitionLevel|async"
+                                             [forceOptional]="forceMeasurementAsOptional"
+                                             [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
+                                             [tabindex]="30"
+                                             [mobile]="mobile"
+                                             [compact]="false"
+                                             [debug]="debug">
+                      </app-form-measurements>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+              </app-form-operation>
+            </ion-col>
+            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile">
+              <app-entity-metadata [value]="data"
+                                   [showRecorder]="data && !!data.updateDate">
+                <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
+              </app-entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+    </mat-tab>
 
-        <app-batch-tree #subBatchTree
-                        queryTabIndexParamName="subtab"
-                        [showBatchTables]="showBatchTables"
-                        [selectedTabIndex]="selectedSubTabIndex"
-                        [usageMode]="usageMode"
-                        [useSticky]="mobile"
-                        [mobile]="mobile"
-                        [debug]="debug">
-        </app-batch-tree>
-      </mat-tab>
+    <!-- TAB: Catch / position -->
+    <mat-tab #catchTab
+             *ngFor="let catchTabDef of catchTabDefs; trackBy: trackCatchTabDefFn"
+             [label]="catchTabDef.label|translate"
+             >
+      <ng-template mat-tab-label>
+        <mat-icon>line_style</mat-icon>
+        <ion-label *ngVar="subBatchTree.batchGroupsTable.totalRowCount as count"
+                   [matBadge]="count"
+                   [matBadgeHidden]="subBatchTree.invalid || !count"
+                   matBadgeOverlap="false"
+                   matBadgeColor="primary"
+                   matBadgeSize="small"
+                   matBadgePosition="above after">{{catchTab.textLabel}}
+        </ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && subBatchTree.invalid"></ion-icon>
+      </ng-template>
 
-    </mat-tab-group>
+      <app-batch-tree #subBatchTree
+                      queryTabIndexParamName="subtab"
+                      [showBatchTables]="showBatchTables"
+                      [selectedTabIndex]="selectedSubTabIndex"
+                      [usageMode]="usageMode"
+                      [useSticky]="mobile"
+                      [mobile]="mobile"
+                      [disabled]="disabled"
+                      [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
+                      [filter]="catchTabDef.filter"
+                      [debug]="debug">
+      </app-batch-tree>
+    </mat-tab>
 
-  </app-batch-tree-wrapper>
+  </mat-tab-group>
+
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>
