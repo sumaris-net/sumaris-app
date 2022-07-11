@@ -222,9 +222,10 @@ export class ProgramRefService
       )
         .pipe(
           map(_ => this.networkService.online
-            && this.accountService.isLogin()
-            // Skip watching if admin
-            && !this.accountService.isAdmin()),
+              && this.accountService.isLogin()
+              // Skip if admin (can see all programs)
+              && !this.accountService.isAdmin()
+          ),
           distinctUntilChanged()
         )
         .subscribe((onlineAndLogin) => {
@@ -837,7 +838,7 @@ export class ProgramRefService
       }
     })
       .pipe(
-        takeUntil(this.accountService.onLogout),
+        //takeUntil(this.accountService.onLogout),
         // Map to sorted labels
         map(({data}) => (data||[]).map(p => p?.label).sort().join(',')),
         distinctUntilChanged()
