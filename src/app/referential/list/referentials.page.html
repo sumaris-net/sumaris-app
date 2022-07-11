@@ -171,8 +171,8 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label [hidden]="(loadingSubject|async) || filterForm.dirty"
-                 [color]="empty && 'danger'"
+      <ion-label [class.cdk-visually-hidden]="(loadingSubject|async) || filterForm.dirty"
+                 [color]="totalRowCount === 0 ? 'danger' : undefined"
                  class="ion-padding">
         {{ (totalRowCount ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count: (totalRowCount |
           numberFormat)} }}
