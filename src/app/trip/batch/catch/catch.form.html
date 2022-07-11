@@ -11,7 +11,7 @@
     <!-- on deck  -->
     <ng-container *ngIf="$gearPmfms | async as pmfms">
       <ion-row *ngIf="pmfms|isNotEmptyArray">
-        <ion-col size="12" size-md="2" size-lg="3">
+        <ion-col size="12" size-md="3" size-lg="3">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SUB_GEAR</ion-label>
         </ion-col>
         <ng-container *ngFor="let pmfm of pmfms; index as i;">
@@ -29,7 +29,7 @@
     <!-- on deck  -->
     <ng-container *ngIf="$onDeckPmfms | async as pmfms">
       <ion-row *ngIf="pmfms|isNotEmptyArray">
-        <ion-col size="12" size-md="2" size-lg="3">
+        <ion-col size="12" size-md="3" size-lg="3">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.ON_DECK</ion-label>
         </ion-col>
         <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
@@ -47,7 +47,7 @@
     <!-- Sorting -->
     <ng-container *ngIf="$sortingPmfms | async as pmfms">
       <ion-row *ngIf="pmfms|isNotEmptyArray">
-        <ion-col size="12" size-md="2" size-lg="3">
+        <ion-col size="12" size-md="3" size-lg="3">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SORTING</ion-label>
         </ion-col>
         <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
@@ -66,7 +66,7 @@
     <!-- Weight pmfms -->
     <ng-container *ngIf="$weightPmfms | async as pmfms">
       <ion-row *ngIf="pmfms|isNotEmptyArray" class="ion-padding">
-        <ion-col size="12" size-md="2" size-lg="3">
+        <ion-col size="12" size-md="3" size-lg="3">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
         </ion-col>
         <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
@@ -83,7 +83,7 @@
 
     <!-- Other features -->
     <ion-row *ngIf="otherPmfms|isNotEmptyArray">
-      <ion-col size="" size-md="2" size-lg="3">
+      <ion-col size="" size-md="3" size-lg="3">
       </ion-col>
       <ng-container *ngFor="let pmfm of otherPmfms; trackBy: trackPmfmFn; index as i;">
         <ion-col *ngIf="!pmfm.hidden"

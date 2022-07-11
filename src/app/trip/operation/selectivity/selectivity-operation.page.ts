@@ -14,6 +14,7 @@ import { AcquisitionLevelCodes, GearIds, PmfmIds, QualitativeValueIds } from '@a
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { Batch } from '@app/trip/batch/common/batch.model';
 
 
 export interface ICatchTabDef {
@@ -51,7 +52,10 @@ export class SelectivityOperationPage
 
   constructor(injector: Injector,
               dataService: OperationService) {
-    super(injector, dataService);
+    super(injector, dataService, {
+      pathIdAttribute: 'selectivityOperationId'
+    });
+    //this.debug = false;
   }
 
   protected registerForms() {
@@ -73,8 +77,15 @@ export class SelectivityOperationPage
     )
   }
 
-  protected async onMeasurementsFormReady(): Promise<void> {
-    await super.onMeasurementsFormReady();
+  onNewFabButtonClick(event: UIEvent) {
+    const selectedTabIndex = this.selectedTabIndex;
+    if (selectedTabIndex >= OperationPage.TABS.CATCH) {
+      const batchTree = this.subBatchTrees.get(selectedTabIndex - OperationPage.TABS.CATCH);
+      if (batchTree) batchTree.addRow(event);
+    }
+    else {
+      super.onNewFabButtonClick(event)
+    }
   }
 
   protected updateTablesState() {
@@ -93,20 +104,33 @@ export class SelectivityOperationPage
 
   protected async configureTabs(physicalGear: PhysicalGear) {
 
-    const gearId = physicalGear?.gear.id;
+    const gearId = physicalGear?.gear?.id;
 
     // No physical gear selected
     if (isNil(gearId)) {
       // Clean existing tabs
       if (isNotEmptyArray(this.catchTabDefs)) {
-        this.catchTabDefs = [];
         this.subBatchTrees.forEach(subBatchTree => this.batchTree.removeChildTree(subBatchTree));
+        this.catchTabDefs = [];
       }
       return;
     }
 
-    // Remember existing data, if any
-    if (this.batchTree.dirty) await this.batchTree.save();
+    const touched = this.batchTree.touched;
+
+    // Try to save data, if need
+    const dirty = this.batchTree.dirty;
+    if (dirty) {
+      try {
+        await this.batchTree.save();
+      }
+      catch (err) {
+        // Log then continue
+        console.error(err && err.message || err);
+      }
+    }
+
+    // Remember existing data, to reapply later (avoid data lost)
     const data = this.batchTree.value;
 
     // Load pmfms for batches
@@ -141,6 +165,9 @@ export class SelectivityOperationPage
       return; // SKip if no changes
     }
 
+    // Remove old trees
+    this.subBatchTrees.forEach(subBatchTree => this.batchTree.removeChildTree(subBatchTree));
+
     // Update tabs
     this.catchTabDefs = tabs;
 
@@ -155,20 +182,17 @@ export class SelectivityOperationPage
 
     // Re apply data
     this.batchTree.markAsReady();
-    this.batchTree.value = data;
-    if (this.enabled) {
-      this.batchTree.enable();
+    if (data) {
+      await this.batchTree.setValue(data);
+      this.batchTree.markAsLoaded();
     }
+    if (this.enabled) this.batchTree.enable();
+    if (dirty) this.batchTree.markAsDirty();
+    if (touched) this.batchTree.markAllAsTouched();
   }
 
   trackCatchTabDefFn(index: number, tab: ICatchTabDef): any {
     return tab.id;
-  }
-
-  protected async getValue(): Promise<Operation> {
-    const data = await super.getValue();
-    // TODO
-    return data;
   }
 
   protected getFirstInvalidTabIndex(): number {
@@ -195,5 +219,10 @@ export class SelectivityOperationPage
     }
 
     return invalidTabIndex;
+  }
+
+  protected computePageUrl(id: number | 'new'): string | any[] {
+    const parentUrl = this.getParentPageUrl();
+    return parentUrl && `${parentUrl}/operation/selectivity/${id}`;
   }
 }

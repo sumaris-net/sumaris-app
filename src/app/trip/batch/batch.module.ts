@@ -19,7 +19,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { VesselModule } from '@app/vessel/vessel.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { MatSamplingRatioFieldModule } from '@app/shared/material/sampling-ratio/material.sampling-ratio.module';
-import { IsSamplingRatioComputedPipe } from '@app/trip/batch/common/batch.pipes';
+import { IsSamplingRatioComputedPipe, SamplingRatioFormatPipe } from '@app/trip/batch/common/batch.pipes';
 import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
 import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
 
@@ -41,6 +41,7 @@ import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-con
   declarations: [
     // Pipes
     IsSamplingRatioComputedPipe,
+    SamplingRatioFormatPipe,
 
     // Components
     BatchTreeContainerComponent,
@@ -67,6 +68,7 @@ import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-con
 
     // Pipes
     IsSamplingRatioComputedPipe,
+    SamplingRatioFormatPipe,
 
     // Components
     BatchTreeContainerComponent,

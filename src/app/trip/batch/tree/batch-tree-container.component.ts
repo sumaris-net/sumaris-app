@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
-import { AppEditor, isNil, isNotNil, isNotNilOrBlank, toBoolean, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppEditor, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
 import { AlertController } from '@ionic/angular';
 import { IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
 import { Batch } from '@app/trip/batch/common/batch.model';
@@ -13,6 +13,7 @@ import { debounceTime, distinctUntilChanged, filter, mergeMap, switchMap } from 
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
 @Component({
   selector: 'app-batch-tree-container',
@@ -37,7 +38,8 @@ import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 export class BatchTreeContainerComponent extends AppEditor<Batch>
   implements IBatchTreeComponent {
 
-  private _subTrees: IBatchTreeComponent[] = [];
+  private _childrenTrees: IBatchTreeComponent[] = [];
+  private _touched: boolean;
 
   data: Batch = null;
   $gearId = new BehaviorSubject<number>(null);
@@ -46,6 +48,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   $program = new BehaviorSubject<Program>(null);
   listenProgramChanges = true;
 
+  @Input() modalOptions: Partial<IBatchGroupModalOptions>;
   @Input() showCatchForm: boolean;
   @Input() showBatchTables: boolean;
   @Input() defaultHasSubBatches: boolean;
@@ -85,6 +88,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   get gearId(): number {
     return this.$gearId.value;
+  }
+
+  get touched(): boolean {
+    return this._touched;
   }
 
   @Input() set physicalGearId(value: number) {
@@ -152,26 +159,30 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     );
   }
 
+  markAllAsTouched(opts?: { emitEvent?: boolean }) {
+    this._touched = true;
+    super.markAllAsTouched(opts);
+  }
+
   addChildTree(batchTree: IBatchTreeComponent) {
     if (!batchTree) throw new Error('Trying to register an undefined sub batch tree');
     this.addChildForm(batchTree);
-    this._subTrees.push(batchTree);
+    this._childrenTrees.push(batchTree);
   }
 
   removeChildTree(batchTree: IBatchTreeComponent): IBatchTreeComponent {
     if (!batchTree) throw new Error('Trying to remove an undefined sub batch tree');
-    const index = this._subTrees.findIndex(f => f === batchTree);
-
-    if (index === -1) return undefined; // not found
-
     this.removeChildForm(batchTree);
-    return this._subTrees.splice(index, 1)[0];
+
+    const index = this._childrenTrees.findIndex(f => f === batchTree);
+    if (index === -1) return undefined; // not found
+    return this._childrenTrees.splice(index, 1)[0];
   }
 
   async autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean; }): Promise<void> {
     await this.ready();
 
-    this._subTrees.forEach(subTree => {
+    this._childrenTrees.forEach(subTree => {
       subTree.autoFill(opts);
     });
   }
@@ -186,13 +197,16 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   getFirstInvalidTabIndex(): number {
-    return this._subTrees.map(subBatchTree => subBatchTree.invalid ? subBatchTree.getFirstInvalidTabIndex() : undefined)
+    return this._childrenTrees.map(subBatchTree => subBatchTree.invalid ? subBatchTree.getFirstInvalidTabIndex() : undefined)
       .find(isNotNil);
   }
 
 
   async setValue(data: Batch, opts?: {emitEvent?: boolean;}) {
-    data = data || new Batch();
+    data = data || Batch.fromObject({
+      rankOrder: 1,
+      label: AcquisitionLevelCodes.CATCH_BATCH
+    });
     this.markAsLoading();
 
     try {
@@ -200,27 +214,32 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
       await this.ready();
 
-      // Data changed : skip
-      if (data !== this.data) return;
+      // Data not changed (e.g. during ready())
+      if (data === this.data) {
 
-      this._subTrees.forEach(subBatchTree => {
-        const catchBatch = data.clone();
+        await Promise.all(
+          this._childrenTrees.map(subBatchTree => {
+            const catchBatch = data.clone();
 
-        // Filter sorting batches, if need
-        const filterFn = BatchFilter.fromObject(subBatchTree.filter)?.asFilterFn();
-        if (filterFn) {
-          catchBatch.children = catchBatch.children
-            .filter(filterFn);
-        }
+            // Filter sorting batches, if need
+            if (catchBatch.children) {
+              const filterFn = BatchFilter.fromObject(subBatchTree.filter)?.asFilterFn();
+              if (filterFn && catchBatch.children) {
+                catchBatch.children = catchBatch.children
+                  .filter(filterFn);
+              }
+            }
 
-        subBatchTree.setValue(catchBatch, opts);
-      });
+            return subBatchTree.setValue(catchBatch, opts);
+          })
+        );
 
-      this.markAsLoaded();
-      this.markAsPristine();
+        this.markAsPristine();
+      }
     }
     catch (err) {
-      this.setError(err && err.message || err);
+      console.error(err && err.message || err);
+      throw err;
     }
     finally {
       this.markAsLoaded();
@@ -235,28 +254,32 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   async save(event?: Event, options?: any): Promise<boolean> {
 
     // Save each sub tree
-    const results = await Promise.all(this._subTrees.map(subBatchTree => subBatchTree.save(event, options)));
+    const results = await Promise.all(this._childrenTrees.map(subBatchTree => subBatchTree.save(event, options)));
     const saved = !results.some(res => res === false);
 
     // Update data
     const data = this.data || new Batch();
-    data.measurementValues = [];
+    data.measurementValues = {};
     data.children = [];
 
-    this._subTrees.forEach(subBatchTree => {
+    this._childrenTrees.forEach(subBatchTree => {
       const subData = subBatchTree.value;
 
       // Merge measurements
-      data.measurementValues = {
-        ...data.measurementValues,
-        ...subData.measurementValues
-      };
+      if (subData.measurementValues) {
+        data.measurementValues = {
+          ...data.measurementValues,
+          ...subData.measurementValues
+        };
+      }
 
       // Merge batches
-      data.children = [
-        ...data.children,
-        ...subData.children
-      ]
+      if (isNotEmptyArray(subData.children)) {
+        data.children = [
+          ...data.children,
+          ...subData.children
+        ];
+      }
     });
 
     this.data = data;
@@ -265,8 +288,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
-    // TODO
-    //this.batchGroupsTable.setModalOption(key, value);
+    this.modalOptions = this.modalOptions || {};
+    this.modalOptions[key as any] = value;
   }
 
   setSelectedTabIndex(value: number) {
@@ -281,7 +304,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // Make sure has some sub trees
     //await waitFor(() => this._subTrees.length > 0);
-    await Promise.all((this._subTrees || []).map(c => c.ready()))
+    await Promise.all((this._childrenTrees || []).map(c => c.ready()))
 
     return super.ready(opts);
   }
@@ -299,7 +322,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   /* -- protected function -- */
 
   protected configureChildren() {
-    this._subTrees.forEach(subBatchTree => this.configureChild(subBatchTree));
+    this._childrenTrees.forEach(subBatchTree => this.configureChild(subBatchTree));
   }
 
   protected configureChild(subBatchTree: IBatchTreeComponent) {
@@ -312,6 +335,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     subBatchTree.showBatchTables = this.showBatchTables;
     subBatchTree.usageMode = this.usageMode;
     subBatchTree.mobile = this.mobile;
+    subBatchTree.modalOptions = this.modalOptions;
     if (this.readySubject.value) {
       subBatchTree.markAsReady();
     }

@@ -18,7 +18,7 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AlertController } from '@ionic/angular';
-import { BehaviorSubject, defer, Observable } from 'rxjs';
+import { BehaviorSubject, defer } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { Batch } from '../common/batch.model';
@@ -39,7 +39,6 @@ import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.va
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
-import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
 
@@ -56,10 +55,14 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   allowSubBatches: boolean;
   availableTaxonGroups: TaxonGroupRef[];
   mobile: boolean;
+  modalOptions: Partial<IBatchGroupModalOptions>;
   filter: BatchFilter;
 
-  // Value
+  // Form
   disabled: boolean;
+  touched: boolean;
+
+  // Value
   value: Batch;
   setValue(data: Batch, opts?: {emitEvent?: boolean}): Promise<void>;
   getValue(): Batch;
@@ -120,6 +123,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   get disabled(): boolean {
     return !super.enabled;
+  }
+
+  get touched(): boolean {
+    return this.form?.touched;
   }
 
   @Input() set allowSamplingBatches(allow: boolean) {
@@ -184,6 +191,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     if (this._gearId !== value && isNotNil(value)) {
       this._gearId = value;
       this.catchBatchForm.gearId = value;
+      this.batchGroupsTable.gearId = value;
     }
   }
 
@@ -213,6 +221,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
   get dirty(): boolean {
     return super.dirty || (this._subBatchesService && this._subBatchesService.dirty) || false;
+  }
+
+  set modalOptions(modalOptions: Partial<IBatchGroupModalOptions>) {
+    this.batchGroupsTable.modalOptions = modalOptions;
   }
 
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
@@ -408,9 +420,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     return Promise.resolve(undefined);
   }
 
-
-  /* -- protected method -- */
-
   async setValue(catchBatch: Batch, opts?: {emitEvent?: boolean;}) {
 
     // Make sure this is catch batch
@@ -442,6 +451,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
         const batchGroups: BatchGroup[] = BatchGroupUtils.fromBatchTree(catchBatch);
 
         // Apply to table
+        this.batchGroupsTable.gearId = this._gearId;
+        this.batchGroupsTable.markAsReady();
         this.batchGroupsTable.value = batchGroups;
         await this.batchGroupsTable.ready(); // Wait loaded (need to be sure the QV pmfm is set)
 
@@ -467,6 +478,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
       this.markAsPristine();
     }
   }
+
+  /* -- protected method -- */
 
   protected get form(): FormGroup {
     return this.catchBatchForm.form;
@@ -622,7 +635,13 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
                                                      forceSave?: boolean): Promise<T[]> {
     const dirty = table.dirty;
     if (dirty || forceSave) {
-      await table.save();
+      try {
+        await table.save();
+      }
+      catch(err) {
+        if (!forceSave) this.setError(err && err.message || err);
+        throw err;
+      }
 
       // Remember dirty state
       if (dirty) this.markAsDirty({emitEvent: false});

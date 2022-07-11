@@ -880,10 +880,10 @@
         "TRAWL_SELECTIVITY": {
           "CHILD_GEAR_B": "Sous-engin Bâbord",
           "CHILD_GEAR_T": "Sous-engin Tribord",
-          "CATCH_WEIGHT_B": "Poids capture Bâbord",
-          "CATCH_WEIGHT_T": "Poids capture Tribord",
-          "DISCARD_WEIGHT_B": "Poids rejet Bâbord",
-          "DISCARD_WEIGHT_T": "Poids rejet Tribord"
+          "CATCH_WEIGHT_B": "Poids total capture Bâbord (kg)",
+          "CATCH_WEIGHT_T": "Poids total capture Tribord (kg)",
+          "DISCARD_WEIGHT_B": "Poids rejet Bâbord (kg)",
+          "DISCARD_WEIGHT_T": "Poids rejet Tribord (kg)"
         }
       }
     },

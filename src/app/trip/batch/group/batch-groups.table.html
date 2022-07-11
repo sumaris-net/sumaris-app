@@ -394,8 +394,11 @@
                   <ng-container *ngSwitchCase="'pmfm'">
                     {{colValue|pmfmValue: {pmfm: col.pmfm, propertyNames: ['label'] } }}
                   </ng-container>
+                  <ng-container *ngSwitchCase="'samplingRatio'">
+                    {{colValue|samplingRatioFormat: samplingRatioFormat }}
+                  </ng-container>
                   <ng-container *ngSwitchDefault>
-                    {{colValue | numberFormat: {maximumFractionDigits: (col.pmfm?.maximumNumberDecimals || 3) } }}
+                    {{colValue|numberFormat: {maximumFractionDigits: (col.pmfm?.maximumNumberDecimals || 3) } }}
                   </ng-container>
                 </ion-label>
 

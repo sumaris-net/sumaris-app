@@ -22,6 +22,7 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   showSamplingBatch: boolean;
 
   // Other options
+  childrenPmfms: IPmfm[];
   enableWeightConversion: boolean;
 
   // Sub batches modal
@@ -58,6 +59,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
   @Input() qvPmfm: IPmfm;
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
+  @Input() childrenPmfms: IPmfm[];
   @Input() acquisitionLevel: string;
   @Input() programLabel: string;
 
@@ -159,9 +161,10 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   }
 
   ngAfterViewInit(): void {
+    this.form.markAsReady();
     // Focus on the first field (if new AND desktop AND enabled)
     if (this.isNew && !this.mobile && this.enabled) {
-      setTimeout(() => this.form.focusFirstInput(), 400);
+      this.form.ready().then(() => this.form.focusFirstInput());
     }
   }
 
@@ -172,7 +175,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   async setValue(data?: BatchGroup) {
 
     console.debug('[sample-modal] Applying value to form...', this.data);
-    this.form.markAsReady();
+
     this.form.error = null;
 
     try {

@@ -104,7 +104,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       flags: BatchGroupColumnFlags.IS_WEIGHT,
       classList: 'total mat-column-weight',
       path: 'weight.value',
-      computed: (batch) => batch.weight?.computed
+      computed: (batch) => batch.weight?.computed || false
     },
     {
       type: 'double',
@@ -140,7 +140,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       isSampling: true,
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_WEIGHT,
       path: 'children.0.weight.value',
-      computed: (batch) => batch.children[0]?.weight?.computed
+      computed: (batch) => batch.children[0]?.weight?.computed || false
     },
     {
       type: 'string',
@@ -163,7 +163,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   weightMethodForm: FormGroup;
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: BatchGroupColumnDefinition[];
-  modalOptions: Partial<IBatchGroupModalOptions>;
 
   showToolbar = true; // False only if no group columns AND mobile
   groupColumns: GroupColumnDefinition[];
@@ -204,6 +203,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     return this.dirtySubject.value || (this.weightMethodForm && this.weightMethodForm.dirty);
   }
 
+  @Input() modalOptions: Partial<IBatchGroupModalOptions>;
   @Input() useSticky = false;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() availableTaxonGroups: TaxonGroupRef[];
@@ -1270,11 +1270,15 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         const batchGroup = (parent.children || []).find(b => PmfmValueUtils.equals(b.measurementValues[qvPmfmId], qv));
         const qvChildren = children.filter(c => PmfmValueUtils.equals(c.measurementValues[qvPmfmId], qv));
 
-        const {individualCount} = updateSortingBatch(batchGroup, qvChildren);
+        if (!batchGroup) {
+          throw new Error('Invalid batch group: missing children with QV pmfm = ' + qv.label);
+        }
+        else {
+          const {individualCount} = updateSortingBatch(batchGroup, qvChildren);
 
-        // Update individual count
-        observedIndividualCount += (individualCount || 0);
-
+          // Update individual count
+          observedIndividualCount += (individualCount || 0);
+        }
       });
 
       parent.observedIndividualCount = observedIndividualCount;
@@ -1316,25 +1320,24 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
 
 
     if (this.qvPmfm) {
-      data.children = (this.qvPmfm && this.qvPmfm.qualitativeValues || []).reduce((res, qv, qvIndex: number) => {
+      data.children = (this.qvPmfm.qualitativeValues || []).reduce((res, qv, qvIndex: number) => {
 
-        const childLabel = qv ? `${data.label}.${qv.label}` : data.label;
+        const childLabel = `${data.label}.${qv.label}`;
 
-        // If qv, add sub level at sorting batch for each qv value
-        // If no qv, keep measurements in sorting batch level
-        const child: Batch = !qv ? data : isNotNil(data.id) && (data.children || []).find(b => b.label === childLabel) || new Batch();
+        const child: Batch = (data.children || []).find(b => b.label === childLabel) || new Batch();
 
         child.rankOrder = qvIndex + 1;
-        child.measurementValues = {};
+        child.measurementValues = child.measurementValues || {};
+        child.measurementValues[this.qvPmfm.id.toString()] = qv.id.toString();
         child.label = childLabel;
 
         // If sampling
         if (this.showSamplingBatchColumns) {
           const samplingLabel = childLabel + Batch.SAMPLING_BATCH_SUFFIX;
-          const samplingChild: Batch = new Batch();
+          const samplingChild: Batch = (child.children || []).find(b => b.label === samplingLabel) || new Batch();
           samplingChild.rankOrder = 1;
           samplingChild.label = samplingLabel;
-          samplingChild.measurementValues = {};
+          samplingChild.measurementValues = samplingChild.measurementValues || {};
           child.children = [samplingChild];
         }
         // Remove children

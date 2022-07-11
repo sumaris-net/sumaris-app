@@ -262,7 +262,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
 
   private toFormValue(value: number) : number {
     if (isNilOrNaN(value)) return null;
-    switch (this.format) {
+    switch (this._format) {
       case '1/w':
         return roundHalfUp(1 / value, this._inputMaxDecimals);
       case '%':
