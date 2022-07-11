@@ -60,6 +60,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
   i18nLevelName: string;
   filterCriteriaCount = 0;
+  filterPanelFloating = true;
   detailsPath = {
     'Program': '/referential/programs/:id',
     'Software': '/referential/software/:id?label=:label',
@@ -390,15 +391,25 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return false;
   }
 
+  toggleFilterPanelFloating() {
+    this.filterPanelFloating = !this.filterPanelFloating;
+    this.markForCheck();
+  }
+
   applyFilterAndClosePanel(event?: UIEvent) {
     this.onRefresh.emit(event);
-    this.filterExpansionPanel.close();
+    if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
+  }
+
+  closeFilterPanel() {
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
 
   resetFilter(event?: UIEvent) {
     this.filterForm.reset({entityName: this._entityName}, {emitEvent: true});
     this.setFilter(ReferentialFilter.fromObject({entityName: this._entityName}), {emitEvent: true});
-    this.filterExpansionPanel.close();
+    this.filterCriteriaCount = 0;
+    if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
   patchFilter(filter: Partial<ReferentialFilter>) {

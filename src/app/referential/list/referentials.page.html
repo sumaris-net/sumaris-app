@@ -180,9 +180,16 @@
 
       <div class="toolbar-spacer"></div>
 
+      <button mat-icon-button color="accent"
+              (click)="toggleFilterPanelFloating()"
+              class="hidden-xs hidden-sm hidden-md"
+              [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE') |translate">
+        <mat-icon><span style="transform: rotate(90deg);">{{filterPanelFloating ? '&#xbb;' : '&#xab;'}}</span></mat-icon>
+      </button>
+
       <!-- Close panel -->
       <ion-button mat-button fill="clear" color="dark"
-                  (click)="filterExpansionPanel.close()"
+                  (click)="closeFilterPanel()"
                   [disabled]="loadingSubject|async">
         <ion-text translate>COMMON.BTN_CLOSE</ion-text>
       </ion-button>
