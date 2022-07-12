@@ -9,7 +9,7 @@ import {
   IEntityEditorModalOptions,
   InMemoryEntitiesService,
   isNil,
-  isNotEmptyArray,
+  isNotEmptyArray, PromiseEvent,
   ReferentialRef,
   toBoolean,
   toNumber,
@@ -138,8 +138,7 @@ export class PhysicalGearModal
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.onSearchButtonClick?.complete();
-    this.onSearchButtonClick?.unsubscribe();
+    this.onSearchButtonClick.unsubscribe();
   }
 
   async ngAfterViewInit() {
@@ -206,7 +205,7 @@ export class PhysicalGearModal
 
     // Emit event, then wait for a result
     try {
-      const selectedData = await emitPromiseEvent(this.onSearchButtonClick, 'copyPreviousGear');
+      const selectedData = await emitPromiseEvent(this.onSearchButtonClick, this.acquisitionLevel);
 
       // No result (user cancelled): skip
       if (!selectedData) return;
@@ -259,8 +258,12 @@ export class PhysicalGearModal
 
         this.$gear.next(data.gear);
         this.childrenTable.gearId = data.gear?.id;
-        this.childrenGearService.value = children || [];
         this.childrenTable.markAsReady();
+        this.childrenGearService.value = children || [];
+        await this.childrenTable.waitIdle();
+
+        // Restore children
+        data.children = children;
       }
     }
     catch (err) {
@@ -270,7 +273,7 @@ export class PhysicalGearModal
   }
 
   protected async getValue(): Promise<PhysicalGear> {
-    const data = this.physicalGearForm.value;
+    const data = PhysicalGear.fromObject(this.physicalGearForm.value);
 
     if (this.allowChildrenGears) {
       if (this.childrenTable.dirty) {
@@ -305,5 +308,44 @@ export class PhysicalGearModal
   protected getFirstInvalidTabIndex(): number {
     if (this.allowChildrenGears && this.childrenTable?.invalid) return 1;
     return 0;
+  }
+
+  /**
+   * Open a modal to select a previous child gear
+   * @param event
+   */
+  async openSearchChildrenModal(event: PromiseEvent<PhysicalGear>) {
+    if (!event || !event.detail.success) return; // Skip (missing callback)
+
+    if (this.onSearchButtonClick.observers.length === 0) {
+      event.detail.error('CANCELLED');
+      return; // Skip
+    }
+
+    // Emit event, then wait for a result
+    try {
+      const selectedData = await emitPromiseEvent(this.onSearchButtonClick, event.type);
+
+      if (selectedData) {
+        // Create a copy
+        const data = PhysicalGear.fromObject({
+          gear: selectedData.gear,
+          rankOrder: selectedData.rankOrder,
+          // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
+          measurementValues: MeasurementValuesUtils.asObject(selectedData.measurementValues, {minify: true}),
+          measurements: selectedData.measurements
+        }).asObject();
+        event.detail.success(data);
+      }
+
+      // User cancelled
+      else {
+        event.detail.error('CANCELLED');
+      }
+    }
+    catch (err) {
+      console.error(err)
+      event.detail?.error(err);
+    }
   }
 }

@@ -87,6 +87,7 @@
                    dirty: {{dirty}}<br/>
                    valid: {{valid}}<br/>
                    allowChildrenGears: {{allowChildrenGears}}<br/>
+                   i18nSuffix: {{i18nSuffix}}
                  </small>
                </ion-text>
             </ion-col>
@@ -139,6 +140,7 @@
       <app-physical-gears-table #table
                                 *ngIf="allowChildrenGears"
                                 (ngInit)="registerChildrenTable(table)"
+                                (openSelectPreviousGearModal)="openSearchChildrenModal($event)"
                                 [programLabel]="programLabel"
                                 [acquisitionLevel]="childAcquisitionLevel"
                                 [showGearColumn]="false"

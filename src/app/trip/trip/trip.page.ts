@@ -277,6 +277,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.physicalGearsTable.allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN)
     this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
+    this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
 
     // Operation table
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
@@ -517,7 +518,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
    * Open a modal to select a previous gear
    * @param event
    */
-  async openSelectPreviousGearModal(event: PromiseEvent<PhysicalGear>) {
+  async openSearchPhysicalGearModal(event: PromiseEvent<PhysicalGear>) {
     if (!event || !event.detail.success) return; // Skip (missing callback)
 
     const trip = Trip.fromObject(this.tripForm.value);
@@ -527,7 +528,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (!vessel || !date) return; // Skip
 
     const programLabel = this.$programLabel.getValue();
-    const acquisitionLevel = this.physicalGearsTable.acquisitionLevel;
+    const acquisitionLevel = event.type || this.physicalGearsTable.acquisitionLevel;
     const filter = <PhysicalGearFilter>{
       program: {label: programLabel},
       vesselId: vessel.id,
@@ -563,12 +564,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     await modal.present();
 
     // On dismiss
-    const res = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
-    console.debug('[trip] Result of select gear modal:', res);
-    if (res && res.data && isNotEmptyArray(res.data)) {
-      // Cal resolve callback
-      event.detail.success(res.data[0]);
+    if (isNotEmptyArray(data)) {
+      const gearToCopy = PhysicalGear.fromObject(data[0]);
+      console.debug('[trip] Result of select gear modal:', gearToCopy);
+      // Call resolve callback
+      event.detail.success(gearToCopy);
     }
     else {
       // User cancelled

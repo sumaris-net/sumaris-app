@@ -12,6 +12,7 @@ import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
+import { Subscription } from 'rxjs';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -225,6 +226,7 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
     }
     dataToOpen.tripId = this.tripId;
 
+    const subscription = new Subscription();
     const showSearchButton = isNewData && this.openSelectPreviousGearModal.observers.length > 0;
     const hasTopModal = !!(await this.modalCtrl.getTop());
 
@@ -238,11 +240,11 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
         isNewData,
         canEditGear: this.canEditGear,
         canEditRankOrder: this.canEditRankOrder,
-        showSearchButton: showSearchButton,
+        showSearchButton,
         onAfterModalInit: (modal: PhysicalGearModal) => {
-          if (showSearchButton) {
-            modal.onSearchButtonClick.subscribe(event => this.openSelectPreviousGearModal.emit(event));
-          }
+          subscription.add(
+            modal.onSearchButtonClick.subscribe(event => this.openSelectPreviousGearModal.emit(event))
+          )
         },
         onDelete: (event, data) => this.deleteEntity(event, data),
         mobile: this.mobile,
@@ -261,6 +263,9 @@ export class PhysicalGearTable extends AppMeasurementsTable<PhysicalGear, Physic
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
+
+    subscription.unsubscribe();
+
     if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
 
     return (data instanceof PhysicalGear) ? data : undefined;

@@ -306,7 +306,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       // Data is still the same (not changed : applying)
       if (data === this.data) {
         // Applying value to form (that should be ready).
-        await this.updateView(this.data, opts);
+        await this.updateView(data, opts);
         this.markAsLoaded();
       }
     }

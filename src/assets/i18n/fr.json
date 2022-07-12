@@ -618,8 +618,21 @@
       },
       "PMFM": {
         "GEAR_LABEL": "Libellé de l'engin",
+        "MESH_GAUGE_UPPER_WING_MM": "Maillage - Ailes supérieures (mm)",
+        "MESH_GAUGE_LOWER_WING_MM": "Maillage - Ailes inférieures (mm)",
+        "MESH_GAUGE_BACK_MM": "Maillage - Dos (mm)",
+        "MESH_GAUGE_BELLY_MM": "Maillage - Ventre (mm)",
+        "MESH_GAUGE_GOR_MM": "Maillage - Gorget (mm)",
+        "MESH_GAUGE_EXT_MM": "Maillage - Rallonge (mm)",
+        "MESH_GAUGE_EXT_MM": "Maillage - Rallonge (mm)",
+        "MESH_GAUGE_ASS_MM": "Maillage - Cul de châlut (mm)",
+        "GROUNDROPE_TYPE": "Type de bourrelet",
+        "VERTICAL_OPENING_ESTIMATED": "Ouverture verticale - Estimée (m)",
+        "VERTICAL_OPENING_INSTRUMENT": "Ouverture verticale - Mesurée (m)",
         "CHILD": {
           "GEAR_LABEL": "Libellé du sous-engin"
+        },
+        "TRAWL_SELECTIVITY": {
         }
       },
       "ERROR": {
