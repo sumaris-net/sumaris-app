@@ -279,6 +279,19 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
    * Validate and close
    * @param event
    */
+  async onSubmitIfDirty(event?: UIEvent) {
+    if (!this.dirty) {
+      await this.modalCtrl.dismiss();
+    }
+    else {
+      return this.onSubmit(event);
+    }
+  }
+
+  /**
+   * Validate and close
+   * @param event
+   */
   async onSubmit(event?: UIEvent) {
     if (this.loading) return undefined; // avoid many call
 

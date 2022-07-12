@@ -389,7 +389,8 @@ export abstract class AppMeasurementsTable<
   }
 
   isReady() {
-    return !!this.measurementValuesFormGroupConfig;
+    return this.measurementsDataService.started
+      && !!this.measurementValuesFormGroupConfig;
   }
 
   async ready() {
@@ -451,6 +452,13 @@ export abstract class AppMeasurementsTable<
     const skipProperties = opts && opts.skipProperties
       || ['id', 'rankOrder', 'updateDate', 'creationDate', 'label'].concat(this.hasRankOrder ? ['rankOrder'] : []);
     return super.duplicateRow(event, row, {...opts, skipProperties});
+  }
+
+  markAsReady(opts?: { emitEvent?: boolean }) {
+    // Avoid to many call to ready
+    if (!this.readySubject.value) {
+      super.markAsReady(opts);
+    }
   }
 
   /* -- protected methods -- */

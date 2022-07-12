@@ -1,22 +1,17 @@
 import { NgModule } from '@angular/core';
-import { OperationForm } from './operation.form';
-import { OperationPage } from './operation.page';
-import { OperationsTable } from './operations.table';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppDataModule } from '@app/data/data.module';
-import { OperationsMap } from './map/operations.map';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
-import { SelectOperationModal } from '@app/trip/operation/select-operation.modal';
-import { SelectOperationByTripTable } from '@app/trip/operation/select-operation-by-trip.table';
 import { VesselModule } from '@app/vessel/vessel.module';
 import { AppBatchModule } from '@app/trip/batch/batch.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
+import { SelectivityOperationPage } from '@app/trip/operation/selectivity/selectivity-operation.page';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
-import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.component';
+import { AppOperationModule } from '@app/trip/operation/operation.module';
 
 @NgModule({
   imports: [
@@ -34,29 +29,20 @@ import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.
     AppMeasurementModule,
     AppBatchModule,
     AppSampleModule,
-    AppPhysicalGearModule
+    AppPhysicalGearModule,
+    AppOperationModule
   ],
   declarations: [
-    OperationsTable,
-    OperationsMap,
-    OperationForm,
-    OperationPage,
-    SelectOperationModal,
-    SelectOperationByTripTable,
-    OperationIconComponent
+    SelectivityOperationPage
   ],
   exports: [
     // Components
-    OperationsTable,
-    OperationsMap,
-    OperationForm,
-    OperationPage,
-    OperationIconComponent
+    SelectivityOperationPage
   ]
 })
-export class AppOperationModule {
+export class AppSelectivityOperationModule {
 
   constructor() {
-    console.debug('[operation] Creating module...');
+    console.debug('[selectivity-operation] Creating module...');
   }
 }

@@ -5,7 +5,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { AppFormUtils, InputElement, isNil, isNotNil, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
 import { BatchGroupValidatorService } from './batch-group.validator';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { BatchForm } from '../common/batch.form';
 import { filter } from 'rxjs/operators';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
@@ -31,6 +31,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   hasSubBatchesControl: AbstractControl;
 
   @Input() qvPmfm: IPmfm;
+  @Input() childrenPmfms: IPmfm[];
   @Input() taxonGroupsNoWeight: string[];
   @Input() showChildrenWeight = true;
   @Input() showChildrenIndividualCount = false;
@@ -156,18 +157,16 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this.hasSubBatchesControl = new FormControl(false);
     this.showSamplingBatch = false;
+    this._logPrefix = '[batch-group-form]';
 
     // DEBUG
     //this.debug = !environment.production;
   }
 
-  protected get logPrefix(): string {
-    return '[batch-group-form]';
-  }
-
   ngOnInit() {
     super.ngOnInit();
 
+    this.showHasSubBatchesButton = toBoolean(this.showHasSubBatchesButton, true);
     this.defaultHasSubBatches = toBoolean(this.defaultHasSubBatches, false);
 
     // Set isSampling on each child forms, when has indiv. measure changed
@@ -237,17 +236,20 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       this.qvPmfm.hidden = true;
       this.qvPmfm.required = true;
 
-      // Replace QV in the list, by current instance
-      const childrenPmfms = pmfms.map(p => (p.id === this.qvPmfm.id ? this.qvPmfm : p))
+      const qvPmfmIndex = pmfms.findIndex(pmfm => pmfm.id === this.qvPmfm.id);
+      const speciesPmfms = pmfms.filter((pmfm, index) => index < qvPmfmIndex);
+      const childrenPmfms = pmfms.filter((pmfm, index) => index >= qvPmfmIndex);
+      childrenPmfms[0] = this.qvPmfm; // Replace QV in the list, by current instance
 
       const childrenPmfmsByQvId = this.qvPmfm.qualitativeValues.reduce((res, qv ) => {
         res[qv.id] = BatchGroupUtils.computeChildrenPmfmsByQvPmfm(qv.id, childrenPmfms)
         return res;
       }, {});
+
       this.$childrenPmfmsByQvId.next(childrenPmfmsByQvId);
 
-      // Do not display PMFM in the root batch
-      pmfms = [];
+      // Limit to species pmfms
+      pmfms = speciesPmfms;
     }
 
     return super.mapPmfms(pmfms);

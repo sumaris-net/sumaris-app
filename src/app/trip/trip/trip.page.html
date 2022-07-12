@@ -150,6 +150,32 @@
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>
+
+                  <ion-row *ngIf="debug">
+                    <ion-col size="12" size-md="2" size-lg="3">
+                      <ion-label class="ion-float-end">Debug :</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-text color="primary" class="text-italic">
+                        <small>
+                          editor.loading: {{loading}}<br/>
+                          editor.ready: {{$ready|async}}<br/>
+                          editor.dirty: {{dirty}}<br/>
+                        </small>
+                      </ion-text>
+                    </ion-col>
+                    <ion-col>
+                      <ion-text color="primary" class="text-italic">
+                        <small>
+                          measurementsForm.loading: {{measurementsForm.loading}}<br/>
+                          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+                          measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+                          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+                        </small>
+                      </ion-text>
+                    </ion-col>
+
+                  </ion-row>
                 </ion-grid>
 
               </form-trip>
@@ -195,7 +221,7 @@
         <app-physical-gears-table #physicalGearsTable
                                  [programLabel]="$programLabel|async"
                                  [showToolbar]="!mobile"
-                                 (openSelectPreviousGearModal)="openSelectPreviousGearModal($event)"
+                                 (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
                                  [useSticky]="!mobile"
                                  [debug]="debug">
         </app-physical-gears-table>

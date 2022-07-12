@@ -618,8 +618,21 @@
       },
       "PMFM": {
         "GEAR_LABEL": "Libellé de l'engin",
+        "MESH_GAUGE_UPPER_WING_MM": "Maillage - Ailes supérieures (mm)",
+        "MESH_GAUGE_LOWER_WING_MM": "Maillage - Ailes inférieures (mm)",
+        "MESH_GAUGE_BACK_MM": "Maillage - Dos (mm)",
+        "MESH_GAUGE_BELLY_MM": "Maillage - Ventre (mm)",
+        "MESH_GAUGE_GOR_MM": "Maillage - Gorget (mm)",
+        "MESH_GAUGE_EXT_MM": "Maillage - Rallonge (mm)",
+        "MESH_GAUGE_EXT_MM": "Maillage - Rallonge (mm)",
+        "MESH_GAUGE_ASS_MM": "Maillage - Cul de châlut (mm)",
+        "GROUNDROPE_TYPE": "Type de bourrelet",
+        "VERTICAL_OPENING_ESTIMATED": "Ouverture verticale - Estimée (m)",
+        "VERTICAL_OPENING_INSTRUMENT": "Ouverture verticale - Mesurée (m)",
         "CHILD": {
           "GEAR_LABEL": "Libellé du sous-engin"
+        },
+        "TRAWL_SELECTIVITY": {
         }
       },
       "ERROR": {
@@ -708,8 +721,8 @@
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Captures accidentelles"
         },
-        "SELECTIVITY": {
-          "TAB_CATCH": "Capture - {{name}}"
+        "TRAWL_SELECTIVITY": {
+          "TAB_CATCH_POSITION": "Capture - {{name}}"
         }
       },
       "PARENT": {
@@ -752,8 +765,7 @@
         "QUALITY": "État"
       },
       "PMFM": {
-        "GEAR_B": "Engin babord",
-        "GEAR_T": "Engin tribord"
+
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
@@ -877,7 +889,15 @@
       },
       "PMFM": {
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
-        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)"
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
+        "TRAWL_SELECTIVITY": {
+          "CHILD_GEAR_B": "Sous-engin Bâbord",
+          "CHILD_GEAR_T": "Sous-engin Tribord",
+          "CATCH_WEIGHT_B": "Poids total capture Bâbord (kg)",
+          "CATCH_WEIGHT_T": "Poids total capture Tribord (kg)",
+          "DISCARD_WEIGHT_B": "Poids rejet Bâbord (kg)",
+          "DISCARD_WEIGHT_T": "Poids rejet Tribord (kg)"
+        }
       }
     },
     "SUB_BATCH": {
@@ -1624,6 +1644,7 @@
       "I18N_SUFFIX_SURVIVAL_TEST" : "Tests de survie",
       "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Capture accidentelle",
       "I18N_SUFFIX_AUCTION_CONTROL": "Contrôle criée",
+      "I18N_SUFFIX_TRAWL_SELECTIVITY": "Sélectivité chalut",
       "TRIP_LOCATION_LEVEL_IDS": "Marée: Niveau(x) de lieu",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
@@ -1664,6 +1685,9 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
+      "TRIP_OPERATION_EDITOR": "Marée > Opération : éditeur",
+      "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
+      "TRIP_OPERATION_EDITOR_SELECTIVITY": "Sélectivité chalut",
       "TRIP_OPERATION_METIER_FILTER": "Marée > Opération : Filtrer sur les métiers déjà saisis ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée > Opération : Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Marée > Opération : Distance max parcourue avant alerte (miles) :",

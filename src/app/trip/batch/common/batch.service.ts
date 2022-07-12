@@ -73,7 +73,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         childrenPmfms = pmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
       }
       else {
-        let qvPmfmIndex = pmfms.findIndex(pmfm => pmfm.id === qvPmfm.id);
+        const qvPmfmIndex = pmfms.findIndex(pmfm => pmfm.id === qvPmfm.id);
         speciesPmfms = pmfms.filter((pmfm, index) => index < qvPmfmIndex);
         childrenPmfms = pmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
       }

@@ -87,11 +87,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return this.$table.value;
   }
 
-  get $ready(): Observable<boolean> {
-    return this._$ready.asObservable();
-  }
-
-
   constructor(
     injector: Injector,
     dataService: ObservedLocationService,

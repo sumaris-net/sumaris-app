@@ -31,6 +31,20 @@
         </mat-autocomplete-field>
       </ion-col>
 
+      <!-- Measurements -->
+      <ion-col size="12" size-md="6" *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn; index as i;">
+        <app-pmfm-field #matInput
+                        [pmfm]="pmfm"
+                        [control]="form|formGetControl:['measurementValues', pmfm.id]"
+                        [hidden]="pmfm.hidden || matInput.formControl?.disabled"
+                        [controlName]="pmfm|pmfmIdString"
+                        [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
+                        [compact]="compact"
+                        [tabindex]="tabindex+2 + i*2"
+                        [maxVisibleButtons]="maxVisibleButtons">
+        </app-pmfm-field>
+      </ion-col>
+
       <ion-col *ngIf="allowSubBatches && showHasSubBatchesButton">
         <!-- Has individual measures ? -->
         <mat-form-field floatLabel="always" >
@@ -43,7 +57,7 @@
               <ion-col>
                 <ion-button class="mat-form-field-button"
                             [disabled]="hasSubBatchesControl.disabled"
-                            [tabindex]="tabindex && tabindex + 9 || -1"
+                            [tabindex]="tabindex && tabindex + 8 || -1"
                             (click)="hasSubBatchesControl.setValue(false)"
                             (keyup.enter)="hasSubBatchesControl.setValue(false)"
                             fill="solid" expand="full"
@@ -54,7 +68,7 @@
               <ion-col>
                 <ion-button class="mat-form-field-button"
                             [disabled]="hasSubBatchesControl.disabled"
-                            [tabindex]="tabindex && tabindex + 8 || -1"
+                            [tabindex]="tabindex && tabindex + 9 || -1"
                             (click)="hasSubBatchesControl.setValue(true)"
                             (keyup.enter)="hasSubBatchesControl.setValue(true)"
                             fill="solid" expand="full"

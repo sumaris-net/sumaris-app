@@ -161,6 +161,15 @@
 
 <ion-content>
 
+  <!-- batch tree container -->
+  <app-batch-tree-container #batchTree
+                            [showBatchTables]="showBatchTables"
+                            [selectedTabIndex]="selectedSubTabIndex"
+                            [usageMode]="usageMode"
+                            [mobile]="mobile"
+                            [debug]="debug">
+  </app-batch-tree-container>
+
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
                  [(selectedIndex)]="selectedTabIndex"
@@ -219,6 +228,32 @@
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>
+
+                  <!-- DEBUG -->
+                  <ion-row *ngIf="debug" style="pointer-events: auto; user-select: text; margin-bottom: 16px;">
+                    <ion-col size="0" size-md="3" size-lg="3">
+                      <ion-label class="ion-float-end">Debug :</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-text color="primary" class="text-italic">
+                        <small>
+                          editor.loading: {{loading}}<br/>
+                          editor.ready: {{readySubject|async}}<br/>
+                          editor.dirty: {{dirty}}<br/>
+                        </small>
+                      </ion-text>
+                    </ion-col>
+                    <ion-col>
+                      <ion-text color="primary" class="text-italic">
+                        <small>
+                          measurementsForm.loading: {{measurementsForm.loading}}<br/>
+                          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+                          measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+                          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+                        </small>
+                      </ion-text>
+                    </ion-col>
+                  </ion-row>
                 </ion-grid>
               </app-form-operation>
             </ion-col>
@@ -233,60 +268,40 @@
       </div>
     </mat-tab>
 
-    <!-- TAB: Catch -->
+    <!-- TAB: Catch / position -->
     <mat-tab #catchTab
-             [label]="'TRIP.OPERATION.EDIT.TAB_CATCH'|translateContext: i18nContext.suffix"
-             [disabled]="!showCatchTab">
+             *ngFor="let catchTabDef of catchTabDefs; trackBy: trackCatchTabDefFn"
+             [label]="catchTabDef.label|translate"
+             >
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
-        <ion-label *ngVar="batchTree.batchGroupsTable.totalRowCount as count"
+        <ion-label *ngVar="subBatchTree.batchGroupsTable.totalRowCount as count"
                    [matBadge]="count"
-                   [matBadgeHidden]="batchTree.invalid || !count"
+                   [matBadgeHidden]="subBatchTree.invalid || !count"
                    matBadgeOverlap="false"
                    matBadgeColor="primary"
                    matBadgeSize="small"
                    matBadgePosition="above after">{{catchTab.textLabel}}
         </ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && subBatchTree.invalid"></ion-icon>
       </ng-template>
 
-      <app-batch-tree #batchTree
+      <app-batch-tree #subBatchTree
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
                       [selectedTabIndex]="selectedSubTabIndex"
+                      [allowSamplingBatches]="batchTree.allowSamplingBatches"
+                      [allowSubBatches]="batchTree.allowSubBatches"
+                      [defaultHasSubBatches]="batchTree.defaultHasSubBatches"
+                      [availableTaxonGroups]="batchTree.availableTaxonGroups"
                       [usageMode]="usageMode"
                       [useSticky]="mobile"
                       [mobile]="mobile"
+                      [disabled]="disabled"
+                      [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
+                      [filter]="catchTabDef.filter"
                       [debug]="debug">
       </app-batch-tree>
-    </mat-tab>
-
-    <!-- TAB: Samples  -->
-    <mat-tab #sampleTab
-             [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
-             [disabled]="!showSamplesTab">
-      <ng-template mat-tab-label>
-        <mat-icon svgIcon="fish-oblique"></mat-icon>
-        <ion-label *ngVar="sampleTree.samplesTable.totalRowCount as count"
-                   [matBadge]="count"
-                   [matBadgeHidden]="sampleTree.invalid || !count"
-                   matBadgeOverlap="false"
-                   matBadgeColor="primary"
-                   matBadgeSize="small"
-                   matBadgePosition="above after">{{sampleTab.textLabel}}
-        </ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && sampleTree.invalid"></ion-icon>
-      </ng-template>
-
-      <app-sample-tree #sampleTree queryTabIndexParamName="subtab"
-                       [selectedTabIndex]="selectedSubTabIndex"
-                       [defaultSampleDate]="$lastEndDate|async"
-                       [usageMode]="usageMode"
-                       (onPrepareRowForm)="onPrepareSampleForm($event)"
-                       [useSticky]="mobile"
-                       [mobile]="mobile"
-                       [debug]="debug">
-      </app-sample-tree>
     </mat-tab>
 
   </mat-tab-group>

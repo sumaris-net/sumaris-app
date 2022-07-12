@@ -5,10 +5,11 @@ import {
   AppEntityEditorModal,
   createPromiseEventEmitter,
   emitPromiseEvent,
-  firstNotNil, firstNotNilPromise,
+  firstNotNil,
   IEntityEditorModalOptions,
   InMemoryEntitiesService,
-  isNil, isNotEmptyArray,
+  isNil,
+  isNotEmptyArray, PromiseEvent,
   ReferentialRef,
   toBoolean,
   toNumber,
@@ -23,7 +24,7 @@ import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter'
 import { BehaviorSubject } from 'rxjs';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
-import { tap, switchMap, startWith } from 'rxjs/operators';
+import { switchMap, tap } from 'rxjs/operators';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 export interface IPhysicalGearModalOptions
@@ -117,10 +118,10 @@ export class PhysicalGearModal
     this.debug = !environment.production;
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit() {
     this.allowChildrenGears = toBoolean(this.allowChildrenGears, true);
 
-    await super.ngOnInit();
+    super.ngOnInit();
 
     if (this.enabled && this.isNewData) {
       this.markAsLoaded();
@@ -137,8 +138,7 @@ export class PhysicalGearModal
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.onSearchButtonClick?.complete();
-    this.onSearchButtonClick?.unsubscribe();
+    this.onSearchButtonClick.unsubscribe();
   }
 
   async ngAfterViewInit() {
@@ -195,13 +195,17 @@ export class PhysicalGearModal
 
   }
 
+  registerChildrenTable(value: PhysicalGearTable) {
+    this.$childrenTable.next(value);
+  }
+
   async openSearchModal(event?: UIEvent) {
 
     if (this.onSearchButtonClick.observers.length === 0) return; // Skip
 
     // Emit event, then wait for a result
     try {
-      const selectedData = await emitPromiseEvent(this.onSearchButtonClick, 'copyPreviousGear');
+      const selectedData = await emitPromiseEvent(this.onSearchButtonClick, this.acquisitionLevel);
 
       // No result (user cancelled): skip
       if (!selectedData) return;
@@ -242,6 +246,10 @@ export class PhysicalGearModal
   protected async setValue(data: PhysicalGear) {
 
     try {
+      // Save children, before reset (not need in the main form)
+      const children = data.children;
+      data.children = undefined;
+
       // Set main form
       await this.physicalGearForm.setValue(data);
 
@@ -250,11 +258,12 @@ export class PhysicalGearModal
 
         this.$gear.next(data.gear);
         this.childrenTable.gearId = data.gear?.id;
-        this.childrenGearService.value = data.children || [];
+        this.childrenTable.markAsReady();
+        this.childrenGearService.value = children || [];
+        await this.childrenTable.waitIdle();
 
-        if (!this.childrenTable.isReady()) {
-          this.childrenTable.markAsReady();
-        }
+        // Restore children
+        data.children = children;
       }
     }
     catch (err) {
@@ -263,16 +272,25 @@ export class PhysicalGearModal
     }
   }
 
-  protected async getJsonValueToSave(): Promise<any> {
-    const data = await this.physicalGearForm.value;
+  protected async getValue(): Promise<PhysicalGear> {
+    const data = PhysicalGear.fromObject(this.physicalGearForm.value);
 
     if (this.allowChildrenGears) {
+      if (this.childrenTable.dirty) {
+        await this.childrenTable.save();
+      }
       data.children = this.childrenGearService.value;
     }
     else {
       data.children = null;
     }
     return data;
+  }
+
+  protected async getJsonValueToSave(): Promise<any> {
+    console.warn('Should not used this method! Because form and childrenTable always return Entities!');
+    const data = await this.getValue();
+    return data.asObject();
   }
 
   protected computeTitle(data?: PhysicalGear): Promise<string> {
@@ -290,5 +308,44 @@ export class PhysicalGearModal
   protected getFirstInvalidTabIndex(): number {
     if (this.allowChildrenGears && this.childrenTable?.invalid) return 1;
     return 0;
+  }
+
+  /**
+   * Open a modal to select a previous child gear
+   * @param event
+   */
+  async openSearchChildrenModal(event: PromiseEvent<PhysicalGear>) {
+    if (!event || !event.detail.success) return; // Skip (missing callback)
+
+    if (this.onSearchButtonClick.observers.length === 0) {
+      event.detail.error('CANCELLED');
+      return; // Skip
+    }
+
+    // Emit event, then wait for a result
+    try {
+      const selectedData = await emitPromiseEvent(this.onSearchButtonClick, event.type);
+
+      if (selectedData) {
+        // Create a copy
+        const data = PhysicalGear.fromObject({
+          gear: selectedData.gear,
+          rankOrder: selectedData.rankOrder,
+          // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
+          measurementValues: MeasurementValuesUtils.asObject(selectedData.measurementValues, {minify: true}),
+          measurements: selectedData.measurements
+        }).asObject();
+        event.detail.success(data);
+      }
+
+      // User cancelled
+      else {
+        event.detail.error('CANCELLED');
+      }
+    }
+    catch (err) {
+      console.error(err)
+      event.detail?.error(err);
+    }
   }
 }

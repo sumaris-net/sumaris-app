@@ -3,7 +3,6 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { Batch } from '../common/batch.model';
 import { Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
-import { SubBatchValidatorService } from './sub-batch.validator';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
 import { IonContent, ModalController } from '@ionic/angular';

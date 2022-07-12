@@ -4,6 +4,7 @@ import { OperationForm } from './operation.form';
 import { TripService } from '../services/trip.service';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
+  AppEditorOptions,
   AppEntityEditor,
   AppErrorWithDetails,
   AppFormUtils,
@@ -37,7 +38,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { Operation, Trip } from '../services/model/trip.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { IBatchTreeComponent } from '../batch/batch-tree.component';
+import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BehaviorSubject, from, merge, Subscription } from 'rxjs';
@@ -50,7 +51,7 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
-import { AppEditorOptions } from '@sumaris-net/ngx-components';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 const moment = momentImported;
 
@@ -78,11 +79,22 @@ export class OperationPage
   extends AppEntityEditor<Operation, OperationService>
   implements IDataEntityQualityService<Operation> {
 
-  private static TABS = {
+  protected static TABS = {
     GENERAL: 0,
     CATCH: 1,
     SAMPLE: 2,
   };
+  private _lastOperationsTripId: number;
+  private _measurementSubscription: Subscription;
+  private _sampleRowSubscription: Subscription;
+  private _forceMeasurementAsOptionalOnFieldMode = false;
+
+  protected tripService: TripService;
+  protected tripContext: TripContextService;
+  protected programRefService: ProgramRefService;
+  protected settings: LocalSettingsService;
+  protected modalCtrl: ModalController;
+  protected hotkeys: Hotkeys;
 
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
@@ -112,11 +124,6 @@ export class OperationPage
   showBatchTables = false;
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
-
-  private _lastOperationsTripId: number;
-  private _measurementSubscription: Subscription;
-  private _sampleRowSubscription: Subscription;
-  private _forceMeasurementAsOptionalOnFieldMode = false;
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -153,12 +160,6 @@ export class OperationPage
   get entityQualityService(): IDataEntityQualityService<Operation> {
     return this;
   }
-  protected tripService: TripService;
-  protected tripContext: TripContextService;
-  protected programRefService: ProgramRefService;
-  protected settings: LocalSettingsService;
-  protected modalCtrl: ModalController;
-  protected hotkeys: Hotkeys;
 
   constructor(
     injector: Injector,
@@ -333,11 +334,7 @@ export class OperationPage
           // skip if loading
           filter(() => !this.loading)
         )
-        .subscribe((res) => {
-          const gearId = res && res.gear && res.gear.id || null;
-          this.measurementsForm.gearId = gearId;
-          if (this.batchTree) this.batchTree.gearId = gearId;
-        })
+        .subscribe(physicalGear => this.setPhysicalGear(physicalGear))
     );
 
     if (this.measurementsForm) {
@@ -644,6 +641,17 @@ export class OperationPage
     this.markAsReady();
   }
 
+  protected setPhysicalGear(physicalGear: PhysicalGear) {
+    const gearId = toNumber(physicalGear?.gear?.id, null);
+    this.measurementsForm.gearId = gearId;
+    if (this.readySubject.value) this.measurementsForm.markAsReady();
+    if (this.batchTree) {
+      this.batchTree.physicalGearId = physicalGear.id;
+      this.batchTree.gearId = gearId;
+      if (this.readySubject.value) this.batchTree.markAsReady();
+    }
+  }
+
   load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean; [p: string]: any }): Promise<void> {
     return super.load(id, {...opts, withLinkedOperation: true});
   }
@@ -844,7 +852,8 @@ export class OperationPage
     await this.opeForm.setValue(data);
 
     // Get gear, from the physical gear
-    const gearId = data && data.physicalGear && data.physicalGear.gear && data.physicalGear.gear.id || null;
+    const physicalGearId = toNumber(data.physicalGear?.id, null);
+    const gearId = toNumber(data?.physicalGear?.gear?.id, null);
 
     // Set measurements form
     this.measurementsForm.gearId = gearId;
@@ -861,6 +870,7 @@ export class OperationPage
 
     // Set batch tree
     if (this.batchTree) {
+      this.batchTree.physicalGearId = physicalGearId;
       this.batchTree.gearId = gearId;
       await this.batchTree.setValue(data && data.catchBatch || null);
     }
@@ -872,6 +882,10 @@ export class OperationPage
     if (this.isNewData) {
       if (this.autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
     }
+  }
+
+  unload(): Promise<void> {
+    return super.unload();
   }
 
   updateViewState(data: Operation, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

@@ -34,14 +34,14 @@ import { Trip } from '../services/model/trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -87,6 +87,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   mobile = false;
   settingsId: string;
   devAutoFillData = false;
+  operationEditor: OperationEditor;
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
   private _measurementSubscription: Subscription;
@@ -100,6 +101,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   get dirty(): boolean {
     // Ignore operation table, when computing dirty state
     return this._dirty || (this.children?.filter(form => form !== this.operationsTable).findIndex(c => c.dirty) !== -1);
+  }
+
+  get $ready(): Observable<boolean> {
+    return this._$ready.asObservable();
   }
 
   get forceMeasurementAsOptional(): boolean {
@@ -172,7 +177,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.registerSubscription(
         this.measurementsForm.$pmfms
           .pipe(
-            debounceTime(400),
+            //debounceTime(400),
             filter(isNotNil),
             mergeMap(_ => this.measurementsForm.ready())
           )
@@ -184,7 +189,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (!environment.production) {
       this.registerSubscription(
         this.$program
-          .pipe(filter(() => this.isNewData && this.devAutoFillData))
+          .pipe(
+            filter(isNotNil),
+            filter(() => this.isNewData && this.devAutoFillData)
+          )
           .subscribe(program => this.setTestValue(program))
       );
     }
@@ -239,6 +247,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
 
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
+    this.i18nContext.suffix = i18nSuffix;
+    this.operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
+
     // Trip form
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
     if (!this.tripForm.showObservers && this.data?.observers) {
@@ -264,6 +277,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.physicalGearsTable.allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN)
     this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
+    this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
 
     // Operation table
     const positionEnabled = program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
@@ -274,6 +288,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.operationsTable.showMap = this.network.online && program.getPropertyAsBoolean(ProgramProperties.TRIP_MAP_ENABLE);
     this.operationsTable.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
     this.operationsTable.showFishingEndDateTime = !this.operationsTable.showEndDateTime && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
+    this.operationsTable.i18nColumnSuffix = i18nSuffix;
+    this.operationsTable.detailEditor = this.operationEditor;
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -418,10 +434,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Propagate the usage mode (e.g. when try to 'terminate' the trip)
       this.tripContext?.setValue('usageMode', this.usageMode);
 
+
       setTimeout(async () => {
-        await this.router.navigate(['trips', this.data.id, 'operation', id], {
-          queryParams: {}
-        });
+        const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+        await this.router.navigate(['trips', this.data.id, 'operation', ...editor, id], {queryParams: {} /*reset query params*/ });
 
         this.markAsLoaded();
       });
@@ -446,7 +462,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       this.tripContext?.setValue('usageMode', this.usageMode);
 
       setTimeout(async () => {
-        await this.router.navigate(['trips', this.data.id, 'operation', 'new'], {
+        const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+        await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
           queryParams: {}
         });
         this.markAsLoaded();
@@ -501,7 +518,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
    * Open a modal to select a previous gear
    * @param event
    */
-  async openSelectPreviousGearModal(event: PromiseEvent<PhysicalGear>) {
+  async openSearchPhysicalGearModal(event: PromiseEvent<PhysicalGear>) {
     if (!event || !event.detail.success) return; // Skip (missing callback)
 
     const trip = Trip.fromObject(this.tripForm.value);
@@ -511,7 +528,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (!vessel || !date) return; // Skip
 
     const programLabel = this.$programLabel.getValue();
-    const acquisitionLevel = this.physicalGearsTable.acquisitionLevel;
+    const acquisitionLevel = event.type || this.physicalGearsTable.acquisitionLevel;
     const filter = <PhysicalGearFilter>{
       program: {label: programLabel},
       vesselId: vessel.id,
@@ -547,12 +564,13 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     await modal.present();
 
     // On dismiss
-    const res = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
-    console.debug('[trip] Result of select gear modal:', res);
-    if (res && res.data && isNotEmptyArray(res.data)) {
-      // Cal resolve callback
-      event.detail.success(res.data[0]);
+    if (isNotEmptyArray(data)) {
+      const gearToCopy = PhysicalGear.fromObject(data[0]);
+      console.debug('[trip] Result of select gear modal:', gearToCopy);
+      // Call resolve callback
+      event.detail.success(gearToCopy);
     }
     else {
       // User cancelled
@@ -603,14 +621,21 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const json = await super.getJsonValueToSave();
 
     json.sale = !this.saleForm.empty ? this.saleForm.value : null;
-    json.measurements = this.measurementsForm.value;
+
+    return json;
+  }
+
+  protected async getValue(): Promise<Trip> {
+    const data = await super.getValue();
+
+    data.measurements = this.measurementsForm.value;
 
     if (this.physicalGearsTable.dirty) {
       await this.physicalGearsTable.save();
     }
-    json.gears = this.physicalGearService.value;
+    data.gears = this.physicalGearService.value;
 
-    return json;
+    return data;
   }
 
   protected getFirstInvalidTabIndex(): number {

@@ -63,11 +63,10 @@ export class DenormalizedPmfmFilter extends EntityFilter<DenormalizedPmfmFilter,
     // Filter on fraction, by matrix
     if (this.fractionIdByMatrixId) {
       Object.keys(this.fractionIdByMatrixId)
-        .map(parseInt)
         .forEach(matrixId => {
           const fractionId = toNumber(this.fractionIdByMatrixId[matrixId]);
           if (isNotNil(fractionId)) {
-            filterFns.push(t => t.matrixId !== matrixId || t.fractionId === fractionId);
+            filterFns.push(t => t.matrixId !== +matrixId || t.fractionId === fractionId);
           }
         });
     }

@@ -40,14 +40,15 @@
                         [samplingRatioFormat]="samplingRatioFormat"
                         [i18nSuffix]="i18nSuffix"
                         (onSubmit)="close($event)"
-                        [pmfms]="pmfms"
                         [qvPmfm]="qvPmfm"
+                        [childrenPmfms]="childrenPmfms"
+                        [pmfms]="pmfms"
                         [mobile]="mobile"
                         [debug]="debug">
 
       <!-- open individual modal -->
       <ion-button afterSpecies class="ion-margin-bottom"
-                  *ngIf="openSubBatchesModal && form.hasSubBatches && allowSubBatches"
+                  *ngIf="form.hasSubBatches && allowSubBatches"
                   color="tertiary" fill="solid" expand="block" shape="round"
                   (click)="onShowSubBatchesButtonClick($event)">
         <ion-label>

@@ -1,20 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
-import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
-import {
-  AccountService,
-  AppFormUtils,
-  AppTable,
-  EntitiesTableDataSource,
-  isNotNil,
-  LatLongPattern,
-  LocalSettings,
-  LocalSettingsService,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  toBoolean
-} from '@sumaris-net/ngx-components';
+import { OperationService } from '../services/operation.service';
+import { AccountService, AppFormUtils, isNotNil, LatLongPattern, LocalSettings, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { OperationsMap, OperationsMapModalOptions } from './map/operations.map';
 import { environment } from '@environments/environment';
 import { Operation } from '../services/model/trip.model';
@@ -26,6 +14,7 @@ import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { AppBaseTable } from '@app/shared/table/base.table';
+import { LandingEditor, OperationEditor } from '@app/referential/services/config/program.config';
 
 @Component({
   selector: 'app-operations-table',
@@ -59,6 +48,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   @Input() allowParentOperation = false;
   @Input() showQuality = true;
   @Input() showRowError = false;
+  @Input() detailEditor: OperationEditor;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);

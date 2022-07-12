@@ -17,7 +17,8 @@ export interface PhysicalGearFromObjectOptions {
 }
 
 @EntityClass({ typename: 'PhysicalGearVO' })
-export class PhysicalGear extends RootDataEntity<PhysicalGear, number, PhysicalGearAsObjectOptions, PhysicalGearFromObjectOptions>
+export class PhysicalGear
+  extends RootDataEntity<PhysicalGear, number, PhysicalGearAsObjectOptions, PhysicalGearFromObjectOptions>
   implements IEntityWithMeasurement<PhysicalGear>, ITreeItemEntity<PhysicalGear> {
 
   static fromObject: (source: any, opts?: any) => PhysicalGear;
@@ -56,19 +57,25 @@ export class PhysicalGear extends RootDataEntity<PhysicalGear, number, PhysicalG
 
   static fromObjectArrayAsTree(sources: any[], opts?: PhysicalGearFromObjectOptions): PhysicalGear[] {
     if (!sources) return null;
-    const gears = (sources || [])
-      .filter(isNotNil)
-      .map(json => PhysicalGear.fromObject(json, opts));
-    const root = gears.filter(g => isNil(g.parentId) && isNil(g.parent));
-    // Link to parent
-    gears.forEach(s => {
-      s.parent = isNotNil(s.parentId) && root.find(p => p.id === s.parentId) || undefined;
-      s.parentId = undefined; // Avoid redundant info on parent
-    });
-    // Link to children
-    root.forEach(s => s.children = gears.filter(p => p.parent && p.parent === s) || []);
 
-    console.debug("[physical-gear-model] fromObjectArrayAsTree() :", root);
+    // Convert to entities
+    const targets = (sources || [])
+      .map(json => PhysicalGear.fromObject(json, {...opts, withChildren: false}));
+
+    // Find roots
+    const root = targets.filter(g => isNil(g.parentId));
+
+    // Link to parent (using parentId)
+    targets.forEach(t => {
+      t.parent = isNotNil(t.parentId) && root.find(p => p.id === t.parentId) || undefined;
+      t.parentId = undefined; // Avoid redundant info on parent
+    });
+
+    // Link to children
+    root.forEach(s => s.children = targets.filter(p => p.parent && p.parent === s) || []);
+
+    console.debug("[physical-gear-model] fromObjectArrayAsTree() result:", root);
+    // Return root
     return root;
   }
 
