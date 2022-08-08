@@ -1,6 +1,8 @@
 <ion-app>
 
-  <app-menu [logo]="logo" [appName]="appName">
+  <app-menu [logo]="logo" [appName]="appName" contentId="menu-content">
+
+    <app-user-event-notification-icon headerBottomRight></app-user-event-notification-icon>
 
     <ion-router-outlet id="menu-content"></ion-router-outlet>
 

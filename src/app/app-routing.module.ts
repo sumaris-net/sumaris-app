@@ -94,13 +94,14 @@ const routes: Routes = [
         redirectTo: 'shared',
       },
       // Shared module
-      /*{
-        path: 'shared',
-        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SharedTestingModule)
-      },*/
       {
         path: 'shared',
         loadChildren: () => import('./shared/shared.testing.module').then(m => m.AppSharedTestingModule)
+      },
+      // Social module
+      {
+        path: 'social',
+        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SocialTestingModule)
       },
       // Trip module
       {

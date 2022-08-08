@@ -1,0 +1,154 @@
+
+<!-- Type = options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- display columns -->
+  <button mat-menu-item
+          (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+
+</mat-menu>
+
+<!-- top header -->
+<mat-toolbar>
+
+  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+
+    <button mat-icon-button [title]="'COMMON.BTN_REFRESH'|translate" (click)="onRefresh.emit()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+
+  </ng-container>
+
+  <!-- if row selection -->
+  <ng-template #hasSelection>
+
+    <!-- delete -->
+    <button mat-icon-button class="hidden-xs hidden-sm" *ngIf="canDelete"
+            [title]="'COMMON.BTN_DELETE'|translate" (click)="deleteSelection($event)">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </ng-template>
+
+  <!-- error -->
+  <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <div class="toolbar-spacer"></div>
+
+  <button mat-icon-button
+          [title]="'COMMON.BTN_OPTIONS'|translate"
+          [matMenuTriggerFor]="optionsMenu">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+</mat-toolbar>
+
+
+<mat-table [dataSource]="dataSource" matSort
+           [matSortActive]="defaultSortBy"
+           [matSortDirection]="defaultSortDirection"
+           matSortDisableClear [trackBy]="trackByFn">
+
+  <!-- select -->
+  <ng-container matColumnDef="select">
+    <mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit">
+      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
+                    [indeterminate]="selection.hasValue() && !isAllSelected()">
+      </mat-checkbox>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!canEdit">
+      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
+      </mat-checkbox>
+    </mat-cell>
+  </ng-container>
+
+  <!-- id -->
+  <ng-container matColumnDef="id">
+    <mat-header-cell *matHeaderCellDef mat-sort-header [class.cdk-visually-hidden]="!isAdmin">
+      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!isAdmin">{{ row.currentData.id | mathAbs }}</mat-cell>
+  </ng-container>
+
+  <!-- creationDate -->
+  <ng-container matColumnDef="creationDate">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>SOCIAL.USER_EVENT.CREATION_DATE</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ion-text>
+        {{row.currentData.creationDate | dateFromNow }}<br/>
+        <ion-text color="medium"><small>{{row.currentData.creationDate | dateFormat: {time: true} }}</small></ion-text>
+      </ion-text>
+    </mat-cell>
+  </ng-container>
+
+  <!-- icon -->
+  <ng-container matColumnDef="icon">
+    <mat-header-cell *matHeaderCellDef>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row;">
+      <ng-container *ngIf="getIcon(row.currentData); let icon">
+        <app-icon [ref]="icon"></app-icon>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
+
+  <!-- type -->
+  <ng-container matColumnDef="type">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>
+      <ion-label translate>SOCIAL.USER_EVENT.TYPE</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row;">
+      <span>{{'SOCIAL.USER_EVENT.TYPE_ENUM.' + row.currentData.type | translate}}</span>
+    </mat-cell>
+  </ng-container>
+
+  <!-- message -->
+  <ng-container matColumnDef="message">
+    <mat-header-cell *matHeaderCellDef>
+      <ion-label translate>SOCIAL.USER_EVENT.MESSAGE</ion-label>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row;">
+      <ng-container *ngIf="row.currentData.content?.message; let message">
+        <ion-text [innerHTML]="message|translate">
+        </ion-text>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
+
+  <!-- Actions buttons column -->
+  <ng-container matColumnDef="actions">
+    <mat-header-cell *matHeaderCellDef>
+    </mat-header-cell>
+    <mat-cell *matCellDef="let row">
+      <ng-container *ngFor="let action of row.currentData.actions">
+        <button mat-icon-button color="light"
+                *ngIf="!action.default"
+                [title]="(action.title || action.name) | translate"
+                [color]="action.color"
+                (click)="doAction(action, row)">
+          <app-icon slot="start" *ngIf="action.iconRef" [ref]="action.iconRef"></app-icon>
+        </button>
+      </ng-container>
+    </mat-cell>
+  </ng-container>
+
+  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+  <mat-row *matRowDef="let row; columns: displayedColumns;"
+           class="mat-row-disabled"
+           (click)="clickRow($event, row)"></mat-row>
+
+</mat-table>
+
+<ion-row class="ion-no-padding">
+  <ion-col></ion-col>
+  <ion-col class="ion-no-padding" size="auto">
+    <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions" showFirstLastButtons>
+    </mat-paginator>
+  </ion-col>
+</ion-row>

@@ -305,7 +305,8 @@
     "LOCAL_SETTINGS": "Paramètres",
     "SERVER": "Configuration serveur",
     "LOGOUT": "Se déconnecter",
-    "ABOUT": "À propos"
+    "ABOUT": "À propos",
+    "BTN_MY_ACCOUNT": "Mon compte"
   },
   "ABOUT": {
     "TITLE": "À propos",
@@ -2248,7 +2249,13 @@
   },
   "SOCIAL": {
     "USER_EVENT": {
-      "EVENT_TYPE": "Type",
+      "NOTIFICATION": {
+        "TITLE": "Notifications",
+        "EMPTY": "Aucune notification",
+        "READ_ALL": "Tout marquer comme lu"
+      },
+      "TYPE": "Type",
+      "ICON": "Icône",
       "CREATION_DATE": "Date/Heure",
       "MESSAGE": "Message",
       "BTN_COPY_TO_LOCAL": "Copier localement",
@@ -2259,6 +2266,12 @@
         "DEBUG_DATA": "Donnée de debuggage",
         "INBOX_MESSAGE": "Message entrant",
         "FEED": "Actualité"
+      }
+    },
+    "JOB": {
+      "PROGRESSION": {
+        "TITLE": "Liste des tâches en cours",
+        "EMPTY": "Aucune tâche en cours"
       }
     },
     "MESSAGE": {

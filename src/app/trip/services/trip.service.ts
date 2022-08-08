@@ -1,4 +1,4 @@
-import { Injectable, Injector, Optional } from '@angular/core';
+import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { filter, map } from 'rxjs/operators';
 import * as momentImported from 'moment';
@@ -21,7 +21,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
+  isNotNilOrBlank, IUserEventService,
   JobUtils,
   LoadResult,
   LocalSettingsService,
@@ -30,7 +30,7 @@ import {
   ShowToastOptions,
   Toasts,
   toNumber,
-  UserEventService
+  UserEventAction
 } from '@sumaris-net/ngx-components';
 import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
@@ -74,6 +74,9 @@ import { Program, ProgramUtils } from '@app/referential/services/model/program.m
 import { Geometries } from '@app/shared/geometries.utils';
 import { BBox } from 'geojson';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { UserEvent } from '@app/social/user-event/user-event.model';
+import { UserEventService } from '@app/social/user-event/user-event.service';
+import { USER_EVENT_SERVICE } from '@sumaris-net/ngx-components';
 
 const moment = momentImported;
 
@@ -432,9 +435,9 @@ export class TripService
     protected physicalGearService: PhysicalGearService,
     protected settings: LocalSettingsService,
     protected validatorService: TripValidatorService,
-    protected userEventService: UserEventService,
     protected trashRemoteService: TrashRemoteService,
     protected formErrorTranslator: FormErrorTranslator,
+    @Inject(USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any,  any>,
     @Optional() protected translate: TranslateService,
     @Optional() protected toastController: ToastController
   ) {
@@ -449,20 +452,25 @@ export class TripService
     this._featureName = TRIP_FEATURE_NAME;
 
     // Register user event actions
-    /*userEventService.registerListener(
-      UserEventFilter.fromObject(<UserEventFilter>{
-        types: ['DEBUG_DATA']
-      }).asFilterFn(),
-      {
-      __typename: Trip.TYPENAME,
-      matIcon: 'content_copy',
-      name: 'copyToLocal',
-      title: 'SOCIAL.USER_EVENT.BTN_COPY_TO_LOCAL',
-      color: 'primary',
-      executeAction: (event, context) => {
-        return this.copyLocally(Trip.fromObject(context), {displaySuccessToast: true})
-      }
-    });*/
+    if (userEventService) {
+      userEventService.registerListener({
+        accept: (e) => this.isDebugData(e),
+        onReceived: (event) => {
+          event.addAction({
+              name: this.translate.instant('SOCIAL.USER_EVENT.BTN_COPY_TO_LOCAL'),
+              color: 'success',
+              iconRef: {
+                matIcon: 'content_copy'
+              },
+              executeAction: async (e) => {
+                const context = this.getEventContext(event);
+                await this.copyLocally(Trip.fromObject(context), { displaySuccessToast: true });
+              },
+            });
+          return event;
+        }
+      });
+    }
 
     // Register self (avoid loop dependency)
     operationService.tripService = this;
@@ -470,6 +478,27 @@ export class TripService
     // FOR DEV ONLY
     this._debug = !environment.production;
     if (this._debug) console.debug('[trip-service] Creating service');
+  }
+
+  getEventContext(event: UserEvent): any {
+    const context = event.content?.context;
+    if (context && typeof context === 'string') {
+      try {
+        return JSON.parse(context);
+      }
+      catch (e) {
+        // Invalid JSON: continue
+      }
+    }
+    return context;
+  }
+
+  isDebugData(event: UserEvent): boolean {
+    if (event.type === 'DEBUG_DATA') {
+      const context = this.getEventContext(event);
+      return context && context.__typename === Trip.TYPENAME;
+    }
+    return false;
   }
 
   async loadAll(offset: number,

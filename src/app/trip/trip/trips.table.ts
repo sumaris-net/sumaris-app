@@ -1,21 +1,22 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { TripValidatorService } from '../services/validator/trip.validator';
-import { TripComparators, TripLoadOptions, TripService } from '../services/trip.service';
+import { TripComparators, TripService } from '../services/trip.service';
 import { TripFilter, TripSynchroImportFilter } from '../services/filter/trip.filter';
 import { FormArray, FormBuilder, FormControl } from '@angular/forms';
 import {
   arrayDistinct,
   chainPromises,
-  ConfigService, DateUtils,
-  EntitiesTableDataSource, FilesUtils,
-  HammerSwipeEvent, Hotkeys, isEmptyArray, isNilOrBlank, isNotEmptyArray,
-  isNotNil, isNotNilOrBlank, MINIFY_ENTITY_FOR_LOCAL_STORAGE,
+  ConfigService,
+  FilesUtils,
+  HammerSwipeEvent,
+  isEmptyArray,
+  isNotEmptyArray,
+  isNotNil,
+  MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
   PersonUtils,
   ReferentialRef,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
   SharedValidators,
   slideUpDownAnimation,
   StatusIds
@@ -29,7 +30,7 @@ import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
-import { filter, mergeMap, tap } from 'rxjs/operators';
+import { filter, tap } from 'rxjs/operators';
 import { BehaviorSubject } from 'rxjs';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
@@ -37,10 +38,8 @@ import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { OperationService, OperationServiceLoadOptions } from '@app/trip/services/operation.service';
+import { OperationService } from '@app/trip/services/operation.service';
 import { OperationsMap, OperationsMapModalOptions } from '@app/trip/operation/map/operations.map';
-import { Popovers } from '@app/shared/popover/popover.utils';
-import { MatTable } from '@angular/material/table';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
