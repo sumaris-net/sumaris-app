@@ -13,13 +13,12 @@ import {
   IUserEvent,
   IUserEventFilter,
   toDateISOString,
-  UserEventAction,
+  UserEventAction
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { StoreObject } from '@apollo/client/core';
 
 @EntityClass({ typename: 'UserEventVO' })
-export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent, string> {
+export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent> {
   static fromObject: (source: any, opts?: any) => UserEvent;
 
   type: string;
@@ -34,6 +33,7 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
 
   avatar: string;
   avatarIcon: IconRef;
+  avatarJdenticon: any;
   icon: IconRef;
 
   readDate: Moment;
@@ -107,6 +107,8 @@ export class UserEventFilter
   issuers: string[] = [];
   recipients: string[] = [];
   startDate: Moment = null;
+
+  includedIds: number[] = [];
   excludeRead = false;
 
   constructor() {
@@ -120,6 +122,7 @@ export class UserEventFilter
     this.issuers = source.issuers || [];
     this.recipients = source.recipients || [];
     this.startDate = fromDateISOString(source.startDate);
+    this.includedIds = source.includedIds || [];
     this.excludeRead = source.excludeRead || false;
   }
 
@@ -141,6 +144,9 @@ export class UserEventFilter
 
     if (isNotNil(this.startDate)) {
       filterFns.push((t) => this.startDate.isSameOrBefore(t.creationDate));
+    }
+    if (isNotEmptyArray(this.includedIds)) {
+      filterFns.push((t) => this.includedIds.includes(t.id));
     }
     if (this.excludeRead === true) {
       filterFns.push((t) => isNil(t.readDate));

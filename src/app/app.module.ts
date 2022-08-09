@@ -35,7 +35,7 @@ import {
   CORE_CONFIG_OPTIONS,
   DATE_ISO_PATTERN,
   Department,
-  EntitiesStorageTypePolicies,
+  EntitiesStorageTypePolicies, ENVIRONMENT,
   FormFieldDefinitionMap,
   LocalSettings,
   MenuItem,
@@ -140,6 +140,7 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
     InAppBrowser,
     AudioManagement,
     Downloader,
+
 
     {provide: APP_BASE_HREF, useFactory: function () {
         try {

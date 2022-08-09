@@ -3,14 +3,20 @@ import {
   AbstractUserEventService,
   AccountService,
   Entity,
+  EntityServiceLoadOptions, fromDateISOString,
   GraphqlService,
+  IEntityService,
   isEmptyArray,
+  isNotNil,
   IUserEventMutations,
   IUserEventQueries,
   IUserEventSubscriptions,
   LoadResult,
   NetworkService,
   Page,
+  Person,
+  PersonService,
+  PersonUtils,
   ShowToastOptions,
   Toasts,
   UserEventTypes,
@@ -27,6 +33,8 @@ import { OverlayEventDetail } from '@ionic/core';
 import { SortDirection } from '@angular/material/sort';
 import { UserEventFragments } from './user-event.fragments';
 import { Router } from '@angular/router';
+import { filter, map } from 'rxjs/operators';
+import { CacheService } from 'ionic-cache';
 
 const queries: IUserEventQueries = {
   loadAll: gql`query UserEvents($filter: UserEventFilterVOInput, $page: PageInput) {
@@ -68,7 +76,7 @@ const mutations: IUserEventMutations = {
 };
 
 const subscriptions: Partial<IUserEventSubscriptions> = {
-  listenChanges: gql`subscription UpdateUserEvents($filter: UserEventFilterVOInput, $interval: Int) {
+  listenAllChanges: gql`subscription UpdateUserEvents($filter: UserEventFilterVOInput, $interval: Int) {
     data: updateUserEvents(filter: $filter, interval: $interval) {
       ...UserEventFragment
     }
@@ -80,14 +88,27 @@ const subscriptions: Partial<IUserEventSubscriptions> = {
   }`
 };
 
+
+const CacheKeys = {
+  CACHE_GROUP: UserEvent.TYPENAME,
+
+  PERSON_BY_PUBKEY: 'personByPubkey'
+};
+
+
 @Injectable()
-export class UserEventService extends AbstractUserEventService<UserEvent, UserEventFilter> {
+export class UserEventService extends
+  AbstractUserEventService<UserEvent, UserEventFilter>
+  implements IEntityService<UserEvent, number> {
+
   constructor(
     protected graphql: GraphqlService,
     protected accountService: AccountService,
     protected network: NetworkService,
     protected translate: TranslateService,
     protected toastController: ToastController,
+    protected personService: PersonService,
+    protected cache: CacheService,
     protected router: Router
   ) {
     super(graphql, accountService, network, translate,
@@ -101,11 +122,30 @@ export class UserEventService extends AbstractUserEventService<UserEvent, UserEv
     // Customize icons
     this.registerListener({
       accept: () => true,
-      onReceived: (userEvent: UserEvent) => {
-        this.customize(userEvent);
-        return userEvent;
-      }
+      onReceived: (e) => this.onReceived(e)
     });
+  }
+
+  canUserWrite(data: UserEvent, opts?: any): boolean {
+    return false;// Cannot write a existing UserEvent
+  }
+
+  async load(id: number, opts?: EntityServiceLoadOptions & {withContent?: boolean}): Promise<UserEvent> {
+    const filter = <Partial<UserEventFilter>>{
+      recipients: [this.defaultRecipient()],
+      includedIds: [id]
+    };
+    const { data } = await this.loadPage({offset: 0, size: 1}, filter, {withContent: true, ...opts});
+    const entity = data && data[0];
+    return entity;
+  }
+
+  listenChanges(id: number, opts?: any): Observable<UserEvent> {
+    return super.listenAllChanges({includedIds: [id]}, { ...opts, /*fetchPolicy: 'network-only',*/ withContent: true })
+      .pipe(
+        map(res => res && res[0]),
+        filter(isNotNil)
+      );
   }
 
   asFilter(filter: Partial<UserEventFilter>): UserEventFilter {
@@ -128,9 +168,12 @@ export class UserEventService extends AbstractUserEventService<UserEvent, UserEv
   }
 
   watchPage(page: Page, filter?: Partial<UserEventFilter>, options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
-    if (!filter) filter = {};
-    if (!filter.recipients?.length) {
+    filter = filter || {};
+    if (isEmptyArray(filter.recipients)) {
       filter.recipients = [this.defaultRecipient()];
+    }
+    if (!filter.startDate) {
+      filter.startDate = fromDateISOString('1970-01-01T00:00:00.000Z');
     }
     return super.watchPage({ ...page, sortBy: 'creationDate', sortDirection: 'desc' }, filter, {
       ...options,
@@ -139,11 +182,11 @@ export class UserEventService extends AbstractUserEventService<UserEvent, UserEv
     });
   }
 
-  listenChanges(
+  listenAllChanges(
     filter: Partial<UserEventFilter>,
     options?: UserEventWatchOptions & { interval?: number; fetchPolicy?: FetchPolicy }
   ): Observable<UserEvent[]> {
-    return super.listenChanges(filter, { ...options, /*fetchPolicy: 'network-only',*/ withContent: true });
+    return super.listenAllChanges(filter, { ...options, /*fetchPolicy: 'network-only',*/ withContent: true });
   }
 
   listenCountChanges(
@@ -155,7 +198,7 @@ export class UserEventService extends AbstractUserEventService<UserEvent, UserEv
     return super.listenCountChanges(filter, { ...options, fetchPolicy: 'no-cache' });
   }
 
-  add(entity: UserEvent) {
+  async add(entity: UserEvent) {
     throw new Error(`Don't use add for the moment`);
   }
 
@@ -242,34 +285,66 @@ export class UserEventService extends AbstractUserEventService<UserEvent, UserEv
     return this.accountService.person.pubkey;
   }
 
-  protected customize(userEvent: UserEvent) {
+  protected async onReceived(source: UserEvent): Promise<UserEvent> {
     // Choose default avatarIcon
-    switch (userEvent.level) {
+    switch (source.level) {
       case 'ERROR':
-        userEvent.avatarIcon = { icon: 'close-circle-outline', color: 'danger' };
+        source.avatarIcon = { icon: 'close-circle-outline', color: 'danger' };
         break;
       case 'WARNING':
-        userEvent.avatarIcon = { icon: 'warning-outline', color: 'warning' };
+        source.avatarIcon = { icon: 'warning-outline', color: 'warning' };
         break;
       case 'INFO':
-        userEvent.avatarIcon = { icon: 'information-circle-outline' };
+        source.avatarIcon = { icon: 'information-circle-outline' };
         break;
       case 'DEBUG':
-        userEvent.avatarIcon = { icon: 'cog', color: 'medium' };
+        source.avatarIcon = { icon: 'cog', color: 'medium' };
         break;
     }
 
     // Add message
-    userEvent.message = userEvent.message || this.translate.instant(`SOCIAL.USER_EVENT.TYPE_ENUM.${userEvent.type}`);
+    source.message = source.message || this.translate.instant(`SOCIAL.USER_EVENT.TYPE_ENUM.${source.type}`);
 
-    // Abalyse type
-    switch (userEvent.type) {
+    let issuer: Person;
+
+    // Analyse type
+    switch (source.type) {
       case 'DEBUG_DATA':
-        userEvent.addDefaultAction({
+        issuer = await this.getPersonByPubkey(source.issuer);
+        source.icon = { matIcon: 'bug_report', color: 'danger'};
+        source.message = this.translate.instant('SOCIAL.USER_EVENT.TYPE_ENUM.DEBUG_DATA', {
+          message: source.content.message || '',
+          issuer: this.personToString(issuer, {withDepartment: true})
+        } );
+        source.addDefaultAction({
             executeAction: () => this.router.navigate(['admin', 'config'], {queryParams: {tab: '2'}})
           });
         break;
+
+      case 'INBOX_MESSAGE':
+        issuer = await this.getPersonByPubkey(source.issuer);
+        if (isNotNil(issuer?.avatar)) {
+          source.avatar = issuer?.avatar;
+        }
+        else if (source.issuer === 'SYSTEM') {
+          source.avatarIcon = {matIcon: 'person'};
+        }
+        else if (isNotNil(issuer?.id)) {
+          source.avatarJdenticon = issuer?.id;
+          source.avatarIcon = null;
+        }
+        else {
+          source.avatarIcon = {matIcon: 'mail'};
+        }
+        source.icon = { matIcon: 'inbox', color: 'success'};
+        source.message = this.translate.instant('SOCIAL.USER_EVENT.TYPE_ENUM.INBOX_MESSAGE', {issuer: this.personToString(issuer)} );
+        source.addDefaultAction({
+          executeAction: (e) => this.router.navigate(['inbox', e.id])
+        });
+        break;
     }
+
+    return source;
   }
 
   protected convertObjectToString(data: any): string {
@@ -289,5 +364,27 @@ export class UserEventService extends AbstractUserEventService<UserEvent, UserEv
   protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController) throw new Error('Missing toastController in component\'s constructor');
     return await Toasts.show(this.toastController, this.translate, opts);
+  }
+
+  async getPersonByPubkey(pubkey: string, opts?: {cache?: boolean, toEntity?: boolean}): Promise<Person> {
+
+    if (pubkey === 'SYSTEM') return null;
+
+    if (!opts || opts.cache !== false) {
+      const cacheKey = [CacheKeys.PERSON_BY_PUBKEY, pubkey].join('|');
+      return this.cache.getOrSetItem(cacheKey, () => this.getPersonByPubkey(pubkey, {cache: false, toEntity: false}), CacheKeys.CACHE_GROUP)
+        .then(data => (!opts || opts.toEntity !== false) ? Person.fromObject(data) : data);
+    }
+
+    const {data} = await this.personService.loadAll(0, 1, null,  null, {pubkey}, {withTotal: false, ...opts});
+    return data && data[0] as Person;
+  }
+
+  protected personToString(obj: Person, opts?: {withDepartment: boolean}): string {
+    if (!obj || !obj.id) return undefined;
+    if (opts?.withDepartment && obj.department?.label) {
+      return obj.firstName + ' ' + obj.lastName + ' (' + obj.department?.label + ')';
+    }
+    return obj && obj.id && (obj.firstName + ' ' + obj.lastName) || undefined;
   }
 }

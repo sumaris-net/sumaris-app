@@ -2263,8 +2263,8 @@
         "COPIED_LOCALLY": "Copier localement avec succès"
       },
       "TYPE_ENUM": {
-        "DEBUG_DATA": "Donnée de debuggage",
-        "INBOX_MESSAGE": "Message entrant",
+        "DEBUG_DATA": "Un problème a été remonté: <b>{{message}}</b><br/>par <a>{{issuer}}</a>",
+        "INBOX_MESSAGE": "Vous avez <b>reçu un message</b><br/>de <a>{{issuer}}</a>",
         "FEED": "Actualité"
       }
     },
@@ -2281,6 +2281,12 @@
       "BODY_HELP": "Votre message...",
       "NEW": {
         "TITLE": "Nouveau message"
+      },
+      "INBOX": {
+        "TITLE": "Messagerie",
+        "FROM": "De : ",
+        "BTN_REPLY": "Répondre",
+        "REPLY_SUBJECT_PREFIX": "Re: "
       },
       "TYPE_ENUM": {
         "INBOX_MESSAGE": "Messagerie interne",

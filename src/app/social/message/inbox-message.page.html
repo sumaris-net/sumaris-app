@@ -1,0 +1,71 @@
+<app-toolbar [title]="'SOCIAL.MESSAGE.INBOX.TITLE'|translate"
+             [canGoBack]="false">
+
+</app-toolbar>
+
+<ion-content>
+
+  <!-- actions -->
+  <ion-toolbar color="light">
+    <ion-title>{{form|formGetValue:'subject'}}</ion-title>
+
+
+  </ion-toolbar>
+
+  <div *ngIf="form|formGetValue; let data" class="ion-padding">
+
+    <!-- date -->
+    <ion-item class="ion-no-padding">
+      <ion-avatar slot="start" *ngIf="data.issuer; let issuer">
+
+        <img *ngIf="issuer.avatar; else generateIcon" src="{{ issuer.avatar }}">
+
+        <ng-template #generateIcon>
+          <div class="avatar" *ngIf="issuer.id|isNotNilOrBlank">
+            <svg width="40" width="40" [data-jdenticon-value]="issuer.id"></svg>
+          </div>
+        </ng-template>
+      </ion-avatar>
+
+      <ion-grid class="ion-no-margin ion-no-padding message">
+        <ion-row>
+          <ion-col size="12">
+            <ion-text color="dark" translate>
+              {{'SOCIAL.MESSAGE.INBOX.FROM'|translate}}
+            </ion-text>
+            <ion-text color="primary">
+              {{data.issuer|personToString}}
+            </ion-text>
+          </ion-col>
+        </ion-row>
+
+        <!-- date -->
+        <ion-row>
+          <ion-col size="6">
+            <app-icon
+              *ngIf="data.icon"
+              [ref]="data.icon"
+              height="16"
+              width="16"
+              style="vertical-align: sub; margin-right: 3px"
+            ></app-icon>
+            <small>
+              <span>{{data.creationDate|dateFromNow}}</span>
+              <span style="color: gray">{{ ' | ' + (data.creationDate|dateFormat:{time:true}) }}</span>
+            </small>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+      <ion-buttons slot="end">
+        <button mat-icon-button [title]="'SOCIAL.MESSAGE.INBOX.BTN_REPLY'|translate"
+                (click)="reply($event)">
+          <mat-icon>reply</mat-icon>
+        </button>
+      </ion-buttons>
+    </ion-item>
+
+    <!-- Body -->
+    <p class="body" [innerHTML]="data.body"></p>
+  </div>
+</ion-content>

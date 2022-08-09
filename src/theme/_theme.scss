@@ -199,3 +199,10 @@ mat-sampling-ratio-field {
     }
   }
 }
+
+.popover-notifications {
+  ion-avatar img,
+  ion-avatar .avatar svg {
+    //border-radius: 5px !important;
+  }
+}
