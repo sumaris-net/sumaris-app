@@ -131,8 +131,8 @@ export class UserEventService extends
   }
 
   async load(id: number, opts?: EntityServiceLoadOptions & {withContent?: boolean}): Promise<UserEvent> {
-    const filter = <Partial<UserEventFilter>>{
-      recipients: [this.defaultRecipient()],
+    const filter = {
+      ...this.defaultFilter(),
       includedIds: [id]
     };
     const { data } = await this.loadPage({offset: 0, size: 1}, filter, {withContent: true, ...opts});
@@ -141,7 +141,11 @@ export class UserEventService extends
   }
 
   listenChanges(id: number, opts?: any): Observable<UserEvent> {
-    return super.listenAllChanges({includedIds: [id]}, { ...opts, /*fetchPolicy: 'network-only',*/ withContent: true })
+    const dataFilter = {
+      ...this.defaultFilter(),
+      includedIds: [id]
+    };
+    return super.listenAllChanges(dataFilter, { ...opts, /*fetchPolicy: 'network-only',*/ withContent: true })
       .pipe(
         map(res => res && res[0]),
         filter(isNotNil)
@@ -149,14 +153,7 @@ export class UserEventService extends
   }
 
   asFilter(filter: Partial<UserEventFilter>): UserEventFilter {
-    const target = UserEventFilter.fromObject(filter || {});
-
-    // Add SYSTEM notification, if Admin
-    if (this.accountService.isAdmin() && (isEmptyArray(target.recipients) || !target.recipients.includes('SYSTEM'))) {
-      target.recipients = [...target.recipients, 'SYSTEM'];
-    }
-
-    return target;
+    return UserEventFilter.fromObject(filter);
   }
 
   fromObject(source: any): UserEvent {
@@ -186,6 +183,10 @@ export class UserEventService extends
     filter: Partial<UserEventFilter>,
     options?: UserEventWatchOptions & { interval?: number; fetchPolicy?: FetchPolicy }
   ): Observable<UserEvent[]> {
+    filter = filter || {};
+    if (isEmptyArray(filter.recipients)) {
+      filter.recipients = [this.defaultRecipient()];
+    }
     return super.listenAllChanges(filter, { ...options, /*fetchPolicy: 'network-only',*/ withContent: true });
   }
 
@@ -194,6 +195,9 @@ export class UserEventService extends
     options?: UserEventWatchOptions & { interval?: number; fetchPolicy?: FetchPolicy }
   ): Observable<number> {
     filter = filter || {};
+    if (isEmptyArray(filter.recipients)) {
+      filter.recipients = [this.defaultRecipient()];
+    }
     filter.excludeRead = true;
     return super.listenCountChanges(filter, { ...options, fetchPolicy: 'no-cache' });
   }
@@ -281,8 +285,19 @@ export class UserEventService extends
 
   /* -- protected methods -- */
 
+  protected defaultFilter(): UserEventFilter {
+    const target = super.defaultFilter();
+
+    // If user is admin: add the SYSTEM recipient
+    if (this.accountService.isAdmin() && (isEmptyArray(target.recipients) || !target.recipients.includes('SYSTEM'))) {
+      target.recipients = [...target.recipients, 'SYSTEM'];
+    }
+
+    return target;
+  }
+
   protected defaultRecipient(): any {
-    return this.accountService.person.pubkey;
+    return this.accountService.isLogin() ? this.accountService.person.pubkey : undefined;
   }
 
   protected async onReceived(source: UserEvent): Promise<UserEvent> {
