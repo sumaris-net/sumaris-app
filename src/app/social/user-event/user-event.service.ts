@@ -147,10 +147,6 @@ export class UserEventService extends
     filter: Partial<UserEventFilter>,
     options?: UserEventWatchOptions & { interval?: number; fetchPolicy?: FetchPolicy }
   ): Observable<UserEvent[]> {
-    filter = filter || {};
-    if (isEmptyArray(filter.recipients)) {
-      filter.recipients = [this.defaultRecipient()];
-    }
     return super.listenAllChanges(filter, { ...options, /*fetchPolicy: 'network-only',*/ withContent: true });
   }
 
@@ -158,19 +154,14 @@ export class UserEventService extends
     filter: Partial<UserEventFilter>,
     options?: UserEventWatchOptions & { interval?: number; fetchPolicy?: FetchPolicy }
   ): Observable<number> {
-    filter = filter || {};
-    if (isEmptyArray(filter.recipients)) {
-      filter.recipients = [this.defaultRecipient()];
-    }
+    filter = filter || this.defaultFilter();
     filter.excludeRead = true;
     return super.listenCountChanges(filter, { ...options, fetchPolicy: 'no-cache' });
   }
 
   async load(id: number, opts?: EntityServiceLoadOptions & {withContent?: boolean}): Promise<UserEvent> {
-    const filter = {
-      ...this.defaultFilter(),
-      includedIds: [id]
-    };
+    const filter = this.defaultFilter();
+    filter.includedIds = [id];
     const { data } = await this.loadPage({offset: 0, size: 1}, filter, {withContent: true, ...opts});
     const entity = data && data[0];
     return entity;
@@ -181,11 +172,9 @@ export class UserEventService extends
   }
 
   listenChanges(id: number, opts?: any): Observable<UserEvent> {
-    const dataFilter = {
-      ...this.defaultFilter(),
-      includedIds: [id]
-    };
-    return super.listenAllChanges(dataFilter, { ...opts, /*fetchPolicy: 'network-only',*/ withContent: true })
+    const f = this.defaultFilter();
+    f.includedIds = [id];
+    return super.listenAllChanges(f, { ...opts, /*fetchPolicy: 'network-only',*/ withContent: true })
       .pipe(
         map(res => res && res[0]),
         filter(isNotNil)
