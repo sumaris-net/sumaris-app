@@ -3,12 +3,13 @@ import { fadeInAnimation, isEmptyArray, LocalSettingsService, toBoolean } from '
 import { ImageService } from '@app/image/image.service';
 import { ImageAttachment, ImageAttachmentFilter } from '@app/image/image.model';
 import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
+import { fadeInOutAnimation } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-image-gallery',
   templateUrl: './image-gallery.component.html',
   styleUrls: ['./image-gallery.component.scss'],
-  animations: [fadeInAnimation],
+  animations: [fadeInAnimation, fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppImageGalleryComponent<E extends ImageAttachment, F extends ImageAttachmentFilter>

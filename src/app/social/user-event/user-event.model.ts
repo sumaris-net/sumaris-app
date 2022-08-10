@@ -13,9 +13,18 @@ import {
   IUserEvent,
   IUserEventFilter,
   toDateISOString,
-  UserEventAction
+  IUserEventAction
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
+
+
+export const UserEventTypes = {
+  DEBUG_DATA: 'DEBUG_DATA',
+  INBOX_MESSAGE: 'INBOX_MESSAGE'
+
+  // TODO: add all types of event
+};
+
 
 @EntityClass({ typename: 'UserEventVO' })
 export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent> {
@@ -39,7 +48,7 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
   readDate: Moment;
   readSignature: string;
 
-  actions: UserEventAction[];
+  actions: IUserEventAction[];
 
   constructor() {
     super(UserEvent.TYPENAME);
@@ -79,7 +88,7 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
     }
   }
 
-  addAction(action: UserEventAction) {
+  addAction(action: IUserEventAction) {
     if (!action) throw new Error(`Argument 'action' is required`);
     if (!action.name) throw new Error(`Argument 'action.name' is required`);
     if (!action.executeAction || typeof action.executeAction !== 'function') throw new Error(`Argument 'action.executeAction' is required, and should be a function`);
@@ -87,7 +96,7 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
     this.actions.push(action);
   }
 
-  addDefaultAction(action: Partial<UserEventAction>) {
+  addDefaultAction(action: Partial<IUserEventAction>) {
     this.addAction({executeAction: null, ...action,
       default: true,
       name: action.name || 'default',
