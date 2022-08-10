@@ -126,49 +126,13 @@ export class UserEventService extends
     });
   }
 
-  canUserWrite(data: UserEvent, opts?: any): boolean {
-    return false;// Cannot write a existing UserEvent
-  }
-
-  async load(id: number, opts?: EntityServiceLoadOptions & {withContent?: boolean}): Promise<UserEvent> {
-    const filter = {
-      ...this.defaultFilter(),
-      includedIds: [id]
-    };
-    const { data } = await this.loadPage({offset: 0, size: 1}, filter, {withContent: true, ...opts});
-    const entity = data && data[0];
-    return entity;
-  }
-
-  listenChanges(id: number, opts?: any): Observable<UserEvent> {
-    const dataFilter = {
-      ...this.defaultFilter(),
-      includedIds: [id]
-    };
-    return super.listenAllChanges(dataFilter, { ...opts, /*fetchPolicy: 'network-only',*/ withContent: true })
-      .pipe(
-        map(res => res && res[0]),
-        filter(isNotNil)
-      );
-  }
-
-  asFilter(filter: Partial<UserEventFilter>): UserEventFilter {
-    return UserEventFilter.fromObject(filter);
-  }
-
-  fromObject(source: any): UserEvent {
-    return UserEvent.fromObject(source);
-  }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<UserEventFilter>, options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
     return super.watchAll(offset, size, sortBy, sortDirection, filter, options);
   }
 
   watchPage(page: Page, filter?: Partial<UserEventFilter>, options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
-    filter = filter || {};
-    if (isEmptyArray(filter.recipients)) {
-      filter.recipients = [this.defaultRecipient()];
-    }
+    filter = filter || this.defaultFilter();
     if (!filter.startDate) {
       filter.startDate = fromDateISOString('1970-01-01T00:00:00.000Z');
     }
@@ -200,6 +164,40 @@ export class UserEventService extends
     }
     filter.excludeRead = true;
     return super.listenCountChanges(filter, { ...options, fetchPolicy: 'no-cache' });
+  }
+
+  async load(id: number, opts?: EntityServiceLoadOptions & {withContent?: boolean}): Promise<UserEvent> {
+    const filter = {
+      ...this.defaultFilter(),
+      includedIds: [id]
+    };
+    const { data } = await this.loadPage({offset: 0, size: 1}, filter, {withContent: true, ...opts});
+    const entity = data && data[0];
+    return entity;
+  }
+
+  canUserWrite(data: UserEvent, opts?: any): boolean {
+    return false;// Cannot write a existing UserEvent
+  }
+
+  listenChanges(id: number, opts?: any): Observable<UserEvent> {
+    const dataFilter = {
+      ...this.defaultFilter(),
+      includedIds: [id]
+    };
+    return super.listenAllChanges(dataFilter, { ...opts, /*fetchPolicy: 'network-only',*/ withContent: true })
+      .pipe(
+        map(res => res && res[0]),
+        filter(isNotNil)
+      );
+  }
+
+  asFilter(filter: Partial<UserEventFilter>): UserEventFilter {
+    return UserEventFilter.fromObject(filter);
+  }
+
+  fromObject(source: any): UserEvent {
+    return UserEvent.fromObject(source);
   }
 
   async add(entity: UserEvent) {
