@@ -2320,6 +2320,10 @@
       "ERROR": "Erreur durant l'envoi de fichier"
     }
   },
+  "IMAGE": {
+    "BTN_CAMERA_SOURCE": "Prendre une photo",
+    "BTN_GALLERY_SOURCE": "Ouvrir la galerie"
+  },
   "ERROR": {
     "ALERT_HEADER": "Erreur",
     "FIELD_REQUIRED": "Champ obligatoire",

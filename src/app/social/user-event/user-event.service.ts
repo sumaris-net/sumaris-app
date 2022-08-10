@@ -16,17 +16,15 @@ import {
   Page,
   Person,
   PersonService,
-  PersonUtils,
   ShowToastOptions,
   Toasts,
-  UserEventTypes,
   UserEventWatchOptions
 } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import gql from 'graphql-tag';
 import { Observable } from 'rxjs';
 import { FetchPolicy } from '@apollo/client/core';
-import { UserEvent, UserEventFilter } from '@app/social/user-event/user-event.model';
+import { UserEvent, UserEventFilter, UserEventTypes } from '@app/social/user-event/user-event.model';
 import { environment } from '@environments/environment';
 import { ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
@@ -311,7 +309,9 @@ export class UserEventService extends
 
     // Analyse type
     switch (source.type) {
-      case 'DEBUG_DATA':
+
+      // Debug data
+      case UserEventTypes.DEBUG_DATA:
         issuer = await this.getPersonByPubkey(source.issuer);
         source.icon = { matIcon: 'bug_report', color: 'danger'};
         source.message = this.translate.instant('SOCIAL.USER_EVENT.TYPE_ENUM.DEBUG_DATA', {
@@ -323,7 +323,8 @@ export class UserEventService extends
           });
         break;
 
-      case 'INBOX_MESSAGE':
+      // Inbox messages:
+      case UserEventTypes.INBOX_MESSAGE:
         issuer = await this.getPersonByPubkey(source.issuer);
         if (isNotNil(issuer?.avatar)) {
           source.avatar = issuer?.avatar;
@@ -344,6 +345,8 @@ export class UserEventService extends
           executeAction: (e) => this.router.navigate(['inbox', e.id])
         });
         break;
+
+      // TODO: any other type of event
     }
 
     return source;

@@ -15,7 +15,7 @@ import {
   RESERVED_START_COLUMNS,
   toBoolean,
   USER_EVENT_SERVICE,
-  UserEventAction
+  IUserEventAction
 } from '@sumaris-net/ngx-components';
 import { UserEvent, UserEventFilter } from '@app/social/user-event/user-event.model';
 
@@ -149,7 +149,7 @@ export class UserEventsTable
     return source.icon || DEFAULT_ICONS_BY_TYPE[source.type];
   }
 
-  async doAction(action: UserEventAction, row: TableElement<UserEvent>): Promise<any> {
+  async doAction(action: IUserEventAction, row: TableElement<UserEvent>): Promise<any> {
 
     const event = row.currentData;
 

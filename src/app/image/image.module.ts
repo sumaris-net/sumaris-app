@@ -1,5 +1,5 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
-import { CoreModule } from '@sumaris-net/ngx-components';
+import { CoreModule, SharedModule } from '@sumaris-net/ngx-components';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppImageGalleryComponent } from '@app/image/gallery/image-gallery.component';
 import { ImagePicker } from '@ionic-native/image-picker/ngx';
@@ -9,6 +9,7 @@ import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
 @NgModule({
   imports: [
     CoreModule,
+    SharedModule,
     TranslateModule.forChild(),
   ],
   declarations: [
