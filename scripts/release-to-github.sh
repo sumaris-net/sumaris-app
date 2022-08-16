@@ -133,12 +133,12 @@ case "$task" in
     fi
 
     if [[ ${missing_file} == true ]]; then
-      echo "-----------------------------------------"
+      echo "-------------------------------------------"
       echo "ERROR: missing some artifacts (see logs)"
       echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${version}"
       exit 1
     else
-      echo "-----------------------------------------"
+      echo "-------------------------------------------"
       echo "Successfully uploading files !"
       echo " -> Release url: ${REPO_PUBLIC_URL}/releases/tag/${version}"
       exit 0

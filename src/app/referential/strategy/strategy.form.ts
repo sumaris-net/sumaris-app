@@ -14,7 +14,7 @@ import {
   ReferentialUtils,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import { PmfmStrategiesTable, PmfmStrategyFilter } from './pmfm-strategies.table';
+import { PmfmStrategiesTable} from './pmfm-strategies.table';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { SelectReferentialModal } from '../list/select-referential.modal';
 import { ModalController } from '@ionic/angular';
@@ -27,6 +27,8 @@ import { Strategy, TaxonGroupStrategy, TaxonNameStrategy } from '../services/mod
 import { Program } from '../services/model/program.model';
 import { ReferentialFilter } from '../services/filter/referential.filter';
 import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
+import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { PmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 
 @Component({
   selector: 'app-strategy-form',
@@ -53,14 +55,14 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
         title: 'PROGRAM.STRATEGY.BTN_REMOVE_FROM_SELECTED_PMFM',
         icon: 'arrow-back-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'gears', item.id)
+        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'gearIds', item.id)
       },
       // Apply to Pmfm
       {
         title: 'PROGRAM.STRATEGY.BTN_APPLY_TO_SELECTED_PMFM',
         icon: 'arrow-forward-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.addToSelectedPmfmRows(event, 'gears', item.id)
+        click: (event, item) => this.addToSelectedPmfmRows(event, 'gearIds', item.id)
       }
     ]};
   taxonGroupListOptions = <AppListFormOptions<TaxonGroupStrategy>>{
@@ -82,7 +84,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
         click: (event, item) => this.addToSelectedPmfmRows(event, 'taxonGroupIds', item.taxonGroup.id)
       }
     ]};
-  taxonNameListOptions = {
+  taxonNameListOptions = <AppListFormOptions<TaxonNameStrategy>>{
     allowEmptyArray: true,
     allowMultipleSelection: true,
     buttons: [
@@ -91,14 +93,14 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
         title: 'PROGRAM.STRATEGY.BTN_REMOVE_FROM_SELECTED_PMFM',
         icon: 'arrow-back-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'taxonNameIds', item.taxonName.id)
+        click: (event, item) => this.removeFromSelectedPmfmRows(event, 'referenceTaxonIds', item.taxonName.referenceTaxonId)
       },
       // Apply to Pmfm
       {
         title: 'PROGRAM.STRATEGY.BTN_APPLY_TO_SELECTED_PMFM',
         icon: 'arrow-forward-circle-outline',
         disabled: this.$isPmfmStrategyEmpty,
-        click: (event, item) => this.addToSelectedPmfmRows(event, 'taxonNameIds', item.taxonName.id)
+        click: (event, item) => this.addToSelectedPmfmRows(event, 'referenceTaxonIds', item.taxonName.referenceTaxonId)
       }
     ]};
 
@@ -187,6 +189,13 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     this.$allAcquisitionLevels.unsubscribe();
   }
 
+  canUserWrite(data: Strategy): boolean {
+    // TODO test user is a program's manager
+    return this.enabled && this.accountService.isAdmin();
+  }
+
+  /* -- protected functions -- */
+
   protected registerForms() {
     this.addChildForms([
       this.referentialForm,
@@ -205,10 +214,6 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
 
   protected async computeTitle(data: Strategy): Promise<string> {
     return data && referentialToString(data) || 'PROGRAM.STRATEGY.NEW.TITLE';
-  }
-
-  protected canUserWrite(data: Strategy): boolean {
-    return this.enabled && this.accountService.isAdmin(); // TODO test user is a program's manager
   }
 
   async save(event?: Event, options?: any): Promise<boolean> {
@@ -433,7 +438,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     });
   }
 
-  protected addToSelectedPmfmRows(event: Event, arrayName: string, value: any) {
+  protected addToSelectedPmfmRows(event: Event, arrayName: keyof PmfmStrategy, value: any) {
     if (event) event.preventDefault(); // Cancel toggle event, in <list-form> component
 
     (this.pmfmsTable.selection.selected || [])

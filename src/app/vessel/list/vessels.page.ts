@@ -1,14 +1,11 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from "@angular/core";
-import {ModalController, Platform} from "@ionic/angular";
-import {ActivatedRoute, Router} from "@angular/router";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {Location} from '@angular/common';
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {VesselsTable} from "./vessels.table";
-import {VESSEL_FEATURE_NAME} from "../services/config/vessel.config";
-import {TableElement} from "@e-is/ngx-material-table";
-import {HammerSwipeEvent} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AccountService, HammerSwipeEvent, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { Location } from '@angular/common';
+import { VesselsTable } from './vessels.table';
+import { VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
+import { TableElement } from '@e-is/ngx-material-table';
 
 export const VesselsPageSettingsEnum = {
   PAGE_ID: "vessels",
@@ -32,14 +29,13 @@ export class VesselsPage implements OnInit {
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
-    protected platform: PlatformService,
     protected location: Location,
     protected modalCtrl: ModalController,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     const isAdmin = this.accountService.isAdmin();
     this.canEdit = isAdmin || this.accountService.isUser();
     this.canDelete = isAdmin;

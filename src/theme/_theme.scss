@@ -1,12 +1,18 @@
 // --------------------------------------------------
-// Import SAR style
+// Import SUMARiS themes variables
 // --------------------------------------------------
 @import "theme.globals";
-
 // --------------------------------------------------
-// Import SUMARiS theme
+// Import ngx-components theme
 // --------------------------------------------------
 @import "~@sumaris-net/ngx-components/src/theme/theme";
+
+@import "mixins";
+@import "print";
+
+// --------------------------------------------------
+// SUMARiS theme
+// --------------------------------------------------
 
 .mat-tab-fixed-content {
   .mat-tab-body-content {
@@ -20,9 +26,12 @@
 
 .mat-table {
   .mat-row {
-    height: 50px !important;
     overflow: hidden;
+    /*FIXME not need anymore ?
+    height: calc(min(var(--mat-row-max-height), 48px));
+    */
   }
+
   .mat-header-row,
   .mat-row,
   .mat-footer-row {
@@ -77,9 +86,116 @@ mat-form-field {
   height: var(--mat-toolbar-height);
 }
 
+
+// Smaller title on xxs device
+@media screen and (max-width: $screen-xxs-max) {
+  ion-toolbar ion-title {
+    font-size: 16px;
+    padding-inline: 0;
+  }
+}
+
+// Smaller title on xs device
+@media screen and (min-width: $screen-xs) and (max-width: $screen-xs-max)  {
+  ion-toolbar ion-title {
+    font-size: 18px;
+    padding-inline: 6px;
+  }
+}
+
 // Mobile: change form labels style
 @media screen and (max-width: $screen-sm-max) {
   form ion-col > ion-label.ion-float-center, form ion-col > ion-label.ion-float-end {
     font-weight: bold;
+  }
+}
+
+ion-toast {
+  &.secondary {
+    --background: var(--ion-color-secondary);
+    --color: var(--ion-color-primary);
+    --button-color: var(--ion-color-tertiary);
+  }
+}
+
+// Form buttons bar
+app-form-buttons-bar {
+  ion-col:first-of-type {
+    max-width: calc(100% - 400px);
+  }
+}
+
+// Measurement form
+@media screen and (max-width: $screen-sm-max) {
+  .measurements-form-padding-start {
+    /* Add offset = icon width (24px) + margin (2*5px) */
+    padding-inline-start: 34px;
+  }
+}
+
+.form-container,
+form.form-container {
+  mat-form-field {
+    ion-icon[matPrefix],
+    mat-icon[matPrefix],
+    .mat-form-field-prefix ion-icon,
+    .mat-form-field-prefix .mat-icon {
+      color: rgba(0, 0, 0, 0.57);
+      fill: rgba(0, 0, 0, 0.57);
+    }
+
+    &.mat-focused {
+      ion-icon[matPrefix],
+      mat-icon[matPrefix],
+      .mat-form-field-prefix ion-icon,
+      .mat-form-field-prefix .mat-icon {
+        color: var(--ion-color-dark);
+        fill: var(--ion-color-dark);
+      }
+    }
+  }
+}
+
+/* -- FAB buttons -- */
+ion-fab {
+  ion-fab-button[title] {
+    position: relative;
+  }
+
+  ion-fab-button[title]::after {
+    position: absolute;
+    content: attr(title);
+    z-index: 1;
+    right: 55px;
+    bottom: 4px;
+    background-color: var(--ion-color-medium);
+    padding: 9px;
+    border-radius: 15px;
+    color: white;
+    box-shadow: 0 3px 5px -1px rgba(0,0,0,0.2), 0 6px 10px 0 rgba(0,0,0,0.14), 0 1px 18px 0 rgba(0,0,0,0.12);
+  }
+
+  ion-fab-button {
+    .icon-secondary {
+      position: absolute;
+      left: 21px;
+      top: 3px;
+      font-size: 16px;
+    }
+  }
+}
+
+/* special case for sampling ratio: override the 'left' style, of placeholder field */
+mat-sampling-ratio-field {
+  .mat-form-field.with-prefix {
+
+    &.mat-form-field-should-float {
+      .mat-form-field-label-wrapper {
+        left: 0;
+      }
+    }
+    .mat-form-field-label-wrapper {
+      left: 19px;
+    }
   }
 }

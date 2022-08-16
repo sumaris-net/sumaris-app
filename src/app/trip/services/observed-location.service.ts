@@ -24,7 +24,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import {Observable} from 'rxjs';
 import * as momentImported from 'moment';
-import {gql} from '@apollo/client/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
 import {DataCommonFragments, DataFragments} from './trip.queries';
 import {filter, map} from 'rxjs/operators';
 import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '../../data/services/model/data-entity.model';
@@ -230,10 +230,10 @@ const ObservedLocationMutations = {
 const ObservedLocationSubscriptions = {
   listenChanges: gql`subscription UpdateObservedLocation($id: Int!, $interval: Int){
     updateObservedLocation(id: $id, interval: $interval) {
-      ...ObservedLocationFragment
+      ...LightObservedLocationFragment
     }
   }
-  ${ObservedLocationFragments.observedLocation}`
+  ${ObservedLocationFragments.lightObservedLocation}`
 };
 
 const CountSamples: any = gql`
@@ -248,7 +248,7 @@ export class ObservedLocationService
   implements IEntitiesService<ObservedLocation, ObservedLocationFilter>,
     IEntityService<ObservedLocation, number, ObservedLocationLoadOptions>,
     IDataEntityQualityService<ObservedLocation, number>,
-    IDataSynchroService<ObservedLocation, number, ObservedLocationLoadOptions> {
+    IDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationLoadOptions> {
 
   protected loading = false;
 
@@ -392,13 +392,17 @@ export class ObservedLocationService
     }
   }
 
-  public listenChanges(id: number, opts?: { interval?: number }): Observable<ObservedLocation> {
+  public listenChanges(id: number, opts?: {
+    interval?: number;
+    fetchPolicy: FetchPolicy;
+  }): Observable<ObservedLocation> {
     if (!id && id !== 0) throw new Error('Missing argument \'id\' ');
 
     if (this._debug) console.debug(`[observed-location-service] [WS] Listening changes for observedLocation {${id}}...`);
 
     return this.graphql.subscribe<{ data: ObservedLocation }, { id: number, interval: number }>({
       query: this.subscriptions.listenChanges,
+      fetchPolicy: opts && opts.fetchPolicy || undefined,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
         code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
@@ -464,7 +468,7 @@ export class ObservedLocationService
         // Add to cache
         if (isNew) {
           this.insertIntoMutableCachedQueries(proxy, {
-            queryName: 'LoadAll',
+            queries: this.getLoadQueries(),
             data: savedEntity
           });
         }
@@ -779,23 +783,22 @@ export class ObservedLocationService
    * @protected
    * @param opts
    */
-  protected getImportJobs(opts: {
+  protected getImportJobs(filter: Partial<ObservedLocationFilter>, opts: {
     maxProgression: undefined;
   }): Observable<number>[] {
 
-    const feature = this.settings.getOfflineFeature(this.featureName);
-    const landingFilter = ObservedLocationOfflineFilter.toLandingFilter(feature && feature.filter);
-    if (landingFilter) {
+    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+
+    if (filter) {
+      const landingFilter = ObservedLocationFilter.toLandingFilter(filter);
       return [
-        ...super.getImportJobs(opts),
+        ...super.getImportJobs(filter, opts),
+
         // Landing (historical data)
-        JobUtils.defer((p, o) => this.landingService.executeImport(p, {
-          ...o,
-          filter: landingFilter
-        }), opts)
+        JobUtils.defer(o => this.landingService.executeImport(landingFilter, o), opts)
       ];
     } else {
-      return super.getImportJobs(opts);
+      return super.getImportJobs(null, opts);
     }
   }
 

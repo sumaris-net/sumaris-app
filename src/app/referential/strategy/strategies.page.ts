@@ -1,18 +1,18 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TableElement} from '@e-is/ngx-material-table/src/app/ngx-material-table/table-element';
-import {Subject} from 'rxjs';
-import {AccountService, AppTable, CompletableEvent, EntityServiceLoadOptions, isNotNil, PlatformService} from '@sumaris-net/ngx-components';
-import {ProgramProperties, StrategyEditor} from '../services/config/program.config';
-import {Program} from '../services/model/program.model';
-import {Strategy} from '../services/model/strategy.model';
-import {ProgramService} from '../services/program.service';
-import {ReferentialRefService} from '../services/referential-ref.service';
-import {SamplingStrategiesTable} from './sampling/sampling-strategies.table';
-import {StrategiesTable} from './strategies.table';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {ContextService} from '../../shared/context.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TableElement } from '@e-is/ngx-material-table';
+import { Subject } from 'rxjs';
+import { AccountService, AppTable, CompletableEvent, EntityServiceLoadOptions, isNotNil, PlatformService } from '@sumaris-net/ngx-components';
+import { ProgramProperties, StrategyEditor } from '../services/config/program.config';
+import { Program } from '../services/model/program.model';
+import { Strategy } from '../services/model/strategy.model';
+import { ProgramService } from '../services/program.service';
+import { ReferentialRefService } from '../services/referential-ref.service';
+import { SamplingStrategiesTable } from './sampling/sampling-strategies.table';
+import { StrategiesTable } from './strategies.table';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { ContextService } from '@app/shared/context.service';
 
 
 // app-strategies-page

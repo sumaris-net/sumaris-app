@@ -22,15 +22,17 @@
 
 <ion-content class="ion-no-padding">
 
-    <app-physicalgears-table #table
+    <app-physical-gears-table #table
                              [canEdit]="false"
                              [canDelete]="false"
+                             [showFilter]="true"
                              [showSelectColumn]="false"
                              [showLastUsedColumn]="true"
                              [showCommentsColumn]="!mobile"
                              [showToolbar]="false"
+                             [showGearColumn]="false"
                              (onOpenRow)="selectRow($event)">
-    </app-physicalgears-table>
+    </app-physical-gears-table>
 
 </ion-content>
 

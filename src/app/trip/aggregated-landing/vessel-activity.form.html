@@ -11,17 +11,18 @@
 
     <!-- Measurements -->
     <ion-row>
-      <ion-col size="0" size-md="2" size-lg="3" [class.cdk-visually-hidden]="mobile">
+      <ion-col size="0" size-md="2" size-lg="3" hidden-xs hidden-sm hidden-mobile>
       </ion-col>
       <ion-col [formGroup]="measurementValuesForm">
 
         <!-- pmfms -->
-        <app-pmfm-field *ngFor="let pmfm of $pmfms | async; index as i;"
+        <app-pmfm-field *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn; index as i;"
                         [pmfm]="pmfm"
-                        [style]="mobile && pmfm.isQualitative && pmfm.qualitativeValues?.length <= maxVisibleButtons && 'button'"
+                        [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
                         [compact]="compact"
                         [tabindex]="i*2"
-                        [floatLabel]="floatLabel">
+                        [floatLabel]="floatLabel"
+                        [maxVisibleButtons]="maxVisibleButtons">
         </app-pmfm-field>
 
       </ion-col>

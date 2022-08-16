@@ -30,11 +30,15 @@
 
 </mat-toolbar>
 
-<div class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
 
   <!-- table -->
-  <table mat-table [dataSource]="dataSource" matSort matSortActive="vessel" matSortDirection="asc"
-         matSortDisableClear [trackBy]="trackByFn">
+  <table mat-table [dataSource]="dataSource"
+         matSort
+         matSortActive="vessel"
+         matSortDirection="asc"
+         matSortDisableClear
+         [trackBy]="trackByFn">
 
     <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
       <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!canEdit || mobile">
@@ -77,11 +81,11 @@
         <th mat-header-cell *matHeaderCellDef>
           <ion-label>{{currentDate | dateFormat: {pattern: 'dddd L'} }}</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" class="td "
+        <td mat-cell *matCellDef="let row" class="td"
             (click)="clickCell($event, row, currentDate)">
           <ng-container *ngIf="getActivities(row, currentDate); let activities">
             <div *ngFor="let activity of activities">
-              <div *ngFor="let pmfm of $pmfms | async">
+              <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
                 {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds} }}
               </div>
               <div *ngFor="let metier of activity.metiers; last as last">
@@ -101,9 +105,9 @@
         <th mat-header-cell *matHeaderCellDef>
           <ion-label>{{date | dateFormat: {pattern: 'dddd L'} }}</ion-label>
         </th>
-        <td mat-cell *matCellDef="let row" class="td mat-cell-selected" (click)="clickCell($event, row, date)">
+        <td mat-cell *matCellDef="let row" class="td mat-cell-selected ion-padding-start" (click)="clickCell($event, row, date)">
           <div *ngFor="let activity of getActivities(row, date)">
-            <div *ngFor="let pmfm of $pmfms | async">
+            <div *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn">
               {{activity.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, hideIfDefaultValue: true, showLabelForPmfmIds: showLabelForPmfmIds} }}
             </div>
             <div *ngFor="let metier of activity.metiers; last as last">
@@ -128,7 +132,7 @@
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-        class="tr mat-tow-disabled tr mat-tow-height-auto"
+        class="tr mat-row-disabled tr mat-row-height-auto"
         (click)="clickRow($event, row)">
     </tr>
   </table>

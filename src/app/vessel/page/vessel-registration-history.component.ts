@@ -25,19 +25,14 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
   isAdmin: boolean;
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     dataService: VesselRegistrationService,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       // columns
       ['id',
         'startDate',
@@ -52,8 +47,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
           saveOnlyDirtyRows: true
         }
       }),
-      null,
-      injector
+      null
     );
 
     this.i18nColumnPrefix = 'VESSEL.';

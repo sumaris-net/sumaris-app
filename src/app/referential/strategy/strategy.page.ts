@@ -116,12 +116,6 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
 
   /* -- protected methods -- */
 
-  protected canUserWrite(data: Strategy): boolean {
-    // TODO : check user is in strategy managers
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-  }
-
   protected registerForms() {
     this.addChildForms([
       this.referentialForm,

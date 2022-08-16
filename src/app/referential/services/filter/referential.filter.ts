@@ -1,19 +1,61 @@
-import { EntityFilter, getPropertyByPath, ReferentialRef, uncapitalizeFirstLetter } from '@sumaris-net/ngx-components';
-import {IReferentialRef, Referential}  from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions, EntityUtils}  from "@sumaris-net/ngx-components";
-import {isNil, isNotEmptyArray, isNotNil} from "@sumaris-net/ngx-components";
-import {StatusIds}  from "@sumaris-net/ngx-components";
-import {FilterFn} from "@sumaris-net/ngx-components";
-import {EntityClass}  from "@sumaris-net/ngx-components";
-import {toDateISOString} from "@sumaris-net/ngx-components";
+import {
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  EntityUtils,
+  FilterFn,
+  getPropertyByPath,
+  IReferentialRef,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  Referential,
+  ReferentialRef,
+  StatusIds,
+  toDateISOString,
+  uncapitalizeFirstLetter
+} from '@sumaris-net/ngx-components';
+
+
+export declare interface IReferentialFilter<
+  F extends EntityFilter<F, T, ID, AO, FO>,
+  T extends IReferentialRef<T, any>,
+  ID = number,
+  AO extends EntityAsObjectOptions = EntityAsObjectOptions,
+  FO = any
+  >
+  extends EntityFilter<F, T, ID, AO, FO> {
+  entityName?: string;
+
+  label?: string;
+  name?: string;
+
+  statusId?: number;
+  statusIds?: number[];
+
+  levelId?: number;
+  levelIds?: number[];
+
+  levelLabel?: string;
+  levelLabels?: string[];
+
+  searchJoin?: string; // If search is on a sub entity (e.g. Metier can search on TaxonGroup)
+  searchJoinLevelIds?: number[];
+  searchText?: string;
+  searchAttribute?: string;
+
+  includedIds?: ID[];
+  excludedIds?: ID[];
+}
 
 export abstract class BaseReferentialFilter<
   F extends EntityFilter<F, T, ID, AO, FO>,
-  T extends IReferentialRef<T, ID>,
+  T extends IReferentialRef<T, any>,
   ID = number,
   AO extends EntityAsObjectOptions = EntityAsObjectOptions,
   FO = any>
-  extends EntityFilter<F, T, ID, AO, FO> {
+  extends EntityFilter<F, T, ID, AO, FO>
+  implements IReferentialFilter<F, T, ID, AO, FO> {
 
   entityName?: string;
 
@@ -83,6 +125,11 @@ export abstract class BaseReferentialFilter<
 
   protected buildFilter(): FilterFn<T>[] {
     const filterFns = super.buildFilter() || [];
+
+    // Filter by label
+    if (isNotNil(this.label)) {
+      filterFns.push(entity => entity.label === this.label);
+    }
 
     // Filter by status
     const statusIds = this.statusIds || (isNotNil(this.statusId) && [this.statusId]) || undefined;

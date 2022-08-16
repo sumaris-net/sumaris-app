@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import {TripValidatorService} from '../services/validator/trip.validator';
-import { IonButton, ModalController } from '@ionic/angular';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import { TripValidatorOptions, TripValidatorService } from '../services/validator/trip.validator';
+import { ModalController } from '@ionic/angular';
+import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 
 import {
   AppForm,
@@ -26,23 +26,25 @@ import {
   ReferentialUtils,
   StatusIds,
   toBoolean,
+  toDateISOString,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {FormArray, FormBuilder} from '@angular/forms';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { FormArray, FormBuilder } from '@angular/forms';
 
-import {Vessel} from '@app/vessel/services/model/vessel.model';
-import {METIER_DEFAULT_FILTER, MetierService} from '@app/referential/services/metier.service';
-import {Trip} from '../services/model/trip.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {debounceTime, filter} from 'rxjs/operators';
-import {VesselModal} from '@app/vessel/modal/vessel-modal';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {MetierFilter} from '@app/referential/services/filter/metier.filter';
-import {Metier} from '@app/referential/services/model/metier.model';
-import {combineLatest} from 'rxjs';
-import {Moment} from 'moment';
+import { Vessel } from '@app/vessel/services/model/vessel.model';
+import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
+import { Trip } from '../services/model/trip.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { debounceTime, filter } from 'rxjs/operators';
+import { VesselModal } from '@app/vessel/modal/vessel-modal';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { MetierFilter } from '@app/referential/services/filter/metier.filter';
+import { Metier } from '@app/referential/services/model/metier.model';
+import { combineLatest } from 'rxjs';
+import { Moment } from 'moment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 const TRIP_METIER_DEFAULT_FILTER = METIER_DEFAULT_FILTER;
 
@@ -59,6 +61,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
   private _locationSuggestLengthThreshold: number;
+  private _lastValidatorOptsStr: any;
+
+  readonly mobile = this.settings.mobile;
+  //readonly appearance = this.mobile ? 'outline' : 'legacy';
 
   observersHelper: FormArrayHelper<Person>;
   observerFocusIndex = -1;
@@ -67,10 +73,9 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   metiersHelper: FormArrayHelper<ReferentialRef>;
   metierFocusIndex = -1;
   canFilterMetier = false;
-  mobile: boolean;
 
   @Input() showComment = true;
-  @Input() showAddVessel = true;
+  @Input() allowAddNewVessel = true;
   @Input() showError = true;
   @Input() vesselDefaultStatus = StatusIds.TEMPORARY;
   @Input() metierHistoryNbDays = 60;
@@ -100,13 +105,21 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   @Input() locationLevelIds = [LocationLevelIds.PORT];
+  @Input() minDurationInHours: number;
+  @Input() maxDurationInHours: number;
 
   @Input() set locationSuggestLengthThreshold(value: number) {
-    this._locationSuggestLengthThreshold = value;
-    if (this.autocompleteFields.location) {
-      this.autocompleteFields.location.suggestLengthThreshold = value;
+    if (this._locationSuggestLengthThreshold !== value) {
+      this._locationSuggestLengthThreshold = value;
+
       // Update fields
-      this.locationFields.forEach(field => field.suggestLengthThreshold = value);
+      if (this.autocompleteFields.location) {
+        this.autocompleteFields.location.suggestLengthThreshold = value;
+        this.locationFields.forEach(field => {
+          field.suggestLengthThreshold = value;
+          field.reloadItems();
+        });
+      }
     }
   }
 
@@ -158,6 +171,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
+    protected programRefService: ProgramRefService,
     protected metierService: MetierService,
     protected personService: PersonService,
     protected modalCtrl: ModalController,
@@ -166,7 +180,6 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   ) {
 
     super(injector, validatorService.getFormGroup());
-    this.mobile = this.settings.mobile;
   }
 
   ngOnInit() {
@@ -180,16 +193,14 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     if (isEmptyArray(this.locationLevelIds)) this.locationLevelIds = [LocationLevelIds.PORT];
 
     // Combo: programs
-    const programAttributes = this.settings.getFieldDisplayAttributes('program');
     this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
-      attributes: programAttributes,
-      // Increase default size (=3) of 'label' column
-      columnSizes: programAttributes.map(attr => attr === 'label' ? 4 : undefined/*auto*/),
-      filter: <ReferentialRefFilter>{
-        entityName: 'Program'
+      service: this.programRefService,
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION]
       },
-      mobile: this.mobile
+      mobile: this.mobile,
+      showAllOnFocus: true
     });
 
     // Combo: vessels
@@ -198,22 +209,17 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     );
 
     // Combo location
-    const locationAttributes = this.settings.getFieldDisplayAttributes('location');
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
         ...filter,
-        searchAttributes: locationAttributes,
         levelIds: this.locationLevelIds
       }),
-      filter: <Partial<ReferentialRefFilter>>{
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE],
-        entityName: 'Location'
+      filter: {
+        entityName: 'Location',
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      // Increase default size (=3) of 'label' column
-      columnSizes: locationAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-      attributes: locationAttributes,
-      showAllOnFocus: false,
-      suggestLengthThreshold: this._locationSuggestLengthThreshold || 0
+      suggestLengthThreshold: this._locationSuggestLengthThreshold || 0,
+      mobile: this.mobile
     });
 
     // Combo: observers
@@ -227,7 +233,8 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
         userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: PersonUtils.personToString
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile
     });
 
     // Combo: metiers
@@ -324,11 +331,19 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     super.setValue(data, opts);
   }
 
-  async addVesselModal(): Promise<any> {
+  async addVesselModal(event?: UIEvent): Promise<any> {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    const maxDate = this.form.get('departureDateTime').value;
+
     const modal = await this.modalCtrl.create({
       component: VesselModal,
       componentProps: {
-        defaultStatus: this.vesselDefaultStatus
+        defaultStatus: this.vesselDefaultStatus,
+        maxDate: isNotNil(maxDate) ? toDateISOString(maxDate) : undefined
       }
     });
 
@@ -491,9 +506,23 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     }
   }
 
+
   protected updateFormGroup() {
     console.info('[trip-form] Updating form group...');
-    this.validatorService.updateFormGroup(this.form, {returnFieldsRequired: this._returnFieldsRequired});
+    const validatorOpts: TripValidatorOptions = {
+      returnFieldsRequired: this._returnFieldsRequired,
+      minDurationInHours: this.minDurationInHours,
+      maxDurationInHours: this.maxDurationInHours
+    };
+    const validatorOptsStr = JSON.stringify(validatorOpts);
+
+    if (this._lastValidatorOptsStr && validatorOptsStr == this._lastValidatorOptsStr) return; // Skip if same
+
+    this.validatorService.updateFormGroup(this.form, validatorOpts);
+
+    // Remember, for next call
+    this._lastValidatorOptsStr = validatorOptsStr;
+
     this.markForCheck(); // Need to toggle return date time to required
   }
 

@@ -37,16 +37,6 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
 
-  <!-- delete -->
-  <button mat-menu-item
-          [disabled]="isNewData || disabled"
-          (click)="delete($event)">
-    <ion-label>
-      <mat-icon>delete</mat-icon>&nbsp;
-      <span translate>TRIP.EDIT.BTN_DELETE</span>
-    </ion-label>
-  </button>
-
   <!-- reset -->
   <button mat-menu-item
           [disabled]="!dirty"
@@ -58,28 +48,41 @@
   </button>
 
   <!-- DEV only -->
-  <button mat-menu-item *ngIf="debug && isNewData"
-          (click)="devToggleAutoFillData()">
-    <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
-    <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
-    <ion-label>Autofill test data ?(#developer)
+  <ng-container *ngIf="debug">
+    <button mat-menu-item *ngIf="isNewData"
+            (click)="devToggleAutoFillData()">
+      <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
+      <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
+    </button>
+    <button mat-menu-item *ngIf="!isNewData && data?.id > 0"
+            (click)="copyLocally()">
+      <mat-icon>file_copy</mat-icon>
+      <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+    </button>
+    <button mat-menu-item
+            (click)="devToggleOfflineMode()">
+      <mat-icon *ngIf="network.offline">check_box</mat-icon>
+      <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
+      <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
+    </button>
+  </ng-container>
+
+  <mat-divider></mat-divider>
+
+  <!-- delete -->
+  <button mat-menu-item class="ion-color-danger"
+          [disabled]="isNewData || disabled"
+          (click)="delete($event)">
+    <ion-label>
+      <mat-icon>delete</mat-icon>&nbsp;
+      <span translate>TRIP.EDIT.BTN_DELETE</span>
     </ion-label>
-  </button>
-  <button mat-menu-item *ngIf="debug && !isNewData && data?.id > 0"
-          (click)="copyLocally()">
-    <ion-label>Save locally (#developer)
-    </ion-label>
-  </button>
-  <button mat-menu-item *ngIf="debug"
-          (click)="devToggleOfflineMode()">
-    <mat-icon *ngIf="network.offline">check_box</mat-icon>
-    <mat-icon *ngIf="network.online">check_box_outline_blank</mat-icon>
-    <ion-label translate>SETTINGS.OFFLINE_MODE</ion-label>
   </button>
 </mat-menu>
 
-<ion-content
-  (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+<!--<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">-->
+<ion-content>
   <mat-tab-group #tabGroup
                  class="mat-tab-fixed-content"
                  [class.mobile]="mobile"
@@ -129,12 +132,12 @@
 
                 <!-- Other features (Measurements) -->
                 <ion-grid class="ion-no-padding ion-padding-top"
-                          [class.cdk-visually-hidden]="(measurementsForm.$pmfms|async)?.length === 0">
+                          [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray">
                   <ion-row>
                     <ion-col size="12" size-md="2" size-lg="3">
                       <ion-label class="ion-float-end" translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
                     </ion-col>
-                    <ion-col>
+                    <ion-col [class.measurements-form-padding-start]="mobile">
                       <app-form-measurements #measurementsForm
                                              entityName="VesselUseMeasurement"
                                              [forceOptional]="forceMeasurementAsOptional"
@@ -146,6 +149,32 @@
                                              [compact]="false">
                       </app-form-measurements>
                     </ion-col>
+                  </ion-row>
+
+                  <ion-row *ngIf="debug">
+                    <ion-col size="12" size-md="2" size-lg="3">
+                      <ion-label class="ion-float-end">Debug :</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <ion-text color="primary" class="text-italic">
+                        <small>
+                          editor.loading: {{loading}}<br/>
+                          editor.ready: {{$ready|async}}<br/>
+                          editor.dirty: {{dirty}}<br/>
+                        </small>
+                      </ion-text>
+                    </ion-col>
+                    <ion-col>
+                      <ion-text color="primary" class="text-italic">
+                        <small>
+                          measurementsForm.loading: {{measurementsForm.loading}}<br/>
+                          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+                          measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+                          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+                        </small>
+                      </ion-text>
+                    </ion-col>
+
                   </ion-row>
                 </ion-grid>
 
@@ -176,7 +205,8 @@
           matBadgeColor="primary"
           matBadgeOverlap="false"
           matBadgeSize="small"
-          translate>TRIP.TAB_PHYSICAL_GEAR</ion-label>
+          translate>TRIP.TAB_PHYSICAL_GEAR
+        </ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="physicalGearsTable.invalid"></ion-icon>
       </ng-template>
 
@@ -188,13 +218,13 @@
           <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
         </ion-item>
 
-        <app-physicalgears-table #physicalGearsTable
+        <app-physical-gears-table #physicalGearsTable
                                  [programLabel]="$programLabel|async"
                                  [showToolbar]="!mobile"
-                                 (onSelectPreviousGear)="openSelectPreviousGearsModal($event)"
+                                 (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
                                  [useSticky]="!mobile"
                                  [debug]="debug">
-        </app-physicalgears-table>
+        </app-physical-gears-table>
 
       </div>
     </mat-tab>
@@ -206,12 +236,15 @@
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
         </mat-icon>
         <ion-label [matBadge]="operationsTable.totalRowCount"
-                   [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount"
+                   [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount || operationsTable.error"
                    matBadgeColor="primary"
                    matBadgeOverlap="false"
                    matBadgeSize="small"
-                   translate>TRIP.TAB_OPERATIONS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="operationsTable.invalid && operationsTable.dirty"></ion-icon>
+                   translate>TRIP.TAB_OPERATIONS
+        </ion-label>
+        <mat-icon>
+          <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="operationsTable.error || (operationsTable.invalid && operationsTable.dirty)"></ion-icon>
+        </mat-icon>
       </ng-template>
 
       <app-operations-table #operationsTable

@@ -14,7 +14,8 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Product } from './product.model';
 import { DataEntityFilter } from '@app/data/services/model/data-filter.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 const PacketNumber = 6; // default packet number for SFA
 export const PacketIndexes = [...Array(PacketNumber).keys()]; // produce: [0,1,2,3,4,5] with PacketNumber = 6
@@ -149,7 +150,7 @@ export class PacketComposition extends DataEntity<PacketComposition> {
   static fromObject: (source: any, opts?: any) => PacketComposition;
 
   rankOrder: number;
-  taxonGroup: ReferentialRef;
+  taxonGroup: TaxonGroupRef;
   weight: number;
 
   constructor() {
@@ -170,6 +171,7 @@ export class PacketComposition extends DataEntity<PacketComposition> {
     })
     target.ratios = ratios;
     delete target.weight;
+    delete target.qualityFlagId;
 
     return target;
   }
@@ -177,7 +179,7 @@ export class PacketComposition extends DataEntity<PacketComposition> {
   fromObject(source: any): PacketComposition {
     super.fromObject(source);
     this.rankOrder = source.rankOrder || undefined;
-    this.taxonGroup = source.taxonGroup && ReferentialRef.fromObject(source.taxonGroup) || undefined;
+    this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
     const ratios = source.ratios || [];
     PacketIndexes.forEach(index => this['ratio' + index] = ratios[index] || source['ratio' + index])
     return this;

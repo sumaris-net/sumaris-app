@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {Observable} from 'rxjs';
-import {map} from 'rxjs/operators';
-import {ErrorCodes} from './errors';
-import {ReferentialFragments} from './referential.fragments';
+import { Injectable, Injector } from '@angular/core';
+import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { ErrorCodes } from './errors';
+import { ReferentialFragments } from './referential.fragments';
 import {
   AccountService,
   BaseEntityGraphqlMutations,
@@ -18,23 +18,25 @@ import {
   isNotNil,
   LoadResult,
   NetworkService,
+  Person,
   PlatformService,
   ReferentialAsObjectOptions,
-  ReferentialUtils,
-  StatusIds
+  StatusIds,
 } from '@sumaris-net/ngx-components';
-import {CacheService} from 'ionic-cache';
-import {ReferentialRefService} from './referential-ref.service';
-import {Program, ProgramPerson} from './model/program.model';
-import {SortDirection} from '@angular/material/sort';
-import {ReferentialService} from './referential.service';
-import {ProgramFragments} from './program.fragments';
-import {ProgramRefService} from './program-ref.service';
-import {BaseReferentialService} from './base-referential-service.class';
-import {StrategyRefService} from './strategy-ref.service';
-import {ProgramFilter} from './filter/program.filter';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
+import { CacheService } from 'ionic-cache';
+import { ReferentialRefService } from './referential-ref.service';
+import { Program, ProgramPerson } from './model/program.model';
+import { SortDirection } from '@angular/material/sort';
+import { ReferentialService } from './referential.service';
+import { ProgramFragments } from './program.fragments';
+import { ProgramRefService } from './program-ref.service';
+import { BaseReferentialService } from './base-referential-service.class';
+import { StrategyRefService } from './strategy-ref.service';
+import { ProgramFilter } from './filter/program.filter';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ProgramPrivilegeIds } from '@app/referential/services/model/model.enum';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { mergeMap } from 'rxjs/operators';
 
 export interface ProgramSaveOptions extends EntitySaveOptions {
   withStrategies?: boolean; // False by default
@@ -91,8 +93,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     IEntityService<Program> {
 
   constructor(
-    protected graphql: GraphqlService,
-    protected platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected referentialService: ReferentialService,
@@ -102,7 +103,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform, Program, ProgramFilter, {
+    super(injector, Program, ProgramFilter, {
       queries: ProgramQueries,
       mutations: ProgramMutations
     });
@@ -138,11 +139,12 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     const now = Date.now();
     if (this._debug) console.debug("[program-service] Watching programs using options:", variables);
 
-    const query = (!opts || opts.withTotal !== false) ? ProgramQueries.loadAllWithTotal : ProgramQueries.loadAll;
+    const withTotal = (!opts || opts.withTotal !== false);
+    const query = withTotal ? ProgramQueries.loadAllWithTotal : ProgramQueries.loadAll;
     return this.mutableWatchQuery<LoadResult<any>>({
-      queryName: (!opts || opts.withTotal !== false) ? 'LoadAllWithTotal' : 'LoadAll',
+      queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       arrayFieldName: 'data',
-      totalFieldName: 'total',
+      totalFieldName: withTotal ? 'total' : undefined,
       query,
       variables,
       error: {code: ErrorCodes.LOAD_PROGRAMS_ERROR, message: "PROGRAM.ERROR.LOAD_PROGRAMS_ERROR"},
@@ -200,6 +202,7 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     // Offline mode
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
+      console.warn('TODO: remove this local entities call. Use program-ref.servie instead !');
       res = await this.entities.loadAll(Program.TYPENAME,
         {
           ...variables,
@@ -326,10 +329,15 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     throw new Error('Not implemented yet!');
   }
 
-  canUserWrite(entity: Program) {
-    // TODO : check user is in program managers
+  canUserWrite(entity: Program, opts?: any) {
     return this.accountService.isAdmin()
-      || (ReferentialUtils.isNotEmpty(entity) && this.accountService.isSupervisor());
+      // Check program managers (if entity exists)
+      || (isNotNil(entity.id) && this.hasPrivilege(entity, this.accountService.person, ProgramPrivilegeIds.MANAGER));
+  }
+
+  listenChanges(id: number, opts?: { query?: any; variables?: any; interval?: number; toEntity?: boolean }): Observable<Program> {
+    return this.referentialService.listenChanges(id, {...opts, entityName: Program.ENTITY_NAME})
+      .pipe(mergeMap(data => this.load(id, {...opts, fetchPolicy: 'network-only'})));
   }
 
   copyIdAndUpdateDate(source: Program, target: Program) {
@@ -381,4 +389,14 @@ export class ProgramService extends BaseReferentialService<Program, ProgramFilte
     });
   }
 
+  protected hasPrivilege(program: Program, person: Person, privilegeId: number): boolean {
+    if (!program || !person || isNil(person.id) || isNil(privilegeId)) return false; // Skip
+    // Lookup on person's privileges
+    return (program.persons || [])
+        .some(p => p.person.id === person.id && p.privilege.id === privilegeId)
+      // Lookup on department's privileges
+      || (isNotNil(person.department?.id) && (program.departments || [])
+        .some(d => d.department.id === person.department.id && d.privilege.id === privilegeId))
+    ;
+  }
 }

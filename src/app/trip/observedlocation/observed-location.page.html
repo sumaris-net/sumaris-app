@@ -44,7 +44,8 @@
 
 </mat-menu>
 
-<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
+<!-- (swiperight)="onSwipeTab($event)" (swipeleft)="onSwipeTab($event)" -->
+<ion-content>
   <mat-tab-group #tabGroup
                  class="mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
@@ -60,53 +61,57 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="error || (submitted && observedLocationForm.invalid)"></ion-icon>
       </ng-template>
 
-      <!-- error -->
-      <ion-item *ngIf="error || observedLocationForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
-      </ion-item>
+      <div>
+        <!-- error -->
+        <ion-item *ngIf="error || observedLocationForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
+        </ion-item>
 
-      <ion-grid class="ion-no-padding">
-        <ion-row class="ion-no-padding">
-          <ion-col class="ion-padding">
+        <ion-grid class="ion-no-padding">
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-padding">
 
-            <!-- observed location -->
-            <app-form-observed-location #observedLocationForm
-                                        [programLabel]="$programLabel|async"
-                                        [showError]="false"
-                                        [showEndDateTime]="false"
-                                        [debug]="debug"
-                                        (onSubmit)="save($event)">
-            </app-form-observed-location>
-          </ion-col>
+              <!-- observed location -->
+              <app-form-observed-location #observedLocationForm
+                                          [programLabel]="$programLabel|async"
+                                          [showError]="false"
+                                          [showEndDateTime]="false"
+                                          [debug]="debug"
+                                          (onSubmit)="save($event)"
+                                          [timezone]="$timezone|async">
+              </app-form-observed-location>
+            </ion-col>
 
-          <!-- quality data -->
-          <ion-col size="12" size-xl="3" class="ion-no-padding">
-            <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
-              <app-entity-quality-form>
-              </app-entity-quality-form>
-            </app-entity-metadata>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+            <!-- quality data -->
+            <ion-col size="12" size-xl="3" class="ion-no-padding">
+              <app-entity-metadata [value]="data" [showRecorder]="showRecorder">
+                <app-entity-quality-form>
+                </app-entity-quality-form>
+              </app-entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
     </mat-tab>
 
     <!-- TAB: Landings -->
-    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}" [disabled]="!showLandingTab" #landingsTab>
+    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}"
+             [disabled]="!showLandingTab" #landingsTab>
       <ng-template mat-tab-label>
         <mat-icon>
           <ion-icon matPrefix slot="start" name="boat"></ion-icon>
         </mat-icon>
-        <ion-label *ngIf="$ready|async; else skeletonText100">{{landingsTab.textLabel}}</ion-label>
+        <ion-label *ngIf="readySubject|async; else skeletonText100">{{landingsTab.textLabel}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="table?.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-no-padding">
 
         <!-- error -->
-        <ion-item *ngIf="table?.error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="($table|async)?.error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="table?.error|translate"></ion-label>
+          <ion-label color="danger" class="error" [innerHTML]="($table|async)?.error|translate"></ion-label>
         </ion-item>
 
         <ng-container [ngSwitch]='$landingTableType|async'>
@@ -118,12 +123,13 @@
                                          [programLabel]="$programLabel|async"
                                          (onNewRow)="onNewAggregatedLanding($event)"
                                          [showToolbar]="!mobile"
-                                         [useSticky]="true">
+                                         [useSticky]="true"
+                                         (ngInit)="$table.next(aggregatedLandingsTable)">
           </app-aggregated-landings-table>
 
           <!-- landings -->
           <app-landings-table #landingsTable
-                              *ngSwitchDefault
+                              *ngSwitchCase="'legacy'"
                               [debug]="debug"
                               [programLabel]="$programLabel|async"
                               [showObserversColumn]="false"
@@ -131,7 +137,8 @@
                               [showToolbar]="true"
                               (onOpenRow)="onOpenLanding($event)"
                               (onNewRow)="onNewLanding($event)"
-                              (onNewTrip)="onNewTrip($event)">
+                              (onNewTrip)="onNewTrip($event)"
+                              (ngInit)="$table.next(landingsTable)">
           </app-landings-table>
 
         </ng-container>

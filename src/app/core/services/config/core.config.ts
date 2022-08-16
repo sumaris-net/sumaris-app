@@ -8,6 +8,12 @@ export const APP_CORE_CONFIG_OPTIONS = Object.freeze({
       type: 'boolean',
       defaultValue: false
     },
+    GEOMETRY_SRID: <FormFieldDefinition> {
+      key: 'sumaris.geometry.srid',
+      label: 'CONFIGURATION.OPTIONS.GEOMETRY_SRID',
+      type: 'integer',
+      defaultValue: 0
+    },
     PROFILE_ADMIN_LABEL: <FormFieldDefinition>{
         key: 'sumaris.enumeration.UserProfile.ADMIN.label',
         label: 'CONFIGURATION.OPTIONS.PROFILE.ADMIN',

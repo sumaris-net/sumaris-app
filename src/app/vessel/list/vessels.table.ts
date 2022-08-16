@@ -1,16 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {VesselValidatorService} from '../services/validator/vessel.validator';
-import {VesselService} from '../services/vessel-service';
-import {VesselModal, VesselModalOptions} from '../modal/vessel-modal';
-import {Vessel} from '../services/model/vessel.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { VesselValidatorService } from '../services/validator/vessel.validator';
+import { VesselService } from '../services/vessel-service';
+import { VesselModal, VesselModalOptions } from '../modal/vessel-modal';
+import { Vessel } from '../services/model/vessel.model';
 import {
   AccountService,
-  EntitiesTableDataSource,
   isNil,
   isNotNil,
   LocalSettingsService,
-  PlatformService,
   ReferentialRef,
   referentialToString,
   RESERVED_END_COLUMNS,
@@ -20,19 +18,16 @@ import {
   StatusIds,
   StatusList
 } from '@sumaris-net/ngx-components';
-import {ModalController} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {Observable} from 'rxjs';
-import {FormBuilder} from '@angular/forms';
-import {statusToColor, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {AppRootTable} from '@app/data/table/root-table.class';
-import {VESSEL_FEATURE_NAME} from '../services/config/vessel.config';
-import {VesselFilter} from '../services/filter/vessel.filter';
-import {MatExpansionPanel} from '@angular/material/expansion';
+import { Observable } from 'rxjs';
+import { FormBuilder } from '@angular/forms';
+import { statusToColor, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { AppRootDataTable } from '@app/data/table/root-table.class';
+import { VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
+import { VesselFilter } from '../services/filter/vessel.filter';
+import { MatExpansionPanel } from '@angular/material/expansion';
 
 
 export const VesselsTableSettingsEnum = {
@@ -50,14 +45,13 @@ export const VesselsTableSettingsEnum = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements OnInit {
+export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> implements OnInit {
 
   locations: Observable<ReferentialRef[]>;
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
 
-  @Input() canEdit: boolean;
   @Input() canDelete: boolean;
   @Input() showFabButton = false;
   @Input() showError = true;
@@ -95,49 +89,43 @@ export class VesselsTable extends AppRootTable<Vessel, VesselFilter> implements 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
+    formBuilder: FormBuilder,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected vesselService: VesselService,
     protected referentialRefService: ReferentialRefService,
-    protected cd: ChangeDetectorRef,
-    formBuilder: FormBuilder,
-    injector: Injector
+    protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
+      Vessel, VesselFilter,
       // columns
-      RESERVED_START_COLUMNS
-        .concat([
+      [
           'status',
           'vesselFeatures.exteriorMarking',
-          'vesselRegistrationPeriod.registrationCode'])
-        .concat(platform.mobile ? [] : [
-          'vesselFeatures.startDate',
-          'vesselFeatures.endDate'
-        ])
-        .concat([
-          'vesselFeatures.name',
-          'vesselType',
-          'vesselFeatures.basePortLocation'
-        ])
-        .concat(platform.mobile ? [] : [
-          'comments'
-        ])
-        .concat(RESERVED_END_COLUMNS),
+          'vesselRegistrationPeriod.registrationCode'
+      ]
+      .concat(settings.mobile ? [] : [
+        'vesselFeatures.startDate',
+        'vesselFeatures.endDate'
+      ])
+      .concat([
+        'vesselFeatures.name',
+        'vesselType',
+        'vesselFeatures.basePortLocation'
+      ])
+      .concat(settings.mobile ? [] : [
+        'comments'
+      ]),
       vesselService,
-      new EntitiesTableDataSource<Vessel, VesselFilter>(Vessel, vesselService, null, {
+      null,
+      {
         prependNewElements: false,
         suppressErrors: environment.production,
         dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
-      }),
-      null,
-      injector
+      }
     );
     this.i18nColumnPrefix = 'VESSEL.';
     this.defaultSortBy = 'vesselFeatures.exteriorMarking';

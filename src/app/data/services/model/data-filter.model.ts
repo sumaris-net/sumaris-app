@@ -4,9 +4,9 @@ import {Department}  from "@sumaris-net/ngx-components";
 import {isNotNil} from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import { DataQualityStatusIdType } from '@app/data/services/model/model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 export abstract class DataEntityFilter<
   T extends DataEntityFilter<T, E, EID, AO, FO>,

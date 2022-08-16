@@ -1,23 +1,26 @@
 import { BehaviorSubject, isObservable, Observable, Subscription } from 'rxjs';
 import { distinctUntilChanged, filter, first, map, switchMap, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { EntityUtils, firstNotNilPromise, IEntitiesService, isNil, isNotNil, LoadResult } from '@sumaris-net/ngx-components';
+import { EntityUtils, firstNotNilPromise, IEntitiesService, IEntityFilter, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
 import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
-import { IPmfm, PMFM_ID_REGEXP } from '../../referential/services/model/pmfm.model';
+import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { SortDirection } from '@angular/material/sort';
-import { ProgramRefService } from '../../referential/services/program-ref.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
-    implements IEntitiesService<T, F> {
+export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, ID>,
+  F extends IEntityFilter<any, T, any>,
+  ID = number>
+  extends StartableService<IPmfm[]>
+  implements IEntitiesService<T, F> {
 
-  private readonly _debug: boolean;
-  private _subscription = new Subscription();
   private _programLabel: string;
   private _acquisitionLevel: string;
-  private _strategyLabel: string;
   private _requiredStrategy: boolean;
+  private _strategyLabel: string;
+  private _requiredGear: boolean;
+  private _gearId: number;
   private _onRefreshPmfms = new EventEmitter<any>();
   private _delegate: IEntitiesService<T, F>;
 
@@ -75,6 +78,29 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
   }
 
   @Input()
+  set gearId(value: number) {
+    if (this._gearId !== value) {
+      this._gearId = value;
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set gear id');
+    }
+  }
+
+  get gearId(): number {
+    return this._gearId;
+  }
+
+  @Input() set requiredGear(value: boolean) {
+    if (this._requiredGear !== value && isNotNil(value)) {
+      this._requiredGear = value;
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set required gear');
+    }
+  }
+
+  get requiredGear(): boolean {
+    return this._requiredGear;
+  }
+
+  @Input()
   set pmfms(pmfms: Observable<IPmfm[]> | IPmfm[]) {
     this.applyPmfms(pmfms);
   }
@@ -87,8 +113,6 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     return this._delegate;
   }
 
-  protected weightDisplayedUnit: string;
-
   constructor(
     injector: Injector,
     protected dataType: new() => T,
@@ -98,6 +122,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       requiredStrategy?: boolean;
       debug?: boolean;
     }) {
+    super(null);
     this._delegate = delegate;
     this.programRefService = injector.get(ProgramRefService);
     this._requiredStrategy = options && options.requiredStrategy || false;
@@ -106,7 +131,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     // Detect rankOrder on the entity class
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
 
-    this._subscription.add(
+    this.registerSubscription(
       this._onRefreshPmfms
         .pipe(
           map(() => this.generatePmfmWatchKey()),
@@ -119,8 +144,12 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     );
   }
 
-  ngOnDestroy() {
-    this._subscription.unsubscribe();
+  protected ngOnStart(): Promise<IPmfm[]> {
+    this._onRefreshPmfms.emit('start');
+    return this.$pmfms.toPromise();
+  }
+
+  protected async ngOnStop() {
     this.$pmfms.complete();
     this.$pmfms.unsubscribe();
     this._onRefreshPmfms.complete();
@@ -215,7 +244,12 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       return;
     }
 
-    return `${this._programLabel}|${this._acquisitionLevel}|${this._strategyLabel}`;
+    if (this._requiredGear && isNil(this._gearId)) {
+      if (this._debug) console.debug("[meas-service] Cannot watch Pmfms yet. Missing required 'gearId'.");
+      return;
+    }
+
+    return `${this._programLabel}|${this._acquisitionLevel}|${this._strategyLabel}|${this._gearId}`;
   }
 
   private watchProgramPmfms(): Observable<IPmfm[]> {
@@ -228,6 +262,7 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
     let res = this.programRefService.watchProgramPmfms(this._programLabel, {
         acquisitionLevel: this._acquisitionLevel,
         strategyLabel: this._strategyLabel || undefined,
+        gearId: this._gearId || undefined
       });
 
     // DEBUG log
@@ -261,14 +296,21 @@ export class MeasurementsDataService<T extends IEntityWithMeasurement<T>, F>
       pmfms = (res instanceof Promise) ? await res : res;
     }
 
+    // Make pmfms is an array
+    if (!Array.isArray(pmfms)) {
+      console.error(`[meas-service] Invalid pmfms. Should be an array:`, pmfms);
+      return;
+    }
 
-    if (Array.isArray(pmfms) && pmfms !== this.$pmfms.value) {
+    // Mark as loaded
+    this.loadingPmfms = false;
+
+    // Apply, if changed
+    if (pmfms !== this.$pmfms.value) {
 
       // DEBUG log
       if (this._debug) console.debug(`[meas-service] Pmfms loaded for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}`, pmfms);
 
-      // Apply
-      this.loadingPmfms = false;
       this.$pmfms.next(pmfms);
     }
   }

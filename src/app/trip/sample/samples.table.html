@@ -41,6 +41,7 @@
 
   <span class="toolbar-spacer"></span>
 
+  <ng-content select="ion-buttons[slot=end]"></ng-content>
 </mat-toolbar>
 
 
@@ -73,7 +74,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container"
+<div #tableContainer class="table-container"
      [class.mobile]="mobile"
      [class.has-toolbar]="showToolbar"
      [class.has-group-header]="showGroupHeader"
@@ -151,16 +152,18 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
-      <td mat-cell *matCellDef="let row"
-          [title]="row.validator | translateFormError: errorTranslatorOptions">
-        <ion-text matBadge="!"
-                  [matBadgeHidden]="!row.editing || !row.validator.invalid"
-                  matBadgeOverlap="false"
-                  matBadgeColor="accent"
-                  matBadgeSize="small">
-          {{ row.currentData?.rankOrder }}
-        </ion-text>
-      </td>
+      <ng-container *matCellDef="let row">
+        <td mat-cell *ngVar="row.editing && row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions) as error"
+            [title]="error">
+          <ion-text matBadge="!"
+                    [matBadgeHidden]="!error"
+                    matBadgeOverlap="false"
+                    matBadgeColor="accent"
+                    matBadgeSize="small">
+            {{ row.currentData?.rankOrder }}
+          </ion-text>
+        </td>
+      </ng-container>
     </ng-container>
 
     <!-- Label column -->
@@ -235,14 +238,14 @@
     </ng-container>
 
     <!-- Pmfms columns -->
-    <ng-container *ngFor="let pmfm of pmfms; index as index;" [matColumnDef]="(pmfm.id || index)|toString">
+    <ng-container *ngFor="let pmfm of pmfms; index as index; trackBy: trackPmfmFn" [matColumnDef]="(pmfm.id || index)|toString">
       <th mat-header-cell *matHeaderCellDef
           mat-sort-header
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
           [class.mat-cell-date-time]="pmfm|isDatePmfm"
           [class.even]="showGroupHeader && (pmfm.rankOrder | even)"
           [class.mat-cell-content-start-padding]="showGroupHeader">
-        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: 'TRIP.SAMPLE.PMFM.', i18nContext: i18nColumnSuffix}"></ion-label>
+        <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withDetails: showPmfmDetails, i18nPrefix: i18nPmfmPrefix, i18nContext: i18nColumnSuffix}"></ion-label>
       </th>
       <td mat-cell *matCellDef="let row"
           class="mat-column-pmfm mat-column-{{pmfm.label}}"
@@ -253,12 +256,14 @@
           (click)="focusColumn=(pmfm.id || index).toString()">
 
         <app-pmfm-field *ngIf="row.editing; else readonlyPmfmField"
+                        floatLabel="never"
                         [pmfm]="pmfm"
                         [i18nPrefix]="i18nPmfmPrefix"
                         [i18nSuffix]="i18nColumnSuffix"
-                        [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
+                        [control]="row.validator|formGetControl: ['measurementValues', pmfm.id]"
                         [autofocus]="row.editing && focusColumn == (pmfm.id || index)"
-                        [compact]="compactFields" floatLabel="never"></app-pmfm-field>
+                        [compact]="compactFields">
+        </app-pmfm-field>
 
         <!-- readonly value-->
         <ng-template #readonlyPmfmField>
@@ -300,9 +305,9 @@
                         (backward)="confirmAndBackward($event.event, $event.row)"
                         (forward)="confirmAndForward($event.event, $event.row)"
                         [canCancel]="false">
-      <!-- display columns -->
+      <!-- Options menu -->
       <button mat-icon-button matHeader
-              [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+              [title]="'COMMON.BTN_OPTIONS'|translate"
               [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
@@ -324,9 +329,8 @@
     <ng-container matColumnDef="footer-tagCount">
       <td mat-footer-cell *matFooterCellDef [attr.colspan]="displayedColumns.length - 2"
           class="mat-cell-content-start-padding">
-        <!-- TODO translateContext: i18nolumnSuffix: ... -->
         <ion-text color="primary" class="text-italic"
-                  [innerHTML]="'TRIP.SAMPLE.TABLE.TAG_COUNT'|translate: {tagCount: (tagCount$|async)}">
+                  [innerHTML]="'TRIP.SAMPLE.TABLE.TAG_COUNT'|translateContext:i18nColumnSuffix:{tagCount: (tagCount$|async)}">
         </ion-text>
       </td>
     </ng-container>
@@ -346,7 +350,7 @@
         [class.mat-row-disabled]="!row.editing"
         (click)="clickRow($event, row)"
         (keydown.escape)="escapeEditingRow($event)"
-        [cdkTrapFocus]="row.validator.invalid">
+        [cdkTrapFocus]="!row.validator.valid">
     </tr>
     <!-- footer -->
     <ng-container *ngIf="showFooter">
@@ -493,9 +497,9 @@
       <!-- Actions buttons column -->
       <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
         <th mat-header-cell *matHeaderCellDef>
-          <!-- display columns -->
+          <!-- Options menu -->
           <button mat-icon-button matHeader
-                  [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+                  [title]="'COMMON.BTN_OPTIONS'|translate"
                   [matMenuTriggerFor]="optionsMenu">
             <mat-icon>more_vert</mat-icon>
           </button>
@@ -515,7 +519,7 @@
           <!-- open individual release -->
           <button mat-icon-button
                   *ngIf="showIndividualReleaseButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
-                  [color]="(row.currentData.children | arrayFilter: isIndividualRelease | isNotEmptyArray) ? 'primary': 'dark'"
+                  [color]="(row.currentData.children | arrayFilter: isIndividualRelease | isNotEmptyArray) && 'primary'"
                   [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translate"
                   (click)="onIndividualReleaseClick($event, row)">
             <mat-icon>room</mat-icon>

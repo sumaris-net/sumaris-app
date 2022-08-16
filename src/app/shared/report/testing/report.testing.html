@@ -1,0 +1,104 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Slides Reveal.js</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="slides.print()" >
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <app-slides [options]="slidesOptions" #slides>
+    <section>
+      <section markdown ngPreserveWhitespaces>
+        # Title 1
+        ## Title 2
+        ### Title 3
+
+        Paragraph **bold** with a [link](https://www.sumaris.net)
+
+        > A quoted text
+
+      </section>
+
+      <section markdown ngPreserveWhitespaces>
+        # A table
+
+         Item         | Price     | # In stock |
+        --------------|-----------|------------|
+         Juicy Apples | 1.99      | *7*        |
+         Bananas  | **1.89**  | 5234       |
+      </section>
+    </section>
+
+    <section markdown ngPreserveWhitespaces>
+      # Démo [Reveal.js](https://revealjs.com/)
+
+      La démo utilise d'autres plugins utiles :<br/>
+      `Markdown`, `Chart`
+    </section>
+    <!-- Markdown -->
+    <section>
+      <section markdown ngPreserveWhitespaces>
+        # Markdown
+        Écrivez vos diapos directement au format [Markdown](https://www.markdownguide.org/basic-syntax).
+      </section>
+
+      <section markdown ngPreserveWhitespaces>
+        ## Diapo 1
+        Un paragraphe avec un [lien](https://www.sumaris.net).
+      </section>
+
+      <section markdown ngPreserveWhitespaces>
+        ## Diapo 2
+        ![image](assets/img/logo/logo-sumaris.png)
+      </section>
+      <section markdown ngPreserveWhitespaces>
+        # Documentation
+
+        - [Guide de la syntaxe Markdown](https://www.markdownguide.org/basic-syntax)
+        - [Configuration du plugin Reveal.js Markdown](https://revealjs.com/markdown/)
+      </section>
+    </section>
+
+    <!-- Chart -->
+    <section>
+      <section>
+        <div markdown ngPreserveWhitespaces>
+          # Chart
+
+          Insérez des graphiques [Chart.js](https://www.chartjs.org/) dans vos diapos.
+        </div>
+
+        <div style="height:450px">
+          <canvas baseChart
+                  [datasets]="chart.datasets"
+                  [labels]="chart.labels"
+                  [chartType]="'bar'">
+          </canvas>
+        </div>
+
+        <div markdown ngPreserveWhitespaces>
+          Cool, non ?
+        </div>
+      </section>
+
+      <section markdown ngPreserveWhitespaces>
+        # Documentation
+
+        - [Documentation de Chart.js](https://www.chartjs.org/)
+        - [Documentation du plugin Reveal.js Chart](https://github.com/rajgoel/reveal.js-plugins/tree/master/chart) ([démo](https://rajgoel.github.io/reveal.js-demos/chart-demo.html#/))
+      </section>
+    </section>
+  </app-slides>
+
+</ion-content>

@@ -1,10 +1,8 @@
-import {Component, OnInit, ViewChild} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {BehaviorSubject} from "rxjs";
-import { ParameterLabelGroups } from "src/app/referential/services/model/model.enum";
-import { PmfmStrategy } from "src/app/referential/services/model/pmfm-strategy.model";
-import { PmfmFilter } from "src/app/referential/services/pmfm.service";
-import { PmfmStrategiesTable } from "../../pmfm-strategies.table";
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { ParameterLabelGroups } from 'src/app/referential/services/model/model.enum';
+import { PmfmStrategy } from 'src/app/referential/services/model/pmfm-strategy.model';
+import { PmfmStrategiesTable } from '../../pmfm-strategies.table';
+import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
 
 
 @Component({

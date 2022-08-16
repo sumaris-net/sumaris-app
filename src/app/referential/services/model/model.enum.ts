@@ -1,4 +1,3 @@
-
 export const ProgramLabel = {
   SIH: 'SIH' // Used for vessel's filter
 }
@@ -12,17 +11,27 @@ export const LocationLevelIds = {
   // At sea
   ICES_RECTANGLE: 4,
   GFCM_RECTANGLE: 5,
+  ICES_SUB_AREA: 110,
   ICES_DIVISION: 111,
-  LOCATIONS_AREA: [4, 5, 111]
+
+  LOCATIONS_AREA: [4, 5, 111],
+  WEIGHT_LENGTH_CONVERSION_AREA: [110, 111]
 };
+
+export class LocationLevels {
+  static getStatisticalRectangleLevelIds() {
+    return [LocationLevelIds.ICES_RECTANGLE, LocationLevelIds.GFCM_RECTANGLE];
+  }
+}
 
 export const GearLevelIds = {
   FAO: 1
 };
 
-export const TaxonGroupIds = {
+export const TaxonGroupTypeIds = {
   FAO: 2,
-  METIER: 3
+  DCF_METIER_LVL_5: 3,
+  NATIONAL_METIER: 4
 };
 
 export const TaxonomicLevelIds = {
@@ -43,17 +52,21 @@ export const PmfmIds = {
   DISCARD_REASON: 95,
   DEATH_TIME: 101,
   VERTEBRAL_COLUMN_ANALYSIS: 102,
-  DRESSING: 151,
+  DRESSING: 151, // Présentation (e.g. Entier, Eviscéré, etc.)
+  PRESERVATION: 150, // État de conservation (e.g. Frais, Congelé, etc)
   BATCH_MEASURED_WEIGHT: 91,
   BATCH_ESTIMATED_WEIGHT: 92,
   BATCH_CALCULATED_WEIGHT: 93,
+  BATCH_CALCULATED_WEIGHT_LENGTH: 122,
+  BATCH_CALCULATED_WEIGHT_LENGTH_SUM: 123,
+
   MEASURE_TIME: 103,
   RELEASE_LATITUDE: 110,
   RELEASE_LONGITUDE: 111,
 
   /* ADAP pmfms */
   LENGTH_TOTAL_CM: 81, // Use for test only
-  SELF_SAMPLING_PROGRAM: 28,
+  SELF_SAMPLING_PROGRAM: 28, // Label should be a join list of TAXON_GROUP.LABEL (See ADAP-MER program)
   HAS_INDIVIDUAL_MEASURES: 121,
   CONTROLLED_SPECIES: 134,
   SAMPLE_MEASURED_WEIGHT: 140,
@@ -87,10 +100,13 @@ export const PmfmIds = {
   INDIVIDUAL_ON_DECK: 397,
   GEAR_LABEL: 120,
 
-  /* LOGBOOK-SEA-CUCUMBER (SFA)*/
-  GPS_USED: 188
-};
+  /* PIFIL + LOGBOOK-SEA-CUCUMBER (SFA)*/
+  GPS_USED: 188,
 
+  /* APASE */
+  BATCH_GEAR_POSITION: 411
+
+};
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
     LANDING: 'LAN',
@@ -108,7 +124,18 @@ export const QualitativeLabels = {
 
 export const QualitativeValueIds = {
   DISCARD_OR_LANDING: {
-    LANDING: 190
+    LANDING: 190,
+    DISCARD: 191
+  },
+  DRESSING: {
+    WHOLE: 381
+  },
+  PRESERVATION: {
+    FRESH: 332
+  },
+  BATCH_GEAR_POSITION: {
+    PORT: 473, // Bâbord
+    STARBOARD: 474 // Tribord
   }
 };
 
@@ -116,15 +143,22 @@ export const MethodIds = {
   MEASURED_BY_OBSERVER: 1,
   OBSERVED_BY_OBSERVER: 2,
   ESTIMATED_BY_OBSERVER: 3,
-  CALCULATED: 4
+  CALCULATED: 4,
+  CALCULATED_WEIGHT_LENGTH: 47,
+  CALCULATED_WEIGHT_LENGTH_SUM: 283
 };
-
-export const MatrixIds = {
-  INDIVIDUAL: 2
+export class Methods {
+  static getCalculatedIds() {
+    return [MethodIds.CALCULATED, MethodIds.CALCULATED_WEIGHT_LENGTH, MethodIds.CALCULATED_WEIGHT_LENGTH_SUM]
+  }
 }
-
-export const UnitIds = {
-  NONE: 0
+export const MethodIdGroups = {
+  CALCULATED: Methods.getCalculatedIds()
+};
+export const MatrixIds = {
+  BATCH: 1,
+  INDIVIDUAL: 2,
+  GEAR: 3
 }
 
 export const ParameterGroupIds = {
@@ -141,16 +175,35 @@ export const autoCompleteFractions = {
 }
 
 export const ParameterLabelGroups = {
-  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */, 'DRESSING'],
+  TAG_ID: ['TAG_ID', 'SAMPLE_ID' /* SAMPLE_ID parameter label is required for specific Oracle TAG_ID (SAMPLE_ID whith Pmfm id = 1435. */, 'DRESSING', 'PRESERVATION'],
   LENGTH: ['LENGTH_PECTORAL_FORK', 'LENGTH_CLEITHRUM_KEEL_CURVE', 'LENGTH_PREPELVIC', 'LENGTH_FRONT_EYE_PREPELVIC', 'LENGTH_LM_FORK', 'LENGTH_PRE_SUPRA_CAUDAL', 'LENGTH_CLEITHRUM_KEEL', 'LENGTH_LM_FORK_CURVE', 'LENGTH_PECTORAL_FORK_CURVE', 'LENGTH_FORK_CURVE', 'STD_STRAIGTH_LENGTH', 'STD_CURVE_LENGTH', 'SEGMENT_LENGTH', 'LENGTH_MINIMUM_ALLOWED', 'LENGTH', 'LENGTH_TOTAL', 'LENGTH_STANDARD', 'LENGTH_PREANAL', 'LENGTH_PELVIC', 'LENGTH_CARAPACE', 'LENGTH_FORK', 'LENGTH_MANTLE'],
   WEIGHT: ['WEIGHT'],
   SEX: ['SEX'],
   MATURITY: ['MATURITY_STAGE_3_VISUAL', 'MATURITY_STAGE_4_VISUAL', 'MATURITY_STAGE_5_VISUAL', 'MATURITY_STAGE_6_VISUAL', 'MATURITY_STAGE_7_VISUAL', 'MATURITY_STAGE_9_VISUAL'],
-  AGE: ['AGE']
+  AGE: ['AGE'],
+
+  DRESSING: ['DRESSING'],
+  PRESERVATION: ['PRESERVATION']
 };
+// Remove duplication in label
+export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups).reduce((res, key) => {
+  const labels = ParameterLabelGroups[key]
+    // Exclude label already in another previous group
+    .filter(label => !Object.values(res).some((previousLabels: string[]) => previousLabels.includes(label)));
+  // Add to result, only if not empty
+  if (labels.length) res[key] = labels;
+  return res;
+}, {})
 
 export const FractionIdGroups = {
   CALCIFIED_STRUCTURE: [10, 11, 12, 13]
+};
+
+export const FractionId = {
+  ALL: 1,
+
+  // Babord
+
 };
 
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
@@ -161,28 +214,61 @@ export const PmfmLabelPatterns = {
   LONGITUDE: /^longitude$/i
 };
 
-export const UnitLabelPatterns = {
-  DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
-  DATE_TIME: /^Date[ &]+Time$/
-};
+export const UnitIds = {
+  NONE: 0
+}
+
+export const GearIds = {
+  //OTT: 7 // Not used - WARN id=21 in the SIH database
+}
 
 export declare type WeightUnitSymbol = 'kg' | 'g' | 'mg' | 't';
-export const WeightToKgCoefficientConversion = Object.freeze({
+export declare type LengthUnitSymbol = 'km' | 'm' | 'dm' | 'cm' | 'mm';
+
+// TODO Override by config properties ?
+export const UnitLabel = {
+  DECIMAL_HOURS: 'h dec.',
+  DATE_TIME: 'Date & Time',
+  // Weight units
+  TON: <WeightUnitSymbol>'t',
+  KG: <WeightUnitSymbol>'kg',
+  GRAM: <WeightUnitSymbol>'g',
+  MG: <WeightUnitSymbol>'mg',
+  // Length units
+  KM: <LengthUnitSymbol>'km',
+  M: <LengthUnitSymbol>'m',
+  DM: <LengthUnitSymbol>'dm',
+  CM: <LengthUnitSymbol>'cm',
+  MM: <LengthUnitSymbol>'mm'
+};
+
+export const WeightKgConversion: Record<WeightUnitSymbol, number> = Object.freeze({
   't': 1000,
   'kg': 1,
   'g': 1/1000,
   'mg': 1/1000/1000
 });
+export const LengthMeterConversion: Record<LengthUnitSymbol, number> = Object.freeze({
+  'km': 1000,
+  'm': 1,
+  'dm': 1/10,
+  'cm': 1/100,
+  'mm': 1/1000
+});
 
-// TODO Should be override by config properties
-export const UnitLabel = {
-  DECIMAL_HOURS: 'h dec.',
-  DATE_TIME: 'Date & Time',
-  KG: <WeightUnitSymbol>'kg',
-  GRAM: <WeightUnitSymbol>'g',
-  MG: <WeightUnitSymbol>'mg',
-  TON: <WeightUnitSymbol>'t'
+export const UnitLabelPatterns = {
+  DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
+  DATE_TIME: /^Date[ &]+Time$/,
+  LENGTH: /LENGTH/,
+  WEIGHT: /WEIGHT$/
 };
+export const UnitLabelGroups = {
+  WEIGHT: Object.keys(WeightKgConversion),
+  LENGTH: Object.keys(LengthMeterConversion)
+}
+
+
+
 
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
@@ -202,13 +288,14 @@ export const QualityFlags = Object.entries(QualityFlagIds).map(([label, id]) => 
   };
 });
 
-export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CATCH_BATCH'
+export declare type AcquisitionLevelType = 'TRIP' | 'OPERATION' | 'SALE' | 'LANDING' | 'PHYSICAL_GEAR' | 'CHILD_PHYSICAL_GEAR' | 'CATCH_BATCH'
   | 'SORTING_BATCH' | 'SORTING_BATCH_INDIVIDUAL' | 'SAMPLE' | 'SURVIVAL_TEST' | 'INDIVIDUAL_MONITORING' | 'INDIVIDUAL_RELEASE'
   | 'OBSERVED_LOCATION' | 'OBSERVED_VESSEL' | 'PRODUCT' | 'PRODUCT_SALE' | 'PACKET_SALE' | 'EXPENSE' | 'BAIT_EXPENSE' | 'ICE_EXPENSE' | 'CHILD_OPERATION' ;
 
 export const AcquisitionLevelCodes = {
   TRIP: <AcquisitionLevelType>'TRIP',
   PHYSICAL_GEAR: <AcquisitionLevelType>'PHYSICAL_GEAR',
+  CHILD_PHYSICAL_GEAR: <AcquisitionLevelType>'CHILD_PHYSICAL_GEAR',
   OPERATION: <AcquisitionLevelType>'OPERATION',
   CATCH_BATCH: <AcquisitionLevelType>'CATCH_BATCH',
   SORTING_BATCH: <AcquisitionLevelType>'SORTING_BATCH',
@@ -245,4 +332,8 @@ export const ProgramPrivilegeIds = {
   QUALIFIER: 5
 };
 
-
+export class ModelEnumUtils {
+  static refreshDefaultValues() {
+    MethodIdGroups.CALCULATED = Methods.getCalculatedIds();
+  }
+}

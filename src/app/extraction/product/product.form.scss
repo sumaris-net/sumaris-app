@@ -1,0 +1,21 @@
+@import 'src/theme/theme.globals';
+
+.strata-row {
+  padding-top: 4px;
+  padding-left: 8px;
+
+  &.odd {
+    background-color: var(--ion-color-light, grey);
+  }
+
+}
+.ion-col-documentation-preview {
+  min-height: 210px;
+  z-index: 999;
+}
+
+@media screen and (min-width: $screen-xl) {
+  .ion-col-documentation-preview {
+    margin-right: calc(-1 * 20vw);
+  }
+}

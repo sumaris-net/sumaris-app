@@ -2,6 +2,8 @@ import { BehaviorSubject, interval } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { Injectable } from '@angular/core';
+import { isMoment, Moment } from 'moment';
+import { fromDateISOString } from '@sumaris-net/ngx-components';
 
 export type Context = {
   program?: Program;
@@ -17,20 +19,8 @@ export type ObservableValues<T> = {
 }
 
 export class ContextService<S extends Record<string, any> = Context> {
+
   protected observableState: ObservableValues<S>;
-
-  private toObservableValue<T extends S[keyof S]>(value: T): BehaviorSubject<T> {
-    return new BehaviorSubject<T>(value);
-  }
-
-  private toObservableValues<T extends Partial<S>>(state: T): ObservableValues<T> {
-    return Object.entries(state).reduce((acc, [key, value]) => {
-      return {
-        ...acc,
-        [key]: this.toObservableValue(value)
-      };
-    }, {}) as ObservableValues<T>;
-  }
 
   constructor(protected defaultState: S) {
     this.reset();
@@ -79,5 +69,24 @@ export class ContextService<S extends Record<string, any> = Context> {
   reset(): void {
     this.observableState && Object.values(this.observableState).forEach(obs => obs.complete());
     this.observableState = this.toObservableValues(this.defaultState);
+  }
+
+  getValueAsDate(key: keyof ObservableValues<S>): Moment {
+    return fromDateISOString(this.getValue(key));
+  }
+
+  /* -- private functions -- */
+
+  private toObservableValue<T extends S[keyof S]>(value: T): BehaviorSubject<T> {
+    return new BehaviorSubject<T>(value);
+  }
+
+  private toObservableValues<T extends Partial<S>>(state: T): ObservableValues<T> {
+    return Object.entries(state).reduce((acc, [key, value]) => {
+      return {
+        ...acc,
+        [key]: this.toObservableValue(value)
+      };
+    }, {}) as ObservableValues<T>;
   }
 }

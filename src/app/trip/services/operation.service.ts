@@ -1,10 +1,11 @@
-import {Injectable, Optional} from '@angular/core';
-import {FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {BehaviorSubject, combineLatest, EMPTY, from, Observable} from 'rxjs';
-import {filter, first, map} from 'rxjs/operators';
-import {DataCommonFragments, DataFragments} from './trip.queries';
+import { Injectable, Optional } from '@angular/core';
+import { FetchPolicy, FetchResult, gql, InternalRefetchQueriesInclude, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { BehaviorSubject, combineLatest, EMPTY, from, Observable } from 'rxjs';
+import { filter, first, map, mergeMap } from 'rxjs/operators';
+import { DataCommonFragments, DataFragments } from './trip.queries';
 import {
   AccountService,
+  AppFormUtils,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
   BaseGraphqlService,
@@ -16,6 +17,9 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   firstNotNilPromise,
+  FormErrors,
+  FormErrorTranslator,
+  FormErrorTranslatorOptions,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -25,37 +29,60 @@ import {
   isNotEmptyArray,
   isNotNil,
   JobUtils,
-  LoadResult, MINIFY_ENTITY_FOR_LOCAL_STORAGE,
+  LoadResult,
+  MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
+  ProgressBarService,
   QueryVariables,
-  toNumber,
+  toBoolean,
+  toNumber
 } from '@sumaris-net/ngx-components';
-import {Measurement} from './model/measurement.model';
-import {DataEntity, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
-import { MINIFY_OPERATION_FOR_LOCAL_STORAGE, Operation, OperationAsObjectOptions, OperationFromObjectOptions, Trip, VesselPosition, VesselPositionUtils } from './model/trip.model';
-import {Batch, BatchUtils} from './model/batch.model';
-import {Sample} from './model/sample.model';
-import {SortDirection} from '@angular/material/sort';
-import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-import {AcquisitionLevelCodes, QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {environment} from '@environments/environment';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
-import {Geolocation} from '@ionic-native/geolocation/ngx';
-import {GeolocationOptions} from '@ionic-native/geolocation';
+import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from './model/measurement.model';
+import { DataEntity, DataEntityUtils, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import {
+  FISHING_AREAS_LOCATION_REGEXP,
+  MINIFY_OPERATION_FOR_LOCAL_STORAGE,
+  Operation,
+  OperationAsObjectOptions,
+  OperationFromObjectOptions,
+  POSITIONS_REGEXP,
+  Trip,
+  VesselPositionUtils
+} from './model/trip.model';
+import { Batch } from '../batch/common/batch.model';
+import { Sample } from './model/sample.model';
+import { SortDirection } from '@angular/material/sort';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { GeolocationOptions } from '@ionic-native/geolocation';
 import moment from 'moment';
-import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
-import {MetierFilter} from '@app/referential/services/filter/metier.filter';
-import {Metier} from '@app/referential/services/model/metier.model';
-import {MetierService} from '@app/referential/services/metier.service';
-import {mergeMap} from 'rxjs/internal/operators';
-import {PositionUtils} from '@app/trip/services/position.utils';
-import {IPosition} from '@app/trip/services/model/position.model';
-import {ErrorCodes} from '@app/data/services/errors';
-import {mergeLoadResult} from '@app/shared/functions';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
+import { MetierFilter } from '@app/referential/services/filter/metier.filter';
+import { Metier } from '@app/referential/services/model/metier.model';
+import { MetierService } from '@app/referential/services/metier.service';
+import { PositionUtils } from '@app/trip/services/position.utils';
+import { IPosition } from '@app/trip/services/model/position.model';
+import { ErrorCodes } from '@app/data/services/errors';
+import { mergeLoadResult } from '@app/shared/functions';
 import { TripErrorCodes } from '@app/trip/services/trip.errors';
+import { OperationValidatorOptions, OperationValidatorService } from '@app/trip/services/validator/operation.validator';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { TranslateService } from '@ngx-translate/core';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { TripLoadOptions } from '@app/trip/services/trip.service';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { VesselPosition } from '@app/data/services/model/vessel-position.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { Geometries } from '@app/shared/geometries.utils';
+import { BatchService } from '@app/trip/batch/common/batch.service';
 
 
 export const OperationFragments = {
@@ -70,6 +97,8 @@ export const OperationFragments = {
     comments
     hasCatch
     updateDate
+    controlDate
+    qualificationComments
     qualityFlagId
     physicalGearId
     physicalGear {
@@ -110,6 +139,8 @@ export const OperationFragments = {
     fishingStartDateTime
     fishingEndDateTime
     rankOrderOnPeriod
+    controlDate
+    qualificationComments
     qualityFlagId
     physicalGearId
     physicalGear {
@@ -172,11 +203,11 @@ export const OperationQueries = {
   }
   ${OperationFragments.lightOperation}`,
 
-  loadAllWithTripWithTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithTripAndTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightOperationFragment
       trip {
-           id
+        id
         program {
           id
           label
@@ -245,9 +276,9 @@ export const OperationQueries = {
   ${OperationFragments.lightOperation}`
 };
 
-const OperationMutations: BaseEntityGraphqlMutations = {
+const OperationMutations: BaseEntityGraphqlMutations & {terminate: any }= {
   // Save many operations
-  saveAll: gql`mutation saveOperations($data:[OperationVOInput]!){
+  saveAll: gql`mutation saveOperations($data:[OperationVOInput]!) {
     data: saveOperations(operations: $data){
       ...OperationFragment
     }
@@ -255,18 +286,26 @@ const OperationMutations: BaseEntityGraphqlMutations = {
   ${OperationFragments.operation}`,
 
   // Delete many operations
-  deleteAll: gql`mutation deleteOperations($ids:[Int]!){
+  deleteAll: gql`mutation deleteOperations($ids:[Int]!) {
     deleteOperations(ids: $ids)
-  }`
-};
+  }`,
 
-const OperationSubscriptions: BaseEntityGraphqlSubscriptions = {
-  listenChanges: gql`subscription updateOperation($id: Int!, $interval: Int){
-    data: updateOperation(id: $id, interval: $interval) {
+  terminate: gql`mutation controlOperation($data:OperationVOInput!) {
+    data: controlOperation(operation: $data) {
       ...OperationFragment
     }
   }
   ${OperationFragments.operation}`
+
+};
+
+const OperationSubscriptions: BaseEntityGraphqlSubscriptions = {
+  listenChanges: gql`subscription UpdateOperation($id: Int!, $interval: Int){
+    data: updateOperation(id: $id, interval: $interval) {
+      ...LightOperationFragment
+    }
+  }
+  ${OperationFragments.lightOperation}`
 };
 
 const sortByStartDateFn = (n1: Operation, n2: Operation) => {
@@ -294,7 +333,17 @@ export declare interface OperationSaveOptions extends EntitySaveOptions {
   trip?: Trip;
   computeBatchRankOrder?: boolean;
   computeBatchIndividualCount?: boolean;
+  computeBatchWeight?: boolean;
+  cleanBatchTree?: boolean;
   updateLinkedOperation?: boolean;
+}
+
+export declare interface OperationControlOptions extends OperationValidatorOptions {
+  // Should save entity, after control ? (e.g. update 'controlDate', 'qualificationComments', etc.) - True by default
+  terminate?: boolean;
+
+  // Translator options
+  translatorOptions?: FormErrorTranslatorOptions;
 }
 
 export declare interface OperationMetierFilter {
@@ -320,10 +369,21 @@ export declare interface OperationServiceLoadOptions extends EntityServiceLoadOp
 @Injectable({providedIn: 'root'})
 export class OperationService extends BaseGraphqlService<Operation, OperationFilter>
   implements IEntitiesService<Operation, OperationFilter, OperationServiceWatchOptions>,
+    IDataEntityQualityService<Operation>,
     IEntityService<Operation> {
 
   protected loading = false;
   protected _watchQueriesUpdatePolicy: MutableWatchQueriesUpdatePolicy;
+
+  protected _tripService: IEntityService<Trip, number, TripLoadOptions>;
+
+  set tripService(value: IEntityService<Trip, number, TripLoadOptions>) {
+    this._tripService = value;
+  }
+
+  get tripService(): IEntityService<Trip, number, TripLoadOptions> {
+    return this._tripService;
+  }
 
   constructor(
     protected graphql: GraphqlService,
@@ -331,12 +391,19 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     protected accountService: AccountService,
     protected metierService: MetierService,
     protected entities: EntitiesStorage,
+    protected validatorService: OperationValidatorService,
+    protected batchService: BatchService,
+    protected progressBarService: ProgressBarService,
+    protected programRefService: ProgramRefService,
+    protected translate: TranslateService,
+    protected formErrorTranslator: FormErrorTranslator,
     @Optional() protected geolocation: Geolocation
   ) {
     super(graphql, environment);
 
     this._mutableWatchQueriesMaxCount = 3;
     this._watchQueriesUpdatePolicy = 'update-cache';
+    this._logPrefix = '[operation-service] ';
 
     // -- For DEV only
     this._debug = !environment.production;
@@ -391,14 +458,13 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const offline = forceOffline || opts?.withOffline || false;
     const online = !forceOffline;
 
-
     //If we have both online and offline, watch all options has to be apply when all results are merged
-    const options: OperationServiceWatchOptions = {...opts};
-    if (offline && online){
+    const options: OperationServiceWatchOptions = { ...opts };
+    if (offline && online) {
       options.mapFn = undefined;
       options.sortByDistance = undefined;
       options.toEntity = undefined;
-      options.computeRankOrder = undefined
+      options.computeRankOrder = undefined;
     }
 
     const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, options);
@@ -407,12 +473,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Merge local and remote
     if (offline$ && online$) {
       return combineLatest([offline$, online$])
-      .pipe(
-        map(([res1, res2]) => mergeLoadResult(res1, res2)),
-        mergeMap(async ({data, total}) => {
-          return await this.applyWatchOptions({data, total}, offset, size, sortBy, sortDirection, dataFilter, opts);
-        })
-      );
+        .pipe(
+          map(([res1, res2]) => mergeLoadResult(res1, res2)),
+          mergeMap(({ data, total }) => {
+            return this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts);
+          })
+        );
     }
     return offline$ || online$;
   }
@@ -430,16 +496,16 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       // Load locally
       if (id < 0) {
         json = await this.entities.load<Operation>(id, Operation.TYPENAME, opts);
-        if (!json) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
+        if (!json) throw { code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' };
       }
 
       // Load from pod
       else {
-        const query = (opts && opts.query) || (opts && opts.fullLoad === false ? OperationQueries.loadLight: OperationQueries.load);
+        const query = (opts && opts.query) || (opts && opts.fullLoad === false ? OperationQueries.loadLight : OperationQueries.load);
         const res = await this.graphql.query<{ data: Operation }>({
           query,
-          variables: {id},
-          error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
+          variables: { id },
+          error: { code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR' },
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
         json = res && res.data;
@@ -456,34 +522,201 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
+  canUserWrite(data: Operation, opts?: OperationValidatorOptions): boolean {
+    const trip = opts?.trip;
+    if (!trip) throw new Error('Missing required \'opts.trip\' argument');
+    return !!data && trip && this.tripService.canUserWrite(trip);
+  }
+
+  async controlAllByTrip(trip: Trip, opts?: OperationControlOptions): Promise<FormErrors> {
+
+    // Increment
+    this.progressBarService.increase();
+
+    try {
+
+      // Prepare control options
+      opts = await this.fillControlOptionsForTrip(trip.id, {trip, ...opts});
+
+      // Load all (light) operations
+      const { data } = await this.loadAllByTrip({ tripId: trip.id },
+        { computeRankOrder: false, fullLoad: false, toEntity: false });
+
+      if (isEmptyArray(data)) return undefined; // Skip if empty
+
+      let errorsById: FormErrors = null;
+
+      // For each entity
+      for (let entity of data) {
+
+        // Load full entity
+        entity = await this.load(entity.id);
+
+        const errors = await this.control(entity, opts);
+
+        // Control failed: save error
+        if (errors) {
+          errorsById = errorsById || {};
+          errorsById[entity.id] = errors;
+
+          // translate, then save normally
+          const message = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
+          entity.controlDate = undefined;
+          entity.qualificationComments = message;
+
+          // Save entity
+          await this.save(entity);
+
+        }
+
+        // OK succeed: terminate
+        else {
+          await this.terminate(entity);
+        }
+      }
+
+      return errorsById;
+    }
+    catch (err) {
+      console.error(err && err.message || err);
+      throw err;
+    }
+    finally {
+      this.progressBarService.decrease();
+    }
+  }
+
+  /**
+   * Control the validity of an operation
+   *
+   * @param entity
+   * @param opts
+   */
+  async control(entity: Operation, opts?: OperationControlOptions): Promise<FormErrors> {
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[operation-service] Control {${entity.id}}...`, entity);
+
+    // Fill options (trip, program, etc. )
+    opts = await this.fillControlOptionsForTrip(entity.tripId, opts);
+
+    // Adapt options to the current operation
+    if (opts.allowParentOperation) {
+      opts.isChild = isNotNil(entity.parentOperationId) || isNotNil(entity.parentOperation);
+      opts.isParent = !opts.isChild;
+    } else {
+      opts.isChild = false;
+      opts.isParent = false;
+    }
+
+    // Create validator
+    const form = this.validatorService.getFormGroup(entity, opts);
+    this.validatorService.updateFormGroup(form, opts);
+
+    if (!form.valid) {
+      // Wait end of validation (e.g. async validators)
+      await AppFormUtils.waitWhilePending(form);
+
+      // Get form errors
+      if (form.invalid) {
+        const errors = AppFormUtils.getFormErrors(form);
+        console.info(`[operation-service] Control operation {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+        return errors;
+      }
+    }
+
+    // Control batches
+    if (entity.catchBatch && opts?.program) {
+      console.warn('[operation-service] TODO: enable/test batch control() !!')
+      // TODO enable batch control
+      // - make sure to translate all errors
+      // - add sub batches validation
+      // - Optimize validator form creation
+
+      /*const errors = await this.batchService.control(entity.catchBatch, {program: opts.program, controlName: 'catch'});
+      if (errors) {
+        console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
+        return errors;
+      }*/
+    }
+
+    console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
+  }
+
+  async terminate(entity: Operation): Promise<Operation> {
+
+    // Clean error
+    entity.qualificationComments = null;
+
+    // Flag anormal operation
+    const isAnormalOperation = entity.measurements
+      .some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0 /*normal = false*/);
+    if (isAnormalOperation && entity.qualityFlagId === QualityFlagIds.NOT_QUALIFIED) {
+      entity.qualityFlagId = QualityFlagIds.BAD;
+      entity.qualificationComments = entity.comments;
+    }
+
+    // Save locally if need
+    if (entity.tripId < 0) {
+      entity.controlDate = entity.controlDate || moment();
+      return this.saveLocally(entity);
+    }
+
+    const json = this.asObject(entity);
+
+    // Or save remotely (using a specific mutation)
+    await this.graphql.mutate<{ data: Operation }>({
+      mutation: OperationMutations.terminate,
+      variables: {
+        data: json
+      },
+      error: { code: ErrorCodes.CONTROL_ENTITY_ERROR, message: "ERROR.CONTROL_ENTITY_ERROR" },
+      update: (cache, {data}) => {
+        const savedEntity = data && data.data;
+
+        // Update (id and updateDate, and controlDate)
+        EntityUtils.copyIdAndUpdateDate(savedEntity, entity);
+        DataEntityUtils.copyControlDate(savedEntity, entity);
+
+        // Reset qualification comments, if clean by pod
+        DataEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
+      }
+    });
+
+    return entity;
+  }
+
+  async qualify(data: Operation, qualityFlagId: number): Promise<Operation> {
+    console.warn('[operation-service] qualify() not implemented yet !');
+    return data;
+  }
+
   async delete(data: Operation, options?: any): Promise<any> {
     await this.deleteAll([data]);
   }
 
-  public listenChanges(id: number): Observable<Operation> {
+  public listenChanges(id: number, opts?: {
+    interval?: number;
+    fetchPolicy: FetchPolicy;
+  }): Observable<Operation> {
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
     if (this._debug) console.debug(`[operation-service] [WS] Listening changes for operation {${id}}...`);
 
     return this.graphql.subscribe<{ data: Operation }, { id: number, interval: number }>({
       query: OperationSubscriptions.listenChanges,
-      variables: {
-        id,
-        interval: 10
-      },
+      fetchPolicy: opts && opts.fetchPolicy || undefined,
+      variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
         code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
         message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
-        map(data => {
-          if (data && data.data) {
-            const res = Operation.fromObject(data.data);
-            if (this._debug) console.debug(`[operation-service] Operation {${id}} updated on server !`, res);
-            return res;
-          }
-          return null; // deleted ?
+        map(({data}) => {
+          const entity = data && Operation.fromObject(data);
+          if (entity && this._debug) console.debug(`[operation-service] Operation {${id}} updated on server!`, entity);
+          return entity;
         })
       );
   }
@@ -498,7 +731,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (isEmptyArray(entities)) return entities;
 
     if (this._debug) console.debug(`[operation-service] Saving ${entities.length} operations...`);
-    const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
+    const jobsFactories = (entities || []).map(entity => () => this.save(entity, { ...opts }));
     return chainPromises<Operation>(jobsFactories);
   }
 
@@ -533,7 +766,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       variables: {
         data: [json]
       },
-      error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
+      error: { code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR' },
       offlineResponse: async (context) => {
         // Make sure to fill id, with local ids
         await this.fillOfflineDefaultProperties(entity);
@@ -542,11 +775,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         context.tracked = (entity.tripId >= 0);
         if (isNotNil(entity.id)) context.serializationKey = `${Operation.TYPENAME}:${entity.id}`;
 
-        return {data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)]};
+        return { data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)] };
       },
       refetchQueries: this.getRefetchQueriesForMutation(opts),
       awaitRefetchQueries: opts && opts.awaitRefetchQueries,
-      update: async (cache, {data}) => {
+      update: async (cache, { data }) => {
         const savedEntity = data && data.data && data.data[0];
 
         // Local entity: save it
@@ -568,6 +801,10 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           // Copy id and update Date
           this.copyIdAndUpdateDate(savedEntity, entity);
 
+          // Reset qualification comments, if clean by pod
+          DataEntityUtils.copyControlDate(savedEntity, entity);
+          DataEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
+
           // Copy gear
           if (savedEntity.metier && !savedEntity.metier.gear) {
             savedEntity.metier.gear = savedEntity.metier.gear || (entity.physicalGear && entity.physicalGear.gear && entity.physicalGear.gear.asObject());
@@ -586,7 +823,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           }
 
           if (opts && opts.update) {
-            opts.update(cache, {data});
+            opts.update(cache, { data });
           }
 
           if (this._debug) console.debug(`[operation-service] Operation saved in ${Date.now() - now}ms`, entity);
@@ -623,7 +860,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
       await this.graphql.mutate({
         mutation: OperationMutations.deleteAll,
-        variables: {ids},
+        variables: { ids },
         refetchQueries: this.getRefetchQueriesForMutation(opts),
         awaitRefetchQueries: opts && opts.awaitRefetchQueries,
         update: (cache, res) => {
@@ -664,9 +901,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (this._debug) console.debug(`[operation-service] Deleting local operations... {trash: ${trash}}`);
 
     if (trash) {
-      await this.entities.moveManyToTrash<Operation>(localIds, {entityName: Operation.TYPENAME});
+      await this.entities.moveManyToTrash<Operation>(localIds, { entityName: Operation.TYPENAME });
     } else {
-      await this.entities.deleteMany<Operation>(localIds, {entityName: Operation.TYPENAME});
+      await this.entities.deleteMany<Operation>(localIds, { entityName: Operation.TYPENAME });
     }
   }
 
@@ -686,7 +923,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       // Find operations to delete
       const res = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
         filter: dataFilter.asFilterFn()
-      }, {fullLoad: false});
+      }, { fullLoad: false });
 
       const parentOperationIds = (res && res.data || []).filter(o => o.parentOperation || o.parentOperationId)
         .map(o => o.parentOperation && o.parentOperation.id || o.parentOperationId);
@@ -698,7 +935,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       if (isEmptyArray(ids)) return undefined; // Skip
 
       // Apply deletion
-      return await this.entities.deleteMany(ids, {entityName: Operation.TYPENAME});
+      return await this.entities.deleteMany(ids, { entityName: Operation.TYPENAME });
     } catch (err) {
       console.error(`[operation-service] Failed to delete operations ${JSON.stringify(filter)}`, err);
       throw err;
@@ -757,13 +994,13 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         totalFieldName: withTotal ? 'total' : undefined,
         insertFilterFn: dataFilter.asFilterFn(),
         variables,
-        error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
+        error: { code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR' },
         fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
       })
       : from(this.graphql.query<LoadResult<any>>({
         query,
         variables,
-        error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
+        error: { code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR' },
         fetchPolicy: (opts && opts.fetchPolicy as FetchPolicy) || 'no-cache'
       }));
 
@@ -773,12 +1010,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         //tap(() => this.loading && console.debug('SKIP loading OP')),
         filter(() => !this.loading),
 
-        mergeMap(async ({data, total}) => {
+        mergeMap(async ({ data, total }) => {
           if (now) {
             console.debug(`[operation-service] Loaded ${data.length} operations in ${Date.now() - now}ms`);
             now = undefined;
           }
-          return await this.applyWatchOptions({data, total}, offset, size,sortBy,sortDirection, dataFilter, opts);
+          return await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts);
         }));
   }
 
@@ -811,9 +1048,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     };
 
     if (this._debug) console.debug('[operation-service] Loading operations locally... using options:', variables);
-    return this.entities.watchAll<Operation>(Operation.TYPENAME, variables, {fullLoad: opts && opts.fullLoad})
-      .pipe(mergeMap(async ({data, total}) => {
-               return await this.applyWatchOptions({data, total}, offset, size,sortBy,sortDirection, filter, opts);
+    return this.entities.watchAll<Operation>(Operation.TYPENAME, variables, { fullLoad: opts && opts.fullLoad })
+      .pipe(mergeMap(async ({ data, total }) => {
+        return await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, filter, opts);
       }));
   }
 
@@ -837,7 +1074,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       return this.metierService.loadAll(offset, size, sortBy, sortDirection, filter, opts);
     }
 
-    const {data, total} = await firstNotNilPromise(this.watchAllLocally(offset, size, sortBy, sortDirection, {
+    const { data, total } = await firstNotNilPromise(this.watchAllLocally(offset, size, sortBy, sortDirection, {
         vesselId: filter.vesselId,
         startDate: filter.startDate,
         endDate: filter.endDate,
@@ -853,8 +1090,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const useChildAttributes = filter && (filter.searchJoin === 'TaxonGroup' || filter.searchJoin === 'Gear') ? filter.searchJoin : undefined;
     const entities = (data || []).map(source => source.metier)
       .filter((metier, i, res) => res.findIndex(m => m.id === metier.id) === i)
-      .map(metier => Metier.fromObject(metier, {useChildAttributes}));
-    return {data: entities, total};
+      .map(metier => Metier.fromObject(metier, { useChildAttributes }));
+    return { data: entities, total };
   }
 
   /**
@@ -879,7 +1116,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   watchRankOrder(source: Operation, opts?: OperationServiceWatchOptions): Observable<number> {
     console.debug(`[operation-service] Loading rankOrder of operation #${source.id}...`);
     const tripId = source.tripId;
-    return this.watchAllByTrip({tripId}, {fetchPolicy: 'cache-first', ...opts})
+    return this.watchAllByTrip({ tripId }, { fetchPolicy: 'cache-first', ...opts })
       .pipe(
         map(res => {
           const existingOperation = (res && res.data || []).find(o => o.id === source.id);
@@ -909,46 +1146,72 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return currentPosition && PositionUtils.computeDistanceInMiles(currentPosition, position);
   }
 
-  async executeImport(progression: BehaviorSubject<number>,
+  async executeImport(filter: Partial<OperationFilter>,
                       opts?: {
+                        progression?: BehaviorSubject<number>,
                         maxProgression?: number;
-                        filter: OperationFilter | any;
+                        program?: Program;
+                        [key: string]: any;
                       }): Promise<void> {
-
     const maxProgression = opts && opts.maxProgression || 100;
-    const filter = {
-      excludeChildOperation: true,
-      hasNoChildOperation: true,
+
+    // Load program
+    const program = opts.program || (filter?.programLabel && (await this.programRefService.loadByLabel(filter.programLabel)));
+    const allowParentOperation = program && program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION);
+
+    // No parent/child operation : skip
+    if (!allowParentOperation) {
+      if (opts?.progression) opts.progression.next(maxProgression);
+      console.debug(`${this._logPrefix}Importing operation: disabled by program. Skipping`);
+      return;
+    }
+
+    filter = {
+      // Can be overwriting by filter
       startDate: moment().add(-15, 'day'),
+      // Received filter (e.g. startDate, endDate)
+      ...filter,
+      // Fixed values
       qualityFlagId: QualityFlagIds.NOT_COMPLETED,
-      ...opts.filter
+      excludeChildOperation: true,
+      hasNoChildOperation: true
     };
 
-    console.info('[operation-service] Importing operation...');
+
+    console.info('[operation-service] Importing operations...');
 
     const res = await JobUtils.fetchAllPages((offset, size) =>
         this.loadAll(offset, size, 'id', null, filter, {
-          debug: false,
-          fetchPolicy: 'network-only',
+          fetchPolicy: 'no-cache',
           withTotal: (offset === 0), // Compute total only once
           toEntity: false,
           computeRankOrder: false,
-          query: OperationQueries.loadAllWithTripWithTotal
+          query: OperationQueries.loadAllWithTripAndTotal
         }),
-      progression,
-      {maxProgression: maxProgression * 0.9}
+      {
+        progression: opts?.progression,
+        maxProgression: maxProgression * 0.9,
+        logPrefix: this._logPrefix,
+        fetchSize: 100
+      }
     );
 
-    //Remove parent operation stayed saved locally which have a child synchronized
-    const resLocal = await this.entities.loadAll<Operation>(Operation.TYPENAME, {}, {fullLoad: false});
-    const ids = (resLocal && resLocal.data || []).filter(ope => !res.data.find(o => o.id === ope.id) && ope.id > 0).map(o => o.id);
+    // Collected ids
+    const importedIds = (res?.data ||[]).map(ope => +ope.id);
 
-    if (ids.length > 0) {
-      await this.entities.deleteMany<Operation>(ids, {entityName: 'OperationVO', emitEvent: false});
+    // Find data imported previously, that not exists in new imported data
+    const previousRes = (await this.entities.loadAll<Operation>(Operation.TYPENAME, {
+      filter: (ope) => EntityUtils.isRemoteId(ope.id) && !importedIds.includes(+ope.id)
+    }, { fullLoad: false }));
+
+    // Remove from the local storage
+    if (previousRes.data?.length) {
+      const ids = (previousRes.data || []).map(o => +o.id);
+      await this.entities.deleteMany<Operation>(ids, { entityName: Operation.TYPENAME, emitEvent: false });
     }
 
     // Save result locally
-    await this.entities.saveAll(res.data, {entityName: 'OperationVO', reset: false});
+    await this.entities.saveAll(res.data, { entityName: Operation.TYPENAME, reset: false /* /!\ keep local operations */ });
   }
 
   /**
@@ -961,7 +1224,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (isEmptyArray(entities)) return entities;
 
     if (this._debug) console.debug(`[operation-service] Saving locally ${entities.length} operations...`);
-    const jobsFactories = (entities || []).map(entity => () => this.saveLocally(entity, {...opts}));
+    const jobsFactories = (entities || []).map(entity => () => this.saveLocally(entity, { ...opts }));
     return chainPromises<Operation>(jobsFactories);
   }
 
@@ -991,19 +1254,16 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (opts?.updateLinkedOperation) {
       try {
         await this.updateLinkedOperation(entity, opts);
-      }
-      catch (err) {
+      } catch (err) {
         if (err?.code === TripErrorCodes.CHILD_OPERATION_NOT_FOUND) {
           entity.childOperationId = null;
           entity.childOperation = null;
           json.childOperationId = null;
           json.childOperation = null;
           await this.entities.save(json);
-        }
-        else if (err?.code === TripErrorCodes.PARENT_OPERATION_NOT_FOUND) {
+        } else if (err?.code === TripErrorCodes.PARENT_OPERATION_NOT_FOUND) {
           console.error('[operation-service] [offline] Cannot found the parent operation: ' + (err && err.message || err), err);
-        }
-        else {
+        } else {
           console.error('[operation-service] [offline] Cannot update linked operation: ' + (err && err.message || err), err);
         }
       }
@@ -1041,7 +1301,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           } catch (err) {
             // Child not exists
             if (err.code === ErrorCodes.LOAD_ENTITY_ERROR) {
-              throw {code: TripErrorCodes.CHILD_OPERATION_NOT_FOUND, message: err.message};
+              throw { code: TripErrorCodes.CHILD_OPERATION_NOT_FOUND, message: err.message };
             }
             throw err;
           }
@@ -1053,19 +1313,17 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         if (entity.startPosition && isNotNil(entity.startPosition.id)) {
           child.startPosition = child.startPosition || new VesselPosition();
           child.startPosition.copyPoint(entity.startPosition)
-        }
-        else {
+        } else {
           child.startPosition = undefined;
         }
         if (entity.fishingStartPosition && isNotNil(entity.fishingStartPosition.id)) {
           child.fishingStartPosition = child.fishingStartPosition || new VesselPosition();
           child.fishingStartPosition.copyPoint(entity.fishingStartPosition)
-        }
-        else {
+        } else {
           child.fishingStartPosition = undefined;
         }
         child.updateDate = entity.updateDate;
-        const savedChild = await this.save(child, {...opts, updateLinkedOperation: false});
+        const savedChild = await this.save(child, { ...opts, updateLinkedOperation: false });
 
         // Update the cached entity
         if (cachedChild) {
@@ -1074,15 +1332,13 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           cachedChild.updateDate = savedChild.updateDate;
         }
       }
-    }
-
-    else {
+    } else {
 
       // Update the parent operation (only if parent is a local entity)
       const parentOperationId = toNumber(entity.parentOperation?.id, entity.parentOperationId);
       if (isNotNil(parentOperationId)) {
         const cachedParent = entity.parentOperation;
-        let parent = cachedParent || await this.load(parentOperationId, {fetchPolicy: 'cache-only'});
+        let parent = cachedParent || await this.load(parentOperationId, { fetchPolicy: 'cache-only' });
 
         let savedParent: Operation;
         if (parent && parent.childOperationId !== entity.id) {
@@ -1096,7 +1352,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
               } catch (err) {
                 // Parent not exists
                 if (err.code === ErrorCodes.LOAD_ENTITY_ERROR) {
-                  throw {code: TripErrorCodes.PARENT_OPERATION_NOT_FOUND, message: err.message};
+                  throw { code: TripErrorCodes.PARENT_OPERATION_NOT_FOUND, message: err.message };
                 }
                 throw err;
               }
@@ -1104,7 +1360,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
             // Update the parent
             parent.childOperationId = entity.id;
-            savedParent = await this.save(parent, {...opts, updateLinkedOperation: false});
+            savedParent = await this.save(parent, { ...opts, updateLinkedOperation: false });
 
             // Update the cached entity
             if (cachedParent && savedParent) {
@@ -1113,7 +1369,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
             }
           }
           // Remote AND on same trip
-          else if (parent.tripId === entity.tripId){
+          else if (parent.tripId === entity.tripId) {
             // FIXME: find to wait to update parent operation, WITHOUT refecthing queries
             //  (to avoid duplication, if child is insert manually in cache)
             // savedParent = await this.load(parentOperationId, {fetchPolicy: 'network-only'});
@@ -1163,7 +1419,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return distance;
   }
 
-  async areUsedPhysicalGears(tripId: number, physicalGearIds: number[]): Promise<boolean>{
+  async areUsedPhysicalGears(tripId: number, physicalGearIds: number[]): Promise<boolean> {
     const res = await this.loadAll(0, 1, null, null,
       {
         tripId: tripId,
@@ -1174,7 +1430,30 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       });
 
     const usedGearIds = res.data.map(physicalGear => physicalGear.id);
-    return(usedGearIds.length === 0);
+    return (usedGearIds.length === 0);
+  }
+
+  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+    opts = opts || {};
+    if (isNilOrBlank(opts.i18nPrefix)) opts.i18nPrefix = 'TRIP.OPERATION.EDIT.';
+    // Translate PMFM field
+    if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+      const pmfmId = parseInt(path.split('.').pop());
+      const pmfm = opts.pmfms.find(p => p.id === pmfmId);
+      return PmfmUtils.getPmfmName(pmfm);
+    }
+    // Translate location, inside any fishing areas
+    if (FISHING_AREAS_LOCATION_REGEXP.test(path)) {
+      return this.translate.instant(opts.i18nPrefix + 'FISHING_AREAS');
+    }
+
+    // Translate location, inside any fishing areas
+    if (POSITIONS_REGEXP.test(path)) {
+      return this.translate.instant(opts.i18nPrefix + 'POSITIONS');
+    }
+
+    // Default translation
+    return this.formErrorTranslator.translateControlPath(path, opts);
   }
 
   /* -- protected methods -- */
@@ -1219,7 +1498,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         entity.catchBatch.label = AcquisitionLevelCodes.CATCH_BATCH;
       }
 
-      // Fill sum and rank order
+      // Fill batch tree default (rank order, sum, etc.)
       this.fillBatchTreeDefaults(entity.catchBatch, options);
     }
   }
@@ -1271,15 +1550,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
   }
 
-  protected fillBatchTreeDefaults(catchBatch: Batch, options?: Partial<OperationSaveOptions>) {
+  protected fillBatchTreeDefaults(catchBatch: Batch, opts?: Partial<OperationSaveOptions>) {
 
-    if (!options) return;
+    if (!opts) return;
+
+    // CLean empty
+    if (opts.cleanBatchTree) BatchUtils.cleanTree(catchBatch);
 
     // Compute rankOrder (and label)
-    if (options.computeBatchRankOrder) BatchUtils.computeRankOrder(catchBatch);
+    if (opts.computeBatchRankOrder) BatchUtils.computeRankOrder(catchBatch);
 
     // Compute individual count
-    if (options.computeBatchIndividualCount) BatchUtils.computeIndividualCount(catchBatch);
+    if (opts.computeBatchIndividualCount) BatchUtils.computeIndividualCount(catchBatch);
+
+    // Compute weight
+    if (opts.computeBatchWeight) BatchUtils.computeWeight(catchBatch);
   }
 
   protected copyIdAndUpdateDate(source: Operation | undefined | any, target: Operation) {
@@ -1313,6 +1598,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         // Should never append
         console.warn('[operation] Some positions sent by Pod have an unknown dateTime: ', sortedSourcePositions)
       }
+    }
+
+    // Update fishing area
+    if (target.fishingAreas && source.fishingAreas){
+      target.fishingAreas.forEach(targetFishArea => {
+        const sourceFishArea = source.fishingAreas.find(json => targetFishArea.equals(json));
+        EntityUtils.copyIdAndUpdateDate(sourceFishArea, targetFishArea);
+      })
     }
 
     // Update measurements
@@ -1351,16 +1644,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         target.operationId = savedOperation.id;
 
         const source = sources.find(json => target.equals(json));
-        EntityUtils.copyIdAndUpdateDate(source, target);
-        DataRootEntityUtils.copyControlAndValidationDate(source, target);
+        if (!source) {
+          console.warn('Missing a sample, equals to this target: ', target)
+        }
+        else {
+          EntityUtils.copyIdAndUpdateDate(source, target);
+          DataRootEntityUtils.copyControlAndValidationDate(source, target);
 
-        // Copy parent Id (need for link to parent)
-        target.parentId = source.parentId;
-        target.parent = null;
+          // Copy parent Id (need for link to parent)
+          target.parentId = source.parentId;
+          target.parent = null;
 
-        // Apply to children
-        if (target.children && target.children.length) {
-          this.copyIdAndUpdateDateOnSamples(sources, target.children, savedOperation);
+          // Apply to children
+          if (target.children?.length) {
+            this.copyIdAndUpdateDateOnSamples(sources, target.children, savedOperation);
+          }
         }
       });
     }
@@ -1451,7 +1749,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
                                     sortBy?: string,
                                     sortDirection?: SortDirection,
                                     filter?: Partial<OperationFilter>,
-                                    opts?: OperationServiceWatchOptions) : Promise<LoadResult<Operation>>{
+                                    opts?: OperationServiceWatchOptions): Promise<LoadResult<Operation>> {
     let entities = (!opts || opts.toEntity !== false) ?
       (data || []).map(source => Operation.fromObject(source, opts))
       : (data || []) as Operation[];
@@ -1464,11 +1762,68 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       entities = await this.sortByDistance(entities, sortDirection, sortBy);
     }
 
-    // Compute rankOrder and re-sort (if enable AND all data fetched)
+    // Compute rankOrder and re-sort (if enable AND total has been fetched)
     if (!opts || opts.computeRankOrder !== false) {
       this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, filter as OperationFilter);
     }
 
     return {data: entities, total};
+  }
+
+  protected async fillValidatorOptionsForTrip(tripId: number, opts?: OperationValidatorOptions): Promise<OperationValidatorOptions> {
+    opts = opts || {};
+
+    // Skip - already loaded
+    if (opts.trip && opts.program && isNotNil(opts.withPosition)) return opts;
+
+    // Load trip, if missing
+    if (!opts.trip) {
+      opts.trip = await this.tripService.load(tripId);
+    }
+
+    // Load program, if missing
+    if (!opts.program) {
+      const programLabel = opts.trip.program && opts.trip.program.label || null;
+      if (!programLabel) throw new Error('Missing trip\'s program. Unable to control trip\'s operation');
+      opts.program = await this.programRefService.loadByLabel(programLabel);
+    }
+
+    const showPosition = toBoolean(MeasurementUtils.asBooleanValue(opts.trip.measurements, PmfmIds.GPS_USED), true)
+      && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_POSITION_ENABLE);
+
+    return {
+      ...opts,
+      withPosition: showPosition,
+      withFishingAreas: !showPosition,
+      allowParentOperation: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_ALLOW_PARENT_OPERATION),
+      withFishingStart: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_START_DATE_ENABLE),
+      withFishingEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE),
+      withEnd: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE),
+      maxDistance: opts.program.getPropertyAsInt(ProgramProperties.TRIP_DISTANCE_MAX_ERROR),
+      boundingBox: Geometries.parseAsBBox(opts.program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX)),
+      maxTotalDurationInHours: opts.program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS),
+      maxShootingDurationInHours: opts.program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS),
+      isOnFieldMode: false, // Always disable 'on field mode'
+      withMeasurements: true // Need by full validation
+    };
+  }
+
+
+  protected async fillControlOptionsForTrip(tripId: number, opts?: OperationControlOptions): Promise<OperationControlOptions> {
+
+    opts = await this.fillValidatorOptionsForTrip(tripId, opts);
+
+    // Prepare error translator
+    if (!opts.translatorOptions) {
+      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
+        .filter(p => opts.isChild ? p.acquisitionLevel === AcquisitionLevelCodes.CHILD_OPERATION : p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
+      opts.translatorOptions = {
+        controlPathTranslator: {
+          translateControlPath: (path) => this.translateControlPath(path, { pmfms })
+        }
+      };
+    }
+
+    return opts;
   }
 }

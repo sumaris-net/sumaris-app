@@ -44,7 +44,8 @@
         <mat-autocomplete-field formControlName="saleLocation"
                                 [placeholder]="'SALE.SALE_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
-                                [tabindex]="tabindex === -1 ? -1 : tabindex+2">
+                                [tabindex]="tabindex === -1 ? -1 : tabindex+2"
+                                [required]="form|formGetValue: 'saleType'|isNotEmptyReferential">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -52,7 +53,9 @@
         <mat-date-time-field [placeholder]="'SALE.DATE_TIME'|translate"
                              formControlName="startDateTime"
                              [tabindex]="tabindex === -1 ? -1 : tabindex+3"
-                             [required]="required">
+                             [required]="form|formGetValue: 'saleType'|isNotEmptyReferential">
+          <!-- icon need for small screen -->
+          <mat-icon matPrefix class="visible-xs">today</mat-icon>
         </mat-date-time-field>
       </ion-col>
     </ion-row>

@@ -1,9 +1,19 @@
 import { Injectable } from '@angular/core';
-import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { DataCommonFragments, DataFragments } from './trip.queries';
-import { AccountService, BaseGraphqlService, EntityUtils, GraphqlService, IEntitiesService, LoadResult } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions,
+  BaseGraphqlService,
+  EntityUtils,
+  GraphqlService,
+  IEntitiesService,
+  isNotNil,
+  LoadResult, toNumber
+} from '@sumaris-net/ngx-components';
 import { SAVE_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { Sale } from './model/sale.model';
@@ -76,9 +86,9 @@ export const SaleFragments = {
   `
 };
 
-const queries = {
+const Queries: BaseEntityGraphqlQueries = {
   load: gql`query Sale($id: Int) {
-      sale(id: $id) {
+      data: sale(id: $id) {
         ...SaleFragment
       }
     }
@@ -90,32 +100,29 @@ const queries = {
     }
   }
   ${SaleFragments.lightSale}`
-}
+};
 
-const SaveSales: any = gql`
-  mutation saveSales($data:[SaleVOInput]){
-    data: saveSales(data: $sales){
+const Mutations: BaseEntityGraphqlMutations = {
+  save: gql`mutation SaveSales($data:[SaleVOInput]){
+    data: saveSales(data: $data){
       ...SaleFragment
     }
   }
-  ${SaleFragments.sale}
-`;
-const DeleteSales: any = gql`
-  mutation deleteSales($ids:[Int]){
+  ${SaleFragments.sale}`,
+
+  deleteAll: gql`mutation DeleteSales($ids:[Int]){
     deleteSales(ids: $ids)
-  }
-`;
+  }`
+};
 
-const UpdateSubscription = gql`
-  subscription updateSale($id: Int, $interval: Int){
-    updateSale(id: $id, interval: $interval) {
+const Subscriptions: BaseEntityGraphqlSubscriptions = {
+  listenChanges: gql`subscription UpdateSale($id: Int, $interval: Int){
+    data: updateSale(id: $id, interval: $interval) {
       ...SaleFragment
     }
   }
-  ${SaleFragments.sale}
-`;
-
-const sortByStartDateFn = (n1: Sale, n2: Sale) => { return n1.startDateTime.isSame(n2.startDateTime) ? 0 : (n1.startDateTime.isAfter(n2.startDateTime) ? 1 : -1); };
+  ${SaleFragments.sale}`
+};
 
 const sortByEndDateOrStartDateFn = (n1: Sale, n2: Sale) => {
   const d1 = n1.endDateTime || n1.startDateTime;
@@ -149,31 +156,33 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
            size: number,
            sortBy?: string,
            sortDirection?: SortDirection,
-           filter?: SaleFilter,
+           dataFilter?: SaleFilter,
            options?: {
              fetchPolicy?: WatchQueryFetchPolicy
            }): Observable<LoadResult<Sale>> {
+
+    dataFilter = this.asFilter(dataFilter);
 
     const variables: any = {
       offset: offset || 0,
       size: size >= 0 ? size : 1000,
       sortBy: (sortBy !== 'id' && sortBy) || 'startDateTime',
       sortDirection: sortDirection || 'asc',
-      filter: filter
+      filter: dataFilter.asPodObject()
     };
 
     if (this._debug) console.debug("[sale-service] Loading sales... using options:", variables);
 
+
     // TODO: manage options.withTotal, and query selection
     const withTotal = false;
-    const query = queries.loadAll;
+    const query = Queries.loadAll;
 
     return this.mutableWatchQuery<LoadResult<Sale>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       arrayFieldName: 'data',
       totalFieldName: withTotal ? 'total' : undefined,
-      //TODO implement SaleFilter.searchFilter()
-      // mutationFilterFn: SaleFilter.searchFilter(filter),
+      insertFilterFn: dataFilter?.asFilterFn(),
       query,
       variables,
       error: { code: ErrorCodes.LOAD_ENTITIES_ERROR, message: "ERROR.LOAD_ENTITIES_ERROR" },
@@ -185,12 +194,12 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
           if (this._debug) console.debug(`[sale-service] Loaded ${entities.length} sales`);
 
           // Compute rankOrderOnPeriod, when loading by parent entity
-          if (offset === 0 && (size === -1) && filter && filter.observedLocationId) {
+          if (offset === 0 && (size === -1) && isNotNil(dataFilter.observedLocationId)) {
             if (offset === 0 && (size === -1)) {
-              let rankOrder = 1;
               // apply a sorted copy (do NOT change original order), then compute rankOrder
-              entities.slice().sort(sortByEndDateOrStartDateFn)
-                .forEach(o => o.rankOrder = rankOrder++);
+              entities.slice()
+                .sort(sortByEndDateOrStartDateFn)
+                .forEach((o, i) => o.rankOrder = i+1);
 
               // sort by rankOrder (aka id)
               if (!sortBy || sortBy == 'id') {
@@ -214,13 +223,13 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     if (this._debug) console.debug("[sale-service] Loading sale {" + id + "}...");
 
     return this.graphql.watchQuery<{ data: any }>({
-      query: queries.load,
+      query: Queries.load,
       variables: { id },
       error: { code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR" }
     })
       .pipe(
-        map((res) => {
-          if (res && res.data) {
+        map(res => {
+          if (res?.data) {
             const res = Sale.fromObject(res.data);
             if (this._debug) console.debug("[sale-service] Sale {" + id + "} loaded", res);
             return res;
@@ -230,30 +239,28 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       );
   }
 
-  public listenChanges(id: number): Observable<Sale> {
+  public listenChanges(id: number, opts?: {
+    interval?: number;
+    fetchPolicy: FetchPolicy;
+  }): Observable<Sale> {
     if (!id && id !== 0) throw "Missing argument 'id' ";
 
     if (this._debug) console.debug(`[sale-service] [WS] Listening changes for trip {${id}}...`);
 
-    return this.graphql.subscribe<{ updateSale: Sale }, { id: number, interval: number }>({
-      query: UpdateSubscription,
-      variables: {
-        id: id,
-        interval: 10
-      },
+    return this.graphql.subscribe<{ data: Sale }, { id: number, interval: number }>({
+      query: Subscriptions.listenChanges,
+      fetchPolicy: opts && opts.fetchPolicy || undefined,
+      variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
         code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
         message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
-        map(data => {
-          if (data && data.updateSale) {
-            const res = Sale.fromObject(data.updateSale);
-            if (this._debug) console.debug(`[sale-service] Sale {${id}} updated on server !`, res);
-            return res;
-          }
-          return null; // deleted ?
+        map(({ data }) => {
+          const entity = data && Sale.fromObject(data);
+          if (entity && this._debug) console.debug(`[sale-service] Sale {${id}} updated on server!`, entity);
+          return entity;
         })
       );
   }
@@ -273,8 +280,8 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     if (this._debug) console.debug("[sale-service] Saving sales...");
 
     // Compute rankOrder
-    let rankOrder = 1;
-    entities.sort(sortByEndDateOrStartDateFn).forEach(o => o.rankOrder = rankOrder++);
+    entities.sort(sortByEndDateOrStartDateFn)
+      .forEach((o, i) => o.rankOrder = i+1);
 
     // Transform to json
     const json = entities.map(t => {
@@ -284,17 +291,17 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     });
     if (this._debug) console.debug("[sale-service] Using minify object, to send:", json);
 
-    await this.graphql.mutate<{ saveSales: Sale[] }>({
-      mutation: SaveSales,
+    await this.graphql.mutate<{ data: Sale[] }>({
+      mutation: Mutations.saveAll,
       variables: {
-        sales: json
+        data: json
       },
       error: { code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR" },
       update: (proxy, {data}) => {
         // Copy id and update date
-        (data && data.saveSales && entities || [])
+        (data && data.data && entities || [])
           .forEach(entity => {
-            const savedSale = data.saveSales.find(res => entity.equals(res));
+            const savedSale = data.data.find(res => entity.equals(res));
             this.copyIdAndUpdateDate(savedSale, entity);
           });
 
@@ -322,14 +329,14 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     const json = entity.asObject(SAVE_AS_OBJECT_OPTIONS);
     if (this._debug) console.debug("[sale-service] Using minify object, to send:", json);
 
-    await this.graphql.mutate<{ saveSales: Sale[] }>({
-      mutation: SaveSales,
+    await this.graphql.mutate<{ data: Sale[] }>({
+      mutation: Mutations.saveAll,
       variables: {
-        sales: [json]
+        data: [json]
       },
       error: { code: ErrorCodes.SAVE_ENTITIES_ERROR, message: "ERROR.SAVE_ENTITIES_ERROR" },
       update: (proxy, {data}) => {
-        const savedEntity = data && data.saveSales && data.saveSales[0];
+        const savedEntity = data && data.data && data.data[0];
         if (savedEntity && savedEntity !== entity) {
           // Copy id and update Date
           this.copyIdAndUpdateDate(savedEntity, entity);
@@ -363,7 +370,7 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
     if (this._debug) console.debug("[sale-service] Deleting sales... ids:", ids);
 
     await this.graphql.mutate<any>({
-      mutation: DeleteSales,
+      mutation: Mutations.deleteAll,
       variables: {
         ids
       },
@@ -378,7 +385,6 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
       }
     });
   }
-
 
   asFilter(filter: Partial<SaleFilter>): SaleFilter {
     return SaleFilter.fromObject(filter);
@@ -451,6 +457,6 @@ export class SaleService extends BaseGraphqlService<Sale, SaleFilter> implements
   /* -- private -- */
 
   protected getLoadQueries(): DocumentNode[] {
-    return [LoadAllQuery];
+    return [Queries.loadAll];
   }
 }

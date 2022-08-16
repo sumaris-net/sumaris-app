@@ -1,7 +1,7 @@
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
-import { filterNotNil, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, PlatformService, remove, removeAll } from '@sumaris-net/ngx-components';
+import { filterNotNil, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, remove, removeAll } from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from '../services/validator/typed-expense.validator';
 import { BehaviorSubject } from 'rxjs';
 import { Measurement } from '../services/model/measurement.model';
@@ -24,11 +24,9 @@ export class TypedExpenseForm extends MeasurementsForm {
   amountDefinition: FormFieldDefinition;
 
   @Input() rankOrder: number;
-
   @Input() expenseType = 'UNKNOWN';
 
-  @Input()
-  set pmfms(pmfms: IPmfm[]) {
+  @Input() set pmfms(pmfms: IPmfm[]) {
     this.setPmfms(pmfms);
   }
 
@@ -43,11 +41,10 @@ export class TypedExpenseForm extends MeasurementsForm {
     injector: Injector,
     protected validatorService: TypedExpenseValidatorService,
     protected formBuilder: FormBuilder,
-    protected programRefService: ProgramRefService,
-    protected platform: PlatformService
+    protected programRefService: ProgramRefService
   ) {
     super(injector, validatorService, formBuilder, programRefService);
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
     this.keepRankOrder = true;
   }
 
@@ -63,15 +60,14 @@ export class TypedExpenseForm extends MeasurementsForm {
     };
 
 
-    this.registerSubscription(filterNotNil(this.$pmfms).subscribe(pmfms => {
-
-      // Wait form controls ready
-      this.ready().then(() => {
+    this.registerSubscription(
+      this.$pmfms.subscribe(async (pmfms) => {
+        // Wait form is ready
+        await this.ready();
         // dispatch pmfms
         this.parsePmfms(pmfms);
-      });
-
-    }));
+      })
+    );
 
     this.registerSubscription(filterNotNil(this.$totalPmfm)
       .subscribe(totalPmfm => {
@@ -88,7 +84,8 @@ export class TypedExpenseForm extends MeasurementsForm {
       showAllOnFocus: true,
       items: this.$packagingPmfms,
       attributes: ['unitLabel'],
-      columnNames: ['REFERENTIAL.PMFM.UNIT']
+      columnNames: ['REFERENTIAL.PMFM.UNIT'],
+      mobile: this.mobile
     });
 
   }
@@ -119,14 +116,13 @@ export class TypedExpenseForm extends MeasurementsForm {
     return values;
   }
 
-  setValue(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
-
+  protected async updateView(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     // filter measurements on rank order if provided
     if (this.rankOrder) {
       data = (data || []).filter(value => value.rankOrder === this.rankOrder);
     }
 
-    super.setValue(data, opts);
+    await super.updateView(data, opts);
 
     // set packaging and amount value
     const packaging = (this.$packagingPmfms.getValue() || [])

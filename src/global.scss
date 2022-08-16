@@ -2,6 +2,8 @@
 // Import theme
 // --------------------------------------------------
 @import "theme";
+@import "leaflet";
+@import "reveal";
 
 // --------------------------------------------------
 // Inject Font
@@ -14,13 +16,10 @@
 // Inject theme colors (as CSS variables)
 // --------------------------------------------------
 :root {
-  @include css-variables-to-root();
-  --mat-tab-link-height: #{$mat-tab-link-height};
-  --mat-toolbar-background-color: #{$mat-toolbar-background-color};
+  @include css-app-variables-to-root();
 
   ion-app {
     @include css-variables-to-root();
-    --mat-tab-link-height: #{$mat-tab-link-height};
   }
 
   &.plt-mobile {

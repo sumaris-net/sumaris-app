@@ -1,7 +1,7 @@
 <app-modal-toolbar color="secondary"
                    (cancel)="close($event)"
                    [title]="$title | async"
-                   (validate)="onSubmit($event)"
+                   (validate)="onSubmitIfDirty($event)"
                    [canValidate]="!disabled"
                    [showSpinner]="loading">
 
@@ -9,34 +9,16 @@
 
     <!-- Options menu -->
     <button mat-icon-button
-            [title]="'COMMON.OPTIONS'|translate"
+            [title]="'COMMON.BTN_OPTIONS'|translate"
             [matMenuTriggerFor]="optionsMenu">
       <mat-icon>more_vert</mat-icon>
     </button>
-
-    <!-- Next (burst mode)
-    <ion-button visible-xs visible-sm visible-mobile
-                *ngIf="enableBurstMode"
-                (click)="onSubmit($event)"
-                [disabled]="!form.valid">
-      <ion-label translate>COMMON.BTN_NEXT</ion-label>
-      <ion-icon slot="end" name="arrow-forward"></ion-icon>
-    </ion-button>-->
 
   </ion-buttons>
 </app-modal-toolbar>
 
 <!-- Options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="before">
-
-  <button mat-menu-item
-          (click)="toggleBurstMode()">
-    <mat-icon *ngIf="enableBurstMode">check_box</mat-icon>
-    <mat-icon *ngIf="!enableBurstMode">check_box_outline_blank</mat-icon>
-    <ion-label translate>COMMON.BTN_BURST_INPUT_HELP</ion-label>
-  </button>
-
-  <mat-divider></mat-divider>
 
   <button mat-menu-item
           *ngIf="onDelete"
@@ -63,8 +45,8 @@
                    [showTaxonName]="showTaxonName"
                    [showComment]="showComment"
                    [maxVisibleButtons]="maxVisibleButtons"
-                   (onSubmit)="enableBurstMode ? onSubmitAndNext($event) : onSubmit($event)">
-    <ion-row beforeComment *ngIf="mobile">
+                   (onSubmit)="onSubmitAndNext($event)">
+    <ion-row beforeComment *ngIf="mobile && !disabled">
       <ion-col size="6">
         <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable="">
           <ion-toggle [checked]="showComment"></ion-toggle>
@@ -72,31 +54,40 @@
         </ion-item>
       </ion-col>
     </ion-row>
-    <ion-toolbar afterComment *ngIf="mobile">
-      <ion-buttons slot="end">
-        <ion-button *ngIf="showIndividualReleaseButton"
-                    fill="clear" color="tertiary"
-                    [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translate"
-                    (click)="showIndividualReleaseModal($event, 'INDIVIDUAL_RELEASE')">
-          <mat-icon slot="start">room</mat-icon>
-          <ion-label>
-            <span translate>TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE</span>
-          </ion-label>
-        </ion-button>
 
-        <!-- Next -->
-        <ion-button *ngIf="enableBurstMode && !disabled"
-                    [fill]="form.invalid ? 'clear' : 'solid'"
-                    [disabled]="disabled || form.invalid"
-                    [color]="form.invalid ? 'dark' : 'tertiary'"
-                    (click)="onSubmitAndNext($event)">
-          <ion-label translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
-          <ion-icon slot="end" name="arrow-forward"></ion-icon>
-        </ion-button>
-
-      </ion-buttons>
-    </ion-toolbar>
-
+    <ion-grid afterComment *ngIf="mobile && !disabled" class="ion-no-padding">
+      <ion-row class="ion-no-padding ion-row-buttons">
+        <ion-col *ngIf="showIndividualReleaseButton">
+          <ion-button class="mat-form-field-button button-round"
+                      color="tertiary" fill="outline" expand="full"
+                      [disabled]="form.invalid"
+                      [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translate"
+                      (click)="showIndividualReleaseModal($event, 'INDIVIDUAL_RELEASE')">
+            <mat-icon slot="start">room</mat-icon>
+            <ion-label translate>TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE</ion-label>
+          </ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button class="mat-form-field-button button-round"
+                      fill="solid" expand="full"
+                      [disabled]="form.invalid"
+                      [color]="form.invalid ? 'light' : 'tertiary'"
+                      (click)="onSubmit($event)">
+            <ion-label translate>COMMON.BTN_VALIDATE_AND_CLOSE</ion-label>
+          </ion-button>
+        </ion-col>
+        <ion-col>
+          <ion-button class="mat-form-field-button button-round"
+                      fill="solid" expand="full"
+                      [disabled]="form.invalid"
+                      [color]="form.invalid ? 'light' : 'tertiary'"
+                      (click)="onSubmitAndNext($event)">
+            <ion-label translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
+            <ion-icon slot="end" name="arrow-forward"></ion-icon>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   </app-sample-form>
 
 
@@ -115,14 +106,20 @@
           <ion-label translate>COMMON.BTN_CANCEL</ion-label>
         </ion-button>
 
-        <ion-button color="tertiary"
-                    [fill]="invalid ? 'clear' : 'solid'"
-                    [disabled]="loading || invalid"
+        <ion-button fill="solid"
+                    [color]="form.invalid ? 'light' : 'tertiary'"
+                    [disabled]="disabled || form.invalid"
                     (keyup.enter)="onSubmit($event)"
                     (click)="onSubmit($event)">
-          <ion-label *ngIf="enableBurstMode" translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
-          <ion-label *ngIf="!isNew && !enableBurstMode" translate>COMMON.BTN_VALIDATE</ion-label>
-          <ion-label *ngIf="isNew && !enableBurstMode" translate>COMMON.BTN_ADD</ion-label>
+          <ion-label translate>COMMON.BTN_VALIDATE_AND_CLOSE</ion-label>
+        </ion-button>
+
+        <ion-button fill="solid"
+                    [color]="form.invalid ? 'light' : 'tertiary'"
+                    [disabled]="disabled || form.invalid"
+                    (keyup.enter)="onSubmitAndNext($event)"
+                    (click)="onSubmitAndNext($event)">
+          <ion-label translate>COMMON.BTN_VALIDATE_AND_NEW</ion-label>
         </ion-button>
       </ion-col>
     </ion-row>

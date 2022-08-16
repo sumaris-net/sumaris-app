@@ -22,9 +22,6 @@
 
   <div class="toolbar-spacer"></div>
 
-  <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
-    <mat-icon>more_vert</mat-icon>
-  </button>
 </mat-toolbar>
 
 <!-- error -->
@@ -33,172 +30,225 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
+<!-- Table options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
 
-<mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
-           matSortDisableClear [trackBy]="trackByFn">
+  <!-- display columns option -->
+  <button mat-menu-item
+          (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
 
-  <ng-container matColumnDef="select">
-    <mat-header-cell class="hidden-xs hidden-sm" *matHeaderCellDef>
-      <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
-                    [indeterminate]="selection.hasValue() && !isAllSelected()">
-      </mat-checkbox>
-    </mat-header-cell>
-    <mat-cell class="hidden-xs hidden-sm" *matCellDef="let row">
-      <mat-checkbox (click)="$event.stopPropagation()" (change)="$event ? selection.toggle(row) : null" [checked]="selection.isSelected(row)">
-      </mat-checkbox>
-    </mat-cell>
+</mat-menu>
+
+<div #tableContainer class="table-container">
+
+  <table mat-table matSort matSortDisableClear
+         [dataSource]="dataSource"
+         [matSortActive]="defaultSortBy"
+         [matSortDirection]="defaultSortDirection"
+         [trackBy]="trackByFn">
+
+    <ng-container matColumnDef="select" [sticky]="useSticky">
+      <th mat-header-cell *matHeaderCellDef>
+        <mat-checkbox (change)="$event ? masterToggle() : null"
+                      [checked]="selection.hasValue() && isAllSelected()"
+                      [indeterminate]="selection.hasValue() && !isAllSelected()"
+                      [tabIndex]="-1">
+        </mat-checkbox>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <mat-checkbox (click)="$event.stopPropagation()"
+                      (change)="$event ? selection.toggle(row) : null"
+                      [checked]="selection.isSelected(row)"
+                      [tabIndex]="-1">
+        </mat-checkbox>
+      </td>
+    </ng-container>
+
+    <!-- Id column -->
+    <ng-container matColumnDef="id" [sticky]="useSticky">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <ion-label>#</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">{{ row.currentData?.id }}</td>
+    </ng-container>
+
+    <!-- Label column -->
+    <ng-container matColumnDef="label">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>REFERENTIAL.LABEL</span>
+      </th>
+      <td mat-cell *matCellDef="let row"
+                (click)="focusColumn='label'">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['label']" [placeholder]="'REFERENTIAL.LABEL'|translate"
+                 [appAutofocus]="row.editing && focusColumn === 'label'"
+                 [readonly]="!row.editing">
+          <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <!-- Name column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>
+        <span translate>REFERENTIAL.NAME</span>
+      </th>
+      <td mat-cell *matCellDef="let row"
+                (click)="focusColumn='name'">
+        <mat-form-field floatLabel="never">
+          <input matInput [formControl]="row.validator.controls['name']"
+                 [placeholder]="'REFERENTIAL.NAME'|translate"
+                 [appAutofocus]="row.editing && focusColumn === 'name'"
+                 [readonly]="!row.editing">
+          <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+
+    <!-- Description column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef>
+        <span translate>REFERENTIAL.DESCRIPTION</span>
+      </th>
+      <td mat-cell *matCellDef="let row"
+                (click)="focusColumn='description'">
+
+        <mat-form-field *ngIf="row.editing && row.validator|formGetControl:'description'; let control; else readOnly" floatLabel="never">
+          <input
+            matInput
+            autocomplete="off"
+            [appAutofocus]="row.editing && focusColumn === 'description'"
+            [formControl]="control"
+            [placeholder]="i18nColumnPrefix + 'DESCRIPTION' | translate"
+            [readonly]="!row.editing"
+          />
+          <button mat-icon-button matSuffix (click)="openDescriptionPopover($event, row)">
+            <ion-icon
+              [color]="control.value ? 'tertiary' : 'medium'"
+              name="chatbox"
+              slot="icon-only"
+              style="width: 16px"
+            ></ion-icon>
+          </button>
+          <mat-error *ngIf="control.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+        <ng-template #readOnly>
+          <ion-label appAutoTitle>{{ row.currentData?.description }}</ion-label>
+        </ng-template>
+      </td>
+    </ng-container>
+
+    <!-- Status column  -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>REFERENTIAL.STATUS</span>
+      </th>
+      <td mat-cell *matCellDef="let row"
+                (click)="focusColumn='status'">
+        <mat-form-field floatLabel="never">
+          <ion-icon matPrefix *ngIf="row.validator.controls.statusId.value &gt;=0" [name]="statusById[row.validator.controls.statusId.value]?.icon"></ion-icon>
+
+          <mat-select [formControl]="row.validator.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
+            <mat-select-trigger>
+                <span *ngIf="row.validator.controls.statusId.value &gt;=0">
+                  {{ statusById[row.validator.controls.statusId.value]?.label | translate}}</span>
+            </mat-select-trigger>
+            <mat-option *ngFor="let item of statusList" [value]="item.id">
+              <ion-icon [name]="item.icon"></ion-icon>
+              {{ item.label |translate }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="row.validator.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+        </mat-form-field>
+      </td>
+    </ng-container>
+
+    <!-- Creation date column -->
+    <ng-container matColumnDef="updateDate">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>REFERENTIAL.UPDATE_DATE</span>
+      </th>
+      <td mat-cell *matCellDef="let row" class="mat-form-field-disabled">
+        <ion-text class="ion-text-end" color="dark" *ngIf="row.id !== -1">
+          <small [matTooltip]="'REFERENTIAL.CREATION_DATE'|translate">
+            <ion-icon name="calendar"></ion-icon> {{row.validator.controls.creationDate.value | dateFormat: {time: true} }}
+          </small><br/>
+          <small [matTooltip]="'REFERENTIAL.UPDATE_DATE'|translate">
+            <ion-icon name="time-outline"></ion-icon> {{row.validator.controls.updateDate.value | dateFormat: {time: true} }}
+          </small>
+        </ion-text>
+      </td>
+    </ng-container>
+
+    <!-- Comment column -->
+    <ng-container matColumnDef="comments">
+      <th mat-header-cell *matHeaderCellDef>
+        <span translate>REFERENTIAL.COMMENTS</span>
+      </th>
+      <td mat-cell *matCellDef="let row"
+                [class.mat-form-field-disabled]="!row.editing">
+        <button *ngIf="row.validator|formGetControl: 'comments'; let control"
+                mat-icon-button
+                [class.visible-hover]="!row.editing && !control.value"
+                (click)="openCommentPopover($event, row)"
+                [disabled]="disabled"
+                [title]="control.value || ''">
+          <ion-icon
+            [color]="control.value ? 'tertiary' : 'medium'"
+            name="chatbox"
+            slot="icon-only"
+          ></ion-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <!-- Actions buttons column -->
+    <app-actions-column [stickyEnd]="useSticky"
+                        (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
+                        (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
+                        (backward)="confirmAndBackward($event.event, $event.row)"
+                        (forward)="confirmAndForward($event.event, $event.row)"
+                        [canCancel]="false">
+
+      <!-- display columns -->
+      <button mat-icon-button matHeader
+              [title]="'COMMON.DISPLAYED_COLUMNS_DOTS'|translate"
+              [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </app-actions-column>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+             [class.mat-row-selected]="row.editing"
+             [class.mat-row-error]="row.validator.invalid"
+             [class.mat-row-dirty]="row.validator.dirty"
+             [class.mat-row-disabled]="!row.editing"
+             (click)="clickRow($event, row)"
+             (keydown.escape)="escapeEditingRow($event)"
+             [cdkTrapFocus]="!row.validator.valid"></tr>
+
+  </table>
+
+  <ng-container *ngIf="loadingSubject|async; else noResult">
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
   </ng-container>
 
-  <!-- Id column -->
-  <ng-container matColumnDef="id">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <app-loading-spinner [loading]="loadingSubject|async"><ion-label>#</ion-label></app-loading-spinner>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">{{ row.currentData?.id }}</mat-cell>
-  </ng-container>
-
-  <!-- Label column -->
-  <ng-container matColumnDef="label">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>REFERENTIAL.LABEL</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['label']" [placeholder]="'REFERENTIAL.LABEL'|translate"
-               [appAutofocus]="row.id == -1 && row.editing" [readonly]="!row.editing">
-        <mat-error *ngIf="row.validator.controls['label'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Name column -->
-  <ng-container matColumnDef="name">
-    <mat-header-cell *matHeaderCellDef>
-      <span translate>REFERENTIAL.NAME</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls['name']" [placeholder]="'REFERENTIAL.NAME'|translate"
-               [readonly]="!row.editing">
-        <mat-error *ngIf="row.validator.controls['name'].hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
-
-
-  <!-- Description column -->
-  <ng-container matColumnDef="description">
-    <mat-header-cell *matHeaderCellDef>
-      <span translate>REFERENTIAL.DESCRIPTION</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <input matInput [formControl]="row.validator.controls.description" [placeholder]="'REFERENTIAL.DESCRIPTION'|translate"
-               [readonly]="!row.editing">
-        <mat-error *ngIf="row.validator.controls.description.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Status column  -->
-  <ng-container matColumnDef="status">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>REFERENTIAL.STATUS</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never">
-        <ion-icon matPrefix *ngIf="row.validator.controls.statusId.value &gt;=0" [name]="statusById[row.validator.controls.statusId.value]?.icon"></ion-icon>
-
-        <mat-select [formControl]="row.validator.controls.statusId" [placeholder]="'REFERENTIAL.STATUS'|translate">
-          <mat-select-trigger>
-              <span *ngIf="row.validator.controls.statusId.value &gt;=0">
-                {{ statusById[row.validator.controls.statusId.value]?.label | translate}}</span>
-          </mat-select-trigger>
-          <mat-option *ngFor="let item of statusList" [value]="item.id">
-            <ion-icon [name]="item.icon"></ion-icon>
-            {{ item.label |translate }}
-          </mat-option>
-        </mat-select>
-        <mat-error *ngIf="row.validator.controls.statusId.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      </mat-form-field>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Creation date column -->
-  <ng-container matColumnDef="updateDate">
-    <mat-header-cell *matHeaderCellDef mat-sort-header>
-      <span translate>REFERENTIAL.UPDATE_DATE</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="mat-form-field-disabled">
-      <ion-text class="ion-text-end" color="dark" *ngIf="row.id !== -1">
-        <small [matTooltip]="'REFERENTIAL.CREATION_DATE'|translate">
-          <ion-icon name="calendar"></ion-icon> {{row.validator.controls.creationDate.value | dateFormat: {time: true} }}
-        </small><br/>
-        <small [matTooltip]="'REFERENTIAL.UPDATE_DATE'|translate">
-          <ion-icon name="time-outline"></ion-icon> {{row.validator.controls.updateDate.value | dateFormat: {time: true} }}
-        </small>
+  <ng-template #noResult>
+    <ion-item *ngIf="totalRowCount === 0">
+      <ion-text color="primary"
+                class="text-italic"
+                [innerHTML]="'COMMON.NO_RESULT' | translate">
       </ion-text>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Comment column -->
-  <ng-container matColumnDef="comments">
-    <mat-header-cell *matHeaderCellDef class="hidden-xs hidden-sm">
-      <span translate>REFERENTIAL.COMMENTS</span>
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" class="hidden-xs hidden-sm" [class.mat-form-field-disabled]="!row.editing">
-      <mat-form-field floatLabel="never" *ngIf="row.editing; else iconComment">
-        <input matInput [formControl]="row.validator.controls.comments" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
-               [readonly]="!row.editing">
-      </mat-form-field>
-
-      <ng-template #iconComment>
-        <mat-icon color="primary" class="comment"
-                  *ngIf="row.validator.controls.comments.value"
-                  [title]="row.validator.controls.comments.value">chat_bubble</mat-icon>
-      </ng-template>
-    </mat-cell>
-  </ng-container>
-
-  <!-- Actions buttons column -->
-  <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="!inlineEdition">
-    </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="!inlineEdition">
-
-      <ng-container *ngIf="row.validator">
-        <!-- undo or delete  -->
-        <button mat-icon-button color="light" *ngIf="row.validator.invalid"
-                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-                (click)="cancelOrDelete($event, row)">
-          <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-        </button>
-        <!-- validate -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
-                [title]="'COMMON.BTN_VALIDATE'|translate"
-                (click)="confirmEditCreate($event, row)">
-          <mat-icon>check</mat-icon>
-        </button>
-        <!-- add -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="confirmAndAdd($event, row)">
-          <mat-icon>add</mat-icon>
-        </button>
-      </ng-container>
-    </mat-cell>
-  </ng-container>
-
-  <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-  <mat-row *matRowDef="let row; columns: displayedColumns;"
-           [class.mat-row-error]="row.validator.invalid"
-           [class.mat-row-dirty]="row.validator.dirty"
-           [class.mat-row-disabled]="!row.editing"
-           (click)="clickRow($event, row)"></mat-row>
-
-</mat-table>
-
+    </ion-item>
+  </ng-template>
+</div>
 
 <!-- Add Button
 <ion-fab vertical="bottom" horizontal="end"

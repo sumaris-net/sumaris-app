@@ -12,10 +12,7 @@ import { StatusBar } from '@ionic-native/status-bar/ngx';
 import { Keyboard } from '@ionic-native/keyboard/ngx';
 import { NativeAudio } from '@ionic-native/native-audio/ngx';
 import { Vibration } from '@ionic-native/vibration/ngx';
-import { ImagePicker } from '@ionic-native/image-picker/ngx';
-import { MediaCapture } from '@ionic-native/media-capture/ngx';
-import { PhotoViewer } from '@ionic-native/photo-viewer/ngx';
-import { File } from '@ionic-native/file/ngx';
+
 
 // App modules
 import { AppComponent } from './app.component';
@@ -40,9 +37,7 @@ import {
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
   LocalSettings,
-  SharedModule,
-  SocialModule,
-  TestingPage,
+  TestingPage
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -59,7 +54,7 @@ import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
 import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
 import { TypePolicies } from '@apollo/client/core';
 import { TRIP_TESTING_PAGES } from './trip/trip.testing.module';
-import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/services/config/extraction.config';
+import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/common/extraction.config';
 import { REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS } from './referential/services/config/referential.config';
 import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/services/config/data.config';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS } from './vessel/services/config/vessel.config';
@@ -71,6 +66,10 @@ import { APP_CORE_CONFIG_OPTIONS } from '@app/core/services/config/core.config';
 import { AppCoreModule } from '@app/core/core.module';
 import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
 import { Downloader } from '@ionic-native/downloader/ngx';
+import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
+import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
+import { AppImageModule } from '@app/image/image.module';
+import {APP_SHARED_TESTING_PAGES} from '@app/shared/shared.testing.module';
 
 @NgModule({
   declarations: [
@@ -80,7 +79,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    IonicModule.forRoot(),
+    IonicModule.forRoot(), // FIXME: After Ionic v6 upgrade, override platform detection (see issue #323)
     CacheModule.forRoot(),
     IonicStorageModule.forRoot({
       name: 'sumaris', // default
@@ -104,7 +103,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
       sanitize: SecurityContext.NONE,
       markedOptions: {
         provide: MarkedOptions,
-        useValue: {
+        useValue: <MarkedOptions>{
           gfm: true,
           breaks: false,
           pedantic: false,
@@ -113,13 +112,15 @@ import { Downloader } from '@ionic-native/downloader/ngx';
         },
       }
     }),
+    // Need for tap event, in app-toolbar
+    HammerModule,
 
     // functional modules
+    AppSharedModule.forRoot(environment),
     AppCoreModule.forRoot(),
-    AppSharedModule,
-    SharedModule.forRoot(environment),
-    SocialModule.forRoot(),
-    HammerModule,
+    AppImageModule.forRoot(),
+    // TODO: should be enabled, when start using notifications
+    //SocialModule.forRoot(),
     AppRoutingModule
   ],
   providers: [
@@ -132,10 +133,6 @@ import { Downloader } from '@ionic-native/downloader/ngx';
     Vibration,
     InAppBrowser,
     AudioManagement,
-    ImagePicker,
-    File,
-    MediaCapture,
-    PhotoViewer,
     Downloader,
 
     {provide: APP_BASE_HREF, useFactory: function () {
@@ -169,7 +166,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
         ]
     },
 
-    {provide: MAT_DATE_LOCALE, useValue: 'en'},
+    {provide: MAT_DATE_LOCALE, useValue: environment.defaultLocale || 'en'},
     {
       provide: MAT_DATE_FORMATS, useValue: {
         parse: {
@@ -183,13 +180,17 @@ import { Downloader } from '@ionic-native/downloader/ngx';
         }
       }
     },
-    {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_DATE_FORMATS]},
+    {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
+
+    // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
+      ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
       ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
     }},
 
     // Configure hammer gesture
+    // FIXME: not working well on tab
     {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
 
     // Settings default values
@@ -198,7 +199,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
       }
     },
 
-    // Settings options definition
+    // Setting options definition
     { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <FormFieldDefinitionMap>{
         ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
         ...VESSEL_LOCAL_SETTINGS_OPTIONS,
@@ -245,7 +246,7 @@ import { Downloader } from '@ionic-native/downloader/ngx';
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
         {title: 'MENU.VESSELS', path: '/vessels', icon: 'boat', ifProperty: 'sumaris.referential.vessel.enable', profile: 'USER'},
-        {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'ADMIN'},
+        {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR'},
         {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
@@ -342,8 +343,11 @@ import { Downloader } from '@ionic-native/downloader/ngx';
 
     // Testing pages
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
-        ...TRIP_TESTING_PAGES, ...REFERENTIAL_TESTING_PAGES
-    ]},
+        ...APP_SHARED_TESTING_PAGES,
+        ...REFERENTIAL_TESTING_PAGES,
+        ...IMAGE_TESTING_PAGES,
+        ...TRIP_TESTING_PAGES
+      ]},
 
     // Custom identicon style
     // https://jdenticon.com/icon-designer.html?config=4451860010ff320028501e5a

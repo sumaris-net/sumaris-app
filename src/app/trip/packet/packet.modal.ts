@@ -3,12 +3,13 @@ import { IWithPacketsEntity, Packet } from '../services/model/packet.model';
 import { ModalController } from '@ionic/angular';
 import { Subject, Subscription } from 'rxjs';
 import { PacketForm } from './packet.form';
-import { AppFormUtils, isNil, PlatformService, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormUtils, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
-import { environment } from '@environments/environment.prod';
+import { environment } from '@environments/environment';
 
-export interface PacketModalOptions {
+export interface IPacketModalOptions {
   data: Packet;
+  disabled: boolean;
   mobile: boolean;
   showParent?: boolean;
   isNew: boolean;
@@ -21,16 +22,17 @@ export interface PacketModalOptions {
   selector: 'app-packet-modal',
   templateUrl: './packet.modal.html'
 })
-export class PacketModal implements OnInit, OnDestroy, PacketModalOptions {
+export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
 
-  loading = false;
   readonly debug: boolean;
+  loading = false;
   subscription = new Subscription();
   $title = new Subject<string>();
 
   @ViewChild('form', {static: true}) packetForm: PacketForm;
 
   @Input() data: Packet;
+  @Input() disabled: boolean;
   @Input() mobile: boolean;
   @Input() showParent: boolean;
   @Input() isNew: boolean;
@@ -38,43 +40,47 @@ export class PacketModal implements OnInit, OnDestroy, PacketModalOptions {
   @Input() parentAttributes: string[];
   @Input() onDelete: (event: UIEvent, data: Packet) => Promise<boolean>;
 
-  get disabled() {
-    return this.packetForm.disabled;
-  }
-
   get enabled() {
     return this.packetForm.enabled;
   }
 
   get valid() {
-    return this.packetForm && this.packetForm.valid || false;
+    return this.packetForm?.valid || false;
   }
 
+  get invalid() {
+    return this.packetForm?.invalid || false;
+  }
 
   constructor(
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
-    protected platform: PlatformService
+    protected settings: LocalSettingsService
   ) {
 
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     this.debug = !environment.production;
   }
 
   ngOnInit(): void {
     this.showParent = toBoolean(this.showParent, this.mobile);
-    this.enable();
-    this.computeTitle(this.data);
-    setTimeout(() => this.packetForm.setValue(this.data))
+    this.updateTitle();
+    this.packetForm.markAsReady();
+    setTimeout(() => {
+      this.packetForm.setValue(this.data)
+      if (!this.disabled) this.enable();
+    });
   }
 
-  protected async computeTitle(data?: Packet) {
+  protected updateTitle(data?: Packet) {
     data = data || this.data;
+    let title;
     if (this.isNew) {
-      this.$title.next(await this.translate.get('PACKET.COMPOSITION.NEW.TITLE').toPromise());
+      title = this.translate.instant('PACKET.COMPOSITION.NEW.TITLE');
     } else {
-      this.$title.next(await this.translate.get('PACKET.COMPOSITION.TITLE', {rankOrder: data.rankOrder}).toPromise());
+      title = this.translate.instant('PACKET.COMPOSITION.TITLE', {rankOrder: data.rankOrder});
     }
+    this.$title.next(title);
   }
 
   async onSave(event: any, role?: string): Promise<any> {

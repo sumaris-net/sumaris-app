@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
 import { AbstractControlOptions, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
-import { fromDateISOString, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import { DateUtils, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../model/observed-location.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import * as momentImport from 'moment';
+
+const moment = momentImport;
 
 export interface ObservedLocationValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
   startDateDay?: number;
+  timezone?: string;
 }
 
 @Injectable({providedIn: 'root'})
@@ -48,7 +52,7 @@ export class ObservedLocationValidatorService
       ...super.getFormGroupConfig(data),
       __typename: [ObservedLocation.TYPENAME],
       location: [data && data.location || null, Validators.compose([Validators.required, SharedValidators.entity])],
-      startDateTime: [data && data.startDateTime || null, opts.startDateDay ? Validators.compose([Validators.required, this.validStartDate(opts.startDateDay)]) : Validators.required],
+      startDateTime: [data && data.startDateTime || null, this.createStartDateValidator(opts)],
       endDateTime: [data && data.endDateTime || null],
       measurementValues: this.formBuilder.group({}),
       observers: this.getObserversFormArray(data),
@@ -61,21 +65,12 @@ export class ObservedLocationValidatorService
   updateFormGroup(formGroup: FormGroup, opts?: ObservedLocationValidatorOptions) {
     opts = this.fillDefaultOptions(opts);
 
-    formGroup.get('startDateTime').setValidators(opts.startDateDay ? Validators.compose([Validators.required, this.validStartDate(opts.startDateDay)]) : Validators.required);
+    // Update the start date validator
+    formGroup.get('startDateTime').setValidators(this.createStartDateValidator(opts));
 
     return formGroup;
   }
 
-  validStartDate(day: number): ValidatorFn {
-    return (control: FormControl): ValidationErrors | null => {
-      const value = control.value;
-      const date = fromDateISOString(value);
-      if (date && date.day() !== day) {
-        return {validDate: true};
-      }
-      return null;
-    };
-  }
 
   getFormGroupOptions(data?: any): AbstractControlOptions {
     return {
@@ -93,6 +88,29 @@ export class ObservedLocationValidatorService
     opts.withMeasurements = toBoolean(opts.withMeasurements, !!opts.program);
 
     return opts;
+  }
+
+  protected createStartDateValidator(opts?: ObservedLocationValidatorOptions): ValidatorFn {
+    const validators: ValidatorFn[] = [];
+
+    // Check if a date is at the given day of week
+    if (isNotNil(opts.startDateDay)) {
+      const weekday = opts.startDateDay;
+      const timezone = opts.timezone;
+      validators.push((control: FormControl): ValidationErrors | null => {
+        if (!DateUtils.isAtDay(control.value, weekday, timezone)) {
+          control.markAsTouched();
+          return {msg: {
+              key: 'OBSERVED_LOCATION.ERROR.START_DATE_INVALID',
+              params: {
+                day: moment().day(weekday).format('dddd')
+              }}};
+        }
+        return null;
+      })
+    }
+
+    return validators.length === 1 ? validators[0] : Validators.compose(validators);
   }
 }
 

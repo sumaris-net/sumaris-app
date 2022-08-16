@@ -1,5 +1,9 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { fadeInAnimation } from '@sumaris-net/ngx-components';
+
+export interface Image {
+  url?: string;
+}
 
 @Component({
   selector: 'app-image-gallery',
@@ -11,6 +15,8 @@ import { fadeInAnimation } from '@sumaris-net/ngx-components';
 export class AppImageGalleryComponent
   //implements OnInit, OnDestroy
 {
+
+  @Input() images: Image[];
 
   constructor() {
   }

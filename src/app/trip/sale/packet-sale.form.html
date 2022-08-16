@@ -19,7 +19,7 @@
         <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'PACKET.NUMBER'|translate"
-                 [formControl]="form.controls.number"
+                 formControlName="number"
                  readonly
           >
         </mat-form-field>
@@ -30,7 +30,7 @@
         <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'PACKET.WEIGHT'|translate"
-                 [formControl]="form.controls.weight"
+                 formControlName="weight"
                  readonly
           >
         </mat-form-field>
@@ -39,11 +39,12 @@
     </ion-row>
 
     <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first; last as last, even as even"
+             [formGroup]="saleForm|formGetGroup"
              class="ion-padding" [class.even]="even">
 
       <!-- sale type -->
       <ion-col size-lg="3" size-xs="4">
-        <mat-autocomplete-field [formControl]="asFormGroup(saleForm).controls.saleType"
+        <mat-autocomplete-field formControlName="saleType"
                                 [placeholder]="'PACKET.SALE.SALE_TYPE'|translate"
                                 [floatLabel]="first ? 'always' : 'never'"
                                 [config]="autocompleteFields.saleType"
@@ -57,10 +58,20 @@
       <!-- subgroupCount -->
       <ion-col size-lg="2" size-xs="4">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'">
-          <input matInput [formControl]="asFormGroup(saleForm).controls.subgroupCount"
+          <input matInput formControlName="subgroupCount"
                  [placeholder]="'PACKET.NUMBER'|translate"
                  autocomplete="off" type="number" pattern="[0-9]*" step="1"
-                 [tabIndex]="tabindex+3+i*7+1">
+                 [tabIndex]="tabindex+3+i*7+1"
+                 min="0"
+                 [max]="form|formGetValue:'number'"
+                 required>
+          <mat-error *ngIf="saleForm.controls.subgroupCount.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+            <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+            <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN_COMPACT' | translate: saleForm.controls.subgroupCount.errors.min }}</span>
+            <span *ngSwitchCase="'max'">
+                      {{ 'ERROR.FIELD_MAX_COMPACT'| translate:saleForm.controls.subgroupCount.errors.max }}</span>
+            <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
+          </mat-error>
         </mat-form-field>
       </ion-col>
 
@@ -70,7 +81,7 @@
                         [class.computed]="true"
                         class="mat-form-field-disabled"
         >
-          <input matInput [formControl]="asFormGroup(saleForm).controls.weight"
+          <input matInput formControlName="weight"
                  [placeholder]="'PACKET.WEIGHT'|translate"
                  autocomplete="off" type="number"
                  [tabIndex]="tabindex+3+i*7+2"
@@ -82,9 +93,9 @@
       <!-- avg packaging price -->
       <ion-col size-lg="2" size-xs="4">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
-                        [class.computed]="!!asFormGroup(saleForm).controls.averagePackagingPriceCalculated.value"
+                        [class.computed]="saleForm|formGetValue:'averagePackagingPriceCalculated'"
         >
-          <input matInput [formControl]="asFormGroup(saleForm).controls.averagePackagingPrice"
+          <input matInput formControlName="averagePackagingPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE'|translate"
                  autocomplete="off" type="number" step="0.1"
                  [tabIndex]="tabindex+3+i*7+3"
@@ -95,9 +106,9 @@
       <!-- total price -->
       <ion-col size-lg="2" size-xs="4">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
-                        [class.computed]="!!asFormGroup(saleForm).controls.totalPriceCalculated.value"
+                        [class.computed]="saleForm|formGetValue:'totalPriceCalculated'"
         >
-          <input matInput [formControl]="asFormGroup(saleForm).controls.totalPrice"
+          <input matInput formControlName="totalPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.TOTAL_PRICE'|translate"
                  autocomplete="off" type="number" step="0.1"
                  [tabIndex]="tabindex+3+i*7+4"

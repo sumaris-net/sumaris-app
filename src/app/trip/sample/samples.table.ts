@@ -38,30 +38,22 @@ import {environment} from '@environments/environment';
 import {debounceTime} from 'rxjs/operators';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {SampleFilter} from '../services/filter/sample.filter';
-import {PmfmFilter, PmfmService} from '@app/referential/services/pmfm.service';
+import {PmfmService} from '@app/referential/services/pmfm.service';
 import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {MatMenu} from '@angular/material/menu';
 import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
-import {isNilOrNaN} from '@app/shared/functions';
+import { arrayPluck, isNilOrNaN } from '@app/shared/functions';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {BatchGroup} from '@app/trip/services/model/batch-group.model';
+import {BatchGroup} from '@app/trip/batch/group/batch-group.model';
 import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
 import {MatCellDef} from '@angular/material/table';
 import {OverlayEventDetail} from '@ionic/core';
-import {PmfmForm} from '@app/trip/services/validator/operation.validator';
+import {IPmfmForm} from '@app/trip/services/validator/operation.validator';
+import { IPhysicalGearModalOptions } from '@app/trip/physicalgear/physical-gear.modal';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 const moment = momentImported;
-
-/**
- * Cell definition for the mat-table.
- * Captures the template of a column's data row cell as well as cell-specific properties.
- */
-@Directive({
-  selector: '[appActionCellDef]',
-  providers: [{provide: MatCellDef, useExisting: AppActionCellDef}],
-})
-export class AppActionCellDef extends MatCellDef {}
 
 export type PmfmValueColorFn = (value: any, pmfm: IPmfm) => ColorName;
 
@@ -98,8 +90,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
-  protected currentSample: Sample; // require to preset presentation on new row
-  protected currentTagId: string;
 
   // Top group header
   groupHeaderStartColSpan: number;
@@ -125,9 +115,9 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   @Input() showFabButton = false;
   @Input() showIndividualReleaseButton = false;
   @Input() showIndividualMonitoringButton = false;
-  @Input() defaultSampleDate: Moment;
-  @Input() defaultTaxonGroup: ReferentialRef;
-  @Input() defaultTaxonName: ReferentialRef;
+  @Input() defaultSampleDate: Moment = null;
+  @Input() defaultTaxonGroup: TaxonGroupRef = null;
+  @Input() defaultTaxonName: TaxonNameRef = null;
   @Input() modalOptions: Partial<ISampleModalOptions>;
   @Input() compactFields = true;
   @Input() showDisplayColumnModal = true;
@@ -198,7 +188,16 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     return super.getRowError(row, opts);
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<PmfmForm>();
+  setModalOption(key: keyof ISampleModalOptions, value: ISampleModalOptions[typeof key]) {
+    this.modalOptions = this.modalOptions || {};
+    this.modalOptions[key as any] = value;
+  }
+
+  getModalOption(key: keyof ISampleModalOptions): ISampleModalOptions[typeof key] {
+    return this.modalOptions[key];
+  }
+
+  @Output() onPrepareRowForm = new EventEmitter<IPmfmForm>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
@@ -208,38 +207,27 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     @Optional() options?: SamplesTableOptions
   ) {
     super(injector,
-      Sample,
+      Sample, SampleFilter,
       new InMemoryEntitiesService(Sample, SampleFilter, {
         equals: Sample.equals,
         sortByReplacement: {'id': 'rankOrder'}
       }),
       injector.get(PlatformService).mobile ? null : injector.get(AppValidatorService),
       {
-        prependNewElements: false,
-        suppressErrors: environment.production,
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
         requiredStrategy: false,
-        debug: !environment.production,
+        i18nColumnPrefix: 'TRIP.SAMPLE.TABLE.',
+        i18nPmfmPrefix: 'TRIP.SAMPLE.PMFM.',
         ...options,
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        onRowCreated: (row) => {
-          // Need to set additional validator here
-          // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
-          //       e.g. IMAGINE add some validator (see biological sampling page), so new row should always be INVALID with those additional validators
-          if (row.validator) {
-            const event = {form: row.validator, pmfms: this.pmfms, markForCheck: () => this.markForCheck()};
-            this.onPrepareRowForm.emit(event);
-          }
-        }
+        onPrepareRowForm: (form) => this.onPrepareRowForm.emit({form, pmfms: this.pmfms, markForCheck: () => this.markForCheck()})
       }
     );
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.pmfmService = injector.get(PmfmService);
-    this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
-    this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.inlineEdition = !this.mobile;
     this.defaultSortBy = 'rankOrder';
     this.defaultSortDirection = 'asc';
@@ -264,6 +252,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   ngOnInit() {
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
+    this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
 
     // in DEBUG only: force validator = null
@@ -285,13 +274,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Taxon group combo
     this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options)
+      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
+      mobile: this.mobile
     });
 
     // Taxon name combo
     this.registerAutocompleteField('taxonName', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
-      showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/
+      showAllOnFocus: this.showTaxonGroupColumn /*show all, because limited to taxon group*/,
+      mobile: this.mobile
     });
   }
 
@@ -330,12 +321,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       await this.onNewEntity(dataToOpen);
     }
 
-    const onModalReady = (modal) => {
-      const form = modal.form.form;
-      const markForCheck = () => modal.markForCheck();
-      this.onPrepareRowForm.emit({form, pmfms, markForCheck});
-    };
-
     this.markAsLoading();
 
     const options: Partial<ISampleModalOptions> = {
@@ -353,8 +338,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       showSampleDate: !this.defaultSampleDate ? true : this.showSampleDateColumn, // Show sampleDate, if no default date
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
-      showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton,
-      onReady: onModalReady,
+      showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
+      onReady: (modal) => {
+        this.onPrepareRowForm.emit({
+          form: modal.form.form,
+          pmfms,
+          markForCheck: () => modal.markForCheck()});
+      },
       onDelete: (event, data) => this.deleteEntity(event, data),
       onSaveAndNew: async (dataToSave) => {
         if (isNew) {
@@ -392,10 +382,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
     // Wait until closed
     const {data, role} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug('[samples-table] Modal result: ', data);
+
+
+    if (data && this.debug) console.debug('[samples-table] Sample modal result: ', data, role);
+
     this.markAsLoaded();
 
-    return {data:(data instanceof Sample ? data : undefined), role};
+    return {data: (data instanceof Sample ? data : undefined), role};
   }
 
   async onIndividualMonitoringClick(event: UIEvent, row: TableElement<Sample>) {
@@ -694,9 +687,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const {data} = await this.openDetailModal();
+    const {data, role} = await this.openDetailModal();
     if (data) {
-      await this.addEntityToTable(data);
+      if (role === 'DELETE') {
+        // Nothing to DO, because is not created yet
+        return false;
+      }
+      else {
+        await this.addEntityToTable(data);
+      }
     }
     return true;
   }
@@ -714,9 +713,15 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Prepare entity measurement values
     this.prepareEntityToSave(dataToOpen);
 
-    const {data} = await this.openDetailModal(dataToOpen, row);
+    const {data, role} = await this.openDetailModal(dataToOpen, row);
     if (data) {
-      await this.updateEntityToTable(data, row);
+      if (role === 'DELETE') {
+        await this.deleteEntity(null, data);
+        return false;
+      }
+      else {
+        await this.updateEntityToTable(data, row);
+      }
     } else {
       this.editedRow = null;
     }
@@ -739,11 +744,13 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     // Row not exists: OK
     if (!row) return true;
 
-    const canDeleteRow = await this.canDeleteRows([row]);
-    if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
-    }
-    return canDeleteRow;
+    const confirmed = await this.canDeleteRows([row]);
+    if (!confirmed) return false;
+
+    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
+    if (!deleted) event?.preventDefault(); // Mark as cancelled
+
+    return deleted;
   }
 
 
@@ -801,13 +808,14 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups);
 
       // Create a list of known pmfm ids
-      const groupedPmfmIds = Object.values(groupedPmfmIdsMap).reduce((res, pmfmIds) => res.concat(...pmfmIds), []);
+      const groupedPmfmIds: number[] = Object.values(groupedPmfmIdsMap).flatMap(pmfmIds => pmfmIds);
 
       // Create pmfms group
       const orderedPmfmIds: number[] = [];
       const orderedPmfms: IPmfm[] = [];
       let groupIndex = 0;
-      const pmfmGroupColumns: GroupColumnDefinition[] = ParameterGroups.concat('OTHER').reduce((pmfmGroups, group) => {
+      const groupNames = ParameterGroups.concat('OTHER');
+      const pmfmGroupColumns: GroupColumnDefinition[] = groupNames.reduce((pmfmGroups, group) => {
         let groupPmfms: IPmfm[];
         if (group === 'OTHER') {
           groupPmfms = pmfms.filter(p => !groupedPmfmIds.includes(p.id));
@@ -836,7 +844,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
           }
 
           // Add pmfm into the final list of ordered pmfms
-          orderedPmfms.push(pmfm);
+          if (!orderedPmfms.includes(pmfm)) orderedPmfms.push(pmfm);
         });
 
         return pmfmGroups.concat(
@@ -857,7 +865,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
       this.pmfmGroupColumns$.next(pmfmGroupColumns);
       this.groupHeaderColumnNames =
         ['top-start']
-          .concat(pmfmGroupColumns.map(g => g.key))
+          .concat(arrayPluck(pmfmGroupColumns, 'key') as string[])
           .concat(['top-end']);
       this.groupHeaderStartColSpan = RESERVED_START_COLUMNS.length
         + (this.showLabelColumn ? 1 : 0)
@@ -905,7 +913,8 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   }
 
   addRow(event?: Event, insertAt?: number): boolean {
-    this.focusColumn = this.firstUserColumn;
+    // TODO remove this after upgrading ngx component
+    if (this.inlineEdition) this.focusColumn = this.firstUserColumn;
     return super.addRow(event, insertAt);
   }
 

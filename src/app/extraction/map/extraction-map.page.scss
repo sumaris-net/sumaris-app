@@ -1,37 +1,21 @@
 
+:root {
+  --control-toolbar-height: 48px;
+}
 
 div[leaflet] {
   height: 100%;
   padding: 0;
 }
 
-.top-left {
-  top: 0;
-  left: 0;
-}
-.bottom-left {
-  bottom: 0;
-  left: 0;
-}
-.bottom-right {
-  bottom: 0;
-  right: 0;
-}
-.top-left,
-.bottom-left,
-.bottom-right {
-  position: absolute;
-  z-index: 999;
+
+.leaflet-bottom {
   ion-card {
     position: relative;
   }
 }
 
-
-
 .filter {
-  margin: 10px;
-  z-index: 99999 !important;
   width: 300px;
   max-width: 400px;
 
@@ -101,16 +85,15 @@ div[leaflet] {
     }
   }
 }
-ion-card.no-margin-end {
-  margin-right: unset;
-  margin-inline-end: 0;
+
+ion-card {
+  margin: 0;
 }
-
-
-
 ion-card.chart {
   width: 260px;
   height: 213px;
+  margin-inline-end: 10px;
+  --ion-toolbar-height: var(--control-toolbar-height);
 
   &.chart-bar {
     width: 360px;
@@ -120,8 +103,8 @@ ion-card.chart {
   ion-toolbar {
     padding-left: unset !important;
     padding-right: unset;
-    -webkit-padding-start: 8px !important;
-    padding-inline-start: 8px !important;
+    -webkit-padding-start: 8px;
+    padding-inline-start: 8px  !important;
     -webkit-padding-end: 8px;
     padding-inline-end: 8px;
 
@@ -160,7 +143,9 @@ ion-card.chart {
 }
 
 ion-card.legend {
-
+  ion-card-header {
+    height: var(--control-toolbar-height);
+  }
 
   ion-card-header,
   ion-card-content {
@@ -175,6 +160,7 @@ ion-card.legend {
   ion-card-subtitle {
 
     ion-label {
+      color: var(--ion-color-dark);
       ion-icon,
       mat-icon {
         visibility: hidden;
@@ -194,11 +180,11 @@ ion-card.legend {
   }
 
   ion-card-header:hover {
-    color: var(--ion-color-primary);
     background: rgba(0, 0, 0, 0.04);
     cursor: pointer;
 
     ion-card-subtitle ion-label {
+      color: var(--ion-color-primary);
       ion-icon,
       mat-icon {
         visibility: visible;
@@ -244,28 +230,29 @@ ion-card.legend-form {
   }
 }
 
-ion-grid {
-  --ion-grid-padding: 0;
+ion-row {
+  --ion-grid-column-padding: 0;
 }
 
-ion-card.details {
-  width: auto;
-  min-width: 250px;
+.details {
+  ion-card {
+    width: auto;
+    min-width: 250px;
 
-  ion-item {
-    background: transparent;
-    height: 32px;
-    font-size: 12px;
-
-    ion-label {
-      margin-top: 0;
-    }
-
-    ion-badge {
+    ion-item {
+      background: transparent;
+      height: 32px;
       font-size: 12px;
+
+      ion-label {
+        margin-top: 0;
+      }
+
+      ion-badge {
+        font-size: 12px;
+      }
     }
   }
 }
-
 
 

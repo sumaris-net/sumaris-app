@@ -22,7 +22,8 @@ import {DataRootEntityUtils, RootDataEntity} from './model/root-data-entity.mode
 import {ErrorCodes} from './errors';
 import {IWithRecorderDepartmentEntity} from './model/model.utils';
 import {RootDataEntityFilter} from './model/root-data-filter.model';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
@@ -47,6 +48,7 @@ export abstract class BaseRootDataService<
   implements IDataEntityQualityService<T, ID> {
 
   protected accountService: AccountService;
+  protected programRefService: ProgramRefService;
 
   protected constructor(
     injector: Injector,
@@ -62,18 +64,15 @@ export abstract class BaseRootDataService<
       options);
 
     this.accountService = this.accountService || injector && injector.get(AccountService) || undefined;
+    this.programRefService = this.programRefService || injector && injector.get(ProgramRefService) || undefined;
   }
 
-  canUserWrite(entity: T): boolean {
-    if (!entity) return false;
-
-    // If the user is the recorder: can write
-    if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson)) {
-      return true;
-    }
-
-    // TODO: check rights on program (need model changes)
-    return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment);
+  canUserWrite(entity: T, opts?: any): boolean {
+    return EntityUtils.isLocal(entity) // For performance, always give write access to local data
+      || this.accountService.isAdmin()
+      || (this.programRefService.canUserWriteEntity(entity)
+        && (isNil(entity.validationDate) || this.accountService.isSupervisor())
+      );
   }
 
   abstract control(entity: T, opts?: any): Promise<FormErrors>;

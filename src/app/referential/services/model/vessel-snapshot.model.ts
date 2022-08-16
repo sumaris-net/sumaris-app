@@ -1,7 +1,7 @@
 import {Moment} from 'moment';
 import {Department, Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '@app/vessel/services/model/vessel.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 
 export interface IWithVesselSnapshotEntity<T, ID = number> extends IEntity<T, ID> {

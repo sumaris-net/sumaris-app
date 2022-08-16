@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Product } from '../services/model/product.model';
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, isNotNil, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, FormArrayHelper, isNil, isNotEmptyArray, isNotNil, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
 import { Injector } from '@angular/core';
 import { Moment } from 'moment';
 import { ProductValidatorService } from '../services/validator/product.validator';
@@ -18,28 +18,29 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 })
 export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestroy {
 
+  private _saleSubscription: Subscription;
+  private _data: Product;
+
   computing = false;
   salesHelper: FormArrayHelper<SaleProduct>;
   salesFocusIndex = -1;
-  private saleSubscription = new Subscription();
+  adding = false;
+  hasIndividualCount: boolean;
+
+  @Input() mobile: boolean;
+  @Input() showError = true;
+  @Input() usageMode: UsageMode;
+  @Input() productSalePmfms: DenormalizedPmfmStrategy[];
 
   get saleFormArray(): FormArray {
     return this.form.controls.saleProducts as FormArray;
   }
 
-  mobile: boolean;
-  adding = false;
-  private _product: Product;
-
-  @Input() showError = true;
-  @Input() usageMode: UsageMode;
-  @Input() productSalePmfms: DenormalizedPmfmStrategy[];
-
   get value(): any {
     const json = this.form.value;
 
     // Convert products sales to products
-    json.saleProducts = (json.saleProducts || []).map(saleProduct => SaleProductUtils.saleProductToProduct(this._product, saleProduct, this.productSalePmfms, {keepId: true}));
+    json.saleProducts = (json.saleProducts || []).map(saleProduct => SaleProductUtils.saleProductToProduct(this._data, saleProduct, this.productSalePmfms, {keepId: true}));
 
     return json;
   }
@@ -67,15 +68,28 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       attributes: ['name'],
       filter: {
         entityName: 'SaleType'
-      }
+      },
+      showAllOnFocus: true,
+      mobile: this.mobile
     });
 
+    this.registerSubscription(
+      this.form.get('individualCount').valueChanges.subscribe(value => {
+        this.hasIndividualCount = isNotNil(value);
+        this.markForCheck();
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this._saleSubscription?.unsubscribe();
+    super.ngOnDestroy();
   }
 
   async setValue(data: Product, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
     if (!data) return;
-    this._product = data;
+    this._data = data;
 
     // Initialize product sales by converting products to sale products
     data.saleProducts = isNotEmptyArray(data.saleProducts) ? data.saleProducts.map(p => SaleProductUtils.productToSaleProduct(p, this.productSalePmfms)) : [null];
@@ -94,22 +108,22 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   private initSubscription() {
 
     // clear and re-create
-    this.saleSubscription.unsubscribe();
-    this.saleSubscription = new Subscription();
+    this._saleSubscription?.unsubscribe();
+    this._saleSubscription = new Subscription();
 
     // add subscription on each sale form
-    for (const saleControl of this.saleFormArray.controls) {
-      this.saleSubscription.add(saleControl.valueChanges.subscribe(() => {
-        this.computePrices(this.asFormGroup(saleControl).controls);
-        saleControl.markAsPristine();
+    for (const saleForm of this.saleFormArray.controls as FormGroup[] || []) {
+      this._saleSubscription.add(saleForm.valueChanges.subscribe(() => {
+        this.computePrices(saleForm.controls);
+        saleForm.markAsPristine();
       }));
     }
 
   }
 
   private computeAllPrices() {
-    for (const sale of this.saleFormArray.controls as FormGroup[] || []) {
-      this.computePrices(sale.controls);
+    for (const saleForm of this.saleFormArray.controls as FormGroup[] || []) {
+      this.computePrices(saleForm.controls);
     }
   }
 
@@ -188,8 +202,4 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     this.cd.markForCheck();
   }
 
-  ngOnDestroy() {
-    this.saleSubscription.unsubscribe();
-    super.ngOnDestroy();
-  }
 }

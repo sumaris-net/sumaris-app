@@ -80,6 +80,8 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
 
+  /* -- protected functions -- */
+
   protected async onNewEntity(data: SamplingStrategy, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onNewEntity(data, options);
 
@@ -128,10 +130,6 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
   protected registerForms() {
     this.addChildForm(this.strategyForm);
-  }
-
-  protected canUserWrite(data: SamplingStrategy): boolean {
-    return this.samplingStrategyService.canUserWrite(data);
   }
 
   protected setProgram(program: Program) {

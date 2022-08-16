@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Alerts, isNil, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
+import { Alerts, isNil, LocalSettingsService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import {AlertController, ModalController} from '@ionic/angular';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
@@ -8,13 +8,20 @@ import {environment} from '@environments/environment';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {IWithProductsEntity, Product} from '@app/trip/services/model/product.model';
 import {ProductForm} from '@app/trip/product/product.form';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+
+export interface IProductModalOptions extends IDataEntityModalOptions<Product> {
+  mobile: boolean;
+  parents: IWithProductsEntity<any>[];
+  parentAttributes: string[];
+}
 
 @Component({
   selector: 'app-product-modal',
   templateUrl: 'product.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductModal implements OnInit, OnDestroy {
+export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
 
   private _subscription = new Subscription();
 
@@ -31,6 +38,7 @@ export class ProductModal implements OnInit, OnDestroy {
   @Input() parentAttributes: string[];
   @Input() data: Product;
   @Input() pmfms: IPmfm[];
+  @Input() usageMode: UsageMode;
 
   @Input() onDelete: (event: UIEvent, data: Product) => Promise<boolean>;
 
@@ -108,6 +116,8 @@ export class ProductModal implements OnInit, OnDestroy {
       // Update title each time value changes
       this.form.valueChanges.subscribe(product => this.computeTitle(product));
     }
+
+    this.form.markAsReady();
   }
 
   ngOnDestroy(): void {

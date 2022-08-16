@@ -1,7 +1,8 @@
 <mat-toolbar *ngIf="showToolbar">
 
   <!-- refresh (debug only) -->
-  <button mat-icon-button color="light" *ngIf="debug && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
+  <button mat-icon-button color="light"
+          *ngIf="debug && !mobile && !selection.hasValue()" [title]="'COMMON.BTN_REFRESH'|translate"
           (click)="onRefresh.emit()">
     <mat-icon>refresh</mat-icon>
   </button>
@@ -24,19 +25,19 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-
 <form *ngIf="showFilter" class="form-container ion-padding-top"
       [formGroup]="filterForm"
       (ngSubmit)="onRefresh.emit()">
   <ion-grid>
     <ion-row>
-      <ion-col>
+      <ion-col size="12" size-md="12" size-lg="4">
         <!-- search text -->
         <mat-form-field>
           <input matInput
                  formControlName="searchText"
                  autocomplete="off"
                  [placeholder]=" 'REFERENTIAL.LIST.FILTER.SEARCH_TEXT'|translate">
+          <mat-icon matPrefix>search</mat-icon>
           <button mat-icon-button matSuffix tabindex="-1"
                   type="button"
                   (click)="clearControlValue($event, filterForm.controls.searchText)"
@@ -45,8 +46,37 @@
           </button>
         </mat-form-field>
       </ion-col>
-    </ion-row>
 
+      <!-- level -->
+      <ion-col size="12" size-md="6" size-lg="4" [class.cdk-visually-hidden]="!showLevelFilter">
+        <mat-autocomplete-field formControlName="level"
+                                [placeholder]="(i18nLevelName || 'REFERENTIAL.LEVEL')|translate"
+                                [config]="autocompleteFields.level"
+                                [clearable]="true">
+          <ion-icon matPrefix name="speedometer-outline"></ion-icon>
+        </mat-autocomplete-field>
+      </ion-col>
+
+      <!-- status -->
+      <ion-col size="12" size-md="6" size-lg="4">
+        <mat-form-field>
+          <mat-select formControlName="statusId" [placeholder]="'REFERENTIAL.STATUS'|translate" >
+            <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
+            <mat-option *ngFor="let item of statusList" [value]="item.id">
+              <ion-icon [name]="item.icon"></ion-icon>
+              {{ item.label |translate }}
+            </mat-option>
+          </mat-select>
+
+          <button mat-icon-button matSuffix tabindex="-1"
+                  type="button"
+                  (click)="clearControlValue($event, filterForm.controls.statusId)"
+                  [hidden]="filterForm.controls.statusId.disabled || !filterForm.controls.statusId.value">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
     <!-- TODO: add more filter fields ? -->
   </ion-grid>
 </form>
@@ -132,15 +162,16 @@
 
   <!-- Actions buttons column -->
   <ng-container matColumnDef="actions">
-    <mat-header-cell *matHeaderCellDef [hidden]="true">
+    <mat-header-cell *matHeaderCellDef class="cdk-visually-hidden">
     </mat-header-cell>
-    <mat-cell *matCellDef="let row" [hidden]="true">
+    <mat-cell *matCellDef="let row" class="cdk-visually-hidden">
     </mat-cell>
   </ng-container>
 
   <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
   <mat-row *matRowDef="let row; columns: displayedColumns;"
-            (click)="clickRow($event, row)"></mat-row>
+           class="mat-row-disabled"
+           (click)="clickRow($event, row)"></mat-row>
 
 </mat-table>
 

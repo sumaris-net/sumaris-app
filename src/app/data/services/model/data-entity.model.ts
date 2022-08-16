@@ -1,10 +1,6 @@
-import {Moment} from "moment";
-import { EntityAsObjectOptions, IEntity, ReferentialAsObjectOptions } from '@sumaris-net/ngx-components';
-import { IWithRecorderDepartmentEntity, SynchronizationStatus } from './model.utils';
-import {Entity}  from "@sumaris-net/ngx-components";
-import {Department}  from "@sumaris-net/ngx-components";
-import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
-import {isNotNil} from "@sumaris-net/ngx-components";
+import { Moment } from 'moment';
+import { Department, Entity, EntityAsObjectOptions, fromDateISOString, IEntity, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
+import { IWithRecorderDepartmentEntity } from './model.utils';
 
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
@@ -100,3 +96,18 @@ export abstract class DataEntity<
   }
 }
 
+
+export abstract class DataEntityUtils {
+
+  static copyControlDate(source: DataEntity<any, any> | undefined, target: DataEntity<any, any>) {
+    if (!source) return;
+    target.controlDate = fromDateISOString(source.controlDate);
+  }
+
+  static copyQualificationDateAndFlag(source: DataEntity<any, any> | undefined, target: DataEntity<any, any>) {
+    if (!source) return;
+    target.qualificationDate = fromDateISOString(source.qualificationDate);
+    target.qualificationComments = source.qualificationComments;
+    target.qualityFlagId = source.qualityFlagId;
+  }
+}

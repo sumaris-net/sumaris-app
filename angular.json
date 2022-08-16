@@ -37,7 +37,8 @@
               "zen-observable",
               "subscriptions-transport-ws",
               "chart.js",
-              "react"
+              "react",
+              "@bepo65/leaflet.fullscreen"
             ],
             "assets": [
               {
@@ -71,6 +72,11 @@
                 "output": "/"
               },
               {
+                "glob": "**/*.*",
+                "input": "node_modules/reveal.js-plugins/chalkboard/img",
+                "output": "/lib/img"
+              },
+              {
                 "glob": "sitemap.xml",
                 "input": "src/assets",
                 "output": "/"
@@ -87,11 +93,10 @@
               }
             ],
             "styles": [
-              "node_modules/leaflet/dist/leaflet.css",
               "src/global.scss"
             ],
             "scripts": [
-              "node_modules/marked/marked.min.js",
+              "node_modules/marked/lib/marked.umd.js",
               "node_modules/emoji-toolkit/lib/js/joypixels.min.js",
               "node_modules/prismjs/prism.js"
             ],
@@ -225,7 +230,7 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:lint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
             "lintFilePatterns": [
               "src/**/*.ts",
@@ -234,7 +239,7 @@
           }
         },
         "ionic-cordova-build": {
-          "builder": "@ionic/angular-toolkit:cordova-build",
+          "builder": "@ionic/cordova-builders:cordova-build",
           "options": {
             "browserTarget": "app:build"
           },
@@ -245,7 +250,7 @@
           }
         },
         "ionic-cordova-serve": {
-          "builder": "@ionic/angular-toolkit:cordova-serve",
+          "builder": "@ionic/cordova-builders:cordova-serve",
           "options": {
             "cordovaBuildTarget": "app:ionic-cordova-build",
             "devServerTarget": "app:serve"

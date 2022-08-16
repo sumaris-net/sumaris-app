@@ -29,19 +29,17 @@ import {
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
-  PlatformService,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
   SharedValidators,
-  sort,
+  sort, StatusIds,
   suggestFromArray,
   toBoolean,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { PmfmStrategy } from '../services/model/pmfm-strategy.model';
 import { IonButton } from '@ionic/angular';
 
 export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';
@@ -70,7 +68,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   items: Observable<ReferentialRef[]>;
   onShowDropdown = new EventEmitter<UIEvent>(true);
-  mobile = false;
   selectedIndex = -1;
   _tabindex: number;
   showAllButtons = false;
@@ -82,6 +79,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
 
+  @Input() mobile: boolean;
   @Input() pmfm: IPmfm;
   @Input() formControl: FormControl;
   @Input() formControlName: string;
@@ -97,6 +95,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() autofocus: boolean;
   @Input() maxVisibleButtons: number;
   @Input() buttonsColCount: number;
+  @Input() showButtonIcons: boolean;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -122,12 +121,11 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @ViewChildren('button') buttons: QueryList<IonButton>;
 
   constructor(
-    private platform: PlatformService,
     private settings: LocalSettingsService,
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
   }
 
   ngOnInit() {
@@ -138,14 +136,17 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
-    this._qualitativeValues = this.pmfm.qualitativeValues || [];
-    if (isEmptyArray(this._qualitativeValues) && PmfmUtils.isFullPmfm(this.pmfm)) {
+    let qualitativeValues = this.pmfm.qualitativeValues || [];
+    if (!qualitativeValues.length && PmfmUtils.isFullPmfm(this.pmfm)) {
       // Get qualitative values from parameter
-      this._qualitativeValues = this.pmfm.parameter && this.pmfm.parameter.qualitativeValues || [];
-      if (isEmptyArray(this._qualitativeValues)) {
+      qualitativeValues = this.pmfm.parameter?.qualitativeValues || [];
+      if (!qualitativeValues.length) {
         console.warn(`Pmfm {id: ${this.pmfm.id}, label: '${this.pmfm.label}'} has no qualitative values, neither the parent PmfmStrategy!`, this.pmfm);
       }
     }
+    // Exclude disabled values
+    this._qualitativeValues = qualitativeValues.filter(qv => qv.statusId !== StatusIds.DISABLE);
+
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
     this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
@@ -166,7 +167,9 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
-    if (!this.mobile) {
+    if (this.mobile) {
+    }
+    else {
       if (!this._sortedQualitativeValues.length) {
         this.items = of([]);
       } else {

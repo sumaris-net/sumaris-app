@@ -1,17 +1,29 @@
-import {ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren} from '@angular/core';
-import {PhysicalGearValidatorService} from '../services/validator/physicalgear.validator';
-import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, filter, mergeMap} from 'rxjs/operators';
-import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormBuilder} from '@angular/forms';
-import {focusNextInput, GetFocusableInputOptions, InputElement, isNotNil, PlatformService, ReferentialRef, ReferentialUtils, selectInputContent, toNumber} from '@sumaris-net/ngx-components';
-import {PhysicalGear} from '../services/model/trip.model';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {OperationService} from '@app/trip/services/operation.service';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { PhysicalGearValidatorService } from './physicalgear.validator';
+import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { FormBuilder } from '@angular/forms';
+import {
+  focusInput,
+  focusNextInput, getFocusableInputElements,
+  GetFocusableInputOptions,
+  InputElement,
+  isNotNil,
+  isNotNilOrBlank,
+  ReferentialRef,
+  ReferentialUtils,
+  selectInputContent,
+  toBoolean,
+  toNumber, waitFor, waitIdle
+} from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { OperationService } from '@app/trip/services/operation.service';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 @Component({
   selector: 'app-physical-gear-form',
@@ -21,22 +33,25 @@ import {OperationService} from '@app/trip/services/operation.service';
 })
 export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit {
 
-  gearsSubject = new BehaviorSubject<ReferentialRef[]>(undefined);
-  mobile: boolean;
+  $gears = new BehaviorSubject<ReferentialRef[]>(undefined);
 
-  @Input() showComment = true;
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
   @Input() canEditGear = true;
+  @Input() maxVisibleButtons: number;
+  @Input() showGear = true;
+  @Input() showError = false;
+  @Input() showComment: boolean;
+  @Input() i18nSuffix: string = null;
+  @Input() mobile: boolean;
 
   @Input()
   set gears(value: ReferentialRef[]) {
-    this.gearsSubject.next(value);
+    this.$gears.next(value);
   }
 
   @Output() onSubmit = new EventEmitter<any>();
 
-  @ViewChild('firstInput', {static: true}) firstInputField: InputElement;
   @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
 
   constructor(
@@ -44,18 +59,17 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     protected measurementValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
-    protected platform: PlatformService,
     protected validatorService: PhysicalGearValidatorService,
     protected operationService: OperationService,
     protected referentialRefService: ReferentialRefService,
   ) {
     super(injector, measurementValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
     this._enable = true;
-    this.mobile = platform.mobile;
     this.requiredGear = true;
 
-    // Set default acquisition level
+    // Set defaults
     this._acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
+    this.i18nPmfmPrefix = 'TRIP.PHYSICAL_GEAR.PMFM.';
 
     // Load gears from program
     this.registerSubscription(
@@ -65,7 +79,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
           distinctUntilChanged(),
           mergeMap(program => this.programRefService.loadGears(program))
         )
-        .subscribe(gears => this.gearsSubject.next(gears))
+        .subscribe(gears => this.$gears.next(gears))
     );
 
     this.debug = !environment.production;
@@ -73,14 +87,21 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   ngOnInit() {
     super.ngOnInit();
-
+    this.mobile = toBoolean(this.mobile, this.settings.mobile);
     this.tabindex = toNumber(this.tabindex, 1);
+    this.showComment = !this.mobile || isNotNilOrBlank(this.data?.comments);
 
     // Combo: gears
     this.registerAutocompleteField('gear', {
-      items: this.gearsSubject,
+      items: this.$gears,
       mobile: this.mobile
     });
+
+    // Disable gear field
+    const gearControl = this.form.get('gear');
+    if (!this.canEditGear && gearControl.enabled) {
+      gearControl.disable();
+    }
 
     // Propagate data.gear into gearId
     this.registerSubscription(
@@ -92,12 +113,24 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
           this.data = this.data || new PhysicalGear();
           this.data.gear = gear;
           this.gearId = gear.id;
+          this.markForCheck();
         })
     );
   }
 
-  focusFirstInput() {
-    this.firstInputField.focus();
+
+  enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.enable(opts);
+    if (!this.canEditGear) {
+      this.form.get('gear').disable(opts);
+    }
+  }
+
+  async focusFirstInput() {
+    await waitFor(() => this.enabled, {timeout: 2000});
+
+    const inputElements = getFocusableInputElements(this.inputFields);
+    if (inputElements.length) inputElements[0].focus();
   }
 
   focusNextInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {
@@ -109,14 +142,41 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   }
 
   async setValue(data: PhysicalGear, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any; waitIdle?: boolean }) {
+    // For ce to clean previous gearId (to for pmfms recomputation)
+    if (isNotNil(this.gearId)) {
+      this.gearId = null;
+    }
 
-    // If !tripId, trip was never saved and doesn't have any operation
-    if (data?.tripId) {
+    // Can edite only if not used yet, in any operation
+    if (isNotNil(data?.tripId) && this.canEditGear) {
       this.canEditGear =  await this.operationService.areUsedPhysicalGears(data.tripId,[data.id]);
     }
 
-    super.setValue(data, opts);
+    this.showComment = this.showComment || isNotNilOrBlank(data.comments);
+
+    await super.setValue(data, opts);
   }
+
+  protected getValue(): PhysicalGear {
+    const target = super.getValue();
+
+    // Re Add gear, if control has been disabled
+    const jsonGear = this.form.get('gear').value;
+    target.gear = jsonGear && ReferentialRef.fromObject(jsonGear);
+
+    return target;
+  }
+
+  toggleComment() {
+    if (this.disabled) return;
+
+    this.showComment = !this.showComment;
+    if (!this.showComment) {
+      this.form.get('comments').setValue(null);
+    }
+    this.markForCheck();
+  }
+
   /* -- protected methods -- */
 
   protected onApplyingEntity(data: PhysicalGear, opts?: {[key: string]: any;}) {

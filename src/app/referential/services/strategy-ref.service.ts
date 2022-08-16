@@ -1,4 +1,4 @@
-import {Injectable} from "@angular/core";
+import { Injectable, Injector } from '@angular/core';
 import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
 import {ReferentialFragments} from "./referential.fragments";
 import {BaseEntityGraphqlQueries, GraphqlService} from '@sumaris-net/ngx-components';
@@ -18,12 +18,11 @@ import {BaseReferentialService} from "./base-referential-service.class";
 import {firstNotNilPromise} from "@sumaris-net/ngx-components";
 
 
-export class StrategyFilter extends ReferentialFilter {
+export class StrategyRefFilter extends ReferentialFilter {
   //entityName: 'Strategy';
 }
 
-
-const StrategyRefQueries: BaseEntityGraphqlQueries = {
+const QUERIES: BaseEntityGraphqlQueries = {
   load: gql`query StrategyRef($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyRefFragment
@@ -96,7 +95,7 @@ const StrategyRefQueries: BaseEntityGraphqlQueries = {
   ${ReferentialFragments.taxonName}`
 };
 
-const StrategySubscriptions = {
+const SUBSCRIPTIONS = {
   listenChangesByProgram: gql`subscription UpdateProgramStrategies($programId: Int!, $interval: Int){
     data: updateProgramStrategies(programId: $programId, interval: $interval) {
       ...StrategyRefFragment
@@ -130,19 +129,18 @@ const StrategyRefCacheKeys = {
 
 
 @Injectable({providedIn: 'root'})
-export class StrategyRefService extends BaseReferentialService<Strategy, StrategyFilter> {
+export class StrategyRefService extends BaseReferentialService<Strategy, StrategyRefFilter> {
 
   constructor(
-    graphql: GraphqlService,
-    platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected cache: CacheService,
     protected entities: EntitiesStorage
   ) {
-    super(graphql, platform, Strategy, StrategyFilter,
+    super(injector, Strategy, StrategyRefFilter,
       {
-        queries: StrategyRefQueries
+        queries: QUERIES
       });
   }
 
@@ -255,7 +253,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
       cache = {
         subject,
         subscription: this.graphql.subscribe<{data: any}>({
-          query: StrategySubscriptions.listenChangesByProgram,
+          query: SUBSCRIPTIONS.listenChangesByProgram,
           fetchPolicy: 'network-only',
           variables,
           error: {

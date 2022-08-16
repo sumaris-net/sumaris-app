@@ -1,33 +1,34 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   Alerts,
-  AppFormUtils,
-  EntityUtils, FormErrorTranslator,
+  AppFormUtils, AudioProvider,
+  EntityUtils,
+  FormErrorTranslator,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
-  PlatformService,
   referentialToString,
   toBoolean,
   TranslateContextService,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {AlertController, IonContent, ModalController} from '@ionic/angular';
-import {BehaviorSubject, Subscription, TeardownLogic} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
-import {SampleForm} from './sample.form';
-import {Sample} from '../services/model/sample.model';
-import {TRIP_LOCAL_SETTINGS_OPTIONS} from '../services/config/trip.config';
-import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
-import {debounceTime} from 'rxjs/operators';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {Moment} from 'moment';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { environment } from '@environments/environment';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
+import { SampleForm } from './sample.form';
+import { Sample } from '../services/model/sample.model';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '../services/config/trip.config';
+import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { debounceTime } from 'rxjs/operators';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import * as momentImported from 'moment';
+import { Moment } from 'moment';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+
 const moment = momentImported;
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
@@ -46,7 +47,6 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 
   // UI Options
   maxVisibleButtons: number;
-  enableBurstMode: boolean;
   i18nSuffix?: string;
 
   // Callback actions
@@ -62,7 +62,8 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 })
 export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
-  private _subscription = new Subscription();
+  private readonly _subscription = new Subscription();
+  private isOnFieldMode: boolean;
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
@@ -85,7 +86,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showComment: boolean;
   @Input() showIndividualReleaseButton: boolean;
   @Input() maxVisibleButtons: number;
-  @Input() enableBurstMode: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   @Input() defaultSampleDate: Moment;
   tagIdPmfm: IPmfm;
@@ -110,47 +110,39 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     return this.form.valid;
   }
 
-
-  get isOnFieldMode() {
-    return this.usageMode === 'FIELD';
-  }
-
-
   constructor(
     protected injector: Injector,
-    protected platform: PlatformService,
     protected modalCtrl: ModalController,
     protected alertCtrl: AlertController,
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected translateContext: TranslateContextService,
     protected formErrorTranslator: FormErrorTranslator,
+    protected audio: AudioProvider,
     protected cd: ChangeDetectorRef
   ) {
     // Default value
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
+    this.showComment = !this.mobile;
 
     // TODO: for DEV only
     this.debug = !environment.production;
-    this.showComment = !this.mobile;
   }
 
   ngOnInit() {
+    // Default values
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
+    this.isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
-    if (isNil(this.enableBurstMode)) {
-      this.enableBurstMode = this.settings.getPropertyAsBoolean(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE,
-        this.usageMode === 'FIELD');
-    }
 
     // Show/Hide individual release button
     this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
     if (this.tagIdPmfm) {
       this.showIndividualReleaseButton =  !!this.openSubSampleModal
-        && !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]);
+        && toBoolean(this.showIndividualReleaseButton, !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]));
 
       this.form.ready().then(() => {
         this.registerSubscription(
@@ -164,7 +156,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       });
     }
     else {
-      this.showIndividualReleaseButton =  !!this.openSubSampleModal;
+      this.showIndividualReleaseButton = !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
     }
 
     if (this.disabled) {
@@ -183,7 +175,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
           .subscribe(json => this.computeTitle(json))
       );
     }
-
 
     this.setValue(this.data);
   }
@@ -242,7 +233,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
       // Is user confirm: close normally
       if (saveBeforeLeave === true) {
-        this.enableBurstMode = false; // Force onSubmit to close
         await this.onSubmit(event);
         return;
       }
@@ -259,14 +249,25 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     // DEBUG
     //console.debug('[sample-modal] Calling onSubmitAndNext()');
 
-    const data = this.getDataToSave();
-    if (!data) return; // invalid
+    // If new AND pristine BUT valud (e.g. all PMFMs are optional): avoid to validate
+    if (this.isNew && !this.dirty && this.valid) {
+      return; // skip
+    }
+
+    const data = await this.getDataToSave();
+    // invalid
+    if (!data) {
+      if (this.isOnFieldMode) this.audio.playBeepError();
+      return;
+    }
 
     this.markAsLoading();
 
     try {
       const newData = await this.onSaveAndNew(data);
       await this.reset(newData);
+      this.isNew = true;
+      if (this.isOnFieldMode) this.audio.playBeepConfirm();
 
       await this.scrollToTop();
     } finally {
@@ -278,17 +279,32 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
    * Validate and close
    * @param event
    */
+  async onSubmitIfDirty(event?: UIEvent) {
+    if (!this.dirty) {
+      await this.modalCtrl.dismiss();
+    }
+    else {
+      return this.onSubmit(event);
+    }
+  }
+
+  /**
+   * Validate and close
+   * @param event
+   */
   async onSubmit(event?: UIEvent) {
     if (this.loading) return undefined; // avoid many call
 
-    // Leave without saving
-    if (!this.dirty) {
+    // No changes: leave
+    if ((!this.dirty && !this.isNew)
+      // If new, not changed but valid (e.g. if all PMFM are optional) : avoid to save an empty entity => skip
+      || (this.isNew && !this.dirty && this.valid)) {
       this.markAsLoading();
       await this.modalCtrl.dismiss();
     }
-    // Convert and dismiss
+    // Convert then dismiss
     else {
-      const data = this.getDataToSave();
+      const data = await this.getDataToSave();
       if (!data) return; // invalid
 
       this.markAsLoading();
@@ -297,14 +313,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   }
 
   async delete(event?: UIEvent) {
-    let canDelete = true;
-
     if (this.onDelete) {
-      canDelete = await this.onDelete(event, this.data);
-      if (isNil(canDelete) || (event && event.defaultPrevented)) return; // User cancelled
+      const deleted = await this.onDelete(event, this.data);
+      if (isNil(deleted) || (event && event.defaultPrevented)) return; // User cancelled
+      if (deleted) await this.modalCtrl.dismiss();
     }
-
-    if (canDelete) {
+    else {
       await this.modalCtrl.dismiss(this.data, 'DELETE');
     }
   }
@@ -332,13 +346,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  toggleBurstMode() {
-    this.enableBurstMode = !this.enableBurstMode;
-
-    // Remember (store in local settings)
-    this.settings.setProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_BURST_MODE_ENABLE.key, this.enableBurstMode);
-  }
-
   toggleComment() {
     this.showComment = !this.showComment;
     this.markForCheck();
@@ -346,18 +353,23 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   /* -- protected methods -- */
 
-  protected getDataToSave(opts?: {disable?: boolean;}): Sample {
+  protected async getDataToSave(opts?: {disable?: boolean;}): Promise<Sample> {
 
-    if (this.invalid) {
-      if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
-      const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
-        controlPathTranslator: this.form,
-        separator: '<br/>'
-      })
-      this.setError(error || 'COMMON.FORM.HAS_ERROR');
-      this.form.markAllAsTouched();
-      this.scrollToTop();
-      return undefined;
+    if (!this.valid) {
+      // Wait validation end
+      await AppFormUtils.waitWhilePending(this.form);
+
+      if (this.invalid) {
+        if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
+        const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
+          controlPathTranslator: this.form,
+          separator: '<br/>'
+        })
+        this.setError(error || 'COMMON.FORM.HAS_ERROR');
+        this.form.markAllAsTouched();
+        this.scrollToTop();
+        return;
+      }
     }
 
     this.markAsLoading();

@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
+import { isNotNil, LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import {SaleValidatorService} from './sale.validator';
 import {MeasurementsValidatorService} from './measurement.validator';
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
@@ -17,11 +17,17 @@ export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withFishingAreas?: boolean;
   returnFieldsRequired?: boolean;
   departureDateTimeRequired?: boolean;
+  withOperationGroup?: boolean;
+  minDurationInHours?: number;
+  maxDurationInHours?: number;
 }
 
 @Injectable({providedIn: 'root'})
 export class TripValidatorService<O extends TripValidatorOptions = TripValidatorOptions>
   extends DataRootVesselEntityValidatorService<Trip, O> {
+
+  static readonly DEFAULT_MIN_DURATION_HOURS = 1; // 1 hour
+  static readonly DEFAULT_MAX_DURATION_HOURS = 100 * 24; // 100 days
 
   constructor(
     formBuilder: FormBuilder,
@@ -66,8 +72,12 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
         __typename: [Trip.TYPENAME],
         departureDateTime: [data && data.departureDateTime || null, !opts.departureDateTimeRequired ? null : Validators.required],
         departureLocation: [data && data.departureLocation || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        returnDateTime: [data && data.returnDateTime || null, opts.isOnFieldMode && !opts.returnFieldsRequired ? null : Validators.required],
-        returnLocation: [data && data.returnLocation || null, opts.isOnFieldMode && !opts.returnFieldsRequired ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])]
+        returnDateTime: [data && data.returnDateTime || null, Validators.compose([
+          opts.returnFieldsRequired ? Validators.required : null,
+          SharedValidators.dateRangeEnd('departureDateTime'),
+          SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
+        ])],
+        returnLocation: [data && data.returnLocation || null, !opts.returnFieldsRequired ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])]
       });
 
     // Add observers
@@ -92,8 +102,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     return <AbstractControlOptions>{
       validator: Validators.compose([
         SharedFormGroupValidators.dateRange('departureDateTime', 'returnDateTime'),
-        SharedFormGroupValidators.dateMinDuration('departureDateTime', 'returnDateTime', 1, 'hours'),
-        SharedFormGroupValidators.dateMaxDuration('departureDateTime', 'returnDateTime', 100, 'days')
+        SharedFormGroupValidators.dateMinDuration('departureDateTime', 'returnDateTime', opts?.minDurationInHours || TripValidatorService.DEFAULT_MIN_DURATION_HOURS, 'hour'),
+        SharedFormGroupValidators.dateMaxDuration('departureDateTime', 'returnDateTime', opts?.maxDurationInHours || TripValidatorService.DEFAULT_MAX_DURATION_HOURS, 'hour')
       ])
     };
   }
@@ -101,8 +111,12 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   updateFormGroup(form: FormGroup, opts?: O): FormGroup {
     opts = this.fillDefaultOptions(opts);
 
-    form.get('returnDateTime').setValidators(opts.isOnFieldMode && !opts.returnFieldsRequired ? null : Validators.required);
-    form.get('returnLocation').setValidators(opts.isOnFieldMode && !opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
+    form.get('returnLocation').setValidators(!opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
+    form.get('returnDateTime').setValidators(!opts.returnFieldsRequired ? null : Validators.required);
+
+    // Update form group validators
+    const formValidators = this.getFormGroupOptions(null, opts)?.validators;
+    form.setValidators(formValidators);
 
     return form;
   }
@@ -113,19 +127,16 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     opts = super.fillDefaultOptions(opts);
 
     opts.withObservers = toBoolean(opts.withObservers,
-      toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
+      toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE),
     ProgramProperties.TRIP_OBSERVERS_ENABLE.defaultValue === "true"));
-
     opts.withMetiers = toBoolean(opts.withMetiers,
-      toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE),
+      toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_METIERS_ENABLE),
     ProgramProperties.TRIP_METIERS_ENABLE.defaultValue === "true"));
-
-    opts.withSale = toBoolean(opts.withSale,
-      toBoolean(opts.program && opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
-
+    opts.withSale = toBoolean(opts.withSale, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_SALE_ENABLE), false));
     opts.withMeasurements = toBoolean(opts.withMeasurements,  !!opts.program);
-
-    opts.returnFieldsRequired = toBoolean(opts.returnFieldsRequired, false);
+    opts.returnFieldsRequired = toBoolean(opts.returnFieldsRequired, !opts.isOnFieldMode);
+    opts.minDurationInHours = toNumber(opts.minDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MIN_DURATION_HOURS));
+    opts.maxDurationInHours = toNumber(opts.maxDurationInHours, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_MAX_DURATION_HOURS));
 
     return opts;
   }

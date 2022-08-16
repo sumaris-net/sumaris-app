@@ -1,12 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { SaleValidatorService } from '../services/validator/sale.validator';
 import { Moment } from 'moment';
-import { AppForm, referentialToString, toNumber } from '@sumaris-net/ngx-components';
-import { VesselSnapshotService } from '../../referential/services/vessel-snapshot.service';
+import { AppForm, OnReady, referentialToString, toNumber } from '@sumaris-net/ngx-components';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Sale } from '../services/model/sale.model';
-import { LocationLevelIds } from '../../referential/services/model/model.enum';
-import { ReferentialRefService } from '../../referential/services/referential-ref.service';
-import { OnReady } from '@sumaris-net/ngx-components/public_api';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 @Component({
   selector: 'form-sale',
@@ -47,12 +46,12 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
   constructor(
     injector: Injector,
-    protected saleValidatorService: SaleValidatorService,
+    protected validatorService: SaleValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef
   ) {
-    super(injector, saleValidatorService.getFormGroup());
+    super(injector, validatorService.getFormGroup());
   }
 
   ngOnInit() {
@@ -96,7 +95,7 @@ export class SaleForm extends AppForm<Sale> implements OnInit, OnReady {
 
   protected updateFormGroup(opts?: { emitEvent?: boolean; }) {
     console.info('[sale-form] Updating form group...');
-    this.saleValidatorService.updateFormGroup(this.form, {
+    this.validatorService.updateFormGroup(this.form, {
       required: this.required, // Set if required or not
       minDate: this._minDate
     });

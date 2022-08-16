@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
 import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
+import { AppObservedLocationRoutingModule } from '@app/trip/observed-location-routing.module';
 
 const routes: Routes = [
   // Core path
@@ -60,7 +61,7 @@ const routes: Routes = [
     data: {
       profile: 'USER'
     },
-    loadChildren: () => import('./trip/trip-routing.module').then(m => m.TripRoutingModule)
+    loadChildren: () => import('./trip/trip-routing.module').then(m => m.AppTripRoutingModule)
   },
 
   // Observations
@@ -70,7 +71,7 @@ const routes: Routes = [
     data: {
       profile: 'USER'
     },
-    loadChildren: () => import('./trip/landed-trip-routing.module').then(m => m.LandedTripRoutingModule)
+    loadChildren: () => import('./trip/observed-location-routing.module').then(m => m.AppObservedLocationRoutingModule)
   },
 
   // Extraction path
@@ -83,7 +84,7 @@ const routes: Routes = [
     loadChildren: () => import('./extraction/extraction-routing.module').then(m => m.AppExtractionRoutingModule)
   },
 
-  // Test module (disable in menu, by default - can be enable by the Pod configuration page)
+  // Test module (disable in menu, by default - can be enabled by the Pod configuration page)
   {
     path: 'testing',
     children: [
@@ -93,9 +94,13 @@ const routes: Routes = [
         redirectTo: 'shared',
       },
       // Shared module
-      {
+      /*{
         path: 'shared',
         loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SharedTestingModule)
+      },*/
+      {
+        path: 'shared',
+        loadChildren: () => import('./shared/shared.testing.module').then(m => m.AppSharedTestingModule)
       },
       // Trip module
       {
@@ -106,6 +111,11 @@ const routes: Routes = [
       {
         path: 'referential',
         loadChildren: () => import('./referential/referential.testing.module').then(m => m.ReferentialTestingModule)
+      },
+      // Image module
+      {
+        path: 'image',
+        loadChildren: () => import('./image/image.testing.module').then(m => m.ImageTestingModule)
       }
     ]
   },
@@ -132,7 +142,8 @@ export const ROUTE_OPTIONS: ExtraOptions = {
     RouterModule.forRoot(routes, ROUTE_OPTIONS)
   ],
   exports: [
-    RouterModule
+    RouterModule,
+    SharedRoutingModule
   ]
 })
 export class AppRoutingModule {

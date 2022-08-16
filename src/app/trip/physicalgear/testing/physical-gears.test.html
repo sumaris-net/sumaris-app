@@ -1,0 +1,189 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Physical gears test</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <form class="form-container ion-padding" [formGroup]="filterForm" (ngSubmit)="doSubmit($event)">
+   <ion-grid class="ion-no-padding">
+
+     <!-- Filter -->
+     <ion-row>
+       <!-- Program -->
+       <ion-col size="12" size-md="3">
+         <mat-autocomplete-field formControlName="program" class="ion-text-wrap"
+                                 [placeholder]="'TRIP.TABLE.FILTER.PROGRAM'|translate"
+                                 [config]="autocomplete.fields.program"
+                                 [tabindex]="1"
+                                 required>
+         </mat-autocomplete-field>
+       </ion-col>
+
+       <ion-col size="4" size-md="2">
+         <mat-autocomplete-field formControlName="example"
+                                  placeholder="Data example"
+                                  [tabindex]="3"
+                                  [required]="true"
+                                  [showSearchBar]="false"
+                                  [config]="autocomplete.fields.example">
+         </mat-autocomplete-field>
+       </ion-col>
+
+<!--       <ion-col size="4" size-md="2">-->
+<!--         <mat-boolean-field [formControl]="filterForm|formGetControl: 'modalOptions.allowSubGears'"-->
+<!--                            [placeholder]="'Allow sub gears ?'"-->
+<!--                            [tabindex]="4"-->
+<!--                            [required]="true">-->
+<!--         </mat-boolean-field>-->
+<!--       </ion-col>-->
+
+       <!-- Action  buttons -->
+       <ion-col size="4" size-md="2">
+         <!-- show tree -->
+         <ion-button (click)="dumpExample()" *ngIf="!outputs.example"
+                     fill="outline">
+           <ion-icon name="eye" slot="icon-only"></ion-icon>
+         </ion-button>
+         <!-- hide tree -->
+         <ion-button (click)="outputs.example = undefined" *ngIf="outputs.example"
+                     fill="outline">
+           <ion-icon name="eye-off" slot="icon-only"></ion-icon>
+         </ion-button>
+         <!-- copy to -->
+         <ion-button (click)="applyExample()"
+                     fill="outline">
+           <ion-icon name="arrow-down" slot="icon-only"></ion-icon>
+         </ion-button>
+       </ion-col>
+     </ion-row>
+   </ion-grid>
+  </form>
+
+  <div class="ion-padding" *ngIf="outputs.example">
+    <ion-text color="medium">
+      <h4>Output: </h4>
+      <p [innerHTML]="outputs.example">
+      </p>
+    </ion-text>
+  </div>
+
+  <mat-tab-group>
+    <mat-tab label="Mobile">
+      <ng-template matTabContent>
+        <!-- mobile table -->
+        <app-physical-gears-table #mobileTable
+                                  [programLabel]="$programLabel|async"
+                                  [allowChildrenGears]="true"
+                                  [mobile]="true"
+                                  [debug]="true">
+        </app-physical-gears-table>
+
+        <!-- buttons -->
+        <ion-item [lines]="'none'">
+          <!-- Save -->
+          <ion-button (click)="save($event, mobileTable, 'mobile')"
+                      title="Save the table" color="danger"
+                      [disabled]="!mobileTable.dirty"
+                      [fill]="mobileTable.dirty ? 'solid': 'outline'" translate>
+            COMMON.BTN_SAVE
+          </ion-button>
+
+          <!-- show tree -->
+          <ion-button *ngIf="!outputs.mobile"
+                      (click)="dumpTable(mobileTable, 'mobile')"
+                      matTooltip="Output data to log"
+                      fill="outline">
+            <ion-icon name="eye" slot="icon-only"></ion-icon>
+          </ion-button>
+
+          <!-- hide tree -->
+          <ion-button (click)="outputs.mobile=undefined" *ngIf="outputs.mobile"
+                      matTooltip="Output data to log"
+                      fill="outline">
+            <ion-icon name="eye-off" slot="icon-only"></ion-icon>
+          </ion-button>
+
+          <!-- Reload from himself -->
+          <ion-button (click)="copyTableValue(mobileTable, mobileTable)"
+                      matTooltip="Reload from himself data"
+                      fill="outline">
+            <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
+          </ion-button>
+        </ion-item>
+
+        <div class="ion-padding"
+             *ngIf="outputs.mobile">
+          <ion-text color="medium">
+            <h4>Output: </h4>
+            <p [innerHTML]="outputs.mobile">
+            </p>
+          </ion-text>
+        </div>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Desktop">
+      <ng-template matTabContent>
+        <!-- desktop table -->
+        <app-physical-gears-table #desktopTable
+                                  [programLabel]="$programLabel|async"
+                                  [allowChildrenGears]="true"
+                                  [mobile]="false"
+                                  [debug]="true">
+        </app-physical-gears-table>
+
+        <!-- buttons -->
+        <ion-item>
+          <!-- Save -->
+          <ion-button (click)="save($event, desktopTable, 'desktop')"
+                      title="Save the table" color="danger"
+                      [disabled]="!desktopTable.dirty"
+                      [fill]="desktopTable.dirty ? 'solid': 'outline'" translate>
+            COMMON.BTN_SAVE
+          </ion-button>
+
+          <!-- show tree -->
+          <ion-button (click)="dumpTable(desktopTable, 'desktop')"
+                      *ngIf="!outputs.desktop"
+                      title="Output data to log"
+                      fill="outline">
+            <ion-icon name="eye" slot="icon-only"></ion-icon>
+          </ion-button>
+
+          <!-- hide tree -->
+          <ion-button (click)="outputs.desktop=undefined"
+                      *ngIf="outputs.desktop"
+                      title="Output data to log"
+                      fill="outline">
+            <ion-icon name="eye-off" slot="icon-only"></ion-icon>
+          </ion-button>
+
+          <!-- Reload from himself -->
+          <ion-button (click)="copyTableValue(desktopTable, desktopTable)"
+                      title="Reload from himself data"
+                      fill="outline">
+            <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
+          </ion-button>
+
+        </ion-item>
+
+        <div class="ion-padding"
+             *ngIf="outputs.desktop">
+          <ion-text color="medium">
+            <h4>Output: </h4>
+            <p [innerHTML]="outputs.desktop">
+            </p>
+          </ion-text>
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+
+</ion-content>

@@ -79,7 +79,7 @@
             <form-trip #tripForm
                        (onSubmit)="save($event)"
                        [showError]="false"
-                       [showAddVessel]="false"
+                       [allowAddNewVessel]="false"
                        [returnFieldsRequired]="true">
 
               <!-- Main fishing area  -->
@@ -241,7 +241,7 @@
       <ng-template mat-tab-label>
         <mat-icon slot='start'>local_offer</mat-icon>
         <ion-label translate>TRIP.TAB_SALES</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && expenseForm.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && expectedSaleForm.invalid"></ion-icon>
       </ng-template>
 
       <app-expected-sale-form #expectedSaleForm

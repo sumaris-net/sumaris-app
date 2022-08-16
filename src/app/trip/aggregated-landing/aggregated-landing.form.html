@@ -10,7 +10,7 @@
 
       <button mat-menu-item
               [title]="'COMMON.BTN_EDIT'|translate" (click)="openTrip(activity)"
-              [disabled]="!activity || !activity.tripId">
+              [disabled]="!activity || !activity.tripId || !activity.observedLocationId">
         <mat-icon><ion-icon name="boat"></ion-icon></mat-icon>
         <ion-label translate>AGGREGATED_LANDING.OPEN_TRIP</ion-label>
       </button>
@@ -39,10 +39,10 @@
     </ion-row>
 
     <ion-row>
-      <ion-col size="12" size-md="6" *ngFor="let activityForm of activitiesForm.controls; index as i; first as first" >
-        <ion-card >
+      <ion-col size="12" *ngFor="let formGroup of activitiesForm.controls; index as i; first as first" >
+        <ion-card>
           <mat-toolbar>
-            <ion-label>{{'AGGREGATED_LANDING.ACTIVITY' | translate: {rankOrder: activityForm.value.rankOrder} }}</ion-label>
+            <ion-label *ngIf="formGroup.get('rankOrder').valueChanges|async; let rankOrder">{{'AGGREGATED_LANDING.ACTIVITY' | translate: {rankOrder: rankOrder} }}</ion-label>
 
             <div class="toolbar-spacer"></div>
 
@@ -55,13 +55,13 @@
           </mat-toolbar>
 
           <ion-card-content>
-            <app-vessel-activity-form #activityForm
-                                      [form]="activityForm"
+            <app-vessel-activity-form #activityFormComponent
+                                      [form]="formGroup"
                                       [value]="activities[i]"
                                       [programLabel]="programLabel"
                                       [acquisitionLevel]="acquisitionLevel"
-                                      maxVisibleButtons='2'
-            >
+                                      maxVisibleButtons="2"
+                                      (ngInit)="activityFormComponent.markAsReady()">
             </app-vessel-activity-form>
           </ion-card-content>
         </ion-card>

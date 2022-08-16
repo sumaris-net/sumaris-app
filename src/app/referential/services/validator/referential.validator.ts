@@ -1,7 +1,8 @@
 import {Injectable} from "@angular/core";
 import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {Referential}  from "@sumaris-net/ngx-components";
+import { Referential, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import {AppValidatorService}  from "@sumaris-net/ngx-components";
+import { FullReferential } from '@app/referential/services/model/referential.model';
 
 @Injectable({providedIn: 'root'})
 export class ReferentialValidatorService<T extends Referential = Referential>
@@ -29,24 +30,25 @@ export class ReferentialValidatorService<T extends Referential = Referential>
     withDescription?: boolean;
     withComments?: boolean;
   }): {[key: string]: any} {
+    opts = opts || {};
     const controlsConfig: {[key: string]: any} = {
       id: [data && data.id || null],
       updateDate: [data && data.updateDate || null],
       creationDate: [data && data.creationDate || null],
-      statusId: [data && data.statusId || null, Validators.required],
-      levelId: [data && data.levelId || null],
+      statusId: [toNumber(data?.statusId, null), Validators.required],
+      levelId: [toNumber(data?.levelId, null)],
+      parentId: [toNumber(data?.parentId, null)],
       label: [data && data.label || null, Validators.required],
       name: [data && data.name || null, Validators.required],
       entityName: [data && data.entityName || null, Validators.required]
     };
 
-    if (!opts || opts.withDescription !== false) {
+    if (opts.withDescription !== false) {
       controlsConfig.description = [data && data.description || null, Validators.maxLength(255)];
     }
-    if (!opts || opts.withComments !== false) {
+    if (opts.withComments !== false) {
       controlsConfig.comments = [data && data.comments || null, Validators.maxLength(2000)];
     }
-
     return controlsConfig;
   }
 

@@ -68,7 +68,7 @@
   <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container"
+<div #tableContainer class="table-container"
      [class.has-toolbar]="showToolbar"
      [class.has-paginator]="showPaginator">
 
@@ -187,7 +187,7 @@
     </ng-container>
 
     <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
+    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm.id.toString()">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
         <ion-label>{{pmfm | pmfmName: {html: true, i18nPrefix: i18nColumnPrefix, i18nContext: i18nColumnSuffix} }}</ion-label>
       </th>
@@ -255,12 +255,13 @@
           <mat-icon>check</mat-icon>
         </button>
 
-        <!-- edit trip -->
-        <button mat-icon-button color="light"
+        <!-- Edit trip button -->
+        <button mat-icon-button
                 *ngIf="!row.editing && row.id !== -1 && isTripDetailEditor"
+                [color]="row.currentData.tripId && 'primary'"
                 [title]="'COMMON.BTN_EDIT'|translate"
                 (click)="confirmAndEditTrip($event, row)">
-          <ion-icon name="boat" slot="icon-only" [color]="row.currentData.tripId ? undefined : 'medium'"></ion-icon>
+          <ion-icon name="boat" slot="icon-only" ></ion-icon>
         </button>
       </td>
     </ng-container>
@@ -296,7 +297,7 @@
   </mat-paginator>
 </ion-footer>
 
-<!-- Add Button  -->
+<!-- Add Fab Button  -->
 <ion-fab slot="fixed"
          vertical="bottom" horizontal="end"
          *ngIf="enabled && showFabButton"
@@ -305,7 +306,6 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
-
 
 <ng-template #addRowButton>
   <span *ngIf="!mobile && enabled">&nbsp;

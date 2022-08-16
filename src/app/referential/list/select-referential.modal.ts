@@ -4,16 +4,19 @@ import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
 import {ReferentialFilter} from "../services/filter/referential.filter";
 import {ReferentialRefService} from "../services/referential-ref.service";
 import {ReferentialRef}  from "@sumaris-net/ngx-components";
-import {BaseSelectEntityModal} from "./base-select-entity.modal";
+import { BaseSelectEntityModal, IBaseSelectEntityModalOptions } from './base-select-entity.modal';
+
+export interface ISelectReferentialModalOptions extends IBaseSelectEntityModalOptions<ReferentialRef, ReferentialFilter> {
+
+}
 
 @Component({
   selector: 'app-select-referential-modal',
   templateUrl: './select-referential.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef, ReferentialFilter> implements OnInit {
-
-  @Input() entityName: string;
+export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef, ReferentialFilter>
+  implements OnInit, ISelectReferentialModalOptions {
 
   constructor(
     protected viewCtrl: ModalController,
@@ -24,6 +27,8 @@ export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef
   }
 
   ngOnInit() {
+    this.filter = this.filter || new ReferentialFilter();
+
     super.ngOnInit();
 
     // Copy the entityName to filter

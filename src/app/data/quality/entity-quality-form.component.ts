@@ -1,38 +1,40 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, Optional} from '@angular/core';
-import {DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '../services/model/data-entity.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import { DataEntity, IDataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
 // import fade in animation
 import {
   AccountService,
+  AppEntityEditor, AppErrorWithDetails,
   ConfigService,
   EntityUtils,
-  fadeInAnimation,
+  fadeInAnimation, FormErrors, IEntity,
   IEntityService,
   isNil,
   isNotNil,
   LocalSettingsService,
   NetworkService,
-  PlatformService,
   ReferentialRef,
-  ShowToastOptions, sleep,
+  ShowToastOptions,
   StatusIds,
-  Toasts
+  Toasts,
+  UserEventService
 } from '@sumaris-net/ngx-components';
-import {IDataEntityQualityService, isDataQualityService} from '../services/data-quality-service.class';
-import {QualityFlags} from '../../referential/services/model/model.enum';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {merge, Subscription} from 'rxjs';
-import {Router} from '@angular/router';
-import {ToastController} from '@ionic/angular';
-import {TranslateService} from '@ngx-translate/core';
-import {environment} from '@environments/environment';
-import {AppRootDataEditor} from '../form/root-data-editor.class';
-import {RootDataEntity} from '../services/model/root-data-entity.model';
-import {qualityFlagToColor} from '../services/model/model.utils';
-import {UserEventService} from '@sumaris-net/ngx-components';
-import {OverlayEventDetail} from '@ionic/core';
-import {isDataSynchroService, RootDataSynchroService} from '../services/root-data-synchro-service.class';
-import {debounceTime} from 'rxjs/operators';
-import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
+import { IDataEntityQualityService, IRootDataEntityQualityService, isDataQualityService, isRootDataQualityService } from '../services/data-quality-service.class';
+import { QualityFlags } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { merge, Subscription } from 'rxjs';
+import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { environment } from '@environments/environment';
+import { RootDataEntity } from '../services/model/root-data-entity.model';
+import { qualityFlagToColor } from '../services/model/model.utils';
+import { OverlayEventDetail } from '@ionic/core';
+import { isDataSynchroService, RootDataSynchroService } from '../services/root-data-synchro-service.class';
+import { debounceTime } from 'rxjs/operators';
+import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
+
+
+export const APP_ENTITY_EDITOR = new InjectionToken<AppEntityEditor<any, any, any>>('AppEditor');
 
 @Component({
   selector: 'app-entity-quality-form',
@@ -51,6 +53,7 @@ export class EntityQualityFormComponent<
   private _mobile: boolean;
   private _subscription = new Subscription();
   private _isSynchroService: boolean;
+  private _isRootDataQualityService: boolean;
   private _enableQualityProcess = true;
 
   data: T;
@@ -75,9 +78,19 @@ export class EntityQualityFormComponent<
     return this.data;
   }
 
-  @Input() editor: AppRootDataEditor<T, S, ID>;
+  @Input() editor: AppEntityEditor<T, S, ID>;
 
   @Input() service: IDataEntityQualityService<T, ID>;
+
+  protected get serviceForRootEntity() {
+    // tslint:disable-next-line:no-unused-expression
+    return this.service as IRootDataEntityQualityService<T, ID>;
+  }
+
+  protected get synchroService() {
+    // tslint:disable-next-line:no-unused-expression
+    return this.service as RootDataSynchroService<T, any, ID>;
+  }
 
   constructor(
     protected router: Router,
@@ -90,14 +103,12 @@ export class EntityQualityFormComponent<
     protected userEventService: UserEventService,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef,
-    platform: PlatformService,
-    @Optional() editor: AppRootDataEditor<T, S, ID>
+    @Optional() @Inject(APP_ENTITY_EDITOR) editor: AppEntityEditor<T, S, ID>
   ) {
     this.editor = editor;
-    this.service = editor && isDataQualityService(editor.service) ? editor.service : undefined;
+    this._mobile = settings.mobile;
 
-    this._mobile = platform.mobile;
-
+    // DEBUG
     this._debug = !environment.production;
   }
 
@@ -107,8 +118,9 @@ export class EntityQualityFormComponent<
     if (!this.editor) throw new Error("Missing mandatory 'editor' input!");
 
     // Check data service exists
-    this.service = this.service || isDataQualityService(this.editor.service) && this.editor.service || null;
-    if (!this.service) throw new Error("Missing mandatory 'dataService' input!");
+    this.service = this.service || (isDataQualityService(this.editor.service) ? this.editor.service : null);
+    if (!this.service) throw new Error("Missing mandatory 'service' input!");
+    this._isRootDataQualityService = isRootDataQualityService(this.service);
     this._isSynchroService = isDataSynchroService(this.service);
 
     // Subscribe to config
@@ -144,13 +156,16 @@ export class EntityQualityFormComponent<
   async control(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
 
     this.busy = true;
+    // Disable the editor
+    this.editor.disable();
 
     let valid = false;
+
     try {
       // Make sure to get valid and saved data
       const data = await this.editor.saveAndGetDataIfValid();
 
-      // no data: skip
+      // no data or invalid: skip
       if (!data) return false;
 
       if (this._debug) console.debug(`[quality] Control ${data.constructor.name}...`);
@@ -158,10 +173,18 @@ export class EntityQualityFormComponent<
       valid = isNil(errors);
 
       if (!valid) {
-        this.editor.setError({message: 'QUALITY.ERROR.INVALID_FORM', details: {errors} });
+        errors.message = errors.message || data.qualificationComments || 'QUALITY.ERROR.INVALID_FORM';
+        await this.editor.updateView(data);
+        this.editor.setError(errors);
         this.editor.markAllAsTouched();
+        if (!opts || opts.emitEvent !== false) {
+          this.markForCheck();
+        }
       }
       else {
+        // Clean previous error
+        this.editor.resetError(opts);
+
         // Emit event (refresh component with the new data)
         if (!opts || opts.emitEvent !== false) {
           this.updateView(data);
@@ -172,13 +195,17 @@ export class EntityQualityFormComponent<
       }
     }
     finally {
+      this.editor.enable(opts);
       this.busy = false;
+      this.markForCheck();
     }
 
     return valid;
   }
 
   async terminate(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
+    if (this.busy) return;
+
     // Control data
     const controlled = await this.control(event, {emitEvent: false});
     if (!controlled || event && event.defaultPrevented) {
@@ -190,12 +217,13 @@ export class EntityQualityFormComponent<
       return false;
     }
 
+    this.busy = true;
     // Disable the editor
     this.editor.disable();
 
     try {
       console.debug("[quality] Terminate entity input...");
-      const data = await this.service.terminate(this.editor.data);
+      const data = await this.serviceForRootEntity.terminate(this.editor.data);
 
       // Emit event (refresh editor -> will refresh component also)
       if (!opts || opts.emitEvent !== false) {
@@ -208,6 +236,8 @@ export class EntityQualityFormComponent<
     }
     finally {
       this.editor.enable(opts);
+      this.busy = false;
+      this.markForCheck();
     }
   }
 
@@ -237,9 +267,7 @@ export class EntityQualityFormComponent<
 
     try {
       console.debug("[quality] Synchronizing entity...");
-      // tslint:disable-next-line:no-unused-expression
-      const synchroService = this.service as RootDataSynchroService<T, any, ID>;
-      const remoteData = await synchroService.synchronize(this.editor.data);
+      const remoteData = await this.synchroService.synchronize(this.editor.data);
 
       // Success message
       this.showToast({message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true});
@@ -249,7 +277,7 @@ export class EntityQualityFormComponent<
 
       // Do a ONLINE terminate
       console.debug("[quality] Terminate entity...");
-      const data = await this.service.terminate(remoteData);
+      const data = await this.serviceForRootEntity.terminate(remoteData);
 
       // Update the editor (Will refresh the component)
       this.updateEditor(data, {updateRoute: true});
@@ -272,17 +300,36 @@ export class EntityQualityFormComponent<
   }
 
   async validate(event: Event) {
+    if (this.busy) return;
+
     // Control data
-    const controlled = await this.control(event, {emitEvent: false});
+    const controlled = await this.control(event, { emitEvent: false });
     if (!controlled || event.defaultPrevented) return;
 
-    console.debug("[quality] Mark entity as validated...");
-    const data = await this.service.validate(this.data);
-    this.updateEditor(data);
+    try {
+      this.busy = true;
+
+      console.debug("[quality] Mark entity as validated...");
+      const data = await this.serviceForRootEntity.validate(this.data);
+      this.updateEditor(data);
+    }
+    catch (error) {
+      this.editor.setError(error);
+      const context = error && error.context || (() => this.data.asObject(MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE));
+      this.userEventService.showToastErrorWithContext({
+        error,
+        context
+      });
+    }
+    finally {
+      this.editor.enable();
+      this.busy = false;
+      this.markForCheck();
+    }
   }
 
   async unvalidate(event: Event) {
-    const data = await this.service.unvalidate(this.data);
+    const data = await this.serviceForRootEntity.unvalidate(this.data);
     this.updateEditor(data);
   }
 
@@ -326,18 +373,18 @@ export class EntityQualityFormComponent<
 
       // If local, avoid to check too many properties (for performance in mobile devices)
       const isLocalData = EntityUtils.isLocal(data);
-      const canWrite = isLocalData || this.service.canUserWrite(data);
+      const canWrite = isLocalData || this.editor.canUserWrite(data);
       const isSupervisor = !isLocalData && this.accountService.isSupervisor();
 
       // Quality service
       this.canControl = canWrite && (isLocalData && data.synchronizationStatus === 'DIRTY' || isNil(data.controlDate));
-      this.canTerminate = this.canControl && (!isLocalData || data.synchronizationStatus === 'DIRTY');
+      this.canTerminate = this.canControl && this._isRootDataQualityService && (!isLocalData || data.synchronizationStatus === 'DIRTY');
 
       if (this._enableQualityProcess) {
-        this.canValidate = canWrite && isSupervisor && !isLocalData && isNotNil(data.controlDate) && isNil(data.validationDate);
-        this.canUnvalidate = canWrite && isSupervisor && isNotNil(data.controlDate) && isNotNil(data.validationDate);
-        this.canQualify = canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
-        this.canUnqualify = canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
+        this.canValidate = canWrite && isSupervisor && !isLocalData && this._isRootDataQualityService && isNotNil(data.controlDate) && isNil(data.validationDate);
+        this.canUnvalidate = !canWrite && isSupervisor && this._isRootDataQualityService && isNotNil(data.controlDate) && isNotNil(data.validationDate);
+        this.canQualify = !canWrite && isSupervisor /*TODO && isQualifier */ && isNotNil(data.validationDate) && isNil(data.qualificationDate);
+        this.canUnqualify = !canWrite && isSupervisor && isNotNil(data.validationDate) && isNotNil(data.qualificationDate);
       } else {
         this.canValidate = false;
         this.canUnvalidate = false;

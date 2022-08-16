@@ -4,6 +4,7 @@ import { RootDataEntity } from '../model/root-data-entity.model';
 import { IWithObserversEntity } from '../model/model.utils';
 import { Program } from '../../../referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from './data-entity.validator';
+import {OperationValidators} from '@app/trip/services/validator/operation.validator';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
   withObservers?: boolean;
@@ -38,7 +39,7 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
   getObserversFormArray(data?: IWithObserversEntity<T>) {
     return this.formBuilder.array(
       (data && data.observers || [null]).map(observer => this.getObserverControl(observer)),
-      SharedFormArrayValidators.requiredArrayMinLength(1)
+      OperationValidators.requiredArrayMinLength(1)
     );
   }
 

@@ -15,16 +15,16 @@ import {
   LocalSettingsService,
   PersonService,
   PersonUtils,
-  PlatformService,
+  PlatformService, ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
   StatusIds
 } from '@sumaris-net/ngx-components';
 import {ObservedLocationService} from '../services/observed-location.service';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import {ObservedLocation} from '../services/model/observed-location.model';
-import {AppRootTable} from '@app/data/table/root-table.class';
+import {AppRootDataTable} from '@app/data/table/root-table.class';
 import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
 import {environment} from '@environments/environment';
 import {BehaviorSubject} from 'rxjs';
@@ -36,6 +36,8 @@ import {filter, tap} from 'rxjs/operators';
 import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
 import {ContextService} from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { Program } from '@app/referential/services/model/program.model';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -51,9 +53,8 @@ export const ObservedLocationsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationsPage extends
-  AppRootTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
+  AppRootDataTable<ObservedLocation, ObservedLocationFilter> implements OnInit {
 
-  highlightedRow: TableElement<ObservedLocation>;
   $title = new BehaviorSubject<string>('');
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
@@ -74,13 +75,7 @@ export class ObservedLocationsPage extends
   }
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
+    injector: Injector,
     protected dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -90,21 +85,17 @@ export class ObservedLocationsPage extends
     protected context: ContextService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
-      RESERVED_START_COLUMNS
-        .concat([
-          'quality',
-          'program',
-          'location',
-          'startDateTime',
-          'observers',
-          'recorderPerson',
-          'comments'])
-        .concat(RESERVED_END_COLUMNS),
+    super(injector,
+      ObservedLocation, ObservedLocationFilter,
+      ['quality',
+      'program',
+      'location',
+      'startDateTime',
+      'observers',
+      'recorderPerson',
+      'comments'],
       dataService,
-      new EntitiesTableDataSource(ObservedLocation, dataService),
-      null, // Filter
-      injector
+      null
     );
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
@@ -133,15 +124,16 @@ export class ObservedLocationsPage extends
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
-      filter: <ReferentialRefFilter>{
-        entityName: 'Program'
+      service: this.programRefService,
+      filter: {
+        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING],
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
       mobile: this.mobile
     });
 
     // Locations combo (filter)
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
@@ -151,7 +143,7 @@ export class ObservedLocationsPage extends
     });
 
     // Combo: recorder department
-    this.registerAutocompleteField('department', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Department'
@@ -218,11 +210,6 @@ export class ObservedLocationsPage extends
 
     // Clear the context
     this.resetContext();
-  }
-
-  clickRow(event: MouseEvent|undefined, row: TableElement<ObservedLocation>): boolean {
-    this.highlightedRow = row;
-    return super.clickRow(event, row);
   }
 
   /**

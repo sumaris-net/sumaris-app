@@ -1,13 +1,22 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild} from '@angular/core';
-import {ModalController} from '@ionic/angular';
-import {PHYSICAL_GEAR_DATA_SERVICE, PhysicalGearService} from '../services/physicalgear.service';
-import {TableElement} from '@e-is/ngx-material-table';
-import {PhysicalGear} from '../services/model/trip.model';
-import {IEntitiesService, isNotNil, PlatformService, toBoolean} from '@sumaris-net/ngx-components';
-import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {Observable} from 'rxjs';
-import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, OnInit, ViewChild } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN, PhysicalGearService, PhysicalGearServiceWatchOptions } from './physicalgear.service';
+import { TableElement } from '@e-is/ngx-material-table';
+import { IEntitiesService, isNotNil, LocalSettingsService, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
+import { Observable } from 'rxjs';
+import { PhysicalGearFilter } from './physical-gear.filter';
+import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
+import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
+
+export interface ISelectPhysicalGearModalOptions {
+  allowMultiple?: boolean;
+  filter?: PhysicalGearFilter;
+  acquisitionLevel?: AcquisitionLevelType;
+  programLabel?: string;
+  distinctBy?: string[];
+  withOffline?: boolean;
+}
 
 @Component({
   selector: 'app-select-physical-gear-modal',
@@ -15,35 +24,35 @@ import {PhysicalGearFilter} from '../services/filter/physical-gear.filter';
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
-      provide: PHYSICAL_GEAR_DATA_SERVICE,
+      provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useExisting: PhysicalGearService
     }
   ]
 })
-export class SelectPhysicalGearModal implements OnInit {
+export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModalOptions {
 
-  selectedTabIndex = 0;
   readonly mobile: boolean;
 
-  @ViewChild('table', {static: true}) table: AppMeasurementsTable<PhysicalGear, PhysicalGearFilter>;
-
   @Input() allowMultiple: boolean;
-
   @Input() filter: PhysicalGearFilter | null = null;
   @Input() acquisitionLevel: AcquisitionLevelType;
-  @Input() program: string;
+  @Input() programLabel: string;
+  @Input() distinctBy: string[];
+  @Input() withOffline: boolean;
 
   get loadingSubject(): Observable<boolean> {
     return this.table.loadingSubject;
   }
 
+  @ViewChild(PhysicalGearTable, {static: true}) table: PhysicalGearTable;
+
   constructor(
-    protected viewCtrl: ModalController,
-    platformService: PlatformService,
+    private modalCtrl: ModalController,
+    private settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE) protected dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) protected dataService?: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
-    this.mobile = platformService.mobile;
+    this.mobile = settings.mobile;
   }
 
   ngOnInit() {
@@ -51,21 +60,22 @@ export class SelectPhysicalGearModal implements OnInit {
     // Init table
     this.table.dataService = this.dataService;
     this.filter = PhysicalGearFilter.fromObject(this.filter);
+    this.filter.program = ReferentialRef.fromObject({
+      ...this.filter.program,
+      label: this.programLabel
+    });
     this.table.filter = this.filter;
-    this.table.dataSource.serviceOptions = {
-      distinctByRankOrder: true
+    this.table.dataSource.serviceOptions = <PhysicalGearServiceWatchOptions>{
+      distinctBy: this.distinctBy || ['gear.id', 'rankOrder', `measurementValues.${PmfmIds.GEAR_LABEL}`],
+      withOffline: this.withOffline
     };
     this.table.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.PHYSICAL_GEAR;
-    this.table.programLabel = this.program;
+    this.table.programLabel = this.programLabel;
+    this.table.markAsReady();
+    this.table.onRefresh.emit();
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);
-
-    // Load landings
-    setTimeout(() => {
-      this.table.onRefresh.next('modal');
-      this.markForCheck();
-    }, 200);
 
   }
 
@@ -93,7 +103,7 @@ export class SelectPhysicalGearModal implements OnInit {
           .map(row => row.currentData)
           .map(PhysicalGear.fromObject)
           .filter(isNotNil);
-        this.viewCtrl.dismiss(gears);
+        this.modalCtrl.dismiss(gears);
       }
       return true;
     } catch (err) {
@@ -103,7 +113,7 @@ export class SelectPhysicalGearModal implements OnInit {
   }
 
   async cancel() {
-    await this.viewCtrl.dismiss();
+    await this.modalCtrl.dismiss();
   }
 
   hasSelection(): boolean {

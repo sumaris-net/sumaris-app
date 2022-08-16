@@ -1,9 +1,8 @@
-import {Injectable, Injector, Optional} from '@angular/core';
-import {gql} from '@apollo/client/core';
-import {filter, map} from 'rxjs/operators';
+import { Injectable, Injector, Optional } from '@angular/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { filter, map } from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
-  AccountService,
   AppFormUtils,
   BaseEntityGraphqlQueries,
   chainPromises,
@@ -14,6 +13,7 @@ import {
   EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
+  FormErrorTranslator,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -21,6 +21,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   JobUtils,
   LoadResult,
   LocalSettingsService,
@@ -29,44 +30,50 @@ import {
   ShowToastOptions,
   Toasts,
   toNumber,
-  UserEventService,
+  UserEventService
 } from '@sumaris-net/ngx-components';
-import {DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments} from './trip.queries';
+import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
   COPY_LOCALLY_AS_OBJECT_OPTIONS,
   DataEntityAsObjectOptions,
   MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE,
   SAVE_AS_OBJECT_OPTIONS,
-  SERIALIZE_FOR_OPTIMISTIC_RESPONSE,
+  SERIALIZE_FOR_OPTIMISTIC_RESPONSE
 } from '@app/data/services/model/data-entity.model';
-import {Observable} from 'rxjs';
-import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
-import {OperationService} from './operation.service';
-import {VesselSnapshotFragments, VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {TripValidatorService} from './validator/trip.validator';
-import {Operation, OperationGroup, PhysicalGear, Trip} from './model/trip.model';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
-import {fillRankOrder, SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
-import {SortDirection} from '@angular/material/sort';
-import {OverlayEventDetail} from '@ionic/core';
-import {TranslateService} from '@ngx-translate/core';
-import {ToastController} from '@ionic/angular';
-import {TRIP_FEATURE_NAME} from './config/trip.config';
-import {IDataSynchroService, RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {Sample} from './model/sample.model';
-import {ErrorCodes} from '@app/data/services/errors';
-import {VESSEL_FEATURE_NAME} from '@app/vessel/services/config/vessel.config';
-import {TripFilter, TripOfflineFilter} from './filter/trip.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {PhysicalGearService} from '@app/trip/services/physicalgear.service';
-import {QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {Packet} from '@app/trip/services/model/packet.model';
-import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-service.class';
+import { Observable } from 'rxjs';
+import { IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { OperationService } from './operation.service';
+import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
+import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
+import { Operation, OperationGroup, Trip } from './model/trip.model';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { SortDirection } from '@angular/material/sort';
+import { OverlayEventDetail } from '@ionic/core';
+import { TranslateService } from '@ngx-translate/core';
+import { ToastController } from '@ionic/angular';
+import { TRIP_FEATURE_NAME } from './config/trip.config';
+import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { environment } from '@environments/environment';
+import { Sample } from './model/sample.model';
+import { ErrorCodes } from '@app/data/services/errors';
+import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
+import { TripFilter } from './filter/trip.filter';
+import { TrashRemoteService } from '@app/core/services/trash-remote.service';
+import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { Packet } from '@app/trip/services/model/packet.model';
+import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { TripErrorCodes } from '@app/trip/services/trip.errors';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
+import { Geometries } from '@app/shared/geometries.utils';
+import { BBox } from 'geojson';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 const moment = momentImported;
 
@@ -391,30 +398,35 @@ const TripMutations = <BaseRootEntityGraphqlMutations & { saveLandedTrip: any; }
 const TripSubscriptions = {
   listenChanges: gql`subscription UpdateTrip($id: Int!, $interval: Int){
     data: updateTrip(id: $id, interval: $interval) {
-      ...TripFragment
+      ...LightTripFragment
     }
   }
-  ${TripFragments.trip}`
+  ${TripFragments.lightTrip}`
 };
 
+export class TripComparators {
+  static sortByDepartureDateFn(n1: Trip, n2: Trip): number {
+    const d1 = n1.departureDateTime;
+    const d2 = n2.departureDateTime;
+    return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
+  }
+}
 
 @Injectable({providedIn: 'root'})
 export class TripService
   extends RootDataSynchroService<Trip, TripFilter, number, TripLoadOptions>
   implements IEntitiesService<Trip, TripFilter>,
     IEntityService<Trip, number, TripLoadOptions>,
-    IDataEntityQualityService<Trip>,
-    IDataSynchroService<Trip, number, TripLoadOptions> {
+    IRootDataEntityQualityService<Trip>,
+    IDataSynchroService<Trip, TripFilter, number, TripLoadOptions> {
 
   constructor(
     injector: Injector,
     protected graphql: GraphqlService,
     protected network: NetworkService,
-    protected accountService: AccountService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected personService: PersonService,
-    protected programRefService: ProgramRefService,
     protected entities: EntitiesStorage,
     protected operationService: OperationService,
     protected physicalGearService: PhysicalGearService,
@@ -422,8 +434,9 @@ export class TripService
     protected validatorService: TripValidatorService,
     protected userEventService: UserEventService,
     protected trashRemoteService: TrashRemoteService,
-    @Optional() private translate: TranslateService,
-    @Optional() private toastController: ToastController
+    protected formErrorTranslator: FormErrorTranslator,
+    @Optional() protected translate: TranslateService,
+    @Optional() protected toastController: ToastController
   ) {
     super(injector,
       Trip, TripFilter,
@@ -436,14 +449,23 @@ export class TripService
     this._featureName = TRIP_FEATURE_NAME;
 
     // Register user event actions
-    userEventService.registerAction({
+    /*userEventService.registerListener(
+      UserEventFilter.fromObject(<UserEventFilter>{
+        types: ['DEBUG_DATA']
+      }).asFilterFn(),
+      {
       __typename: Trip.TYPENAME,
       matIcon: 'content_copy',
       name: 'copyToLocal',
       title: 'SOCIAL.USER_EVENT.BTN_COPY_TO_LOCAL',
       color: 'primary',
-      executeAction: (event, context) => this.copyLocally(Trip.fromObject(context), {displaySuccessToast: true})
-    });
+      executeAction: (event, context) => {
+        return this.copyLocally(Trip.fromObject(context), {displaySuccessToast: true})
+      }
+    });*/
+
+    // Register self (avoid loop dependency)
+    operationService.tripService = this;
 
     // FOR DEV ONLY
     this._debug = !environment.production;
@@ -602,24 +624,19 @@ export class TripService
 
     // use landedTrip option if itself or withOperationGroups is present in service options
     const isLandedTrip = opts && (opts.isLandedTrip || opts.withOperationGroup);
+    const isLocalTrip = id < 0;
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Loading trip #${id}...`);
     this.loading = true;
 
     try {
-      let data: any;
+      let source: any;
 
       // If local entity
-      if (id < 0) {
-        data = await this.entities.load<Trip>(id, Trip.TYPENAME, opts);
-        if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
-
-        if (opts && opts.withOperation) {
-          data.operations = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
-            filter: this.asFilter({tripId: id}).asFilterFn()
-          });
-        }
+      if (isLocalTrip) {
+        source = await this.entities.load<Trip>(id, Trip.TYPENAME, opts);
+        if (!source) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
       } else {
         const query = isLandedTrip ? TripQueries.loadLandedTrip : TripQueries.load;
 
@@ -630,14 +647,27 @@ export class TripService
           error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
-        data = res && res.data;
+        source = res && res.data;
+      }
+
+      // Add operations
+      if (opts?.withOperation) {
+        source = {...source}; // Copy because remote object is not extensible
+
+        const { data } = await this.operationService.loadAllByTrip({tripId: id}, {
+          fetchPolicy: !isLocalTrip && 'network-only' || undefined,
+          fullLoad: isLocalTrip
+        });
+        source.operations = isLocalTrip ? data
+          // Full load entities remotely
+          : await Promise.all(data.map(lightOperation => this.operationService.load(lightOperation.id)));
       }
 
       // Transform to entity
-      const entity = (!opts || opts.toEntity !== false) ? Trip.fromObject(data) : (data as Trip);
+      const target = (!opts || opts.toEntity !== false) ? Trip.fromObject(source) : (source as Trip);
 
-      if (entity && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, entity);
-      return entity;
+      if (target && this._debug) console.debug(`[trip-service] Trip #${id} loaded in ${Date.now() - now}ms`, target);
+      return target;
     } finally {
       this.loading = false;
     }
@@ -654,12 +684,16 @@ export class TripService
     return res && res.total > 0;
   }
 
-  listenChanges(id: number, opts?: { interval?: number }): Observable<Trip> {
+  listenChanges(id: number, opts?: {
+    interval?: number;
+    fetchPolicy?: FetchPolicy
+  }): Observable<Trip> {
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
-    if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
 
     if (EntityUtils.isLocalId(id)) {
+      // FIXME: this should be never called (because entity listen only on remote data).
+      console.warn(`[trip-service] TODO: check why this code is calling, because editor should never listening for local data changes.`);
       return this.entities.watchAll<Trip>(Trip.TYPENAME, {offset:0, size: 1, filter: (t) => t.id === id})
         .pipe(
           map(({data}) => {
@@ -670,8 +704,11 @@ export class TripService
         );
     }
 
+    if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
+
     return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
       query: this.subscriptions.listenChanges,
+      fetchPolicy: opts && opts.fetchPolicy || undefined,
       variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
         code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
@@ -681,7 +718,7 @@ export class TripService
       .pipe(
         map(({data}) => {
           const entity = data && Trip.fromObject(data);
-          if (entity && this._debug) console.debug(`[trip-service] Trip {${id}} updated on server !`, entity);
+          if (entity && this._debug) console.debug(`[trip-service] Trip {${id}} updated on server!`, entity);
           return entity;
         })
       );
@@ -900,10 +937,11 @@ export class TripService
   }
 
   async synchronize(entity: Trip, opts?: TripSaveOptions): Promise<Trip> {
+    const isLandedTrip = isNotNil(entity.observedLocationId);
     opts = {
-      withOperation: true, // Change default to true
-      withLanding: false, // todo manage landedTrip
-      withOperationGroup: false,
+      withOperation: !isLandedTrip, // True by default
+      withLanding: isLandedTrip && !!entity.landing,
+      withOperationGroup: isLandedTrip,
       enableOptimisticResponse: false, // Optimistic response not need
       ...opts
     };
@@ -931,12 +969,12 @@ export class TripService
     if (opts.withOperation) {
 
       // Fill operations
-      const res = await this.operationService.loadAllByTrip({tripId: +localId},
+      const { data } = await this.operationService.loadAllByTrip({tripId: +localId},
         {fullLoad: true, computeRankOrder: false});
 
       //sort operations to saving in good order
-      if (res.data) {
-        res.data.forEach(operation => {
+      if (data) {
+        data.forEach(operation => {
           if (operation.parentOperationId && operation.parentOperationId < 0) {
             childOperations.push(operation);
           } else if (operation.childOperationId && operation.childOperationId < 0) {
@@ -952,7 +990,7 @@ export class TripService
         });
 
         // Remove not used physical gears with synchronizationStatus = "DIRTY" (= Physical gear added automatically)
-        entity.gears = (entity.gears || []).filter(physicalGear => res.data.find(o => o.physicalGear.id === physicalGear.id));
+        entity.gears = (entity.gears || []).filter(physicalGear => data.find(o => o.physicalGear.id === physicalGear.id));
       }
 
       if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
@@ -1063,12 +1101,12 @@ export class TripService
 
         // Saved locally new parent operation which wait child operation
         if (operationToSaveLocally.length > 0) {
-          const operations = await this.operationService.loadAll(0, 999, null, null,
+          const { data } = await this.operationService.loadAll(0, 999, null, null,
             {
               includedIds: operationToSaveLocally,
               programLabel: entity.program.label
             });
-          await this.operationService.saveAllLocally(operations.data);
+          await this.operationService.saveAllLocally(data);
         }
       }
 
@@ -1090,7 +1128,7 @@ export class TripService
    * @param entity
    * @param opts
    */
-  async control(entity: Trip, opts?: any): Promise<FormErrors> {
+  async control(entity: Trip, opts?: TripValidatorOptions): Promise<FormErrors> {
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Control {${entity.id}}...`, entity);
@@ -1100,8 +1138,9 @@ export class TripService
     const program = await this.programRefService.loadByLabel(programLabel);
 
     const form = this.validatorService.getFormGroup(entity, {
-      isOnFieldMode: false, // Always disable 'on field mode'
+      ...opts,
       program,
+      isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true // Need by full validation
     });
 
@@ -1114,8 +1153,15 @@ export class TripService
         const errors = AppFormUtils.getFormErrors(form);
 
         if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
-
         return errors;
+      }
+    }
+
+    // If trip is Valid, control operations
+    if (!opts || !opts.withOperationGroup){
+      const errors = await this.operationService.controlAllByTrip(entity, {program});
+      if (errors) {
+        return {operations: errors};
       }
     }
 
@@ -1241,22 +1287,27 @@ export class TripService
   }
 
   async copyLocallyById(id: number, opts?: TripLoadOptions): Promise<Trip> {
+    const isLocalTrip = id < 0;
 
     // Load existing data
-    const data = await this.load(id, {...opts, fetchPolicy: 'network-only'});
+    const source = await this.load(id, {...opts, fetchPolicy: 'network-only'});
 
     // Add operations
     if (!opts || opts.withOperation !== false) {
-      const res = await this.operationService.loadAllByTrip({tripId: id}, {
-        fetchPolicy: 'network-only',
-        fullLoad: true
+      const { data } = await this.operationService.loadAllByTrip({tripId: id}, {
+        fetchPolicy: !isLocalTrip && 'network-only' || undefined,
+        fullLoad: isLocalTrip
       });
-      data.operations = res.data;
+
+      source.operations = isLocalTrip ? data
+        // Full load entities remotely
+        : await Promise.all(data.map(lightOperation => this.operationService.load(lightOperation.id)));
     }
 
-    await this.copyLocally(data, opts);
+    // Copy remote trip to local storage
+    const target = await this.copyLocally(source, opts);
 
-    return data;
+    return target;
   }
 
   /**
@@ -1331,22 +1382,9 @@ export class TripService
       });
     }
 
-    // Update gears
-    if (source.gears && target.gears) {
-      target.gears.forEach(targetGear => {
-        const sourceGear = source.gears.find(json => targetGear.equals(json));
-        EntityUtils.copyIdAndUpdateDate(sourceGear, targetGear);
-        DataRootEntityUtils.copyControlAndValidationDate(sourceGear, targetGear);
-
-        // Update measurements
-        if (sourceGear && sourceGear.measurements && targetGear.measurements) {
-          targetGear.measurements.forEach(targetMeasurement => {
-            const sourceMeasurement = sourceGear.measurements.find(m => targetMeasurement.equals(m));
-            EntityUtils.copyIdAndUpdateDate(sourceMeasurement, targetMeasurement);
-          });
-        }
-      });
-
+    // Update gears (recursively)
+    if (target.gears && source.gears) {
+      this.copyIdAndUpdateDateOnGears(source.gears, target.gears, source);
     }
 
     // Update measurements
@@ -1405,6 +1443,44 @@ export class TripService
     }
   }
 
+  /**
+   * Copy Id and update, in gear tree (recursively)
+   *
+   * @param sources
+   * @param targets
+   */
+  protected copyIdAndUpdateDateOnGears(sources: (PhysicalGear | any)[], targets: PhysicalGear[], savedTrip: Trip) {
+    // DEBUG
+    //console.debug("[trip-service] Calling copyIdAndUpdateDateOnGears()");
+
+    // Update gears
+    if (sources && targets) {
+      targets.forEach(target => {
+        // Set the trip id (required by equals function)
+        target.tripId = savedTrip.id;
+
+        const source = sources.find(json => target.equals(json));
+        if (!source) {
+          console.warn('Missing a gear, equals to this target: ', target)
+        }
+        else {
+          EntityUtils.copyIdAndUpdateDate(source, target);
+          DataRootEntityUtils.copyControlAndValidationDate(source, target);
+
+          // Copy parent Id (need for link to parent)
+          target.parentId = source.parentId;
+          target.parent = null;
+
+          // Apply to children
+          if (target.children?.length) {
+            this.copyIdAndUpdateDateOnGears(sources, target.children, savedTrip);
+          }
+        }
+      });
+    }
+  }
+
+
   /***
    * Add gear on trip from a physical gear of another trip
    * (used on new child operation when parent operation come from a different trip)
@@ -1453,6 +1529,18 @@ export class TripService
       console.error(`[trip⁻service] Error while adding physical gear to trip: ${err && err.message || err}`, err);
       throw {code: TripErrorCodes.ADD_TRIP_GEAR_ERROR, message: 'TRIP.ERROR.ADD_GEAR'};
     }
+  }
+
+  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+    opts = { i18nPrefix: 'TRIP.EDIT.', ...opts };
+    // Translate PMFM field
+    if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+      const pmfmId = parseInt(path.split('.').pop());
+      const pmfm = opts.pmfms.find(p => p.id === pmfmId);
+      return PmfmUtils.getPmfmName(pmfm);
+    }
+    // Default translation
+    return this.formErrorTranslator.translateControlPath(path, opts);
   }
 
   /* -- protected methods -- */
@@ -1522,34 +1610,72 @@ export class TripService
    * List of importation jobs.
    *
    * @protected
+   * @param filter
    * @param opts
    */
-  protected getImportJobs(opts: {
-    maxProgression: undefined;
+  protected getImportJobs(filter: Partial<TripFilter>, opts: {
+    maxProgression: number;
+    program?: Program;
+    boundingBox?: BBox;
+    locationLevelIds?: number[];
+    countryIds?: number[];
+    referentialEntityNames?: string[];
+    acquisitionLevels?: string[];
+    [key: string]: any;
   }): Observable<number>[] {
 
-    const feature = this.settings.getOfflineFeature(this.featureName);
-    const tripFilter = TripOfflineFilter.toTripFilter(feature && feature.filter);
-    if (tripFilter) {
-      const filter = {
-        programLabel: tripFilter.program.label,
-        vesselId: tripFilter.vesselId,
-        startDate: tripFilter.startDate
-      };
+    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
+
+    filter = this.asFilter(filter)
+    const programLabel = filter && filter.program?.label;
+
+    if (programLabel) {
 
       return [
-        ...super.getImportJobs({...opts, dataFilter: filter}),
-        JobUtils.defer((p, o) => this.operationService.executeImport(p, {
-          ...o,
-          filter
-        }), opts),
-        JobUtils.defer((p, o) => this.physicalGearService.executeImport(p, {
-          ...o,
-          filter
-        }), opts)
+        // Store program to opts, for other services (e.g. used by OperationService)
+        JobUtils.defer(o => this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'})
+            .then(program => {
+              opts.program = program;
+              opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+
+              // Import weight conversion entities, if enable on program
+              const enableWeightConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
+              if (enableWeightConversion) {
+                console.info('[trip-service] WeightLengthConversion import: enabled by program ' + programLabel);
+                opts.entityNames = [
+                  ...IMPORT_REFERENTIAL_ENTITIES,
+                  ...WEIGHT_CONVERSION_ENTITIES
+                ];
+                // Limit round weight
+                const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
+                if (isNotNilOrBlank(countryId)) {
+                  opts.countryIds = opts.countryIds || [];
+                  if (!opts.countryIds.includes(countryId)) opts.countryIds.push(countryId);
+                }
+
+              }
+
+              // Limit locations (e.g. rectangle)
+              opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
+              opts.boundingBox = Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
+            })),
+
+        ...super.getImportJobs(filter, opts),
+
+        // Import operations
+        JobUtils.defer(o => {
+          const operationFilter = TripFilter.toOperationFilter(filter);
+          return this.operationService.executeImport(operationFilter, o);
+        }, opts),
+
+        // Import historical physical gear
+        JobUtils.defer(o => {
+          const gearFilter = TripFilter.toPhysicalGearFilter(filter);
+          return this.physicalGearService.executeImport(gearFilter, o);
+        }, opts)
       ];
     } else {
-      return super.getImportJobs(opts);
+      return super.getImportJobs(null, opts);
     }
   }
 

@@ -1,5 +1,4 @@
-<form class="form-container" [formGroup]="form">
-
+<form class="form-container">
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -7,13 +6,13 @@
   </ion-item>
 
   <!-- Sale Measurements -->
-  <ion-grid class="ion-no-padding ion-padding-top">
+  <ion-grid class="ion-no-padding ion-padding-top ">
 
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" translate>EXPECTED_SALE.FEATURES</ion-label>
       </ion-col>
-      <ion-col>
+      <ion-col class="ion-padding-start">
         <app-form-measurements #saleMeasurementsForm
                                entityName="SaleMeasurement"
                                acquisitionLevel="SALE"
@@ -22,28 +21,34 @@
                                [tabindex]="30">
         </app-form-measurements>
       </ion-col>
+      <ion-col size="0" size-md="2">
+      </ion-col>
     </ion-row>
 
     <ion-row>
       <ion-col size="12" size-md="2" size-lg="3">
         <ion-label class="ion-float-end" translate>EXPECTED_SALE.CALCULATED_TOTAL</ion-label>
       </ion-col>
-      <ion-col>
-        <ion-label class='total'>{{totalPriceCalculated}}</ion-label>
+      <ion-col class="ion-padding-start">
+        <!-- Total price (computed) -->
+        <mat-form-field class="mat-form-field-disabled computed">
+          <ion-label>{{totalPriceCalculated}}</ion-label>
+          <input matInput type="text" hidden>
+        </mat-form-field>
+      </ion-col>
+      <ion-col size="0" size-md="2">
       </ion-col>
     </ion-row>
 
   </ion-grid>
 
-
-
-  <app-products-table #productsTable
-                      [programLabel]="programLabel"
-                      acquisitionLevel="PRODUCT_SALE"
-                      [showParent]='false'
-                      [readOnly]="true"
-                      [showIdColumn]="false"
-                      [showToolbar]="!mobile">
-  </app-products-table>
-
 </form>
+
+<app-products-table #productsTable
+                    [programLabel]="programLabel"
+                    acquisitionLevel="PRODUCT_SALE"
+                    [showParent]='false'
+                    [readOnly]="true"
+                    [showIdColumn]="false"
+                    [showToolbar]="!mobile">
+</app-products-table>

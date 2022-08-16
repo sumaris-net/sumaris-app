@@ -13,11 +13,11 @@ fi;
 
 cd ${PROJECT_DIR}
 
-#echo "Cleaning project dependencies..."
+#echo "--- Cleaning project dependencies..."
 #rm -rf node_modules
 
-echo "Cleaning Cordova plugins..."
+echo "--- Cleaning Cordova plugins..."
 rm -rf plugins
 
-echo "Cleaning Android platform..."
+echo "--- Cleaning Android platform..."
 rm -rf platforms/android

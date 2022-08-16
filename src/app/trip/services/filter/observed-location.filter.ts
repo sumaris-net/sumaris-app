@@ -1,20 +1,25 @@
-import {Moment} from 'moment';
-import {LandingFilter} from './landing.filter';
-import {RootDataEntityFilter} from '../../../data/services/model/root-data-filter.model';
-import {ObservedLocation} from '../model/observed-location.model';
-import {EntityClass, EntityFilter, isNotEmptyArray, isNotNil, Person, ReferentialRef, ReferentialUtils} from '@sumaris-net/ngx-components';
-import {fromDateISOString, toDateISOString} from '@sumaris-net/ngx-components';
-import {EntityAsObjectOptions} from '@sumaris-net/ngx-components';
-import {FilterFn} from '@sumaris-net/ngx-components';
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { LandingFilter } from './landing.filter';
+import { RootDataEntityFilter } from '../../../data/services/model/root-data-filter.model';
+import { ObservedLocation } from '../model/observed-location.model';
+import { EntityAsObjectOptions, EntityClass, FilterFn, isNotEmptyArray, isNotNil, Person, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
+import { DataSynchroImportFilter } from '@app/data/services/root-data-synchro-service.class';
 
 @EntityClass({typename: 'ObservedLocationFilterVO'})
 export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocationFilter, ObservedLocation> {
 
   static fromObject: (source: any, opts?: any) => ObservedLocationFilter;
+  static toLandingFilter(f: Partial<ObservedLocationFilter>): LandingFilter {
+    if (!f) return undefined;
+    return LandingFilter.fromObject({
+      program: f.program,
+      startDate: f.startDate,
+      endDate: f.endDate,
+      locationIds: isNotNil(f.location?.id) ? [f.location.id] : (f.locations || []).map(l => l.id).filter(isNotNil)
+    });
+  }
 
   location?: ReferentialRef;
+  locations?: ReferentialRef[];
   observers?: Person[];
 
   fromObject(source: any, opts?: any) {
@@ -27,8 +32,9 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
     const target = super.asObject(opts);
     if (opts && opts.minify) {
       // Location
-      target.locationId = this.location && this.location.id || undefined;
+      target.locationIds = isNotNil(this.location?.id) ? [this.location.id] : (this.locations || []).map(l => l.id).filter(isNotNil);
       delete target.location;
+      delete target.locations;
 
       // Observers
       target.observerPersonIds = this.observers && this.observers.map(o => o && o.id).filter(isNotNil) || undefined;
@@ -72,21 +78,8 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
   }
 }
 
-export class ObservedLocationOfflineFilter {
-  programLabel?: string;
-  startDate?: Date | Moment;
-  endDate?: Date | Moment;
+export class ObservedLocationOfflineFilter extends DataSynchroImportFilter {
   locationIds?: number[];
-  periodDuration?: number;
-  periodDurationUnit?: DurationConstructor;
 
-  public static toLandingFilter(f: ObservedLocationOfflineFilter): LandingFilter {
-    if (!f) return undefined;
-    return LandingFilter.fromObject({
-      program: {label: f.programLabel},
-      startDate: f.startDate,
-      endDate: f.endDate,
-      locationIds: f.locationIds
-    });
-  }
+
 }

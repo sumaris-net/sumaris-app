@@ -15,7 +15,7 @@ import {
   toDateISOString,
 } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '../../../data/services/model/root-data-entity.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 @EntityClass({typename: 'VesselVO'})
 export class Vessel extends RootDataEntity<Vessel> {

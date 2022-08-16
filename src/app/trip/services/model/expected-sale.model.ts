@@ -3,7 +3,7 @@ import {Moment} from 'moment';
 import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 import {Measurement, MeasurementUtils} from './measurement.model';
 import {IWithProductsEntity, Product} from './product.model';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 @EntityClass({typename: 'ExpectedSaleVO'})
 export class ExpectedSale extends DataEntity<ExpectedSale>

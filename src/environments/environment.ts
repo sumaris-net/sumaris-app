@@ -10,21 +10,18 @@ import { Environment } from '@sumaris-net/ngx-components';
  * because it will have performance impact when throw error
  */
 import 'zone.js/dist/zone-error';
+import { AppEnvironment } from '@environments/environment.class';
 
 const pkg = require('../../package.json');
 
-export const environment = Object.freeze(<Environment>{
+export const environment = Object.freeze(<AppEnvironment>{
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: false,
   baseUrl: "/",
   defaultLocale: "fr",
   defaultLatLongFormat: "DDMM",
-  apolloFetchPolicy: "no-cache",
-  mock: false,
-
-  // FIXME: GraphQL subscription never unsubscribe...
-  listenRemoteChanges: false,
+  apolloFetchPolicy: "cache-first",
 
   // FIXME: enable cache
   persistCache: false,
@@ -32,7 +29,15 @@ export const environment = Object.freeze(<Environment>{
   // TODO: make this works
   //offline: true,
 
-  peerMinVersion: '1.19.0',
+  peerMinVersion: '1.27.0',
+
+  // Not need during DEV
+  //checkAppVersionIntervalInSeconds: 0,
+
+  defaultPeer: {
+    host: 'test.sumaris.net',
+    port: 443
+  },
 
   defaultPeers: [
     {
@@ -56,15 +61,15 @@ export const environment = Object.freeze(<Environment>{
       port: 8080
     },
     {
-      host: '192.168.0.29',
-      port: 8080
-    },
-    {
       host: 'server.e-is.pro',
       port: 443
     },
     {
       host: 'adap.pecheursdebretagne.eu',
+      port: 443
+    },
+    {
+      host: 'adap-test.pecheursdebretagne.eu',
       port: 443
     },
     {
@@ -82,10 +87,6 @@ export const environment = Object.freeze(<Environment>{
     },
     {
       host: 'open.sumaris.net',
-      port: 443
-    },
-    {
-      host: 'adap.e-is.pro',
       port: 443
     },
     {
@@ -116,6 +117,21 @@ export const environment = Object.freeze(<Environment>{
 
     // Token auth (using Person.pubkey)
     username: 'admin@sumaris.net', password: 'admin',
+  },
+
+  account: {
+    enableListenChanges: true,
+    listenIntervalInSeconds: 0
+  },
+
+  entityEditor: {
+    enableListenChanges: true,
+    listenIntervalInSecond: 0
+  },
+
+  program: {
+    enableListenChanges: true,
+    listenIntervalInSeconds: 30
   }
 });
 

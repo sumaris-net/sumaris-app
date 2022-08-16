@@ -166,6 +166,62 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
   }
 
+
+  addActivity() {
+    if (this.debug) console.debug('[aggregated-landing-form] addActivity');
+    this.activitiesHelper.add(this.newActivity());
+    if (!this.mobile) {
+      this.activityFocusIndex = this.activitiesHelper.size() - 1;
+    }
+  }
+
+  removeActivity(index: number) {
+    // TODO check data before remove
+    this.activitiesHelper.removeAt(index);
+  }
+
+  async ready(): Promise<void> {
+    // Wait pmfms load, and controls load
+    if (this.$loadingControls.getValue() === true && this.controlsLoaded === false) {
+      if (this.debug) console.debug(`[aggregated-landings-form] waiting form to be ready...`);
+      await firstNotNilPromise(this.$loadingControls
+        .pipe(
+          filter((loadingControls) => loadingControls === false && this.controlsLoaded === true)
+        ));
+    }
+  }
+
+  get displayDateFn(): DisplayFn {
+    return (obj: any) => this.dateFormatPipe.transform(obj, {pattern: 'dddd L'}).toString();
+  }
+
+  compareDateFn(d1: Moment, d2: Moment)  {
+    return d1 && d2 && d1.isSame(d2) || false;
+  }
+
+  openTrip(activity: VesselActivity) {
+    if (!activity || !activity.tripId) {
+      console.warn(`Something is missing to open trip: observedLocationId=${activity && activity.observedLocationId}, tripId=${activity && activity.tripId}`);
+      return;
+    }
+
+    this.onOpenTrip.emit({activity});
+  }
+
+  /* -- internal functions -- */
+
+  private initActivitiesHelper() {
+    this.activitiesHelper = new FormArrayHelper<VesselActivity>(
+      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'activities'),
+      (activity) => this.vesselActivityValidatorService.getFormGroup(activity),
+      (v1, v2) => v1.rankOrder === v2.rankOrder,
+      value => VesselActivity.isEmpty(value),
+      {
+        allowEmptyArray: true
+      }
+    );
+  }
+
   private showAtDate(date: Moment) {
     if (!date)
       throw new Error('[aggregated-landing-form] No date provided');
@@ -197,14 +253,6 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     //setTimeout(() => this.markAsLoaded(), 500);
   }
 
-  addActivity() {
-    if (this.debug) console.debug('[aggregated-landing-form] addActivity');
-    this.activitiesHelper.add(this.newActivity());
-    if (!this.mobile) {
-      this.activityFocusIndex = this.activitiesHelper.size() - 1;
-    }
-  }
-
   private newActivity(): VesselActivity {
     const maxRankOrder = getMaxRankOrder(this.activities);
     const activity = new VesselActivity();
@@ -212,47 +260,6 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     activity.date = this.form.value.date;
     this.activities.push(activity);
     return activity;
-  }
-
-  removeActivity(index: number) {
-    // TODO check data before remove
-    this.activitiesHelper.removeAt(index);
-  }
-
-  async ready(): Promise<void> {
-    // Wait pmfms load, and controls load
-    if (this.$loadingControls.getValue() === true && this.controlsLoaded === false) {
-      if (this.debug) console.debug(`[aggregated-landings-form] waiting form to be ready...`);
-      await firstNotNilPromise(this.$loadingControls
-        .pipe(
-          filter((loadingControls) => loadingControls === false && this.controlsLoaded === true)
-        ));
-    }
-  }
-
-
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
-  get displayDateFn(): DisplayFn {
-    return (obj: any) => this.dateFormatPipe.transform(obj, {pattern: 'dddd L'}).toString();
-  }
-
-  compareDateFn(d1: Moment, d2: Moment)  {
-    return d1 && d2 && d1.isSame(d2) || false;
-  }
-
-  private initActivitiesHelper() {
-    this.activitiesHelper = new FormArrayHelper<VesselActivity>(
-      FormArrayHelper.getOrCreateArray(this.formBuilder, this.form, 'activities'),
-      (activity) => this.vesselActivityValidatorService.getFormGroup(activity),
-      (v1, v2) => v1.rankOrder === v2.rankOrder,
-      value => VesselActivity.isEmpty(value),
-      {
-        allowEmptyArray: true
-      }
-    );
   }
 
   private saveActivitiesAt(date: Moment) {
@@ -267,12 +274,8 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
     this.$data.getValue().vesselActivities = newActivities;
   }
 
-  openTrip(activity: VesselActivity) {
-    if (!activity || !activity.observedLocationId || !activity.tripId) {
-      console.warn(`Something is missing to open trip: observedLocationId=${activity && activity.observedLocationId}, tripId=${activity && activity.tripId}`);
-      return;
-    }
-
-    this.onOpenTrip.emit({activity});
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
+
 }

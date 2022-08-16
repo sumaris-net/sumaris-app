@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angula
 import { VesselService } from '../services/vessel-service';
 import { VesselForm } from '../form/form-vessel';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../services/model/vessel.model';
-import { AccountService, AppEntityEditor, DateFormatPipe, EntityServiceLoadOptions, HistoryPageReference, isNil, PlatformService, SharedValidators } from '@sumaris-net/ngx-components';
+import { AccountService, AppEntityEditor, EntityServiceLoadOptions, HistoryPageReference, isNil, PlatformService, SharedValidators } from '@sumaris-net/ngx-components';
 import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
 import { VesselFeaturesHistoryComponent } from './vessel-features-history.component';
@@ -10,6 +10,7 @@ import { VesselRegistrationHistoryComponent } from './vessel-registration-histor
 import { VesselFeaturesFilter, VesselRegistrationFilter } from '../services/filter/vessel.filter';
 import { VesselFeaturesService } from '../services/vessel-features.service';
 import { VesselRegistrationService } from '../services/vessel-registration.service';
+import { MomentDateAdapter } from '@angular/material-moment-adapter';
 
 const moment = momentImported;
 
@@ -56,7 +57,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     private vesselService: VesselService,
     private vesselFeaturesService: VesselFeaturesService,
     private vesselRegistrationService: VesselRegistrationService,
-    private dateAdapter: DateFormatPipe
+    private dateAdapter: MomentDateAdapter
   ) {
     super(injector, Vessel, vesselService, {
       tabCount: 2

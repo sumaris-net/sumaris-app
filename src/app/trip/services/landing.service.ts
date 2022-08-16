@@ -22,11 +22,11 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person, StatusIds
+  Person, StatusIds, toNumber
 } from '@sumaris-net/ngx-components';
 import {BehaviorSubject, EMPTY, Observable, of} from 'rxjs';
 import {Landing} from './model/landing.model';
-import {gql} from '@apollo/client/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
 import {DataFragments, DataCommonFragments} from './trip.queries';
 import {filter, map, tap} from 'rxjs/operators';
 import {BaseRootDataService} from '@app/data/services/root-data-service.class';
@@ -39,7 +39,6 @@ import {SortDirection} from '@angular/material/sort';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {ReferentialFragments} from '@app/referential/services/referential.fragments';
 import {LandingFilter} from './filter/landing.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
 import {TripFragments, TripService} from '@app/trip/services/trip.service';
 import {Trip} from '@app/trip/services/model/trip.model';
@@ -47,6 +46,7 @@ import {environment} from '@environments/environment';
 import {ErrorCodes} from '@app/data/services/errors';
 import {TripFilter} from '@app/trip/services/filter/trip.filter';
 import {ObservedLocation} from '@app/trip/services/model/observed-location.model';
+import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 const moment = momentImported;
 
@@ -239,10 +239,10 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.landedTrip}`
-  /* TODO BLA: review this Imagine code:
-  ${Fragments.metier}
-  ${DataFragments.fishingArea}*/
+  ${TripFragments.embeddedLandedTrip}
+  ${ReferentialFragments.metier}
+  ${DataFragments.fishingArea}
+  `
 };
 
 
@@ -284,6 +284,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         subscriptions: LandingSubscriptions
       }
     );
+
+    this._logPrefix = '[landing-service] ';
   }
 
   async loadAllByObservedLocation(filter?: (LandingFilter | any) & { observedLocationId: number; }, opts?: LandingServiceWatchOptions): Promise<LoadResult<Landing>> {
@@ -371,7 +373,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
                 landingByVesselMap.set(landing.vesselSnapshot.id, landing);
               }
             });
-            entities = Object.values(landingByVesselMap);
+            entities = Array.from(landingByVesselMap.values());
             total = entities.length;
           }
 
@@ -724,27 +726,28 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   }
 
 
-  listenChanges(id: number): Observable<Landing> {
+  listenChanges(id: number, opts?: {
+    interval?: number;
+    fetchPolicy: FetchPolicy;
+  }): Observable<Landing> {
     if (!id && id !== 0) throw new Error('Missing argument \'id\'');
 
     if (this._debug) console.debug(`[landing-service] [WS] Listening changes for trip {${id}}...`);
 
     return this.graphql.subscribe<{ data: any }, { id: number, interval: number }>({
       query: this.subscriptions.listenChanges,
-      variables: {
-        id: id,
-        interval: 10
-      },
+      fetchPolicy: opts && opts.fetchPolicy || undefined,
+      variables: {id, interval: toNumber(opts && opts.interval, 10)},
       error: {
         code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
         message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
       }
     })
       .pipe(
-        map(res => {
-          const data = res && Landing.fromObject(res.data);
-          if (data && this._debug) console.debug(`[landing-service] Landing {${id}} updated on server !`, data);
-          return data;
+        map(({data}) => {
+          const entity = data && Landing.fromObject(data);
+          if (entity && this._debug) console.debug(`[landing-service] Landing {${id}} updated on server!`, entity);
+          return entity;
         })
       );
   }
@@ -818,17 +821,17 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     return undefined;
   }
 
-  async executeImport(progression: BehaviorSubject<number>,
-                opts?: {
-                  maxProgression?: number;
-                  filter?: LandingFilter|any
-                }) {
+  async executeImport(filter?: Partial<LandingFilter>,
+                      opts?: {
+                        progression?: BehaviorSubject<number>,
+                        maxProgression?: number;
+                      }) {
     const now = this._debug && Date.now();
     const maxProgression = opts && opts.maxProgression || 100;
 
-    const filter: any = {
+    filter = {
       startDate: moment().startOf('day').add(-15, 'day'),
-      ...opts?.filter
+      ...filter
     };
 
     console.info('[landing-service] Importing remote landings...', filter);
@@ -839,13 +842,12 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           fullLoad: false,
           toEntity: false
         }),
-      progression,
       {
+        progression: opts?.progression,
         maxProgression: maxProgression * 0.9,
-        fetchSize: 5,
-        logPrefix: '[landing-service]'
+        logPrefix: this._logPrefix,
+        fetchSize: 5
       });
-
 
     // Save locally
     await this.entities.saveAll(data || [], {

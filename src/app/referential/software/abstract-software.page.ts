@@ -89,9 +89,6 @@ export abstract class AbstractSoftwarePage<
 
   /* -- protected methods -- */
 
-  protected canUserWrite(data: T): boolean {
-    return this.accountService.isAdmin();
-  }
 
   enable() {
     super.enable();

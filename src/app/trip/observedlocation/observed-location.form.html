@@ -7,7 +7,6 @@
   </ion-item>
 
   <ion-grid>
-
     <!-- PROGRAM -->
     <ion-row>
       <ion-col offset-md="2" offset-lg="3">
@@ -15,7 +14,7 @@
                                 [placeholder]="'TRIP.PROGRAM'|translate"
                                 [config]="autocompleteFields.program"
                                 [tabindex]="tabindex"
-                                required>
+                                [required]="true">
           <ion-icon matPrefix name="contract"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
@@ -50,6 +49,7 @@
           <mat-date-field formControlName="startDateTime"
                           [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE'|translate"
                           [tabindex]="tabindex+2"
+                          [timezone]="timezone"
                           required>
             <ion-icon matPrefix name="calendar" class="visible-xs"></ion-icon>
           </mat-date-field>
@@ -83,7 +83,7 @@
           </ion-label>
         </ion-col>
         <ion-col size="12" size-md="4">
-          <mat-date-time-field *ngIf='showStartTime; else startDate'
+          <mat-date-time-field *ngIf="showStartTime; else startDate"
                                formControlName="startDateTime"
                                [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE'|translate"
                                [tabindex]="tabindex+2"
@@ -95,6 +95,8 @@
             <mat-date-field formControlName="startDateTime"
                             [placeholder]="'OBSERVED_LOCATION.EDIT.START_DATE'|translate"
                             [tabindex]="tabindex+2"
+                            [timezone]="timezone"
+                            [datePickerFilter]="startDatePickerFilter"
                             required>
               <mat-icon matPrefix class="visible-xs visible-sm">today</mat-icon>
               <mat-icon matPrefix class="hidden-xs hidden-sm">date_range</mat-icon>
@@ -113,7 +115,10 @@
           <ng-template #endDate>
             <mat-date-field formControlName="endDateTime"
                             [placeholder]="'OBSERVED_LOCATION.EDIT.END_DATE'|translate"
-                            [tabindex]="tabindex+3">
+                            [tabindex]="tabindex+3"
+                            [timezone]="timezone"
+                            [readonly]="!!forceDurationDays"
+                            [startDate]="form.controls.startDateTime.valueChanges|async">
               <mat-icon matPrefix class="visible-xs visible-sm">event</mat-icon>
             </mat-date-field>
           </ng-template>
@@ -163,7 +168,7 @@
         <form [formGroup]="measurementValuesForm" *ngIf="($pmfms | async); else measurementsSkeleton; let pmfms;">
           <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"
                                       [pmfm]="pmfm"
-                                      [controlName]="pmfm.id.toString()"
+                                      [controlName]="pmfm|pmfmIdString"
                                       [compact]="compact"
                                       [tabindex]="50 + i*2"
                                       [floatLabel]="floatLabel">
@@ -176,7 +181,7 @@
         </ng-template>
 
         <ng-template #propertySkeleton>
-          <mat-form-field>
+          <mat-form-field class="mat-form-field-disabled">
             <input matInput hidden>
             <ion-skeleton-text style="width: 60%"></ion-skeleton-text>
           </mat-form-field>
@@ -186,6 +191,21 @@
     </ion-row>
 
     <ng-content></ng-content>
+
+    <!-- DEBUG -->
+    <ion-row *ngIf="debug">
+      <ion-col size="0" size-md="3" size-lg="3">
+        <ion-label class="ion-float-end">Debug :</ion-label>
+      </ion-col>
+      <ion-col>
+        <ion-text color="primary" class="text-italic">
+          <small>
+            startDateTime: {{form|formGetValue:'startDateTime'|dateFormat:{time: true} }}<br/>
+            endDateTime: {{form|formGetValue:'endDateTime'|dateFormat:{time: true} }}<br/>
+          </small>
+        </ion-text>
+      </ion-col>
+    </ion-row>
 
     <!-- Comments -->
     <ion-row *ngIf="showComment">

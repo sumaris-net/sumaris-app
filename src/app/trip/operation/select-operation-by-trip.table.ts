@@ -1,11 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {OperationValidatorService} from '../services/validator/operation.validator';
-import {AlertController, ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
-import {TranslateService} from '@ngx-translate/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { OperationValidatorService } from '../services/validator/operation.validator';
+import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
 import {
   AccountService,
   AppTable,
@@ -14,24 +10,23 @@ import {
   isNotEmptyArray,
   LatLongPattern,
   LocalSettings,
-  LocalSettingsService,
   NetworkService,
   ReferentialRef,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
+  RESERVED_START_COLUMNS
 } from '@sumaris-net/ngx-components';
-import {environment} from '@environments/environment';
-import {Operation, Trip} from '../services/model/trip.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {TripService} from '@app/trip/services/trip.service';
-import {debounceTime, filter} from 'rxjs/operators';
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
+import { environment } from '@environments/environment';
+import { Operation, Trip } from '../services/model/trip.model';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { TripService } from '@app/trip/services/trip.service';
+import { debounceTime, filter } from 'rxjs/operators';
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import moment from 'moment/moment';
-import {METIER_DEFAULT_FILTER} from '@app/referential/services/metier.service';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {BehaviorSubject, from, merge} from 'rxjs';
-import {mergeLoadResult} from '@app/shared/functions';
+import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { BehaviorSubject, from, merge } from 'rxjs';
+import { mergeLoadResult } from '@app/shared/functions';
 
 class OperationDivider extends Operation {
   trip: Trip;
@@ -101,24 +96,17 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
   }
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
+    injector: Injector,
+    formBuilder: FormBuilder,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
     protected referentialRefService: ReferentialRefService,
     protected tripService: TripService,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected accountService: AccountService,
     protected network: NetworkService,
-    formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       RESERVED_START_COLUMNS
         .concat(
           ['tripId',

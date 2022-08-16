@@ -7,13 +7,14 @@ import { Platform } from '@ionic/angular';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { BehaviorSubject } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
-import { ProductSaleModal } from '../sale/product-sale.modal';
+import { IProductSaleModalOptions, ProductSaleModal } from '../sale/product-sale.modal';
 import { SaleProductUtils } from '../services/model/sale-product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { environment } from '@environments/environment';
-import { SamplesModal } from '../sample/samples.modal';
-import { ProductModal } from '@app/trip/product/product.modal';
-import { mergeMap } from 'rxjs/internal/operators';
+import { ISamplesModalOptions, SamplesModal } from '../sample/samples.modal';
+import { IProductModalOptions, ProductModal } from '@app/trip/product/product.modal';
+import { mergeMap } from 'rxjs/operators';
+import moment from 'moment';
 
 export const PRODUCT_RESERVED_START_COLUMNS: string[] = ['parent', 'saleType', 'taxonGroup', 'weight', 'individualCount'];
 export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // todo
@@ -86,16 +87,14 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     protected cd: ChangeDetectorRef,
   ) {
     super(injector,
-      Product,
+      Product, ProductFilter,
       memoryDataService,
       validatorService,
       {
-        prependNewElements: false,
-        suppressErrors: environment.production,
         reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
-        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS
+        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS,
+        i18nColumnPrefix: 'TRIP.PRODUCT.LIST.'
       });
-    this.i18nColumnPrefix = 'TRIP.PRODUCT.LIST.';
     this.autoLoad = false; // waiting parent to be loaded
     this.inlineEdition = this.validatorService && !this.mobile;
     this.confirmBeforeDelete = true;
@@ -118,14 +117,16 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
         items: this.$parents,
         attributes: this.parentAttributes,
         columnNames: ['RANK_ORDER', 'REFERENTIAL.LABEL', 'REFERENTIAL.NAME'],
-        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined))
+        columnSizes: this.parentAttributes.map(attr => attr === 'metier.label' ? 3 : (attr === 'rankOrderOnPeriod' ? 1 : undefined)),
+        mobile: this.mobile
       });
     }
 
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined)
+      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined),
+      mobile: this.mobile
     });
 
     this.registerSubscription(
@@ -161,8 +162,10 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     const modal = await this.modalCtrl.create({
       component: ProductSaleModal,
-      componentProps: {
-        product: row.currentData,
+      componentProps: <IProductSaleModalOptions>{
+        disabled: this.disabled,
+        mobile: this.mobile,
+        data: row.currentData,
         productSalePmfms: this.productSalePmfms
       },
       backdropDismiss: false,
@@ -170,11 +173,11 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
     });
 
     await modal.present();
-    const res = await modal.onDidDismiss();
+    const { data } = await modal.onDidDismiss();
 
-    if (res && res.data) {
+    if (data) {
       // patch saleProducts only
-      row.validator.patchValue({saleProducts: res.data.saleProducts}, {emitEvent: true});
+      row.validator.patchValue({saleProducts: data.saleProducts}, {emitEvent: true});
       this.markAsDirty({emitEvent: false});
       this.markForCheck();
     }
@@ -189,11 +192,11 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     const modal = await this.modalCtrl.create({
       component: SamplesModal,
-      componentProps: {
+      componentProps: <ISamplesModalOptions>{
         programLabel: this.programLabel,
         disabled: this.disabled,
-        value: samples,
-        defaultSampleDate: new Date(), // trick to valid sample row, should be set with correct date
+        data: samples,
+        defaultSampleDate: moment(), // trick to valid sample row, should be set with correct date
         defaultTaxonGroup: taxonGroup,
         showLabel: false,
         showTaxonGroup: false,
@@ -276,7 +279,7 @@ export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> 
 
     const modal = await this.modalCtrl.create({
       component: ProductModal,
-      componentProps: {
+      componentProps: <IProductModalOptions>{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         data: product,

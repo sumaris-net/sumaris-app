@@ -49,7 +49,6 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   @Output() onNewTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
 
-  @Input() canEdit = true;
   @Input() canDelete = true;
   @Input() showFabButton = false;
   @Input() showError = true;
@@ -82,10 +81,6 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
 
   get isTripDetailEditor(): boolean {
     return this._detailEditor === 'trip';
-  }
-
-  get isEditable(): boolean {
-    return this.inlineEdition;
   }
 
   @Input()
@@ -187,12 +182,10 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     protected accountService: AccountService
   ) {
     super(injector,
-      Landing,
+      Landing, LandingFilter,
       injector.get(LandingService),
       injector.get(LandingValidatorService),
       {
-        prependNewElements: false,
-        suppressErrors: environment.production,
         reservedStartColumns: LANDING_RESERVED_START_COLUMNS,
         reservedEndColumns: LANDING_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => pmfms.filter(p => p.required)
@@ -205,9 +198,8 @@ export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> 
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
-
     this.saveBeforeDelete = false;
-    // this.saveBeforeDelete = true;
+    this.canEdit = true;
 
     this.autoLoad = false; // waiting parent to be loaded, or the call of onRefresh.next()
 

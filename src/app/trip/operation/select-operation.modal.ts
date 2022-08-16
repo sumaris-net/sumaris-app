@@ -6,7 +6,7 @@ import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { TableElement } from '@e-is/ngx-material-table';
 import { SelectOperationByTripTable } from '@app/trip/operation/select-operation-by-trip.table';
 
-export interface SelectOperationModalOptions {
+export interface ISelectOperationModalOptions {
   filter: OperationFilter;
   programLabel?: string;
   enableGeolocation?: boolean;
@@ -19,7 +19,7 @@ export interface SelectOperationModalOptions {
   templateUrl: './select-operation.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectOperationModal implements OnInit, SelectOperationModalOptions {
+export class SelectOperationModal implements OnInit, ISelectOperationModalOptions {
 
   selectedTabIndex = 0;
   datasource: EntitiesTableDataSource<Operation, OperationFilter>;

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { AppTabEditor, AppTable, Entity, EntityUtils, isNotEmptyArray, isNotNil, isNotNilOrBlank, PlatformService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppTabEditor, AppTable, Entity, EntityUtils, isNotEmptyArray, isNotNil, isNotNilOrBlank, LocalSettingsService, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
@@ -15,8 +15,8 @@ import { environment } from '@environments/environment';
 import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MatTabChangeEvent } from '@angular/material/tabs';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { PmfmForm } from '@app/trip/services/validator/operation.validator';
+import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 
@@ -29,9 +29,9 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
   private static TABS = {
-    SAMPLE_TAB: 0,
-    INDIVIDUAL_MONITORING_TAB: 1,
-    INDIVIDUAL_RELEASE_TAB: 2
+    SAMPLE: 0,
+    INDIVIDUAL_MONITORING: 1,
+    INDIVIDUAL_RELEASE: 2
   }
 
   data: Sample[];
@@ -48,6 +48,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @Input() usageMode: UsageMode;
   @Input() showLabelColumn = false;
   @Input() requiredStrategy = false;
+  @Input() weightDisplayedUnit: WeightUnitSymbol;
 
 
   @Input() set defaultSampleDate(value: Moment) {
@@ -112,7 +113,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @ViewChild('individualMonitoringTable', {static: false}) individualMonitoringTable: IndividualMonitoringTable;
   @ViewChild('individualReleaseTable', {static: false}) individualReleasesTable: IndividualReleasesTable;
 
-  @Output() onPrepareRowForm = new EventEmitter<PmfmForm>();
+  @Output() onPrepareRowForm = new EventEmitter<IPmfmForm>();
 
   constructor(
     protected route: ActivatedRoute,
@@ -120,16 +121,16 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected programRefService: ProgramRefService,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
     super(route, router, alertCtrl, translate,
       {
-        tabCount: platform.mobile ? 1 : 3
+        tabCount: settings.mobile ? 1 : 3
       });
 
     // Defaults
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
     this.debug = !environment.production
     this.i18nContext = {
       prefix: '',
@@ -312,9 +313,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   }
 
   getFirstInvalidTabIndex(): number {
-    if (this.samplesTable.invalid) return 0;
-    if (this.showIndividualMonitoringTable && this.individualMonitoringTable.invalid) return 1;
-    if (this.showIndividualReleaseTable && this.individualReleasesTable.invalid) return 2;
+    if (this.samplesTable.invalid) return SampleTreeComponent.TABS.SAMPLE;
+    if (this.showIndividualMonitoringTable && this.individualMonitoringTable.invalid) return SampleTreeComponent.TABS.INDIVIDUAL_MONITORING;
+    if (this.showIndividualReleaseTable && this.individualReleasesTable.invalid) return SampleTreeComponent.TABS.INDIVIDUAL_RELEASE;
     return -1;
   }
 

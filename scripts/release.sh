@@ -6,7 +6,7 @@ if [[ "_" == "_${PROJECT_DIR}" ]]; then
   export PROJECT_DIR
 fi;
 
-# Preparing Android environment
+# Preparing environment
 . ${PROJECT_DIR}/scripts/env-android.sh
 [[ $? -ne 0 ]] && exit 1
 
@@ -106,21 +106,21 @@ rel|pre)
     ;;
 esac
 
-echo "----------------------------------"
+echo "-------------------------------------------"
 echo "- Refresh dependencies..."
-echo "----------------------------------"
+echo "-------------------------------------------"
 yarn
 [[ $? -ne 0 ]] && exit 1
 
-echo "----------------------------------"
+echo "-------------------------------------------"
 echo "- Compiling sources..."
-echo "----------------------------------"
+echo "-------------------------------------------"
 yarn run build.prod
 [[ $? -ne 0 ]] && exit 1
 
-echo "----------------------------------"
+echo "-------------------------------------------"
 echo "- Creating web artifact..."
-echo "----------------------------------"
+echo "-------------------------------------------"
 mkdir -p "${PROJECT_DIR}/dist"
 ZIP_FILE=${PROJECT_DIR}/dist/${PROJECT_NAME}.zip
 if [[ -f "$ZIP_FILE" ]]; then
@@ -172,9 +172,9 @@ cd $PROJECT_DIR/scripts
 ./release-to-github.sh "$task" ''"$description"''
 [[ $? -ne 0 ]] && exit 1
 
-#echo "----------------------------------"
+#echo "-------------------------------------------"
 #echo "- Building desktop artifacts..."
-#echo "----------------------------------"
+#echo "-------------------------------------------"
 
 #git submodule init
 #git submodule sync

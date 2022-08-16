@@ -1,9 +1,12 @@
-ion-label.status {
-  font-size: 12px;
-}
+@import 'theme.globals';
 
-ion-label.status > ion-text:last-child {
-  font-color: var(--ion-color-step-850);
+ion-label.status {
+  font-size: $app-card-status-font-size;
+  display: flex;
+  flex-direction: column;
+  & > ion-text:last-child {
+    font-color: $app-card-status-font-color;
+  }
 }
 
 /* Special case for button with large text */

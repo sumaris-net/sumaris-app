@@ -2,17 +2,20 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input 
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, LocalSettingsService, PlatformService, referentialsToString, referentialToString, SharedValidators } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, referentialsToString, referentialToString, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
 import { map } from 'rxjs/operators';
-import { mergeMap } from 'rxjs/internal/operators';
-import { ProgramProperties } from '../../../referential/services/config/program.config';
-import { Program } from '../../../referential/services/model/program.model';
+import { mergeMap } from 'rxjs/operators';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationOfflineFilter } from '../../services/filter/observed-location.filter';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
 const moment = momentImported;
 
@@ -28,13 +31,6 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
   mobile: boolean;
 
-  periodDurations: { value: number; unit: DurationConstructor; }[] = [
-    { value: 1, unit: 'week' },
-    { value: 15, unit: 'day' },
-    { value: 1,  unit: 'month' },
-    { value: 3,  unit: 'month' },
-    { value: 6,  unit: 'month' }
-  ];
   periodDurationLabels: { key: string; label: string; startDate: Moment; }[];
 
   @Input() title = 'OBSERVED_LOCATION.OFFLINE_MODAL.TITLE';
@@ -51,15 +47,17 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     return this.form.valid;
   }
 
+  get modalName(): string {
+    return this.constructor.name;
+  }
+
   constructor(
     injector: Injector,
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
     protected formBuilder: FormBuilder,
-    protected platform: PlatformService,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef
   ) {
     super(injector,
@@ -67,14 +65,14 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
         program: [null, Validators.compose([Validators.required, SharedValidators.entity])],
         enableHistory: [true, Validators.required],
         location: [null, Validators.required],
-        periodDuration: ['15day', Validators.required],
+        periodDuration: ['15 day', Validators.required],
       }));
     this._enable = false; // Disable by default
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
 
     // Prepare start date items
     const datePattern = translate.instant('COMMON.DATE_PATTERN');
-    this.periodDurationLabels = this.periodDurations.map(v => {
+    this.periodDurationLabels = DATA_IMPORT_PERIODS.map(v => {
       const date = moment().utc(false)
         .add(-1 * v.value, v.unit); // Substract the period, from now
       return {
@@ -90,9 +88,10 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
 
     // Program
     this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
+      service: this.programRefService,
       filter: {
-        entityName: 'Program'
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.OBSERVED_LOCATION, AcquisitionLevelCodes.LANDING]
       },
       mobile: this.mobile
     });
@@ -224,8 +223,8 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     return value;
   }
 
-  cancel() {
-    this.viewCtrl.dismiss(null, 'CANCEL');
+  async cancel() {
+    await this.viewCtrl.dismiss(null, 'CANCEL');
   }
 
   async validate(event?: UIEvent) {

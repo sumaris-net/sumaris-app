@@ -8,7 +8,7 @@ import {IWithObserversEntity} from "../../../data/services/model/model.utils";
 import {fromDateISOString, toDateISOString} from "@sumaris-net/ngx-components";
 import {Person}  from "@sumaris-net/ngx-components";
 import {EntityClass}  from "@sumaris-net/ngx-components";
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 @EntityClass({typename: "ObservedLocationVO"})
 export class ObservedLocation extends RootDataEntity<ObservedLocation>

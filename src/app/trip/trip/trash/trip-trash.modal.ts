@@ -57,26 +57,17 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
   }
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
+    injector: Injector,
     protected accountService: AccountService,
     protected service: TripService,
     protected entities: EntitiesStorage,
     protected operationService: OperationService,
     protected trashRemoteService: TrashRemoteService,
     protected formBuilder: FormBuilder,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
-    protected cd: ChangeDetectorRef,
-    protected viewCtrl: ModalController,
+    protected cd: ChangeDetectorRef
   ) {
 
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       RESERVED_START_COLUMNS
         .concat([
           'updateDate',
@@ -96,8 +87,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
           trash: true
         }
       }),
-      null,
-      injector
+      null // Filter
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
 
@@ -216,11 +206,11 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
   }
 
   async close(event?: any) {
-    await this.viewCtrl.dismiss();
+    await this.modalCtrl.dismiss();
   }
 
   async cancel() {
-    await this.viewCtrl.dismiss();
+    await this.modalCtrl.dismiss();
   }
 
   async cleanLocalTrash(event?: UIEvent, confirm?: boolean) {

@@ -2,8 +2,8 @@ import { BaseReferential, Entity, EntityClass, fromDateISOString, isNotNil, Refe
 import { Moment } from 'moment';
 import { TaxonGroupRef } from './taxon-group.model';
 import { DenormalizedPmfmStrategy, PmfmStrategy } from './pmfm-strategy.model';
-import { MINIFY_OPTIONS, NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { MINIFY_OPTIONS, NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 
 @EntityClass({typename: 'StrategyVO'})

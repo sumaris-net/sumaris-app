@@ -1,12 +1,23 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {AppTable, Entity, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList} from '@sumaris-net/ngx-components';
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
-import {debounceTime, filter} from 'rxjs/operators';
-import {environment} from '../../../environments/environment';
-import {ReferentialFilter} from '../services/filter/referential.filter';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import {
+  AppTable,
+  changeCaseToUnderscore,
+  Entity,
+  EntityUtils,
+  isNotEmptyArray, isNotNil,
+  ReferentialRef, ReferentialUtils,
+  RESERVED_END_COLUMNS,
+  RESERVED_START_COLUMNS,
+  StatusById,
+  StatusList
+} from '@sumaris-net/ngx-components';
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { debounceTime, filter } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { BehaviorSubject } from 'rxjs';
+import { ReferentialI18nKeys } from '@app/referential/referential.utils';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 
 @Component({
@@ -21,9 +32,12 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
   readonly statusById = StatusById;
 
   filterForm: FormGroup;
+  $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
+  i18nLevelName: string;
 
-  @Input() showToolbar = false;
   @Input() showFilter = true;
+  @Input() showLevelFilter = true;
+  @Input() showToolbar = false;
 
   @Input() set entityName(entityName: string) {
     this.setFilter({
@@ -33,20 +47,16 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
   }
 
   get entityName(): string {
-    return this.filter.entityName;
+    return this.filter?.entityName;
   }
 
   constructor(
-    protected injector: Injector,
+    injector: Injector,
     formBuilder: FormBuilder,
+    protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
   ) {
-    super(injector.get(ActivatedRoute),
-      injector.get(Router),
-      injector.get(Platform),
-      injector.get(Location),
-      injector.get(ModalController),
-      injector.get(LocalSettingsService),
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -55,17 +65,16 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
           'description',
           'status',
           'comments'])
-        .concat(RESERVED_END_COLUMNS),
-      null,
-      null,
-      injector);
+        .concat(RESERVED_END_COLUMNS));
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.inlineEdition = false;
     this.autoLoad = false; // waiting dataSource to be set
 
     this.filterForm = formBuilder.group({
-      'searchText': [null]
+      searchText: [null],
+      level: [null],
+      statusId: [null]
     });
 
     // Update filter when changes
@@ -76,13 +85,40 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
           filter(() => this.filterForm.valid)
         )
         // Applying the filter
-        .subscribe((json) => this.setFilter({
-          ...this.filter, // Keep previous filter
-          ...json},
-          {emitEvent: this.mobile}))
+        .subscribe((json) => {
+          // Copy previous filter
+          const baseFilter = Object.assign({}, this.filter);
+
+          // Override levelId/levelIds, if user choose a level
+          if (ReferentialUtils.isNotEmpty(json.level)) {
+            json.levelIds = [json.level.id];
+            baseFilter.levelIds = null;
+            baseFilter.levelId = null;
+          }
+
+          this.setFilter({
+              ...baseFilter, // Keep previous filter
+              ...json},
+            {emitEvent: this.mobile || !this.showToolbar})
+        })
     );
 
     this.debug = !environment.production;
+
+  }
+
+  async ngOnInit() {
+    super.ngOnInit();
+
+    // Level autocomplete
+    this.registerAutocompleteField('level', {
+      items: this.$levels,
+      showAllOnFocus: true,
+      mobile: this.mobile
+    });
+
+    // Load levels
+    await this.loadLevels(this.entityName);
   }
 
   clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
@@ -92,6 +128,35 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
   }
 
   /* -- protected methods -- */
+
+  protected async loadLevels(entityName: string): Promise<ReferentialRef[]> {
+    let levels = await this.referentialRefService.loadLevels(entityName);
+
+    // Filter with input levelIds, if any
+    const filter = this.filter;
+    if (levels && isNotEmptyArray(filter?.levelIds)) {
+      levels = levels.filter(l => filter.levelIds.includes(l.id));
+    }
+
+    // Sort by label
+    if (levels) levels.sort(EntityUtils.sortComparator('label', 'asc'));
+
+    this.$levels.next(levels);
+
+    if (isNotEmptyArray(levels)) {
+      const typeName = levels[0].entityName;
+      const i18nLevelName = "REFERENTIAL.ENTITY." + changeCaseToUnderscore(typeName).toUpperCase();
+      const levelName = this.translate.instant(i18nLevelName);
+      this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
+    }
+    else {
+      this.i18nLevelName = ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
+    }
+
+    this.showLevelFilter = this.showLevelFilter && isNotEmptyArray(levels);
+
+    return levels;
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

@@ -35,6 +35,7 @@
     .mat-cell.mat-cell-selected:hover {
       background-color: var(--ion-color-secondary);
       color: var(--ion-color-secondary-contrast);
+      cursor: pointer !important;
     }
   }
 }

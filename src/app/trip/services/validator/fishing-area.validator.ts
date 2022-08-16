@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {DataEntityValidatorOptions, DataEntityValidatorService} from '../../../data/services/validator/data-entity.validator';
-import {FishingArea} from '../model/fishing-area.model';
-import {AbstractControlOptions, FormBuilder, FormGroup, ValidatorFn, Validators} from '@angular/forms';
+import {FishingArea} from '../../../data/services/model/fishing-area.model';
+import {AbstractControlOptions, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
 
 export interface FishingAreaValidatorOptions extends DataEntityValidatorOptions {
@@ -58,7 +58,7 @@ export class FishingAreaValidatorService<O extends FishingAreaValidatorOptions =
   }
 
   getLocationValidators(opts?: FishingAreaValidatorOptions): ValidatorFn {
-    return (opts && opts.required) ? Validators.compose([Validators.required, SharedValidators.entity]) : SharedValidators.entity;
+    return (opts && opts.required) ? Validators.compose([Validators.required, FishingAreaValidatorService.entity]) : SharedValidators.entity;
   }
 
   protected fillDefaultOptions(opts?: FishingAreaValidatorOptions): FishingAreaValidatorOptions {
@@ -68,4 +68,13 @@ export class FishingAreaValidatorService<O extends FishingAreaValidatorOptions =
 
     return opts;
   }
+
+  static entity(control: FormControl): ValidationErrors | null {
+    const value = control.value;
+    if (value && (typeof value !== 'object' || value.id === undefined || value.id === null)) {
+      return {entity: true};
+    }
+    return null;
+  }
+
 }

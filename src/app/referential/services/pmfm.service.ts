@@ -5,7 +5,6 @@ import {
   AccountService,
   BaseGraphqlService,
   CryptoService,
-  EntityClass,
   EntityServiceLoadOptions,
   EntityUtils,
   GraphqlService,
@@ -16,22 +15,22 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   ObjectMap,
-  Referential,
   ReferentialUtils,
   StatusIds,
   SuggestService
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { ReferentialService } from './referential.service';
-import { IPmfm, Pmfm } from './model/pmfm.model';
+import { Pmfm } from './model/pmfm.model';
 import { Observable, of } from 'rxjs';
 import { ReferentialFragments } from './referential.fragments';
 import { map } from 'rxjs/operators';
 import { SortDirection } from '@angular/material/sort';
 import { ReferentialRefService } from './referential-ref.service';
 import { CacheService } from 'ionic-cache';
-import { BaseReferentialFilter } from './filter/referential.filter';
 import { ParameterLabelGroups } from '@app/referential/services/model/model.enum';
+import { arrayPluck } from '@app/shared/functions';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 
 const LoadAllQuery = gql`query Pmfms($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -154,16 +153,6 @@ ${ReferentialFragments.fullReferential}
 ${ReferentialFragments.parameter}`;
 
 
-@EntityClass({typename: 'PmfmFilterVO'})
-export class PmfmFilter extends BaseReferentialFilter<PmfmFilter, Pmfm> {
-
-  static fromObject: (source: any, opts?: any) => PmfmFilter;
-
-  entityName?: 'Pmfm';
-
-}
-
-
 const PmfmCacheKeys = {
   CACHE_GROUP: 'pmfm',
 
@@ -229,6 +218,10 @@ export class PmfmService
     if (this._debug) console.debug(`[pmfm-service] Pmfm full {${id}} loaded`, entity);
 
     return entity;
+  }
+
+  canUserWrite(entity: Pmfm, opts?: any): boolean {
+    return this.accountService.isAdmin();
   }
 
   /**
@@ -450,7 +443,7 @@ export class PmfmService
     }
 
     // Load pmfms grouped by parameter labels
-    const map = await this.referentialRefService.loadAllGroupByLevels({
+    const groupedPmfms = await this.referentialRefService.loadAllGroupByLevels({
         entityName: 'Pmfm',
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
       },
@@ -458,8 +451,8 @@ export class PmfmService
       { toEntity: false, debug: this._debug });
 
     // Keep only id
-    return Object.keys(map).reduce((res, key) => {
-      res[key] = map[key].map(e => e.id);
+    return Object.keys(groupedPmfms).reduce((res, key) => {
+      res[key] = arrayPluck(groupedPmfms[key], 'id')
       return res;
     }, {});
   }

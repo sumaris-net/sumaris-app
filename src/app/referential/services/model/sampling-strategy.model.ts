@@ -1,8 +1,8 @@
-import { AppliedPeriod, Strategy } from './strategy.model';
+import { Strategy } from './strategy.model';
 import { Moment } from 'moment';
-import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNil, isNotEmptyArray, isNotNil, ReferentialAsObjectOptions, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
+import { DateUtils, EntityAsObjectOptions, EntityClass, fromDateISOString, isNil, isNotEmptyArray, isNotNil, ReferentialAsObjectOptions, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export interface SamplingStrategyAsObjectOptions extends ReferentialAsObjectOptions {
   keepEffort: boolean; // false by default
@@ -78,10 +78,13 @@ export class SamplingStrategy extends Strategy<SamplingStrategy, SamplingStrateg
       this.efforts.forEach(effort => {
         this.effortByQuarter[effort.quarter] = this.effortByQuarter[effort.quarter] || StrategyEffort.fromObject({
           quarter: effort.quarter,
-          expectedEffort: 0,
-
+          startDate: effort.startDate,
+          endDate: effort.endDate,
+          expectedEffort: 0
         });
         this.effortByQuarter[effort.quarter].expectedEffort += effort.expectedEffort;
+        this.effortByQuarter[effort.quarter].startDate = DateUtils.min(this.effortByQuarter[effort.quarter].startDate, effort.startDate);
+        this.effortByQuarter[effort.quarter].endDate = DateUtils.max(this.effortByQuarter[effort.quarter].endDate, effort.endDate);
       });
     }
     this.parameterGroups = source.parameterGroups || undefined;

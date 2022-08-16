@@ -21,6 +21,14 @@ export const ReferentialFragments = {
     statusId
     validityStatusId
     levelId
+    parentId
+    parent {
+      id
+      label
+      name
+      entityName
+      __typename
+    }
     rankOrder
     entityName
     __typename
@@ -120,6 +128,7 @@ export const ReferentialFragments = {
     isNaming
     isVirtual
     taxonomicLevelId
+    taxonGroupIds
     startDate
     endDate
     __typename
@@ -206,6 +215,8 @@ export const ReferentialFragments = {
     defaultValue
     maximumNumberDecimals
     signifFiguresNumber
+    detectionThreshold
+    precision
     parameter {
       ...ParameterFragment
     }
@@ -239,6 +250,8 @@ export const ReferentialFragments = {
     defaultValue
     maximumNumberDecimals
     signifFiguresNumber
+    detectionThreshold
+    precision
     parameter {
       ...ParameterFragment
     }

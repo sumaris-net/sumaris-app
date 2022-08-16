@@ -1,0 +1,207 @@
+<mat-toolbar *ngIf="showToolbar">
+
+  <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+    <!-- Add -->
+    <button mat-icon-button
+            hidden-xs hidden-sm hidden-mobile
+            *ngIf="enabled"
+            [title]="'COMMON.BTN_ADD'|translate" (click)="addRow()">
+      <mat-icon>add</mat-icon>
+    </button>
+
+    <!-- Refresh -->
+    <button mat-icon-button *ngIf="!mobile"
+            [title]="'COMMON.BTN_REFRESH'|translate"
+            (click)="onRefresh.emit()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+
+  </ng-container>
+
+  <!-- if row selection -->
+  <ng-template #hasSelection>
+
+    <!-- Delete -->
+    <button mat-icon-button *ngIf="enabled"
+            [title]="'COMMON.BTN_DELETE'|translate"
+            (click)="deleteSelection($event)">
+      <mat-icon>delete</mat-icon>
+    </button>
+
+  </ng-template>
+
+  <ion-item *ngIf="showError && !mobile && error; let error" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <!-- separator -->
+  <ion-text class="toolbar-spacer ion-text-center">
+    <!-- title -->
+    <span *ngIf="showTitle && title" [innerHTML]="title"></span>
+  </ion-text>
+
+  <ng-content select="[matToolbarEnd]"></ng-content>
+
+  <!-- download button -->
+  <button mat-button
+          *ngIf="canDownload"
+          (click)="exportToCsv($event)">
+    <mat-icon>download</mat-icon>
+    <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
+  </button>
+
+  <!-- upload button -->
+  <button mat-button
+          *ngIf="canUpload"
+          (click)="importFromCsv($event)">
+    <mat-icon>upload</mat-icon>
+    <ion-label translate>COMMON.BTN_IMPORT</ion-label>
+  </button>
+
+
+</mat-toolbar>
+
+<!-- Table options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- Display columns -->
+  <button mat-menu-item
+          (click)="openSelectColumnsModal($event)">
+    <mat-icon>view_column</mat-icon>
+    <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <!-- Compact mode -->
+  <button mat-menu-item
+          (click)="toggleCompactMode()">
+    <mat-icon *ngIf="compact; else notCompactIcon">check_box</mat-icon>
+    <ng-template #notCompactIcon>
+      <mat-icon >check_box_outline_blank</mat-icon>
+    </ng-template>
+    <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+  </button>
+
+</mat-menu>
+
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
+
+  <table *ngIf="columnDefinitions|isNotEmptyArray"
+    mat-table
+    matSort
+    matSortDisableClear
+    [class.compact]="compact"
+    [dataSource]="dataSource"
+    [matSortActive]="defaultSortBy"
+    [matSortDirection]="defaultSortDirection"
+    cdkDropList
+    cdkDropListOrientation="horizontal"
+  >
+
+    <ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef
+          [class.cdk-visually-hidden]="disabled">
+        <mat-checkbox
+          (change)="$event ? masterToggle() : null"
+          [checked]="selection.hasValue() && isAllSelected()"
+          [indeterminate]="selection.hasValue() && !isAllSelected()"
+        ></mat-checkbox>
+      </th>
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="disabled">
+        <mat-checkbox
+          (click)="$event.stopPropagation()"
+          (change)="$event ? selection.toggle(row) : null"
+          [checked]="selection.isSelected(row)"
+        ></mat-checkbox>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="id">
+      <th mat-header-cell *matHeaderCellDef
+          [class.cdk-visually-hidden]="!showIdColumn">
+      </th>
+      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="!showIdColumn">
+      </td>
+    </ng-container>
+
+    <!-- Generic columns -->
+    <ng-container *ngFor="let definition of columnDefinitions; first as first">
+      <ng-container [matColumnDef]="definition.key">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <ion-label>{{ definition.label | translate}}</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row"
+            [class.ion-padding-start]="first"
+            [class.mat-form-field-disabled]="!row.editing"
+            [class.mat-cell-date]="definition.type==='date'"
+            [class.mat-cell-date-time]="definition.type==='dateTime'">
+
+          <app-form-field *ngIf="row.editing && row.validator.controls|mapGet: definition.key; let control; else readonly"
+                          compact="true"
+                          floatLabel="never"
+                          [formControl]="control"
+                          [definition]="definition">
+          </app-form-field>
+
+          <ng-template #readonly>
+            <ion-label>
+              {{row.currentData|propertyFormat: definition}}
+            </ion-label>
+          </ng-template>
+        </td>
+      </ng-container>
+    </ng-container>
+
+    <!-- Actions buttons column -->
+    <app-actions-column [stickyEnd]="stickyEnd"
+                        (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
+                        (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
+                        (backward)="confirmAndBackward($event.event, $event.row)"
+                        (forward)="confirmAndForward($event.event, $event.row)"
+                        [canCancel]="false">
+      <!-- option menu -->
+      <button mat-icon-button matHeader
+              [title]="'COMMON.BTN_OPTIONS'|translate"
+              [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </app-actions-column>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+        [class.mat-row-selected]="row.editing"
+        [class.mat-row-error]="row.validator.invalid"
+        [class.mat-row-dirty]="row.validator.dirty"
+        [class.mat-row-disabled]="!row.editing"
+        [class.mat-row-status-disabled]="row.validator.controls.statusId?.value === 0"
+        (click)="clickRow($event, row)"
+        (keydown.escape)="escapeEditingRow($event)"
+        [cdkTrapFocus]="row.validator.invalid"></tr>
+  </table>
+
+
+  <ng-container *ngIf="loadingSubject|async; else noResult">
+    <ion-item>
+      <ion-skeleton-text animated></ion-skeleton-text>
+    </ion-item>
+  </ng-container>
+
+  <ng-template #noResult>
+    <ion-item *ngIf="totalRowCount === 0">
+      <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
+      <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
+    </ion-item>
+  </ng-template>
+</div>
+
+<ng-template #addRowButton>
+  <span *ngIf="!mobile && enabled">&nbsp;
+    <ion-button color="medium"
+                (click)="addRow()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      <span translate>COMMON.BTN_ADD</span>
+    </ion-button>
+  </span>
+</ng-template>

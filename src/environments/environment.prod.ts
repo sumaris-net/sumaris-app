@@ -1,9 +1,9 @@
-import { Environment } from '@sumaris-net/ngx-components';
+import { AppEnvironment } from '@environments/environment.class';
 
 const pkg = require('../../package.json')
 
 /* tslint:disable */
-export const environment = Object.freeze(<Environment>{
+export const environment = Object.freeze(<AppEnvironment>{
   name: (pkg.name as string),
   version: (pkg.version as string),
   production: true,
@@ -11,13 +11,12 @@ export const environment = Object.freeze(<Environment>{
   defaultLocale: "fr",
   defaultLatLongFormat: "DDMM",
   apolloFetchPolicy: "cache-first",
-  mock: false,
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '1.19.0',
+  peerMinVersion: '1.27.0',
 
-  // FIXME: GraphQL subscription never unsubscribe...
-  listenRemoteChanges: false,
+  // Check Web new app version
+  checkAppVersionIntervalInSeconds: 5 * 60, // every 5min
 
   // FIXME: enable cache
   persistCache: false,
@@ -47,10 +46,6 @@ export const environment = Object.freeze(<Environment>{
       host: 'sih.sfa.sc',
       port: 80,
       useSsl: false
-    },
-    {
-      host: 'imagine-pod.ifremer.fr',
-      port: 443
     }
   ],
 
@@ -64,6 +59,21 @@ export const environment = Object.freeze(<Environment>{
   // Storage
   storage: {
     driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+  },
+
+  account: {
+    enableListenChanges: true,
+    listenIntervalInSeconds: 0
+  },
+
+  entityEditor: {
+    enableListenChanges: true,
+    listenIntervalInSeconds: 0
+  },
+
+  program: {
+    enableListenChanges: true,
+    listenIntervalInSeconds: 30
   }
 });
 /* tslint:enable */

@@ -14,7 +14,7 @@ import { PmfmQvFormField } from './pmfm/pmfm-qv.form-field.component';
 import { PmfmFormField } from './pmfm/pmfm.form-field.component';
 import { ReferentialToStringPipe } from './services/pipes/referential-to-string.pipe';
 import { TranslateModule } from '@ngx-translate/core';
-import { IsComputedPmfmPipe, IsDatePmfmPipe, IsMultiplePmfmPipe, PmfmNamePipe, PmfmValuePipe } from './pipes/pmfms.pipe';
+import { IsComputedPmfmPipe, IsDatePmfmPipe, IsMultiplePmfmPipe, PmfmFieldStylePipe, PmfmIdStringPipe, PmfmNamePipe, PmfmValuePipe } from './pipes/pmfms.pipe';
 import { StrategyPage } from './strategy/strategy.page';
 
 import { TextMaskModule } from 'angular2-text-mask';
@@ -32,6 +32,10 @@ import { AppCoreModule } from '@app/core/core.module';
 import { StrategiesPage } from './strategy/strategies.page';
 import { StrategyModal } from '@app/referential/strategy/strategy.modal';
 import { PersonPrivilegesTable } from '@app/referential/program/privilege/person-privileges.table';
+import { WeightLengthConversionTable } from '@app/referential/weight-length-conversion/weight-length-conversion.table';
+import { TaxonGroupPage } from '@app/referential/taxon-group/taxon-group.page';
+import { RoundWeightConversionTable } from '@app/referential/round-weight-conversion/round-weight-conversion.table';
+import { WeightFormatPipe } from '@app/referential/pipes/weights.pipe';
 
 @NgModule({
   imports: [
@@ -44,11 +48,14 @@ import { PersonPrivilegesTable } from '@app/referential/program/privilege/person
   declarations: [
     // Pipes
     ReferentialToStringPipe,
+    PmfmIdStringPipe,
     PmfmNamePipe,
     PmfmValuePipe,
     IsDatePmfmPipe,
     IsComputedPmfmPipe,
     IsMultiplePmfmPipe,
+    PmfmFieldStylePipe,
+    WeightFormatPipe,
 
     // Components
     ProgramsPage,
@@ -75,7 +82,10 @@ import { PersonPrivilegesTable } from '@app/referential/program/privilege/person
     PmfmQvFormField,
     PmfmsTable,
     SelectPmfmModal,
+    WeightLengthConversionTable,
+    RoundWeightConversionTable,
     TaxonNamePage,
+    TaxonGroupPage,
     StrategyModal
   ],
   exports: [
@@ -83,11 +93,14 @@ import { PersonPrivilegesTable } from '@app/referential/program/privilege/person
 
     // Pipes
     ReferentialToStringPipe,
+    PmfmIdStringPipe,
     PmfmNamePipe,
     PmfmValuePipe,
     IsDatePmfmPipe,
     IsComputedPmfmPipe,
     IsMultiplePmfmPipe,
+    PmfmFieldStylePipe,
+    WeightFormatPipe,
 
     // Components
     ProgramsPage,
@@ -112,6 +125,7 @@ import { PersonPrivilegesTable } from '@app/referential/program/privilege/person
     PmfmsTable,
     SelectPmfmModal,
     TaxonNamePage,
+    TaxonGroupPage,
     StrategyModal
   ],
 })

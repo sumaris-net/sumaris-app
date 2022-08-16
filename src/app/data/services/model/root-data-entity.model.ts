@@ -1,8 +1,8 @@
 import { EntityAsObjectOptions, fromDateISOString,  isNil, Person, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
-import {DataEntity, DataEntityAsObjectOptions, IDataEntity} from './data-entity.model';
+import { DataEntity, DataEntityAsObjectOptions, DataEntityUtils, IDataEntity } from './data-entity.model';
 import {IWithProgramEntity, IWithRecorderPersonEntity, SynchronizationStatus} from './model.utils';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 
 export interface IRootDataEntity<T = any,
@@ -14,7 +14,7 @@ export interface IRootDataEntity<T = any,
 }
 
 
-export abstract class RootDataEntity<
+export class RootDataEntity<
   T extends RootDataEntity<any, ID, AO>,
   ID = number,
   AO extends DataEntityAsObjectOptions = DataEntityAsObjectOptions,
@@ -23,6 +23,12 @@ export abstract class RootDataEntity<
   implements IWithRecorderPersonEntity<T, ID>,
     IWithProgramEntity<T, ID>,
     IRootDataEntity<T, ID, AO, FO> {
+
+  static fromObject(source: any): RootDataEntity<any> {
+    const target = new RootDataEntity();
+    target.fromObject(source);
+    return target;
+  }
 
   creationDate: Moment = null;
   validationDate: Moment = null;
@@ -66,15 +72,11 @@ export abstract class DataRootEntityUtils {
 
   static copyControlAndValidationDate(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
     if (!source) return;
-    target.controlDate = fromDateISOString(source.controlDate);
+    DataEntityUtils.copyControlDate(source, target);
     target.validationDate = fromDateISOString(source.validationDate);
   }
 
-  static copyQualificationDateAndFlag(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
-    if (!source) return;
-    target.qualificationDate = fromDateISOString(source.qualificationDate);
-    target.qualityFlagId = source.qualityFlagId;
-  }
+  static copyQualificationDateAndFlag = DataEntityUtils.copyQualificationDateAndFlag;
 
   static isLocal(entity: RootDataEntity<any, any>): boolean {
     return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);

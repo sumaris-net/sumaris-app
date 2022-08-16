@@ -210,14 +210,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
 
   /* -- protected methods -- */
 
-
-  protected canUserWrite(data: Pmfm): boolean {
-    // TODO : check user is in pmfm managers
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-
-  }
-
   enable() {
     super.enable();
 

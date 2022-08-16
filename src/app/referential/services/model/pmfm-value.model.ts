@@ -1,27 +1,57 @@
-import { Moment } from 'moment';
+import { isMoment, Moment } from 'moment';
 import {
-  fromDateISOString,
+  DateUtils,
+  fromDateISOString, IReferentialRef,
   isNil,
   isNilOrBlank,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   isNotNilOrNaN,
   joinPropertiesPath,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
-import { IPmfm, Pmfm, PmfmUtils } from './pmfm.model';
+import { IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
 import { isNilOrNaN } from '@app/shared/functions';
 
-export declare type PmfmValue = number | string | boolean | Moment | ReferentialRef<any>;
+export declare type PmfmValue = number | string | boolean | Moment | IReferentialRef<any>;
 export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;
 export const PMFM_VALUE_SEPARATOR = '|';
 
 export abstract class PmfmValueUtils {
 
-  static toModelValue(value: PmfmValue | PmfmValue[] | any, pmfm: IPmfm, opts?: {applyConversion?: boolean}): string {
+  static isEmpty(value: PmfmValue | any) {
+    return isNilOrBlank(value) || ReferentialUtils.isEmpty(value);
+  }
+
+  static isNotEmpty(value: PmfmValue | any) {
+    return isNotNilOrBlank(value) || ReferentialUtils.isNotEmpty(value);
+  }
+
+  static equals(pv1: PmfmValue, pv2: PmfmValue): boolean {
+    // Exact match
+    if ((isNil(pv1) && isNil(pv2)) || (pv1 === pv2)) return true;
+
+    // Dates
+    if (isMoment(pv1) || isMoment(pv2)) {
+      return DateUtils.equals(pv1 as any, pv2 as any);
+    }
+
+    // Serialize ReferentialRef to id
+    const v1 = typeof pv1 === 'object' && isNotNil(pv1.id) ? pv1.id : pv1;
+    const v2 = typeof pv2 === 'object' && isNotNil(pv2.id) ? pv2.id : pv2;
+
+    // Test match
+    // WARN: use '==' a NOT '===' because number can be serialized as string
+    // tslint:disable-next-line:triple-equals
+    return v1 == v2;
+  }
+
+  static toModelValue(value: PmfmValue | PmfmValue[] | any,
+                      pmfm: IPmfm | { type: PmfmType; displayConversion?: UnitConversion; },
+                      opts = {applyConversion: true}): string {
     if (isNil(value) || !pmfm) return undefined;
     if (Array.isArray(value)) {
       return value.map(v => this.toModelValue(v, pmfm)).join(PMFM_VALUE_SEPARATOR);
@@ -32,8 +62,9 @@ export abstract class PmfmValueUtils {
       case 'integer':
       case 'double':
         if (isNil(value) && !isNaN(+value)) return undefined;
+
         // Apply conversion
-        if (isNotNilOrNaN(pmfm.displayConversion?.conversionCoefficient) && (!opts || opts.applyConversion !== false)) {
+        if (pmfm.displayConversion && opts.applyConversion && isNotNilOrNaN(pmfm.displayConversion.conversionCoefficient)) {
 
           // DEBUG
           console.debug(`[pmfm-value] Applying revert conversion: ${value} / ${pmfm.displayConversion.conversionCoefficient}`);
@@ -128,7 +159,7 @@ export abstract class PmfmValueUtils {
             .find(qv => qv.id === qvId) || null;
         }
         // eslint-disable-next-line eqeqeq
-        if (value && value.id == opts.pmfm.defaultValue && opts.hideIfDefaultValue) {
+        if (opts.hideIfDefaultValue && value.id == opts.pmfm.defaultValue) {
           return null;
         }
         let result = value && ((opts.propertyNames && joinPropertiesPath(value, opts.propertyNames)) || value.name || value.label) || null;
@@ -151,11 +182,4 @@ export abstract class PmfmValueUtils {
     }
   }
 
-  static isEmpty(value: PmfmValue | any) {
-    return isNilOrBlank(value) || ReferentialUtils.isEmpty(value);
-  }
-
-  static equals(v1: PmfmValue, v2: PmfmValue) {
-    return (isNil(v1) && isNil(v2)) || (v1 === v2) || (ReferentialUtils.equals(v1, v2));
-  }
 }

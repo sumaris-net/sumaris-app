@@ -1,6 +1,7 @@
 <app-toolbar [title]="$title|async|translate"
              color="primary"
-             [canGoBack]="false">
+             [canGoBack]="false"
+             [canShowMenu]="true">
 
   <ion-buttons slot="end">
 
@@ -84,6 +85,7 @@
   <!-- Update offline mode -->
   <button mat-menu-item
           *ngIf="hasOfflineMode"
+          [disabled]="offline"
           (click)="prepareOfflineMode($event)">
     <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
     <ion-label translate>NETWORK.BTN_UPDATE_OFFLINE_MODE</ion-label>
@@ -92,6 +94,7 @@
   <!-- Init offline mode -->
   <button mat-menu-item
           *ngIf="!hasOfflineMode"
+          [disabled]="offline"
           (click)="prepareOfflineMode($event)">
     <mat-icon>cloud_off</mat-icon>
     <ion-label translate>NETWORK.BTN_INIT_OFFLINE_MODE</ion-label>
@@ -116,9 +119,8 @@
 
 </mat-menu>
 
-<ion-content class="ion-no-padding"scroll-y="false"
-             (swiperight)="onSwipeTab($event)"
-             (swipeleft)="onSwipeTab($event)">
+<!-- (swiperight)="onSwipeTab($event)" (swipeleft)="onSwipeTab($event)" -->
+<ion-content class="ion-no-padding" scroll-y="false">
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)" *ngIf="mobile">
     <ion-refresher-content></ion-refresher-content>
@@ -129,10 +131,15 @@
     [isLogin]="isLogin"
     showInstallButton="false"
     showUpgradeWarning="true"
-    showOfflineWarning="false"
-    [showUpdateOfflineFeature]="showUpdateOfflineFeature"
-    (onUpdateOfflineModeClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})">
+    showOfflineWarning="false">
   </app-install-upgrade-card>
+
+  <!-- Update offline mode -->
+  <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
+                                (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
+                                [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
+                                [progressionValue]="$progression | async">
+  </app-update-offline-mode-card>
 
   <!-- error -->
   <ion-item *ngIf="errorSubject|async ; let error" lines="none" @slideUpDownAnimation>
@@ -310,16 +317,8 @@
     </a>
   </nav>
 
-  <!-- progress bar -->
-  <ion-list *ngIf="importing" lines="none">
-    <ion-list-header>
-      <ion-label>{{'NETWORK.INFO.IMPORTATION_PCT_DOTS'|translate: {pct: $importProgression | async} }}</ion-label>
-    </ion-list-header>
-    <ion-progress-bar [value]="($importProgression | async) / 100"></ion-progress-bar>
-  </ion-list>
-
   <!-- table -->
-  <div class="table-container" [class.has-offline-nav]="hasOfflineMode">
+  <div #tableContainer class="table-container" [class.has-offline-nav]="hasOfflineMode">
 
     <table mat-table  matSort matSortDisableClear
            [dataSource]="dataSource"
@@ -475,11 +474,31 @@
   </mat-paginator>
 </ion-footer>
 
-<!-- Add button -->
+<!-- Add button (mobile) -->
 <ion-fab vertical="bottom" horizontal="end"
          *ngIf="canEdit && mobile">
-  <ion-fab-button color="tertiary" (click)="addRow()">
+  <ion-fab-button color="tertiary"
+                  [disabled]="importing">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
+
+  <ion-fab-list side="top">
+
+    <ion-fab-button [disabled]="offline || importing"
+                    [title]="'TRIP.TABLE.BTN_NEW_ONLINE'|translate"
+                    (click)="addRowToSyncStatus($event, 'SYNC')">
+      <mat-icon color="primary">cloud_done</mat-icon>
+      <ion-icon name="add" class="icon-secondary"></ion-icon>
+    </ion-fab-button>
+
+    <ion-fab-button [disabled]="importing"
+                    [title]="'TRIP.TABLE.BTN_NEW_OFFLINE'|translate"
+                    (click)="addRowToSyncStatus($event, 'DIRTY')">
+      <mat-icon color="primary">cloud_off</mat-icon>
+      <ion-icon name="add" class="icon-secondary"></ion-icon>
+    </ion-fab-button>
+
+  </ion-fab-list>
+
 </ion-fab>
 

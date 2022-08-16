@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, StoreObject } from '@apollo/client/core';
 import { ReferentialFragments } from './referential.fragments';
 import {
@@ -11,7 +11,7 @@ import {
   EntitySaveOptions,
   EntityUtils,
   fromDateISOString,
-  GraphqlService,
+  IReferentialRef,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -19,7 +19,6 @@ import {
   isNotNil,
   LoadResult,
   NetworkService,
-  PlatformService,
   Referential,
   ReferentialRef,
   ReferentialUtils,
@@ -76,7 +75,7 @@ const FindStrategiesReferentials: any = gql`
   ${ReferentialFragments.referential}
 `;
 
-const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
+const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
   load: gql`query Strategy($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyFragment
@@ -133,7 +132,7 @@ const StrategyQueries: BaseEntityGraphqlQueries & { count: any; } = {
     }`
 };
 
-const StrategyMutations: BaseEntityGraphqlMutations = {
+const MUTATIONS: BaseEntityGraphqlMutations = {
   save: gql`mutation SaveStrategy($data: StrategyVOInput!){
     data: saveStrategy(strategy: $data){
       ...StrategyFragment
@@ -157,9 +156,9 @@ const StrategyMutations: BaseEntityGraphqlMutations = {
   }`,
 };
 
-const strategySubscriptions: BaseEntityGraphqlSubscriptions = {
-  listenChanges: gql`subscription UpdateReferential($entityName: String!, $id: Int!, $interval: Int){
-    updateReferential(entityName: $entityName, id: $id, interval: $interval) {
+const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
+  listenChanges: gql`subscription UpdateReferential($id: Int!, $interval: Int){
+    updateReferential(entityName: "Strategy", id: $id, interval: $interval) {
       ...ReferentialFragment
     }
   }
@@ -170,8 +169,7 @@ const strategySubscriptions: BaseEntityGraphqlSubscriptions = {
 export class StrategyService extends BaseReferentialService<Strategy, StrategyFilter> {
 
   constructor(
-    graphql: GraphqlService,
-    platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected cache: CacheService,
@@ -180,11 +178,11 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected strategyRefService: StrategyRefService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, Strategy, StrategyFilter,
+    super(injector, Strategy, StrategyFilter,
       {
-        queries: StrategyQueries,
-        mutations: StrategyMutations,
-        subscriptions: strategySubscriptions
+        queries: QUERIES,
+        mutations: MUTATIONS,
+        subscriptions: SUBSCRIPTIONS
       });
   }
 
@@ -201,7 +199,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       excludedIds: opts && isNotNil(opts.excludedIds) ? opts.excludedIds : undefined,
     };
     const {total} = await this.graphql.query<{ total: number }>({
-      query: StrategyQueries.count,
+      query: QUERIES.count,
       variables: { filter },
       error: {code: ErrorCodes.LOAD_STRATEGY_ERROR, message: "ERROR.LOAD_ERROR"},
       fetchPolicy: opts && opts.fetchPolicy || undefined
@@ -241,17 +239,18 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return res && res.data;
   }
 
-  async loadStrategiesReferentials(programId: number,
-                               entityName: string,
-                               locationClassification?: string,
-                               offset?: number,
-                               size?: number,
-                               sortBy?: string,
-                               sortDirection?: SortDirection
-                               ): Promise<ReferentialRef[]> {
-    if (this._debug) console.debug(`[strategy-service] Loading strategies referentials (predoc) for ${entityName}...`);
+  async loadStrategiesReferentials<T extends IReferentialRef = ReferentialRef>(
+       programId: number,
+       entityName: string,
+       locationClassification?: string,
+       offset?: number,
+       size?: number,
+       sortBy?: string,
+       sortDirection?: SortDirection
+       ): Promise<T[]> {
+    if (this._debug) console.debug(`[strategy-service] Loading strategies referential (predoc) for ${entityName}...`);
 
-    const res = await this.graphql.query<LoadResult<ReferentialRef>>({
+    const res = await this.graphql.query<LoadResult<T>>({
       query: FindStrategiesReferentials,
       variables: {
         programId: programId,
@@ -266,7 +265,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       fetchPolicy: 'network-only'
     });
 
-    return (res && res.data || []) as ReferentialRef[];
+    return (res?.data || []) as T[];
   }
 
   async loadAllAnalyticReferences(

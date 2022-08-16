@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { BehaviorSubject, defer, Observable, Subject, Subscription } from 'rxjs';
-import { filter, finalize, map } from 'rxjs/operators';
+import { BehaviorSubject, defer, merge, Observable, Subject, Subscription } from 'rxjs';
+import { distinctUntilChanged, filter, finalize, map, takeUntil } from 'rxjs/operators';
 import { ErrorCodes } from './errors';
 import { ReferentialFragments } from './referential.fragments';
 import {
@@ -11,7 +11,6 @@ import {
   EntitiesStorage,
   firstArrayValue,
   firstNotNilPromise,
-  GraphqlService,
   IEntitiesService,
   IEntityService,
   IReferentialRef,
@@ -21,12 +20,14 @@ import {
   JobUtils,
   LoadResult,
   NetworkService,
-  PlatformService,
   propertiesPathComparator,
   ReferentialRef,
   ReferentialUtils,
+  ShowToastOptions,
   StatusIds,
   suggestFromArray,
+  SuggestService,
+  Toasts
 } from '@sumaris-net/ngx-components';
 import { TaxonGroupRef, TaxonGroupTypeIds } from './model/taxon-group.model';
 import { CacheService } from 'ionic-cache';
@@ -37,7 +38,6 @@ import { DenormalizedPmfmStrategy } from './model/pmfm-strategy.model';
 import { IWithProgramEntity } from '@app/data/services/model/model.utils';
 
 import { StrategyFragments } from './strategy.fragments';
-import { AcquisitionLevelCodes } from './model/model.enum';
 import { ProgramFragments } from './program.fragments';
 import { PmfmService } from './pmfm.service';
 import { BaseReferentialService } from './base-referential-service.class';
@@ -45,6 +45,14 @@ import { ProgramFilter } from './filter/program.filter';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { environment } from '@environments/environment';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
+import { ToastController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
+import { OverlayEventDetail } from '@ionic/core';
+import { StrategyRefService } from '@app/referential/services/strategy-ref.service';
+import { SortDirection } from '@angular/material/sort';
+import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
+import { DenormalizedPmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
 
 export const ProgramRefQueries = {
@@ -92,8 +100,27 @@ export const ProgramRefQueries = {
   }
   ${ProgramFragments.programRef}`,
 
+  // Load all query with strategies
+  loadAllWithStrategies: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...ProgramRefFragment
+      strategies {
+        ...StrategyRefFragment
+      }
+    }
+  }
+  ${ProgramFragments.programRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
+  ${StrategyFragments.denormalizedPmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}`,
+
   // Load all query (with total, and strategies)
-  loadAllWithTotalAndStrategy: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithStrategiesAndTotal: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ProgramRefFragment
       strategies {
@@ -113,13 +140,21 @@ export const ProgramRefQueries = {
   ${ReferentialFragments.taxonName}`
 };
 
-const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions = {
+const ProgramRefSubscriptions: BaseEntityGraphqlSubscriptions & { listenAuthorizedPrograms: any} = {
   listenChanges: gql`subscription UpdateProgram($id: Int!, $interval: Int){
     data: updateProgram(id: $id, interval: $interval) {
       ...LightProgramFragment
     }
   }
+  ${ProgramFragments.lightProgram}`,
+
+  listenAuthorizedPrograms: gql`subscription UpdateAuthorizedPrograms($interval: Int){
+    data: authorizedPrograms(interval: $interval) {
+      ...LightProgramFragment
+    }
+  }
   ${ProgramFragments.lightProgram}`
+
 };
 
 const ProgramRefCacheKeys = {
@@ -135,30 +170,37 @@ const ProgramRefCacheKeys = {
   TAXON_NAMES: 'taxonNameByGroup'
 };
 
+const noopFilter = (() => true);
+
 @Injectable({providedIn: 'root'})
 export class ProgramRefService
   extends BaseReferentialService<Program, ProgramFilter>
-  implements IEntitiesService<Program, ProgramFilter>,
-    IEntityService<Program> {
+  implements IEntitiesService<Program, ProgramFilter>, IEntityService<Program>,
+    SuggestService<Program, Partial<ProgramFilter>> {
 
 
   private _subscriptionCache: {[key: string]: {
       subject: Subject<Program>;
       subscription: Subscription;
     }} = {};
+  private _listenAuthorizedSubscription: Subscription = null;
 
   constructor(
-    graphql: GraphqlService,
-    platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected cache: CacheService,
     protected entities: EntitiesStorage,
     protected configService: ConfigService,
     protected pmfmService: PmfmService,
-    protected referentialRefService: ReferentialRefService
+    protected networkService: NetworkService,
+    protected taxonNameRefService: TaxonNameRefService,
+    protected referentialRefService: ReferentialRefService,
+    protected toastController: ToastController,
+    protected strategyRefService: StrategyRefService,
+    protected translate: TranslateService
   ) {
-    super(graphql, platform, Program, ProgramFilter,
+    super(injector, Program, ProgramFilter,
       {
         queries: ProgramRefQueries,
         subscriptions: ProgramRefSubscriptions
@@ -166,20 +208,113 @@ export class ProgramRefService
 
     this._debug = !environment.production;
     this._logPrefix = '[program-ref-service] ';
+
+    this.start();
   }
 
-  canUserWrite(data: IWithProgramEntity<any, any>): boolean {
-    if (!data) return false;
+  protected async ngOnStart(): Promise<void> {
+    await super.ngOnStart();
+    this.registerSubscription(
+      merge(
+        this.networkService.onNetworkStatusChanges,
+        this.accountService.onLogin,
+        this.accountService.onLogout
+      )
+        .pipe(
+          map(_ => this.networkService.online
+              && this.accountService.isLogin()
+              // Skip if admin (can see all programs)
+              && !this.accountService.isAdmin()
+          ),
+          distinctUntilChanged()
+        )
+        .subscribe((onlineAndLogin) => {
+          if (onlineAndLogin) {
+            this.startListenAuthorizedProgram();
+          }
+          else {
+            this.stopListenAuthorizedProgram();
+          }
+        })
+    )
+  }
+
+  canUserWrite(data: Program, opts?: any): boolean {
+    console.warn("Make no sense to write using the ProgramRefService. Please use the ProgramService instead.")
+    return false;
+  }
+
+  canUserWriteEntity(entity: IWithProgramEntity<any, any>, opts?: {program?: Program}): boolean {
+    if (!entity) return false;
 
     // If the user is the recorder: can write
-    if (data.recorderPerson && this.accountService.isLogin() && this.accountService.account.asPerson().equals(data.recorderPerson)) {
+    if (entity.recorderPerson && ReferentialUtils.equals(this.accountService.person, entity.recorderPerson)) {
       return true;
     }
 
-    // TODO: check rights on program (need model changes)
+    // TODO: check rights on program (ProgramPerson, ProgramDepartment)
+    // const program = opts?.program || load()
+    console.warn('TODO: check rights on program (e.g. using ProgramPerson or ProgramDepartment)', opts?.program);
 
     // Check same department
-    return this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
+    return this.accountService.canUserWriteDataForDepartment(entity.recorderDepartment);
+  }
+
+  async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
+                filter?: Partial<ProgramFilter>,
+                opts?: { [p: string]: any; query?: any; fetchPolicy?: FetchPolicy; debug?: boolean; withTotal?: boolean; toEntity?: boolean }): Promise<LoadResult<Program>> {
+    // Use search attribute as default sort, is set
+    sortBy = sortBy || filter?.searchAttribute
+      || filter?.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
+      || 'label';
+
+    const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
+    if (offline) {
+       return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    // Call inherited function
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
+
+  protected async loadAllLocally(offset: number,
+                                 size: number,
+                                 sortBy?: string,
+                                 sortDirection?: SortDirection,
+                                 filter?: Partial<ProgramFilter>,
+                                 opts?: {
+                                   [key: string]: any;
+                                   toEntity?: boolean;
+                                 }): Promise<LoadResult<Program>> {
+
+    filter = this.asFilter(filter);
+
+    const variables = {
+      offset: offset || 0,
+      size: size || 100,
+      sortBy: sortBy || filter.searchAttribute
+        || filter.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
+        || 'label',
+      sortDirection: sortDirection || 'asc',
+      filter: filter.asFilterFn()
+    };
+
+    const {data, total} = await this.entities.loadAll(Program.TYPENAME, variables);
+
+    const entities = (!opts || opts.toEntity !== false) ?
+      (data || []).map(Program.fromObject) :
+      (data || []) as Program[];
+
+    const res: LoadResult<Program> = {data: entities, total};
+
+    // Add fetch more function
+    const nextOffset = (offset || 0) + entities.length;
+    if (nextOffset < total) {
+      res.fetchMore = () => this.loadAllLocally(nextOffset, size, sortBy, sortDirection, filter, opts);
+    }
+
+    return res;
   }
 
   /**
@@ -260,10 +395,10 @@ export class ProgramRefService
     cache?: boolean;
     fetchPolicy?: FetchPolicy;
   }): Promise<Program> {
+    const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
 
     // Use cache (enable by default, if no custom query)
-    if (!opts || (opts.cache !== false && !opts.query)) {
-      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
+    if (!opts || (!opts.query && opts.cache !== false && opts.fetchPolicy !== 'no-cache' && opts.fetchPolicy !== 'network-only')) {
       return this.cache.getOrSetItem<Program>(cacheKey,
         () => this.loadByLabel(label, {...opts, cache: false, toEntity: false}),
         ProgramRefCacheKeys.CACHE_GROUP)
@@ -326,37 +461,33 @@ export class ProgramRefService
         );
     }
 
+    // TODO add period start/end ?
+    const strategyFilterFn = StrategyFilter.fromObject({
+      label: opts?.strategyLabel
+    }).asFilterFn() || noopFilter;
+    const pmfmStrategyFilterFn = DenormalizedPmfmStrategyFilter.fromObject(opts).asFilterFn();
+    if (!pmfmStrategyFilterFn) throw new Error('Missing opts to filter pmfm (.e.g opts.acquisitionLevel)!');
+
     return this.watchByLabel(programLabel, {toEntity: false, debug: false}) // Watch the program
       .pipe(
-        map(program => {
-          // Find strategy
-          const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
-
-          const pmfmIds = []; // used to avoid duplicated pmfms
-          const data = (strategy && strategy.denormalizedPmfms || [])
-            // Filter on acquisition level and gear
-            .filter(p =>
-              pmfmIds.indexOf(p.id) === -1
-              && (
-                !opts || (
-                  (!opts.acquisitionLevel || p.acquisitionLevel === opts.acquisitionLevel)
-                  // Filter on gear (if PMFM has gears = compatible with all gears)
-                  && (!opts.gearId || !p.gearIds || !p.gearIds.length || p.gearIds.findIndex(id => id === opts.gearId) !== -1)
-                  // Filter on taxon group
-                  && (!opts.taxonGroupId || !p.taxonGroupIds || !p.taxonGroupIds.length || p.taxonGroupIds.findIndex(g => g === opts.taxonGroupId) !== -1)
-                  // Filter on reference taxon
-                  && (!opts.referenceTaxonId || !p.referenceTaxonIds || !p.referenceTaxonIds.length || p.referenceTaxonIds.findIndex(g => g === opts.referenceTaxonId) !== -1)
-                  // Add to list of IDs
-                  && pmfmIds.push(p.id)
-                )
-              ))
-
-            // Sort on rank order
-            .sort((p1, p2) => p1.rankOrder - p2.rankOrder);
-
+        // Find first strategy to applied
+        map(program => (program?.strategies || []).find(strategyFilterFn)),
+        // Filter strategy's pmfms
+        map(strategy => (strategy?.denormalizedPmfms || []).filter(pmfmStrategyFilterFn)),
+        // Merge duplicated pmfms (make to a unique pmfm, by id)
+        map(data => (data || []).reduce((res, p) => {
+            let index = res.findIndex(other => other.id === p.id);
+            if (index !== -1) {
+              res[index] = DenormalizedPmfmStrategy.merge(res[index], p);
+              return res;
+            }
+            return res.concat(p);
+          }, [])
+        ),
+        // Sort on rank order (asc)
+        map(data => data.sort((p1, p2) => p1.rankOrder - p2.rankOrder)),
+        map(data => {
           if (debug) console.debug(`[program-ref-service] PMFM for ${opts.acquisitionLevel} (filtered):`, data);
-
-          // TODO: translate name/label using translate service ?
 
           // Convert into entities
           return (!opts || opts.toEntity !== false)
@@ -540,8 +671,8 @@ export class ProgramRefService
       }
     }
 
-    // If nothing found in program: search on taxonGroup
-    const res = await this.referentialRefService.suggestTaxonNames(value, {
+    // If nothing found in program: search by taxonGroup
+    const res = await this.taxonNameRefService.suggest(value, {
       levelId: opts.levelId,
       levelIds: opts.levelIds,
       taxonGroupId: opts.taxonGroupId,
@@ -553,7 +684,7 @@ export class ProgramRefService
 
     // Then, retry in all taxon (without taxon groups - Is the link taxon<->taxonGroup missing ?)
     if (isNotNil(opts.taxonGroupId)) {
-      return this.referentialRefService.suggestTaxonNames(value, {
+      return this.taxonNameRefService.suggest(value, {
         levelId: opts.levelId,
         levelIds: opts.levelIds,
         searchAttribute: opts.searchAttribute
@@ -586,12 +717,14 @@ export class ProgramRefService
     }, {});
   }
 
-  async executeImport(progression: BehaviorSubject<number>,
+  async executeImport(filter: Partial<ProgramFilter>,
                       opts?: {
+                        progression?: BehaviorSubject<number>;
                         maxProgression?: number;
                         acquisitionLevels?: string[];
+                        program?: Program;
+                        [key: string]: any;
                       }) {
-
 
     const maxProgression = opts && opts.maxProgression || 100;
 
@@ -603,43 +736,29 @@ export class ProgramRefService
       await this.clearCache();
 
       // Create search filter
-      let loadFilter: any = {
+      filter = {
+        ...filter,
+        acquisitionLevelLabels: opts?.acquisitionLevels,
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
-
-      // Add filter on acquisition level
-      if (opts && isNotEmptyArray(opts.acquisitionLevels)) {
-        const acquisitionLevels: string[] = opts && opts.acquisitionLevels || Object.keys(AcquisitionLevelCodes).map(key => AcquisitionLevelCodes[key]);
-        if (acquisitionLevels && acquisitionLevels.length === 1) {
-          loadFilter = {
-            ...loadFilter,
-            searchJoin: "strategies/pmfms/acquisitionLevel",
-            searchAttribute: "label",
-            searchText: acquisitionLevels[0]
-          };
-        }
-        else {
-          console.warn('Cannot request on many acquisition level (not implemented)');
-        }
-      }
 
       // Step 1. load all programs
       const importedProgramLabels = [];
       const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
-          this.loadAll(offset, size, 'id', 'asc', loadFilter, {
-            debug: false,
-            query: ProgramRefQueries.loadAllWithTotalAndStrategy,
-            fetchPolicy: "network-only",
+          this.loadAll(offset, size, 'id', 'asc', filter, {
+            query: (offset === 0) ? ProgramRefQueries.loadAllWithStrategiesAndTotal : ProgramRefQueries.loadAllWithStrategies,
+            fetchPolicy: 'no-cache',
             toEntity: false
           }),
-        progression,
         {
+          progression: opts?.progression,
           maxProgression: maxProgression * 0.9,
           onPageLoaded: ({data}) => {
             const labels = (data || []).map(p => p.label) as string[];
             importedProgramLabels.push(...labels);
           },
-          logPrefix: '[program-ref-service]'
+          logPrefix: '[program-ref-service]',
+          fetchSize: 5 /* limit to 5 program, because a program graph it can be huge ! */
         }
       );
 
@@ -701,4 +820,58 @@ export class ProgramRefService
 
   /* -- protected methods -- */
 
+  protected startListenAuthorizedProgram(opts?: {intervalInSeconds?: number; }) {
+    if (this._listenAuthorizedSubscription) this.stopListenAuthorizedProgram();
+
+    console.debug(`${this._logPrefix}Watching authorized programs...`);
+
+    const variables = {
+      interval: Math.max(10, opts?.intervalInSeconds || environment.program?.listenIntervalInSeconds || 10)
+    };
+
+    this._listenAuthorizedSubscription = this.graphql.subscribe<{data: any}>({
+      query: ProgramRefSubscriptions.listenAuthorizedPrograms,
+      variables,
+      error: {
+        code: ErrorCodes.SUBSCRIBE_AUTHORIZED_PROGRAMS_ERROR,
+        message: 'PROGRAM.ERROR.SUBSCRIBE_AUTHORIZED_PROGRAMS'
+      }
+    })
+      .pipe(
+        //takeUntil(this.accountService.onLogout),
+        // Map to sorted labels
+        map(({data}) => (data||[]).map(p => p?.label).sort().join(',')),
+        distinctUntilChanged()
+      )
+      .subscribe(async (programLabels) => {
+        console.info(`${this._logPrefix}Authorized programs changed to: ${programLabels}`);
+
+        await Promise.all([
+          // Clear all program/strategies cache
+          this.graphql.clearCache(),
+          this.strategyRefService.clearCache(),
+          // Clear cache (e.g. used by autocomplete fields)
+          this.clearCache()
+        ]);
+
+        this.showToast({message: 'PROGRAM.INFO.AUTHORIZED_PROGRAMS_UPDATED', type: 'info'});
+      });
+
+    this._listenAuthorizedSubscription.add(() => console.debug(`${this._logPrefix}Stop watching authorized programs`));
+    this.registerSubscription(this._listenAuthorizedSubscription);
+
+    return this._listenAuthorizedSubscription;
+  }
+
+  protected stopListenAuthorizedProgram() {
+    if (this._listenAuthorizedSubscription) {
+      this.unregisterSubscription(this._listenAuthorizedSubscription);
+      this._listenAuthorizedSubscription.unsubscribe();
+      this._listenAuthorizedSubscription = null;
+    }
+  }
+
+  protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+    return Toasts.show(this.toastController, this.translate, opts);
+  }
 }

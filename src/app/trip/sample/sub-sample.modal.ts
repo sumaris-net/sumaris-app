@@ -1,5 +1,5 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Alerts, AppFormUtils, isNil, isNotEmptyArray, isNotNilOrBlank, LocalSettingsService, PlatformService, toBoolean, TranslateContextService, UsageMode } from '@sumaris-net/ngx-components';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Alerts, AppFormUtils, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean, TranslateContextService, UsageMode } from '@sumaris-net/ngx-components';
 import { environment } from '../../../environments/environment';
 import { AlertController, IonContent, ModalController } from '@ionic/angular';
 import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
@@ -83,7 +83,6 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
 
   constructor(
     protected injector: Injector,
-    protected platform: PlatformService,
     protected modalCtrl: ModalController,
     protected alertCtrl: AlertController,
     protected settings: LocalSettingsService,
@@ -92,7 +91,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     protected cd: ChangeDetectorRef
   ) {
     // Default value
-    this.mobile = platform.mobile;
+    this.mobile = settings.mobile;
 
     // TODO: for DEV only
     this.debug = !environment.production;

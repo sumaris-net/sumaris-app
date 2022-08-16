@@ -1,17 +1,17 @@
-import {DataEntity, DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {AbstractControl, FormControl, FormGroup} from '@angular/forms';
-import {arraySize, isEmptyArray, isNil, isNotNil, notNilOrDefault} from '@sumaris-net/ngx-components';
+import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { FormGroup } from '@angular/forms';
+import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, notNilOrDefault, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import {isMoment} from 'moment';
-import {IEntity} from '@sumaris-net/ngx-components';
-import {IPmfm, Pmfm} from '@app/referential/services/model/pmfm.model';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {PmfmValue, PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
-import {AppFormUtils} from '@sumaris-net/ngx-components';
-import {ReferentialRef} from '@sumaris-net/ngx-components';
-import {fromDateISOString, toDateISOString} from '@sumaris-net/ngx-components';
+import { isMoment } from 'moment';
+import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 const moment = momentImported;
+
+export const MEASUREMENT_PMFM_ID_REGEXP = /measurements\.\d+$/;
+export const MEASUREMENT_VALUES_PMFM_ID_REGEXP = /measurementValues\.\d+$/;
+
 
 export const MeasurementValuesTypes = {
   MeasurementModelValues: 'MeasurementModelValues',
@@ -46,7 +46,7 @@ export declare interface IMeasurementValue {
   computed: boolean;
   value: number;
 
-  unit?: string; // is need ?
+  unit?: string|any; // is need ?
 }
 
 export declare type MeasurementType = 'ObservedLocationMeasurement' | 'SaleMeasurement' | 'LandingMeasurement'
@@ -224,7 +224,7 @@ export class MeasurementUtils {
     });
   }
 
-  static areEquals(array1: Measurement[], array2: Measurement[]): boolean {
+  static equals(array1: Measurement[], array2: Measurement[]): boolean {
     if (arraySize(array1) !== arraySize(array2)) return false;
     return MeasurementValuesUtils.equals(MeasurementUtils.toMeasurementValues(array1), MeasurementUtils.toMeasurementValues(array2));
   }
@@ -244,14 +244,15 @@ export class MeasurementValuesUtils {
 
   static equals(m1: MeasurementFormValues | MeasurementModelValues, m2: MeasurementFormValues | MeasurementModelValues): boolean {
     return (isNil(m1) && isNil(m2))
-      || !(Object.getOwnPropertyNames(m1).find(pmfmId => !MeasurementValuesUtils.valueEquals(m1[pmfmId], m2[pmfmId])));
+      || (m1 && !(Object.getOwnPropertyNames(m1).some(pmfmId => !this.valueEquals(m1[pmfmId], m2[pmfmId]))))
+      || false;
   }
 
   static equalsPmfms(m1: { [pmfmId: number]: any },
                      m2: { [pmfmId: number]: any },
                      pmfms: IPmfm[]): boolean {
     return (isNil(m1) && isNil(m2))
-      || !pmfms.find(pmfm => !MeasurementValuesUtils.valueEquals(m1[pmfm.id], m2[pmfm.id]));
+      || !pmfms.find(pmfm => !this.valueEquals(m1[pmfm.id], m2[pmfm.id]));
   }
 
   static valueToString(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; htmls?: boolean }): string | undefined {
@@ -262,7 +263,7 @@ export class MeasurementValuesUtils {
     return PmfmValueUtils.toModelValue(value, pmfm);
   }
 
-  static isMeasurementFormValues(value: MeasurementFormValues | MeasurementModelValues): value is MeasurementFormValues {
+  static isMeasurementFormValues(value: MeasurementFormValues | MeasurementModelValues | any): value is MeasurementFormValues {
     return value.__typename === MeasurementValuesTypes.MeasurementFormValue;
   }
 
@@ -270,22 +271,30 @@ export class MeasurementValuesUtils {
     return value.__typename !== MeasurementValuesTypes.MeasurementFormValue;
   }
 
-  static normalizeValuesToModel(source: MeasurementFormValues, pmfms: IPmfm[], opts?: {
-    keepSourceObject?: boolean;
+  static normalizeValuesToModel(source: MeasurementFormValues | MeasurementModelValues, pmfms: IPmfm[], opts = {
+    keepSourceObject: false
   }): MeasurementModelValues {
 
     // DEBUG
     //console.debug('calling normalizeValuesToModel() from ' +  source.__typename);
 
-    const target: MeasurementModelValues = opts && opts.keepSourceObject ? source as MeasurementModelValues : {};
+    const target: MeasurementModelValues = opts.keepSourceObject ? source as MeasurementModelValues : {};
 
-    if (MeasurementValuesUtils.isMeasurementFormValues(source)) {
+    if (this.isMeasurementFormValues(source)) {
       (pmfms || []).forEach(pmfm => {
-        target[pmfm.id] = MeasurementValuesUtils.normalizeValueToModel(source[pmfm.id] as PmfmValue, pmfm);
+        target[pmfm.id] = this.normalizeValueToModel(source[pmfm.id] as PmfmValue, pmfm);
       });
       // DO NOT delete __typename, but force it to MeasurementModelValues
       // If not: there is a bug when edition a row, saving and editing it again: the conversion to form is not applied!
       //delete target.__typename;
+      target.__typename = MeasurementValuesTypes.MeasurementModelValues;
+    }
+
+    // Source = model values. Copy pmfm's values if need
+    else if (!opts.keepSourceObject){
+      (pmfms || []).forEach(pmfm => {
+        target[pmfm.id] = source[pmfm.id];
+      });
       target.__typename = MeasurementValuesTypes.MeasurementModelValues;
     }
 
@@ -301,21 +310,22 @@ export class MeasurementValuesUtils {
    * @param source
    * @param pmfms
    * @param opts
-   *  - keepSourceObject: keep existing map (useful to keep extra pmfms)
-   *  - onlyExistingPmfms: Will not init all pmfms, but only those that exists in the source map
+   *  - keepSourceObject: keep existing map unchanged (useful to keep extra pmfms) - false by default
+   *  - onlyExistingPmfms: Will not init all pmfms, but only those that exists in the source map - false by default
    */
-  static normalizeValuesToForm(source: MeasurementModelValues | MeasurementFormValues, pmfms: IPmfm[], opts?: {
-    keepSourceObject?: boolean;
-    onlyExistingPmfms?: boolean; // default to false
-  }): MeasurementFormValues {
-    opts = opts || {};
+  static normalizeValuesToForm(source: MeasurementModelValues | MeasurementFormValues,
+                               pmfms: IPmfm[],
+                               opts?: {
+                                 keepSourceObject?: boolean;
+                                 onlyExistingPmfms?: boolean;
+                               }): MeasurementFormValues {
     pmfms = pmfms || [];
 
     // DEBUG
-    console.debug('calling normalizeValueToForm() from ' +  source.__typename);
+    //console.debug('calling normalizeValueToForm() from ' +  source.__typename);
 
     // Normalize only given pmfms (reduce the pmfms list)
-    if (opts && opts.onlyExistingPmfms) {
+    if (opts?.onlyExistingPmfms) {
       pmfms = Object.getOwnPropertyNames(source)
         .filter(controlName => controlName !== '__typename')
         .reduce((res, pmfmId) => {
@@ -325,12 +335,12 @@ export class MeasurementValuesUtils {
     }
 
     // Create target, or copy existing (e.g. useful to keep extra pmfms)
-    const target: MeasurementFormValues | MeasurementModelValues = opts.keepSourceObject
+    const target: MeasurementFormValues | MeasurementModelValues = opts?.keepSourceObject
       ? {...source} : {};
 
-    if (MeasurementValuesUtils.isMeasurementModelValues(target)) {
+    if (this.isMeasurementModelValues(target)) {
       // Copy from source, without value conversion (not need)
-      if (MeasurementValuesUtils.isMeasurementFormValues(source)) {
+      if (this.isMeasurementFormValues(source)) {
         // Normalize all pmfms from the list
         pmfms.forEach(pmfm => {
           const pmfmId = pmfm?.id;
@@ -338,7 +348,12 @@ export class MeasurementValuesUtils {
             console.warn('Invalid pmfm instance: missing required id. Please make sure to load DenormalizedPmfmStrategy or Pmfm', pmfm);
             return;
           }
-          target[pmfmId.toString()] = source[pmfmId];
+          let value = source[pmfmId];
+          // Apply default value, if any
+          if (isNil(value) && isNotNil(pmfm.defaultValue)) {
+            value = PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm);
+          }
+          target[pmfmId.toString()] = value;
         });
       }
       // Copy from source, WITH value conversion
@@ -359,7 +374,7 @@ export class MeasurementValuesUtils {
     return target;
   }
 
-  static normalizeEntityToForm(data: IEntityWithMeasurement<any>,
+  static normalizeEntityToForm(data: IEntityWithMeasurement<any, any>,
                                pmfms: IPmfm[],
                                form?: FormGroup,
                                opts?: {
@@ -376,10 +391,10 @@ export class MeasurementValuesUtils {
         // Remove extra PMFMS values (before adapt to form)
         const measurementValues = AppFormUtils.getFormValueFromEntity(data.measurementValues || {}, measFormGroup);
 
-        // Adapt to form (e.g. transform a QV_ID into a an object)
-        data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(measurementValues, pmfms, {
-          keepSourceObject: opts && opts.keepOtherExistingPmfms || false,
-          onlyExistingPmfms: opts && opts.onlyExistingPmfms || false
+        // Adapt to form (e.g. transform a QV_ID into an object)
+        data.measurementValues = this.normalizeValuesToForm(measurementValues, pmfms, {
+          keepSourceObject: opts?.keepOtherExistingPmfms || false,
+          onlyExistingPmfms: opts?.onlyExistingPmfms || false
         });
       } else {
         throw Error('No measurementValues found in form ! Make sure you use the right validator');
@@ -387,7 +402,7 @@ export class MeasurementValuesUtils {
     }
     // No validator: just normalize values
     else {
-      data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues || {}, pmfms, {
+      data.measurementValues = this.normalizeValuesToForm(data.measurementValues || {}, pmfms, {
         // Keep extra pmfm values (not need to remove, when no validator used)
         keepSourceObject: true,
         onlyExistingPmfms: opts && opts.onlyExistingPmfms
@@ -428,7 +443,7 @@ export class MeasurementValuesUtils {
 
     const pmfm = pmfms.find(p => p.id === +pmfmId);
     if (pmfm && measurements[pmfm.id]) {
-      const value = MeasurementValuesUtils.normalizeValueToForm(measurements[pmfm.id], pmfm);
+      const value = this.normalizeValueToForm(measurements[pmfm.id], pmfm);
       if (!!remove)
         delete measurements[pmfm.id];
       return value;
@@ -442,7 +457,7 @@ export class MeasurementValuesUtils {
 
     const pmfm = pmfms.find(p => p.id === +pmfmId);
     if (pmfm) {
-      measurements[pmfm.id] = MeasurementValuesUtils.normalizeValueToForm(value, pmfm);
+      measurements[pmfm.id] = this.normalizeValueToForm(value, pmfm);
     }
     return undefined;
   }
@@ -450,6 +465,11 @@ export class MeasurementValuesUtils {
   static isEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
     return isNil(measurementValues)
       || isEmptyArray(Object.getOwnPropertyNames(measurementValues).filter(pmfmId => !PmfmValueUtils.isEmpty(measurementValues[pmfmId])));
+  }
+
+  static isNotEmpty(measurementValues: MeasurementModelValues | MeasurementFormValues) {
+    return isNotNil(measurementValues)
+      && Object.getOwnPropertyNames(measurementValues).some(pmfmId => !PmfmValueUtils.isEmpty(measurementValues[pmfmId]));
   }
 }
 

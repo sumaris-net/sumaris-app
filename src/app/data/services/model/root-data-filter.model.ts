@@ -10,12 +10,12 @@ import {
   Person,
   ReferentialRef,
   ReferentialUtils,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { DataEntityFilter } from './data-filter.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { Moment } from 'moment';
 import { SynchronizationStatus } from '@app/data/services/model/model.utils';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export abstract class RootDataEntityFilter<
   T extends RootDataEntityFilter<T, E, EID, AS, FO>,
@@ -65,11 +65,11 @@ export abstract class RootDataEntityFilter<
     return target;
   }
 
-  buildFilter(): FilterFn<E>[] {
+  buildFilter(opts = {skipProgram: false}): FilterFn<E>[] {
     const filterFns = super.buildFilter();
 
     // Program
-    if (this.program) {
+    if (this.program && !opts.skipProgram) {
       const programId = this.program.id;
       const programLabel = this.program.label;
       if (isNotNil(programId)) {

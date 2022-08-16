@@ -71,6 +71,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     return this.controlName;
   }
 
+  @Input() mobile: boolean;
   @Input() pmfm: IPmfm;
   @Input() required: boolean;
   @Input() readonly = false;
@@ -81,6 +82,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Input() tabindex: number;
   @Input() autofocus: boolean;
   @Input() style: PmfmFormFieldStyle;
+  @Input() showButtonIcons: boolean;
   @Input() maxVisibleButtons: number;
   @Input() acquisitionNumber: number;
   @Input() defaultLatitudeSign: '+' | '-';
@@ -93,6 +95,9 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
 
   @Output('keyup.enter')
   onPressEnter = new EventEmitter<any>();
+
+  @Output('focus') focused = new EventEmitter<FocusEvent>();
+  @Output('blur') blurred = new EventEmitter<FocusEvent>();
 
   get value(): any {
     return this.formControl.value;
@@ -115,6 +120,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     protected pmfmNamePipe: PmfmNamePipe,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
+    this.mobile = settings.mobile;
   }
 
   ngOnInit() {

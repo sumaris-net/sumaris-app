@@ -31,7 +31,6 @@ import {IDataSynchroService, RootDataSynchroService} from '../../data/services/r
 import {BaseRootEntityGraphqlMutations} from '../../data/services/root-data-service.class';
 import {VESSEL_FEATURE_NAME} from './config/vessel.config';
 import {VesselFilter} from './filter/vessel.filter';
-import {MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
 import {environment} from '@environments/environment';
 import {VesselSnapshotFilter} from '@app/referential/services/filter/vessel.filter';
 import {ErrorCodes} from '@app/data/services/errors';
@@ -39,6 +38,7 @@ import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '@app/data/services/model/dat
 import {LandingService} from '@app/trip/services/landing.service';
 import {TripService} from '@app/trip/services/trip.service';
 import { OperationService } from '@app/trip/services/operation.service';
+import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 
 export const VesselFragments = {
@@ -180,7 +180,7 @@ export class VesselService
   extends RootDataSynchroService<Vessel, VesselFilter>
   implements IEntitiesService<Vessel, VesselFilter>,
     IEntityService<Vessel>,
-    IDataSynchroService<Vessel> {
+    IDataSynchroService<Vessel, VesselFilter> {
 
   constructor(
     injector: Injector,
@@ -474,10 +474,6 @@ export class VesselService
     }
     return entity;
 
-  }
-
-  listenChanges(id: number, options?: any): Observable<Vessel> {
-    throw new Error('Method not implemented.');
   }
 
   control(entity: Vessel, opts?: any): Promise<FormErrors> {

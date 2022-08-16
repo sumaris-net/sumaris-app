@@ -1,8 +1,7 @@
-import {VesselSnapshot} from '../model/vessel-snapshot.model';
-import {Moment} from 'moment';
-import {EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
-import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.model';
-import {SynchronizationStatus} from "@app/data/services/model/model.utils";
+import { VesselSnapshot } from '../model/vessel-snapshot.model';
+import { Moment } from 'moment';
+import { EntityAsObjectOptions, EntityClass, EntityFilter, EntityUtils, FilterFn, fromDateISOString, isNotNil, isNotNilOrBlank, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 
 @EntityClass({typename: 'VesselFilterVO'})
@@ -82,7 +81,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
     return target;
   }
 
-  buildFilter(): FilterFn<VesselSnapshot>[] {
+  protected buildFilter(): FilterFn<VesselSnapshot>[] {
     const filterFns = super.buildFilter();
 
     // Program

@@ -17,10 +17,10 @@ import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, 
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { sampleTime } from 'rxjs/internal/operators';
+import { sampleTime } from 'rxjs/operators';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -34,18 +34,25 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
 
   static fromObject: (source, opts?: SampleFromObjectOptions) => Sample;
 
-  static fromObjectArrayAsTree(source: any[]): Sample[] {
-    if (!source) return null;
-    const samples = (source || []).map((json) => Sample.fromObject(json, {withChildren: false}));
+  static fromObjectArrayAsTree(sources: any[], opts?: SampleFromObjectOptions): Sample[] {
+    if (!sources) return null;
+    // Convert to entities
+    const targets = (sources || []).map(json => Sample.fromObject(json, {...opts, withChildren: false}));
+
+    // Find roots
+    const roots = targets.filter(g => isNil(g.parentId));
+
     // Link to parent (using parentId)
-    samples.forEach(s => {
-      s.parent = isNotNil(s.parentId) && samples.find(p => p.id === s.parentId) || undefined;
-      s.parentId = undefined; // Avoid redundant info on parent
+    targets.forEach(t => {
+      t.parent = isNotNil(t.parentId) && roots.find(p => p.id === t.parentId) || undefined;
+      t.parentId = undefined; // Avoid redundant info on parent
     });
+
     // Link to children
-    samples.forEach(s => s.children = samples.filter(p => p.parent && p.parent === s) || []);
-    // Return root samples
-    return samples.filter(b => isNil(b.parent));
+    roots.forEach(s => s.children = targets.filter(p => p.parent && p.parent === s) || []);
+
+    // Return root
+    return roots;
   }
 
   /**
@@ -62,7 +69,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     return sources && sources
       // Reduce to array
       .reduce((res, source) => {
-        // Convert entity into object, WITHOUT children (will be add later)
+        // Convert entity into object, WITHOUT children (will be set later)
         const target = source.asObject ? source.asObject({...opts, withChildren: false}) : {...source, children: undefined};
 
         // Link target with the given parent
@@ -99,7 +106,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   sampleDate: Moment = null;
   individualCount: number = null;
   taxonGroup: TaxonGroupRef  = null;
-  taxonName: ReferentialRef = null;
+  taxonName: TaxonNameRef = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = {};
   matrixId: number = null;
   batchId: number = null;

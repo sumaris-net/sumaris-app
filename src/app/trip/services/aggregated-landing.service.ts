@@ -2,11 +2,13 @@ import { Injectable, Injector } from '@angular/core';
 import { AggregatedLanding, AggregatedLandingUtils } from './model/aggregated-landing.model';
 import {
   BaseEntityGraphqlMutations,
+  BaseEntityGraphqlQueries,
   BaseGraphqlService,
   chainPromises,
+  DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
-  fromDateISOString,
+  EntityUtils,
   GraphqlService,
   IEntitiesService,
   isEmptyArray,
@@ -14,7 +16,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  NetworkService,
+  NetworkService
 } from '@sumaris-net/ngx-components';
 import { gql } from '@apollo/client/core';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
@@ -24,10 +26,9 @@ import { filter, map } from 'rxjs/operators';
 import { SortDirection } from '@angular/material/sort';
 import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
 import { environment } from '@environments/environment';
-import { MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
-import { BaseEntityGraphqlQueries } from '@sumaris-net/ngx-components/src/app/core/services/base-entity-service.class';
 import { ErrorCodes } from '@app/data/services/errors';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActivityVO {
   __typename
@@ -59,31 +60,26 @@ ${VesselSnapshotFragments.lightVesselSnapshot}
 ${ReferentialFragments.referential}
 ${VesselActivityFragment}`;
 
-const AggregatedLandingQueries: BaseEntityGraphqlQueries = {
-  loadAll: gql`
-    query AggregatedLandings($filter: AggregatedLandingFilterVOInput){
+const Queries: BaseEntityGraphqlQueries = {
+  loadAll: gql`query AggregatedLandings($filter: AggregatedLandingFilterVOInput){
       data: aggregatedLandings(filter: $filter){
         ...AggregatedLandingFragment
       }
     }
-    ${AggregatedLandingFragment}
-  `
+    ${AggregatedLandingFragment}`
 };
 
-const AggregatedLandingMutations: BaseEntityGraphqlMutations = {
-  saveAll: gql`
-    mutation SaveAggregatedLandings($aggregatedLandings:[AggregatedLandingVOInput], $filter: AggregatedLandingFilterVOInput){
-      saveAggregatedLandings(aggregatedLandings: $aggregatedLandings, filter: $filter){
+const Mutations: BaseEntityGraphqlMutations = {
+  saveAll: gql`mutation SaveAggregatedLandings($data:[AggregatedLandingVOInput], $filter: AggregatedLandingFilterVOInput){
+    data: saveAggregatedLandings(aggregatedLandings: $data, filter: $filter){
         ...AggregatedLandingFragment
       }
     }
-    ${AggregatedLandingFragment}
-  `,
-  deleteAll: gql`
-    mutation DeleteAggregatedLandings($filter: AggregatedLandingFilterVOInput, $vesselSnapshotIds: [Int]){
+    ${AggregatedLandingFragment}`,
+
+  deleteAll: gql`mutation DeleteAggregatedLandings($filter: AggregatedLandingFilterVOInput, $vesselSnapshotIds: [Int]){
       deleteAggregatedLandings(filter: $filter, vesselSnapshotIds: $vesselSnapshotIds)
-    }
-  `
+    }`
 };
 
 @Injectable({providedIn: 'root'})
@@ -91,7 +87,6 @@ export class AggregatedLandingService
   extends BaseGraphqlService<AggregatedLanding, AggregatedLandingFilter>
   implements IEntitiesService<AggregatedLanding, AggregatedLandingFilter> {
 
-  protected loading = false;
   private _lastFilter;
 
   constructor(
@@ -114,12 +109,15 @@ export class AggregatedLandingService
 
     // Update previous filter
     dataFilter = this.asFilter(dataFilter);
-    this._lastFilter = dataFilter.clone();
 
     if (!dataFilter || dataFilter.isEmpty()) {
       console.warn('[aggregated-landing-service] Trying to load landing without \'filter\'. Skipping.');
+      this._lastFilter = null;
       return EMPTY;
     }
+
+    // Remember last filter - used in saveAll()
+    this._lastFilter = dataFilter.clone();
 
     // Load offline
     const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
@@ -127,26 +125,23 @@ export class AggregatedLandingService
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
 
-    // TODO: manage offset/size/sort ?
-    const variables: any = {};
+    const variables = {
+      filter: dataFilter?.asPodObject()
+    };
 
     let now = this._debug && Date.now();
     if (this._debug) console.debug('[aggregated-landing-service] Loading aggregated landings... using options:', variables);
 
     return this.mutableWatchQuery<LoadResult<AggregatedLanding>>({
         queryName: 'LoadAll',
-        query: AggregatedLandingQueries.loadAll,
+        query: Queries.loadAll,
         arrayFieldName: 'data',
-        insertFilterFn: dataFilter && dataFilter.asFilterFn(),
-        variables: {
-          ...variables,
-          filter: dataFilter && dataFilter.asPodObject()
-        },
+        insertFilterFn: dataFilter?.asFilterFn(),
+        variables,
         error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR'},
-        fetchPolicy: opts && opts.fetchPolicy || (this.network.offline ? 'cache-only' : 'no-cache')
+        fetchPolicy: opts && opts.fetchPolicy || 'no-cache'
       })
       .pipe(
-        filter(() => !this.loading),
         filter(isNotNil),
         map(res => {
           let data = (res && res.data || []).map(AggregatedLanding.fromObject);
@@ -220,43 +215,61 @@ export class AggregatedLandingService
       return this.saveAllLocally(localEntities, options);
     }
 
+    if (!this._lastFilter || this._lastFilter.isEmpty()) {
+      console.warn('[aggregated-landing-service] Trying to save aggregated landings without \'filter\': skipping.');
+      return entities;
+    }
+
     const json = entities.map(t => this.asObject(t));
 
     const now = Date.now();
     if (this._debug) console.debug('[aggregated-landing-service] Saving aggregated landings...', json);
 
-    await this.graphql.mutate<{ saveAggregatedLandings: AggregatedLanding[] }>({
-      mutation: AggregatedLandingMutations.saveAll,
+    await this.graphql.mutate<{ data: AggregatedLanding[] }>({
+      mutation: Mutations.saveAll,
       variables: {
-        aggregatedLandings: json,
-        filter: this._lastFilter && this._lastFilter.asPodObject()
+        data: json,
+        filter: this._lastFilter?.asPodObject()
       },
       error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
-      update: (proxy, {data}) => {
+      update: (cache, {data}) => {
 
-        const res = data?.saveAggregatedLandings || [];
-        if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings saved remotely in ${Date.now() - now}ms`, res);
+        const savedEntities = data?.data || [];
+        if (this._debug) console.debug(`[aggregated-landing-service] Aggregated landings saved remotely in ${Date.now() - now}ms`, savedEntities);
+        const newEntities = [];
 
+        // Update ids
         entities.forEach(aggLanding => {
-          const savedAggLanding = res.find(value => value.vesselSnapshot.id === aggLanding.vesselSnapshot.id);
+          const savedAggLanding = savedEntities.find(value => value.vesselSnapshot.id === aggLanding.vesselSnapshot.id);
           if (savedAggLanding) {
+
+            const isNew = isNil(aggLanding.observedLocationId);
+            if (isNew) {
+              newEntities.push(aggLanding);
+            }
 
             aggLanding.observedLocationId = savedAggLanding.observedLocationId;
 
             aggLanding.vesselActivities.forEach(vesselActivity=>{
-              const savedVesselActivity = savedAggLanding.vesselActivities.find(value => fromDateISOString(value.date).isSame(fromDateISOString(vesselActivity.date)));
+              const savedVesselActivity = savedAggLanding.vesselActivities.find(value => DateUtils.equals(value.date, vesselActivity.date));
               if (savedVesselActivity) {
+                vesselActivity.updateDate = savedVesselActivity.updateDate;
                 vesselActivity.observedLocationId = savedVesselActivity.observedLocationId;
                 vesselActivity.landingId = savedVesselActivity.landingId;
-                if (vesselActivity.tripId !== savedVesselActivity.tripId) {
-                  console.warn(`!!!!!!!!!!!!!! ${vesselActivity.tripId} !== ${savedVesselActivity.tripId}`)
+                if (isNotNil(vesselActivity.tripId) && vesselActivity.tripId !== savedVesselActivity.tripId) {
+                  console.warn(`/!\ ${vesselActivity.tripId} !== ${savedVesselActivity.tripId}`)
                 }
                 vesselActivity.tripId = savedVesselActivity.tripId;
               }
             })
 
           }
-        })
+        });
+
+        // Insert into the cache
+        if (isNotEmptyArray(newEntities)) {
+          this.refetchMutableWatchQueries({query: Queries.loadAll});
+        }
       }
     });
     return entities;
@@ -289,7 +302,7 @@ export class AggregatedLandingService
     if (this._debug) console.debug('[aggregated-landing-service] Deleting aggregated landings... ids:', ids);
 
     await this.graphql.mutate<any>({
-      mutation: AggregatedLandingMutations.deleteAll,
+      mutation: Mutations.deleteAll,
       variables: {
         filter: this._lastFilter && this._lastFilter.asPodObject(),
         vesselSnapshotIds: entities.map(value => value.vesselSnapshot.id)

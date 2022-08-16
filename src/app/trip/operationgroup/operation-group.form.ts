@@ -31,7 +31,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
   metier: Metier;
 
   @Input() tabindex: number;
-  @Input() showComment = false;
+  @Input() showComment = true;
   @Input() showError = true;
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
@@ -77,10 +77,10 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
     const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
 
     this.registerAutocompleteField('metier', {
-      mobile: this.mobile,
       items: this.metiers,
       attributes: metierAttributes,
       columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
+      mobile: this.mobile
     });
 
     this.registerSubscription(

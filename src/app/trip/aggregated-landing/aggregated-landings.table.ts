@@ -1,7 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { AlertController, ModalController } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
+import { AlertController } from '@ionic/angular';
 import { FormBuilder } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import {
@@ -9,16 +7,14 @@ import {
   AppTable,
   EntitiesTableDataSource,
   filterNotNil,
+  firstNotNilPromise,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LocalSettingsService,
   NetworkService,
-  PlatformService,
-  referentialToString,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
-  toBoolean,
+  toBoolean
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { BehaviorSubject } from 'rxjs';
@@ -28,7 +24,6 @@ import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { TableElement } from '@e-is/ngx-material-table';
-import { MeasurementValuesUtils } from '../services/model/measurement.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -38,6 +33,7 @@ import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 const moment = momentImported;
 
@@ -52,15 +48,12 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   canEdit: boolean;
   canDelete: boolean;
   isAdmin: boolean;
-  filterIsEmpty = true;
-  offline = false;
   showLabelForPmfmIds: number[];
 
   $currentDate = new BehaviorSubject<Moment>(undefined);
   $dates = new BehaviorSubject<Moment[]>(undefined);
   $pmfms = new BehaviorSubject<DenormalizedPmfmStrategy[]>(undefined);
-  referentialToString = referentialToString;
-  measurementValueToString = MeasurementValuesUtils.valueToString;
+  loadingPmfms = false;
 
   private _onRefreshDates = new EventEmitter<any>();
   private _onRefreshPmfms = new EventEmitter<any>();
@@ -68,6 +61,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   private _acquisitionLevel: string;
   private _nbDays: number;
   private _startDate: Moment;
+  private _timeZone: string;
 
   set nbDays(value: number) {
     if (value && value !== this._nbDays) {
@@ -83,10 +77,17 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     }
   }
 
+  set timeZone(value: string) {
+    if (value && value !== this._timeZone) {
+      this._timeZone = value;
+      this._onRefreshDates.emit();
+    }
+  }
+
   @Input() set programLabel(value: string) {
     if (this._programLabel !== value && isNotNil(value)) {
       this._programLabel = value;
-      this._onRefreshPmfms.emit();
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit();
     }
   }
 
@@ -98,7 +99,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   set acquisitionLevel(value: string) {
     if (this._acquisitionLevel !== value && isNotNil(value)) {
       this._acquisitionLevel = value;
-      this._onRefreshPmfms.emit();
+      if (!this.loadingPmfms) this._onRefreshPmfms.emit();
     }
   }
 
@@ -111,14 +112,8 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   @Input() useSticky = true;
 
   constructor(
+    injector: Injector,
     public network: NetworkService,
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
     protected accountService: AccountService,
     protected service: AggregatedLandingService,
     protected referentialRefService: ReferentialRefService,
@@ -130,7 +125,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     protected cd: ChangeDetectorRef,
   ) {
 
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       ['vessel'],
       new EntitiesTableDataSource<AggregatedLanding, AggregatedLandingFilter>(AggregatedLanding, service, null, {
         prependNewElements: false,
@@ -140,8 +135,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
           saveOnlyDirtyRows: true,
         },
       }),
-      null,
-      injector,
+      null
     );
     this.i18nColumnPrefix = 'AGGREGATED_LANDING.TABLE.';
 
@@ -153,13 +147,13 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.saveBeforeDelete = false;
     this.autoLoad = false;
     this.defaultPageSize = -1; // Do not use paginator
-    this.mobile = this.settings.mobile;
 
     // default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.LANDING;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
+
 
   }
 
@@ -170,13 +164,38 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     this.canEdit = this.isAdmin || this.accountService.isUser();
     this.canDelete = this.isAdmin;
 
-    // Listen network
-    this.offline = this.network.offline;
-
     this.registerSubscription(this._onRefreshDates.subscribe(() => this.refreshDates()));
+
     this.registerSubscription(this._onRefreshPmfms.subscribe(() => this.refreshPmfms()));
 
     this.registerSubscription(filterNotNil(this.$dates).subscribe(() => this.updateColumns()));
+
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.$pmfms.complete();
+    this.$pmfms.unsubscribe();
+    this._onRefreshPmfms.complete();
+    this._onRefreshPmfms.unsubscribe();
+    this._onRefreshDates.complete();
+    this._onRefreshDates.unsubscribe();
+  }
+
+  markAsReady(opts?: { emitEvent?: boolean }) {
+    // DEBUG console.debug('calling marking as ready');
+    super.markAsReady(opts);
+  }
+
+  async ready() {
+    await super.ready();
+
+    // Wait pmfms load, and controls load
+    await firstNotNilPromise(this.$pmfms);
+  }
+
+  trackPmfmFn(index: number, pmfm: IPmfm): any {
+    return pmfm.id;
   }
 
   setParent(parent: ObservedLocation|undefined) {
@@ -191,7 +210,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       filter.programLabel = this._programLabel;
       filter.locationId = parent.location && parent.location.id;
       filter.startDate = parent.startDateTime;
-      filter.endDate = parent.endDateTime || moment(parent.startDateTime).add(this._nbDays, 'day');
+      filter.endDate = parent.endDateTime || parent.startDateTime.clone().add(this._nbDays, 'day');
       this.setFilter(filter);
     }
   }
@@ -247,8 +266,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
           acquisitionLevel: this._acquisitionLevel,
         },
       },
-      backdropDismiss: false,
-      // cssClass: 'modal-large'
+      backdropDismiss: false
     });
 
     await modal.present();
@@ -270,13 +288,19 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
         await this.save();
       }
 
-      if (res.data.tripToOpen) {
-        // navigate to trip
+      const trip: {observedLocationId: number, tripId: number} = res.data.tripToOpen;
+      if (trip) {
+        if (isNil(trip.observedLocationId) || isNil(trip.tripId)) {
+          console.warn(`Something is missing to open trip: observedLocationId=${trip.observedLocationId}, tripId=${trip.tripId}`);
+          return;
+        }
+
+          // navigate to trip
         this.markAsLoading();
         this.markForCheck();
 
         try {
-          await this.router.navigateByUrl(`/observations/${res.data.tripToOpen.observedLocationId}/trip/${res.data.tripToOpen.tripId}`);
+          await this.router.navigateByUrl(`/observations/${trip.observedLocationId}/trip/${trip.tripId}`);
         } finally {
           this.markAsLoaded();
           this.markForCheck();
@@ -325,22 +349,40 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       .concat(RESERVED_END_COLUMNS);
   }
 
-  private refreshDates() {
-    if (isNil(this._startDate) || isNil(this._nbDays)) return;
+  private async refreshDates() {
+    if (!this._timeZone || isNil(this._startDate) || isNil(this._nbDays)) return;
+
+    // DEBUG
+    console.debug(`[aggregated-landings-table] Computing dates... {timezone: '${this._timeZone}'}`);
+
+    // Clear startDate time (at the TZ expected by the DB)
+    const firstDay = moment(this._startDate).tz(this._timeZone).startOf('day');
+
+    console.debug(`[aggregated-landings-table] Starting calendar at: '${firstDay.format()}'`);
 
     const dates: Moment[] = [];
     for (let d = 0; d < this._nbDays; d++) {
-      dates[d] = moment(this._startDate).add(d, 'day');
+      dates[d] = firstDay.clone().add(d, 'day');
     }
 
-    const today = moment().startOf('day');
-    this.$currentDate.next(dates.find(date => date.valueOf() === today.valueOf()) || this._startDate);
+    // DEBUG
+    if (this.debug)
+      console.debug(`[aggregated-landings-table] Calendar will use this dates:\n- '${dates.map(d => d.format()).join('\n- ')}'`);
+
+    const now = moment();
+    const currentDay = dates.find(date => date.isSame(now)) || firstDay;
+    this.$currentDate.next(currentDay);
 
     this.$dates.next(dates);
   }
 
   private async refreshPmfms() {
     if (isNil(this._programLabel) || isNil(this._acquisitionLevel)) return;
+
+    this.loadingPmfms = true;
+
+    // DEBUG
+    if (this.debug) console.debug(`[aggregated-landing-table] Loading pmfms... {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}''}̀̀`);
 
     // Load pmfms
     const pmfms = (await this.programRefService.loadProgramPmfms(
@@ -353,10 +395,11 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
       console.debug(`[aggregated-landings-table] No pmfm found (program=${this.programLabel}, acquisitionLevel=${this._acquisitionLevel}). Please fill program's strategies !`);
     }
 
-    this.$pmfms.next(pmfms);
-
     this.showLabelForPmfmIds = [PmfmIds.REFUSED_SURVEY];
 
+    // Apply
+    this.loadingPmfms = false;
+    this.$pmfms.next(pmfms);
 
   }
 

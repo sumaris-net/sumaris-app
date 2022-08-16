@@ -4,6 +4,7 @@ import {ReferentialRef}  from "@sumaris-net/ngx-components";
 import {FilterFn} from "@sumaris-net/ngx-components";
 import {isNotEmptyArray} from "@sumaris-net/ngx-components";
 import {EntityClass}  from "@sumaris-net/ngx-components";
+import { BBox } from 'geojson';
 
 @EntityClass({typename: 'ReferentialFilterVO'})
 export class ReferentialRefFilter
@@ -12,6 +13,7 @@ export class ReferentialRefFilter
   static fromObject: (source, opts?: any) => ReferentialRefFilter;
 
   searchAttributes: string[] = null;
+  boundingBox?: BBox;
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
@@ -39,8 +41,10 @@ export class ReferentialRefFilter
     const filterFns = super.buildFilter();
 
     // Search on many attributes
-    const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttributes || this.searchAttribute || ['label', 'name'], this.searchText);
-    if (searchTextFilter) filterFns.push(searchTextFilter);
+    if (!this.searchAttribute) {
+      const searchTextFilter = EntityUtils.searchTextFilter(this.searchAttributes || ['label', 'name'], this.searchText);
+      if (searchTextFilter) filterFns.push(searchTextFilter);
+    }
 
     return filterFns;
   }

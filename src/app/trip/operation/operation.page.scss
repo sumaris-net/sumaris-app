@@ -1,4 +1,3 @@
-@import 'theme.globals';
 
 :host {
 
@@ -18,8 +17,6 @@ ion-col>ion-label {
   white-space: normal;
 }
 
-@media screen and (max-width: $screen-sm-max) {
-  .measurements-form {
-    padding-inline-start: 24px;
-  }
+.mat-tab-body.mat-tab-body-active {
+  overflow-y: visible; // Workaround for iPad
 }

@@ -106,10 +106,6 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     this.tabCount = this.isQualitative ? 2 : 1;
   }
 
-  protected canUserWrite(data: Parameter): boolean {
-    return (this.isNewData && this.accountService.isAdmin())
-      || (ReferentialUtils.isNotEmpty(data) && this.accountService.isSupervisor());
-  }
 
   enable() {
     super.enable();

@@ -26,7 +26,6 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
-  readonly mobile: boolean;
 
   @Input() canEdit = false;
   @Input() canDelete = false;
@@ -50,23 +49,12 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
   }
 
   constructor(
-    route: ActivatedRoute,
-    router: Router,
-    platform: PlatformService,
-    location: Location,
-    modalCtrl: ModalController,
-    localSettingsService: LocalSettingsService,
     injector: Injector,
     dataService: StrategyService,
     validatorService: ValidatorService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route,
-      router,
-      platform,
-      location,
-      modalCtrl,
-      localSettingsService,
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -82,11 +70,8 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
         dataServiceOptions: {
           saveOnlyDirtyRows: false
         }
-      }),
-      null,
-      injector);
+      }));
 
-    this.mobile = platform.mobile;
     this.inlineEdition = false
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.confirmBeforeDelete = true;

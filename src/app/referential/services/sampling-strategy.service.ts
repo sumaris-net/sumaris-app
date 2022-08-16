@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {FetchPolicy, gql} from '@apollo/client/core';
 import {ReferentialFragments} from './referential.fragments';
 import {
@@ -33,8 +33,8 @@ import {BaseReferentialService} from './base-referential-service.class';
 import {Moment} from 'moment';
 import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 import {Strategy} from '@app/referential/services/model/strategy.model';
-import {ExtractionCacheDurationType} from '@app/extraction/services/model/extraction-type.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.model';
+import {ExtractionCacheDurationType} from '@app/extraction/type/extraction-type.model';
+import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -67,23 +67,22 @@ const SamplingStrategyQueries = {
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.referential}
-  ${ReferentialFragments.taxonName}
-  `,
-  loadEffort: gql`query StrategyEffort($extractionType: String!,
-    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $cacheDuration: String,
-    $viewSheetName: String!, $filterSheetName: String!,
-    $columnName: String!, $operator: String!, $values: [String!]!) {
+  ${ReferentialFragments.taxonName}`,
+
+  loadEffort: gql`query StrategyEffort($ids: [String!]!,
+    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String,
+    $cacheDuration: String) {
     data: extraction(
-      type: {label: $extractionType},
+      type: {format: "strat"},
       offset: $offset,
       size: $size,
       sortBy: $sortBy,
       sortDirection: $sortDirection,
       cacheDuration: $cacheDuration,
       filter: {
-        sheetName: $viewSheetName,
+        sheetName: "SM",
         criteria: [
-          {sheetName: $filterSheetName, name: $columnName, operator: $operator, values: $values}
+          {sheetName: "ST", name: "strategy_id", operator: "IN", values: $ids}
         ]
       }
     )
@@ -94,8 +93,7 @@ const SamplingStrategyQueries = {
 export class SamplingStrategyService extends BaseReferentialService<SamplingStrategy, StrategyFilter> {
 
   constructor(
-    graphql: GraphqlService,
-    platform: PlatformService,
+    injector: Injector,
     protected network: NetworkService,
     protected accountService: AccountService,
     protected cache: CacheService,
@@ -105,7 +103,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     protected pmfmService: PmfmService,
     protected referentialRefService: ReferentialRefService
   ) {
-    super(graphql, platform, SamplingStrategy, StrategyFilter,
+    super(injector, SamplingStrategy, StrategyFilter,
       {
         queries: SamplingStrategyQueries
       });
@@ -349,29 +347,28 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     const now = Date.now();
     console.debug(`[sampling-strategy-service] Fill efforts on ${entities.length} strategies... {cache: ${withCache}${withCache ? ', cacheDuration: \'' + cacheDuration + '\'' : ''}}`);
 
-    const strategyIds = (entities || [])
+    const ids = (entities || [])
       .filter(s => isNotNil(s.id) && (!withCache || !s.hasRealizedEffort)) // Remove new, or existing efforts
       .map(s => s.id.toString());
-    if (isEmptyArray(strategyIds)) {
+    if (isEmptyArray(ids)) {
       console.debug(`[sampling-strategy-service] No effort to load: Skip`);
       return; // Skip is empty
     }
 
+    const variables = {
+      ids,
+      offset: 0,
+      size: 1000, // All rows
+      sortBy: 'start_date',
+      sortDirection: 'asc',
+      cacheDuration
+    };
+
+    console.debug('[sampling-strategy-service] variables:', variables);
+
     const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
       query: SamplingStrategyQueries.loadEffort,
-      variables: {
-        extractionType: "strat",
-        viewSheetName: "SM",
-        offset: 0,
-        size: 1000, // All rows
-        sortBy: "start_date",
-        sortDirection: "asc",
-        cacheDuration,
-        filterSheetName: "ST",
-        columnName: "strategy_id",
-        operator: "IN",
-        values: strategyIds
-      },
+      variables,
       fetchPolicy: opts && opts.fetchPolicy || 'no-cache'
     });
 

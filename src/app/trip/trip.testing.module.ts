@@ -3,18 +3,24 @@ import {RouterModule, Routes} from "@angular/router";
 import {CommonModule} from "@angular/common";
 import {CoreModule}  from "@sumaris-net/ngx-components";
 import {BatchTreeTestPage} from "./batch/testing/batch-tree.test";
-import {TripModule} from "./trip.module";
+import {AppTripModule} from "./trip/trip.module";
 import {SharedModule} from "@sumaris-net/ngx-components";
 import {TranslateModule} from "@ngx-translate/core";
 import {TestingPage} from "@sumaris-net/ngx-components";
-import { BatchGroupFormTestPage } from '@app/trip/batch/form/testing/batch-group.form.test';
+import { BatchGroupFormTestPage } from '@app/trip/batch/group/testing/batch-group.form.test';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { SampleTreeTestPage } from '@app/trip/sample/testing/sample-tree.test';
+import { PhysicalGearsTestPage } from '@app/trip/physicalgear/testing/physical-gears.test';
+import { AppSampleModule } from '@app/trip/sample/sample.module';
+import { AppBatchModule } from '@app/trip/batch/batch.module';
+import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
 
-export const TRIP_TESTING_PAGES = [
-  <TestingPage>{label: 'Batch tree', page: '/testing/trip/batchTree'},
-  <TestingPage>{label: 'Batch group form', page: '/testing/trip/batchGroupForm'},
-  <TestingPage>{label: 'Sample tree', page: '/testing/trip/sampleTree'}
+export const TRIP_TESTING_PAGES: TestingPage[] = [
+  {label: 'Trip module', divider: true},
+  {label: 'Physical gears', page: '/testing/trip/physicalGears'},
+  {label: 'Batch tree', page: '/testing/trip/batchTree'},
+  {label: 'Batch group form', page: '/testing/trip/batchGroupForm'},
+  {label: 'Sample tree', page: '/testing/trip/sampleTree'}
 ];
 
 const routes: Routes = [
@@ -33,6 +39,11 @@ const routes: Routes = [
     pathMatch: 'full',
     component: SampleTreeTestPage
   },
+  {
+    path: 'physicalGears',
+    pathMatch: 'full',
+    component: PhysicalGearsTestPage
+  },
 ];
 
 @NgModule({
@@ -42,18 +53,23 @@ const routes: Routes = [
     CoreModule,
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
-    TripModule,
+    AppTripModule,
+    AppSampleModule,
+    AppBatchModule,
+    AppPhysicalGearModule,
     MatCheckboxModule,
   ],
   declarations: [
     BatchGroupFormTestPage,
     BatchTreeTestPage,
-    SampleTreeTestPage
+    PhysicalGearsTestPage,
+    SampleTreeTestPage,
   ],
   exports: [
     BatchGroupFormTestPage,
     BatchTreeTestPage,
-    SampleTreeTestPage
+    SampleTreeTestPage,
+    PhysicalGearsTestPage
   ]
 })
 export class TripTestingModule {

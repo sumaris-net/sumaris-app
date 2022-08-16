@@ -13,7 +13,7 @@
     <ion-buttons slot="end">
       <!-- Options menu -->
       <button mat-icon-button *ngIf="!isNew && mobile"
-              [title]="'COMMON.OPTIONS'|translate"
+              [title]="'COMMON.BTN_OPTIONS'|translate"
               [matMenuTriggerFor]="optionsMenu">
         <mat-icon>more_vert</mat-icon>
       </button>
@@ -21,7 +21,7 @@
       <ion-spinner *ngIf="loading"></ion-spinner>
 
       <ion-button class="back-button" (click)="save($event)"
-                  *ngIf="!loading"
+                  *ngIf="!loading && enabled"
                   [disabled]="!form.valid"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="checkmark"></ion-icon>
@@ -49,34 +49,40 @@
                     [parentAttributes]="parentAttributes"
                     [debug]="debug">
 
-    <!-- sampling -->
-    <ion-button samplingButtons mat-button
-                fill="clear" color="tertiary" expand="full"
-            [title]="'TRIP.PRODUCT.EDIT.BTN_INDIVIDUAL_SAMPLING'|translate"
-            (click)="save($event, 'sampling')">
-      <mat-icon>assessment</mat-icon>
-      <ion-label>
-        <span translate>TRIP.PRODUCT.EDIT.BTN_INDIVIDUAL_SAMPLING</span>
-        <span *ngIf="(data.samples && data.samples.length)">&nbsp;
-          ({{(data.samples.length).toString()}})
-        </span>
-      </ion-label>
-    </ion-button>
+    <ion-grid endButtons class="ion-no-padding" *ngIf="enabled">
+      <ion-row>
+        <!-- sampling -->
+        <ion-col>
+          <ion-button color="tertiary" fill="solid" expand="block" shape="round"
+                  [title]="'TRIP.PRODUCT.EDIT.BTN_INDIVIDUAL_SAMPLING'|translate"
+                  (click)="save($event, 'sampling')">
+            <mat-icon slot="start">assessment</mat-icon>
+            <ion-label>
+              <span translate>TRIP.PRODUCT.EDIT.BTN_INDIVIDUAL_SAMPLING</span>
+              <span *ngIf="(data.samples && data.samples.length)">&nbsp;
+                ({{(data.samples.length).toString()}})
+              </span>
+            </ion-label>
+          </ion-button>
+        </ion-col>
 
-    <!-- product sale -->
-    <ion-button productSaleButtons mat-button
-                fill="clear" color="tertiary" expand="full"
-            [title]="'TRIP.PRODUCT.EDIT.BTN_SALE'|translate"
-            (click)="save($event, 'sale')">
-      <mat-icon>local_offer
-      </mat-icon>
-      <ion-label>
-        <span translate>TRIP.PRODUCT.EDIT.BTN_SALE</span>
-        <span *ngIf="(data.saleProducts && data.saleProducts.length)">&nbsp;
-          ({{(data.saleProducts.length).toString()}})
-        </span>
-      </ion-label>
-    </ion-button>
+        <!-- product sale -->
+        <ion-col>
+          <ion-button endButtons
+                      color="tertiary" fill="solid" expand="block" shape="round"
+                      [title]="'TRIP.PRODUCT.EDIT.BTN_SALE'|translate"
+                      (click)="save($event, 'sale')">
+            <mat-icon slot="start">local_offer</mat-icon>
+            <ion-label>
+              <span translate>TRIP.PRODUCT.EDIT.BTN_SALE</span>
+              <span *ngIf="(data.saleProducts && data.saleProducts.length)">&nbsp;
+                ({{(data.saleProducts.length).toString()}})
+              </span>
+            </ion-label>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
 
   </app-product-form>
 

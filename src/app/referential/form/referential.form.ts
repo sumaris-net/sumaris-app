@@ -1,7 +1,8 @@
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, Optional } from '@angular/core';
 import { AppForm, IStatus, Referential, splitById, StatusList } from '@sumaris-net/ngx-components';
 import { ValidatorService } from '@e-is/ngx-material-table';
+import { FormGroupDirective } from '@angular/forms';
 
 @Component({
   selector: 'app-referential-form',
@@ -39,13 +40,16 @@ export class ReferentialForm extends AppForm<Referential> implements OnInit {
 
   constructor(
     injector: Injector,
-    protected validatorService: ValidatorService
+    @Optional() protected validatorService: ValidatorService,
+    @Optional() protected formGroupDirective: FormGroupDirective
   ) {
-    super(injector, validatorService.getRowValidator());
+    super(injector,formGroupDirective?.form || validatorService?.getRowValidator());
     this.cd = injector.get(ChangeDetectorRef);
   }
 
   ngOnInit() {
+    this.setForm(this.form || this.formGroupDirective?.form || this.validatorService?.getRowValidator());
+
     super.ngOnInit();
 
     // Fill statusById, if not set by input

@@ -225,6 +225,7 @@ export const StrategyFragments = {
     defaultValue
     acquisitionNumber
     isMandatory
+    isComputed
     rankOrder
     acquisitionLevel
     parameterId
@@ -239,6 +240,7 @@ export const StrategyFragments = {
       id
       label
       name
+      description
       statusId
       entityName
       __typename

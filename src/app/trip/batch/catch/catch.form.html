@@ -1,0 +1,120 @@
+<form class="form-container" [formGroup]="form|formGetGroup:'measurementValues'" (ngSubmit)="doSubmit($event)">
+
+  <!-- error -->
+  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <ion-grid class="ion-no-padding" *ngIf="$otherPmfms | async as otherPmfms; else loadingSkeleton">
+
+    <!-- on deck  -->
+    <ng-container *ngIf="$gearPmfms | async as pmfms">
+      <ion-row *ngIf="pmfms|isNotEmptyArray">
+        <ion-col size="12" size-md="3" size-lg="3">
+          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SUB_GEAR</ion-label>
+        </ion-col>
+        <ng-container *ngFor="let pmfm of pmfms; index as i;">
+          <ion-col *ngIf="!pmfm.hidden" size="6" size-md="3">
+            <app-pmfm-field [pmfm]="pmfm"
+                            [i18nPrefix]="i18nPmfmPrefix"
+                            [i18nSuffix]="i18nSuffix"
+                            [tabindex]="tabindex+10+i">
+            </app-pmfm-field>
+          </ion-col>
+        </ng-container>
+      </ion-row>
+    </ng-container>
+
+    <!-- on deck  -->
+    <ng-container *ngIf="$onDeckPmfms | async as pmfms">
+      <ion-row *ngIf="pmfms|isNotEmptyArray">
+        <ion-col size="12" size-md="3" size-lg="3">
+          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.ON_DECK</ion-label>
+        </ion-col>
+        <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
+          <ion-col *ngIf="!pmfm.hidden" size="6" size-md="3">
+            <app-pmfm-field [pmfm]="pmfm"
+                            [i18nPrefix]="i18nPmfmPrefix"
+                            [i18nSuffix]="i18nSuffix"
+                            [tabindex]="tabindex+10+i">
+            </app-pmfm-field>
+          </ion-col>
+        </ng-container>
+      </ion-row>
+    </ng-container>
+
+    <!-- Sorting -->
+    <ng-container *ngIf="$sortingPmfms | async as pmfms">
+      <ion-row *ngIf="pmfms|isNotEmptyArray">
+        <ion-col size="12" size-md="3" size-lg="3">
+          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SORTING</ion-label>
+        </ion-col>
+        <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
+          <ion-col *ngIf="!pmfm.hidden" size="6" size-md="3">
+            <app-pmfm-field [pmfm]="pmfm"
+                            [i18nPrefix]="i18nPmfmPrefix"
+                            [i18nSuffix]="i18nSuffix"
+                            [tabindex]="tabindex+20+i">
+            </app-pmfm-field>
+          </ion-col>
+        </ng-container>
+
+      </ion-row>
+    </ng-container>
+
+    <!-- Weight pmfms -->
+    <ng-container *ngIf="$weightPmfms | async as pmfms">
+      <ion-row *ngIf="pmfms|isNotEmptyArray" class="ion-padding">
+        <ion-col size="12" size-md="3" size-lg="3">
+          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
+        </ion-col>
+        <ng-container *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
+          <ion-col *ngIf="!pmfm.hidden" size="6" size-md="2">
+            <app-pmfm-field [pmfm]="pmfm"
+                            [i18nPrefix]="i18nPmfmPrefix"
+                            [i18nSuffix]="i18nSuffix"
+                            [tabindex]="tabindex+30+i">
+            </app-pmfm-field>
+          </ion-col>
+        </ng-container>
+      </ion-row>
+    </ng-container>
+
+    <!-- Other features -->
+    <ion-row *ngIf="otherPmfms|isNotEmptyArray">
+      <ion-col size="" size-md="3" size-lg="3">
+      </ion-col>
+      <ng-container *ngFor="let pmfm of otherPmfms; trackBy: trackPmfmFn; index as i;">
+        <ion-col *ngIf="!pmfm.hidden"
+                 size="6" [sizeMd]="(pmfm|isMultiplePmfm) ? 9 : 3" >
+          <app-pmfm-field [pmfm]="pmfm"
+                          [i18nPrefix]="i18nPmfmPrefix"
+                          [i18nSuffix]="i18nSuffix"
+                          [tabindex]="tabindex+40+i*3">
+          </app-pmfm-field>
+        </ion-col>
+      </ng-container>
+    </ion-row>
+
+
+  </ion-grid>
+</form>
+
+
+<ng-template #loadingSkeleton>
+
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col size="12" size-md="3">
+        <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
+      </ion-col>
+      <ion-col size="6" size-md="auto">
+        <mat-form-field>
+          <input matInput hidden disabled>
+          <ion-skeleton-text animated style="width: 100%"></ion-skeleton-text>
+        </mat-form-field>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ng-template>

@@ -1,9 +1,9 @@
-import {Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
-import {debounceTime, filter, map, tap} from 'rxjs/operators';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {ReferentialValidatorService} from '../services/validator/referential.validator';
-import {ReferentialService} from '../services/referential.service';
+import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { ReferentialValidatorService } from '../services/validator/referential.validator';
+import { ReferentialService } from '../services/referential.service';
 import {
   AccountService,
   AppTable,
@@ -15,7 +15,6 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  LocalSettingsService,
   Referential,
   ReferentialRef,
   RESERVED_END_COLUMNS,
@@ -24,18 +23,21 @@ import {
   sort,
   StatusById,
   StatusList,
-  toBoolean,
+  toBoolean
 } from '@sumaris-net/ngx-components';
-import {ModalController, Platform} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
-import {TranslateService} from '@ngx-translate/core';
-import {environment} from '../../../environments/environment';
-import {ReferentialFilter} from '../services/filter/referential.filter';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { TranslateService } from '@ngx-translate/core';
+import { environment } from '../../../environments/environment';
+import { ReferentialFilter } from '../services/filter/referential.filter';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { ReferentialI18nKeys } from '@app/referential/referential.utils';
 
+
+export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
+  FILTER_KEY: 'filter',
+  COMPACT_ROWS_KEY: 'compactRows'
+};
 
 @Component({
   selector: 'app-referential-page',
@@ -49,7 +51,6 @@ import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
 export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
   static DEFAULT_ENTITY_NAME = "Pmfm";
-  static DEFAULT_I18N_LEVEL_NAME = 'REFERENTIAL.LEVEL';
 
   private _entityName: string;
 
@@ -59,13 +60,16 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
   i18nLevelName: string;
   filterCriteriaCount = 0;
+  filterPanelFloating = true;
   detailsPath = {
     'Program': '/referential/programs/:id',
     'Software': '/referential/software/:id?label=:label',
     'Pmfm': '/referential/pmfm/:id?label=:label',
     'Parameter': '/referential/parameter/:id?label=:label',
-    'ExtractionProduct': '/extraction/product/:id?label=:label',
-    'TaxonName': '/referential/taxonName/:id?label=:label'
+    'TaxonName': '/referential/taxonName/:id?label=:label',
+    'TaxonGroup': '/referential/taxonGroup/:id?label=:label',
+    // Extraction (special case)
+    'ExtractionProduct': '/extraction/product/:id?label=:label'
   };
 
   readonly statusList = StatusList;
@@ -98,23 +102,22 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return this._entityName;
   }
 
+  @Input() sticky = false;
+  @Input() stickyEnd = false;
+  @Input() compact = false;
+
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
     protected accountService: AccountService,
-    protected settings: LocalSettingsService,
     protected validatorService: ReferentialValidatorService,
     protected referentialService: ReferentialService,
+    protected referentialRefService: ReferentialRefService,
     protected formBuilder: FormBuilder,
     protected translate: TranslateService
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -122,6 +125,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           'name',
           'level',
           'status',
+          'creationDate',
           'updateDate',
           'comments'])
         .concat(RESERVED_END_COLUMNS),
@@ -131,9 +135,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
         dataServiceOptions: {
           saveOnlyDirtyRows: true
         }
-      }),
-      null,
-      injector
+      })
     );
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
@@ -195,7 +197,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
           }),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
-          tap(json => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
+          tap(json => this.persistFilterInSettings && this.settings.savePageSetting(this.settingsId, json, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY))
         )
         .subscribe()
       );
@@ -208,8 +210,12 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
     // Level autocomplete
     this.registerAutocompleteField('level', {
-      items: this.$levels
+      items: this.$levels,
+      mobile: this.mobile
     });
+
+    // Restore compact mode
+    this.restoreCompactMode();
 
     if (this.persistFilterInSettings) {
       this.restoreFilterOrLoad();
@@ -222,7 +228,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   async restoreFilterOrLoad() {
     this.markAsLoading();
 
-    const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY);
+    const json = this.settings.getPageSettings(this.settingsId, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY);
     console.debug("[referentials] Restoring filter from settings...", json);
 
     if (json && json.entityName) {
@@ -317,7 +323,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
   }
 
   async loadLevels(entityName: string): Promise<ReferentialRef[]> {
-    const res = await this.referentialService.loadLevels(entityName, {
+    const res = await this.referentialRefService.loadLevels(entityName, {
       fetchPolicy: 'network-only'
     });
 
@@ -328,10 +334,10 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       const typeName = levels[0].entityName;
       const i18nLevelName = "REFERENTIAL.ENTITY." + changeCaseToUnderscore(typeName).toUpperCase();
       const levelName = this.translate.instant(i18nLevelName);
-      this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
+      this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }
     else {
-      this.i18nLevelName = ReferentialsPage.DEFAULT_I18N_LEVEL_NAME;
+      this.i18nLevelName = ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }
 
     if (this.canSelectEntity) {
@@ -385,15 +391,25 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return false;
   }
 
+  toggleFilterPanelFloating() {
+    this.filterPanelFloating = !this.filterPanelFloating;
+    this.markForCheck();
+  }
+
   applyFilterAndClosePanel(event?: UIEvent) {
     this.onRefresh.emit(event);
-    this.filterExpansionPanel.close();
+    if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
+  }
+
+  closeFilterPanel() {
+    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
 
   resetFilter(event?: UIEvent) {
     this.filterForm.reset({entityName: this._entityName}, {emitEvent: true});
     this.setFilter(ReferentialFilter.fromObject({entityName: this._entityName}), {emitEvent: true});
-    this.filterExpansionPanel.close();
+    this.filterCriteriaCount = 0;
+    if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
   patchFilter(filter: Partial<ReferentialFilter>) {
@@ -404,6 +420,28 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }), {emitEvent: true});
     this.filterExpansionPanel.close();
   }
+
+  restoreCompactMode(opts?: {emitEvent?: boolean}) {
+    if (!this.compact) {
+      const compact = this.settings.getPageSettings(this.settingsId, REFERENTIAL_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY) || false;
+      if (this.compact !== compact) {
+        this.compact = compact;
+
+        if (!opts || opts.emitEvent !== false) {
+          this.markForCheck();
+        }
+      }
+    }
+  }
+
+  toggleCompactMode() {
+    this.compact = !this.compact;
+    this.markForCheck();
+    this.settings.savePageSetting(this.settingsId, this.compact, REFERENTIAL_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
+  }
+
+  /* -- protected functions -- */
+
 
   protected async openNewRowDetail(): Promise<boolean> {
     const path = this.detailsPath[this._entityName];

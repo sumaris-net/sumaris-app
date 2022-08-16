@@ -21,7 +21,7 @@
       "webpack-env"
     ],
     "lib": [
-      "es2018",
+      "es2020",
       "dom"
     ],
     "paths": {
@@ -32,16 +32,16 @@
         "src/environments/*"
       ],
       "@sumaris-net/ngx-components/*": [
-        "ngx-sumaris-components/src/app/public_api.ts"
+        "ngx-sumaris-components/*"
       ],
       // Force using the RxJS project's version
       "rxjs": ["node_modules/rxjs"],
-      "rxjs/*": ["node_modules/rxjs/*"]
+      "rxjs/*": ["node_modules/rxjs/*"],
+      "@ionic/*": ["node_modules/@ionic/*"]
     }
   },
   "angularCompilerOptions": {
-    //"enableIvy": "true",
-    //"compilationMode": "partial",
+    "enableIvy": true,
     "fullTemplateTypeCheck": true,
     "strictInjectionParameters": true
   }

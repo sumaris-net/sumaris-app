@@ -1,9 +1,9 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
-import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, PlatformService, remove, removeAll, round } from '@sumaris-net/ngx-components';
+import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round } from '@sumaris-net/ngx-components';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { BehaviorSubject } from 'rxjs';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, filter, mergeMap } from 'rxjs/operators';
 import { Measurement, MeasurementUtils } from '../services/model/measurement.model';
 import { ExpenseValidatorService } from '../services/validator/expense.validator';
 import { getMaxRankOrder } from '@app/data/services/model/model.utils';
@@ -63,7 +63,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   @Output() selectedTabChange = new EventEmitter<MatTabChangeEvent>();
 
-  @ViewChild('iceExpenseForm') iceFrom: TypedExpenseForm;
+  @ViewChild('iceExpenseForm') iceForm: TypedExpenseForm;
   @ViewChildren('baitExpenseForm') baitForms: QueryList<TypedExpenseForm>;
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
@@ -73,31 +73,30 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   }
 
   get dirty(): boolean {
-    return super.dirty || (this.iceFrom && !!this.iceFrom.dirty) || (this.baitForms && !!this.baitForms.find(form => form.dirty));
+    return super.dirty || (this.iceForm && !!this.iceForm.dirty) || (this.baitForms && !!this.baitForms.find(form => form.dirty));
   }
 
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
-    return super.valid && (!this.iceFrom || !this.iceFrom.valid) && (!this.baitForms || !this.baitForms.find(form => !form.valid));
+    return super.valid && (!this.iceForm || !this.iceForm.valid) && (!this.baitForms || !this.baitForms.some(form => !form.valid));
   }
 
   get invalid(): boolean {
-    return super.invalid || (this.iceFrom && this.iceFrom.invalid) || (this.baitForms && this.baitForms.find(form => form.invalid) && true);
+    return super.invalid || (this.iceForm && this.iceForm.invalid) || (this.baitForms && this.baitForms.some(form => form.invalid));
   }
 
   get pending(): boolean {
-    return super.pending || (this.iceFrom && !!this.iceFrom.pending) || (this.baitForms && !!this.baitForms.find(form => form.pending));
+    return super.pending || (this.iceForm && !!this.iceForm.pending) || (this.baitForms && this.baitForms.some(form => form.pending));
   }
 
   constructor(
     injector: Injector,
     protected validatorService: ExpenseValidatorService,
     protected formBuilder: FormBuilder,
-    protected programRefService: ProgramRefService,
-    protected platform: PlatformService
+    protected programRefService: ProgramRefService
   ) {
     super(injector, validatorService, formBuilder, programRefService);
-    this.mobile = platform.mobile;
+    this.mobile = this.settings.mobile;
     this.keepRankOrder = true;
     this.tabindex = 0;
   }
@@ -107,74 +106,78 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
     this.initBaitHelper();
 
-    this.registerSubscription(filterNotNil(this.$pmfms).subscribe(pmfms => {
+    this.registerSubscription(
+      filterNotNil(this.$pmfms)
+        // Wait form controls ready
+        .pipe(mergeMap((pmfms) => this.ready().then(_ => pmfms)))
+        .subscribe(pmfms => {
+          const expensePmfms: IPmfm[] = pmfms.slice();
+          // dispatch pmfms
+          this.$estimatedTotalPmfm.next(remove(expensePmfms, this.isEstimatedTotalPmfm));
+          this.$fuelTypePmfm.next(remove(expensePmfms, this.isFuelTypePmfm));
 
-      // Wait form controls ready
-      this.ready().then(() => {
-        const expensePmfms: IPmfm[] = pmfms.slice();
-        // dispatch pmfms
-        this.$estimatedTotalPmfm.next(remove(expensePmfms, this.isEstimatedTotalPmfm));
-        this.$fuelTypePmfm.next(remove(expensePmfms, this.isFuelTypePmfm));
+          this.$fuelPmfms.next(removeAll(expensePmfms, this.isFuelPmfm));
+          this.fuelTuple = this.getValidTuple(this.$fuelPmfms.getValue());
 
-        this.$fuelPmfms.next(removeAll(expensePmfms, this.isFuelPmfm));
-        this.fuelTuple = this.getValidTuple(this.$fuelPmfms.getValue());
+          this.$engineOilPmfms.next(removeAll(expensePmfms, this.isEngineOilPmfm));
+          this.engineOilTuple = this.getValidTuple(this.$engineOilPmfms.getValue());
 
-        this.$engineOilPmfms.next(removeAll(expensePmfms, this.isEngineOilPmfm));
-        this.engineOilTuple = this.getValidTuple(this.$engineOilPmfms.getValue());
+          this.$hydraulicOilPmfms.next(removeAll(expensePmfms, this.isHydraulicPmfm));
+          this.hydraulicOilTuple = this.getValidTuple(this.$hydraulicOilPmfms.getValue());
 
-        this.$hydraulicOilPmfms.next(removeAll(expensePmfms, this.isHydraulicPmfm));
-        this.hydraulicOilTuple = this.getValidTuple(this.$hydraulicOilPmfms.getValue());
+          // remaining pmfms go to miscellaneous part
+          this.$miscPmfms.next(expensePmfms);
 
-        // remaining pmfms go to miscellaneous part
-        this.$miscPmfms.next(expensePmfms);
+          // register total pmfms for calculated total
+          this.registerTotalSubscription(pmfms.filter(pmfm => this.isTotalPmfm(pmfm) && !this.isEstimatedTotalPmfm(pmfm)));
 
-        // register total pmfms for calculated total
-        this.registerTotalSubscription(pmfms.filter(pmfm => this.isTotalPmfm(pmfm) && !this.isEstimatedTotalPmfm(pmfm)));
-
-      });
-
-    }));
-
+        })
+    );
   }
 
   ngAfterViewInit() {
 
     // listen to bait forms children view changes
-    this.registerSubscription(this.baitForms.changes.subscribe(() => {
+    this.registerSubscription(this.baitForms.changes
+      .subscribe(() => {
 
-      // on applying bait measurements, set them after forms are ready
-      if (this.applyingBaitMeasurements) {
-        this.applyingBaitMeasurements = false;
-        this.applyBaitMeasurements();
-        // set all as enabled
-        this.baitForms.forEach(baitForm => baitForm.enable());
-      }
-
-      // on adding a new bait, prepare the new form
-      if (this.addingNewBait) {
-        this.addingNewBait = false;
-        this.baitForms.last.value = [];
-        this.baitForms.last.enable();
-      }
-
-      // on removing bait, total has to be recalculate
-      if (this.removingBait) {
-        this.removingBait = false;
-        this.calculateTotal();
-      }
-
-      // check all bait children forms having totalValueChange registered,
-      this.baitForms.forEach(baitForm => {
-        if (baitForm.totalValueChanges.observers.length === 0) {
-          // add it if missing
-          this.registerSubscription(baitForm.totalValueChanges.subscribe(() => this.calculateTotal()));
+        // on applying bait measurements, set them after forms are ready
+        if (this.applyingBaitMeasurements) {
+          this.applyingBaitMeasurements = false;
+          this.applyBaitMeasurements();
+          // set all as enabled
+          this.baitForms.forEach(baitForm => {
+            baitForm.markAsReady();
+            if (this._enable) baitForm.enable();
+          });
         }
-      });
+
+        // on adding a new bait, prepare the new form
+        if (this.addingNewBait) {
+          this.addingNewBait = false;
+          this.baitForms.last.value = [];
+          this.baitForms.last.markAsReady();
+          if (this._enable) this.baitForms.last.enable();
+        }
+
+        // on removing bait, total has to be recalculate
+        if (this.removingBait) {
+          this.removingBait = false;
+          this.calculateTotal();
+        }
+
+        // check all bait children forms having totalValueChange registered,
+        this.baitForms.forEach(baitForm => {
+          // add it if missing
+          if (baitForm.totalValueChanges.observers.length === 0) {
+            this.registerSubscription(baitForm.totalValueChanges.subscribe(() => this.calculateTotal()));
+          }
+        });
 
     }));
 
     // add totalValueChange subscription on iceForm
-    this.registerSubscription(this.iceFrom.totalValueChanges.subscribe(() => this.calculateTotal()));
+    this.registerSubscription(this.iceForm.totalValueChanges.subscribe(() => this.calculateTotal()));
 
 
   }
@@ -209,7 +212,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     this.resetComputedTupleValues(values, this.hydraulicOilTuple);
 
     // add ice values
-    values.push(...this.iceFrom.value);
+    values.push(...this.iceForm.value);
 
     // add bait values
     this.baitForms.forEach(form => values.push(...form.value));
@@ -218,12 +221,12 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     return values;
   }
 
-  async setValue(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+  async applyValue(data: Measurement[], opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
 
     // Make a copy of data to keep ice and bait measurements
     this.allData = this.allData || data.slice();
 
-    super.setValue(data, opts);
+    await super.applyValue(data, opts);
 
     // set ice value
     await this.setIceValue(this.allData);
@@ -245,13 +248,13 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   async setIceValue(data: Measurement[]) {
 
-    if (!this.iceFrom.$pmfms.getValue()) {
+    if (!this.iceForm.$pmfms.getValue()) {
       if (this.debug) console.debug('[expense-form] waiting for ice pmfms');
-      await firstNotNilPromise(this.iceFrom.$pmfms);
+      await firstNotNilPromise(this.iceForm.$pmfms);
     }
 
     // filter data before set to ice form
-    this.iceFrom.value = MeasurementUtils.filter(data, this.iceFrom.$pmfms.getValue());
+    this.iceForm.value = MeasurementUtils.filter(data, this.iceForm.$pmfms.getValue());
 
   }
 
@@ -302,23 +305,19 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   }
 
   registerTupleSubscription(tuple: ObjectMap<TupleValue>) {
-    if (tuple) {
-      Object.keys(tuple).forEach(pmfmId => {
-        this.registerSubscription(this.form.get(pmfmId).valueChanges
-          .pipe(
-            filter(() => !this.applyingValue && !this.calculating),
-            debounceTime(250)
-          )
-          .subscribe(value => {
-            this.calculateTupleValues(tuple, pmfmId, value);
-          }));
-      });
-    }
+    if (!tuple) return; // Skip
+    Object.keys(tuple).forEach(pmfmId => {
+      this.registerSubscription(this.form.get(pmfmId).valueChanges
+        .pipe(
+          filter(() => !this.applyingValue && !this.calculating),
+          debounceTime(250)
+        )
+        .subscribe(value => this.calculateTupleValues(tuple, pmfmId, value)));
+    });
   }
 
   calculateTupleValues(tuple: ObjectMap<TupleValue>, sourcePmfmId: string, value: any) {
-    if (this.calculating)
-      return;
+    if (this.calculating) return;
 
     try {
       if (this.debug) {
@@ -432,7 +431,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     });
 
     // add total from ice form
-    total += this.iceFrom.total;
+    total += this.iceForm.total;
 
     // add total from each bait form
     this.baitForms.forEach(baitForm => {
@@ -493,7 +492,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.calculating = true;
     super.enable(opts);
-    this.iceFrom && this.iceFrom.enable(opts);
+    this.iceForm && this.iceForm.enable(opts);
     this.baitForms && this.baitForms.forEach(form => form.enable(opts));
     this.calculating = false;
   }
@@ -501,32 +500,32 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     this.calculating = true;
     super.disable(opts);
-    this.iceFrom && this.iceFrom.disable(opts);
+    this.iceForm && this.iceForm.disable(opts);
     this.baitForms && this.baitForms.forEach(form => form.disable(opts));
     this.calculating = false;
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsPristine(opts);
-    this.iceFrom && this.iceFrom.markAsPristine(opts);
+    this.iceForm && this.iceForm.markAsPristine(opts);
     this.baitForms && this.baitForms.forEach(form => form.markAsPristine(opts));
   }
 
   markAsUntouched(opts?: { onlySelf?: boolean }) {
     super.markAsUntouched(opts);
-    this.iceFrom && this.iceFrom.markAsUntouched(opts);
+    this.iceForm && this.iceForm.markAsUntouched(opts);
     this.baitForms && this.baitForms.forEach(form => form.markAsUntouched());
   }
 
   markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsTouched(opts);
-    this.iceFrom && this.iceFrom.markAsTouched(opts);
+    this.iceForm && this.iceForm.markAsTouched(opts);
     this.baitForms && this.baitForms.forEach(form => form.markAsTouched(opts));
   }
 
   markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAllAsTouched(opts);
-    this.iceFrom && this.iceFrom.markAllAsTouched(opts);
+    this.iceForm && this.iceForm.markAllAsTouched(opts);
     this.baitForms && this.baitForms.forEach(form => form.markAllAsTouched(opts));
   }
 

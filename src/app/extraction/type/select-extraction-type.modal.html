@@ -1,0 +1,91 @@
+<ion-header>
+  <ion-toolbar color="light">
+    <ion-buttons slot="start">
+      <ion-button (click)="cancel()"
+                  visible-xs visible-sm visible-mobile>
+        <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title [innerHTML]="title|translate"></ion-title>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-list>
+
+    <!-- Help message -->
+    <ion-list-header *ngIf="helpText">
+      <ion-label class="ion-text-wrap">
+        <p [innerHTML]="helpText|translate"></p>
+      </ion-label>
+    </ion-list-header>
+
+    <!-- loader -->
+    <ion-item *ngIf="loading" lines="none">
+      <ion-label class="ion-text-center">
+        <ion-spinner></ion-spinner>
+      </ion-label>
+    </ion-item>
+
+
+    <ion-item tappable ripple
+              *ngFor="let item of types$ | async"
+              (click)="selectType(item)"
+              detail>
+
+      <ion-grid>
+        <ion-row class="ion-no-padding">
+          <ion-col class="ion-no-padding">
+            <ion-label class="ion-text-wrap">
+              <ion-text color="dark">
+                <h3>
+                  <span *ngIf="item.statusId==2">
+                    <ion-icon name="eye-off"></ion-icon>&nbsp;
+                  </span>
+                  {{item.name}}
+                </h3>
+              </ion-text>
+              <ion-text color="medium">
+                <h4>
+                  <small>
+                    <ion-icon name="time-outline"></ion-icon>&nbsp;
+                    {{ item.updateDate|dateFormat:{time: true} }}
+                  </small>
+                </h4>
+              </ion-text>
+            </ion-label>
+          </ion-col>
+          <ion-col class="ion-no-padding" *ngIf="item.description">
+            <ion-label class="ion-text-center ion-text-wrap" color="medium">
+              <h3>{{item.description}}</h3>
+            </ion-label>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+  <!-- buttons -->
+  <ion-toolbar>
+
+    <ion-row>
+      <ion-col></ion-col>
+      <ion-col size="auto">
+
+        <ion-button fill="clear" color="dark" (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+
+  </ion-toolbar>
+</ion-footer>

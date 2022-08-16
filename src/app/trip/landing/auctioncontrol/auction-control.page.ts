@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '../../../referential/services/model/model.enum';
 import { LandingPage } from '../landing.page';
-import { debounceTime, distinctUntilKeyChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { Landing } from '../../services/model/landing.model';
 import { AuctionControlValidators } from '../../services/validator/auction-control.validators';
 import { ModalController } from '@ionic/angular';
 import {
   AppHelpModal,
+  AppHelpModalOptions,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
   filterNotNil,
@@ -17,24 +18,25 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LoadResult, PlatformService,
+  LoadResult,
+  LocalSettingsService,
   ReferentialUtils,
   SharedValidators,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../services/model/observed-location.model';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
 import { Program } from '../../../referential/services/model/program.model';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
-import { AppRootDataEditor } from '../../../data/form/root-data-editor.class';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 
 @Component({
   selector: 'app-auction-control',
   styleUrls: ['auction-control.page.scss'],
   templateUrl: './auction-control.page.html',
   animations: [fadeInOutAnimation],
-  providers: [{provide: AppRootDataEditor, useExisting: AuctionControlPage}],
+  providers: [{provide: APP_ENTITY_EDITOR, useExisting: AuctionControlPage}],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AuctionControlPage extends LandingPage implements OnInit {
@@ -53,19 +55,18 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
   constructor(
     injector: Injector,
-    protected platform: PlatformService,
+    protected settings: LocalSettingsService,
     protected formBuilder: FormBuilder,
     protected modalCtrl: ModalController
   ) {
     super(injector, {
       pathIdAttribute: 'controlId',
-      autoOpenNextTab: !platform.mobile,
-      tabGroupAnimationDuration: '0s' // Disable tab animation
+      tabGroupAnimationDuration: '0s', // Disable tab animation
+      i18nPrefix: 'AUCTION_CONTROL.EDIT.'
     });
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
   }
-
 
   ngOnInit() {
     super.ngOnInit();
@@ -79,12 +80,13 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined)
+      columnSizes: taxonGroupAttributes.map(attr => attr === 'label' ? 3 : undefined),
+      mobile: this.mobile
     });
 
   }
 
-  async ngAfterViewInit() {
+  ngAfterViewInit() {
     super.ngAfterViewInit();
 
     // Get program taxon groups
@@ -144,25 +146,26 @@ export class AuctionControlPage extends LandingPage implements OnInit {
           }))
         );
 
-    // Get the taxon group control control
+    // Get the taxon group control
     this.selectedTaxonGroup$ = this.$taxonGroupPmfm
       .pipe(
         map(pmfm => pmfm && this.form.get( `measurementValues.${pmfm.id}`)),
         filter(isNotNil),
+        distinctUntilChanged(),
         switchMap(control => control.valueChanges
           .pipe(
             startWith<any, any>(control.value),
             debounceTime(250)
-          )),
+          ))
+      ).pipe(
         // Update the help content
         tap(qv => {
-          // TODO BLA load description, in the executeImport process
-          //console.warn("TODO: update help modal with QV=", qv);
-          this.helpContent = qv && qv.description || undefined;
+          this.helpContent = qv && qv.description || null;
+          this.markForCheck();
         }),
         map(qv => {
           return ReferentialUtils.isNotEmpty(qv)
-            && this.$taxonGroups.getValue().find(tg => tg.label === qv.label)
+            && this.$taxonGroups.value.find(tg => tg.label === qv.label)
             || undefined;
         })
       );
@@ -210,7 +213,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
 
     this.registerSubscription(
       this.taxonGroupControl.valueChanges
-        .pipe(distinctUntilKeyChanged('id'))
+        .pipe(
+          distinctUntilChanged(ReferentialUtils.equals)
+        )
         .subscribe(taxonGroup => {
           const hasTaxonGroup = ReferentialUtils.isNotEmpty(taxonGroup);
           console.debug('[control] Selected taxon group:', taxonGroup);
@@ -265,10 +270,14 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   }
 
   async openHelpModal(event?: UIEvent) {
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
     const modal = await this.modalCtrl.create({
       component: AppHelpModal,
-      componentProps: {
-        title: 'COMMON.BTN_SHOW_HELP',
+      componentProps: <AppHelpModalOptions>{
+        title: this.translate.instant('COMMON.HELP.TITLE'),
         markdownContent: this.helpContent
       },
       keyboardClose: true,
@@ -297,6 +306,14 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       });
   }
 
+  async openReport(event: UIEvent) {
+    if (this.dirty) {
+      const data = await this.saveAndGetDataIfValid();
+      if (!data) return; // Cancel
+    }
+    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+  }
+
   /* -- protected method -- */
 
   protected async setValue(data: Landing): Promise<void> {
@@ -316,7 +333,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     if (this.showSamplesTable && data.samples) {
       const taxonGroup = this.taxonGroupControl.value;
       // Apply the selected taxon group, if any
-      if (ReferentialUtils.isNotEmpty(taxonGroup)) {
+      if (ReferentialUtils.isNotEmpty<TaxonGroupRef>(taxonGroup)) {
         (data.samples || []).forEach(sample => sample.taxonGroup = taxonGroup);
       }
     }
@@ -358,7 +375,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return `${parentUrl}/control/${id}`;
   }
 
-  protected computeSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
+  protected registerSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
+    // DEBUG
+    // console.debug('[auction-control-page] Adding row validator');
     return AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
   }
 

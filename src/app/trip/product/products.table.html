@@ -30,7 +30,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
 
   <table mat-table [dataSource]="dataSource"
          [matSortActive]="defaultSortBy"
@@ -157,7 +157,7 @@
     </ng-container>
 
     <!-- Pmfm columns -->
-    <ng-container *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
+    <ng-container *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm.id.toString()">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
         <ion-label [innerHTML]="pmfm|pmfmName: {html: true}">
         </ion-label>
@@ -168,7 +168,7 @@
           [class.mat-cell-computed]="pmfm|isComputedPmfm">
         <app-pmfm-field [readonly]="!row.editing"
                         [pmfm]="pmfm"
-                        [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
+                        [control]="row.validator|formGetControl:['measurementValues', pmfm.id]"
                         floatLabel="never"></app-pmfm-field>
       </td>
 
@@ -235,8 +235,7 @@
         <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
                 [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"
                 (click)="openProductSale($event, row)"
-                [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined"
-                [hidden]="readOnly">
+                [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined">
           <mat-icon [matBadge]="row.currentData.saleProducts?.length"
                     [matBadgeHidden]="row.currentData.saleProducts | isEmptyArray"
                     matBadgeColor="accent"
@@ -250,6 +249,7 @@
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+        [class.mat-row-selected]="row.editing"
         [class.mat-row-error]="row.validator.invalid"
         [class.mat-row-dirty]="row.validator.dirty"
         [class.mat-row-disabled]="!row.editing"

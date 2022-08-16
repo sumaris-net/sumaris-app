@@ -1,23 +1,8 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
-import { AlertController, ModalController, Platform } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
-import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
-import { TranslateService } from '@ngx-translate/core';
-import {
-  AccountService, AppFormUtils,
-  AppTable,
-  EntitiesTableDataSource,
-  isNotNil,
-  LatLongPattern,
-  LocalSettings,
-  LocalSettingsService,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, SharedValidators,
-  toBoolean,
-} from '@sumaris-net/ngx-components';
+import { OperationService } from '../services/operation.service';
+import { AccountService, AppFormUtils, isNotNil, LatLongPattern, LocalSettings, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { OperationsMap, OperationsMapModalOptions } from './map/operations.map';
 import { environment } from '@environments/environment';
 import { Operation } from '../services/model/trip.model';
@@ -28,8 +13,8 @@ import { MatExpansionPanel } from '@angular/material/expansion';
 import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
-import { TripFilter } from '@app/trip/services/filter/trip.filter';
-
+import { AppBaseTable } from '@app/shared/table/base.table';
+import { LandingEditor, OperationEditor } from '@app/referential/services/config/program.config';
 
 @Component({
   selector: 'app-operations-table',
@@ -40,7 +25,7 @@ import { TripFilter } from '@app/trip/services/filter/trip.filter';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationsTable extends AppTable<Operation, OperationFilter> implements OnInit, OnDestroy {
+export class OperationsTable extends AppBaseTable<Operation, OperationFilter> implements OnInit, OnDestroy {
 
   displayAttributes: {
     [key: string]: string[]
@@ -49,9 +34,10 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   statusList = DataQualityStatusList
     .filter(s => s.id !== DataQualityStatusIds.VALIDATED);
   statusById = DataQualityStatusEnum;
-  filterForm: FormGroup;
-  filterCriteriaCount = 0;
-  filterPanelFloating = true;
+  readonly filterForm: FormGroup = this.formBuilder.group({
+    tripId: [null],
+    dataQualityStatus: [null]
+  });
 
   @Input() latLongPattern: LatLongPattern;
   @Input() showMap: boolean;
@@ -60,6 +46,9 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() showPaginator = true;
   @Input() useSticky = true;
   @Input() allowParentOperation = false;
+  @Input() showQuality = true;
+  @Input() showRowError = false;
+  @Input() detailEditor: OperationEditor;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -123,6 +112,22 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     return this.getShowColumn('fishingArea');
   }
 
+  @Input() set showEndDateTime(show: boolean) {
+    this.setShowColumn('endDateTime', show);
+  }
+
+  get showEndDateTime(): boolean {
+    return this.getShowColumn('endDateTime');
+  }
+
+  @Input() set showFishingEndDateTime(show: boolean) {
+    this.setShowColumn('fishingEndDateTime', show);
+  }
+
+  get showFishingEndDateTime(): boolean {
+    return this.getShowColumn('fishingEndDateTime');
+  }
+
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
   }
@@ -134,45 +139,39 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: Platform,
-    protected location: Location,
-    protected modalCtrl: ModalController,
+    injector: Injector,
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
-    protected alertCtrl: AlertController,
-    protected translate: TranslateService,
     protected accountService: AccountService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef,
   ) {
-    super(route, router, platform, location, modalCtrl, settings,
-      RESERVED_START_COLUMNS
-        .concat(
-          platform.is('mobile') ?
-            ['quality',
-              'physicalGear',
-              'targetSpecies',
-              'startDateTime',
-              'endDateTime',
-              'fishingArea'] :
-            ['quality',
-              'physicalGear',
-              'targetSpecies',
-              'startDateTime',
-              'startPosition',
-              'endDateTime',
-              'endPosition',
-              'fishingArea',
-              'comments'])
-        .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<Operation, OperationFilter, number, OperationServiceWatchOptions>(Operation,
+    super(injector,
+      Operation, OperationFilter,
+      settings.mobile ?
+        ['quality',
+          'physicalGear',
+          'targetSpecies',
+          'startDateTime',
+          'endDateTime',
+          'fishingEndDateTime',
+          'fishingArea'] :
+        ['quality',
+          'physicalGear',
+          'targetSpecies',
+          'startDateTime',
+          'startPosition',
+          'endDateTime',
+          'fishingEndDateTime',
+          'endPosition',
+          'fishingArea',
+          'comments'],
         dataService,
         null,
         // DataSource options
         {
+          i18nColumnPrefix: 'TRIP.OPERATION.LIST.',
           prependNewElements: false,
           suppressErrors: environment.production,
           dataServiceOptions: {
@@ -181,14 +180,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
             withSamples: false,
             withTotal: true
           }
-        })
+        }
     );
-    this.i18nColumnPrefix = 'TRIP.OPERATION.LIST.';
-    this.filterForm = formBuilder.group({
-      tripId: [null],
-      dataQualityStatus: [null]
-    });
-
     this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
@@ -208,7 +201,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
         from(this.settings.ready()),
         this.settings.onChange
       )
-      .subscribe(_ => this.configureFromSettings())
+        .subscribe(_ => this.configureFromSettings())
     );
   }
 
@@ -260,12 +253,12 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
 
     const res = await this.dataService.loadAllByTrip({
       tripId: this.tripId
-    }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true});
+    }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/});
 
     const modal = await this.modalCtrl.create({
       component: OperationsMap,
       componentProps: <OperationsMapModalOptions>{
-        data: res.data,
+        data: [res.data],
         latLongPattern: this.latLongPattern,
         programLabel: this.programLabel
       },
@@ -279,10 +272,15 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     // Wait until closed
     const {data} = await modal.onDidDismiss();
     if (data instanceof Operation) {
-      // Select the row
+      console.info('[operation-table] User select an operation from the map:', data);
+
+      // Open the row
       const row = (await this.dataSource.getRows()).find(row => row.currentData.id === data.id);
       if (row) {
         this.clickRow(null, row);
+      }
+      else {
+        this.openRow(data.id, null);
       }
     }
 
@@ -306,34 +304,11 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     return super.getI18nColumnName(columnName);
   }
 
-  setFilter(filter: OperationFilter, opts?: { emitEvent: boolean }) {
-
-    filter = this.asFilter(filter);
-
-    // Update criteria count
-    const criteriaCount = filter.countNotEmptyCriteria() - 1 /* remove tripId */;
-    if (criteriaCount !== this.filterCriteriaCount) {
-      this.filterCriteriaCount = criteriaCount;
-      this.markForCheck();
-    }
-
-    // Update the form content
-    if (!opts || opts.emitEvent !== false) {
-      this.filterForm.patchValue(filter.asObject(), {emitEvent: false});
-    }
-
-    super.setFilter(filter, opts);
-  }
-
-  applyFilterAndClosePanel(event?: UIEvent) {
-    this.onRefresh.emit(event);
-    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
-  }
-
   resetFilter(event?: UIEvent) {
-    this.setFilter(<OperationFilter>{ tripId: this.tripId }, {emitEvent: true});
+    this.setFilter(<OperationFilter>{tripId: this.tripId}, {emitEvent: true});
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+    this.resetError();
   }
 
   toggleFilterPanelFloating() {
@@ -355,6 +330,43 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.filterForm.get(key).reset(null);
   }
 
+  // Change visibility to public
+  setError(error: string, opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
+    super.setError(error, opts);
+
+    // If error
+    if (error) {
+      // Add filter on invalid rows (= not controlled)
+      if (!opts || opts.showOnlyInvalidRows !== false) {
+        this.showRowError = true;
+        const filter = this.filter || new OperationFilter();
+        filter.dataQualityStatus = 'MODIFIED'; // = not controlled operations
+        this.setFilter(filter);
+      }
+    }
+    // No errors
+    else {
+      // Remove filter on invalid rows
+      if (!opts || opts.showOnlyInvalidRows !== true) {
+        this.showRowError = false;
+        const filter = this.filter || new OperationFilter();
+        if (filter.dataQualityStatus === 'MODIFIED') {
+          filter.dataQualityStatus = undefined;
+          this.setFilter(filter);
+        }
+      }
+    }
+  }
+
+  // Change visibility to public
+  resetError(opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
+    this.setError(undefined, opts);
+  }
+
+  trackByFn(index: number, row: TableElement<Operation>) {
+    return row.currentData.id;
+  }
+
   /* -- protected methods -- */
 
   protected asFilter(source?: any): OperationFilter {
@@ -363,7 +375,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   protected configureFromSettings(settings?: LocalSettings) {
-    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...')
+    console.debug('[operation-table] Configure from local settings (latLong format, display attributes)...');
     settings = settings || this.settings.settings;
 
     if (settings.accountInheritance) {

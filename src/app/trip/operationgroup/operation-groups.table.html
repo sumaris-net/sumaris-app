@@ -40,7 +40,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
 
   <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)" >
     <ion-refresher-content></ion-refresher-content>
@@ -116,7 +116,7 @@
     </ng-container>
 
     <!-- Pmfm columns -->
-    <ng-container  *ngFor="let pmfm of $pmfms | async" [matColumnDef]="pmfm.id.toString()">
+    <ng-container  *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn" [matColumnDef]="pmfm.id.toString()">
       <th mat-header-cell *matHeaderCellDef mat-sort-header [class.mat-cell-date-time]="pmfm|isDatePmfm">
         <ion-label [innerHTML]="pmfm|pmfmName: {html: true, withUnit: true}"></ion-label>
       </th>
@@ -124,7 +124,8 @@
                 [class.mat-cell-computed]="pmfm|isComputedPmfm">
         <app-pmfm-field
           [readonly]="!row.editing"
-          [pmfm]="pmfm" [control]="row.validator.controls.measurementValues.controls[pmfm.id]"
+          [pmfm]="pmfm"
+          [control]="row.validator|formGetControl:['measurementValues', pmfm.id]"
           [compact]="true" floatLabel="never"></app-pmfm-field>
       </td>
 
@@ -143,39 +144,49 @@
     </ng-container>
 
     <!-- Actions buttons column -->
-  <!--  <app-actions-column (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"-->
-  <!--                      (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"-->
-  <!--                      [canCancel]="false">-->
-  <!--  </app-actions-column>-->
-    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
+    <app-actions-column [stickyEnd]="useSticky"
+                        (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
+                        (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
+                        (backward)="confirmAndBackward($event.event, $event.row)"
+                        (forward)="confirmAndForward($event.event, $event.row)"
+                        [canCancel]="false">
+    </app-actions-column>
+    <!--<ng-container matColumnDef="actions" [stickyEnd]="useSticky">
       <th mat-header-cell *matHeaderCellDef>
         <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
           <mat-icon>more_vert</mat-icon>
         </button>
       </th>
       <td mat-cell *matCellDef="let row">
-        <!-- undo or delete  -->
+        &lt;!&ndash; undo or delete  &ndash;&gt;
         <button mat-icon-button color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
                 (click)="cancelOrDelete($event, row)" [hidden]="!inlineEdition">
           <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
           <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
         </button>
-        <!-- validate -->
+        &lt;!&ndash; validate &ndash;&gt;
         <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
                 (click)="confirmEditCreate($event, row)" [hidden]="!inlineEdition">
           <mat-icon>check</mat-icon>
         </button>
-        <!-- add -->
+        &lt;!&ndash; add &ndash;&gt;
         <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
                 (click)="confirmAndAdd($event, row)" [hidden]="!inlineEdition">
           <mat-icon>add</mat-icon>
         </button>
 
       </td>
-    </ng-container>
+    </ng-container>-->
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+        [class.mat-row-selected]="row.editing"
+        [class.mat-row-error]="row.validator.invalid"
+        [class.mat-row-dirty]="row.validator.dirty"
+        [class.mat-row-disabled]="!row.editing"
+        (click)="clickRow($event, row)"
+        (keydown.escape)="escapeEditingRow($event)"
+        [cdkTrapFocus]="!row.validator.valid"></tr>
   </table>
 
   <ng-container *ngIf="loadingSubject|async; else noResult">

@@ -2,11 +2,10 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input } from '@a
 import { IRootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { EntityUtils } from '@sumaris-net/ngx-components';
 import { PredefinedColors } from '@ionic/core';
-import { qualityFlagToColor } from '@app/data/services/model/model.utils';
+import { qualityFlagToColor, QualityIonIcon } from '@app/data/services/model/model.utils';
 import { IDataEntity } from '@app/data/services/model/data-entity.model';
 
 export declare type SynchronizationIonIcon = 'time-outline'|'hourglass-outline'|'pencil';
-export declare type QualityIonIcon = SynchronizationIonIcon |'checkmark'|'checkmark-circle'|'flag'|'alert';
 
 @Component({
   selector: 'app-entity-quality-icon',

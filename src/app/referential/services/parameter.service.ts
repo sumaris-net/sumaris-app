@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import {AccountService, isEmptyArray} from '@sumaris-net/ngx-components';
+import { AccountService, isEmptyArray, ReferentialUtils } from '@sumaris-net/ngx-components';
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
@@ -90,16 +90,21 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
   }
 
 
-  async loadAllByLabels(labels: string[], options?: EntityServiceLoadOptions): Promise<Parameter[]> {
+  async loadAllByLabels(labels: string[],
+                        options?: EntityServiceLoadOptions): Promise<Parameter[]> {
     if (isEmptyArray(labels)) throw new Error('Missing required argument \'labels\'');
-    const res = await Promise.all(
+    const items = await Promise.all(
       labels.map(label => this.loadByLabel(label, options)
         .catch(err => {
           if (err && err.code === ErrorCodes.LOAD_REFERENTIAL_ERROR) return undefined; // Skip if not found
           throw err;
         }))
     );
-    return res.filter(isNotNil);
+    return items.filter(isNotNil);
+  }
+
+  canUserWrite(data: Parameter, opts?: any): boolean {
+    return this.accountService.isAdmin();
   }
 
   /**
@@ -142,7 +147,7 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
 
     entity.entityName = 'Parameter';
 
-    await this.referentialService.deleteAll([entity]);
+    await this.referentialService.delete(entity);
   }
 
   listenChanges(id: number, options?: any): Observable<Parameter | undefined> {

@@ -3,18 +3,21 @@ import {ModalController} from "@ionic/angular";
 import {PlatformService}  from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {TranslateService} from "@ngx-translate/core";
-import {ExtractionType} from "../services/model/extraction-type.model";
+import {ExtractionType} from "../type/extraction-type.model";
 import {isNotNilOrBlank} from "@sumaris-net/ngx-components";
 import {AppHelpModal} from "@sumaris-net/ngx-components";
+
+export interface ExtractionHelpModalOptions {
+  type: ExtractionType;
+}
 
 @Component({
     selector: 'app-extraction-help-modal',
     templateUrl: 'help.modal.html'
 })
-export class ExtractionHelpModal extends AppHelpModal implements OnInit {
+export class ExtractionHelpModal extends AppHelpModal implements OnInit, ExtractionHelpModalOptions{
 
-  @Input()
-  type: ExtractionType;
+  @Input() type: ExtractionType;
 
   constructor(
       protected injector: Injector,
@@ -39,7 +42,11 @@ export class ExtractionHelpModal extends AppHelpModal implements OnInit {
     }
     if (this.type.docUrl) {
       this.loading = true;
-      this.docUrl = this.type.docUrl;
+      let url = this.type.docUrl;
+      if (url && !url.endsWith('.md')) {
+        url += '.md';
+      }
+      this.markdownUrl = url;
     }
     else {
       this.markAsLoaded(); // Nothing to load

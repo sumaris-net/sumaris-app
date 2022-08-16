@@ -5,20 +5,20 @@
       <ion-back-button></ion-back-button>
     </ion-buttons>
 
-    <ion-title>Autocomplete field test page</ion-title>
+    <ion-title>Batch tree test</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
+<ion-content>
 
-  <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+  <form class="form-container ion-padding" [formGroup]="filterForm" (ngSubmit)="doSubmit($event)">
    <ion-grid class="ion-no-padding">
 
      <!-- Filter -->
      <ion-row>
        <!-- Program -->
-       <ion-col>
-         <mat-autocomplete-field formControlName="program" class="min-width-large ion-text-wrap"
+       <ion-col size="12" size-md="3">
+         <mat-autocomplete-field formControlName="program" class="ion-text-wrap"
                                  [placeholder]="'TRIP.TABLE.FILTER.PROGRAM'|translate"
                                  [config]="autocomplete.fields.program"
                                  [tabindex]="1"
@@ -27,36 +27,55 @@
        </ion-col>
 
        <!-- Gear -->
-       <ion-col>
+       <ion-col size="12" size-md="3">
          <mat-autocomplete-field formControlName="gear"
-                                 [placeholder]="'TRIP.PHYSICAL_GEAR.LIST.GEAR'|translate"
+                                 [placeholder]="'TRIP.PHYSICAL_GEAR.TABLE.GEAR'|translate"
                                  [tabindex]="2"
                                  [required]="true"
                                  [config]="autocomplete.fields.gear">
          </mat-autocomplete-field>
        </ion-col>
 
-       <!-- Example select -->
-       <ion-col>
-         <mat-autocomplete-field formControlName="example"
-                                 placeholder="Data example"
+       <!-- Location -->
+       <ion-col size="12" size-md="3">
+         <mat-autocomplete-field formControlName="fishingArea"
+                                 [placeholder]="'TRIP.OPERATION.EDIT.FISHING_AREAS'|translate"
                                  [tabindex]="3"
                                  [required]="true"
-                                 [config]="autocomplete.fields.example">
+                                 [config]="autocomplete.fields.fishingArea">
          </mat-autocomplete-field>
        </ion-col>
-     </ion-row>
 
-     <!-- examples data -->
-     <ion-row><ion-col><ion-text><h4>Input data</h4></ion-text></ion-col></ion-row>
-     <ion-row>
+       <ion-col size="4" size-md="2">
+         <mat-autocomplete-field formControlName="example"
+                                  placeholder="Data example"
+                                  [tabindex]="3"
+                                  [required]="true"
+                                  [showSearchBar]="false"
+                                  [config]="autocomplete.fields.example">
+         </mat-autocomplete-field>
+       </ion-col>
 
-       <!-- buttons -->
-       <ion-col size="2">
-         <!-- log tree -->
-         <ion-button (click)="dumpExample()"
-                     fill="outline">
-           <ion-icon name="arrow-forward" slot="icon-only"></ion-icon>
+       <ion-col size="6" size-md="4">
+         <mat-boolean-field formControlName="autofill"
+                            [placeholder]="'TRIP.BATCH.TABLE.BTN_AUTO_FILL'|translate"
+                            [tabindex]="4"
+                            [required]="true">
+         </mat-boolean-field>
+       </ion-col>
+
+       <!-- Action  buttons -->
+       <ion-col size="4" size-md="2">
+         <!-- show tree -->
+         <ion-button *ngIf="!outputs.example" fill="outline"
+                     (click)="dumpExample()">
+           <ion-icon name="eye" slot="icon-only"></ion-icon>
+         </ion-button>
+         <!-- hide tree -->
+         <ion-button *ngIf="outputs.example"
+                     fill="outline"
+                     (click)="outputs.example=undefined">
+           <ion-icon name="eye-off" slot="icon-only"></ion-icon>
          </ion-button>
          <!-- copy to -->
          <ion-button (click)="applyExample()"
@@ -64,45 +83,53 @@
            <ion-icon name="arrow-down" slot="icon-only"></ion-icon>
          </ion-button>
        </ion-col>
-       <ion-col size="10">
-         <ion-text color="medium">
-           <h4>Output: </h4>
-           <p [innerHTML]="outputs.example">
-           </p>
-         </ion-text>
-       </ion-col>
      </ion-row>
+   </ion-grid>
+  </form>
 
-      <!-- mobile -->
-      <ion-row><ion-col><ion-text><h4>Mobile mode</h4></ion-text></ion-col></ion-row>
-      <ion-row>
-        <ion-col size="12">
+  <div class="ion-padding" *ngIf="outputs.example">
+    <ion-text color="medium">
+      <h4>Output: </h4>
+      <p [innerHTML]="outputs.example">
+      </p>
+    </ion-text>
+  </div>
 
-          <app-batch-tree #mobileBatchTree
-                          [programLabel]="$programLabel|async"
-                          [gearId]="$gearId|async"
-                          queryTabIndexParamName="mobileTab"
-                          [programLabel]="$programLabel | async"
-                          [usageMode]="'FIELD'"
-                          [mobile]="true"
-                          [debug]="true">
-          </app-batch-tree>
-        </ion-col>
+  <mat-tab-group [style.height.px]="600" dynamicHeight>
+    <mat-tab label="Mobile">
+      <ng-template matTabContent>
+        <app-batch-tree #mobileBatchTree
+                        [programLabel]="$programLabel|async"
+                        [gearId]="$gearId|async"
+                        queryTabIndexParamName="mobileTab"
+                        [usageMode]="'FIELD'"
+                        [mobile]="true"
+                        [debug]="true">
+        </app-batch-tree>
 
         <!-- buttons -->
-        <ion-col size="2">
-          <!-- log tree -->
-          <ion-button (click)="dumpBatchTree(mobileBatchTree, 'mobile')"
-                      matTooltip="Output data to log"
-                      fill="outline">
-            <ion-icon name="arrow-forward" slot="icon-only"></ion-icon>
+        <ion-item [lines]="'none'">
+          <!-- Save -->
+          <ion-button (click)="save($event, mobileBatchTree, 'mobile')"
+                      title="Save the table" color="danger"
+                      [disabled]="!mobileBatchTree.dirty"
+                      [fill]="mobileBatchTree.dirty ? 'solid': 'outline'" translate>
+            COMMON.BTN_SAVE
           </ion-button>
 
-          <!-- copy to -->
-          <ion-button (click)="copyBatchTree(mobileBatchTree, desktopBatchTree)"
-                      matTooltip="Copy to desktop table"
+          <!-- show tree -->
+          <ion-button *ngIf="!outputs.mobile"
+                      (click)="dumpBatchTree(mobileBatchTree, 'mobile')"
+                      matTooltip="Output data to log"
                       fill="outline">
-            <ion-icon name="arrow-down" slot="icon-only"></ion-icon>
+            <ion-icon name="eye" slot="icon-only"></ion-icon>
+          </ion-button>
+
+          <!-- hide tree -->
+          <ion-button (click)="outputs.mobile=undefined" *ngIf="outputs.mobile"
+                      matTooltip="Output data to log"
+                      fill="outline">
+            <ion-icon name="eye-off" slot="icon-only"></ion-icon>
           </ion-button>
 
           <!-- Reload from himself -->
@@ -111,67 +138,77 @@
                       fill="outline">
             <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
           </ion-button>
-        </ion-col>
-        <ion-col size="10">
+        </ion-item>
+
+        <div class="ion-padding"
+             *ngIf="outputs.mobile">
           <ion-text color="medium">
             <h4>Output: </h4>
             <p [innerHTML]="outputs.mobile">
             </p>
           </ion-text>
-        </ion-col>
-      </ion-row>
+        </div>
+      </ng-template>
+    </mat-tab>
 
-     <!-- desktop -->
-     <ion-row><ion-col><ion-text><h4>Desktop mode</h4></ion-text></ion-col></ion-row>
-     <ion-row>
-       <ion-col size="12">
+    <mat-tab label="Desktop">
+      <ng-template matTabContent>
+        <!-- Batch tree compoment, to test -->
+        <app-batch-tree #desktopBatchTree
+                        [programLabel]="$programLabel|async"
+                        [gearId]="$gearId|async"
+                        queryTabIndexParamName="desktopTab"
+                        [usageMode]="'FIELD'"
+                        [mobile]="false"
+                        [allowSubBatches]="true"
+                        [debug]="true">
+        </app-batch-tree>
 
-         <app-batch-tree #desktopBatchTree
-                         [programLabel]="$programLabel|async"
-                         [gearId]="$gearId|async"
-                         queryTabIndexParamName="desktopTab"
-                         [usageMode]="'FIELD'"
-                         [mobile]="false"
-                         [allowSubBatches]="true"
-                         [debug]="true">
-         </app-batch-tree>
-       </ion-col>
+        <!-- buttons -->
+        <ion-item>
+          <!-- Save -->
+          <ion-button (click)="save($event, desktopBatchTree, 'desktop')"
+                      title="Save the table" color="danger"
+                      [disabled]="!desktopBatchTree.dirty"
+                      [fill]="desktopBatchTree.dirty ? 'solid': 'outline'" translate>
+            COMMON.BTN_SAVE
+          </ion-button>
 
-       <!-- buttons -->
-       <ion-col size="2">
-         <!-- log tree -->
-         <ion-button (click)="dumpBatchTree(desktopBatchTree, 'desktop')"
-                     matTooltip="Output data to log"
-                     fill="outline">
-           <ion-icon name="arrow-forward" slot="icon-only"></ion-icon>
-         </ion-button>
+          <!-- show tree -->
+          <ion-button (click)="dumpBatchTree(desktopBatchTree, 'desktop')"
+                      *ngIf="!outputs.desktop"
+                      title="Output data to log"
+                      fill="outline">
+            <ion-icon name="eye" slot="icon-only"></ion-icon>
+          </ion-button>
 
-         <!-- copy to -->
-         <ion-button (click)="copyBatchTree(desktopBatchTree, mobileBatchTree)"
-                     matTooltip="Copy data to mobile table"
-                     fill="outline">
-           <ion-icon name="arrow-up" slot="icon-only"></ion-icon>
-         </ion-button>
+          <!-- hide tree -->
+          <ion-button (click)="outputs.desktop=undefined"
+                      *ngIf="outputs.desktop"
+                      title="Output data to log"
+                      fill="outline">
+            <ion-icon name="eye-off" slot="icon-only"></ion-icon>
+          </ion-button>
 
-         <!-- Reload from himself -->
-         <ion-button (click)="copyBatchTree(desktopBatchTree, desktopBatchTree)"
-                     matTooltip="Reload from himself data"
-                     fill="outline">
-           <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
-         </ion-button>
+          <!-- Reload from himself -->
+          <ion-button (click)="copyBatchTree(desktopBatchTree, desktopBatchTree)"
+                      title="Reload from himself data"
+                      fill="outline">
+            <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
+          </ion-button>
 
-       </ion-col>
-       <ion-col size="10">
-         <ion-text color="medium">
-           <h4>Output: </h4>
-           <p [innerHTML]="outputs.desktop">
-           </p>
-         </ion-text>
-       </ion-col>
+        </ion-item>
 
-     </ion-row>
-    </ion-grid>
-
-  </form>
+        <div class="ion-padding"
+             *ngIf="outputs.desktop">
+          <ion-text color="medium">
+            <h4>Output: </h4>
+            <p [innerHTML]="outputs.desktop">
+            </p>
+          </ion-text>
+        </div>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
 
 </ion-content>

@@ -17,7 +17,7 @@ export class TypedExpenseValidatorService extends MeasurementsValidatorService<M
     return Object.assign(
       super.getFormGroupConfig(data, opts),
       {
-        amount: [null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        amount: [null, Validators.compose([SharedValidators.decimal({maxDecimals: 2}), Validators.min(0)])],
         packaging: [null, SharedValidators.entity]
       }
     );

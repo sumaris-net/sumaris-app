@@ -58,7 +58,7 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
         rankOrder: [data?.rankOrder || null],
         saleType: [data?.saleType || null],
         taxonGroup: [data?.taxonGroup || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        weight: [data?.weight || '', SharedValidators.double({maxDecimals: 2})],
+        weight: [data?.weight || '', SharedValidators.decimal({maxDecimals: 2})],
         individualCount: [data?.individualCount || '', SharedValidators.integer],
         measurementValues: this.formBuilder.group({}),
         samples: [data?.samples || null]
@@ -127,16 +127,16 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
     return this.formBuilder.group({
         id: [sale?.id || null],
         saleType: [sale?.saleType || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        ratio: [sale?.ratio || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0), Validators.max(100)])],
+        ratio: [sale?.ratio || null, Validators.compose([SharedValidators.decimal({maxDecimals: 2}), Validators.min(0), Validators.max(100)])],
         ratioCalculated: [sale?.ratioCalculated || null],
-        weight: [sale?.weight || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        weight: [sale?.weight || null, Validators.compose([SharedValidators.decimal({maxDecimals: 2}), Validators.min(0)])],
         weightCalculated: [sale?.weightCalculated || null],
         individualCount: [sale?.individualCount || null, Validators.compose([SharedValidators.integer, Validators.min(0)])],
-        averageWeightPrice: [sale?.averageWeightPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        averageWeightPrice: [sale?.averageWeightPrice || null, Validators.compose([SharedValidators.decimal({maxDecimals: 2}), Validators.min(0)])],
         averageWeightPriceCalculated: [sale?.averageWeightPriceCalculated || null],
-        averagePackagingPrice: [sale?.averagePackagingPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        averagePackagingPrice: [sale?.averagePackagingPrice || null, Validators.compose([SharedValidators.decimal({maxDecimals: 2}), Validators.min(0)])],
         averagePackagingPriceCalculated: [sale?.averagePackagingPriceCalculated || null],
-        totalPrice: [sale?.totalPrice || null, Validators.compose([SharedValidators.double({maxDecimals: 2}), Validators.min(0)])],
+        totalPrice: [sale?.totalPrice || null, Validators.compose([SharedValidators.decimal({maxDecimals: 2}), Validators.min(0)])],
         totalPriceCalculated: [sale?.totalPriceCalculated || null]
       },
       {

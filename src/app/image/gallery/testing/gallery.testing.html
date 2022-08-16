@@ -1,0 +1,19 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Image gallery</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content>
+  <p>Examples: </p>
+
+  <app-image-gallery #gallery [images]="$images|async">
+
+  </app-image-gallery>
+</ion-content>

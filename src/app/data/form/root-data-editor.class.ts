@@ -1,21 +1,33 @@
-import {Directive, Injector, OnInit} from '@angular/core';
+import { Directive, Injector } from '@angular/core';
 
-import {BehaviorSubject, merge, Subject, Subscription} from 'rxjs';
-import { changeCaseToUnderscore, firstNotNilPromise, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
-import {distinctUntilChanged, filter, map, startWith, switchMap, tap} from 'rxjs/operators';
-import {Program} from "../../referential/services/model/program.model";
-import {EntityServiceLoadOptions, IEntityService} from "@sumaris-net/ngx-components";
-import {AppEditorOptions, AppEntityEditor}  from "@sumaris-net/ngx-components";
-import {ReferentialRef, ReferentialUtils}  from "@sumaris-net/ngx-components";
-import {HistoryPageReference}  from "@sumaris-net/ngx-components";
-import {RootDataEntity} from "../services/model/root-data-entity.model";
-import {MatAutocompleteConfigHolder, MatAutocompleteFieldAddOptions, MatAutocompleteFieldConfig} from "@sumaris-net/ngx-components";
-import {AddToPageHistoryOptions}  from "@sumaris-net/ngx-components";
-import {Strategy} from "../../referential/services/model/strategy.model";
-import {StrategyRefService} from "../../referential/services/strategy-ref.service";
-import {ProgramRefService} from "../../referential/services/program-ref.service";
-import {mergeMap} from "rxjs/internal/operators";
-import {Moment} from "moment";
+import { BehaviorSubject, merge, Subject, Subscription } from 'rxjs';
+import {
+  AddToPageHistoryOptions,
+  AppEditorOptions,
+  AppEntityEditor,
+  changeCaseToUnderscore,
+  EntityServiceLoadOptions, EntityUtils,
+  firstNotNilPromise,
+  HistoryPageReference,
+  IEntityService,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
+  MatAutocompleteConfigHolder,
+  MatAutocompleteFieldAddOptions,
+  MatAutocompleteFieldConfig,
+  ReferentialRef,
+  ReferentialUtils
+} from '@sumaris-net/ngx-components';
+import { distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { Program } from '../../referential/services/model/program.model';
+import { RootDataEntity } from '../services/model/root-data-entity.model';
+import { Strategy } from '../../referential/services/model/strategy.model';
+import { StrategyRefService } from '../../referential/services/strategy-ref.service';
+import { ProgramRefService } from '../../referential/services/program-ref.service';
+import { mergeMap } from 'rxjs/operators';
+import { Moment } from 'moment';
 import { FormControl } from '@angular/forms';
 
 
@@ -57,7 +69,7 @@ export abstract class AppRootDataEditor<
   }
 
   set strategy(value: Strategy) {
-    if (isNotNil(value) && this.$strategy.getValue() !== value) {
+    if (this.$strategy.getValue() !== value) {
       this.$strategy.next(value);
     }
   }
@@ -161,6 +173,12 @@ export abstract class AppRootDataEditor<
     );
   }
 
+  startListenRemoteChanges() {
+    if (EntityUtils.isLocal(this.data)) return; // Skip if local entity
+
+    super.startListenRemoteChanges();
+  }
+
   ngOnDestroy() {
     super.ngOnDestroy();
 
@@ -193,6 +211,7 @@ export abstract class AppRootDataEditor<
     if (!this.isNewData) this.programControl.disable(opts);
 
     this.markForCheck();
+    return true;
   }
 
   protected async setProgram(program: Program) {
@@ -239,10 +258,6 @@ export abstract class AppRootDataEditor<
   protected registerAutocompleteField<T = any, F = any>(fieldName: string,
                                                         opts?: MatAutocompleteFieldAddOptions<T, F>): MatAutocompleteFieldConfig<T, F> {
     return this.autocompleteHelper.add(fieldName, opts);
-  }
-
-  protected canUserWrite(data: T): boolean {
-    return isNil(data.validationDate) && this.programRefService.canUserWrite(data);
   }
 
   /**

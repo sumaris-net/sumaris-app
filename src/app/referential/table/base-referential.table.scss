@@ -1,0 +1,38 @@
+.table-container {
+  height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height));
+
+  --table-toolbar-height: 0px;
+  --table-paginator-height: 0px;
+
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+
+  &.has-paginator {
+    --table-paginator-height: var(--app-paginator-height);
+  }
+
+  .filter-panel-floating {
+    z-index: 999;
+    position: absolute;
+    top: var(--table-toolbar-height);
+    left: 0;
+    right: 0;
+  }
+
+  .mat-table {
+    min-width: 100%;
+    --mat-cell-vertical-padding: 4px;
+
+    .mat-header-cell,
+    .mat-cell {
+      padding-inline-start: var(--mat-cell-vertical-padding);
+    }
+
+    &.compact {
+      .mat-row {
+        height: 33px !important;
+      }
+    }
+  }
+}

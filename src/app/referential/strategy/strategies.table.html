@@ -3,7 +3,7 @@
 
     <!-- Add -->
     <button mat-icon-button
-            *ngIf="canEdit && !mobile"
+            *ngIf="canEdit && !mobile && enabled"
             [title]="'COMMON.BTN_ADD'|translate"
             (click)="addRow()">
       <mat-icon>add</mat-icon>
@@ -38,7 +38,9 @@
 
   <!-- if row selection -->
   <ng-template #hasSelection>
-    <button mat-icon-button color="light" *ngIf="canEdit && selection.hasValue() && enabled" [title]="'COMMON.BTN_DELETE'|translate"
+    <button mat-icon-button color="light"
+            *ngIf="canDelete && enabled"
+            [title]="'COMMON.BTN_DELETE'|translate"
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
@@ -60,7 +62,7 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
   <table mat-table [dataSource]="dataSource" matSort matSortActive="id" matSortDirection="asc"
              matSortDisableClear [trackBy]="trackByFn">
 

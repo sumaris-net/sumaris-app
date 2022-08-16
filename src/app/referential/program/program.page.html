@@ -5,7 +5,8 @@
 
 <ion-content>
 
-  <mat-tab-group class="mat-tab-disabled-hidden" #tabGroup
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
@@ -47,7 +48,7 @@
                   <input matInput class="cdk-visually-hidden" type="text"
                          [placeholder]="'PROGRAM.LOCATION_CLASSIFICATION'|translate">
                   <app-list-form #locationClassificationList
-                                 [formArray]="form.controls.locationClassifications"
+                                 [formArray]="form|formGetArray:'locationClassifications'"
                                  [displayWith]="referentialToString"
                                  [equals]="referentialEquals"
                                  [options]="{allowEmptyArray: false, allowMultipleSelection: false}"
@@ -67,6 +68,30 @@
       </div>
     </mat-tab>
 
+    <!-- TAB: locations  -->
+    <mat-tab label="{{'PROGRAM.TAB_LOCATIONS'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>room</mat-icon>
+        <ion-label translate>PROGRAM.TAB_LOCATIONS</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && locationList.invalid"></ion-icon>
+      </ng-template>
+
+      <div class="form-container ion-padding">
+
+        <mat-form-field floatLabel="always">
+          <input matInput class="cdk-visually-hidden" type="text"
+                 [placeholder]="'PROGRAM.LOCATIONS'|translate">
+
+          <app-list-form #locationList
+                         [displayWith]="referentialToString"
+                         [formArray]="form|formGetArray: 'locations'"
+                         [equals]="referentialEquals"
+                         [options]="{allowEmptyArray: true, allowMultipleSelection: false}"
+                         (onNewItem)="addLocation()">
+          </app-list-form>
+        </mat-form-field>
+      </div>
+    </mat-tab>
 
     <!-- TAB: strategies -->
     <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="isNewData">
@@ -166,11 +191,26 @@
   </app-form-buttons-bar>
 </ion-footer>
 
-<!-- FAB Button: add strategy -->
-<ion-fab slot="fixed" vertical="bottom" horizontal="end"
-         *ngIf="strategiesTable && strategiesTable.enabled  && selectedTabIndex==1" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="onNewStrategy($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-</ion-fab>
+<!-- FAB Button -->
+<ng-container *ngIf="mobile" [ngSwitch]="selectedTabIndex">
+
+  <!-- add strategy -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+           *ngSwitchCase="TABS.STRATEGIES"
+           [class.cdk-visually-hidden]="strategiesTable?.disabled"
+           @fadeInOutAnimation>
+    <ion-fab-button color="tertiary" (click)="onNewStrategy($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+  <!-- add person -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+           *ngSwitchCase="TABS.PERSONS"
+           [class.cdk-visually-hidden]="personsTable?.disabled"
+           @fadeInOutAnimation>
+    <ion-fab-button color="tertiary" (click)="personsTable.addRow($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ng-container>

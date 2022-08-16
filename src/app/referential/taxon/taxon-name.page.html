@@ -1,12 +1,19 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
-             [defaultBackHref]="defaultBackHref" [canGoBack]="true">
+<app-toolbar [title]="$title | async"
+             color="primary"
+             [hasValidate]="!loading && dirty"
+             (onValidate)="save($event)"
+             (onClose)="close($event)"
+             [hasClose]="!loading && !dirty"
+             [defaultBackHref]="defaultBackHref"
+             [canGoBack]="true">
   <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 </app-toolbar>
 
 <ion-content>
 
   <mat-tab-group #tabGroup
-                 class="mat-tab-disabled-hidden"
+                 class="mat-tab-fixed-content mat-tab-disabled-hidden mat-tab-group-root"
+                 [class.mobile]="mobile"
                  [(selectedIndex)]="selectedTabIndex" (selectedTabChange)="onTabChange($event)" dynamicHeight>
 
     <!-- TAB: general -->
@@ -28,15 +35,18 @@
 
           <ion-row class="ion-no-padding">
             <ion-col class="ion-no-padding ion-padding-top">
-              <!-- base form-->
-              <app-referential-form #referentialForm
-                                    [form]="form"
-                                    [showError]="false"
-                                    [debug]="debug"
-                                    (onSubmit)="save($event)">
 
-                <!-- Other fields -->
-                <form [formGroup]="form" class="form-container">
+              <form [formGroup]="form">
+
+                <!-- base form -->
+                <app-referential-form #referentialForm
+                                      [form]="form"
+                                      [entityName]="entityName"
+                                      [showError]="false"
+                                      [debug]="debug"
+                                      (onSubmit)="save($event)">
+
+                  <!-- Other fields -->
                   <ion-row>
                     <ion-col>
                       <!-- Taxonomic Level -->
@@ -102,9 +112,9 @@
                       </app-form-field>
                     </ion-col>
                   </ion-row>
-                </form>
 
-              </app-referential-form>
+                </app-referential-form>
+              </form>
             </ion-col>
 
             <!-- entity metadata-->
@@ -113,6 +123,34 @@
             </ion-col>
           </ion-row>
         </ion-grid>
+
+      </div>
+    </mat-tab>
+
+    <!-- TAB: Weight/Length relation -->
+    <mat-tab label="{{'REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION'|translate}}"
+             [disabled]="!(wlcTable.readySubject|async)">
+      <ng-template mat-tab-label>
+        <mat-icon>list</mat-icon>
+        <ion-label translate>REFERENTIAL.TAXON_NAME.TAB_WEIGHT_LENGTH_CONVERSION</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && wlcTable.invalid"></ion-icon>
+      </ng-template>
+
+      <div class="ion-no-padding">
+
+        <!-- error -->
+        <ion-item *ngIf="mobile && wlcTable.error" lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="wlcTable.error|translate"></ion-label>
+        </ion-item>
+
+        <app-weight-length-conversion-table #wlcTable
+                                            [referenceTaxonId]="this.form.controls.referenceTaxonId.valueChanges|async"
+                                            [showReferenceTaxonIdColumn]="false"
+                                            [canDownload]="true"
+                                            [canUpload]="true">
+
+        </app-weight-length-conversion-table>
 
       </div>
     </mat-tab>

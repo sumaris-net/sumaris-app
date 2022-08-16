@@ -1,11 +1,11 @@
-import {ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren} from '@angular/core';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
-import {AcquisitionLevelCodes, LocationLevelIds, PmfmIds} from '@app/referential/services/model/model.enum';
-import {LandingValidatorService} from '../services/validator/landing.validator';
-import {MeasurementValuesForm} from '../measurement/measurement-values.form.class';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {ModalController} from '@ionic/angular';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
+import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { LandingValidatorService } from '../services/validator/landing.validator';
+import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ModalController } from '@ionic/angular';
 import {
   ConfigService,
   EntityUtils,
@@ -16,7 +16,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  MatAutocompleteField,
+  MatAutocompleteField, NetworkService,
   Person,
   PersonService,
   PersonUtils,
@@ -26,25 +26,25 @@ import {
   suggestFromArray,
   toBoolean,
   toDateISOString,
-  UserProfileLabel,
+  UserProfileLabel
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Landing} from '../services/model/landing.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {VesselModal} from '@app/vessel/modal/vessel-modal';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
-import {TranslateService} from '@ngx-translate/core';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {Program} from '@app/referential/services/model/program.model';
-import {FishingArea} from '@app/trip/services/model/fishing-area.model';
-import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
-import {Trip} from '@app/trip/services/model/trip.model';
-import {TripValidatorService} from '@app/trip/services/validator/trip.validator';
-import {Metier} from '@app/referential/services/model/metier.model';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Landing } from '../services/model/landing.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { VesselModal } from '@app/vessel/modal/vessel-modal';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { TranslateService } from '@ngx-translate/core';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { Program } from '@app/referential/services/model/program.model';
+import { FishingArea } from '@app/data/services/model/fishing-area.model';
+import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
+import { Trip } from '@app/trip/services/model/trip.model';
+import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
+import { Metier } from '@app/referential/services/model/metier.model';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 
 export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
@@ -63,6 +63,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   private _showObservers: boolean; // Disable by default
   private _canEditStrategy: boolean;
 
+  readonly networkService: NetworkService;
   observersHelper: FormArrayHelper<Person>;
   fishingAreasHelper: FormArrayHelper<FishingArea>;
   metiersHelper: FormArrayHelper<FishingArea>;
@@ -211,7 +212,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected samplingStrategyService: SamplingStrategyService,
     protected configService: ConfigService,
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
@@ -222,6 +222,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
 
+    this.networkService = injector.get(NetworkService);
     this._enable = false;
     this.mobile = this.settings.mobile;
 
@@ -247,14 +248,11 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
 
     // Combo: programs
-    const programAttributes = this.settings.getFieldDisplayAttributes('program');
     this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
-      attributes: programAttributes,
-      // Increase default column size, for 'label'
-      columnSizes: programAttributes.map(a => a === 'label' ? 4 : undefined/*auto*/),
-      filter: <ReferentialRefFilter>{
-        entityName: 'Program'
+      service: this.programRefService,
+      filter: {
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.LANDING]
       },
       mobile: this.mobile
     });
@@ -285,7 +283,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         entityName: 'Location',
         levelIds: this.locationLevelIds
       },
-      attributes: locationAttributes
+      attributes: locationAttributes,
+      mobile: this.mobile
     });
 
     // Combo: observers
@@ -299,7 +298,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         userProfiles: <UserProfileLabel[]>['SUPERVISOR', 'USER', 'GUEST']
       },
       attributes: ['lastName', 'firstName', 'department.name'],
-      displayWith: PersonUtils.personToString
+      displayWith: PersonUtils.personToString,
+      mobile: this.mobile
     });
 
     // Combo: metier
@@ -307,12 +307,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerAutocompleteField('metier', {
       showAllOnFocus: false,
       suggestFn: (value, filter) => this.suggestMetiers(value, filter),
-      // Default filter. An excludedIds will be add dynamically
+      // Default filter. A excludedIds will be add dynamically
       filter: {
         entityName: 'Metier',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: metierAttributes
+      attributes: metierAttributes,
+      mobile: this.mobile
     });
 
     // Combo: fishingAreas
@@ -328,7 +329,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         entityName: 'Location',
         statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
-      attributes: fishingAreaAttributes
+      attributes: fishingAreaAttributes,
+      mobile: this.mobile
     });
 
     // Propagate program
@@ -374,33 +376,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     // Init trip form (if enable)
     if (this.showTrip) {
-      // DEBUG
-      //console.debug('[landing-form] Enable trip form');
-
-      let tripForm = this.tripForm;
-      if (!tripForm) {
-        const tripFormConfig = this.tripValidatorService.getFormGroupConfig(null, {
-          withMetiers: this.showMetier,
-          withFishingAreas: this.showFishingArea,
-          withSale: false,
-          withObservers: false,
-          withMeasurements: false,
-          departureDateTimeRequired: false
-        });
-
-        // Excluded some trip's fields
-        TRIP_FORM_EXCLUDED_FIELD_NAMES
-          .filter(key => {
-            if (!this.showTripDepartureDateTime || key != 'departureDateTime') {
-              delete tripFormConfig[key]
-            }
-          });
-
-        tripForm = this.formBuilder.group(tripFormConfig);
-
-        this.form.addControl('trip', tripForm);
-      }
-
+      const tripForm = this.initTripForm();
       if (this.showMetier) this.initMetiersHelper(tripForm);
       if (this.showFishingArea) this.initFishingAreas(tripForm);
     }
@@ -443,6 +419,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     if (!trip && (this.showMetier || this.showFishingArea)) {
       trip = new Trip();
       data.trip = trip;
+    }
+
+    let tripForm = this.tripForm;
+    if (this.showTrip && !tripForm) {
+      tripForm = this.initTripForm();
+      if (this.showMetier) this.initMetiersHelper(tripForm);
+      if (this.showFishingArea) this.initFishingAreas(tripForm);
     }
 
     // Resize metiers array
@@ -687,6 +670,37 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
 
+  protected initTripForm(): FormGroup {
+    let tripForm = this.tripForm;
+    if (!tripForm) {
+      // DEBUG
+      //console.debug('[landing-form] Creating trip form');
+
+      const tripFormConfig = this.tripValidatorService.getFormGroupConfig(null, {
+        withMetiers: this.showMetier,
+        withFishingAreas: this.showFishingArea,
+        withSale: false,
+        withObservers: false,
+        withMeasurements: false,
+        departureDateTimeRequired: false
+      });
+
+      // Excluded some trip's fields
+      TRIP_FORM_EXCLUDED_FIELD_NAMES
+        .filter(key => {
+          if (!this.showTripDepartureDateTime || key != 'departureDateTime') {
+            delete tripFormConfig[key]
+          }
+        });
+
+      tripForm = this.formBuilder.group(tripFormConfig);
+
+      this.form.addControl('trip', tripForm);
+    }
+
+    return tripForm;
+  }
+
   protected initMetiersHelper(form: FormGroup) {
 
     if (!this.metiersHelper) {
@@ -737,7 +751,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
    */
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
 
-    if (this.debug) console.debug(`${this.logPrefix} calling mapPmfms()`);
+    if (this.debug) console.debug(`${this._logPrefix} calling mapPmfms()`);
 
     // Create the missing Pmfm, to hold strategy (if need)
     if (this.showStrategy) {

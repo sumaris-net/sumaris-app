@@ -39,14 +39,6 @@
   <meta property="og:locale:alternate" content="en_US" />
   <meta property="og:locale:alternate" content="fr_FR" />
 
-  <!-- un-comment this code to enable service worker
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(() => console.info('[index] service worker installed'))
-        .catch(err => console.error('[index] service worker error:', err));
-    }
-  </script> -->
 </head>
 
 <body>
@@ -55,13 +47,22 @@
   <app-root>
     <div class="loading-page">
       <div class="spinner">
-        <p>Loading...</p>
+        <p id="loadingText"></p>
         <div class="sk-cube1 sk-cube"></div>
         <div class="sk-cube2 sk-cube"></div>
         <div class="sk-cube4 sk-cube"></div>
         <div class="sk-cube3 sk-cube"></div>
       </div>
     </div>
+
+    <!-- Translate the loading text -->
+    <script type="text/javascript">
+      var userLang = navigator.language || navigator.userLanguage;
+      console.debug('[loading-page] Detected lang: ' + userLang);
+      var loadingText = userLang && userLang.startsWith('fr') ? 'Chargement...' : 'Loading...';
+      document.getElementById('loadingText').innerText = loadingText;
+      document.getElementById('appTitle').innerText = loadingText;
+    </script>
   </app-root>
 
 </body>

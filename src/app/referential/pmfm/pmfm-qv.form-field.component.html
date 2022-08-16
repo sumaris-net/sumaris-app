@@ -1,7 +1,7 @@
 <!-- readonly -->
 <mat-form-field *ngIf="readonly; else writable">
   <input matInput hidden type="text" readonly="true" [formControl]="formControl">
-  <ion-label>{{ displayWith(value) }}</ion-label>
+  <ion-label>{{ value|displayWith: displayWith }}</ion-label>
 </mat-form-field>
 
 <ng-template #writable >
@@ -41,15 +41,18 @@
           <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
         </div>
 
-        <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+        <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+          <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+          <span *ngSwitchCase="'entity'" translate>ERROR.FIELD_INVALID</span>
+          <span *ngSwitchCase="'msg'">{{(formControl.errors.msg?.key || formControl.errors.msg) | translate: formControl.errors.msg?.params}}</span>
+        </mat-error>
       </mat-form-field>
 
       <!-- combo -->
       <mat-autocomplete #autoCombo="matAutocomplete"
                         autoActiveFirstOption
                         [displayWith]="displayWith">
-        <ion-row class="mat-autocomplete-header ion-no-padding">
+        <ion-row class="mat-autocomplete-header ion-no-padding column">
           <ion-col *ngFor="let attr of searchAttributes"
                    size="{{attr==='label'?3:undefined}}">
             <ion-text>{{ ('REFERENTIAL.' + attr) | uppercase | translate }}</ion-text>
@@ -75,10 +78,10 @@
                   (blur)="_onBlur($event)"
                   [tabindex]="_tabindex"
                   [compareWith]="compareWith">
-        <mat-select-trigger>{{ displayWith(value) }}</mat-select-trigger>
+        <mat-select-trigger>{{ value|displayWith: displayWith }}</mat-select-trigger>
 
         <!-- header -->
-        <ion-row class="mat-select-header ion-no-padding">
+        <ion-row class="mat-select-header ion-no-padding column">
           <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
             <ion-col size="3" *ngSwitchCase="'label'">
               <ion-label translate>REFERENTIAL.LABEL</ion-label>
@@ -120,8 +123,13 @@
         <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>
       </div>
 
-      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-      <mat-error *ngIf="formControl.hasError('entity')" translate>ERROR.FIELD_INVALID</mat-error>
+      <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey">
+        <ng-container [ngSwitch]="errorKey">
+          <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+          <span *ngSwitchCase="'entity'" translate>ERROR.FIELD_INVALID</span>
+          <span *ngSwitchCase="'msg'">{{(formControl.errors.msg?.key || formControl.errors.msg) | translate: formControl.errors.msg?.params}}</span>
+        </ng-container>
+      </mat-error>
     </mat-form-field>
 
     <!-- Buttons -->
@@ -160,7 +168,12 @@
         <ion-icon [name]="showAllButtons && 'chevron-up-outline' || 'chevron-down-outline'"></ion-icon>
       </ion-fab-button>
 
-      <mat-error *ngIf="formControl.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+      <mat-error *ngIf="formControl.errors|mapKeys|arrayFirst; let errorKey">
+        <ng-container [ngSwitch]="errorKey">
+          <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+          <span *ngSwitchCase="'msg'">{{(formControl.errors.msg?.key || formControl.errors.msg) | translate: formControl.errors.msg?.params}}</span>
+        </ng-container>
+      </mat-error>
     </mat-form-field>
   </ng-container>
 

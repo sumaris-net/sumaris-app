@@ -1,9 +1,25 @@
-import {Injectable, Pipe, PipeTransform} from '@angular/core';
-import {MethodIds} from '../services/model/model.enum';
-import {PmfmValueUtils} from '../services/model/pmfm-value.model';
-import {IPmfm, PmfmUtils} from '../services/model/pmfm.model';
-import {DateFormatPipe, isNotNilOrBlank, LatitudeFormatPipe, LocalSettingsService, LongitudeFormatPipe, TranslateContextService} from '@sumaris-net/ngx-components';
-import {TranslateService} from '@ngx-translate/core';
+import { Injectable, Pipe, PipeTransform } from '@angular/core';
+import { PmfmValueUtils } from '../services/model/pmfm-value.model';
+import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
+import { DateFormatPipe, formatLatitude, formatLongitude, isNotNilOrBlank, LatitudeFormatPipe, LocalSettingsService, LongitudeFormatPipe, TranslateContextService } from '@sumaris-net/ngx-components';
+import { TranslateService } from '@ngx-translate/core';
+
+@Pipe({
+  name: 'pmfmIdString'
+})
+export class PmfmIdStringPipe implements PipeTransform {
+
+  constructor(
+    protected translate: TranslateService,
+    protected translateContext: TranslateContextService
+  ) {
+
+  }
+
+  transform(pmfm: IPmfm): string {
+    return pmfm && pmfm.id?.toString() || null;
+  }
+}
 
 @Pipe({
     name: 'pmfmName'
@@ -54,13 +70,17 @@ export class PmfmValuePipe implements PipeTransform {
 
   constructor(
     private dateFormatPipe: DateFormatPipe,
-    private latFormatPipe: LatitudeFormatPipe,
-    private longFormatPipe: LongitudeFormatPipe,
     private settings: LocalSettingsService
   ) {
   }
 
-  transform(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; html?: boolean; hideIfDefaultValue?: boolean; showLabelForPmfmIds?: number[] }): any {
+  transform(value: any, opts: {
+    pmfm: IPmfm;
+    propertyNames?: string[];
+    html?: boolean;
+    hideIfDefaultValue?: boolean;
+    showLabelForPmfmIds?: number[];
+  }): any {
     const type = PmfmUtils.getExtendedType(opts?.pmfm);
     switch (type) {
       case 'date':
@@ -70,9 +90,9 @@ export class PmfmValuePipe implements PipeTransform {
       case 'duration':
         return value || null;
       case 'latitude':
-        return this.latFormatPipe.transform(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
+        return formatLatitude(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
       case 'longitude':
-        return this.longFormatPipe.transform(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
+        return formatLongitude(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
       default:
         return PmfmValueUtils.valueToString(value, opts);
     }
@@ -97,10 +117,8 @@ export class IsDatePmfmPipe implements PipeTransform {
 export class IsComputedPmfmPipe implements PipeTransform {
 
   transform(pmfm: IPmfm): any {
-    // DEBUG
-    //if (isNil(pmfm && pmfm.methodId)) console.warn('TODO cannot check if computed - no method :', pmfm.name);
 
-    return pmfm.type && (pmfm.methodId === MethodIds.CALCULATED);
+    return pmfm && pmfm.isComputed;
   }
 }
 
@@ -113,5 +131,25 @@ export class IsMultiplePmfmPipe implements PipeTransform {
 
   transform(pmfm: IPmfm): any {
     return pmfm && pmfm.isMultiple;
+  }
+}
+
+@Pipe({
+  name: 'pmfmFieldStyle'
+})
+@Injectable({providedIn: 'root'})
+export class PmfmFieldStylePipe implements PipeTransform {
+
+  private readonly _mobile: boolean;
+
+  constructor(settings: LocalSettingsService) {
+    this._mobile = settings.mobile;
+  }
+
+  transform(pmfm: IPmfm, maxVisibleButtons?: number): any {
+    return pmfm && this._mobile && (
+      pmfm.type === 'boolean'
+      || (pmfm.isQualitative && pmfm.qualitativeValues?.length <= (maxVisibleButtons || 3))
+    ) ? 'button' : undefined /*default*/;
   }
 }

@@ -1,13 +1,13 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
 import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
 import {AppTable, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList} from '@sumaris-net/ngx-components';
-import {PmfmFilter} from '../services/pmfm.service';
 import {ActivatedRoute, Router} from '@angular/router';
 import {ModalController, Platform} from '@ionic/angular';
 import {Location} from '@angular/common';
 import {debounceTime, filter} from 'rxjs/operators';
 import {environment} from '../../../environments/environment';
 import {Pmfm} from '../services/model/pmfm.model';
+import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
 
 @Component({
   selector: 'app-pmfms-table',
@@ -26,16 +26,11 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
   @Input() showFilter = true;
 
   constructor(
-    protected injector: Injector,
+    injector: Injector,
     formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef,
   ) {
-    super(injector.get(ActivatedRoute),
-      injector.get(Router),
-      injector.get(Platform),
-      injector.get(Location),
-      injector.get(ModalController),
-      injector.get(LocalSettingsService),
+    super(injector,
       // columns
       RESERVED_START_COLUMNS
         .concat([
@@ -45,10 +40,7 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
           'fraction',
           'method',
           'status'])
-        .concat(RESERVED_END_COLUMNS),
-      null,
-      null,
-      injector);
+        .concat(RESERVED_END_COLUMNS));
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.inlineEdition = false;

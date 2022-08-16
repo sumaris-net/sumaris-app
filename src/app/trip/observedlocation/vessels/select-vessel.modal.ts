@@ -1,21 +1,23 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { LandingsTable } from '../../landing/landings.table';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
+import {LandingsTable} from '../../landing/landings.table';
 
-import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
-import { ModalController } from '@ionic/angular';
-import { Landing } from '../../services/model/landing.model';
-import { VesselService } from '../../../vessel/services/vessel-service';
-import { VesselFilter } from '../../../vessel/services/filter/vessel.filter';
-import { VesselsTable } from '../../../vessel/list/vessels.table';
-import { AppFormUtils, AppTable, ConfigService, isEmptyArray, isNotNil, toBoolean } from '@sumaris-net/ngx-components';
-import { VesselSnapshot } from '../../../referential/services/model/vessel-snapshot.model';
-import { VesselForm } from '../../../vessel/form/form-vessel';
-import { Vessel } from '../../../vessel/services/model/vessel.model';
-import { Subscription } from 'rxjs';
-import { MatTabGroup } from '@angular/material/tabs';
-import { LandingFilter } from '../../services/filter/landing.filter';
-import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
-import { SynchronizationStatus } from '@app/data/services/model/model.utils';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {ModalController} from '@ionic/angular';
+import {Landing} from '../../services/model/landing.model';
+import {VesselService} from '@app/vessel/services/vessel-service';
+import {VesselFilter} from '@app/vessel/services/filter/vessel.filter';
+import {VesselsTable} from '@app/vessel/list/vessels.table';
+import {AppFormUtils, AppTable, ConfigService, isEmptyArray, isNil, isNotNil, ReferentialRef, toBoolean} from '@sumaris-net/ngx-components';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {VesselForm} from '@app/vessel/form/form-vessel';
+import {Vessel} from '@app/vessel/services/model/vessel.model';
+import {Subscription} from 'rxjs';
+import {MatTabGroup} from '@angular/material/tabs';
+import {LandingFilter} from '../../services/filter/landing.filter';
+import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
+import {SynchronizationStatus} from '@app/data/services/model/model.utils';
+import {Moment} from 'moment';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 
 export interface SelectVesselsModalOptions {
   landingFilter: LandingFilter|null;
@@ -25,6 +27,7 @@ export interface SelectVesselsModalOptions {
   showVesselTypeColumn?: boolean;
   showBasePortLocationColumn?: boolean;
   defaultVesselSynchronizationStatus: SynchronizationStatus;
+  maxDateVesselRegistration?: Moment;
 }
 
 @Component({
@@ -52,6 +55,9 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
   @Input() showBasePortLocationColumn: boolean;
 
   @Input() defaultVesselSynchronizationStatus: SynchronizationStatus;
+  @Input() defaultRegistrationLocation: ReferentialRef;
+  @Input() withNameRequired: boolean;
+  @Input() maxDateVesselRegistration: Moment;
 
   get loading(): boolean {
     const table = this.table;
@@ -92,6 +98,7 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     private vesselService: VesselService,
     private configService: ConfigService,
     protected viewCtrl: ModalController,
+    private referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef
   ) {
   }
@@ -127,10 +134,21 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     // Get default status by config
     if (this.allowAddNewVessel && this.vesselForm) {
       this.subscription.add(
-        this.configService.config.subscribe(config => setTimeout(() => {
+        this.configService.config.subscribe(async config => {
           this.vesselForm.defaultStatus = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS);
           this.vesselForm.enable();
-        }))
+
+          if (isNil(this.defaultRegistrationLocation)) {
+            const defaultRegistrationLocationId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID);
+            if (defaultRegistrationLocationId) {
+              this.vesselForm.defaultRegistrationLocation = await this.referentialRefService.loadById(defaultRegistrationLocationId, 'Location');
+            }
+          }
+          if (isNil(this.withNameRequired)) {
+            this.withNameRequired = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_NAME_REQUIRED);
+            this.vesselForm.withNameRequired = this.withNameRequired;
+          }
+        })
       );
     }
   }

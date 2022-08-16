@@ -1,43 +1,46 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {TripValidatorService} from '../services/validator/trip.validator';
-import {TripService} from '../services/trip.service';
-import {TripFilter, TripOfflineFilter} from '../services/filter/trip.filter';
-import {ModalController} from '@ionic/angular';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {FormArray, FormBuilder, FormControl} from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { TripValidatorService } from '../services/validator/trip.validator';
+import { TripComparators, TripLoadOptions, TripService } from '../services/trip.service';
+import { TripFilter, TripSynchroImportFilter } from '../services/filter/trip.filter';
+import { FormArray, FormBuilder, FormControl } from '@angular/forms';
 import {
-  ConfigService,
-  EntitiesTableDataSource,
-  HammerSwipeEvent,
-  isNotNil,
-  LocalSettingsService,
+  arrayDistinct,
+  chainPromises,
+  ConfigService, DateUtils,
+  EntitiesTableDataSource, FilesUtils,
+  HammerSwipeEvent, Hotkeys, isEmptyArray, isNilOrBlank, isNotEmptyArray,
+  isNotNil, isNotNilOrBlank, MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
   PersonUtils,
-  PlatformService,
+  ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SharedValidators,
   slideUpDownAnimation,
-  StatusIds,
-  UserEventService
+  StatusIds
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Trip} from '../services/model/trip.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {TripTrashModal, TripTrashModalOptions} from './trash/trip-trash.modal';
-import {TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME} from '../services/config/trip.config';
-import {AppRootTable, AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
-import {environment} from '@environments/environment';
-import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
-import {filter, tap} from 'rxjs/operators';
-import {BehaviorSubject} from 'rxjs';
-import {TripOfflineModal} from '@app/trip/trip/offline/trip-offline.modal';
-import {DataQualityStatusList, DataQualityStatusEnum} from '@app/data/services/model/model.utils';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Operation, Trip } from '../services/model/trip.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
+import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.config';
+import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { environment } from '@environments/environment';
+import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
+import { filter, mergeMap, tap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
+import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
+import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { OperationService, OperationServiceLoadOptions } from '@app/trip/services/operation.service';
+import { OperationsMap, OperationsMapModalOptions } from '@app/trip/operation/map/operations.map';
+import { Popovers } from '@app/shared/popover/popover.utils';
+import { MatTable } from '@angular/material/table';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -55,16 +58,18 @@ export const TripsPageSettingsEnum = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [slideUpDownAnimation]
 })
-export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit, OnDestroy {
+export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnInit, OnDestroy {
 
   $title = new BehaviorSubject<string>('');
-  highlightedRow: TableElement<Trip>;
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
 
   @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
+  @Input() canDownload = false;
+  @Input() canUpload = false;
+  @Input() canOpenMap = false;
 
   get filterObserversForm(): FormArray {
     return this.filterForm.controls.observers as FormArray;
@@ -75,17 +80,12 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
   }
 
   constructor(
-    protected injector: Injector,
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected platform: PlatformService,
-    protected location: Location,
-    protected modalCtrl: ModalController,
-    protected settings: LocalSettingsService,
+    injector: Injector,
     protected dataService: TripService,
-    protected userEventService: UserEventService,
+    protected operationService: OperationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
+    protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected configService: ConfigService,
     protected context: ContextService,
@@ -94,23 +94,19 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     protected cd: ChangeDetectorRef
   ) {
 
-    super(route, router, platform, location, modalCtrl, settings,
-      RESERVED_START_COLUMNS
-        .concat([
-          'quality',
-          'program',
-          'vessel',
-          'departureLocation',
-          'departureDateTime',
-          'returnDateTime',
-          'observers',
-          'recorderPerson',
-          'comments'])
-        .concat(RESERVED_END_COLUMNS),
+    super(injector,
+      Trip, TripFilter,
+      ['quality',
+      'program',
+      'vessel',
+      'departureLocation',
+      'departureDateTime',
+      'returnDateTime',
+      'observers',
+      'recorderPerson',
+      'comments'],
         dataService,
-      new EntitiesTableDataSource<Trip, TripFilter>(Trip, dataService),
-      null, // Filter
-      injector
+      null
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
     this.filterForm = formBuilder.group({
@@ -130,6 +126,12 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     this.defaultSortBy = 'departureDateTime';
     this.defaultSortDirection = 'desc';
     this.confirmBeforeDelete = true;
+    this.canEdit = this.accountService.isUser();
+
+    const showAdvancedFeatures = this.accountService.isAdmin();
+    this.canDownload = showAdvancedFeatures;
+    this.canUpload = showAdvancedFeatures;
+    this.canOpenMap = showAdvancedFeatures;
 
     this.settingsId = TripsPageSettingsEnum.PAGE_ID; // Fixed value, to be able to reuse it in the editor page
     this.featureId = TripsPageSettingsEnum.FEATURE_ID;
@@ -143,15 +145,16 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
 
     // Programs combo (filter)
     this.registerAutocompleteField('program', {
-      service: this.referentialRefService,
+      service: this.programRefService,
       filter: {
-        entityName: 'Program'
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
       },
       mobile: this.mobile
     });
 
     // Locations combo (filter)
-    this.registerAutocompleteField('location', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
@@ -166,7 +169,7 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     );
 
     // Combo: recorder department
-    this.registerAutocompleteField('department', {
+    this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('department', {
       service: this.referentialRefService,
       filter: {
         entityName: 'Department'
@@ -220,11 +223,6 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     this.resetContext();
   }
 
-  clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
-    console.debug('[trips] click row');
-    this.highlightedRow = row;
-    return super.clickRow(event, row);
-  }
 
   /**
    * Action triggered when user swipes
@@ -277,14 +275,14 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
         name: this.dataService.featureName
       };
       const filter = this.asFilter(this.filterForm.value);
-      const value = <TripOfflineFilter>{
+      const value = <TripSynchroImportFilter>{
         vesselId: filter.vesselId || filter.vesselSnapshot && filter.vesselSnapshot.id || undefined,
         programLabel: filter.program && filter.program.label || undefined,
         ...feature.filter
       };
       const modal = await this.modalCtrl.create({
         component: TripOfflineModal,
-        componentProps: {
+        componentProps: <TripOfflineModalOptions>{
           value
         }, keyboardClose: true
       });
@@ -307,6 +305,118 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
     return super.prepareOfflineMode(event, opts);
   }
 
+  async importFromFile(event: UIEvent): Promise<Trip[]> {
+    const data = await super.importFromFile(event);
+    if (isEmptyArray(data)) return; // Skip
+
+    let entities: Trip[] = [];
+    let errors = [];
+    for (let json of data) {
+      try {
+        const entity = Trip.fromObject(json);
+        const savedEntity = await this.dataService.copyLocally(entity);
+        entities.push(savedEntity);
+      } catch (err) {
+        const message = err && err.message || err;
+        errors.push(message);
+        console.error(message, err);
+      }
+    }
+    if (isEmptyArray(entities) && isEmptyArray(errors)) {
+      // Nothing to import (empty file ?)
+      return;
+    }
+    else if (isEmptyArray(entities) && isNotEmptyArray(errors)) {
+      await this.showToast({
+        type: 'error',
+        message: 'TRIP.TABLE.ERROR.IMPORT_FILE_FAILED', messageParams: {error: errors.join('\n')}});
+    }
+    else if (isNotEmptyArray(errors)) {
+      await this.showToast({
+        type: 'warning',
+        message: 'TRIP.TABLE.INFO.IMPORT_FILE_SUCCEED_WITH_ERRORS', messageParams: {inserts: entities.length, errors: errors.length}});
+    }
+    else {
+      await this.showToast({
+        type: 'info',
+        message: 'TRIP.TABLE.INFO.IMPORT_FILE_SUCCEED', messageParams: {inserts: entities.length}});
+    }
+    return entities;
+  }
+
+  async downloadSelectionAsJson(event?: UIEvent) {
+    const ids = (this.selection.selected || [])
+      .map(row => row.currentData?.id);
+    return this.downloadAsJson(ids);
+  }
+
+  async openDownloadPage(event?: UIEvent) {
+    const trips = (this.selection.selected || [])
+      .map(row => row.currentData).filter(isNotNil)
+      .sort(TripComparators.sortByDepartureDateFn);
+    if (isEmptyArray(trips)) return // Skip if empty
+
+    const programs = arrayDistinct(trips.map(t => t.program), ['label']);
+    if (programs.length == 1) {
+      this.showToast({
+        type: 'warning',
+        message: 'TRIP.TABLE.WARNING.NEED_ONE_PROGRAM'
+      });
+      return; // Skip if no program
+    }
+    const programLabel = programs[0].label;
+
+  }
+
+  async openSelectionMap(event?: UIEvent) {
+    const trips = (this.selection.selected || [])
+      .map(row => row.currentData).filter(isNotNil)
+      .sort(TripComparators.sortByDepartureDateFn);
+    if (isEmptyArray(trips)) return // Skip if empty
+
+    const programs = arrayDistinct(trips.map(t => t.program), ['label']);
+    if (programs.length > 1) {
+      this.showToast({
+        type: 'warning',
+        message: 'TRIP.TABLE.WARNING.NEED_ONE_PROGRAM'
+      });
+      return; // Skip if no program
+    }
+    const programLabel = programs[0].label;
+
+
+    const operations = await chainPromises(trips.map(
+      trip => () =>
+        this.operationService.loadAllByTrip({tripId: trip.id},{fetchPolicy: 'cache-first', fullLoad: false, withTotal: true/*better chance to get a cached value*/})
+          .then(res => ({...trip, operations: res.data} as Trip))
+      ));
+
+    const modal = await this.modalCtrl.create({
+      component: OperationsMap,
+      componentProps: <OperationsMapModalOptions>{
+        data: operations,
+        programLabel,
+        latLongPattern: this.settings.latLongFormat
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+    if (data instanceof Operation) {
+      console.info('[trips-table] User select an operation from the map:', data);
+
+      // Open the operation
+      return this.router.navigate([data.tripId, 'operation', data.id], {
+        relativeTo: this.route
+      });
+    }
+  }
+
   clearFilterValue(key: keyof TripFilter, event?: UIEvent) {
     if (event) {
       event.preventDefault();
@@ -325,5 +435,20 @@ export class TripTable extends AppRootTable<Trip, TripFilter> implements OnInit,
   protected resetContext() {
     this.context.reset();
     this.tripContext.reset();
+  }
+
+  protected async downloadAsJson(ids: number[]) {
+    if (isEmptyArray(ids)) return; // Skip if empty
+
+    // Create file content
+    const entities = (await Promise.all(ids.map(id => this.dataService.load(id, {fullLoad: true, withOperation: true}))))
+      .map(entity => entity.asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE));
+    const content = JSON.stringify(entities);
+
+    // Write to file
+    FilesUtils.writeTextToFile(content, {
+      filename: this.translate.instant("TRIP.TABLE.DOWNLOAD_JSON_FILENAME"),
+      type: 'application/json'
+    });
   }
 }
