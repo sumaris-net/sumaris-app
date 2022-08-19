@@ -8,7 +8,7 @@ This article will explain how to install your environment, then build the applic
 
 1. Install [NVM](https://github.com/nvm-sh/nvm)
 
-2. Install Node (v12) ex: 12.19.1
+2. Install Node (v12) ex: 12.22.8
 ```bash
 nvm install 12.22.8
 ```

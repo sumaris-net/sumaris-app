@@ -628,6 +628,13 @@ export const ProgramProperties = Object.freeze({
     },
     defaultValue: LocationLevelIds.ICES_DIVISION.toString()
   },
+  STRATEGY_DEPARTMENT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.program.strategy.department.enable',
+    label: 'PROGRAM.OPTIONS.STRATEGY_DEPARTMENT_ENABLE',
+    defaultValue: 'false',
+    type: 'boolean'
+  },
+
 
   I18N_SUFFIX: <FormFieldDefinition>{
     key: 'sumaris.i18nSuffix',

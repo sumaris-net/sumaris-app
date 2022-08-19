@@ -26,12 +26,6 @@ const QUERIES: BaseEntityGraphqlQueries = {
   load: gql`query StrategyRef($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyRefFragment
-      appliedStrategies {
-        ...AppliedStrategyFragment
-      }
-      departments {
-        ...StrategyDepartmentFragment
-      }
     }
   }
   ${StrategyFragments.strategyRef}
@@ -39,8 +33,6 @@ const QUERIES: BaseEntityGraphqlQueries = {
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.strategyRef}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${ReferentialFragments.lightPmfm}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
@@ -50,20 +42,12 @@ const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`query StrategyRefs($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...StrategyRefFragment
-      appliedStrategies {
-        ...AppliedStrategyFragment
-      }
-      departments {
-        ...StrategyDepartmentFragment
-      }
     }
   }
   ${StrategyFragments.strategyRef}
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${ReferentialFragments.lightPmfm}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
@@ -73,12 +57,6 @@ const QUERIES: BaseEntityGraphqlQueries = {
   loadAllWithTotal: gql`query StrategyRefWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategies(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...StrategyRefFragment
-      appliedStrategies {
-        ...AppliedStrategyFragment
-      }
-      departments {
-        ...StrategyDepartmentFragment
-      }
     }
     total: strategiesCount(filter: $filter)
   }
@@ -86,8 +64,6 @@ const QUERIES: BaseEntityGraphqlQueries = {
   ${StrategyFragments.appliedStrategy}
   ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${ReferentialFragments.lightPmfm}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
@@ -96,28 +72,15 @@ const QUERIES: BaseEntityGraphqlQueries = {
 };
 
 const SUBSCRIPTIONS = {
+  // WARN: do not fetch all properties, but only id, label, updateDate
+  // (to avoid too many queries, in the POD)
   listenChangesByProgram: gql`subscription UpdateProgramStrategies($programId: Int!, $interval: Int){
     data: updateProgramStrategies(programId: $programId, interval: $interval) {
-      ...StrategyRefFragment
-      appliedStrategies {
-        ...AppliedStrategyFragment
-      }
-      departments {
-        ...StrategyDepartmentFragment
-      }
+      id
+      label
+      updateDate
     }
-  }
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${ReferentialFragments.lightPmfm}
-  ${StrategyFragments.denormalizedPmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.taxonName}`
+  }`
 };
 
 const StrategyRefCacheKeys = {
@@ -130,6 +93,11 @@ const StrategyRefCacheKeys = {
 
 @Injectable({providedIn: 'root'})
 export class StrategyRefService extends BaseReferentialService<Strategy, StrategyRefFilter> {
+
+  private _subscriptionCache: {[key: string]: {
+      subject: Subject<Strategy[]>;
+      subscription: Subscription;
+    }} = {};
 
   constructor(
     injector: Injector,
@@ -231,15 +199,11 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     await this.cache.clearGroup(StrategyRefCacheKeys.CACHE_GROUP);
   }
 
-  private _subscriptionCache: {[key: string]: {
-      subject: Subject<Strategy[]>;
-      subscription: Subscription;
-    }} = {};
 
   listenChangesByProgram(programId: number, opts?: {
     interval?: number;
   }): Observable<Strategy[]> {
-    if (isNil(programId)) throw Error("Missing argument 'programId' ");
+    if (isNil(programId)) throw Error('Missing argument \'programId\' ');
 
     const cacheKey = [StrategyRefCacheKeys.STRATEGIES_BY_PROGRAM_ID, programId].join('|');
     let cache = this._subscriptionCache[cacheKey];
@@ -254,7 +218,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
         subject,
         subscription: this.graphql.subscribe<{data: any}>({
           query: SUBSCRIPTIONS.listenChangesByProgram,
-          fetchPolicy: 'network-only',
+          fetchPolicy: 'no-cache',
           variables,
           error: {
             code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,

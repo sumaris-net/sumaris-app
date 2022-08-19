@@ -13,7 +13,7 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank, LocalSettingsService,
+  isNotNilOrBlank, isNotNilOrNaN, LocalSettingsService,
   PlatformService,
   ReferentialUtils,
   removeDuplicatesFromArray,
@@ -44,6 +44,7 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
 
 const moment = momentImported;
 
@@ -415,7 +416,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
       // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
       const additionalPmfmIds = (!this.isNewData && this.data?.samples || []).reduce((res, sample) => {
-        const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
+        const pmfmIds = Object.keys(sample.measurementValues || {})
+          .map(id => +id)
+          .filter(isNotNilOrNaN); // Exclude technical properties (e.g. __typename)
         const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
         return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
       }, []);

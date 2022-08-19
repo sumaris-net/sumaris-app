@@ -54,7 +54,6 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     protected router: Router,
     protected localSettings: LocalSettingsService,
     protected programRefService: ProgramRefService,
-    protected strategyService: StrategyService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -112,8 +111,11 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     const programId = this.data && this.data.programId;
     if (isNil(programId) || isNil(this.data.id)) return; // Skip if missing ids
 
-    const program = await this.programRefService.load(programId, {fetchPolicy: "cache-first"});
+    // Get the strategy editor to use
+    const program = await this.programRefService.load(programId, {fetchPolicy: 'cache-first'});
     const strategyEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
+
+    // Open the expected editor page
     return this.router.navigateByUrl(`/referential/programs/${programId}/strategy/${strategyEditor}/${this.data.id}`);
   }
 

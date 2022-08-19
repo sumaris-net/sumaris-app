@@ -27,9 +27,10 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
   taxonName: TaxonNameRef;
   analyticReference: ReferentialRef;
 
+  programId: number;
   parameterIds?: number[];
   periods?: any[];
-  programId: number;
+  acquisitionlevels: string[];
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -42,6 +43,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
     this.parameterIds = source.parameterIds;
     this.periods = source.periods;
+    this.acquisitionlevels = source.acquisitionlevels;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -120,6 +122,14 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
         (!startDate || startDate.isSameOrBefore(ap.endDate)) && (!endDate || endDate.isAfter(ap.startDate))
       );
       filterFns.push(t => t.appliedStrategies && t.appliedStrategies.some(as => as.appliedPeriods && as.appliedPeriods.some(appliedPeriodTest)));
+    }
+
+    // Acquisition levels
+    if (isNotEmptyArray(this.acquisitionlevels)) {
+      filterFns.push(t => (t.denormalizedPmfms || t.pmfms || []).some(p => {
+        const acquisitionLevel = (typeof p.acquisitionLevel === 'string') ? p.acquisitionLevel : p.acquisitionLevel?.label;
+        return this.acquisitionlevels.includes(acquisitionLevel);
+      }));
     }
 
     // TODO: filter on parameters

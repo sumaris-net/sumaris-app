@@ -322,15 +322,18 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
   protected async fillParameterGroups(entities: SamplingStrategy[]) {
 
     // DEBUG
-    console.debug("[sampling-strategy-service] Fill parameters groups...");
+    console.debug('[sampling-strategy-service] Fill parameters groups...');
 
-    const parameterListKeys = Object.keys(ParameterLabelGroups).filter(p => p !== 'TAG_ID' && p !== 'DRESSING'); // AGE, SEX, MATURITY, etc
+    const parameterListKeys = Object.keys(ParameterLabelGroups)
+      // Exclude some special groups (DRESSING, TAG_ID) but  keep other (e.g. AGE, SEX, MATURITY, etc)
+      .filter(p => !ParameterLabelGroups.TAG_ID.includes(p)
+        && !ParameterLabelGroups.DRESSING.includes(p));
     const pmfmIdsMap = await this.pmfmService.loadIdsGroupByParameterLabels(ParameterLabelGroups);
 
     entities.forEach(s => {
       const pmfms = s.pmfms;
       s.parameterGroups = (pmfms && parameterListKeys || []).reduce((res, key) => {
-        return pmfms.findIndex(p => pmfmIdsMap[key].includes(p.pmfmId) || (p.parameter && p.parameter.label && p.parameter.label.includes(key))) !== -1 ? res.concat(key) : res;
+        return pmfms.some(p => pmfmIdsMap[key].includes(p.pmfmId) || (p.parameter?.label && p.parameter.label.includes(key))) ? res.concat(key) : res;
       }, []);
     });
   }

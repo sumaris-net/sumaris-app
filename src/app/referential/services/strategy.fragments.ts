@@ -21,11 +21,11 @@ export const StrategyFragments = {
     taxonNames {
       ...TaxonNameStrategyFragment
     }
-    appliedStrategies {
-      ...AppliedStrategyFragment
-    }
     pmfms {
       ...LightPmfmStrategyFragment
+    }
+    appliedStrategies {
+      ...AppliedStrategyFragment
     }
     departments {
       ...StrategyDepartmentFragment
@@ -52,11 +52,11 @@ export const StrategyFragments = {
     taxonNames {
       ...TaxonNameStrategyFragment
     }
-    appliedStrategies {
-      ...AppliedStrategyFragment
-    }
     pmfms {
       ...PmfmStrategyFragment
+    }
+    appliedStrategies {
+      ...AppliedStrategyFragment
     }
     departments {
       ...StrategyDepartmentFragment
@@ -203,8 +203,11 @@ export const StrategyFragments = {
       taxonNames {
         ...TaxonNameStrategyFragment
       }
-      pmfms {
-        ...LightPmfmStrategyFragment
+      departments {
+        ...StrategyDepartmentFragment
+      }
+      appliedStrategies {
+        ...AppliedStrategyFragment
       }
       denormalizedPmfms {
         ...DenormalizedPmfmStrategyFragment

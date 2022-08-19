@@ -43,7 +43,8 @@ export class SamplingLandingPage extends LandingPage {
   ) {
     super(injector, {
       pathIdAttribute: 'samplingId',
-      autoOpenNextTab: true
+      autoOpenNextTab: true,
+      enableListenChanges: false
     });
   }
 
