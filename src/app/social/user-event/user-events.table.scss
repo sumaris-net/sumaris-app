@@ -1,0 +1,19 @@
+.mat-header-row,
+.mat-row {
+  .mat-column-icon {
+    max-width: 40px;
+    padding-left: 0;
+
+    mat-icon,
+    ion-icon {
+      font-size: 1.2em;
+      height: 1.2em;
+      width: 1.2em;
+    }
+  }
+
+  .mat-column-creationDate {
+    min-width: 100px;
+    max-width: 120px;
+  }
+}

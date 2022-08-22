@@ -305,7 +305,8 @@
     "LOCAL_SETTINGS": "Settings",
     "SERVER": "Server settings",
     "LOGOUT": "Logout",
-    "ABOUT": "About"
+    "ABOUT": "About",
+    "BTN_MY_ACCOUNT": "My account"
   },
   "ABOUT": {
     "TITLE": "About",

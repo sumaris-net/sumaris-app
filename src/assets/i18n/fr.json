@@ -305,7 +305,8 @@
     "LOCAL_SETTINGS": "Paramètres",
     "SERVER": "Configuration serveur",
     "LOGOUT": "Se déconnecter",
-    "ABOUT": "À propos"
+    "ABOUT": "À propos",
+    "BTN_MY_ACCOUNT": "Mon compte"
   },
   "ABOUT": {
     "TITLE": "À propos",
@@ -2248,7 +2249,13 @@
   },
   "SOCIAL": {
     "USER_EVENT": {
-      "EVENT_TYPE": "Type",
+      "NOTIFICATION": {
+        "TITLE": "Notifications",
+        "EMPTY": "Aucune notification",
+        "READ_ALL": "Tout marquer comme lu"
+      },
+      "TYPE": "Type",
+      "ICON": "Icône",
       "CREATION_DATE": "Date/Heure",
       "MESSAGE": "Message",
       "BTN_COPY_TO_LOCAL": "Copier localement",
@@ -2256,9 +2263,15 @@
         "COPIED_LOCALLY": "Copier localement avec succès"
       },
       "TYPE_ENUM": {
-        "DEBUG_DATA": "Donnée de debuggage",
-        "INBOX_MESSAGE": "Message entrant",
+        "DEBUG_DATA": "Un problème a été remonté: <b>{{message}}</b><br/>par <a>{{issuer}}</a>",
+        "INBOX_MESSAGE": "Vous avez <b>reçu un message</b><br/>de <a>{{issuer}}</a>",
         "FEED": "Actualité"
+      }
+    },
+    "JOB": {
+      "PROGRESSION": {
+        "TITLE": "Liste des tâches en cours",
+        "EMPTY": "Aucune tâche en cours"
       }
     },
     "MESSAGE": {
@@ -2268,6 +2281,12 @@
       "BODY_HELP": "Votre message...",
       "NEW": {
         "TITLE": "Nouveau message"
+      },
+      "INBOX": {
+        "TITLE": "Messagerie",
+        "FROM": "De : ",
+        "BTN_REPLY": "Répondre",
+        "REPLY_SUBJECT_PREFIX": "Re: "
       },
       "TYPE_ENUM": {
         "INBOX_MESSAGE": "Messagerie interne",
@@ -2300,6 +2319,10 @@
       "IMPORTING": "Importation en cours",
       "ERROR": "Erreur durant l'envoi de fichier"
     }
+  },
+  "IMAGE": {
+    "BTN_CAMERA_SOURCE": "Prendre une photo",
+    "BTN_GALLERY_SOURCE": "Ouvrir la galerie"
   },
   "ERROR": {
     "ALERT_HEADER": "Erreur",

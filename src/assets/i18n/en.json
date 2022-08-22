@@ -305,7 +305,8 @@
     "LOCAL_SETTINGS": "Settings",
     "SERVER": "Server settings",
     "LOGOUT": "Logout",
-    "ABOUT": "About"
+    "ABOUT": "About",
+    "BTN_MY_ACCOUNT": "My account"
   },
   "ABOUT": {
     "TITLE": "About",
@@ -2161,6 +2162,11 @@
   },
   "SOCIAL": {
     "USER_EVENT": {
+      "NOTIFICATION": {
+        "TITLE": "Notifications",
+        "EMPTY": "No notification",
+        "READ_ALL": "Mark all as read"
+      },
       "EVENT_TYPE": "Type",
       "CREATION_DATE": "Date/Time",
       "MESSAGE": "Message",
@@ -2172,6 +2178,12 @@
         "DEBUG_DATA": "Debug data",
         "INBOX_MESSAGE": "Inbox message",
         "FEED": "Feed"
+      }
+    },
+    "JOB": {
+      "PROGRESSION": {
+        "TITLE": "Running tasks",
+        "EMPTY": "No running task"
       }
     },
     "MESSAGE": {

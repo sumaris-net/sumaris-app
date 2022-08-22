@@ -16,8 +16,7 @@ import {
   referentialToString,
   toBoolean,
   toDateISOString,
-  UsageMode,
-  UserEventService
+  UsageMode, USER_EVENT_SERVICE
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
@@ -31,6 +30,7 @@ import { HttpEventType } from '@angular/common/http';
 import { PopoverController } from '@ionic/angular';
 import { AppBaseTable, BaseTableOptions } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import { UserEventService } from '@app/social/user-event/user-event.service';
 
 const moment = momentImported;
 

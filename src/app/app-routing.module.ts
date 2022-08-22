@@ -3,6 +3,7 @@ import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
 import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
 import { AppObservedLocationRoutingModule } from '@app/trip/observed-location-routing.module';
+import { AppInboxMessageRoutingModule } from '@app/social/message/inbox-message-routing.module';
 
 const routes: Routes = [
   // Core path
@@ -84,6 +85,16 @@ const routes: Routes = [
     loadChildren: () => import('./extraction/extraction-routing.module').then(m => m.AppExtractionRoutingModule)
   },
 
+  // Inbox message
+  {
+    path: 'inbox',
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'USER'
+    },
+    loadChildren: () => import('./social/message/inbox-message-routing.module').then(m => m.AppInboxMessageRoutingModule)
+  },
+
   // Test module (disable in menu, by default - can be enabled by the Pod configuration page)
   {
     path: 'testing',
@@ -94,13 +105,14 @@ const routes: Routes = [
         redirectTo: 'shared',
       },
       // Shared module
-      /*{
-        path: 'shared',
-        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SharedTestingModule)
-      },*/
       {
         path: 'shared',
         loadChildren: () => import('./shared/shared.testing.module').then(m => m.AppSharedTestingModule)
+      },
+      // Social module
+      {
+        path: 'social',
+        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SocialTestingModule)
       },
       // Trip module
       {

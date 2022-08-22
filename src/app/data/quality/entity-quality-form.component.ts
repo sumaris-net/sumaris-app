@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import { DataEntity, IDataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
+import { DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/model/data-entity.model';
 // import fade in animation
 import {
   AccountService,
-  AppEntityEditor, AppErrorWithDetails,
+  AppEntityEditor,
   ConfigService,
   EntityUtils,
-  fadeInAnimation, FormErrors, IEntity,
+  fadeInAnimation,
   IEntityService,
   isNil,
   isNotNil,
@@ -15,8 +15,7 @@ import {
   ReferentialRef,
   ShowToastOptions,
   StatusIds,
-  Toasts,
-  UserEventService
+  Toasts, USER_EVENT_SERVICE
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService, IRootDataEntityQualityService, isDataQualityService, isRootDataQualityService } from '../services/data-quality-service.class';
 import { QualityFlags } from '@app/referential/services/model/model.enum';
@@ -32,6 +31,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { isDataSynchroService, RootDataSynchroService } from '../services/root-data-synchro-service.class';
 import { debounceTime } from 'rxjs/operators';
 import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
+import { UserEventService } from '@app/social/user-event/user-event.service';
 
 
 export const APP_ENTITY_EDITOR = new InjectionToken<AppEntityEditor<any, any, any>>('AppEditor');
@@ -92,26 +92,6 @@ export class EntityQualityFormComponent<
     return this.service as RootDataSynchroService<T, any, ID>;
   }
 
-  constructor(
-    protected router: Router,
-    protected accountService: AccountService,
-    protected referentialRefService: ReferentialRefService,
-    protected settings: LocalSettingsService,
-    protected toastController: ToastController,
-    protected translate: TranslateService,
-    public network: NetworkService,
-    protected userEventService: UserEventService,
-    protected configService: ConfigService,
-    protected cd: ChangeDetectorRef,
-    @Optional() @Inject(APP_ENTITY_EDITOR) editor: AppEntityEditor<T, S, ID>
-  ) {
-    this.editor = editor;
-    this._mobile = settings.mobile;
-
-    // DEBUG
-    this._debug = !environment.production;
-  }
-
   ngOnInit() {
 
     // Check editor exists
@@ -151,6 +131,26 @@ export class EntityQualityFormComponent<
     this.qualityFlags = null;
     this.editor = null;
     this.service = null;
+  }
+
+  constructor(
+    protected router: Router,
+    protected accountService: AccountService,
+    protected referentialRefService: ReferentialRefService,
+    protected settings: LocalSettingsService,
+    protected toastController: ToastController,
+    protected translate: TranslateService,
+    public network: NetworkService,
+    protected configService: ConfigService,
+    protected cd: ChangeDetectorRef,
+    @Inject(USER_EVENT_SERVICE) protected userEventService: UserEventService,
+    @Optional() @Inject(APP_ENTITY_EDITOR) editor: AppEntityEditor<T, S, ID>
+  ) {
+    this.editor = editor;
+    this._mobile = settings.mobile;
+
+    // DEBUG
+    this._debug = !environment.production;
   }
 
   async control(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
