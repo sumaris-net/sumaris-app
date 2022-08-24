@@ -16,16 +16,6 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
 export class LandedTripService
   extends TripService {
 
-  /**
-   * Control the validity of an trip
-   *
-   * @param entity
-   * @param opts
-   */
-  async control(entity: Trip, opts?: TripValidatorOptions): Promise<FormErrors> {
-    console.debug('[landed-trip-service] Start Control trip');
-    return super.control(entity, {...opts, withOperationGroup: true});
-  }
 
   constructor(
     injector: Injector,
