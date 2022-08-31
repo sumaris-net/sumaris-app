@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { OperationValidatorService } from '../services/validator/operation.validator';
-import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, Output, ViewChild, EventEmitter} from '@angular/core';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {OperationValidatorService} from '../services/validator/operation.validator';
+import {OperationService, OperationServiceWatchOptions} from '../services/operation.service';
 import {
   AccountService,
   AppFormUtils,
@@ -15,16 +15,16 @@ import {
   RESERVED_START_COLUMNS,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { OperationsMap, OperationsMapModalOptions } from './map/operations.map';
-import { environment } from '@environments/environment';
-import { Operation } from '../services/model/trip.model';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { from, merge } from 'rxjs';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { MatExpansionPanel } from '@angular/material/expansion';
-import { debounceTime, filter, tap } from 'rxjs/operators';
-import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
+import {OperationsMap, OperationsMapModalOptions} from './map/operations.map';
+import {environment} from '@environments/environment';
+import {Operation} from '../services/model/trip.model';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {from, merge} from 'rxjs';
+import {FormBuilder, FormControl, FormGroup} from '@angular/forms';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {debounceTime, filter, tap} from 'rxjs/operators';
+import {AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+import {DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList} from '@app/data/services/model/model.utils';
 
 @Component({
   selector: 'app-operations-table',
@@ -57,6 +57,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   @Input() allowParentOperation = false;
   @Input() showQuality = true;
   @Input() showRowError = false;
+  @Input() canDuplicate: boolean;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -144,6 +145,8 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     return this.filterForm.controls.dataQualityStatus as FormControl;
   }
 
+  @Output() onDuplicateRow = new EventEmitter<{ operationToCopy: Operation }>();
+
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
@@ -210,6 +213,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     this.defaultSortBy = this.mobile ? 'startDateTime' : 'endDateTime';
     this.defaultSortDirection = this.mobile ? 'desc' : 'asc';
     this.loadingSubject.next(false);
+    this.canDuplicate = this.canDuplicate || false;
 
     // Listen settings changed
     this.registerSubscription(
@@ -257,6 +261,12 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
       this.setTripId(this.tripId);
     }
   }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.onDuplicateRow.unsubscribe();
+  }
+
 
   setTripId(tripId: number, opts?: { emitEvent: boolean; }) {
     this.setFilter(<OperationFilter>{
@@ -366,7 +376,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   // Change visibility to public
-  setError(error: string, opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
+  setError(error: string, opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
     super.setError(error, opts);
 
     // If error
@@ -394,8 +404,21 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
   }
 
   // Change visibility to public
-  resetError(opts?: {emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
+  resetError(opts?: { emitEvent?: boolean; showOnlyInvalidRows?: boolean; }) {
     this.setError(undefined, opts);
+  }
+
+  async duplicateRow(event?: Event, row?: TableElement<Operation>) {
+    event?.stopPropagation();
+
+    row = row || this.singleSelectedRow;
+    if (!row || !this.confirmEditCreate(event, row)) {
+      return false;
+    }
+
+    this.onDuplicateRow.emit({operationToCopy: row.currentData});
+
+    this.selection.clear();
   }
 
   trackByFn(index: number, row: TableElement<Operation>) {
@@ -416,8 +439,7 @@ export class OperationsTable extends AppTable<Operation, OperationFilter> implem
     if (settings.accountInheritance) {
       const account = this.accountService.account;
       this.latLongPattern = account && account.settings && account.settings.latLongFormat || this.settings.latLongFormat;
-    }
-    else {
+    } else {
       this.latLongPattern = this.settings.latLongFormat;
     }
 

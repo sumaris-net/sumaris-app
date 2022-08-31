@@ -13,7 +13,7 @@
       <button mat-icon-button (click)="operationsTable.resetFilter()"
               *ngIf="operationsTable.filterCriteriaCount">
         <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+        <mat-icon class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
       </button>
 
       <!-- Show filter -->
@@ -22,7 +22,8 @@
                   [matBadgeHidden]="operationsTable.filterIsEmpty"
                   matBadgeColor="accent"
                   matBadgeSize="small"
-                  matBadgePosition="above after">filter_list_alt</mat-icon>
+                  matBadgePosition="above after">filter_list_alt
+        </mat-icon>
       </button>
     </ng-container>
 
@@ -42,7 +43,9 @@
           [disabled]="!dirty"
           (click)="cancel($event)">
     <ion-label>
-      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <mat-icon>
+        <ion-icon slot="icon-only" name="refresh"></ion-icon>
+      </mat-icon>&nbsp;
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
@@ -193,11 +196,11 @@
         </ion-item>
 
         <app-physical-gears-table #physicalGearsTable
-                                 [programLabel]="$programLabel|async"
-                                 [showToolbar]="!mobile"
-                                 (openSelectPreviousGearModal)="openSelectPreviousGearModal($event)"
-                                 [useSticky]="!mobile"
-                                 [debug]="debug">
+                                  [programLabel]="$programLabel|async"
+                                  [showToolbar]="!mobile"
+                                  (openSelectPreviousGearModal)="openSelectPreviousGearModal($event)"
+                                  [useSticky]="!mobile"
+                                  [debug]="debug">
         </app-physical-gears-table>
 
       </div>
@@ -224,6 +227,8 @@
       <app-operations-table #operationsTable
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
+                            (onDuplicateRow)="onDuplicateOperation($event)"
+                            [canDuplicate]="copyFlags!=0"
                             [programLabel]="$programLabel|async"
                             [showToolbar]="!mobile"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"

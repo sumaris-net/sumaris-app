@@ -1,4 +1,3 @@
-
 <!-- Top toolbar -->
 <app-toolbar color="primary"
              [hasValidate]="!loading && dirty"
@@ -32,8 +31,8 @@
 
     <!-- option menu -->
     <ion-button
-            [matMenuTriggerFor]="optionsMenu"
-            [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      [matMenuTriggerFor]="optionsMenu"
+      [title]=" 'COMMON.BTN_OPTIONS'|translate">
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
   </ion-buttons>
@@ -111,11 +110,13 @@
         <ion-button fill="clear"
                     (click)="toolbar.doBackClick($event)"
                     routerDirection="back"
-                    translate>TRIP.OPERATION.BTN_SHOW_ALL</ion-button>
+                    translate>TRIP.OPERATION.BTN_SHOW_ALL
+        </ion-button>
 
         <!-- New operation button -->
         <ion-button color="tertiary" fill="solid"
-                    (click)="saveAndNew($event)" translate>COMMON.BTN_ADD</ion-button>
+                    (click)="saveAndNew($event)" translate>COMMON.BTN_ADD
+        </ion-button>
       </div>
     </ion-toolbar>
   </ion-footer>
@@ -129,12 +130,24 @@
           [disabled]="!dirty"
           (click)="cancel($event)">
     <ion-label>
-      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <mat-icon>
+        <ion-icon slot="icon-only" name="refresh"></ion-icon>
+      </mat-icon>&nbsp;
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
 
   <mat-divider></mat-divider>
+
+  <!-- duplicate -->
+  <button mat-menu-item class="ion-color-danger" *ngIf="copyFlags!=0"
+          [disabled]="disabled"
+          (click)="duplicate($event)">
+    <ion-label>
+      <mat-icon>file_copy</mat-icon>&nbsp;
+      <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
+    </ion-label>
+  </button>
 
   <!-- delete -->
   <button mat-menu-item class="ion-color-danger"

@@ -1,20 +1,18 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import {ActivatedRoute, Router} from "@angular/router";
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, Observable} from 'rxjs';
-import { firstNotNilPromise, isNil, isNotEmptyArray, isNotNil, sleep, toBoolean } from '@sumaris-net/ngx-components';
-import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../type/extraction-type.model";
-import {ExtractionService} from "../common/extraction.service";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {filter, map} from "rxjs/operators";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {ExtractionCriteriaValidatorService} from "./extraction-criterion.validator";
-import {FormFieldDefinition, FormFieldType} from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import { AppFormUtils } from '@sumaris-net/ngx-components/src/app/core/form/form.utils';
+import {AppFormUtils, firstNotNilPromise, isNil, isNotEmptyArray, isNotNil, sleep, toBoolean} from '@sumaris-net/ngx-components';
+import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from '../type/extraction-type.model';
+import {ExtractionService} from '../common/extraction.service';
+import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms';
+import {filter, map} from 'rxjs/operators';
+import {Moment} from 'moment';
+import {ExtractionCriteriaValidatorService} from './extraction-criterion.validator';
+import {FormFieldDefinition, FormFieldType} from '@sumaris-net/ngx-components';
+import {AccountService} from '@sumaris-net/ngx-components';
+import {LocalSettingsService} from '@sumaris-net/ngx-components';
+import {AppForm} from '@sumaris-net/ngx-components';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -37,9 +35,9 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     {symbol: '>='},
     {symbol: '<'},
     {symbol: '<='},
-    {symbol: 'BETWEEN', name: "EXTRACTION.FILTER.BETWEEN"},
-    {symbol: 'NULL', name: "EXTRACTION.FILTER.NULL"},
-    {symbol: 'NOT NULL', name: "EXTRACTION.FILTER.NOT_NULL"}
+    {symbol: 'BETWEEN', name: 'EXTRACTION.FILTER.BETWEEN'},
+    {symbol: 'NULL', name: 'EXTRACTION.FILTER.NULL'},
+    {symbol: 'NOT NULL', name: 'EXTRACTION.FILTER.NOT_NULL'}
   ];
 
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
@@ -126,7 +124,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     this.markForCheck();
   }
 
-  setSheetName(sheetName: string, opts?: {emitEvent?: boolean; onlySelf?: boolean}) {
+  setSheetName(sheetName: string, opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     // Skip if same, or loading
     if (isNil(sheetName) || this._sheetName === sheetName) return;
 
@@ -141,10 +139,10 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     this._sheetName = sheetName;
   }
 
-  addFilterCriterion(criterion?: ExtractionFilterCriterion|any, opts?: { appendValue?: boolean; emitEvent?: boolean; }): boolean {
+  addFilterCriterion(criterion?: ExtractionFilterCriterion | any, opts?: { appendValue?: boolean; emitEvent?: boolean; }): boolean {
     opts = opts || {};
     opts.appendValue = toBoolean(opts.appendValue, false);
-    console.debug("[extraction-form] Adding filter criterion");
+    console.debug('[extraction-form] Adding filter criterion');
 
     let hasChanged = false;
     let index = -1;
@@ -179,7 +177,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
         // Append value to existing value
         if (opts.appendValue) {
-          existingCriterion.value += ", " + criterion.value;
+          existingCriterion.value += ', ' + criterion.value;
           this.setCriterionValue(criterionForm, existingCriterion);
         }
 
@@ -260,7 +258,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     return false;
   }
 
-  reset(data?: any, opts?: {emitEvent?: boolean}) {
+  reset(data?: any, opts?: { emitEvent?: boolean }) {
     // Remove all criterion
     Object.getOwnPropertyNames(this.form.controls).forEach(sheetName => this.form.removeControl(sheetName));
 
@@ -294,8 +292,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     if (!subject) {
       subject = new BehaviorSubject(definition);
       this.$columnValueDefinitionsByIndex[index] = subject;
-    }
-    else {
+    } else {
       subject.next(definition);
     }
     return subject;
@@ -321,14 +318,13 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
           displayWith: (value) => '' + value
         }
       };
-    }
-    else {
+    } else {
       let type = column.type as FormFieldType;
       // Always use 'string' for number, to be able to set list
       if (type === 'integer' || type === 'double') {
         type = 'string';
       }
-      return  {
+      return {
         key: column.columnName,
         label: column.name,
         type
@@ -337,19 +333,17 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
 
-
-
-  setValue(data: ExtractionFilterCriterion[], opts?: {emitEvent?: boolean; onlySelf?: boolean }): Promise<void> | void {
+  setValue(data: ExtractionFilterCriterion[], opts?: { emitEvent?: boolean; onlySelf?: boolean }): Promise<void> | void {
 
     // Create a map (using sheetname as key)
     const json = (data || [])
       .reduce((res, criterion) => {
         criterion.sheetName = criterion.sheetName || this.sheetName;
-        criterion.operator = criterion.operator || DEFAULT_CRITERION_OPERATOR
+        criterion.operator = criterion.operator || DEFAULT_CRITERION_OPERATOR;
         res[criterion.sheetName] = res[criterion.sheetName] || [];
         res[criterion.sheetName].push(criterion);
-      return res;
-    }, {});
+        return res;
+      }, {});
 
     // Convert object to json, then apply it to form (e.g. convert 'undefined' into 'null')
     AppFormUtils.copyEntity2Form(json, this.form, {emitEvent: false, onlySelf: true, ...opts});
@@ -382,7 +376,6 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       sheetName: criterion && criterion.sheetName || this.sheetName || null
     });
   }
-
 
 
   protected markForCheck() {

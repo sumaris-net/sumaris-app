@@ -28,6 +28,13 @@
       <mat-icon>delete</mat-icon>
     </button>
 
+    <!-- Duplicate -->
+    <button mat-icon-button *ngIf="enabled && canDuplicate"
+            [title]="'COMMON.BTN_DUPLICATE'|translate"
+            (click)="duplicateRow($event)">
+      <mat-icon>file_copy</mat-icon>
+    </button>
+
   </ng-template>
 
   <ion-item *ngIf="!mobile && error; let error" lines="none">

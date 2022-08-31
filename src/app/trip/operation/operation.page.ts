@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
-import { OperationSaveOptions, OperationService } from '../services/operation.service';
-import { OperationForm } from './operation.form';
-import { TripService } from '../services/trip.service';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
+import {OperationSaveOptions, OperationService} from '../services/operation.service';
+import {OperationForm} from './operation.form';
+import {TripService} from '../services/trip.service';
+import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {
   AppEntityEditor,
   AppErrorWithDetails,
@@ -18,37 +18,38 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
+  isNotNilOrBlank, isNotNilOrNaN,
   LocalSettingsService,
   ReferentialUtils,
   toBoolean,
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { MatTabChangeEvent } from '@angular/material/tabs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap, throttleTime } from 'rxjs/operators';
-import { FormGroup, Validators } from '@angular/forms';
+import {MatTabChangeEvent} from '@angular/material/tabs';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap, throttleTime} from 'rxjs/operators';
+import {FormGroup, Validators} from '@angular/forms';
 import * as momentImported from 'moment';
-import { Moment } from 'moment';
-import { Program } from '@app/referential/services/model/program.model';
-import { Operation, Trip } from '../services/model/trip.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { BatchTreeComponent } from '../batch/batch-tree.component';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, from, merge, Subscription } from 'rxjs';
-import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
-import { IonRouterOutlet, ModalController } from '@ionic/angular';
-import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { IPmfmForm, OperationValidators } from '@app/trip/services/validator/operation.validator';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
-import { ContextService } from '@app/shared/context.service';
-import { Geometries } from '@app/shared/geometries.utils';
-import { WaitForOptions } from '@sumaris-net/ngx-components';
-import { AppFormUtils } from '@sumaris-net/ngx-components';
+import {Moment} from 'moment';
+import {Program} from '@app/referential/services/model/program.model';
+import {Operation, Trip} from '../services/model/trip.model';
+import {OperationCopyFlags, ProgramProperties} from '@app/referential/services/config/program.config';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {BatchTreeComponent} from '../batch/batch-tree.component';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BehaviorSubject, from, merge, Subscription} from 'rxjs';
+import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
+import {IonRouterOutlet, ModalController} from '@ionic/angular';
+import {SampleTreeComponent} from '@app/trip/sample/sample-tree.component';
+import {IPmfmForm, OperationValidators} from '@app/trip/services/validator/operation.validator';
+import {TripContextService} from '@app/trip/services/trip-context.service';
+import {APP_ENTITY_EDITOR} from '@app/data/quality/entity-quality-form.component';
+import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
+import {ContextService} from '@app/shared/context.service';
+import {Geometries} from '@app/shared/geometries.utils';
+import {WaitForOptions} from '@sumaris-net/ngx-components';
+import {AppFormUtils} from '@sumaris-net/ngx-components';
+import {VesselPosition} from '@app/data/services/model/vessel-position.model';
 
 const moment = momentImported;
 
@@ -59,8 +60,8 @@ const moment = momentImported;
   styleUrls: ['./operation.page.scss'],
   animations: [fadeInOutAnimation],
   providers: [
-    { provide: APP_ENTITY_EDITOR, useExisting: OperationPage },
-    { provide: ContextService, useExisting: TripContextService},
+    {provide: APP_ENTITY_EDITOR, useExisting: OperationPage},
+    {provide: ContextService, useExisting: TripContextService},
     {
       provide: IonRouterOutlet,
       useValue: {
@@ -101,7 +102,7 @@ export class OperationPage
   autoFillDatesFromTrip = false;
   displayAttributes: {
     gear?: string[];
-    [key:string]: string[]
+    [key: string]: string[]
   } = {};
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
@@ -110,20 +111,22 @@ export class OperationPage
   showBatchTables = false;
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
+  isDuplicatedData = false;
+  copyFlags = 0;
 
   private _lastOperationsTripId: number;
   private _measurementSubscription: Subscription;
   private _sampleRowSubscription: Subscription;
   private _forceMeasurementAsOptionalOnFieldMode = false;
 
-  @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
-  @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
+  @ViewChild('opeForm', {static: true}) opeForm: OperationForm;
+  @ViewChild('measurementsForm', {static: true}) measurementsForm: MeasurementsForm;
 
   // Catch batch, sorting batches, individual measure
-  @ViewChild('batchTree', { static: true }) batchTree: BatchTreeComponent;
+  @ViewChild('batchTree', {static: true}) batchTree: BatchTreeComponent;
 
   // Sample tables
-  @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
+  @ViewChild('sampleTree', {static: true}) sampleTree: SampleTreeComponent;
 
   get form(): FormGroup {
     return this.opeForm.form;
@@ -176,7 +179,7 @@ export class OperationPage
     this.showLastOperations = this.settings.isUsageMode('FIELD');
 
     this.registerSubscription(
-      hotkeys.addShortcut({ keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true })
+      hotkeys.addShortcut({keys: 'f1', description: 'COMMON.BTN_SHOW_HELP', preventDefault: true})
         .subscribe((event) => this.openHelpModal(event)),
     );
 
@@ -302,7 +305,7 @@ export class OperationPage
           throttleTime(500)
         )
         .subscribe(_ => this.updateDataContext())
-    )
+    );
   }
 
   ngAfterViewInit() {
@@ -480,7 +483,7 @@ export class OperationPage
 
             // Auto fill batches (if new data)
             if (this.showBatchTables && this.autoFillBatch && this.isNewData) {
-              this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
+              this.batchTree.autoFill({skipIfDisabled: false, skipIfNotEmpty: true});
             }
 
             this.updateTablesState();
@@ -507,7 +510,7 @@ export class OperationPage
             this.batchTree.defaultHasSubBatches = hasIndividualMeasures;
             this.batchTree.allowSubBatches = hasIndividualMeasures;
             // Hide button to toggle hasSubBatches (yes/no) when value if forced
-            this.batchTree.batchGroupsTable.setModalOption("showHasSubBatchesButton", !hasIndividualMeasures)
+            this.batchTree.batchGroupsTable.setModalOption('showHasSubBatchesButton', !hasIndividualMeasures);
             if (!this.allowParentOperation) {
               this.showBatchTables = hasIndividualMeasures && this.showBatchTablesByProgram;
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
@@ -529,7 +532,7 @@ export class OperationPage
 
       // Auto fill batches (if new data)
       if (this.showBatchTables && this.autoFillBatch && this.isNewData) {
-        this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
+        this.batchTree.autoFill({skipIfDisabled: false, skipIfNotEmpty: true});
       }
     }
 
@@ -556,7 +559,7 @@ export class OperationPage
     const error = isNil(this.data?.controlDate) && this.data?.qualificationComments;
     if (error) {
       console.info('[operation-page] Operation errors: ', error);
-     // this.setError({message: 'COMMON.FORM.HAS_ERROR', details: {message: error}}, {detailsCssClass: 'error-details'});
+      // this.setError({message: 'COMMON.FORM.HAS_ERROR', details: {message: error}}, {detailsCssClass: 'error-details'});
     }
   }
 
@@ -644,6 +647,52 @@ export class OperationPage
     // Copy some trip's properties (need by filter)
     data.programLabel = trip.program?.label;
     data.vesselId = trip.vesselSnapshot?.id;
+    this.copyFlags = isNotNilOrNaN(this.tripContext.getValue('copyFlags')) ? this.tripContext.getValue('copyFlags') as number : 0;
+
+    // If come from duplicate btn, copy properties
+    if (!this.isDuplicatedData && this.tripContext && isNotNil(this.tripContext.getValue('operationToCopy'))) {
+     const originalData = this.tripContext.getValue('operationToCopy') as Operation;
+
+      if (!this.isOnFieldMode && (this.copyFlags & OperationCopyFlags.DATE) === OperationCopyFlags.DATE) {
+
+
+        // Reset time if there is no OperationCopyFlags.TIME
+        if ((this.copyFlags & OperationCopyFlags.TIME) !== OperationCopyFlags.TIME) {
+          const dateFormat = 'YYYY-MM-DD';
+          data.startDateTime = !!originalData.startDateTime && moment(originalData.startDateTime.format(dateFormat), dateFormat) || undefined;
+          data.fishingStartDateTime = !!originalData.fishingStartDateTime && moment(originalData.fishingStartDateTime.format(dateFormat), dateFormat) || undefined;
+          data.fishingEndDateTime = !!originalData.fishingEndDateTime && moment(originalData.fishingEndDateTime.format(dateFormat), dateFormat) || undefined;
+          data.endDateTime = !!originalData.endDateTime && moment(originalData.endDateTime.format(dateFormat), dateFormat) || undefined;
+
+        } else {
+          data.startDateTime = originalData.startDateTime;
+          data.fishingStartDateTime = originalData.fishingStartDateTime;
+          data.fishingEndDateTime = originalData.fishingEndDateTime;
+          data.endDateTime = originalData.endDateTime;
+        }
+      }
+      if ((this.copyFlags & OperationCopyFlags.POSITION) === OperationCopyFlags.POSITION) {
+        data.startPosition = VesselPosition.fromObject({...originalData.startPosition, id: null});
+        data.fishingStartPosition = VesselPosition.fromObject({...originalData.fishingStartPosition, id: null});
+        data.fishingEndPosition = VesselPosition.fromObject({...originalData.fishingEndPosition, id: null});
+        data.endPosition = VesselPosition.fromObject({...originalData.endPosition, id: null});
+      }
+      if ((this.copyFlags & OperationCopyFlags.FISHING_AREA) === OperationCopyFlags.FISHING_AREA) {
+        data.fishingAreas = originalData.fishingAreas;
+      }
+      if ((this.copyFlags & OperationCopyFlags.GEAR) === OperationCopyFlags.GEAR) {
+        data.physicalGear = originalData.physicalGear;
+      }
+      if ((this.copyFlags & OperationCopyFlags.METIER) === OperationCopyFlags.METIER) {
+        data.metier = originalData.metier;
+      }
+      if ((this.copyFlags & OperationCopyFlags.MEASUREMENT) === OperationCopyFlags.MEASUREMENT) {
+        //TODO : measurements are empty when duplicate from table
+        data.measurements = originalData.measurements;
+      }
+      this.tripContext?.setValue('operationToCopy', null);
+      this.isDuplicatedData = true;
+    }
 
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
@@ -652,8 +701,8 @@ export class OperationPage
       // Wait last operations to be loaded
       const previousOperations = await firstNotNilPromise(this.$lastOperations);
 
-      // Copy from previous operation
-      if (isNotEmptyArray(previousOperations)) {
+      // Copy from previous operation only if is not a duplicated operation
+      if (isNotEmptyArray(previousOperations) && !this.isDuplicatedData) {
         const previousOperation = previousOperations
           .find(ope => ope && ope !== data && ReferentialUtils.isNotEmpty(ope.metier));
         if (previousOperation) {
@@ -674,6 +723,8 @@ export class OperationPage
     data.tripId = tripId;
 
     const trip = await this.loadTrip(tripId);
+
+    this.copyFlags = isNotNilOrNaN(this.tripContext.getValue('copyFlags')) ? this.tripContext.getValue('copyFlags') as number : 0;
 
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
@@ -819,6 +870,31 @@ export class OperationPage
     }
   }
 
+  async duplicate(event: UIEvent): Promise<any> {
+    if (event?.defaultPrevented) return Promise.resolve(); // Skip
+    event?.preventDefault(); // Avoid propagation to <ion-item>
+
+    // Avoid reloading while saving or still loading
+    await this.waitIdle();
+
+    const saved = (this.isOnFieldMode && this.dirty && this.valid)
+      // If on field mode AND valid: save silently
+      ? await this.save(event)
+      // Else If desktop mode: ask before save
+      : await this.saveIfDirtyAndConfirm(null, {
+        emitEvent: false /*do not update view*/
+      });
+
+    if (saved) {
+      this.tripContext?.setValue('operationToCopy', this.data);
+      return this.router.navigate(['..', 'new'], {
+        relativeTo: this.route,
+        replaceUrl: true,
+        queryParams: {tab: OperationPage.TABS.GENERAL}
+      });
+    }
+  }
+
   async setValue(data: Operation) {
     await this.opeForm.setValue(data);
 
@@ -842,8 +918,8 @@ export class OperationPage
     // Set sample tree
     await this.sampleTree.setValue(data && data.samples || []);
 
-    // If new data, auto fill the table
-    if (this.isNewData) {
+    // If new data, autofill the table
+    if (this.isNewData && !this.isDuplicatedData) {
       if (this.autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
     }
   }
@@ -851,7 +927,7 @@ export class OperationPage
   updateViewState(data: Operation, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data, opts);
 
-    // Display form error, if  has errors from context, applies it on form.
+    // Display form error, if has errors from context, applies it on form.
     const error = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) && data.qualificationComments;
     if (error) {
       this.form.get('qualificationComments').reset();
@@ -890,15 +966,13 @@ export class OperationPage
       if (this.opeForm.invalid) {
         error = this.opeForm.formError;
       }
-      if (this.measurementsForm.invalid){
+      if (this.measurementsForm.invalid) {
         error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
       }
 
       this.setError(error);
       this.scrollToTop();
-    }
-
-    else if (this.dirty) {
+    } else if (this.dirty) {
       // DEBUG - dump still dirty children
       if (this.debug) {
         let children = this.children.filter(f => f.dirty);
@@ -1016,11 +1090,11 @@ export class OperationPage
 
     // Read the settings
     return this.settings.isUsageMode('FIELD')
-      && (
-        isNil(this.trip) || (
-          isNotNil(this.trip.departureDateTime)
-          && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
-        ? 'FIELD' : 'DESK';
+    && (
+      isNil(this.trip) || (
+        isNotNil(this.trip.departureDateTime)
+        && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
+      ? 'FIELD' : 'DESK';
   }
 
   protected registerForms() {
@@ -1071,7 +1145,7 @@ export class OperationPage
     const json = this.opeForm.value;
 
     // Make sure parent operation has quality flag
-    if (this.allowParentOperation && EntityUtils.isEmpty(json.parentOperation, 'id') && isNil(json.qualityFlagId)){
+    if (this.allowParentOperation && EntityUtils.isEmpty(json.parentOperation, 'id') && isNil(json.qualityFlagId)) {
       console.warn('[operation-page] Parent operation does not have quality flag id');
       json.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
       this.opeForm.qualityFlagControl.patchValue(QualityFlagIds.NOT_COMPLETED, {emitEvent: false});
@@ -1166,9 +1240,7 @@ export class OperationPage
         data.childOperationId = undefined;
         data.parentOperation = undefined;
       }
-    }
-
-    else {
+    } else {
 
       // Load parent operation
       const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
