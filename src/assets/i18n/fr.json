@@ -657,6 +657,7 @@
         "TITLE": "OPE #{{rankOrder}} <small>du {{startDateTime}}</small>",
         "TITLE_NO_RANK": "OPE {{startDateTime}}",
         "BTN_DELETE": "Supprimer cette opération",
+        "BTN_DUPLICATE": "Dupliquer cette opération",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
         "BTN_EDIT_PARENT" : "Modifier le filage...",
         "BTN_SELECT_PARENT" : "Sélectionner le filage...",

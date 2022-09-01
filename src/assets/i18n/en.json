@@ -648,6 +648,7 @@
         "TITLE": "OPE #{{rankOrder}} <small>at {{startDateTime}}</small>",
         "TITLE_NO_RANK": "OPE {{startDateTime}}",
         "BTN_DELETE": "Delete this operation",
+        "BTN_DUPLICATE": "Duplicate this operation",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
         "BTN_EDIT_PARENT" : "Edit setting",
         "BTN_SELECT_PARENT" : "Select setting",

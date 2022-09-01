@@ -22,12 +22,13 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  isNotNilOrNaN,
   LocalSettingsService,
   ReferentialUtils,
   toBoolean,
   toNumber,
   UsageMode,
-  WaitForOptions
+  WaitForOptions,
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap, throttleTime } from 'rxjs/operators';
@@ -124,6 +125,8 @@ export class OperationPage
   showBatchTables = false;
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
+  isDuplicatedData = false;
+  copyFlags = 0;
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -620,6 +623,7 @@ export class OperationPage
     this.opeForm.endDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
     this.opeForm.maxShootingDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS);
     this.opeForm.maxTotalDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS);
+    this.copyFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_COPY_FLAGS);
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
@@ -673,6 +677,18 @@ export class OperationPage
     // Copy some trip's properties (need by filter)
     data.programLabel = trip.program?.label;
     data.vesselId = trip.vesselSnapshot?.id;
+    const copyFlags = this.copyFlags || this.tripContext?.getValue('copyFlags');
+    this.copyFlags = isNotNilOrNaN(copyFlags) ? copyFlags as number : 0;
+
+    // If come from duplicate btn, copy properties
+    if (!this.isDuplicatedData && isNotNil(this.tripContext?.getValue('operationToCopy'))) {
+
+      // Use assign method
+      data.assign(this.tripContext.getValue('operationToCopy') as Operation, { flags: this.copyFlags, isOnFieldMode: this.isOnFieldMode });
+
+      this.tripContext?.setValue('operationToCopy', null);
+      this.isDuplicatedData = true;
+    }
 
     // If is on field mode, fill default values
     if (this.isOnFieldMode) {
@@ -681,8 +697,8 @@ export class OperationPage
       // Wait last operations to be loaded
       const previousOperations = await firstNotNilPromise(this.$lastOperations);
 
-      // Copy from previous operation
-      if (isNotEmptyArray(previousOperations)) {
+      // Copy from previous operation only if is not a duplicated operation
+      if (isNotEmptyArray(previousOperations) && !this.isDuplicatedData) {
         const previousOperation = previousOperations
           .find(ope => ope && ope !== data && ReferentialUtils.isNotEmpty(ope.metier));
         if (previousOperation) {
@@ -703,6 +719,8 @@ export class OperationPage
     data.tripId = tripId;
 
     const trip = await this.loadTrip(tripId);
+
+    this.copyFlags = isNotNilOrNaN(this.tripContext.getValue('copyFlags')) ? this.tripContext.getValue('copyFlags') as number : 0;
 
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
@@ -848,6 +866,31 @@ export class OperationPage
     }
   }
 
+  async duplicate(event: UIEvent): Promise<any> {
+    if (event?.defaultPrevented) return Promise.resolve(); // Skip
+    event?.preventDefault(); // Avoid propagation to <ion-item>
+
+    // Avoid reloading while saving or still loading
+    await this.waitIdle();
+
+    const saved = (this.isOnFieldMode && this.dirty && this.valid)
+      // If on field mode AND valid: save silently
+      ? await this.save(event)
+      // Else If desktop mode: ask before save
+      : await this.saveIfDirtyAndConfirm(null, {
+        emitEvent: false /*do not update view*/
+      });
+
+    if (saved) {
+      this.tripContext?.setValue('operationToCopy', this.data);
+      return this.router.navigate(['..', 'new'], {
+        relativeTo: this.route,
+        replaceUrl: true,
+        queryParams: {tab: OperationPage.TABS.GENERAL}
+      });
+    }
+  }
+
   async setValue(data: Operation) {
     await this.opeForm.setValue(data);
 
@@ -880,7 +923,8 @@ export class OperationPage
 
     // If new data, auto fill the table
     if (this.isNewData) {
-      if (this.autoFillDatesFromTrip) this.opeForm.fillWithTripDates();
+      if (this.autoFillDatesFromTrip && !this.isDuplicatedData)
+        this.opeForm.fillWithTripDates();
     }
   }
 

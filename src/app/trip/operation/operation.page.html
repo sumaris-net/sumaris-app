@@ -147,6 +147,16 @@
 
   <mat-divider></mat-divider>
 
+  <!-- duplicate -->
+  <button mat-menu-item class="ion-color-danger" *ngIf="copyFlags!=0"
+          [disabled]="disabled"
+          (click)="duplicate($event)">
+    <ion-label>
+      <mat-icon>file_copy</mat-icon>&nbsp;
+      <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
+    </ion-label>
+  </button>
+
   <!-- delete -->
   <button mat-menu-item class="ion-color-danger"
           [disabled]="isNewData || disabled"

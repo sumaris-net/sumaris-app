@@ -27,10 +27,10 @@ import {
   NetworkService,
   PromiseEvent,
   ReferentialRef,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
-import { Trip } from '../services/model/trip.model';
+import { Operation, Trip } from '../services/model/trip.model';
 import { ISelectPhysicalGearModalOptions, SelectPhysicalGearModal } from '../physicalgear/select-physical-gear.modal';
 import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
@@ -88,6 +88,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   settingsId: string;
   devAutoFillData = false;
   operationEditor: OperationEditor;
+  copyFlags: number;
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
   private _measurementSubscription: Subscription;
@@ -135,6 +136,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.defaultBackHref = "/trips";
     this.mobile = settings.mobile;
     this.settingsId = TripPageSettingsEnum.PAGE_ID;
+    this.copyFlags = this.copyFlags || 0;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -290,6 +292,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.operationsTable.showFishingEndDateTime = !this.operationsTable.showEndDateTime && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
     this.operationsTable.i18nColumnSuffix = i18nSuffix;
     this.operationsTable.detailEditor = this.operationEditor;
+    this.copyFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_COPY_FLAGS);
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -434,6 +437,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Propagate the usage mode (e.g. when try to 'terminate' the trip)
       this.tripContext?.setValue('usageMode', this.usageMode);
 
+      // Propagate the copy flags for operation duplication
+      this.tripContext?.setValue('copyFlags', this.copyFlags);
+
 
       setTimeout(async () => {
         const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
@@ -461,6 +467,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Propagate the usage mode (e.g. when try to 'terminate' the trip)
       this.tripContext?.setValue('usageMode', this.usageMode);
 
+      // Propagate the copy flags for operation duplication
+      this.tripContext?.setValue('copyFlags', this.copyFlags);
+
       setTimeout(async () => {
         const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
         await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
@@ -469,6 +478,12 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
         this.markAsLoaded();
       });
     }
+  }
+
+  async onDuplicateOperation(event?: { operationToCopy: Operation }) {
+    this.tripContext?.setValue('operationToCopy', event.operationToCopy);
+
+    await this.onNewOperation(event);
   }
 
   // For DEV only

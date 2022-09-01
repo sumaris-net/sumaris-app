@@ -10,6 +10,17 @@ export type StrategyEditor = 'legacy' | 'sampling';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
+export const OperationCopyFlags = {
+
+  DATE: 1,
+  TIME: 2,
+  POSITION: 4,
+  FISHING_AREA: 8,
+  MEASUREMENT: 16,
+  GEAR: 32,
+  METIER: 64,
+};
+
 export const ProgramProperties = Object.freeze({
   // Trip
   TRIP_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
@@ -96,6 +107,26 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_MAP_ZOOM',
     defaultValue: 5,
     type: 'integer'
+  },
+  TRIP_OPERATION_COPY_FLAGS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.copy.flags',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_COPY_FLAGS',
+    defaultValue: '%',
+    type: 'enum',
+    values: [
+      {
+        key: '109',
+        value: 'DATE_POSITION_FISHING_AREA_GEAR_METIER'
+      },
+      {
+        key: '111',
+        value: 'DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER'
+      },
+      {
+        key: '125',
+        value: 'DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER'
+      }
+    ]
   },
   TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.onboard.measurements.optional',
