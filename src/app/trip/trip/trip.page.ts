@@ -27,7 +27,7 @@ import {
   NetworkService,
   PromiseEvent,
   ReferentialRef,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
 import { Operation, Trip } from '../services/model/trip.model';
@@ -88,7 +88,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   settingsId: string;
   devAutoFillData = false;
   operationEditor: OperationEditor;
-  copyFlags: number;
+  operationPasteFlags: number;
 
   private _forceMeasurementAsOptionalOnFieldMode = false;
   private _measurementSubscription: Subscription;
@@ -136,7 +136,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.defaultBackHref = "/trips";
     this.mobile = settings.mobile;
     this.settingsId = TripPageSettingsEnum.PAGE_ID;
-    this.copyFlags = this.copyFlags || 0;
+    this.operationPasteFlags = this.operationPasteFlags || 0;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -292,7 +292,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.operationsTable.showFishingEndDateTime = !this.operationsTable.showEndDateTime && program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_FISHING_END_DATE_ENABLE);
     this.operationsTable.i18nColumnSuffix = i18nSuffix;
     this.operationsTable.detailEditor = this.operationEditor;
-    this.copyFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_COPY_FLAGS);
+    this.operationPasteFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_PASTE_FLAGS);
 
     // Toggle showMap to false, when offline
     if (this.operationsTable.showMap) {
@@ -437,13 +437,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Propagate the usage mode (e.g. when try to 'terminate' the trip)
       this.tripContext?.setValue('usageMode', this.usageMode);
 
-      // Propagate the copy flags for operation duplication
-      this.tripContext?.setValue('copyFlags', this.copyFlags);
-
+      // Propagate the past flags to cliboard
+      this.tripContext?.setValue('clipboard', {
+        data: new Operation(),
+        pasteFlags: this.operationPasteFlags
+      });
 
       setTimeout(async () => {
-        const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
-        await this.router.navigate(['trips', this.data.id, 'operation', ...editor, id], {queryParams: {} /*reset query params*/ });
+        const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+        await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, id], {queryParams: {} /*reset query params*/ });
 
         this.markAsLoaded();
       });
@@ -467,9 +469,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Propagate the usage mode (e.g. when try to 'terminate' the trip)
       this.tripContext?.setValue('usageMode', this.usageMode);
 
-      // Propagate the copy flags for operation duplication
-      this.tripContext?.setValue('copyFlags', this.copyFlags);
-
+      // OPen the operation editor
       setTimeout(async () => {
         const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
         await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
@@ -480,8 +480,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
   }
 
-  async onDuplicateOperation(event?: { operationToCopy: Operation }) {
-    this.tripContext?.setValue('operationToCopy', event.operationToCopy);
+  async onDuplicateOperation(event?: { data: Operation }) {
+    if (!event?.data) return; // Skip
+
+    // Fill clipboard
+    this.tripContext?.setValue('clipboard', {
+      data: event.data.clone(),
+      pasteFlags: this.operationPasteFlags
+    });
 
     await this.onNewOperation(event);
   }

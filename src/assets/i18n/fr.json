@@ -1702,6 +1702,13 @@
       "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Marée > Opération : Date de début de pêche ?",
       "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Marée > Opération : Date de fin de pêche ?",
       "TRIP_OPERATION_END_DATE_ENABLE": "Marée > Opération : Date de fin ?",
+      "TRIP_OPERATION_PASTE_FLAGS": "Marée > Opération : Duplication",
+      "TRIP_OPERATION_PASTE_FLAGS_ENUM": {
+        "NONE": "Désactivée",
+        "DATE_POSITION_FISHING_AREA_GEAR_METIER": "Date, Engin, Métier, Position/Zone de pêche",
+        "DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER": "Date/Heure, Engin, Métier, Position/Zone de pêche",
+        "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Engin, Métier, Position/Zone de pêche, Caractéristiques"
+      },
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",

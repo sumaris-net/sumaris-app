@@ -137,7 +137,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     return this.filterForm.controls.dataQualityStatus as FormControl;
   }
 
-  @Output() onDuplicateRow = new EventEmitter<{ operationToCopy: Operation }>();
+  @Output() onDuplicateRow = new EventEmitter<{ data: Operation }>();
 
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
@@ -307,7 +307,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
       return false;
     }
 
-    this.onDuplicateRow.emit({operationToCopy: row.currentData});
+    this.onDuplicateRow.emit({data: row.currentData});
 
     this.selection.clear();
   }

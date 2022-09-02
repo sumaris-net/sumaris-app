@@ -22,13 +22,12 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  isNotNilOrNaN,
   LocalSettingsService,
   ReferentialUtils,
   toBoolean,
   toNumber,
   UsageMode,
-  WaitForOptions,
+  WaitForOptions
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap, throttleTime } from 'rxjs/operators';
@@ -36,8 +35,8 @@ import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
-import { Operation, Trip } from '../services/model/trip.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Operation, OperationUtils, Trip } from '../services/model/trip.model';
+import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
 import { environment } from '@environments/environment';
@@ -53,6 +52,7 @@ import { IDataEntityQualityService } from '@app/data/services/data-quality-servi
 import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { flagsToString, removeFlag } from '@app/shared/flags.utils';
 
 const moment = momentImported;
 
@@ -126,7 +126,7 @@ export class OperationPage
   showBatchTablesByProgram = true;
   showSampleTablesByProgram = false;
   isDuplicatedData = false;
-  copyFlags = 0;
+  operationPasteFlags: number;
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -164,6 +164,10 @@ export class OperationPage
     return this;
   }
 
+  get canDuplicate(): boolean {
+    return this.operationPasteFlags !== 0;
+  }
+
   constructor(
     injector: Injector,
     dataService: OperationService,
@@ -189,6 +193,10 @@ export class OperationPage
     // Init defaults
     this.mobile = this.settings.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
+
+    // Get paste flags from clipboard, if related to Operation
+    const clipboard = this.tripContext?.clipboard;
+    this.operationPasteFlags = OperationUtils.isOperation(clipboard?.data) && clipboard.pasteFlags || 0;
 
     // Add shortcut
     if (!this.mobile) {
@@ -623,7 +631,10 @@ export class OperationPage
     this.opeForm.endDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
     this.opeForm.maxShootingDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS);
     this.opeForm.maxTotalDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS);
-    this.copyFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_COPY_FLAGS);
+    this.operationPasteFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_PASTE_FLAGS);
+    if (this.debug && this.operationPasteFlags !== 0) {
+      console.debug(`[operation-page] Enable duplication with paste flags: ${flagsToString(this.operationPasteFlags, OperationPasteFlags)}`);
+    }
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
@@ -677,29 +688,35 @@ export class OperationPage
     // Copy some trip's properties (need by filter)
     data.programLabel = trip.program?.label;
     data.vesselId = trip.vesselSnapshot?.id;
-    const copyFlags = this.copyFlags || this.tripContext?.getValue('copyFlags');
-    this.copyFlags = isNotNilOrNaN(copyFlags) ? copyFlags as number : 0;
 
-    // If come from duplicate btn, copy properties
-    if (!this.isDuplicatedData && isNotNil(this.tripContext?.getValue('operationToCopy'))) {
+    // Paste clipboard, if not already a duplicated operation
+    const clipboard = this.tripContext?.clipboard;
+    if (OperationUtils.isOperation(clipboard?.data)) {
 
-      // Use assign method
-      data.assign(this.tripContext.getValue('operationToCopy') as Operation, { flags: this.copyFlags, isOnFieldMode: this.isOnFieldMode });
+      // Do NOT copy dates, when in the on field mode (will be filled later)
+      if (this.isOnFieldMode) {
+        data.paste(clipboard?.data, removeFlag(this.operationPasteFlags, OperationPasteFlags.DATE));
+      }
+      else {
+        data.paste(clipboard?.data, this.operationPasteFlags);
+      }
 
-      this.tripContext?.setValue('operationToCopy', null);
+      // Reset clipboard
+      this.tripContext?.setValue('clipboard', null);
+
       this.isDuplicatedData = true;
     }
 
-    // If is on field mode, fill default values
+    // If is on field mode, then fill default values
     if (this.isOnFieldMode) {
       data.startDateTime = moment();
 
-      // Wait last operations to be loaded
-      const previousOperations = await firstNotNilPromise(this.$lastOperations);
+      if (!this.isDuplicatedData) {
+        // Wait last operations to be loaded
+        const previousOperations = await firstNotNilPromise(this.$lastOperations);
 
-      // Copy from previous operation only if is not a duplicated operation
-      if (isNotEmptyArray(previousOperations) && !this.isDuplicatedData) {
-        const previousOperation = previousOperations
+        // Copy from previous operation only if is not a duplicated operation
+        const previousOperation = (previousOperations || [])
           .find(ope => ope && ope !== data && ReferentialUtils.isNotEmpty(ope.metier));
         if (previousOperation) {
           data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, previousOperation.physicalGear, 'id')) || data.physicalGear;
@@ -719,8 +736,6 @@ export class OperationPage
     data.tripId = tripId;
 
     const trip = await this.loadTrip(tripId);
-
-    this.copyFlags = isNotNilOrNaN(this.tripContext.getValue('copyFlags')) ? this.tripContext.getValue('copyFlags') as number : 0;
 
     // Replace physical gear by the real entity
     data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, data.physicalGear, 'id')) || data.physicalGear;
@@ -867,7 +882,7 @@ export class OperationPage
   }
 
   async duplicate(event: UIEvent): Promise<any> {
-    if (event?.defaultPrevented) return Promise.resolve(); // Skip
+    if (event?.defaultPrevented || !this.tripContext) return Promise.resolve(); // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
     // Avoid reloading while saving or still loading
@@ -881,14 +896,20 @@ export class OperationPage
         emitEvent: false /*do not update view*/
       });
 
-    if (saved) {
-      this.tripContext?.setValue('operationToCopy', this.data);
-      return this.router.navigate(['..', 'new'], {
-        relativeTo: this.route,
-        replaceUrl: true,
-        queryParams: {tab: OperationPage.TABS.GENERAL}
-      });
-    }
+    if (!saved) return; // User cancelled, or cannot saved => skip
+
+    // Fill context's clipboard
+    this.tripContext.setValue('clipboard', {
+      data: this.data,
+      pasteFlags: this.operationPasteFlags
+    });
+
+    // Open new operation
+    return this.router.navigate(['..', 'new'], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {tab: OperationPage.TABS.GENERAL}
+    });
   }
 
   async setValue(data: Operation) {

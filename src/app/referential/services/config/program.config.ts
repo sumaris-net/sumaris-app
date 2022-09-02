@@ -1,4 +1,4 @@
-import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
+import { FormFieldDefinition, FormFieldType, isNilOrBlank, isNotNilOrNaN, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
 import { LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
@@ -10,7 +10,8 @@ export type StrategyEditor = 'legacy' | 'sampling';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
-export const OperationCopyFlags = {
+export const OperationPasteFlags = Object.freeze({
+  NONE: 0,
 
   DATE: 1,
   TIME: 2,
@@ -19,7 +20,12 @@ export const OperationCopyFlags = {
   MEASUREMENT: 16,
   GEAR: 32,
   METIER: 64,
-};
+
+  // ALL FLAGS
+  ALL: (1+2+4+8+16+32+64)
+});
+
+
 
 export const ProgramProperties = Object.freeze({
   // Trip
@@ -108,23 +114,27 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 5,
     type: 'integer'
   },
-  TRIP_OPERATION_COPY_FLAGS: <FormFieldDefinition>{
-    key: 'sumaris.trip.operation.copy.flags',
-    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_COPY_FLAGS',
-    defaultValue: '%',
+  TRIP_OPERATION_PASTE_FLAGS: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.paste.flags',
+    label: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS',
+    defaultValue: '0', // None
     type: 'enum',
     values: [
       {
-        key: '109',
-        value: 'DATE_POSITION_FISHING_AREA_GEAR_METIER'
+        key: '' + OperationPasteFlags.NONE,
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.NONE'
       },
       {
-        key: '111',
-        value: 'DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER'
+        key: '' + (OperationPasteFlags.DATE | OperationPasteFlags.POSITION | OperationPasteFlags.FISHING_AREA | OperationPasteFlags.GEAR | OperationPasteFlags.METIER),
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_POSITION_FISHING_AREA_GEAR_METIER'
       },
       {
-        key: '125',
-        value: 'DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER'
+        key: '' + (OperationPasteFlags.DATE | OperationPasteFlags.TIME | OperationPasteFlags.POSITION | OperationPasteFlags.FISHING_AREA | OperationPasteFlags.GEAR | OperationPasteFlags.METIER),
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER'
+      },
+      {
+        key: '' + (OperationPasteFlags.DATE | OperationPasteFlags.POSITION | OperationPasteFlags.FISHING_AREA | OperationPasteFlags.MEASUREMENT | OperationPasteFlags.GEAR | OperationPasteFlags.METIER),
+        value: 'PROGRAM.OPTIONS.TRIP_OPERATION_PASTE_FLAGS_ENUM.DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER'
       }
     ]
   },

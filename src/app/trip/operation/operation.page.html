@@ -30,6 +30,14 @@
       <mat-icon slot="icon-only">add_circle_outline</mat-icon>
     </ion-button>-->
 
+    <!-- duplicate (if desktop) -->
+    <ion-button *ngIf="!mobile && canDuplicate"
+                [disabled]="disabled || invalid"
+                [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE'|translate"
+                (click)="duplicate($event)">
+      <mat-icon slot="icon-only">content_copy</mat-icon>
+    </ion-button>
+
     <!-- option menu -->
     <ion-button
             [matMenuTriggerFor]="optionsMenu"
@@ -124,6 +132,15 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
+  <!-- duplicate (if mobile) -->
+  <button mat-menu-item class="ion-color-danger" *ngIf="mobile && enabled && canDuplicate"
+          (click)="duplicate($event)">
+    <ion-label>
+      <mat-icon>content_copy</mat-icon>&nbsp;
+      <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
+    </ion-label>
+  </button>
+
   <!-- online help -->
   <!-- TODO: enable this -->
   <button mat-menu-item
@@ -135,6 +152,8 @@
     </ion-label>
   </button>
 
+  <mat-divider></mat-divider>
+
   <!-- reset -->
   <button mat-menu-item
           [disabled]="!dirty"
@@ -142,18 +161,6 @@
     <ion-label>
       <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
       <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
-  </button>
-
-  <mat-divider></mat-divider>
-
-  <!-- duplicate -->
-  <button mat-menu-item class="ion-color-danger" *ngIf="copyFlags!=0"
-          [disabled]="disabled"
-          (click)="duplicate($event)">
-    <ion-label>
-      <mat-icon>file_copy</mat-icon>&nbsp;
-      <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
     </ion-label>
   </button>
 

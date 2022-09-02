@@ -218,7 +218,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
         .subscribe()
     );
 
-    // Clear the existing context
+    // Clear the existing trip context
     this.resetContext();
   }
 

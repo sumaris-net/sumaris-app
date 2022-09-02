@@ -33,7 +33,8 @@ import { SortDirection } from '@angular/material/sort';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { OperationCopyFlags } from '@app/referential/services/config/program.config';
+import { OperationPasteFlags } from '@app/referential/services/config/program.config';
+import { hasFlag } from '@app/shared/flags.utils';
 
 /* -- Helper function -- */
 
@@ -344,40 +345,38 @@ export class Operation
     this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId}) : undefined;
   }
 
-  assign(source: Operation, opts?: { flags?: number; isOnFieldMode?: boolean } ) {
-    const flags = opts?.flags || 0;
-    const isOnFieldMode = toBoolean(opts?.isOnFieldMode, false);
-    if (!isOnFieldMode && (flags & OperationCopyFlags.DATE) === OperationCopyFlags.DATE) {
-
-      // Reset time if there is no OperationCopyFlags.TIME
-      if ((flags & OperationCopyFlags.TIME) !== OperationCopyFlags.TIME) {
-        this.startDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.startDateTime));
-        this.fishingStartDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.fishingStartDateTime));
-        this.fishingEndDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.fishingEndDateTime));
-        this.endDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.endDateTime));
-      } else {
+  paste(source: Operation, flags = OperationPasteFlags.ALL ) {
+    if (hasFlag(flags, OperationPasteFlags.DATE)) {
+      if (hasFlag(flags, OperationPasteFlags.TIME)) {
         this.startDateTime = source.startDateTime;
         this.fishingStartDateTime = source.fishingStartDateTime;
         this.fishingEndDateTime = source.fishingEndDateTime;
         this.endDateTime = source.endDateTime;
       }
+      // Reset time if there is no OperationCopyFlags.TIME
+      else {
+        this.startDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.startDateTime));
+        this.fishingStartDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.fishingStartDateTime));
+        this.fishingEndDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.fishingEndDateTime));
+        this.endDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.endDateTime));
+      }
     }
-    if ((flags & OperationCopyFlags.POSITION) === OperationCopyFlags.POSITION) {
+    if (hasFlag(flags, OperationPasteFlags.POSITION)) {
       this.startPosition = VesselPosition.fromObject({...source.startPosition, id: null});
       this.fishingStartPosition = VesselPosition.fromObject({...source.fishingStartPosition, id: null});
       this.fishingEndPosition = VesselPosition.fromObject({...source.fishingEndPosition, id: null});
       this.endPosition = VesselPosition.fromObject({...source.endPosition, id: null});
     }
-    if ((flags & OperationCopyFlags.FISHING_AREA) === OperationCopyFlags.FISHING_AREA) {
+    if (hasFlag(flags, OperationPasteFlags.FISHING_AREA)) {
       this.fishingAreas = source.fishingAreas;
     }
-    if ((flags & OperationCopyFlags.GEAR) === OperationCopyFlags.GEAR) {
+    if (hasFlag(flags, OperationPasteFlags.GEAR)) {
       this.physicalGear = source.physicalGear;
     }
-    if ((flags & OperationCopyFlags.METIER) === OperationCopyFlags.METIER) {
+    if (hasFlag(flags, OperationPasteFlags.METIER)) {
       this.metier = source.metier;
     }
-    if ((flags & OperationCopyFlags.MEASUREMENT) === OperationCopyFlags.MEASUREMENT) {
+    if (hasFlag(flags, OperationPasteFlags.MEASUREMENT)) {
       //TODO : measurements are empty when duplicate from table
       this.measurements = source.measurements;
     }
@@ -389,6 +388,12 @@ export class Operation
           || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
         && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
       );
+  }
+}
+
+export class OperationUtils {
+  static isOperation(data: DataEntity<any>): data is Operation {
+    return data?.__typename === Operation.TYPENAME;
   }
 }
 

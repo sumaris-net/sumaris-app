@@ -251,7 +251,7 @@
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
                             (onDuplicateRow)="onDuplicateOperation($event)"
-                            [canDuplicate]="copyFlags!=0"
+                            [canDuplicate]="operationPasteFlags!==0"
                             [programLabel]="$programLabel|async"
                             [showToolbar]="!mobile"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"

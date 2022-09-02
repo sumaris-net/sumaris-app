@@ -29,11 +29,11 @@
     </button>
 
     <!-- Duplicate -->
-    <button mat-icon-button *ngIf="enabled && canDuplicate"
-            [disabled]='selection?.selected?.length !== 1'
+    <button mat-icon-button
+            *ngIf="canDuplicate && enabled && selection.selected|isArrayLength: {equals: 1}"
             [title]="'COMMON.BTN_DUPLICATE'|translate"
             (click)="duplicateRow($event)">
-      <mat-icon>file_copy</mat-icon>
+      <mat-icon>content_copy</mat-icon>
     </button>
 
   </ng-template>
@@ -357,6 +357,12 @@
         </button>
       </th>
       <td mat-cell *matCellDef="let row">
+        <!-- Duplicate row -->
+        <button mat-icon-button *ngIf="canDuplicate" class="visible-hover-row"
+                [title]="'COMMON.BTN_DUPLICATE'|translate"
+                (click)="$event.preventDefault() || duplicateRow($event, row)">
+          <mat-icon>content_copy</mat-icon>
+        </button>
       </td>
     </ng-container>
 
