@@ -670,7 +670,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
 
   protected async getPreviousSampleWithNumericalTagId(): Promise<Sample> {
     if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
-    for (var i = this.visibleRowCount - 1; i >= 0; i--) {
+    for (let i = this.visibleRowCount - 1; i >= 0; i--) {
       const row = await this.dataSource.getRow(i);
       if (row) {
         const rowData = row.currentData;

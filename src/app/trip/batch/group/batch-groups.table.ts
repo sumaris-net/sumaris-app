@@ -756,14 +756,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     super.mapPmfms(pmfms); // Should find the qvPmfm
 
     // Compute species pmfms (at species batch level)
-    if (!this.qvPmfm) {
-      this._speciesPmfms = [];
-      this._childrenPmfms = this._initialPmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
-    }
-    else {
+    if (this.qvPmfm) {
       let qvPmfmIndex = this._initialPmfms.findIndex(pmfm => pmfm.id === this.qvPmfm.id);
       this._speciesPmfms = this._initialPmfms.filter((pmfm, index) => index < qvPmfmIndex);
       this._childrenPmfms = this._initialPmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
+    }
+    else {
+      this._speciesPmfms = [];
+      this._childrenPmfms = this._initialPmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
     }
 
     // Configure row validator
@@ -951,11 +951,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (!this.dynamicColumns) return; // skip
     this.displayedColumns = this.getDisplayColumns();
 
+    this.groupColumnStartColSpan = RESERVED_START_COLUMNS.length
+      + (this.showTaxonGroupColumn ? 1 : 0)
+      + (this.showTaxonNameColumn ? 1 : 0);
     if (this.qvPmfm) {
-      this.groupColumnStartColSpan = RESERVED_START_COLUMNS.length
-        + (this.showTaxonGroupColumn ? 1 : 0)
-        + (this.showTaxonNameColumn ? 1 : 0)
-        + (this._speciesPmfms ? this.dynamicColumns.filter(c => c.pmfm && !c.hidden && !this.excludesColumns.includes(c.key)).length : 0);
+      this.groupColumnStartColSpan += (this._speciesPmfms ? this.dynamicColumns.filter(c => c.pmfm && !c.hidden && !this.excludesColumns.includes(c.key)).length : 0);
     }
     else {
       this.groupColumnStartColSpan += this.dynamicColumns.filter(c => !c.hidden).length;
