@@ -1083,6 +1083,9 @@
       "OBSERVERS": "Observers:",
       "FISHING_AREA_PLACEHOLDER": "Fishing area #",
       "FISHING_AREAS": "Fishing areas:",
+      "AUCTION_CONTROL": {
+        "TITLE": "{{location}} - Control of {{dateTime}}"
+      },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
         "TAB_LANDINGS": "Sampling"
@@ -1237,6 +1240,8 @@
   },
   "AUCTION_CONTROL": {
     "TITLE_PREFIX": "<small>{{location}} - Control {{date}}<br/></small>",
+    "TAB_SAMPLES": "Checkpoints",
+    "TAXON_GROUP_PLACEHOLDER": "COntrolled species",
     "NEW": {
       "TITLE": "New controlled vessel"
     },
@@ -1244,14 +1249,15 @@
       "TITLE": "Vessel {{vessel}}",
       "OTHER_TAXON_GROUP": "Commercial species (FAO)"
     },
-    "TAB_SAMPLES": "Checkpoints",
-    "TAXON_GROUP_PLACEHOLDER": "Controlled species",
     "SAMPLE": {
       "NEW": {
         "TITLE": "New controlled sample"
       },
       "EDIT": {
         "TITLE": "Controlled sample {{label}}"
+      },
+      "REPORT": {
+        "TITLE": "Control report - {{vessel}} - {{date}}"
       }
     }
   },
@@ -1613,6 +1619,8 @@
       "I18N_SUFFIX_SAMPLING" : "Biological parameter",
       "I18N_SUFFIX_SURVIVAL_TEST" : "Survival tests",
       "I18N_SUFFIX_ACCIDENTAL_CATCH" : "Accidental catches",
+      "I18N_SUFFIX_AUCTION_CONTROL": "Auction control",
+      "I18N_SUFFIX_TRAWL_SELECTIVITY": "Trawl selectivity",
       "TRIP_LOCATION_LEVEL_IDS": "Trip: Location level(s)",
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Trip > Location: Min nb char. to search",
       "TRIP_SALE_ENABLE": "Trip: Enter the sale?",
@@ -1648,13 +1656,14 @@
       "TRIP_SAMPLE_DATE_TIME_ENABLE": "Sample : Sample date/time?",
       "TRIP_SAMPLE_TAXON_GROUP_ENABLE": "Sample: Commercial species?",
       "TRIP_SAMPLE_TAXON_NAME_ENABLE": "Sample: Scientific species?",
-      "TRIP_SURVIVAL_TEST_TAXON_NAME_ENABLE": "Survival test: Scientific species?",
-      "TRIP_SURVIVAL_TEST_TAXON_GROUP_ENABLE": "Survival test: Commercial species?",
       "TRIP_POSITION_ENABLE": "Trip > Position: Enable?",
       "TRIP_POSITION_BOUNDING_BOX": "Trip > Position: Bounding box ([x1, y1, x2, y2]) :",
       "TRIP_LATITUDE_DEFAULT_SIGN": "Trip > Position > Latitude: Default direction:",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Trip > Position > Longitude: Default direction:",
       "TRIP_ALLOW_PARENT_OPERATION": "Trip > Operation: Associated operations (laying/hauling) ?",
+      "TRIP_OPERATION_EDITOR": "Trip > Operation: Editor",
+      "TRIP_OPERATION_EDITOR_LEGACY": "Default",
+      "TRIP_OPERATION_EDITOR_SELECTIVITY": "Trawl selectivity",
       "TRIP_OPERATION_METIER_FILTER": "Trip > Operation: Filter on already used metiers ?",
       "TRIP_OPERATION_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip > Operation: Are other features optional, when on field?",
       "TRIP_OPERATION_DISTANCE_MAX_WARNING" : "Trip > Operation: Max travelled distance before warning (miles):",
@@ -1664,9 +1673,16 @@
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Trip > Operation: Fishing area: Location level(s)",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Trip > Operation: Target species: Level(s)",
-      "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Trip > Operation : Fishing start date?",
-      "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Trip > Operation : Fishing end date?",
-      "TRIP_OPERATION_END_DATE_ENABLE": "Trip > Operation : End date?",
+      "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Trip > Operation: Fishing start date?",
+      "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Trip > Operation: Fishing end date?",
+      "TRIP_OPERATION_END_DATE_ENABLE": "Trip > Operation: End date?",
+      "TRIP_OPERATION_PASTE_FLAGS": "Trip > Operation: Duplication",
+      "TRIP_OPERATION_PASTE_FLAGS_ENUM": {
+        "NONE": "Disable",
+        "DATE_POSITION_FISHING_AREA_GEAR_METIER": "Date, Gear, Metier, Position/Fishing area",
+        "DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER": "Date/Heure, Gear, Metier, Position/Fishing area",
+        "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Gear, Metier, Position/Fishing area, Features"
+      },
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Observation > Start date: Time ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Observation: Fill observers?",
@@ -1880,7 +1896,6 @@
       "EDIT": {
         "TITLE": "<small>Product <br/></small>{{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
-        "PARENT": "Extraction parente",
         "BTN_OPEN_MAP": "Show the map",
         "BTN_UPDATE": "Execute now",
         "BTN_UPDATE_HELP": "Execute",
@@ -2195,6 +2210,12 @@
       "NEW": {
         "TITLE": "New message"
       },
+      "INBOX": {
+        "TITLE": "Inbox",
+        "FROM": "From : ",
+        "BTN_REPLY": "Reply",
+        "REPLY_SUBJECT_PREFIX": "Rep: "
+      },
       "TYPE_ENUM": {
         "INBOX_MESSAGE": "Internal message",
         "EMAIL": "Email",
@@ -2226,6 +2247,10 @@
       "IMPORTING": "Import in progress",
       "ERROR": "Error while sending file"
     }
+  },
+  "IMAGE": {
+    "BTN_CAMERA_SOURCE": "Take a picture",
+    "BTN_GALLERY_SOURCE": "Open gallery"
   },
   "ERROR": {
     "ALERT_HEADER": "Error",
