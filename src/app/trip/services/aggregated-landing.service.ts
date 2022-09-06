@@ -7,7 +7,7 @@ import {
   chainPromises,
   DateUtils,
   EntitiesServiceWatchOptions,
-  EntitiesStorage,
+  EntitiesStorage, EntitySaveOptions,
   EntityUtils,
   GraphqlService,
   IEntitiesService,
@@ -16,7 +16,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  NetworkService
+  NetworkService, toNumber
 } from '@sumaris-net/ngx-components';
 import { gql } from '@apollo/client/core';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
@@ -82,12 +82,16 @@ const Mutations: BaseEntityGraphqlMutations = {
     }`
 };
 
+export interface AggregatedLandingSaveOptions extends EntitySaveOptions {
+  observedLocationId?: number;
+}
+
 @Injectable({providedIn: 'root'})
 export class AggregatedLandingService
   extends BaseGraphqlService<AggregatedLanding, AggregatedLandingFilter>
   implements IEntitiesService<AggregatedLanding, AggregatedLandingFilter> {
 
-  private _lastFilter;
+  private _lastFilter: AggregatedLandingFilter;
 
   constructor(
     injector: Injector,
@@ -120,7 +124,10 @@ export class AggregatedLandingService
     this._lastFilter = dataFilter.clone();
 
     // Load offline
-    const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    const offline = this.network.offline
+      || (dataFilter && (
+        (dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC')
+        || EntityUtils.isLocalId(dataFilter.observedLocationId))) || false;
     if (offline) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
@@ -179,7 +186,7 @@ export class AggregatedLandingService
       console.warn('[aggregated-landing-service] Trying to watch aggregated landings without \'filter\': skipping.');
       return EMPTY;
     }
-    if (isNotNil(dataFilter.observedLocationId) && dataFilter.observedLocationId >= 0) throw new Error('Invalid \'filter.observedLocationId\': must be a local ID (id<0)!');
+    if (!EntityUtils.isLocalId(dataFilter.observedLocationId)) throw new Error('Invalid \'filter.observedLocationId\': must be a local ID (id<0)!');
 
     const variables = {
       offset: offset || 0,
@@ -205,19 +212,22 @@ export class AggregatedLandingService
       }));
   }
 
-  async saveAll(entities: AggregatedLanding[], options?: any): Promise<AggregatedLanding[]> {
+  async saveAll(entities: AggregatedLanding[], options?: AggregatedLandingSaveOptions): Promise<AggregatedLanding[]> {
     if (!entities) return entities;
-
-    const localEntities = entities.filter(entity => entity
-      && (entity.id < 0 || (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC'))
-    );
-    if (isNotEmptyArray(localEntities)) {
-      return this.saveAllLocally(localEntities, options);
-    }
 
     if (!this._lastFilter || this._lastFilter.isEmpty()) {
       console.warn('[aggregated-landing-service] Trying to save aggregated landings without \'filter\': skipping.');
       return entities;
+    }
+
+    options = {
+      observedLocationId: this._lastFilter.observedLocationId,
+      ...options
+    }
+
+    const offline = EntityUtils.isLocalId(options.observedLocationId);
+    if (offline) {
+      return this.saveAllLocally(entities, options);
     }
 
     const json = entities.map(t => this.asObject(t));
@@ -275,7 +285,7 @@ export class AggregatedLandingService
     return entities;
   }
 
-  async saveAllLocally(entities: AggregatedLanding[], opts?: any): Promise<AggregatedLanding[]> {
+  async saveAllLocally(entities: AggregatedLanding[], opts?: AggregatedLandingSaveOptions): Promise<AggregatedLanding[]> {
     if (!entities) return entities;
 
     if (this._debug) console.debug(`[aggregated-landing-service] Saving ${entities.length} aggregated landings locally...`);
@@ -343,14 +353,12 @@ export class AggregatedLandingService
    * @param entity
    * @param opts
    */
-  protected async saveLocally(entity: AggregatedLanding, opts?: any): Promise<AggregatedLanding> {
-    if (entity.observedLocationId >= 0) throw new Error('Must be a local entity');
-
-    // Fill default properties (as recorder department and person)
-    // this.fillDefaultProperties(entity, opts);
+  protected async saveLocally(entity: AggregatedLanding, opts?: AggregatedLandingSaveOptions): Promise<AggregatedLanding> {
 
     // Make sure to fill id, with local ids
-    await this.fillOfflineDefaultProperties(entity);
+    await this.fillOfflineDefaultProperties(entity, opts);
+
+    if (!EntityUtils.isLocalId(entity.observedLocationId)) throw new Error('Must be linked to a local observed location');
 
     const json = this.asObject(entity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE);
     if (this._debug) console.debug('[aggregated-landing-service] [offline] Saving aggregated landing locally...', json);
@@ -361,7 +369,7 @@ export class AggregatedLandingService
     return entity;
   }
 
-  protected async fillOfflineDefaultProperties(entity: AggregatedLanding) {
+  protected async fillOfflineDefaultProperties(entity: AggregatedLanding, opts?: AggregatedLandingSaveOptions) {
     const isNew = isNil(entity.id);
 
     // If new, generate a local id
@@ -369,12 +377,12 @@ export class AggregatedLandingService
       entity.id = await this.entities.nextValue(entity);
     }
 
+    // Link to the meta observed location
+    entity.observedLocationId = toNumber(entity.observedLocationId, opts?.observedLocationId);
+
     // Fill default synchronization status
     entity.synchronizationStatus = entity.synchronizationStatus || 'DIRTY';
 
-    // Fill all sample ids
-    // const samples = entity.samples && EntityUtils.listOfTreeToArray(entity.samples) || [];
-    // await EntityUtils.fillLocalIds(samples, (_, count) => this.entities.nextValues(Sample.TYPENAME, count));
   }
 
 }

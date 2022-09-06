@@ -1,13 +1,13 @@
 import {Injectable, Injector} from '@angular/core';
 import {
   AccountService,
-  AppFormUtils,
+  AppFormUtils, arrayDistinct,
   chainPromises,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, EntityUtils,
   FormErrors,
   GraphqlService,
   IEntitiesService,
@@ -20,7 +20,7 @@ import {
   LoadResult,
   NetworkService,
   StatusIds,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import {Observable} from 'rxjs';
 import * as momentImported from 'moment';
@@ -174,7 +174,7 @@ const ObservedLocationMutations = {
   }
   ${ObservedLocationFragments.observedLocation}
   ${LandingFragments.landing}
-  ${TripFragments.landedTrip}
+  ${TripFragments.embeddedLandedTrip}
   ${DataCommonFragments.lightDepartment}
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.location}
@@ -260,8 +260,7 @@ export class ObservedLocationService
     protected entities: EntitiesStorage,
     protected validatorService: ObservedLocationValidatorService,
     protected vesselService: VesselService,
-    protected landingService: LandingService,
-    protected tripService: TripService
+    protected landingService: LandingService
   ) {
     super(injector, ObservedLocation, ObservedLocationFilter, {
       queries: ObservedLocationQueries,
@@ -513,7 +512,6 @@ export class ObservedLocationService
     // Save observed location locally
     await this.entities.save(jsonLocal, {entityName: ObservedLocation.TYPENAME});
 
-
     // Save landings
     if (opts.withLanding && isNotEmptyArray(landings)) {
 
@@ -674,13 +672,12 @@ export class ObservedLocationService
 
   async synchronize(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
     opts = {
-      withLanding: true,
       enableOptimisticResponse: false, // Optimistic response not need
       ...opts
     };
 
     const localId = entity?.id;
-    if (isNil(localId) || localId >= 0) throw new Error('Entity must be a local entity');
+    if (!EntityUtils.isLocalId(localId)) throw new Error('Entity must be a local entity');
     if (this.network.offline) throw new Error('Could not synchronize if network if offline');
 
     // Clone (to keep original entity unchanged)
@@ -688,20 +685,27 @@ export class ObservedLocationService
     entity.synchronizationStatus = 'SYNC';
     entity.id = undefined;
 
-    // Fill landings
-    const res = await this.landingService.loadAllByObservedLocation({observedLocationId: localId},
-      {fullLoad: true, rankOrderOnPeriod: false});
-    const landings = res && res.data || [];
-    entity.landings = undefined;
+    // Load landings
+    let landings: Landing[];
+    {
+      const {data} = await this.landingService.loadAllByObservedLocation({observedLocationId: localId},
+        {fullLoad: true, rankOrderOnPeriod: false});
+      landings = data || [];
 
-    // Get temporary vessel (not saved)
-    const tempVessels = landings.filter(landing => landing.vesselSnapshot && landing.vesselSnapshot.id < 0).map(landing => landing.vesselSnapshot);
-    if (isNotEmptyArray(tempVessels)) {
+      // Make sure to remove landings here (will be saved AFTER observed location)
+      entity.landings = undefined;
+    }
 
-      const vesselToSave = tempVessels.map(VesselSnapshot.toVessel);
-      const savedVessels: Map<number, VesselSnapshot> = new Map<number, VesselSnapshot>();
+    // Get local vessels (not saved)
+    const localVessels = arrayDistinct(
+      landings.filter(landing => EntityUtils.isLocal(landing.vesselSnapshot)).map(landing => landing.vesselSnapshot),
+      ['id'])
+      .map(VesselSnapshot.toVessel);
+    if (isNotEmptyArray(localVessels)) {
 
-      for (const vessel of vesselToSave){
+      const savedVessels = new Map<number, VesselSnapshot>();
+
+      for (const vessel of localVessels) {
         const vesselLocalId= vessel.id;
         const savedVessel = await this.vesselService.synchronize(vessel);
         savedVessels.set(vesselLocalId, VesselSnapshot.fromVessel(savedVessel));
@@ -725,13 +729,13 @@ export class ObservedLocationService
       }
 
       // synchronize landings
-      entity.landings = [];
-      for (const landing of landings) {
-        landing.observedLocationId = entity.id;
-        landing.location = entity.location;
-        const savedLanding = await this.landingService.synchronize(landing);
-        entity.landings.push(savedLanding);
-      }
+      entity.landings = await Promise.all(
+        landings.map(landing => {
+          landing.observedLocationId = entity.id;
+          landing.location = entity.location;
+          return this.landingService.synchronize(landing);
+        })
+      );
     } catch (err) {
       throw {
         ...err,
@@ -743,9 +747,6 @@ export class ObservedLocationService
 
     try {
       if (this._debug) console.debug(`[observed-location-service] Deleting observedLocation {${entity.id}} from local storage`);
-
-      // Delete landings
-      await this.landingService.deleteLocally({observedLocationId: localId});
 
       // Delete observedLocation
       await this.entities.deleteById(localId, {entityName: ObservedLocation.TYPENAME});
