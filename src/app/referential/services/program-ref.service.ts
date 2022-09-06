@@ -1,7 +1,7 @@
 import { Injectable, Injector } from '@angular/core';
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { BehaviorSubject, defer, merge, Observable, Subject, Subscription } from 'rxjs';
-import { distinctUntilChanged, filter, finalize, map, takeUntil } from 'rxjs/operators';
+import { distinctUntilChanged, filter, finalize, map } from 'rxjs/operators';
 import { ErrorCodes } from './errors';
 import { ReferentialFragments } from './referential.fragments';
 import {
@@ -395,6 +395,7 @@ export class ProgramRefService
     cache?: boolean;
     fetchPolicy?: FetchPolicy;
   }): Promise<Program> {
+    if (isNilOrBlank(label)) throw new Error('Missing \'label\' argument');
     const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label].join('|');
 
     // Use cache (enable by default, if no custom query)
