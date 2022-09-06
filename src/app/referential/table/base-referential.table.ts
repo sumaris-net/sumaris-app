@@ -25,7 +25,7 @@ import {
   StatusList,
   suggestFromArray, PropertyFormatPipe, CsvUtils
 } from '@sumaris-net/ngx-components';
-import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableOptions } from '@app/shared/table/base.table';
+import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableConfig } from '@app/shared/table/base.table';
 import { FormBuilder } from '@angular/forms';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { IonInfiniteScroll, PopoverController } from '@ionic/angular';
@@ -35,11 +35,11 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { BehaviorSubject, isObservable, Observable, of, Subject } from 'rxjs';
 import { HttpEventType } from '@angular/common/http';
 
-export class BaseReferentialTableOptions<
+export interface BaseReferentialTableOptions<
   T extends Entity<T, ID>,
   ID = number,
   O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
-  extends BaseTableOptions<T, ID, O> {
+  extends BaseTableConfig<T, ID, O> {
 
   propertyNames?: string[];
   canUpload?: boolean;

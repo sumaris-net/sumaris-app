@@ -177,8 +177,8 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
           i18nColumnPrefix: 'TRIP.OPERATION.LIST.',
           prependNewElements: false,
           suppressErrors: environment.production,
-          dataServiceOptions: {
-            readOnly: true,
+          readOnly: true,
+          watchAllOptions: {
             withBatchTree: false,
             withSamples: false,
             withTotal: true

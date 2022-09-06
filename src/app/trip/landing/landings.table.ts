@@ -3,7 +3,7 @@ import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
 
 import {AccountService, isNil, isNotNil} from '@sumaris-net/ngx-components';
 import {LandingService} from '../services/landing.service';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
+import {BaseMeasurementsTable} from '../measurement/measurements.table.class';
 import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
 import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
 import {Moment} from 'moment';
@@ -32,7 +32,7 @@ const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class LandingsTable extends AppMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
+export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter> implements OnInit, OnDestroy {
 
   private _parentDateTime;
   private _parentObservers;

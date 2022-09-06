@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
-import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
+import { OperationSaveOptions, OperationService, OperationServiceWatchOptions } from '../services/operation.service';
 import {
   AccountService,
   AppTable,
@@ -124,14 +124,14 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
         {
           prependNewElements: false,
           suppressErrors: environment.production,
-          dataServiceOptions: <OperationServiceWatchOptions>{
-            readOnly: true,
+          readOnly: true,
+          watchAllOptions: {
             withBatchTree: false,
             withSamples: false,
             withTotal: true,
             mapFn: (operations) => this.mapOperations(operations),
             computeRankOrder: false,
-            mutable: false, // use simple load query
+            mutable: false, // use a simple load query, not mutable
             withOffline: true
           }
         })

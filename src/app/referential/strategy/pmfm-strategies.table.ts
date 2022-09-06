@@ -2,8 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import {
   AppFormUtils,
   AppInMemoryTable,
-  AppTableDataSourceOptions,
-  changeCaseToUnderscore,
+  changeCaseToUnderscore, EntitiesTableDataSourceConfig,
   firstNotNilPromise,
   FormFieldDefinition,
   FormFieldDefinitionMap,
@@ -138,7 +137,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         equals: PmfmStrategy.equals
       }),
       validatorService,
-      <AppTableDataSourceOptions<PmfmStrategy>>{
+      <EntitiesTableDataSourceConfig<PmfmStrategy>>{
         prependNewElements: false,
         suppressErrors: true,
         onRowCreated: (row) => this.onRowCreated(row)
@@ -447,9 +446,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
         mergeMap(row => row.validator.valueChanges
           .pipe(
             //debounceTime(250),
-            mergeMap((_) => this.dataSource.getRows()),
-            map((rows) => rows
-              .map(r => r.id === row.id ? row : r)
+            map((_) => this.dataSource.getRows()),
+            map((rows) => rows.map(r => r.id === row.id ? row : r)
             )
           )
         )

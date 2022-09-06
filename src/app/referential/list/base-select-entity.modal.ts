@@ -1,6 +1,6 @@
 import { Directive, Input, OnInit, Optional, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { AppTable, AppTableDataSourceOptions, EntitiesTableDataSource, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { AppTable, EntitiesTableDataSource, EntitiesTableDataSourceConfig, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -38,7 +38,7 @@ export abstract class BaseSelectEntityModal<
     protected viewCtrl: ModalController,
     protected dataType: new() => T,
     protected dataService: IEntitiesService<T, F>,
-    @Optional() protected options?: Partial<AppTableDataSourceOptions<T, ID>>
+    @Optional() protected options?: Partial<EntitiesTableDataSourceConfig<T, ID>>
   ) {
   }
 

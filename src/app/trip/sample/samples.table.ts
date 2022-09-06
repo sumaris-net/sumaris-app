@@ -28,7 +28,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
 import {Moment} from 'moment';
-import {AppMeasurementsTable, AppMeasurementsTableOptions} from '../measurement/measurements.table.class';
+import {BaseMeasurementsTable, BaseMeasurementsTableConfig} from '../measurement/measurements.table.class';
 import {ISampleModalOptions, SampleModal} from './sample.modal';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {Sample, SampleUtils} from '../services/model/sample.model';
@@ -57,7 +57,7 @@ const moment = momentImported;
 
 export type PmfmValueColorFn = (value: any, pmfm: IPmfm) => ColorName;
 
-export class SamplesTableOptions extends AppMeasurementsTableOptions<Sample> {
+export interface SamplesTableOptions extends BaseMeasurementsTableConfig<Sample> {
 
 }
 
@@ -83,7 +83,7 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
+export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
   private _footerRowsSubscription: Subscription;
 
@@ -204,7 +204,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   constructor(
     injector: Injector,
     protected samplingStrategyService: SamplingStrategyService,
-    @Optional() options?: SamplesTableOptions
   ) {
     super(injector,
       Sample, SampleFilter,
@@ -219,7 +218,6 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
         requiredStrategy: false,
         i18nColumnPrefix: 'TRIP.SAMPLE.TABLE.',
         i18nPmfmPrefix: 'TRIP.SAMPLE.PMFM.',
-        ...options,
         // Cannot override mapPmfms (by options)
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onPrepareRowForm: (form) => this.onPrepareRowForm.emit({form, pmfms: this.pmfms, markForCheck: () => this.markForCheck()})
@@ -442,7 +440,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
     this.editedRow = (this.editedRow && BatchGroup.equals(this.editedRow.currentData, parent) && this.editedRow)
       || (await this.findRowByEntity(parent))
       // Or add it to table, if new
-      || (await this.addEntityToTable(parent, {confirmCreate: false}));
+      || (await this.addEntityToTable(parent, {confirmCreate: false /*keep row editing*/}));
 
     const { data, role } = await this.openSubSampleModal(parent, { acquisitionLevel });
 
@@ -671,7 +669,7 @@ export class SamplesTable extends AppMeasurementsTable<Sample, SampleFilter> {
   protected async getPreviousSampleWithNumericalTagId(): Promise<Sample> {
     if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
     for (let i = this.visibleRowCount - 1; i >= 0; i--) {
-      const row = await this.dataSource.getRow(i);
+      const row = this.dataSource.getRow(i);
       if (row) {
         const rowData = row.currentData;
         const existingTagId = rowData?.measurementValues[PmfmIds.TAG_ID];

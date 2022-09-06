@@ -120,9 +120,8 @@ ion-toast {
 
 // Form buttons bar
 app-form-buttons-bar {
-  ion-col:first-of-type {
-    max-width: calc(100% - 400px);
-  }
+  // Default width of form bar left buttons
+  --form-buttons-bar-buttons-width: 400px;
 }
 
 // Measurement form

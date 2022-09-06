@@ -16,7 +16,7 @@
                       (selectionChange)="markAsDirty()"
                       required>
             <mat-select-trigger>
-              <span *ngIf="form.controls.statusId.value &gt;= 0">{{ statusById[form.controls.statusId.value]?.label | translate}}</span>
+              <span *ngVar="form|formGetValue: 'statusId' as statusId">{{ statusId >= 0 ? (statusById[statusId]?.label | translate) : ''}}</span>
             </mat-select-trigger>
             <mat-option *ngFor="let item of statusList" [value]="item.id">
               <ion-icon [name]="item.icon"></ion-icon>

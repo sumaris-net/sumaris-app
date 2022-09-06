@@ -16,7 +16,7 @@ import {
   toNumber,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { Sample } from '../services/model/sample.model';
 import { SortDirection } from '@angular/material/sort';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
@@ -26,6 +26,7 @@ import { SampleFilter } from '../services/filter/sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { merge, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -41,7 +42,7 @@ export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
+export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   implements OnInit, OnDestroy {
 
   private _availableSortedParents: Sample[] = [];
@@ -440,7 +441,7 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
    */
   protected async linkDataToParentAndDeleteOrphan() {
 
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
 
     //console.debug("[sub-samples-table] Calling linkDataToParentAndDeleteOrphan()", rows);
 
@@ -459,13 +460,13 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
         }
         // No parent, search from parent Pmfm
         else if (isNotNil(parentDisplayPmfmId)){
-          const parentPmfmValue = item.parent && item.parent.measurementValues && item.parent.measurementValues[parentDisplayPmfmId];
+          const parentPmfmValue = item?.measurementValues?.[parentDisplayPmfmId];
           if (isNil(parentPmfmValue)) {
             parent = undefined; // remove link to parent
           }
           else {
             // Update the parent, by tagId
-            parent = this._availableParents.find(p => (p && p.measurementValues && p.measurementValues[parentDisplayPmfmId]) === parentPmfmValue);
+            parent = this._availableParents.find(p => (p && p.measurementValues?.[parentDisplayPmfmId]) === parentPmfmValue);
           }
         }
 
@@ -473,7 +474,12 @@ export class SubSamplesTable extends AppMeasurementsTable<Sample, SampleFilter>
           if (item.parent !== parent) {
             item.parent = parent;
             // If row use a validator, force update
-            if (!row.editing && row.validator) row.validator.patchValue(item, {emitEvent: false});
+            if (row.validator) {
+              if (!row.editing) row.validator.patchValue({parent}, {emitEvent: false});
+            }
+            else {
+              row.currentData.parent = parent;
+            }
           }
           return true; // Keep only rows with a parent (or in editing mode)
         }

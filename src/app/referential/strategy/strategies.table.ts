@@ -67,9 +67,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
       new EntitiesTableDataSource(Strategy, dataService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        dataServiceOptions: {
-          saveOnlyDirtyRows: false
-        }
+        saveOnlyDirtyRows: false
       }));
 
     this.inlineEdition = false

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
-import { AppMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { ProductValidatorService } from '../services/validator/product.validator';
 import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
 import { Platform } from '@ionic/angular';
@@ -33,7 +33,7 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductsTable extends AppMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
+export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
 
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];

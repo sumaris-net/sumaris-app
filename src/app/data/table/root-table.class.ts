@@ -28,7 +28,7 @@ import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { HttpEventType } from '@angular/common/http';
 import { PopoverController } from '@ionic/angular';
-import { AppBaseTable, BaseTableOptions } from '@app/shared/table/base.table';
+import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 
@@ -96,7 +96,7 @@ export abstract class AppRootDataTable<
     columnNames: string[],
     protected dataService: IDataSynchroService<T, F, ID> & IEntitiesService<T, F>,
     protected validatorService: V,
-    options?: BaseTableOptions<T, ID>
+    options?: BaseTableConfig<T, ID>
   ) {
     super(injector,
       dataType, filterType,
@@ -280,7 +280,7 @@ export abstract class AppRootDataTable<
     if (!value) return false; // Skip if empty
 
     // Make sure network is UP
-    if (this.offline && value === 'SYNC') {
+    if (this.offline && value === 'SYNC' && !this.hasOfflineMode) {
       if (opts.showToast) {
         this.network.showOfflineToast({
           // Allow to retry to connect

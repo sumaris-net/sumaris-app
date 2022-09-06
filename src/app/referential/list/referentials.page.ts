@@ -132,9 +132,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
       new EntitiesTableDataSource(Referential, referentialService, validatorService, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        dataServiceOptions: {
-          saveOnlyDirtyRows: true
-        }
+        saveOnlyDirtyRows: true
       })
     );
 

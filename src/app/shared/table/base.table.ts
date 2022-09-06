@@ -1,9 +1,9 @@
 import { AfterViewInit, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppTable,
-  AppTableDataSourceOptions,
   EntitiesServiceWatchOptions,
   EntitiesTableDataSource,
+  EntitiesTableDataSourceConfig,
   Entity,
   EntityFilter,
   EntityUtils,
@@ -20,7 +20,7 @@ import { FormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
-import { filter, mergeMap } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -28,11 +28,12 @@ export const BASE_TABLE_SETTINGS_ENUM = {
   compactRowsKey: 'compactRows'
 };
 
-export class BaseTableOptions<
+export interface BaseTableConfig<
   T extends Entity<T, ID>,
   ID = number,
-  O extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions>
-  extends AppTableDataSourceOptions<T, ID, O> {
+  WO extends EntitiesServiceWatchOptions = EntitiesServiceWatchOptions,
+  SO = any>
+  extends EntitiesTableDataSourceConfig<T, ID, WO, SO> {
 
 }
 
@@ -41,7 +42,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   F extends EntityFilter<any, E, any>,
   V extends BaseValidatorService<E, ID> = any,
   ID = number,
-  O extends BaseTableOptions<E, ID> = BaseTableOptions<E, ID>>
+  O extends BaseTableConfig<E, ID> = BaseTableConfig<E, ID>>
   extends AppTable<E, F, ID> implements OnInit, AfterViewInit {
 
 
@@ -97,14 +98,11 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
         .concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<E, F, ID>(dataType, entityService, validatorService, {
           prependNewElements: false,
-          keepOriginalDataAfterConfirm: true,
+          restoreOriginalDataOnCancel: false,
+          saveOnlyDirtyRows: true,
           suppressErrors: environment.production,
           onRowCreated: (row) => this.onDefaultRowCreated(row),
-          ...options,
-          dataServiceOptions: {
-            saveOnlyDirtyRows: true,
-            ...options?.dataServiceOptions
-          }
+          ...options
         }),
         null
     );
@@ -133,7 +131,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
           .addShortcut({ keys: 'control.a', element: this.tableContainerRef.nativeElement })
           .pipe(
             filter(() => this.canEdit),
-            mergeMap(() => this.dataSource?.getRows()),
+            map(() => this.dataSource?.getRows()),
             filter(isNotEmptyArray)
           )
           .subscribe(rows => {

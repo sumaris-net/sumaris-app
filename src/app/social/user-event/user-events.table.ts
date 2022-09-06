@@ -123,7 +123,7 @@ export class UserEventsTable
       {
         prependNewElements: false,
         suppressErrors: true,
-        dataServiceOptions: {
+        watchAllOptions: {
           withContent: this.withContent
         }
       }));

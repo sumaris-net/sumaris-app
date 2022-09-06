@@ -8,8 +8,8 @@
     <mat-icon>cloud_off</mat-icon>&nbsp;
     <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
   </a>
-  <a mat-tab-link [active]="syncStatus==='SYNC'"
-     [disabled]="offline"
+  <a mat-tab-link
+     [active]="syncStatus==='SYNC'"
      (click)="setSynchronizationStatus('SYNC')">
     <mat-icon>cloud_done</mat-icon>&nbsp;
     <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
@@ -75,7 +75,11 @@
           <!-- search text -->
           <mat-form-field>
             <ion-icon matPrefix name="search"></ion-icon>
-            <input matInput [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT'|translate" formControlName="searchText">
+            <input matInput
+                   formControlName="searchText"
+                   [placeholder]="'VESSEL.LIST.FILTER.SEARCH_TEXT'|translate"
+                   (keydown.enter)="applyFilterAndClosePanel($event)"
+                   >
             <button mat-button matSuffix mat-icon-button tabindex="-1"
                     type="button"
                     (click)="filterForm.controls.searchText.reset()"

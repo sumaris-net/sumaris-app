@@ -248,7 +248,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   async load(id?: number, options?: EntityServiceLoadOptions): Promise<void> {
 
     this.observedLocationId = options && options.observedLocationId || this.observedLocationId;
-    this.defaultBackHref = `/observations/${this.observedLocationId}`; // todo test with '../..' only in production mode
+    this.defaultBackHref = `/observations/${this.observedLocationId}?tab=1`;
 
     return super.load(id, {isLandedTrip: true, ...options});
   }

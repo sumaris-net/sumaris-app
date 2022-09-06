@@ -1,16 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {Platform} from '@ionic/angular';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {AppMeasurementsTable} from '../measurement/measurements.table.class';
-import {OperationGroupValidatorService} from '../services/validator/operation-group.validator';
-import {Observable} from 'rxjs';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { OperationGroupValidatorService } from '../services/validator/operation-group.validator';
+import { Observable } from 'rxjs';
+import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { InMemoryEntitiesService, isNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
-import {MetierService} from '@app/referential/services/metier.service';
-import {OperationGroup} from '../services/model/trip.model';
-import {environment} from '@environments/environment';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import { MetierService } from '@app/referential/services/metier.service';
+import { OperationGroup } from '../services/model/trip.model';
+import { environment } from '@environments/environment';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { IOperationGroupModalOptions, OperationGroupModal } from '@app/trip/operationgroup/operation-group.modal';
 import { OperationGroupFilter } from '@app/trip/services/filter/operation-group.filter';
 
@@ -33,7 +31,7 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationGroupTable extends AppMeasurementsTable<OperationGroup, OperationGroupFilter> implements OnInit, OnDestroy {
+export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, OperationGroupFilter> implements OnInit, OnDestroy {
 
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 

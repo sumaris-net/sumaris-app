@@ -17,7 +17,7 @@ import {
   HistoryPageReference,
   isNil,
   isNotNil,
-  LocalSettingsService,
+  LocalSettingsService, NetworkService,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
@@ -95,7 +95,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     protected configService: ConfigService,
     protected accountService: AccountService,
     protected translateContext: TranslateContextService,
-    protected context: ContextService
+    protected context: ContextService,
+    public network: NetworkService
   ) {
     super(injector,
       ObservedLocation,
@@ -235,7 +236,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.markAsLoaded();
       }
     }
-
   }
 
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
@@ -248,6 +248,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const programLabel = (this.aggregatedLandingsTable?.programLabel) || this.data.program.label;
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
       && (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) || [];
+    const defaultVesselSynchronizationStatus = this.network.offline ? 'DIRTY' : 'SYNC';
 
     const landingFilter = LandingFilter.fromObject({
       programLabel,
@@ -271,7 +272,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         allowAddNewVessel: this.allowAddNewVessel,
         showVesselTypeColumn: this.showVesselType,
         showBasePortLocationColumn: this.showVesselBasePortLocation,
-        defaultVesselSynchronizationStatus: 'SYNC',
+        defaultVesselSynchronizationStatus,
         maxDateVesselRegistration: endDate,
       },
       keyboardClose: true,
@@ -279,7 +280,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     });
 
     // Open the modal
-    modal.present();
+    await modal.present();
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();

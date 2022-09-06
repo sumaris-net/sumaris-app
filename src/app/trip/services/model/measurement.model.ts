@@ -442,7 +442,7 @@ export class MeasurementValuesUtils {
       return undefined;
 
     const pmfm = pmfms.find(p => p.id === +pmfmId);
-    if (pmfm && measurements[pmfm.id]) {
+    if (pmfm && isNotNil(measurements[pmfm.id])) {
       const value = this.normalizeValueToForm(measurements[pmfm.id], pmfm);
       if (!!remove)
         delete measurements[pmfm.id];

@@ -61,7 +61,6 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     protected accountService: AccountService,
     protected service: TripService,
     protected entities: EntitiesStorage,
-    protected operationService: OperationService,
     protected trashRemoteService: TrashRemoteService,
     protected formBuilder: FormBuilder,
     protected cd: ChangeDetectorRef
@@ -82,8 +81,9 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
       new EntitiesTableDataSource<Trip, TripFilter>(Trip, service, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        dataServiceOptions: {
-          saveOnlyDirtyRows: true,
+        saveOnlyDirtyRows: true,
+        readOnly: true,
+        watchAllOptions: {
           trash: true
         }
       }),
