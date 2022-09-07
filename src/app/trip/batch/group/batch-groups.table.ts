@@ -954,10 +954,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       + (this.showTaxonGroupColumn ? 1 : 0)
       + (this.showTaxonNameColumn ? 1 : 0);
     if (this.qvPmfm) {
-      this.groupColumnStartColSpan += (this._speciesPmfms ? this.dynamicColumns.filter(c => c.pmfm && !c.hidden && !this.excludesColumns.includes(c.key)).length : 0);
+      this.groupColumnStartColSpan += isEmptyArray(this._speciesPmfms) ? 0 :
+        this._speciesPmfms.filter(p => !p.hidden && !this.excludesColumns.includes(''+p.id)).length;
     }
     else {
-      this.groupColumnStartColSpan += this.dynamicColumns.filter(c => !c.hidden).length;
+      this.groupColumnStartColSpan += this.dynamicColumns.filter(c => !c.hidden && !this.excludesColumns.includes(c.key)).length;
     }
 
     if (!this.loading) this.markForCheck();
