@@ -16,7 +16,7 @@ import {
   referentialToString,
   toBoolean,
   toDateISOString,
-  UsageMode, USER_EVENT_SERVICE
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
@@ -442,11 +442,13 @@ export abstract class AppRootDataTable<
     if (isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
-      this.network.showOfflineToast({
-        showRetryButton: true,
-        onRetrySuccess: () => this.terminateSelection()
+      await new Promise<void>(async (resolve, reject) => {
+        const res = await this.network.showOfflineToast({
+          showRetryButton: true,
+          onRetrySuccess: () => resolve()
+        });
+        if (!res) reject('ERROR.NETWORK_REQUIRED');
       });
-      return;
     }
 
     if (this.debug) console.debug("[root-table] Starting to terminate data...");
@@ -464,6 +466,15 @@ export abstract class AppRootDataTable<
     try {
       await chainPromises(ids.map(id => () => this.dataService.terminateById(id)));
 
+      // Update rows, when no refresh will be emitted
+      if (opts?.emitEvent === false) {
+        rows.map(row => {
+            if (DataRootEntityUtils.isLocalAndDirty(row.currentData)) {
+              row.currentData.synchronizationStatus = 'READY_TO_SYNC';
+            }
+          });
+      }
+
       // Success message
       if (!opts || opts.showSuccessToast !== false) {
         this.showToast({
@@ -476,6 +487,7 @@ export abstract class AppRootDataTable<
         error,
         context: () => chainPromises(ids.map(id => () => this.dataService.load(id, {withOperation: true, toEntity: false})))
       });
+      throw error;
     }
     finally {
       if (!opts || opts.emitEvent !== false) {
@@ -501,11 +513,13 @@ export abstract class AppRootDataTable<
     if (isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
-      this.network.showOfflineToast({
-        showRetryButton: true,
-        onRetrySuccess: () => this.synchronizeSelection()
+      await new Promise<void>(async (resolve, reject) => {
+        const res = await this.network.showOfflineToast({
+          showRetryButton: true,
+          onRetrySuccess: () => resolve()
+        });
+        if (!res) reject('ERROR.NETWORK_REQUIRED');
       });
-      return;
     }
 
     if (this.debug) console.debug("[root-table] Starting to synchronize data...");
