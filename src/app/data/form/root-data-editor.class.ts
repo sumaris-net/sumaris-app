@@ -161,8 +161,10 @@ export abstract class AppRootDataEditor<
 
     this.registerSubscription(
         this.$program.pipe(
+          filter(isNotNil),
           tap(program => this.setProgram(program)),
           mergeMap(_ => this.$strategy),
+          filter(isNotNil),
           tap(strategy => this.setStrategy(strategy))
       ).subscribe()
     );

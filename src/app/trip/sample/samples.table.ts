@@ -227,7 +227,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     this.referentialRefService = injector.get(ReferentialRefService);
     this.pmfmService = injector.get(PmfmService);
     this.inlineEdition = !this.mobile;
-    this.defaultSortBy = 'rankOrder';
+    this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
 
     this.confirmBeforeDelete = false;
