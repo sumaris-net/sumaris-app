@@ -130,7 +130,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         this.onRefresh
       )
       .pipe(
-        throttleTime(500)
+        throttleTime(500) // Need because of 'this.paginator.pageIndex = 0' later
       )
       .subscribe(() => {
         if (this.loading || isNil(this.type)) return; // avoid multiple load
@@ -555,13 +555,15 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   protected async loadData() {
 
-    if (!this.type || !this.type.label) return; // skip
+    if (!this.type?.label) return; // skip
 
     // To many call
     if (this.$cancel.observers.length >= 1) throw new Error("Too many call of loadData()");
 
     const typeLabel = this.type.label;
     this.settingsId = this.generateTableId();
+    this.markAsLoading();
+    this.resetError();
 
     let cancelled = false;
     const cancelSubscription = this.$cancel
@@ -571,9 +573,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
           cancelled = true;
         }
       });
-
-    this.markAsLoading();
-    this.resetError();
 
     const filter = this.getFilterValue();
     this.disable();
