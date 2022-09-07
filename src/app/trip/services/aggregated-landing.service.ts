@@ -7,8 +7,10 @@ import {
   chainPromises,
   DateUtils,
   EntitiesServiceWatchOptions,
-  EntitiesStorage, EntitySaveOptions,
+  EntitiesStorage,
+  EntitySaveOptions,
   EntityUtils,
+  firstNotNilPromise,
   GraphqlService,
   IEntitiesService,
   isEmptyArray,
@@ -16,7 +18,8 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  NetworkService, toNumber
+  NetworkService,
+  toNumber,
 } from '@sumaris-net/ngx-components';
 import { gql } from '@apollo/client/core';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
@@ -29,6 +32,7 @@ import { environment } from '@environments/environment';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
 import { ErrorCodes } from '@app/data/services/errors';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { TripService } from '@app/trip/services/trip.service';
 
 const VesselActivityFragment = gql`fragment VesselActivityFragment on VesselActivityVO {
   __typename
@@ -83,7 +87,7 @@ const Mutations: BaseEntityGraphqlMutations = {
 };
 
 export interface AggregatedLandingSaveOptions extends EntitySaveOptions {
-  observedLocationId?: number;
+  filter?: Partial<AggregatedLandingFilter>;
 }
 
 @Injectable({providedIn: 'root'})
@@ -96,12 +100,21 @@ export class AggregatedLandingService
   constructor(
     injector: Injector,
     protected network: NetworkService,
+    protected tripService: TripService,
     protected entities: EntitiesStorage
   ) {
     super(injector.get(GraphqlService), environment);
 
     // FOR DEV ONLY
     this._debug = !environment.production;
+  }
+
+  async loadAllByObservedLocation(filter?: (AggregatedLandingFilter | any) & { observedLocationId: number; }, opts?: EntitiesServiceWatchOptions): Promise<LoadResult<AggregatedLanding>> {
+    return firstNotNilPromise(this.watchAllByObservedLocation(filter, opts));
+  }
+
+  watchAllByObservedLocation(filter?: (AggregatedLandingFilter | any) & { observedLocationId: number; }, opts?: EntitiesServiceWatchOptions): Observable<LoadResult<AggregatedLanding>> {
+    return this.watchAll(0, -1, null, null, filter, opts);
   }
 
   watchAll(offset: number,
@@ -215,19 +228,16 @@ export class AggregatedLandingService
   async saveAll(entities: AggregatedLanding[], options?: AggregatedLandingSaveOptions): Promise<AggregatedLanding[]> {
     if (!entities) return entities;
 
-    if (!this._lastFilter || this._lastFilter.isEmpty()) {
+    const filter = this.asFilter(options?.filter || this._lastFilter);
+
+    if (!filter || filter.isEmpty()) {
       console.warn('[aggregated-landing-service] Trying to save aggregated landings without \'filter\': skipping.');
       return entities;
     }
 
-    options = {
-      observedLocationId: this._lastFilter.observedLocationId,
-      ...options
-    }
-
-    const offline = EntityUtils.isLocalId(options.observedLocationId);
+    const offline = EntityUtils.isLocalId(filter.observedLocationId);
     if (offline) {
-      return this.saveAllLocally(entities, options);
+      return this.saveAllLocally(entities, { filter });
     }
 
     const json = entities.map(t => this.asObject(t));
@@ -239,7 +249,7 @@ export class AggregatedLandingService
       mutation: Mutations.saveAll,
       variables: {
         data: json,
-        filter: this._lastFilter?.asPodObject()
+        filter: filter?.asPodObject()
       },
       error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
       update: (cache, {data}) => {
@@ -328,6 +338,33 @@ export class AggregatedLandingService
 
   }
 
+  async synchronizeAll(entities: AggregatedLanding[], opts: Partial<AggregatedLandingSaveOptions>): Promise<AggregatedLanding[]> {
+
+    const filter = this.asFilter(opts?.filter);
+    if (!filter || filter.isEmpty()) throw new Error('Missing options filter arguments');
+
+    // TODO: add a local persistence of target observed_location, landing and trip
+    // const localTripIds = entities.flatMap(source => (source.vesselActivities || []).map(va => va.tripId))
+    //   .filter(EntityUtils.isLocalId);
+    // const localTrips = await Promise.all(localTripIds.map(id => this.tripService.load(id, {isLandedTrip: true, fullLoad: true})));
+    // const localTripByIds = splitById(localTrips);
+    // console.log("Local trips to synchronize:", localTrips);
+
+    let target = entities.map(source => {
+      const target = source.clone();
+      target.observedLocationId = opts?.filter?.observedLocationId;
+      target.id = undefined;
+      // target.vesselActivities?.forEach(activity => activity.tripId = undefined);
+      return target;
+    });
+
+    target = await this.saveAll(target, { filter });
+
+    await this.deleteAll(entities);
+
+    return target;
+  }
+
   asFilter(filter: Partial<AggregatedLandingFilter>): AggregatedLandingFilter {
     return AggregatedLandingFilter.fromObject(filter);
   }
@@ -378,7 +415,7 @@ export class AggregatedLandingService
     }
 
     // Link to the meta observed location
-    entity.observedLocationId = toNumber(entity.observedLocationId, opts?.observedLocationId);
+    entity.observedLocationId = toNumber(entity.observedLocationId, opts?.filter?.observedLocationId);
 
     // Fill default synchronization status
     entity.synchronizationStatus = entity.synchronizationStatus || 'DIRTY';
