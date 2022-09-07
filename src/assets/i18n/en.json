@@ -639,14 +639,14 @@
       "BTN_SHOW_MAP": "Positions map",
       "LAST_OPERATIONS": "Last operations",
       "NO_LAST_OPERATION": "No previous operation",
-      "OPE_PREFIX": "OPE",
+      "OPE_PREFIX": "OP",
       "TITLE_PREFIX": "<small>{{vessel}} - Trip {{departureDateTime}}<br></small>",
       "NEW": {
-        "TITLE": "New OPE"
+        "TITLE": "New OP"
       },
       "EDIT": {
-        "TITLE": "OPE #{{rankOrder}} <small>at {{startDateTime}}</small>",
-        "TITLE_NO_RANK": "OPE {{startDateTime}}",
+        "TITLE": "OP #{{rankOrder}} <small>at {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "OP {{startDateTime}}",
         "BTN_DELETE": "Delete this operation",
         "BTN_DUPLICATE": "Duplicate this operation",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",

@@ -35,7 +35,7 @@ import {OperationGroup, Trip} from '../services/model/trip.model';
 import {ObservedLocation} from '../services/model/observed-location.model';
 import {fillRankOrder, isRankOrderValid} from '@app/data/services/model/model.utils';
 import {SaleProductUtils} from '../services/model/sale-product.model';
-import {debounceTime, filter, first} from 'rxjs/operators';
+import { debounceTime, filter, first, map } from 'rxjs/operators';
 import {ExpenseForm} from '../expense/expense.form';
 import {FishingAreaForm} from '../fishing-area/fishing-area.form';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
@@ -145,10 +145,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Update available operation groups for catches forms
     this.registerSubscription(
-      this.operationGroupTable.dataSource.datasourceSubject.pipe(
-        debounceTime(400),
-        filter(() => !this.loading)
-      ).subscribe(operationGroups => this.$operationGroups.next(operationGroups))
+      this.operationGroupTable.dataSource.rowsSubject
+        .pipe(
+          debounceTime(400),
+          filter(() => !this.loading),
+          map(() => this.operationGroupTable.dataSource.getData())
+        ).subscribe(operationGroups => this.$operationGroups.next(operationGroups))
     );
 
     // Cascade refresh to operation tables

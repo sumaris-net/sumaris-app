@@ -95,7 +95,10 @@
     </ion-text>
   </div>
 
-  <mat-tab-group [style.height.px]="600" dynamicHeight>
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+                 [(selectedIndex)]="selectedTabIndex"
+                 [dynamicHeight]="false">
     <mat-tab label="Mobile">
       <ng-template matTabContent>
         <app-batch-tree #mobileBatchTree
@@ -104,7 +107,7 @@
                         queryTabIndexParamName="mobileTab"
                         [usageMode]="'FIELD'"
                         [mobile]="true"
-                        [debug]="true">
+                        [debug]="false">
         </app-batch-tree>
 
         <!-- buttons -->
@@ -153,7 +156,7 @@
 
     <mat-tab label="Desktop">
       <ng-template matTabContent>
-        <!-- Batch tree compoment, to test -->
+        <!-- Batch tree component - desktop mode -->
         <app-batch-tree #desktopBatchTree
                         [programLabel]="$programLabel|async"
                         [gearId]="$gearId|async"
@@ -161,7 +164,7 @@
                         [usageMode]="'FIELD'"
                         [mobile]="false"
                         [allowSubBatches]="true"
-                        [debug]="true">
+                        [debug]="false">
         </app-batch-tree>
 
         <!-- buttons -->

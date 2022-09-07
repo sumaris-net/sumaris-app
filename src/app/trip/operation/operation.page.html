@@ -338,17 +338,16 @@
     <!-- TAB: Samples  -->
     <mat-tab #sampleTab
              [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
-             [disabled]="!showSamplesTab">
+             [disabled]="(loadingSubject | delay: 600 | async) || !showSamplesTab">
       <ng-template mat-tab-label>
         <mat-icon svgIcon="fish-oblique"></mat-icon>
         <ion-label *ngVar="sampleTree.samplesTable.totalRowCount as count"
-          [matBadge]="count"
-          [matBadgeHidden]="sampleTree.invalid || !count"
-          matBadgeOverlap="false"
-          matBadgeColor="primary"
-          matBadgeSize="small"
-          matBadgePosition="above after">{{sampleTab.textLabel}}
-        </ion-label>
+                   [matBadge]="count"
+                   [matBadgeHidden]="sampleTree.invalid || !count"
+                   matBadgeOverlap="false"
+                   matBadgeColor="primary"
+                   matBadgeSize="small"
+                   matBadgePosition="above after">{{sampleTab.textLabel}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && sampleTree.invalid"></ion-icon>
       </ng-template>
 
@@ -393,3 +392,7 @@
   </ion-fab-button>
 
 </ion-fab>
+
+<ng-template #skeletonText100>
+  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
+</ng-template>

@@ -311,7 +311,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<OverlayEventDetail<Sample | undefined>> {
     console.debug('[samples-table] Opening detail modal...');
-    const pmfms = await firstNotNilPromise(this.$pmfms);
+    const pmfms = await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
 
     let isNew = !dataToOpen && true;
     if (isNew) {
@@ -803,7 +803,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       console.debug('[samples-table] Computing Pmfm group header...');
 
       // Wait until map is loaded
-      const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups);
+      const groupedPmfmIdsMap = await firstNotNilPromise(this.$pmfmGroups, {stop: this.destroySubject});
 
       // Create a list of known pmfm ids
       const groupedPmfmIds: number[] = Object.values(groupedPmfmIdsMap).flatMap(pmfmIds => pmfmIds);

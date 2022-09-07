@@ -246,7 +246,8 @@
 
     <!-- physical gear -->
     <ng-container matColumnDef="physicalGear">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+      <!-- NOT sortable, because of rankOrder computation -->
+      <th mat-header-cell *matHeaderCellDef >
         <ion-label translate>TRIP.OPERATION.LIST.PHYSICAL_GEAR</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
@@ -259,7 +260,8 @@
 
     <!-- metier -->
     <ng-container matColumnDef="targetSpecies">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+      <!-- NOT sortable, because of rankOrder computation -->
+      <th mat-header-cell *matHeaderCellDef >
         <ion-label translate>TRIP.OPERATION.LIST.TARGET_SPECIES</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">

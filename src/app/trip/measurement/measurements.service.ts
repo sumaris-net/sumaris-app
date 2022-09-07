@@ -1,5 +1,5 @@
-import { BehaviorSubject, isObservable, Observable, Subscription } from 'rxjs';
-import { distinctUntilChanged, filter, first, map, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, isObservable, Observable, Subject, Subscription } from 'rxjs';
+import { distinctUntilChanged, filter, first, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { EntityUtils, firstNotNilPromise, IEntitiesService, IEntityFilter, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
 import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
@@ -25,6 +25,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   private _delegate: IEntitiesService<T, F>;
 
   protected programRefService: ProgramRefService;
+  protected readonly destroySubject = new Subject();
 
   loadingPmfms = false;
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -268,6 +269,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     // DEBUG log
     if (this._debug) {
       res = res.pipe(
+        takeUntil(this.destroySubject),
         tap(pmfms => {
           if (!pmfms.length) {
             console.debug(`[meas-service] No pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}. Please fill program's strategies !`);
@@ -287,7 +289,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     // Wait loaded
     if (isObservable<IPmfm[]>(pmfms)) {
       if (this._debug) console.debug("[meas-service] setPmfms(): waiting pmfms observable to emit...");
-      pmfms = await firstNotNilPromise(pmfms);
+      pmfms = await firstNotNilPromise(pmfms, {stop: this.destroySubject});
     }
 
     // Map

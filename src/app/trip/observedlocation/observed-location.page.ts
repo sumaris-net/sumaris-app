@@ -17,7 +17,8 @@ import {
   HistoryPageReference,
   isNil,
   isNotNil,
-  LocalSettingsService, NetworkService,
+  LocalSettingsService,
+  NetworkService,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
@@ -31,7 +32,7 @@ import { ObservedLocation } from '../services/model/observed-location.model';
 import { Landing } from '../services/model/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { filter, first, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
@@ -342,11 +343,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
 
-
     await super.setProgram(program);
 
     try {
-      const timezone = await firstNotNilPromise(this.$timezone);
+      const timezone = await firstNotNilPromise(this.$timezone, {stop: this.destroySubject});
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
       this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
       this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -381,8 +381,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.$landingTableType.next(aggregatedLandings ? 'aggregated' : 'legacy');
 
       // Wait the expected table (set using ngInit - see template)
-      const table = await firstNotNilPromise(this.$table
-        .pipe(filter(table => aggregatedLandings ? table instanceof AggregatedLandingsTable : table instanceof LandingsTable)));
+      const table$ = this.$table.pipe(
+          filter(table => aggregatedLandings ? table instanceof AggregatedLandingsTable : table instanceof LandingsTable));
+      const table = await firstNotNilPromise(table$, {stop: this.destroySubject});
 
       // Configure table
       if (aggregatedLandings) {

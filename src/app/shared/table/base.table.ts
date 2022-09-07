@@ -59,7 +59,6 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
 
   @Input() set canEdit(value: boolean) {
     this._canEdit = value;
-    this.keepEditedRowOnSave = value;
   }
 
   get canEdit(): boolean {

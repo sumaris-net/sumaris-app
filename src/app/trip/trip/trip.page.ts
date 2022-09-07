@@ -437,7 +437,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Propagate the usage mode (e.g. when try to 'terminate' the trip)
       this.tripContext?.setValue('usageMode', this.usageMode);
 
-      // Propagate the past flags to cliboard
+      // Store the selected operation (e.g. useful to avoid rankOrder computation, in the operation page)
+      this.tripContext?.setValue('operation', row.currentData);
+
+      // Propagate the past flags to clipboard
       this.tripContext?.setValue('clipboard', {
         data: new Operation(),
         pasteFlags: this.operationPasteFlags

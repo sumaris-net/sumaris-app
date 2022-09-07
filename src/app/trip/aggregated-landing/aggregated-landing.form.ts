@@ -187,7 +187,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
       await firstNotNilPromise(this.$loadingControls
         .pipe(
           filter((loadingControls) => loadingControls === false && this.controlsLoaded === true)
-        ));
+        ), {stop: this.destroySubject});
     }
   }
 

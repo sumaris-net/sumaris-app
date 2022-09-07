@@ -263,7 +263,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
     if (!this.iceForm.$pmfms.getValue()) {
       if (this.debug) console.debug('[expense-form] waiting for ice pmfms');
-      await firstNotNilPromise(this.iceForm.$pmfms);
+      await firstNotNilPromise(this.iceForm.$pmfms, {stop: this.destroySubject});
     }
 
     // filter data before set to ice form
@@ -275,7 +275,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
     if (!this.baitForms.first.$pmfms.getValue()) {
       if (this.debug) console.debug('[expense-form] waiting for bait pmfms');
-      await firstNotNilPromise(this.baitForms.first.$pmfms);
+      await firstNotNilPromise(this.baitForms.first.$pmfms, {stop: this.destroySubject});
     }
 
     // filter data before set to each bait form

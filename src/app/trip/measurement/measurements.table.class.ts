@@ -10,7 +10,7 @@ import {
   EntityFilter,
   filterNotNil,
   firstNotNilPromise,
-  IEntitiesService,
+  IEntitiesService, InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -239,6 +239,7 @@ export abstract class BaseMeasurementsTable<
 
     this.setValidatorService(validatorService);
 
+
     // For DEV only
     //this.debug = !environment.production;
   }
@@ -248,6 +249,7 @@ export abstract class BaseMeasurementsTable<
     this._autoLoadAfterPmfm = this.autoLoad;
     this.autoLoad = false;
     this.i18nPmfmPrefix = this.i18nPmfmPrefix || this.i18nColumnPrefix;
+    this.keepEditedRowOnSave = this.inlineEdition && !(this.dataService instanceof InMemoryEntitiesService);
 
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.requiredStrategy = this.options.requiredStrategy || false;
@@ -396,7 +398,7 @@ export abstract class BaseMeasurementsTable<
     await super.ready();
 
     // Wait pmfms load, and controls load
-    await firstNotNilPromise(this.$pmfms);
+    await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
 
     // Wait form config initialized
     if (!this.measurementValuesFormGroupConfig) {

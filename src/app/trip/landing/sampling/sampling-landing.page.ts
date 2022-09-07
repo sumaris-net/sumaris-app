@@ -121,7 +121,7 @@ export class SamplingLandingPage extends LandingPage {
   protected async checkStrategyEffort(strategy: Strategy) {
 
     const [program] = await Promise.all([
-      firstNotNilPromise(this.$program),
+      firstNotNilPromise(this.$program, {stop: this.destroySubject}),
       this.landingForm.waitIdle()
     ]);
 
@@ -281,7 +281,7 @@ export class SamplingLandingPage extends LandingPage {
 
   protected async computeTitle(data: Landing): Promise<string> {
 
-    const program = await firstNotNilPromise(this.$program);
+    const program = await firstNotNilPromise(this.$program, {stop: this.destroySubject});
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' && i18nSuffix || '';
 
@@ -296,7 +296,7 @@ export class SamplingLandingPage extends LandingPage {
       return titlePrefix + (await this.translate.get(`LANDING.NEW.${i18nSuffix}TITLE`).toPromise());
     }
     // Existing data
-    const strategy = await firstNotNilPromise(this.$strategy);
+    const strategy = await firstNotNilPromise(this.$strategy, {stop: this.destroySubject});
 
     return titlePrefix + (await this.translate.get(`LANDING.EDIT.${i18nSuffix}TITLE`, {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),

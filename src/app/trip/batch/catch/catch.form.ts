@@ -149,13 +149,8 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     }
 
     // Make sure pmfms have been dispatched before markAsReady()
-    if (!this.$otherPmfms.value) {
-      firstNotNilPromise(this.$otherPmfms)
-        .then(() => super.markAsReady(opts));
-    }
-    else {
-      super.markAsReady(opts);
-    }
+    firstNotNilPromise(this.$otherPmfms, {stop: this.destroySubject})
+      .then(() => super.markAsReady(opts));
   }
 
   /* -- protected functions -- */
@@ -177,7 +172,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
       // DEBUG
       console.debug('[catch-form] Waiting children physical gears...');
       let now = Date.now();
-      const physicalGearId = await firstNotNilPromise(this._$physicalGearId);
+      const physicalGearId = await firstNotNilPromise(this._$physicalGearId, {stop: this.destroySubject});
 
       // Load children gears
       const { data } = await this.physicalGearService.loadAllByParentId(physicalGearId, { toEntity: false, withTotal: false });

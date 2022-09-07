@@ -220,7 +220,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   async openDetailModal(dataToOpen?: Sample, row?: TableElement<Sample>): Promise<Sample | undefined> {
     console.debug('[sub-samples-table] Opening detail modal...');
-    const pmfms = await firstNotNilPromise(this.$pmfms);
+    const pmfms = await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
 
     let isNew = !dataToOpen && true;
     if (isNew) {

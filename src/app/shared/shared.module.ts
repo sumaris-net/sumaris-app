@@ -4,6 +4,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { Environment, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
 import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
+import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 
 @NgModule({
   imports: [
@@ -11,7 +12,8 @@ import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
   ],
   declarations: [
     // Pipes
-    DisplayWithPipe
+    DisplayWithPipe,
+    DelayPipe
   ],
   exports: [
     SharedModule,
@@ -19,7 +21,8 @@ import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
     TranslateModule,
 
     // Pipes
-    DisplayWithPipe
+    DisplayWithPipe,
+    DelayPipe
   ]
 })
 export class AppSharedModule {

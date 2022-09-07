@@ -648,14 +648,14 @@
       "BTN_SHOW_MAP": "Carte des opérations",
       "LAST_OPERATIONS": "Dernières opérations",
       "NO_LAST_OPERATION": "Aucune opération précédente",
-      "OPE_PREFIX": "OPE",
+      "OPE_PREFIX": "OP",
       "TITLE_PREFIX": "<small>{{vessel}} - Marée {{departureDateTime}}<br></small>",
       "NEW": {
-        "TITLE": "Nouvelle OPE"
+        "TITLE": "Nouvelle OP"
       },
       "EDIT": {
-        "TITLE": "OPE #{{rankOrder}} <small>du {{startDateTime}}</small>",
-        "TITLE_NO_RANK": "OPE {{startDateTime}}",
+        "TITLE": "OP #{{rankOrder}} <small>du {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "OP {{startDateTime}}",
         "BTN_DELETE": "Supprimer cette opération",
         "BTN_DUPLICATE": "Dupliquer cette opération",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",

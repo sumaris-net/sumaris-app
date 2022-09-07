@@ -73,11 +73,13 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     if (this.tripId < 0) {
       switch (sortActive) {
         case 'physicalGear':
-          return 'physicalGear.gear.' + this.displayAttributes.gear[0];
+          //return 'physicalGear.gear.' + this.displayAttributes.gear[0];
         case 'targetSpecies':
-          return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
+        //return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
         case 'fishingArea':
-          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+        //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+          // Fix issue on rankOrder computation
+          return 'id';
         default:
           return sortActive;
       }
@@ -86,9 +88,12 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     else {
       switch (sortActive) {
         case 'targetSpecies':
-          return 'metier';
+          //return 'metier';
         case 'fishingArea':
-          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+          //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+        case 'physicalGear':
+          // Fix issue on rankOrder computation
+          return 'id';
         default:
           return sortActive;
       }

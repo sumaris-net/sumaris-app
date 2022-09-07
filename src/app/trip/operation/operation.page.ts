@@ -228,7 +228,7 @@ export class OperationPage
       trip: this.trip
     });
     if (!errors) return;
-    const pmfms = await firstNotNilPromise(this.measurementsForm.$pmfms);
+    const pmfms = await firstNotNilPromise(this.measurementsForm.$pmfms, {stop: this.destroySubject});
     const errorMessage = this.errorTranslator.translateErrors(errors, {
       controlPathTranslator: {
         translateControlPath: (path) => this.service.translateControlPath(path, {
@@ -713,7 +713,7 @@ export class OperationPage
 
       if (!this.isDuplicatedData) {
         // Wait last operations to be loaded
-        const previousOperations = await firstNotNilPromise(this.$lastOperations);
+        const previousOperations = await firstNotNilPromise(this.$lastOperations, {stop: this.destroySubject});
 
         // Copy from previous operation only if is not a duplicated operation
         const previousOperation = (previousOperations || [])
@@ -778,8 +778,14 @@ export class OperationPage
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise());
     }
 
-    // Existing operation
-    const rankOrder = this.mobile ? null : await this.service.computeRankOrder(data, {fetchPolicy: 'cache-first'});
+    // Get rankOrder from context, or compute it (if NOT mobile to avoid a long operation)
+    let rankOrder = this.tripContext?.operation?.rankOrderOnPeriod;
+    if (isNil(rankOrder) && !this.mobile) {
+      const now = Date.now();
+      console.info('[operation-page] Computing rankOrder...');
+      rankOrder = await this.service.computeRankOrder(data, { fetchPolicy: 'cache-first' });
+      console.info(`[operation-page] Computing rankOrder [OK] #${rankOrder} - in ${Date.now()-now}ms`);
+    }
     if (rankOrder) {
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
         startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string,

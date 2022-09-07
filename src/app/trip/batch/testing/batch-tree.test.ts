@@ -3,14 +3,14 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Batch } from '../common/batch.model';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
-import { mergeMap } from 'rxjs/operators';
+import { filter, mergeMap } from 'rxjs/operators';
 import { BatchTreeComponent } from '../tree/batch-tree.component';
 import {
   ConfigService,
   EntitiesStorage,
   EntityUtils,
   firstNotNilPromise,
-  isEmptyArray, isNil,
+  isEmptyArray, isNil, isNotNilOrBlank,
   MatAutocompleteConfigHolder,
   SharedValidators,
   StatusIds,
@@ -25,11 +25,15 @@ import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { MatTabGroup } from '@angular/material/tabs';
 
 
 @Component({
   selector: 'app-batch-tree-test',
   templateUrl: './batch-tree.test.html',
+  styleUrls: ['./batch-tree.test.scss'],
   providers: [
     { provide: ContextService, useClass: TripContextService}
   ]
@@ -37,9 +41,11 @@ import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 export class BatchTreeTestPage implements OnInit {
 
   $programLabel = new BehaviorSubject<string>(undefined);
+  $program = new BehaviorSubject<Program>(null);
   $gearId = new BehaviorSubject<number>(undefined);
   filterForm: FormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
+  selectedTabIndex = 1; // TODO 0 = mobile
 
   outputs: {
     [key: string]: string;
@@ -47,6 +53,8 @@ export class BatchTreeTestPage implements OnInit {
 
   @ViewChild('mobileBatchTree') mobileBatchTree: BatchTreeComponent;
   @ViewChild('desktopBatchTree') desktopBatchTree: BatchTreeComponent;
+  @ViewChild('tabGroup') tabGroup: MatTabGroup;
+
 
   get batchTree(): BatchTreeComponent {
     return this.mobileBatchTree || this.desktopBatchTree;
@@ -87,6 +95,14 @@ export class BatchTreeTestPage implements OnInit {
           this.$programLabel.next(label);
         }
       });
+
+    this.$programLabel
+      .pipe(
+        filter(isNotNilOrBlank),
+        mergeMap(programLabel => this.referentialRefService.ready()
+          .then(() => this.programRefService.loadByLabel(programLabel)))
+      )
+      .subscribe(program => this.setProgram(program));
 
     // Gears (from program)
     this.autocomplete.add('gear', {
@@ -156,20 +172,35 @@ export class BatchTreeTestPage implements OnInit {
     this.applyExample();
   }
 
+  setProgram(program: Program) {
+
+    // DEBUG
+    console.debug('[batch-tree-test] Applying program:', program);
+
+    this.$program.next(program);
+  }
 
   // Load data into components
   async updateView(data: Batch) {
 
     // Load program's taxon groups
-    const programLabel = await firstNotNilPromise(this.$programLabel);
-    const availableTaxonGroups = await this.programRefService.loadTaxonGroups(programLabel);
+
+    const program = await firstNotNilPromise(this.$program);
+    const availableTaxonGroups = await this.programRefService.loadTaxonGroups(program .label);
 
     await waitFor(() => !!this.batchTree);
 
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
+    this.batchTree.program = program;
+    if (program.label === 'APASE') {
+      this.batchTree.physicalGearId = 70; // Parent gear
+      if (this.batchTree.catchBatchForm) {
+        this.batchTree.catchBatchForm.physicalGearId = 70; // Parent gear
+      }
+    }
 
     this.markAsReady();
-    this.batchTree.value = data.clone();
+    await this.batchTree.setValue(data.clone());
     this.batchTree.enable();
 
     if (this.filterForm.get('autofill').value === true) {
@@ -235,6 +266,8 @@ export class BatchTreeTestPage implements OnInit {
 
     const catchBatch = await this.getExampleTree(key);
     await this.updateView(catchBatch);
+
+    this.tabGroup.realignInkBar();
   }
 
   async dumpExample(key?: string) {

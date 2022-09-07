@@ -445,7 +445,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       let pmfms: IPmfm[];
       if (isObservable<IPmfm[]>(value)) {
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable...`);
-        pmfms = await firstNotNilPromise(value);
+        pmfms = await firstNotNilPromise(value, {stop: this.destroySubject});
       } else {
         pmfms = value;
       }

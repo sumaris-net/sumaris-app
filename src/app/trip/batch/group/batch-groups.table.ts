@@ -964,6 +964,10 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (!this.loading) this.markForCheck();
   }
 
+  deleteSelection(event: UIEvent): Promise<number> {
+    return super.deleteSelection(event);
+  }
+
   protected getDisplayColumns(): string[] {
     if (!this.dynamicColumns) return this.columns;
 
@@ -1056,7 +1060,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
-        availableParents: this.dataSource.datasourceSubject
+        availableParents: this.dataSource.rowsSubject
           .pipe(
             startWith(() => this.dataSource.getData()),
             takeUntil(onModalDismiss),

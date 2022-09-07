@@ -93,6 +93,7 @@ export const APP_BATCH_TREE_PARENT = new InjectionToken<AppEntityEditor<any, any
 export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit, IBatchTreeComponent {
 
   private _gearId: number;
+  private _physicalGearId: number;
   private _allowSubBatches: boolean;
   private _subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
@@ -109,8 +110,18 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
   @Input() showCatchForm: boolean;
   @Input() showBatchTables: boolean;
   @Input() enableWeightLengthConversion: boolean;
-  @Input() physicalGearId: number;
   @Input() i18nPmfmPrefix: string;
+
+  @Input() set physicalGearId(value: number) {
+    if (this._physicalGearId !== value) {
+      this._physicalGearId = value;
+      if (this.catchBatchForm) this.catchBatchForm.physicalGearId = value;
+    }
+  }
+
+  get physicalGearId(): number {
+    return this._physicalGearId;
+  }
 
   @Input() set disabled(value: boolean) {
     if (value && this._enabled) {
@@ -331,12 +342,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
 
       // Update available parent on individual batch table, when batch group changes
       this.registerSubscription(
-        this.batchGroupsTable.dataSource.datasourceSubject
+        this.batchGroupsTable.dataSource.rowsSubject
           .pipe(
             // skip if loading, or hide
             filter(() => !this.loading && this.allowSubBatches),
             debounceTime(400),
-            map(value => value || [])
+            map(() => this.batchGroupsTable.dataSource.getData())
           )
           // Will refresh the tables (inside the setter):
           .subscribe(batchGroups => {

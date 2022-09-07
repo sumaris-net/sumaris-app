@@ -10,7 +10,7 @@ import {
   GraphqlService,
   IEntitiesService,
   IEntityService,
-  isNil,
+  isNil, isNilOrNaN,
   isNotNil,
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
@@ -203,6 +203,7 @@ export class PmfmService
   }
 
   async loadPmfmFull(id: number, options?: EntityServiceLoadOptions): Promise<Pmfm> {
+    if (isNilOrNaN(id)) throw new Error('Missing required argument \'id\'');
 
     if (this._debug) console.debug(`[pmfm-service] Loading pmfm full {${id}}...`);
 

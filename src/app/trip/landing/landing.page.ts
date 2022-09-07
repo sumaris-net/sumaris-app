@@ -6,18 +6,20 @@ import {
   EntityUtils,
   fadeInOutAnimation,
   firstArrayValue,
-  firstNotNilPromise, firstTruePromise,
+  firstNotNilPromise,
+  firstTruePromise,
   fromDateISOString,
   HistoryPageReference,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank, LocalSettingsService,
-  PlatformService,
+  isNotNilOrBlank,
+  isNotNilOrNaN,
+  LocalSettingsService,
   ReferentialUtils,
   removeDuplicatesFromArray,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { LandingForm } from './landing.form';
 import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
@@ -41,7 +43,7 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import * as momentImported from 'moment';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
@@ -415,7 +417,9 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
       // Retrieve additional pmfms(= PMFMs in date, but NOT in the strategy)
       const additionalPmfmIds = (!this.isNewData && this.data?.samples || []).reduce((res, sample) => {
-        const pmfmIds = Object.keys(sample.measurementValues || {}).map(id => +id);
+        const pmfmIds = Object.keys(sample.measurementValues || {})
+          .map(id => +id)
+          .filter(isNotNilOrNaN); // Exclude technical properties (e.g. __typename)
         const newPmfmIds = pmfmIds.filter(id => !res.includes(id) && !strategyPmfmIds.includes(id));
         return newPmfmIds.length ? res.concat(...newPmfmIds) : res;
       }, []);

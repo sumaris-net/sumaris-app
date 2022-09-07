@@ -459,16 +459,16 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const online = !forceOffline;
 
     //If we have both online and offline, watch all options has to be apply when all results are merged
-    const options: OperationServiceWatchOptions = { ...opts };
+    const tempOpts: OperationServiceWatchOptions = { ...opts };
     if (offline && online) {
-      options.mapFn = undefined;
-      options.sortByDistance = undefined;
-      options.toEntity = undefined;
-      options.computeRankOrder = undefined;
+      tempOpts.mapFn = undefined;
+      tempOpts.sortByDistance = undefined;
+      tempOpts.toEntity = undefined;
+      tempOpts.computeRankOrder = undefined;
     }
 
-    const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, options);
-    const online$ = online && this.watchAllRemotely(offset, size, sortBy, sortDirection, dataFilter, options);
+    const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, tempOpts);
+    const online$ = online && this.watchAllRemotely(offset, size, sortBy, sortDirection, dataFilter, tempOpts);
 
     // Merge local and remote
     if (offline$ && online$) {
@@ -982,7 +982,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     let now = this._debug && Date.now();
     if (this._debug) console.debug('[operation-service] Loading operations... using options:', variables);
 
-    const withTotal = opts && opts.withTotal === true;
+    const withTotal = !opts || opts.withTotal !== false;
     const query = (opts && opts.query) || (withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll);
     const mutable = !opts || opts.mutable !== false;
 
@@ -1102,7 +1102,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    * @param opts
    */
   computeRankOrder(source: Operation, opts?: { fetchPolicy?: FetchPolicy }): Promise<number> {
-    return this.watchRankOrder(source, opts)
+    return this.watchRankOrder(source, {...opts, withSamples: false, withBatchTree: false})
       .pipe(first())
       .toPromise();
   }
@@ -1132,7 +1132,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   /**
    * Get the position by geo loc sensor
    */
-  async getCurrentPosition(options?: GeolocationOptions): Promise<{ latitude: number; longitude: number }> {
+  async getCurrentPosition(options?: GeolocationOptions): Promise<IPosition> {
     return PositionUtils.getCurrentPosition(this.geolocation, {
       maximumAge: 30000/*30s*/,
       timeout: 10000/*10s*/,
