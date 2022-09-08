@@ -93,11 +93,10 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   // When async validator (e.g. BatchForm), force update when error detected
   @Input() listenStatusChanges = false;
 
-  @Output('keyup.enter')
-  onPressEnter = new EventEmitter<any>();
-
+  @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
   @Output('focus') focused = new EventEmitter<FocusEvent>();
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
+  @Output('click') clicked = new EventEmitter<FocusEvent>();
 
   get value(): any {
     return this.formControl.value;

@@ -1,20 +1,16 @@
 import { ChangeDetectionStrategy, Component, Injector, QueryList, ViewChildren } from '@angular/core';
-import { fadeInOutAnimation, firstNotNilPromise, InputElement, IReferentialRef, isNil, isNotEmptyArray, ReferentialRef, waitFor } from '@sumaris-net/ngx-components';
+import { fadeInOutAnimation, firstNotNilPromise, isNil, isNotEmptyArray, waitFor } from '@sumaris-net/ngx-components';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { IonRouterOutlet } from '@ionic/angular';
 import { OperationPage } from '@app/trip/operation/operation.page';
 import { OperationService } from '@app/trip/services/operation.service';
-import { Operation } from '@app/trip/services/model/trip.model';
 import { BatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
 import { Program } from '@app/referential/services/model/program.model';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { AcquisitionLevelCodes, GearIds, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { Batch } from '@app/trip/batch/common/batch.model';
 
 
 export interface ICatchTabDef {
@@ -53,7 +49,7 @@ export class SelectivityOperationPage
   constructor(injector: Injector,
               dataService: OperationService) {
     super(injector, dataService, {
-      pathIdAttribute: 'selectivityOperationId'
+      pathIdAttribute: 'selectivityOperationId',
     });
     //this.debug = false;
   }
@@ -173,7 +169,7 @@ export class SelectivityOperationPage
 
     // Wait end of tabs creation
     this.cd.detectChanges();
-    await waitFor(() => this.subBatchTrees.length === this.catchTabDefs.length);
+    await waitFor(() => this.subBatchTrees.length === this.catchTabDefs.length, {stop: this.destroySubject});
 
     // Register each sub batch tree to the main container
     this.subBatchTrees.forEach(subBatchTree => {

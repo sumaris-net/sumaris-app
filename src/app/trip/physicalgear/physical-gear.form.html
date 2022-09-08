@@ -15,6 +15,7 @@
                           [tabindex]="tabindex"
                           [required]="true"
                           [showSearchBar]="$gears|async|isArrayLength:{greaterThan: 5}"
+                          (click)="selectInputContent($event)"
                           (keydown.tab)="focusNextInput($event)"
                           (keydown.enter)="focusNextInput($event)">
   </mat-autocomplete-field>
@@ -60,6 +61,7 @@
                           [compact]="compact"
                           [tabindex]="tabindex+2 + i*2"
                           [floatLabel]="floatLabel"
+                          (click)="selectInputContent($event)"
                           [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
                           (keydown.tab)="focusNextInput($event)"
                           (keydown.enter)="focusNextInput($event)"

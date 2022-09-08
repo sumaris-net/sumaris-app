@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { PhysicalGearValidatorService } from './physicalgear.validator';
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
@@ -6,17 +6,17 @@ import { MeasurementValuesForm } from '../measurement/measurement-values.form.cl
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { FormBuilder } from '@angular/forms';
 import {
-  focusInput,
-  focusNextInput, getFocusableInputElements,
+  focusNextInput,
+  getFocusableInputElements,
   GetFocusableInputOptions,
-  InputElement,
   isNotNil,
   isNotNilOrBlank,
   ReferentialRef,
   ReferentialUtils,
   selectInputContent,
   toBoolean,
-  toNumber, waitFor, waitIdle
+  toNumber,
+  waitFor
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';

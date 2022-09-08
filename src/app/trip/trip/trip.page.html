@@ -121,7 +121,7 @@
                          (maxDateChanges)="saleForm.minDate = $event">
                 <!-- sale -->
                 <form-sale #saleForm
-                           [class.cdk-visually-hidden]="!showSaleForm"
+                           [class.cdk-visually-hidden]="!(measurementsForm.readySubject|async) && !showSaleForm"
                            [showVessel]="false"
                            [showError]="false"
                            [showComment]="false"
@@ -131,11 +131,13 @@
                 </form-sale>
 
                 <!-- Other features (Measurements) -->
-                <ion-grid class="ion-no-padding ion-padding-top"
-                          [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray">
+                <ion-grid class="ion-no-padding ion-padding-top">
                   <ion-row>
-                    <ion-col size="12" size-md="2" size-lg="3">
-                      <ion-label class="ion-float-end" translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
+                    <ion-col size="12" size-md="2" size-lg="3"
+                             >
+                      <ion-label class="ion-float-end"
+                                 [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray"
+                                 translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
                     </ion-col>
                     <ion-col [class.measurements-form-padding-start]="mobile">
                       <app-form-measurements #measurementsForm

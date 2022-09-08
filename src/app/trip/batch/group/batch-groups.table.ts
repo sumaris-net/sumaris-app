@@ -1378,9 +1378,11 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       markForCheck: () => this.markForCheck()
     });
     if (subscription) {
+
       // Register subscription
       this.registerSubscription(subscription);
       this._rowValidatorSubscription = subscription;
+
       // When unsubscribe, unregister
       subscription.add(() => {
         this.unregisterSubscription(subscription);

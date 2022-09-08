@@ -114,6 +114,7 @@
                                 [tabindex]="tabindex+2"
                                 [required]="true"
                                 [readonly]="isChildOperation"
+                                (click)="selectInputContent($event)"
                                 [showSearchBar]="false">
           <mat-icon matPrefix *ngIf="mobile">settings</mat-icon>
         </mat-autocomplete-field>
@@ -127,6 +128,7 @@
                                 [config]="autocompleteFields.taxonGroup"
                                 [tabindex]="tabindex+3"
                                 [required]="true"
+                                (click)="selectInputContent($event)"
                                 [noResultMessage]="'TRIP.OPERATION.EDIT.NO_TARGET_SPECIES_FOUND'"
                                 [showSearchBar]="!autocompleteFilters.metier"
                                 [readonly]="disabled || isChildOperation">

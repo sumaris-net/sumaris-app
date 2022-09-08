@@ -19,7 +19,9 @@
                               [floatLabel]="floatLabel"
                               [autofocus]="autofocus"
                               [placeholder]="placeholder"
-                              [mobile]="mobile">
+                              [mobile]="mobile"
+                              (click)="clicked.emit($event)"
+              >
               </app-pmfm-field>
             </ion-col>
 
@@ -59,7 +61,7 @@
            (keypress)="filterNumberInput($event, false)"
            (focus)="focused.emit($event)"
            (blur)="blurred.emit($event)"
-           (click)="selectInputContent($event)"
+           (click)="clicked.emit($event)"
            [required]="required"
            [tabIndex]="tabindex">
     <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
@@ -95,10 +97,10 @@
            (keypress)="filterNumberInput($event, true)"
            (blur)="blurred.emit($event)"
            (focus)="focused.emit($event)"
+           (click)="clicked.emit($event)"
            [formControl]="formControl"
            [required]="required"
-           [tabIndex]="tabindex"
-           (click)="selectInputContent($event)">
+           [tabIndex]="tabindex">
 
     <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
       <ng-container [ngSwitch]="errorKey">
@@ -201,6 +203,7 @@
                      [buttonsColCount]="maxVisibleButtons"
                      [showButtonIcons]="showButtonIcons"
                      (keyup.enter)="onPressEnter.emit($event)"
+                     (click)="clicked.emit($event)"
                      [mobile]="mobile">
     <div matSuffix>
       <ng-container *ngTemplateOutlet="matSuffixTemplate"></ng-container>

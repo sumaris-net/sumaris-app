@@ -1,7 +1,7 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, EventEmitter, Injector, Input, Optional, Output, ViewChild} from '@angular/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {SampleValidatorService} from '../services/validator/sample.validator';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { TableElement } from '@e-is/ngx-material-table';
+import { SampleValidatorService } from '../services/validator/sample.validator';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
@@ -18,48 +18,39 @@ import {
   LoadResult,
   ObjectMap,
   PlatformService,
-  ReferentialRef,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   suggestFromArray,
   toBoolean,
   toNumber,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {BaseMeasurementsTable, BaseMeasurementsTableConfig} from '../measurement/measurements.table.class';
-import {ISampleModalOptions, SampleModal} from './sample.modal';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {Sample, SampleUtils} from '../services/model/sample.model';
-import {AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {environment} from '@environments/environment';
-import {debounceTime} from 'rxjs/operators';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {SampleFilter} from '../services/filter/sample.filter';
-import {PmfmService} from '@app/referential/services/pmfm.service';
-import {SelectPmfmModal} from '@app/referential/pmfm/select-pmfm.modal';
-import {BehaviorSubject, Subscription} from 'rxjs';
-import {MatMenu} from '@angular/material/menu';
-import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import { Moment } from 'moment';
+import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { ISampleModalOptions, SampleModal } from './sample.modal';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { Sample, SampleUtils } from '../services/model/sample.model';
+import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { debounceTime } from 'rxjs/operators';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { SampleFilter } from '../services/filter/sample.filter';
+import { PmfmService } from '@app/referential/services/pmfm.service';
+import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { MatMenu } from '@angular/material/menu';
+import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { arrayPluck, isNilOrNaN } from '@app/shared/functions';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {BatchGroup} from '@app/trip/batch/group/batch-group.model';
-import {ISubSampleModalOptions, SubSampleModal} from '@app/trip/sample/sub-sample.modal';
-import {MatCellDef} from '@angular/material/table';
-import {OverlayEventDetail} from '@ionic/core';
-import {IPmfmForm} from '@app/trip/services/validator/operation.validator';
-import { IPhysicalGearModalOptions } from '@app/trip/physicalgear/physical-gear.modal';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
+import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
+import { OverlayEventDetail } from '@ionic/core';
+import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 const moment = momentImported;
-
-export type PmfmValueColorFn = (value: any, pmfm: IPmfm) => ColorName;
-
-export interface SamplesTableOptions extends BaseMeasurementsTableConfig<Sample> {
-
-}
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -969,4 +960,3 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   }
 
 }
-

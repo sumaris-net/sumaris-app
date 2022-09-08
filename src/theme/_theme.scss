@@ -24,6 +24,10 @@
   }
 }
 
+mat-tab-group.mat-tab-disabled-visible .mat-tab-disabled {
+  display: inherit;
+}
+
 .mat-table {
   .mat-row {
     overflow: hidden;

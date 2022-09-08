@@ -212,7 +212,7 @@ export class OperationPage
     }
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production;
+    this.debug = !environment.production && !this.mobile;
   }
 
   // TODO Hide lastOperation on to small screen
@@ -588,11 +588,11 @@ export class OperationPage
   ngOnDestroy() {
     super.ngOnDestroy();
     this._measurementSubscription?.unsubscribe();
+    this._sampleRowSubscription?.unsubscribe();
     this.$acquisitionLevel.complete();
     this.$programLabel.complete();
     this.$lastOperations.complete();
     this.$tripId.complete();
-    this._sampleRowSubscription?.unsubscribe();
   }
 
   protected async setProgram(program: Program) {
@@ -750,10 +750,10 @@ export class OperationPage
   onNewFabButtonClick(event: UIEvent) {
     switch (this.selectedTabIndex) {
       case OperationPage.TABS.CATCH:
-        if (this.showBatchTables) this.batchTree.addRow(event);
+        if (this.showBatchTables && this.batchTree) this.batchTree.addRow(event);
         break;
       case OperationPage.TABS.SAMPLE:
-        if (this.showSamplesTab) this.sampleTree.addRow(event);
+        if (this.showSamplesTab && this.sampleTree) this.sampleTree.addRow(event);
         break;
     }
   }
@@ -1100,12 +1100,12 @@ export class OperationPage
 
     // If catch tab, open the invalid sub tab
     if (invalidTabIndex === OperationPage.TABS.CATCH) {
-      this.selectedSubTabIndex = this.batchTree.getFirstInvalidTabIndex();
+      this.selectedSubTabIndex = this.batchTree?.getFirstInvalidTabIndex();
       this.updateTablesState();
     }
     // If sample tab, open the invalid sub tab
     else if (invalidTabIndex === OperationPage.TABS.SAMPLE) {
-      this.selectedSubTabIndex = this.sampleTree.getFirstInvalidTabIndex();
+      this.selectedSubTabIndex = this.sampleTree?.getFirstInvalidTabIndex();
       this.updateTablesState();
     }
     return invalidTabIndex;
@@ -1144,7 +1144,7 @@ export class OperationPage
     const data = await super.getValue();
 
     // Batches
-    if (this.showCatchTab) {
+    if (this.showCatchTab && this.batchTree) {
       await this.batchTree.save();
 
       // Get batch tree,rom the batch tree component
@@ -1159,7 +1159,7 @@ export class OperationPage
     }
 
     // Samples
-    if (this.showSamplesTab) {
+    if (this.showSamplesTab && this.sampleTree) {
       await this.sampleTree.save();
       data.samples = this.sampleTree.value;
     } else {
@@ -1226,13 +1226,13 @@ export class OperationPage
   protected updateTablesState() {
     if (this.enabled) {
       if (this.showCatchTab) {
-        if (this.batchTree.disabled) {
+        if (this.batchTree?.disabled) {
           this.batchTree.enable();
           this.batchTree.realignInkBar();
         }
       }
       if (this.showSamplesTab) {
-        if (this.sampleTree.disabled) {
+        if (this.sampleTree?.disabled) {
           this.sampleTree.enable();
           this.sampleTree.realignInkBar();
         }

@@ -27,6 +27,7 @@ import {
   ReferentialRef,
   ReferentialUtils,
   removeDuplicatesFromArray,
+  selectInputContent,
   StatusIds,
   suggestFromArray,
   toBoolean,
@@ -34,14 +35,14 @@ import {
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Operation, Trip } from '../services/model/trip.model';
-import { BehaviorSubject, combineLatest, merge, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { OperationService } from '@app/trip/services/operation.service';
 import { AlertController, ModalController } from '@ionic/angular';
-import { SelectOperationModal, ISelectOperationModalOptions } from '@app/trip/operation/select-operation.modal';
+import { ISelectOperationModalOptions, SelectOperationModal } from '@app/trip/operation/select-operation.modal';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
@@ -1178,25 +1179,28 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   }
 
   protected initPositionSubscription() {
-    if (this._positionSubscription) {
-      this._positionSubscription.unsubscribe();
-      this.unregisterSubscription(this._positionSubscription);
-    }
+    this._positionSubscription?.unsubscribe();
     if (!this.showPosition) return;
 
-    this._positionSubscription = (
-      merge(
+    const subscription = merge(
         this.form.get('startPosition').valueChanges,
         this.lastActivePositionControl.valueChanges
       )
-        .pipe(debounceTime(200))
-        .subscribe(_ => this.updateDistance())
-    );
-    this.registerSubscription(this._positionSubscription);
+      .pipe(debounceTime(200))
+      .subscribe(_ => this.updateDistance());
+    this.registerSubscription(subscription);
+    this._positionSubscription = subscription;
+    subscription.add(() => {
+      this.unregisterSubscription(subscription);
+      this._positionSubscription = null;
+    });
+
   }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
 
+
+  selectInputContent = selectInputContent;
 }

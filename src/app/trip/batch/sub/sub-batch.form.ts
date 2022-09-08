@@ -661,9 +661,12 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
         });
 
         if (subscription) {
+          this.registerSubscription(subscription);
           this._weightConversionSubscription = subscription;
-          this.registerSubscription(this._weightConversionSubscription);
-          this._weightConversionSubscription.add(() => this.unregisterSubscription(subscription));
+          subscription.add(() => {
+            this.unregisterSubscription(subscription);
+            this._weightConversionSubscription = null;
+          });
         }
       }
       catch (err) {

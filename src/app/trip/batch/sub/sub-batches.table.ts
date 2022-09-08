@@ -128,9 +128,14 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
   set availableParents(parents: Observable<BatchGroup[]> | BatchGroup[]) {
     if (!parents) return; // Skip
     if (isObservable<Batch[]>(parents)) {
-      if (this._parentSubscription) this._parentSubscription.unsubscribe();
-      this._parentSubscription = parents.subscribe((values) => this.setAvailableParents(values));
-      this.registerSubscription(this._parentSubscription);
+      this._parentSubscription?.unsubscribe();
+      const subscription = parents.subscribe((values) => this.setAvailableParents(values));
+      this._parentSubscription = subscription
+      this.registerSubscription(subscription);
+      subscription.add(() => {
+        this.unregisterSubscription(subscription);
+        this._parentSubscription = null;
+      });
     } else if (Array.isArray(parents) && parents !== this._availableParents) {
       this.setAvailableParents(parents);
     }

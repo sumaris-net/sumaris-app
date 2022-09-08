@@ -3,13 +3,8 @@ import { ValidatorService } from '@e-is/ngx-material-table';
 import { SubSampleValidatorService } from '../../services/validator/sub-sample.validator';
 import { FormGroup, Validators } from '@angular/forms';
 import { AcquisitionLevelCodes, PmfmIds } from '../../../referential/services/model/model.enum';
-import { filter, map } from 'rxjs/operators';
 import { SubSamplesTable } from '../sub-samples.table';
-import { isNotNil } from '@sumaris-net/ngx-components';
-import { Sample } from '@app/trip/services/model/sample.model';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { merge } from 'rxjs';
 
 @Component({
   selector: 'app-individual-monitoring-table',
@@ -21,8 +16,6 @@ import { merge } from 'rxjs';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IndividualMonitoringTable extends SubSamplesTable implements OnInit {
-
-  protected currentSample: Sample; // require to preset presentation on new row
 
   constructor(
     injector: Injector

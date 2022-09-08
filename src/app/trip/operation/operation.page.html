@@ -335,32 +335,6 @@
       </app-batch-tree>
     </mat-tab>
 
-    <!-- TAB: Samples  -->
-    <mat-tab #sampleTab
-             [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
-             [disabled]="(loadingSubject | delay: 600 | async) || !showSamplesTab">
-      <ng-template mat-tab-label>
-        <mat-icon svgIcon="fish-oblique"></mat-icon>
-        <ion-label *ngVar="sampleTree.samplesTable.totalRowCount as count"
-                   [matBadge]="count"
-                   [matBadgeHidden]="sampleTree.invalid || !count"
-                   matBadgeOverlap="false"
-                   matBadgeColor="primary"
-                   matBadgeSize="small"
-                   matBadgePosition="above after">{{sampleTab.textLabel}}</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && sampleTree.invalid"></ion-icon>
-      </ng-template>
-
-      <app-sample-tree #sampleTree queryTabIndexParamName="subtab"
-                       [selectedTabIndex]="selectedSubTabIndex"
-                       [defaultSampleDate]="$lastEndDate|async"
-                       [usageMode]="usageMode"
-                       (onPrepareRowForm)="onPrepareSampleForm($event)"
-                       [useSticky]="mobile"
-                       [mobile]="mobile"
-                       [debug]="debug">
-      </app-sample-tree>
-    </mat-tab>
 
   </mat-tab-group>
 
