@@ -6,6 +6,7 @@ import { ErrorCodes } from './errors';
 import { ReferentialFragments } from './referential.fragments';
 import {
   AccountService,
+  arrayDistinct,
   BaseEntityGraphqlSubscriptions,
   ConfigService,
   EntitiesStorage,
@@ -74,41 +75,45 @@ export const ProgramRefQueries = {
 
   // Load by id or label, with strategies
   loadWithStrategies: gql`query ProgramRef($id: Int, $label: String, $strategyFilter: StrategyFilterVOInput){
-        data: program(id: $id, label: $label){
-          ...ProgramRefFragment
-          strategies(filter: $strategyFilter) {
-            ...StrategyRefFragment
-          }
-        }
+    data: program(id: $id, label: $label){
+      ...ProgramRefFragment
+      strategies(filter: $strategyFilter) {
+        ...StrategyRefFragment
+      }
     }
-    ${ProgramFragments.programRef}
-    ${StrategyFragments.strategyRef}
-    ${StrategyFragments.lightPmfmStrategy}
-    ${ReferentialFragments.lightPmfm}
-    ${StrategyFragments.denormalizedPmfmStrategy}
-    ${StrategyFragments.taxonGroupStrategy}
-    ${StrategyFragments.taxonNameStrategy}
-    ${ReferentialFragments.referential}
-    ${ReferentialFragments.taxonName}`,
+  }
+  ${ProgramFragments.programRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
+  ${StrategyFragments.denormalizedPmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}`,
 
   // Load by id or label, with strategies
   loadStrategies: gql`query ProgramRef($id: Int, $label: String, $strategyFilter: StrategyFilterVOInput){
-        data: program(id: $id, label: $label){
-          ...ProgramRefFragment
-          strategies(filter: $strategyFilter) {
-            ...StrategyRefFragment
-          }
-        }
+    data: program(id: $id, label: $label){
+      ...ProgramRefFragment
+      strategies(filter: $strategyFilter) {
+        ...StrategyRefFragment
+      }
     }
-    ${ProgramFragments.programRef}
-    ${StrategyFragments.strategyRef}
-    ${StrategyFragments.lightPmfmStrategy}
-    ${ReferentialFragments.lightPmfm}
-    ${StrategyFragments.denormalizedPmfmStrategy}
-    ${StrategyFragments.taxonGroupStrategy}
-    ${StrategyFragments.taxonNameStrategy}
-    ${ReferentialFragments.referential}
-    ${ReferentialFragments.taxonName}`,
+  }
+  ${ProgramFragments.programRef}
+  ${StrategyFragments.strategyRef}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
+  ${StrategyFragments.lightPmfmStrategy}
+  ${ReferentialFragments.lightPmfm}
+  ${StrategyFragments.denormalizedPmfmStrategy}
+  ${StrategyFragments.taxonGroupStrategy}
+  ${StrategyFragments.taxonNameStrategy}
+  ${ReferentialFragments.referential}
+  ${ReferentialFragments.taxonName}`,
 
 
   // Load all query
@@ -139,8 +144,9 @@ export const ProgramRefQueries = {
   }
   ${ProgramFragments.programRef}
   ${StrategyFragments.strategyRef}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${ReferentialFragments.lightPmfm}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
@@ -159,8 +165,9 @@ export const ProgramRefQueries = {
   }
   ${ProgramFragments.programRef}
   ${StrategyFragments.strategyRef}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${ReferentialFragments.lightPmfm}
+  ${StrategyFragments.strategyDepartment}
+  ${StrategyFragments.appliedStrategy}
+  ${StrategyFragments.appliedPeriod}
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
@@ -383,10 +390,16 @@ export class ProgramRefService
     const offline = this.network.offline && (!opts || opts.fetchPolicy !== 'network-only');
     if (offline) {
       res = this.entities.watchAll<any>(Program.TYPENAME, {
-        offset: 0, size: 1,
+        size: 1,
         filter: (p) => p.label === label
       }).pipe(
-        map(res => firstArrayValue(res && res.data))
+        map(res => firstArrayValue(res && res.data)),
+        map(program => {
+          if (strategyFilter) {
+            program.strategies = (program.strategies || []).filter(strategyFilter.buildFilter())
+          }
+          return program;
+        })
       );
     }
     else {
@@ -498,30 +511,25 @@ export class ProgramRefService
     }
 
     // TODO add period start/end ?
-    const strategyFilter = StrategyFilter.fromObject(opts && {
+    const strategyFilter = StrategyFilter.fromObject({
       label: opts?.strategyLabel,
       acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
     });
-    const strategyFilterFn = strategyFilter.asFilterFn() || noopFilter;
 
-    //return this.watchByLabel(programLabel, {withStrategies: true, strategyFilter,toEntity: false, debug: false}) // Watch the program
-    //.pipe(
-      //Find first strategy to applied
-    //map(program => (program?.strategies || []).find(strategyFilterFn)),
-
-    return this.strategyRefService.watchAll(0, 10 /*max strategy fetch*/, 'id', 'desc', strategyFilter, {toEntity: false, withTotal: false})
+    // Watch the program
+    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter})
       .pipe(
-
+        map(program => program.strategies || []),
         // Filter strategy's pmfms
-        map(res => {
+        map(strategies => {
           const filterFn = DenormalizedPmfmStrategyFilter.fromObject(opts).asFilterFn();
           if (!filterFn) throw new Error('Missing opts to filter pmfm (.e.g opts.acquisitionLevel)!');
-          return (res.data || [])
+          return strategies
             .flatMap(strategy => (strategy?.denormalizedPmfms || [])
             .filter(filterFn));
         }),
         // Merge duplicated pmfms (make to a unique pmfm, by id)
-        map(pmfms => (pmfms || []).reduce((res, p) => {
+        map(pmfms => pmfms.reduce((res, p) => {
             let index = res.findIndex(other => other.id === p.id);
             if (index !== -1) {
               res[index] = DenormalizedPmfmStrategy.merge(res[index], p);
@@ -564,6 +572,7 @@ export class ProgramRefService
    * Watch program gears
    */
   watchGears(programLabel: string, opts?: {
+    acquisitionLevel: string;
     strategyLabel?: string;
     toEntity?: boolean;
     cache?: boolean;
@@ -582,14 +591,19 @@ export class ProgramRefService
         );
     }
 
-    return this.watchByLabel(programLabel, {toEntity: false}) // Load the program
-        .pipe(
-          map(program => {
-            // Find strategy
-            const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
+    const strategyFilter = StrategyFilter.fromObject({
+      label: opts?.strategyLabel,
+      acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
+    });
 
-            const data = (strategy && strategy.gears || []);
-            if (this._debug) console.debug(`[program-ref-service] Found ${data.length} gears on program {${program.label}}`);
+    // Load the program, with strategies
+    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter})
+        .pipe(
+          map(program => program.strategies || []),
+          // get all gears
+          map(strategies => arrayDistinct(strategies.flatMap(strategy => strategy.gears ||[]), ['id'])),
+          map(data => {
+            if (this._debug) console.debug(`[program-ref-service] Found ${data.length} gears on program {${programLabel}}`);
 
             // Convert into entities
             return (!opts || opts.toEntity !== false)
@@ -610,6 +624,7 @@ export class ProgramRefService
    * Watch program taxon groups
    */
   watchTaxonGroups(programLabel: string, opts?: {
+    acquisitionLevel?: string;
     strategyLabel?: string;
     toEntity?: boolean;
     cache?:  boolean;
@@ -627,28 +642,28 @@ export class ProgramRefService
             : (data || []) as TaxonGroupRef[])
         );
     }
+    const strategyFilter = StrategyFilter.fromObject({
+      label: opts?.strategyLabel,
+      acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
+    });
 
     // Watch program
-    return this.watchByLabel(programLabel, {toEntity: false})
+    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter})
       .pipe(
-        map(program => {
-          // Find strategy
-          const strategy = (program && program.strategies || []).find(s => !opts || !opts.strategyLabel || s.label === opts.strategyLabel);
-
-          const data = (strategy && strategy.taxonGroups && strategy.taxonGroups.slice() || [])
-
-            // Sort taxonGroupStrategies, on priorityLevel
-             .sort(propertiesPathComparator(
+        // Get strategies
+        map(program => (program.strategies || [])),
+        // Get taxon groups strategies
+        map(strategies => arrayDistinct(strategies.flatMap(strategy => strategy.taxonGroups || []), ['priorityLevel', 'taxonGroup.id'])),
+          // Sort taxonGroupStrategies, on priorityLevel
+        map(data => data.sort(propertiesPathComparator(
                ['priorityLevel', 'taxonGroup.label', 'taxonGroup.name'],
                // Use default values, because priorityLevel can be null in the DB
                [1, 'ZZZ', 'ZZZ'])
              )
-            .map(v => {
-              return {
-                ...v.taxonGroup,
-                priority: v.priorityLevel
-              };
-            });
+            // Merge priority into taxonGroup
+            .map(v => <any>{...v.taxonGroup, priority: v.priorityLevel})
+        ),
+        map(data => {
           if (this._debug) console.debug(`[program-ref-service] Found ${data.length} taxon groups on program {${programLabel}}`);
 
           // Convert into entities
@@ -788,7 +803,7 @@ export class ProgramRefService
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
 
-      // Step 1. load all programs
+      // Step 1. load all programs, with strategies
       const importedProgramLabels = [];
       const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', filter, {

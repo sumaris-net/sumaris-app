@@ -263,8 +263,8 @@ export abstract class RootDataSynchroService<
       let data: any;
 
       // If local entity
-      if (+id < 0) {
-        data = await this.entities.load<Vessel>(+id, Vessel.TYPENAME);
+      if (EntityUtils.isLocalId(+id)) {
+        data = await this.entities.load(+id, this._typename);
         if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
       }
 
@@ -277,6 +277,8 @@ export abstract class RootDataSynchroService<
         });
         data = res && res.data;
       }
+
+      // COnvert to entity
       const entity = (!opts || opts.toEntity !== false)
         ? this.fromObject(data)
         : (data as T);

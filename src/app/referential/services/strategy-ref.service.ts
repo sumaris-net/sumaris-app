@@ -22,7 +22,7 @@ export class StrategyRefFilter extends ReferentialFilter {
   //entityName: 'Strategy';
 }
 
-const QUERIES: BaseEntityGraphqlQueries = {
+const Queries: BaseEntityGraphqlQueries = {
   load: gql`query StrategyRef($id: Int!) {
     data: strategy(id: $id) {
       ...StrategyRefFragment
@@ -108,7 +108,7 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
   ) {
     super(injector, Strategy, StrategyRefFilter,
       {
-        queries: QUERIES
+        queries: Queries
       });
   }
 

@@ -8,7 +8,7 @@ import {
   isNotNil,
   ReferentialRef,
   ReferentialUtils,
-  toDateISOString
+  toDateISOString, toNumber
 } from '@sumaris-net/ngx-components';
 import { BaseReferentialFilter } from '@app/referential/services/filter/referential.filter';
 import { AppliedPeriod, Strategy } from '@app/referential/services/model/strategy.model';
@@ -27,7 +27,6 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
   taxonName: TaxonNameRef;
   analyticReference: ReferentialRef;
 
-  programId: number;
   parameterIds?: number[];
   periods?: any[];
   acquisitionlevels: string[];
@@ -75,7 +74,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
   buildFilter(): FilterFn<Strategy>[] {
     const levelId = this.levelId;
     const levelIds = this.levelIds;
-    const programId = this.programId || levelId || (isNotEmptyArray(levelIds) ? levelIds[0] : null);
+    const programIds = isNotNil(levelId) ? [levelId] : levelIds;
 
     // Remove, to avoid filter on LevelId and levelIds
     this.levelId = null;
@@ -86,8 +85,8 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     this.levelIds = levelIds;
 
     // Filter on program (= level)
-    if (isNotNil(programId)) {
-      filterFns.push(t => t.programId === programId || t.levelId === programId);
+    if (isNotEmptyArray(programIds)) {
+      filterFns.push(t => programIds.includes(toNumber(t.programId, t.levelId)));
     }
 
     // Reference taxon

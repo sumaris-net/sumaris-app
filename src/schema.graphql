@@ -83,6 +83,7 @@ type BatchVO {
     comments: String
     controlDate: Date
     exhaustiveInventory: Boolean
+    flags: Int!
     id: Int
     individualCount: Int
     label: String
@@ -507,8 +508,6 @@ type Mutation {
     deleteVessels(ids: [Int]!): Boolean!
     "Delete many weight length conversions"
     deleteWeightLengthConversions(ids: [Int]): Boolean!
-    "Mark as read user events"
-    markAsReadUserEvents(ids: [Int]): Boolean!
     "Qualify an observed location"
     qualifyObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
     "Qualify a trip"
@@ -775,6 +774,7 @@ type PhysicalGearVO {
     comments: String
     controlDate: Date
     creationDate: Date
+    flags: Int!
     gear: ReferentialVO
     id: Int
     "Get physical gear measurements"
@@ -958,7 +958,7 @@ type ProgramVO {
     properties: Map_String_StringScalar
     statusId: Int
     "Get program's strategies"
-    strategies: [StrategyVO]
+    strategies(filter: StrategyFilterVOInput): [StrategyVO]
     "Get program's taxon group type"
     taxonGroupType: ReferentialVO
     taxonGroupTypeId: Int
@@ -1153,8 +1153,6 @@ type Query {
     tripsCount(filter: TripFilterVOInput, trash: Boolean = false): Long!
     "Search in user events"
     userEvents(filter: UserEventFilterVOInput, page: PageInput): [UserEventVO]
-    "Count user events"
-    userEventsCount(filter: UserEventFilterVOInput): Long
     "Get a vessel"
     vessel(
         id: Int,
@@ -1266,6 +1264,7 @@ type SampleVO {
     comments: String
     controlDate: Date
     creationDate: Date
+    flags: Int!
     id: Int
     individualCount: Int
     label: String
@@ -1399,18 +1398,6 @@ type Subscription {
         "Minimum interval to find changes, in seconds."
         interval: Int = 30
     ): TripVO
-    "Subscribe to changes on user events"
-    updateUserEvents(
-        filter: UserEventFilterVOInput,
-        "Minimum interval to find changes, in seconds."
-        interval: Int = 10
-    ): [UserEventVO]
-    "Subscribe to changes on user events count"
-    updateUserEventsCount(
-        filter: UserEventFilterVOInput,
-        "Minimum interval to find changes, in seconds."
-        interval: Int = 10
-    ): Long
 }
 
 type TaxonGroupStrategyVO {
@@ -1543,12 +1530,9 @@ type UserEventVO {
     hash: String
     id: Int
     issuer: String
-    level: String
-    readDate: Date
     readSignature: String
     recipient: String
     signature: String
-    type: String
     updateDate: Date
 }
 
@@ -2892,6 +2876,7 @@ input StrategyDepartmentVOInput {
 }
 
 input StrategyFilterVOInput {
+    acquisitionlevels: [String]
     analyticReferences: [String]
     departmentIds: [Int]
     endDate: Date
@@ -3090,14 +3075,8 @@ input TripVOInput {
 }
 
 input UserEventFilterVOInput {
-    excludeRead: Boolean!
     issuer: String
-    issuers: [String]
-    levels: [String]
     recipient: String
-    recipients: [String]
-    startDate: Date
-    types: [String]
 }
 
 input UserEventVOInput {
@@ -3107,12 +3086,9 @@ input UserEventVOInput {
     hash: String
     id: Int
     issuer: String
-    level: String
-    readDate: Date
     readSignature: String
     recipient: String
     signature: String
-    type: String
     updateDate: Date
 }
 

@@ -17,6 +17,36 @@ export const DATA_IMPORT_PERIODS:readonly { value: number; unit: DurationConstru
 ]);
 
 export const DATA_CONFIG_OPTIONS = Object.freeze({
+  ENTITY_TRASH: <FormFieldDefinition> {
+    key: 'sumaris.persistence.trash.enable',
+    label: 'CONFIGURATION.OPTIONS.ENTITY_TRASH',
+    type: 'boolean',
+    defaultValue: true
+  },
+  SAMPLE_HASH_OPTIMIZATION: <FormFieldDefinition> {
+    key: 'sumaris.persistence.sample.hashOptimization',
+    label: 'CONFIGURATION.OPTIONS.SAMPLE_HASH_OPTIMIZATION',
+    type: 'boolean',
+    defaultValue: false
+  },
+  SAMPLE_UNIQUE_TAG: <FormFieldDefinition>{
+    key: "sumaris.persistence.sample.uniqueTag",
+    label: "CONFIGURATION.OPTIONS.SAMPLE_UNIQUE_TAG",
+    type: 'boolean',
+    defaultValue: false
+  },
+  BATCH_HASH_OPTIMIZATION: <FormFieldDefinition> {
+    key: 'sumaris.persistence.batch.hashOptimization',
+    label: 'CONFIGURATION.OPTIONS.BATCH_HASH_OPTIMIZATION',
+    type: 'boolean',
+    defaultValue: false
+  },
+  PHYSICAL_GEAR_HASH_OPTIMIZATION: <FormFieldDefinition> {
+    key: 'sumaris.persistence.physicalGear.hashOptimization',
+    label: 'CONFIGURATION.OPTIONS.PHYSICAL_GEAR_HASH_OPTIMIZATION',
+    type: 'boolean',
+    defaultValue: false
+  },
   ACCESS_PROGRAM_IDS: <FormFieldDefinition>{
     key: "sumaris.data.program.ids",
     label: "CONFIGURATION.OPTIONS.ACCESS_PROGRAM_IDS",
@@ -37,18 +67,6 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS',
     defaultValue: '',
     type: 'string'
-  },
-  CHECK_SAMPLE_UNIQUE_TAG: <FormFieldDefinition>{
-    key: "sumaris.persistence.sample.uniqueTag",
-    label: "CONFIGURATION.OPTIONS.CHECK_SAMPLE_UNIQUE_TAG",
-    type: 'boolean',
-    defaultValue: false
-  },
-  ENTITY_TRASH: <FormFieldDefinition> {
-    key: 'sumaris.persistence.trash.enable',
-    label: 'CONFIGURATION.OPTIONS.ENTITY_TRASH',
-    type: 'boolean',
-    defaultValue: true
   },
   QUALITY_PROCESS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.data.quality.process.enable',

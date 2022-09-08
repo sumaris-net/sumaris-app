@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angula
 import { VesselService } from '../services/vessel-service';
 import { VesselForm } from '../form/form-vessel';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../services/model/vessel.model';
-import { AccountService, AppEntityEditor, EntityServiceLoadOptions, HistoryPageReference, isNil, PlatformService, SharedValidators } from '@sumaris-net/ngx-components';
+import { AccountService, AppEntityEditor, EntityServiceLoadOptions, EntityUtils, HistoryPageReference, isNil, NetworkService, PlatformService, SharedValidators } from '@sumaris-net/ngx-components';
 import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
 import { VesselFeaturesHistoryComponent } from './vessel-features-history.component';
@@ -53,6 +53,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
   constructor(
     private injector: Injector,
     private platform: PlatformService,
+    private network: NetworkService,
     private accountService: AccountService,
     private vesselService: VesselService,
     private vesselFeaturesService: VesselFeaturesService,
@@ -109,6 +110,10 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
   }
 
   canUserWrite(data: Vessel): boolean {
+    // Cannot edit a remote entity, when offline (e.g. when vessel was loaded from the local entity storage)
+    if (this.network.offline && EntityUtils.isRemote(data)) {
+      return false;
+    }
     return !this.editing && this.accountService.canUserWriteDataForDepartment(data.recorderDepartment);
   }
 

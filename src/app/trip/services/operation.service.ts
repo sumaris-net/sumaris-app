@@ -1102,7 +1102,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    * @param opts
    */
   computeRankOrder(source: Operation, opts?: { fetchPolicy?: FetchPolicy }): Promise<number> {
-    return this.watchRankOrder(source, {...opts, withSamples: false, withBatchTree: false})
+    return this.watchRankOrder(source, opts)
       .pipe(first())
       .toPromise();
   }
@@ -1116,7 +1116,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   watchRankOrder(source: Operation, opts?: OperationServiceWatchOptions): Observable<number> {
     console.debug(`[operation-service] Loading rankOrder of operation #${source.id}...`);
     const tripId = source.tripId;
-    return this.watchAllByTrip({ tripId }, { fetchPolicy: 'cache-first', ...opts })
+    return this.watchAllByTrip({ tripId }, { fetchPolicy: 'cache-first', fullLoad: false, withSamples: false, withBatchTree: false, mutable: false, ...opts })
       .pipe(
         map(res => {
           const existingOperation = (res && res.data || []).find(o => o.id === source.id);
@@ -1139,11 +1139,6 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       enableHighAccuracy: true,
       ...options
     });
-  }
-
-  async computeDistanceInMilesToCurrentPosition(position: IPosition): Promise<number | undefined> {
-    const currentPosition = await this.getCurrentPosition();
-    return currentPosition && PositionUtils.computeDistanceInMiles(currentPosition, position);
   }
 
   async executeImport(filter: Partial<OperationFilter>,
@@ -1380,43 +1375,44 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   }
 
-  async sortByDistance(operations: Operation[], sortDirection: string, position: string): Promise<Operation[]> {
-    let sortedOperation = new Map<number, Operation>();
-    let distance: number;
-
-    for (const o of operations) {
-      distance = await this.computeOperationDistance(o, position);
-      sortedOperation.set(distance, o);
+  async sortByDistance(sources: Operation[], sortDirection: string, sortBy: string): Promise<Operation[]> {
+    // Get current operation
+    const currentPosition = await this.getCurrentPosition();
+    if (!currentPosition) {
+      console.warn('[operation-service] Cannot sort by position. Cannot get the current position');
+      return sources; // Unable to sort
     }
 
-    sortedOperation = new Map([...sortedOperation.entries()].sort((d1, d2) => {
-      if (sortDirection === 'asc') {
-        return d1[0] - d2[0];
-      } else {
-        return d2[0] - d1[0];
-      }
-    }));
+    const propertyName = sortBy === 'startPosition' ? 'startPosition' : 'endPosition';
+    const sortedOperations = sources
+      // Compute distance on each operation (default distance = 0)
+      .map(operation => {
+        const position = this.getPosition(operation, propertyName);
+        return {
+          distance: PositionUtils.computeDistanceInMiles(currentPosition, position) || 0,
+          operation
+        };
+      })
+      // Sort by distance
+      .sort((sortDirection === 'asc')
+        ? (d1, d2) => d1.distance - d2.distance
+        : (d1, d2) => d2.distance - d1.distance
+      )
+      // Extract operations
+      .map(d => d.operation);
 
-    return Array.from(sortedOperation.values());
+    return sortedOperations;
   }
 
-  async computeOperationDistance(operation: Operation, position: string): Promise<number> {
-    let distance: number;
+  getPosition(operation: Operation, propertyName: string): VesselPosition| undefined {
 
-    if (position === 'startPosition') {
-      if (operation.startPosition) {
-        distance = await this.computeDistanceInMilesToCurrentPosition(operation.startPosition);
-      } else if (operation.positions.length === 2) {
-        distance = await this.computeDistanceInMilesToCurrentPosition(operation.positions[0]);
-      }
+    if (propertyName === 'startPosition') {
+      return operation.startPosition || operation.fishingStartPosition
+        || (operation.positions.length === 2 && operation.positions[0]);
     } else {
-      if (operation.endPosition) {
-        distance = await this.computeDistanceInMilesToCurrentPosition(operation.endPosition);
-      } else if (operation.positions.length === 2) {
-        distance = await this.computeDistanceInMilesToCurrentPosition(operation.positions[1]);
-      }
+      return operation.endPosition || operation.fishingEndPosition
+        || (operation.positions.length === 2 && operation.positions[1]);
     }
-    return distance;
   }
 
   async areUsedPhysicalGears(tripId: number, physicalGearIds: number[]): Promise<boolean> {
@@ -1632,6 +1628,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    *
    * @param sources
    * @param targets
+   * @param savedOperation
    */
   protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[], savedOperation: Operation) {
     // DEBUG

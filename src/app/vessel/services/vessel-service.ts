@@ -6,7 +6,7 @@ import {
   BaseEntityGraphqlQueries,
   EntitiesServiceWatchOptions, Entity,
   EntityAsObjectOptions,
-  EntitySaveOptions,
+  EntitySaveOptions, EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
   IEntitiesService,
@@ -17,7 +17,7 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   Person, sort,
-  StatusIds,
+  StatusIds
 } from '@sumaris-net/ngx-components';
 import {map} from 'rxjs/operators';
 import {ReferentialFragments} from '../../referential/services/referential.fragments';
@@ -40,6 +40,7 @@ import {TripService} from '@app/trip/services/trip.service';
 import { OperationService } from '@app/trip/services/operation.service';
 import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 import { mergeLoadResult } from '@app/shared/functions';
+import { FetchPolicy } from '@apollo/client';
 
 
 export const VesselFragments = {
@@ -208,6 +209,18 @@ export class VesselService
       (e1.vesselFeatures?.exteriorMarking === e2.vesselFeatures?.exteriorMarking &&
         e1.vesselRegistrationPeriod?.registrationCode === e2.vesselRegistrationPeriod?.registrationCode)
     );
+  }
+
+  async load(id: number, opts?: EntityServiceLoadOptions & { fetchPolicy?: FetchPolicy; toEntity?: boolean }): Promise<Vessel> {
+
+    // Load using vessel snapshot, if offline and has offline feature
+    if (this.network.offline && EntityUtils.isRemoteId(id) && (await this.hasOfflineData())) {
+      const data: VesselSnapshot = await this.entities.load(id, VesselSnapshot.TYPENAME);
+      if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: "ERROR.LOAD_ENTITY_ERROR"};
+      return VesselSnapshot.toVessel(data);
+    }
+
+    return super.load(id, opts);
   }
 
   /**

@@ -65,7 +65,8 @@
             <app-entity-metadata [value]="data">
 
               <ion-button color="tertiary" expand="block"
-                          [matMenuTriggerFor]="actionMenu" [disabled]="!data || !canUserWrite(data)">
+                          [matMenuTriggerFor]="actionMenu"
+                          [disabled]="!data || !canUserWrite(data)">
                 <ion-icon slot="start" name="create" class="ion-float-start"></ion-icon>&nbsp;
                 <ion-label translate>VESSEL.ACTION.EDIT</ion-label>
                 <mat-icon slot="end" class="ion-float-end">arrow_drop_down</mat-icon>
