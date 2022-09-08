@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { firstArrayValue, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, splitByProperty, UsageMode } from '@sumaris-net/ngx-components';
-import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Batch } from './batch.model';
 import { Landing } from '../../services/model/landing.model';
@@ -46,7 +46,7 @@ export const FILTER_TYPE_TOKEN = new InjectionToken<new() => BatchFilter>('Batch
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilter = BatchFilter>
-  extends AppMeasurementsTable<T, F>
+  extends BaseMeasurementsTable<T, F>
   implements OnInit, OnDestroy {
 
   protected _initialPmfms: IPmfm[];
@@ -101,7 +101,7 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
     @Inject(FILTER_TYPE_TOKEN) filterType: new() => F,
     protected memoryDataService: InMemoryEntitiesService<T, F>,
     validatorService: ValidatorService,
-    @Optional() options?: AppMeasurementsTableOptions<T>
+    @Optional() options?: BaseMeasurementsTableConfig<T>
   ) {
     super(injector,
       dataType || ((Batch as any) as (new() => T)),

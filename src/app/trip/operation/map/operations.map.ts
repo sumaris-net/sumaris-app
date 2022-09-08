@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
 import * as L from 'leaflet';
 import { LayerGroup, MapOptions, PathOptions } from 'leaflet';
@@ -49,7 +49,7 @@ const maxZoom = 18;
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OperationsMapModalOptions {
+export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnDestroy, OperationsMapModalOptions {
 
   private readonly $programLabel = new BehaviorSubject<string>(undefined);
   private readonly $program = new BehaviorSubject<Program>(undefined);
@@ -84,6 +84,7 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, Ope
   $selectedFeature = new BehaviorSubject<Feature>(null);
   modalReady = false; // Need to be false. Will be set to true after a delay
   vesselSnapshotAttributes: string[];
+  destroySubject = new Subject();
 
   get isNewData(): boolean {
     return false;
@@ -163,9 +164,15 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, Ope
         this.markForCheck();
       })
       // Wait onMapReady to be called
-      .then(() => waitFor(() => !!this.map))
+      .then(() => waitFor(() => !!this.map, {stop: this.destroySubject}))
       // Start
       .then(() => this.start());
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.destroySubject.next();
+    this.destroySubject.unsubscribe();
   }
 
   onMapReady(leafletMap: L.Map) {
@@ -189,7 +196,7 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, Ope
     this.markAsLoaded({emitEvent: false});
 
     // Wait program to be loaded
-    const program = await firstNotNilPromise(this.$program);
+    const program = await firstNotNilPromise(this.$program, {stop: this.destroySubject});
 
     // Applying program defaults (center, zoom)
     await this.setProgram(program, {

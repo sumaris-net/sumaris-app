@@ -69,7 +69,7 @@
   <ng-container *ngIf="typesByCategory$ | async | isArrayLength: {equals: 1}; else manyCategories">
     <button mat-menu-item
             *ngFor="let type of (typesByCategory$ | async)[0].value"
-            (click)="setType(type)">
+            (click)="setType(type, {emitEvent: true})">
       <ion-label class="ion-text-wrap">
         <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
         <span>{{type.name}}</span>

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
-import { BehaviorSubject, isObservable, Observable } from 'rxjs';
+import { BehaviorSubject, isObservable, merge, Observable, Subject } from 'rxjs';
 import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { filter, first } from 'rxjs/operators';
@@ -506,7 +506,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       let pmfms: IPmfm[];
       if (isObservable<IPmfm[]>(value)) {
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable...`);
-        pmfms = await firstNotNilPromise(value);
+        pmfms = await firstNotNilPromise(value, {stop: this.destroySubject});
       } else {
         pmfms = value;
       }

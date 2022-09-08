@@ -295,7 +295,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     let levelId = this.$taxonGroupTypeId.getValue();
     if (isNil(levelId)) {
       console.debug('Waiting program taxon group type ids...');
-      levelId = await firstNotNilPromise(this.$taxonGroupTypeId);
+      levelId = await firstNotNilPromise(this.$taxonGroupTypeId, {stop: this.destroySubject});
     }
     return this.referentialRefService.suggest(value,
       {

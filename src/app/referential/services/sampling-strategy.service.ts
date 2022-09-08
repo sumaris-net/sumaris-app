@@ -112,7 +112,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: StrategyFilter,
            opts?: {
              fetchPolicy?: FetchPolicy;
-             withTotal: boolean;
+             withTotal?: boolean;
              withEffort?: boolean;
              toEntity?: boolean;
           }): Observable<LoadResult<SamplingStrategy>> {
@@ -141,7 +141,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
                 filter?: Partial<StrategyFilter>,
-           opts?: { fetchPolicy?: FetchPolicy; withTotal: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
+           opts?: { fetchPolicy?: FetchPolicy; withTotal?: boolean; withEffort?: boolean; withParameterGroups?: boolean; toEntity?: boolean; }
   ): Promise<LoadResult<SamplingStrategy>> {
     const res = await super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
 

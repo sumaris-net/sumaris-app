@@ -30,6 +30,14 @@
       <mat-icon slot="icon-only">add_circle_outline</mat-icon>
     </ion-button>-->
 
+    <!-- duplicate (if desktop) -->
+    <ion-button *ngIf="!mobile && canDuplicate"
+                [disabled]="disabled || invalid"
+                [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE'|translate"
+                (click)="duplicate($event)">
+      <mat-icon slot="icon-only">content_copy</mat-icon>
+    </ion-button>
+
     <!-- option menu -->
     <ion-button
             [matMenuTriggerFor]="optionsMenu"
@@ -124,6 +132,15 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
+  <!-- duplicate (if mobile) -->
+  <button mat-menu-item class="ion-color-danger" *ngIf="mobile && enabled && canDuplicate"
+          (click)="duplicate($event)">
+    <ion-label>
+      <mat-icon>content_copy</mat-icon>&nbsp;
+      <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
+    </ion-label>
+  </button>
+
   <!-- online help -->
   <!-- TODO: enable this -->
   <button mat-menu-item
@@ -135,6 +152,8 @@
     </ion-label>
   </button>
 
+  <mat-divider></mat-divider>
+
   <!-- reset -->
   <button mat-menu-item
           [disabled]="!dirty"
@@ -144,8 +163,6 @@
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
-
-  <mat-divider></mat-divider>
 
   <!-- delete -->
   <button mat-menu-item class="ion-color-danger"
@@ -321,17 +338,16 @@
     <!-- TAB: Samples  -->
     <mat-tab #sampleTab
              [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
-             [disabled]="!showSamplesTab">
+             [disabled]="(loadingSubject | delay: 600 | async) || !showSamplesTab">
       <ng-template mat-tab-label>
         <mat-icon svgIcon="fish-oblique"></mat-icon>
         <ion-label *ngVar="sampleTree.samplesTable.totalRowCount as count"
-          [matBadge]="count"
-          [matBadgeHidden]="sampleTree.invalid || !count"
-          matBadgeOverlap="false"
-          matBadgeColor="primary"
-          matBadgeSize="small"
-          matBadgePosition="above after">{{sampleTab.textLabel}}
-        </ion-label>
+                   [matBadge]="count"
+                   [matBadgeHidden]="sampleTree.invalid || !count"
+                   matBadgeOverlap="false"
+                   matBadgeColor="primary"
+                   matBadgeSize="small"
+                   matBadgePosition="above after">{{sampleTab.textLabel}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && sampleTree.invalid"></ion-icon>
       </ng-template>
 
@@ -376,3 +392,7 @@
   </ion-fab-button>
 
 </ion-fab>
+
+<ng-template #skeletonText100>
+  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
+</ng-template>

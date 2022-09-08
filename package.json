@@ -42,7 +42,7 @@
     "@apollo/client": "~3.5.10",
     "@asymmetrik/ngx-leaflet": "^8.1.0",
     "@bepo65/leaflet.fullscreen": "^2.0.2",
-    "@e-is/ngx-material-table": "0.11.9",
+    "@e-is/ngx-material-table": "0.12.0",
     "@ionic-native/audio-management": "^5.36.0",
     "@ionic-native/camera": "^5.36.0",
     "@ionic-native/core": "^5.36.0",
@@ -66,7 +66,7 @@
     "@ngtools/webpack": "^11.2.19",
     "@ngx-translate/core": "^13.0.0",
     "@ngx-translate/http-loader": "^6.0.0",
-    "@sumaris-net/ngx-components": "1.21.8",
+    "@sumaris-net/ngx-components": "1.23.8",
     "angular-split": "^5.0.0",
     "angular2-text-mask": "^9.0.0",
     "apollo-angular": "^2.6.0",
@@ -228,7 +228,7 @@
     "url": "https://github.com/sumaris-net/sumaris-app/issues"
   },
   "engines": {
-    "node": ">= 12.20.1",
-    "npm": ">= 6.14.4"
+    "node": ">= 14.20.0",
+    "npm": ">= 8.17.0"
   }
 }

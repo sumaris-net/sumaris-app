@@ -507,6 +507,8 @@ type Mutation {
     deleteVessels(ids: [Int]!): Boolean!
     "Delete many weight length conversions"
     deleteWeightLengthConversions(ids: [Int]): Boolean!
+    "Mark as read user events"
+    markAsReadUserEvents(ids: [Int]): Boolean!
     "Qualify an observed location"
     qualifyObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
     "Qualify a trip"
@@ -1151,6 +1153,8 @@ type Query {
     tripsCount(filter: TripFilterVOInput, trash: Boolean = false): Long!
     "Search in user events"
     userEvents(filter: UserEventFilterVOInput, page: PageInput): [UserEventVO]
+    "Count user events"
+    userEventsCount(filter: UserEventFilterVOInput): Long
     "Get a vessel"
     vessel(
         id: Int,
@@ -1395,6 +1399,18 @@ type Subscription {
         "Minimum interval to find changes, in seconds."
         interval: Int = 30
     ): TripVO
+    "Subscribe to changes on user events"
+    updateUserEvents(
+        filter: UserEventFilterVOInput,
+        "Minimum interval to find changes, in seconds."
+        interval: Int = 10
+    ): [UserEventVO]
+    "Subscribe to changes on user events count"
+    updateUserEventsCount(
+        filter: UserEventFilterVOInput,
+        "Minimum interval to find changes, in seconds."
+        interval: Int = 10
+    ): Long
 }
 
 type TaxonGroupStrategyVO {
@@ -1527,9 +1543,12 @@ type UserEventVO {
     hash: String
     id: Int
     issuer: String
+    level: String
+    readDate: Date
     readSignature: String
     recipient: String
     signature: String
+    type: String
     updateDate: Date
 }
 
@@ -2478,7 +2497,12 @@ input PersonVOInput {
 input PhysicalGearFilterVOInput {
     dataQualityStatus: [DataQualityStatusEnum]
     endDate: Date
+    excludeChildGear: Boolean
+    excludeParentGear: Boolean
+    excludeParentGearId: Int
+    excludeTripId: Int
     locationId: Int
+    parentGearId: Int
     programIds: [Int]
     programLabel: String
     qualityFlagIds: [Int]
@@ -3066,8 +3090,14 @@ input TripVOInput {
 }
 
 input UserEventFilterVOInput {
+    excludeRead: Boolean!
     issuer: String
+    issuers: [String]
+    levels: [String]
     recipient: String
+    recipients: [String]
+    startDate: Date
+    types: [String]
 }
 
 input UserEventVOInput {
@@ -3077,9 +3107,12 @@ input UserEventVOInput {
     hash: String
     id: Int
     issuer: String
+    level: String
+    readDate: Date
     readSignature: String
     recipient: String
     signature: String
+    type: String
     updateDate: Date
 }
 

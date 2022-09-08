@@ -1,20 +1,26 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
-import {ActivatedRoute, Router} from "@angular/router";
-import {TranslateService} from '@ngx-translate/core';
-import {BehaviorSubject, Observable} from 'rxjs';
-import { firstNotNilPromise, isNil, isNotEmptyArray, isNotNil, sleep, toBoolean } from '@sumaris-net/ngx-components';
-import {CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType} from "../type/extraction-type.model";
-import {ExtractionService} from "../common/extraction.service";
-import {AbstractControl, FormArray, FormBuilder, FormGroup} from "@angular/forms";
-import {filter, map} from "rxjs/operators";
-import {DateAdapter} from "@angular/material/core";
-import {Moment} from "moment";
-import {ExtractionCriteriaValidatorService} from "./extraction-criterion.validator";
-import {FormFieldDefinition, FormFieldType} from "@sumaris-net/ngx-components";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {AppForm}  from "@sumaris-net/ngx-components";
-import { AppFormUtils } from '@sumaris-net/ngx-components';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+import {
+  AccountService,
+  AppForm,
+  AppFormUtils,
+  firstNotNilPromise,
+  FormFieldDefinition,
+  FormFieldType,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  LocalSettingsService,
+  sleep,
+  toBoolean
+} from '@sumaris-net/ngx-components';
+import { CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
+import { ExtractionService } from '../common/extraction.service';
+import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { filter, map } from 'rxjs/operators';
+import { ExtractionCriteriaValidatorService } from './extraction-criterion.validator';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
@@ -301,9 +307,10 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     return subject;
   }
 
-  waitIdle(): Promise<any> {
+  async waitIdle(): Promise<any> {
     if (!this.type) {
-      return sleep(200).then(() => this.waitIdle());
+      await sleep(200);
+      return this.waitIdle();
     }
     return firstNotNilPromise(this.$columnValueDefinitions);
   }

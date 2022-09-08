@@ -7,10 +7,6 @@ import { isNil, Referential, ReferentialRef, referentialsToString, referentialTo
 @Injectable({providedIn: 'root'})
 export class DisplayWithPipe implements PipeTransform {
 
-  constructor(
-  ) {
-  }
-
   transform(value: any, displayFn: (any) => string): string {
     if (isNil(value) || !displayFn) return '';
     return displayFn(value);

@@ -4,14 +4,14 @@ import { MeasurementsValidatorService } from '../../services/validator/measureme
 import { MeasurementFormInitSteps, MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { BehaviorSubject } from 'rxjs';
 import { BatchValidatorService } from '../common/batch.validator';
-import { firstNotNilPromise, isNotEmptyArray, isNotNil, ReferentialRef, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
+import { firstNotNilPromise, isNotEmptyArray, isNotNil, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { filter } from 'rxjs/operators';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { MatrixIds, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
-import { DenormalizedPmfmFilter, PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
+import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { equals } from '@app/shared/functions';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 
@@ -149,13 +149,8 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     }
 
     // Make sure pmfms have been dispatched before markAsReady()
-    if (!this.$otherPmfms.value) {
-      firstNotNilPromise(this.$otherPmfms)
-        .then(() => super.markAsReady(opts));
-    }
-    else {
-      super.markAsReady(opts);
-    }
+    firstNotNilPromise(this.$otherPmfms, {stop: this.destroySubject})
+      .then(() => super.markAsReady(opts));
   }
 
   /* -- protected functions -- */
@@ -177,7 +172,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
       // DEBUG
       console.debug('[catch-form] Waiting children physical gears...');
       let now = Date.now();
-      const physicalGearId = await firstNotNilPromise(this._$physicalGearId);
+      const physicalGearId = await firstNotNilPromise(this._$physicalGearId, {stop: this.destroySubject});
 
       // Load children gears
       const { data } = await this.physicalGearService.loadAllByParentId(physicalGearId, { toEntity: false, withTotal: false });

@@ -46,9 +46,7 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
       new EntitiesTableDataSource<VesselFeatures>(VesselFeatures, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        dataServiceOptions: {
-          saveOnlyDirtyRows: true
-        }
+        saveOnlyDirtyRows: true
       }),
       null
     );

@@ -6,8 +6,8 @@ import {
   AppEditorOptions,
   AppEntityEditor,
   changeCaseToUnderscore,
-  EntityServiceLoadOptions, EntityUtils,
-  firstNotNilPromise,
+  EntityServiceLoadOptions,
+  EntityUtils,
   HistoryPageReference,
   IEntityService,
   isNil,
@@ -20,13 +20,12 @@ import {
   ReferentialRef,
   ReferentialUtils
 } from '@sumaris-net/ngx-components';
-import { distinctUntilChanged, filter, map, startWith, switchMap, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap } from 'rxjs/operators';
 import { Program } from '../../referential/services/model/program.model';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
 import { Strategy } from '../../referential/services/model/strategy.model';
 import { StrategyRefService } from '../../referential/services/strategy-ref.service';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { mergeMap } from 'rxjs/operators';
 import { Moment } from 'moment';
 import { FormControl } from '@angular/forms';
 
@@ -161,14 +160,12 @@ export abstract class AppRootDataEditor<
       .subscribe());
 
     this.registerSubscription(
-      merge(
-        this.$program.pipe(tap(program => this.setProgram(program))),
-        this.$strategy.pipe(mergeMap(async (strategy) => {
-          // Make sure program has been set first
-          await firstNotNilPromise(this.$program);
-          // Set strategy
-          return this.setStrategy(strategy);
-        }))
+        this.$program.pipe(
+          filter(isNotNil),
+          tap(program => this.setProgram(program)),
+          mergeMap(_ => this.$strategy),
+          filter(isNotNil),
+          tap(strategy => this.setStrategy(strategy))
       ).subscribe()
     );
   }

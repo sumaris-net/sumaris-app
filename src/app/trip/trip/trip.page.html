@@ -250,6 +250,8 @@
       <app-operations-table #operationsTable
                             (onOpenRow)="onOpenOperation($event)"
                             (onNewRow)="onNewOperation($event)"
+                            (onDuplicateRow)="onDuplicateOperation($event)"
+                            [canDuplicate]="operationPasteFlags!==0"
                             [programLabel]="$programLabel|async"
                             [showToolbar]="!mobile"
                             [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"

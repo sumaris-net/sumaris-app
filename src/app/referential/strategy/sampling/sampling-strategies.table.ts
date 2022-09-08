@@ -126,8 +126,9 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       new EntitiesTableDataSource(SamplingStrategy, samplingStrategyService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        dataServiceOptions: {
-          readOnly: true,
+        readOnly: true,
+        watchAllOptions: {
+          withTotal: true
         }
       }));
 

@@ -120,9 +120,8 @@ ion-toast {
 
 // Form buttons bar
 app-form-buttons-bar {
-  ion-col:first-of-type {
-    max-width: calc(100% - 400px);
-  }
+  // Default width of form bar left buttons
+  --form-buttons-bar-buttons-width: 400px;
 }
 
 // Measurement form
@@ -197,5 +196,12 @@ mat-sampling-ratio-field {
     .mat-form-field-label-wrapper {
       left: 19px;
     }
+  }
+}
+
+.popover-notifications {
+  ion-avatar img,
+  ion-avatar .avatar svg {
+    //border-radius: 5px !important;
   }
 }

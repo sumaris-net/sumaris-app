@@ -29,15 +29,21 @@ import {
   APP_LOCAL_STORAGE_TYPE_POLICIES,
   APP_LOCALES,
   APP_MENU_ITEMS,
+  APP_MENU_OPTIONS,
   APP_TESTING_PAGES,
   AppGestureConfig,
   CORE_CONFIG_OPTIONS,
   DATE_ISO_PATTERN,
   Department,
-  EntitiesStorageTypePolicies,
+  EntitiesStorageTypePolicies, ENVIRONMENT,
   FormFieldDefinitionMap,
   LocalSettings,
-  TestingPage
+  MenuItem,
+  MenuOptions,
+  SOCIAL_TESTING_PAGES,
+  SocialModule,
+  TestingPage,
+  USER_EVENT_SERVICE
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -69,7 +75,8 @@ import { Downloader } from '@ionic-native/downloader/ngx';
 import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
 import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
 import { AppImageModule } from '@app/image/image.module';
-import {APP_SHARED_TESTING_PAGES} from '@app/shared/shared.testing.module';
+import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
+import { UserEventService } from '@app/social/user-event/user-event.service';
 
 @NgModule({
   declarations: [
@@ -118,9 +125,8 @@ import {APP_SHARED_TESTING_PAGES} from '@app/shared/shared.testing.module';
     // functional modules
     AppSharedModule.forRoot(environment),
     AppCoreModule.forRoot(),
+    SocialModule,
     AppImageModule.forRoot(),
-    // TODO: should be enabled, when start using notifications
-    //SocialModule.forRoot(),
     AppRoutingModule
   ],
   providers: [
@@ -134,6 +140,7 @@ import {APP_SHARED_TESTING_PAGES} from '@app/shared/shared.testing.module';
     InAppBrowser,
     AudioManagement,
     Downloader,
+
 
     {provide: APP_BASE_HREF, useFactory: function () {
         try {
@@ -183,6 +190,10 @@ import {APP_SHARED_TESTING_PAGES} from '@app/shared/shared.testing.module';
     {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
 
+    // User event
+    { provide: USER_EVENT_SERVICE, useClass: UserEventService },
+    {provide: UserEventService, useExisting: USER_EVENT_SERVICE},
+
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
       ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
@@ -218,8 +229,14 @@ import {APP_SHARED_TESTING_PAGES} from '@app/shared/shared.testing.module';
       ...TRIP_CONFIG_OPTIONS
     }},
 
+    // Menu config
+    { provide: APP_MENU_OPTIONS, useValue: <MenuOptions>{
+        showNotification: true
+      }
+    },
+
     // Menu items
-    { provide: APP_MENU_ITEMS, useValue: [
+    { provide: APP_MENU_ITEMS, useValue: <MenuItem[]>[
         {title: 'MENU.HOME', path: '/', icon: 'home'},
 
         // Data entry
@@ -345,6 +362,7 @@ import {APP_SHARED_TESTING_PAGES} from '@app/shared/shared.testing.module';
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
         ...APP_SHARED_TESTING_PAGES,
         ...REFERENTIAL_TESTING_PAGES,
+        ...SOCIAL_TESTING_PAGES,
         ...IMAGE_TESTING_PAGES,
         ...TRIP_TESTING_PAGES
       ]},

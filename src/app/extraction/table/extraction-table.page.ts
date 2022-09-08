@@ -1,27 +1,38 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChild} from '@angular/core';
-import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
-import { arrayGroupBy, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, LoadResult, propertyComparator, ReferentialRef, sleep, StatusIds } from '@sumaris-net/ngx-components';
-import {TableDataSource} from "@e-is/ngx-material-table";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { BehaviorSubject, EMPTY, from, merge, Observable, Subject } from 'rxjs';
+import {
+  AccountService,
+  Alerts,
+  arrayGroupBy,
+  DEFAULT_PAGE_SIZE,
+  DEFAULT_PAGE_SIZE_OPTIONS, firstFalsePromise,
+  firstNotNilPromise,
+  isNil,
+  isNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
+  LoadResult,
+  LocalSettingsService,
+  PlatformService,
+  SETTINGS_DISPLAY_COLUMNS,
+  sleep,
+  StatusIds,
+  TableSelectColumnsComponent
+} from '@sumaris-net/ngx-components';
+import { TableDataSource } from '@e-is/ngx-material-table';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilterCriterion, ExtractionResult, ExtractionRow, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
-import {TableSelectColumnsComponent}  from "@sumaris-net/ngx-components";
-import {DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE_OPTIONS, SETTINGS_DISPLAY_COLUMNS}  from "@sumaris-net/ngx-components";
-import {AlertController, ModalController, ToastController} from "@ionic/angular";
-import {Location} from "@angular/common";
-import {filter, map} from "rxjs/operators";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { debounceTime, filter, first, map, tap, throttleTime } from 'rxjs/operators';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
-import {ActivatedRoute, Router} from "@angular/router";
-import {TranslateService} from "@ngx-translate/core";
-import {ExtractionService} from "../common/extraction.service";
-import {FormBuilder} from "@angular/forms";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {LocalSettingsService}  from "@sumaris-net/ngx-components";
-import {Alerts} from "@sumaris-net/ngx-components";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {MatTable} from "@angular/material/table";
-import {MatPaginator} from "@angular/material/paginator";
-import {MatSort} from "@angular/material/sort";
-import {MatExpansionPanel} from "@angular/material/expansion";
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { ExtractionService } from '../common/extraction.service';
+import { FormBuilder } from '@angular/forms';
+import { MatTable } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatExpansionPanel } from '@angular/material/expansion';
 import { ProductService } from '@app/extraction/product/product.service';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
 import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
@@ -32,14 +43,16 @@ import { Program } from '@app/referential/services/model/program.model';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 
 
-
 @Component({
   selector: 'app-extraction-table-page',
   templateUrl: './extraction-table.page.html',
   styleUrls: ['./extraction-table.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> implements OnInit {
+export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> implements OnInit, OnDestroy {
+
+
+  private $cancel = new Subject<boolean>();
 
   defaultPageSize = DEFAULT_PAGE_SIZE;
   defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
@@ -116,6 +129,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         this.paginator?.page || EMPTY,
         this.onRefresh
       )
+      .pipe(
+        throttleTime(500) // Need because of 'this.paginator.pageIndex = 0' later
+      )
       .subscribe(() => {
         if (this.loading || isNil(this.type)) return; // avoid multiple load
 
@@ -139,6 +155,12 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       })
       .subscribe(({data}) => this.$programs.next(data))
     )
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+
+    this.$cancel.next(true);
   }
 
   async updateView(data: ExtractionResult) {
@@ -170,7 +192,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       await this.updateTitle();
 
       // Wait end of datasource loading
-      await firstNotNilPromise(this.dataSource.connect(null));
+      //await firstFalsePromise(this.dataSource.loadingSubject);
 
     }
     catch(err) {
@@ -186,9 +208,12 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   }
 
   async setType(type: ExtractionType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
-    const changed = await super.setType(type, opts);
+
+    const changed = await super.setType(type, {...opts, emitEvent: false});
 
     if (changed) {
+      this.$cancel.next(); // Cancelled existing load process
+
       this.canCreateProduct = this.type && this.accountService.isSupervisor();
 
       this.resetPaginatorAndSort();
@@ -199,10 +224,29 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         this.filterExpansionPanel.close();
       }
 
-      // Reset program
-      this.$selectedProgram.next(null);
+      // Apply filter
+      const programLabel = 'SUMARiS';
+      const program = programLabel && (await this.programRefService.loadByLabel(programLabel));
+      if (this.criteriaForm.sheetName && isNotNilOrBlank(program.label)) {
+        this.criteriaForm.setValue([
+          ExtractionFilterCriterion.fromObject({
+            sheetName: this.criteriaForm.sheetName,
+            name: 'project',
+            operator: '=',
+            value: program.label
+          })], {emitEvent: false});
+        this.$selectedProgram.next(program);
+      }
+      else {
+        // Reset program
+        this.$selectedProgram.next(null);
+      }
 
       this.markAsReady();
+
+      if (!opts || opts.emitEvent !== true) {
+        this.onRefresh.emit();
+      }
     }
 
     return changed;
@@ -511,37 +555,65 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   protected async loadData() {
 
-    if (!this.type || !this.type.label) return; // skip
+    if (!this.type?.label) return; // skip
 
+    // To many call
+    if (this.$cancel.observers.length >= 1) throw new Error("Too many call of loadData()");
+
+    const typeLabel = this.type.label;
     this.settingsId = this.generateTableId();
-    this.error = null;
-    console.debug(`[extraction-table] Loading ${this.type.label}`);
-
     this.markAsLoading();
+    this.resetError();
+
+    let cancelled = false;
+    const cancelSubscription = this.$cancel
+      .subscribe(() => {
+        if (this.type?.label !== typeLabel) {
+          console.debug(`[extraction-table] Loading ${typeLabel} [CANCELLED]`);
+          cancelled = true;
+        }
+      });
+
     const filter = this.getFilterValue();
     this.disable();
     this.markForCheck();
 
+    const now = Date.now();
+    console.info(`[extraction-table] Loading ${typeLabel} (sheet: ${filter.sheetName})...`);
+
     try {
+
       // Load rows
       const data = await this.service.loadRows(this.type,
-        this.paginator ? this.paginator.pageIndex * this.paginator.pageSize : null,
-        this.paginator?.pageSize || DEFAULT_PAGE_SIZE,
-        this.sort?.active,
-        this.sort?.direction,
-        filter
-      );
+          this.paginator ? this.paginator.pageIndex * this.paginator.pageSize : null,
+          this.paginator?.pageSize || DEFAULT_PAGE_SIZE,
+          this.sort?.active,
+          this.sort?.direction,
+          filter
+        );
+
+
+      if (cancelled) return; // Stop if cancelled
+
+      console.info(`[extraction-table] Loading ${typeLabel} (sheet: ${filter.sheetName}) [OK] in ${Date.now()-now}ms`);
 
       // Update the view
       await this.updateView(data);
+
     } catch (err) {
-      console.error(err);
-      this.error = err && err.message || err;
-      this.markAsDirty();
+      if (!cancelled) {
+        console.error(err);
+        this.error = err && err.message || err;
+        this.markAsDirty();
+      }
     }
     finally {
-      this.markAsLoaded();
-      this.enable();
+      if (!cancelled) {
+        this.markAsLoaded();
+        this.enable();
+      }
+
+      cancelSubscription?.unsubscribe();
     }
   }
 

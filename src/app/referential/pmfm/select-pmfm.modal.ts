@@ -18,7 +18,7 @@ export class SelectPmfmModal extends BaseSelectEntityModal<Pmfm, PmfmFilter> imp
       protected cd: ChangeDetectorRef,
   ) {
     super(viewCtrl, Pmfm, pmfmService, {
-      dataServiceOptions: {
+      watchAllOptions: {
         withDetails: true // Force to use PmfmFragment
       }
     });

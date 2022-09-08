@@ -1,13 +1,15 @@
-import {Injectable, Injector} from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {
   AccountService,
   AppFormUtils,
+  arrayDistinct,
   chainPromises,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
+  EntityUtils,
   FormErrors,
   GraphqlService,
   IEntitiesService,
@@ -19,36 +21,37 @@ import {
   JobUtils,
   LoadResult,
   NetworkService,
-  StatusIds,
   toNumber,
 } from '@sumaris-net/ngx-components';
-import {Observable} from 'rxjs';
+import { Observable } from 'rxjs';
 import * as momentImported from 'moment';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import {DataCommonFragments, DataFragments} from './trip.queries';
-import {filter, map} from 'rxjs/operators';
-import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '../../data/services/model/data-entity.model';
-import {ObservedLocation} from './model/observed-location.model';
-import {DataRootEntityUtils} from '../../data/services/model/root-data-entity.model';
-import {SortDirection} from '@angular/material/sort';
-import {IDataEntityQualityService} from '../../data/services/data-quality-service.class';
-import {LandingFragments, LandingService} from './landing.service';
-import {IDataSynchroService, RootDataSynchroService} from '../../data/services/root-data-synchro-service.class';
-import {Landing} from './model/landing.model';
-import {ObservedLocationValidatorService} from './validator/observed-location.validator';
-import {environment} from '../../../environments/environment';
-import {VesselSnapshotFragments} from '../../referential/services/vessel-snapshot.service';
-import {OBSERVED_LOCATION_FEATURE_NAME} from './config/trip.config';
-import {ProgramProperties} from '../../referential/services/config/program.config';
-import {VESSEL_FEATURE_NAME} from '../../vessel/services/config/vessel.config';
-import {LandingFilter} from './filter/landing.filter';
-import {ObservedLocationFilter, ObservedLocationOfflineFilter} from './filter/observed-location.filter';
-import {SampleFilter} from '@app/trip/services/filter/sample.filter';
-import {TripFragments, TripService} from '@app/trip/services/trip.service';
-import {ErrorCodes} from '@app/data/services/errors';
-import {TripErrorCodes} from '@app/trip/services/trip.errors';
-import {VesselService} from '@app/vessel/services/vessel-service';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import { DataCommonFragments, DataFragments } from './trip.queries';
+import { filter, map } from 'rxjs/operators';
+import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS } from '../../data/services/model/data-entity.model';
+import { ObservedLocation } from './model/observed-location.model';
+import { DataRootEntityUtils } from '../../data/services/model/root-data-entity.model';
+import { SortDirection } from '@angular/material/sort';
+import { IDataEntityQualityService } from '../../data/services/data-quality-service.class';
+import { LandingFragments, LandingService } from './landing.service';
+import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
+import { Landing } from './model/landing.model';
+import { ObservedLocationValidatorService } from './validator/observed-location.validator';
+import { environment } from '../../../environments/environment';
+import { VesselSnapshotFragments } from '../../referential/services/vessel-snapshot.service';
+import { OBSERVED_LOCATION_FEATURE_NAME } from './config/trip.config';
+import { ProgramProperties } from '../../referential/services/config/program.config';
+import { VESSEL_FEATURE_NAME } from '../../vessel/services/config/vessel.config';
+import { LandingFilter } from './filter/landing.filter';
+import { ObservedLocationFilter } from './filter/observed-location.filter';
+import { SampleFilter } from '@app/trip/services/filter/sample.filter';
+import { TripFragments } from '@app/trip/services/trip.service';
+import { ErrorCodes } from '@app/data/services/errors';
+import { TripErrorCodes } from '@app/trip/services/trip.errors';
+import { VesselService } from '@app/vessel/services/vessel-service';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { AggregatedLanding } from '@app/trip/services/model/aggregated-landing.model';
+import { AggregatedLandingService } from '@app/trip/services/aggregated-landing.service';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -174,7 +177,7 @@ const ObservedLocationMutations = {
   }
   ${ObservedLocationFragments.observedLocation}
   ${LandingFragments.landing}
-  ${TripFragments.landedTrip}
+  ${TripFragments.embeddedLandedTrip}
   ${DataCommonFragments.lightDepartment}
   ${DataCommonFragments.lightPerson}
   ${DataCommonFragments.location}
@@ -261,7 +264,7 @@ export class ObservedLocationService
     protected validatorService: ObservedLocationValidatorService,
     protected vesselService: VesselService,
     protected landingService: LandingService,
-    protected tripService: TripService
+    protected aggregatedLandingService: AggregatedLandingService
   ) {
     super(injector, ObservedLocation, ObservedLocationFilter, {
       queries: ObservedLocationQueries,
@@ -513,7 +516,6 @@ export class ObservedLocationService
     // Save observed location locally
     await this.entities.save(jsonLocal, {entityName: ObservedLocation.TYPENAME});
 
-
     // Save landings
     if (opts.withLanding && isNotEmptyArray(landings)) {
 
@@ -674,13 +676,12 @@ export class ObservedLocationService
 
   async synchronize(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
     opts = {
-      withLanding: true,
       enableOptimisticResponse: false, // Optimistic response not need
       ...opts
     };
 
     const localId = entity?.id;
-    if (isNil(localId) || localId >= 0) throw new Error('Entity must be a local entity');
+    if (!EntityUtils.isLocalId(localId)) throw new Error('Entity must be a local entity');
     if (this.network.offline) throw new Error('Could not synchronize if network if offline');
 
     // Clone (to keep original entity unchanged)
@@ -688,27 +689,50 @@ export class ObservedLocationService
     entity.synchronizationStatus = 'SYNC';
     entity.id = undefined;
 
-    // Fill landings
-    const res = await this.landingService.loadAllByObservedLocation({observedLocationId: localId},
-      {fullLoad: true, rankOrderOnPeriod: false});
-    const landings = res && res.data || [];
+    const program = await this.programRefService.loadByLabel(entity.program?.label);
+    const useAggregatedLandings = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_ENABLE);
+    const targetProgramLabel = program.getProperty(ProgramProperties.OBSERVED_LOCATION_AGGREGATED_LANDINGS_PROGRAM);
+
+    let landings: Landing[] = [];
+    let aggregatedLandings: AggregatedLanding[] = [];
+
+    if (useAggregatedLandings) {
+
+      // Load aggregated landings
+      const { data } = await this.aggregatedLandingService.loadAllByObservedLocation({ observedLocationId: localId },
+        { fullLoad: true, rankOrderOnPeriod: false });
+      aggregatedLandings = data || [];
+
+    } else {
+
+      // Load landings
+      const { data } = await this.landingService.loadAllByObservedLocation({ observedLocationId: localId },
+        { fullLoad: true, rankOrderOnPeriod: false });
+      landings = data || [];
+
+    }
+
+    // Make sure to remove landings here (will be saved AFTER observed location)
     entity.landings = undefined;
 
-    // Get temporary vessel (not saved)
-    const tempVessels = landings.filter(landing => landing.vesselSnapshot && landing.vesselSnapshot.id < 0).map(landing => landing.vesselSnapshot);
-    if (isNotEmptyArray(tempVessels)) {
+    // Get local vessels (not saved)
+    const localVessels = arrayDistinct(
+      [...landings, ...aggregatedLandings].map(value => value.vesselSnapshot).filter(EntityUtils.isLocal),
+      ['id']
+    )
+      .map(VesselSnapshot.toVessel);
+    if (isNotEmptyArray(localVessels)) {
 
-      const vesselToSave = tempVessels.map(VesselSnapshot.toVessel);
-      const savedVessels: Map<number, VesselSnapshot> = new Map<number, VesselSnapshot>();
+      const savedVessels = new Map<number, VesselSnapshot>();
 
-      for (const vessel of vesselToSave){
+      for (const vessel of localVessels) {
         const vesselLocalId= vessel.id;
         const savedVessel = await this.vesselService.synchronize(vessel);
         savedVessels.set(vesselLocalId, VesselSnapshot.fromVessel(savedVessel));
       }
 
       //replace landing local vessel's by saved one
-      landings.forEach(landing => {
+      [...landings, ...aggregatedLandings].forEach(landing => {
         if (savedVessels.has(landing.vesselSnapshot.id)){
           landing.vesselSnapshot = savedVessels.get(landing.vesselSnapshot.id);
         }
@@ -725,13 +749,29 @@ export class ObservedLocationService
       }
 
       // synchronize landings
-      entity.landings = [];
-      for (const landing of landings) {
-        landing.observedLocationId = entity.id;
-        landing.location = entity.location;
-        const savedLanding = await this.landingService.synchronize(landing);
-        entity.landings.push(savedLanding);
+      if (isNotEmptyArray(landings)) {
+        entity.landings = await Promise.all(
+          landings.map(landing => {
+            landing.observedLocationId = entity.id;
+            landing.location = entity.location;
+            return this.landingService.synchronize(landing);
+          }),
+        );
       }
+
+      // Synchronize aggregated landings
+      if (isNotEmptyArray(aggregatedLandings)) {
+        await this.aggregatedLandingService.synchronizeAll(aggregatedLandings, {
+          filter: {
+            observedLocationId: entity.id,
+            startDate: entity.startDateTime,
+            endDate: entity.endDateTime || entity.startDateTime,
+            locationId: entity.location?.id,
+            programLabel: targetProgramLabel
+          }
+        });
+      }
+
     } catch (err) {
       throw {
         ...err,
@@ -743,9 +783,6 @@ export class ObservedLocationService
 
     try {
       if (this._debug) console.debug(`[observed-location-service] Deleting observedLocation {${entity.id}} from local storage`);
-
-      // Delete landings
-      await this.landingService.deleteLocally({observedLocationId: localId});
 
       // Delete observedLocation
       await this.entities.deleteById(localId, {entityName: ObservedLocation.TYPENAME});

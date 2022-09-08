@@ -20,7 +20,7 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { AppMeasurementsTable, AppMeasurementsTableOptions } from '../../measurement/measurements.table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
 import { Batch } from '../common/batch.model';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import { SubBatchForm } from './sub-batch.form';
@@ -44,7 +44,7 @@ export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxon
 export const SUB_BATCH_RESERVED_END_COLUMNS: string[] = ['individualCount', 'comments'];
 
 
-export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<AppMeasurementsTableOptions<Batch>>('SubBatchesTableOptions');
+export const SUB_BATCHES_TABLE_OPTIONS = new InjectionToken<BaseMeasurementsTableConfig<Batch>>('SubBatchesTableOptions');
 
 export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   parentId?: number;
@@ -84,7 +84,7 @@ const subBatchTableOptionsFactory = () => {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilter>
+export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFilter>
   implements OnInit, OnDestroy {
 
 
@@ -209,7 +209,7 @@ export class SubBatchesTable extends AppMeasurementsTable<SubBatch, SubBatchFilt
   constructor(
     protected injector: Injector,
     protected validatorService: SubBatchValidatorService,
-    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: AppMeasurementsTableOptions<Batch>
+    @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<Batch>
   ) {
     super(injector,
       SubBatch, SubBatchFilter,

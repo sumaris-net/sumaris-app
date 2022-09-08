@@ -41,12 +41,12 @@ const Queries = {
   }
   ${ExtractionFragments.column}`,
 
-  getFile: gql`query ExtractionFile($type: ExtractionTypeVOInput, $filter: ExtractionFilterVOInput){
+  getFile: gql`query ExtractionFile($type: ExtractionTypeVOInput!, $filter: ExtractionFilterVOInput){
     data: extractionFile(type: $type, filter: $filter)
   }`,
 
   loadGeoJson: gql`query AggregationGeoJson(
-    $type: ExtractionTypeVOInput,
+    $type: ExtractionTypeVOInput!,
     $filter: ExtractionFilterVOInput,
     $strata: AggregationStrataVOInput,
     $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
@@ -57,7 +57,7 @@ const Queries = {
   }`,
 
   loadTech: gql`query AggregationTech(
-      $type: ExtractionTypeVOInput,
+      $type: ExtractionTypeVOInput!,
       $filter: ExtractionFilterVOInput,
       $strata: AggregationStrataVOInput,
       $sortBy: String, $sortDirection: String
@@ -67,7 +67,7 @@ const Queries = {
       }
     }`,
   techMinMax: gql`query AggregationTechMinMax(
-      $type: ExtractionTypeVOInput,
+      $type: ExtractionTypeVOInput!,
       $filter: ExtractionFilterVOInput,
       $strata: AggregationStrataVOInput
     ) {
@@ -161,9 +161,9 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
     if (this._debug) console.debug("[extraction-service] Download extraction file... using options:", variables);
     const res = await this.graphql.query<{ data: string }>({
       query: Queries.getFile,
-      variables: variables,
+      variables,
       error: {code: ExtractionErrorCodes.DOWNLOAD_EXTRACTION_FILE_ERROR, message: "EXTRACTION.ERROR.DOWNLOAD_FILE_ERROR"},
-      fetchPolicy: options && options.fetchPolicy || 'network-only'
+      fetchPolicy: options && options.fetchPolicy || 'no-cache'
     });
     const fileUrl = res && res.data;
     if (!fileUrl) return undefined;

@@ -12,7 +12,7 @@ import { BehaviorSubject, combineLatest } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { Moment } from 'moment';
 import { environment } from '@environments/environment';
-import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
@@ -167,10 +167,11 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
       // Update available parent on sub-sample table, when samples changes
       this.registerSubscription(
-        this.samplesTable.dataSource.datasourceSubject
+        this.samplesTable.dataSource.rowsSubject
           .pipe(
             debounceTime(400),
-            filter(() => !this.loading) // skip if loading
+            filter(() => !this.loading), // skip if loading
+            map(() => this.samplesTable.dataSource.getData())
           )
           .subscribe(samples => {
             console.debug('[sample-tree] Propagate root samples to sub-samples tables', samples);

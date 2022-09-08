@@ -78,6 +78,7 @@ export const PmfmIds = {
   PARASITIZED_INDIV_PCT: 156,
   DIRTY_INDIV_COUNT: 157,
   DIRTY_INDIV_PCT: 158,
+  AUCTION_SIZE_CAT: 141,
   VIVACITY: 144,
 
   /* PARAMBIO pmfms */
@@ -104,7 +105,7 @@ export const PmfmIds = {
   GPS_USED: 188,
 
   /* APASE */
-  BATCH_GEAR_POSITION: 411
+  BATCH_GEAR_POSITION: 411,
 
 };
 export const QualitativeLabels = {

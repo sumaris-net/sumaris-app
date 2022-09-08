@@ -43,9 +43,7 @@ export class VesselRegistrationHistoryComponent extends AppTable<VesselRegistrat
       new EntitiesTableDataSource<VesselRegistrationPeriod>(VesselRegistrationPeriod, dataService, null, {
         prependNewElements: false,
         suppressErrors: environment.production,
-        dataServiceOptions: {
-          saveOnlyDirtyRows: true
-        }
+        saveOnlyDirtyRows: true
       }),
       null
     );

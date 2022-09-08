@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
-import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round } from '@sumaris-net/ngx-components';
+import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round, WaitForOptions } from '@sumaris-net/ngx-components';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
@@ -87,6 +87,16 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   get pending(): boolean {
     return super.pending || (this.iceForm && !!this.iceForm.pending) || (this.baitForms && this.baitForms.some(form => form.pending));
+  }
+
+  markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsReady(opts);
+    this.iceForm?.markAsReady(opts);
+  }
+
+  async ready(opts?: WaitForOptions): Promise<void> {
+    await super.ready(opts);
+    if (this.iceForm) await this.iceForm.ready(opts);
   }
 
   constructor(
@@ -212,10 +222,13 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     this.resetComputedTupleValues(values, this.hydraulicOilTuple);
 
     // add ice values
-    values.push(...this.iceForm.value);
+    values.push(...(this.iceForm.value || []));
 
     // add bait values
-    this.baitForms.forEach(form => values.push(...form.value));
+    this.baitForms
+      .map(form => form.value)
+      .filter(isNotEmptyArray)
+      .forEach(value => values.push(...value));
 
     this.allData = values;
     return values;
@@ -250,7 +263,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
     if (!this.iceForm.$pmfms.getValue()) {
       if (this.debug) console.debug('[expense-form] waiting for ice pmfms');
-      await firstNotNilPromise(this.iceForm.$pmfms);
+      await firstNotNilPromise(this.iceForm.$pmfms, {stop: this.destroySubject});
     }
 
     // filter data before set to ice form
@@ -262,7 +275,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
     if (!this.baitForms.first.$pmfms.getValue()) {
       if (this.debug) console.debug('[expense-form] waiting for bait pmfms');
-      await firstNotNilPromise(this.baitForms.first.$pmfms);
+      await firstNotNilPromise(this.baitForms.first.$pmfms, {stop: this.destroySubject});
     }
 
     // filter data before set to each bait form

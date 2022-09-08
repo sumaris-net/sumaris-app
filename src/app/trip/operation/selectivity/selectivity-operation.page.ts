@@ -134,7 +134,7 @@ export class SelectivityOperationPage
     const data = this.batchTree.value;
 
     // Load pmfms for batches
-    const programLabel = await firstNotNilPromise(this.$programLabel);
+    const programLabel = await firstNotNilPromise(this.$programLabel, {stop: this.destroySubject});
     const pmfms = await this.programRefService.loadProgramPmfms(programLabel, {
       gearId, acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH
     });

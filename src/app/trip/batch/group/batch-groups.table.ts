@@ -29,8 +29,8 @@ import { Batch } from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import { defer, Observable, Subject, Subscription } from 'rxjs';
-import { map, takeUntil } from 'rxjs/operators';
+import { defer, from, Observable, Subject, Subscription } from 'rxjs';
+import { map, startWith, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { BatchGroupValidatorService } from './batch-group.validator';
@@ -476,7 +476,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       console.debug('[batch-group-table] Auto fill table, using options:', opts);
 
       // Read existing taxonGroups
-      let data = await this.dataSource.getData()
+      let data = this.dataSource.getData()
       const existingTaxonGroups = data.map(batch => batch.taxonGroup)
         .filter(isNotNil);
       let rowCount = data.length;
@@ -494,12 +494,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
           const batch = new BatchGroup();
           batch.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
           batch.rankOrder = rankOrder++;
-          const newRow = await this.addEntityToTable(batch, { confirmCreate: true });
-          rowCount += (newRow.editing) ? 0 : 1;
+          const newRow = await this.addEntityToTable(batch, { confirmCreate: true, emitEvent: false /*done in markAsLoaded()*/ });
+          rowCount += newRow ? 0 : 1;
         }
 
         // Mark as dirty
-        this.markAsDirty();
+        this.markAsDirty({emitEvent: false /* done in markAsLoaded() */});
       }
 
       // FIXME Workaround to update row count
@@ -507,7 +507,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         console.warn('[batch-group-table] Updateing rowCount manually! (should be fixed when table confirmEditCreate() are async ?)');
         this.totalRowCount = rowCount;
         this.visibleRowCount = rowCount;
-        this.markForCheck();
       }
 
     } catch (err) {
@@ -756,14 +755,14 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     super.mapPmfms(pmfms); // Should find the qvPmfm
 
     // Compute species pmfms (at species batch level)
-    if (!this.qvPmfm) {
-      this._speciesPmfms = [];
-      this._childrenPmfms = this._initialPmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
-    }
-    else {
+    if (this.qvPmfm) {
       let qvPmfmIndex = this._initialPmfms.findIndex(pmfm => pmfm.id === this.qvPmfm.id);
       this._speciesPmfms = this._initialPmfms.filter((pmfm, index) => index < qvPmfmIndex);
       this._childrenPmfms = this._initialPmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
+    }
+    else {
+      this._speciesPmfms = [];
+      this._childrenPmfms = this._initialPmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
     }
 
     // Configure row validator
@@ -951,17 +950,22 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     if (!this.dynamicColumns) return; // skip
     this.displayedColumns = this.getDisplayColumns();
 
+    this.groupColumnStartColSpan = RESERVED_START_COLUMNS.length
+      + (this.showTaxonGroupColumn ? 1 : 0)
+      + (this.showTaxonNameColumn ? 1 : 0);
     if (this.qvPmfm) {
-      this.groupColumnStartColSpan = RESERVED_START_COLUMNS.length
-        + (this.showTaxonGroupColumn ? 1 : 0)
-        + (this.showTaxonNameColumn ? 1 : 0)
-        + (this._speciesPmfms ? this.dynamicColumns.filter(c => c.pmfm && !c.hidden && !this.excludesColumns.includes(c.key)).length : 0);
+      this.groupColumnStartColSpan += isEmptyArray(this._speciesPmfms) ? 0 :
+        this._speciesPmfms.filter(p => !p.hidden && !this.excludesColumns.includes(''+p.id)).length;
     }
     else {
-      this.groupColumnStartColSpan += this.dynamicColumns.filter(c => !c.hidden).length;
+      this.groupColumnStartColSpan += this.dynamicColumns.filter(c => !c.hidden && !this.excludesColumns.includes(c.key)).length;
     }
 
     if (!this.loading) this.markForCheck();
+  }
+
+  deleteSelection(event: UIEvent): Promise<number> {
+    return super.deleteSelection(event);
   }
 
   protected getDisplayColumns(): string[] {
@@ -1040,11 +1044,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // - If mobile, create an observable, linked to table rows
     // - else (if desktop), create a copy
     const onModalDismiss = new Subject<any>();
-    const availableParents = (showParentGroup ? this.dataSource.connect(null) : defer(() => this.dataSource.getRows()))
-      .pipe(
-        takeUntil(onModalDismiss),
-        map((res: TableElement<BatchGroup>[]) => res.map(row => this.toEntity(row)))
-      );
 
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
@@ -1061,7 +1060,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
-        availableParents,
+        availableParents: this.dataSource.rowsSubject
+          .pipe(
+            startWith(() => this.dataSource.getData()),
+            takeUntil(onModalDismiss),
+            tap((data) => console.warn('[batch-groups-table] TODO check available parents:', data))
+          ),
         data: this.availableSubBatches,
         onNewParentClick,
         i18nSuffix: this.i18nColumnSuffix,
@@ -1080,7 +1084,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     // Wait until closed
     const {data} = await modal.onDidDismiss();
 
-    onModalDismiss.next(); // disconnect observables
+    onModalDismiss.next(); // disconnect datasource observables
 
     // User cancelled
     if (isNil(data)) {

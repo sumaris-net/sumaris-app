@@ -5,12 +5,13 @@ function getSortingMeasValues(opts?: {
   gearPosition?: 'B'|'T';
   weight?: number;
   discardOrLanding?: 'LAN'|'DIS';
+  sizeCategory?: number
 }) {
 
   const res = {};
 
   if (isNotNil(opts.gearPosition)) {
-    res[PmfmIds.BATCH_GEAR_POSITION] = opts.gearPosition === 'B' ? QualitativeValueIds.BATCH_GEAR_POSITION.PORT : QualitativeValueIds.BATCH_GEAR_POSITION.STARBOARD; // Bâbord, Tribord
+    res[PmfmIds.BATCH_GEAR_POSITION] = ''+ (opts.gearPosition === 'B' ? QualitativeValueIds.BATCH_GEAR_POSITION.PORT : QualitativeValueIds.BATCH_GEAR_POSITION.STARBOARD); // Bâbord, Tribord
   }
   else {
     opts = {
@@ -18,12 +19,16 @@ function getSortingMeasValues(opts?: {
       ...opts
     }
   }
+  if (isNotNil(opts.sizeCategory)) {
+    res[PmfmIds.AUCTION_SIZE_CAT] = ''+opts.sizeCategory;
+  }
   if (isNotNil(opts.discardOrLanding)) {
     res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD;
   }
   if (isNotNil(opts.weight)) {
     res[PmfmIds.BATCH_MEASURED_WEIGHT] = opts.weight;
   }
+
   return res;
 }
 
@@ -64,7 +69,7 @@ export function getExampleTree(key: string, programLabel?: string): any {
             label: 'SORTING_BATCH#1',
             rankOrder: 1,
             taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
-            measurementValues: (programLabel === 'APASE' ? getSortingMeasValues({ gearPosition: 'B' }) : undefined),
+            measurementValues: (programLabel === 'APASE' ? getSortingMeasValues({ gearPosition: 'B', sizeCategory: 319 }) : undefined),
             children: [
               {
                 label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
@@ -74,7 +79,7 @@ export function getExampleTree(key: string, programLabel?: string): any {
                     label: 'SORTING_BATCH#1.LAN.%',
                     rankOrder: 1,
                     samplingRatio: 0.5,
-                    samplingRatioText: '50%',
+                    samplingRatioText: (programLabel === 'APASE') ? '1/2' : '50%',
                     children: [
                       {
                         label: 'SORTING_BATCH_INDIVIDUAL#1',
@@ -102,7 +107,7 @@ export function getExampleTree(key: string, programLabel?: string): any {
                     label: 'SORTING_BATCH#1.DIS.%',
                     rankOrder: 1,
                     samplingRatio: 0.5,
-                    samplingRatioText: '50%',
+                    samplingRatioText: (programLabel === 'APASE') ? '1/2' : '50%',
                     children: [
                       {
                         label: 'SORTING_BATCH_INDIVIDUAL#2',

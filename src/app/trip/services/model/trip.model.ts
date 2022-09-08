@@ -3,6 +3,7 @@ import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STO
 import { Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import { Sale } from './sale.model';
 import {
+  DateUtils,
   EntityClass,
   EntityUtils,
   fromDateISOString,
@@ -13,9 +14,10 @@ import {
   Person,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  toDateISOString
+  toBoolean,
+  toDateISOString,
 } from '@sumaris-net/ngx-components';
-import { FishingArea } from '../../../data/services/model/fishing-area.model';
+import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
 import { IWithObserversEntity } from '@app/data/services/model/model.utils';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
@@ -31,6 +33,8 @@ import { SortDirection } from '@angular/material/sort';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { OperationPasteFlags } from '@app/referential/services/config/program.config';
+import { hasFlag } from '@app/shared/flags.utils';
 
 /* -- Helper function -- */
 
@@ -168,12 +172,12 @@ export class Operation
       ...NOT_MINIFY_OPTIONS, /*Avoid minify, to keep gear for operations tables cache*/
       withChildren: false
     });
-    if (opts?.minify) {
-      delete target.physicalGear.synchronizationStatus;
-    }
 
-    if (target.physicalGear) delete target.physicalGear.measurementValues;
-    target.physicalGearId = this.physicalGear && this.physicalGear.id;
+    if (target.physicalGear) {
+      if (opts?.minify) delete target.physicalGear.synchronizationStatus;
+      delete target.physicalGear.measurementValues;
+    }
+    target.physicalGearId = this.physicalGear?.id;
     if (opts && opts.keepLocalId === false && target.physicalGearId < 0) {
       delete target.physicalGearId; // Remove local id
     }
@@ -341,12 +345,55 @@ export class Operation
     this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId}) : undefined;
   }
 
+  paste(source: Operation, flags = OperationPasteFlags.ALL ) {
+    if (hasFlag(flags, OperationPasteFlags.DATE)) {
+      if (hasFlag(flags, OperationPasteFlags.TIME)) {
+        this.startDateTime = source.startDateTime;
+        this.fishingStartDateTime = source.fishingStartDateTime;
+        this.fishingEndDateTime = source.fishingEndDateTime;
+        this.endDateTime = source.endDateTime;
+      }
+      // Reset time if there is no OperationCopyFlags.TIME
+      else {
+        this.startDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.startDateTime));
+        this.fishingStartDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.fishingStartDateTime));
+        this.fishingEndDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.fishingEndDateTime));
+        this.endDateTime = DateUtils.markNoTime(DateUtils.resetTime(source.endDateTime));
+      }
+    }
+    if (hasFlag(flags, OperationPasteFlags.POSITION)) {
+      this.startPosition = VesselPosition.fromObject({...source.startPosition, id: null});
+      this.fishingStartPosition = VesselPosition.fromObject({...source.fishingStartPosition, id: null});
+      this.fishingEndPosition = VesselPosition.fromObject({...source.fishingEndPosition, id: null});
+      this.endPosition = VesselPosition.fromObject({...source.endPosition, id: null});
+    }
+    if (hasFlag(flags, OperationPasteFlags.FISHING_AREA)) {
+      this.fishingAreas = source.fishingAreas;
+    }
+    if (hasFlag(flags, OperationPasteFlags.GEAR)) {
+      this.physicalGear = source.physicalGear;
+    }
+    if (hasFlag(flags, OperationPasteFlags.METIER)) {
+      this.metier = source.metier;
+    }
+    if (hasFlag(flags, OperationPasteFlags.MEASUREMENT)) {
+      //TODO : measurements are empty when duplicate from table
+      this.measurements = source.measurements;
+    }
+  }
+
   equals(other: Operation): boolean {
     return (super.equals(other) && isNotNil(this.id))
       || ((this.startDateTime === other.startDateTime
           || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
         && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
       );
+  }
+}
+
+export class OperationUtils {
+  static isOperation(data: DataEntity<any>): data is Operation {
+    return data?.__typename === Operation.TYPENAME;
   }
 }
 

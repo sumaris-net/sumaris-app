@@ -1,0 +1,10 @@
+ion-avatar img,
+ion-avatar .avatar svg {
+  border: 1px solid rgba(var(--ion-color-secondary-rgb, 0.5));
+  border-radius: 5px;
+}
+
+p.body {
+  white-space: pre;
+  user-select: text !important;
+}

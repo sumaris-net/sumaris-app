@@ -1,43 +1,22 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {ReferentialRefService} from '../../referential/services/referential-ref.service';
-import {FormArray, FormBuilder, FormControl} from '@angular/forms';
-import {
-  Alerts,
-  ConfigService,
-  EntitiesTableDataSource,
-  HammerSwipeEvent,
-  isNotEmptyArray,
-  isNotNil,
-  LocalSettingsService,
-  PersonService,
-  PersonUtils,
-  PlatformService, ReferentialRef,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  SharedValidators,
-  StatusIds
-} from '@sumaris-net/ngx-components';
-import {ObservedLocationService} from '../services/observed-location.service';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
+import { ReferentialRefService } from '../../referential/services/referential-ref.service';
+import { FormArray, FormBuilder, FormControl } from '@angular/forms';
+import { Alerts, ConfigService, HammerSwipeEvent, isNotEmptyArray, isNotNil, PersonService, PersonUtils, ReferentialRef, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
+import { ObservedLocationService } from '../services/observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
-import {ObservedLocation} from '../services/model/observed-location.model';
-import {AppRootDataTable} from '@app/data/table/root-table.class';
-import {OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS} from '../services/config/trip.config';
-import {environment} from '@environments/environment';
-import {BehaviorSubject} from 'rxjs';
-import {ObservedLocationOfflineModal} from './offline/observed-location-offline.modal';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {DATA_CONFIG_OPTIONS} from 'src/app/data/services/config/data.config';
-import {ObservedLocationFilter, ObservedLocationOfflineFilter} from '../services/filter/observed-location.filter';
-import {filter, tap} from 'rxjs/operators';
-import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
-import {ContextService} from '@app/shared/context.service';
+import { ObservedLocation } from '../services/model/observed-location.model';
+import { AppRootDataTable } from '@app/data/table/root-table.class';
+import { OBSERVED_LOCATION_FEATURE_NAME, TRIP_CONFIG_OPTIONS } from '../services/config/trip.config';
+import { environment } from '@environments/environment';
+import { BehaviorSubject } from 'rxjs';
+import { ObservedLocationOfflineModal } from './offline/observed-location-offline.modal';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { DATA_CONFIG_OPTIONS } from 'src/app/data/services/config/data.config';
+import { ObservedLocationFilter, ObservedLocationOfflineFilter } from '../services/filter/observed-location.filter';
+import { filter, tap } from 'rxjs/operators';
+import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
+import { ContextService } from '@app/shared/context.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { ProgramFilter } from '@app/referential/services/filter/program.filter';
-import { Program } from '@app/referential/services/model/program.model';
 
 
 export const ObservedLocationsPageSettingsEnum = {
@@ -321,28 +300,34 @@ export class ObservedLocationsPage extends
   get canUserCancelOrDelete(): boolean {
     // IMAGINE-632: User can only delete landings or samples created by himself or on which he is defined as observer
 
+    // Cannot delete if not connected
+    if (!this.accountService.isLogin() || this.selection.isEmpty()) {
+      return false;
+    }
+
     // When connected user is an admin
     if (this.accountService.isAdmin()) {
       return true;
     }
 
-    const row = !this.selection.isEmpty() && this.selection.selected[0];
-    const entity = row.currentData;
+    const user = this.accountService.person;
 
-    // When observed location has been recorded by connected user
-    const recorder = entity.recorderPerson;
-    const connectedPerson = this.accountService.person;
-    if (connectedPerson.id === recorder?.id) {
-      return true;
-    }
+    // Find a row that user CANNOT delete
+    const invalidRow = this.selection.selected
+      .find(row => {
+        const entity = row.currentData;
 
-    // When connected user is in observed location observers
-    for (const observer of entity.observers) {
-      if (connectedPerson.id === observer.id) {
-        return true;
-      }
-    }
-    return false;
+        // When observed location has been recorded by connected user
+        if (user.id === entity?.recorderPerson?.id) {
+          return false; // OK
+        }
+
+        // When connected user is in observed location observers
+        return !(entity.observers || []).some(observer => (user.id === observer?.id));
+      });
+
+    //
+    return !invalidRow;
   }
 
 

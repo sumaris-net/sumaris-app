@@ -6,18 +6,20 @@ import {
   EntityUtils,
   fadeInOutAnimation,
   firstArrayValue,
-  firstNotNilPromise, firstTruePromise,
+  firstNotNilPromise,
+  firstTruePromise,
   fromDateISOString,
   HistoryPageReference,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank, isNotNilOrNaN, LocalSettingsService,
-  PlatformService,
+  isNotNilOrBlank,
+  isNotNilOrNaN,
+  LocalSettingsService,
   ReferentialUtils,
   removeDuplicatesFromArray,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { LandingForm } from './landing.form';
 import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
@@ -41,10 +43,9 @@ import { Strategy } from '@app/referential/services/model/strategy.model';
 import * as momentImported from 'moment';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
 
 const moment = momentImported;
 

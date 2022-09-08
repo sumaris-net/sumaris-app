@@ -312,7 +312,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     const offline = this.network.offline
       || (dataFilter && (
         (dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC')
-        || dataFilter.observedLocationId < 0 || dataFilter.tripId < 0)) || false;
+        || EntityUtils.isLocalId(dataFilter.observedLocationId)
+        || EntityUtils.isLocalId(dataFilter.tripId))) || false;
     if (offline) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
@@ -775,16 +776,23 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     entity.synchronizationStatus = 'SYNC';
     entity.id = undefined;
 
-    // Fill Trip
-    const trip = await this.tripService.load(entity.tripId,
-      {fullLoad: true, rankOrderOnPeriod: false});
-    trip.observedLocationId = entity.observedLocationId;
-    //Could be different if Vessel has been synchronize previously then update on landing but not on trip.
-    trip.vesselSnapshot = entity.vesselSnapshot;
+    // Synchronize trip
+    if (EntityUtils.isLocalId(entity.tripId)) {
+      // Load the local trip
+      const trip = await this.tripService.load(entity.tripId,
+        {fullLoad: true, rankOrderOnPeriod: false});
 
-    const savedTrip = await this.tripService.synchronize(trip, {withLanding: false, withOperation: false, withOperationGroup:true});
+      // Link to parent observed location
+      trip.observedLocationId = entity.observedLocationId;
 
-    entity.tripId = savedTrip.id;
+      // Copy vessel from landing (Could be different if Vessel has been synchronized previously, without updating the trip).
+      trip.vesselSnapshot = entity.vesselSnapshot;
+
+      // Synchronize the trip
+      const savedTrip = await this.tripService.synchronize(trip, {withLanding: false, withOperation: false, withOperationGroup:true});
+
+      entity.tripId = savedTrip.id;
+    }
     entity.trip = undefined;
 
     try {
@@ -888,7 +896,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
    * @param data
    */
   protected async saveLocally(entity: Landing, opts?: LandingSaveOptions): Promise<Landing> {
-    if (entity.observedLocationId >= 0) throw new Error('Must be a local entity');
+    if (EntityUtils.isRemoteId(entity.observedLocationId)) throw new Error('Must be linked to a local observed location');
 
     // Fill default properties (as recorder department and person)
     this.fillDefaultProperties(entity, opts);

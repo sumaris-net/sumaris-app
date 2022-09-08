@@ -113,7 +113,7 @@ export class BatchValidatorService<
     }
 
     if (opts?.withWeight || opts?.withChildrenWeight) {
-      const weightPmfms = opts.childrenPmfms?.filter(PmfmUtils.isWeight);
+      const weightPmfms = opts.childrenPmfms && opts.childrenPmfms.filter(PmfmUtils.isWeight);
 
       // Add weight sub form
       if (opts?.withWeight) {

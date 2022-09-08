@@ -710,7 +710,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       let physicalGear = await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId);
 
       // Find trip's similar gears
-      const physicalGears = (await firstNotNilPromise(this._$physicalGears))
+      const physicalGears = (await firstNotNilPromise(this._$physicalGears, {stop: this.destroySubject}))
         .filter(pg => PhysicalGear.equals(physicalGear, pg, {withMeasurementValues: true, withRankOrder: false}));
 
       if (isEmptyArray(physicalGears)) {
@@ -1123,7 +1123,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     let res = this._$metiers.value;
     if (isNil(res?.data)) {
       console.debug('[operation-form] Waiting metier to be loaded...');
-      res = await firstNotNilPromise(this._$metiers);
+      res = await firstNotNilPromise(this._$metiers, {stop: this.destroySubject});
     }
     return suggestFromArray(res.data, value, filter);
   }

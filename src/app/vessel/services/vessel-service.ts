@@ -1,6 +1,6 @@
 import {Injectable, Injector} from '@angular/core';
 import {gql} from '@apollo/client/core';
-import {Observable} from 'rxjs';
+import { combineLatest, Observable } from 'rxjs';
 import {QualityFlagIds} from '../../referential/services/model/model.enum';
 import {
   BaseEntityGraphqlQueries,
@@ -39,6 +39,7 @@ import {LandingService} from '@app/trip/services/landing.service';
 import {TripService} from '@app/trip/services/trip.service';
 import { OperationService } from '@app/trip/services/operation.service';
 import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { mergeLoadResult } from '@app/shared/functions';
 
 
 export const VesselFragments = {
@@ -223,27 +224,46 @@ export class VesselService
            sortBy?: string,
            sortDirection?: SortDirection,
            filter?: VesselFilter,
-           opts?: EntitiesServiceWatchOptions & { query?: any }): Observable<LoadResult<Vessel>> {
+           opts?: EntitiesServiceWatchOptions & { query?: any; withOffline?: boolean }): Observable<LoadResult<Vessel>> {
 
-    // Load offline
-    const offline = this.network.offline || filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC';
-    if (offline) {
-      return this.watchAllLocally(offset, size, sortBy, sortDirection, filter);
-    }
+    const forceOffline = this.network.offline || (isNotNil(filter.vesselId) && filter.vesselId < 0);
+    const offline = forceOffline || (filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC');
+    const online = !forceOffline && (!filter.synchronizationStatus || filter.synchronizationStatus === 'SYNC');
 
-    return super.watchAll(offset, size, sortBy || 'vesselFeatures.exteriorMarking', sortDirection, filter, opts);
+    const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, filter, opts);
+    const online$ = online && this.watchAllRemotely(offset, size, sortBy, sortDirection, filter, opts);
+
+    // Merge local and remote
+    const res = (offline$ && online$)
+      ? combineLatest([offline$, online$])
+        .pipe(
+          map(([res1, res2]) => mergeLoadResult(res1, res2))
+        )
+      : (offline$ || online$);
+    return res;
+  }
+
+  watchAllRemotely(offset: number,
+                  size: number,
+                  sortBy?: string,
+                  sortDirection?: SortDirection,
+                  filter?: VesselFilter,
+                  opts?: EntitiesServiceWatchOptions & { query?: any; }): Observable<LoadResult<Vessel>> {
+    sortBy = sortBy || 'vesselFeatures.exteriorMarking';
+    return super.watchAll(offset, size, sortBy, sortDirection, filter, opts);
   }
 
   watchAllLocally(offset: number,
                   size: number,
                   sortBy?: string,
                   sortDirection?: SortDirection,
-                  filter?: Partial<VesselFilter>): Observable<LoadResult<Vessel>> {
+                  filter?: VesselFilter,
+                  opts?: EntitiesServiceWatchOptions): Observable<LoadResult<Vessel>> {
 
     // Adapt filter
     const vesselSnapshotFilter = VesselSnapshotFilter.fromVesselFilter(filter);
 
-    sortBy = sortBy && sortBy.substr(sortBy.lastIndexOf('.') + 1) || undefined;
+    sortBy = sortBy?.includes('.') && sortBy.substr(sortBy.lastIndexOf('.') + 1) || sortBy;
 
     return this.vesselSnapshotService.watchAllLocally(offset, size, sortBy, sortDirection, vesselSnapshotFilter)
       .pipe(

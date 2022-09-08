@@ -1,4 +1,4 @@
-import { Department, EntityAsObjectOptions, IEntity, Person, Referential, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
+import { Department, EntityAsObjectOptions, IEntity, isNotNilOrNaN, Person, Referential, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import {PredefinedColors} from '@ionic/core';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 import { SynchronizationIonIcon } from '@app/data/quality/entity-quality-icon.component';

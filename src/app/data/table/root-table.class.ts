@@ -17,7 +17,6 @@ import {
   toBoolean,
   toDateISOString,
   UsageMode,
-  UserEventService
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
@@ -29,8 +28,9 @@ import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { HttpEventType } from '@angular/common/http';
 import { PopoverController } from '@ionic/angular';
-import { AppBaseTable, BaseTableOptions } from '@app/shared/table/base.table';
+import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import { UserEventService } from '@app/social/user-event/user-event.service';
 
 const moment = momentImported;
 
@@ -96,7 +96,7 @@ export abstract class AppRootDataTable<
     columnNames: string[],
     protected dataService: IDataSynchroService<T, F, ID> & IEntitiesService<T, F>,
     protected validatorService: V,
-    options?: BaseTableOptions<T, ID>
+    options?: BaseTableConfig<T, ID>
   ) {
     super(injector,
       dataType, filterType,
@@ -280,7 +280,7 @@ export abstract class AppRootDataTable<
     if (!value) return false; // Skip if empty
 
     // Make sure network is UP
-    if (this.offline && value === 'SYNC') {
+    if (this.offline && value === 'SYNC' && !this.hasOfflineMode) {
       if (opts.showToast) {
         this.network.showOfflineToast({
           // Allow to retry to connect
@@ -442,11 +442,13 @@ export abstract class AppRootDataTable<
     if (isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
-      this.network.showOfflineToast({
-        showRetryButton: true,
-        onRetrySuccess: () => this.terminateSelection()
+      await new Promise<void>(async (resolve, reject) => {
+        const res = await this.network.showOfflineToast({
+          showRetryButton: true,
+          onRetrySuccess: () => resolve()
+        });
+        if (!res) reject('ERROR.NETWORK_REQUIRED');
       });
-      return;
     }
 
     if (this.debug) console.debug("[root-table] Starting to terminate data...");
@@ -464,6 +466,15 @@ export abstract class AppRootDataTable<
     try {
       await chainPromises(ids.map(id => () => this.dataService.terminateById(id)));
 
+      // Update rows, when no refresh will be emitted
+      if (opts?.emitEvent === false) {
+        rows.map(row => {
+            if (DataRootEntityUtils.isLocalAndDirty(row.currentData)) {
+              row.currentData.synchronizationStatus = 'READY_TO_SYNC';
+            }
+          });
+      }
+
       // Success message
       if (!opts || opts.showSuccessToast !== false) {
         this.showToast({
@@ -476,6 +487,7 @@ export abstract class AppRootDataTable<
         error,
         context: () => chainPromises(ids.map(id => () => this.dataService.load(id, {withOperation: true, toEntity: false})))
       });
+      throw error;
     }
     finally {
       if (!opts || opts.emitEvent !== false) {
@@ -501,11 +513,13 @@ export abstract class AppRootDataTable<
     if (isEmptyArray(rows)) return; // Skip
 
     if (this.offline) {
-      this.network.showOfflineToast({
-        showRetryButton: true,
-        onRetrySuccess: () => this.synchronizeSelection()
+      await new Promise<void>(async (resolve, reject) => {
+        const res = await this.network.showOfflineToast({
+          showRetryButton: true,
+          onRetrySuccess: () => resolve()
+        });
+        if (!res) reject('ERROR.NETWORK_REQUIRED');
       });
-      return;
     }
 
     if (this.debug) console.debug("[root-table] Starting to synchronize data...");

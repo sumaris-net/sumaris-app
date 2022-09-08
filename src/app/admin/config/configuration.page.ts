@@ -14,6 +14,7 @@ import {
 import {SoftwareValidatorService} from '@app/referential/services/validator/software.validator';
 import {BehaviorSubject} from 'rxjs';
 import {AbstractSoftwarePage} from '@app/referential/software/abstract-software.page';
+import { environment } from '@environments/environment';
 
 declare interface CacheStatistic {
   name: string;
@@ -58,7 +59,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     // default values
     this.defaultBackHref = null;
 
-    //this.debug = !environment.production;
+    this.debug = !environment.production;
   }
 
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {

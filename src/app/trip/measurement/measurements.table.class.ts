@@ -1,22 +1,22 @@
-import { Directive, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import {
   Alerts,
   AppFormUtils,
-  AppTableDataSourceOptions,
   EntitiesTableDataSource,
   Entity,
   EntityFilter,
   filterNotNil,
   firstNotNilPromise,
-  IEntitiesService,
+  IEntitiesService, InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, toNumber,
+  RESERVED_START_COLUMNS,
+  toNumber,
   waitFor
 } from '@sumaris-net/ngx-components';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
@@ -27,15 +27,14 @@ import { MeasurementsValidatorService } from '../services/validator/measurement.
 import { ProgramRefService } from '../../referential/services/program-ref.service';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { AppBaseTable, BaseTableOptions } from '@app/shared/table/base.table';
+import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
-import { environment } from '@environments/environment';
 
 
-export class AppMeasurementsTableOptions<
+export interface BaseMeasurementsTableConfig<
   T extends IEntityWithMeasurement<T, ID>,
   ID = number>
-  extends BaseTableOptions<T, ID> {
+  extends BaseTableConfig<T, ID> {
 
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
@@ -48,12 +47,12 @@ export class AppMeasurementsTableOptions<
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class AppMeasurementsTable<
+export abstract class BaseMeasurementsTable<
   T extends IEntityWithMeasurement<T, ID>,
   F extends EntityFilter<any, T, any>,
   V extends BaseValidatorService<T, ID> = any,
   ID = number,
-  O extends AppMeasurementsTableOptions<T, ID> = AppMeasurementsTableOptions<T, ID>
+  O extends BaseMeasurementsTableConfig<T, ID> = BaseMeasurementsTableConfig<T, ID>
   >
   extends AppBaseTable<T, F, V, ID, O>
   implements OnInit, OnDestroy, ValidatorService {
@@ -240,6 +239,7 @@ export abstract class AppMeasurementsTable<
 
     this.setValidatorService(validatorService);
 
+
     // For DEV only
     //this.debug = !environment.production;
   }
@@ -249,6 +249,7 @@ export abstract class AppMeasurementsTable<
     this._autoLoadAfterPmfm = this.autoLoad;
     this.autoLoad = false;
     this.i18nPmfmPrefix = this.i18nPmfmPrefix || this.i18nColumnPrefix;
+    this.keepEditedRowOnSave = this.inlineEdition && !(this.dataService instanceof InMemoryEntitiesService);
 
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.requiredStrategy = this.options.requiredStrategy || false;
@@ -397,7 +398,7 @@ export abstract class AppMeasurementsTable<
     await super.ready();
 
     // Wait pmfms load, and controls load
-    await firstNotNilPromise(this.$pmfms);
+    await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
 
     // Wait form config initialized
     if (!this.measurementValuesFormGroupConfig) {
@@ -534,7 +535,7 @@ export abstract class AppMeasurementsTable<
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; editing?: boolean; emitEvent?: boolean; }): Promise<TableElement<T>> {
     if (!data) throw new Error("Missing data to add");
     if (this.debug) console.debug("[measurement-table] Adding new entity", data);
 
@@ -555,7 +556,9 @@ export abstract class AppMeasurementsTable<
 
     try {
 
-      const row = await this.addRowToTable();
+      // Creat a row
+      const row = await this.addRowToTable(null, {editing: opts?.editing, emitEvent: opts?.emitEvent});
+
       if (!row) throw new Error("Could not add row to table");
 
       // Override rankOrder (with a computed value)
@@ -570,7 +573,7 @@ export abstract class AppMeasurementsTable<
       // Adapt measurement values to row
       this.normalizeEntityToRow(data, row);
 
-      // Affect new row
+      // Affect data to new row
       if (row.validator) {
         row.validator.patchValue(data);
         row.validator.markAsDirty();
@@ -578,17 +581,19 @@ export abstract class AppMeasurementsTable<
         row.currentData = data;
       }
 
-      // Confirm the created row
-      if (!opts || opts.confirmCreate !== false) {
-        if (row.validator?.pending) {
-          await AppFormUtils.waitWhilePending(row.validator);
+      if (row.editing) {
+        // Confirm the created row
+        if (!opts || opts.confirmCreate !== false) {
+          if (row.validator?.pending) {
+            await AppFormUtils.waitWhilePending(row.validator);
+          }
+          const confirmed = this.confirmEditCreate(null, row);
+          this.editedRow = confirmed ? null : row /*confirmation failed*/;
         }
-        const confirmed = this.confirmEditCreate(null, row);
-        this.editedRow = confirmed ? null : row /*confirmation failed*/;
-      }
-      // Keep editing
-      else {
-        this.editedRow = row;
+        // Keep editing
+        else {
+          this.editedRow = row;
+        }
       }
 
       this.markAsDirty({emitEvent: false});

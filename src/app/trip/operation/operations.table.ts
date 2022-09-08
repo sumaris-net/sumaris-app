@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
 import { OperationService } from '../services/operation.service';
@@ -14,7 +14,7 @@ import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { DataQualityStatusEnum, DataQualityStatusIds, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { AppBaseTable } from '@app/shared/table/base.table';
-import { LandingEditor, OperationEditor } from '@app/referential/services/config/program.config';
+import { OperationEditor } from '@app/referential/services/config/program.config';
 
 @Component({
   selector: 'app-operations-table',
@@ -49,6 +49,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   @Input() showQuality = true;
   @Input() showRowError = false;
   @Input() detailEditor: OperationEditor;
+  @Input() canDuplicate: boolean;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -72,11 +73,13 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     if (this.tripId < 0) {
       switch (sortActive) {
         case 'physicalGear':
-          return 'physicalGear.gear.' + this.displayAttributes.gear[0];
+          //return 'physicalGear.gear.' + this.displayAttributes.gear[0];
         case 'targetSpecies':
-          return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
+        //return 'metier.taxonGroup.' + this.displayAttributes.taxonGroup[0];
         case 'fishingArea':
-          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+        //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+          // Fix issue on rankOrder computation
+          return 'id';
         default:
           return sortActive;
       }
@@ -85,9 +88,12 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     else {
       switch (sortActive) {
         case 'targetSpecies':
-          return 'metier';
+          //return 'metier';
         case 'fishingArea':
-          return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+          //return 'fishingAreas.location.' + this.displayAttributes.fishingArea[0];
+        case 'physicalGear':
+          // Fix issue on rankOrder computation
+          return 'id';
         default:
           return sortActive;
       }
@@ -136,6 +142,8 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     return this.filterForm.controls.dataQualityStatus as FormControl;
   }
 
+  @Output() onDuplicateRow = new EventEmitter<{ data: Operation }>();
+
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
@@ -174,8 +182,8 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
           i18nColumnPrefix: 'TRIP.OPERATION.LIST.',
           prependNewElements: false,
           suppressErrors: environment.production,
-          dataServiceOptions: {
-            readOnly: true,
+          readOnly: true,
+          watchAllOptions: {
             withBatchTree: false,
             withSamples: false,
             withTotal: true
@@ -242,6 +250,11 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     }
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.onDuplicateRow.unsubscribe();
+  }
+
   setTripId(tripId: number, opts?: { emitEvent: boolean; }) {
     this.setFilter(<OperationFilter>{
       ...this.filterForm.value,
@@ -289,6 +302,19 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   clickRow(event: MouseEvent | undefined, row: TableElement<Operation>): boolean {
     this.highlightedRow = row;
     return super.clickRow(event, row);
+  }
+
+  async duplicateRow(event?: Event, row?: TableElement<Operation>) {
+    event?.stopPropagation();
+
+    row = row || this.singleSelectedRow;
+    if (!row || !this.confirmEditCreate(event, row)) {
+      return false;
+    }
+
+    this.onDuplicateRow.emit({data: row.currentData});
+
+    this.selection.clear();
   }
 
   async getUsedPhysicalGearIds(): Promise<number[]> {

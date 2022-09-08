@@ -136,14 +136,14 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
         )
         .subscribe(async ({selectedType, selectedSheetName}) => {
           // Set the type
-          await this.setType(selectedType, {
+          const changed = await this.setType(selectedType, {
             sheetName: selectedSheetName,
             emitEvent: false,
             skipLocationChange: true // Here, we not need an update of the location
           });
 
           // Execute the first load
-          await this.loadData();
+          if (changed) await this.loadData();
 
         }));
   }
@@ -191,7 +191,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     }
 
     // Refresh data
-    if (opts.emitEvent === true) {
+    if (!opts || opts.emitEvent !== true) {
       this.onRefresh.emit();
     }
 
@@ -267,9 +267,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
 
   async load(id?: number, options?: any): Promise<any> {
     const type = (this.$types.value || []).find(t => t.id === id);
-    if (type) {
-      await this.setType(type, {emitEvent: false});
-
+    const changed = type && await this.setType(type, {emitEvent: false});
+    if (changed) {
       await this.loadData();
     }
     return undefined;

@@ -191,7 +191,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     await super.ready();
 
     // Wait pmfms load, and controls load
-    await firstNotNilPromise(this.$pmfms);
+    await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
   }
 
   trackPmfmFn(index: number, pmfm: IPmfm): any {

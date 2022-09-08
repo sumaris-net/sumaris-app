@@ -18,6 +18,7 @@ import {
   isNil,
   isNotNil,
   LocalSettingsService,
+  NetworkService,
   ReferentialRef,
   ReferentialUtils,
   StatusIds,
@@ -31,7 +32,7 @@ import { ObservedLocation } from '../services/model/observed-location.model';
 import { Landing } from '../services/model/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { filter, first, tap } from 'rxjs/operators';
 import { AggregatedLandingsTable } from '../aggregated-landing/aggregated-landings.table';
 import { Program } from '@app/referential/services/model/program.model';
@@ -95,7 +96,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     protected configService: ConfigService,
     protected accountService: AccountService,
     protected translateContext: TranslateContextService,
-    protected context: ContextService
+    protected context: ContextService,
+    public network: NetworkService
   ) {
     super(injector,
       ObservedLocation,
@@ -235,7 +237,6 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         this.markAsLoaded();
       }
     }
-
   }
 
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
@@ -248,6 +249,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     const programLabel = (this.aggregatedLandingsTable?.programLabel) || this.data.program.label;
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
       && (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) || [];
+    const defaultVesselSynchronizationStatus = this.network.offline ? 'DIRTY' : 'SYNC';
 
     const landingFilter = LandingFilter.fromObject({
       programLabel,
@@ -271,7 +273,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
         allowAddNewVessel: this.allowAddNewVessel,
         showVesselTypeColumn: this.showVesselType,
         showBasePortLocationColumn: this.showVesselBasePortLocation,
-        defaultVesselSynchronizationStatus: 'SYNC',
+        defaultVesselSynchronizationStatus,
         maxDateVesselRegistration: endDate,
       },
       keyboardClose: true,
@@ -279,7 +281,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     });
 
     // Open the modal
-    modal.present();
+    await modal.present();
 
     // Wait until closed
     const {data} = await modal.onDidDismiss();
@@ -341,11 +343,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
 
-
     await super.setProgram(program);
 
     try {
-      const timezone = await firstNotNilPromise(this.$timezone);
+      const timezone = await firstNotNilPromise(this.$timezone, {stop: this.destroySubject});
       this.observedLocationForm.showEndDateTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_END_DATE_TIME_ENABLE);
       this.observedLocationForm.showStartTime = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_START_TIME_ENABLE);
       this.observedLocationForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
@@ -380,8 +381,9 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.$landingTableType.next(aggregatedLandings ? 'aggregated' : 'legacy');
 
       // Wait the expected table (set using ngInit - see template)
-      const table = await firstNotNilPromise(this.$table
-        .pipe(filter(table => aggregatedLandings ? table instanceof AggregatedLandingsTable : table instanceof LandingsTable)));
+      const table$ = this.$table.pipe(
+          filter(table => aggregatedLandings ? table instanceof AggregatedLandingsTable : table instanceof LandingsTable));
+      const table = await firstNotNilPromise(table$, {stop: this.destroySubject});
 
       // Configure table
       if (aggregatedLandings) {

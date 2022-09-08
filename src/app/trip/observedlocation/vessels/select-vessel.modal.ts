@@ -18,6 +18,7 @@ import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
 import {SynchronizationStatus} from '@app/data/services/model/model.utils';
 import {Moment} from 'moment';
 import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { debounceTime, mergeMap } from 'rxjs/operators';
 
 export interface SelectVesselsModalOptions {
   landingFilter: LandingFilter|null;
@@ -134,21 +135,26 @@ export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
     // Get default status by config
     if (this.allowAddNewVessel && this.vesselForm) {
       this.subscription.add(
-        this.configService.config.subscribe(async config => {
-          this.vesselForm.defaultStatus = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS);
-          this.vesselForm.enable();
+        this.configService.config
+          .pipe(
+            debounceTime(100),
+            mergeMap(async (config) => {
+              this.vesselForm.defaultStatus = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_DEFAULT_STATUS);
+              this.vesselForm.enable();
 
-          if (isNil(this.defaultRegistrationLocation)) {
-            const defaultRegistrationLocationId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID);
-            if (defaultRegistrationLocationId) {
-              this.vesselForm.defaultRegistrationLocation = await this.referentialRefService.loadById(defaultRegistrationLocationId, 'Location');
-            }
-          }
-          if (isNil(this.withNameRequired)) {
-            this.withNameRequired = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_NAME_REQUIRED);
-            this.vesselForm.withNameRequired = this.withNameRequired;
-          }
-        })
+              if (isNil(this.defaultRegistrationLocation)) {
+                const defaultRegistrationLocationId = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_FILTER_DEFAULT_COUNTRY_ID);
+                if (defaultRegistrationLocationId) {
+                  this.vesselForm.defaultRegistrationLocation = await this.referentialRefService.loadById(defaultRegistrationLocationId, 'Location');
+                }
+              }
+              if (isNil(this.withNameRequired)) {
+                this.withNameRequired = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_NAME_REQUIRED);
+                this.vesselForm.withNameRequired = this.withNameRequired;
+              }
+            })
+          )
+          .subscribe()
       );
     }
   }
