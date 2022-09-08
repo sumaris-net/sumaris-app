@@ -29,7 +29,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
   parameterIds?: number[];
   periods?: any[];
-  acquisitionlevels: string[];
+  acquisitionLevels: string[];
 
   fromObject(source: any) {
     super.fromObject(source);
@@ -42,7 +42,7 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
 
     this.parameterIds = source.parameterIds;
     this.periods = source.periods;
-    this.acquisitionlevels = source.acquisitionlevels;
+    this.acquisitionLevels = source.acquisitionLevels;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -124,10 +124,10 @@ export class StrategyFilter extends BaseReferentialFilter<StrategyFilter, Strate
     }
 
     // Acquisition levels
-    if (isNotEmptyArray(this.acquisitionlevels)) {
+    if (isNotEmptyArray(this.acquisitionLevels)) {
       filterFns.push(t => (t.denormalizedPmfms || t.pmfms || []).some(p => {
         const acquisitionLevel = (typeof p.acquisitionLevel === 'string') ? p.acquisitionLevel : p.acquisitionLevel?.label;
-        return this.acquisitionlevels.includes(acquisitionLevel);
+        return this.acquisitionLevels.includes(acquisitionLevel);
       }));
     }
 

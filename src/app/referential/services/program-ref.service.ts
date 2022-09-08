@@ -369,7 +369,7 @@ export class ProgramRefService
 
     // Use cache (enable by default, if no custom query)
     if (!opts || (opts.cache !== false && !opts.query)) {
-      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label, JSON.stringify({withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter})].join('|');
+      const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label, opts && JSON.stringify({withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter})].join('|');
       return this.cache.loadFromObservable(cacheKey,
           defer(() => this.watchByLabel(label, {...opts, cache: false, toEntity: false})),
           ProgramRefCacheKeys.CACHE_GROUP
@@ -510,14 +510,11 @@ export class ProgramRefService
         );
     }
 
-    // TODO add period start/end ?
-    const strategyFilter = StrategyFilter.fromObject({
-      label: opts?.strategyLabel,
-      acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
-    });
-
     // Watch the program
-    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter})
+    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
+        label: opts?.strategyLabel,
+        acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
+      }})
       .pipe(
         map(program => program.strategies || []),
         // Filter strategy's pmfms
@@ -591,13 +588,11 @@ export class ProgramRefService
         );
     }
 
-    const strategyFilter = StrategyFilter.fromObject({
+    // Load the program, with strategies
+    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
       label: opts?.strategyLabel,
       acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
-    });
-
-    // Load the program, with strategies
-    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter})
+    }})
         .pipe(
           map(program => program.strategies || []),
           // get all gears
@@ -642,13 +637,12 @@ export class ProgramRefService
             : (data || []) as TaxonGroupRef[])
         );
     }
-    const strategyFilter = StrategyFilter.fromObject({
-      label: opts?.strategyLabel,
-      acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
-    });
 
     // Watch program
-    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter})
+    return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
+        label: opts?.strategyLabel,
+        acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
+      }})
       .pipe(
         // Get strategies
         map(program => (program.strategies || [])),
