@@ -2,8 +2,6 @@ import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
 import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
-import { AppObservedLocationRoutingModule } from '@app/trip/observed-location-routing.module';
-import { AppInboxMessageRoutingModule } from '@app/social/message/inbox-message-routing.module';
 
 const routes: Routes = [
   // Core path
@@ -108,6 +106,11 @@ const routes: Routes = [
       {
         path: 'shared',
         loadChildren: () => import('./shared/shared.testing.module').then(m => m.AppSharedTestingModule)
+      },
+      // Core module
+      {
+        path: 'core',
+        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.CoreTestingModule)
       },
       // Social module
       {

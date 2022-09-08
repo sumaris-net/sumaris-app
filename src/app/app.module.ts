@@ -77,6 +77,7 @@ import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
 import { AppImageModule } from '@app/image/image.module';
 import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
 import { UserEventService } from '@app/social/user-event/user-event.service';
+import { CORE_TESTING_PAGES } from '@sumaris-net/ngx-components';
 
 @NgModule({
   declarations: [
@@ -362,6 +363,7 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
     { provide: APP_TESTING_PAGES, useValue: <TestingPage[]>[
         ...APP_SHARED_TESTING_PAGES,
         ...REFERENTIAL_TESTING_PAGES,
+        ...CORE_TESTING_PAGES,
         ...SOCIAL_TESTING_PAGES,
         ...IMAGE_TESTING_PAGES,
         ...TRIP_TESTING_PAGES

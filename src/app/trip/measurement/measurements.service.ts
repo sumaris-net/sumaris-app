@@ -1,5 +1,5 @@
-import { BehaviorSubject, isObservable, Observable, Subject, Subscription } from 'rxjs';
-import { distinctUntilChanged, filter, first, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, isObservable, Observable, Subject } from 'rxjs';
+import { distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { EntityUtils, firstNotNilPromise, IEntitiesService, IEntityFilter, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
 import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
@@ -130,7 +130,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     this._debug = options && options.debug;
 
     // Detect rankOrder on the entity class
-    this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
+    this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).some(key => key === 'rankOrder');
 
     this.registerSubscription(
       this._onRefreshPmfms

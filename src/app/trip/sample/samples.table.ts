@@ -49,6 +49,8 @@ import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sam
 import { OverlayEventDetail } from '@ionic/core';
 import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
+import { EntityUtils } from '@sumaris-net/ngx-components/src/app/core/services/model/entity.model';
+import { SortDirection } from '@angular/material/sort';
 
 const moment = momentImported;
 

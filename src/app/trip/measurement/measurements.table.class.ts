@@ -10,7 +10,8 @@ import {
   EntityFilter,
   filterNotNil,
   firstNotNilPromise,
-  IEntitiesService, InMemoryEntitiesService,
+  IEntitiesService,
+  InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -234,7 +235,8 @@ export abstract class BaseMeasurementsTable<
     this.measurementsDataService = new EntitiesWithMeasurementService<T, F, ID>(injector, this.dataType, dataService, {
       mapPmfms: this.options.mapPmfms || undefined,
       requiredStrategy: this.options.requiredStrategy,
-      debug: this.options.debug || false
+      debug: this.options.debug || false,
+
     });
 
     this.setValidatorService(validatorService);
@@ -245,11 +247,12 @@ export abstract class BaseMeasurementsTable<
   }
 
   ngOnInit() {
+    const isMemoryDataService = (this.dataService instanceof InMemoryEntitiesService);
     // Remember the value of autoLoad, but force to false, to make sure pmfm will be loaded before
     this._autoLoadAfterPmfm = this.autoLoad;
     this.autoLoad = false;
     this.i18nPmfmPrefix = this.i18nPmfmPrefix || this.i18nColumnPrefix;
-    this.keepEditedRowOnSave = this.inlineEdition && !(this.dataService instanceof InMemoryEntitiesService);
+    this.keepEditedRowOnSave = this.inlineEdition && !isMemoryDataService;
 
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.requiredStrategy = this.options.requiredStrategy || false;

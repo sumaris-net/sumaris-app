@@ -11,6 +11,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { filter } from 'rxjs/operators';
 
 
 export interface ICatchTabDef {
@@ -69,6 +70,10 @@ export class SelectivityOperationPage
     // Listen physical gears, to enable tabs
     this.registerSubscription(
       this.opeForm.physicalGearControl.valueChanges
+        .pipe(
+          // WARN: skip if disabled (e.g. when reload page)
+          filter(g => this.enabled)
+        )
         .subscribe(g => this.configureTabs(g))
     )
   }
@@ -99,6 +104,7 @@ export class SelectivityOperationPage
   }
 
   protected async configureTabs(physicalGear: PhysicalGear) {
+    console.info('[selectivity-operation] Configuring tabs...');
 
     const gearId = physicalGear?.gear?.id;
 
