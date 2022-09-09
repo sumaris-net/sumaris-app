@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------
 
 # default image
-image: node:12-slim
+image: node:14-slim
 
 stages:
   - build
@@ -19,6 +19,7 @@ stages:
 
 variables:
   DOCKER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
+  DOCKER_IMAGE: node:14-slim
   CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
   BUILD_ENVIRONMENT: prod
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
