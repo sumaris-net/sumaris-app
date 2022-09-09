@@ -142,13 +142,13 @@ docker:ci:
       # Git process for release (ISO gitflow)
       - git add .
       - git commit -m "Prepare release ${RELEASE_VERSION}"
-      - git checkout imagine/master
+      - git checkout master
       - git merge --no-ff --no-edit -m "Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
       - git tag -a ${RELEASE_VERSION} -m "${RELEASE_VERSION}"
-      - git checkout imagine/develop
+      - git checkout develop
       - git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
-      - git push origin imagine/develop
-      - git push origin imagine/master
+      - git push origin develop
+      - git push origin master
       - git push --tags
       - git branch -D release/${RELEASE_VERSION}
   after_script:
@@ -163,7 +163,8 @@ docker:ci:
     expire_in: 24 hours
   allow_failure: false
   only:
-      - imagine/develop
+    - develop
+    - imagine/develop
   when: manual
 
 release:
@@ -233,6 +234,7 @@ docker:release:
     IMAGE_TAG: ${APP_VERSION}
   needs: [release]
   only:
+    - develop
     - imagine/develop
 
 # ---------------------------------------------------------------
