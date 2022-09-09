@@ -22,7 +22,7 @@ REPO_API_URL="https://api.github.com/repos/${REPO}"
 REPO_PUBLIC_URL="https://github.com/${REPO}"
 
 
-NODE_VERSION=12
+NODE_VERSION=14
 NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
 ANDROID_NDK_VERSION=21.0.6113669 # Should be compatible with 'cordova-sqlite-storage' plugin
