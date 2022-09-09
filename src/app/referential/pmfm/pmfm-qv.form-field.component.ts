@@ -113,7 +113,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
   @Output('focus') focused = new EventEmitter<FocusEvent>();
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
-  @Output('click') clicked = new EventEmitter<FocusEvent>();
+  @Output('click') clicked = new EventEmitter<UIEvent>();
 
   @ViewChild('matInput') matInput: ElementRef;
   @ViewChildren('button') buttons: QueryList<IonButton>;
@@ -243,6 +243,11 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   setDisabledState(isDisabled: boolean): void {
 
+  }
+
+  _onClick(event: UIEvent) {
+    this.clicked.emit(event);
+    this.onShowDropdown.emit(event);
   }
 
   _onBlur(event: FocusEvent) {

@@ -16,7 +16,7 @@
                [placeholder]="placeholder"
                [matAutocomplete]="autoCombo"
                [appAutofocus]="autofocus"
-               (click)="clicked.emit($event) || onShowDropdown.emit($event)"
+               (click)="_onClick($event)"
                (focus)="onShowDropdown.next($event)"
                (blur)="_onBlur($event)"
                [required]="required"

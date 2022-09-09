@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { firstArrayValue, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, splitByProperty, UsageMode } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
@@ -19,34 +19,12 @@ import { BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-export const DATA_TYPE_TOKEN = new InjectionToken<new() => Batch>('BatchesTableDataType');
-export const FILTER_TYPE_TOKEN = new InjectionToken<new() => BatchFilter>('BatchesTableFilterType');
-
-@Component({
-  selector: 'app-batches-table',
-  templateUrl: 'batches.table.html',
-  styleUrls: ['batches.table.scss'],
-  providers: [
-    {provide: ValidatorService, useValue: null},  // important: do NOT use validator, to be sure to keep all PMFMS, and not only displayed pmfms
-    {
-      provide: InMemoryEntitiesService,
-      useFactory: () => new InMemoryEntitiesService<Batch, BatchFilter>(Batch, BatchFilter, {
-        equals: Batch.equals
-      })
-    },
-    {
-      provide: DATA_TYPE_TOKEN,
-      useValue: Batch
-    },
-    {
-      provide: FILTER_TYPE_TOKEN,
-      useValue: BatchFilter
-    }
-  ],
-  changeDetection: ChangeDetectionStrategy.OnPush
-})
-export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilter = BatchFilter>
-  extends BaseMeasurementsTable<T, F>
+@Directive()
+// tslint:disable-next-line:directive-class-suffix
+export abstract class BatchesTable<
+  T extends Batch<any> = Batch<any>,
+  F extends BatchFilter = BatchFilter
+  > extends BaseMeasurementsTable<T, F>
   implements OnInit, OnDestroy {
 
   protected _initialPmfms: IPmfm[];
@@ -95,13 +73,13 @@ export class BatchesTable<T extends Batch<any> = Batch<any>, F extends BatchFilt
   @Input() defaultTaxonName: TaxonNameRef;
   @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
 
-  constructor(
+  protected constructor(
     injector: Injector,
-    @Inject(DATA_TYPE_TOKEN) dataType: new() => T,
-    @Inject(FILTER_TYPE_TOKEN) filterType: new() => F,
+    dataType: new() => T,
+    filterType: new() => F,
     protected memoryDataService: InMemoryEntitiesService<T, F>,
     validatorService: ValidatorService,
-    @Optional() options?: BaseMeasurementsTableConfig<T>
+    options?: BaseMeasurementsTableConfig<T>
   ) {
     super(injector,
       dataType || ((Batch as any) as (new() => T)),

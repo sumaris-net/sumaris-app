@@ -13,7 +13,7 @@ import { ModalController } from '@ionic/angular';
 })
 export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventService> {
 
-  protected form: FormGroup;
+  form: FormGroup;
 
   @Input() bodyAutoHeight = true;
 
