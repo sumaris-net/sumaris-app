@@ -70,10 +70,6 @@ export class SelectivityOperationPage
     // Listen physical gears, to enable tabs
     this.registerSubscription(
       this.opeForm.physicalGearControl.valueChanges
-        .pipe(
-          // WARN: skip if disabled (e.g. when reload page)
-          filter(g => this.enabled)
-        )
         .subscribe(g => this.configureTabs(g))
     )
   }
@@ -118,11 +114,15 @@ export class SelectivityOperationPage
       return;
     }
 
+    // Remember component state
+    const enabled = this.batchTree.enabled;
     const touched = this.batchTree.touched;
-
-    // Try to save data, if need
     const dirty = this.batchTree.dirty;
-    if (dirty) {
+
+    // Save data, if need
+    // WARN: skip if disabled (e.g. when reload page)
+    if (dirty && enabled) {
+      console.info('[selectivity-operation] Save batches... (before to reset tabs)')
       try {
         await this.batchTree.save();
       }
@@ -182,13 +182,13 @@ export class SelectivityOperationPage
       this.batchTree.addChildTree(subBatchTree);
     });
 
-    // Re apply data
+    // Re apply data, and restore component state
     this.batchTree.markAsReady();
     if (data) {
       await this.batchTree.setValue(data);
       this.batchTree.markAsLoaded();
     }
-    if (this.enabled) this.batchTree.enable();
+    if (enabled) this.batchTree.enable();
     if (dirty) this.batchTree.markAsDirty();
     if (touched) this.batchTree.markAllAsTouched();
   }

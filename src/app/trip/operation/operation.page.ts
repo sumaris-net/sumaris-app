@@ -30,7 +30,7 @@ import {
   WaitForOptions
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { FormGroup, Validators } from '@angular/forms';
 import * as momentImported from 'moment';
 import { Moment } from 'moment';
@@ -41,7 +41,7 @@ import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, from, merge, Subscription } from 'rxjs';
+import { BehaviorSubject, from, merge, Subscription, timer } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
@@ -661,7 +661,7 @@ export class OperationPage
     this.measurementsForm.gearId = gearId;
     if (this.readySubject.value) this.measurementsForm.markAsReady();
     if (this.batchTree) {
-      this.batchTree.physicalGearId = physicalGear.id;
+      this.batchTree.physicalGearId = toNumber(physicalGear?.id, null);
       this.batchTree.gearId = gearId;
       if (this.readySubject.value) this.batchTree.markAsReady();
     }
@@ -953,6 +953,17 @@ export class OperationPage
       if (this.autoFillDatesFromTrip && !this.isDuplicatedData)
         this.opeForm.fillWithTripDates();
     }
+  }
+
+  cancel(event): Promise<void> {
+
+    // Avoid to reload/unload if page destroyed
+    timer(500)
+      .pipe(takeUntil(this.destroySubject))
+      .subscribe(() => super.cancel(event));
+
+    // nothing
+    return Promise.resolve();
   }
 
   unload(): Promise<void> {
