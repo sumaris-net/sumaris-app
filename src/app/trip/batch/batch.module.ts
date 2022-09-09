@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CatchBatchForm } from './catch/catch.form';
 import { BatchGroupsTable } from './group/batch-groups.table';
-import { BatchesTable } from './common/batches.table';
 import { SubBatchesTable } from './sub/sub-batches.table';
 import { SubBatchesModal } from './sub/sub-batches.modal';
 import { SubBatchForm } from './sub/sub-batch.form';
@@ -52,7 +51,6 @@ import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-con
     BatchGroupForm,
     BatchGroupModal,
 
-    BatchesTable,
     BatchForm,
     BatchModal,
     BatchFilterForm,
@@ -79,7 +77,6 @@ import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-con
     BatchGroupForm,
     BatchGroupModal,
 
-    BatchesTable,
     BatchForm,
     BatchModal,
 
