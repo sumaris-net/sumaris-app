@@ -102,7 +102,7 @@ docker:ci:
   allow_failure: true
   script:
     # Build and push the CI image
-    - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f scripts/ci/Dockerfile .
+    - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} -f scripts/ci/Dockerfile .
     #- docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
     - docker push ${CI_BUILD_IMAGE}
   except:

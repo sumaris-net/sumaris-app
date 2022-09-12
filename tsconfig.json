@@ -31,9 +31,9 @@
       "@environments/*": [
         "src/environments/*"
       ],
-      "@sumaris-net/ngx-components/*": [
-        "ngx-sumaris-components/*"
-      ],
+//      "@sumaris-net/ngx-components/*": [
+//        "ngx-sumaris-components/*"
+//      ],
       // Force using the RxJS project's version
       "rxjs": ["node_modules/rxjs"],
       "rxjs/*": ["node_modules/rxjs/*"],
