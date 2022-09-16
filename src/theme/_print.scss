@@ -21,7 +21,8 @@
   .print-break {
     page-break-after: always;
   }
-
+}
+html.print-pdf {
   .reset-css {
     left: unset !important;
     right: unset !important;
@@ -47,8 +48,6 @@
     page-break-after: unset !important;
     box-sizing: unset !important;
     flex-direction: unset !important;
-    -webkit-tap-highlight-color: unset !important;
-    -webkit-touch-callout: unset !important;
   }
 
   body,

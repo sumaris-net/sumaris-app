@@ -46,7 +46,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sample of data.samples">
+            <tr *ngFor="let sample of data.samples; index as index">
               <td>n°{{sample.label}}</td>
               <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true}"></td>
             </tr>

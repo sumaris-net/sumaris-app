@@ -144,7 +144,6 @@ export class AuctionControlReport implements OnInit, AfterViewInit {
     this.data = data;
     this.parent = parent;
 
-
     // Compute agg data
     this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup || {};
     this.stats.sampleCount = data.samples?.length || 0;

@@ -27,7 +27,7 @@ const routes: Routes = [
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
     AppSharedReportModule,
-    ChartsModule,
+    ChartsModule
   ],
   declarations: [
     ReportTestPage
