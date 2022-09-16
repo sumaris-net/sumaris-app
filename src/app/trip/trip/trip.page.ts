@@ -317,6 +317,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     this.markAsReady();
     this.markForCheck();
+
+    // Listen program, to reload if changes
+    this.startListenProgramRemoteChanges(program);
   }
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
