@@ -6,13 +6,15 @@
 // Import ngx-components theme
 // --------------------------------------------------
 @import "~@sumaris-net/ngx-components/src/theme/theme";
-
-@import "mixins";
+// --------------------------------------------------
+// Import print style
+// --------------------------------------------------
 @import "print";
 
 // --------------------------------------------------
 // SUMARiS theme
 // --------------------------------------------------
+@import "mixins";
 
 .mat-tab-fixed-content {
   .mat-tab-body-content {

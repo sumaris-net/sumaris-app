@@ -1,7 +1,5 @@
-import {Component, ViewChild} from '@angular/core';
-import {AppSlidesComponent, IRevealOptions} from '@app/shared/report/slides/slides.component';
-import {ChartData} from 'chart.js';
-import {SingleOrMultiDataSet} from 'ng2-charts';
+import { Component, ViewChild } from '@angular/core';
+import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 
 @Component({
   selector: 'app-report-test-page',
@@ -10,6 +8,7 @@ import {SingleOrMultiDataSet} from 'ng2-charts';
 export class ReportTestPage {
 
   slidesOptions: Partial<IRevealOptions> = {};
+  shouldPrint = true;
 
   chart = {
     backgroundColor: "rgba(100,100,100,1)",
