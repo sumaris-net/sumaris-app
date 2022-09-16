@@ -1,9 +1,12 @@
 import { AfterViewInit, Component, ContentChildren, ElementRef, EventEmitter, HostListener, Inject, Input, OnDestroy, Output, QueryList, ViewChild } from '@angular/core';
-import { sleep, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
+import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
 import * as Reveal from 'reveal.js/dist/reveal';
 import { MarkdownComponent } from 'ngx-markdown';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
+import { OverlayEventDetail } from '@ionic/core';
+import { ToastController } from '@ionic/angular';
+import { TranslateService } from '@ngx-translate/core';
 
 
 export interface IRevealOptions {
@@ -38,7 +41,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
   private loadingSubject = new BehaviorSubject(true);
   private _subscription = new Subscription();
   private _printing = false;
-
+  private _printIframe: HTMLIFrameElement;
 
   get loading(): boolean {
     return this.loadingSubject.value;
@@ -53,7 +56,9 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
   @ContentChildren('[markdown]') markdownList: QueryList<MarkdownComponent>;
 
   constructor(
-    @Inject(DOCUMENT) private _document: Document) {
+    @Inject(DOCUMENT) private _document: Document,
+    private toastController: ToastController,
+    private translate: TranslateService) {
 
     if (this.isPrinting()) {
       this.configurePrintCss();
@@ -147,13 +152,32 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     console.debug('[slides] Print...');
 
     if (this.isPrinting()) {
-      await sleep(1000)
+      await sleep(1000);
       window.print();
     }
     else {
-      // Open a new URL
-      const href = this.getPrintPdfUrl();
-      window.open(href, '_blank');
+      // Remove previous iframe, if exists
+      this._printIframe?.remove();
+
+      // Create a iframe with '?print-pdf'
+      const printUrl = this.getPrintPdfUrl();
+
+      this.markAsLoading();
+      this.showToast({message: 'COMMON.PLEASE_WAIT'});
+      try {
+        this._printIframe = this.createHiddenIframe(printUrl);
+
+        // Remember to destroy the iframe, on destroy
+        this._subscription.add(() => {
+          this._printIframe?.remove();
+          this._printIframe = null;
+        });
+      } catch(err) {
+        console.error('[slides] Failed to create hidden iframe. Will opening a new window');
+      }
+      finally {
+        this.markAsLoaded();
+      }
     }
   }
 
@@ -167,6 +191,17 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
   protected markAsLoaded() {
     this.loadingSubject.next(false);
+  }
+
+  private createHiddenIframe(url: string): HTMLIFrameElement {
+    // Create a iframe with '?print-pdf'
+    const iframe = this._document.createElement('iframe');
+    iframe.classList.add('cdk-visually-hidden');
+    iframe.style.width='100%';
+    iframe.style.height='100%';
+    this._document.body.appendChild(iframe);
+    iframe.src = url;
+    return iframe;
   }
 
   private getPrintPdfUrl() {
@@ -193,5 +228,10 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     this._printing = true;
     const html = this._document.getElementsByTagName('html')[0];
     html.classList.add('print-pdf');
+  }
+
+  private async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+    if (!this.toastController) throw new Error('Missing toastController in component\'s constructor');
+    return await Toasts.show(this.toastController, this.translate, opts);
   }
 }
