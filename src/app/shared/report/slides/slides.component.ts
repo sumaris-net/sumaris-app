@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ContentChildren, ElementRef, EventEmitter, Ho
 import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
 import * as Reveal from 'reveal.js/dist/reveal';
 import { MarkdownComponent } from 'ngx-markdown';
-import { BehaviorSubject, Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription, timer } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
 import { OverlayEventDetail } from '@ionic/core';
 import { ToastController } from '@ionic/angular';
@@ -60,8 +60,8 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     private toastController: ToastController,
     private translate: TranslateService) {
 
-    if (this.isPrinting()) {
-      this.configurePrintCss();
+    if (this.isPrintingPdf()) {
+      this.configurePrintPdfCss();
       this.waitIdle().then(() => this.print());
     }
   }
@@ -73,7 +73,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
   @HostListener('window:beforeprint')
   onbeforeprint(event: Event) {
-    if (!this.isPrinting()) {
+    if (!this.isPrintingPdf()) {
       event?.preventDefault();
       this.print();
     }
@@ -81,7 +81,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
   @HostListener('window:afterprint')
   onafterprint(event: Event) {
-    if (this.isPrinting()) {
+    if (this.isPrintingPdf()) {
       window.close();
     }
   }
@@ -106,7 +106,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     console.debug(`[slides] Initialize Reveal.js ... {printing: ${this._printing}}`);
 
     // Move content to body
-    if (this.isPrinting()) {
+    if (this.isPrintingPdf()) {
       this._document.body.appendChild(this._revealDiv.nativeElement);
     }
 
@@ -149,29 +149,43 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
   }
 
   async print(event?: UIEvent) {
+    if (this.loading) return; // skip
+
     console.debug('[slides] Print...');
 
-    if (this.isPrinting()) {
-      await sleep(1000);
+    if (this.isPrintingPdf()) {
+      await this.waitIdle();
+      await sleep(1000); // Wait end of render
       window.print();
     }
     else {
-      // Remove previous iframe, if exists
-      this._printIframe?.remove();
 
       // Create a iframe with '?print-pdf'
       const printUrl = this.getPrintPdfUrl();
 
       this.markAsLoading();
-      this.showToast({message: 'COMMON.PLEASE_WAIT'});
-      try {
-        this._printIframe = this.createHiddenIframe(printUrl);
 
-        // Remember to destroy the iframe, on destroy
-        this._subscription.add(() => {
-          this._printIframe?.remove();
-          this._printIframe = null;
-        });
+      try {
+        // Already exists: use it
+        if (this._printIframe) {
+          this._printIframe.contentWindow.window.print();
+        }
+        else {
+          this.showToast({message: 'COMMON.PLEASE_WAIT'});
+          this._printIframe = this.createPrintHiddenIframe(printUrl);
+
+          // Remember to destroy the iframe, on destroy
+          const removeIframe = () => {
+            this._printIframe?.remove();
+            this._printIframe = null;
+          }
+          // destroy after 1min
+          setTimeout(removeIframe, 60000);
+
+          // destroy when destroy
+          this._subscription.add(removeIframe);
+        }
+
       } catch(err) {
         console.error('[slides] Failed to create hidden iframe. Will opening a new window');
       }
@@ -193,7 +207,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     this.loadingSubject.next(false);
   }
 
-  private createHiddenIframe(url: string): HTMLIFrameElement {
+  private createPrintHiddenIframe(url: string): HTMLIFrameElement {
     // Create a iframe with '?print-pdf'
     const iframe = this._document.createElement('iframe');
     iframe.classList.add('cdk-visually-hidden');
@@ -218,13 +232,13 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     return href + query + (window.location.hash || '');
   }
 
-  private isPrinting(): boolean {
+  private isPrintingPdf(): boolean {
     if (this._printing) return true;
     const query = window.location.search || '?';
     return query.indexOf('print-pdf') !== -1;
   }
 
-  private configurePrintCss() {
+  private configurePrintPdfCss() {
     this._printing = true;
     const html = this._document.getElementsByTagName('html')[0];
     html.classList.add('print-pdf');
