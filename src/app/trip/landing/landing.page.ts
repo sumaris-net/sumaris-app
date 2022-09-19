@@ -82,6 +82,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   showQualityForm = false;
   contextService: ContextService;
   showSamplesTable = false;
+  enableReport = false
 
   get form(): FormGroup {
     return this.landingForm.form;
@@ -206,6 +207,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
       this.showQualityForm = true;
     }
+  }
+
+  async openReport(event?: UIEvent) {
+    if (this.dirty) {
+      const data = await this.saveAndGetDataIfValid();
+      if (!data) return; // Cancel
+    }
+    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
   }
 
   /* -- protected methods  -- */
@@ -340,6 +349,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
     console.debug(`[landing] Program ${program.label} loaded, with properties: `, program.properties);
+
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE);
 
     // Customize the UI, using program options
     const requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);

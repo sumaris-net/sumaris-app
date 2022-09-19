@@ -1213,6 +1213,13 @@
         "STRATEGY_LABEL": "Ligne de plan"
       }
     },
+    "REPORT": {
+      "TITLE": "Débarquement",
+      "SAMPLING": {
+        "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}} (rapport)",
+        "TITLE_SHORT": "Rapport d'échantillonnage"
+      }
+    },
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
     },

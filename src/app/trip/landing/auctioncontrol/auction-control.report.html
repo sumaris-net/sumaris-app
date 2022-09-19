@@ -34,7 +34,6 @@
         - Navire : **{{data.vesselSnapshot.name}}**
         - Espèce : **{{stats.taxonGroup?.name || '?'}}**
       </section>
-
       <section markdown ngPreserveWhitespaces *ngIf="data.samples | isNotEmptyArray">
         ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}}
 

@@ -306,14 +306,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       });
   }
 
-  async openReport(event: UIEvent) {
-    if (this.dirty) {
-      const data = await this.saveAndGetDataIfValid();
-      if (!data) return; // Cancel
-    }
-    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
-  }
-
   /* -- protected method -- */
 
   protected async setValue(data: Landing): Promise<void> {

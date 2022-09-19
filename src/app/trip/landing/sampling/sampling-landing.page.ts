@@ -4,7 +4,17 @@ import { Subscription } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, SharedValidators } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  HistoryPageReference,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  SharedValidators
+} from '@sumaris-net/ngx-components';
 import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
 import { LandingPage } from '../landing.page';
 import { Landing } from '../../services/model/landing.model';
@@ -189,8 +199,8 @@ export class SamplingLandingPage extends LandingPage {
     data = Landing.fromObject(data);
 
     // Compute final TAG_ID, using the strategy label
-    const strategyLabel = data.measurementValues && data.measurementValues[PmfmIds.STRATEGY_LABEL];
-    if (strategyLabel) {
+    const strategyLabel = data.measurementValues?.[PmfmIds.STRATEGY_LABEL];
+    if (isNotNilOrBlank(strategyLabel)) {
       const sampleLabelPrefix = strategyLabel + '-';
       (data.samples || []).forEach(sample => {
         const tagId = sample.measurementValues[PmfmIds.TAG_ID];

@@ -170,7 +170,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     if (isNotEmptyArray(childGearPmfmIndexes)) {
 
       // DEBUG
-      console.debug('[catch-form] Waiting children physical gears...');
+      //console.debug('[catch-form] Waiting children physical gears...');
       let now = Date.now();
       const physicalGearId = await firstNotNilPromise(this._$physicalGearId, {stop: this.destroySubject});
 

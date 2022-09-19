@@ -30,7 +30,6 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
     LandingsTable,
     LandingForm,
     LandingPage,
-    SamplingLandingPage,
     SelectLandingsModal
   ],
   exports: [
@@ -38,7 +37,6 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
     LandingsTable,
     LandingForm,
     LandingPage,
-    SamplingLandingPage,
     SelectLandingsModal
   ]
 })
