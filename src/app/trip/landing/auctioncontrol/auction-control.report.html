@@ -35,7 +35,7 @@
         - Espèce : **{{stats.taxonGroup?.name || '?'}}**
       </section>
 
-      <section markdown ngPreserveWhitespaces *ngIf="data.samples | isNotEmptyArray">
+      <section markdown ngPreserveWhitespaces *ngFor="let samplesChunks of (data.samples | splitArrayInChunks: 9)">
         ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}}
 
         <table [style.--col-count]="pmfms.length + 1">
@@ -46,7 +46,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sample of data.samples; index as index">
+            <tr *ngFor="let sample of samplesChunks; index as index">
               <td>n°{{sample.label}}</td>
               <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true}"></td>
             </tr>
