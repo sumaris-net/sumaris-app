@@ -62,6 +62,7 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     suffix: ''
   }
 
+  @Input() showToolbar = true;
   @Input() showError = true;
 
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
