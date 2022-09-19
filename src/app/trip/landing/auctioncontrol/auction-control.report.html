@@ -37,8 +37,8 @@
         </section>
       </section>
       <section>
-        <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 1)">
-          ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}}
+        <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 9); index as index; count as count">
+          ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
 
           <table [style.--col-count]="pmfms.length + 1">
             <thead>
@@ -48,7 +48,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let sample of samples; index as index">
+              <tr *ngFor="let sample of samples; even as even" [class.even]="even">
                 <td>n°{{sample.label}}</td>
                 <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true}"></td>
               </tr>

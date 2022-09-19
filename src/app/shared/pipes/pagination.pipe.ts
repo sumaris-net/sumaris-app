@@ -5,11 +5,14 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class PaginationToStringPipe implements PipeTransform {
 
-  transform(pageIndex: number, pageCount?: number): string {
+  transform(pageIndex: number, pageCount?: number, parenthesis?: boolean): string {
+    if (pageCount === 1) return '';
+    const prefix = parenthesis && '(' || '';
+    const suffix = parenthesis && ')' || '';
     if (pageCount && pageCount > 1) {
-      return `${pageIndex + 1} / ${pageCount}`;
+      return `${prefix}${pageIndex + 1}/${pageCount}${suffix}`;
     }
-    return `${pageIndex + 1}`;
+    return `${prefix}${pageIndex + 1}${suffix}`;
   }
 
 }
