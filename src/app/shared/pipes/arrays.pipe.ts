@@ -13,7 +13,7 @@ export class SplitArrayInChunksPipe implements PipeTransform {
     let res = new Array(finalChunk);
     for (let i = 0; i < finalChunk; i++) {
       let begin = i * nbPeerRow;
-      let ending = i + 1 * nbPeerRow;
+      let ending = (i + 1) * nbPeerRow;
       res[i] = val.slice(begin, ending);
     }
     return res;
