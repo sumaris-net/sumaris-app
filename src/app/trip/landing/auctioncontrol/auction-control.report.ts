@@ -41,8 +41,8 @@ export class AuctionControlReport implements OnInit, AfterViewInit {
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad = true;
   private readonly _autoLoadDelay = 0;
-  protected readonly _$ready = new BehaviorSubject<boolean>(false);
-  protected readonly _$loading = new BehaviorSubject(true);
+  protected readonly _readySubject = new BehaviorSubject<boolean>(false);
+  protected readonly _loadingSubject = new BehaviorSubject(true);
 
   $title = new Subject();
   error: string;
@@ -62,10 +62,10 @@ export class AuctionControlReport implements OnInit, AfterViewInit {
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
 
   get loading(): boolean {
-    return this._$loading.value;
+    return this._loadingSubject.value;
   }
   get loaded(): boolean {
-    return !this._$loading.value;
+    return !this._loadingSubject.value;
   }
 
   constructor(
@@ -159,7 +159,7 @@ export class AuctionControlReport implements OnInit, AfterViewInit {
     }).toPromise();
     this.$title.next(title);
 
-    this._$loading.next(false);
+    this._loadingSubject.next(false);
     this.cd.detectChanges();
 
     await this.slides.initialize();
@@ -167,8 +167,8 @@ export class AuctionControlReport implements OnInit, AfterViewInit {
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
-    if (this._$ready.value) return;
-    await waitForTrue(this._$ready, opts);
+    if (this._readySubject.value) return;
+    await waitForTrue(this._readySubject, opts);
   }
 
   setError(err: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
@@ -219,16 +219,16 @@ export class AuctionControlReport implements OnInit, AfterViewInit {
   }
 
   protected markAsReady() {
-    this._$ready.next(true);
+    this._readySubject.next(true);
   }
 
   protected markAsLoaded(opts = {emitEvent: true}) {
-    this._$loading.next(false);
+    this._loadingSubject.next(false);
     if (opts.emitEvent !== false) this.markForCheck();
   }
 
   protected markAsLoading(opts = {emitEvent: true}) {
-    this._$loading.next(true);
+    this._loadingSubject.next(true);
     if (opts.emitEvent !== false) this.markForCheck();
   }
 

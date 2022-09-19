@@ -10,6 +10,7 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
 import { AuctionControlReport } from '@app/trip/landing/auctioncontrol/auction-control.report';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
+import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 
 
 @NgModule({
@@ -25,11 +26,11 @@ import { AppSharedReportModule } from '@app/shared/report/report.module';
     AppMeasurementModule,
     AppSampleModule,
     AppLandingModule,
-
   ],
   declarations: [
     AuctionControlPage,
-    AuctionControlReport
+    AuctionControlReport,
+    SplitArrayInChunksPipe, // TODO : This should be declared in more common module
   ],
   exports: [
     // Components
