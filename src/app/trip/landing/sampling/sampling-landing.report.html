@@ -29,8 +29,8 @@
       </section>
     </section>
     <section *ngIf="loaded; else loadingTemplate">
-      <section markdown ngPreserveWhitespaces *ngIf="data.samples | isNotEmptyArray">
-        ### {{'LANDING.EDIT.SAMPLING.TAB_SAMPLES'|translate}}
+      <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 9); index as index; count as count">
+        ### {{'LANDING.REPORT.SAMPLING.SAMPLES_TITLE'|translate}} {{index|paginationToString:count}}
 
         <table [style.--col-count]="pmfms.length + 1">
           <thead>
@@ -39,7 +39,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let sample of data.samples; even as even" [class.even]="even">
+            <tr *ngFor="let sample of samples; even as even" [class.even]="even">
               <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true, propertyNames: ['label']}"></td>
             </tr>
           </tbody>

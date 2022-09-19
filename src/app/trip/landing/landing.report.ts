@@ -5,7 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import {
   AppErrorWithDetails,
   DateFormatPipe,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, IEntity,
   isInt,
   isNil,
   isNilOrBlank,
@@ -156,7 +156,7 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
       taxonGroupId: this.stats.taxonGroup?.id
     });
 
-    const title = await this.computeTitle(this.data);
+    const title = await this.computeTitle(this.data, this.parent);
     this.$title.next(title);
 
     this.markAsLoaded();
@@ -200,7 +200,7 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
   /* -- protected function -- */
 
-  protected abstract computeTitle(data: T): Promise<string>;
+  protected abstract computeTitle(data: T, parent?: ObservedLocation): Promise<string>;
 
 
 

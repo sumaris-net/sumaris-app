@@ -25,36 +25,39 @@
 
   <app-slides #slides *ngIf="!error"
               [options]="slidesOptions">
-    <section *ngIf="loaded; else loadingTemplate">
-      <section markdown ngPreserveWhitespaces>
-        ## Rapport de contrôle
-        - Criée : {{data.location?.name}}
-        - Date/Heure : {{data.dateTime|dateFormat: {time: true} }}
-        - Contrôleur : {{parent.observers|personToString}}
-        - Navire : **{{data.vesselSnapshot.name}}**
-        - Espèce : **{{stats.taxonGroup?.name || '?'}}**
+    <ng-container *ngIf="loaded; else loadingTemplate">
+      <section>
+        <section markdown ngPreserveWhitespaces>
+          ## Rapport de contrôle
+          - Criée : {{data.location?.name}}
+          - Date/Heure : {{data.dateTime|dateFormat: {time: true} }}
+          - Contrôleur : {{parent.observers|personToString}}
+          - Navire : **{{data.vesselSnapshot.name}}**
+          - Espèce : **{{stats.taxonGroup?.name || '?'}}**
+        </section>
       </section>
+      <section>
+        <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 1)">
+          ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}}
 
-      <section markdown ngPreserveWhitespaces *ngFor="let samplesChunks of (data.samples | splitArrayInChunks: 9)">
-        ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}}
+          <table [style.--col-count]="pmfms.length + 1">
+            <thead>
+              <tr>
+                <th>{{'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nContext.suffix}}</th>
+                <th *ngFor="let pmfm of pmfms" [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true }"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let sample of samples; index as index">
+                <td>n°{{sample.label}}</td>
+                <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true}"></td>
+              </tr>
+            </tbody>
+          </table>
 
-        <table [style.--col-count]="pmfms.length + 1">
-          <thead>
-            <tr>
-              <th>{{'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nContext.suffix}}</th>
-              <th *ngFor="let pmfm of pmfms" [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true }"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let sample of samplesChunks; index as index">
-              <td>n°{{sample.label}}</td>
-              <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true}"></td>
-            </tr>
-          </tbody>
-        </table>
-
+        </section>
       </section>
-    </section>
+    </ng-container>
   </app-slides>
 
   <ng-template #loadingTemplate>

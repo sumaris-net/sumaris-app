@@ -29,8 +29,7 @@ import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
   ],
   declarations: [
     AuctionControlPage,
-    AuctionControlReport,
-    SplitArrayInChunksPipe, // TODO : This should be declared in more common module
+    AuctionControlReport
   ],
   exports: [
     // Components

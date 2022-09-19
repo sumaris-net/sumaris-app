@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { LandingReport } from '@app/trip/landing/landing.report';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 
 export class AppDataReportOptions {
   pathIdAttribute?: string;
@@ -45,7 +46,7 @@ export class SamplingLandingReport extends LandingReport {
     return super.onDataLoaded(data);
   }
 
-  protected async computeTitle(data: Landing): Promise<string> {
+  protected async computeTitle(data: Landing, parent?: ObservedLocation): Promise<string> {
     const titlePrefix = await this.translate.get('LANDING.TITLE_PREFIX', {
       location: data.location?.name || '',
       date: this.dateFormatPipe.transform(data.dateTime, {time: false})
@@ -57,6 +58,9 @@ export class SamplingLandingReport extends LandingReport {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
       strategyLabel: strategyLabel
     }).toPromise();
+
+    this.defaultBackHref = `/observations/${parent.id}/sampling/${data.id}?tab=1`;
+
     return titlePrefix + title;
   }
 

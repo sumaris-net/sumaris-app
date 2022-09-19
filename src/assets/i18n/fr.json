@@ -1217,7 +1217,8 @@
       "TITLE": "Débarquement",
       "SAMPLING": {
         "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}} (rapport)",
-        "TITLE_SHORT": "Rapport d'échantillonnage"
+        "TITLE_SHORT": "Rapport d'échantillonnage",
+        "SAMPLES_TITLE": "Mesures individuelles"
       }
     },
     "SELECT_MODAL": {

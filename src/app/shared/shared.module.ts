@@ -5,6 +5,8 @@ import { Environment, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
 import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
+import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
+import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
 
 @NgModule({
   imports: [
@@ -13,7 +15,9 @@ import { DelayPipe } from '@app/shared/pipes/delay.pipe';
   declarations: [
     // Pipes
     DisplayWithPipe,
-    DelayPipe
+    DelayPipe,
+    SplitArrayInChunksPipe,
+    PaginationToStringPipe
   ],
   exports: [
     SharedModule,
@@ -22,7 +26,9 @@ import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 
     // Pipes
     DisplayWithPipe,
-    DelayPipe
+    DelayPipe,
+    SplitArrayInChunksPipe,
+    PaginationToStringPipe
   ]
 })
 export class AppSharedModule {
