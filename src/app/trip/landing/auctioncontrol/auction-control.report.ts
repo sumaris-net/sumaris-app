@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { LandingReport } from '@app/trip/landing/landing.report';
+import { sleep } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-auction-control-report',

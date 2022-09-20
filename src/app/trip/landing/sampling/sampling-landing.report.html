@@ -32,7 +32,7 @@
       <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 9); index as index; count as count">
         ### {{'LANDING.REPORT.SAMPLING.SAMPLES_TITLE'|translate}} {{index|paginationToString:count}}
 
-        <table [style.--col-count]="pmfms.length + 1">
+        <table [style.--col-count]="pmfms.length">
           <thead>
             <tr>
               <th *ngFor="let pmfm of pmfms" [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true }"></th>
