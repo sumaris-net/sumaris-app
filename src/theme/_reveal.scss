@@ -65,7 +65,7 @@
 
 
 .reveal b, .reveal strong {
-  color: var(--r-link-color)
+  color: var(--r-link-color);
 }
 .reveal canvas[data-chart].theme-black {
   background-color: rgba(0,0,0,0.5);
@@ -98,6 +98,16 @@
     max-width: calc(var(--r-table-max-width) / var(--r-table-col-count));
   }
 
+  th {
+    b, strong {
+      color: black !important;
+    }
+    .pmfm-details {
+      color: rgba(0,0,0,0.7) !important;
+      font-weight: normal;
+      font-size: smaller;
+    }
+  }
   tr.even {
     background-color: whitesmoke;
   }
