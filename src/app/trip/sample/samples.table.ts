@@ -103,6 +103,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() showToolbar: boolean;
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
+  @Input() requiredLabel = true;
   @Input() showLabelColumn = false;
   @Input() showPmfmDetails = false;
   @Input() showFabButton = false;
@@ -322,10 +323,11 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       disabled: this.disabled,
       i18nSuffix: this.i18nColumnSuffix,
       usageMode: this.usageMode,
-      showLabel: this.showLabelColumn,
       mobile: this.mobile,
       availableTaxonGroups: this.availableTaxonGroups,
       defaultSampleDate: this.defaultSampleDate,
+      requiredLabel: this.requiredLabel,
+      showLabel: this.showLabelColumn,
       showSampleDate: !this.defaultSampleDate ? true : this.showSampleDateColumn, // Show sampleDate, if no default date
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
@@ -609,7 +611,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     await super.onNewEntity(data);
 
     // generate label
-    if (!this.showLabelColumn) {
+    if (!this.showLabelColumn && this.requiredLabel) {
       data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
     }
 

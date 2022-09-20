@@ -29,6 +29,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   @Input() tabindex: number;
   @Input() usageMode: UsageMode;
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
+  @Input() requiredLabel = true;
   @Input() showLabel = true;
   @Input() showSampleDate = true;
   @Input() showTaxonGroup = true;

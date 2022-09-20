@@ -24,7 +24,7 @@
                  [tabindex]="tabindex"
                  [placeholder]="'TRIP.SAMPLE.EDIT.LABEL_PLACEHOLDER'|translateContext: i18nSuffix"
                  (click)="selectInputContent($event)"
-                 [required]="showLabel">
+                 [required]="requiredLabel">
           <mat-error *ngIf="form.controls.label.hasError('required')" translate>ERROR.FIELD_REQUIRED
           </mat-error>
           <!-- Need by auction control (label as an additional validator) -->

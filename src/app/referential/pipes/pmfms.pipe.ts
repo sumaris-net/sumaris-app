@@ -43,11 +43,11 @@ export class PmfmNamePipe implements PipeTransform {
   }): string {
     if (!pmfm) return '';
     // Try to resolve PMFM using prefix + label
-    if (opts && isNotNilOrBlank(opts.i18nPrefix)) {
+    if (isNotNilOrBlank(opts?.i18nPrefix)) {
       const i18nKey = opts.i18nPrefix + pmfm.label;
 
       // I18n translation WITH context, if any
-      if (opts && opts.i18nContext) {
+      if (opts.i18nContext) {
         const contextualTranslation = this.translateContext.instant(i18nKey, opts.i18nContext);
         if (contextualTranslation !== i18nKey) return contextualTranslation;
       }

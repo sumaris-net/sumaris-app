@@ -24,26 +24,27 @@
         <section markdown ngPreserveWhitespaces>
           ## {{'AUCTION_CONTROL.REPORT.TITLE_SHORT'|translate}}
           - {{'AUCTION_CONTROL.REPORT.AUCTION'|translate}} {{data.location?.name}}
-          - {{'AUCTION_CONTROL.REPORT.DATA_TIME'|translate}} {{data.dateTime|dateFormat: {time: true} }}
-          - {{'AUCTION_CONTROL.REPORT.CONTROLLER'|translate}} {{parent.observers|personToString}}
-          - {{'AUCTION_CONTROL.REPORT.VESSEL'|translate}} **{{data.vesselSnapshot.name}}**
-          - {{'AUCTION_CONTROL.REPORT.SPECIES'|translate}} **{{stats.taxonGroup?.name || '?'}}**
+          - {{'LANDING.REPORT.DATE_TIME'|translate}} {{data.dateTime|dateFormat: {time: true} }}
+          - {{'LANDING.REPORT.RECORDER_PERSON'|translate}} {{parent.observers|personToString}}
+          - {{'LANDING.REPORT.VESSEL'|translate}} **{{data.vesselSnapshot.name}}**
+          - {{'AUCTION_CONTROL.REPORT.CONTROLLED_SPECIES'|translate}} **{{stats.taxonGroup?.name || '?'}}**
         </section>
       </section>
-      <section>
-        <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 12); index as index; count as count">
+      <section *ngIf="data.samples|isArrayLength:{greaterThan: 0}">
+        <section markdown ngPreserveWhitespaces
+                 *ngFor="let samples of (data.samples | splitArrayInChunks: 12); index as index; count as count">
           ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
 
           <table [style.--col-count]="pmfms.length + 1">
             <thead>
               <tr>
                 <th>{{'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nContext.suffix}}</th>
-                <th *ngFor="let pmfm of pmfms" [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix }"></th>
+                <th *ngFor="let pmfm of pmfms" [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true }"></th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let sample of samples; even as even" [class.even]="even">
-                <td>n°{{sample.label}}</td>
+                <td>{{sample.label}}</td>
                 <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true}"></td>
               </tr>
             </tbody>

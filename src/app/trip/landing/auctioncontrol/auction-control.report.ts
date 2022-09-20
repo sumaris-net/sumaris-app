@@ -3,6 +3,8 @@ import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { LandingReport } from '@app/trip/landing/landing.report';
 import { sleep } from '@sumaris-net/ngx-components';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 @Component({
   selector: 'app-auction-control-report',
@@ -17,18 +19,33 @@ export class AuctionControlReport extends LandingReport {
     private injector: Injector
   ) {
     super(injector, {
-      pathIdAttribute: 'observedLocationId',
-      pathParentIdAttribute: 'controlId'
+      pathParentIdAttribute: 'observedLocationId',
+      pathIdAttribute: 'controlId'
     });
+    this.i18nContext.suffix = 'AUCTION_CONTROL.';
   }
 
   /* -- protected function -- */
+
+  protected async onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<Landing> {
+    data = await super.onDataLoaded(data, pmfms);
+
+    // Remove invalid sample label
+    (data.samples || []).forEach(sample => {
+      if (sample.label?.startsWith('#')) sample.label = null;
+    });
+
+    return data;
+  }
 
   protected async computeTitle(data: Landing, parent?: ObservedLocation): Promise<string> {
     const title = await this.translate.get('AUCTION_CONTROL.REPORT.TITLE', {
       vessel: data.vesselSnapshot.name,
       date: this.dateFormatPipe.transform(data.dateTime),
     }).toPromise();
+
+    this.defaultBackHref = `/observations/${parent.id}/control/${data.id}?tab=1`;
+
     return title;
   }
 

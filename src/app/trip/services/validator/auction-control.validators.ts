@@ -19,8 +19,11 @@ export class AuctionControlValidators {
     // DEBUG
     //console.debug('AuctionControlValidators.addSampleValidators()', form);
 
-    // Label: remove 'required', and add integer
+    // Label:
+    // - remove 'required'
+    // - add pattern
     form.get('label').setValidators(Validators.pattern(/^[0-9]*$/));
+    form.get('label').updateValueAndValidity({onlySelf: true, emitEvent: false});
 
     // Disable computed pmfms
     AppFormUtils.disableControls(form,

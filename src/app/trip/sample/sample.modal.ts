@@ -37,6 +37,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   // UI Fields show/hide
   mobile: boolean;
   showLabel: boolean;
+  requiredLabel?: boolean;
   showSampleDate: boolean;
   showTaxonGroup: boolean;
   showTaxonName: boolean;
@@ -79,6 +80,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   // UI options
   @Input() i18nSuffix: string;
+  @Input() requiredLabel = true;
   @Input() showLabel = true;
   @Input() showSampleDate = true;
   @Input() showTaxonGroup = true;

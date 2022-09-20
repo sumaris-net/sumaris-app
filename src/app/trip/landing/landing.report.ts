@@ -20,10 +20,12 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export class LandingReportOptions {
   pathIdAttribute?: string;
@@ -55,6 +57,7 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   data: T;
   parent: ObservedLocation;
   stats: any = {};
+  weightDisplayedUnit: WeightUnitSymbol;
   pmfms: IPmfm[];
   i18nPmfmPrefix: string;
   i18nContext = {
@@ -145,17 +148,26 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
       throw new Error('ERROR.LOAD_ENTITY_ERROR');
     }
 
-    this.data = await this.onDataLoaded(data as T);
-    this.parent = parent;
+    const program = await this.programRefService.loadByLabel(parent.program.label);
+    this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
 
     // Compute agg data
-    this.stats.taxonGroup = (this.data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup || {};
-    this.stats.sampleCount = this.data.samples?.length || 0;
+    this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup || {};
 
-    this.pmfms = await this.programRefService.loadProgramPmfms(parent.program.label, {
+    let pmfms = await this.programRefService.loadProgramPmfms(parent.program.label, {
       acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
       taxonGroupId: this.stats.taxonGroup?.id
     });
+
+    // Apply weight conversion, if need
+    if (this.weightDisplayedUnit) {
+      pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit);
+    }
+    this.pmfms = pmfms;
+    this.parent = parent;
+
+    this.data = await this.onDataLoaded(data as T, pmfms);
+    this.stats.sampleCount = data.samples?.length || 0;
 
     const title = await this.computeTitle(this.data, this.parent);
     this.$title.next(title);
@@ -164,7 +176,6 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     this.cd.detectChanges();
 
     await this.slides.initialize();
-
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
@@ -205,7 +216,12 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
 
 
-  protected onDataLoaded(data: Landing): Promise<T> {
+  protected onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<T> {
+    // Adapt to form, e.g. to convert weight unit
+    (data.samples || []).forEach(sample => {
+      sample.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(sample.measurementValues, pmfms);
+    })
+
     return Promise.resolve(data as T);
   }
 

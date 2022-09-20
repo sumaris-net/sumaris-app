@@ -3,6 +3,7 @@ import { Landing } from '@app/trip/services/model/landing.model';
 import { LandingReport } from '@app/trip/landing/landing.report';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
 
 export class AppDataReportOptions {
   pathIdAttribute?: string;
@@ -26,11 +27,14 @@ export class SamplingLandingReport extends LandingReport {
       pathParentIdAttribute: 'observedLocationId',
       pathIdAttribute: 'samplingId'
     });
+    this.i18nContext.suffix = 'SAMPLING.';
   }
 
   /* -- protected function -- */
 
-  protected async onDataLoaded(data: Landing): Promise<Landing> {
+  protected async onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<Landing> {
+
+    data = await super.onDataLoaded(data, pmfms);
 
     this.strategyLabel = data.measurementValues[PmfmIds.STRATEGY_LABEL];
 
@@ -41,9 +45,9 @@ export class SamplingLandingReport extends LandingReport {
       if (tagId && tagId.startsWith(samplePrefix)) {
         sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
       }
-    })
+    });
 
-    return super.onDataLoaded(data);
+    return data;
   }
 
   protected async computeTitle(data: Landing, parent?: ObservedLocation): Promise<string> {
