@@ -39,7 +39,8 @@
             <thead>
               <tr>
                 <th>{{'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nContext.suffix}}</th>
-                <th *ngFor="let pmfm of pmfms" [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true }"></th>
+                <th *ngFor="let pmfm of pmfms"
+                    [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true }"></th>
               </tr>
             </thead>
             <tbody>

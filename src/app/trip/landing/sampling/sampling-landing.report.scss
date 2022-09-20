@@ -1,5 +1,8 @@
 app-slides {
   table {
-    --r-table-cell-font-size: 0.55em;
+    --r-table-cell-font-size: 0.4em;
+    th {
+      --r-link-color: black;
+    }
   }
 }
