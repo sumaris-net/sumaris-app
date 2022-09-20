@@ -42,7 +42,7 @@
           </thead>
           <tbody>
             <tr *ngFor="let sample of samples; even as even" [class.even]="even">
-              <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true, propertyNames: ['label']}"></td>
+              <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true, propertyNames: ['name']}"></td>
             </tr>
           </tbody>
         </table>
