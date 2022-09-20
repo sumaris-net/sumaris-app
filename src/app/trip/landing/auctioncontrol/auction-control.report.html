@@ -31,7 +31,7 @@
         </section>
       </section>
       <section>
-        <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 9); index as index; count as count">
+        <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 12); index as index; count as count">
           ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
 
           <table [style.--col-count]="pmfms.length + 1">
