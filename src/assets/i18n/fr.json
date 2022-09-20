@@ -1296,7 +1296,13 @@
       }
     },
     "REPORT": {
-      "TITLE": "Rapport de contrôle - {{vessel}} - {{date}}"
+      "TITLE": "Rapport de contrôle - {{vessel}} - {{date}}",
+      "TITLE_SHORT": "Rapport de contrôle",
+      "AUCTION": "Criée :",
+      "DATE_TIME": "Date/Heure :",
+      "CONTROLLER": "Contrôleur :",
+      "VESSEL": "Navire",
+      "SPECIES": "Species"
     }
   },
   "EXPENSE": {

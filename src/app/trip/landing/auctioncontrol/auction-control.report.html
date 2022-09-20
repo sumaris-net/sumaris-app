@@ -22,16 +22,16 @@
     <ng-container *ngIf="loaded; else loadingTemplate">
       <section>
         <section markdown ngPreserveWhitespaces>
-          ## Rapport de contrôle
-          - Criée : {{data.location?.name}}
-          - Date/Heure : {{data.dateTime|dateFormat: {time: true} }}
-          - Contrôleur : {{parent.observers|personToString}}
-          - Navire : **{{data.vesselSnapshot.name}}**
-          - Espèce : **{{stats.taxonGroup?.name || '?'}}**
+          ## {{'AUCTION_CONTROL.REPORT.TITLE_SHORT'|translate}}
+          - {{'AUCTION_CONTROL.REPORT.AUCTION'|translate}} {{data.location?.name}}
+          - {{'AUCTION_CONTROL.REPORT.DATA_TIME'|translate}} {{data.dateTime|dateFormat: {time: true} }}
+          - {{'AUCTION_CONTROL.REPORT.CONTROLLER'|translate}} {{parent.observers|personToString}}
+          - {{'AUCTION_CONTROL.REPORT.VESSEL'|translate}} **{{data.vesselSnapshot.name}}**
+          - {{'AUCTION_CONTROL.REPORT.SPECIES'|translate}} **{{stats.taxonGroup?.name || '?'}}**
         </section>
       </section>
       <section>
-        <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 9); index as index; count as count">
+        <section markdown ngPreserveWhitespaces *ngFor="let samples of (data.samples | splitArrayInChunks: 12); index as index; count as count">
           ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
 
           <table [style.--col-count]="pmfms.length + 1">
