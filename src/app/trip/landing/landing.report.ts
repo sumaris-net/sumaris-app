@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
@@ -33,6 +33,8 @@ export class LandingReportOptions {
   pathParentIdAttribute?: string;
 }
 
+@Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class LandingReport<T extends Landing = Landing> implements AfterViewInit {
 
   private readonly route: ActivatedRoute;
