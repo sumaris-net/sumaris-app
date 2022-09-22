@@ -386,6 +386,9 @@ export class ObservedLocationService
       const entities = (!opts || opts.toEntity !== false)
         ? ObservedLocation.fromObject(data)
         : (data as ObservedLocation);
+      if (id > 0 && entities && opts && opts.withLanding) {
+        entities.landings = (await this.landingService.loadAllByObservedLocation({observedLocationId: id})).data;
+      }
 
       if (entities && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, entities);
 
