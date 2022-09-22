@@ -2,9 +2,8 @@ import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { LandingReport } from '@app/trip/landing/landing.report';
-import { sleep } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { environment } from '@environments/environment';
 
 @Component({
   selector: 'app-auction-control-report',
@@ -49,4 +48,16 @@ export class AuctionControlReport extends LandingReport {
     return title;
   }
 
+
+  protected addFakeSamplesForDev(data: Landing) {
+    if (environment.production) return; // Skip
+
+    super.addFakeSamplesForDev(data);
+
+    data.samples = data.samples.map((s, i) => {
+      const ss = s.clone();
+      ss.label = ''+i;
+      return ss;
+    })
+  }
 }

@@ -30,7 +30,7 @@
     </section>
     <section *ngIf="loaded; else loadingTemplate">
       <section markdown ngPreserveWhitespaces
-               *ngFor="let samples of (data.samples | splitArrayInChunks: 9); index as index; count as count">
+               *ngFor="let samples of (data.samples | splitArrayInChunks: slides.printing ? -1 : 25); index as index; count as count">
         ### {{'LANDING.REPORT.SAMPLING.SAMPLES_TITLE'|translate}} {{index|paginationToString:count}}
 
         <table [style.--col-count]="pmfms.length">

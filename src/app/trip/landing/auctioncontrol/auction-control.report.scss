@@ -1,5 +1,9 @@
-app-slides {
-  table {
+@media print {
+  section table {
     --r-table-cell-font-size: 0.4em;
   }
+}
+
+section table {
+  --r-table-cell-font-size: 0.4em;
 }

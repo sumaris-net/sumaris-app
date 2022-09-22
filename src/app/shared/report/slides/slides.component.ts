@@ -47,6 +47,10 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     return this.loadingSubject.value;
   }
 
+  get printing(): boolean {
+    return this._printing;
+  }
+
   @Input() options: Partial<IRevealOptions>;
 
   @Output('ready') onReady = new EventEmitter()

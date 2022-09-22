@@ -26,6 +26,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { environment } from '@environments/environment';
 
 export class LandingReportOptions {
   pathIdAttribute?: string;
@@ -67,6 +68,7 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
   @Input() showToolbar = true;
   @Input() showError = true;
+  @Input() debug = !environment.production;
 
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
 
@@ -222,6 +224,9 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
       sample.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(sample.measurementValues, pmfms);
     })
 
+    // FOR DEV ONLY
+    if (this.debug && !environment.production && data.samples.length < 25) this.addFakeSamplesForDev(data);
+
     return Promise.resolve(data as T);
   }
 
@@ -264,5 +269,28 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     this.cd.markForCheck();
   }
 
-
+  protected addFakeSamplesForDev(data: Landing) {
+    if (environment.production) return; // Skip
+    data.samples = [
+      ...data.samples,
+      ...data.samples,
+      ...data.samples,
+      ...data.samples,
+      ...data.samples
+    ];
+    data.samples = [
+      ...data.samples,
+      ...data.samples,
+      ...data.samples,
+      ...data.samples,
+      ...data.samples
+    ];
+    data.samples = [
+      ...data.samples,
+      ...data.samples,
+      ...data.samples,
+      ...data.samples,
+      ...data.samples
+    ];
+  }
 }

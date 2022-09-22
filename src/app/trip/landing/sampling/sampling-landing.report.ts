@@ -4,10 +4,8 @@ import { LandingReport } from '@app/trip/landing/landing.report';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { environment } from '@environments/environment';
 
-export class AppDataReportOptions {
-  pathIdAttribute?: string;
-}
 
 @Component({
   selector: 'app-sampling-landing-report',
@@ -68,5 +66,17 @@ export class SamplingLandingReport extends LandingReport {
     return titlePrefix + title;
   }
 
+  protected addFakeSamplesForDev(data: Landing) {
+    if (environment.production) return; // Skip
+
+    super.addFakeSamplesForDev(data);
+
+    data.samples = data.samples.map((s, i) => {
+      const ss = s.clone();
+      ss.label =
+        ss.measurementValues[PmfmIds.TAG_ID] = ''+i;
+      return ss;
+    })
+  }
 
 }
