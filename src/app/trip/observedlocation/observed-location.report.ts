@@ -33,10 +33,9 @@ export class ObservedLocationReport implements AfterViewInit {
   $title = new Subject();
 
   @Input() showToolbar = true;
+  @Input() showError = true;
 
-  constructor(
-    injector: Injector,
-  ) {
+  constructor(injector: Injector) {
     this.route = injector.get(ActivatedRoute);
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);

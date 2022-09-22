@@ -3,4 +3,10 @@
 </app-toolbar>
 
 <ion-content>
+
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
 </ion-content>
