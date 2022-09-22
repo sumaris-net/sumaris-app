@@ -1134,6 +1134,9 @@
     "CONFIRM": {
       "OBSERVATION_HAS_SAMPLE": "Selected observation has sampling.<br/><br/><b>Are you sure</b> you want to delete it?",
       "OBSERVATIONS_HAS_SAMPLE": "Selected observations have sampling.<br/><br/><b>Are you sure</b> you want to delete them?"
+    },
+    "REPORT": {
+      "TITLE": "Summary of the monitoring of controls under auctions"
     }
   },
   "LANDING": {

@@ -1,1 +1,6 @@
-<p>observed-location works!</p>
+<app-toolbar  *ngIf="showToolbar" [defaultBackHref]="defaultBackHref" canGoBack="true">
+  <ion-title [innerHTML]="$title|async"></ion-title>
+</app-toolbar>
+
+<ion-content>
+</ion-content>

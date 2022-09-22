@@ -1,8 +1,8 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Injector } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { AppErrorWithDetails, EntityServiceLoadOptions, isNil, isNilOrBlank, isNotNilOrBlank, PlatformService } from '@sumaris-net/ngx-components';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { LandingService } from '../services/landing.service';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { ObservedLocationService } from '../services/observed-location.service';
@@ -27,7 +27,12 @@ export class ObservedLocationReport implements AfterViewInit {
   private readonly _autoLoad = true;
   private readonly _autoLoadDelay = 0;
 
+  defaultBackHref: string = null;
   error: string;
+
+  $title = new Subject();
+
+  @Input() showToolbar = true;
 
   constructor(
     injector: Injector,
@@ -97,6 +102,12 @@ export class ObservedLocationReport implements AfterViewInit {
     if (!data) {
       throw new Error('ERROR.LOAD_ENTITY_ERROR');
     }
+
+    await this.computeTitle();
+    this.computeDefaultBackHref(data);
+
+    this.markAsLoaded();
+    this.cd.detectChanges();
   }
 
   protected loadFromRoute(): Promise<void> {
@@ -121,6 +132,15 @@ export class ObservedLocationReport implements AfterViewInit {
       this._loadingSubject.next(true);
       if (opts.emitEvent !== false) this.markForCheck();
     }
+  }
+
+  protected async computeTitle() {
+    const title = await this.translate.get('OBSERVED_LOCATION.REPORT.TITLE').toPromise();
+    this.$title.next(title)
+  }
+
+  protected computeDefaultBackHref(data: ObservedLocation) {
+    this.defaultBackHref = `/observations/${data.id}?tab=1`;
   }
 
 }

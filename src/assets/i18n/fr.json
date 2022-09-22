@@ -1155,6 +1155,9 @@
     "CONFIRM": {
       "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
       "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
+    },
+    "REPORT": {
+      "TITLE": "Synthèse du suivi des contrôles sous criées"
     }
   },
   "LANDING": {
