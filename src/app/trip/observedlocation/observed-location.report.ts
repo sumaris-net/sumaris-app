@@ -1,16 +1,17 @@
-import { AfterViewInit, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, EntityServiceLoadOptions, isNil, isNilOrBlank, isNotNilOrBlank, PlatformService } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { LandingService } from '../services/landing.service';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { ObservedLocationService } from '../services/observed-location.service';
 
 @Component({
   selector: 'app-observed-location',
   templateUrl: './observed-location.report.html',
-  styleUrls: ['./observed-location.report.scss']
+  styleUrls: ['./observed-location.report.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservedLocationReport implements AfterViewInit {
 
@@ -19,6 +20,7 @@ export class ObservedLocationReport implements AfterViewInit {
   private readonly cd: ChangeDetectorRef;
   private readonly translate: TranslateService;
   private readonly observedLocationService: ObservedLocationService;
+  private readonly settings: LocalSettingsService;
 
   protected readonly _readySubject = new BehaviorSubject<boolean>(false);
   protected readonly _loadingSubject = new BehaviorSubject<boolean>(true);
@@ -29,21 +31,30 @@ export class ObservedLocationReport implements AfterViewInit {
 
   defaultBackHref: string = null;
   error: string;
+  slidesOptions: Partial<IRevealOptions>;
 
   $title = new Subject();
 
   @Input() showToolbar = true;
   @Input() showError = true;
 
+  @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+
+  get loading(): boolean {return this._loadingSubject.value;}
+  get loaded(): boolean {return !this._loadingSubject.value;}
+
   constructor(injector: Injector) {
     this.route = injector.get(ActivatedRoute);
-    this.platform = injector.get(PlatformService);
-    this.translate = injector.get(TranslateService);
     this.cd = injector.get(ChangeDetectorRef);
 
+    this.platform = injector.get(PlatformService);
+    this.translate = injector.get(TranslateService);
     this.observedLocationService = injector.get(ObservedLocationService);
+    this.settings = injector.get(LocalSettingsService);
 
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam;
+
+    this.computeSlidesOptions(this.settings);
 
     if (!this.route || isNilOrBlank(this._pathIdAttribute)) {
       throw new Error('Unable to load from route: missing \'route\'.');
@@ -107,6 +118,8 @@ export class ObservedLocationReport implements AfterViewInit {
 
     this.markAsLoaded();
     this.cd.detectChanges();
+
+    await this.slides.initialize();
   }
 
   protected loadFromRoute(): Promise<void> {
@@ -127,8 +140,8 @@ export class ObservedLocationReport implements AfterViewInit {
   }
 
   protected markAsLoaded(opts = {emitEvent: true}) {
-    if(!this._loadingSubject.value) {
-      this._loadingSubject.next(true);
+    if(this._loadingSubject.value) {
+      this._loadingSubject.next(false);
       if (opts.emitEvent !== false) this.markForCheck();
     }
   }
@@ -140,6 +153,15 @@ export class ObservedLocationReport implements AfterViewInit {
 
   protected computeDefaultBackHref(data: ObservedLocation) {
     this.defaultBackHref = `/observations/${data.id}?tab=1`;
+  }
+
+  protected computeSlidesOptions(settings: LocalSettingsService) {
+    const mobile = this.settings.mobile;
+    this.slidesOptions = {
+      autoInitialize: false,
+      disableLayout: mobile,
+      touch: mobile,
+    };
   }
 
 }

@@ -14,6 +14,7 @@ import { AppAggregatedLandingModule } from '@app/trip/aggregated-landing/aggrega
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { VesselModule } from '@app/vessel/vessel.module';
 import { ObservedLocationReport } from './observed-location.report';
+import { AppSharedReportModule } from '@app/shared/report/report.module';
 
 
 @NgModule({
@@ -31,7 +32,8 @@ import { ObservedLocationReport } from './observed-location.report';
     AppMeasurementModule,
     AppLandingModule,
     AppLandedTripModule,
-    AppAggregatedLandingModule
+    AppAggregatedLandingModule,
+    AppSharedReportModule
   ],
   declarations: [
     ObservedLocationForm,

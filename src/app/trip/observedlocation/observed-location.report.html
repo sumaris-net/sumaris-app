@@ -9,4 +9,19 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
+  <app-slides #slides *ngIf="!error" [options]="slidesOptions">
+    <ng-container *ngIf="loaded; else loadingTemplate">
+      <section>
+        <section markdown ngPreserveWhitespaces>
+        </section>
+      </section>
+    </ng-container>
+  </app-slides>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+
 </ion-content>
