@@ -219,13 +219,9 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
 
   protected onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<T> {
-    // Adapt to form, e.g. to convert weight unit
-    (data.samples || []).forEach(sample => {
-      sample.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(sample.measurementValues, pmfms);
-    })
 
-    // FOR DEV ONLY
-    if (this.debug && !environment.production && data.samples.length < 25) this.addFakeSamplesForDev(data);
+    // FOR DEV ONLY : add more data
+    if (this.debug && !environment.production && data.samples.length < 5) this.addFakeSamplesForDev(data);
 
     return Promise.resolve(data as T);
   }
@@ -269,28 +265,12 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     this.cd.markForCheck();
   }
 
-  protected addFakeSamplesForDev(data: Landing) {
-    if (environment.production) return; // Skip
-    data.samples = [
-      ...data.samples,
-      ...data.samples,
-      ...data.samples,
-      ...data.samples,
-      ...data.samples
-    ];
-    data.samples = [
-      ...data.samples,
-      ...data.samples,
-      ...data.samples,
-      ...data.samples,
-      ...data.samples
-    ];
-    data.samples = [
-      ...data.samples,
-      ...data.samples,
-      ...data.samples,
-      ...data.samples,
-      ...data.samples
-    ];
+  protected addFakeSamplesForDev(data: Landing, count = 20) {
+    if (environment.production || !data.samples.length) return; // Skip
+    const samples = new Array(count);
+    for (let i = 0; i < count; i++) {
+      samples[i] = data.samples[i % data.samples.length].clone();
+    }
+    data.samples = samples;
   }
 }

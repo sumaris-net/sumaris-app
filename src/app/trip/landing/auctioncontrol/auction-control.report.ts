@@ -22,6 +22,7 @@ export class AuctionControlReport extends LandingReport {
       pathIdAttribute: 'controlId'
     });
     this.i18nContext.suffix = 'AUCTION_CONTROL.';
+    this.debug = true;
   }
 
   /* -- protected function -- */
@@ -49,15 +50,11 @@ export class AuctionControlReport extends LandingReport {
   }
 
 
-  protected addFakeSamplesForDev(data: Landing) {
+  protected addFakeSamplesForDev(data: Landing, count = 5) {
     if (environment.production) return; // Skip
 
-    super.addFakeSamplesForDev(data);
+    super.addFakeSamplesForDev(data, count);
 
-    data.samples = data.samples.map((s, i) => {
-      const ss = s.clone();
-      ss.label = ''+i;
-      return ss;
-    })
+    data.samples.forEach((s, index) => s.label = `${index+1}`);
   }
 }

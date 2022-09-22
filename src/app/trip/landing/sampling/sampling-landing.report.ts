@@ -66,17 +66,12 @@ export class SamplingLandingReport extends LandingReport {
     return titlePrefix + title;
   }
 
-  protected addFakeSamplesForDev(data: Landing) {
+  protected addFakeSamplesForDev(data: Landing, count = 25) {
     if (environment.production) return; // Skip
 
-    super.addFakeSamplesForDev(data);
+    super.addFakeSamplesForDev(data, count);
 
-    data.samples = data.samples.map((s, i) => {
-      const ss = s.clone();
-      ss.label =
-        ss.measurementValues[PmfmIds.TAG_ID] = ''+i;
-      return ss;
-    })
+    data.samples.forEach((s, index) => s.measurementValues[PmfmIds.TAG_ID] = `${index+1}`);
   }
 
 }

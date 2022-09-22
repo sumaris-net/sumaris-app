@@ -1,7 +1,7 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { DateFormatPipe, formatLatitude, formatLongitude, isNotNilOrBlank, LatitudeFormatPipe, LocalSettingsService, LongitudeFormatPipe, TranslateContextService } from '@sumaris-net/ngx-components';
+import { DateFormatPipe, formatLatitude, formatLongitude, isNotNil, isNotNilOrBlank, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 
 @Pipe({
@@ -80,6 +80,7 @@ export class PmfmValuePipe implements PipeTransform {
     html?: boolean;
     hideIfDefaultValue?: boolean;
     showLabelForPmfmIds?: number[];
+    unitConversion?: boolean;
   }): any {
     const type = PmfmUtils.getExtendedType(opts?.pmfm);
     switch (type) {
@@ -93,6 +94,12 @@ export class PmfmValuePipe implements PipeTransform {
         return formatLatitude(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
       case 'longitude':
         return formatLongitude(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
+      case 'integer':
+      case 'double':
+        if (isNotNil(value) && opts?.pmfm?.displayConversion && opts.unitConversion) {
+          value = opts.pmfm.displayConversion.conversionCoefficient * value;
+        }
+        return PmfmValueUtils.valueToString(value, opts);
       default:
         return PmfmValueUtils.valueToString(value, opts);
     }

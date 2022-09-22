@@ -880,9 +880,9 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     }
 
     // Add replacement map, for sort by
-    const dataService = this.memoryDataService;
+    const memoryDataService = this.memoryDataService;
     pmfms
-      .forEach(p => dataService.addSortByReplacement(p.id.toString(), `measurementValues.${p.id}`));
+      .forEach(p => memoryDataService.addSortByReplacement(p.id.toString(), `measurementValues.${p.id}`));
 
     return pmfms;
   }
