@@ -1,11 +1,11 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, InjectionToken, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import {
-  AppEntityEditor,
   AppFormUtils,
   AppTabEditor,
   AppTable,
   Entity,
   firstTruePromise,
+  IAppForm,
   IAppTabEditor,
   InMemoryEntitiesService,
   isNil,
@@ -76,10 +76,6 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   removeChildTree(batchTree: IBatchTreeComponent);
 }
 
-
-export const APP_BATCH_TREE_PARENT = new InjectionToken<AppEntityEditor<any, any, any>>('AppEditor');
-
-
 @Component({
   selector: 'app-batch-tree',
   templateUrl: './batch-tree.component.html',
@@ -90,7 +86,8 @@ export const APP_BATCH_TREE_PARENT = new InjectionToken<AppEntityEditor<any, any
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnInit, AfterViewInit, IBatchTreeComponent {
+export class BatchTreeComponent extends AppTabEditor<Batch, any>
+  implements OnInit, AfterViewInit, IBatchTreeComponent {
 
   private _gearId: number;
   private _physicalGearId: number;
@@ -383,7 +380,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     this.batchGroupsTable.setModalOption(key, value);
   }
 
-  async save(event?: UIEvent, options?: any): Promise<any> {
+  async save(event?: Event, options?: any): Promise<any> {
 
     // Create (or fill) the catch form entity
     const source = this.getJsonValueToSave();
@@ -537,8 +534,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any> implements OnIn
     }
 
     // Force taxon name in sub batches, if not filled in root batch
+    const subBatchesTaxonName = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
+    this.batchGroupsTable.setSubBatchesModalOption('showTaxonNameColumn', subBatchesTaxonName);
     if (this.subBatchesTable) {
-      this.subBatchesTable.showTaxonNameColumn = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);
+      this.subBatchesTable.showTaxonNameColumn = subBatchesTaxonName;
       this.subBatchesTable.showTaxonNameInParentAutocomplete = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE)
       this.subBatchesTable.showIndividualCount = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_COUNT_ENABLE);
       this.subBatchesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_WEIGHT_DISPLAYED_UNIT);

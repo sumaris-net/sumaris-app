@@ -30,8 +30,6 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   allowSubBatches: boolean;
   defaultHasSubBatches: boolean;
   openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
-
-  mobile: boolean;
 }
 
 @Component({

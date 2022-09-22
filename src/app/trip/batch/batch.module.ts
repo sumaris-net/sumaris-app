@@ -21,11 +21,16 @@ import { MatSamplingRatioFieldModule } from '@app/shared/material/sampling-ratio
 import { IsSamplingRatioComputedPipe, SamplingRatioFormatPipe } from '@app/trip/batch/common/batch.pipes';
 import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
 import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
+import { MatTreeModule } from '@angular/material/tree';
+import { BatchesTable } from '@app/trip/batch/common/batches.table';
 
 @NgModule({
   imports: [
     CommonModule,
     TranslateModule.forChild(),
+
+    // Material tree component
+    MatTreeModule,
 
     // App module
     AppCoreModule,
@@ -43,14 +48,15 @@ import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-con
     SamplingRatioFormatPipe,
 
     // Components
-    BatchTreeContainerComponent,
     BatchTreeComponent,
+    BatchTreeContainerComponent,
     CatchBatchForm,
 
     BatchGroupsTable,
     BatchGroupForm,
     BatchGroupModal,
 
+    BatchesTable,
     BatchForm,
     BatchModal,
     BatchFilterForm,
@@ -72,11 +78,11 @@ import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-con
     BatchTreeContainerComponent,
     BatchTreeComponent,
     CatchBatchForm,
-
     BatchGroupsTable,
     BatchGroupForm,
     BatchGroupModal,
 
+    BatchesTable,
     BatchForm,
     BatchModal,
 

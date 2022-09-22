@@ -156,7 +156,6 @@
         <ion-label translate>TRIP.BATCH.TABLE.TAXON_NAME</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonName'">
-
         <mat-autocomplete-field floatLabel="never" class="min-width-medium"
                                 [autofocus]="row.editing && focusColumn === 'taxonName'"
                                 [formControl]="row.validator.controls.taxonName"
@@ -165,7 +164,6 @@
                                 [config]="autocompleteFields.taxonName">
         </mat-autocomplete-field>
       </td>
-
     </ng-container>
 
     <!-- Dynamic columns -->
@@ -229,7 +227,8 @@
       </th>
       <td mat-cell *matCellDef="let row" [class.mat-form-field-disabled]="!row.editing">
         <mat-form-field floatLabel="never">
-          <input matInput [formControl]="row.validator.controls.comments" [placeholder]="'REFERENTIAL.COMMENTS'|translate"
+          <input matInput [formControl]="row.validator.controls.comments"
+                 [placeholder]="'REFERENTIAL.COMMENTS'|translate"
                  [readonly]="!row.editing">
         </mat-form-field>
       </td>

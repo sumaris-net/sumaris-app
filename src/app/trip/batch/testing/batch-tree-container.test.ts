@@ -28,35 +28,37 @@ import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/bat
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { Program } from '@app/referential/services/model/program.model';
 import { MatTabGroup } from '@angular/material/tabs';
+import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
+import { ActivatedRoute } from '@angular/router';
 
 
 @Component({
-  selector: 'app-batch-tree-test',
-  templateUrl: './batch-tree.test.html',
-  styleUrls: ['./batch-tree.test.scss'],
+  selector: 'app-batch-tree-container-test',
+  templateUrl: './batch-tree-container.test.html',
+  styleUrls: ['./batch-tree-container.test.scss'],
   providers: [
     { provide: ContextService, useClass: TripContextService}
   ]
 })
-export class BatchTreeTestPage implements OnInit {
+export class BatchTreeContainerTestPage implements OnInit {
 
   $programLabel = new BehaviorSubject<string>(undefined);
   $program = new BehaviorSubject<Program>(null);
   $gearId = new BehaviorSubject<number>(undefined);
   filterForm: FormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
-  selectedTabIndex = 0; // TODO 0 = mobile
+  selectedTabIndex = 0;
 
   outputs: {
     [key: string]: string;
   } = {};
 
-  @ViewChild('mobileBatchTree') mobileBatchTree: BatchTreeComponent;
-  @ViewChild('desktopBatchTree') desktopBatchTree: BatchTreeComponent;
+  @ViewChild('mobileBatchTree') mobileBatchTree: BatchTreeContainerComponent;
+  @ViewChild('desktopBatchTree') desktopBatchTree: BatchTreeContainerComponent;
   @ViewChild('tabGroup') tabGroup: MatTabGroup;
 
 
-  get batchTree(): BatchTreeComponent {
+  get batchTree(): BatchTreeContainerComponent {
     return (this.selectedTabIndex === 0)
       ? this.mobileBatchTree
       : this.desktopBatchTree;
@@ -67,7 +69,8 @@ export class BatchTreeTestPage implements OnInit {
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     private entities: EntitiesStorage,
-    private context: ContextService<BatchContext>
+    private context: ContextService<BatchContext>,
+    private activeRoute: ActivatedRoute
   ) {
 
     this.filterForm = formBuilder.group({
@@ -77,6 +80,7 @@ export class BatchTreeTestPage implements OnInit {
       example: [null, Validators.required],
       autofill: [false, Validators.required]
     });
+    this.selectedTabIndex = +(activeRoute.snapshot.queryParamMap['tab']) || 0;
   }
 
   ngOnInit() {
@@ -195,11 +199,8 @@ export class BatchTreeTestPage implements OnInit {
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.batchTree.program = program;
     if (program.label === 'APASE') {
-      this.batchTree.gearId = 7;
+      this.batchTree.gearId = 70; // Parent gear
       this.batchTree.physicalGearId = 70; // Parent gear
-      // if (this.batchTree.catchBatchForm) {
-      //   this.batchTree.catchBatchForm.physicalGearId = 70; // Parent gear
-      // }
     }
 
     this.markAsReady();

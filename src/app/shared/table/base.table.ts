@@ -56,6 +56,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   @Input() sticky = false;
   @Input() stickyEnd = false;
   @Input() compact = false;
+  @Input() mobile = false;
 
   @Input() set canEdit(value: boolean) {
     this._canEdit = value;
@@ -106,6 +107,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
         null
     );
 
+    this.mobile = this.settings.mobile;
     this.hotkeys = injector.get(Hotkeys);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
     this.logPrefix = '[base-table]';

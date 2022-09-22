@@ -241,7 +241,7 @@ export abstract class PmfmUtils {
   }
 
   static filterPmfms<P extends IPmfm>(pmfms: P[], opts?: {
-    excludeHidden?: boolean;
+    excludeHidden?: boolean; // true by default
     excludePmfmIds?: number[];
   }): P[] {
     return pmfms.filter(p => p

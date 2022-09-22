@@ -21,12 +21,16 @@ export interface BatchFromObjectOptions {
 // WARN: always recreate en entity, even if source is a Batch
 // because options can have changed
 @EntityClass({typename: 'BatchVO', fromObjectReuseStrategy: 'clone'})
-export class Batch<T extends Batch<T, ID> = Batch<any, any>,
+export class Batch<
+  T extends Batch<T, ID> = Batch<any, any>,
   ID = number,
   O extends BatchAsObjectOptions = BatchAsObjectOptions,
-  FO extends BatchFromObjectOptions = BatchFromObjectOptions>
-  extends DataEntity<T, ID, O, FO>
-  implements IEntityWithMeasurement<T, ID>,
+  FO extends BatchFromObjectOptions = BatchFromObjectOptions
+  >
+  extends
+    DataEntity<T, ID, O, FO>
+  implements
+    IEntityWithMeasurement<T, ID>,
     ITreeItemEntity<Batch> {
 
   static SAMPLING_BATCH_SUFFIX = '.%';
@@ -121,7 +125,7 @@ export class Batch<T extends Batch<T, ID> = Batch<any, any>,
 
   asObject(opts?: O): any {
     const parent = this.parent;
-    this.parent = null; // avoid parent conversion
+    this.parent = null; // avoid to process the parent
     const target = super.asObject(opts);
     delete target.parentBatch;
     this.parent = parent;

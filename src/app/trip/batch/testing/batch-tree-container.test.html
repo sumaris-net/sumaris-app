@@ -101,14 +101,14 @@
                  [dynamicHeight]="false">
     <mat-tab label="Mobile">
       <ng-template matTabContent>
-        <app-batch-tree #mobileBatchTree
-                        [programLabel]="$programLabel|async"
-                        [gearId]="$gearId|async"
-                        queryTabIndexParamName="mobileTab"
-                        [usageMode]="'FIELD'"
-                        [mobile]="true"
-                        [debug]="false">
-        </app-batch-tree>
+        <app-batch-tree-container #mobileBatchTree
+                                  [programLabel]="$programLabel|async"
+                                  [gearId]="$gearId|async"
+                                  queryTabIndexParamName="mobileTab"
+                                  [usageMode]="'FIELD'"
+                                  [mobile]="true"
+                                  [debug]="true">
+        </app-batch-tree-container>
 
         <!-- buttons -->
         <ion-item [lines]="'none'">
@@ -157,15 +157,15 @@
     <mat-tab label="Desktop">
       <ng-template matTabContent>
         <!-- Batch tree component - desktop mode -->
-        <app-batch-tree #desktopBatchTree
+        <app-batch-tree-container #desktopBatchTree
                         [programLabel]="$programLabel|async"
                         [gearId]="$gearId|async"
                         queryTabIndexParamName="desktopTab"
                         [usageMode]="'FIELD'"
                         [mobile]="false"
                         [allowSubBatches]="true"
-                        [debug]="false">
-        </app-batch-tree>
+                        [debug]="true">
+        </app-batch-tree-container>
 
         <!-- buttons -->
         <ion-item>

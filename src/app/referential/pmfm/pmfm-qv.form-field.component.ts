@@ -156,7 +156,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       ? this.sortAttribute
       : (this.style === 'button' ? 'name' : attributes[0]);
 
-    // Sort values
+    // Sort values (keep original order if LANDING/DISCARD)
     this._sortedQualitativeValues = (this.pmfm.id !== PmfmIds.DISCARD_OR_LANDING) ?
       sort(this._qualitativeValues, this.sortAttribute, {numeric: true, sensitivity: 'base'}) :
       this._qualitativeValues;

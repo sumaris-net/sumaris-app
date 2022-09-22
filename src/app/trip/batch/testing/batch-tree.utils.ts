@@ -84,6 +84,69 @@ export function getExampleTree(key: string, programLabel?: string): any {
                       {
                         label: 'SORTING_BATCH_INDIVIDUAL#1',
                         rankOrder: 1,
+                        taxonName: (programLabel !== 'APASE' && { id: 1033, label: 'MON', name: 'Lophius piscatorius' }),
+                        measurementValues: getIndivMeasValues({ discardOrLanding: 'LAN', length: 11, weight: 0.026051 }),
+                        individualCount: 1
+                      },
+                      {
+                        label: 'SORTING_BATCH_INDIVIDUAL#3',
+                        rankOrder: 3,
+                        taxonName: (programLabel !== 'APASE' && { id: 1034, label: 'ANK', name: 'Lophius budegassa' }),
+                        measurementValues: getIndivMeasValues({ discardOrLanding: 'LAN', length: 33, weight: 0.512244 }),
+                        individualCount: 1
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                label: 'SORTING_BATCH#1.DIS', rankOrder: 2,
+                measurementValues: getSortingMeasValues({ discardOrLanding: 'DIS' }),
+                children: [
+                  {
+                    label: 'SORTING_BATCH#1.DIS.%',
+                    rankOrder: 1,
+                    samplingRatio: 0.5,
+                    samplingRatioText: (programLabel === 'APASE') ? '1/2' : '50%',
+                    children: [
+                      {
+                        label: 'SORTING_BATCH_INDIVIDUAL#2',
+                        rankOrder: 2,
+                        taxonName: (programLabel !== 'APASE' && { id: 1034, label: 'ANK', name: 'Lophius budegassa' }),
+                        measurementValues: getIndivMeasValues({ discardOrLanding: 'DIS', length: 22, weight: 0.162100 }),
+                        individualCount: 1
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+
+    case 'selectivity':
+      return {
+        label: 'CATCH_BATCH', rankOrder: 1, children: [
+          {
+            label: 'SORTING_BATCH#1',
+            rankOrder: 1,
+            taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
+            measurementValues: (programLabel === 'APASE' ? getSortingMeasValues({ gearPosition: 'B', sizeCategory: 319 }) : undefined),
+            children: [
+              {
+                label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
+                measurementValues: getSortingMeasValues({ discardOrLanding: 'LAN', weight: 100 }),
+                children: [
+                  {
+                    label: 'SORTING_BATCH#1.LAN.%',
+                    rankOrder: 1,
+                    samplingRatio: 0.5,
+                    samplingRatioText: (programLabel === 'APASE') ? '1/2' : '50%',
+                    children: [
+                      {
+                        label: 'SORTING_BATCH_INDIVIDUAL#1',
+                        rankOrder: 1,
                         taxonName: { id: 1033, label: 'MON', name: 'Lophius piscatorius' },
                         measurementValues: getIndivMeasValues({ discardOrLanding: 'LAN', length: 11, weight: 0.026051 }),
                         individualCount: 1

@@ -116,13 +116,16 @@ export class BatchGroupUtils {
   }
 
   static getQvPmfm(pmfms: IPmfm[]): IPmfm | undefined {
-    let qvPmfm = (
+    let qvPmfm = pmfms && (
+      // Use the GEAR_POSITION if exists
+      pmfms.find(p => p.id === PmfmIds.BATCH_GEAR_POSITION)
       // Use the LAN/DIS if exists
-      pmfms?.find(p => p.id === PmfmIds.DISCARD_OR_LANDING)
+      || pmfms.find(p => p.id === PmfmIds.DISCARD_OR_LANDING)
       // Or get the first QV pmfm
       || PmfmUtils.getFirstQualitativePmfm(pmfms, {
-      excludeHidden: true,
-      excludePmfmIds: [PmfmIds.BATCH_GEAR_POSITION]})
+      excludeHidden: true
+      //excludePmfmIds: [PmfmIds.BATCH_GEAR_POSITION]
+      })
     );
 
     // If landing/discard: 'Landing' is always before 'Discard (see issue #122)

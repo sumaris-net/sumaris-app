@@ -1,173 +1,54 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { firstArrayValue, InMemoryEntitiesService, IReferentialRef, isNil, isNilOrBlank, isNotNil, LoadResult, splitByProperty, UsageMode } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { ChangeDetectionStrategy, Component, Injector, Input } from '@angular/core';
+import { InMemoryEntitiesService } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
-import { Landing } from '../../services/model/landing.model';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { BatchModal, IBatchModalOptions } from './batch.modal';
-import { Operation } from '../../services/model/trip.model';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
+import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
+import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
+import { BatchModal, IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
+import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
 
-export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
-export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
+export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName', 'weight'];
 
-@Directive()
-// tslint:disable-next-line:directive-class-suffix
-export abstract class BatchesTable<
-  T extends Batch<any> = Batch<any>,
-  F extends BatchFilter = BatchFilter
-  > extends BaseMeasurementsTable<T, F>
-  implements OnInit, OnDestroy {
+@Component({
+  selector: 'app-batches-table',
+  templateUrl: 'batches.table.html',
+  styleUrls: ['batches.table.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {provide: BatchValidatorService, useClass: BatchValidatorService}
+  ]
+})
+export class BatchesTable extends AbstractBatchesTable<Batch>{
 
-  protected _initialPmfms: IPmfm[];
-  protected cd: ChangeDetectorRef;
-  protected referentialRefService: ReferentialRefService;
+  @Input() modalOptions: Partial<IBatchModalOptions>;
+  @Input() compactFields = true;
 
-  qvPmfm: IPmfm;
-  defaultWeightPmfm: IPmfm;
-  weightPmfms: IPmfm[];
-  weightPmfmsByMethod: { [key: string]: IPmfm };
-
-  @Input()
-  set value(data: T[]) {
-    this.memoryDataService.value = data;
-  }
-
-  get value(): T[] {
-    return this.memoryDataService.value;
-  }
-
-  @Input() usageMode: UsageMode;
-
-  @Input()
-  set showTaxonGroupColumn(value: boolean) {
-    this.setShowColumn('taxonGroup', value);
-  }
-
-  get showTaxonGroupColumn(): boolean {
-    return this.getShowColumn('taxonGroup');
-  }
-
-  @Input()
-  set showTaxonNameColumn(value: boolean) {
-    this.setShowColumn('taxonName', value);
-  }
-
-  get showTaxonNameColumn(): boolean {
-    return this.getShowColumn('taxonName');
-  }
-
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
-
-  @Input() defaultTaxonGroup: TaxonGroupRef;
-  @Input() defaultTaxonName: TaxonNameRef;
-  @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
-
-  protected constructor(
+  constructor(
     injector: Injector,
-    dataType: new() => T,
-    filterType: new() => F,
-    protected memoryDataService: InMemoryEntitiesService<T, F>,
-    validatorService: ValidatorService,
-    options?: BaseMeasurementsTableConfig<T>
+    validatorService: BatchValidatorService
   ) {
     super(injector,
-      dataType || ((Batch as any) as (new() => T)),
-      filterType || ((BatchFilter as any) as (new() => F)),
-      memoryDataService,
-      validatorService,
-      {
-        ...options,
-        reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
-        reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => this.mapPmfms(pmfms),
-        i18nColumnPrefix: 'TRIP.BATCH.TABLE.',
-        i18nPmfmPrefix: 'TRIP.BATCH.PMFM.'
+      Batch,
+      BatchFilter,
+      new InMemoryEntitiesService(Batch, BatchFilter),
+      validatorService, {
+        reservedStartColumns: BATCH_RESERVED_START_COLUMNS
       }
     );
-    this.cd = injector.get(ChangeDetectorRef);
-    this.referentialRefService = injector.get(ReferentialRefService);
-    this.inlineEdition = this.validatorService && !this.mobile;
-    this.defaultSortBy = 'rankOrder';
-    this.defaultSortDirection = 'asc';
-
-    // Set default value
-    this.showCommentsColumn = false;
-    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
-
-    //this.debug = false;
-    //this.debug = !environment.production;
   }
 
-  ngOnInit() {
-    super.ngOnInit();
-
-    // Taxon group combo
-    this.registerAutocompleteField('taxonGroup', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
-      mobile: this.mobile
-    });
-
-    // Taxon name combo
-    this.registerAutocompleteField('taxonName', {
-      suggestFn: (value: any, options?: any) => this.suggestTaxonNames(value, options),
-      mobile: this.mobile
-    });
+  setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
+    this.modalOptions = this.modalOptions || {};
+    this.modalOptions[key as any] = value;
   }
 
-  setParent(data: Operation | Landing) {
-    if (!data) {
-      this.setFilter({} as F);
-    } else if (data instanceof Operation) {
-      this.setFilter({operationId: data.id} as F);
-    } else if (data instanceof Landing) {
-      this.setFilter({landingId: data.id} as F);
-    }
+  async setValue(data: Batch, opts?: {emitEvent?: boolean}): Promise<void> {
+
   }
 
-  protected async openNewRowDetail(): Promise<boolean> {
-    if (!this.allowRowDetail) return false;
+  /* -- protected methods  -- */
 
-    const data = await this.openDetailModal();
-    if (data) {
-      await this.addEntityToTable(data);
-    }
-    return true;
-  }
-
-  protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
-    if (!this.allowRowDetail) return false;
-
-    if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
-      return true;
-    }
-
-    const data = this.toEntity(row, true);
-
-    // Prepare entity measurement values
-    this.prepareEntityToSave(data);
-
-    const updatedData = await this.openDetailModal(data);
-    if (updatedData) {
-      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
-    } else {
-      this.editedRow = null;
-    }
-    return true;
-  }
-
-  protected async openDetailModal(dataToOpen?: T): Promise<T | undefined> {
+  protected async openDetailModal(dataToOpen?: Batch): Promise<Batch | undefined> {
     const isNew = !dataToOpen && true;
     if (isNew) {
       dataToOpen = new this.dataType();
@@ -193,7 +74,8 @@ export abstract class BatchesTable<
         mobile: this.mobile,
         usageMode: this.usageMode,
         i18nSuffix: this.i18nColumnSuffix,
-        maxVisibleButtons: 3
+        maxVisibleButtons: 3,
+        ...this.modalOptions
       },
       keyboardClose: true
     });
@@ -207,83 +89,11 @@ export abstract class BatchesTable<
     this.markAsLoaded();
 
     if (data instanceof Batch) {
-      return data as T;
+      return data as Batch;
     }
 
     // Exit if empty
     return undefined;
-  }
-
-
-  /* -- protected methods -- */
-
-  protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    //if (isNilOrBlank(value)) return [];
-    return this.programRefService.suggestTaxonGroups(value,
-      {
-        program: this.programLabel,
-        searchAttribute: options && options.searchAttribute
-      });
-  }
-
-  protected async suggestTaxonNames(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
-    const taxonGroup = this.editedRow && this.editedRow.validator.get('taxonGroup').value;
-
-    // IF taxonGroup column exists: taxon group must be filled first
-    if (this.showTaxonGroupColumn && isNilOrBlank(value) && isNil(taxonGroup)) return {data: []};
-
-    return this.programRefService.suggestTaxonNames(value,
-      {
-        programLabel: this.programLabel,
-        searchAttribute: options && options.searchAttribute,
-        taxonGroupId: taxonGroup && taxonGroup.id || undefined
-      });
-  }
-
-  protected prepareEntityToSave(data: T) {
-    // Override by subclasses
-  }
-
-  /**
-   * Allow to remove/Add some pmfms. Can be override by subclasses
-   *
-   * @param pmfms
-   */
-  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-    if (!pmfms || !pmfms.length) return pmfms; // Skip (no pmfms)
-
-    this._initialPmfms = pmfms; // Copy original pmfms list
-
-    this.weightPmfms = pmfms.filter(p => PmfmUtils.isWeight(p));
-    this.defaultWeightPmfm = firstArrayValue(this.weightPmfms); // First as default
-    this.weightPmfmsByMethod = splitByProperty(this.weightPmfms, 'methodId');
-
-    // Find the first qualitative PMFM
-    this.qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
-
-    // Exclude weight PMFMs
-    return pmfms.filter(p => !this.weightPmfms.includes(p));
-  }
-
-  protected async onNewEntity(data: T): Promise<void> {
-    console.debug('[sample-table] Initializing new row data...');
-
-    await super.onNewEntity(data);
-
-    // generate label
-    data.label = this.acquisitionLevel + '#' + data.rankOrder;
-
-    // Default values
-    if (isNotNil(this.defaultTaxonName)) {
-      data.taxonName = this.defaultTaxonName;
-    }
-    if (isNotNil(this.defaultTaxonGroup)) {
-      data.taxonGroup = this.defaultTaxonGroup;
-    }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 }
 

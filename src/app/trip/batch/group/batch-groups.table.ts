@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { FormGroup, Validators } from '@angular/forms';
-import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS, BatchesTable } from '../common/batches.table';
+import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
-  ColumnItem,
+  ColumnItem, firstNotNilPromise,
   FormFieldDefinition,
   FormFieldType,
   InMemoryEntitiesService,
@@ -12,9 +12,9 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrNaN, LoadResult,
+  isNotNilOrNaN,
+  LoadResult,
   LocalSettingsService,
-  propertiesPathComparator,
   ReferentialRef,
   ReferentialUtils,
   RESERVED_END_COLUMNS,
@@ -23,14 +23,14 @@ import {
   TableSelectColumnsComponent,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { Batch } from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import { defer, from, Observable, Subject, Subscription } from 'rxjs';
-import { map, startWith, takeUntil, tap } from 'rxjs/operators';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { BatchGroupValidatorService } from './batch-group.validator';
@@ -42,6 +42,7 @@ import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -89,7 +90,7 @@ declare interface GroupColumnDefinition {
   styleUrls: ['batch-groups.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupsTable extends BatchesTable<BatchGroup> {
+export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
   static BASE_DYNAMIC_COLUMNS: Partial<BatchGroupColumnDefinition>[] = [
     // Column on total (weight, nb indiv)
@@ -104,7 +105,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       flags: BatchGroupColumnFlags.IS_WEIGHT,
       classList: 'total mat-column-weight',
       path: 'weight.value',
-      computed: (batch) => batch.weight?.computed || false
+      computed: (batch) => batch && batch.weight?.computed || false
     },
     {
       type: 'double',
@@ -204,9 +205,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
-  @Input() useSticky = false;
+  @Input() subBatchesModalOptions: Partial<ISubBatchesModalOptions>;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
-  @Input() availableTaxonGroups: TaxonGroupRef[];
   @Input() enableWeightLengthConversion: boolean;
 
   @Input() set showSamplingBatchColumns(value: boolean) {
@@ -258,14 +258,12 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
   @Input() taxonGroupsNoWeight: string[];
-  @Input() mobile: boolean;
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
 
   constructor(
     injector: Injector,
-    protected settings: LocalSettingsService,
     protected batchGroupValidator: BatchGroupValidatorService,
     protected context: TripContextService,
     protected pmfmNamePipe: PmfmNamePipe
@@ -278,7 +276,7 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         equals: Batch.equals
       }),
       // Force no validator (readonly mode, if mobile)
-      settings.mobile ? null : batchGroupValidator,
+      injector.get(LocalSettingsService).mobile ? null : batchGroupValidator,
       {
         // Need to set additional validator here
         // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
@@ -347,6 +345,13 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
     this.modalOptions = this.modalOptions || {};
     this.modalOptions[key as any] = value;
   }
+
+
+  setSubBatchesModalOption(key: keyof ISubBatchesModalOptions, value: ISubBatchesModalOptions[typeof key]) {
+    this.subBatchesModalOptions = this.subBatchesModalOptions || {};
+    this.subBatchesModalOptions[key as any] = value;
+  }
+
 
   onLoad(data: BatchGroup[]): BatchGroup[] {
     if (this.debug) console.debug('[batch-group-table] Preparing data to be loaded as table rows...');
@@ -439,84 +444,6 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
   }
 
 
-  /**
-   * Auto fill table (e.g. with taxon groups found in strategies) - #176
-   */
-  async autoFillTable(opts  = { skipIfDisabled: true, skipIfNotEmpty: false}) {
-    // Wait table ready and loaded
-    await Promise.all([this.ready(), this.waitIdle()]);
-
-    // Skip if disabled
-    if (opts.skipIfDisabled && this.disabled) {
-      console.warn('[batch-group-table] Skipping autofill as table is disabled');
-      return;
-    }
-
-    // Skip if not empty
-    if (opts.skipIfNotEmpty && this.totalRowCount > 0) {
-      console.warn('[batch-group-table] Skipping autofill because table is not empty');
-      return;
-    }
-
-    // Skip if no available taxon group configured (should be set by parent page - e.g. OperationPage)
-    if (isEmptyArray(this.availableTaxonGroups)) {
-      console.warn('[batch-group-table] Skipping autofill, because no availableTaxonGroups has been set');
-      return;
-    }
-
-    // Skip when editing a row
-    if (!this.confirmEditCreate()) {
-      console.warn('[batch-group-table] Skipping autofill, as table still editing a row');
-      return;
-    }
-
-    this.markAsLoading();
-
-    try {
-      console.debug('[batch-group-table] Auto fill table, using options:', opts);
-
-      // Read existing taxonGroups
-      let data = this.dataSource.getData()
-      const existingTaxonGroups = data.map(batch => batch.taxonGroup)
-        .filter(isNotNil);
-      let rowCount = data.length;
-
-      const taxonGroupsToAdd = this.availableTaxonGroups
-        // Exclude if already exists
-        .filter(taxonGroup => !existingTaxonGroups.some(tg => ReferentialUtils.equals(tg, taxonGroup)));
-
-      if (isNotEmptyArray(taxonGroupsToAdd)) {
-
-        this.focusColumn = undefined;
-        let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
-
-        for (const taxonGroup of taxonGroupsToAdd) {
-          const batch = new BatchGroup();
-          batch.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
-          batch.rankOrder = rankOrder++;
-          const newRow = await this.addEntityToTable(batch, { confirmCreate: true, emitEvent: false /*done in markAsLoaded()*/ });
-          rowCount += newRow ? 0 : 1;
-        }
-
-        // Mark as dirty
-        this.markAsDirty({emitEvent: false /* done in markAsLoaded() */});
-      }
-
-      // FIXME Workaround to update row count
-      if (this.totalRowCount !== rowCount) {
-        console.warn('[batch-group-table] Updateing rowCount manually! (should be fixed when table confirmEditCreate() are async ?)');
-        this.totalRowCount = rowCount;
-        this.visibleRowCount = rowCount;
-      }
-
-    } catch (err) {
-      console.error(err && err.message || err, err);
-      this.setError(err && err.message || err);
-    } finally {
-      this.markAsLoaded();
-    }
-  }
-
   isComputed(col: BatchGroupColumnDefinition, row: TableElement<BatchGroup>): boolean {
 
     if (typeof col.computed !== 'function') return col.computed === true;
@@ -542,8 +469,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
       // Get sampling batch
       .children[0];
 
-    const missing = (isNil(samplingBatch.weight?.value) || samplingBatch.weight.value <= 0)
-      && samplingBatch.individualCount !== null;
+    const missing = (isNil(samplingBatch?.weight?.value) || samplingBatch.weight.value <= 0)
+      && isNotNil(samplingBatch?.individualCount);
 
     // DEBUG
     //console.debug('[batch-group-table] missing sample weight', col.path, missing);
@@ -1071,7 +998,8 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         i18nSuffix: this.i18nColumnSuffix,
         mobile: this.mobile,
         // Override using input options
-        maxVisibleButtons: this.modalOptions?.maxVisibleButtons
+        maxVisibleButtons: this.modalOptions?.maxVisibleButtons,
+        ...this.subBatchesModalOptions
       },
       backdropDismiss: false,
       keyboardClose: true,
