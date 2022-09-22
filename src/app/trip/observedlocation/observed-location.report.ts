@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, I
 import { ActivatedRoute } from '@angular/router';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, DateFormatPipe, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { ObservedLocationService } from '../services/observed-location.service';
@@ -17,6 +17,7 @@ export class ObservedLocationReport implements AfterViewInit {
 
   private readonly route: ActivatedRoute;
   private readonly platform: PlatformService;
+  private readonly dateFormatPipe: DateFormatPipe;
   private readonly cd: ChangeDetectorRef;
   private readonly translate: TranslateService;
   private readonly observedLocationService: ObservedLocationService;
@@ -46,6 +47,7 @@ export class ObservedLocationReport implements AfterViewInit {
   constructor(injector: Injector) {
     this.route = injector.get(ActivatedRoute);
     this.cd = injector.get(ChangeDetectorRef);
+    this.dateFormatPipe = injector.get(DateFormatPipe);
 
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);
@@ -113,7 +115,7 @@ export class ObservedLocationReport implements AfterViewInit {
       throw new Error('ERROR.LOAD_ENTITY_ERROR');
     }
 
-    await this.computeTitle();
+    await this.computeTitle(data);
     this.computeDefaultBackHref(data);
 
     this.markAsLoaded();
@@ -146,8 +148,11 @@ export class ObservedLocationReport implements AfterViewInit {
     }
   }
 
-  protected async computeTitle() {
-    const title = await this.translate.get('OBSERVED_LOCATION.REPORT.TITLE').toPromise();
+  protected async computeTitle(data: ObservedLocation) {
+    const title = await this.translate.get('OBSERVED_LOCATION.REPORT.TITLE', {
+      location: data.location.name,
+      dateTime: this.dateFormatPipe.transform(data.controlDate, {time: true}),
+    }).toPromise();
     this.$title.next(title)
   }
 

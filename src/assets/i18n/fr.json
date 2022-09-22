@@ -1157,7 +1157,8 @@
       "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "REPORT": {
-      "TITLE": "Synthèse du suivi des contrôles sous criées"
+      "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées"
     }
   },
   "LANDING": {
