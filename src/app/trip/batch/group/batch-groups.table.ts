@@ -1062,9 +1062,9 @@ export class BatchGroupsTable extends BatchesTable<BatchGroup> {
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
         availableParents: this.dataSource.rowsSubject
           .pipe(
-            startWith(() => this.dataSource.getData()),
             takeUntil(onModalDismiss),
-            tap((data) => console.warn('[batch-groups-table] TODO check available parents:', data))
+            map((rows) => rows.map(r => r.currentData)),
+            tap((data) => console.warn('[batch-groups-table] Modal -> New available parents:', data))
           ),
         data: this.availableSubBatches,
         onNewParentClick,

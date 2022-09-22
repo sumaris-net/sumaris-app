@@ -999,14 +999,15 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   protected copyIdAndUpdateDateOnSamples(savedLanding: Landing, sources: (Sample | any)[], targets: Sample[]) {
     // Update samples
     if (sources && targets) {
+      const operationId = savedLanding.samples[0]?.operationId;
       targets.forEach(target => {
         // Set the landing id (required by equals function) => Obsolete : there is no more direct link between sample and landing
         target.landingId = savedLanding.id;
         // INFO CLT: Fix on sample to landing link. We use operation to link sample to landing / #IMAGINE-569
         // Set the operation id (required by equals function)
-        target.operationId = savedLanding.samples[0]?.operationId;
+        target.operationId = operationId;
 
-        const source = sources.find(json => target.equals(json));
+        const source = sources.find(source => target.equals(source));
         EntityUtils.copyIdAndUpdateDate(source, target);
         DataRootEntityUtils.copyControlAndValidationDate(source, target);
 

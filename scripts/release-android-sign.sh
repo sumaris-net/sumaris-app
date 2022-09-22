@@ -45,6 +45,7 @@ echo "Executing jarsigner [OK]"
 
 BUILD_TOOLS_DIR="${ANDROID_SDK_ROOT}/build-tools/${ANDROID_SDK_VERSION}/"
 cd ${BUILD_TOOLS_DIR}
+[[ $? -ne 0 ]] && exit 1
 
 echo "Executing zipalign..."
 ./zipalign -v 4 ${APK_UNSIGNED_FILE} ${APK_SIGNED_FILE}

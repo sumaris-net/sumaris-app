@@ -1262,6 +1262,15 @@
       "REPORT": {
         "TITLE": "Control report - {{vessel}} - {{date}}"
       }
+    },
+    "REPORT": {
+      "TITLE": "Control report - {{vessel}} - {{date}}",
+      "TITLE_SHORT": "Control report",
+      "AUCTION": "Auction :",
+      "DATE_TIME": "Date/Time :",
+      "CONTROLLER": "Controller :",
+      "VESSEL": "Vessel",
+      "SPECIES": "Species"
     }
   },
   "EXPENSE": {

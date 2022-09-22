@@ -1,26 +1,66 @@
 @media print {
-  #menu {
-    visibility: hidden;
-    display: none;
+  @page {
+    margin: .4in;
+    size: A4 landscape;
   }
 
+  @viewport {
+    orientation: landscape;
+  }
+
+  /* -- hidden elements -- */
+  .no-print,
+  #menu,
   app-header,
   ion-header {
     visibility: hidden;
     display: none;
   }
 
-  ion-content {
-    background-color: white;
-    /*height: 100%;*/
-    width: calc(100vw - 30px);
-    height: auto;
-    display: block;
-    overflow-y: visible;
-    /*position: fixed;
-    top: 0;
-    left: 0;
-    margin: 0;
-    padding: 15px;*/
+  /* -- Force page break -- */
+  .print-break {
+    page-break-after: always;
+  }
+}
+html.print-pdf {
+  .reset-css {
+    left: unset !important;
+    right: unset !important;
+    top: unset !important;
+    bottom: unset !important;
+    flex: unset !important;
+    margin: unset !important;
+    padding: unset !important;
+    position: unset !important;;
+    display: unset !important;;
+    contain: unset !important;
+    justify-content: unset !important;
+    visibility: unset !important;
+    overflow-y: unset !important;
+    overflow: unset !important;
+    height: unset !important;
+    max-height: unset !important;
+    scroll-behavior: unset !important;
+    overflow-scrolling: unset !important;
+    overscroll-behavior-y: unset !important;
+    transform: unset !important;
+    line-break: unset !important;
+    page-break-after: unset !important;
+    box-sizing: unset !important;
+    flex-direction: unset !important;
+  }
+
+  body,
+  ion-app,
+  ion-router-outlet,
+  ion-content,
+  slot,
+  .background-content,
+  .ion-page,
+  ion-split-pane,
+  .inner-scroll,
+  .scroll-y
+  {
+    @extend .reset-css;
   }
 }

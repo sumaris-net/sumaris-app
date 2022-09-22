@@ -268,9 +268,6 @@ export const UnitLabelGroups = {
   LENGTH: Object.keys(LengthMeterConversion)
 }
 
-
-
-
 export const QualityFlagIds = {
   NOT_QUALIFIED: 0,
   GOOD: 1,

@@ -113,6 +113,7 @@
     "RESULT_COUNT": "{{count}} résultats",
     "NO_RESULT": "Aucun résultat",
     "LOADING_DOTS": "Chargement...",
+    "PLEASE_WAIT": "Veuillez patienter...",
     "NO_DATA": "Aucune donnée",
     "MISSING": "Manquant",
 
@@ -628,7 +629,6 @@
         "MESH_GAUGE_BELLY_MM": "Maillage - Ventre (mm)",
         "MESH_GAUGE_GOR_MM": "Maillage - Gorget (mm)",
         "MESH_GAUGE_EXT_MM": "Maillage - Rallonge (mm)",
-        "MESH_GAUGE_EXT_MM": "Maillage - Rallonge (mm)",
         "MESH_GAUGE_ASS_MM": "Maillage - Cul de châlut (mm)",
         "GROUNDROPE_TYPE": "Type de bourrelet",
         "VERTICAL_OPENING_ESTIMATED": "Ouverture verticale - Estimée (m)",
@@ -768,9 +768,6 @@
         "GEAR" : "Engin",
         "START_DATE" : "Début de période",
         "QUALITY": "État"
-      },
-      "PMFM": {
-
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
@@ -1002,7 +999,7 @@
           "TAG_ID": "Référence de la marque"
         },
         "AUCTION_CONTROL": {
-          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon (kg)"
+          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon (g)"
         },
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Date de remise à l'eau",
@@ -1212,6 +1209,17 @@
         "STRATEGY_LABEL": "Ligne de plan"
       }
     },
+    "REPORT": {
+      "TITLE": "Débarquement",
+      "DATE_TIME": "Date/Heure :",
+      "VESSEL": "Navire :",
+      "RECORDER_PERSON": "Saisisseur : ",
+      "SAMPLING": {
+        "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}} (rapport)",
+        "TITLE_SHORT": "Rapport d'échantillonnage",
+        "SAMPLES_TITLE": "Mesures individuelles"
+      }
+    },
     "SELECT_MODAL": {
       "TITLE": "Détail des navires contrôlés"
     },
@@ -1287,7 +1295,10 @@
       }
     },
     "REPORT": {
-      "TITLE": "Rapport de contrôle - {{vessel}} - {{date}}"
+      "TITLE": "Rapport de contrôle - {{vessel}} - {{date}}",
+      "TITLE_SHORT": "Rapport de contrôle",
+      "AUCTION": "Criée :",
+      "CONTROLLED_SPECIES": "Espèce contrôlée :"
     }
   },
   "EXPENSE": {

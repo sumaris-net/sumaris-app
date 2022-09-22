@@ -39,13 +39,18 @@ export const environment = Object.freeze(<AppEnvironment>{
       port: 443
     },
     {
-      host: 'test.sumaris.net',
-      port: 443
-    },
-    {
       host: 'sih.sfa.sc',
       port: 80,
       useSsl: false
+    },
+    // Tests instances
+    {
+      host: 'adap-test.pecheursdebretagne.eu',
+      port: 443
+    },
+    {
+      host: 'test.sumaris.net',
+      port: 443
     }
   ],
 

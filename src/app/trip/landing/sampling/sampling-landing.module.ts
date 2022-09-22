@@ -1,5 +1,4 @@
 import { NgModule } from '@angular/core';
-import { AuctionControlPage } from './auction-control.page';
 import { AppDataModule } from '@app/data/data.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { VesselModule } from '@app/vessel/vessel.module';
@@ -8,9 +7,9 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
-import { AuctionControlReport } from '@app/trip/landing/auctioncontrol/auction-control.report';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
-import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
+import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing.page';
+import { SamplingLandingReport } from '@app/trip/landing/sampling/sampling-landing.report';
 
 
 @NgModule({
@@ -26,20 +25,21 @@ import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
     AppMeasurementModule,
     AppSampleModule,
     AppLandingModule,
+
   ],
   declarations: [
-    AuctionControlPage,
-    AuctionControlReport
+    SamplingLandingPage,
+    SamplingLandingReport
   ],
   exports: [
     // Components
-    AuctionControlPage,
-    AuctionControlReport
+    SamplingLandingPage,
+    SamplingLandingReport
   ]
 })
-export class AppAuctionControlModule {
+export class AppSamplingLandingModule {
 
   constructor() {
-    console.debug('[auction-control] Creating module...');
+    console.debug('[sampling-landing] Creating module...');
   }
 }

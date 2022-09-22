@@ -306,17 +306,15 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       });
   }
 
-  async openReport(event: UIEvent) {
-    if (this.dirty) {
-      const data = await this.saveAndGetDataIfValid();
-      if (!data) return; // Cancel
-    }
-    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
-  }
-
   /* -- protected method -- */
 
   protected async setValue(data: Landing): Promise<void> {
+    // Clean invalid sample label
+    (data.samples || []).forEach(sample =>{
+      if (sample.label?.startsWith('#')) sample.label = '';
+    });
+
+    // Fill form and table
     await super.setValue(data);
 
     if (isNotEmptyArray(data.samples)) {
@@ -336,6 +334,11 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       if (ReferentialUtils.isNotEmpty<TaxonGroupRef>(taxonGroup)) {
         (data.samples || []).forEach(sample => sample.taxonGroup = taxonGroup);
       }
+
+      // CLean invalid sample label
+      (data.samples || []).forEach(sample => {
+        if (sample.label?.startsWith('#') || isNil(sample.label)) sample.label = '';
+      })
     }
     // Reset samples, if no taxon group
     else {

@@ -26,7 +26,7 @@ NODE_VERSION=14
 NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
 ANDROID_NDK_VERSION=21.0.6113669 # Should be compatible with 'cordova-sqlite-storage' plugin
-ANDROID_SDK_VERSION=29.0.3
+ANDROID_SDK_VERSION=29.0.2
 ANDROID_SDK_CLI_VERSION=6858069
 ANDROID_SDK_ROOT="${HOME}/Android/Sdk"
 ANDROID_ALTERNATIVE_SDK_ROOT=/usr/lib/android-sdk

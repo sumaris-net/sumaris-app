@@ -45,6 +45,7 @@
   --r-selection-background-color: rgba(0, 0, 0, 0.99);
   --r-selection-color: #fff;
   --r-table-cell-font-size: 0.65em;
+  --r-table-max-width: 100%;
 }
 
 // --------------------------------------------------
@@ -64,10 +65,21 @@
 
 
 .reveal b, .reveal strong {
-  color: var(--r-link-color)
+  color: var(--r-link-color);
 }
 .reveal canvas[data-chart].theme-black {
   background-color: rgba(0,0,0,0.5);
+}
+
+.reveal {
+  .loader {
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    vertical-align: middle;
+    padding-top: calc(50vh - var(--app-toolbar-height));
+  }
+
 }
 
 /*********************************************
@@ -75,13 +87,29 @@
  *********************************************/
 
 .reveal table {
-
+  max-width: var(--r-table-max-width, 100%);
+  --r-table-col-count: var(--col-count, 1);
   th small {
     display: block;
   }
 
   th, td {
     font-size: var(--r-table-cell-font-size);
+    max-width: calc(var(--r-table-max-width) / var(--r-table-col-count));
+  }
+
+  th {
+    b, strong {
+      color: black !important;
+    }
+    .pmfm-details {
+      color: rgba(0,0,0,0.7) !important;
+      font-weight: normal;
+      font-size: smaller;
+    }
+  }
+  tr.even {
+    background-color: whitesmoke;
   }
 }
 

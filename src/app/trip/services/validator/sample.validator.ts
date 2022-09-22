@@ -6,6 +6,7 @@ import { Sample } from '../model/sample.model';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface SampleValidatorOptions {
+  requiredLabel?: boolean;
   withChildren?: boolean;
   measurementValuesAsGroup?: boolean;
 }
@@ -37,7 +38,7 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       updateDate: [data && data.updateDate || null],
       creationDate: [data && data.creationDate || null],
       rankOrder: [toNumber(data && data.rankOrder, null), Validators.required],
-      label: [data && data.label || null, Validators.required],
+      label: [data && data.label || null, (!opts || opts.requiredLabel !== false) ? Validators.required : null],
       individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
       sampleDate: [data && data.sampleDate || null, Validators.required],
       taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],

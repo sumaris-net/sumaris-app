@@ -627,6 +627,15 @@ export const ProgramProperties = Object.freeze({
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
   },
 
+  /* -- Report options -- */
+
+  REPORT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.report.enable',
+    label: 'PROGRAM.OPTIONS.REPORT_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
+
   /* -- Program / Strategy options -- */
 
   STRATEGY_EDITOR_PREDOC_ENABLE: <FormFieldDefinition>{
