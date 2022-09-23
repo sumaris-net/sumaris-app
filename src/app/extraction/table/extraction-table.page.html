@@ -2,13 +2,13 @@
 
   <ion-title>
     <span class="hidden-xs hidden-sm hidden-mobile"
-          [innerHTML]="$title | async"></span>
+          [innerHTML]="$title | async | translate"></span>
   </ion-title>
 
-  <ion-buttons slot="end">
+  <ion-buttons slot="end" *ngIf="type">
     <!-- Help button -->
     <button mat-icon-button
-            *ngIf="type?.description"
+            *ngIf="type.description"
             class="hidden-xs hidden-sm hidden-mobile"
             [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
             (click)="openHelpModal($event)">
@@ -17,7 +17,7 @@
 
     <!-- open map -->
     <button mat-icon-button
-            *ngIf="type?.isSpatial"
+            *ngIf="type.isSpatial"
             class="hidden-xs hidden-sm hidden-mobile"
             [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
             (click)="openMap($event)">
@@ -290,7 +290,8 @@
           class="mat-row-disabled"></tr>
     </table>
 
-    <ng-container *ngIf="loading; else noResult">
+    <!-- loading skeleton -->
+    <ng-container *ngIf="loading; else loaded">
       <table class="mat-table">
         <tr class="mat-header-row">
           <th class="mat-header-cell"><ion-skeleton-text style="width: 50px"></ion-skeleton-text></th>
@@ -309,16 +310,33 @@
       </table>
     </ng-container>
 
-    <ng-template #noResult>
+    <ng-template #loaded>
       <ion-item *ngIf="data?.total === 0">
         <ion-text color="danger" class="text-italic" translate>COMMON.NO_RESULT</ion-text>
       </ion-item>
+
+      <ng-container *ngIf="!type">
+        <p class="ion-text-center">
+          <ion-icon color="primary100" name="information-circle"></ion-icon>
+          <ion-text color="primary100" class="text-italic" [innerHTML]="'EXTRACTION.TABLE.SELECT_TYPE_HELP'|translate"></ion-text>
+        </p>
+        <p class="ion-text-center">
+          <ion-button [matMenuTriggerFor]="selectTypeMenu"
+                      *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+                      color="tertiary" fill="solid">
+            <ion-icon slot="start" name="server"></ion-icon>
+            <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE'|translate"></ion-label>
+            <mat-icon slot="end">arrow_drop_down</mat-icon>
+          </ion-button>
+        </p>
+      </ng-container>
     </ng-template>
+
   </div>
 
 </ion-content>
 
-<ion-footer>
+<ion-footer *ngIf="type">
 
   <!-- Paginator -->
   <mat-paginator [length]="data?.total" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions"

@@ -8,13 +8,13 @@ import {
   isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
   PlatformService,
   propertyComparator
 } from '@sumaris-net/ngx-components';
-import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
+import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { first, map, mergeMap } from 'rxjs/operators';
 import { ExtractionCriteriaForm } from '../criteria/extraction-criteria.form';
@@ -37,11 +37,16 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
   form: FormGroup;
   canEdit = false;
   mobile: boolean;
+  startSubject = new BehaviorSubject<boolean>(false);
 
   onRefresh = new EventEmitter<any>();
   $types = new BehaviorSubject<T[]>(undefined);
 
   @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
+
+  get started(): boolean {
+    return this.startSubject.value;
+  }
 
   get sheetName(): string {
     return this.form.controls.sheetName.value;
@@ -103,49 +108,55 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
         })
     );
 
-    // Listen route parameters
-    this.registerSubscription(
-      this.route.queryParams
-        .pipe(
-          first(),
-          // Convert query params into a valid type
-          mergeMap(async ({category, label, sheet}) => {
-            const paramType = this.fromObject({category, label});
+    // Load type from route parameters
+    this.loadFromRoute();
+  }
 
-            // Read type
-            const types = await firstNotNilPromise(this.$types);
-            let selectedType;
+  protected async loadFromRoute(): Promise<void> {
+    // Convert query params into a valid type
+    const {category, label, sheet, q} = this.route.snapshot.queryParams;
+    if (this.debug) console.debug('[extraction-abstract-page] Reading queryParams...', this.route.snapshot.queryParams);
+    const paramType = this.fromObject({category, label});
 
-            // If not type found in params, redirect to first one
-            if (isNil(paramType.category) || isNil(paramType.label)) {
-              selectedType = types && types[0];
-            }
+    // Read type
+    const types = await firstNotNilPromise(this.$types, {stop: this.destroySubject});
+    let selectedType;
 
-            // Select the exact type object in the filter form
-            else {
-              selectedType = types.find(t => this.isEquals(t, paramType)) || paramType;
-            }
+    // If not type found in params, redirect to first one
+    if (isNil(paramType.category) || isNil(paramType.label)) {
+      console.debug('[extraction-abstract-page] No extraction type found, in route.');
+      this.markAsLoaded();
+      this.markAsStarted();
+      return; // Stop here
+    }
 
-            const selectedSheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
-            if (selectedSheetName && selectedType && !selectedType.sheetNames) {
-              selectedType.sheetNames = [selectedSheetName];
-            }
+    // Select the exact type object in the filter form
+    else {
+      selectedType = types.find(t => this.isEquals(t, paramType)) || paramType;
+    }
 
-            return {selectedType, selectedSheetName};
-          })
-        )
-        .subscribe(async ({selectedType, selectedSheetName}) => {
-          // Set the type
-          const changed = await this.setType(selectedType, {
-            sheetName: selectedSheetName,
-            emitEvent: false,
-            skipLocationChange: true // Here, we not need an update of the location
-          });
+    const selectedSheetName = sheet || (selectedType && selectedType.sheetNames && selectedType.sheetNames.length && selectedType.sheetNames[0]);
+    if (selectedSheetName && selectedType && !selectedType.sheetNames) {
+      selectedType.sheetNames = [selectedSheetName];
+    }
 
-          // Execute the first load
-          if (changed) await this.loadData();
+    // Set the type
+    const changed = await this.setType(selectedType, {
+      sheetName: selectedSheetName,
+      emitEvent: false,
+      skipLocationChange: true // Here, we not need an update of the location
+    });
 
-        }));
+    // Apply filter
+    if (isNotNilOrBlank(sheet) && isNotNilOrBlank(q)) {
+      const criteria = ExtractionUtils.parseCriteriaFromString(sheet, q);
+      this.criteriaForm.setValue(criteria, {emitEvent: false});
+    }
+
+    // Execute the first load
+    if (changed) await this.loadData();
+
+    this.markAsStarted();
   }
 
   async setType(type: T, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string; }): Promise<boolean> {
@@ -157,11 +168,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     if (!type) return false;
 
     // If same: skip
-    const typeChanged = !this.type || !this.isEquals(type, this.type);
-    if (!typeChanged) {
-      type = this.type;
-    }
-    else {
+    const changed = !this.type || !this.isEquals(type, this.type);
+    if (changed) {
       // Replace by the full entity
       type = await this.findTypeByFilter(ExtractionTypeFilter.fromType(type));
       if (!type) {
@@ -187,7 +195,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
 
     // Update the window location
     if (opts.skipLocationChange === false) {
-      setTimeout(() => this.updateLocationParams(type), 500);
+      setTimeout(() => this.updateQueryParams(), 500);
     }
 
     // Refresh data
@@ -195,7 +203,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
       this.onRefresh.emit();
     }
 
-    return typeChanged;
+    return changed;
   }
 
   protected getFirstInvalidTabIndex(): number {
@@ -209,7 +217,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     this.criteriaForm.sheetName = sheetName;
 
     if (opts.skipLocationChange !== true) {
-      setTimeout(() => this.updateLocationParams(this.type), 500);
+      setTimeout(() => this.updateQueryParams(), 500);
     }
 
     if (!opts || opts.emitEvent !== false) {
@@ -220,12 +228,15 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
   /**
    * Update the URL
    */
-  async updateLocationParams(type: T) {
+  async updateQueryParams(type?: T, opts = {skipLocationChange: false}) {
+    type = type || this.type;
+    if (this.type !== type) return; // Skip
+
     console.debug('[extraction-form] Updating query params', type);
 
     await this.router.navigate(['.'], {
       relativeTo: this.route,
-      skipLocationChange: false,
+      skipLocationChange: opts.skipLocationChange,
       queryParams: ExtractionUtils.asQueryParams(type, this.getFilterValue())
     });
   }
@@ -454,5 +465,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
 
   hasFilterCriteria(sheetName: string) {
     return this.criteriaForm.hasFilterCriteria(sheetName);
+  }
+
+  protected markAsStarted(opts = {emitEvent: true}){
+    if (!this.startSubject.value) {
+      this.startSubject.next(true);
+      if (opts.emitEvent !== false) this.markForCheck();
+    }
   }
 }

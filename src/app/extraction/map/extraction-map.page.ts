@@ -28,7 +28,7 @@ import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion } from '../type/extraction-type.model';
 import { Location } from '@angular/common';
-import * as L from 'leaflet';
+import { L } from '@app/vendor';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
 import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
@@ -43,9 +43,7 @@ import { ChartLegendOptions, ChartOptions, ChartType } from 'chart.js';
 import { ExtractionUtils } from '../common/extraction.utils';
 import { UnitLabel, UnitLabelPatterns } from '@app/referential/services/model/model.enum';
 import { MapGraticule } from '@app/shared/map/map.graticule';
-import '@bepo65/leaflet.fullscreen';
-import 'leaflet-easybutton';
-import 'leaflet-easybutton/src/easy-button.css';
+
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { FetchPolicy } from '@apollo/client';
 import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
