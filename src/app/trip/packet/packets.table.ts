@@ -181,7 +181,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   }
 
   protected async getMaxRankOrder(): Promise<number> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
@@ -331,7 +331,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   /* -- protected methods -- */
 
   protected async findRowByPacket(packet: Packet): Promise<TableElement<Packet>> {
-    return Packet && (await this.dataSource.getRows()).find(r => Packet.equals(packet, r.currentData));
+    return Packet && this.dataSource.getRows().find(r => Packet.equals(packet, r.currentData));
   }
 
   private onStartEditPacket(row: TableElement<Packet>) {

@@ -1,13 +1,10 @@
 import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { FormGroup } from '@angular/forms';
-import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, notNilOrDefault, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
-import * as momentImported from 'moment';
-import { isMoment } from 'moment';
+import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
-const moment = momentImported;
 
 export const MEASUREMENT_PMFM_ID_REGEXP = /measurements\.\d+$/;
 export const MEASUREMENT_VALUES_PMFM_ID_REGEXP = /measurementValues\.\d+$/;
@@ -413,51 +410,37 @@ export class MeasurementValuesUtils {
   static asObject(source: MeasurementModelValues | MeasurementFormValues, opts?: DataEntityAsObjectOptions): MeasurementModelValues | MeasurementFormValues {
     if (!opts || opts.minify !== true || !source) return source;
 
-    return source && Object.getOwnPropertyNames(source)
+    return Object.getOwnPropertyNames(source)
       .filter(controlName => controlName !== '__typename') // Ignore __typename
-      .reduce((map, pmfmId) => {
-        const value = notNilOrDefault(source[pmfmId] && source[pmfmId].id, source[pmfmId]);
-        if (isNotNil(value)) {
-          // If moment object, then convert to ISO string- fix #157
-          if (isMoment(value)) {
-            map[pmfmId] = toDateISOString(value);
-          }
-          // If date, convert to ISO string
-          else if (value instanceof Date) {
-            map[pmfmId] = toDateISOString(moment(value));
-          } else if (Array.isArray(value)) {
-            // Do nothing, managed in measurementValuesMultiples property
-          }
-          // String, number
-          else {
-            map[pmfmId] = '' + value;
-          }
-        }
-        return map;
-      }, {}) || undefined;
+      .reduce((target, pmfmId) => {
+        target[pmfmId] = PmfmValueUtils.asObject(source[pmfmId]);
+        return target;
+      }, {});
   }
 
-  static getValue(measurements: MeasurementFormValues | MeasurementModelValues, pmfms: IPmfm[], pmfmId: number, remove?: boolean): MeasurementFormValue {
-    if (!measurements || !pmfms || !pmfmId)
+  static getFormValue(measurementValues: MeasurementFormValues | MeasurementModelValues, pmfms: IPmfm[], pmfmId: number, remove?: boolean): MeasurementFormValue {
+    if (!measurementValues || !pmfms || isNil(pmfmId))
       return undefined;
 
     const pmfm = pmfms.find(p => p.id === +pmfmId);
-    if (pmfm && isNotNil(measurements[pmfm.id])) {
-      const value = this.normalizeValueToForm(measurements[pmfm.id], pmfm);
-      if (!!remove)
-        delete measurements[pmfm.id];
+    if (pmfm && isNotNil(measurementValues[pmfm.id])) {
+      const value = this.normalizeValueToForm(measurementValues[pmfm.id], pmfm);
+      if (remove === true) {
+        console.warn('DEPRECATED used of `remove` argument, when call MeasurementValuesUtils.getFormValue()!! Please make sure you need this');
+        delete measurementValues[pmfm.id];
+      }
       return value;
     }
     return undefined;
   }
 
-  static setValue(measurements: MeasurementFormValues | MeasurementModelValues, pmfms: IPmfm[], pmfmId: number, value: MeasurementFormValue) {
-    if (!measurements || !pmfms || !pmfmId)
+  static setFormValue(measurementValues: MeasurementFormValues | MeasurementModelValues, pmfms: IPmfm[], pmfmId: number, value: MeasurementFormValue) {
+    if (!measurementValues || !pmfms || !pmfmId)
       return undefined;
 
     const pmfm = pmfms.find(p => p.id === +pmfmId);
     if (pmfm) {
-      measurements[pmfm.id] = this.normalizeValueToForm(value, pmfm);
+      measurementValues[pmfm.id] = this.normalizeValueToForm(value, pmfm);
     }
     return undefined;
   }

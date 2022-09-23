@@ -54,7 +54,7 @@
                  [dynamicHeight]="false">
 
     <!-- TAB: general -->
-    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_GENERAL'|translate}}">
+    <mat-tab [label]="'OBSERVED_LOCATION.EDIT.TAB_GENERAL'|translateContext:i18nContext.suffix">
       <ng-template mat-tab-label>
         <mat-icon>information-circle</mat-icon>
         <ion-label translate>OBSERVED_LOCATION.EDIT.TAB_GENERAL</ion-label>
@@ -96,7 +96,7 @@
     </mat-tab>
 
     <!-- TAB: Landings -->
-    <mat-tab label="{{'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix }}"
+    <mat-tab [label]="'OBSERVED_LOCATION.EDIT.TAB_LANDINGS'|translateContext: i18nContext.suffix"
              [disabled]="!showLandingTab" #landingsTab>
       <ng-template mat-tab-label>
         <mat-icon>

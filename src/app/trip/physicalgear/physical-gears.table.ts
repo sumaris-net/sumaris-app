@@ -306,7 +306,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   }
 
   protected async findRowByEntity(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
-    return PhysicalGear && (await this.dataSource.getRows()).find(r => r.currentData.equals(physicalGear));
+    return PhysicalGear && this.dataSource.getRows().find(r => r.currentData.equals(physicalGear));
   }
 
 }

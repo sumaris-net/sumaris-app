@@ -89,9 +89,9 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
       target.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(target.measurementValues, pmfms);
 
       // add measurements for each calculated or non calculated values
-      MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE, saleProduct.averageWeightPrice);
-      MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE, saleProduct.averagePackagingPrice);
-      MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.TOTAL_PRICE, saleProduct.totalPrice);
+      MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE, saleProduct.averageWeightPrice);
+      MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE, saleProduct.averagePackagingPrice);
+      MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.TOTAL_PRICE, saleProduct.totalPrice);
       this.totalPriceCalculated += saleProduct.totalPrice;
 
       return Product.fromObject(target);

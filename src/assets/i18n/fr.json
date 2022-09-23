@@ -1111,7 +1111,8 @@
       },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
-        "TAB_LANDINGS": "Échantillonnages"
+        "TAB_LANDINGS": "Échantillonnages",
+        "TAB_GENERAL": "Sortie"
       }
     },
     "SELECT_VESSEL_MODAL": {

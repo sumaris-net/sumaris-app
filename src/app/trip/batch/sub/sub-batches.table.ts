@@ -686,7 +686,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     // If individual count column is shown (can be greater than 1)
     if (this.showIndividualCount) {
       // Try to find an identical sub-batch
-      const row = (await this.dataSource.getRows()).find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
+      const row = this.dataSource.getRows().find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
 
       // Already exists: increment individual count
       if (row) {
@@ -780,7 +780,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
    */
   protected async linkDataToParentAndDeleteOrphan() {
 
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
 
     // Check if need to delete some rows
     let hasRemovedItem = false;

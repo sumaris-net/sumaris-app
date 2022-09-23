@@ -288,7 +288,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
       console.info('[operation-table] User select an operation from the map:', data);
 
       // Open the row
-      const row = (await this.dataSource.getRows()).find(row => row.currentData.id === data.id);
+      const row = this.dataSource.getRows().find(row => row.currentData.id === data.id);
       if (row) {
         this.clickRow(null, row);
       }
@@ -318,7 +318,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   }
 
   async getUsedPhysicalGearIds(): Promise<number[]> {
-    return (await this.dataSource.getRows())
+    return this.dataSource.getRows()
       .map(ope => ope.currentData.physicalGear)
       .filter(isNotNil)
       .map(gear => gear.id)

@@ -25,7 +25,6 @@ export class SamplingLandingReport extends LandingReport {
       pathParentIdAttribute: 'observedLocationId',
       pathIdAttribute: 'samplingId'
     });
-    this.i18nContext.suffix = 'SAMPLING.';
   }
 
   /* -- protected function -- */

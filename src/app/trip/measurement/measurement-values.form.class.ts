@@ -412,13 +412,11 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       const filteredPmfms = (this.$pmfms.value || [])
         .filter(pmfm => {
           const control = measurementValuesForm.controls[pmfm.id];
-          return control && (
-            // Dirty
-            control.dirty
+          return control
             // Disabled (skipped by default)
-            || (this.options.skipDisabledPmfmControl === false && control.disabled))
+            && (!control.disabled || this.options.skipDisabledPmfmControl === false)
             // Computed (skipped by default)
-            || (this.options.skipComputedPmfmControl === false && pmfm.isComputed);
+            && (!pmfm.isComputed || this.options.skipComputedPmfmControl === false);
         });
 
       if (filteredPmfms.length) {

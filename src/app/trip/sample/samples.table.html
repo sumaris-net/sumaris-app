@@ -148,14 +148,17 @@
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header>
+    <ng-container matColumnDef="id" [sticky]="useSticky && showIdColumn">
+      <th mat-header-cell *matHeaderCellDef
+          mat-sort-header [class.cdk-visually-hidden]="!showIdColumn">
         <ion-label>#</ion-label>
       </th>
       <ng-container *matCellDef="let row">
         <td mat-cell *ngVar="row.editing && row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions) as error"
-            [title]="error||''">
-          <ion-text matBadge="!"
+            [title]="error||''"
+            [class.cdk-visually-hidden]="!showIdColumn">
+          <ion-text *ngIf="showIdColumn"
+                    matBadge="!"
                     [matBadgeHidden]="!error"
                     matBadgeOverlap="false"
                     matBadgeColor="accent"
@@ -319,7 +322,7 @@
 
     <!-- footer start -->
     <ng-container matColumnDef="footer-start" [sticky]="useSticky">
-      <td mat-footer-cell *matFooterCellDef [attr.colspan]="2"
+      <td mat-footer-cell *matFooterCellDef [attr.colspan]="showIdColumn ? 2 : 3"
         class="ion-text-end">
         <ion-text color="primary"><b translate>TRIP.SAMPLE.TABLE.TOTAL_DOTS</b>&nbsp;</ion-text>
       </td>
@@ -479,7 +482,7 @@
             [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
             [style.background-color]="getPmfmValueColor(row.currentData.measurementValues[pmfm.id], pmfm)">
           <!-- TODO BLA: manage color -->
-          <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
+          <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
         </td>
       </ng-container>
 

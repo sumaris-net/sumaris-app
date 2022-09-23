@@ -14,7 +14,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
+  isNotNilOrBlank, isNotNilOrNaN,
   LoadResult,
   ObjectMap,
   PlatformService,
@@ -49,8 +49,6 @@ import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sam
 import { OverlayEventDetail } from '@ionic/core';
 import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-import { EntityUtils } from '@sumaris-net/ngx-components/src/app/core/services/model/entity.model';
-import { SortDirection } from '@angular/material/sort';
 
 const moment = momentImported;
 
@@ -103,8 +101,9 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() showToolbar: boolean;
   @Input() mobile: boolean;
   @Input() usageMode: UsageMode;
-  @Input() requiredLabel = true;
+  @Input() showIdColumn = true;
   @Input() showLabelColumn = false;
+  @Input() requiredLabel = true;
   @Input() showPmfmDetails = false;
   @Input() showFabButton = false;
   @Input() showIndividualReleaseButton = false;
@@ -220,7 +219,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.pmfmService = injector.get(PmfmService);
-    this.inlineEdition = !this.mobile;
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
 
@@ -242,7 +240,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   }
 
   ngOnInit() {
-    this.inlineEdition = this.validatorService && !this.mobile;
+    this.inlineEdition = !this.readOnly && this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
@@ -635,17 +633,14 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     }
 
     // Get the previous sample
-    const previousSample: Sample = await this.getPreviousSample();
-    const previousSampleWithNumericalTagId: Sample = await this.getPreviousSampleWithNumericalTagId();
+    const previousSample = this.getPreviousSample();
 
     // server call for first sample and increment from server call value
     if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel && this.tagIdMinLength > 0) {
-      const existingTagId = previousSampleWithNumericalTagId?.measurementValues[PmfmIds.TAG_ID];
-      const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
-      const nextAvailableTagId = Number((await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength));
-      const newTagId = (isNilOrNaN(existingTagIdAsNumber)
-        ? nextAvailableTagId
-        : Math.max(nextAvailableTagId, existingTagIdAsNumber + 1)).toString().padStart(this.tagIdMinLength, '0');
+      const previousTagId = this.getPreviousTagId();
+      const nextAvailableTagId = parseInt((await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength));
+      const newTagId = (isNilOrNaN(previousTagId) ? nextAvailableTagId
+        : Math.max(nextAvailableTagId, previousTagId + 1)).toString().padStart(this.tagIdMinLength, '0');
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;
     }
 
@@ -655,26 +650,23 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     }
   }
 
-  protected async getPreviousSample(): Promise<Sample> {
+  protected getPreviousSample(): Sample|undefined {
     if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
-    const row = await this.dataSource.getRow(this.visibleRowCount - 1);
-    return row && row.currentData;
+    const row = this.dataSource.getRow(this.visibleRowCount - 1);
+    return row?.currentData;
   }
 
-  protected async getPreviousSampleWithNumericalTagId(): Promise<Sample> {
+  protected getPreviousTagId(): number | undefined {
     if (isNil(this.visibleRowCount) || this.visibleRowCount === 0) return undefined;
     for (let i = this.visibleRowCount - 1; i >= 0; i--) {
       const row = this.dataSource.getRow(i);
       if (row) {
         const rowData = row.currentData;
-        const existingTagId = rowData?.measurementValues[PmfmIds.TAG_ID];
-        const existingTagIdAsNumber = existingTagId && parseInt(existingTagId);
-        if (existingTagIdAsNumber) {
-          return rowData;
-        }
-
+        const existingTagId = toNumber(rowData?.measurementValues[PmfmIds.TAG_ID]);
+        if (isNotNilOrNaN(existingTagId)) return existingTagId;
       }
     }
+    return undefined
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
@@ -727,7 +719,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
   async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
-    return (await this.dataSource.getRows())
+    return this.dataSource.getRows()
       .find(r => r.currentData.rankOrder === data.rankOrder);
   }
 

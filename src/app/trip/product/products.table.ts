@@ -340,7 +340,7 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
   }
 
   protected async findRowByProduct(product: Product): Promise<TableElement<Product>> {
-    return Product && (await this.dataSource.getRows()).find(r => product.equals(r.currentData));
+    return Product && this.dataSource.getRows().find(r => product.equals(r.currentData));
   }
 
   private onStartEditProduct(row: TableElement<Product>) {

@@ -284,7 +284,7 @@ export class ObservedLocationService
            opts?: EntitiesServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
 
     // Load offline
-    const offlineData = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    const offlineData = this.network.offline || (dataFilter?.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offlineData) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
@@ -558,13 +558,12 @@ export class ObservedLocationService
   }): Promise<any> {
 
     // Delete local entities
-    const localEntities = entities && entities.filter(DataRootEntityUtils.isLocal);
+    const localEntities = entities?.filter(DataRootEntityUtils.isLocal);
     if (isNotEmptyArray(localEntities)) {
       return this.deleteAllLocally(localEntities, opts);
     }
 
-    const ids = entities && entities.map(t => t.id)
-      .filter(id => id >= 0);
+    const ids = entities?.filter(EntityUtils.isRemote).map(t => t.id);
     if (isEmptyArray(ids)) return; // stop if empty
 
     const now = Date.now();

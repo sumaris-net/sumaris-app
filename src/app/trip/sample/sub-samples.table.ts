@@ -176,7 +176,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
 
       // Read existing rows
-      const existingSamples = (await this.dataSource.getRows() || []).map(r => r.currentData);
+      const existingSamples = this.dataSource.getRows().map(r => r.currentData);
 
       const displayParentPmfmId = this.displayParentPmfm?.id;
       const availableParents = this._availableSortedParents || this._availableParents
@@ -397,7 +397,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   protected async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
-    return (await this.dataSource.getRows())
+    return this.dataSource.getRows()
       .find(r => r.currentData.rankOrder === data.rankOrder);
   }
 

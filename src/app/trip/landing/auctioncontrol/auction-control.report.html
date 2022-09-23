@@ -70,7 +70,7 @@
     <tbody>
     <tr *ngFor="let sample of samples; even as even" [class.even]="even">
       <td>{{sample.label}}</td>
-      <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true, unitConversion: true}"></td>
+      <td *ngFor="let pmfm of pmfms" [innerHTML]="sample|measurementValueGet:{pmfm: pmfm, html: true}"></td>
       <td>{{sample.comments}}</td>
     </tr>
     </tbody>

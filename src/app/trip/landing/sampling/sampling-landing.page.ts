@@ -258,14 +258,14 @@ export class SamplingLandingPage extends LandingPage {
     if (strategyLabel) {
       const samplePrefix = strategyLabel + '-';
       (data.samples || []).map(sample => {
-      if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
-        const tagId = sample.measurementValues[PmfmIds.TAG_ID];
-        if (tagId && tagId.startsWith(samplePrefix)) {
-          sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
+        if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
+          const tagId = sample.measurementValues[PmfmIds.TAG_ID];
+          if (tagId && tagId.startsWith(samplePrefix)) {
+            sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
+          }
         }
-      }
-    });
-  }
+      });
+    }
 
     await super.setValue(data);
   }
