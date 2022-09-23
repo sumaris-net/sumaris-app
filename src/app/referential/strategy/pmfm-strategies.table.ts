@@ -391,7 +391,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   }
 
   protected async getMaxRankOrder(acquisitionLevel: IReferentialRef): Promise<number> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return rows
       .map(row => row.currentData)
       .filter(data => ReferentialUtils.equals(data.acquisitionLevel, acquisitionLevel))
