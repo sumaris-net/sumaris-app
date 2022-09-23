@@ -1116,6 +1116,8 @@
         "END_DATE": "End period"
       }
     },
+    "PMFM": {
+    },
     "OFFLINE_MODAL": {
       "TITLE": "Configuring offline mode",
       "HISTORICAL_DATA_DIVIDER": "Data history",
@@ -1136,7 +1138,16 @@
       "OBSERVATIONS_HAS_SAMPLE": "Selected observations have sampling.<br/><br/><b>Are you sure</b> you want to delete them?"
     },
     "REPORT": {
-      "TITLE": "Summary of the monitoring of controls under auctions"
+      "TITLE": "Raport de sortie - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Raport de sortie",
+      "LOCATION": "Lieu :",
+      "DATE_TIME": "Date/heure :",
+      "OBSERVERS": "Observateur(s) :",
+      "NB_CONTROLED_VESSEL": "Number of vessels checked :",
+      "AUCTION_CONTROL": {
+        "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
+        "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées"
+      }
     }
   },
   "LANDING": {

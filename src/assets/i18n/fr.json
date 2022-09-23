@@ -1137,6 +1137,8 @@
         "END_DATE": "Fin de période"
       }
     },
+    "PMFM": {
+    },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
       "HISTORICAL_DATA_DIVIDER": "Historique de données",
@@ -1157,8 +1159,16 @@
       "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "REPORT": {
-      "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
-      "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées"
+      "TITLE": "Raport de sortie - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Raport de sortie",
+      "LOCATION": "Lieu :",
+      "DATE_TIME": "Date/heure :",
+      "OBSERVERS": "Observateur(s) :",
+      "NB_CONTROLED_VESSEL": "Nombre de navire contrôlés :",
+      "AUCTION_CONTROL": {
+        "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
+        "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées"
+      }
     }
   },
   "LANDING": {

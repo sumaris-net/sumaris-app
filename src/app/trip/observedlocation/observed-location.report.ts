@@ -1,9 +1,14 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, DateFormatPipe, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, arrayDistinct, DateFormatPipe, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { MeasurementFormValues, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { ObservedLocationService } from '../services/observed-location.service';
 
@@ -22,6 +27,7 @@ export class ObservedLocationReport implements AfterViewInit {
   private readonly translate: TranslateService;
   private readonly observedLocationService: ObservedLocationService;
   private readonly settings: LocalSettingsService;
+  private readonly programRefService: ProgramRefService;
 
   protected readonly _readySubject = new BehaviorSubject<boolean>(false);
   protected readonly _loadingSubject = new BehaviorSubject<boolean>(true);
@@ -33,6 +39,15 @@ export class ObservedLocationReport implements AfterViewInit {
   defaultBackHref: string = null;
   error: string;
   slidesOptions: Partial<IRevealOptions>;
+  data: ObservedLocation;
+  nbControlledVessel: number = 0;
+  weightDisplayedUnit: WeightUnitSymbol;
+  pmfms: IPmfm[];
+  pmfmsValues: MeasurementFormValues;
+  i18nContext = {
+    prefix: '',
+    suffix: ''
+  };
 
   $title = new Subject();
 
@@ -53,10 +68,11 @@ export class ObservedLocationReport implements AfterViewInit {
     this.translate = injector.get(TranslateService);
     this.observedLocationService = injector.get(ObservedLocationService);
     this.settings = injector.get(LocalSettingsService);
+    this.programRefService = injector.get(ProgramRefService);
 
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam;
 
-    this.computeSlidesOptions(this.settings);
+    this.computeSlidesOptions();
 
     if (!this.route || isNilOrBlank(this._pathIdAttribute)) {
       throw new Error('Unable to load from route: missing \'route\'.');
@@ -117,6 +133,24 @@ export class ObservedLocationReport implements AfterViewInit {
 
     await this.computeTitle(data);
     this.computeDefaultBackHref(data);
+    this.data = data;
+
+    const program = await this.programRefService.loadByLabel(data.program.label);
+    this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+    this.i18nContext.prefix = 'TRIP.SAMPLE.PMFM.';
+    this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    if (this.i18nContext.suffix === 'legacy') {this.i18nContext.suffix = ''}
+
+    this.pmfms = await this.programRefService.loadProgramPmfms(
+      data.program.label,
+      {
+        acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION
+      }
+    )
+
+    this.pmfmsValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, this.pmfms);
+
+    this.nbControlledVessel = arrayDistinct(this.data.landings, ['vesselSnapshot.id']).length;
 
     this.markAsLoaded();
     this.cd.detectChanges();
@@ -160,7 +194,7 @@ export class ObservedLocationReport implements AfterViewInit {
     this.defaultBackHref = `/observations/${data.id}?tab=1`;
   }
 
-  protected computeSlidesOptions(settings: LocalSettingsService) {
+  protected computeSlidesOptions() {
     const mobile = this.settings.mobile;
     this.slidesOptions = {
       autoInitialize: false,
@@ -168,5 +202,10 @@ export class ObservedLocationReport implements AfterViewInit {
       touch: mobile,
     };
   }
+
+  //protected async onDataLoaded(data: ObservedLocation, pmfms: IPmfm[]): Promise<ObservedLocation> {
+    //(data.measurementValues || {})
+
+  //}
 
 }
