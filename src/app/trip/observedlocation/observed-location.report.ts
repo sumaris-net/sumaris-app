@@ -226,7 +226,6 @@ export class ObservedLocationReport implements AfterViewInit {
   protected async computeAutionReportItems(landings: Landing[], program: Program) {
     const result = Array(landings.length);
     await landings.forEach(async (landing, index) => {
-      console.log(index);
       const data = await this.landingService.load(landing.id);
       const taxonGroup = (data.samples || [])
         .find(s => !!s.taxonGroup?.name)?.taxonGroup || {} as TaxonGroupRef;
