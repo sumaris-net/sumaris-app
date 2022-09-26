@@ -3,14 +3,28 @@ import { ActivatedRoute } from '@angular/router';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { TranslateService } from '@ngx-translate/core';
 import { AppErrorWithDetails, arrayDistinct, DateFormatPipe, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { LandingService } from '../services/landing.service';
+import { Landing } from '../services/model/landing.model';
 import { MeasurementFormValues, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { ObservedLocation } from '../services/model/observed-location.model';
+import { Sample } from '../services/model/sample.model';
 import { ObservedLocationService } from '../services/observed-location.service';
+
+export interface AuctionReportItem {
+  title: string,
+  taxonGroup: string,
+  samplesCount: number,
+  samples: Sample[],
+  pmfms: IPmfm[],
+  pmfmsValues: MeasurementFormValues,
+}
 
 @Component({
   selector: 'app-observed-location',
@@ -28,6 +42,7 @@ export class ObservedLocationReport implements AfterViewInit {
   private readonly observedLocationService: ObservedLocationService;
   private readonly settings: LocalSettingsService;
   private readonly programRefService: ProgramRefService;
+  private readonly landingService: LandingService;
 
   protected readonly _readySubject = new BehaviorSubject<boolean>(false);
   protected readonly _loadingSubject = new BehaviorSubject<boolean>(true);
@@ -48,6 +63,7 @@ export class ObservedLocationReport implements AfterViewInit {
     prefix: '',
     suffix: ''
   };
+  auctionReportItems: AuctionReportItem[];
 
   $title = new Subject();
 
@@ -69,6 +85,7 @@ export class ObservedLocationReport implements AfterViewInit {
     this.observedLocationService = injector.get(ObservedLocationService);
     this.settings = injector.get(LocalSettingsService);
     this.programRefService = injector.get(ProgramRefService);
+    this.landingService = injector.get(LandingService);
 
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam;
 
@@ -136,7 +153,8 @@ export class ObservedLocationReport implements AfterViewInit {
     this.data = data;
 
     const program = await this.programRefService.loadByLabel(data.program.label);
-    this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+    this.weightDisplayedUnit = program
+      .getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
     this.i18nContext.prefix = 'TRIP.SAMPLE.PMFM.';
     this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     if (this.i18nContext.suffix === 'legacy') {this.i18nContext.suffix = ''}
@@ -147,10 +165,12 @@ export class ObservedLocationReport implements AfterViewInit {
         acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION
       }
     )
-
-    this.pmfmsValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, this.pmfms);
-
+    this.pmfmsValues = MeasurementValuesUtils
+      .normalizeValuesToForm(data.measurementValues, this.pmfms);
     this.nbControlledVessel = arrayDistinct(this.data.landings, ['vesselSnapshot.id']).length;
+
+    await this.computeAutionReportItems(data.landings, program);
+    console.log(this.auctionReportItems);
 
     this.markAsLoaded();
     this.cd.detectChanges();
@@ -203,9 +223,30 @@ export class ObservedLocationReport implements AfterViewInit {
     };
   }
 
-  //protected async onDataLoaded(data: ObservedLocation, pmfms: IPmfm[]): Promise<ObservedLocation> {
-    //(data.measurementValues || {})
+  protected async computeAutionReportItems(landings: Landing[], program: Program) {
+    const result = Array(landings.length);
+    await landings.forEach(async (landing, index) => {
+      console.log(index);
+      const data = await this.landingService.load(landing.id);
+      const taxonGroup = (data.samples || [])
+        .find(s => !!s.taxonGroup?.name)?.taxonGroup || {} as TaxonGroupRef;
+      const pmfms = await this.programRefService.loadProgramPmfms(program.label, {
+        acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
+        taxonGroupId: taxonGroup?.id,
+      });
+      const pmfmsValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, pmfms);
+      const auctionReportItem: AuctionReportItem = {
+        title: landing.vesselSnapshot.name,
+        taxonGroup: taxonGroup?.name || '',
+        samplesCount: data.samples.length,
+        pmfms: pmfms,
+        pmfmsValues: pmfmsValues,
+        samples: data.samples,
+      }
 
-  //}
+      result[index] = auctionReportItem;
+    });
+    this.auctionReportItems = result;
+  }
 
 }
