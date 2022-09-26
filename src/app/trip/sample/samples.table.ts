@@ -38,7 +38,7 @@ import { debounceTime } from 'rxjs/operators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
+import { SelectPmfmModal, ISelectPmfmModalOptions } from '@app/referential/pmfm/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -746,6 +746,11 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     const newPmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id))))
       .map(DenormalizedPmfmStrategy.fromFullPmfm);
 
+    // Add weight conversion
+    if (this.weightDisplayedUnit) {
+      PmfmUtils.setWeightUnitConversions(newPmfms, this.weightDisplayedUnit, {clone: false});
+    }
+
     this.pmfms = [
       ...this.pmfms,
       ...newPmfms
@@ -759,9 +764,10 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
     const modal = await this.modalCtrl.create({
       component: SelectPmfmModal,
-      componentProps: {
+      componentProps: <ISelectPmfmModalOptions>{
         filter: PmfmFilter.fromObject(filter),
-        allowMultiple: opts && opts.allowMultiple
+        showFilter: true,
+        allowMultiple: opts?.allowMultiple
       },
       keyboardClose: true,
       cssClass: 'modal-large'
