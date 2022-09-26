@@ -147,7 +147,7 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
   }
 
   protected async getMaxRankOrderOnPeriod(): Promise<number> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrderOnPeriod || 0), 0);
   }
 
@@ -228,7 +228,7 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
   }
 
   protected async findRowByOperationGroup(operationGroup: OperationGroup): Promise<TableElement<OperationGroup>> {
-    return OperationGroup && (await this.dataSource.getRows()).find(r => operationGroup.equals(r.currentData));
+    return OperationGroup && this.dataSource.getRows().find(r => operationGroup.equals(r.currentData));
   }
 
 }

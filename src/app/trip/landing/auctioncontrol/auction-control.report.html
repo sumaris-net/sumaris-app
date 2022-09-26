@@ -28,28 +28,21 @@
           - {{'LANDING.REPORT.RECORDER_PERSON'|translate}} {{parent.observers|personToString}}
           - {{'LANDING.REPORT.VESSEL'|translate}} **{{data.vesselSnapshot.name}}**
           - {{'AUCTION_CONTROL.REPORT.CONTROLLED_SPECIES'|translate}} **{{stats.taxonGroup?.name || '?'}}**
+
+          <div *ngIf="data.samples|isArrayLength: {lessThan: 6}">
+            &nbsp;
+            <ng-container
+              [ngTemplateOutlet]="sampleTable" [ngTemplateOutletContext]="{$implicit: data.samples}">
+            </ng-container>
+          </div>
         </section>
       </section>
-      <section *ngIf="data.samples|isArrayLength:{greaterThan: 0}">
+      <section *ngIf="data.samples|isArrayLength:{greaterThan: 5}">
         <section markdown ngPreserveWhitespaces
-                 *ngFor="let samples of (data.samples | splitArrayInChunks: 12); index as index; count as count">
+                 *ngFor="let samples of (data.samples | splitArrayInChunks: slides.printing ? -1 : 25); index as index; count as count">
           ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
 
-          <table [style.--col-count]="pmfms.length + 1">
-            <thead>
-              <tr>
-                <th>{{'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nContext.suffix}}</th>
-                <th *ngFor="let pmfm of pmfms"
-                    [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true }"></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let sample of samples; even as even" [class.even]="even">
-                <td>{{sample.label}}</td>
-                <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true}"></td>
-              </tr>
-            </tbody>
-          </table>
+          <ng-container *ngTemplateOutlet="sampleTable; context: {$implicit: samples}"></ng-container>
 
         </section>
       </section>
@@ -62,3 +55,25 @@
     </div>
   </ng-template>
 </ion-content>
+
+<ng-template #sampleTable let-samples>
+
+  <table [style.--col-count]="pmfms.length + 2">
+    <thead>
+    <tr>
+      <th>{{'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nContext.suffix}}</th>
+      <th *ngFor="let pmfm of pmfms"
+          [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix}"></th>
+      <th>{{'TRIP.SAMPLE.TABLE.COMMENTS'|translate}}</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let sample of samples; even as even" [class.even]="even">
+      <td>{{sample.label}}</td>
+      <td *ngFor="let pmfm of pmfms" [innerHTML]="sample|measurementValueGet:{pmfm: pmfm, html: true}"></td>
+      <td>{{sample.comments}}</td>
+    </tr>
+    </tbody>
+  </table>
+
+</ng-template>

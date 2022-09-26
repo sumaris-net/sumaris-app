@@ -16,13 +16,16 @@ import {
   sleep,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
+import { CRITERION_OPERATOR_LIST, CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { ExtractionService } from '../common/extraction.service';
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { filter, map } from 'rxjs/operators';
 import { ExtractionCriteriaValidatorService } from './extraction-criterion.validator';
 
-
+export const DEFAULT_EXTRACTION_COLUMNS: Partial<ExtractionColumn>[] = [
+  {columnName: 'project', name: 'EXTRACTION.COLUMNS.PROJECT', label: 'project', type: 'string'},
+  {columnName: 'year', name: 'EXTRACTION.COLUMNS.YEAR', label: 'year', type: 'integer'},
+]
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
@@ -36,17 +39,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   private _sheetName: string;
   private _type: E;
 
-  operators: { symbol: CriterionOperator; name?: String; }[] = [
-    {symbol: '='},
-    {symbol: '!='},
-    {symbol: '>'},
-    {symbol: '>='},
-    {symbol: '<'},
-    {symbol: '<='},
-    {symbol: 'BETWEEN', name: "EXTRACTION.FILTER.BETWEEN"},
-    {symbol: 'NULL', name: "EXTRACTION.FILTER.NULL"},
-    {symbol: 'NOT NULL', name: "EXTRACTION.FILTER.NOT_NULL"}
-  ];
+  operators = CRITERION_OPERATOR_LIST;
 
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $columnValueDefinitions = new BehaviorSubject<FormFieldDefinition[]>(undefined);
@@ -72,7 +65,16 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
   @Input()
   set columns(value: ExtractionColumn[]) {
-    this.$columns.next(value);
+    if (isNotEmptyArray(value)) {
+      this.$columns.next(value);
+    }
+    else {
+      const columns = DEFAULT_EXTRACTION_COLUMNS.map(col => {
+        col.name = this.translate.instant(col.name);
+        return ExtractionColumn.fromObject(col);
+      })
+      this.$columns.next(columns);
+    }
   }
 
   get sheetCriteriaForm(): FormArray {
@@ -358,8 +360,16 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       return res;
     }, {});
 
+
     // Convert object to json, then apply it to form (e.g. convert 'undefined' into 'null')
     AppFormUtils.copyEntity2Form(json, this.form, {emitEvent: false, onlySelf: true, ...opts});
+
+    // Add missing criteria
+    Object.keys(json).forEach(sheet => {
+      (json[sheet] || [])
+        .filter((c, index) => index >= 1)
+        .forEach(criterion => this.addFilterCriterion(criterion))
+    });
 
     if (!opts || opts.emitEvent !== true) {
       this.markForCheck();

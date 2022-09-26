@@ -1,8 +1,16 @@
-app-slides {
-  table {
+@media print {
+  section table {
     --r-table-cell-font-size: 0.4em;
+
     th {
       --r-link-color: black;
     }
+  }
+}
+
+section table {
+  --r-table-cell-font-size: 0.4em;
+  th {
+    --r-link-color: black;
   }
 }

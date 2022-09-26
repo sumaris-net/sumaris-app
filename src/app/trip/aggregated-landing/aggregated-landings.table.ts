@@ -318,7 +318,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
   }
 
   async vesselIdsAlreadyPresent(): Promise<number[]> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return (rows || []).map(row => row.currentData.vesselSnapshot.id);
   }
 

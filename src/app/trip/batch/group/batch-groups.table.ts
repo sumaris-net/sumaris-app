@@ -1133,7 +1133,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   }
 
   protected async findRowByEntity(batchGroup: BatchGroup): Promise<TableElement<BatchGroup>> {
-    return batchGroup && (await this.dataSource.getRows()).find(r => BatchGroup.equals(r.currentData, batchGroup));
+    return batchGroup && this.dataSource.getRows().find(r => BatchGroup.equals(r.currentData, batchGroup));
   }
 
   /**

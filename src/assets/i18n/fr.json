@@ -635,8 +635,6 @@
         "VERTICAL_OPENING_INSTRUMENT": "Ouverture verticale - Mesurée (m)",
         "CHILD": {
           "GEAR_LABEL": "Libellé du sous-engin"
-        },
-        "TRAWL_SELECTIVITY": {
         }
       },
       "ERROR": {
@@ -1113,7 +1111,8 @@
       },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
-        "TAB_LANDINGS": "Échantillonnages"
+        "TAB_LANDINGS": "Échantillonnages",
+        "TAB_GENERAL": "Sortie"
       }
     },
     "SELECT_VESSEL_MODAL": {
@@ -2025,7 +2024,9 @@
       }
     },
     "TABLE": {
-      "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>"
+      "TITLE": "Extraction de données",
+      "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>",
+      "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :"
     },
     "MAP": {
       "BTN_MAP_LIST": "Liste des cartes",
@@ -2088,7 +2089,7 @@
       "LANDING_COUNTRY": "Pays de débarquement",
       "RECORD_TYPE": "Type",
       "HARBOUR": "Port",
-      "PROJECT": "Projet",
+      "PROJECT": "Programme de collecte",
       "TRIP_CODE": "Code marée",
       "STATION_NUMBER": "Numéro de station",
       "YEAR": "Année",
@@ -2217,6 +2218,9 @@
           "SM": "Suivi de stratégies"
         }
       }
+    },
+    "INFO": {
+      "PLEASE_WAIT_WHILE_RUNNING": "Extraction en cours. Veuillez patientez..."
     },
     "ERROR": {
       "LOAD_TYPES_ERROR": "Erreur de chargement des types d'extraction",

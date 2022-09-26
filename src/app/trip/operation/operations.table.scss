@@ -1,9 +1,11 @@
 
 .table-container {
+  --table-toolbar-height: 0;
+  --table-paginator-height: 0;
+
   height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height));
 
-  --table-toolbar-height: 0px;
-  --table-paginator-height: 0px;
+
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
   }

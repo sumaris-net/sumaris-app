@@ -280,19 +280,17 @@ export abstract class AppRootDataEditor<
     console.debug(`[root-data-editor] Listening program #${program.id} changes...`);
 
     // Remove previous subscription, if exists
-    if (this.remoteProgramSubscription) {
-      this.unregisterSubscription(this.remoteProgramSubscription);
-      this.remoteProgramSubscription.unsubscribe();
-    }
+    this.remoteProgramSubscription?.unsubscribe();
 
-    this.remoteProgramSubscription = this.programRefService.listenChanges(program.id)
+    const subscription = this.programRefService.listenChanges(program.id)
       .pipe(
         filter(isNotNil),
-        mergeMap(async (data) => {
+        filter(() => !this.dirty), // Avoid reloading while editing the page
+        tap((data) => {
           if (data.updateDate && (data.updateDate as Moment).isAfter(program.updateDate)) {
             if (this.debug) console.debug(`[root-data-editor] Program changes detected on server, at {${data.updateDate}}: clearing program cache...`);
             // Reload program & strategies
-            return this.reloadProgram();
+            this.reloadProgram();
           }
         })
       )
@@ -301,30 +299,31 @@ export abstract class AppRootDataEditor<
       //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
     ;
 
-    this.registerSubscription(this.remoteProgramSubscription);
+    subscription.add(() => this.unregisterSubscription(subscription));
+    this.registerSubscription(subscription);
+    this.remoteProgramSubscription = subscription;
   }
 
   protected startListenStrategyRemoteChanges(program: Program) {
     if (!program || isNil(program.id)) return; // Skip
 
     // Remove previous listener (e.g. on a previous program id)
-    if (this.remoteStrategySubscription) {
-      this.unregisterSubscription(this.remoteStrategySubscription);
-      this.remoteStrategySubscription.unsubscribe();
-    }
+    this.remoteStrategySubscription?.unsubscribe();
 
-    this.remoteStrategySubscription = this.strategyRefService.listenChangesByProgram(program.id)
+    const subscription = this.strategyRefService.listenChangesByProgram(program.id)
         .pipe(
           filter(isNotNil),
+          filter(() => !this.dirty), // Avoid reloading while editing the page
           // Reload strategies
           mergeMap((_) => this.reloadStrategy())
         )
         .subscribe()
     // DEBUG
     //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
-    ;
 
-    this.registerSubscription(this.remoteStrategySubscription);
+    subscription.add(() => this.unregisterSubscription(subscription));
+    this.registerSubscription(subscription);
+    this.remoteStrategySubscription = subscription;
   }
 
   /**

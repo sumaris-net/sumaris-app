@@ -99,7 +99,6 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
       new EntitiesTableDataSource<E, F, ID>(dataType, entityService, validatorService, {
           prependNewElements: false,
           restoreOriginalDataOnCancel: false,
-          saveOnlyDirtyRows: true,
           suppressErrors: environment.production,
           onRowCreated: (row) => this.onDefaultRowCreated(row),
           ...options
@@ -368,7 +367,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     // Make sure using an entity class, to be able to use equals()
     data = this.asEntity(data);
 
-    return (await this.dataSource.getRows())
+    return this.dataSource.getRows()
       .find(r => data.equals(r.currentData));
   }
 

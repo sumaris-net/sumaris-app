@@ -209,6 +209,10 @@ export class StrategyEffort {
     return (!this.expectedEffort || (this.realizedEffort && this.realizedEffort >= this.expectedEffort));
   }
 
+  get realizedMore(): boolean {
+    return (!this.expectedEffort || (this.realizedEffort && this.realizedEffort > this.expectedEffort));
+  }
+
   get missingEffort(): number {
     return isNil(this.expectedEffort) ? undefined :
       // Avoid negative missing effort (when realized > expected)

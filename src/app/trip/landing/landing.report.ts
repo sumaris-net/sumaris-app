@@ -1,11 +1,11 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, ViewChild } from '@angular/core';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
 import {
   AppErrorWithDetails,
   DateFormatPipe,
-  EntityServiceLoadOptions, IEntity,
+  EntityServiceLoadOptions,
   isInt,
   isNil,
   isNilOrBlank,
@@ -24,14 +24,16 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { environment } from '@environments/environment';
 
 export class LandingReportOptions {
   pathIdAttribute?: string;
   pathParentIdAttribute?: string;
 }
 
+@Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class LandingReport<T extends Landing = Landing> implements AfterViewInit {
 
   private readonly route: ActivatedRoute;
@@ -67,6 +69,7 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
   @Input() showToolbar = true;
   @Input() showError = true;
+  @Input() debug = !environment.production;
 
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
 
@@ -150,6 +153,8 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
     const program = await this.programRefService.loadByLabel(parent.program.label);
     this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    this.i18nContext.suffix = i18nSuffix === 'legacy' ? '': i18nSuffix;
 
     // Compute agg data
     this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup || {};
@@ -217,10 +222,9 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
 
   protected onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<T> {
-    // Adapt to form, e.g. to convert weight unit
-    (data.samples || []).forEach(sample => {
-      sample.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(sample.measurementValues, pmfms);
-    })
+
+    // FOR DEV ONLY : add more data
+    if (this.debug && !environment.production && data.samples.length < 5) this.addFakeSamplesForDev(data);
 
     return Promise.resolve(data as T);
   }
@@ -264,5 +268,12 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     this.cd.markForCheck();
   }
 
-
+  protected addFakeSamplesForDev(data: Landing, count = 20) {
+    if (environment.production || !data.samples.length) return; // Skip
+    const samples = new Array(count);
+    for (let i = 0; i < count; i++) {
+      samples[i] = data.samples[i % data.samples.length].clone();
+    }
+    data.samples = samples;
+  }
 }

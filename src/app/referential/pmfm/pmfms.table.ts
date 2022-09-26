@@ -24,6 +24,9 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
 
   @Input() showToolbar = false;
   @Input() showFilter = true;
+  @Input() allowMultipleSelection = true;
+  @Input() showPaginator = true;
+  @Input() sticky = true;
 
   constructor(
     injector: Injector,

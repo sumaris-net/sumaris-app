@@ -262,7 +262,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   }
 
   async getMaxRankOrderOnVessel(vessel: VesselSnapshot): Promise<number> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return rows
       .filter(row => vessel.equals(row.currentData.vesselSnapshot))
       .reduce((res, row) => Math.max(res, row.currentData.rankOrderOnVessel || 0), 0);

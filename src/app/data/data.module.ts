@@ -5,6 +5,7 @@ import { CoreModule } from '@sumaris-net/ngx-components';
 import { QualityFlagToColorPipe } from './services/pipes/quality-flag-to-color.pipe';
 import { StrategySummaryCardComponent } from './strategy/strategy-summary-card.component';
 import { EntityQualityIconComponent } from '@app/data/quality/entity-quality-icon.component';
+import { IsMeasurementModelValuesPipe, IsMeasurementFormValuesPipe, MeasurementValueGetPipe } from '@app/data/services/pipes/measurements.pipe';
 
 @NgModule({
   imports: [
@@ -16,6 +17,9 @@ import { EntityQualityIconComponent } from '@app/data/quality/entity-quality-ico
   declarations: [
     // Pipes
     QualityFlagToColorPipe,
+    IsMeasurementFormValuesPipe,
+    IsMeasurementModelValuesPipe,
+    MeasurementValueGetPipe,
 
     // Components
     EntityQualityFormComponent,
@@ -27,6 +31,9 @@ import { EntityQualityIconComponent } from '@app/data/quality/entity-quality-ico
 
     // Pipes
     QualityFlagToColorPipe,
+    IsMeasurementFormValuesPipe,
+    IsMeasurementModelValuesPipe,
+    MeasurementValueGetPipe,
 
     // Components
     EntityQualityFormComponent,

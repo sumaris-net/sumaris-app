@@ -1,21 +1,26 @@
 import { Injectable, Injector } from '@angular/core';
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {ReferentialFragments} from "./referential.fragments";
-import {BaseEntityGraphqlQueries, GraphqlService} from '@sumaris-net/ngx-components';
-import {CacheService} from "ionic-cache";
-import {ErrorCodes} from "./errors";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ReferentialFilter} from "./filter/referential.filter";
-import {Strategy} from "./model/strategy.model";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {StrategyFragments} from "./strategy.fragments";
-import {firstArrayValue, isNil, isNotEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {defer, Observable, Subject, Subscription} from "rxjs";
-import {filter, finalize, map, tap} from "rxjs/operators";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
+import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { ReferentialFragments } from './referential.fragments';
+import {
+  AccountService,
+  BaseEntityGraphqlQueries,
+  EntitiesStorage,
+  firstArrayValue,
+  firstNotNilPromise,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  NetworkService,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import { CacheService } from 'ionic-cache';
+import { ErrorCodes } from './errors';
+import { ReferentialFilter } from './filter/referential.filter';
+import { Strategy } from './model/strategy.model';
+import { StrategyFragments } from './strategy.fragments';
+import { defer, Observable, Subject, Subscription } from 'rxjs';
+import { filter, finalize, map } from 'rxjs/operators';
+import { BaseReferentialService } from './base-referential-service.class';
 
 
 export class StrategyRefFilter extends ReferentialFilter {
@@ -208,30 +213,29 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     const cacheKey = [StrategyRefCacheKeys.STRATEGIES_BY_PROGRAM_ID, programId].join('|');
     let cache = this._subscriptionCache[cacheKey];
     if (!cache) {
-      const variables = {
-        programId,
-        interval: opts && opts.interval || 10 // seconds
-      };
-      const subject = new Subject<Strategy[]>();
       if (this._debug) console.debug(`[strategy-ref-service] [WS] Listening for changes on strategies, from program {${programId}}...`);
+      const program$ = this.graphql.subscribe<{data: any}>({
+        query: SUBSCRIPTIONS.listenChangesByProgram,
+        fetchPolicy: 'no-cache',
+        variables: {
+          programId,
+          interval: opts && opts.interval || 10 // seconds
+        },
+        error: {
+          code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
+          message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
+        }
+      })
+        .pipe(
+          map(({data}) => {
+            const entities = (data || []).map(s => this.fromObject(s));
+            if (isNotEmptyArray(entities) && this._debug) console.debug(`[strategy-ref-service] [WS] Received changes on strategies, from program {${programId}}`, entities);
+            return entities;
+          }));
+      const subject = new Subject<Strategy[]>();
       cache = {
         subject,
-        subscription: this.graphql.subscribe<{data: any}>({
-          query: SUBSCRIPTIONS.listenChangesByProgram,
-          fetchPolicy: 'no-cache',
-          variables,
-          error: {
-            code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
-            message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
-          }
-        })
-          .pipe(
-            map(({data}) => {
-              const entities = (data || []).map(s => this.fromObject(s));
-              if (isNotEmptyArray(entities) && this._debug) console.debug(`[strategy-ref-service] [WS] Received changes on strategies, from program {${programId}}`, entities);
-              return entities;
-            }))
-          .subscribe(subject)
+        subscription: program$.subscribe(subject)
       };
       this._subscriptionCache[cacheKey] = cache;
     }

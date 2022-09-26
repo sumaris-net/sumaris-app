@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   Alerts,
-  AppFormUtils, AudioProvider,
+  AppFormUtils,
+  AudioProvider,
   EntityUtils,
   FormErrorTranslator,
   isNil,
@@ -21,7 +22,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
 import { SampleForm } from './sample.form';
 import { Sample } from '../services/model/sample.model';
-import { TRIP_LOCAL_SETTINGS_OPTIONS } from '../services/config/trip.config';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
 import { debounceTime } from 'rxjs/operators';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';

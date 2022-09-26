@@ -344,7 +344,9 @@ export abstract class BaseMeasurementsTable<
 
     // Create the new datasource, BUT redirect to this
     const encapsulatedValidator = validatorService ? this : null;
-    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, {
+    this.setDatasource(new EntitiesTableDataSource(this.dataType,
+      this.measurementsDataService, encapsulatedValidator,
+      {
       ...this.options,
       // IMPORTANT: Always use this custom onRowCreated, that will call options.onRowCreated if need
       onRowCreated: (row) => this.onRowCreated(row)
@@ -479,26 +481,24 @@ export abstract class BaseMeasurementsTable<
   }
 
   protected async getMaxRankOrder(): Promise<number> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
   protected async existsRankOrder(rankOrder: number): Promise<boolean> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return rows.findIndex(row => row.currentData.rankOrder === rankOrder) !== -1;
   }
 
   private async onRowCreated(row: TableElement<T>) {
     // Deprecated
     if (this.options.onRowCreated) {
-      const res = this.options.onRowCreated(row);
-      if (res instanceof Promise) await res;
+      await this.options.onRowCreated(row);
     }
 
     // WARN: must be called BEFORE row.validator.patchValue(), to be able to add group's validators
     if (row.validator && this.options.onPrepareRowForm) {
-      const res = this.options.onPrepareRowForm(row.validator);
-      if (res instanceof Promise) await res;
+      await this.options.onPrepareRowForm(row.validator);
     }
 
     if (this._addingRow) return; // Skip if already adding a row (e.g. when calling addEntityToTable)
