@@ -1,5 +1,10 @@
 <app-toolbar  *ngIf="showToolbar" [defaultBackHref]="defaultBackHref" canGoBack="true">
   <ion-title [innerHTML]="$title|async"></ion-title>
+  <ion-buttons slot="end">
+    <ion-button (click)="slides.print($event)" >
+      <ion-icon name="print"></ion-icon>
+    </ion-button>
+  </ion-buttons>
 </app-toolbar>
 
 <ion-content>
