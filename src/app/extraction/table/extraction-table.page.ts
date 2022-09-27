@@ -68,7 +68,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   isAdmin = false;
 
   typesByCategory$: Observable<{key: string, value: ExtractionType[]}[]>;
-  criteriaCount$: Observable<number>;
+  filterCriteriaCount$: Observable<number>;
+  filterPanelFloating = true;
+  stickyEnd = true;
   $programs = new BehaviorSubject<Program[]>(null);
   $selectedProgram = new BehaviorSubject<Program>(null);
 
@@ -100,6 +102,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
     this.isAdmin = this.accountService.isAdmin();
+    this.stickyEnd = !this.mobile;
   }
 
   ngOnInit() {
@@ -150,7 +153,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         return this.loadData();
       }));
 
-    this.criteriaCount$ = this.criteriaForm.form.valueChanges
+    this.filterCriteriaCount$ = this.criteriaForm.form.valueChanges
       .pipe(
         map(_ => this.criteriaForm.criteriaCount)
       );

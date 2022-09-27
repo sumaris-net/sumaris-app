@@ -9,7 +9,7 @@ import {
   ConfigService,
   DurationPipe,
   fadeInAnimation,
-  fadeInOutAnimation,
+  fadeInOutAnimation, firstNotNil,
   firstNotNilPromise,
   isEmptyArray,
   isNil,
@@ -21,17 +21,17 @@ import {
   LoadResult,
   LocalSettingsService,
   PlatformService,
-  StatusIds
+  StatusIds, waitFor, waitForTrue
 } from '@sumaris-net/ngx-components';
 import { ExtractionService } from '../common/extraction.service';
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion } from '../type/extraction-type.model';
+import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { Location } from '@angular/common';
 import { L } from '@app/vendor';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
-import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { concatAll, debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
@@ -50,7 +50,7 @@ import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.con
 import { ExtractionProduct } from '@app/extraction/product/product.model';
 import { ProductService } from '@app/extraction/product/product.service';
 import { AggregationStrataValidatorService } from '@app/extraction/strata/strata.validator';
-import { IAggregationStrata } from '@app/extraction/strata/strata.model';
+import { AggregationStrata, IAggregationStrata } from '@app/extraction/strata/strata.model';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 
 declare interface LegendOptions {
@@ -121,7 +121,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     format: "image/png",
     transparent: true,
     zIndex: 500, // Important, to bring this layer to top
-    attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
+    attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>",
+    pane: 'countries'
   }).setParams({
     layers: "ESPACES_TERRESTRES_P",
     service: 'WMS',
@@ -212,7 +213,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   $aggColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $techColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   $criteriaColumns = new BehaviorSubject<ExtractionColumn[]>(undefined);
-  $tech = new Subject<{ title: string; titleParams?: any, labels: Label[]; data: SingleOrMultiDataSet }>();
+  $tech = new BehaviorSubject<{ title: string; titleParams?: any, labels: Label[]; data: SingleOrMultiDataSet }>(null);
   $years = new BehaviorSubject<number[]>(undefined);
   formatNumberLocale: string;
   animation: Subscription;
@@ -475,7 +476,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     //map.on('zoom', () => console.debug(`[extraction-map] zoom=${map.getZoom()}`));
 
     // Center map
-    const {center, zoom} = await firstNotNilPromise(this.$center);
+    const {center, zoom} = await firstNotNilPromise(this.$center, {stop: this.destroySubject});
 
     // Call ready in a timeout to let leaflet map to initialize
     setTimeout(() => {
@@ -491,8 +492,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     });
   }
 
-  markAsReady(opts?: { emitEvent?: boolean }) {
+  async markAsReady(opts?: { emitEvent?: boolean }) {
     if (!this.map || !this.$types.value) return; // Skip if missing types or map
+
 
     // DEBUG
     //console.debug(`[extraction-map] Mark as ready !`);
@@ -519,7 +521,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     if (changed) {
 
       // Update the title
-      this.updateTile();
+      this.updateTitle();
 
       // Stop animation
       if (!opts || opts.stopAnimation !== false) {
@@ -584,7 +586,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }
   }
 
-  setAggStrata(aggColumnName: string, opts?: {emitEVent?: boolean; }) {
+  setAggColumn(aggColumnName: string, opts?: {emitEVent?: boolean; }) {
     const changed = this.aggColumnName !== aggColumnName;
 
     if (!changed) return; // Skip
@@ -598,7 +600,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }
   }
 
-  setTechStrata(techColumnName: string, opts?: {emitEVent?: boolean; }) {
+  async setTechColumn(techColumnName: string, opts?: {emitEvent?: boolean; }) {
     this.form.get('strata').patchValue({
       techColumnName
     }, opts);
@@ -608,8 +610,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     // Reset animation data
     this.resetAnimationOverrides();
 
-    if (!this.animation && (!opts || opts.emitEVent !== false)) {
-      this.loadTechData();
+    if (!this.isAnimated && (!opts || opts.emitEvent !== false)) {
+      const loaded = await this.loadTechData();
+      if (!loaded) this.showTechChart = false;
     }
   }
 
@@ -625,7 +628,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return str.replace(/\([A-Z]+\)$/, '');
   }
 
-  protected async updateTile() {
+  protected async updateTitle() {
     const title = this.translate.instant(this.type.name);
     this.$title.next(title);
   }
@@ -657,7 +660,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   async ready(): Promise<void> {
 
     await this.platform.ready();
-    return super.ready();
+
+    await waitFor(() => !!this.getStrataValue(), {stop: this.destroySubject});
+
+    await super.ready();
+
   }
 
   protected async updateColumns(opts?: {
@@ -706,16 +713,32 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     this.$sheetNames.next(sheetNames);
   }
 
-  protected applyDefaultStrata(opts?: { emitEvent?: boolean; }) {
-    const sheetName = this.sheetName;
+  protected getDefaultStrata(sheetName: string) {
     if (!this.type || !sheetName) return;
 
-    const defaultStrata = sheetName && (this.type.stratum || []).find(s => s.isDefault || s.sheetName === sheetName);
-    console.debug('[extraction-map] Applying default strata: ', defaultStrata);
+    // Find first strate, compatible with this sheet
+    let defaultStrata = sheetName && (this.type.stratum || []).find(s => s?.sheetName === sheetName);
 
+    // Strata not found: create a new one, from the main default strata when possible
+    if (!defaultStrata) {
+      defaultStrata = (this.type.stratum || []).find(s => s?.isDefault);
+      defaultStrata = defaultStrata?.clone() || new AggregationStrata(); // Create a copy, to leave original strata unchanged
+      defaultStrata.sheetName = sheetName;
+      // Reset tech and agg columns, has it make no sense to keep it
+      // (because it came from another sheet, and may not existed in the expected sheet)
+      defaultStrata.techColumnName = null;
+      defaultStrata.aggColumnName = null;
+    }
+
+    return defaultStrata;
+  }
+
+  protected applyDefaultStrata(opts?: { emitEvent?: boolean; }) {
+    let defaultStrata = this.getDefaultStrata(this.sheetName);
     if (defaultStrata) {
+      console.debug(`[extraction-map] Applying default strata:`, defaultStrata);
       this.form.patchValue({
-        strata: defaultStrata
+        strata: defaultStrata.asObject()
       }, opts);
     }
   }
@@ -729,7 +752,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     const endYear = startYear - 10;
 
     const sheetName = this.sheetName || (type && type.sheetNames && type.sheetNames[0]) || null;
-    const strata: any = (type && type.stratum || []).find(s => s && (s.isDefault || sheetName === s.sheetName));
+    const strata: any = this.getDefaultStrata(sheetName);
 
     if (!strata) return; // Skip, if no spatial strata
 
@@ -840,25 +863,35 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         layer.setStyle(this.getFeatureStyleFn(scale, aggColumnName));
         this.updateLegendStyle(scale);
 
-        // Add to layers
-        layer.addTo(this.map);
-        this.layers.push(layer);
 
         // Add countries layers
         if (this.showCountriesLayer) {
-          this.countriesLayer.addTo(this.map);
+
+          // Init countries pane, if need
+          if (!this.map.getPane(this.countriesLayer.options.pane)) {
+            const pane = this.map.createPane(this.countriesLayer.options.pane);
+            pane.style.zIndex = '650';
+            pane.style.pointerEvents = 'none';
+          }
+
+          this.countriesLayer.addTo(this.map)
           this.layers.push(this.countriesLayer);
         }
+
+        // Add to layers
+        layer.addTo(this.map);
+        this.layers.push(layer);
 
         console.debug(`[extraction-map] ${total} geometries loaded in ${Date.now() - now}ms (${Math.floor(offset / size)} slices)`);
 
         // Load tech data (wait end if animation is running)
         if (this.showTechChart) {
-          await this.loadTechData(this.type, strata, filter);
+          const loaded = await this.loadTechData(this.type, strata, filter);
+          // Disabled chart, if unable to load
+          if (!loaded) this.showTechChart = false;
         }
         this.showLegend = isNotNilOrBlank(strata.aggColumnName);
       }
-
 
     } catch (err) {
       console.error(err);
@@ -876,16 +909,24 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   async loadTechData(type?: ExtractionProduct,
                      strata?: IAggregationStrata,
-                     filter?: ExtractionFilter) {
+                     filter?: ExtractionFilter): Promise<boolean> {
     type = type || this.type;
     strata = type && (strata || this.getStrataValue());
     filter = strata && (filter || this.getFilterValue(strata));
     let opts = this.techChartOptions;
 
-    if (!type || !strata || !strata.techColumnName || !strata.aggColumnName) return; // skip;
+    if (!type || !strata || !strata.techColumnName || !strata.aggColumnName) return false; // skip;
+
+    const [aggColumns, techColumns] = await Promise.all([
+      firstNotNilPromise(this.$aggColumns),
+      firstNotNilPromise(this.$techColumns)
+    ]);
 
     const isAnimated = !!this.animation;
+    const aggColumnName = strata.aggColumnName;
     const techColumnName = strata.techColumnName;
+    const techColumn = (techColumns || []).find(c => c.columnName === techColumnName);
+    const aggColumn = (aggColumns || []).find(c => c.columnName === aggColumnName);
 
     try {
       let map = await this.service.loadAggByTech(type, strata, filter, {
@@ -900,16 +941,15 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         };
       }
 
+
       // Keep data without values for this year
       if (opts.fixAxis) {
-        // Find the column
-        const column = (this.$techColumns.value || []).find(c => c.columnName === techColumnName);
 
         // Copy, because object if immutable
         map = { ...map };
 
         // Make sure all column values is on the chart
-        (column.values || [])
+        (techColumn.values || [])
           .filter(key => isNil(map[key]))
           .forEach(key => map[key] = 0);
       }
@@ -953,19 +993,23 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       const labels = entries.map(item => item[0]);
 
       this.$tech.next({
-        title: 'EXTRACTION.MAP.TECH_CHART_TITLE',
-        titleParams: {
-          aggColumnName: this.columnNames[strata.aggColumnName],
-          techColumnName: this.columnNames[strata.techColumnName]
-        },
+        title: this.translate.instant('EXTRACTION.MAP.TECH_CHART_TITLE', {
+          aggColumnName: aggColumn.name,
+          techColumnName: techColumn.name
+        }),
         labels: labels,
         data: data
       });
+      return true;
     }
     catch (error) {
       console.error("Cannot load tech values:", error);
       // Reset tech, then continue
       this.$tech.next(undefined);
+      return false;
+    }
+    finally {
+      this.markForCheck();
     }
 
   }
@@ -1183,9 +1227,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     // Wait until closed
     const { data } = await modal.onDidDismiss();
 
+    let type: ExtractionProduct = (data instanceof ExtractionProduct) ? data : null;
+    if (data instanceof ExtractionType) {
+      type = ExtractionProduct.fromObject(data.asObject());
+    }
     // If selected a product, use it
-    if (data instanceof ExtractionProduct) {
-      await this.setType(data, {emitEvent: false});
+    if (type) {
+      await this.setType(type, {emitEvent: false});
 
       return this.loadData();
     }
@@ -1211,7 +1259,18 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     this.showCountriesLayer = !this.showCountriesLayer;
 
     // Reload data
-    if (!this.isAnimated) this.loadGeoData();
+    if (!this.isAnimated) {
+      const countriesLayerIndex = this.layers.indexOf(this.countriesLayer);
+      if (countriesLayerIndex !== -1) {
+        this.layers.splice(countriesLayerIndex, 1);
+        this.countriesLayer.remove();
+      }
+      else {
+        this.countriesLayer.addTo(this.map);
+        this.layers.push(this.countriesLayer);
+      }
+      //this.loadGeoData();
+    }
   }
 
   setTechChartOption(value: Partial<TechChartOptions>, opts?: { emitEvent?: boolean; }) {

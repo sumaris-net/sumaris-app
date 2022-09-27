@@ -28,7 +28,7 @@
 
     <!-- reset filter -->
     <button mat-icon-button (click)="resetFilter()"
-            *ngIf="criteriaCount$|async">
+            *ngIf="filterCriteriaCount$|async">
       <mat-icon color="accent">filter_list_alt</mat-icon>
       <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
     </button>
@@ -66,9 +66,9 @@
 <!-- Types menu -->
 <mat-menu #selectTypeMenu="matMenu" xPosition="after" >
   <!-- only one category -->
-  <ng-container *ngIf="typesByCategory$ | async | isArrayLength: {equals: 1}; else manyCategories">
+  <ng-container *ngIf="typesByCategory$ | async | isArrayLength: {equals: 1}; let typesByCategory; else manyCategories">
     <button mat-menu-item
-            *ngFor="let type of (typesByCategory$ | async)[0].value"
+            *ngFor="let type of typesByCategory[0].value"
             (click)="setType(type, {emitEvent: true})">
       <ion-label class="ion-text-wrap">
         <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
@@ -98,7 +98,7 @@
 
     <ng-container *ngFor="let type of types">
       <button mat-menu-item
-              *ngIf="type.label !== 'PMFM_TRIP'; else typeWithProgram"
+              *ngIf="type.category === 'PRODUCT'; else typeWithProgram"
               (click)="setType(type)">
         <ion-label class="ion-text-wrap">
           <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
@@ -207,7 +207,9 @@
   </ng-container>
 
   <!-- filter panel -->
-  <mat-expansion-panel #filterExpansionPanel class="filter-panel">
+  <mat-expansion-panel #filterExpansionPanel class="filter-panel"
+                       [class.filter-panel-floating]="filterPanelFloating"
+                       [class.expanded]="!filterPanelFloating && filterExpansionPanel.expanded">
     <app-extraction-criteria-form #criteriaForm
                                   [showSheetsTab]="false"
                                   [columns]="$columns|async"
@@ -273,7 +275,7 @@
         </td>
       </ng-container>
 
-      <ng-container matColumnDef="actions">
+      <ng-container matColumnDef="actions" [stickyEnd]="stickyEnd">
         <th mat-header-cell *matHeaderCellDef>
           <button mat-icon-button
                   [matTooltip]=" 'COMMON.DISPLAYED_COLUMNS'|translate"
