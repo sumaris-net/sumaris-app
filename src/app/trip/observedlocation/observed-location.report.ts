@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, I
 import { ActivatedRoute } from '@angular/router';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -14,16 +14,16 @@ import { LandingService } from '../services/landing.service';
 import { Landing } from '../services/model/landing.model';
 import { MeasurementFormValues, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { ObservedLocation } from '../services/model/observed-location.model';
-import { Sample } from '../services/model/sample.model';
 import { ObservedLocationService } from '../services/observed-location.service';
 
-export interface AuctionReportItem {
-  title: string,
-  taxonGroup: string,
-  samplesCount: number,
-  samples: Sample[],
+
+export interface LandingReportItems {
+  stats: {
+    taxonGroup: TaxonGroupRef,
+    sampleCount: number,
+  },
+  data: Landing,
   pmfms: IPmfm[],
-  pmfmsValues: MeasurementFormValues,
 }
 
 @Component({
@@ -63,7 +63,7 @@ export class ObservedLocationReport implements AfterViewInit {
     prefix: '',
     suffix: ''
   };
-  auctionReportItems: AuctionReportItem[];
+  landingReportItems: LandingReportItems[];
 
   $title = new Subject();
 
@@ -165,17 +165,16 @@ export class ObservedLocationReport implements AfterViewInit {
         acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION
       }
     )
+    // data.value
     this.pmfmsValues = MeasurementValuesUtils
       .normalizeValuesToForm(data.measurementValues, this.pmfms);
     this.nbControlledVessel = arrayDistinct(this.data.landings, ['vesselSnapshot.id']).length;
 
-    await this.computeAutionReportItems(data.landings, program);
-    console.log(this.auctionReportItems);
+    await this.fillLangingReportItems(data.landings, program);
 
     this.markAsLoaded();
     this.cd.detectChanges();
-
-    await this.slides.initialize();
+    this.slides.initialize();
   }
 
   protected loadFromRoute(): Promise<void> {
@@ -223,29 +222,32 @@ export class ObservedLocationReport implements AfterViewInit {
     };
   }
 
-  protected async computeAutionReportItems(landings: Landing[], program: Program) {
-    const result = Array(landings.length);
-    await landings.forEach(async (landing, index) => {
+  protected async fillLangingReportItems(landings: Landing[], program: Program) {
+    const result:LandingReportItems[] = await Promise.all(landings.map(async (landing) => {
       const data = await this.landingService.load(landing.id);
+      const weightDisplayedUnit = await program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
       const taxonGroup = (data.samples || [])
         .find(s => !!s.taxonGroup?.name)?.taxonGroup || {} as TaxonGroupRef;
-      const pmfms = await this.programRefService.loadProgramPmfms(program.label, {
+      let pmfms = await this.programRefService.loadProgramPmfms(program.label, {
         acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
         taxonGroupId: taxonGroup?.id,
       });
-      const pmfmsValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, pmfms);
-      const auctionReportItem: AuctionReportItem = {
-        title: landing.vesselSnapshot.name,
-        taxonGroup: taxonGroup?.name || '',
-        samplesCount: data.samples.length,
-        pmfms: pmfms,
-        pmfmsValues: pmfmsValues,
-        samples: data.samples,
+      if (this.weightDisplayedUnit) {
+        pmfms = PmfmUtils.setWeightUnitConversions(pmfms, weightDisplayedUnit);
       }
-
-      result[index] = auctionReportItem;
-    });
-    this.auctionReportItems = result;
+      const result = {
+        stats: {
+          taxonGroup: taxonGroup,
+          sampleCount: data.samples?.length || 0,
+        },
+        data: data, // Missing onDataLoaded normaly done by LandingReport
+        pmfms: pmfms,
+      }
+      return result;
+    }));
+    this.landingReportItems = result;
   }
+
+  protected async
 
 }

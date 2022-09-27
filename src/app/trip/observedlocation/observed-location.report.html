@@ -31,18 +31,15 @@
           </ng-container>
         </section>
       </section>
-      <section markdown ngPreserveWhitespaces *ngFor="let report of auctionReportItems">
-        <section markdown ngPreserveWhitespaces
-                 *ngFor="let samples of
-                           (report?.samples | splitArrayInChunks: 12);
-                           index as index; count as count">
-          <ng-container *ngTemplateOutlet="sampleTable; context: {
-              samples: samples,
-              report: report,
-              index: index,
-              count: count
-            }"></ng-container>
-        </section>
+      <section markdown ngPreserveWhitespaces *ngFor="let reportItem of landingReportItems">
+        <app-auction-control-report
+          [embedded]="true"
+          [data]="reportItem.data"
+          [parent]="data"
+          [i18nContext]="i18nContext"
+          [stats]="reportItem.stats"
+          [pmfms]="reportItem.pmfms"
+          ></app-auction-control-report>
       </section>
     </ng-container>
   </app-slides>
@@ -54,30 +51,3 @@
   </ng-template>
 
 </ion-content>
-
-<ng-template #sampleTable let-samples="samples" let-report="report" let-index="index" let-count="count">
-  <table [style.--col-count]="report.pmfms.length + 1">
-    <caption>
-      {{ report?.title }} - {{ report?.taxonGroup }} {{index|paginationToString:count:true}}
-    </caption>
-    <thead>
-      <tr>
-        <th>{{ 'TRIP.SAMPLE.TABLE.LABEL'|translateContext: i18nContext.suffix }}</th>
-        <th *ngFor="let pmfm of report?.pmfms" [innerHTML]="pmfm|pmfmName: {
-          i18nPrefix: i18nContext.prefix,
-          i18nContext: i18nContext.suffix,
-          html: true }"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let sample of report?.samples;  even as even" [class.even]="even">
-        <td>{{ sample.label }}</td>
-        <td *ngFor="let pmfm of report?.pmfms"
-          [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {
-            pmfm: pmfm,
-            html: true
-          }"></td>
-      </tr>
-    </tbody>
-  </table>
-</ng-template>

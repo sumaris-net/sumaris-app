@@ -15,6 +15,8 @@ import { AppReferentialModule } from '@app/referential/referential.module';
 import { VesselModule } from '@app/vessel/vessel.module';
 import { ObservedLocationReport } from './observed-location.report';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
+import { AuctionControlReport } from '../landing/auctioncontrol/auction-control.report';
+import { AppAuctionControlModule } from '../landing/auctioncontrol/auction-control.module';
 
 
 @NgModule({
@@ -33,7 +35,8 @@ import { AppSharedReportModule } from '@app/shared/report/report.module';
     AppLandingModule,
     AppLandedTripModule,
     AppAggregatedLandingModule,
-    AppSharedReportModule
+    AppSharedReportModule,
+    AppAuctionControlModule
   ],
   declarations: [
     ObservedLocationForm,

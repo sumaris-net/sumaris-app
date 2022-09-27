@@ -26,6 +26,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 export class LandingReportOptions {
   pathIdAttribute?: string;
@@ -56,13 +57,15 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   $title = new Subject();
   error: string;
   slidesOptions: Partial<IRevealOptions>;
-  data: T;
-  parent: ObservedLocation;
-  stats: any = {};
   weightDisplayedUnit: WeightUnitSymbol;
-  pmfms: IPmfm[];
   i18nPmfmPrefix: string;
-  i18nContext = {
+
+  @Input() parent: ObservedLocation;
+  @Input() embedded = false;
+  @Input() data: T;
+  @Input() pmfms: IPmfm[];
+  @Input() stats: any = {};
+  @Input() i18nContext = {
     prefix: '',
     suffix: ''
   }
@@ -120,7 +123,11 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     this.markAsReady();
 
     try {
-      await this.loadFromRoute();
+      if (this.embedded) {
+        await this.loadFromInput();
+      } else {
+        await this.loadFromRoute();
+      }
     }
     catch(err) {
       this.setError(err);
@@ -244,6 +251,11 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
       }
       return this.load(id, route.params);
     }
+  }
+
+  protected async loadFromInput() {
+    this.markAsLoaded();
+    this.cd.detectChanges();
   }
 
   protected markAsReady() {
