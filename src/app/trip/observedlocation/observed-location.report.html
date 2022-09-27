@@ -29,9 +29,13 @@
             html: true } }} : {{ pmfmsValues[pmfm.id]|pmfmValue:{pmfm: pmfm, html: true} }}
           </ng-container>
         </section>
+        <section markdown ngPreserveWhitespaces>
+          - {{ 'OBSERVED_LOCATION.REPORT.VESSEL_COUNT'|translateContext: i18nContext.suffix }} {{ nbControlledVessel }}
+          TODO
+        </section>
       </section>
       <section markdown ngPreserveWhitespaces *ngFor="let reportItem of landingReportItems">
-        <app-auction-control-report
+        <app-auction-control-report #landingReport
           [embedded]="true"
           [data]="reportItem.data"
           [parent]="data"

@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
@@ -8,8 +8,9 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, arrayDistinct, DateFormatPipe, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, arrayDistinct, DateFormatPipe, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, PlatformService, WaitForOptions } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { LandingReport } from '../landing/landing.report';
 import { LandingService } from '../services/landing.service';
 import { Landing } from '../services/model/landing.model';
 import { MeasurementFormValues, MeasurementValuesUtils } from '../services/model/measurement.model';
@@ -19,7 +20,7 @@ import { ObservedLocationService } from '../services/observed-location.service';
 
 export interface LandingReportItems {
   stats: {
-    taxonGroup: TaxonGroupRef,
+    //taxonGroup: TaxonGroupRef,
     sampleCount: number,
   },
   data: Landing,
@@ -43,6 +44,7 @@ export class ObservedLocationReport implements AfterViewInit {
   private readonly settings: LocalSettingsService;
   private readonly programRefService: ProgramRefService;
   private readonly landingService: LandingService;
+  protected readonly destroySubject = new Subject();
 
   protected readonly _readySubject = new BehaviorSubject<boolean>(false);
   protected readonly _loadingSubject = new BehaviorSubject<boolean>(true);
@@ -71,6 +73,7 @@ export class ObservedLocationReport implements AfterViewInit {
   @Input() showError = true;
 
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+  @ViewChildren("landingReport") childrens: QueryList<LandingReport>;
 
   get loading(): boolean {return this._loadingSubject.value;}
   get loaded(): boolean {return !this._loadingSubject.value;}
@@ -174,6 +177,9 @@ export class ObservedLocationReport implements AfterViewInit {
 
     this.markAsLoaded();
     this.cd.detectChanges();
+
+    await this.waitIdle({stop: this.destroySubject});
+
     this.slides.initialize();
   }
 
@@ -248,6 +254,10 @@ export class ObservedLocationReport implements AfterViewInit {
     this.landingReportItems = result;
   }
 
-  protected async
+  protected async waitIdle(opts: WaitForOptions) {
+    await Promise.all(
+      this.childrens.map(c => c.waitIdle(opts))
+    );
+  }
 
 }

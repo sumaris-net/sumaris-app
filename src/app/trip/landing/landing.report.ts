@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, ViewChild } from '@angular/core';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
@@ -6,6 +6,8 @@ import {
   AppErrorWithDetails,
   DateFormatPipe,
   EntityServiceLoadOptions,
+  firstFalsePromise,
+  FirstOptions,
   isInt,
   isNil,
   isNilOrBlank,
@@ -35,7 +37,7 @@ export class LandingReportOptions {
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class LandingReport<T extends Landing = Landing> implements AfterViewInit {
+export abstract class LandingReport<T extends Landing = Landing> implements AfterViewInit, OnDestroy {
 
   private readonly route: ActivatedRoute;
   private readonly platform: PlatformService;
@@ -44,14 +46,16 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad = true;
   private readonly _autoLoadDelay = 0;
-  protected readonly _readySubject = new BehaviorSubject<boolean>(false);
-  protected readonly _loadingSubject = new BehaviorSubject(true);
   protected readonly translate :TranslateService;
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly landingService: LandingService;
   protected readonly dateFormatPipe: DateFormatPipe;
   protected readonly programRefService: ProgramRefService;
   protected readonly settings: LocalSettingsService;
+  protected readonly destroySubject = new Subject();
+
+  readonly readySubject = new BehaviorSubject<boolean>(false);
+  readonly loadingSubject = new BehaviorSubject(true);
 
   defaultBackHref: string = null;
   $title = new Subject();
@@ -77,10 +81,10 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
 
   get loading(): boolean {
-    return this._loadingSubject.value;
+    return this.loadingSubject.value;
   }
   get loaded(): boolean {
-    return !this._loadingSubject.value;
+    return !this.loadingSubject.value;
   }
 
   protected constructor(
@@ -110,12 +114,17 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
       throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
     }
   }
+
   ngAfterViewInit() {
 
     // Load data
     if (this._autoLoad) {
       setTimeout(() => this.start(), this._autoLoadDelay);
     }
+  }
+
+  ngOnDestroy() {
+    this.destroySubject.next();
   }
 
   async start() {
@@ -191,8 +200,8 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
-    if (this._readySubject.value) return;
-    await waitForTrue(this._readySubject, opts);
+    if (this.readySubject.value) return;
+    await waitForTrue(this.readySubject, opts);
   }
 
   setError(err: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
@@ -220,6 +229,10 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
       this.error = userMessage;
     }
     if (!opts || opts.emitEvent !== false) this.markForCheck();
+  }
+
+  waitIdle(opts?: FirstOptions): Promise<void> {
+    return firstFalsePromise(this.loadingSubject, {stop: this.destroySubject, ...opts});
   }
 
   /* -- protected function -- */
@@ -254,24 +267,29 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   }
 
   protected async loadFromInput() {
+    const taxonGroup = (this.data.samples || [])
+      .find(s => !!s.taxonGroup?.name)?.taxonGroup || {} as TaxonGroupRef;
+    this.stats = {
+      taxonGroup: taxonGroup,
+    };
     this.markAsLoaded();
     this.cd.detectChanges();
   }
 
   protected markAsReady() {
-    this._readySubject.next(true);
+    this.readySubject.next(true);
   }
 
   protected markAsLoaded(opts = {emitEvent: true}) {
-    if (this._loadingSubject.value) {
-      this._loadingSubject.next(false);
+    if (this.loadingSubject.value) {
+      this.loadingSubject.next(false);
       if (opts.emitEvent !== false) this.markForCheck();
     }
   }
 
   protected markAsLoading(opts = {emitEvent: true}) {
-    if (!this._loadingSubject.value) {
-      this._loadingSubject.next(true);
+    if (!this.loadingSubject.value) {
+      this.loadingSubject.next(true);
       if (opts.emitEvent !== false) this.markForCheck();
     }
   }
