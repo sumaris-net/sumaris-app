@@ -1143,10 +1143,11 @@
       "LOCATION": "Location :",
       "DATE_TIME": "Date/time :",
       "OBSERVERS": "Observers(s) :",
-      "NB_CONTROLED_VESSEL": "Number of vessels checked :",
+      "VESSEL_COUNT": "Number of vessels :",
       "AUCTION_CONTROL": {
         "TITLE": "Summary of the monitoring of controls under auctions : {{ location }} - {{ dateTime }}",
-        "TITLE_SHORT": "Summary of the monitoring of controls under auctions"
+        "TITLE_SHORT": "Summary of the monitoring of controls under auctions",
+        "VESSEL_COUNT": "Number of vessels checked :"
       }
     }
   },

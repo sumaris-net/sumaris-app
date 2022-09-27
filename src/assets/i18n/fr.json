@@ -1164,10 +1164,11 @@
       "LOCATION": "Lieu :",
       "DATE_TIME": "Date/heure :",
       "OBSERVERS": "Observateur(s) :",
-      "NB_CONTROLED_VESSEL": "Nombre de navire contrôlés :",
+      "VESSEL_COUNT": "Nombre de navire :",
       "AUCTION_CONTROL": {
         "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
-        "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées"
+        "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées",
+        "VESSEL_COUNT": "Nombre de navire contrôlés :"
       }
     }
   },

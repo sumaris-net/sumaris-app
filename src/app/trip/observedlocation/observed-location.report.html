@@ -20,9 +20,8 @@
         <section markdown ngPreserveWhitespaces>
           # {{ 'OBSERVED_LOCATION.REPORT.TITLE_SHORT'|translate }}
           - {{ 'OBSERVED_LOCATION.REPORT.LOCATION'|translate }} {{ data.location?.name }}
-          - {{ 'OBSERVED_LOCATION.REPORT.OBSERVERS'|translate }} {{ data.observers|personToString }}
           - {{ 'OBSERVED_LOCATION.REPORT.DATE_TIME'|translate }} {{ data.startDateTime|dateFormat:{time: true} }}
-          - {{ 'OBSERVED_LOCATION.REPORT.NB_CONTROLED_VESSEL'|translate }} {{ nbControlledVessel }}
+          - {{ 'OBSERVED_LOCATION.REPORT.OBSERVERS'|translate }} {{ data.observers|personToString }}
           <ng-container *ngFor="let pmfm of pmfms">
           - {{ pmfm|pmfmName:{
             i18nPrefix: i18nContext.prefix,
