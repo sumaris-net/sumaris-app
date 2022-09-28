@@ -32,7 +32,7 @@
             <div *ngIf="data.samples|isArrayLength: {lessThan: 6}">
               &nbsp;
               <ng-container
-                [ngTemplateOutlet]="sampleTable" [ngTemplateOutletContext]="{$implicit: data.samples}">
+                [ngTemplateOutlet]="samplesTable" [ngTemplateOutletContext]="{$implicit: data.samples}">
               </ng-container>
             </div>
           </section>
@@ -42,7 +42,7 @@
                    *ngFor="let samples of (data.samples | splitArrayInChunks: slides.printing ? -1 : 25); index as index; count as count">
             ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
 
-            <ng-container *ngTemplateOutlet="sampleTable; context: {$implicit: samples}"></ng-container>
+            <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
           </section>
         </section>
       </ng-container>
@@ -60,11 +60,11 @@
   <section markdown ngPreserveWhitespaces
    *ngFor="let samples of (data.samples | splitArrayInChunks: 25); index as index; count as count">
     ## {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
-    <ng-container *ngTemplateOutlet="sampleTable; context: {$implicit: samples}"></ng-container>
+    <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
   </section>
 </ng-container>
 
-<ng-template #sampleTable let-samples>
+<ng-template #samplesTable let-samples let-pmfms="pmfms">
 
   <table [style.--col-count]="pmfms.length + 2">
     <thead>

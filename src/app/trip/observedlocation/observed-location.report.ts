@@ -8,7 +8,18 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, arrayDistinct, DateFormatPipe, isNil, isNilOrBlank, isNotNilOrBlank, LocalSettingsService, PlatformService, WaitForOptions } from '@sumaris-net/ngx-components';
+import {
+  AppErrorWithDetails,
+  arrayDistinct,
+  DateFormatPipe, firstFalsePromise,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  PlatformService,
+  WaitForOptions
+} from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { LandingReport } from '../landing/landing.report';
 import { LandingService } from '../services/landing.service';
@@ -18,18 +29,13 @@ import { ObservedLocation } from '../services/model/observed-location.model';
 import { ObservedLocationService } from '../services/observed-location.service';
 
 
-export interface LandingReportItems {
-  data: Landing,
-  pmfms: IPmfm[],
-}
-
 @Component({
   selector: 'app-observed-location',
   templateUrl: './observed-location.report.html',
   styleUrls: ['./observed-location.report.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ObservedLocationReport implements AfterViewInit {
+export class ObservedLocationReport<T extends ObservedLocation = ObservedLocation> implements AfterViewInit {
 
   private readonly route: ActivatedRoute;
   private readonly platform: PlatformService;
@@ -40,10 +46,10 @@ export class ObservedLocationReport implements AfterViewInit {
   private readonly settings: LocalSettingsService;
   private readonly programRefService: ProgramRefService;
   private readonly landingService: LandingService;
-  protected readonly destroySubject = new Subject();
 
-  protected readonly _readySubject = new BehaviorSubject<boolean>(false);
-  protected readonly _loadingSubject = new BehaviorSubject<boolean>(true);
+  protected readonly destroySubject = new Subject();
+  protected readonly readySubject = new BehaviorSubject<boolean>(false);
+  protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
 
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad = true;
@@ -52,16 +58,18 @@ export class ObservedLocationReport implements AfterViewInit {
   defaultBackHref: string = null;
   error: string;
   slidesOptions: Partial<IRevealOptions>;
-  data: ObservedLocation;
-  nbControlledVessel: number = 0;
-  weightDisplayedUnit: WeightUnitSymbol;
-  pmfms: IPmfm[];
-  pmfmsValues: MeasurementFormValues;
   i18nContext = {
     prefix: '',
     suffix: ''
   };
-  landingReportItems: LandingReportItems[];
+
+  // Data and Co.
+  data: T;
+  stats: {
+    vesselCount?: number;
+  } = {}
+  pmfms: IPmfm[];
+  landingsPmfms: IPmfm[][];
 
   $title = new Subject();
 
@@ -69,10 +77,12 @@ export class ObservedLocationReport implements AfterViewInit {
   @Input() showError = true;
 
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
-  @ViewChildren("landingReport") childrens: QueryList<LandingReport>;
+  @ViewChildren("landingReport") children!: QueryList<LandingReport>;
 
-  get loading(): boolean {return this._loadingSubject.value;}
-  get loaded(): boolean {return !this._loadingSubject.value;}
+  get loading(): boolean {
+    return this.loadingSubject.value || this.children.some(c => c.loading);
+  }
+  get loaded(): boolean {return !this.loading && !this.children.some(c => c.loading);}
 
   constructor(injector: Injector) {
     this.route = injector.get(ActivatedRoute);
@@ -141,63 +151,78 @@ export class ObservedLocationReport implements AfterViewInit {
     }
   }
 
+  protected async loadFromRoute() {
+    const route = this.route.snapshot;
+    let id: number = route.params[this._pathIdAttribute];
+    if (isNil(id)) {
+      throw new Error(`[loadFromRoute] id for param ${this._pathIdAttribute} is nil`);
+    }
+
+    await this.load(id);
+
+    await this.updateView();
+  }
+
   async load(id: number) {
     const data = await this.observedLocationService.load(id, {withLanding: true});
     if (!data) {
       throw new Error('ERROR.LOAD_ENTITY_ERROR');
     }
 
+    // Compute title and back
     await this.computeTitle(data);
     this.computeDefaultBackHref(data);
-    this.data = data;
 
     const program = await this.programRefService.loadByLabel(data.program.label);
-    this.weightDisplayedUnit = program
-      .getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
     this.i18nContext.prefix = 'TRIP.SAMPLE.PMFM.';
     this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     if (this.i18nContext.suffix === 'legacy') {this.i18nContext.suffix = ''}
 
-    this.pmfms = await this.programRefService.loadProgramPmfms(
-      data.program.label,
+    // Load full landings
+    data.landings = await Promise.all(data.landings.map(landing => this.landingService.load(landing.id)));
+
+    // Load pmfms
+    const pmfms = await this.programRefService.loadProgramPmfms(
+      program.label,
       {
         acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION
       }
-    )
-    // data.value
-    this.pmfmsValues = MeasurementValuesUtils
-      .normalizeValuesToForm(data.measurementValues, this.pmfms);
-    this.nbControlledVessel = arrayDistinct(this.data.landings, ['vesselSnapshot.id']).length;
-
-    await this.fillLangingReportItems(data.landings, program);
-
-    console.log('MARK CHILD AS READY');
-    console.log(this.childrens);
-    await Promise.all(
-      this.childrens.map(c => c.markAsReady())
     );
 
-    await this.waitIdle({stop: this.destroySubject});
+    // Apply data
+    this.pmfms = pmfms;
+    this.landingsPmfms = await this.loadLandingsPmfms(data.landings, program);
+    this.data = await this.onDataLoaded(data as T, pmfms);
 
-    console.log('CHILDS ACTIVATED');
-
+    this.markAsReady();
     this.markAsLoaded();
-    this.cd.detectChanges();
 
-    this.slides.initialize();
+    // Wait all sections loaded
+    await this.waitIdle({stop: this.destroySubject});
   }
 
-  protected loadFromRoute(): Promise<void> {
-    const route = this.route.snapshot;
-    let id: number = route.params[this._pathIdAttribute];
-    if (isNil(id)) {
-      throw new Error(`[loadFromRoute] id for param ${this._pathIdAttribute} is nil`);
-    }
-    return this.load(id);
+  async updateView() {
+
+    // Make sure all sections has been rendered
+    this.cd.detectChanges();
+
+    // Run slides
+    await this.slides.initialize();
+  }
+
+  protected async onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {
+    this.stats.vesselCount = arrayDistinct(data.landings, ['vesselSnapshot.id']).length;
+    return data;
   }
 
   protected markAsReady() {
-    this._readySubject.next(true);
+    if (!this.readySubject.value) {
+      this.readySubject.next(true);
+    }
+    if (!this.children.length && isNotEmptyArray(this.data?.landings)) {
+      this.cd.detectChanges();
+    }
+    this.children.map(c => c.markAsReady());
   }
 
   protected markForCheck() {
@@ -205,8 +230,8 @@ export class ObservedLocationReport implements AfterViewInit {
   }
 
   protected markAsLoaded(opts = {emitEvent: true}) {
-    if(this._loadingSubject.value) {
-      this._loadingSubject.next(false);
+    if(this.loadingSubject.value) {
+      this.loadingSubject.next(false);
       if (opts.emitEvent !== false) this.markForCheck();
     }
   }
@@ -232,31 +257,30 @@ export class ObservedLocationReport implements AfterViewInit {
     };
   }
 
-  protected async fillLangingReportItems(landings: Landing[], program: Program) {
-    const result:LandingReportItems[] = await Promise.all(landings.map(async (landing) => {
-      const data = await this.landingService.load(landing.id);
-      const weightDisplayedUnit = await program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
-      const taxonGroup = (data.samples || [])
-        .find(s => !!s.taxonGroup?.name)?.taxonGroup || {} as TaxonGroupRef;
-      let pmfms = await this.programRefService.loadProgramPmfms(program.label, {
-        acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
-        taxonGroupId: taxonGroup?.id,
-      });
-      if (this.weightDisplayedUnit) {
-        pmfms = PmfmUtils.setWeightUnitConversions(pmfms, weightDisplayedUnit);
-      }
-      const result = {
-        data: data, // Missing onDataLoaded normaly done by LandingReport
-        pmfms: pmfms,
-      }
-      return result;
-    }));
-    this.landingReportItems = result;
+  protected async loadLandingsPmfms(landings: Landing[], program: Program): Promise<IPmfm[][]> {
+    const weightDisplayedUnit = await program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+    return Promise.all(
+      landings.map(async (landing) => {
+        const taxonGroup = (landing.samples || [])
+          .find(s => !!s.taxonGroup?.name)?.taxonGroup || {} as TaxonGroupRef;
+        const pmfms = await this.programRefService.loadProgramPmfms(program.label, {
+          acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
+          taxonGroupId: taxonGroup?.id,
+        });
+        if (weightDisplayedUnit) {
+          PmfmUtils.setWeightUnitConversions(pmfms, weightDisplayedUnit);
+        }
+        return pmfms;
+      })
+    );
   }
 
   protected async waitIdle(opts: WaitForOptions) {
+    if (this.loaded) return; // skip
+
+    await firstFalsePromise(this.loadingSubject, opts);
     await Promise.all(
-      this.childrens.map(c => c.waitIdle(opts))
+      this.children.map(c => c.waitIdle(opts))
     );
   }
 

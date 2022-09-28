@@ -49,7 +49,7 @@ export class AuctionControlReport extends LandingReport {
   }
 
 
-  protected addFakeSamplesForDev(data: Landing, count = 5) {
+  protected addFakeSamplesForDev(data: Landing, count = 20) {
     if (environment.production) return; // Skip
 
     super.addFakeSamplesForDev(data, count);
