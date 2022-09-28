@@ -33,9 +33,10 @@ import {
   APP_TESTING_PAGES,
   AppGestureConfig,
   CORE_CONFIG_OPTIONS,
+  CORE_TESTING_PAGES,
   DATE_ISO_PATTERN,
   Department,
-  EntitiesStorageTypePolicies, ENVIRONMENT,
+  EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
   LocalSettings,
   MenuItem,
@@ -77,7 +78,6 @@ import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
 import { AppImageModule } from '@app/image/image.module';
 import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
 import { UserEventService } from '@app/social/user-event/user-event.service';
-import { CORE_TESTING_PAGES } from '@sumaris-net/ngx-components';
 
 @NgModule({
   declarations: [

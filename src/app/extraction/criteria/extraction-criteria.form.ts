@@ -5,7 +5,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import {
   AccountService,
   AppForm,
-  AppFormUtils,
+  AppFormUtils, arrayDistinct,
   firstNotNilPromise,
   FormFieldDefinition,
   FormFieldType,
@@ -34,7 +34,8 @@ export const DEFAULT_CRITERION_OPERATOR = '=';
   styleUrls: ['./extraction-criteria.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType<any>> extends AppForm<ExtractionFilterCriterion[]> implements OnInit {
+export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType<any>>
+  extends AppForm<ExtractionFilterCriterion[]> implements OnInit {
 
   private _sheetName: string;
   private _type: E;
@@ -122,6 +123,12 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     );
   }
 
+  ngOnDestroy() {
+    this.resetColumnDefinitions();
+    this.$columnValueDefinitions.unsubscribe();
+    this.$columns.unsubscribe();
+  }
+
   setType(type: E) {
 
     if (!type || type === this.type) return; // skip
@@ -147,6 +154,10 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     }
 
     this._sheetName = sheetName;
+
+    // Reset all definitions
+    this.resetColumnDefinitions();
+    this.markForCheck();
   }
 
   addFilterCriterion(criterion?: ExtractionFilterCriterion|any, opts?: { appendValue?: boolean; emitEvent?: boolean; }): boolean {
@@ -212,7 +223,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       this.form.markAsDirty({onlySelf: true});
     }
 
-    if (hasChanged && criterion && criterion.name && index >= 0) {
+    if (hasChanged && this._sheetName === criterion.sheetName && criterion?.name && index >= 0) {
       this.updateCriterionValueDefinition(index, criterion.name, false);
     }
 
@@ -289,10 +300,14 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   updateCriterionValueDefinition(index: number, columnName?: string, resetValue?: boolean): Observable<FormFieldDefinition> {
-    const criterionForm = this.sheetCriteriaForm.at(index) as FormGroup;
+    const arrayControl = this.sheetCriteriaForm;
+    if (!arrayControl) return;
+
+    const criterionForm = arrayControl.at(index) as FormGroup;
     columnName = columnName || (criterionForm && criterionForm.controls.name.value);
     const operator = criterionForm && criterionForm.controls.operator.value || '=';
-    const definition = (operator === 'NULL' || operator === 'NOT NULL') ? undefined
+    const definition = (operator === 'NULL' || operator === 'NOT NULL')
+      ? undefined
       : columnName && (this.$columnValueDefinitions.value || []).find(d => d.key === columnName) || null;
 
     // Reset the criterion value, is ask by caller
@@ -348,7 +363,9 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
 
 
-  setValue(data: ExtractionFilterCriterion[], opts?: {emitEvent?: boolean; onlySelf?: boolean }): Promise<void> | void {
+  async setValue(data: ExtractionFilterCriterion[], opts?: {emitEvent?: boolean; onlySelf?: boolean }): Promise<void>{
+
+    await this.ready();
 
     // Create a map (using sheetname as key)
     const json = (data || [])
@@ -361,8 +378,18 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     }, {});
 
 
+    // Create all sub form
+    arrayDistinct(Object.keys(json))
+      .forEach(sheet => {
+        const arrayControl = this.form.get(sheet);
+        if (!arrayControl) {
+          this.form.addControl(sheet, this.formBuilder.array([]));
+        }
+      });
+
     // Convert object to json, then apply it to form (e.g. convert 'undefined' into 'null')
     AppFormUtils.copyEntity2Form(json, this.form, {emitEvent: false, onlySelf: true, ...opts});
+
 
     // Add missing criteria
     Object.keys(json).forEach(sheet => {
@@ -400,6 +427,14 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     });
   }
 
+  protected resetColumnDefinitions() {
+
+    Object.values(this.$columnValueDefinitionsByIndex).forEach(subject => {
+      subject.next(null);
+      subject.unsubscribe();
+    })
+    this.$columnValueDefinitionsByIndex = {};
+  }
 
 
   protected markForCheck() {

@@ -76,7 +76,7 @@ export class ExtractionUtils {
     return queryParams;
   }
 
-  static parseCriteriaFromString(sheetName: string, q: string): ExtractionFilterCriterion[] {
+  static parseCriteriaFromString(sheet: string, q: string): ExtractionFilterCriterion[] {
     const criteria = (q||'').split(';');
     const operationRegexp = new RegExp('(' + CRITERION_OPERATOR_LIST.map(co => co.symbol)
       .map(symbol => symbol.replace(/\\!/, '\\\\!'))
@@ -91,14 +91,14 @@ export class ExtractionUtils {
         const value = criterion.substring(matches.index + operator.length);
         let values = value.split(':', 2);
         if (values.length === 2) {
-          return {sheetName, name, operator, value: values[0], endValue: values[1]};
+          return {sheetName: sheet, name, operator, value: values[0], endValue: values[1]};
         }
         else {
           values = value.split(',');
           if (values.length > 1) {
-            return {sheetName, name, operator, values};
+            return {sheetName: sheet, name, operator, values};
           }
-          return {sheetName, name, operator, value};
+          return {sheetName: sheet, name, operator, value};
         }
       })
       .filter(isNotNilOrBlank)

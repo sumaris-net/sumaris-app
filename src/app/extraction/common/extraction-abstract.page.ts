@@ -150,7 +150,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     // Apply filter
     if (isNotNilOrBlank(sheet) && isNotNilOrBlank(q)) {
       const criteria = ExtractionUtils.parseCriteriaFromString(sheet, q);
-      this.criteriaForm.setValue(criteria, {emitEvent: false});
+      await this.criteriaForm.setValue(criteria, {emitEvent: false});
     }
 
     // Execute the first load

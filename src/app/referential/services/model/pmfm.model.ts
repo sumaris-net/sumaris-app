@@ -256,9 +256,10 @@ export abstract class PmfmUtils {
     excludePmfmIds?: number[];
   }): P {
     // exclude hidden pmfm (see batch modal)
-    let qvPmfm = this.filterPmfms(pmfms, opts)
+    const qvPmfm = this.filterPmfms(pmfms, opts)
       .find((p, index) => {
         return p.type === 'qualitative_value'
+          && p.qualitativeValues?.length // Exclude if no qualitative value (e.g. SUB_GEAR)
           // Should be the first visible pmfms. If not (e.g. a numeric pmfm is before: not a group pmfm)
           && index === 0;
       });
