@@ -22,12 +22,12 @@ import {
   WaitForOptions
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { LandingReport } from '../landing/landing.report';
-import { LandingService } from '../services/landing.service';
-import { Landing } from '../services/model/landing.model';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { ObservedLocationService } from '../services/observed-location.service';
 import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { LandingReport } from '@app/trip/landing/landing.report';
+import { LandingService } from '@app/trip/services/landing.service';
+import { Landing } from '@app/trip/services/model/landing.model';
+import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 
 
 @Component({
@@ -201,7 +201,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     this.pmfms = pmfms;
     this.landingPmfms = landingPmfms;
     this.landingSamplesPmfms = await this.loadLandingsPmfms(data.landings, program);
-    this.data = await this.onDataLoaded(data as T, pmfms);
+    this.data = await this.onDataLoaded(data as T);
 
     this.markAsReady();
     this.markAsLoaded();
@@ -219,7 +219,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     await this.slides.initialize();
   }
 
-  protected async onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {
+  protected async onDataLoaded(data: T): Promise<T> {
     this.stats.vesselCount = arrayDistinct(data.landings, ['vesselSnapshot.id']).length;
     return data;
   }
