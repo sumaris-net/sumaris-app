@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, Injector, Input, OnDestroy, ViewChild } from '@angular/core';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
@@ -35,9 +35,14 @@ export class LandingReportOptions {
   pathParentIdAttribute?: string;
 }
 
-@Directive()
+@Component({
+  selector: 'app-landing-report',
+  styleUrls: ['./landing.report.scss'],
+  templateUrl: './landing.report.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
 // tslint:disable-next-line:directive-class-suffix
-export abstract class LandingReport<T extends Landing = Landing> implements AfterViewInit, OnDestroy {
+export class LandingReport<T extends Landing = Landing> implements AfterViewInit, OnDestroy {
 
   private readonly route: ActivatedRoute;
   private readonly platform: PlatformService;
@@ -112,6 +117,9 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     }
     if (!this.route || isNilOrBlank(this._pathIdAttribute)) {
       throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
+    }
+    if (!environment.production) {
+        this.debug = true;
     }
   }
 
@@ -243,7 +251,9 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
   /* -- protected function -- */
 
-  protected abstract computeTitle(data: T, parent?: ObservedLocation): Promise<string>;
+  protected computeTitle(data: T, parent?: ObservedLocation): Promise<string> {
+      return new Promise(() => 'TOTO');
+  }
 
 
 

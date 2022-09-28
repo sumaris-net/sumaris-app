@@ -9,15 +9,12 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
 import { AuctionControlReport } from '@app/trip/landing/auctioncontrol/auction-control.report';
-import { AppSharedReportModule } from '@app/shared/report/report.module';
-import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 
 
 @NgModule({
   imports: [
     AppCoreModule,
     AppDataModule,
-    AppSharedReportModule,
     TranslateModule.forChild(),
 
     // Functional modules
