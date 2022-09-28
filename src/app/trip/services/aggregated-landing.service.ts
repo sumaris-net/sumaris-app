@@ -251,6 +251,9 @@ export class AggregatedLandingService
         data: json,
         filter: filter?.asPodObject()
       },
+      context: {
+        tracked: false
+      },
       error: {code: ErrorCodes.SAVE_ENTITIES_ERROR, message: 'ERROR.SAVE_ENTITIES_ERROR'},
       update: (cache, {data}) => {
 
@@ -270,14 +273,14 @@ export class AggregatedLandingService
 
             aggLanding.observedLocationId = savedAggLanding.observedLocationId;
 
-            aggLanding.vesselActivities.forEach(vesselActivity=>{
+            aggLanding.vesselActivities.forEach(vesselActivity => {
               const savedVesselActivity = savedAggLanding.vesselActivities.find(value => DateUtils.equals(value.date, vesselActivity.date));
               if (savedVesselActivity) {
                 vesselActivity.updateDate = savedVesselActivity.updateDate;
                 vesselActivity.observedLocationId = savedVesselActivity.observedLocationId;
                 vesselActivity.landingId = savedVesselActivity.landingId;
                 if (isNotNil(vesselActivity.tripId) && vesselActivity.tripId !== savedVesselActivity.tripId) {
-                  console.warn(`/!\ ${vesselActivity.tripId} !== ${savedVesselActivity.tripId}`)
+                  console.warn(`/!\ ${vesselActivity.tripId} !== ${savedVesselActivity.tripId}`);
                 }
                 vesselActivity.tripId = savedVesselActivity.tripId;
               }

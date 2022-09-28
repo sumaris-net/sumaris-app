@@ -6,12 +6,13 @@
                    [canValidate]="!loading && allowMultiple && hasSelection()">
 </app-modal-toolbar>
 
-<ion-content class="ion-no-padding">
+<ion-content class="ion-no-padding" [scrollY]="false">
 
   <!-- main table -->
   <app-pmfms-table #table
-                      (onOpenRow)="selectRow($event)"
-                      (onNewRow)="close($event)">
+                   [allowMultipleSelection]="allowMultiple"
+                   (onOpenRow)="selectRow($event)"
+                   (onNewRow)="close($event)">
   </app-pmfms-table>
 </ion-content>
 
