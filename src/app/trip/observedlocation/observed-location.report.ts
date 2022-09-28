@@ -19,10 +19,6 @@ import { ObservedLocationService } from '../services/observed-location.service';
 
 
 export interface LandingReportItems {
-  stats: {
-    //taxonGroup: TaxonGroupRef,
-    sampleCount: number,
-  },
   data: Landing,
   pmfms: IPmfm[],
 }
@@ -175,10 +171,18 @@ export class ObservedLocationReport implements AfterViewInit {
 
     await this.fillLangingReportItems(data.landings, program);
 
-    this.markAsLoaded();
-    this.cd.detectChanges();
+    console.log('MARK CHILD AS READY');
+    console.log(this.childrens);
+    await Promise.all(
+      this.childrens.map(c => c.markAsReady())
+    );
 
     await this.waitIdle({stop: this.destroySubject});
+
+    console.log('CHILDS ACTIVATED');
+
+    this.markAsLoaded();
+    this.cd.detectChanges();
 
     this.slides.initialize();
   }
@@ -242,10 +246,6 @@ export class ObservedLocationReport implements AfterViewInit {
         pmfms = PmfmUtils.setWeightUnitConversions(pmfms, weightDisplayedUnit);
       }
       const result = {
-        stats: {
-          taxonGroup: taxonGroup,
-          sampleCount: data.samples?.length || 0,
-        },
         data: data, // Missing onDataLoaded normaly done by LandingReport
         pmfms: pmfms,
       }

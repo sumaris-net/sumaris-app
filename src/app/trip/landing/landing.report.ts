@@ -55,7 +55,7 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   protected readonly destroySubject = new Subject();
 
   readonly readySubject = new BehaviorSubject<boolean>(false);
-  readonly loadingSubject = new BehaviorSubject(true);
+  readonly loadingSubject = new BehaviorSubject<boolean>(true);
 
   defaultBackHref: string = null;
   $title = new Subject();
@@ -118,6 +118,7 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   ngAfterViewInit() {
 
     // Load data
+    //if (this._autoLoad && !this.embedded) { // If !this.embeded start is never called
     if (this._autoLoad) {
       setTimeout(() => this.start(), this._autoLoadDelay);
     }
@@ -129,12 +130,12 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
   async start() {
     await this.platform.ready();
-    this.markAsReady();
 
     try {
       if (this.embedded) {
         await this.loadFromInput();
       } else {
+        this.markAsReady();
         await this.loadFromRoute();
       }
     }
@@ -173,11 +174,11 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     this.i18nContext.suffix = i18nSuffix === 'legacy' ? '': i18nSuffix;
 
     // Compute agg data
-    this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup || {};
+    const taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
 
     let pmfms = await this.programRefService.loadProgramPmfms(parent.program.label, {
       acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
-      taxonGroupId: this.stats.taxonGroup?.id
+      taxonGroupId: taxonGroup?.id
     });
 
     // Apply weight conversion, if need
@@ -188,7 +189,6 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     this.parent = parent;
 
     this.data = await this.onDataLoaded(data as T, pmfms);
-    this.stats.sampleCount = data.samples?.length || 0;
 
     const title = await this.computeTitle(this.data, this.parent);
     this.$title.next(title);
@@ -235,6 +235,12 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     return firstFalsePromise(this.loadingSubject, {stop: this.destroySubject, ...opts});
   }
 
+  markAsReady() {
+    console.log('markAsReady');
+    this.readySubject.next(true);
+  }
+
+
   /* -- protected function -- */
 
   protected abstract computeTitle(data: T, parent?: ObservedLocation): Promise<string>;
@@ -245,7 +251,8 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
     // FOR DEV ONLY : add more data
     if (this.debug && !environment.production && data.samples.length < 5) this.addFakeSamplesForDev(data);
-
+    this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
+    this.stats.sampleCount = data.samples?.length || 0;
     return Promise.resolve(data as T);
   }
 
@@ -267,17 +274,12 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   }
 
   protected async loadFromInput() {
-    const taxonGroup = (this.data.samples || [])
-      .find(s => !!s.taxonGroup?.name)?.taxonGroup || {} as TaxonGroupRef;
-    this.stats = {
-      taxonGroup: taxonGroup,
-    };
+    console.log('AWAIT IM REDY');
+    await this.ready({stop: this.destroySubject});
+    console.log('IM READY' + this.data.id);
+    await this.onDataLoaded(this.data, this.pmfms);
     this.markAsLoaded();
     this.cd.detectChanges();
-  }
-
-  protected markAsReady() {
-    this.readySubject.next(true);
   }
 
   protected markAsLoaded(opts = {emitEvent: true}) {

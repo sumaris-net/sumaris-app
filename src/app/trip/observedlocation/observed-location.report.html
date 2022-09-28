@@ -34,13 +34,12 @@
           TODO
         </section>
       </section>
-      <section markdown ngPreserveWhitespaces *ngFor="let reportItem of landingReportItems">
+      <section *ngFor="let reportItem of landingReportItems">
         <app-auction-control-report #landingReport
           [embedded]="true"
           [data]="reportItem.data"
           [parent]="data"
           [i18nContext]="i18nContext"
-          [stats]="reportItem.stats"
           [pmfms]="reportItem.pmfms"
           ></app-auction-control-report>
       </section>
