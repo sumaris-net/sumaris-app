@@ -58,7 +58,7 @@ function getIndivMeasValues(opts?: {
   return res;
 }
 
-export const BATCH_TREE_EXAMPLES = ['default', 'empty'];
+export const BATCH_TREE_EXAMPLES = ['default', 'selectivity', 'empty'];
 
 export function getExampleTree(key: string, programLabel?: string): any {
   switch (key) {
@@ -131,11 +131,12 @@ export function getExampleTree(key: string, programLabel?: string): any {
           {
             label: 'SORTING_BATCH#1',
             rankOrder: 1,
-            taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
             measurementValues: (programLabel === 'APASE' ? getSortingMeasValues({ gearPosition: 'B', sizeCategory: 319 }) : undefined),
             children: [
               {
-                label: 'SORTING_BATCH#1.LAN', rankOrder: 1,
+                label: 'SORTING_BATCH#1.LAN',
+                rankOrder: 1,
+                taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
                 measurementValues: getSortingMeasValues({ discardOrLanding: 'LAN', weight: 100 }),
                 children: [
                   {
@@ -163,7 +164,9 @@ export function getExampleTree(key: string, programLabel?: string): any {
                 ]
               },
               {
-                label: 'SORTING_BATCH#1.DIS', rankOrder: 2,
+                label: 'SORTING_BATCH#1.DIS',
+                rankOrder: 2,
+                taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
                 measurementValues: getSortingMeasValues({ discardOrLanding: 'DIS' }),
                 children: [
                   {

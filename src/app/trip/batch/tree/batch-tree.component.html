@@ -1,6 +1,7 @@
 
 <!-- catch batch form -->
-<div class="ion-padding" [class.cdk-visually-hidden]="!showCatchForm">
+<div class="ion-padding-top"
+     [class.cdk-visually-hidden]="!showCatchForm">
   <form-catch-batch #catchBatchForm
                     [programLabel]="$programLabel|async"
                     acquisitionLevel="CATCH_BATCH"
@@ -29,6 +30,7 @@
           batchTree.dirty: {{dirty}}<br/>
           batchTree.program: {{($program|async)?.label}}<br/>
           batchTree.showCatchForm: {{showCatchForm}}<br/>
+          batchTree.showBatchTables: {{showBatchTables}}<br/>
           batchTree.i18nContext.suffix: {{i18nContext.suffix}}<br/>
         </small>
       </ion-text>

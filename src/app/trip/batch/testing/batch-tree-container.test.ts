@@ -172,7 +172,7 @@ export class BatchTreeContainerTestPage implements OnInit {
       //gear: {id: 6, label: 'OTB'},
       gear: {id: 7, label: 'OTT'},
       fishingArea: {id: 110, label: '65F1'},
-      example: {id: 1, label: 'default'}
+      example: {id: 1, label: 'selectivity'}
     });
 
     this.applyExample();
@@ -198,8 +198,8 @@ export class BatchTreeContainerTestPage implements OnInit {
 
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.batchTree.program = program;
-    if (program.label === 'APASE') {
-      this.batchTree.gearId = 70; // Parent gear
+    if (program.label === 'APASE' && this.batchTree.gearId === 7) {
+      //this.batchTree.gearId = 7; // Parent gear
       this.batchTree.physicalGearId = 70; // Parent gear
     }
 

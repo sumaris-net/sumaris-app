@@ -260,8 +260,8 @@
       </div>
     </mat-tab>
 
-    <mat-tab #catchTab [label]="'Captures'|translate"
-    >
+    <mat-tab #catchTab [label]="'TRIP.OPERATION.EDIT.TAB_CATCH'|translateContext: i18nContext.suffix"
+             [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
         <ion-label >{{catchTab.textLabel}}
@@ -271,50 +271,16 @@
 
       <!-- batch tree container -->
       <app-batch-tree-container #batchTree
-                                queryTabIndexParamName="subtab"
-                                [showBatchTables]="showBatchTables"
-                                [selectedTabIndex]="selectedSubTabIndex"
-                                [usageMode]="usageMode"
-                                [mobile]="mobile"
-                                [debug]="true">
+                      queryTabIndexParamName="subtab"
+                      [showBatchTables]="showBatchTables"
+                      [selectedTabIndex]="selectedSubTabIndex"
+                      [usageMode]="usageMode"
+                      [useSticky]="mobile"
+                      [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
+                      [mobile]="mobile"
+                      [debug]="debug">
       </app-batch-tree-container>
     </mat-tab>
-
-    <!-- TAB: Catch / position -->
-<!--    <mat-tab #batchTab-->
-<!--             *ngFor="let batchTabDef of batchTreeDefinitions; trackBy: trackBatchTreeDef"-->
-<!--             [label]="batchTabDef.label|translate"-->
-<!--             >-->
-<!--      <ng-template mat-tab-label>-->
-<!--        <mat-icon>line_style</mat-icon>-->
-<!--            <ion-label *ngVar="subBatchTree.batchGroupsTable.totalRowCount as count"-->
-<!--                       [matBadge]="count"-->
-<!--                       [matBadgeHidden]="subBatchTree.invalid || !count"-->
-<!--                       matBadgeOverlap="false"-->
-<!--                       matBadgeColor="primary"-->
-<!--                       matBadgeSize="small"-->
-<!--                   matBadgePosition="above after">{{batchTab.textLabel}}-->
-<!--            </ion-label>-->
-<!--            <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && subBatchTree.invalid"></ion-icon>-->
-<!--          </ng-template>-->
-
-<!--          <app-batch-tree #subBatchTree-->
-<!--                          queryTabIndexParamName="subtab"-->
-<!--                          [showBatchTables]="showBatchTables"-->
-<!--                          [selectedTabIndex]="selectedSubTabIndex"-->
-<!--                          [allowSamplingBatches]="batchTree.allowSamplingBatches"-->
-<!--                          [allowSubBatches]="batchTree.allowSubBatches"-->
-<!--                          [defaultHasSubBatches]="batchTree.defaultHasSubBatches"-->
-<!--                          [availableTaxonGroups]="batchTree.availableTaxonGroups"-->
-<!--                          [usageMode]="usageMode"-->
-<!--                          [useSticky]="mobile"-->
-<!--                          [mobile]="mobile"-->
-<!--                          [disabled]="disabled"-->
-<!--                          [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"-->
-<!--                          [filter]="batchTabDef.filter"-->
-<!--                          [debug]="debug">-->
-<!--          </app-batch-tree>-->
-<!--        </mat-tab>-->
 
   </mat-tab-group>
 

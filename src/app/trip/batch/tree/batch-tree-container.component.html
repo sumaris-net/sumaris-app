@@ -1,101 +1,86 @@
-<ion-grid class="form-container" *ngIf="debug">
-  <ion-row >
-    <ion-col size="0" size-md="3" size-lg="3">
-      <ion-label class="ion-float-end">Debug :</ion-label>
-    </ion-col>
-    <ion-col>
-      <ion-text color="primary" class="text-italic">
-        <small>
-          batchTreeContainer.loading: {{loading}}<br/>
-          batchTreeContainer.ready: {{readySubject|async}}<br/>
-          batchTreeContainer.dirty: {{dirty}}<br/>
-          batchTreeContainer.value: {{!!data}}<br/>
-        </small>
-      </ion-text>
-    </ion-col>
-  </ion-row>
-</ion-grid>
-<ion-grid>
+<!-- debug -->
+<app-debug *ngIf="debug">
+  batchTreeContainer.loading: {{loading}}<br/>
+  batchTreeContainer.ready: {{readySubject|async}}<br/>
+  batchTreeContainer.dirty: {{dirty}}<br/>
+  batchTreeContainer.value: {{!!data}}<br/>
+</app-debug>
+
+<ion-grid class="ion-no-padding">
   <ion-row>
+    <!-- filter column -->
     <ion-col size="3">
-      <ion-list>
+      <ion-list class="ion-no-padding">
         <mat-tree [dataSource]="modelDataSource"
                   [treeControl]="modelTreeControl"
                   class="batch-tree">
-          <!-- Nodes children (expandable) -->
+          <!-- Expandable nodes -->
           <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild" >
-            <ion-item-divider matTreeNodeToggle>
-              <ion-label>{{(node.name || node.label)|translate}}</ion-label>
-              <ion-icon *ngIf="node.pmfms|arrayFilter: isWeightPmfm|isNotEmptyArray"></ion-icon>
-            </ion-item-divider>
-            <ng-container matTreeNodeOutlet [class.cdk-visually-hidden]="!modelTreeControl.isExpanded(node)"></ng-container>
+            <li>
+              <ion-item (click)="editBatch($event, node)"
+                        [class.cdk-visually-hidden]="node.hidden"
+                        [class.selected]="editingBatch === node"
+                        [disabled]="node.disabled"
+                        tappable>
+                <mat-icon class="mat-icon-rtl-mirror" matTreeNodeToggle>
+                  {{modelTreeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                </mat-icon>
+                <ion-label translate>{{node.name || node.label}}</ion-label>
+                <mat-icon class="small-icon" slot="end" *ngIf="node.pmfms|arrayFilter:isWeightPmfm|isNotEmptyArray">scale</mat-icon>
+                <ion-icon name="chevron-forward-outline" slot="end" *ngIf="!node.disabled"></ion-icon>
+              </ion-item>
+              <ul [class.cdk-visually-hidden]="!modelTreeControl.isExpanded(node)">
+                <ng-container matTreeNodeOutlet [class.cdk-visually-hidden]="!modelTreeControl.isExpanded(node)"></ng-container>
+              </ul>
+            </li>
           </mat-nested-tree-node>
 
           <!-- Leaf nodes -->
-          <mat-tree-node *matTreeNodeDef="let node" >
-            <ion-item (click)="selectDef(node)" matTreeNodeToggle>
-              <ion-label>{{(node.name || node.label)|translate}}</ion-label>
-              <ion-icon slot="end" name="alert-circle" color="danger" ></ion-icon>
-            </ion-item>
+          <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
+            <li *ngVar="editingBatch === node; let selected">
+              <ion-item (click)="editBatch($event, node)"
+                        [class.selected]="selected"
+                        class="leaf"
+                        tappable>
+                <mat-icon [style.width.px]="8"></mat-icon><!-- spacer for alignment -->
+                <ion-label translate>{{node.name || node.label}}</ion-label>
+<!--                <mat-icon class="small-icon" slot="end" svgIcon="fish" *ngIf="node.childrenPmfms|isNotEmptyArray"></mat-icon>-->
+                <ion-icon *ngIf="(selected && (batchTree.errorSubject | async) || node.error); let error"
+                          class="small-icon" slot="end" name="alert-circle" color="danger"
+                          [title]="error||''"></ion-icon>
+                <ion-badge *ngIf="node.children?.length; let count"
+                           color="tertiary"
+                           slot="end">{{count}}</ion-badge>
+                <ion-icon name="chevron-forward-outline" slot="end"></ion-icon>
+              </ion-item>
+            </li>
           </mat-tree-node>
         </mat-tree>
       </ion-list>
     </ion-col>
-    <ion-col>
-      <ng-container *ngFor="let def of definitions; when: ifLeaf">
-        {{def.label}}
-<!--        <app-batches-table #childTree></app-batches-table>-->
-<!--        <app-batch-tree #childTree-->
-<!--                        [queryTabIndexParamName]="queryTabIndexParamName"-->
-<!--                        [showBatchTables]="showBatchTables"-->
-<!--                        [allowSamplingBatches]="allowSamplingBatches"-->
-<!--                        [allowSubBatches]="allowSubBatches"-->
-<!--                        [defaultHasSubBatches]="defaultHasSubBatches"-->
-<!--                        [availableTaxonGroups]="availableTaxonGroups"-->
-<!--                        [usageMode]="usageMode"-->
-<!--                        [useSticky]="mobile"-->
-<!--                        [mobile]="mobile"-->
-<!--                        [disabled]="disabled"-->
-<!--                        [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"-->
-<!--                        [filter]="def.filter" [debug]="debug">-->
-<!--          &lt;!&ndash; [debug]="debug"&ndash;&gt;-->
-<!--        </app-batch-tree>-->
-      </ng-container>
+    <ion-col >
+      <p [class.cdk-visually-hidden]="editingBatch">
+        <ion-icon color="primary100" name="information-circle"></ion-icon>
+        <ion-text color="primary100" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-text>
+      </p>
+      <app-batch-tree #batchTree
+                      [class.cdk-visually-hidden]="!editingBatch"
+                      [queryTabIndexParamName]="queryTabIndexParamName"
+                      [showBatchTables]="showBatchTables"
+                      [allowSamplingBatches]="allowSamplingBatches"
+                      [allowSubBatches]="allowSubBatches"
+                      [defaultHasSubBatches]="defaultHasSubBatches"
+                      [availableTaxonGroups]="availableTaxonGroups"
+                      [usageMode]="usageMode"
+                      [modalOptions]="modalOptions"
+                      [physicalGearId]="$physicalGearId|async"
+                      [useSticky]="useSticky"
+                      [i18nPmfmPrefix]="i18nPmfmPrefix"
+                      [mobile]="mobile"
+                      [disabled]="disabled"
+                      [filter]="filter"
+                      [debug]="debug && false">
+      </app-batch-tree>
     </ion-col>
   </ion-row>
-<!--  <ion-row>-->
-<!--    <ion-col size="3">-->
-<!--      <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="batch-tree">-->
-<!--        &lt;!&ndash; This is the tree node template for leaf nodes &ndash;&gt;-->
-<!--        <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>-->
-<!--          <li class="mat-tree-node">-->
-<!--            &lt;!&ndash; use a disabled button to provide padding for tree leaf &ndash;&gt;-->
-<!--            <button mat-icon-button disabled></button>-->
-<!--            {{node.label|translate}}-->
-<!--            <ion-icon slot="end" name="alert-circle" color="danger" ></ion-icon>-->
-<!--          </li>-->
-<!--        </mat-tree-node>-->
-<!--        &lt;!&ndash; This is the tree node template for expandable nodes &ndash;&gt;-->
-<!--        <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodeToggle>-->
-<!--          <li>-->
-<!--            <div class="mat-tree-node">-->
-<!--              <button mat-icon-button-->
-<!--                      [attr.aria-label]="'toggle ' + node.name">-->
-<!--                <mat-icon class="mat-icon-rtl-mirror">-->
-<!--                  {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}-->
-<!--                </mat-icon>-->
-<!--              </button>-->
-<!--              {{node.label|translate}}-->
-<!--            </div>-->
-<!--            <ul [class.batch-tree-invisible]="!treeControl.isExpanded(node)">-->
-<!--              <ng-container matTreeNodeOutlet></ng-container>-->
-<!--            </ul>-->
-<!--          </li>-->
-<!--        </mat-nested-tree-node>-->
-<!--      </mat-tree>-->
-<!--    </ion-col>-->
-<!--    <ion-col>-->
-
-<!--    </ion-col>-->
-<!--  </ion-row>-->
 </ion-grid>

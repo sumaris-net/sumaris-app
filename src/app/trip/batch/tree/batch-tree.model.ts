@@ -1,22 +1,10 @@
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { EntityClass, isNotEmptyArray } from '@sumaris-net/ngx-components';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { EntityClass, isEmptyArray, isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
-export interface IBatchTreeDefinition {
-  id: number;
-  label: string;
-  qvPmfm?: IPmfm;
-  pmfms?: IPmfm[];
-  filter?: BatchFilter;
-  parent?: IBatchTreeDefinition;
-  children?: IBatchTreeDefinition[];
-}
 
 @EntityClass({typename: 'BatchModelVO'})
 export class BatchModel<
@@ -28,71 +16,94 @@ export class BatchModel<
   static fromBatch(source: Batch,
                    pmfms: IPmfm[],
                    // Internal arguments (used by recursive call)
-                   parent: BatchModel = null,
-                   treeDepth = 0
+                   maxTreeDepth = 3,
+                   treeDepth = 0,
+                   parent: BatchModel = null
   ): BatchModel {
     pmfms = pmfms || [];
 
     // Make sure the first batch is a catch batch
-    if (treeDepth === 0) {
-      source = BatchUtils.isCatchBatch(source)
-        ? source
-        : Batch.fromObject({ rankOrder: 1, label: AcquisitionLevelCodes.CATCH_BATCH});
+    const isCatchBatch = treeDepth === 0 || BatchUtils.isCatchBatch(source);
+    if (isCatchBatch && !source) {
+      source = Batch.fromObject({ rankOrder: 1, label: AcquisitionLevelCodes.CATCH_BATCH});
     }
     // if (pmfmStartIndex > 0) {
     //   pmfms = pmfms.slice(pmfmStartIndex);
     // }
     const target = BatchModel.fromObject(source.asObject({withChildren: false}));
 
-    // Find the first QV pmfm
-    const qvPmfm: IPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms, {excludeHidden: false});
-    if (qvPmfm) {
-      const qvPmfmIndex = pmfms.indexOf(qvPmfm);
+    // Find the first QV pmfm (with QV
+    let childrenQvPmfm: IPmfm = pmfms.find(p => p.isQualitative && isNotEmptyArray(p.qualitativeValues));
+    if (childrenQvPmfm) {
+      const qvPmfmIndex = pmfms.indexOf(childrenQvPmfm);
       if (qvPmfmIndex > 0) {
-        if (parent) {
-          // Add pmfm BEFORE the QV pmfm to parent (e.g. weight)
-          parent.pmfms = pmfms.slice(0, qvPmfmIndex - 1);
-        }
-        else {
-          target.pmfms = pmfms.slice(0, qvPmfmIndex - 1);
-        }
-
+        target.pmfms = pmfms.slice(0, qvPmfmIndex);
       }
 
       // Prepare next iteration
-      pmfms = pmfms.slice(qvPmfmIndex + 1);
+      pmfms = pmfms.slice(qvPmfmIndex+1);
       treeDepth++;
 
-      if (treeDepth <= 1 && isNotEmptyArray(pmfms)) {
-        const childrenLabelPrefix = BatchUtils.isCatchBatch(source) ?
+      childrenQvPmfm = childrenQvPmfm.clone();
+      childrenQvPmfm.hidden = true;
+
+      if (treeDepth < maxTreeDepth && isNotEmptyArray(pmfms)) {
+        const childrenLabelPrefix = isCatchBatch ?
           `${AcquisitionLevelCodes.SORTING_BATCH}#` : `${target.label}.`;
         // Create children batches
-        target.children = qvPmfm.qualitativeValues.map(qv => {
-          const childSource = (source.children || []).find(c => PmfmValueUtils.equals(c.measurementValues?.[qvPmfm.id], qv))
+        target.children = childrenQvPmfm.qualitativeValues.map(qv => {
+          const childSource = (source.children || []).find(c => PmfmValueUtils.equals(c.measurementValues?.[childrenQvPmfm.id], qv))
             || new Batch();
           childSource.measurementValues = target.measurementValues || {};
-          childSource.measurementValues[qvPmfm.id] = qv.id.toString();
+          childSource.measurementValues[childrenQvPmfm.id] = qv.id.toString();
           childSource.label = `${childrenLabelPrefix}${qv.label}`;
 
           // Recursive call
-          const childTarget = BatchModel.fromBatch(childSource, pmfms, target, treeDepth);
+          const childTarget = BatchModel.fromBatch(childSource, pmfms, maxTreeDepth, treeDepth, target);
+          childTarget.pmfms = [
+            childrenQvPmfm,
+            ...childTarget.pmfms
+          ];
 
-          // Set name
+          // Set name and parent
           childTarget.name = qv.name;
+          childTarget.parent = target;
 
           return childTarget;
         });
       }
+      else {
+        target.childrenPmfms = [
+          childrenQvPmfm,
+          ...pmfms
+        ];
+        target.children = source.children;
+      }
     }
+
+    // Disabled if no pmfms
+    target.disabled = isEmptyArray(target.pmfms) && isEmptyArray(target.childrenPmfms)
+      && !target.parent;
+    // Hide is disabled and no parent
+    target.hidden = target.disabled && !target.parent;
+
     return target;
   }
 
   name: string;
   pmfms?: IPmfm[];
+  childrenPmfms?: IPmfm[];
+  disabled?: boolean;
+  hidden?: boolean;
+  error?: string;
 
   fromObject(source: any, opts?: FO) {
     super.fromObject(source);
     this.name = source.name;
     this.pmfms = source.pmfms || [];
+    this.childrenPmfms = source.childrenPmfms || [];
+    this.disabled = source.disabled || false;
+    this.hidden = source.hidden || false;
+    this.error = source.error || null;
   }
 }

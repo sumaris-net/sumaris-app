@@ -231,8 +231,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     return super.dirty || (this._subBatchesService && this._subBatchesService.dirty) || false;
   }
 
-  set modalOptions(modalOptions: Partial<IBatchGroupModalOptions>) {
+  @Input() set modalOptions(modalOptions: Partial<IBatchGroupModalOptions>) {
     this.batchGroupsTable.modalOptions = modalOptions;
+  }
+
+  get modalOptions(): Partial<IBatchGroupModalOptions> {
+    return this.batchGroupsTable.modalOptions;
   }
 
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
@@ -429,10 +433,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   }
 
   async setValue(catchBatch: Batch, opts?: {emitEvent?: boolean;}) {
+    catchBatch = catchBatch || Batch.fromObject({
+      rankOrder: 1,
+      label: AcquisitionLevelCodes.CATCH_BATCH
+    });
 
-    // Make sure this is catch batch
-    if (catchBatch && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
-      throw new Error('Catch batch should have label=' + AcquisitionLevelCodes.CATCH_BATCH);
+    // Make sure root batch is a catch batch
+    if (isNil(catchBatch.parent) && isNil(catchBatch.parentId) && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
+      throw new Error('Invalid catch batch. Should have label: ' + AcquisitionLevelCodes.CATCH_BATCH);
     }
 
     // DEBUG
@@ -441,10 +449,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
     try {
 
-      catchBatch = catchBatch || Batch.fromObject({
-        rankOrder: 1,
-        label: AcquisitionLevelCodes.CATCH_BATCH
-      });
 
       this.data = catchBatch;
 
@@ -501,7 +505,13 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     ]);
   }
 
-  protected async setProgram(program: Program) {
+  /**
+   *
+   * @param program
+   * @param opts allow to avoid program propagation (e.g. see batch tree container)
+   * @protected
+   */
+  async setProgram(program: Program, opts = {emitEvent: true}) {
     if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);

@@ -840,6 +840,7 @@
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_NAME": "Espèce scientifique",
         "PARENT_GROUP": "Lot espèce",
+        "CATCH_BATCH": "Capture",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures",
         "BTN_APPLY_CHILDREN_WEIGHT": "Appliquer ce poids",
@@ -886,6 +887,9 @@
         "COMMENTS": "Commentaires",
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
+      },
+      "TREE": {
+        "SELECT_PARENT_HELP": "Veuillez sélectionner un lot parent, ci-contre."
       },
       "PMFM": {
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
