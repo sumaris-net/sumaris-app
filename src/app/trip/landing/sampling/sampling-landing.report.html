@@ -33,7 +33,7 @@
         <section markdown ngPreserveWhitespaces
                  *ngFor="let samples of (data.samples | splitArrayInChunks: slides.printing ? -1 : 25); index as index; count as count">
           ### {{'LANDING.REPORT.SAMPLING.SAMPLES_TITLE'|translate}} {{index|paginationToString:count}}
-            <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+          <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
         </section>
       </section>
     </app-slides>

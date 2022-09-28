@@ -25,9 +25,6 @@ export class SamplingLandingReport extends LandingReport {
       pathParentIdAttribute: 'observedLocationId',
       pathIdAttribute: 'samplingId'
     });
-    if (!environment.production) {
-        this.debug = true;
-    }
   }
 
   /* -- protected function -- */

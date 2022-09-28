@@ -102,6 +102,17 @@
                                     [pmfms]="landingSamplesPmfms[index]"
         ></app-sampling-landing-report>
 
+        <!-- default langing -->
+        <app-landing-report #landingReport
+                            *ngSwithDefault
+                            [embedded]="true"
+                            [data]="landing"
+                            [parent]="data"
+                            [i18nContext]="i18nContext"
+                              [pmfms]="landingSamplesPmfms[index]"
+        ></app-landing-report>
+
+
       </section>
   </app-slides>
 

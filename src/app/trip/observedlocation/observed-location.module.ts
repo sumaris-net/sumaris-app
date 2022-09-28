@@ -38,7 +38,8 @@ import { AppSamplingLandingModule } from '@app/trip/landing/sampling/sampling-la
     AppAggregatedLandingModule,
     AppSharedReportModule,
     AppAuctionControlModule,
-    AppSamplingLandingModule
+    AppSamplingLandingModule,
+    AppLandingModule
   ],
   declarations: [
     ObservedLocationForm,
