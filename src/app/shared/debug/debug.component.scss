@@ -1,0 +1,34 @@
+ion-item {
+  --min-height: 24px;
+  --font-size: calc(var(--min-height) / 2);
+  //height: var(--min-height) !important;
+
+  mat-icon,
+  ion-icon {
+    margin-top: 0;
+    --ion-size: var(--font-size);
+    font-size: var(--ion-size);
+    width: var(--ion-size);
+    height: var(--ion-size);
+  }
+
+  ion-label {
+    //margin-top: -3px;
+    font-size: var(--font-size);
+    height: var(--min-height);
+    line-height: var(--font-size);
+  }
+}
+.mat-expansion-panel {
+  --expansion-panel-padding: 4px;
+  margin-bottom: 4px !important;
+  background: var(--ion-color-secondary50) !important;
+
+  .mat-expansion-panel-body {
+    * {
+      color: var(--ion-color-primary100);
+      font-style: italic;
+    }
+  }
+
+}

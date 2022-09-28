@@ -1,0 +1,13 @@
+<!-- debug -->
+<ion-item tappable (click)="debugPanel.toggle()" lines="none" color="secondary50">
+  <ion-icon slot="start" name="bug" ></ion-icon>
+  <ion-label color="primary">Debug</ion-label>
+  <mat-icon slot="end">{{debugPanel.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
+</ion-item>
+<mat-expansion-panel #debugPanel>
+  <ion-text color="primary100" >
+    <div class="ion-margin-start">
+      <ng-content></ng-content>
+    </div>
+  </ion-text>
+</mat-expansion-panel>
