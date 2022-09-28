@@ -27,7 +27,7 @@ import { LandingService } from '../services/landing.service';
 import { Landing } from '../services/model/landing.model';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { ObservedLocationService } from '../services/observed-location.service';
-import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 
 
 @Component({
@@ -73,6 +73,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   pmfms: IPmfm[];
   landingPmfms: IPmfm[];
   landingEditor: LandingEditor;
+  landingI18nPmfmPrefix: string;
   landingI18nColumnPrefix: string;
   landingShowSampleCount: boolean;
   landingSamplesPmfms: IPmfm[][];
@@ -103,6 +104,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam;
     this.landingI18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
+    this.landingI18nPmfmPrefix = LANDING_I18N_PMFM_PREFIX;
 
     this.computeSlidesOptions();
 

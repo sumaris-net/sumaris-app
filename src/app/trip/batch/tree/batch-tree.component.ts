@@ -5,7 +5,6 @@ import {
   AppTable,
   Entity,
   firstTruePromise,
-  IAppForm,
   IAppTabEditor,
   InMemoryEntitiesService,
   isNil,
@@ -228,7 +227,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   }
 
   get dirty(): boolean {
-    return super.dirty || (this._subBatchesService && this._subBatchesService.dirty) || false;
+    return super.dirty || this._subBatchesService?.dirty || false;
   }
 
   @Input() set modalOptions(modalOptions: Partial<IBatchGroupModalOptions>) {
@@ -366,7 +365,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   ngOnDestroy() {
     super.ngOnDestroy();
 
-    this._subBatchesService?.ngOnDestroy();
+    this._subBatchesService?.stop();
 
     this.$programLabel.complete();
     this.$program.complete();
@@ -595,7 +594,13 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
 
   async autoFill(opts = { skipIfDisabled: true, skipIfNotEmpty: false}): Promise<void> {
-    return this.batchGroupsTable.autoFillTable(opts);
+    const dirty = this.dirty;
+    await this.batchGroupsTable.autoFillTable(opts);
+
+    // Restore previous state
+    if (dirty !== this.dirty) {
+      if (!dirty) this.markAsPristine();
+    }
   }
 
   setSelectedTabIndex(value: number, opts?: { emitEvent?: boolean; realignInkBar?: boolean; }) {

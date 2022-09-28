@@ -267,7 +267,6 @@
   },
   "defaultProject": "app",
   "cli": {
-    "analytics": false,
-    "packageManager": "yarn"
+    "analytics": false
   }
 }

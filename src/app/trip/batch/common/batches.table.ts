@@ -42,8 +42,10 @@ export class BatchesTable extends AbstractBatchesTable<Batch>{
     this.modalOptions[key as any] = value;
   }
 
-  async setValue(data: Batch, opts?: {emitEvent?: boolean}): Promise<void> {
-
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.memoryDataService.stop();
+    this.memoryDataService = null;
   }
 
   /* -- protected methods  -- */

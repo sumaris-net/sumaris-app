@@ -238,7 +238,7 @@
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
         </mat-icon>
         <ion-label [matBadge]="operationsTable.totalRowCount"
-                   [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount || operationsTable.error"
+                   [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount || !!operationsTable.error"
                    matBadgeColor="primary"
                    matBadgeOverlap="false"
                    matBadgeSize="small"

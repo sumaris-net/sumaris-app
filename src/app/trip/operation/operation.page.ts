@@ -505,7 +505,7 @@ export class OperationPage
 
             // Auto fill batches (if new data)
             if (this.showBatchTables && this.autoFillBatch && this.batchTree && this.isNewData) {
-              this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
+              await this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
             }
 
             this.updateTablesState();

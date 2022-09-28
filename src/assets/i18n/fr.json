@@ -108,6 +108,7 @@
     "YES": "Oui",
     "NO": "Non",
 
+    "DEBUG": "Debug",
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",

@@ -118,6 +118,11 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditPacket(row)));
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.memoryDataService.stop();
+  }
+
   private loadPmfms() {
     this.programRefService.loadProgramPmfms(this.program, {acquisitionLevel: AcquisitionLevelCodes.PACKET_SALE})
       .then(packetSalePmfms => this.packetSalePmfms = packetSalePmfms);

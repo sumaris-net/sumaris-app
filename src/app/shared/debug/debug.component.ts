@@ -6,13 +6,11 @@ import { environment } from '@environments/environment';
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss']
 })
-export class DebugComponent implements OnInit {
+export class DebugComponent {
 
+  @Input() title: string = '';
   @Input() enable = !environment.production;
 
   constructor() { }
-
-  ngOnInit(): void {
-  }
 
 }

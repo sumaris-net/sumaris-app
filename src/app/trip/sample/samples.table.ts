@@ -15,7 +15,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank, isNotNilOrNaN,
-  LoadResult,
+  LoadResult, LocalSettingsService,
   ObjectMap,
   PlatformService,
   RESERVED_END_COLUMNS,
@@ -70,7 +70,13 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   templateUrl: 'samples.table.html',
   styleUrls: ['samples.table.scss'],
   providers: [
-    {provide: AppValidatorService, useExisting: SampleValidatorService}
+    {provide: AppValidatorService, useExisting: SampleValidatorService},
+    {provide: InMemoryEntitiesService,
+      useFactory: () => new InMemoryEntitiesService(Sample, SampleFilter, {
+          equals: Sample.equals,
+          sortByReplacement: {'id': 'rankOrder'}
+        })
+    }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -173,10 +179,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
 
-  get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
-    return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
-  }
-
   getRowError(row, opts): string {
     return super.getRowError(row, opts);
   }
@@ -196,15 +198,13 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
   constructor(
     injector: Injector,
+    protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>,
     protected samplingStrategyService: SamplingStrategyService,
   ) {
     super(injector,
       Sample, SampleFilter,
-      new InMemoryEntitiesService(Sample, SampleFilter, {
-        equals: Sample.equals,
-        sortByReplacement: {'id': 'rankOrder'}
-      }),
-      injector.get(PlatformService).mobile ? null : injector.get(AppValidatorService),
+      memoryDataService,
+      injector.get(LocalSettingsService).mobile ? null : injector.get(AppValidatorService),
       {
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
@@ -237,6 +237,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
     //this.debug = false;
     this.debug = !environment.production;
+    this.logPrefix = '[samples-table] ';
   }
 
   ngOnInit() {
@@ -279,6 +280,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   ngOnDestroy() {
     super.ngOnDestroy();
 
+    this.memoryDataService?.stop();
     this.onPrepareRowForm.complete();
     this.onPrepareRowForm.unsubscribe();
     this.$pmfmGroups.complete();

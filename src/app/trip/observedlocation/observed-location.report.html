@@ -44,7 +44,7 @@
                       [rowSpan]="isQualitativePmfm(pmfm) ? 1 : 2"
                       [colSpan]="isQualitativePmfm(pmfm) && pmfm.qualitativeValues?.length || 1"
                     >{{pmfm|pmfmName: {
-                    i18nPrefix: landingI18nColumnPrefix,
+                    i18nPrefix: landingI18nPmfmPrefix,
                     i18nContext: i18nContext.suffix,
                     html: true } }}</th>
                 </tr>

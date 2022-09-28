@@ -204,6 +204,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return this.dirtySubject.value || (this.weightMethodForm && this.weightMethodForm.dirty);
   }
 
+  set value(data: BatchGroup[]) {
+    console.debug(this.logPrefix + 'set Value', data);
+    super.value = data;
+  }
+
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
   @Input() subBatchesModalOptions: Partial<ISubBatchesModalOptions>;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
@@ -298,6 +303,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
     // -- For DEV only
     //this.debug = !environment.production;
+    this.logPrefix = '[batch-groups-table] ';
   }
 
   ngOnInit() {
@@ -309,6 +315,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     if (this.debug && this.mobile) this.setValidatorService(null);
 
     super.ngOnInit();
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.memoryDataService.stop();
+    this.memoryDataService = null;
   }
 
   translateControlPath(path: string): string {

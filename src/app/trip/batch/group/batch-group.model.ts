@@ -79,7 +79,7 @@ export class BatchGroupUtils {
         // If DISCARD
         if (qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD) {
           // Hide pmfm DRESSING and PRESERVATION, and force default values
-          if (pmfm.id === PmfmIds.DRESSING) {
+          if (PmfmUtils.isDressing(pmfm)) {
             pmfm = pmfm.clone();
             pmfm.hidden = true;
             pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.DRESSING.WHOLE, label: 'WHL' });

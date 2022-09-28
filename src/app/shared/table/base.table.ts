@@ -109,7 +109,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.mobile = this.settings.mobile;
     this.hotkeys = injector.get(Hotkeys);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
-    this.logPrefix = '[base-table]';
+    this.logPrefix = '[base-table] ';
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
     this.debug = options?.debug && !environment.production;

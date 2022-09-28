@@ -112,6 +112,12 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
     super.ngOnInit();
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.memoryDataService.stop();
+    this.memoryDataService = null;
+  }
+
   async openDescriptionPopover(event: UIEvent, row: TableElement<Referential>) {
 
     const placeholder = this.translate.instant(this.i18nColumnPrefix + 'DESCRIPTION');

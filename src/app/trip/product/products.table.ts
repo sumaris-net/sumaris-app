@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, Self } from '@angular/core';
 import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { ProductValidatorService } from '../services/validator/product.validator';
@@ -140,6 +140,11 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
         }));
 
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.memoryDataService.stop();
   }
 
   confirmEditCreate(event?: any, row?: TableElement<Product>): boolean {

@@ -208,28 +208,13 @@
                        [tabindex]="tabindex + 34">
               </mat-form-field>
             </ion-col>
+          </ion-row>
 
-            <!-- DEBUG -->
-            <ion-col size="12" *ngIf="debug">
-              <ion-text color="primary">
-                <small>
-                  loading: {{loadingSubject|async}}<br/>
-                  ready: {{readySubject|async}}<br/>
-                  valid: {{valid}}<br/>
-                  dirty: {{dirty}}<br/>
-                  samplingRatio: {{controls.samplingRatio.value|numberFormat: {fixedDecimals: 6} }} <br/>
-                  samplingRatioText: {{controls.samplingRatioText.value}} (type: {{samplingRatioFormat||'null'}}{{ (controls.samplingRatioComputed.value) ? ', computed' : ''}})<br/>
-                  sampling.weight: {{controls.weightValue.value }} {{controls.weightComputed.value?'(computed)':'' }}<br/>
-                  sampling.children weight: {{controls.childrenWeightValue.value }} {{controls.childrenWeightComputed.value?'(computed)':'' }}<br/>
-                  <br/>
-                  defaultWeightPmfm: {{defaultWeightPmfm?.label}} (maxDecimals: {{defaultWeightPmfm?.maximumNumberDecimals}})<br/>
-                  <span *ngIf="weightPmfmsByMethod|mapGet:controls.childrenWeightMethodId?.value; let childrenWeightPmfm">
-                    Children weight pmfm : {{childrenWeightPmfm.label}} (maxDecimals: {{childrenWeightPmfm.maximumNumberDecimals}})
-                  </span>
-                </small>
-              </ion-text>
+          <!-- DEBUG -->
+          <ion-row *ngIf="debug" class="ion-no-padding">
+            <ion-col size="12">
+              <ng-container *ngTemplateOutlet="debugPanel; context: {$implicit: controls}"></ng-container>
             </ion-col>
-
           </ion-row>
         </ng-container>
       </ng-container>
@@ -245,4 +230,23 @@
 
 <ng-template #loadingSpinner>
   <ion-spinner class="ion-align-self-center"></ion-spinner>
+</ng-template>
+
+<!-- DEBUG -->
+<ng-template #debugPanel let-controls>
+  <app-debug>
+      loading: {{loadingSubject|async}}<br/>
+      ready: {{readySubject|async}}<br/>
+      valid: {{valid}}<br/>
+      dirty: {{dirty}}<br/>
+      samplingRatio: {{controls.samplingRatio.value|numberFormat: {fixedDecimals: 6} }} <br/>
+      samplingRatioText: {{controls.samplingRatioText.value}} (type: {{samplingRatioFormat||'null'}}{{ (controls.samplingRatioComputed.value) ? ', computed' : ''}})<br/>
+      sampling.weight: {{controls.weightValue.value }} {{controls.weightComputed.value?'(computed)':'' }}<br/>
+      sampling.children weight: {{controls.childrenWeightValue.value }} {{controls.childrenWeightComputed.value?'(computed)':'' }}<br/>
+      <br/>
+      defaultWeightPmfm: {{defaultWeightPmfm?.label}} (maxDecimals: {{defaultWeightPmfm?.maximumNumberDecimals}})<br/>
+      <span *ngIf="weightPmfmsByMethod|mapGet:controls.childrenWeightMethodId?.value; let childrenWeightPmfm">
+        Children weight pmfm : {{childrenWeightPmfm.label}} (maxDecimals: {{childrenWeightPmfm.maximumNumberDecimals}})
+      </span>
+  </app-debug>
 </ng-template>

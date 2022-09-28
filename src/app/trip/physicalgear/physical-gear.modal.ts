@@ -139,6 +139,7 @@ export class PhysicalGearModal
   ngOnDestroy() {
     super.ngOnDestroy();
     this.onSearchButtonClick.unsubscribe();
+    this.childrenGearService.stop();
   }
 
   async ngAfterViewInit() {

@@ -1,5 +1,5 @@
 import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import {
@@ -10,6 +10,7 @@ import {
   EntityFilter,
   filterNotNil,
   firstNotNilPromise,
+  firstTruePromise,
   IEntitiesService,
   InMemoryEntitiesService,
   isNil,
@@ -18,7 +19,7 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toNumber,
-  waitFor
+  WaitForOptions
 } from '@sumaris-net/ngx-components';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { EntitiesWithMeasurementService } from './measurements.service';
@@ -73,7 +74,7 @@ export abstract class BaseMeasurementsTable<
   protected pmfmNamePipe: PmfmNamePipe;
   protected formBuilder: FormBuilder;
 
-  measurementValuesFormGroupConfig: { [key: string]: any } = null;
+  protected readonly $measurementValuesFormGroupConfig = new BehaviorSubject<{ [key: string]: any }>(null);
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
@@ -240,9 +241,9 @@ export abstract class BaseMeasurementsTable<
 
     this.setValidatorService(validatorService);
 
-
     // For DEV only
     //this.debug = !environment.production;
+    this.logPrefix = '[measurements-table] ';
   }
 
   ngOnInit() {
@@ -260,12 +261,11 @@ export abstract class BaseMeasurementsTable<
     this.measurementsDataService.gearId = this._gearId;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
-    this.registerSubscription(
-      this.readySubject.subscribe(() => {
-        console.info(this.logPrefix + 'Starting measurements data service...');
+    firstTruePromise(this.readySubject,{stop: this.destroySubject})
+      .then(() => {
+        console.debug(this.logPrefix + 'Starting measurements data service...');
         this.measurementsDataService.start();
-      })
-    );
+      });
 
     super.ngOnInit();
 
@@ -273,9 +273,10 @@ export abstract class BaseMeasurementsTable<
       filterNotNil(this.$pmfms)
         .subscribe(pmfms => {
           // DEBUG
-          console.debug("[measurement-table] Received PMFMs to applied: ", pmfms);
+          console.debug(this.logPrefix + "Received PMFMs to applied: ", pmfms);
 
-          this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
+          const formGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
+          this.$measurementValuesFormGroupConfig.next(formGroupConfig);
 
           // Update the settings id, as program could have changed
           this.settingsId = this.generateTableId();
@@ -283,8 +284,13 @@ export abstract class BaseMeasurementsTable<
           // Add pmfm columns
           this.updateColumns();
 
-          // Load the table, if already loaded or if autoLoad was set to true
-          if (this._autoLoadAfterPmfm || this.dataSource.loaded/*already load*/) {
+          // Load (if autoLoad was enabled)
+          if (this._autoLoadAfterPmfm) {
+            this.onRefresh.emit();
+            this._autoLoadAfterPmfm = false; // Avoid new execution
+          }
+          // Or reload, if not dirty (to avoid data lost)
+          else if (this.dataSource.loaded && !this.dirty){
             this.onRefresh.emit();
           }
         }));
@@ -302,19 +308,24 @@ export abstract class BaseMeasurementsTable<
 
   ngOnDestroy() {
     super.ngOnDestroy();
-
-    this.measurementsDataService.stop();
+    this.$measurementValuesFormGroupConfig.unsubscribe();
+    this.measurementsDataService?.stop();
     this.measurementsDataService = null;
+
   }
 
   getRowValidator(): FormGroup {
     const formGroup = this.validatorService.getRowValidator();
-    if (this.measurementValuesFormGroupConfig) {
+
+    // Create the measurement values form (is exists)
+    const measValueConfig = this.$measurementValuesFormGroupConfig.value;
+    if (measValueConfig) {
       if (formGroup.contains('measurementValues')) {
         formGroup.removeControl('measurementValues');
       }
-      formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
+      formGroup.addControl('measurementValues', this.formBuilder.group(measValueConfig));
     }
+
     return formGroup;
   }
 
@@ -393,22 +404,18 @@ export abstract class BaseMeasurementsTable<
     if (!this.loading) this.updateColumns();
   }
 
-  isReady() {
-    return this.measurementsDataService.started
-      && !!this.measurementValuesFormGroupConfig;
-  }
-
-  async ready() {
-    await super.ready();
-
-    // Wait pmfms load, and controls load
-    await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
-
-    // Wait form config initialized
-    if (!this.measurementValuesFormGroupConfig) {
-      console.debug(`[${this.constructor.name}] Waiting row validator config to be set...`);
-      await waitFor(() => !!this.measurementValuesFormGroupConfig);
+  async ready(opts?: WaitForOptions) {
+    opts = {
+      stop: this.destroySubject,
+      ...opts
     }
+    await Promise.all([
+      super.ready(opts),
+      // Wait pmfms load, and controls load
+      firstNotNilPromise(this.$pmfms, opts),
+      // Wait form config initialized
+      firstNotNilPromise(this.$measurementValuesFormGroupConfig, opts)
+    ]);
   }
 
   /**
@@ -457,13 +464,6 @@ export abstract class BaseMeasurementsTable<
     const skipProperties = opts && opts.skipProperties
       || ['id', 'rankOrder', 'updateDate', 'creationDate', 'label'].concat(this.hasRankOrder ? ['rankOrder'] : []);
     return super.duplicateRow(event, row, {...opts, skipProperties});
-  }
-
-  markAsReady(opts?: { emitEvent?: boolean }) {
-    // Avoid to many call to ready
-    if (!this.readySubject.value) {
-      super.markAsReady(opts);
-    }
   }
 
   /* -- protected methods -- */

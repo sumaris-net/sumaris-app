@@ -121,8 +121,9 @@ export abstract class AbstractBatchesTable<
     this.showCommentsColumn = false;
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
 
-    //this.debug = false;
+    // -- DEV only
     //this.debug = !environment.production;
+    this.logPrefix = '[batches-table]';
   }
 
   ngOnInit() {
@@ -187,12 +188,12 @@ export abstract class AbstractBatchesTable<
    * Auto fill table (e.g. with taxon groups found in strategies) - #176
    */
   async autoFillTable(opts  = { skipIfDisabled: true, skipIfNotEmpty: false}) {
-    // Wait table ready and loaded
-    await Promise.all([this.ready(), this.waitIdle()]);
+    // Wait table loaded
+    await this.waitIdle();
 
     // Skip if disabled
     if (opts.skipIfDisabled && this.disabled) {
-      console.warn('[batches-table] Skipping autofill as table is disabled');
+      console.warn(this.logPrefix + 'Skipping autofill as table is disabled');
       return;
     }
 
@@ -239,19 +240,20 @@ export abstract class AbstractBatchesTable<
           entity.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
           entity.rankOrder = rankOrder++;
           const newRow = await this.addEntityToTable(entity, { confirmCreate: true, editing: false, emitEvent: false /*done in markAsLoaded()*/ });
-          rowCount += newRow ? 0 : 1;
+          rowCount += !!newRow ? 1 : 0;
         }
 
         // Mark as dirty
         this.markAsDirty({emitEvent: false /* done in markAsLoaded() */});
       }
 
-      // FIXME Workaround to update row count
       if (this.totalRowCount !== rowCount) {
+        // FIXME Workaround to update row count
         console.warn('[batches-table] Updating rowCount manually! (should be fixed when table confirmEditCreate() are async ?)');
         this.totalRowCount = rowCount;
         this.visibleRowCount = rowCount;
       }
+      this.markForCheck();
 
     } catch (err) {
       console.error(err && err.message || err, err);

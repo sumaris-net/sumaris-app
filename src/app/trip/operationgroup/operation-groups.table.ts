@@ -58,7 +58,6 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
 
   constructor(
     injector: Injector,
-    platform: PlatformService,
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
@@ -70,8 +69,8 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
       memoryDataService,
       validatorService,
       {
-        reservedStartColumns: platform.mobile ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
-        reservedEndColumns: platform.mobile ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
+        reservedStartColumns: settings.mobile ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
+        reservedEndColumns: settings.mobile ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         i18nColumnPrefix: 'TRIP.OPERATION.LIST.'
       });
@@ -104,6 +103,11 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
       columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
       mobile: this.mobile
     });
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.memoryDataService.stop();
   }
 
   async openDetailModal(dataToOpen?: OperationGroup): Promise<OperationGroup | undefined> {

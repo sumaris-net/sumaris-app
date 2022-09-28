@@ -334,6 +334,13 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     }
   }
 
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.memoryDataService.stop();
+    this.memoryDataService = null;
+  }
+
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
     // Skip if loading,
     // or if previous edited row not confirmed

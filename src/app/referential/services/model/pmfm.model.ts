@@ -284,8 +284,19 @@ export abstract class PmfmUtils {
   */
   static isWeight(pmfm: IPmfm): boolean {
     return UnitLabelGroups.WEIGHT.includes(pmfm.unitLabel)
-      || UnitLabelPatterns.WEIGHT.test(pmfm.label)
-      || (pmfm instanceof Pmfm && UnitLabelPatterns.WEIGHT.test(pmfm.parameter?.label));
+      || PmfmLabelPatterns.WEIGHT.test(pmfm.label)
+      || (pmfm instanceof Pmfm && PmfmLabelPatterns.WEIGHT.test(pmfm.parameter?.label));
+  }
+
+
+  /**
+   * Check if dressing pmfms (by id or by  label like 'DRESSING_%')
+   * @param pmfm
+   */
+  static isDressing(pmfm: IPmfm): boolean {
+  return pmfm.id === PmfmIds.DRESSING
+    || PmfmLabelPatterns.DRESSING.test(pmfm.label)
+    || (pmfm instanceof Pmfm && PmfmLabelPatterns.DRESSING.test(pmfm.parameter?.label));
   }
 
   /**
@@ -294,8 +305,10 @@ export abstract class PmfmUtils {
    */
   static isLength(pmfm: IPmfm): boolean {
     return pmfm && (
-      (UnitLabelGroups.LENGTH.includes(pmfm.unitLabel) && (UnitLabelPatterns.LENGTH.test(pmfm.label)))
-      || (pmfm instanceof Pmfm && UnitLabelGroups.LENGTH.includes(pmfm.unit?.label) && UnitLabelPatterns.LENGTH.test(pmfm.parameter?.label))
+      (UnitLabelGroups.LENGTH.includes(pmfm.unitLabel) && (PmfmLabelPatterns.LENGTH.test(pmfm.label)))
+      || (pmfm instanceof Pmfm
+        && UnitLabelGroups.LENGTH.includes(pmfm.unit?.label)
+        && PmfmLabelPatterns.LENGTH.test(pmfm.parameter?.label))
     );
   }
 
