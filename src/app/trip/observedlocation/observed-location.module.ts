@@ -13,6 +13,11 @@ import { AppLandedTripModule } from '@app/trip/landedtrip/landed-trip.module';
 import { AppAggregatedLandingModule } from '@app/trip/aggregated-landing/aggregated-landing.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { VesselModule } from '@app/vessel/vessel.module';
+import { ObservedLocationReport } from './observed-location.report';
+import { AppSharedReportModule } from '@app/shared/report/report.module';
+import { AuctionControlReport } from '../landing/auctioncontrol/auction-control.report';
+import { AppAuctionControlModule } from '../landing/auctioncontrol/auction-control.module';
+import { AppSamplingLandingModule } from '@app/trip/landing/sampling/sampling-landing.module';
 
 
 @NgModule({
@@ -30,14 +35,18 @@ import { VesselModule } from '@app/vessel/vessel.module';
     AppMeasurementModule,
     AppLandingModule,
     AppLandedTripModule,
-    AppAggregatedLandingModule
+    AppAggregatedLandingModule,
+    AppSharedReportModule,
+    AppAuctionControlModule,
+    AppSamplingLandingModule
   ],
   declarations: [
     ObservedLocationForm,
     ObservedLocationPage,
     ObservedLocationsPage,
     ObservedLocationOfflineModal,
-    SelectVesselsModal
+    SelectVesselsModal,
+    ObservedLocationReport
   ],
   exports: [
     // Components

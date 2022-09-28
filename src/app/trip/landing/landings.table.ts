@@ -21,7 +21,7 @@ import {VesselSnapshotFilter} from '@app/referential/services/filter/vessel.filt
 export const LANDING_RESERVED_START_COLUMNS: string[] = ['vessel', 'vesselType', 'vesselBasePortLocation', 'location', 'dateTime', 'observers', 'creationDate', 'recorderPerson', 'samplesCount'];
 export const LANDING_RESERVED_END_COLUMNS: string[] = ['comments'];
 
-const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.TABLE.';
+export const LANDING_TABLE_DEFAULT_I18N_PREFIX = 'LANDING.PMFM.';
 
 @Component({
   selector: 'app-landings-table',

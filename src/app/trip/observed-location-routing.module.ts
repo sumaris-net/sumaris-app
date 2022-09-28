@@ -5,6 +5,7 @@ import { ObservedLocationsPage } from './observedlocation/observed-locations.pag
 import { ObservedLocationPage } from './observedlocation/observed-location.page';
 import { LandedTripPage } from './landedtrip/landed-trip.page';
 import { AppObservedLocationModule } from '@app/trip/observedlocation/observed-location.module';
+import { ObservedLocationReport } from './observedlocation/observed-location.report';
 
 const routes: Routes = [
   {
@@ -47,6 +48,10 @@ const routes: Routes = [
         component: LandedTripPage,
         runGuardsAndResolvers: 'pathParamsChange',
         canDeactivate: [ComponentDirtyGuard]
+      },
+      {
+        path: 'report',
+        component: ObservedLocationReport,
       }
     ]
   }

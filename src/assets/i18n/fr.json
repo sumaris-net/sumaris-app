@@ -1141,6 +1141,8 @@
         "END_DATE": "Fin de période"
       }
     },
+    "PMFM": {
+    },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
       "HISTORICAL_DATA_DIVIDER": "Historique de données",
@@ -1159,6 +1161,23 @@
     "CONFIRM": {
       "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
       "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
+    },
+    "REPORT": {
+      "TITLE": "Raport de sortie - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Raport de sortie",
+      "LOCATION": "Lieu :",
+      "DATE_TIME": "Date/heure :",
+      "OBSERVERS": "Observateur(s) :",
+      "VESSEL_COUNT": "Nombre de navire :",
+      "SUMMARY_TITLE": "Synthèse globale",
+      "SAMPLING": {
+        "SUMMARY_TITLE": "Synthèse des échantillonnages"
+      },
+      "AUCTION_CONTROL": {
+        "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
+        "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées",
+        "VESSEL_COUNT": "Nombre de navire contrôlés :"
+      }
     }
   },
   "LANDING": {
@@ -1207,7 +1226,12 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
-      "SAMPLES_COUNT": "Nb. prélèvements",
+      "SAMPLES_COUNT": "Nb mesures",
+      "SAMPLING": {
+        "SAMPLES_COUNT": "Nb. prélèvements"
+      }
+    },
+    "PMFM": {
       "SAMPLING": {
         "STRATEGY_LABEL": "Ligne de plan"
       }
