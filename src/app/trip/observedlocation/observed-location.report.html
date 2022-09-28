@@ -39,12 +39,12 @@
               <thead>
                 <tr>
                   <th [rowSpan]="2" translate>LANDING.TABLE.VESSEL</th>
-                  <th [rowSpan]="2" *ngIf="landingShowSampleCount">{{'LANDING.TABLE.SAMPLE_COUNT'|translateContext: i18nContext.suffix}}</th>
+                  <th [rowSpan]="2" *ngIf="landingShowSampleCount">{{'LANDING.TABLE.SAMPLES_COUNT'|translateContext: i18nContext.suffix}}</th>
                   <th *ngFor="let pmfm of landingPmfms"
                       [rowSpan]="isQualitativePmfm(pmfm) ? 1 : 2"
                       [colSpan]="isQualitativePmfm(pmfm) && pmfm.qualitativeValues?.length || 1"
                     >{{pmfm|pmfmName: {
-                    i18nPrefix: i18nContext.prefix,
+                    i18nPrefix: landingI18nColumnPrefix,
                     i18nContext: i18nContext.suffix,
                     html: true } }}</th>
                 </tr>
@@ -91,7 +91,7 @@
                                     [data]="landing"
                                     [parent]="data"
                                     [i18nContext]="i18nContext"
-                                    [pmfms]="samplesPmfmsByLandingIndex[index]"
+                                    [pmfms]="landingSamplesPmfms[index]"
                                     ></app-auction-control-report>
         <!-- auction control -->
         <app-sampling-landing-report #landingReport
@@ -100,7 +100,7 @@
                                     [data]="landing"
                                     [parent]="data"
                                     [i18nContext]="i18nContext"
-                                    [pmfms]="samplesPmfmsByLandingIndex[index]"
+                                    [pmfms]="landingSamplesPmfms[index]"
         ></app-sampling-landing-report>
 
       </section>

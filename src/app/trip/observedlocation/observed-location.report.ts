@@ -11,7 +11,8 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   AppErrorWithDetails,
   arrayDistinct,
-  DateFormatPipe, firstFalsePromise,
+  DateFormatPipe,
+  firstFalsePromise,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
@@ -24,9 +25,9 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { LandingReport } from '../landing/landing.report';
 import { LandingService } from '../services/landing.service';
 import { Landing } from '../services/model/landing.model';
-import { MeasurementFormValues, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { ObservedLocationService } from '../services/observed-location.service';
+import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 
 
 @Component({
@@ -57,6 +58,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   defaultBackHref: string = null;
   error: string;
+  $title = new Subject();
   slidesOptions: Partial<IRevealOptions>;
   i18nContext = {
     prefix: '',
@@ -71,9 +73,10 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   pmfms: IPmfm[];
   landingPmfms: IPmfm[];
   landingEditor: LandingEditor;
+  landingI18nColumnPrefix: string;
   landingShowSampleCount: boolean;
-  samplesPmfmsByLandingIndex: IPmfm[][];
-  $title = new Subject();
+  landingSamplesPmfms: IPmfm[][];
+
 
   @Input() showToolbar = true;
   @Input() showError = true;
@@ -99,6 +102,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     this.landingService = injector.get(LandingService);
 
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam;
+    this.landingI18nColumnPrefix = LANDING_TABLE_DEFAULT_I18N_PREFIX;
 
     this.computeSlidesOptions();
 
@@ -176,7 +180,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     this.computeDefaultBackHref(data);
 
     const program = await this.programRefService.loadByLabel(data.program.label);
-    this.i18nContext.prefix = 'TRIP.SAMPLE.PMFM.';
+    this.i18nContext.prefix = 'OBSERVED_LOCATION.PMFM.';
     this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     if (this.i18nContext.suffix === 'legacy') {this.i18nContext.suffix = ''}
     this.landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
@@ -196,7 +200,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     // Apply data
     this.pmfms = pmfms;
     this.landingPmfms = landingPmfms;
-    this.samplesPmfmsByLandingIndex = await this.loadLandingsPmfms(data.landings, program);
+    this.landingSamplesPmfms = await this.loadLandingsPmfms(data.landings, program);
     this.data = await this.onDataLoaded(data as T, pmfms);
 
     this.markAsReady();

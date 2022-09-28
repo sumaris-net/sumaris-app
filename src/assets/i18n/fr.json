@@ -1222,10 +1222,14 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
-      "SAMPLE_COUNT": "Nb mesures",
+      "SAMPLES_COUNT": "Nb mesures",
       "SAMPLING": {
-        "STRATEGY_LABEL": "Ligne de plan",
-        "SAMPLE_COUNT": "Nb. prélèvements"
+        "SAMPLES_COUNT": "Nb. prélèvements"
+      }
+    },
+    "PMFM": {
+      "SAMPLING": {
+        "STRATEGY_LABEL": "Ligne de plan"
       }
     },
     "REPORT": {
