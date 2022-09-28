@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
@@ -70,6 +70,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   } = {}
   pmfms: IPmfm[];
   landingPmfms: IPmfm[];
+  landingEditor: LandingEditor;
   samplesPmfmsByLandingIndex: IPmfm[][];
 
 
@@ -179,6 +180,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     this.i18nContext.prefix = 'TRIP.SAMPLE.PMFM.';
     this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     if (this.i18nContext.suffix === 'legacy') {this.i18nContext.suffix = ''}
+    this.landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
 
     // Load full landings
     data.landings = await Promise.all(data.landings.map(landing => this.landingService.load(landing.id)));

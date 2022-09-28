@@ -65,14 +65,27 @@
       </section>
 
       <!-- landing reports -->
-      <section *ngFor="let landing of data?.landings; index as index">
+      <section *ngFor="let landing of data?.landings; index as index" [ngSwitch]="landingEditor">
+
+        <!-- auction control -->
         <app-auction-control-report #landingReport
-          [embedded]="true"
-          [data]="landing"
-          [parent]="data"
-          [i18nContext]="i18nContext"
-          [pmfms]="samplesPmfmsByLandingIndex[index]"
-          ></app-auction-control-report>
+                                    *ngSwitchCase="'control'"
+                                    [embedded]="true"
+                                    [data]="landing"
+                                    [parent]="data"
+                                    [i18nContext]="i18nContext"
+                                    [pmfms]="samplesPmfmsByLandingIndex[index]"
+                                    ></app-auction-control-report>
+        <!-- auction control -->
+        <app-sampling-landing-report #landingReport
+                                    *ngSwitchCase="'sampling'"
+                                    [embedded]="true"
+                                    [data]="landing"
+                                    [parent]="data"
+                                    [i18nContext]="i18nContext"
+                                    [pmfms]="samplesPmfmsByLandingIndex[index]"
+        ></app-sampling-landing-report>
+
       </section>
   </app-slides>
 

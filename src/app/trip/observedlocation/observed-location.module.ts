@@ -17,6 +17,7 @@ import { ObservedLocationReport } from './observed-location.report';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { AuctionControlReport } from '../landing/auctioncontrol/auction-control.report';
 import { AppAuctionControlModule } from '../landing/auctioncontrol/auction-control.module';
+import { AppSamplingLandingModule } from '@app/trip/landing/sampling/sampling-landing.module';
 
 
 @NgModule({
@@ -36,7 +37,8 @@ import { AppAuctionControlModule } from '../landing/auctioncontrol/auction-contr
     AppLandedTripModule,
     AppAggregatedLandingModule,
     AppSharedReportModule,
-    AppAuctionControlModule
+    AppAuctionControlModule,
+    AppSamplingLandingModule
   ],
   declarations: [
     ObservedLocationForm,
