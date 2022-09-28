@@ -22,16 +22,44 @@
             - {{ 'OBSERVED_LOCATION.REPORT.LOCATION'|translate }} **{{ data.location?.name }}**
             - {{ 'OBSERVED_LOCATION.REPORT.DATE_TIME'|translate }} **{{ data.startDateTime|dateFormat:{time: true} }}**
             - {{ 'OBSERVED_LOCATION.REPORT.OBSERVERS'|translate }} {{ data.observers|personToString }}
-            <ng-container *ngFor="let pmfm of pmfms">
+
+            <p markdown *ngFor="let pmfm of pmfms">
             - {{ pmfm|pmfmName:{
               i18nPrefix: i18nContext.prefix,
               i18nContext: i18nContext.suffix,
               html: true } }} : {{ data|measurementValueGet:{pmfm: pmfm, html: true} }}
-            </ng-container>
+            </p>
+
+            - {{ 'OBSERVED_LOCATION.REPORT.VESSEL_COUNT'|translateContext: i18nContext.suffix }} {{ stats.vesselCount }}
           </section>
           <section markdown ngPreserveWhitespaces>
-            - {{ 'OBSERVED_LOCATION.REPORT.VESSEL_COUNT'|translateContext: i18nContext.suffix }} {{ stats.vesselCount }}
-            TODO
+            ###
+            <table>
+              <thead>
+                <tr>
+                  <th [attr.rowspan]="2" translate>LANDING.TABLE.VESSEL</th>
+                  <th *ngFor="let pmfm of landingPmfms"
+                      [attr.rowspan]="isQualitativePmfm(pmfm) ? 1 : 2"
+                      [attr.colspan]="isQualitativePmfm(pmfm) && pmfm.qualitativeValues?.length || 1"
+                    >{{pmfm|pmfmName: {
+                    i18nPrefix: i18nContext.prefix,
+                    i18nContext: i18nContext.suffix,
+                    html: true } }}</th>
+                </tr>
+                <tr>
+                  <th *ngFor="let qv of (landingPmfms | arrayFilter: isQualitativePmfm | arrayPluck: {property:'qualitativeValues'}).flat()">
+                    {{qv?.name}}
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr *ngFor="let landing of data.landings">
+                  <td>{{landing.vesselSnapshot?.name}}</td>
+                </tr>
+              </tbody>
+            </table>
+
           </section>
         </ng-container>
       </section>
@@ -43,7 +71,7 @@
           [data]="landing"
           [parent]="data"
           [i18nContext]="i18nContext"
-          [pmfms]="landingsPmfms[index]"
+          [pmfms]="samplesPmfmsByLandingIndex[index]"
           ></app-auction-control-report>
       </section>
   </app-slides>

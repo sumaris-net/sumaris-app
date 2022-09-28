@@ -69,7 +69,9 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     vesselCount?: number;
   } = {}
   pmfms: IPmfm[];
-  landingsPmfms: IPmfm[][];
+  landingPmfms: IPmfm[];
+  samplesPmfmsByLandingIndex: IPmfm[][];
+
 
   $title = new Subject();
 
@@ -183,15 +185,16 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
     // Load pmfms
     const pmfms = await this.programRefService.loadProgramPmfms(
-      program.label,
-      {
-        acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION
-      }
+      program.label, {acquisitionLevel: AcquisitionLevelCodes.OBSERVED_LOCATION}
+    );
+    const landingPmfms = await this.programRefService.loadProgramPmfms(
+      program.label, {acquisitionLevel: AcquisitionLevelCodes.LANDING}
     );
 
     // Apply data
     this.pmfms = pmfms;
-    this.landingsPmfms = await this.loadLandingsPmfms(data.landings, program);
+    this.landingPmfms = landingPmfms;
+    this.samplesPmfmsByLandingIndex = await this.loadLandingsPmfms(data.landings, program);
     this.data = await this.onDataLoaded(data as T, pmfms);
 
     this.markAsReady();
@@ -284,4 +287,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     );
   }
 
+  isQualitativePmfm(pmfm: IPmfm) {
+    return pmfm.isQualitative && pmfm.qualitativeValues?.length <= 3;
+  }
 }

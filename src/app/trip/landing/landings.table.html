@@ -197,11 +197,11 @@
         <app-pmfm-field
           *ngIf="row.editing; else readOnly"
           [pmfm]="pmfm"
-          [formControl]="row.validator.controls.measurementValues.controls[pmfm.id.toString()]"
+          [formControl]="row.validator|formGetControl:['measurementValues', pmfm.id]"
           floatLabel="never">
         </app-pmfm-field>
         <ng-template #readOnly>
-          <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue:{pmfm:pmfm, html: true, propertyNames: qualitativeValueAttributes}"></ion-text>
+          <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm:pmfm, html: true, propertyNames: qualitativeValueAttributes}"></ion-text>
         </ng-template>
       </td>
     </ng-container>
