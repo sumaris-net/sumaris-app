@@ -203,7 +203,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     this.pmfms = pmfms;
     this.landingPmfms = landingPmfms;
     this.landingSamplesPmfms = await this.loadLandingsPmfms(data.landings, program);
-    this.data = await this.onDataLoaded(data as T, pmfms);
+    this.data = await this.onDataLoaded(data as T);
 
     this.markAsReady();
     this.markAsLoaded();
@@ -221,7 +221,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     await this.slides.initialize();
   }
 
-  protected async onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {
+  protected async onDataLoaded(data: T): Promise<T> {
     this.stats.vesselCount = arrayDistinct(data.landings, 'vesselSnapshot.id').length;
     return data;
   }
