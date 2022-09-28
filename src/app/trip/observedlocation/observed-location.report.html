@@ -83,7 +83,6 @@
 
       <!-- landing reports -->
       <section *ngFor="let landing of data?.landings; index as index" [ngSwitch]="landingEditor">
-
         <!-- auction control -->
         <app-auction-control-report #landingReport
                                     *ngSwitchCase="'control'"
@@ -93,7 +92,7 @@
                                     [i18nContext]="i18nContext"
                                     [pmfms]="landingSamplesPmfms[index]"
                                     ></app-auction-control-report>
-        <!-- auction control -->
+        <!-- sampling landing -->
         <app-sampling-landing-report #landingReport
                                     *ngSwitchCase="'sampling'"
                                     [embedded]="true"
