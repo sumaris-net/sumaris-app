@@ -86,7 +86,6 @@ export abstract class AbstractBatchesTable<
   @Input() defaultTaxonName: TaxonNameRef;
   @Input() availableTaxonGroups: TaxonGroupRef[];
   @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
-  @Input() mobile: boolean;
 
   protected constructor(
     injector: Injector,

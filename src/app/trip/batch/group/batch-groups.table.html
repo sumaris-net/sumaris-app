@@ -244,7 +244,7 @@
     </app-actions-column>
 
     <!-- first header -->
-    <ng-container *ngIf="showToolbar">
+    <ng-container *ngIf="showToolbar && groupColumnNames?.length">
       <tr mat-header-row *matHeaderRowDef="groupColumnNames; sticky: true"
           class="first-header-row"></tr>
     </ng-container>
@@ -294,7 +294,7 @@
             <ion-label class="ion-text-wrap mat-cell-content-start-padding ion-text-center">
               <span>{{item.name}}</span><br/>
               <mat-checkbox *ngIf="weightMethodForm"
-                            [formControl]="weightMethodForm.controls[item.qvIndex]"
+                            [formControl]="weightMethodForm|formGetControl:item.qvIndex.toString()"
                             labelPosition="before">
                 <ion-text hidden-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION</ion-text>
                 <ion-text visible-xs translate>TRIP.BATCH.TABLE.ESTIMATED_WEIGHT_QUESTION_SHORT</ion-text>
@@ -464,7 +464,7 @@
       </ng-container>
 
       <!-- first header -->
-      <ng-container *ngIf="showToolbar">
+      <ng-container *ngIf="showToolbar && groupColumnNames?.length">
         <tr mat-header-row *matHeaderRowDef="groupColumnNames; sticky: true"
             class="first-header-row"></tr>
       </ng-container>

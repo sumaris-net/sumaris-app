@@ -4,7 +4,7 @@ import { FormGroup, Validators } from '@angular/forms';
 import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
-  ColumnItem, firstNotNilPromise,
+  ColumnItem,
   FormFieldDefinition,
   FormFieldType,
   InMemoryEntitiesService,
@@ -16,7 +16,6 @@ import {
   LoadResult,
   LocalSettingsService,
   ReferentialRef,
-  ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SETTINGS_DISPLAY_COLUMNS,
@@ -46,7 +45,7 @@ import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
-declare type BatchGroupColumnKey = 'totalWeight' | 'totalIndividualCount' | 'samplingRatio' | 'samplingWeight' | 'samplingIndividualCount';
+declare type BatchGroupColumnKey = 'totalWeight' | 'totalIndividualCount' | 'samplingRatio' | 'samplingWeight' | 'samplingIndividualCount' | string;
 
 export const BatchGroupColumnFlags = Object.freeze({
   IS_WEIGHT: 0x0001,
@@ -56,6 +55,7 @@ export const BatchGroupColumnFlags = Object.freeze({
 });
 
 declare type BatchGroupColumnType = FormFieldType | 'samplingRatio' | 'pmfm';
+
 declare interface BatchGroupColumnDefinition extends FormFieldDefinition<BatchGroupColumnKey, BatchGroupColumnType> {
 
   computed: boolean | ((batch: Batch, samplingRatioFormat: SamplingRatioFormat) => boolean);
@@ -792,8 +792,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     // Add pmfm columns
     const pmfmColumns = BatchGroupUtils.computeChildrenPmfmsByQvPmfm((qvGroup?.id || -1), this._childrenPmfms)
       .map((pmfm, index) => {
-        const key = qvGroup ? `${qvGroup.label}_${pmfm.id}` : pmfm.id;
-        const rankOrder = offset + index;
+        const key: string = qvGroup ? `${qvGroup.label}_${pmfm.id}` : `${pmfm.id}`;
+        const rankOrder: number = offset + index;
         const hidden = this.mobile || pmfm.hidden;
         return <BatchGroupColumnDefinition>{
           type: 'pmfm',
@@ -1319,4 +1319,3 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     }
   }
 }
-

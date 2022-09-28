@@ -7,10 +7,13 @@ import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
+import { AppSharedDebugModule } from '@app/shared/debug/debug.module';
 
 @NgModule({
   imports: [
-    SharedModule
+    SharedModule,
+    // Sub modules
+    AppSharedDebugModule
   ],
   declarations: [
     // Pipes
@@ -28,7 +31,10 @@ import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
     DisplayWithPipe,
     DelayPipe,
     SplitArrayInChunksPipe,
-    PaginationToStringPipe
+    PaginationToStringPipe,
+
+    //Sub modules
+    AppSharedDebugModule
   ]
 })
 export class AppSharedModule {

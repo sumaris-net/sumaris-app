@@ -117,10 +117,8 @@ export class BatchGroupUtils {
 
   static getQvPmfm(pmfms: IPmfm[]): IPmfm | undefined {
     let qvPmfm = pmfms && (
-      // Use the GEAR_POSITION if exists
-      pmfms.find(p => p.id === PmfmIds.BATCH_GEAR_POSITION)
-      // Use the LAN/DIS if exists
-      || pmfms.find(p => p.id === PmfmIds.DISCARD_OR_LANDING)
+      // Use the LAN/DIS if exists and visible
+      pmfms.find(p => p.id === PmfmIds.DISCARD_OR_LANDING && p.hidden !== true)
       // Or get the first QV pmfm
       || PmfmUtils.getFirstQualitativePmfm(pmfms, {
       excludeHidden: true
