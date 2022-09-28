@@ -1165,6 +1165,10 @@
       "DATE_TIME": "Date/heure :",
       "OBSERVERS": "Observateur(s) :",
       "VESSEL_COUNT": "Nombre de navire :",
+      "SUMMARY_TITLE": "Synthèse globale",
+      "SAMPLING": {
+        "SUMMARY_TITLE": "Synthèse des échantillonnages"
+      },
       "AUCTION_CONTROL": {
         "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
         "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées",
@@ -1218,9 +1222,10 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
-      "SAMPLES_COUNT": "Nb. prélèvements",
+      "SAMPLE_COUNT": "Nb mesures",
       "SAMPLING": {
-        "STRATEGY_LABEL": "Ligne de plan"
+        "STRATEGY_LABEL": "Ligne de plan",
+        "SAMPLE_COUNT": "Nb. prélèvements"
       }
     },
     "REPORT": {

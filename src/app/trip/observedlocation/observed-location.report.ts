@@ -71,9 +71,8 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   pmfms: IPmfm[];
   landingPmfms: IPmfm[];
   landingEditor: LandingEditor;
+  landingShowSampleCount: boolean;
   samplesPmfmsByLandingIndex: IPmfm[][];
-
-
   $title = new Subject();
 
   @Input() showToolbar = true;
@@ -181,6 +180,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     if (this.i18nContext.suffix === 'legacy') {this.i18nContext.suffix = ''}
     this.landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
+    this.landingShowSampleCount = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
 
     // Load full landings
     data.landings = await Promise.all(data.landings.map(landing => this.landingService.load(landing.id)));
@@ -244,7 +244,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   protected async computeTitle(data: ObservedLocation) {
     const title = await this.translate.get('OBSERVED_LOCATION.REPORT.TITLE', {
       location: data.location.name,
-      dateTime: this.dateFormatPipe.transform(data.controlDate, {time: true}),
+      dateTime: this.dateFormatPipe.transform(data.startDateTime, {time: true}),
     }).toPromise();
     this.$title.next(title)
   }
@@ -291,5 +291,9 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   isQualitativePmfm(pmfm: IPmfm) {
     return pmfm.isQualitative && pmfm.qualitativeValues?.length <= 3;
+  }
+
+  isNotQualitativePmfm(pmfm: IPmfm) {
+    return !pmfm.isQualitative || !pmfm.qualitativeValues?.length || (pmfm.qualitativeValues.length > 3);
   }
 }

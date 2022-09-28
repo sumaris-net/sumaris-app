@@ -17,45 +17,62 @@
   <app-slides #slides *ngIf="!error" [options]="slidesOptions">
       <section>
         <ng-container *ngIf="loaded; else loadingTemplate">
-          <section markdown ngPreserveWhitespaces>
-            ## {{ 'OBSERVED_LOCATION.REPORT.TITLE_SHORT'|translateContext: i18nContext.suffix }}
-            - {{ 'OBSERVED_LOCATION.REPORT.LOCATION'|translate }} **{{ data.location?.name }}**
-            - {{ 'OBSERVED_LOCATION.REPORT.DATE_TIME'|translate }} **{{ data.startDateTime|dateFormat:{time: true} }}**
-            - {{ 'OBSERVED_LOCATION.REPORT.OBSERVERS'|translate }} {{ data.observers|personToString }}
-
-            <p markdown *ngFor="let pmfm of pmfms">
-            - {{ pmfm|pmfmName:{
-              i18nPrefix: i18nContext.prefix,
-              i18nContext: i18nContext.suffix,
-              html: true } }} : {{ data|measurementValueGet:{pmfm: pmfm, html: true} }}
-            </p>
-
-            - {{ 'OBSERVED_LOCATION.REPORT.VESSEL_COUNT'|translateContext: i18nContext.suffix }} {{ stats.vesselCount }}
+          <section>
+            <h2>{{ 'OBSERVED_LOCATION.REPORT.TITLE_SHORT'|translateContext: i18nContext.suffix }}</h2>
+            <ul>
+              <li>{{ 'OBSERVED_LOCATION.REPORT.LOCATION'|translate }} <b>{{ data.location?.name }}</b></li>
+              <li>{{ 'OBSERVED_LOCATION.REPORT.DATE_TIME'|translate }} <b>{{ data.startDateTime|dateFormat:{time: true} }}</b></li>
+              <li>{{ 'OBSERVED_LOCATION.REPORT.OBSERVERS'|translate }} {{ data.observers|personToString }}</li>
+              <li *ngFor="let pmfm of pmfms">
+              {{ pmfm|pmfmName:{
+                i18nPrefix: i18nContext.prefix,
+                i18nContext: i18nContext.suffix,
+                html: true } }} : {{ data|measurementValueGet:{pmfm: pmfm, html: true} }}
+              </li>
+              <li>{{ 'OBSERVED_LOCATION.REPORT.VESSEL_COUNT'|translateContext: i18nContext.suffix }} {{ stats.vesselCount }}</li>
+            </ul>
           </section>
-          <section markdown ngPreserveWhitespaces>
-            ###
-            <table>
+          <section>
+            <h3>{{'OBSERVED_LOCATION.REPORT.SUMMARY_TITLE'|translateContext: i18nContext.suffix }}</h3>
+
+            <table [style.--col-count]="(landingPmfms|arrayPluck:{property:'qualitativeValues'}).flat().length + (landingShowSampleCount ? 2 : 1)">
               <thead>
                 <tr>
-                  <th [attr.rowspan]="2" translate>LANDING.TABLE.VESSEL</th>
+                  <th [rowSpan]="2" translate>LANDING.TABLE.VESSEL</th>
+                  <th [rowSpan]="2" *ngIf="landingShowSampleCount">{{'LANDING.TABLE.SAMPLE_COUNT'|translateContext: i18nContext.suffix}}</th>
                   <th *ngFor="let pmfm of landingPmfms"
-                      [attr.rowspan]="isQualitativePmfm(pmfm) ? 1 : 2"
-                      [attr.colspan]="isQualitativePmfm(pmfm) && pmfm.qualitativeValues?.length || 1"
+                      [rowSpan]="isQualitativePmfm(pmfm) ? 1 : 2"
+                      [colSpan]="isQualitativePmfm(pmfm) && pmfm.qualitativeValues?.length || 1"
                     >{{pmfm|pmfmName: {
                     i18nPrefix: i18nContext.prefix,
                     i18nContext: i18nContext.suffix,
                     html: true } }}</th>
                 </tr>
                 <tr>
-                  <th *ngFor="let qv of (landingPmfms | arrayFilter: isQualitativePmfm | arrayPluck: {property:'qualitativeValues'}).flat()">
-                    {{qv?.name}}
-                  </th>
+                  <ng-container *ngFor="let pmfm of landingPmfms | arrayFilter:isQualitativePmfm">
+                    <th *ngFor="let qv of pmfm.qualitativeValues">
+                      {{qv|pmfmValue:{pmfm: pmfm, html: true} }}
+                    </th>
+                  </ng-container>
                 </tr>
               </thead>
 
               <tbody>
                 <tr *ngFor="let landing of data.landings">
                   <td>{{landing.vesselSnapshot?.name}}</td>
+                  <td *ngIf="landingShowSampleCount">{{landing.samplesCount}}</td>
+                  <ng-container *ngFor="let pmfm of landingPmfms">
+                    <td *ngIf="isNotQualitativePmfm(pmfm); else qualitative">
+                      {{landing|measurementValueGet:{pmfm: pmfm, html: true} }}
+                    </td>
+                    <ng-template #qualitative>
+                      <td *ngFor="let qv of pmfm.qualitativeValues">
+                        <span *ngIf="landing.measurementValues[pmfm.id.toString()] == qv.id">
+                          &#x2714;
+                        </span>
+                      </td>
+                    </ng-template>
+                  </ng-container>
                 </tr>
               </tbody>
             </table>
