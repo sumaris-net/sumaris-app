@@ -3,6 +3,7 @@ import { FetchPolicy, gql } from '@apollo/client/core';
 import { filter, map } from 'rxjs/operators';
 import * as momentImported from 'moment';
 import {
+  APP_USER_EVENT_SERVICE,
   AppFormUtils,
   BaseEntityGraphqlQueries,
   chainPromises,
@@ -21,7 +22,8 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank, IUserEventService,
+  isNotNilOrBlank,
+  IUserEventService,
   JobUtils,
   LoadResult,
   LocalSettingsService,
@@ -29,8 +31,7 @@ import {
   PersonService,
   ShowToastOptions,
   Toasts,
-  toNumber,
-  UserEventAction
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
@@ -75,8 +76,6 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { BBox } from 'geojson';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent } from '@app/social/user-event/user-event.model';
-import { UserEventService } from '@app/social/user-event/user-event.service';
-import { USER_EVENT_SERVICE } from '@sumaris-net/ngx-components';
 
 const moment = momentImported;
 
@@ -437,7 +436,7 @@ export class TripService
     protected validatorService: TripValidatorService,
     protected trashRemoteService: TrashRemoteService,
     protected formErrorTranslator: FormErrorTranslator,
-    @Inject(USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any,  any>,
+    @Inject(APP_USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any,  any>,
     @Optional() protected translate: TranslateService,
     @Optional() protected toastController: ToastController
   ) {

@@ -14,7 +14,8 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank, isNotNilOrNaN,
+  isNotNilOrBlank,
+  isNotNilOrNaN,
   LoadResult,
   ObjectMap,
   PlatformService,
@@ -38,7 +39,7 @@ import { debounceTime } from 'rxjs/operators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { SelectPmfmModal, ISelectPmfmModalOptions } from '@app/referential/pmfm/select-pmfm.modal';
+import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
@@ -70,7 +71,14 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   templateUrl: 'samples.table.html',
   styleUrls: ['samples.table.scss'],
   providers: [
-    {provide: AppValidatorService, useExisting: SampleValidatorService}
+    {provide: AppValidatorService, useExisting: SampleValidatorService},
+    {
+      provide: InMemoryEntitiesService,
+      useFactory: () =>  new InMemoryEntitiesService(Sample, SampleFilter, {
+        equals: Sample.equals,
+        sortByReplacement: {'id': 'rankOrder'}
+      })
+    }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -173,10 +181,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
 
-  get memoryDataService(): InMemoryEntitiesService<Sample, SampleFilter> {
-    return this.dataService as InMemoryEntitiesService<Sample, SampleFilter>;
-  }
-
   getRowError(row, opts): string {
     return super.getRowError(row, opts);
   }
@@ -196,14 +200,12 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
   constructor(
     injector: Injector,
+    protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>,
     protected samplingStrategyService: SamplingStrategyService,
   ) {
     super(injector,
       Sample, SampleFilter,
-      new InMemoryEntitiesService(Sample, SampleFilter, {
-        equals: Sample.equals,
-        sortByReplacement: {'id': 'rankOrder'}
-      }),
+      memoryDataService,
       injector.get(PlatformService).mobile ? null : injector.get(AppValidatorService),
       {
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
@@ -285,6 +287,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     this.$pmfmGroups.unsubscribe();
     this.pmfmGroupColumns$.complete();
     this.pmfmGroupColumns$.unsubscribe();
+    this.memoryDataService.stop();
   }
 
   /**

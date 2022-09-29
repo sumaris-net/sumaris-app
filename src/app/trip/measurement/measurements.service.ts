@@ -1,7 +1,7 @@
-import { BehaviorSubject, isObservable, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, from, isObservable, Observable } from 'rxjs';
 import { distinctUntilChanged, filter, first, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { EntityUtils, firstNotNilPromise, IEntitiesService, IEntityFilter, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
+import { EntityUtils, firstNotNil, firstNotNilPromise, IEntitiesService, IEntityFilter, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
 import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { SortDirection } from '@angular/material/sort';
@@ -25,7 +25,6 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   private _delegate: IEntitiesService<T, F>;
 
   protected programRefService: ProgramRefService;
-  protected readonly destroySubject = new Subject();
 
   loadingPmfms = false;
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -147,7 +146,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
 
   protected ngOnStart(): Promise<IPmfm[]> {
     this._onRefreshPmfms.emit('start');
-    return this.$pmfms.toPromise();
+    return firstNotNil(this.$pmfms, {stop: this.stopSubject}).toPromise();
   }
 
   protected async ngOnStop() {
@@ -167,10 +166,8 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     options?: any
   ): Observable<LoadResult<T>> {
 
-    return this.$pmfms
+    return from(this.start())
       .pipe(
-        filter(isNotNil),
-        first(),
         switchMap(pmfms => {
           let cleanSortBy = sortBy;
 
@@ -184,6 +181,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
 
           return this.delegate.watchAll(offset, size, cleanSortBy, sortDirection, selectionFilter, options)
             .pipe(
+              takeUntil(this.stopSubject),
               map((res) => {
 
                 // Prepare measurement values for reactive form
@@ -264,12 +262,14 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
         acquisitionLevel: this._acquisitionLevel,
         strategyLabel: this._strategyLabel || undefined,
         gearId: this._gearId || undefined
-      });
+      })
+      .pipe(
+        takeUntil(this.stopSubject)
+      );
 
     // DEBUG log
     if (this._debug) {
       res = res.pipe(
-        takeUntil(this.destroySubject),
         tap(pmfms => {
           if (!pmfms.length) {
             console.debug(`[meas-service] No pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}. Please fill program's strategies !`);
@@ -289,7 +289,8 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     // Wait loaded
     if (isObservable<IPmfm[]>(pmfms)) {
       if (this._debug) console.debug("[meas-service] setPmfms(): waiting pmfms observable to emit...");
-      pmfms = await firstNotNilPromise(pmfms, {stop: this.destroySubject});
+      pmfms = await firstNotNilPromise(pmfms, {stop: this.stopSubject, stopError: false});
+      if (!pmfms) return;
     }
 
     // Map

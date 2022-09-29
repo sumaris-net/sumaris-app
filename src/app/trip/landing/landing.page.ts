@@ -92,8 +92,6 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   @ViewChild('samplesTable', { static: true }) samplesTable: SamplesTable;
   @ViewChild('strategyCard', {static: false}) strategyCard: StrategySummaryCardComponent;
 
-  @ViewChild('firstTabInjection', {static: false}) firstTabInjection: ElementRef;
-  @ViewChildren('tabContent') tabContents: QueryList<ElementRef>;
 
   constructor(
     injector: Injector,
