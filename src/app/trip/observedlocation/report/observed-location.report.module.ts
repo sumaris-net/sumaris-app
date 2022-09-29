@@ -21,6 +21,7 @@ import { TranslateModule } from '@ngx-translate/core';
     AppSharedReportModule,
     AppAuctionControlModule,
     AppSamplingLandingModule,
+    AppLandingModule,
     AppLandingModule
   ],
   exports: [
