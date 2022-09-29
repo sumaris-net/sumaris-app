@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, Injector, Input, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
@@ -23,12 +23,11 @@ import { Landing } from '@app/trip/services/model/landing.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { ObservedLocationService } from '@app/trip/services/observed-location.service';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ObservedLocationService } from '../services/observed-location.service';
 
 export class LandingReportOptions {
   pathIdAttribute?: string;
@@ -51,7 +50,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad = true;
   private readonly _autoLoadDelay = 0;
-  protected readonly translate :TranslateService;
+  protected readonly translate: TranslateService;
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly landingService: LandingService;
   protected readonly dateFormatPipe: DateFormatPipe;
@@ -92,9 +91,9 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     return !this.loadingSubject.value;
   }
 
-  protected constructor(
+  constructor(
     injector: Injector,
-    options?: LandingReportOptions
+    @Optional() options?: LandingReportOptions
   ) {
     this.route = injector.get(ActivatedRoute);
     this.platform = injector.get(PlatformService);
@@ -107,7 +106,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     this.cd = injector.get(ChangeDetectorRef);
 
     this._pathParentIdAttribute = options?.pathParentIdAttribute || 'observedLocationId';
-    this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'landingId' ;
+    this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'landingId';
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     const mobile = this.settings.mobile;
     this.slidesOptions = {
@@ -119,12 +118,11 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
       throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
     }
     if (!environment.production) {
-        this.debug = true;
+      this.debug = true;
     }
   }
 
   ngAfterViewInit() {
-
     // Load data
     //if (this._autoLoad && !this.embedded) { // If !this.embeded start is never called
     if (this._autoLoad) {
@@ -147,7 +145,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
         await this.loadFromRoute();
       }
     }
-    catch(err) {
+    catch (err) {
       this.setError(err);
     }
     finally {
@@ -156,7 +154,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   }
 
 
-  async load(id?: number, opts?: EntityServiceLoadOptions & {[key: string]: string}) {
+  async load(id?: number, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
 
     let parentId = opts && opts[this._pathParentIdAttribute] || undefined;
 
@@ -179,7 +177,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     const program = await this.programRefService.loadByLabel(parent.program.label);
     this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    this.i18nContext.suffix = i18nSuffix === 'legacy' ? '': i18nSuffix;
+    this.i18nContext.suffix = i18nSuffix === 'legacy' ? '' : i18nSuffix;
 
     // Compute agg data
     const taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
@@ -196,7 +194,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     this.pmfms = pmfms;
     this.parent = parent;
 
-    this.data = await this.onDataLoaded(data as T, pmfms);
+    this.data = await this.onDataLoaded(data as T, this.pmfms);
 
     const title = await this.computeTitle(this.data, this.parent);
     this.$title.next(title);
@@ -212,7 +210,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     await waitForTrue(this.readySubject, opts);
   }
 
-  setError(err: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
+  setError(err: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string; }) {
     if (!err) {
       this.error = undefined;
     }
@@ -240,7 +238,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   }
 
   waitIdle(opts?: FirstOptions): Promise<void> {
-    return firstFalsePromise(this.loadingSubject, {stop: this.destroySubject, ...opts});
+    return firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
   }
 
   markAsReady() {
@@ -252,13 +250,12 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   /* -- protected function -- */
 
   protected computeTitle(data: T, parent?: ObservedLocation): Promise<string> {
-      return new Promise(() => 'TOTO');
+    return new Promise(() => 'TOTO');
   }
 
 
 
-  protected onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<T> {
-
+  protected onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {
     // FOR DEV ONLY : add more data
     if (this.debug && !environment.production && data.samples.length < 5) this.addFakeSamplesForDev(data);
     this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
@@ -284,22 +281,20 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   }
 
   protected async loadFromInput() {
-    console.log('AWAIT IM REDY');
-    await this.ready({stop: this.destroySubject});
-    console.log('IM READY' + this.data.id);
+    await this.ready({ stop: this.destroySubject });
     await this.onDataLoaded(this.data, this.pmfms);
     this.markAsLoaded();
     this.cd.detectChanges();
   }
 
-  protected markAsLoaded(opts = {emitEvent: true}) {
+  protected markAsLoaded(opts = { emitEvent: true }) {
     if (this.loadingSubject.value) {
       this.loadingSubject.next(false);
       if (opts.emitEvent !== false) this.markForCheck();
     }
   }
 
-  protected markAsLoading(opts = {emitEvent: true}) {
+  protected markAsLoading(opts = { emitEvent: true }) {
     if (!this.loadingSubject.value) {
       this.loadingSubject.next(true);
       if (opts.emitEvent !== false) this.markForCheck();

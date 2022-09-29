@@ -13,6 +13,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
+import { LandingReport } from './landing.report';
 
 
 @NgModule({
@@ -32,14 +33,16 @@ import { AppSharedReportModule } from '@app/shared/report/report.module';
     LandingsTable,
     LandingForm,
     LandingPage,
-    SelectLandingsModal
+    SelectLandingsModal,
+    LandingReport,
   ],
   exports: [
     // Components
     LandingsTable,
     LandingForm,
     LandingPage,
-    SelectLandingsModal
+    SelectLandingsModal,
+    LandingReport,
   ]
 })
 export class AppLandingModule {

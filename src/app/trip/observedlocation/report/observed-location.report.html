@@ -102,14 +102,14 @@
                                     [pmfms]="landingSamplesPmfms[index]"
         ></app-sampling-landing-report>
 
-        <!-- default langing -->
+        <!-- landing report by default -->
         <app-landing-report #landingReport
-                            *ngSwithDefault
+                            *ngSwitchCase="'landing'"
                             [embedded]="true"
                             [data]="landing"
                             [parent]="data"
                             [i18nContext]="i18nContext"
-                              [pmfms]="landingSamplesPmfms[index]"
+                            [pmfms]="landingSamplesPmfms[index]"
         ></app-landing-report>
 
 

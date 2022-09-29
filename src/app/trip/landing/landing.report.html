@@ -1,0 +1,70 @@
+<ng-container *ngIf="!embedded">
+  <app-toolbar [defaultBackHref]="defaultBackHref" canGoBack="true">
+    <ion-title [innerHTML]="$title|async"></ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="slides.print($event)" >
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </app-toolbar>
+
+  <ion-content>
+
+    <!-- error -->
+    <ion-item *ngIf="error && showError" lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+    <app-slides #slides *ngIf="!error"
+                [options]="slidesOptions">
+      <section *ngIf="loaded; else loadingTemplate">
+        <section markdown ngPreserveWhitespaces>
+          ## {{'LANDING.REPORT.TITLE_SHORT'|translate}}
+          - {{'LANDING.EDIT.LANDING'|translate}} {{data.location?.name}}
+          - {{'LANDING.EDIT.DATE'|translate}} : {{data.dateTime|dateFormat: {time: false} }}
+          - {{'LANDING.REPORT.RECORDER_PERSON'|translate}} {{parent.observers|personToString}}
+          - {{'LANDING.REPORT.VESSEL'|translate}} **{{data.vesselSnapshot?.registrationCode || data.vesselSnapshot?.name}}**
+
+        </section>
+      </section>
+      <section *ngIf="loaded; else loadingTemplate">
+        <section markdown ngPreserveWhitespaces
+                 *ngFor="let samples of (data.samples | splitArrayInChunks: slides.printing ? -1 : 25); index as index; count as count">
+          ### {{'LANDING.REPORT.SAMPLES_TITLE'|translate}} {{index|paginationToString:count}}
+          <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+        </section>
+      </section>
+    </app-slides>
+
+    <ng-template #loadingTemplate>
+      <div class="loader">
+        <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+      </div>
+    </ng-template>
+  </ion-content>
+</ng-container>
+
+<ng-container *ngIf="embedded && loaded">
+  <section markdown ngPreserveWhitespaces
+   *ngFor="let samples of (data.samples | splitArrayInChunks: 25); index as index; count as count">
+    ## {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
+    <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+  </section>
+</ng-container>
+
+<ng-template #samplesTable let-samples let-pmfms="pmfms">
+  <table [style.--col-count]="pmfms.length">
+    <thead>
+      <tr>
+        <th *ngFor="let pmfm of pmfms"
+            [innerHTML]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nContext.suffix, html: true, withDetails: true}"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let sample of samples; even as even" [class.even]="even">
+        <td *ngFor="let pmfm of pmfms" [innerHTML]="sample.measurementValues[pmfm.id]|pmfmValue: {pmfm: pmfm, html: true, propertyNames: ['name'], applyDisplayConversion: true}"></td>
+      </tr>
+    </tbody>
+  </table>
+</ng-template>
