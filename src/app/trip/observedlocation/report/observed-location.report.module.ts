@@ -4,10 +4,10 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppDataModule } from '@app/data/data.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
-import { AppAuctionControlModule } from '@app/trip/landing/auctioncontrol/auction-control.module';
 import { AppSamplingLandingModule } from '@app/trip/landing/sampling/sampling-landing.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppLandingReportModule } from '@app/trip/landing/report/landing.report.module';
+import { AuctionControlReportModule } from '@app/trip/landing/auctioncontrol/report/auction-control.report.module';
 
 @NgModule({
   declarations: [
@@ -19,8 +19,8 @@ import { AppLandingReportModule } from '@app/trip/landing/report/landing.report.
     AppDataModule,
     TranslateModule.forChild(),
     AppSharedReportModule,
-    AppAuctionControlModule,
     AppSamplingLandingModule,
+    AuctionControlReportModule,
     AppLandingReportModule,
   ],
   exports: [
