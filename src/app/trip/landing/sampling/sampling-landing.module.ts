@@ -10,6 +10,7 @@ import { AppLandingModule } from '@app/trip/landing/landing.module';
 import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing.page';
 import { SamplingLandingReport } from '@app/trip/landing/sampling/sampling-landing.report';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
+import { AppLandingReportModule } from '../report/landing.report.module';
 
 
 @NgModule({
@@ -24,6 +25,7 @@ import { AppSharedReportModule } from '@app/shared/report/report.module';
     AppMeasurementModule,
     AppSampleModule,
     AppLandingModule,
+    AppLandingReportModule,
     AppSharedReportModule,
   ],
   declarations: [
