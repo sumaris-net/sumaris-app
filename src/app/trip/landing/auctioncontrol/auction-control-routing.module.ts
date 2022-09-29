@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AppAuctionControlModule } from './auction-control.module';
 import { AuctionControlPage } from './auction-control.page';
-import { AuctionControlReport } from './auction-control.report';
 import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 
 const routes: Routes = [
@@ -22,7 +21,7 @@ const routes: Routes = [
       },
       {
         path: 'report',
-        component: AuctionControlReport
+        loadChildren: () => import('./report/auction-control-report-routing.module').then(m => m.AutionControlReportRoutingModule)
       }
     ]
   }
