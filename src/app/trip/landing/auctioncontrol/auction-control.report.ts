@@ -27,12 +27,11 @@ export class AuctionControlReport extends LandingReport {
 
   protected async onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<Landing> {
     data = await super.onDataLoaded(data, pmfms);
-
     // Remove invalid sample label
     (data.samples || []).forEach(sample => {
       if (sample.label?.startsWith('#')) sample.label = null;
     });
-
+    this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
     return data;
   }
 
