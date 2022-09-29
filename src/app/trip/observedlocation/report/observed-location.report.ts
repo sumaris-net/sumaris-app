@@ -23,7 +23,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
-import { LandingReport } from '@app/trip/landing/landing.report';
+import { LandingReport } from '@app/trip/landing/report/landing.report';
 import { LandingService } from '@app/trip/services/landing.service';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
@@ -184,6 +184,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     if (this.i18nContext.suffix === 'legacy') {this.i18nContext.suffix = ''}
     this.landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
+    //this.landingEditor = 'landing'
     this.landingShowSampleCount = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
 
     // Load full landings
@@ -286,7 +287,6 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   protected async waitIdle(opts: WaitForOptions) {
     if (this.loaded) return; // skip
-
     await firstFalsePromise(this.loadingSubject, opts);
     await Promise.all(
       this.children.map(c => c.waitIdle(opts))

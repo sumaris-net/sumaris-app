@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
-import { LandingReport } from '@app/trip/landing/landing.report';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { environment } from '@environments/environment';
+import { LandingReport } from '../report/landing.report';
 
 @Component({
   selector: 'app-auction-control-report',
-  styleUrls: ['../landing.report.scss', 'auction-control.report.scss'],
+  styleUrls: ['../report/landing.report.scss', 'auction-control.report.scss'],
   templateUrl: './auction-control.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -22,12 +22,12 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { ObservedLocationService } from '@app/trip/services/observed-location.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { ObservedLocationService } from '../services/observed-location.service';
 
 export class LandingReportOptions {
   pathIdAttribute?: string;
