@@ -23,7 +23,7 @@ import { Landing } from '@app/trip/services/model/landing.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -249,11 +249,15 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
 
   /* -- protected function -- */
 
-  protected computeTitle(data: T, parent?: ObservedLocation): Promise<string> {
-    return new Promise(() => 'TOTO');
+  protected async computeTitle(data: T, parent?: ObservedLocation): Promise<string> {
+    const titlePrefix = await this.translate.get('LANDING.TITLE_PREFIX', {
+      location: data.location?.name || '',
+      date: this.dateFormatPipe.transform(data.dateTime, {time: false})
+    }).toPromise();
+    const title = await this.translate.get('LANDING.REPORT.TITLE').toPromise();
+    this.defaultBackHref = `/observations/${parent.id}/landing/${data.id}?tab=1`;
+    return titlePrefix + title;
   }
-
-
 
   protected onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {
     // FOR DEV ONLY : add more data
