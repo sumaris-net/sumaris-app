@@ -258,7 +258,6 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   protected onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {
     // FOR DEV ONLY : add more data
     if (this.debug && !environment.production && data.samples.length < 5) this.addFakeSamplesForDev(data);
-    this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
     this.stats.sampleCount = data.samples?.length || 0;
     return Promise.resolve(data as T);
   }
