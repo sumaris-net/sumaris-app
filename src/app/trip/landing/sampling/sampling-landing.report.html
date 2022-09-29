@@ -49,7 +49,7 @@
 <ng-container *ngIf="embedded && loaded">
   <section markdown ngPreserveWhitespaces
    *ngFor="let samples of (data.samples | splitArrayInChunks: 25); index as index; count as count">
-    ## {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
+    ### {{data.vesselSnapshot?.name}} {{data.dateTime|dateFormat: {time: false} }} - {{strategyLabel}}  {{index|paginationToString:count}}
     <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
   </section>
 </ng-container>
