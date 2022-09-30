@@ -9,8 +9,7 @@ import { LandingReport } from '../../report/landing.report';
 
 @Component({
   selector: 'app-sampling-landing-report',
-  styleUrls: ['../../report/landing.report.scss',
-    'sampling-landing.report.scss'],
+  styleUrls: ['../../report/landing.report.scss'],
   templateUrl: './sampling-landing.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

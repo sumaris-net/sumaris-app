@@ -33,7 +33,7 @@ import { ObservedLocationService } from '@app/trip/services/observed-location.se
 @Component({
   selector: 'app-observed-location',
   templateUrl: './observed-location.report.html',
-  styleUrls: ['./observed-location.report.scss'],
+  styleUrls: ['../../landing/report/landing.report.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservedLocationReport<T extends ObservedLocation = ObservedLocation> implements AfterViewInit {
