@@ -61,8 +61,8 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   readonly readySubject = new BehaviorSubject<boolean>(false);
   readonly loadingSubject = new BehaviorSubject<boolean>(true);
 
-  defaultBackHref: string = null;
   $title = new Subject();
+  $defaultBackHref = new Subject<string>();
   error: string;
   slidesOptions: Partial<IRevealOptions>;
   weightDisplayedUnit: WeightUnitSymbol;
@@ -199,6 +199,9 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     const title = await this.computeTitle(this.data, this.parent);
     this.$title.next(title);
 
+    const defaultBackHref = await this.computeDefaultBackHref(this.data, this.parent);
+    this.$defaultBackHref.next(defaultBackHref);
+
     this.markAsLoaded();
     this.cd.detectChanges();
 
@@ -255,8 +258,11 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
       date: this.dateFormatPipe.transform(data.dateTime, {time: false})
     }).toPromise();
     const title = await this.translate.get('LANDING.REPORT.TITLE').toPromise();
-    this.defaultBackHref = `/observations/${parent.id}/landing/${data.id}?tab=1`;
     return titlePrefix + title;
+  }
+
+  protected async computeDefaultBackHref(data: T, parent?: ObservedLocation): Promise<string> {
+    return `/observations/${parent.id}/landing/${data.id}?tab=1`;
   }
 
   protected onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {

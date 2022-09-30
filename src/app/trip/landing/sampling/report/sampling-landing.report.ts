@@ -52,17 +52,16 @@ export class SamplingLandingReport extends LandingReport {
       location: data.location?.name || '',
       date: this.dateFormatPipe.transform(data.dateTime, {time: false})
     }).toPromise();
-
     const strategyLabel = this.strategyLabel || data.measurementValues[PmfmIds.STRATEGY_LABEL] || '';
-
     const title = await this.translate.get('LANDING.REPORT.SAMPLING.TITLE', {
       vessel: data.vesselSnapshot && (data.vesselSnapshot.registrationCode || data.vesselSnapshot.name),
       strategyLabel: strategyLabel
     }).toPromise();
-
-    this.defaultBackHref = `/observations/${parent.id}/sampling/${data.id}?tab=1`;
-
     return titlePrefix + title;
+  }
+
+  protected async computeDefaultBackHref(data: Landing, parent?: ObservedLocation): Promise<string> {
+    return `/observations/${parent.id}/sampling/${data.id}?tab=1`;
   }
 
   protected addFakeSamplesForDev(data: Landing, count = 25) {
