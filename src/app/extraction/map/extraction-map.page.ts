@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
-import { L } from '@app/vendor';
+import { L, moment } from '@app/vendor';
 import {
   AccountService,
   AppFormUtils,
@@ -23,7 +23,7 @@ import {
   LocalSettingsService,
   PlatformService,
   StatusIds,
-  waitFor
+  waitFor, waitForTrue
 } from '@sumaris-net/ngx-components';
 import { ExtractionService } from '../common/extraction.service';
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
@@ -32,7 +32,7 @@ import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, Extracti
 import { Location } from '@angular/common';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
-import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime , map } from 'rxjs/operators';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
@@ -751,29 +751,50 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     const type = this.type;
     if (!type) return; // Skip, if no type
 
-    const startYear = new Date().getFullYear();
-    const endYear = startYear - 10;
-
-    const sheetName = this.sheetName || (type && type.sheetNames && type.sheetNames[0]) || null;
-    const strata: any = this.getDefaultStrata(sheetName);
-
-    if (!strata) return; // Skip, if no spatial strata
-
-    let year = startYear;
+    const now = Date.now();
     let hasData = false;
-    do {
+    try {
 
-      // Set default filter
-      this.form.patchValue({
-        year: year--,
-        strata
-      }, {emitEvent: false});
+      if (isEmptyArray(type.sheetNames)) return; // No data
 
-      await this.loadGeoData();
+      const startYear = moment().year();
+      const endYear = startYear - 20;
 
-      hasData = this.hasData;
+      const sheetName = this.sheetName || (type && type.sheetNames && type.sheetNames[0]) || null;
+      const strata: any = this.getDefaultStrata(sheetName);
+
+      if (!strata) return; // Skip, if no spatial strata
+
+      let year = startYear;
+      do {
+
+        // Set default filter
+        this.form.patchValue({year, strata}, {emitEvent: false});
+
+        // Load data (from filter)
+        await this.loadGeoData();
+
+        // Check if some data found
+        hasData = this.hasData;
+        if (!hasData) year--;
+      }
+      while (!hasData && year >= endYear);
+
+
     }
-    while (!hasData && year >= endYear);
+    finally {
+      // OK: data found
+      if (hasData) {
+        console.info(`[extraction-map] Data layer loaded successfully, in ${Date.now() - now}`);
+      }
+      // No data: warn user
+      else {
+        await this.showToast({
+          type: 'warning',
+          message: 'EXTRACTION.MAP.WARNING.NO_DATA'
+        });
+      }
+    }
   }
 
   protected async loadGeoData() {
