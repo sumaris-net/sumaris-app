@@ -56,9 +56,9 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   private readonly _autoLoad = true;
   private readonly _autoLoadDelay = 0;
 
-  defaultBackHref: string = null;
   error: string;
   $title = new Subject();
+  $defaultBackHref = new Subject<string>();
   slidesOptions: Partial<IRevealOptions>;
   i18nContext = {
     prefix: '',
@@ -258,7 +258,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   }
 
   protected computeDefaultBackHref(data: ObservedLocation) {
-    this.defaultBackHref = `/observations/${data.id}?tab=1`;
+    this.$defaultBackHref.next(`/observations/${data.id}?tab=1`);
   }
 
   protected computeSlidesOptions() {
