@@ -477,7 +477,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
           this.subBatchesTable.qvPmfm = groupQvPmfm;
           await this.subBatchesTable.setAvailableParents(batchGroups, {
             emitEvent: true, // Force refresh pmfms
-            linkDataToParent: false // Not need here
+            linkDataToParent: false // Not need (will be done later, in value setter)
           });
           this.subBatchesTable.value = subBatches;
         } else {

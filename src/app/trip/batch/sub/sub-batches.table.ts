@@ -62,15 +62,6 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   }
 }
 
-const subBatchTableOptionsFactory = () => {
-  return {
-    prependNewElements: false,
-    suppressErrors: environment.production,
-    reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
-    reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
-  };
-};
-
 @Component({
   selector: 'app-sub-batches-table',
   templateUrl: 'sub-batches.table.html',
@@ -79,7 +70,14 @@ const subBatchTableOptionsFactory = () => {
     {provide: ContextService, useExisting: TripContextService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
-      useFactory: subBatchTableOptionsFactory
+      useFactory: () => {
+        return {
+          prependNewElements: false,
+          suppressErrors: environment.production,
+          reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
+          reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
+        };
+      }
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -97,7 +95,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected popoverController: PopoverController;
   protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
   protected enableWeightConversion = false;
 
@@ -219,10 +216,13 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     super(injector,
       SubBatch, SubBatchFilter,
       new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, SubBatchFilter, {
-        onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
         onSave: (data) => this.onSaveData(data),
-        equals: Batch.equals
+        equals: Batch.equals,
+        sortByReplacement: {
+          'id': 'rankOrder',
+          'parentGroup': 'parentGroup.rankOrder'
+        }
       }),
       validatorService,
       {
@@ -234,26 +234,22 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.popoverController = injector.get(PopoverController);
     this.cd = injector.get(ChangeDetectorRef);
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<SubBatch, SubBatchFilter>);
     this.tabindex = 1;
     this.inlineEdition = !this.mobile;
-    this.defaultSortBy = 'id';
-    this.defaultSortDirection = 'asc';
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
-    this.showCommentsColumn = true;
+    this.showCommentsColumn = !this.mobile;
 
     // DEBUG
     this.debug = !environment.production;
+    this.logPrefix = '[sub-batches-table] ';
   }
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.setShowColumn('comments', this.showCommentsColumn);
 
     // Parent combo
     this.registerAutocompleteField('parentGroup', {
@@ -421,7 +417,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
    */
   setValue(data: SubBatch[], opts?: { emitEvent?: boolean; }) {
     this.memoryDataService.value = data;
-    this.markAsLoaded();
+    //this.markAsLoaded();
   }
 
   /* -- protected methods -- */
@@ -834,11 +830,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     }
   }
 
-  protected sortData(data: SubBatch[], sortBy?: string, sortDirection?: SortDirection): SubBatch[] {
-    sortBy = (sortBy && sortBy !== 'parentGroup') ? sortBy : 'parentGroup.rankOrder'; // Replace parent by its rankOrder
-    return this.memoryDataService.sort(data, sortBy, sortDirection);
-  }
-
   protected onLoadData(data: SubBatch[]): SubBatch[] {
     this.linkDataToParentGroup(data);
     return data;
@@ -889,31 +880,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
           this.unregisterSubscription(subscription);
           this._rowValidatorSubscription = null;
         });
-      }
-    }
-  }
-
-  async openCommentPopover(event: UIEvent, row: TableElement<SubBatch>) {
-
-    const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
-    const {data} = await Popovers.showText(this.popoverController, event, {
-      editing: this.inlineEdition && this.enabled,
-      autofocus: this.enabled,
-      multiline: true,
-      text: row.currentData.comments,
-      placeholder
-    });
-
-    // User cancel
-    if (isNil(data) || this.disabled) return;
-
-    if (this.inlineEdition) {
-      if (row.validator) {
-        row.validator.patchValue({comments: data});
-        row.validator.markAsDirty();
-      }
-      else {
-        row.currentData.comments = data;
       }
     }
   }

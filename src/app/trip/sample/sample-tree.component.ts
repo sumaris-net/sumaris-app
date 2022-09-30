@@ -420,19 +420,6 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
   }
 
-  protected async getTableValue<T extends Entity<T>>(table: AppTable<T> & { value: T[]}): Promise<T[]> {
-    if (table.dirty) {
-      await table.save();
-
-      await table.waitIdle({stop: this.destroySubject, stopError: false});
-
-      // Remember dirty state
-      this.markAsDirty({emitEvent: false});
-    }
-
-    return table.value;
-  }
-
   protected markForCheck() {
     this.cd.markForCheck();
   }

@@ -363,7 +363,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   protected onSaveData(data: SubBatch[]): SubBatch[] {
     // Append hidden data to the list, then save
-    return super.onSaveData(data.concat(this._hiddenData || []));
+    return data.concat(this._hiddenData || []);
   }
 
   protected async getMaxRankOrder(): Promise<number> {

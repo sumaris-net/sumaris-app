@@ -153,7 +153,7 @@ export abstract class PmfmValueUtils {
       case 'qualitative_value':
         if (isNotNil(value)) {
           const qvId = (typeof value === 'object') ? value.id : parseInt(value);
-          return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
+          return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter?.qualitativeValues) || [])
             .find(qv => qv.id === qvId) || null;
 
         }

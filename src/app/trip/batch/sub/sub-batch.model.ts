@@ -4,6 +4,8 @@ import { AcquisitionLevelCodes } from '../../../referential/services/model/model
 import { EntityClass, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 
 @EntityClass({typename: 'SubBatchVO', fromObjectReuseStrategy: "clone"})
 export class SubBatch extends Batch<SubBatch> {
@@ -56,12 +58,20 @@ export class SubBatchUtils {
       return groups.reduce((res, group) => {
         return res.concat((group.children || []).reduce((res, qvBatch) => {
           const children = BatchUtils.getChildrenByLevel(qvBatch, AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL);
+          const qvModelValue = PmfmValueUtils.toModelValue(qvBatch.measurementValues[opts.groupQvPmfm.id], opts.groupQvPmfm);
           return res.concat(children
             .map(child => {
               const target = SubBatch.fromBatch(child, group);
-              // Copy the QV value
+
               target.measurementValues = { ...target.measurementValues };
-              target.measurementValues[opts.groupQvPmfm.id] = qvBatch.measurementValues[opts.groupQvPmfm.id];
+              // Copy the QV value, from the parent
+              // /!\ Should used expected value type (form or model)
+              if (MeasurementValuesUtils.isMeasurementFormValues(target.measurementValues)) {
+                target.measurementValues[opts.groupQvPmfm.id] = PmfmValueUtils.fromModelValue(qvModelValue, opts.groupQvPmfm);
+              }
+              else {
+                target.measurementValues[opts.groupQvPmfm.id] = qvModelValue;
+              }
 
               return target;
             }));

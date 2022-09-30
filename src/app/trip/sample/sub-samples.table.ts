@@ -14,7 +14,7 @@ import {
   PlatformService,
   suggestFromArray,
   toNumber,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { Sample } from '../services/model/sample.model';
@@ -26,7 +26,6 @@ import { SampleFilter } from '../services/filter/sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { merge, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -120,7 +119,10 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     this.inlineEdition = !this.mobile;
     this.errorTranslatorOptions = {controlPathTranslator: this, separator: '\n'};
 
-    //this.debug = false;
+    // Default value
+    this.showCommentsColumn = !this.mobile;
+
+    // DEBUG
     this.debug = !environment.production;
     this.logPrefix = '[sub-samples-table] ';
   }
@@ -129,7 +131,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     super.ngOnInit();
 
     this.setShowColumn('label', this.showLabelColumn);
-    this.setShowColumn('comments', !this.mobile);
 
     // Parent combo
     // the exact list of attributes to display will be set when receiving the pmfms and parents
