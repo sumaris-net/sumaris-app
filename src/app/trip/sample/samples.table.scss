@@ -34,8 +34,7 @@
       }
 
       .mat-column-comments {
-        min-width: 110px;
-        max-width: 110px;
+        max-width: inherit; // Override default limitation
       }
 
       .mat-column-pmfm {
@@ -117,9 +116,15 @@
           color: var(--ion-color-light-contrast, black) !important;
         }
       }
+
+      .visible-hover {
+        visibility: hidden;
+      }
+
+      &:hover  .visible-hover {
+        visibility: unset;
+      }
     }
-
-
   }
 
   &.has-pmfm-header-details {

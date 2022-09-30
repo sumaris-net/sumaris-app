@@ -421,7 +421,7 @@ export abstract class PmfmUtils {
 
       // Convert max number decimals
       if (isNotNil(target.maximumNumberDecimals)) {
-        const convertedMaximumNumberDecimals = Math.log(conversionCoefficient);
+        const convertedMaximumNumberDecimals = Math.log10(conversionCoefficient);
         target.maximumNumberDecimals = Math.max(0, target.maximumNumberDecimals - convertedMaximumNumberDecimals);
       }
     }

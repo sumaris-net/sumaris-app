@@ -20,7 +20,6 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { BehaviorSubject } from 'rxjs';
 import { AggregatedLanding, VesselActivity } from '../services/model/aggregated-landing.model';
 import { AggregatedLandingService } from '../services/aggregated-landing.service';
-import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -34,8 +33,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 @Component({
   selector: 'app-aggregated-landings-table',

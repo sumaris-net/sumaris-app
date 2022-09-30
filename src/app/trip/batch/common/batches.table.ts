@@ -36,6 +36,10 @@ export abstract class BatchesTable<
   weightPmfms: IPmfm[];
   weightPmfmsByMethod: { [key: string]: IPmfm };
 
+  get dirty(): boolean {
+    return super.dirty || this.memoryDataService.dirty;
+  }
+
   @Input()
   set value(data: T[]) {
     this.memoryDataService.value = data;
@@ -65,9 +69,7 @@ export abstract class BatchesTable<
     return this.getShowColumn('taxonName');
   }
 
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
+
 
   @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;

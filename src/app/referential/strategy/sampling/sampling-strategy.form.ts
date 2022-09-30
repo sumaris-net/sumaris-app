@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { AsyncValidatorFn, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
-import * as momentImported from 'moment';
 import {
   AppForm,
   AppFormUtils,
@@ -59,8 +58,7 @@ import { filter, map } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'lengthPmfm' | 'weightPmfm' | 'maturityPmfm' | 'fractionPmfm';
 

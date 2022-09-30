@@ -26,7 +26,6 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
@@ -51,7 +50,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -101,6 +100,10 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   showTagCount: boolean;
   tagCount$ = new BehaviorSubject<number>(0);
 
+  get dirty(): boolean {
+    return super.dirty || this.memoryDataService.dirty;
+  }
+
   @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
   @Input() useSticky = false;
@@ -127,7 +130,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() tagIdPadString = '0';
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
-
   @Input() allowSubSamples = false;
   @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
 
@@ -221,8 +223,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.pmfmService = injector.get(PmfmService);
-    this.defaultSortBy = 'id';
-    this.defaultSortDirection = 'asc';
 
     this.confirmBeforeDelete = false;
     this.confirmBeforeCancel = false;
@@ -746,17 +746,17 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     if (isEmptyArray(pmfmIds)) return; // Skip if empty
 
     // Load each pmfms, by id
-    const newPmfms = (await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id))))
-      .map(DenormalizedPmfmStrategy.fromFullPmfm);
+    const fullPmfms = await Promise.all(pmfmIds.map(id => this.pmfmService.loadPmfmFull(id)));
+    const denormalizedPmfms = fullPmfms.map(DenormalizedPmfmStrategy.fromFullPmfm);
 
     // Add weight conversion
     if (this.weightDisplayedUnit) {
-      PmfmUtils.setWeightUnitConversions(newPmfms, this.weightDisplayedUnit, {clone: false});
+      PmfmUtils.setWeightUnitConversions(denormalizedPmfms, this.weightDisplayedUnit, {clone: false});
     }
 
     this.pmfms = [
       ...this.pmfms,
-      ...newPmfms
+      ...denormalizedPmfms
     ];
   }
 
@@ -881,9 +881,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     }
 
     // Add replacement map, for sort by
-    const memoryDataService = this.memoryDataService;
-    pmfms
-      .forEach(p => memoryDataService.addSortByReplacement(p.id.toString(), `measurementValues.${p.id}`));
+    pmfms.forEach(p => this.memoryDataService.addSortByReplacement(p.id.toString(), `measurementValues.${p.id}`));
 
     return pmfms;
   }

@@ -54,6 +54,10 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   onParentChanges = new Subject();
   displayParentPmfm: IPmfm;
 
+  get dirty(): boolean {
+    return super.dirty || this.memoryDataService.dirty;
+  }
+
   @Input() showError = true;
   @Input() showPmfmDetails = false;
   @Input() compactFields = true;

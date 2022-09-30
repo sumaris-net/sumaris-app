@@ -25,11 +25,10 @@ import { Sample } from '../services/model/sample.model';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
 import { debounceTime } from 'rxjs/operators';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {

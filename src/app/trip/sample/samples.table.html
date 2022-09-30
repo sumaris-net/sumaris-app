@@ -66,6 +66,17 @@
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
   </button>
 
+  <mat-divider></mat-divider>
+
+  <!-- Compact mode -->
+  <button mat-menu-item
+          (click)="toggleCompactMode()">
+    <mat-icon *ngIf="compact; else notCompactIcon">check_box</mat-icon>
+    <ng-template #notCompactIcon>
+      <mat-icon >check_box_outline_blank</mat-icon>
+    </ng-template>
+    <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+  </button>
 </mat-menu>
 
 <!-- error -->
@@ -88,6 +99,7 @@
   <table mat-table matSort
          matSortDisableClear
          *ngIf="inlineEdition; else readonly"
+         [class.compact]="compact"
          [dataSource]="dataSource"
          [matSortActive]="defaultSortBy"
          [matSortDirection]="defaultSortDirection"
@@ -296,21 +308,19 @@
       <th mat-header-cell *matHeaderCellDef>
         &nbsp;
       </th>
-      <td mat-cell *matCellDef="let row"
-          class="mat-cell-content-start-padding"
-          (click)="focusColumn='comments'">
-        <mat-form-field *ngIf="row.editing; else readonlyComment"
-                        floatLabel="never">
-          <input matInput
-                 [formControl]="row.validator.controls.comments"
-                 [placeholder]="'TRIP.SAMPLE.TABLE.COMMENTS_PLACEHOLDER'|translateContext: i18nColumnSuffix"
-                 [appAutofocus]="focusColumn === 'comments'">
-        </mat-form-field>
-        <ng-template #readonlyComment>
-          <mat-icon *ngIf="row.currentData.comments"
-                    [title]="row.currentData.comments"
-                    class="comment"></mat-icon>
-        </ng-template>
+      <td mat-cell *matCellDef="let row">
+        <button *ngVar="row.validator|formGetValue: 'comments'; let comments"
+                mat-icon-button
+                [class.visible-hover]="!row.editing && !comments"
+                (click)="openCommentPopover($event, row)"
+                [disabled]="disabled"
+                [title]="comments || ''">
+          <ion-icon
+            [color]="comments ? 'tertiary' : 'medium'"
+            name="chatbox"
+            slot="icon-only"
+          ></ion-icon>
+        </button>
       </td>
 
     </ng-container>
@@ -337,7 +347,7 @@
 
     <!-- footer start -->
     <ng-container matColumnDef="footer-start" [sticky]="useSticky">
-      <td mat-footer-cell *matFooterCellDef [attr.colspan]="showIdColumn ? 2 : 3"
+      <td mat-footer-cell *matFooterCellDef [attr.colspan]="showIdColumn ? 1 : 2"
         class="ion-text-end">
         <ion-text color="primary"><b translate>TRIP.SAMPLE.TABLE.TOTAL_DOTS</b>&nbsp;</ion-text>
       </td>

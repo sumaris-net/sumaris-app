@@ -21,6 +21,9 @@ import { BaseValidatorService } from '@app/shared/service/base.validator.service
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
 import { filter, map } from 'rxjs/operators';
+import { PopoverController } from '@ionic/angular';
+import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
+import { Popovers } from '@app/shared/popover/popover.utils';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -78,6 +81,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
 
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
+  protected popoverController: PopoverController;
 
   private _canEdit: boolean;
 
@@ -106,6 +110,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     );
 
     this.hotkeys = injector.get(Hotkeys);
+    this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
     this.logPrefix = '[base-table]';
     this.defaultSortBy = 'label';
@@ -326,6 +331,31 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.compact = !this.compact;
     this.markForCheck();
     this.settings.savePageSetting(this.settingsId, this.compact, BASE_TABLE_SETTINGS_ENUM.compactRowsKey);
+  }
+
+  async openCommentPopover(event: UIEvent, row: TableElement<SubBatch>) {
+
+    const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
+    const {data} = await Popovers.showText(this.popoverController, event, {
+      editing: this.inlineEdition && this.enabled,
+      autofocus: this.enabled,
+      multiline: true,
+      text: row.currentData.comments,
+      placeholder
+    });
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
+
+    if (this.inlineEdition) {
+      if (row.validator) {
+        row.validator.patchValue({comments: data});
+        row.validator.markAsDirty();
+      }
+      else {
+        row.currentData.comments = data;
+      }
+    }
   }
 
   /* -- protected functions -- */

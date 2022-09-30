@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
-import * as momentImported from 'moment';
 import { ObservedLocationForm } from './observed-location.form';
 import { ObservedLocationService } from '../services/observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
@@ -43,8 +42,7 @@ import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 
 const ObservedLocationPageTabs = {
@@ -422,7 +420,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.markAsReady();
 
       // Listen program, to reload if changes
-      this.startListenProgramRemoteChanges(program);
+      if (this.network.online) this.startListenProgramRemoteChanges(program);
     }
     catch (err) {
       this.setError(err);

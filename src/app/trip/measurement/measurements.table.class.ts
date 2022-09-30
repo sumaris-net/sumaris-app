@@ -30,6 +30,9 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
+import { Popovers } from '@app/shared/popover/popover.utils';
+import { PopoverController } from '@ionic/angular';
 
 
 export interface BaseMeasurementsTableConfig<
@@ -231,6 +234,8 @@ export abstract class BaseMeasurementsTable<
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
     this.markAsLoaded({emitEvent: false});
     this.i18nPmfmPrefix = options?.i18nPmfmPrefix;
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     this.measurementsDataService = new EntitiesWithMeasurementService<T, F, ID>(injector, this.dataType, dataService, {
       mapPmfms: this.options.mapPmfms || undefined,
@@ -251,7 +256,7 @@ export abstract class BaseMeasurementsTable<
     this._autoLoadAfterPmfm = this.autoLoad;
     this.autoLoad = false;
     this.i18nPmfmPrefix = this.i18nPmfmPrefix || this.i18nColumnPrefix;
-    this.keepEditedRowOnSave = this.inlineEdition && !isMemoryDataService;
+    this.keepEditedRowOnSave = this.inlineEdition; // && !isMemoryDataService;
 
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.requiredStrategy = this.options.requiredStrategy || false;
@@ -284,7 +289,11 @@ export abstract class BaseMeasurementsTable<
           this.updateColumns();
 
           // Load the table, if already loaded or if autoLoad was set to true
-          if (this._autoLoadAfterPmfm || this.dataSource.loaded/*already load*/) {
+          if (this._autoLoadAfterPmfm) {
+            this.onRefresh.emit();
+            this._autoLoadAfterPmfm = false;
+          }
+          else if (!this.dirty || this.dataSource.loaded/*already load*/) {
             this.onRefresh.emit();
           }
         }));

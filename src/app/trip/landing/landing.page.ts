@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, OnInit, Optional, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, Optional, ViewChild } from '@angular/core';
 
 import {
   AppEditorOptions,
@@ -17,6 +17,7 @@ import {
   isNotNilOrBlank,
   isNotNilOrNaN,
   LocalSettingsService,
+  NetworkService,
   ReferentialUtils,
   removeDuplicatesFromArray,
   UsageMode
@@ -40,14 +41,16 @@ import { environment } from '@environments/environment';
 import { STRATEGY_SUMMARY_DEFAULT_I18N_PREFIX, StrategySummaryCardComponent } from '@app/data/strategy/strategy-summary-card.component';
 import { merge, Subscription } from 'rxjs';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import * as momentImported from 'moment';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
+import { BaseMeasurementsTable } from '@app/trip/measurement/measurements.table.class';
+import { SampleFilter } from '@app/trip/services/filter/sample.filter';
+import { Sample } from '@app/trip/services/model/sample.model';
 
 export class LandingEditorOptions extends AppEditorOptions {
 }
@@ -75,6 +78,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   protected pmfmService: PmfmService;
   protected referentialRefService: ReferentialRefService;
   protected vesselService: VesselSnapshotService;
+  protected network: NetworkService;
   private _rowValidatorSubscription: Subscription;
 
   mobile: boolean;
@@ -110,6 +114,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
     this.contextService = injector.get(ContextService);
+    this.network = injector.get(NetworkService);
 
     this.mobile = this.settings.mobile;
     // FOR DEV ONLY ----
@@ -372,10 +377,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.samplesTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
       this.samplesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT);
 
-      // Send programLabel to samples tables: will start loading pmfms
-      // If strategy is required, programLabel will be set by setStrategy()
+      // Apply sample table pmfms
+      // If strategy is required, pmfms will be set by setStrategy()
       if (!requiredStrategy) {
-        this.samplesTable.programLabel = program.label;
+        await this.setTablePmfms(this.samplesTable, program.label)
       }
     }
 
@@ -391,14 +396,17 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
 
     // Listen program's strategies change (will reload strategy if need)
-    this.startListenProgramRemoteChanges(program);
-    this.startListenStrategyRemoteChanges(program);
+    if (this.network.online) {
+      this.startListenProgramRemoteChanges(program);
+      this.startListenStrategyRemoteChanges(program);
+    }
   }
 
   protected async setStrategy(strategy: Strategy, opts?: {emitReadyEvent?: boolean; }) {
     await super.setStrategy(strategy);
 
-    if (!strategy) return; // Skip if empty
+    const program = this.$program.value;
+    if (!strategy || !program) return; // Skip if empty
 
     // Propagate to form
     this.landingForm.strategyLabel = strategy.label;
@@ -417,10 +425,26 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.samplesTable.showTaxonGroupColumn = false;
 
       // Load strategy's pmfms
-      let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(this.$program.value.label,
+      await this.setTablePmfms(this.samplesTable, program.label, strategy.label)
+    }
+
+    this.markAsReady();
+    this.markForCheck();
+  }
+
+  protected async setTablePmfms(table: BaseMeasurementsTable<Sample, SampleFilter>,
+                                programLabel: string,
+                                strategyLabel?: string) {
+    if (!strategyLabel) {
+      // Set the table program, to delegate pmfms load
+      table.programLabel = programLabel;
+    }
+    else {
+      // Load strategy's pmfms
+      let samplesPmfms: IPmfm[] = await this.programRefService.loadProgramPmfms(programLabel,
         {
-          strategyLabel: strategy.label,
-          acquisitionLevel: this.samplesTable.acquisitionLevel
+          strategyLabel: strategyLabel,
+          acquisitionLevel: table.acquisitionLevel
         });
       const strategyPmfmIds = samplesPmfms.map(pmfm => pmfm.id);
 
@@ -446,13 +470,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       }
 
       // Give it to samples table (but exclude STRATEGY_LABEL)
-      this.samplesTable.pmfms = samplesPmfms.filter(p => p.id !== PmfmIds.STRATEGY_LABEL);
+      table.pmfms = samplesPmfms.filter(p => p.id !== PmfmIds.STRATEGY_LABEL);
       // Avoid to load by program, because PMFM are already known
-      //this.samplesTable.programLabel = this.$programLabel.value;
+      //table.programLabel = programLabel;
     }
-
-    this.markAsReady();
-    this.markForCheck();
   }
 
   protected async loadParent(data: Landing): Promise<Trip | ObservedLocation> {

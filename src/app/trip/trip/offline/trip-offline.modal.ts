@@ -3,7 +3,7 @@ import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AppForm, AppFormUtils, SharedValidators, slideUpDownAnimation, StatusIds } from '@sumaris-net/ngx-components';
-import * as momentImported from 'moment';
+
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -13,7 +13,7 @@ import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 export interface  TripOfflineModalOptions {
   value?: TripSynchroImportFilter

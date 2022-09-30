@@ -4,15 +4,14 @@ import { VesselForm } from '../form/form-vessel';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../services/model/vessel.model';
 import { AccountService, AppEntityEditor, EntityServiceLoadOptions, EntityUtils, HistoryPageReference, isNil, NetworkService, PlatformService, SharedValidators } from '@sumaris-net/ngx-components';
 import { FormGroup, Validators } from '@angular/forms';
-import * as momentImported from 'moment';
+
 import { VesselFeaturesHistoryComponent } from './vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from './vessel-registration-history.component';
 import { VesselFeaturesFilter, VesselRegistrationFilter } from '../services/filter/vessel.filter';
 import { VesselFeaturesService } from '../services/vessel-features.service';
 import { VesselRegistrationService } from '../services/vessel-registration.service';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
-
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 @Component({
   selector: 'app-vessel-page',

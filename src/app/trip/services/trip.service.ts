@@ -1,7 +1,7 @@
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { filter, map } from 'rxjs/operators';
-import * as momentImported from 'moment';
+
 import {
   APP_USER_EVENT_SERVICE,
   AppFormUtils,
@@ -77,7 +77,7 @@ import { BBox } from 'geojson';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
