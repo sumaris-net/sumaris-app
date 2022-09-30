@@ -8,9 +8,6 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
 import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing.page';
-import { SamplingLandingReport } from '@app/trip/landing/sampling/sampling-landing.report';
-import { AppSharedReportModule } from '@app/shared/report/report.module';
-import { AppLandingReportModule } from '../report/landing.report.module';
 
 
 @NgModule({
@@ -25,17 +22,13 @@ import { AppLandingReportModule } from '../report/landing.report.module';
     AppMeasurementModule,
     AppSampleModule,
     AppLandingModule,
-    AppLandingReportModule,
-    AppSharedReportModule,
   ],
   declarations: [
     SamplingLandingPage,
-    SamplingLandingReport
   ],
   exports: [
     // Components
     SamplingLandingPage,
-    SamplingLandingReport
   ]
 })
 export class AppSamplingLandingModule {

@@ -10,7 +10,6 @@ import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
-import { AppSharedReportModule } from '@app/shared/report/report.module';
 
 
 @NgModule({
@@ -19,7 +18,6 @@ import { AppSharedReportModule } from '@app/shared/report/report.module';
     AppDataModule,
     VesselModule,
     AppReferentialModule,
-    AppSharedReportModule,
     TranslateModule.forChild(),
 
     // Functional modules
