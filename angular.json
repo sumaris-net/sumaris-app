@@ -38,6 +38,7 @@
               "subscriptions-transport-ws",
               "chart.js",
               "react",
+              "leaflet-easybutton",
               "@bepo65/leaflet.fullscreen"
             ],
             "assets": [

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
+import { L } from '@app/vendor';
 import {
   AccountService,
   AppFormUtils,
@@ -9,7 +10,7 @@ import {
   ConfigService,
   DurationPipe,
   fadeInAnimation,
-  fadeInOutAnimation, firstNotNil,
+  fadeInOutAnimation,
   firstNotNilPromise,
   isEmptyArray,
   isNil,
@@ -21,17 +22,17 @@ import {
   LoadResult,
   LocalSettingsService,
   PlatformService,
-  StatusIds, waitFor, waitForTrue
+  StatusIds,
+  waitFor
 } from '@sumaris-net/ngx-components';
 import { ExtractionService } from '../common/extraction.service';
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { Location } from '@angular/common';
-import { L } from '@app/vendor';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
-import { concatAll, debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
@@ -446,8 +447,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
     // Create graticule
     this.graticule = new MapGraticule({latLngPattern: settings.latLongFormat});
+
     // Add custom button to show/hide graticule
-    L.easyButton({
+    const graticuleControl: L.Control.EasyButton = L.easyButton({
       states: [
         {
           stateName: 'show',
@@ -470,7 +472,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
           },
         },
       ],
-    }).addTo(map);
+    });
+    graticuleControl.addTo(map);
 
     // DEBUG zoom
     //map.on('zoom', () => console.debug(`[extraction-map] zoom=${map.getZoom()}`));
