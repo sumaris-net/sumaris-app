@@ -152,34 +152,25 @@
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>
-
-                  <ion-row *ngIf="debug">
-                    <ion-col size="12" size-md="2" size-lg="3">
-                      <ion-label class="ion-float-end">Debug :</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-text color="primary" class="text-italic">
-                        <small>
-                          editor.loading: {{loading}}<br/>
-                          editor.ready: {{$ready|async}}<br/>
-                          editor.dirty: {{dirty}}<br/>
-                        </small>
-                      </ion-text>
-                    </ion-col>
-                    <ion-col>
-                      <ion-text color="primary" class="text-italic">
-                        <small>
-                          measurementsForm.loading: {{measurementsForm.loading}}<br/>
-                          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
-                          measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
-                          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
-                        </small>
-                      </ion-text>
-                    </ion-col>
-
-                  </ion-row>
                 </ion-grid>
 
+                <app-debug *ngIf="debug">
+                  <ion-grid class="ion-no-padding">
+                    <ion-row>
+                      <ion-col>
+                        editor.loading: {{loading}}<br/>
+                        editor.ready: {{$ready|async}}<br/>
+                        editor.dirty: {{dirty}}<br/>
+                      </ion-col>
+                      <ion-col>
+                        measurementsForm.loading: {{measurementsForm.loading}}<br/>
+                        measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+                        measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+                        measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+                      </ion-col>
+                    </ion-row>
+                  </ion-grid>
+                </app-debug>
               </form-trip>
             </ion-col>
 

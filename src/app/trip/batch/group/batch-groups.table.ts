@@ -204,11 +204,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return this.dirtySubject.value || (this.weightMethodForm && this.weightMethodForm.dirty);
   }
 
-  set value(data: BatchGroup[]) {
-    console.debug(this.logPrefix + 'set Value', data);
-    super.value = data;
-  }
-
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
   @Input() subBatchesModalOptions: Partial<ISubBatchesModalOptions>;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
@@ -278,7 +273,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, BatchFilter, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
-        equals: Batch.equals
+        equals: BatchGroup.equals
       }),
       // Force no validator (readonly mode, if mobile)
       injector.get(LocalSettingsService).mobile ? null : batchGroupValidator,
@@ -297,6 +292,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     this.keepEditedRowOnSave = !this.mobile;
     this.saveBeforeDelete = true;
     this.saveBeforeFilter = true;
+    this.saveBeforeSort = true;
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this};
     // this.showCommentsColumn = false; // Already set in batches-table
     // this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH; // Already set in batches-table

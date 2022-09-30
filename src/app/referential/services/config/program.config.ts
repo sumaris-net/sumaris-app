@@ -95,6 +95,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_PHYSICAL_GEAR_HELP_MESSAGE: <FormFieldDefinition>{
+    key: 'sumaris.trip.gear.help.message',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_HELP_MESSAGE',
+    defaultValue: undefined,
+    type: 'string'
+  },
   // Trip map
   TRIP_MAP_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.map.enable',

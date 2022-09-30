@@ -98,7 +98,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       'endDate': [null, Validators.compose([SharedValidators.validDate, SharedValidators.dateRangeEnd('startDate')])],
     });
 
-    this.defaultSortBy = 'rankOrder';
+    this.defaultSortBy = 'id';
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.TABLE.';
     this.i18nPmfmPrefix = 'TRIP.PHYSICAL_GEAR.PMFM.';
     this.autoLoad = true;

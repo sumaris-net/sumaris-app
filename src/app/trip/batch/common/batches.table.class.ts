@@ -114,7 +114,7 @@ export abstract class AbstractBatchesTable<
     this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.inlineEdition = this.validatorService && !this.mobile;
-    this.defaultSortBy = 'rankOrder';
+    this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
 
     // Set default value

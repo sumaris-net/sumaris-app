@@ -182,7 +182,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   markAsReady() {
+    super.markAsReady();
     this.form?.markAsReady();
+  }
+
+  async ready() {
+    await this.form.ready();
   }
 
   setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
@@ -190,10 +195,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
 
     super.setValue(data, opts);
-  }
-
-  async ready() {
-    await this.form.ready();
   }
 
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {

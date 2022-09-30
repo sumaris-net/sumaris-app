@@ -278,6 +278,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Physical gears
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
     this.physicalGearsTable.allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN)
+    this.physicalGearsTable.setModalOption('helpMessage', program.getProperty(ProgramProperties.TRIP_PHYSICAL_GEAR_HELP_MESSAGE));
     this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
 

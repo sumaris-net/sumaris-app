@@ -263,24 +263,25 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
     let target: Sample[];
 
+    const saved = await this.saveDirtyChildren();
+    if (!saved) return false;
+
     // Save batch groups and sub batches
     if (!this.mobile) {
-      const [rootSamples, subSamples1, subSamples2] = await Promise.all([
-        this.getTableValue(this.samplesTable),
-        this.getTableValue(this.individualMonitoringTable),
-        this.getTableValue(this.individualReleasesTable)
-      ]);
+      const rootSamples = this.samplesTable.value;
+      const subSamples1 = this.individualMonitoringTable.value;
+      const subSamples2 = this.individualReleasesTable.value;
 
       const subSamples = subSamples1.concat(subSamples2);
 
       // Set children of root samples
       rootSamples.forEach(sample => {
-          sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
-        });
+        sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
+      });
       target = rootSamples;
     }
     else {
-      target = await this.getTableValue(this.samplesTable);
+      target = this.samplesTable.value;
     }
 
     // DEBUG
@@ -422,6 +423,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   protected async getTableValue<T extends Entity<T>>(table: AppTable<T> & { value: T[]}): Promise<T[]> {
     if (table.dirty) {
       await table.save();
+
+      await table.waitIdle({stop: this.destroySubject, stopError: false});
 
       // Remember dirty state
       this.markAsDirty({emitEvent: false});

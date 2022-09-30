@@ -1699,6 +1699,7 @@
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
+      "TRIP_PHYSICAL_GEAR_HELP_MESSAGE": "Marée > Engin: Message d'aide",
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
       "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",
       "TRIP_MAP_ZOOM": "Marée > Carte: Niveau du zoom",

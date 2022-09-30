@@ -15,7 +15,12 @@ export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'
   styleUrls: ['batches.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
-    {provide: BatchValidatorService, useClass: BatchValidatorService}
+    {provide: BatchValidatorService, useClass: BatchValidatorService},
+    {provide: InMemoryEntitiesService, useFactory: () =>
+        new InMemoryEntitiesService(Batch, BatchFilter, {
+          equals: Batch.equals
+        })
+    }
   ]
 })
 export class BatchesTable extends AbstractBatchesTable<Batch>{
@@ -25,13 +30,15 @@ export class BatchesTable extends AbstractBatchesTable<Batch>{
 
   constructor(
     injector: Injector,
+    protected memoryDataService: InMemoryEntitiesService<Batch, BatchFilter>,
     validatorService: BatchValidatorService
   ) {
     super(injector,
       Batch,
       BatchFilter,
-      new InMemoryEntitiesService(Batch, BatchFilter),
-      validatorService, {
+      memoryDataService,
+      validatorService,
+      {
         reservedStartColumns: BATCH_RESERVED_START_COLUMNS
       }
     );
@@ -45,7 +52,6 @@ export class BatchesTable extends AbstractBatchesTable<Batch>{
   ngOnDestroy() {
     super.ngOnDestroy();
     this.memoryDataService.stop();
-    this.memoryDataService = null;
   }
 
   /* -- protected methods  -- */

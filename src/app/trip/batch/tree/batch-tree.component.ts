@@ -395,7 +395,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
       this.getTableValue(this.batchGroupsTable, true),
       this.getSubBatches()
     ]);
-    target.children = batchGroups;
 
     // Prepare subBatches for model (set parent)
     if (isNotEmptyArray(subBatches)){
@@ -403,6 +402,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
         qvPmfm: this.batchGroupsTable.qvPmfm
       });
     }
+
+    target.children = batchGroups;
 
     // DEBUG
     //if (this.debug) BatchUtils.logTree(target);
@@ -598,9 +599,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     await this.batchGroupsTable.autoFillTable(opts);
 
     // Restore previous state
-    if (dirty !== this.dirty) {
-      if (!dirty) this.markAsPristine();
-    }
+    if (!dirty) this.markAsPristine();
   }
 
   setSelectedTabIndex(value: number, opts?: { emitEvent?: boolean; realignInkBar?: boolean; }) {
@@ -654,6 +653,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   protected resetSubBatches() {
     if (this.subBatchesTable) this.subBatchesTable.value = [];
     if (this._subBatchesService) this._subBatchesService.setValue([]);
+  }
+
+  protected saveDirtyChildren(): Promise<boolean> {
+    return super.saveDirtyChildren();
   }
 
   protected async getTableValue<T extends Entity<T>>(table: AppTable<T> & { value: T[]},

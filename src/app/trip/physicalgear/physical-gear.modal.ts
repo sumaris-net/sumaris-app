@@ -9,7 +9,7 @@ import {
   IEntityEditorModalOptions,
   InMemoryEntitiesService,
   isNil,
-  isNotEmptyArray, PromiseEvent,
+  isNotEmptyArray, isNotNil, PromiseEvent,
   ReferentialRef,
   toBoolean,
   toNumber,
@@ -26,9 +26,13 @@ import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physica
 import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
 import { switchMap, tap } from 'rxjs/operators';
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export interface IPhysicalGearModalOptions
   extends IEntityEditorModalOptions<PhysicalGear> {
+
+  helpMessage: string;
+
   acquisitionLevel: string;
   programLabel: string;
 
@@ -63,11 +67,12 @@ export class PhysicalGearModal
   extends AppEntityEditorModal<PhysicalGear>
   implements OnInit, OnDestroy, AfterViewInit, IPhysicalGearModalOptions {
 
-  _showChildrenTable = false;
+  showChildrenTable = false;
   $gear = new BehaviorSubject<ReferentialRef>(null);
   $gearId = new BehaviorSubject<number>(INVALID_GEAR_ID);
   $childrenTable = new BehaviorSubject<PhysicalGearTable>(undefined);
 
+  @Input() helpMessage: string = 'Veullez';
   @Input() acquisitionLevel: string;
   @Input() childAcquisitionLevel: AcquisitionLevelType = 'CHILD_PHYSICAL_GEAR';
   @Input() programLabel: string;
@@ -91,11 +96,15 @@ export class PhysicalGearModal
   }
 
   get valid(): boolean {
-    return super.valid && (!this._showChildrenTable || (this.childrenTable && this.childrenTable.totalRowCount > 0));
+    return super.valid && (!this.showChildrenTable || (this.childrenTable && this.childrenTable.totalRowCount > 0));
   }
 
   get invalid(): boolean {
-    return super.invalid || (this._showChildrenTable && (!this.childrenTable || this.childrenTable.totalRowCount <= 0));
+    return super.invalid || (this.showChildrenTable && (!this.childrenTable || this.childrenTable.totalRowCount <= 0));
+  }
+
+  get gearId(): number {
+    return this.$gear.value?.id;
   }
 
   constructor(injector: Injector,
@@ -150,14 +159,13 @@ export class PhysicalGearModal
         .valueChanges
         .subscribe(gear =>{
           this.$gear.next(gear);
-          const gearId = gear?.id;
 
           // Always put a not nil id
-          this.$gearId.next(toNumber(gearId, INVALID_GEAR_ID));
+          this.$gearId.next(toNumber(gear?.id, INVALID_GEAR_ID));
 
           // Auto-hide children table, if new gear is null
-          if (this._showChildrenTable && isNil(gearId)) {
-            this._showChildrenTable = false;
+          if (this.showChildrenTable && isNil(this.gearId)) {
+            this.showChildrenTable = false;
             this.markForCheck();
           }
         })
@@ -169,24 +177,28 @@ export class PhysicalGearModal
         firstNotNil(this.$childrenTable)
           .pipe(
             // Add children table to the editor
-            tap(table => this.addChildForm(table)),
+            tap(table => {
+              this.addChildForm(table);
+              table.setModalOption('helpMessage', this.helpMessage);
+              table.setModalOption('maxVisibleButtons', this.maxVisibleButtons);
+            }),
             // Listen pmfm changed
-            switchMap(table => table.$pmfms)
+            switchMap(table => table.$pmfms),
+            tap(pmfms => {
+              // Check if table has something to display (some PMFM in the strategy)
+              const childrenHasSomePmfms = (pmfms||[]).some(p =>
+                // Exclude label PMFM
+                p.id !== PmfmIds.GEAR_LABEL
+                // Exclude Pmfm on all gears (e.g. GEAR_LABEL)
+                && (!PmfmUtils.isDenormalizedPmfm(p) || isNotEmptyArray(p.gearIds)));
+
+              if (this.showChildrenTable !== childrenHasSomePmfms && isNotNil(this.gearId)) {
+                this.showChildrenTable = childrenHasSomePmfms;
+                this.markForCheck();
+              }
+            })
           )
-          .subscribe(pmfms => {
-
-            // Check if table has something to display (some PMFM in the strategy)
-            const childrenHasSomePmfms = (pmfms||[]).some(p =>
-              // Exclude label PMFM
-              p.id !== PmfmIds.GEAR_LABEL
-              // Exclude Pmfm on all gears (e.g. GEAR_LABEL)
-              && (!PmfmUtils.isDenormalizedPmfm(p) || isNotEmptyArray(p.gearIds)));
-
-            if (this._showChildrenTable !== childrenHasSomePmfms) {
-              this._showChildrenTable = childrenHasSomePmfms;
-              this.markForCheck();
-            }
-          })
+          .subscribe()
       );
     }
     // Focus on the first field, is not in mobile

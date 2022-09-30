@@ -266,7 +266,7 @@ export abstract class BaseMeasurementsTable<
     this.measurementsDataService.gearId = this._gearId;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
-    firstTruePromise(this.readySubject,{stop: this.destroySubject})
+    firstTruePromise(this.readySubject, {stop: this.destroySubject})
       .then(() => {
         console.debug(this.logPrefix + 'Starting measurements data service...');
         this.measurementsDataService.start();

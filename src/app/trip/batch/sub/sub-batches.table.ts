@@ -239,7 +239,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     this.memoryDataService = (this.dataService as InMemoryEntitiesService<SubBatch, SubBatchFilter>);
     this.tabindex = 1;
     this.inlineEdition = !this.mobile;
-    this.defaultSortBy = 'rankOrder';
+    this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
 
     // Default value

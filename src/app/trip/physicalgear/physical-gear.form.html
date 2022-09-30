@@ -44,10 +44,6 @@
 
   <ng-content></ng-content>
 
-      <!-- DEBUG
-      <ion-col class="ion-no-padding" size="6" *ngFor="let pmfm of $pmfms | async">
-        {{pmfm.name}}
-      </ion-col>-->
   <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
     <ion-grid class="ion-no-padding">
       <ion-row>
