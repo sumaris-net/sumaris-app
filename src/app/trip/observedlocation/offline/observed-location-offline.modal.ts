@@ -3,21 +3,18 @@ import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, referentialsToString, referentialToString, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
-import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
-import { map } from 'rxjs/operators';
-import { mergeMap } from 'rxjs/operators';
+import { map, mergeMap } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { Program } from '@app/referential/services/model/program.model';
 import { ObservedLocationOfflineFilter } from '../../services/filter/observed-location.filter';
-import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
-import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
+import DurationConstructor = moment.unitOfTime.DurationConstructor;
+
 
 @Component({
   selector: 'app-observed-location-offline-modal',

@@ -6,7 +6,7 @@ import { SaleForm } from '../sale/sale.form';
 import { OperationsTable } from '../operation/operations.table';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
-import * as momentImported from 'moment';
+
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { FormGroup, Validators } from '@angular/forms';
@@ -50,7 +50,7 @@ import { Sale } from '@app/trip/services/model/sale.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -319,7 +319,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.markForCheck();
 
     // Listen program, to reload if changes
-    this.startListenProgramRemoteChanges(program);
+    if (this.network.online) this.startListenProgramRemoteChanges(program);
   }
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {

@@ -23,11 +23,10 @@ import { SamplingStrategyService } from '@app/referential/services/sampling-stra
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { LandingService } from '@app/trip/services/landing.service';
-import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { Trip } from '@app/trip/services/model/trip.model';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 
 @Component({
@@ -62,7 +61,8 @@ export class SamplingLandingPage extends LandingPage {
     super.ngOnInit();
 
     // Configure sample table
-    this.samplesTable.inlineEdition = !this.mobile;
+    this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
+    this.samplesTable.defaultSortDirection = 'asc';
   }
 
   ngAfterViewInit() {
@@ -257,14 +257,21 @@ export class SamplingLandingPage extends LandingPage {
     // Remove sample's TAG_ID prefix
     if (strategyLabel) {
       const samplePrefix = strategyLabel + '-';
+      let prefixCount = 0;
+      console.info(`[sampling-landing-page] Removing prefix '${samplePrefix}' in samples TAG_ID...`);
       (data.samples || []).map(sample => {
-        if (sample.measurementValues.hasOwnProperty(PmfmIds.TAG_ID)) {
-          const tagId = sample.measurementValues[PmfmIds.TAG_ID];
-          if (tagId && tagId.startsWith(samplePrefix)) {
-            sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
-          }
+        const tagId = sample.measurementValues?.[PmfmIds.TAG_ID];
+        if (tagId?.startsWith(samplePrefix)) {
+          sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
+          prefixCount++
         }
       });
+      // Check if replacements has been done on every sample. If not, log a warning
+      if (prefixCount > 0 && prefixCount !== data.samples.length) {
+        const invalidTagIds = data.samples.map(sample => sample.measurementValues?.[PmfmIds.TAG_ID])
+          .filter(tagId => !tagId || tagId.length > 4 || tagId.indexOf('-') !== -1);
+        console.warn(`[sampling-landing-page] ${data.samples.length - prefixCount} samples found with a wrong prefix`, invalidTagIds);
+      }
     }
 
     await super.setValue(data);

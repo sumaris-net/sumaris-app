@@ -26,7 +26,6 @@ import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { LocationUtils } from '@app/referential/location/location.utils';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { BatchErrorCodes } from '@app/trip/batch/batch.errors';
 import { environment } from '@environments/environment';
@@ -37,9 +36,7 @@ import { DataContext } from '@app/data/services/model/data-context.model';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ContextService } from '@app/shared/context.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
-
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;

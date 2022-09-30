@@ -8,6 +8,7 @@ import {
   changeCaseToUnderscore,
   EntityServiceLoadOptions,
   EntityUtils,
+  fromDateISOString,
   HistoryPageReference,
   IEntityService,
   isNil,
@@ -26,9 +27,9 @@ import { RootDataEntity } from '../services/model/root-data-entity.model';
 import { Strategy } from '../../referential/services/model/strategy.model';
 import { StrategyRefService } from '../../referential/services/strategy-ref.service';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { Moment } from 'moment';
 import { FormControl } from '@angular/forms';
-
+import { equals } from '@app/shared/functions';
+import { moment } from '@app/vendor';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -153,8 +154,7 @@ export abstract class AppRootDataEditor<
         ),
         // DEBUG
         //tap(strategy => console.debug("[root-data-editor] Received strategy: ", strategy)),
-
-        filter(strategy => strategy !== this.$strategy.value),
+        filter(strategy => !equals(strategy, this.$strategy.value)),
         tap(strategy => this.$strategy.next(strategy))
       )
       .subscribe());
@@ -282,17 +282,14 @@ export abstract class AppRootDataEditor<
     // Remove previous subscription, if exists
     this.remoteProgramSubscription?.unsubscribe();
 
+    const previousUpdateDate = fromDateISOString(program.updateDate) || moment();
     const subscription = this.programRefService.listenChanges(program.id)
       .pipe(
         filter(isNotNil),
         filter(() => !this.dirty), // Avoid reloading while editing the page
-        tap((data) => {
-          if (data.updateDate && (data.updateDate as Moment).isAfter(program.updateDate)) {
-            if (this.debug) console.debug(`[root-data-editor] Program changes detected on server, at {${data.updateDate}}: clearing program cache...`);
-            // Reload program & strategies
-            this.reloadProgram();
-          }
-        })
+        filter(data => previousUpdateDate.isBefore(data.updateDate)),
+        // Reload program & strategies
+        mergeMap(_ => this.reloadProgram())
       )
       .subscribe()
       // DEBUG
@@ -318,8 +315,8 @@ export abstract class AppRootDataEditor<
           mergeMap((_) => this.reloadStrategy())
         )
         .subscribe()
-    // DEBUG
-    //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
+        // DEBUG
+        //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to strategies changes on server.`))
 
     subscription.add(() => this.unregisterSubscription(subscription));
     this.registerSubscription(subscription);

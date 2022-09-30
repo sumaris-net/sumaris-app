@@ -21,7 +21,9 @@ export class AuctionControlReport extends LandingReport {
       pathParentIdAttribute: 'observedLocationId',
       pathIdAttribute: 'controlId'
     });
-    this.debug = true;
+    if (!environment.production) {
+        this.debug = true;
+    }
   }
 
   /* -- protected function -- */

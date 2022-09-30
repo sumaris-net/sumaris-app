@@ -32,7 +32,6 @@ import {
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { FormGroup, Validators } from '@angular/forms';
-import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { Operation, OperationUtils, Trip } from '../services/model/trip.model';
@@ -54,7 +53,7 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { flagsToString, removeFlag } from '@app/shared/flags.utils';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 
 @Component({

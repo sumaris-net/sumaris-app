@@ -6,7 +6,7 @@ import {
   BaseEntityGraphqlQueries,
   EntitiesStorage,
   firstArrayValue,
-  firstNotNilPromise,
+  firstNotNilPromise, fromDateISOString,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -21,6 +21,7 @@ import { StrategyFragments } from './strategy.fragments';
 import { defer, Observable, Subject, Subscription } from 'rxjs';
 import { filter, finalize, map } from 'rxjs/operators';
 import { BaseReferentialService } from './base-referential-service.class';
+import { Moment } from 'moment';
 
 
 export class StrategyRefFilter extends ReferentialFilter {
@@ -77,14 +78,8 @@ const Queries: BaseEntityGraphqlQueries = {
 };
 
 const SUBSCRIPTIONS = {
-  // WARN: do not fetch all properties, but only id, label, updateDate
-  // (to avoid too many queries, in the POD)
-  listenChangesByProgram: gql`subscription UpdateProgramStrategies($programId: Int!, $interval: Int){
-    data: updateProgramStrategies(programId: $programId, interval: $interval) {
-      id
-      label
-      updateDate
-    }
+  listenChangesByProgram: gql`subscription LastStrategiesUpdateDate($filter: StrategyFilterVOInput!, $interval: Int){
+    data: lastStrategiesUpdateDate(filter: $filter, interval: $interval)
   }`
 };
 
@@ -92,7 +87,7 @@ const StrategyRefCacheKeys = {
   CACHE_GROUP: 'strategy',
 
   STRATEGY_BY_LABEL: 'strategyByLabel',
-  STRATEGIES_BY_PROGRAM_ID: 'strategiesByProgramId'
+  LAST_UPDATE_DATE_BY_PROGRAM_ID: 'strategiesByProgramId'
 };
 
 
@@ -100,7 +95,7 @@ const StrategyRefCacheKeys = {
 export class StrategyRefService extends BaseReferentialService<Strategy, StrategyRefFilter> {
 
   private _subscriptionCache: {[key: string]: {
-      subject: Subject<Strategy[]>;
+      subject: Subject<any>;
       subscription: Subscription;
     }} = {};
 
@@ -204,13 +199,12 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     await this.cache.clearGroup(StrategyRefCacheKeys.CACHE_GROUP);
   }
 
-
   listenChangesByProgram(programId: number, opts?: {
     interval?: number;
-  }): Observable<Strategy[]> {
+  }): Observable<Moment> {
     if (isNil(programId)) throw Error('Missing argument \'programId\' ');
 
-    const cacheKey = [StrategyRefCacheKeys.STRATEGIES_BY_PROGRAM_ID, programId].join('|');
+    const cacheKey = [StrategyRefCacheKeys.LAST_UPDATE_DATE_BY_PROGRAM_ID, programId].join('|');
     let cache = this._subscriptionCache[cacheKey];
     if (!cache) {
       if (this._debug) console.debug(`[strategy-ref-service] [WS] Listening for changes on strategies, from program {${programId}}...`);
@@ -218,8 +212,8 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
         query: SUBSCRIPTIONS.listenChangesByProgram,
         fetchPolicy: 'no-cache',
         variables: {
-          programId,
-          interval: opts && opts.interval || 10 // seconds
+          filter: {programIds: [programId]},
+          interval: opts?.interval || 30 // seconds
         },
         error: {
           code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
@@ -227,12 +221,9 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
         }
       })
         .pipe(
-          map(({data}) => {
-            const entities = (data || []).map(s => this.fromObject(s));
-            if (isNotEmptyArray(entities) && this._debug) console.debug(`[strategy-ref-service] [WS] Received changes on strategies, from program {${programId}}`, entities);
-            return entities;
-          }));
-      const subject = new Subject<Strategy[]>();
+          map(({data}) =>  fromDateISOString(data))
+        );
+      const subject = new Subject<Moment>();
       cache = {
         subject,
         subscription: program$.subscribe(subject)

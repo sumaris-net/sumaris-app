@@ -1,36 +1,41 @@
-import { concat, defer, from, Observable, of, Subject, timer } from 'rxjs';
-import {catchError, map, switchMap, tap} from 'rxjs/operators';
-import {DataRootEntityUtils, RootDataEntity} from './model/root-data-entity.model';
+import { concat, defer, Observable, of } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+import { DataRootEntityUtils, RootDataEntity } from './model/root-data-entity.model';
 import {
-  BaseEntityGraphqlQueries, BaseEntityGraphqlSubscriptions, BaseEntityServiceOptions,
-  chainPromises, EntitiesServiceWatchOptions,
+  BaseEntityGraphqlQueries,
+  BaseEntityGraphqlSubscriptions,
+  BaseEntityServiceOptions,
+  chainPromises,
+  EntitiesServiceWatchOptions,
   EntitiesStorage,
   EntityServiceLoadOptions,
   EntityUtils,
   isEmptyArray,
-  isNil, isNilOrNaN,
+  isNil,
+  isNilOrNaN,
   isNotEmptyArray,
   JobUtils,
   LocalSettingsService,
   NetworkService,
   PersonService
 } from '@sumaris-net/ngx-components';
-import {BaseRootDataService, BaseRootEntityGraphqlMutations} from './root-data-service.class';
+import { BaseRootDataService, BaseRootEntityGraphqlMutations } from './root-data-service.class';
 
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Injector} from '@angular/core';
-import * as momentImported from 'moment';
-import {Moment} from 'moment';
-import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from './model/data-entity.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {Vessel} from '@app/vessel/services/model/vessel.model';
-import {ErrorCodes} from './errors';
-import {FetchPolicy} from '@apollo/client/core';
-import {ObservedLocation} from '@app/trip/services/model/observed-location.model';
-import {RootDataEntityFilter} from './model/root-data-filter.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Injector } from '@angular/core';
+import { Moment } from 'moment';
+import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from './model/data-entity.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ErrorCodes } from './errors';
+import { FetchPolicy } from '@apollo/client/core';
+import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { RootDataEntityFilter } from './model/root-data-filter.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import { moment } from '@app/vendor';
+
+
 
 export class DataSynchroImportFilter {
   programLabel?: string;
@@ -358,7 +363,7 @@ export abstract class RootDataSynchroService<
     if (isEmptyArray(localEntities)) return; // Skip if empty
 
     const trash = !opts || opts.trash !== false;
-    const trashUpdateDate = trash && momentImported();
+    const trashUpdateDate = trash && moment();
 
     if (this._debug) console.debug(`${this._logPrefix}Deleting ${this._logTypeName} locally... {trash: ${trash}`);
 

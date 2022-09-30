@@ -2,14 +2,13 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
-import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, PlatformService, SharedValidators, sleep, toDateISOString } from '@sumaris-net/ngx-components';
+import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, PlatformService, SharedValidators, toDateISOString } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { Moment } from 'moment';
-import * as momentImported from 'moment';
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 function getMeasValues(opts?: {
   totalLength?: number;

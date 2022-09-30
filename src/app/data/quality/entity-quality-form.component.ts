@@ -15,7 +15,7 @@ import {
   ReferentialRef,
   ShowToastOptions,
   StatusIds,
-  Toasts, USER_EVENT_SERVICE
+  Toasts, APP_USER_EVENT_SERVICE
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService, IRootDataEntityQualityService, isDataQualityService, isRootDataQualityService } from '../services/data-quality-service.class';
 import { QualityFlags } from '@app/referential/services/model/model.enum';
@@ -143,7 +143,7 @@ export class EntityQualityFormComponent<
     public network: NetworkService,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef,
-    @Inject(USER_EVENT_SERVICE) protected userEventService: UserEventService,
+    @Inject(APP_USER_EVENT_SERVICE) protected userEventService: UserEventService,
     @Optional() @Inject(APP_ENTITY_EDITOR) editor: AppEntityEditor<T, S, ID>
   ) {
     this.editor = editor;

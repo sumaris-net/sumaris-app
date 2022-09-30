@@ -87,7 +87,6 @@ const subBatchTableOptionsFactory = () => {
 export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFilter>
   implements OnInit, OnDestroy {
 
-
   private _qvPmfm: IPmfm;
   private _parentSubscription: Subscription;
   private _availableParents: BatchGroup[] = [];
@@ -103,6 +102,10 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
   protected enableWeightConversion = false;
 
   weightPmfm: IPmfm;
+
+  get dirty(): boolean {
+    return super.dirty || this.memoryDataService.dirty;
+  }
 
   @Input() displayParentPmfm: IPmfm;
   @Input() showForm = false;
@@ -205,9 +208,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     return this.getShowColumn('comments');
   }
 
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
 

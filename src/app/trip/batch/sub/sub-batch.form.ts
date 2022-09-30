@@ -692,7 +692,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     if (measurementValuesForm) {
       const pmfms = this.$pmfms.value;
       json.measurementValues = Object.assign({},
-        this.data.measurementValues || {}, // Keep additionnal PMFM values
+        this.data.measurementValues || {}, // Keep additional PMFM values
         MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, pmfms || []));
     } else {
       json.measurementValues = {};

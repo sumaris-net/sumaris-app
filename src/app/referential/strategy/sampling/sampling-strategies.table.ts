@@ -10,7 +10,8 @@ import {
   isNotNil,
   ObjectMap,
   PersonService,
-  PersonUtils, ReferentialRef,
+  PersonUtils,
+  ReferentialRef,
   removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
@@ -21,14 +22,12 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Program } from '../../services/model/program.model';
 import { LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
-import { ReferentialFilter } from '../../services/filter/referential.filter';
 import { ReferentialRefService } from '../../services/referential-ref.service';
 import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from '../../services/config/program.config';
 import { environment } from '@environments/environment';
 import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
 import { StrategyService } from '../../services/strategy.service';
-import * as momentImported from 'moment';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ParameterService } from '@app/referential/services/parameter.service';
 import { debounceTime, filter, tap } from 'rxjs/operators';
@@ -43,7 +42,8 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
+
 
 export const SamplingStrategiesPageSettingsEnum = {
   PAGE_ID: 'samplingStrategies',

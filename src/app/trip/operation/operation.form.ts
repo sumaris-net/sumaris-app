@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
 import { OperationValidatorOptions, OperationValidatorService } from '../services/validator/operation.validator';
-import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
   AccountService,
@@ -58,7 +57,7 @@ import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 

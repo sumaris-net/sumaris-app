@@ -24,7 +24,7 @@ import {
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
-import * as momentImported from 'moment';
+
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from './trip.queries';
 import { filter, map } from 'rxjs/operators';
@@ -52,6 +52,7 @@ import { VesselService } from '@app/vessel/services/vessel-service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { AggregatedLanding } from '@app/trip/services/model/aggregated-landing.model';
 import { AggregatedLandingService } from '@app/trip/services/aggregated-landing.service';
+import { moment } from '@app/vendor';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -611,7 +612,7 @@ export class ObservedLocationService
     trash?: boolean; // True by default
   }): Promise<any> {
     const trash = !opts || opts !== false;
-    const trashUpdateDate = trash && momentImported();
+    const trashUpdateDate = trash && moment();
 
     if (this._debug) console.debug(`[observedLocation-service] Deleting observed location #${entity.id}... {trash: ${trash}`);
 
