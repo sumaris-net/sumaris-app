@@ -7,7 +7,7 @@ import { LandingReport } from '../../report/landing.report';
 
 @Component({
   selector: 'app-auction-control-report',
-  styleUrls: ['../../report/landing.report.scss', 'auction-control.report.scss'],
+  styleUrls: ['../../report/landing.report.scss'],
   templateUrl: './auction-control.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -47,7 +47,7 @@ export class AuctionControlReport extends LandingReport {
     return `/observations/${parent.id}/control/${data.id}?tab=1`;
   }
 
-  protected addFakeSamplesForDev(data: Landing, count = 20) {
+  protected addFakeSamplesForDev(data: Landing, count = 40) {
     if (environment.production) return; // Skip
 
     super.addFakeSamplesForDev(data, count);

@@ -33,7 +33,7 @@ import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@ap
 @Component({
   selector: 'app-observed-location',
   templateUrl: './observed-location.report.html',
-  styleUrls: ['./observed-location.report.scss'],
+  styleUrls: ['../../landing/report/landing.report.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservedLocationReport<T extends ObservedLocation = ObservedLocation> implements AfterViewInit {
