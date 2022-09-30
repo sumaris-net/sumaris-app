@@ -155,8 +155,6 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     this.$pmfms.unsubscribe();
     this._onRefreshPmfms.complete();
     this._onRefreshPmfms.unsubscribe();
-    this.destroySubject.next();
-    this.destroySubject.complete();
     this._delegate = null;
   }
 
@@ -184,7 +182,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
 
           return this.delegate.watchAll(offset, size, cleanSortBy, sortDirection, selectionFilter, options)
             .pipe(
-              takeUntil(this.destroySubject),
+              takeUntil(this.stopSubject),
               map((res) => {
 
                 // Prepare measurement values for reactive form
