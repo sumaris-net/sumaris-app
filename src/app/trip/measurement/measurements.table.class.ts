@@ -256,7 +256,7 @@ export abstract class BaseMeasurementsTable<
     this._autoLoadAfterPmfm = this.autoLoad;
     this.autoLoad = false;
     this.i18nPmfmPrefix = this.i18nPmfmPrefix || this.i18nColumnPrefix;
-    this.keepEditedRowOnSave = this.inlineEdition; // && !isMemoryDataService;
+    this.keepEditedRowOnSave = !this.mobile && this.inlineEdition && !isMemoryDataService;
 
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.requiredStrategy = this.options.requiredStrategy || false;

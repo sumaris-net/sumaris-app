@@ -114,8 +114,11 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     // add subscription on each sale form
     for (const saleForm of this.saleFormArray.controls as FormGroup[] || []) {
       this._saleSubscription.add(saleForm.valueChanges.subscribe(() => {
+        const dirty = saleForm.dirty;
         this.computePrices(saleForm.controls);
-        saleForm.markAsPristine();
+
+        // Restore previous state - fix OBSDEB bug
+        if (!dirty) saleForm.markAsPristine();
       }));
     }
 
