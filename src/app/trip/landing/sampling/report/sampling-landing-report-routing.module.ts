@@ -1,21 +1,21 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { LandingReport } from './landing.report';
-import { LandingReportModule } from './landing.report.module';
+import { SamplingLandingReport } from './sampling-landing.report';
+import { SamplingLandingReportModule } from './sampling-landing.report.module';
 
 const routes: Routes = [
   {
     path: '',
     pathMatch: 'full',
-    component: LandingReport,
+    component: SamplingLandingReport,
   }
 ];
 
 @NgModule({
   imports: [
     RouterModule.forChild(routes),
-    LandingReportModule,
+    SamplingLandingReportModule,
   ],
   exports: [RouterModule]
 })
-export class LandingReportRoutingModule { }
+export class SamplingReportRoutingModule { }

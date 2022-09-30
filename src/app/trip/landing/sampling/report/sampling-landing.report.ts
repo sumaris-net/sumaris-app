@@ -4,12 +4,12 @@ import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { environment } from '@environments/environment';
-import { LandingReport } from '../report/landing.report';
+import { LandingReport } from '../../report/landing.report';
 
 
 @Component({
   selector: 'app-sampling-landing-report',
-  styleUrls: ['../report/landing.report.scss',
+  styleUrls: ['../../report/landing.report.scss',
     'sampling-landing.report.scss'],
   templateUrl: './sampling-landing.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush

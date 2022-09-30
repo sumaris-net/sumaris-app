@@ -8,8 +8,6 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
-import { AppSharedReportModule } from '@app/shared/report/report.module';
-import { AppLandingReportModule } from '../report/landing.report.module';
 
 
 @NgModule({
@@ -24,8 +22,6 @@ import { AppLandingReportModule } from '../report/landing.report.module';
     AppMeasurementModule,
     AppSampleModule,
     AppLandingModule,
-    AppLandingReportModule,
-    AppSharedReportModule,
   ],
   declarations: [
     AuctionControlPage,

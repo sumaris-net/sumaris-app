@@ -3,8 +3,6 @@ import { RouterModule, Routes } from '@angular/router';
 import { LandingPage } from './landing.page';
 import { AppLandingModule } from './landing.module';
 import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
-import { LandingReport } from './report/landing.report';
-import { AppLandingReportModule } from './report/landing.report.module';
 
 const routes: Routes = [
   {
@@ -23,7 +21,7 @@ const routes: Routes = [
       },
       {
         path: 'report',
-        component: LandingReport,
+        loadChildren:() => import('./report/landing-report-routing.module').then(m => m.LandingReportRoutingModule)
       }
     ],
   }
@@ -34,7 +32,6 @@ const routes: Routes = [
   imports: [
     RouterModule.forChild(routes),
     AppLandingModule,
-    AppLandingReportModule,
   ],
   exports: [
     RouterModule
