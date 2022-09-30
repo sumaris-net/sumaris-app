@@ -61,7 +61,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   readonly readySubject = new BehaviorSubject<boolean>(false);
   readonly loadingSubject = new BehaviorSubject<boolean>(true);
 
-  $title = new Subject();
+  $title = new Subject<string>();
   $defaultBackHref = new Subject<string>();
   error: string;
   slidesOptions: Partial<IRevealOptions>;
