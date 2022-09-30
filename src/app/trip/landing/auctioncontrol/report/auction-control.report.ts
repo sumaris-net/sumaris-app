@@ -40,12 +40,12 @@ export class AuctionControlReport extends LandingReport {
       vessel: data.vesselSnapshot.name,
       date: this.dateFormatPipe.transform(data.dateTime),
     }).toPromise();
-
-    this.defaultBackHref = `/observations/${parent.id}/control/${data.id}?tab=1`;
-
     return title;
   }
 
+  protected async computeDefaultBackHref(data: Landing, parent?: ObservedLocation): Promise<string> {
+    return `/observations/${parent.id}/control/${data.id}?tab=1`;
+  }
 
   protected addFakeSamplesForDev(data: Landing, count = 20) {
     if (environment.production) return; // Skip
