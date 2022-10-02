@@ -9,7 +9,7 @@ import {
   firstNotNilPromise,
   firstTruePromise,
   fromDateISOString,
-  HistoryPageReference,
+  HistoryPageReference, InMemoryEntitiesService,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
