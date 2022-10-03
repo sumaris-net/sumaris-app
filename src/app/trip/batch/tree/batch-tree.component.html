@@ -1,3 +1,42 @@
+<app-debug *ngIf="debug" [title]="'Batch tree'">
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col>
+        batchTree.loading: {{loading}}<br/>
+        batchTree.ready: {{readySubject|async}}<br/>
+        batchTree.valid: {{valid}}<br/>
+        batchTree.dirty: {{dirty}}<br/>
+        batchTree.dirty: {{dirty}}<br/>
+        batchTree.program: {{($program|async)?.label}}<br/>
+        batchTree.showCatchForm: {{showCatchForm}}<br/>
+        batchTree.showBatchTables: {{showBatchTables}}<br/>
+        batchTree.i18nContext.suffix: {{i18nContext.suffix}}<br/>
+      </ion-col>
+      <ion-col>
+        catchBatchForm.loading: {{catchBatchForm.loading}}<br/>
+        catchBatchForm.ready: {{catchBatchForm.readySubject|async}}<br/>
+        catchBatchForm.dirty: {{catchBatchForm.dirty}}<br/>
+        catchBatchForm.valid: {{catchBatchForm.valid}}<br/>
+        catchBatchForm.program: {{catchBatchForm.programLabel}}<br/>
+        catchBatchForm.i18nPmfmPrefix: {{catchBatchForm.i18nPmfmPrefix}}<br/>
+        catchBatchForm.i18nSuffix: {{catchBatchForm.i18nSuffix}}<br/>
+      </ion-col>
+      <ion-col>
+        batchGroupsTable.loading: {{batchGroupsTable.loading}}<br/>
+        batchGroupsTable.ready: {{batchGroupsTable.readySubject|async}}<br/>
+        batchGroupsTable.dirty: {{batchGroupsTable.dirty}}<br/>
+        batchGroupsTable.valid: {{batchGroupsTable.valid}}<br/>
+        batchGroupsTable.program: {{batchGroupsTable.programLabel}}<br/>
+        <!--          batchGroupsTable.i18nPmfmPrefix: {{batchGroupsTable.i18nPmfmPrefix}}<br/>-->
+        <!--          batchGroupsTable.i18nColumnPrefix: {{batchGroupsTable.i18nColumnPrefix}}<br/>-->
+        <!--          batchGroupsTable.i18nColumnSuffix: {{batchGroupsTable.i18nColumnSuffix}}<br/>-->
+        batchGroupsTable.showSamplingBatchColumns: {{batchGroupsTable.showSamplingBatchColumns}}<br/>
+        batchGroupsTable.defaultHasSubBatches: {{batchGroupsTable.defaultHasSubBatches}}<br/>
+        batchGroupsTable.availableTaxonGroups: {{batchGroupsTable.availableTaxonGroups?.length||0}}<br/>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</app-debug>
 
 <!-- catch batch form -->
 <div class="ion-padding-top"
@@ -14,46 +53,6 @@
                     [debug]="debug">
   </form-catch-batch>
 </div>
-
-<app-debug *ngIf="debug" [title]="'Batch tree'">
-  <ion-grid class="ion-no-padding">
-    <ion-row>
-      <ion-col>
-        batchTree.loading: {{loading}}<br/>
-        batchTree.ready: {{readySubject|async}}<br/>
-        batchTree.valid: {{valid}}<br/>
-        batchTree.dirty: {{dirty}}<br/>
-        batchTree.dirty: {{dirty}}<br/>
-        batchTree.program: {{($program|async)?.label}}<br/>
-        batchTree.showCatchForm: {{showCatchForm}}<br/>
-        batchTree.showBatchTables: {{showBatchTables}}<br/>
-        batchTree.i18nContext.suffix: {{i18nContext.suffix}}<br/>
-      </ion-col>
-      <ion-col *ngIf="showCatchForm">
-        catchBatchForm.loading: {{catchBatchForm.loading}}<br/>
-        catchBatchForm.ready: {{catchBatchForm.readySubject|async}}<br/>
-        catchBatchForm.dirty: {{catchBatchForm.dirty}}<br/>
-        catchBatchForm.valid: {{catchBatchForm.valid}}<br/>
-        catchBatchForm.program: {{catchBatchForm.programLabel}}<br/>
-        catchBatchForm.i18nPmfmPrefix: {{catchBatchForm.i18nPmfmPrefix}}<br/>
-        catchBatchForm.i18nSuffix: {{catchBatchForm.i18nSuffix}}<br/>
-      </ion-col>
-      <ion-col *ngIf="showBatchTables">
-        batchGroupsTable.loading: {{batchGroupsTable.loading}}<br/>
-        batchGroupsTable.ready: {{batchGroupsTable.readySubject|async}}<br/>
-        batchGroupsTable.dirty: {{batchGroupsTable.dirty}}<br/>
-        batchGroupsTable.valid: {{batchGroupsTable.valid}}<br/>
-        batchGroupsTable.program: {{batchGroupsTable.programLabel}}<br/>
-<!--          batchGroupsTable.i18nPmfmPrefix: {{batchGroupsTable.i18nPmfmPrefix}}<br/>-->
-<!--          batchGroupsTable.i18nColumnPrefix: {{batchGroupsTable.i18nColumnPrefix}}<br/>-->
-<!--          batchGroupsTable.i18nColumnSuffix: {{batchGroupsTable.i18nColumnSuffix}}<br/>-->
-        batchGroupsTable.showSamplingBatchColumns: {{batchGroupsTable.showSamplingBatchColumns}}<br/>
-        batchGroupsTable.defaultHasSubBatches: {{batchGroupsTable.defaultHasSubBatches}}<br/>
-        batchGroupsTable.availableTaxonGroups: {{batchGroupsTable.availableTaxonGroups?.length||0}}<br/>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-</app-debug>
 
 <mat-tab-group #tabGroup
                class="mat-tab-disabled-visible mat-tab-group-header-pagination-hidden"

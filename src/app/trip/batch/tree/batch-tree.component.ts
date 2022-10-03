@@ -71,8 +71,6 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean}): Promise<void>;
   addRow(event: UIEvent);
   getFirstInvalidTabIndex(): number;
-  addChildTree(batchTree: IBatchTreeComponent);
-  removeChildTree(batchTree: IBatchTreeComponent);
 }
 
 @Component({
@@ -371,14 +369,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     this.$program.complete();
   }
 
-  addChildTree(batchTree: IBatchTreeComponent) {
-    this.addChildForm(batchTree);
-  }
-
-  removeChildTree(batchTree: IBatchTreeComponent): IBatchTreeComponent {
-    return this.removeChildForm(batchTree) as IBatchTreeComponent;
-  }
-
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
     this.batchGroupsTable.setModalOption(key, value);
   }
@@ -392,7 +382,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
     // Save batch groups and sub batches
     const [batchGroups, subBatches] = await Promise.all([
-      this.getTableValue(this.batchGroupsTable, true),
+      this.getBatchGroups(true),
       this.getSubBatches()
     ]);
 
@@ -566,6 +556,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     super.markAsLoaded(opts);
   }
 
+  markAsNotReady(opts?: {emitEvent?: boolean }) {
+    this.children?.map(c => (c as any)['readySubject'])
+      .filter(isNotNil)
+      .filter(readySubject => readySubject.value !== false)
+      .forEach(readySubject => readySubject.next(false));
+    this.readySubject.next(false);
+  }
+
   async onSubBatchesChanges(subbatches: SubBatch[]) {
     if (isNil(subbatches)) return; // user cancelled
 
@@ -638,7 +636,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
   /* -- protected methods -- */
 
-  async getSubBatches(): Promise<SubBatch[]> {
+  protected async getBatchGroups(forceSave?: boolean): Promise<BatchGroup[]> {
+    if (!this.showBatchTables) return undefined;
+    return this.getTableValue(this.batchGroupsTable, forceSave);
+  }
+
+  protected async getSubBatches(): Promise<SubBatch[]> {
     if (!this.showBatchTables) return undefined;
     if (this.subBatchesTable) {
       return this.getTableValue(this.subBatchesTable);
@@ -648,7 +651,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
         .map(source => SubBatch.fromObject(source));
     }
   }
-
 
   protected resetSubBatches() {
     if (this.subBatchesTable) this.subBatchesTable.value = [];

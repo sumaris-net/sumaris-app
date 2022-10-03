@@ -1,10 +1,10 @@
 <!-- debug -->
-<ion-item tappable (click)="expansionPanel.toggle()" lines="none" color="secondary50">
+<ion-item tappable (click)="toggle()" lines="none" color="secondary50">
   <ion-icon slot="start" name="bug" ></ion-icon>
   <ion-label color="primary">Debug {{title}}</ion-label>
   <mat-icon slot="end">{{expansionPanel.expanded ? 'expand_less' : 'expand_more' }}</mat-icon>
 </ion-item>
-<mat-expansion-panel #expansionPanel>
+<mat-expansion-panel #expansionPanel [(expanded)]="expanded">
   <ion-text color="primary100" >
     <div class="ion-margin-start">
       <ng-content></ng-content>

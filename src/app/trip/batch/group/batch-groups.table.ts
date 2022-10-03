@@ -128,7 +128,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_SAMPLING_RATIO,
       isSampling: true,
       path: 'children.0.samplingRatio',
-      computed: (batch, samplingRatioFormat) => BatchUtils.isSamplingRatioComputed(batch.children[0]?.samplingRatioText, samplingRatioFormat)
+      computed: (batch, samplingRatioFormat) => batch && BatchUtils.isSamplingRatioComputed(batch.children[0]?.samplingRatioText, samplingRatioFormat) || false
     },
     {
       type: 'double',
@@ -141,7 +141,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       isSampling: true,
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_WEIGHT,
       path: 'children.0.weight.value',
-      computed: (batch) => batch.children[0]?.weight?.computed || false
+      computed: (batch) => batch?.children[0]?.weight?.computed || false
     },
     {
       type: 'string',

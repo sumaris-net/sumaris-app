@@ -1,5 +1,5 @@
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { EntityClass, isEmptyArray, isNotEmptyArray } from '@sumaris-net/ngx-components';
+import {EntityClass, isEmptyArray, isNotEmptyArray, toBoolean} from '@sumaris-net/ngx-components';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -96,6 +96,8 @@ export class BatchModel<
   disabled?: boolean;
   hidden?: boolean;
   error?: string;
+  selected?: boolean;
+  invalid?: boolean;
 
   fromObject(source: any, opts?: FO) {
     super.fromObject(source);
@@ -105,5 +107,11 @@ export class BatchModel<
     this.disabled = source.disabled || false;
     this.hidden = source.hidden || false;
     this.error = source.error || null;
+    this.selected = source.selected || false;
+    this.invalid = source.invalid || false;
+  }
+
+  fromBatch(source: Batch) {
+    this.measurementValues = source.measurementValues || this.measurementValues;
   }
 }

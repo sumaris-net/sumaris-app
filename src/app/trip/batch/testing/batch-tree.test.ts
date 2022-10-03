@@ -287,7 +287,7 @@ export class BatchTreeTestPage implements OnInit {
 
     if (batchTree.mobile) {
       let html = "<br/>Sub batches :<br/>";
-      const subBatches = await batchTree.getSubBatches();
+      const subBatches = catchBatch.children;
       if (isEmptyArray(subBatches)) {
         html += '&nbsp;No result';
       }

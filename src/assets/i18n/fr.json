@@ -890,7 +890,7 @@
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
       },
       "TREE": {
-        "SELECT_PARENT_HELP": "Veuillez sélectionner un lot parent, ci-contre."
+        "SELECT_PARENT_HELP": "Veuillez sélectionner un lot, dans la liste ci-contre."
       },
       "PMFM": {
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",

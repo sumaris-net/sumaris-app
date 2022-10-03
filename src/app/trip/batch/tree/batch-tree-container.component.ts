@@ -1,35 +1,36 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
-import { AppEditor, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean, UsageMode, WaitForOptions } from '@sumaris-net/ngx-components';
-import { AlertController } from '@ionic/angular';
-import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
-import { Batch } from '@app/trip/batch/common/batch.model';
-import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
-import { Program } from '@app/referential/services/model/program.model';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, merge } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { NestedTreeControl } from '@angular/cdk/tree';
-import { MatTreeNestedDataSource } from '@angular/material/tree';
-import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from '@angular/core';
+import {AppEditor, firstNotNil, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean, UsageMode, WaitForOptions} from '@sumaris-net/ngx-components';
+import {AlertController, IonMenu} from '@ionic/angular';
+import {BatchTreeComponent, IBatchTreeComponent} from '@app/trip/batch/tree/batch-tree.component';
+import {Batch} from '@app/trip/batch/common/batch.model';
+import {IBatchGroupModalOptions} from '@app/trip/batch/group/batch-group.modal';
+import {Program} from '@app/referential/services/model/program.model';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {ActivatedRoute, Router} from '@angular/router';
+import {TranslateService} from '@ngx-translate/core';
+import {BehaviorSubject, merge} from 'rxjs';
+import {distinctUntilChanged, filter, map, switchMap} from 'rxjs/operators';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BatchFilter} from '@app/trip/batch/common/batch.filter';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {NestedTreeControl} from '@angular/cdk/tree';
+import {MatTreeNestedDataSource} from '@angular/material/tree';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {BatchModel} from '@app/trip/batch/tree/batch-tree.model';
 
 @Component({
   selector: 'app-batch-tree-container',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './batch-tree-container.component.html',
-  styleUrls: ['./batch-tree-container.component.scss']
+  styleUrls: ['./batch-tree-container.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchTreeContainerComponent extends AppEditor<Batch>
   implements IBatchTreeComponent {
 
   private _touched: boolean;
+  private _logPrefix = '[batch-tree-container] ';
   private _loadPmfmKey: string;
 
   protected editingBatch: BatchModel;
@@ -38,15 +39,16 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   $physicalGearId = new BehaviorSubject<number>(null);
   $programLabel = new BehaviorSubject<string>(null);
   $program = new BehaviorSubject<Program>(null);
+  $sortingPmfms = new BehaviorSubject<IPmfm[]>(null);
+  $catchPmfms = new BehaviorSubject<IPmfm[]>(null);
   listenProgramChanges = true;
 
-  modelTreeControl = new NestedTreeControl<Batch>(node => node.children);
-  modelDataSource = new MatTreeNestedDataSource<Batch>();
+  treeControl = new NestedTreeControl<Batch>(node => node.children);
+  treeDataSource = new MatTreeNestedDataSource<Batch>();
+  treeExpanded = true;
 
-  //@ViewChildren('childTree') childTrees!: QueryList<BatchTreeComponent>;
-  // @ViewChildren('childTree') childTrees!: QueryList<BatchesTable>;
-  // @ViewChildren('childTree') childTrees!: QueryList<BatchesTable>;
   @ViewChild('batchTree') batchTree!: BatchTreeComponent;
+  @ViewChild('batchMenu') batchMenu!: IonMenu;
 
   @Input() queryTabIndexParamName: string;
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
@@ -55,21 +57,17 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   @Input() defaultHasSubBatches: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[];
   @Input() allowSamplingBatches: boolean;
-  @Input() allowSubBatches: boolean;
+  @Input() showTaxonName: boolean;
   @Input() showTaxonGroup: boolean;
+  @Input() allowSubBatches: boolean;
   @Input() selectedTabIndex: number;
   @Input() usageMode: UsageMode;
   @Input() i18nPmfmPrefix: string;
-  @Input() useSticky = false;
+  @Input() useSticky = true;
   @Input() mobile: boolean;
   @Input() debug: boolean;
   @Input() filter: BatchFilter;
-
-  addChildTree(batchTree: IBatchTreeComponent) {
-  }
-
-  removeChildTree(batchTree: IBatchTreeComponent) {
-  }
+  @Input() style: 'tabs'|'menu' = 'menu';
 
   @Input()
   set programLabel(value: string) {
@@ -108,6 +106,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return this._touched;
   }
 
+  get invalid(): boolean {
+    return !this.editingBatch || this.batchTree.invalid;
+  }
+
   @Input() set physicalGearId(value: number) {
     if (value !== this.$physicalGearId.value) {
       this.$physicalGearId.next(value);
@@ -127,7 +129,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   get value(): Batch {
-    return this.getValue();
+    return this.data;
   }
 
   get loading(): boolean {
@@ -160,6 +162,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               protected programRefService: ProgramRefService,
               protected cd: ChangeDetectorRef) {
     super(route, router, alertCtrl, translate);
+
+    // DEBUG
     this.debug = !environment.production;
   }
 
@@ -182,27 +186,30 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     );
 
     this.registerSubscription(
-      merge(
-        this.$program,
-        this.$gearId,
-        this.$physicalGearId,
-        this.readySubject
-      )
-      .pipe(
-        //mergeMap(() => this.ready()),
-        filter(_ => !!this.$program.value && isNotNil(this.$gearId.value)),
-        debounceTime(500)
-      )
-      .subscribe(() => this.loadPmfms())
+      this.readySubject
+        .pipe(
+          filter(ready => ready === true),
+          switchMap(() => merge(
+              this.$program,
+              this.$gearId,
+              this.$physicalGearId
+            )
+          ),
+          map(() => this.computePmfmsKey()),
+          filter(isNotNil),
+          distinctUntilChanged()
+        )
+        .subscribe(() => this.loadPmfms())
     );
   }
 
-  protected registerForms() {
-    this.addChildForm(this.batchTree);
+  onInitBatchTree(batchTree: BatchTreeComponent) {
+    this.addChildForm(batchTree);
+    //batchTree.dir
   }
 
   protected async setProgram(program: Program) {
-    if (this.debug) console.debug(`[batch-tree] Program ${program.label} loaded, with properties: `, program.properties);
+    if (this.debug) console.debug(this._logPrefix + `Program ${program.label} loaded, with properties: `, program.properties);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -211,6 +218,16 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     const hasBatchMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
     this.allowSamplingBatches = hasBatchMeasure;
     this.allowSubBatches = hasBatchMeasure;
+    this.showTaxonGroup = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
+    this.showTaxonName = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+  }
+
+  protected computePmfmsKey(): string {
+    const program = this.program;
+    const gearId = this.gearId;
+    if (!program || isNil(gearId)) return; // Skip
+
+    return [program.label, gearId].join('|');
   }
 
   protected async loadPmfms() {
@@ -218,10 +235,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     const gearId = this.gearId;
     if (!program || isNil(gearId)) return; // Skip
 
-    const loadPmfmKey = [program.label, gearId].join('|');
-    if (this._loadPmfmKey === loadPmfmKey) return; // skip if unchanged
-    this._loadPmfmKey = loadPmfmKey;
-    console.info('[batch-tree-container] Loading pmfms...');
+    console.info(this._logPrefix + 'Loading pmfms...');
 
     // Remember component state
     const enabled = this.enabled;
@@ -244,87 +258,128 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     const data = this.value;
 
     // Load pmfms for batches
-    const pmfms = await this.programRefService.loadProgramPmfms(program.label, {
-      acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
-      gearId
-    });
-
-    // Compute batch tree
-    const model = BatchModel.fromBatch(data, pmfms);
-    if (!model) return;
-
-
-    model.pmfms = [
-      ...(await this.programRefService.loadProgramPmfms(program.label, {
+    const [catchPmfms, sortingPmfms] = await Promise.all([
+      this.programRefService.loadProgramPmfms(program.label, {
         acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
         gearId
-      })),
+      }),
+      this.programRefService.loadProgramPmfms(program.label, {
+        acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
+        gearId
+      })
+    ]);
+
+    this.$catchPmfms.next(catchPmfms);
+    this.$sortingPmfms.next(sortingPmfms);
+
+    if (data) {
+      await this.loadModel(data);
+    }
+
+    if (enabled) this.enable();
+    if (dirty) this.markAsDirty();
+    if (touched) this.markAllAsTouched();
+
+  }
+
+  async selectParentBatch(event: UIEvent, source: BatchModel, batchTree?: BatchTreeComponent) {
+
+    this.closeSelector();
+    batchTree = batchTree || this.batchTree;
+
+    if (this.editingBatch === source) return; // Skip
+    if (!batchTree) return; // Skip
+
+    await this.ready();
+    const dirty = this.dirty;
+
+    console.info(this._logPrefix + `Selected parent ${source?.label}`);
+
+    // Save previous changes
+    if (this.editingBatch) {
+      if (this.enabled && batchTree.dirty) {
+
+        console.info(this._logPrefix + `Saving previous parent ${this.editingBatch?.label}`);
+        const saved = await batchTree.save();
+        if (!saved) {
+          console.warn(this._logPrefix + `Failed to save previous parent !`);
+           this.editingBatch.error = batchTree.error;
+           this.editingBatch.invalid = true;
+           event.preventDefault();
+           return; // Cannot save
+        }
+
+        const savedBatch = batchTree.value;
+        console.debug(this._logPrefix + `Replacing ${this.editingBatch?.label} with ${savedBatch.label}`);
+        this.editingBatch.measurementValues = savedBatch.measurementValues;
+        if (!isEmptyArray(this.editingBatch.childrenPmfms)) {
+          this.editingBatch.children = savedBatch.children;
+        }
+
+        this.editingBatch.invalid = batchTree.invalid;
+      }
+    }
+
+    this.editingBatch = source;
+    this.markForCheck();
+
+    // Configure batch tree
+    batchTree.markAsNotReady();
+    batchTree.gearId = this.gearId;
+    batchTree.physicalGearId = this.physicalGearId;
+    batchTree.showCatchForm = this.showCatchForm && isNotEmptyArray(PmfmUtils.filterPmfms(source.pmfms, {excludeHidden: true}));
+    batchTree.showBatchTables = this.showBatchTables && isNotEmptyArray(PmfmUtils.filterPmfms(source.childrenPmfms, {excludeHidden: true}));
+    batchTree.allowSubBatches = this.allowSubBatches && this.batchTree.showBatchTables;
+    batchTree.batchGroupsTable.showTaxonGroupColumn = this.showTaxonGroup;
+    batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
+
+    // Pass PMFMS to batch tree sub-components (to avoid a pmfm reloading)
+    batchTree.catchBatchForm.pmfms = source.pmfms;
+    batchTree.batchGroupsTable.pmfms = source.childrenPmfms;
+    await this.batchTree.setProgram(this.program, {emitEvent: false /*avoid pmfms reload*/});
+
+    batchTree.markAsReady();
+
+    // Apply value (afert clone(), to keep pmfms unchanged)
+    const target = Batch.fromObject(source.asObject({withChildren: true}));
+    target.parent = source.parent;
+    await batchTree.setValue(target);
+
+    // restore previous state
+    if (dirty) this.markAsDirty();
+  }
+
+  async loadModel(data?: Batch): Promise<BatchModel> {
+    data = data || this.data;
+
+    const [catchPmfms, sortingPmfms] = await Promise.all([
+      firstNotNil(this.$catchPmfms, {stop: this.destroySubject}).toPromise(),
+      firstNotNil(this.$sortingPmfms, {stop: this.destroySubject}).toPromise()
+    ]);
+    // Compute batch tree
+    const model = BatchModel.fromBatch(data, sortingPmfms);
+    if (!model) return;
+
+    // Add catch batches pmfms
+    model.pmfms = [
+      ...catchPmfms,
       ...model.pmfms
     ];
 
     if (this.debug) this.logBatchModel(model);
 
     // Set default catch batch name
-    if (model && !model.name) {
+    if (!model.name) {
       model.name = 'TRIP.BATCH.EDIT.CATCH_BATCH';
     }
 
-    this.modelDataSource.data = [model];
+    this.treeDataSource.data = [model];
 
     // Expand all
     this.expandDescendants(model);
+    this.openSelector();
 
-    //await this.setParentBatch(null, model);
-
-    // Re apply data, and restore component state
-    this.markAsReady();
-    if (data) {
-      await this.setValue(data);
-    }
-    if (enabled) this.enable();
-    if (dirty) this.markAsDirty();
-    if (touched) this.markAllAsTouched();
-  }
-
-
-  async editBatch(event: UIEvent, parent: BatchModel) {
-
-    if (this.editingBatch === parent) return; // Skip
-
-    // Save previous changes
-    if (this.editingBatch) {
-      if (this.enabled && this.batchTree.dirty) {
-        const saved = await this.batchTree.save();
-        if (!saved) {
-          this.editingBatch.error = this.batchTree.error;
-          event.preventDefault();
-          return; // Cannot saved
-        }
-
-        parent.children = this.batchTree.value?.children;
-      }
-    }
-
-    console.debug('[batch-tree-container] New parent batch: ', parent);
-    this.editingBatch = parent;
-
-    // Configure batch tree
-    this.batchTree.gearId = this.gearId;
-    this.batchTree.physicalGearId = this.physicalGearId;
-    this.batchTree.showCatchForm = this.showCatchForm && isNotEmptyArray(PmfmUtils.filterPmfms(parent.pmfms, {excludeHidden: true}));
-    this.batchTree.showBatchTables = this.showBatchTables && isNotEmptyArray(PmfmUtils.filterPmfms(parent.childrenPmfms, {excludeHidden: true}));
-    this.batchTree.allowSubBatches = this.allowSubBatches && this.batchTree.showBatchTables;
-
-    // Pass PMFMS to batch tree sub-components (to avoid a pmfm reloading)
-    this.batchTree.catchBatchForm.pmfms = parent.pmfms;
-    this.batchTree.batchGroupsTable.pmfms = parent.childrenPmfms;
-
-    await this.batchTree.setProgram(this.program, {emitEvent: false /*avoid pmfms reload*/});
-
-    if (this.readySubject.value) {
-      this.batchTree.markAsReady();
-      this.batchTree.value = parent.clone({withChildren: true});
-    }
+    return model;
   }
 
   hasChild = (_: number, node: BatchModel) => isNotEmptyArray(node.children) && isEmptyArray(node.childrenPmfms);
@@ -340,6 +395,36 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     // this.childTrees.forEach(subTree => {
     //   subTree.autoFill(opts);
     // });
+  }
+
+  toggleSelector() {
+    if (this.mobile) {
+      this.batchMenu.toggle();
+    }
+    else {
+      this.treeExpanded = !this.treeExpanded;
+      this.markForCheck();
+    }
+  }
+
+  openSelector() {
+    if (this.mobile) {
+      this.batchMenu.open();
+    }
+    else {
+      this.treeExpanded = true;
+      this.markForCheck();
+    }
+  }
+
+  closeSelector() {
+    if (this.mobile) {
+      this.batchMenu.close();
+    }
+    else {
+      this.treeExpanded = false;
+      this.markForCheck();
+    }
   }
 
   addRow(event: UIEvent) {
@@ -365,38 +450,14 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     this.data = data;
 
-    // No children: stop here AND keep as loading
-    //if (!this.childTrees.length) return;
-
     this.markAsLoading();
 
     try {
-
       await this.ready();
 
       // Data not changed (e.g. during ready())
       if (data === this.data) {
-        console.log('TODO set value of child table ?')
-
-        //this.dataSource.data = this.data;
-        // await Promise.all(
-        //   this.childTrees.map(child => {
-        //     const catchBatch = data.clone();
-        //
-        //     // Filter sorting batches, if need
-        //     if (catchBatch.children) {
-        //       const filterFn = BatchFilter.fromObject(child.filter)?.asFilterFn();
-        //       if (filterFn && catchBatch.children) {
-        //         catchBatch.children = catchBatch.children
-        //           .filter(filterFn);
-        //       }
-        //     }
-        //
-        //     child.value = catchBatch.children;
-        //     return child.ready();
-        //   })
-        // );
-
+        await this.loadModel(data);
         this.markAsPristine();
       }
     }
@@ -413,42 +474,38 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return this.data;
   }
 
-
   async save(event?: Event): Promise<boolean> {
 
-    // Save each sub tree
-    //const results = await Promise.all(this.childTrees.map(child => child.save(options)));
-    //const saved = !results.some(res => res === false);
-    const saved = await this.batchTree.save();
+    console.info(this._logPrefix + `Saving...`);
 
     // Update data
     const data = this.data || new Batch();
     data.measurementValues = {};
     data.children = [];
 
-    // this.childTrees.forEach(subBatchTree => {
-    //   const subData = subBatchTree.value;
-    //
-    //   // Merge measurements
-    //   if (subData.measurementValues) {
-    //     data.measurementValues = {
-    //       ...data.measurementValues,
-    //       ...subData.measurementValues
-    //     };
-    //   }
-    //
-    //   // Merge batches
-    //   if (isNotEmptyArray(subData.children)) {
-    //     data.children = [
-    //       ...data.children,
-    //       ...subData.children
-    //     ];
-    //   }
-    // });
+    // Save previous changes
+    if (this.editingBatch && this.batchTree.dirty) {
+
+      console.info(this._logPrefix + `Saving previous parent ${this.editingBatch?.label}`);
+      const saved = await this.batchTree.save();
+      if (!saved) {
+        console.warn(this._logPrefix + `Failed to save previous parent !`);
+        this.editingBatch.error = this.batchTree.error;
+        event.preventDefault();
+        return false; // Cannot save
+      }
+
+      const savedBatch = this.batchTree.value;
+      console.debug(this._logPrefix + `Replacing ${this.editingBatch?.label} with ${savedBatch.label}`);
+      this.editingBatch.measurementValues = savedBatch.measurementValues;
+      if (!isEmptyArray(this.editingBatch.childrenPmfms)) {
+        this.editingBatch.children = savedBatch.children;
+      }
+    }
 
     this.data = data;
 
-    return saved;
+    return true;
   }
 
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
@@ -507,7 +564,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   protected expandDescendants(node: BatchModel|Batch) {
     if (node instanceof BatchModel) {
-      this.modelTreeControl.expand(node);
+      this.treeControl.expand(node);
       (node.children || [])
         .filter(node => this.hasChildrenBatchModel(node))
         .forEach(node => this.expandDescendants(node));

@@ -288,13 +288,13 @@ export class BatchTreeContainerTestPage implements OnInit {
 
     if (batchTree.mobile) {
       let html = "<br/>Sub batches :<br/>";
-      const subBatches = await batchTree.getSubBatches();
-      if (isEmptyArray(subBatches)) {
+      const batches = catchBatch.children;
+      if (isEmptyArray(batches)) {
         html += '&nbsp;No result';
       }
       else {
         let html = "<ul>";
-        subBatches.forEach(b => {
+        batches.forEach(b => {
           BatchUtils.logTree(b, {
             showAll: false,
             println: (m) => {
