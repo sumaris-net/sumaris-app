@@ -100,12 +100,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   @ViewChild('operationsTable', {static: true}) operationsTable: OperationsTable;
 
   get dirty(): boolean {
-    // Ignore operation table, when computing dirty state
-    return this._dirty || (this.children?.filter(form => form !== this.operationsTable).findIndex(c => c.dirty) !== -1);
-  }
-
-  get $ready(): Observable<boolean> {
-    return this._$ready.asObservable();
+    return this.dirtySubject.value
+      // Ignore operation table, when computing dirty state
+      || (this.children?.filter(form => form !== this.operationsTable).findIndex(c => c.dirty) !== -1);
   }
 
   get forceMeasurementAsOptional(): boolean {

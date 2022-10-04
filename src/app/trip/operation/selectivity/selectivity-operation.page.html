@@ -264,8 +264,8 @@
              [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
-        <ion-label >{{catchTab.textLabel}}
-        </ion-label>
+        <!-- TODO add species batch count -->
+        <ion-label>{{catchTab.textLabel}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid"></ion-icon>
       </ng-template>
 

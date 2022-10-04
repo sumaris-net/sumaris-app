@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from '@angular/core';
-import {AppEditor, firstNotNil, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean, UsageMode, WaitForOptions} from '@sumaris-net/ngx-components';
+import { AppEditor, firstNotNil, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean, UsageMode, waitFor, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
 import {AlertController, IonMenu} from '@ionic/angular';
 import {BatchTreeComponent, IBatchTreeComponent} from '@app/trip/batch/tree/batch-tree.component';
 import {Batch} from '@app/trip/batch/common/batch.model';
@@ -9,7 +9,7 @@ import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, merge} from 'rxjs';
-import {distinctUntilChanged, filter, map, switchMap} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import {environment} from '@environments/environment';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {BatchFilter} from '@app/trip/batch/common/batch.filter';
@@ -19,6 +19,7 @@ import {MatTreeNestedDataSource} from '@angular/material/tree';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {BatchModel} from '@app/trip/batch/tree/batch-tree.model';
+import { MatExpansionPanel } from '@angular/material/expansion';
 
 @Component({
   selector: 'app-batch-tree-container',
@@ -45,10 +46,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   treeControl = new NestedTreeControl<Batch>(node => node.children);
   treeDataSource = new MatTreeNestedDataSource<Batch>();
-  treeExpanded = true;
+  filterPanelFloating = false; // TODO true;
 
   @ViewChild('batchTree') batchTree!: BatchTreeComponent;
-  @ViewChild('batchMenu') batchMenu!: IonMenu;
+  @ViewChild('filterExpansionPanel') filterExpansionPanel!: MatExpansionPanel;
 
   @Input() queryTabIndexParamName: string;
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
@@ -164,7 +165,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     super(route, router, alertCtrl, translate);
 
     // DEBUG
-    this.debug = !environment.production;
+    this.debug = false; // !environment.production;
   }
 
   ngOnInit() {
@@ -195,17 +196,19 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               this.$physicalGearId
             )
           ),
+          debounceTime(100),
           map(() => this.computePmfmsKey()),
           filter(isNotNil),
           distinctUntilChanged()
         )
         .subscribe(() => this.loadPmfms())
     );
+
   }
 
-  onInitBatchTree(batchTree: BatchTreeComponent) {
-    this.addChildForm(batchTree);
-    //batchTree.dir
+  protected async registerForms(){
+    await waitFor(() => !!this.batchTree, {stop: this.destroySubject});
+    this.addChildForm(this.batchTree);
   }
 
   protected async setProgram(program: Program) {
@@ -284,14 +287,17 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   async selectParentBatch(event: UIEvent, source: BatchModel, batchTree?: BatchTreeComponent) {
 
-    this.closeSelector();
     batchTree = batchTree || this.batchTree;
+    if (!batchTree) throw new Error('Missing batchTree component');
+
+    event?.preventDefault();
+    event.stopPropagation();
 
     if (this.editingBatch === source) return; // Skip
-    if (!batchTree) return; // Skip
 
     await this.ready();
     const dirty = this.dirty;
+    const touched = this.touched;
 
     console.info(this._logPrefix + `Selected parent ${source?.label}`);
 
@@ -320,11 +326,12 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       }
     }
 
+    //if (this.filterPanelFloating)
+      this.closeFilterPanel();
     this.editingBatch = source;
     this.markForCheck();
 
     // Configure batch tree
-    batchTree.markAsNotReady();
     batchTree.gearId = this.gearId;
     batchTree.physicalGearId = this.physicalGearId;
     batchTree.showCatchForm = this.showCatchForm && isNotEmptyArray(PmfmUtils.filterPmfms(source.pmfms, {excludeHidden: true}));
@@ -334,11 +341,13 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
 
     // Pass PMFMS to batch tree sub-components (to avoid a pmfm reloading)
+    await this.batchTree.setProgram(this.program, {emitEvent: false /*avoid pmfms reload*/});
     batchTree.catchBatchForm.pmfms = source.pmfms;
     batchTree.batchGroupsTable.pmfms = source.childrenPmfms;
-    await this.batchTree.setProgram(this.program, {emitEvent: false /*avoid pmfms reload*/});
 
     batchTree.markAsReady();
+    await batchTree.catchBatchForm.ready();
+    await batchTree.batchGroupsTable.ready();
 
     // Apply value (afert clone(), to keep pmfms unchanged)
     const target = Batch.fromObject(source.asObject({withChildren: true}));
@@ -347,6 +356,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // restore previous state
     if (dirty) this.markAsDirty();
+    if (touched) this.markAllAsTouched();
   }
 
   async loadModel(data?: Batch): Promise<BatchModel> {
@@ -377,7 +387,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // Expand all
     this.expandDescendants(model);
-    this.openSelector();
+    this.openFilterPanel();
 
     return model;
   }
@@ -397,38 +407,23 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     // });
   }
 
-  toggleSelector() {
-    if (this.mobile) {
-      this.batchMenu.toggle();
-    }
-    else {
-      this.treeExpanded = !this.treeExpanded;
-      this.markForCheck();
-    }
+
+  toggleFilterPanelFloating() {
+    this.filterPanelFloating = !this.filterPanelFloating;
+    this.markForCheck();
   }
 
-  openSelector() {
-    if (this.mobile) {
-      this.batchMenu.open();
-    }
-    else {
-      this.treeExpanded = true;
-      this.markForCheck();
-    }
+  openFilterPanel() {
+    this.filterExpansionPanel?.open();
   }
 
-  closeSelector() {
-    if (this.mobile) {
-      this.batchMenu.close();
-    }
-    else {
-      this.treeExpanded = false;
-      this.markForCheck();
-    }
+  closeFilterPanel() {
+    this.filterExpansionPanel?.close();
+    this.filterPanelFloating = true;
+    this.markForCheck();
   }
 
   addRow(event: UIEvent) {
-
       throw new Error('Method not implemented.');
   }
 

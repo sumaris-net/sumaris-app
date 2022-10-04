@@ -21,11 +21,41 @@
   }
 
 }
+.filter-panel {
+  --expansion-panel-padding: 0;
 
+  mat-expansion-panel-header {
+    ion-item {
+      width: calc(100% - 15px);
+
+      ion-buttons[slot="start"] {
+        margin-right: 0;
+        margin-inline-end: 0;
+      }
+    }
+  }
+  mat-tree, ion-list {
+    background: transparent !important;
+  }
+
+  .mat-action-row {
+    border-top: 0 !important;
+  }
+
+}
 ion-item {
   --icon-size: 24px;
   --padding-start: 0 !important;
+  --ion-item-background: var(--ion-color-transparent);
 
+  ion-button {
+    mat-badge-small.mat-badge-after .mat-badge-content {
+      right: -9px !important;
+    }
+    .mat-badge-small.mat-badge-above .mat-badge-content {
+      top: -3px !important;
+    }
+  }
   &.activated {
     --ion-item-background: var(--ion-color-secondary100);
   }

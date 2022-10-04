@@ -545,8 +545,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     }
 
     // Propagate to children components, if need
-    // This should be need when $program has been set by parent, and not from the $programLabel observable
-    if (this.$programLabel.value !== program?.label) this.$programLabel.next(program?.label);
+    if (!opts || opts.emitEvent !== false) {
+      // This should be need when $program has been set by parent, and not from the $programLabel observable
+      if (this.$programLabel.value !== program?.label) this.$programLabel.next(program?.label);
+    }
   }
 
   markAsLoaded(opts?: {
