@@ -259,6 +259,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: PmfmIds.PRESERVATION
   },
+  PMFM_TRAWL_SIZE_CAT_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.TRAWL_SIZE_CAT.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRAWL_SIZE_CAT',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.TRAWL_SIZE_CAT
+  },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AGE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AGE_ID',
@@ -618,6 +630,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
       }
     },
     defaultValue: QualitativeValueIds.PRESERVATION.FRESH
+  },
+  QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.SIZE_UNLI_CAT_NONE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'QualitativeValue',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualitativeValueIds.SIZE_UNLI_CAT.NONE
   },
 
   TAXON_GROUP_TYPE_FAO_ID: <FormFieldDefinition>{

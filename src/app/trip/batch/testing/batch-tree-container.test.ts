@@ -47,7 +47,7 @@ export class BatchTreeContainerTestPage implements OnInit {
   $gearId = new BehaviorSubject<number>(undefined);
   filterForm: FormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
-  selectedTabIndex = 0;
+  selectedTabIndex = 1; // desktop
 
   outputs: {
     [key: string]: string;

@@ -1,16 +1,19 @@
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {EntityClass, isEmptyArray, isNotEmptyArray, toBoolean} from '@sumaris-net/ngx-components';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import {BatchGroupUtils} from '@app/trip/batch/group/batch-group.model';
 
 
 @EntityClass({typename: 'BatchModelVO'})
 export class BatchModel<
-  O extends BatchAsObjectOptions = BatchAsObjectOptions,
+  T extends BatchModel<T, ID> = BatchModel<any, any>,
+  ID = number,
+  AO extends BatchAsObjectOptions = BatchAsObjectOptions,
   FO extends BatchFromObjectOptions = BatchFromObjectOptions
-  > extends Batch<BatchModel, number, O, FO> {
+  > extends Batch<T, ID, AO, FO> {
 
   static fromObject: (source: any, opts?: { withChildren?: boolean; }) => BatchModel;
   static fromBatch(source: Batch,
@@ -31,9 +34,13 @@ export class BatchModel<
     //   pmfms = pmfms.slice(pmfmStartIndex);
     // }
     const target = BatchModel.fromObject(source.asObject({withChildren: false}));
+    target.parent = parent;
 
     // Find the first QV pmfm (with QV
-    let childrenQvPmfm: IPmfm = pmfms.find(p => p.isQualitative && isNotEmptyArray(p.qualitativeValues));
+    let childrenQvPmfm: IPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms, {
+      minQvCount: 2,
+      maxQvCount: 3
+    });
     if (childrenQvPmfm) {
       const qvPmfmIndex = pmfms.indexOf(childrenQvPmfm);
       if (qvPmfmIndex > 0) {
@@ -44,10 +51,11 @@ export class BatchModel<
       pmfms = pmfms.slice(qvPmfmIndex+1);
       treeDepth++;
 
-      childrenQvPmfm = childrenQvPmfm.clone();
-      childrenQvPmfm.hidden = true;
 
       if (treeDepth < maxTreeDepth && isNotEmptyArray(pmfms)) {
+        childrenQvPmfm = childrenQvPmfm.clone();
+        childrenQvPmfm.hidden = true;
+
         const childrenLabelPrefix = isCatchBatch ?
           `${AcquisitionLevelCodes.SORTING_BATCH}#` : `${target.label}.`;
         // Create children batches
@@ -65,9 +73,8 @@ export class BatchModel<
             ...childTarget.pmfms
           ];
 
-          // Set name and parent
+          // Set name
           childTarget.name = qv.name;
-          childTarget.parent = target;
 
           return childTarget;
         });

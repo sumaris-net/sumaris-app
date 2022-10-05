@@ -106,7 +106,7 @@ export const PmfmIds = {
 
   /* APASE */
   BATCH_GEAR_POSITION: 411,
-
+  TRAWL_SIZE_CAT: 418
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -133,6 +133,9 @@ export const QualitativeValueIds = {
   },
   PRESERVATION: {
     FRESH: 332
+  },
+  SIZE_UNLI_CAT: {
+    NONE: 319
   },
   BATCH_GEAR_POSITION: {
     PORT: 473, // Bâbord

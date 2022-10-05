@@ -60,10 +60,7 @@ export class BatchValidatorService<
     super(formBuilder, settings);
   }
 
-  getFormGroupConfig(data?: T, opts?: {
-    rankOrderRequired?: boolean;
-    labelRequired?: boolean;
-  }): { [key: string]: any } {
+  getFormGroupConfig(data?: T, opts?: O): { [key: string]: any } {
     const rankOrder = toNumber(data && data.rankOrder, null);
     const label = data && data.label || null;
     return {

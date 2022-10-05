@@ -300,7 +300,7 @@ export abstract class AbstractBatchesTable<
    * @param pmfms
    */
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-    if (!pmfms || !pmfms.length) return pmfms; // Skip (no pmfms)
+    if (!pmfms) return pmfms; // Skip (no pmfms)
 
     this._initialPmfms = pmfms; // Copy original pmfms list
 

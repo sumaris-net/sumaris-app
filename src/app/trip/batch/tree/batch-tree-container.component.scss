@@ -25,12 +25,16 @@
   --expansion-panel-padding: 0;
 
   mat-expansion-panel-header {
+    //padding-inline-start: 0;
+
     ion-item {
       width: calc(100% - 15px);
 
       ion-buttons[slot="start"] {
-        margin-right: 0;
-        margin-inline-end: 0;
+
+        ion-button ion-label {
+          text-transform: none !important;
+        }
       }
     }
   }

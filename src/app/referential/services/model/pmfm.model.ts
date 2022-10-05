@@ -251,17 +251,25 @@ export abstract class PmfmUtils {
       && (!opts || !opts.excludePmfmIds?.length || !opts.excludePmfmIds.includes(p.id)));
   }
 
-  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[], opts?: {
+  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[], opts: {
     excludeHidden?: boolean;
     excludePmfmIds?: number[];
+    minQvCount?: number;
+    maxQvCount?: number;
+    filterFn?: (IPmfm, index) => boolean;
+  } = {
+    minQvCount: 1, // Should have at least 2 values (by default)
   }): P {
     // exclude hidden pmfm (see batch modal)
     const qvPmfm = this.filterPmfms(pmfms, opts)
       .find((p, index) => {
-        return p.type === 'qualitative_value'
-          && p.qualitativeValues?.length // Exclude if no qualitative value (e.g. SUB_GEAR)
-          // Should be the first visible pmfms. If not (e.g. a numeric pmfm is before: not a group pmfm)
-          && index === 0;
+        return p.type === 'qualitative_value' && p.qualitativeValues
+          // Exclude if no enough qualitative values
+          // && p.qualitativeValues.length >= opts.minQvCount
+          // Exclude if too many qualitative values
+          //&& (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount)
+          // Apply the first function, if any
+          && (!opts.filterFn || opts.filterFn(p, index));
       });
     return qvPmfm;
   }

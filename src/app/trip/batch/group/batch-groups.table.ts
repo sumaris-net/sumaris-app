@@ -685,7 +685,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
   // Override parent function
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-    if (!pmfms || !pmfms.length) return pmfms; // Skip (no pmfms)
+    if (!pmfms) return pmfms; // Skip (no pmfms)
 
     super.mapPmfms(pmfms); // Should find the qvPmfm
 
@@ -696,8 +696,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       this._childrenPmfms = this._initialPmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
     }
     else {
-      this._speciesPmfms = [];
-      this._childrenPmfms = this._initialPmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
+      this._speciesPmfms = this._initialPmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
+      this._childrenPmfms = [];
     }
 
     // Configure row validator
@@ -717,7 +717,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
   protected computeDynamicColumns(qvPmfm: IPmfm, opts = { cache: true }): BatchGroupColumnDefinition[] {
     // Use cache
-    if (opts.cache !== false && this.dynamicColumns) return this.dynamicColumns;
+    if (opts.cache !== false && this.dynamicColumns) {
+      // TODO remove this log
+      console.warn(this.logPrefix + 'Reusing cached dynamic columns', this.dynamicColumns);
+      return this.dynamicColumns;
+    }
 
     // DEBUG
     if (this.debug) {
@@ -753,7 +757,14 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     // No QV pmfm (no grouped columns)
     if (!qvPmfm) {
       this.groupColumns = [];
-      this.dynamicColumns = this.computeDynamicColumnsByQv();
+
+      // Add species Pmfms
+      const speciesColumns = this.computePmfmColumns(this._speciesPmfms || [], 0, {
+        qvIndex: -1
+      });
+
+      const childrenColumns = this.computeDynamicColumnsByQv();
+      this.dynamicColumns = speciesColumns.concat(childrenColumns);
       this.showToolbar = !this.mobile;
     }
     else {

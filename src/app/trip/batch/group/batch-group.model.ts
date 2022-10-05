@@ -1,6 +1,6 @@
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions} from "../common/batch.model";
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '../../../referential/services/model/model.enum';
-import { EntityClass, EntityUtils, ReferentialRef } from '@sumaris-net/ngx-components';
+import {EntityClass, EntityUtils, isNotEmptyArray, ReferentialRef} from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
@@ -89,6 +89,11 @@ export class BatchGroupUtils {
             pmfm.hidden = true;
             pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.PRESERVATION.FRESH, label: 'FRE' });
           }
+          else if (pmfm.id === PmfmIds.TRAWL_SIZE_CAT) {
+            pmfm = pmfm.clone();
+            pmfm.hidden = true;
+            pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.SIZE_UNLI_CAT.NONE, label: 'SANS' });
+          }
           // Hide computed weight
           else if (pmfm.isComputed && PmfmUtils.isWeight(pmfm)) {
             pmfm = pmfm.clone();
@@ -115,14 +120,25 @@ export class BatchGroupUtils {
     );
   }
 
-  static getQvPmfm(pmfms: IPmfm[]): IPmfm | undefined {
+  static getQvPmfm(pmfms: IPmfm[], opts?: {
+    preferredPmfmIds?: number[];
+    onlyFirst?: boolean; // If not a preferred pmfm, should be the first PMFM in the list ?
+  }): IPmfm | undefined {
+    opts = {
+      preferredPmfmIds: [PmfmIds.DISCARD_OR_LANDING],
+      onlyFirst: true,
+      ...opts
+    };
     let qvPmfm = pmfms && (
-      // Use the LAN/DIS if exists and visible
-      pmfms.find(p => p.id === PmfmIds.DISCARD_OR_LANDING && p.hidden !== true)
+      // Use the first preferred pmfm if present AND visible (e.g. DISCARD/LANDING)
+      (isNotEmptyArray(opts.preferredPmfmIds) && pmfms.find(p => opts.preferredPmfmIds.includes(p.id) && !p.hidden))
       // Or get the first QV pmfm
       || PmfmUtils.getFirstQualitativePmfm(pmfms, {
-      excludeHidden: true
-      //excludePmfmIds: [PmfmIds.BATCH_GEAR_POSITION]
+        excludeHidden: true,
+        minQvCount: 2, // (e.g. exclude SUB_GEAR)
+        maxQvCount: 3, // (e.g. exclude TRAWL_SIZE_CAT)
+        //excludePmfmIds: [PmfmIds.DRESSING, PmfmIds.TRAWL_SIZE_CAT],
+        filterFn: (p, index) => !opts.onlyFirst || index === 0 // Should be the first visible (e.g. no number before)
       })
     );
 

@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from '@angular/core';
-import { AppEditor, firstNotNil, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean, UsageMode, waitFor, WaitForOptions, waitForTrue } from '@sumaris-net/ngx-components';
-import {AlertController, IonMenu} from '@ionic/angular';
+import {AppEditor, firstNotNil, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean, UsageMode, WaitForOptions} from '@sumaris-net/ngx-components';
+import {AlertController} from '@ionic/angular';
 import {BatchTreeComponent, IBatchTreeComponent} from '@app/trip/batch/tree/batch-tree.component';
 import {Batch} from '@app/trip/batch/common/batch.model';
 import {IBatchGroupModalOptions} from '@app/trip/batch/group/batch-group.modal';
@@ -9,7 +9,7 @@ import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
 import {BehaviorSubject, merge} from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, map, switchMap, tap} from 'rxjs/operators';
 import {environment} from '@environments/environment';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {BatchFilter} from '@app/trip/batch/common/batch.filter';
@@ -19,12 +19,17 @@ import {MatTreeNestedDataSource} from '@angular/material/tree';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {BatchModel} from '@app/trip/batch/tree/batch-tree.model';
-import { MatExpansionPanel } from '@angular/material/expansion';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {FormArray, FormGroup} from '@angular/forms';
+import {BatchModelValidatorService} from '@app/trip/batch/tree/batch-model.validator';
 
 @Component({
   selector: 'app-batch-tree-container',
   templateUrl: './batch-tree-container.component.html',
   styleUrls: ['./batch-tree-container.component.scss'],
+  providers: [
+    { provide: BatchModelValidatorService, useClass: BatchModelValidatorService}
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchTreeContainerComponent extends AppEditor<Batch>
@@ -32,7 +37,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   private _touched: boolean;
   private _logPrefix = '[batch-tree-container] ';
-  private _loadPmfmKey: string;
 
   protected editingBatch: BatchModel;
   data: Batch = null;
@@ -47,6 +51,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   treeControl = new NestedTreeControl<Batch>(node => node.children);
   treeDataSource = new MatTreeNestedDataSource<Batch>();
   filterPanelFloating = false; // TODO true;
+
+  filterForm: FormGroup;
 
   @ViewChild('batchTree') batchTree!: BatchTreeComponent;
   @ViewChild('filterExpansionPanel') filterExpansionPanel!: MatExpansionPanel;
@@ -161,11 +167,12 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               alertCtrl: AlertController,
               translate: TranslateService,
               protected programRefService: ProgramRefService,
+              protected validatorService: BatchModelValidatorService,
               protected cd: ChangeDetectorRef) {
     super(route, router, alertCtrl, translate);
 
     // DEBUG
-    this.debug = false; // !environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -199,16 +206,12 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
           debounceTime(100),
           map(() => this.computePmfmsKey()),
           filter(isNotNil),
+          tap(key => console.debug(this._logPrefix + 'computed key for loadPmfms():  ' + key)),
           distinctUntilChanged()
         )
         .subscribe(() => this.loadPmfms())
     );
 
-  }
-
-  protected async registerForms(){
-    await waitFor(() => !!this.batchTree, {stop: this.destroySubject});
-    this.addChildForm(this.batchTree);
   }
 
   protected async setProgram(program: Program) {
@@ -275,9 +278,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.$catchPmfms.next(catchPmfms);
     this.$sortingPmfms.next(sortingPmfms);
 
-    if (data) {
-      await this.loadModel(data);
-    }
+    // if (data) {
+    //   await this.loadModel(data);
+    // }
 
     if (enabled) this.enable();
     if (dirty) this.markAsDirty();
@@ -293,7 +296,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     event?.preventDefault();
     event.stopPropagation();
 
-    if (this.editingBatch === source) return; // Skip
+    if (this.editingBatch === source) {
+      this.closeFilterPanel();
+      return; // Skip
+    }
 
     await this.ready();
     const dirty = this.dirty;
@@ -336,18 +342,19 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     batchTree.physicalGearId = this.physicalGearId;
     batchTree.showCatchForm = this.showCatchForm && isNotEmptyArray(PmfmUtils.filterPmfms(source.pmfms, {excludeHidden: true}));
     batchTree.showBatchTables = this.showBatchTables && isNotEmptyArray(PmfmUtils.filterPmfms(source.childrenPmfms, {excludeHidden: true}));
-    batchTree.allowSubBatches = this.allowSubBatches && this.batchTree.showBatchTables;
+    batchTree.allowSubBatches = this.allowSubBatches && batchTree.showBatchTables;
     batchTree.batchGroupsTable.showTaxonGroupColumn = this.showTaxonGroup;
     batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
 
     // Pass PMFMS to batch tree sub-components (to avoid a pmfm reloading)
-    await this.batchTree.setProgram(this.program, {emitEvent: false /*avoid pmfms reload*/});
+    await batchTree.setProgram(this.program, {emitEvent: false /*avoid pmfms reload*/});
     batchTree.catchBatchForm.pmfms = source.pmfms;
-    batchTree.batchGroupsTable.pmfms = source.childrenPmfms;
+    batchTree.batchGroupsTable.pmfms = source.childrenPmfms || [];
 
     batchTree.markAsReady();
     await batchTree.catchBatchForm.ready();
     await batchTree.batchGroupsTable.ready();
+    if (!this.loading && batchTree.batchGroupsTable.loading) await batchTree.batchGroupsTable.waitIdle();
 
     // Apply value (afert clone(), to keep pmfms unchanged)
     const target = Batch.fromObject(source.asObject({withChildren: true}));
@@ -376,6 +383,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       ...model.pmfms
     ];
 
+    this.filterForm = this.createFilterForm(model);
+    console.log(this.filterForm);
+
     if (this.debug) this.logBatchModel(model);
 
     // Set default catch batch name
@@ -393,6 +403,38 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   hasChild = (_: number, node: BatchModel) => isNotEmptyArray(node.children) && isEmptyArray(node.childrenPmfms);
+
+  createFilterForm(model: BatchModel, level = 0): FormGroup {
+    const isRoot = !level;
+    if (isRoot && this.debug) console.debug(this._logPrefix + 'Creating filter form, from batch model...', model);
+    const isLeaf = !this.hasChild(undefined, model);
+
+    const form = this.validatorService.getFormGroup(model, {
+      pmfms: model.pmfms,
+      withMeasurements: true,
+      withMeasurementTypename: true,
+      withChildren: isLeaf,
+      childrenPmfms: model.childrenPmfms
+    });
+
+    level = level+1;
+    if (!isLeaf && level <= 2) {
+      const childrenForms = (model.children || [])
+        .filter(c => c instanceof BatchModel)
+        .map(c => this.createFilterForm(c as BatchModel), level);
+      //let childrenArray = form.get('children') as FormArray;
+      //if (!childrenArray) {
+        let childrenArray = new FormArray(childrenForms);
+        form.setControl('children', childrenArray);
+      //}
+      //else {
+//        childrenArray.length
+      //    }
+    }
+    if (isRoot && this.debug) console.debug(this._logPrefix + 'Filter form created: ', form);
+
+    return form;
+  }
 
   markAllAsTouched(opts?: { emitEvent?: boolean }) {
     this._touched = true;
@@ -517,6 +559,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
+    // DO NOT wait children ready()
     //await Promise.all(this.childTrees.map(c => c.ready()));
     return super.ready(opts);
   }
