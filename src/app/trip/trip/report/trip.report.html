@@ -1,1 +1,16 @@
-<p>trip works!</p>
+<ng-container *ngIf="!embedded">
+
+  <app-toolbar [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
+    <ion-title></ion-title>
+    <ion-buttons slot="end">
+      <ion-button>
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </app-toolbar>
+
+  <ion-content>
+    <p>Work in progress !</p>
+  </ion-content>
+
+</ng-container>
