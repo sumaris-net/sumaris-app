@@ -1044,6 +1044,9 @@
           "TITLE": "Relâché {{label}}"
         }
       }
+    },
+    "REPORT": {
+      "TITLE": "<small>{{ vessel }}</small> Rapport de marée du {{ departureDate }}"
     }
   },
   "EXPECTED_SALE": {

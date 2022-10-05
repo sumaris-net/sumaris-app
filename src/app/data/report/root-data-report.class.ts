@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, isNil, isNotNilOrBlank, PlatformService } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, DateFormatPipe, isNil, isNotNilOrBlank, PlatformService } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
 
@@ -12,6 +12,7 @@ export abstract class AppRootDataReport<
 
   protected readonly route: ActivatedRoute;
   protected readonly cd: ChangeDetectorRef;
+  protected readonly dateFormatPipe: DateFormatPipe;
 
   protected readonly platform: PlatformService;
   protected readonly translate: TranslateService;
@@ -25,6 +26,7 @@ export abstract class AppRootDataReport<
 
   error: string;
   $defaultBackHref = new Subject<string>();
+  $title = new Subject<string>();
 
   @Input() embedded = false;
 
@@ -33,6 +35,7 @@ export abstract class AppRootDataReport<
     //this.dataType = dataType;
     this.cd = injector.get(ChangeDetectorRef);
     this.route = injector.get(ActivatedRoute);
+    this.dateFormatPipe = injector.get(DateFormatPipe);
 
 
     this.platform = injector.get(PlatformService);
@@ -69,6 +72,7 @@ export abstract class AppRootDataReport<
     const data = await this.loadData(id);
 
     this.$defaultBackHref.next(this.computeDefaultBackHref(data));
+    this.$title.next(await this.computeTitle(data));
 
     this.markAsReady();
     this.markAsLoaded();
@@ -115,9 +119,7 @@ export abstract class AppRootDataReport<
   }
 
   // NOTE : Can have parrent. Can take param from interface ?
-  protected async computeTitle(): Promise<string> {
-    return 'dummy';
-  }
+  protected abstract computeTitle(data: T): Promise<string>;
 
   // NOTE : Can have parrent. Can take param from interface ?
   protected abstract computeDefaultBackHref(data: T): string;

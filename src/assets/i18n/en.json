@@ -1024,6 +1024,9 @@
           "TITLE": "Release {{label}}"
         }
       }
+    },
+    "REPORT": {
+      "TITLE": "<small>{{ vessel }}</small> Trip report of {{ departureDate }}"
     }
   },
   "EXPECTED_SALE": {

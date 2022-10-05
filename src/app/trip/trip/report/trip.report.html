@@ -1,7 +1,7 @@
 <ng-container *ngIf="!embedded">
 
   <app-toolbar [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
-    <ion-title></ion-title>
+    <ion-title [innerHTML]="$title|async"></ion-title>
     <ion-buttons slot="end">
       <ion-button>
         <ion-icon name="print"></ion-icon>
