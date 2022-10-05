@@ -321,9 +321,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   protected onApplyingEntity(data: T, opts?: {[key: string]: any;}) {
-    if (data.program?.label) {
-      // Propagate program
-      this.setProgramLabel(data.program?.label);
+    // Propagate program
+    if (data?.program?.label) {
+      this.setProgramLabel(data.program.label);
     }
   }
 

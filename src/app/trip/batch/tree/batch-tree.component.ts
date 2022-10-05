@@ -422,15 +422,15 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     return Promise.resolve(undefined);
   }
 
-  async setValue(catchBatch: Batch, opts?: {emitEvent?: boolean;}) {
-    catchBatch = catchBatch || Batch.fromObject({
+  async setValue(rootBatch: Batch, opts?: {emitEvent?: boolean;}) {
+    rootBatch = rootBatch || Batch.fromObject({
       rankOrder: 1,
       label: AcquisitionLevelCodes.CATCH_BATCH
     });
 
     // Make sure root batch is a catch batch
-    if (isNil(catchBatch.parent) && isNil(catchBatch.parentId) && catchBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
-      throw new Error('Invalid catch batch. Should have label: ' + AcquisitionLevelCodes.CATCH_BATCH);
+    if (isNil(rootBatch.parent) && isNil(rootBatch.parentId) && rootBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
+      console.warn(`[batch-tree] Invalid catch batch label. Expected: ${AcquisitionLevelCodes.CATCH_BATCH} - Actual: ${rootBatch.label}`);
     }
 
     // DEBUG
@@ -439,18 +439,17 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
     try {
 
-
-      this.data = catchBatch;
+      this.data = rootBatch;
 
       // Set catch batch
       this.catchBatchForm.gearId = this._gearId;
       this.catchBatchForm.markAsReady();
-      await this.catchBatchForm.setValue(catchBatch.clone({ withChildren: false }), opts);
+      await this.catchBatchForm.setValue(rootBatch.clone({ withChildren: false }), opts);
 
       if (this.batchGroupsTable) {
         // Retrieve batch group (make sure label start with acquisition level)
         // Then convert into batch group entities
-        const batchGroups: BatchGroup[] = BatchGroupUtils.fromBatchTree(catchBatch);
+        const batchGroups: BatchGroup[] = BatchGroupUtils.fromBatchTree(rootBatch);
 
         // Apply to table
         this.batchGroupsTable.gearId = this._gearId;

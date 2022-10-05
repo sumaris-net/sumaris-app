@@ -34,7 +34,10 @@
       }
 
       .mat-column-comments {
-        max-width: inherit; // Override default limitation
+        min-width: unset !important;
+        max-width: unset !important;
+        width: 40px !important;
+        padding-left: 6px;
       }
 
       .mat-column-pmfm {
@@ -172,13 +175,6 @@
     .mat-column-pmfm {
       min-width: unset !important;
       max-width: unset !important;
-    }
-
-    .mat-column-comments {
-      min-width: unset !important;
-      max-width: unset !important;
-      width: 40px !important;
-      padding-left: 6px;
     }
   }
 }

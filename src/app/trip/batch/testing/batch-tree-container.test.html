@@ -101,114 +101,121 @@
                  [dynamicHeight]="false">
     <mat-tab label="Mobile">
       <ng-template matTabContent>
-        <app-batch-tree-container #mobileBatchTree
-                                  [programLabel]="$programLabel|async"
-                                  [gearId]="$gearId|async"
-                                  queryTabIndexParamName="mobileTab"
-                                  [usageMode]="'FIELD'"
-                                  [mobile]="true"
-                                  [debug]="true">
-        </app-batch-tree-container>
 
-        <!-- buttons -->
-        <ion-item [lines]="'none'">
-          <!-- Save -->
-          <ion-button (click)="save($event, mobileBatchTree, 'mobile')"
-                      title="Save the table" color="danger"
-                      [disabled]="!mobileBatchTree.dirty"
-                      [fill]="mobileBatchTree.dirty ? 'solid': 'outline'" translate>
-            COMMON.BTN_SAVE
-          </ion-button>
+        <div>
+          <app-batch-tree-container #mobileBatchTree
+                                    [programLabel]="$programLabel|async"
+                                    [gearId]="$gearId|async"
+                                    queryTabIndexParamName="mobileTab"
+                                    [usageMode]="'FIELD'"
+                                    [mobile]="true"
+                                    [debug]="true">
+          </app-batch-tree-container>
 
-          <!-- show tree -->
-          <ion-button *ngIf="!outputs.mobile"
-                      (click)="dumpBatchTree(mobileBatchTree, 'mobile')"
-                      matTooltip="Output data to log"
-                      fill="outline">
-            <ion-icon name="eye" slot="icon-only"></ion-icon>
-          </ion-button>
+          <!-- buttons -->
+          <ion-item [lines]="'none'">
+            <!-- Save -->
+            <ion-button (click)="save($event, mobileBatchTree, 'mobile')"
+                        title="Save the table" color="danger"
+                        [disabled]="!mobileBatchTree.dirty"
+                        [fill]="mobileBatchTree.dirty ? 'solid': 'outline'" translate>
+              COMMON.BTN_SAVE
+            </ion-button>
 
-          <!-- hide tree -->
-          <ion-button (click)="outputs.mobile=undefined" *ngIf="outputs.mobile"
-                      matTooltip="Output data to log"
-                      fill="outline">
-            <ion-icon name="eye-off" slot="icon-only"></ion-icon>
-          </ion-button>
+            <!-- show tree -->
+            <ion-button *ngIf="!outputs.mobile"
+                        (click)="dumpBatchTree(mobileBatchTree, 'mobile')"
+                        matTooltip="Output data to log"
+                        fill="outline">
+              <ion-icon name="eye" slot="icon-only"></ion-icon>
+            </ion-button>
 
-          <!-- Reload from himself -->
-          <ion-button (click)="copyBatchTree(mobileBatchTree, mobileBatchTree)"
-                      matTooltip="Reload from himself data"
-                      fill="outline">
-            <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
-          </ion-button>
-        </ion-item>
+            <!-- hide tree -->
+            <ion-button (click)="outputs.mobile=undefined" *ngIf="outputs.mobile"
+                        matTooltip="Output data to log"
+                        fill="outline">
+              <ion-icon name="eye-off" slot="icon-only"></ion-icon>
+            </ion-button>
 
-        <div class="ion-padding"
-             *ngIf="outputs.mobile">
-          <ion-text color="medium">
-            <h4>Output: </h4>
-            <p [innerHTML]="outputs.mobile">
-            </p>
-          </ion-text>
+            <!-- Reload from himself -->
+            <ion-button (click)="copyBatchTree(mobileBatchTree, mobileBatchTree)"
+                        matTooltip="Reload from himself data"
+                        fill="outline">
+              <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-item>
+
+          <div class="ion-padding"
+               *ngIf="outputs.mobile">
+            <ion-text color="medium">
+              <h4>Output: </h4>
+              <p [innerHTML]="outputs.mobile">
+              </p>
+            </ion-text>
+          </div>
         </div>
       </ng-template>
     </mat-tab>
 
+    <!-- DESKTOP tab -->
     <mat-tab label="Desktop">
       <ng-template matTabContent>
-        <!-- Batch tree component - desktop mode -->
-        <app-batch-tree-container #desktopBatchTree
-                        [programLabel]="$programLabel|async"
-                        [gearId]="$gearId|async"
-                        queryTabIndexParamName="desktopTab"
-                        [usageMode]="'FIELD'"
-                        [mobile]="false"
-                        [allowSubBatches]="true"
-                        [debug]="true">
-        </app-batch-tree-container>
 
-        <!-- buttons -->
-        <ion-item>
-          <!-- Save -->
-          <ion-button (click)="save($event, desktopBatchTree, 'desktop')"
-                      title="Save the table" color="danger"
-                      [disabled]="!desktopBatchTree.dirty"
-                      [fill]="desktopBatchTree.dirty ? 'solid': 'outline'" translate>
-            COMMON.BTN_SAVE
-          </ion-button>
+        <div>
+          <!-- Batch tree component - desktop mode -->
+          <app-batch-tree-container #desktopBatchTree
+                          [programLabel]="$programLabel|async"
+                          [gearId]="$gearId|async"
+                          queryTabIndexParamName="desktopTab"
+                          [usageMode]="'FIELD'"
+                          [mobile]="false"
+                          [allowSubBatches]="true"
+                          [debug]="true">
+          </app-batch-tree-container>
 
-          <!-- show tree -->
-          <ion-button (click)="dumpBatchTree(desktopBatchTree, 'desktop')"
-                      *ngIf="!outputs.desktop"
-                      title="Output data to log"
-                      fill="outline">
-            <ion-icon name="eye" slot="icon-only"></ion-icon>
-          </ion-button>
+          <!-- buttons -->
+          <ion-item>
+            <!-- Save -->
+            <ion-button (click)="save($event, desktopBatchTree, 'desktop')"
+                        title="Save the table" color="danger"
+                        [disabled]="!desktopBatchTree.dirty"
+                        [fill]="desktopBatchTree.dirty ? 'solid': 'outline'" translate>
+              COMMON.BTN_SAVE
+            </ion-button>
 
-          <!-- hide tree -->
-          <ion-button (click)="outputs.desktop=undefined"
-                      *ngIf="outputs.desktop"
-                      title="Output data to log"
-                      fill="outline">
-            <ion-icon name="eye-off" slot="icon-only"></ion-icon>
-          </ion-button>
+            <!-- show tree -->
+            <ion-button (click)="dumpBatchTree(desktopBatchTree, 'desktop')"
+                        *ngIf="!outputs.desktop"
+                        title="Output data to log"
+                        fill="outline">
+              <ion-icon name="eye" slot="icon-only"></ion-icon>
+            </ion-button>
 
-          <!-- Reload from himself -->
-          <ion-button (click)="copyBatchTree(desktopBatchTree, desktopBatchTree)"
-                      title="Reload from himself data"
-                      fill="outline">
-            <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
-          </ion-button>
+            <!-- hide tree -->
+            <ion-button (click)="outputs.desktop=undefined"
+                        *ngIf="outputs.desktop"
+                        title="Output data to log"
+                        fill="outline">
+              <ion-icon name="eye-off" slot="icon-only"></ion-icon>
+            </ion-button>
 
-        </ion-item>
+            <!-- Reload from himself -->
+            <ion-button (click)="copyBatchTree(desktopBatchTree, desktopBatchTree)"
+                        title="Reload from himself data"
+                        fill="outline">
+              <ion-icon name="reload-circle" slot="icon-only"></ion-icon>
+            </ion-button>
 
-        <div class="ion-padding"
-             *ngIf="outputs.desktop">
-          <ion-text color="medium">
-            <h4>Output: </h4>
-            <p [innerHTML]="outputs.desktop">
-            </p>
-          </ion-text>
+          </ion-item>
+
+          <div class="ion-padding"
+               *ngIf="outputs.desktop">
+            <ion-text color="medium">
+              <h4>Output: </h4>
+              <p [innerHTML]="outputs.desktop">
+              </p>
+            </ion-text>
+          </div>
         </div>
       </ng-template>
     </mat-tab>

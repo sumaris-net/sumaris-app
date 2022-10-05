@@ -32,7 +32,11 @@ export interface SampleFromObjectOptions {
 export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions, SampleFromObjectOptions>
   implements IEntityWithMeasurement<Sample>, ITreeItemEntity<Sample>{
 
-  static fromObject: (source, opts?: SampleFromObjectOptions) => Sample;
+  static fromObject: (source: any, opts?: SampleFromObjectOptions) => Sample;
+
+  static asObject(source: any|Sample, opts?: SampleAsObjectOptions): any {
+    return Sample.fromObject(source)?.asObject(opts);
+  }
 
   static fromObjectArrayAsTree(sources: any[], opts?: SampleFromObjectOptions): Sample[] {
     if (!sources) return null;
@@ -132,7 +136,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
     target.parentId = this.parentId || this.parent && this.parent.id || undefined;
     target.children = this.children && (!opts || opts.withChildren !== false) && this.children.map(c => c.asObject(opts)) || undefined;
-    target.measurementValues = MeasurementValuesUtils.asObject( this.measurementValues, opts);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
     target.landingId = this.landingId;
     target.operationId = this.operationId;
 

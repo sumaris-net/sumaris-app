@@ -1,27 +1,40 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from '@angular/core';
-import {AppEditor, firstNotNil, isEmptyArray, isNil, isNotEmptyArray, isNotNil, isNotNilOrBlank, toBoolean, UsageMode, WaitForOptions} from '@sumaris-net/ngx-components';
-import {AlertController} from '@ionic/angular';
-import {BatchTreeComponent, IBatchTreeComponent} from '@app/trip/batch/tree/batch-tree.component';
-import {Batch} from '@app/trip/batch/common/batch.model';
-import {IBatchGroupModalOptions} from '@app/trip/batch/group/batch-group.modal';
-import {Program} from '@app/referential/services/model/program.model';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
-import {BehaviorSubject, merge} from 'rxjs';
-import {debounceTime, distinctUntilChanged, filter, map, switchMap, tap} from 'rxjs/operators';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BatchFilter} from '@app/trip/batch/common/batch.filter';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {NestedTreeControl} from '@angular/cdk/tree';
-import {MatTreeNestedDataSource} from '@angular/material/tree';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {BatchModel} from '@app/trip/batch/tree/batch-tree.model';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {FormArray, FormGroup} from '@angular/forms';
-import {BatchModelValidatorService} from '@app/trip/batch/tree/batch-model.validator';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import {
+  AppEditor,
+  firstNotNil,
+  FormErrorTranslatorOptions,
+  getPropertyByPath,
+  isEmptyArray,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  toBoolean,
+  UsageMode,
+  WaitForOptions
+} from '@sumaris-net/ngx-components';
+import { AlertController } from '@ionic/angular';
+import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
+import { Program } from '@app/referential/services/model/program.model';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { BehaviorSubject, merge } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { NestedTreeControl } from '@angular/cdk/tree';
+import { MatTreeNestedDataSource } from '@angular/material/tree';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { FormArray, FormGroup } from '@angular/forms';
+import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 
 @Component({
   selector: 'app-batch-tree-container',
@@ -39,6 +52,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   private _logPrefix = '[batch-tree-container] ';
 
   protected editingBatch: BatchModel;
+
   data: Batch = null;
   $gearId = new BehaviorSubject<number>(null);
   $physicalGearId = new BehaviorSubject<number>(null);
@@ -47,6 +61,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   $sortingPmfms = new BehaviorSubject<IPmfm[]>(null);
   $catchPmfms = new BehaviorSubject<IPmfm[]>(null);
   listenProgramChanges = true;
+  errorTranslatorOptions: FormErrorTranslatorOptions;
 
   treeControl = new NestedTreeControl<Batch>(node => node.children);
   treeDataSource = new MatTreeNestedDataSource<Batch>();
@@ -167,10 +182,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               alertCtrl: AlertController,
               translate: TranslateService,
               protected programRefService: ProgramRefService,
-              protected validatorService: BatchModelValidatorService,
+              protected batchModelValidatorService: BatchModelValidatorService,
               protected cd: ChangeDetectorRef) {
     super(route, router, alertCtrl, translate);
 
+    this.errorTranslatorOptions = {separator: '\n', controlPathTranslator: this};
     // DEBUG
     this.debug = !environment.production;
   }
@@ -228,6 +244,27 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.showTaxonName = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
   }
 
+  translateControlPath(path: string): string {
+    if (path.startsWith('measurementValues.')) {
+      const parts = path.split('.');
+      const pmfmId = parseInt(parts[parts.length-1]);
+      const pmfm = (this.$catchPmfms.value || []).find(p => p.id === pmfmId);
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
+    }
+    else if (path.includes('.measurementValues.')) {
+      const parts = path.split('.');
+      const pmfmId = parseInt(parts[parts.length-1]);
+      const pmfm = (this.$sortingPmfms.value || []).find(p => p.id === pmfmId);
+      const nodePath = parts.slice(0, path.length - 2).join('.');
+      const name = getPropertyByPath(this.treeDataSource.data[0], nodePath + '.name');
+      if (pmfm) return PmfmUtils.getPmfmName(pmfm);
+    }
+    else if (path.startsWith('children.')){
+      return path;
+    }
+    return path;
+  }
+
   protected computePmfmsKey(): string {
     const program = this.program;
     const gearId = this.gearId;
@@ -261,7 +298,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
 
     // Remember existing data, to reapply later (avoid data lost)
-    const data = this.value;
+    //const data = this.data;
 
     // Load pmfms for batches
     const [catchPmfms, sortingPmfms] = await Promise.all([
@@ -278,140 +315,116 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.$catchPmfms.next(catchPmfms);
     this.$sortingPmfms.next(sortingPmfms);
 
-    // if (data) {
-    //   await this.loadModel(data);
-    // }
-
     if (enabled) this.enable();
     if (dirty) this.markAsDirty();
     if (touched) this.markAllAsTouched();
 
   }
 
-  async selectParentBatch(event: UIEvent, source: BatchModel, batchTree?: BatchTreeComponent) {
 
-    batchTree = batchTree || this.batchTree;
-    if (!batchTree) throw new Error('Missing batchTree component');
+  async editBatch(event: UIEvent, source: BatchModel) {
 
     event?.preventDefault();
-    event.stopPropagation();
+    event?.stopPropagation();
 
     if (this.editingBatch === source) {
-      this.closeFilterPanel();
+      if (this.filterPanelFloating) this.closeFilterPanel();
       return; // Skip
     }
 
+    // Save current state
     await this.ready();
     const dirty = this.dirty;
     const touched = this.touched;
 
-    console.info(this._logPrefix + `Selected parent ${source?.label}`);
-
-    // Save previous changes
-    if (this.editingBatch) {
-      if (this.enabled && batchTree.dirty) {
-
-        console.info(this._logPrefix + `Saving previous parent ${this.editingBatch?.label}`);
-        const saved = await batchTree.save();
-        if (!saved) {
-          console.warn(this._logPrefix + `Failed to save previous parent !`);
-           this.editingBatch.error = batchTree.error;
-           this.editingBatch.invalid = true;
-           event.preventDefault();
-           return; // Cannot save
-        }
-
-        const savedBatch = batchTree.value;
-        console.debug(this._logPrefix + `Replacing ${this.editingBatch?.label} with ${savedBatch.label}`);
-        this.editingBatch.measurementValues = savedBatch.measurementValues;
-        if (!isEmptyArray(this.editingBatch.childrenPmfms)) {
-          this.editingBatch.children = savedBatch.children;
-        }
-
-        this.editingBatch.invalid = batchTree.invalid;
+    try {
+      // Save previous changes
+      if (this.enabled && this.editingBatch && this.batchTree.dirty) {
+        const saved = await this.saveEditingBatch();
+        if (!saved) return; // Cannot save
       }
+
+      console.info(this._logPrefix + `Selected parent ${source?.label}`);
+
+      if (this.filterPanelFloating) this.closeFilterPanel();
+      this.editingBatch = source;
+      this.markForCheck();
+
+      if (!this.batchTree.loading) {
+        console.warn(this._logPrefix + 'Unload batch tree...');
+        //await this.batchTree.unload();
+      }
+
+      // Configure batch tree
+      this.batchTree.gearId = this.gearId;
+      this.batchTree.physicalGearId = this.physicalGearId;
+      this.batchTree.showCatchForm = this.showCatchForm && isNotEmptyArray(PmfmUtils.filterPmfms(source.pmfms, { excludeHidden: true }));
+      this.batchTree.showBatchTables = this.showBatchTables && isNotEmptyArray(PmfmUtils.filterPmfms(source.childrenPmfms, { excludeHidden: true }));
+      this.batchTree.allowSubBatches = this.allowSubBatches && this.batchTree.showBatchTables;
+      this.batchTree.batchGroupsTable.showTaxonGroupColumn = this.showTaxonGroup;
+      this.batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
+
+      // Pass PMFMS to batch tree sub-components (to avoid a pmfm reloading)
+      await this.batchTree.setProgram(this.program, { emitEvent: false /*avoid pmfms reload*/ });
+      this.batchTree.catchBatchForm.pmfms = source.pmfms;
+      this.batchTree.batchGroupsTable.pmfms = source.childrenPmfms || [];
+      this.batchTree.subBatchesTable.programLabel = this.programLabel;
+
+      this.batchTree.markAsReady();
+      await this.batchTree.catchBatchForm.ready();
+      await this.batchTree.batchGroupsTable.ready();
+      await this.batchTree.subBatchesTable?.ready();
+      //if (!firstUpdate) await this.batchTree.batchGroupsTable.waitIdle();
+
+      // Apply value (after clone(), to keep pmfms unchanged)
+      const target = Batch.fromObject(source.asObject({ withChildren: true }));
+      target.parent = source.parent;
+      await this.batchTree.setValue(target);
+
     }
-
-    //if (this.filterPanelFloating)
-    this.closeFilterPanel();
-    this.editingBatch = source;
-    this.markForCheck();
-
-    //await batchTree.unload();
-
-    // Configure batch tree
-    batchTree.gearId = this.gearId;
-    batchTree.physicalGearId = this.physicalGearId;
-    batchTree.showCatchForm = this.showCatchForm && isNotEmptyArray(PmfmUtils.filterPmfms(source.pmfms, {excludeHidden: true}));
-    batchTree.showBatchTables = this.showBatchTables && isNotEmptyArray(PmfmUtils.filterPmfms(source.childrenPmfms, {excludeHidden: true}));
-    batchTree.allowSubBatches = this.allowSubBatches && batchTree.showBatchTables;
-    batchTree.batchGroupsTable.showTaxonGroupColumn = this.showTaxonGroup;
-    batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
-
-    // Pass PMFMS to batch tree sub-components (to avoid a pmfm reloading)
-    await batchTree.setProgram(this.program, {emitEvent: false /*avoid pmfms reload*/});
-    batchTree.catchBatchForm.pmfms = source.pmfms;
-    batchTree.batchGroupsTable.pmfms = source.childrenPmfms || [];
-
-    batchTree.markAsReady();
-    await batchTree.catchBatchForm.ready();
-    await batchTree.batchGroupsTable.ready();
-    //if (!firstUpdate) await batchTree.batchGroupsTable.waitIdle();
-
-    // Apply value (afert clone(), to keep pmfms unchanged)
-    const target = Batch.fromObject(source.asObject({withChildren: true}));
-    target.parent = source.parent;
-    await batchTree.setValue(target);
-
-    // restore previous state
-    if (dirty) this.markAsDirty();
-    if (touched) this.markAllAsTouched();
+    finally {
+      // Restore previous state
+      if (dirty) this.markAsDirty();
+      if (touched) this.markAllAsTouched();
+    }
   }
 
-  async loadModel(data?: Batch): Promise<BatchModel> {
-    data = data || this.data;
+  async loadModel(source?: Batch): Promise<BatchModel> {
+    source = source || this.data;
 
     const [catchPmfms, sortingPmfms] = await Promise.all([
       firstNotNil(this.$catchPmfms, {stop: this.destroySubject}).toPromise(),
       firstNotNil(this.$sortingPmfms, {stop: this.destroySubject}).toPromise()
     ]);
-    // Compute batch tree
-    const model = BatchModel.fromBatch(data, sortingPmfms);
-    if (!model) return;
+
+    // Create a batch model
+    const target = BatchModel.fromBatch(source, sortingPmfms);
+    if (!target) return;
 
     // Add catch batches pmfms
-    model.pmfms = [
+    target.pmfms = [
       ...catchPmfms,
-      ...model.pmfms
+      ...target.pmfms
     ];
 
-    this.filterForm = this.createFilterForm(model);
-    console.log(this.filterForm);
-
-    if (this.debug) this.logBatchModel(model);
+    if (this.debug) this.logBatchModel(target);
 
     // Set default catch batch name
-    if (!model.name) {
-      model.name = 'TRIP.BATCH.EDIT.CATCH_BATCH';
+    if (!target.parent && !target.name)  {
+      target.name = 'TRIP.BATCH.EDIT.CATCH_BATCH';
     }
 
-    this.treeDataSource.data = [model];
-
-    // Expand all
-    this.expandDescendants(model);
-    this.openFilterPanel();
-
-    return model;
+    return target;
   }
 
   hasChild = (_: number, node: BatchModel) => isNotEmptyArray(node.children) && isEmptyArray(node.childrenPmfms);
 
   createFilterForm(model: BatchModel, level = 0): FormGroup {
-    const isRoot = !level;
-    if (isRoot && this.debug) console.debug(this._logPrefix + 'Creating filter form, from batch model...', model);
+    const isCatchBatch = level === 0;
     const isLeaf = !this.hasChild(undefined, model);
+    if (isCatchBatch && this.debug) console.debug(this._logPrefix + 'Creating filter form, from batch model...', model);
 
-    const form = this.validatorService.getFormGroup(model, {
+    const form = this.batchModelValidatorService.getFormGroup(model, {
       pmfms: model.pmfms,
       withMeasurements: true,
       withMeasurementTypename: true,
@@ -433,7 +446,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 //        childrenArray.length
       //    }
     }
-    if (isRoot && this.debug) console.debug(this._logPrefix + 'Filter form created: ', form);
+    if (isCatchBatch && this.debug) console.debug(this._logPrefix + 'Filter form created: ', form);
 
     return form;
   }
@@ -496,7 +509,15 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
       // Data not changed (e.g. during ready())
       if (data === this.data) {
-        await this.loadModel(data);
+        const model = await this.loadModel(data);
+        if (!model) throw 'Invalid model';
+
+        // Apply model
+        this.filterForm = this.createFilterForm(model);
+        this.treeDataSource.data = [model];
+
+        this.expandDescendants(model);
+        this.openFilterPanel();
         this.markAsPristine();
       }
     }
@@ -517,32 +538,16 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     console.info(this._logPrefix + `Saving...`);
 
-    // Update data
-    const data = this.data || new Batch();
-    data.measurementValues = {};
-    data.children = [];
+    if (this.dirty) {
+      // Save editing batch
+      const saved = await this.saveEditingBatch();
+      if (!saved) return false; // Cannot save
 
-    // Save previous changes
-    if (this.editingBatch && this.batchTree.dirty) {
+      // Get data
+      const data = Batch.fromObject(this.filterForm.value, {withChildren: true});
 
-      console.info(this._logPrefix + `Saving previous parent ${this.editingBatch?.label}`);
-      const saved = await this.batchTree.save();
-      if (!saved) {
-        console.warn(this._logPrefix + `Failed to save previous parent !`);
-        this.editingBatch.error = this.batchTree.error;
-        event.preventDefault();
-        return false; // Cannot save
-      }
-
-      const savedBatch = this.batchTree.value;
-      console.debug(this._logPrefix + `Replacing ${this.editingBatch?.label} with ${savedBatch.label}`);
-      this.editingBatch.measurementValues = savedBatch.measurementValues;
-      if (!isEmptyArray(this.editingBatch.childrenPmfms)) {
-        this.editingBatch.children = savedBatch.children;
-      }
+      this.data = data;
     }
-
-    this.data = data;
 
     return true;
   }
@@ -577,6 +582,59 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   /* -- protected function -- */
+
+  /**
+   * Save editing batch
+   */
+  protected async saveEditingBatch(): Promise<boolean> {
+    if (!this.editingBatch) return true; // Already saved
+
+    // Update filter form
+    const form = this.filterForm?.get(this.editingBatch.path);
+    if (!form || !(form instanceof FormGroup)) throw new Error('Invalid filterForm path: ' +  this.editingBatch.path);
+    const withChildren = isNotEmptyArray(this.editingBatch.childrenPmfms);
+
+    // Save if need
+    let saved = true;
+    if (this.batchTree.dirty) {
+      console.info(this._logPrefix + `Saving editing batch ${this.editingBatch.label} ...`);
+      saved = await this.batchTree.save();
+    }
+
+    // Check if valid
+    if (!saved || this.batchTree.invalid) {
+      this.batchTree.logFormErrors(this.editingBatch.path);
+      this.editingBatch.error = this.batchTree.error;
+      this.editingBatch.invalid = true;
+      this.setError(this.editingBatch.error);
+      return false;
+    }
+
+    // Get saved data
+    const savedBatch = this.batchTree.value;
+    this.batchTree.markAsPristine();
+
+    // Update the model
+    this.editingBatch.measurementValues = savedBatch.measurementValues;
+    if (withChildren) {
+      this.editingBatch.children = savedBatch.children;
+    }
+
+    // Update the filter form
+    //const json = savedBatch.asObject({withChildren: false});
+    form.patchValue({
+      measurementValues: savedBatch.measurementValues
+    });
+    if (withChildren) {
+      // const childrenArray = new FormArray(
+      //   (savedBatch.children || [])
+      //     .map(c => this.batchModelValidatorService.getFormGroup(c as BatchModel, {pmfms: this.editingBatch.childrenPmfms, withChildren: true}))
+      // );
+      //form.setControl('children', childrenArray);
+    }
+
+    return form.valid;
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();

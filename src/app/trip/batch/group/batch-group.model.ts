@@ -73,8 +73,8 @@ export class BatchGroupUtils {
 
   static computeChildrenPmfmsByQvPmfm(qvId: number, pmfms: IPmfm[]) {
     return (pmfms || [])
-      // Exclude DISCARD_REASON if NOT on DISCARD
-      .filter(pmfm => qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD || pmfm.id !== PmfmIds.DISCARD_REASON)
+      // Allow DISCARD_REASON only on DISCARD
+      .filter(pmfm => pmfm.id !== PmfmIds.DISCARD_REASON || qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD)
       .map(pmfm => {
         // If DISCARD
         if (qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD) {

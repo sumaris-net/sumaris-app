@@ -93,17 +93,18 @@ export class BatchValidatorService<
     // there is a second level of children only if there is qvPmfm and sampling batch columns
     if (opts?.withChildren) {
       if (isNotEmptyArray(data?.children)) {
-        console.warn('MAKE thi working. Trip control => Operation control => batch control')
+        console.warn('[batch-validator] Creating validator for children batches - TODO: code review');
         form.addControl('children', this.formBuilder.array(
           data.children
             .filter(BatchUtils.isSortingBatch)
-            .map(source => this.getFormGroup(source as T, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, childrenPmfms: this.childrenPmfms, ...opts}))
+            .map(source => this.getFormGroup(source as T, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, ...opts}))
         ));
       }
       else {
         const formChildrenHelper = this.getChildrenFormHelper(form, {
           withChildren: !!opts.qvPmfm && this.enableSamplingBatch,
-          withChildrenWeight: true
+          withChildrenWeight: true,
+          childrenPmfms: !!opts.qvPmfm && opts.childrenPmfms || null
         });
         formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
       }
@@ -155,7 +156,11 @@ export class BatchValidatorService<
     return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
   }
 
-  protected getChildrenFormHelper(form: FormGroup, opts?: { withChildren: boolean; withChildrenWeight: boolean }): FormArrayHelper<T> {
+  protected getChildrenFormHelper(form: FormGroup, opts?: {
+    withChildren: boolean;
+    withChildrenWeight: boolean;
+    childrenPmfms?: IPmfm[]
+  }): FormArrayHelper<T> {
     let arrayControl = form.get('children') as FormArray;
     if (!arrayControl) {
       arrayControl = this.formBuilder.array([]);

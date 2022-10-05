@@ -885,6 +885,7 @@
         "TOTAL_INDIVIDUAL_COUNT": "Nb indiv. total",
         "TOTAL_WEIGHT": "Poids total",
         "SAMPLING_RATIO": "Taux échant.",
+        "SAMPLING_COEFFICIENT": "Coef. échant.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant.",
         "PARENT_GROUP": "Lot espèce",

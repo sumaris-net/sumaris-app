@@ -4,7 +4,7 @@ import { FormGroup, Validators } from '@angular/forms';
 import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
-  ColumnItem,
+  ColumnItem, firstArrayValue,
   FormFieldDefinition,
   FormFieldType,
   InMemoryEntitiesService,
@@ -42,6 +42,7 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
+import { hasFlag } from '@app/shared/flags.utils';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -125,6 +126,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       type: 'samplingRatio',
       key: 'samplingRatio',
       label: 'TRIP.BATCH.TABLE.SAMPLING_RATIO',
+      unitLabel: <SamplingRatioFormat>'%',
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_SAMPLING_RATIO,
       isSampling: true,
       path: 'children.0.samplingRatio',
@@ -202,7 +204,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   }
 
   get dirty(): boolean {
-    return this.dirtySubject.value || (this.weightMethodForm && this.weightMethodForm.dirty);
+    return this.dirtySubject.value
+      || this.memoryDataService.dirty
+      || (this.weightMethodForm && this.weightMethodForm.dirty);
   }
 
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
@@ -274,7 +278,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       new InMemoryEntitiesService<BatchGroup, BatchFilter>(BatchGroup, BatchFilter, {
         onLoad: (data) => this.onLoad(data),
         onSave: (data) => this.onSave(data),
-        equals: BatchGroup.equals
+        equals: BatchGroup.equals,
+        sortByReplacement: {
+          'id': 'rankOrder'
+        }
       }),
       // Force no validator (readonly mode, if mobile)
       injector.get(LocalSettingsService).mobile ? null : batchGroupValidator,
@@ -312,12 +319,25 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     if (this.debug && this.mobile) this.setValidatorService(null);
 
     super.ngOnInit();
+
+    // Configure sortBy replacement
+    this.memoryDataService.addSortByReplacement('taxonGroup', `taxonGroup.${firstArrayValue(this.autocompleteFields.taxonGroup.attributes)}`)
+    this.memoryDataService.addSortByReplacement('taxonName', `taxonName.${firstArrayValue(this.autocompleteFields.taxonName.attributes)}`)
+
   }
 
   ngOnDestroy() {
     super.ngOnDestroy();
     this.memoryDataService.stop();
     this.memoryDataService = null;
+  }
+
+  protected applyPmfms(pmfms: IPmfm[]) {
+    this.markAsLoading();
+    // if (this.measurementsDataService.started) {
+    //   this.measurementsDataService.restart();
+    // }
+    this.measurementsDataService.pmfms = pmfms;
   }
 
   translateControlPath(path: string): string {
@@ -344,7 +364,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       }
       else {
         const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === path);
-        if (col) `${this.translate.instant(col.label)}`;
+        if (col) return this.translate.instant(col.label);
       }
     }
     return super.translateControlPath(path);
@@ -467,16 +487,14 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   }
 
   isMissingValue(col: BatchGroupColumnDefinition, row: TableElement<BatchGroup>): boolean {
-    if (!(col.flags & BatchGroupColumnFlags.IS_WEIGHT)
-      || !(col.flags & BatchGroupColumnFlags.IS_SAMPLING)) return false;
-    //if (!col.isWeight || !col.isSampling) return false;
+    if (!hasFlag(col.flags, BatchGroupColumnFlags.IS_WEIGHT)
+      || !hasFlag(col.flags, BatchGroupColumnFlags.IS_SAMPLING)) return false;
     const samplingBatch = (col.qvIndex >= 0
       // With qv pmfm
       ? row.currentData.children[col.qvIndex]
       // With no qv pmfm
-      : row.currentData)
-      // Get sampling batch
-      .children[0];
+      : row.currentData
+    )?.children[0]; // Get sampling batch
 
     const missing = (isNil(samplingBatch?.weight?.value) || samplingBatch.weight.value <= 0)
       && isNotNil(samplingBatch?.individualCount);
@@ -576,7 +594,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     }
 
     const qvId = this.qvPmfm?.qualitativeValues[qvIndex]?.id || -1;
-    const childrenPmfms = BatchGroupUtils.computeChildrenPmfmsByQvPmfm(qvId, this._childrenPmfms);
+    const childrenPmfms = qvId !== -1
+      ? BatchGroupUtils.computeChildrenPmfmsByQvPmfm(qvId, this._childrenPmfms)
+      : this._speciesPmfms;
     data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, childrenPmfms, {keepSourceObject: true});
 
   }
@@ -695,7 +715,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
     // Compute species pmfms (at species batch level)
     if (this.qvPmfm) {
-      let qvPmfmIndex = this._initialPmfms.findIndex(pmfm => pmfm.id === this.qvPmfm.id);
+      const qvPmfmIndex = this._initialPmfms.findIndex(pmfm => pmfm.id === this.qvPmfm.id);
       this._speciesPmfms = this._initialPmfms.filter((pmfm, index) => index < qvPmfmIndex);
       this._childrenPmfms = this._initialPmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
     }
@@ -713,7 +733,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     }
 
     // Init dynamic columns
-    this.computeDynamicColumns(this.qvPmfm);
+    this.computeDynamicColumns(this.qvPmfm, {cache: false});
 
     //Additional pmfms managed by validator on children batch
     return this._speciesPmfms;
@@ -721,10 +741,14 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
   protected computeDynamicColumns(qvPmfm: IPmfm, opts = { cache: true }): BatchGroupColumnDefinition[] {
     // Use cache
-    if (opts.cache !== false && this.dynamicColumns) {
-      // TODO remove this log
-      console.warn(this.logPrefix + 'Reusing cached dynamic columns', this.dynamicColumns);
-      return this.dynamicColumns;
+    if (this.dynamicColumns) {
+      if (opts.cache !== false) {
+        console.debug(this.logPrefix + 'Reusing cached dynamic columns', this.dynamicColumns);
+        return this.dynamicColumns;
+      }
+      else {
+        console.debug(this.logPrefix + 'Updating dynamic columns');
+      }
     }
 
     // DEBUG
@@ -734,11 +758,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
       // Make sure default weight pmfm exists
       if (isNil(this.defaultWeightPmfm)) {
-        throw new Error(`[batch-group-table] Unable to construct the table. No weight PMFM found in strategy - acquisition level ${this.acquisitionLevel})`);
+        //throw new Error(`[batch-group-table] Unable to construct the table. No weight PMFM found in strategy - acquisition level ${this.acquisitionLevel})`);
+        console.warn(`[batch-group-table] Unable to construct the table. No weight PMFM found in strategy - acquisition level ${this.acquisitionLevel})`);
       }
 
       // Check rankOrder is correct
-      if (PmfmUtils.isDenormalizedPmfm(this.defaultWeightPmfm)
+      else if (PmfmUtils.isDenormalizedPmfm(this.defaultWeightPmfm)
           && (qvPmfm && PmfmUtils.isDenormalizedPmfm(qvPmfm)
             && qvPmfm.rankOrder > this.defaultWeightPmfm.rankOrder)) {
         throw new Error(`[batch-group-table] Unable to construct the table. First qualitative value PMFM must be define BEFORE any weight PMFM (by rankOrder in PMFM strategy - acquisition level ${this.acquisitionLevel})`);
@@ -809,8 +834,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
   protected computeDynamicColumnsByQv(qvGroup?: ReferentialRef, qvIndex?: number): BatchGroupColumnDefinition[] {
     qvIndex = isNotNil(qvIndex) ? qvIndex : -1;
-    const offset = (this._speciesPmfms.length - 1)
-      + qvIndex * (BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length + (!this.mobile && this._childrenPmfms.length || 0));
+    let rankOrderOffset = this._speciesPmfms.filter(p => !p.hidden).length;
+    if (qvIndex > 0) {
+      rankOrderOffset += qvIndex * (BatchGroupsTable.BASE_DYNAMIC_COLUMNS.length + (!this.mobile && this._childrenPmfms.length || 0));
+    }
+
     const hideWeightColumns = !this._showWeightColumns;
     const hideIndividualCountColumns = !this.showIndividualCountColumns;
     const hideSamplingColumns = !this._showSamplingBatchColumns;
@@ -820,7 +848,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     const pmfmColumns = BatchGroupUtils.computeChildrenPmfmsByQvPmfm((qvGroup?.id || -1), this._childrenPmfms)
       .map((pmfm, index) => {
         const key: string = qvGroup ? `${qvGroup.label}_${pmfm.id}` : `${pmfm.id}`;
-        const rankOrder: number = offset + index;
+        const rankOrder: number = rankOrderOffset + index;
         const hidden = this.mobile || pmfm.hidden;
         return <BatchGroupColumnDefinition>{
           type: 'pmfm',
@@ -842,19 +870,20 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     const qvColumns = BatchGroupsTable.BASE_DYNAMIC_COLUMNS
       .map((def, index) => {
         const key = qvGroup ? `${qvGroup.label}_${def.key}` : def.key;
-        const rankOrder = offset + pmfmColumns.length + index;
-        const hidden = (hideWeightColumns && ((def.flags & BatchGroupColumnFlags.IS_WEIGHT) !== 0))
-          || (hideIndividualCountColumns && ((def.flags & BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT) !== 0))
-          || (hideSamplingColumns && ((def.flags & BatchGroupColumnFlags.IS_SAMPLING) !== 0))
-          || (hideSamplingRatioColumns && ((def.flags & BatchGroupColumnFlags.IS_SAMPLING_RATIO) !== 0))
-        ;
-        // const hidden = (hideWeightColumns && def.isWeight)
-        //   || (hideIndividualCountColumns && (def.isIndividualCount || def.key === 'samplingRatio'))
-        //   || (hideSamplingColumns && def.isSampling);
+        const rankOrder = rankOrderOffset + pmfmColumns.length + index;
+        const isSamplingRatio = hasFlag(def.flags, BatchGroupColumnFlags.IS_SAMPLING_RATIO);
+        const hidden = (hideWeightColumns && hasFlag(def.flags, BatchGroupColumnFlags.IS_WEIGHT))
+          || (hideIndividualCountColumns && hasFlag(def.flags, BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT))
+          || (hideSamplingColumns && hasFlag(def.flags, BatchGroupColumnFlags.IS_SAMPLING))
+          || (hideSamplingRatioColumns && hasFlag(def.flags, BatchGroupColumnFlags.IS_SAMPLING_RATIO));
+        const label = isSamplingRatio && this.samplingRatioFormat === '1/w' ? 'TRIP.BATCH.TABLE.SAMPLING_COEFFICIENT' : def.label;
+        const unitLabel = isSamplingRatio && this.samplingRatioFormat === '1/w' ? null : def.unitLabel;
         return <BatchGroupColumnDefinition>{
           ...(def.isWeight && this.defaultWeightPmfm || {}),
           ...def,
           key,
+          label,
+          unitLabel,
           qvIndex,
           rankOrder,
           hidden,
@@ -1265,7 +1294,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
     // Default measurements
     const filter = this.filter;
-    const filteredSpeciesPmfmIds = filter && Object.keys(filter.measurementValues);
+    const filteredSpeciesPmfmIds = filter && Object.keys(filter.measurementValues).filter(key => key !== '__typename');
     if (isNotEmptyArray(filteredSpeciesPmfmIds)) {
       data.measurementValues = data.measurementValues || {};
       filteredSpeciesPmfmIds.forEach(pmfmId => {

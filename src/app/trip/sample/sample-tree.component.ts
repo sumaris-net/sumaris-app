@@ -276,7 +276,10 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
       // Set children of root samples
       rootSamples.forEach(sample => {
-        sample.children = subSamples.filter(childSample => childSample.parent && sample.equals(childSample.parent));
+        sample.children = subSamples
+          .filter(c => c.parent && sample.equals(c.parent))
+          // Make sure to get Sample
+          .map(c => Sample.fromObject(c, {withChildren: false}));
       });
       target = rootSamples;
     }

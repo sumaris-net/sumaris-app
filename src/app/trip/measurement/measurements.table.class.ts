@@ -188,11 +188,7 @@ export abstract class BaseMeasurementsTable<
   }
 
   @Input() set pmfms(pmfms: IPmfm[]) {
-    this.markAsLoading();
-    if (this.measurementsDataService.started) {
-      console.warn('Applying pmfms, but already has one !');
-    }
-    this.measurementsDataService.pmfms = pmfms;
+    this.applyPmfms(pmfms);
   }
 
   get hasPmfms(): boolean {
@@ -320,6 +316,11 @@ export abstract class BaseMeasurementsTable<
     this.measurementsDataService?.stop();
     this.measurementsDataService = null;
 
+  }
+
+  protected applyPmfms(pmfms: IPmfm[]){
+    this.markAsLoading();
+    this.measurementsDataService.pmfms = pmfms;
   }
 
   getRowValidator(): FormGroup {

@@ -4,9 +4,8 @@
       <ion-col>
         batchTree.loading: {{loading}}<br/>
         batchTree.ready: {{readySubject|async}}<br/>
+        batchTree.dirty: {{dirty}}<br/>
         batchTree.valid: {{valid}}<br/>
-        batchTree.dirty: {{dirty}}<br/>
-        batchTree.dirty: {{dirty}}<br/>
         batchTree.program: {{($program|async)?.label}}<br/>
         batchTree.showCatchForm: {{showCatchForm}}<br/>
         batchTree.showBatchTables: {{showBatchTables}}<br/>
@@ -24,7 +23,7 @@
       <ion-col>
         batchGroupsTable.loading: {{batchGroupsTable.loading}}<br/>
         batchGroupsTable.ready: {{batchGroupsTable.readySubject|async}}<br/>
-        batchGroupsTable.dirty: {{batchGroupsTable.dirty}}<br/>
+        batchGroupsTable.dirty: {{batchGroupsTable.dirtySubject|async}}<br/>
         batchGroupsTable.valid: {{batchGroupsTable.valid}}<br/>
         batchGroupsTable.program: {{batchGroupsTable.programLabel}}<br/>
         <!--          batchGroupsTable.i18nPmfmPrefix: {{batchGroupsTable.i18nPmfmPrefix}}<br/>-->
@@ -33,6 +32,16 @@
         batchGroupsTable.showSamplingBatchColumns: {{batchGroupsTable.showSamplingBatchColumns}}<br/>
         batchGroupsTable.defaultHasSubBatches: {{batchGroupsTable.defaultHasSubBatches}}<br/>
         batchGroupsTable.availableTaxonGroups: {{batchGroupsTable.availableTaxonGroups?.length||0}}<br/>
+      </ion-col>
+      <ion-col *ngIf="showSubBatchesTable && subBatchesTable">
+        subBatchesTable.loading: {{subBatchesTable.loading}}<br/>
+        subBatchesTable.ready: {{subBatchesTable.readySubject|async}}<br/>
+        subBatchesTable.dirty: {{subBatchesTable.dirtySubject|async}}<br/>
+        subBatchesTable.valid: {{subBatchesTable.valid}}<br/>
+        subBatchesTable.program: {{subBatchesTable.programLabel}}<br/>
+        batchGroupsTable.showTaxonNameColumn: {{subBatchesTable.showTaxonNameColumn}}<br/>
+        batchGroupsTable.showIndividualCount: {{subBatchesTable.showIndividualCount}}<br/>
+        batchGroupsTable.availableParents: {{subBatchesTable.availableParents?.length||0}}<br/>
       </ion-col>
     </ion-row>
   </ion-grid>

@@ -1,5 +1,5 @@
 import { BehaviorSubject, from, isObservable, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, first, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, first, map, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { EntityUtils, firstNotNil, firstNotNilPromise, IEntitiesService, IEntityFilter, InMemoryEntitiesService, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
 import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
@@ -167,9 +167,13 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     options?: any
   ): Observable<LoadResult<T>> {
 
-    return from(this.start())
+    if (!this.started) this.start();
+
+    return this.$pmfms
       .pipe(
-        switchMap(pmfms => {
+        takeUntil(this.stopSubject),
+        filter(isNotNil),
+        mergeMap(pmfms => {
           let cleanSortBy = sortBy;
 
           // Do not apply sortBy to delegated service, when sort on a pmfm

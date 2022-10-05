@@ -455,7 +455,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     // Check if need to delete some rows
     let hasRemovedItem = false;
     const data = rows
-      .filter(row => {
+      .map(row => {
         const item = row.currentData;
         const parentId = toNumber(item.parentId, item.parent?.id);
 
@@ -487,17 +487,18 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
               row.currentData.parent = parent;
             }
           }
-          return true; // Keep only rows with a parent (or in editing mode)
+          return item; // Keep only rows with a parent (or in editing mode)
         }
 
-        // Could not found the parent anymore (parent has been delete)
+        // Could not find the parent anymore (parent has been deleted)
         hasRemovedItem = true;
-        return false;
+        return undefined;
       })
-      .map(r => r.currentData);
+      .map(isNotNil);
 
     if (hasRemovedItem) {
-      this.value = data;
+      // Make sure to convert into a Sample - fix issue #371
+      this.value = data.map(c => Sample.fromObject(c));
     }
   }
 

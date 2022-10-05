@@ -32,7 +32,6 @@ export class BatchModelValidatorService<
   FO extends BatchFromObjectOptions = BatchFromObjectOptions
   > extends BatchValidatorService<T, O> {
 
-
   constructor(
     formBuilder: FormBuilder,
     measurementsValidatorService: MeasurementsValidatorService,
@@ -43,7 +42,11 @@ export class BatchModelValidatorService<
 
   getFormGroupConfig(data?: T, opts?: O): { [key: string]: any } {
     const config = super.getFormGroupConfig(data, opts);
-    return config;
+
+    return {
+      ...config,
+      name: [data?.name || null]
+    };
   }
 
   getFormGroup(data?: T, opts?: O): FormGroup {

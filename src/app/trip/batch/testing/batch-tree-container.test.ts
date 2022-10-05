@@ -80,7 +80,7 @@ export class BatchTreeContainerTestPage implements OnInit {
       example: [null, Validators.required],
       autofill: [false, Validators.required]
     });
-    this.selectedTabIndex = +(activeRoute.snapshot.queryParamMap['tab']) || 0;
+    this.selectedTabIndex = +(activeRoute.snapshot.queryParamMap['tab']) || this.selectedTabIndex || 0;
   }
 
   ngOnInit() {
