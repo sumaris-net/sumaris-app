@@ -1,12 +1,20 @@
 <app-toolbar [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
-  <ion-title [innerHTML]="$title|async"></ion-title>
-  <ion-buttons slot="end">
-    <ion-button>
-      <ion-icon name="print"></ion-icon>
-    </ion-button>
-  </ion-buttons>
+
+<ion-title [innerHTML]="$title|async"></ion-title>
+<ion-buttons slot="end">
+  <ion-button>
+    <ion-icon name="print"></ion-icon>
+  </ion-button>
+</ion-buttons>
 </app-toolbar>
 
 <ion-content>
+
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
   <p>Work in progress !</p>
+
 </ion-content>

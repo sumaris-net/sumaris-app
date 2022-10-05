@@ -29,6 +29,8 @@ export abstract class AppRootDataReport<
   $title = new Subject<string>();
 
   @Input() embedded = false;
+  @Input() showError = true;
+  @Input() showToolbar = true;
 
   constructor(injector: Injector) {
 
