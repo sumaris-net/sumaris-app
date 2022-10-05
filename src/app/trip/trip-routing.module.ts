@@ -33,6 +33,10 @@ const routes: Routes = [
       {
         path: 'landing',
         loadChildren: () => import('./landing/landing-routing.module').then(m => m.AppLandingRoutingModule)
+      },
+      {
+        path: 'report',
+        loadChildren: () => import('./trip/report/trip-report-routing.module').then(m => m.TripReportRoutingModule)
       }
     ]
   }

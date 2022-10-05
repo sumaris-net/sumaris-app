@@ -1,13 +1,18 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
+import { TripReport } from './trip.report';
 
 
 @NgModule({
-  declarations: [],
+  declarations: [
+    TripReport,
+  ],
   imports: [
     AppCoreModule,
   ],
-  exports: [],
+  exports: [
+    TripReport,
+  ],
 })
 export class TripReportModule { }
