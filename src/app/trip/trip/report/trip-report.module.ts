@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
+import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { TripReport } from './trip.report';
 
 
@@ -10,6 +10,7 @@ import { TripReport } from './trip.report';
   ],
   imports: [
     AppCoreModule,
+    AppSharedReportModule,
   ],
   exports: [
     TripReport,

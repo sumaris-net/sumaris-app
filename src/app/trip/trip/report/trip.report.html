@@ -15,6 +15,12 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <p>Work in progress !</p>
+  <app-slides #slides *ngIf="!error" [options]="slidesOptions">
+    <section>
+      <section>
+        <h1>{{ 'TRIP.REPORT.TITLE_SHORT'|translateContext: i18nContext.suffix }}</h1>
+      </section>
+    </section>
+  </app-slides>
 
 </ion-content>

@@ -1,7 +1,8 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, DateFormatPipe, isNil, isNotNilOrBlank, PlatformService } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, DateFormatPipe, isNil, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
 
@@ -13,6 +14,7 @@ export abstract class AppRootDataReport<
   protected readonly route: ActivatedRoute;
   protected readonly cd: ChangeDetectorRef;
   protected readonly dateFormatPipe: DateFormatPipe;
+  protected readonly settings: LocalSettingsService;
 
   protected readonly platform: PlatformService;
   protected readonly translate: TranslateService;
@@ -25,6 +27,13 @@ export abstract class AppRootDataReport<
   protected _pathIdAttribute: string;
 
   error: string;
+  slidesOptions: Partial<IRevealOptions>;
+  // NOTE: Interface for this ?
+  i18nContext = {
+    prefix: '',
+    suffix: '',
+  }
+
   $defaultBackHref = new Subject<string>();
   $title = new Subject<string>();
 
@@ -32,12 +41,14 @@ export abstract class AppRootDataReport<
   @Input() showError = true;
   @Input() showToolbar = true;
 
+  @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+
   constructor(injector: Injector) {
 
-    //this.dataType = dataType;
     this.cd = injector.get(ChangeDetectorRef);
     this.route = injector.get(ActivatedRoute);
     this.dateFormatPipe = injector.get(DateFormatPipe);
+    this.settings = injector.get(LocalSettingsService);
 
 
     this.platform = injector.get(PlatformService);
@@ -46,6 +57,7 @@ export abstract class AppRootDataReport<
     // NOTE: pathIdParam is optional. On which case it may be not set ???
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam;
 
+    this.slidesOptions = this.computeSlidesOptions();
   }
 
   ngAfterViewInit() {
@@ -126,6 +138,15 @@ export abstract class AppRootDataReport<
   // NOTE : Can have parrent. Can take param from interface ?
   protected abstract computeDefaultBackHref(data: T): string;
 
+  protected computeSlidesOptions(): Partial<IRevealOptions> {
+    const mobile = this.settings.mobile;
+    return {
+      autoInitialize: false,
+      disableLayout: mobile,
+      touch: mobile,
+    }
+  }
+
   protected async loadFromRoute(): Promise<void> {
     const route = this.route.snapshot;
     const id: number = route.params[this._pathIdAttribute];
@@ -134,8 +155,13 @@ export abstract class AppRootDataReport<
     }
 
     await this.load(id);
+    await this.updateView();
 
     return;
+  }
+
+  async updateView() {
+    this.slides.initialize();
   }
 
   protected markForCheck() {

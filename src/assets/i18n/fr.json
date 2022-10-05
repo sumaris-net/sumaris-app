@@ -1066,7 +1066,8 @@
       }
     },
     "REPORT": {
-      "TITLE": "<small>{{ vessel }}</small> Rapport de marée du {{ departureDate }}"
+      "TITLE": "<small>{{ vessel }}</small> Rapport de marée du {{ departureDate }}",
+      "TITLE_SHORT": "Rapport de marée"
     }
   },
   "EXPECTED_SALE": {
