@@ -127,9 +127,9 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
       console.error(`[${this.constructor.name}] Error: ${err}`);
       this.error = err as string;
     } else {
-      console.log(`[${this.constructor.name}] Error: ${err.message}`, err);
+      console.error(`[${this.constructor.name}] Error: ${err.message}`, err);
       let userMessage: string = err.message && this.translate.instant(err.message) || err;
-      const detailMessage: string = (!err.details || typeof (err.details === 'string'))
+      const detailMessage: string = (!err.details || typeof(err.details) === 'string')
         ? err.details as string
         : err.details.message;
       if (isNotNilOrBlank(detailMessage)) {

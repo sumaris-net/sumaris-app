@@ -1,19 +1,28 @@
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Injector } from '@angular/core';
+import { AppRootDataReport } from '@app/data/report/root-data-report.class';
+import { Trip } from '@app/trip/services/model/trip.model';
+import { TripService } from '@app/trip/services/trip.service';
 
 @Component({
   selector: 'app-trip-report',
   templateUrl: './trip.report.html',
   styleUrls: ['./trip.report.scss']
 })
-export class TripReport implements AfterViewInit, OnDestroy {
+export class TripReport extends AppRootDataReport<Trip> {
 
-  constructor() {
+  private dataService: TripService;
+
+  constructor(injector: Injector) {
+    super(injector);
+    this.dataService = injector.get(TripService);
   }
 
-  ngAfterViewInit() {
+  protected async loadData(id: number): Promise<Trip> {
+    return await this.dataService.load(id);
   }
 
-  ngOnDestroy() {
+  protected computeDefaultBackHref(data: Trip): string {
+    return `/trips/${data.id}?tab=1`;
   }
 
 }
