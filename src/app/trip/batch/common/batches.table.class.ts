@@ -43,7 +43,6 @@ export abstract class AbstractBatchesTable<
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
 
-  qvPmfm: IPmfm;
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
   weightPmfmsByMethod: { [key: string]: IPmfm };
@@ -307,9 +306,6 @@ export abstract class AbstractBatchesTable<
     this.weightPmfms = pmfms.filter(p => PmfmUtils.isWeight(p));
     this.defaultWeightPmfm = firstArrayValue(this.weightPmfms); // First as default
     this.weightPmfmsByMethod = splitByProperty(this.weightPmfms, 'methodId');
-
-    // Find the first qualitative PMFM
-    this.qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
 
     // Exclude weight PMFMs
     return pmfms.filter(p => !this.weightPmfms.includes(p));

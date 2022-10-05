@@ -189,6 +189,9 @@ export abstract class BaseMeasurementsTable<
 
   @Input() set pmfms(pmfms: IPmfm[]) {
     this.markAsLoading();
+    if (this.measurementsDataService.started) {
+      console.warn('Applying pmfms, but already has one !');
+    }
     this.measurementsDataService.pmfms = pmfms;
   }
 

@@ -73,7 +73,6 @@ export class BatchesTable extends AbstractBatchesTable<Batch>{
         disabled: this.disabled,
         data: dataToOpen,
         isNew,
-        qvPmfm: this.qvPmfm,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
         // Not need on a root species batch (fill in sub-batches)

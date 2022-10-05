@@ -38,6 +38,7 @@ export class BatchModel<
 
     // Find the first QV pmfm (with QV
     let childrenQvPmfm: IPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms, {
+      excludeHidden: true,
       minQvCount: 2,
       maxQvCount: 3
     });
@@ -86,6 +87,11 @@ export class BatchModel<
         ];
         target.children = source.children;
       }
+    }
+    else {
+      // No QV pmfm found
+      target.pmfms = [];
+      target.childrenPmfms = pmfms;
     }
 
     // Disabled if no pmfms

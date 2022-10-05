@@ -165,15 +165,18 @@
 <ng-template #batchBadges let-node>
 
   <ng-container *ngIf="debug">
-    <!-- pmfm count
-    <ion-badge *ngIf="node.pmfms?.length; let pmfmCount"
-               color="tertiary"
-               slot="end">{{pmfmCount}} pmfm</ion-badge>-->
-
-    <!-- children pmfm count
-    <ion-badge *ngIf="node.childrenPmfms?.length; let pmfmCount"
-               color="tertiary"
-               slot="end">{{pmfmCount}} table pmfm</ion-badge> -->
+    <!-- children pmfm count  -->
+    <ng-container *ngIf="node.childrenPmfms?.length; let count; else directPmfms">
+      <ion-badge color="secondary" slot="end">{{count}} pmfm</ion-badge>
+      <ion-badge *ngIf="node === editingBatch"
+                 color="secondary" slot="end">{{batchTree.batchGroupsTable.qvPmfm?.label || 'NO QV PMFM'}}</ion-badge>
+    </ng-container>
+    <!-- pmfm count -->
+    <ng-template #directPmfms>
+      <ion-badge *ngIf="node.pmfms?.length; let count"
+                 color="secondary"
+                 slot="end">{{count}} pmfm</ion-badge>
+    </ng-template>
 
     <!-- has weight pmfms
     <mat-icon class="small-icon" slot="end" *ngIf="node.pmfms|arrayFilter:isWeightPmfm|isNotEmptyArray">scale</mat-icon>-->
@@ -243,6 +246,6 @@
                 [mobile]="mobile"
                 [disabled]="disabled"
                 [filter]="filter"
-                [debug]="debug && false">
+                [debug]="debug">
 </app-batch-tree>
 

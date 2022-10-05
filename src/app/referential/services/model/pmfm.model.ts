@@ -258,16 +258,17 @@ export abstract class PmfmUtils {
     maxQvCount?: number;
     filterFn?: (IPmfm, index) => boolean;
   } = {
-    minQvCount: 1, // Should have at least 2 values (by default)
+    minQvCount: 1 // Should have at least 2 values (by default)
   }): P {
     // exclude hidden pmfm (see batch modal)
     const qvPmfm = this.filterPmfms(pmfms, opts)
       .find((p, index) => {
-        return p.type === 'qualitative_value' && p.qualitativeValues
+        return p.type === 'qualitative_value'
+          && p.qualitativeValues
           // Exclude if no enough qualitative values
-          // && p.qualitativeValues.length >= opts.minQvCount
+          && p.qualitativeValues.length >= opts.minQvCount
           // Exclude if too many qualitative values
-          //&& (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount)
+          && (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount)
           // Apply the first function, if any
           && (!opts.filterFn || opts.filterFn(p, index));
       });

@@ -22,6 +22,7 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   showSamplingBatch: boolean;
 
   // Other options
+  qvPmfm?: IPmfm;
   childrenPmfms: IPmfm[];
   enableWeightConversion: boolean;
 

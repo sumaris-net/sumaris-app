@@ -169,6 +169,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   groupColumns: GroupColumnDefinition[];
   groupColumnNames: string[];
   groupColumnStartColSpan: number;
+  qvPmfm: IPmfm;
 
   disable(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
     super.disable(opts);
@@ -689,6 +690,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
     super.mapPmfms(pmfms); // Should find the qvPmfm
 
+    // Find the first qualitative PMFM
+    this.qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
+
     // Compute species pmfms (at species batch level)
     if (this.qvPmfm) {
       let qvPmfmIndex = this._initialPmfms.findIndex(pmfm => pmfm.id === this.qvPmfm.id);
@@ -728,11 +732,15 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       // Log QV pmfm
       if (this.qvPmfm) console.debug('[batch-group-table] Using a qualitative PMFM, to group columns: ' + qvPmfm.label);
 
+      // Make sure default weight pmfm exists
+      if (isNil(this.defaultWeightPmfm)) {
+        throw new Error(`[batch-group-table] Unable to construct the table. No weight PMFM found in strategy - acquisition level ${this.acquisitionLevel})`);
+      }
+
       // Check rankOrder is correct
-      if (isNil(this.defaultWeightPmfm)
-        || (PmfmUtils.isDenormalizedPmfm(this.defaultWeightPmfm)
+      if (PmfmUtils.isDenormalizedPmfm(this.defaultWeightPmfm)
           && (qvPmfm && PmfmUtils.isDenormalizedPmfm(qvPmfm)
-            && qvPmfm.rankOrder > this.defaultWeightPmfm.rankOrder))) {
+            && qvPmfm.rankOrder > this.defaultWeightPmfm.rankOrder)) {
         throw new Error(`[batch-group-table] Unable to construct the table. First qualitative value PMFM must be define BEFORE any weight PMFM (by rankOrder in PMFM strategy - acquisition level ${this.acquisitionLevel})`);
       }
     }

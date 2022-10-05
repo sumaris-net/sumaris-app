@@ -333,9 +333,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
 
     //if (this.filterPanelFloating)
-      this.closeFilterPanel();
+    this.closeFilterPanel();
     this.editingBatch = source;
     this.markForCheck();
+
+    //await batchTree.unload();
 
     // Configure batch tree
     batchTree.gearId = this.gearId;
@@ -354,7 +356,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     batchTree.markAsReady();
     await batchTree.catchBatchForm.ready();
     await batchTree.batchGroupsTable.ready();
-    if (!this.loading && batchTree.batchGroupsTable.loading) await batchTree.batchGroupsTable.waitIdle();
+    //if (!firstUpdate) await batchTree.batchGroupsTable.waitIdle();
 
     // Apply value (afert clone(), to keep pmfms unchanged)
     const target = Batch.fromObject(source.asObject({withChildren: true}));
