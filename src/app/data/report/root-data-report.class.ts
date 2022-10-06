@@ -38,7 +38,6 @@ export abstract class AppRootDataReport<
   $defaultBackHref = new Subject<string>();
   $title = new Subject<string>();
 
-  @Input() embedded = false;
   @Input() showError = true;
   @Input() showToolbar = true;
 
@@ -53,7 +52,6 @@ export abstract class AppRootDataReport<
     this.route = injector.get(ActivatedRoute);
     this.dateFormatPipe = injector.get(DateFormatPipe);
     this.settings = injector.get(LocalSettingsService);
-
 
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);
@@ -79,14 +77,12 @@ export abstract class AppRootDataReport<
   async start() {
     console.debug(`[${this.constructor.name}.start]`);
     await this.platform.ready();
-    this.markAsReady();
     try {
       await this.loadFromRoute();
     } catch (err) {
       // NOTE: Test if setError work correctly
       this.setError(err);
     } finally {
-      this.markAsLoaded();
     }
   };
 
@@ -97,7 +93,6 @@ export abstract class AppRootDataReport<
     this.$defaultBackHref.next(this.computeDefaultBackHref(data));
     this.$title.next(await this.computeTitle(data));
 
-    this.markAsReady();
     this.markAsLoaded();
   };
 
