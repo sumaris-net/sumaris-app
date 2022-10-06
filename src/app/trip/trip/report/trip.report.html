@@ -17,10 +17,18 @@
 
   <app-slides #slides *ngIf="!error" [options]="slidesOptions">
     <section>
-      <section>
-        <h1>{{ 'TRIP.REPORT.TITLE_SHORT'|translateContext: i18nContext.suffix }}</h1>
-      </section>
+      <ng-container *ngIf="loaded; else loadingTemplate">
+        <section>
+          <h1>{{ 'TRIP.REPORT.TITLE_SHORT'|translateContext: i18nContext.suffix }}</h1>
+        </section>
+      </ng-container>
     </section>
   </app-slides>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
 
 </ion-content>
