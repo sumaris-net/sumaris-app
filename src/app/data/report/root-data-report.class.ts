@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy
 import { ActivatedRoute } from '@angular/router';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, DateFormatPipe, isNil, isNotNilOrBlank, LocalSettingsService, PlatformService } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, DateFormatPipe, firstFalsePromise, isNil, isNotNilOrBlank, LocalSettingsService, PlatformService, WaitForOptions } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
 
@@ -19,6 +19,7 @@ export abstract class AppRootDataReport<
   protected readonly platform: PlatformService;
   protected readonly translate: TranslateService;
 
+  protected readonly destroySubject = new Subject();
   protected readonly readySubject = new BehaviorSubject<boolean>(false);
   protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
 
@@ -42,6 +43,8 @@ export abstract class AppRootDataReport<
   @Input() showToolbar = true;
 
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+
+  get loaded(): boolean { return !this.loadingSubject.value; }
 
   constructor(injector: Injector) {
     console.debug(`[${this.constructor.name}.constructor]`, arguments);
@@ -68,6 +71,7 @@ export abstract class AppRootDataReport<
     }
   }
 
+  // TODO !!!
   ngOnDestroy() {
     console.debug(`[${this.constructor.name}.ngOnDestroy]`);
   }
@@ -171,6 +175,7 @@ export abstract class AppRootDataReport<
 
   async updateView() {
     console.debug(`[${this.constructor.name}.updateView]`);
+    this.cd.detectChanges();
     this.slides.initialize();
   }
 
