@@ -1,6 +1,6 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild, ViewEncapsulation } from '@angular/core';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
-import { PhysicalGearForm } from './physical-gear.form';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild, ViewEncapsulation} from '@angular/core';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
+import {PhysicalGearForm} from './physical-gear.form';
 import {
   AppEntityEditorModal,
   createPromiseEventEmitter,
@@ -9,24 +9,25 @@ import {
   IEntityEditorModalOptions,
   InMemoryEntitiesService,
   isNil,
-  isNotEmptyArray, isNotNil, PromiseEvent,
+  isNotEmptyArray,
+  isNotNil,
+  PromiseEvent,
   ReferentialRef,
   toBoolean,
   toNumber,
   TranslateContextService,
   waitFor
 } from '@sumaris-net/ngx-components';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { environment } from '@environments/environment';
-import { FormGroup } from '@angular/forms';
-import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
-import { BehaviorSubject } from 'rxjs';
-import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
-import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
-import { switchMap, tap } from 'rxjs/operators';
-import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
+import {environment} from '@environments/environment';
+import {FormGroup} from '@angular/forms';
+import {PhysicalGearFilter} from '@app/trip/physicalgear/physical-gear.filter';
+import {BehaviorSubject} from 'rxjs';
+import {PHYSICAL_GEAR_DATA_SERVICE_TOKEN} from '@app/trip/physicalgear/physicalgear.service';
+import {PhysicalGearTable} from '@app/trip/physicalgear/physical-gears.table';
+import {switchMap, tap} from 'rxjs/operators';
+import {PmfmUtils} from '@app/referential/services/model/pmfm.model';
 
 export interface IPhysicalGearModalOptions
   extends IEntityEditorModalOptions<PhysicalGear> {
@@ -72,13 +73,14 @@ export class PhysicalGearModal
   $gearId = new BehaviorSubject<number>(INVALID_GEAR_ID);
   $childrenTable = new BehaviorSubject<PhysicalGearTable>(undefined);
 
-  @Input() helpMessage: string = 'Veullez';
+  @Input() helpMessage: string;
   @Input() acquisitionLevel: string;
   @Input() childAcquisitionLevel: AcquisitionLevelType = 'CHILD_PHYSICAL_GEAR';
   @Input() programLabel: string;
   @Input() canEditGear = false;
   @Input() canEditRankOrder = false;
   @Input() allowChildrenGears: boolean
+  @Input() minChildrenCount: number = 2;
   @Input() showGear = true;
   @Input() showSearchButton = true;
   @Input() maxVisibleButtons: number;
@@ -93,14 +95,6 @@ export class PhysicalGearModal
 
   get childrenTable(): PhysicalGearTable {
     return this.$childrenTable.value;
-  }
-
-  get valid(): boolean {
-    return super.valid && (!this.showChildrenTable || (this.childrenTable && this.childrenTable.totalRowCount > 0));
-  }
-
-  get invalid(): boolean {
-    return super.invalid || (this.showChildrenTable && (!this.childrenTable || this.childrenTable.totalRowCount <= 0));
   }
 
   get gearId(): number {
@@ -166,6 +160,7 @@ export class PhysicalGearModal
           // Auto-hide children table, if new gear is null
           if (this.showChildrenTable && isNil(this.gearId)) {
             this.showChildrenTable = false;
+            this.updateChildrenTableState();
             this.markForCheck();
           }
         })
@@ -181,6 +176,7 @@ export class PhysicalGearModal
               this.addChildForm(table);
               table.setModalOption('helpMessage', this.helpMessage);
               table.setModalOption('maxVisibleButtons', this.maxVisibleButtons);
+              this.updateChildrenTableState();
             }),
             // Listen pmfm changed
             switchMap(table => table.$pmfms),
@@ -194,6 +190,7 @@ export class PhysicalGearModal
 
               if (this.showChildrenTable !== childrenHasSomePmfms && isNotNil(this.gearId)) {
                 this.showChildrenTable = childrenHasSomePmfms;
+                this.updateChildrenTableState();
                 this.markForCheck();
               }
             })
@@ -205,11 +202,6 @@ export class PhysicalGearModal
      if (this.isNewData && !this.mobile && this.enabled) {
        setTimeout(() => this.physicalGearForm.focusFirstInput(), 400);
      }
-
-  }
-
-  registerChildrenTable(value: PhysicalGearTable) {
-    this.$childrenTable.next(value);
   }
 
   async openSearchModal(event?: UIEvent) {
@@ -256,6 +248,24 @@ export class PhysicalGearModal
 
   /* -- protected functions -- */
 
+  updateViewState(data: PhysicalGear, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.updateViewState(data, opts);
+    this.updateChildrenTableState(opts);
+  }
+
+  updateChildrenTableState(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    const table = this.childrenTable;
+    if (!table) return; // Skip
+
+    const enabled = this.enabled && this.showChildrenTable;
+    if (enabled && !table.enabled) {
+      table.enable();
+    }
+    else if (!enabled && table.enabled) {
+      table.disable();
+    }
+  }
+
   protected async setValue(data: PhysicalGear) {
 
     try {
@@ -288,7 +298,7 @@ export class PhysicalGearModal
   protected async getValue(): Promise<PhysicalGear> {
     const data = PhysicalGear.fromObject(this.physicalGearForm.value);
 
-    if (this.allowChildrenGears) {
+    if (this.allowChildrenGears && this.showChildrenTable) {
       if (this.childrenTable.dirty) {
         await this.childrenTable.save();
       }
@@ -298,6 +308,15 @@ export class PhysicalGearModal
       data.children = null;
     }
     return data;
+  }
+
+  async saveAndClose(event?: Event): Promise<boolean> {
+    const valid = await super.saveAndClose(event);
+    if (!valid) {
+      // Need to mark table as touched, to show not enough row error
+      this.markAllAsTouched();
+    }
+    return valid;
   }
 
   protected async getJsonValueToSave(): Promise<any> {
@@ -319,7 +338,7 @@ export class PhysicalGearModal
   }
 
   protected getFirstInvalidTabIndex(): number {
-    if (this.allowChildrenGears && this.childrenTable?.invalid) return 1;
+    if (this.showChildrenTable && this.childrenTable?.invalid) return 1;
     return 0;
   }
 

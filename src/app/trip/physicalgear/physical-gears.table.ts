@@ -2,17 +2,17 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector
 import { TableElement } from '@e-is/ngx-material-table';
 
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
-import { createPromiseEventEmitter, IEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
+import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PhysicalGearFilter } from './physical-gear.filter';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { debounceTime, filter } from 'rxjs/operators';
+import {debounceTime, filter, tap} from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
-import { Subscription } from 'rxjs';
+import {BehaviorSubject, merge, Subscription} from 'rxjs';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
@@ -26,6 +26,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
 })
 export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
+  touchedSubject = new BehaviorSubject<boolean>(false);
   filterForm: FormGroup;
   modalOptions: Partial<IPhysicalGearModalOptions>;
 
@@ -41,6 +42,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   @Input() showPmfmDetails = false;
   @Input() compactFields = true;
   @Input() mobile: boolean;
+  @Input() minRowCount = 0;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -74,12 +76,33 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     return this.getModalOption('allowChildrenGears') as boolean;
   }
 
+  get valid() {
+    return super.valid && (this.totalRowCount >= this.minRowCount);
+  }
+
+  get invalid() {
+    return super.invalid || (this.totalRowCount < this.minRowCount);
+  }
+
+  get touched(): boolean {
+    return this.touchedSubject.value;
+  }
+
   @Output() openSelectPreviousGearModal = createPromiseEventEmitter<PhysicalGear>();
+
+  markAllAsTouched(opts?: { emitEvent?: boolean }) {
+    this.touchedSubject.next(true);
+    super.markAllAsTouched(opts);
+  }
+
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    this.touchedSubject.next(false);
+    super.markAsPristine(opts);
+  }
 
   constructor(
     injector: Injector,
     formBuilder: FormBuilder,
-    protected cd: ChangeDetectorRef,
     @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
@@ -111,10 +134,12 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     this.excludesColumns.push('lastUsed');
 
     // FOR DEV ONLY ----
+    this.logPrefix = '[physical-gears-table] ';
     this.debug = !environment.production;
   }
 
   ngOnInit() {
+
     super.ngOnInit();
 
     this.mobile = toBoolean(this.mobile, this.settings.mobile);
@@ -138,6 +163,31 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
           {emitEvent: true /*always apply*/}))
     );
 
+    if (this.minRowCount > 0) {
+      this.registerSubscription(
+        merge(
+          this.touchedSubject,
+          this.dataSource.rowsSubject
+        )
+       .pipe(
+          debounceTime(100),
+          //tap(() => console.debug(this.logPrefix + 'Updating minRowCount error'))
+          filter(_ => this.enabled)
+        )
+        .subscribe(_ => {
+          if (this.totalRowCount < this.minRowCount) {
+            const error = this.translate.instant((this.minRowCount === 1
+              ? 'TRIP.PHYSICAL_GEAR.ERROR.NOT_ENOUGH_SUB_GEAR'
+              : 'TRIP.PHYSICAL_GEAR.ERROR.NOT_ENOUGH_SUB_GEARS'),
+              {minRowCount: this.minRowCount});
+            this.setError(error);
+          }
+          else {
+            this.resetError();
+          }
+        })
+      )
+    }
   }
 
   ngOnDestroy() {
@@ -217,6 +267,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     return true;
   }
 
+
   async openDetailModal(dataToOpen?: PhysicalGear): Promise<PhysicalGear | undefined> {
 
     const isNewData = !dataToOpen && true;
@@ -266,7 +317,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
 
     subscription.unsubscribe();
 
-    if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
+    if (data && this.debug) console.debug(this.logPrefix + 'Modal result: ', data);
 
     return (data instanceof PhysicalGear) ? data : undefined;
   }
@@ -291,7 +342,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   /* -- protected methods -- */
 
   protected async onNewEntity(data: PhysicalGear): Promise<void> {
-    console.debug('[physical-gear-table] Initializing new row data...');
+    console.debug(this.logPrefix + 'Initializing new row data...');
 
     await super.onNewEntity(data);
 
@@ -299,10 +350,6 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     if (isNotNil(this.defaultGear)) {
       data.gear = this.defaultGear;
     }
-  }
-
-  protected markForCheck() {
-    this.cd.markForCheck();
   }
 
   protected async findRowByEntity(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {

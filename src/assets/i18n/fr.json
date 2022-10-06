@@ -643,7 +643,9 @@
       "ERROR": {
         "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins.",
         "CANNOT_DELETE": "Suppression impossible",
-        "CANNOT_DELETE_USED_GEAR_HELP": "Engin(s) utilisé(s) dans une ou plusieurs opérations.<br/><br/>Veuillez <b>modifier ces opérations</b> avant de réessayer."
+        "CANNOT_DELETE_USED_GEAR_HELP": "Engin(s) utilisé(s) dans une ou plusieurs opérations.<br/><br/>Veuillez <b>modifier ces opérations</b> avant de réessayer.",
+        "NOT_ENOUGH_SUB_GEAR": "Au moins un sous-engin est nécessaire.",
+        "NOT_ENOUGH_SUB_GEARS": "Au moins {{minRowCount}} sous-engins sont nécessaire."
       }
     },
     "OPERATION": {
@@ -848,6 +850,8 @@
         "TAXON_NAME": "Espèce scientifique",
         "PARENT_GROUP": "Lot espèce",
         "CATCH_BATCH": "Capture",
+        "RANK_ORDER": "Numéro Lot",
+        "LABEL": "Libellé Lot",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures",
         "BTN_APPLY_CHILDREN_WEIGHT": "Appliquer ce poids",

@@ -355,7 +355,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       .sort(TripComparators.sortByDepartureDateFn);
     if (isEmptyArray(trips)) return // Skip if empty
 
-    const programs = arrayDistinct(trips.map(t => t.program), ['label']);
+    const programs = arrayDistinct(trips.map(t => t.program), 'label');
     if (programs.length == 1) {
       this.showToast({
         type: 'warning',
@@ -373,7 +373,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       .sort(TripComparators.sortByDepartureDateFn);
     if (isEmptyArray(trips)) return // Skip if empty
 
-    const programs = arrayDistinct(trips.map(t => t.program), ['label']);
+    const programs = arrayDistinct(trips.map(t => t.program), 'label');
     if (programs.length > 1) {
       this.showToast({
         type: 'warning',

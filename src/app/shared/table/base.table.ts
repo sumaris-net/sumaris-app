@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild} from '@angular/core';
 import {
   AppTable,
   EntitiesServiceWatchOptions,
@@ -8,7 +8,7 @@ import {
   EntityFilter,
   EntityUtils,
   Hotkeys,
-  IEntitiesService,
+  IEntitiesService, InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   RESERVED_END_COLUMNS,
@@ -20,10 +20,12 @@ import { FormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
-import { filter, map } from 'rxjs/operators';
+import {filter, map, tap} from 'rxjs/operators';
 import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
+import {Sample} from '@app/trip/services/model/sample.model';
+import {SampleFilter} from '@app/trip/services/filter/sample.filter';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -48,6 +50,13 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   O extends BaseTableConfig<E, ID> = BaseTableConfig<E, ID>>
   extends AppTable<E, F, ID> implements OnInit, AfterViewInit {
 
+  private _canEdit: boolean;
+
+  protected memoryDataService: InMemoryEntitiesService<E, F, ID>;
+  protected cd: ChangeDetectorRef;
+  protected readonly hotkeys: Hotkeys;
+  protected logPrefix: string = null;
+  protected popoverController: PopoverController;
 
   @Input() canGoBack = false;
   @Input() showTitle = true;
@@ -60,6 +69,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   @Input() stickyEnd = false;
   @Input() compact = false;
   @Input() mobile = false;
+
 
   @Input() set canEdit(value: boolean) {
     this._canEdit = value;
@@ -80,11 +90,10 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return this.filterCriteriaCount === 0;
   }
 
-  protected readonly hotkeys: Hotkeys;
-  protected logPrefix: string = null;
-  protected popoverController: PopoverController;
-
-  private _canEdit: boolean;
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    if (this.memoryDataService?.dirty) return; // Skip if service still dirty
+    super.markAsPristine(opts);
+  }
 
   constructor(
     protected injector: Injector,
@@ -114,14 +123,31 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.hotkeys = injector.get(Hotkeys);
     this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
-    this.logPrefix = '[base-table] ';
+    this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
+    this.memoryDataService = (this.entityService instanceof InMemoryEntitiesService)
+      ? this.entityService as InMemoryEntitiesService<E, F, ID> : null;
+
+    // DEBUG
+    this.logPrefix = '[base-table] ';
     this.debug = options?.debug && !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Propagate dirty state of the in-memory service
+    if (this.memoryDataService) {
+      this.registerSubscription(
+        this.memoryDataService.dirtySubject
+          .pipe(
+            filter(dirty => dirty === true && !this.dirty),
+            tap(_ => this.markAsDirty())
+          )
+          .subscribe()
+      );
+    }
 
     this.restoreCompactMode();
   }
@@ -415,5 +441,9 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return EntityUtils.isEntity(d1) ? d1.equals(d2)
       : (EntityUtils.isEntity(d2) ? d2.equals(d1)
         : super.equals(d1, d2));
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

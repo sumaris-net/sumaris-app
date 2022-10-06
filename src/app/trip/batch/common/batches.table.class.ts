@@ -76,10 +76,6 @@ export abstract class AbstractBatchesTable<
     return this.getShowColumn('taxonName');
   }
 
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
-
   @Input() useSticky = false;
   @Input() defaultTaxonGroup: TaxonGroupRef;
   @Input() defaultTaxonName: TaxonNameRef;

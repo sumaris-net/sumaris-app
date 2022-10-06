@@ -205,7 +205,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
   get dirty(): boolean {
     return this.dirtySubject.value
-      || this.memoryDataService.dirty
       || (this.weightMethodForm && this.weightMethodForm.dirty);
   }
 

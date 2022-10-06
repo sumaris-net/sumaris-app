@@ -60,7 +60,8 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     protected context: ContextService<BatchContext>
     ) {
     super(formBuilder, settings);
-    console.debug(`[sub-batch-validator] Creating validator (context: ${this.context.constructor.name})`);
+
+    //console.debug(`[sub-batch-validator] Creating validator (context: ${this.context.constructor.name})`);
   }
 
   getFormGroupConfig(data?: SubBatch, opts?: SubBatchValidatorValidatorOptions): { [p: string]: any } {

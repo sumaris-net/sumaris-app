@@ -97,7 +97,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   showSubBatchesTable = false;
   listenProgramChanges = true;
 
-  @Input() debug: boolean;
+  @Input() rootAcquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
   @Input() mobile: boolean;
   @Input() useSticky = false;
   @Input() usageMode: UsageMode;
@@ -105,6 +105,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   @Input() showBatchTables: boolean;
   @Input() enableWeightLengthConversion: boolean;
   @Input() i18nPmfmPrefix: string;
+  @Input() debug: boolean;
 
   @Input() set physicalGearId(value: number) {
     if (this._physicalGearId !== value) {
@@ -276,7 +277,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
     this._subBatchesService = this.mobile
       ? new InMemoryEntitiesService(SubBatch, SubBatchFilter, {
-        equals: Batch.equals
+        equals: Batch.equals,
+        sortByReplacement: {'id': 'rankOrder'}
       })
       : null;
 
@@ -376,7 +378,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   async save(event?: Event, options?: any): Promise<any> {
 
     // Create (or fill) the catch form entity
-    const source = this.getJsonValueToSave();
+    const source = this.form.value; // Get the JSON (/!\ measurementValues should be Form ready)
     const target = this.data || new Batch();
     target.fromObject(source, {withChildren: false /*will be set after*/});
 
@@ -425,12 +427,19 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   async setValue(rootBatch: Batch, opts?: {emitEvent?: boolean;}) {
     rootBatch = rootBatch || Batch.fromObject({
       rankOrder: 1,
-      label: AcquisitionLevelCodes.CATCH_BATCH
+      label: this.rootAcquisitionLevel
     });
 
-    // Make sure root batch is a catch batch
-    if (isNil(rootBatch.parent) && isNil(rootBatch.parentId) && rootBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
-      console.warn(`[batch-tree] Invalid catch batch label. Expected: ${AcquisitionLevelCodes.CATCH_BATCH} - Actual: ${rootBatch.label}`);
+    // If catch batch (=no parent nor parentId) or rootAcquisitionLevel = CATCH_BATCH
+    if ((!rootBatch.parent && isNil(rootBatch.parentId)) || this.rootAcquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH) {
+      // Check expected label
+      if (rootBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
+        throw new Error(`[batch-tree] Invalid catch batch label. Expected: ${AcquisitionLevelCodes.CATCH_BATCH} - Actual: ${rootBatch.label}`);
+      }
+    }
+    // Check root batch has the expected label (should start with the rootAcquisitionLevel)
+    else if (rootBatch.label && !rootBatch.label.startsWith(this.rootAcquisitionLevel)) {
+      console.warn(`[batch-tree] Invalid root batch label. Expected: ${this.rootAcquisitionLevel} - Actual: ${rootBatch.label}`);
     }
 
     // DEBUG
@@ -468,6 +477,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
             emitEvent: true, // Force refresh pmfms
             linkDataToParent: false // Not need (will be done later, in value setter)
           });
+          this.subBatchesTable.markAsReady();
           this.subBatchesTable.value = subBatches;
         } else {
           this._subBatchesService.value = subBatches;

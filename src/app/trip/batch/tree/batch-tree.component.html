@@ -48,11 +48,11 @@
 </app-debug>
 
 <!-- catch batch form -->
-<div class="ion-padding-top"
+<div class="ion-padding"
      [class.cdk-visually-hidden]="!showCatchForm">
   <form-catch-batch #catchBatchForm
                     [programLabel]="$programLabel|async"
-                    acquisitionLevel="CATCH_BATCH"
+                    [acquisitionLevel]="rootAcquisitionLevel"
                     [physicalGearId]="physicalGearId"
                     (onSubmit)="save($event)"
                     [tabindex]="200"

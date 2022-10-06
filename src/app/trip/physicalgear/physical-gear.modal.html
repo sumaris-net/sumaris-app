@@ -58,9 +58,9 @@
 
       <div>
         <!-- help message (only in leaf modal) -->
-        <ion-item *ngIf="helpMessage && !showChildrenTable" color="secondary100" lines="none">
-          <ion-icon color="primary" slot="start" name="help-circle-outline"></ion-icon>
-          <ion-label color="primary" [innerHTML]="helpMessage|translate"></ion-label>
+        <ion-item *ngIf="enabled && helpMessage && !showChildrenTable" color="accent" lines="none">
+          <ion-icon slot="start" name="information-circle-outline"></ion-icon>
+          <ion-label [innerHTML]="helpMessage|translate"></ion-label>
         </ion-item>
 
         <!-- error -->
@@ -124,15 +124,13 @@
       <ng-template mat-tab-label>
         <mat-icon>settings</mat-icon>
         <mat-icon class="icon-secondary" style="left: 12px; top: 7px; font-size: 16px">settings</mat-icon>
-        <ion-label *ngIf="table"
-                   [matBadge]="table.totalRowCount"
-                   [matBadgeHidden]="!table || table.invalid || !table.totalRowCount || table.error"
+        <ion-label [matBadge]="table?.totalRowCount"
+                   [matBadgeHidden]="!table || table.invalid"
                    matBadgeColor="primary"
                    matBadgeOverlap="false"
                    matBadgeSize="small"
           translate>TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger"
-                  *ngIf="table && (table.invalid || !table.totalRowCount)"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="table?.invalid"></ion-icon>
       </ng-template>
 
       <app-physical-gears-table #table
@@ -146,6 +144,7 @@
                                 [canEditGear]="false"
                                 [gearId]="$gearId|async"
                                 [allowChildrenGears]="false"
+                                [minRowCount]="minChildrenCount"
                                 [requiredGear]="true"
                                 [showToolbar]="!mobile"
                                 [disabled]="disabled"

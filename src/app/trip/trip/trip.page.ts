@@ -72,7 +72,8 @@ export const TripPageSettingsEnum = {
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
-        equals: PhysicalGear.equals
+        equals: PhysicalGear.equals,
+        sortByReplacement: {'id': 'rankOrder'}
       })
     }
   ],

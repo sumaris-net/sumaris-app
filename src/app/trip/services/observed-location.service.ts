@@ -721,7 +721,7 @@ export class ObservedLocationService
     // Get local vessels (not saved)
     const localVessels = arrayDistinct(
       [...landings, ...aggregatedLandings].map(value => value.vesselSnapshot).filter(EntityUtils.isLocal),
-      ['id']
+      'id'
     )
       .map(VesselSnapshot.toVessel);
     if (isNotEmptyArray(localVessels)) {

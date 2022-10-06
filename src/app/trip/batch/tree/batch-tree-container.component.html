@@ -21,6 +21,11 @@
         batchTree.value: {{!!batchTree.data}}<br/>
       </ion-col>
     </ion-row>
+    <ion-row>
+      <ion-col size="12">
+        <ion-text color="danger" [innerHTML]="filterForm | translateFormError: errorTranslatorOptions"></ion-text>
+      </ion-col>
+    </ion-row>
   </ion-grid>
 </app-debug>
 
@@ -59,18 +64,18 @@
           <!-- current batch name -->
           <ion-button>
             <ion-label translate>{{editingBatch.name || editingBatch.label}}</ion-label>
-            <ion-icon *ngIf="batchTree.invalid" class="small-icon" color="danger" name="alert-circle"></ion-icon>
+            <ion-icon *ngIf="editingBatch.invalid" class="small-icon" color="danger" name="alert-circle"></ion-icon>
           </ion-button>
 
         </ion-buttons>
-        <ion-text>{{filterForm | translateFormError: errorTranslatorOptions}}</ion-text>
+
         <ion-buttons slot="end">
           <ng-container *ngTemplateOutlet="batchBadges; context: {$implicit: editingBatch}"></ng-container>
         </ion-buttons>
       </ng-container>
       <ng-template #helpMessage>
         <ion-label color="primary">
-          <ion-icon name="information-circle-outline"></ion-icon>
+          <ion-icon name="help-circle-outline"></ion-icon>
           <ion-text class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-text>
         </ion-label>
       </ng-template>
@@ -94,7 +99,11 @@
               {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
             </mat-icon>
             <ion-label>
-              {{(node.name || node.label)|translate}}
+              <h2 translate>{{node.name || node.label}}</h2>
+              <p *ngVar="node.form | translateFormError: errorTranslatorOptions; let error"
+                 [class.cdk-visually-hidden]="!error">
+                <ion-text color="danger" [innerHTML]="error"></ion-text>
+              </p>
             </ion-label>
             <ion-buttons slot="end">
               <ng-container *ngTemplateOutlet="batchBadges; context: {$implicit: node}"></ng-container>
@@ -123,7 +132,12 @@
                     tappable>
             <mat-icon [style.width.px]="8"></mat-icon><!-- spacer for alignment -->
             <ion-label>
-              {{(node.name || node.label)|translate}}
+              <h2 translate>{{node.name || node.label}}</h2>
+              <p *ngVar="node.form | translateFormError: errorTranslatorOptions; let error"
+                [class.cdk-visually-hidden]="!error">
+                <ion-icon class="small-icon" color="danger" name="alert-circle"></ion-icon>
+                <ion-text color="danger" [innerHTML]="error"></ion-text>
+              </p>
             </ion-label>
             <ion-buttons slot="end">
               <ng-container *ngTemplateOutlet="batchBadges; context: {$implicit: node}"></ng-container>
@@ -135,9 +149,8 @@
     </mat-tree>
   </ion-list>
 
-
+  <!-- filter action bar -->
   <mat-action-row>
-
     <div class="toolbar-spacer"></div>
 
     <button mat-icon-button color="accent"
@@ -161,19 +174,16 @@
 <ng-template #batchBadges let-node>
 
   <ng-container *ngIf="debug">
-    <!-- children pmfm count  -->
-    <ng-container *ngIf="node.childrenPmfms?.length; let count; else directPmfms">
-      <ion-badge color="secondary" slot="end">{{count}} pmfm</ion-badge>
-      <ion-badge *ngIf="node === editingBatch"
-                 color="secondary" slot="end">{{batchTree.batchGroupsTable.qvPmfm?.label || 'NO QV PMFM'}}</ion-badge>
-    </ng-container>
     <!-- pmfm count -->
-    <ng-template #directPmfms>
-      <ion-badge *ngIf="node.pmfms?.length; let count"
-                 color="secondary"
-                 slot="end">{{count}} pmfm</ion-badge>
-    </ng-template>
-
+    <ion-badge *ngIf="node.pmfms?.length; let count"
+               color="secondary"
+               slot="end">{{count}} pmfms</ion-badge>
+    &nbsp;
+    <!-- table pmfm count  -->
+    <ng-container *ngIf="node.childrenPmfms?.length; let count;">
+      <ion-badge color="secondary" slot="end" [title]="node.childrenPmfms|arrayPluck:'label'">{{count}} columns</ion-badge>
+      &nbsp;
+    </ng-container>
     <!-- has weight pmfms
     <mat-icon class="small-icon" slot="end" *ngIf="node.pmfms|arrayFilter:isWeightPmfm|isNotEmptyArray">scale</mat-icon>-->
   </ng-container>
@@ -189,10 +199,10 @@
                slot="end">{{node.children?.length || 0}} lots</ion-badge>
   </ng-template>
 
-  <!-- has error pmfms -->
-  <ion-icon *ngIf="node === editingBatch && (batchTree.errorSubject | async) || node.error || node.invalid; let error"
+  <!-- has error pmfms
+  <ion-icon *ngIf="node.invalid"
             class="small-icon" slot="end" name="alert-circle" color="danger"
-            [title]="error||''"></ion-icon>
+            [title]="error||''"></ion-icon> -->
 
 <!--  <ion-button size="small" color="tertiary"-->
 <!--              [matBadge]="5"-->
@@ -244,4 +254,3 @@
                 [filter]="filter"
                 [debug]="debug">
 </app-batch-tree>
-

@@ -18,7 +18,8 @@ export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'
     {provide: BatchValidatorService, useClass: BatchValidatorService},
     {provide: InMemoryEntitiesService, useFactory: () =>
         new InMemoryEntitiesService(Batch, BatchFilter, {
-          equals: Batch.equals
+          equals: Batch.equals,
+          sortByReplacement: {'id': 'rankOrder'}
         })
     }
   ]

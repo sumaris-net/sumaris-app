@@ -47,15 +47,8 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   private _availableSortedParents: Sample[] = [];
   private _availableParents: Sample[] = [];
 
-  protected cd: ChangeDetectorRef;
-  protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
-
   onParentChanges = new Subject();
   displayParentPmfm: IPmfm;
-
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
 
   @Input() showError = true;
   @Input() showPmfmDetails = false;
@@ -111,8 +104,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
-    this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.confirmBeforeDelete = this.mobile;
@@ -123,8 +114,8 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     this.showCommentsColumn = !this.mobile;
 
     // DEBUG
-    this.debug = !environment.production;
     this.logPrefix = '[sub-samples-table] ';
+    this.debug = !environment.production;
   }
 
   ngOnInit() {

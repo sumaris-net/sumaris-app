@@ -23,7 +23,7 @@ import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/dat
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { MeasurementFormValues, MeasurementUtils, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
 
 export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
@@ -111,7 +111,7 @@ export class BatchValidatorService<
     }
 
     if (opts?.withWeight || opts?.withChildrenWeight) {
-      const weightPmfms = opts.childrenPmfms && opts.childrenPmfms.filter(PmfmUtils.isWeight);
+      const weightPmfms = opts.childrenPmfms?.filter(PmfmUtils.isWeight);
 
       // Add weight sub form
       if (opts?.withWeight) {
@@ -134,14 +134,13 @@ export class BatchValidatorService<
 
     // Add measurement values
     if (opts?.withMeasurements && isNotEmptyArray(opts.childrenPmfms)) {
-      if (form.contains('measurementValues')) form.removeControl('measurementValues');
-      const measurementValues = data && data.measurementValues && MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, opts.childrenPmfms);
-      const measControl = this.measurementsValidatorService.getFormGroup(measurementValues, {
+      const measControl = this.getMeasurementValuesForm(data?.measurementValues, {
         pmfms: opts.childrenPmfms,
         forceOptional: opts.isOnFieldMode,
         withTypename: opts.withMeasurementTypename
       });
-      form.addControl('measurementValues', measControl);
+      if (form.contains('measurementValues')) form.setControl('measurementValues', measControl)
+      else form.addControl('measurementValues', measControl);
     }
 
     return form;
@@ -154,6 +153,11 @@ export class BatchValidatorService<
     noValidator?: boolean;
   }): FormGroup {
     return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
+  }
+
+  protected getMeasurementValuesForm(data: undefined|MeasurementFormValues|MeasurementModelValues, opts: {pmfms: IPmfm[]; forceOptional?: boolean, withTypename?: boolean}) {
+    const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
+    return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
   }
 
   protected getChildrenFormHelper(form: FormGroup, opts?: {

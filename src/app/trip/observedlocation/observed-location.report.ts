@@ -222,7 +222,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   }
 
   protected async onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {
-    this.stats.vesselCount = arrayDistinct(data.landings, ['vesselSnapshot.id']).length;
+    this.stats.vesselCount = arrayDistinct(data.landings, 'vesselSnapshot.id').length;
     return data;
   }
 

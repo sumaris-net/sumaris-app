@@ -4,7 +4,7 @@ import { MeasurementsValidatorService } from '../../services/validator/measureme
 import { MeasurementFormInitSteps, MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { BehaviorSubject } from 'rxjs';
 import { BatchValidatorService } from '../common/batch.validator';
-import { firstNotNilPromise, isNotEmptyArray, isNotNil, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
+import {firstNotNilPromise, isNotEmptyArray, isNotNil, ReferentialRef, ReferentialUtils, toNumber} from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
@@ -14,6 +14,7 @@ import { MatrixIds, PmfmIds, QualitativeValueIds } from '@app/referential/servic
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { equals } from '@app/shared/functions';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 
 @Component({
   selector: 'form-catch-batch',
@@ -99,8 +100,9 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
     if (!data) return; // Skip
 
-    // Force the label
-    data.label = this._acquisitionLevel;
+    // Init default
+    data.label = data.label || this._acquisitionLevel;
+    data.rankOrder = toNumber(data.rankOrder, 0);
   }
 
 
@@ -110,26 +112,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     // DEBUG
     if (this.debug) console.debug('[catch-form] Applying filter: ', dataFilter);
 
-    const fractionIdByMatrixId = {};
-    const gearPositionQv = dataFilter?.measurementValues && dataFilter.measurementValues[PmfmIds.BATCH_GEAR_POSITION];
-    const gearPositionQvId = ReferentialUtils.isNotEmpty(gearPositionQv) ? gearPositionQv.id : gearPositionQv;
-    if (isNotNil(gearPositionQvId)) {
-      switch (+gearPositionQvId) {
-        // Bâbord
-        case QualitativeValueIds.BATCH_GEAR_POSITION.PORT:
-          fractionIdByMatrixId[MatrixIds.GEAR] = 93;  // Matrix=Engin => Fraction=PORT
-          fractionIdByMatrixId[MatrixIds.BATCH] = 95; // Matrix=Batch => Fraction=PORT
-          break;
-
-        // Tribord
-        case QualitativeValueIds.BATCH_GEAR_POSITION.STARBOARD:
-          fractionIdByMatrixId[MatrixIds.GEAR] = 94;
-          fractionIdByMatrixId[MatrixIds.BATCH] = 96;
-          break;
-      }
-    }
-
-    this.pmfmFilter = {fractionIdByMatrixId};
+    //this.pmfmFilter = {fractionIdByMatrixId};
   }
 
   /**

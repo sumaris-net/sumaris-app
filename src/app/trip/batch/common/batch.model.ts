@@ -115,6 +115,7 @@ export class Batch<
   childrenWeight: BatchWeight = null;
 
   operationId: number = null;
+  landingId: number = null;
   parentId: number = null;
   parent: Batch = null;
   children: Batch[] = null;
@@ -166,6 +167,7 @@ export class Batch<
     this.taxonName = source.taxonName && TaxonNameRef.fromObject(source.taxonName) || undefined;
     this.comments = source.comments;
     this.operationId = source.operationId;
+    this.landingId = source.landingId;
     this.parentId = source.parentId;
     this.parent = source.parent;
     this.weight = source.weight || undefined;
@@ -192,6 +194,8 @@ export class Batch<
       || (this.rankOrder === other.rankOrder
         // same operation
         && ((!this.operationId && !other.operationId) || this.operationId === other.operationId)
+        // same landing
+        && ((!this.landingId && !other.landingId) || this.landingId === other.landingId)
         // same label
         && ((!this.label && !other.label) || this.label === other.label)
         // Warn: compare using the parent ID is too complicated

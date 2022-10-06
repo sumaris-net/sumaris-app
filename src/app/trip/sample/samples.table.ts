@@ -84,7 +84,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
   private _footerRowsSubscription: Subscription;
 
-  protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
   protected pmfmService: PmfmService;
 
@@ -98,10 +97,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   showFooter: boolean;
   showTagCount: boolean;
   tagCount$ = new BehaviorSubject<number>(0);
-
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
 
   @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
@@ -219,7 +214,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         onPrepareRowForm: (form) => this.onPrepareRowForm.emit({form, pmfms: this.pmfms, markForCheck: () => this.markForCheck()})
       }
     );
-    this.cd = injector.get(ChangeDetectorRef);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.pmfmService = injector.get(PmfmService);
 
@@ -230,7 +224,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     this.saveBeforeSort = true;
     this.saveBeforeFilter = true;
     this.propagateRowError = true;
-
     this.errorTranslatorOptions = { separator: '\n', controlPathTranslator: this};
 
     // Set default value

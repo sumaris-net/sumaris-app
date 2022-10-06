@@ -73,18 +73,13 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
     return this.memoryDataService.value;
   }
 
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
-
   private productSalePmfms: DenormalizedPmfmStrategy[];
 
   constructor(
     injector: Injector,
     protected platform: Platform,
     protected validatorService: ProductValidatorService,
-    protected memoryDataService: InMemoryEntitiesService<Product, ProductFilter>,
-    protected cd: ChangeDetectorRef,
+    protected memoryDataService: InMemoryEntitiesService<Product, ProductFilter>
   ) {
     super(injector,
       Product, ProductFilter,

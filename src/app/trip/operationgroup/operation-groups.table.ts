@@ -25,7 +25,8 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
     {
       provide: InMemoryEntitiesService,
       useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationGroupFilter>(OperationGroup, OperationGroupFilter,  {
-        equals: OperationGroup.equals
+        equals: OperationGroup.equals,
+        sortByReplacement: {'id': 'rankOrder'}
       })
     }
   ],
@@ -47,10 +48,6 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
 
   get value(): OperationGroup[] {
     return this.memoryDataService.value;
-  }
-
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
   }
 
   @Input() showToolbar = true;
@@ -89,9 +86,10 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
   ngOnInit() {
     super.ngOnInit();
 
-      this.displayAttributes = {
+    this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
-      taxonGroup: ['taxonGroup.label', 'taxonGroup.name']
+      taxonGroup: ['taxonGroup.label', 'taxonGroup.name'],
+      metier: this.settings.getFieldDisplayAttributes('metier')
     };
 
     // Metier combo
@@ -99,10 +97,16 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
     this.registerAutocompleteField('metier', {
       showAllOnFocus: true,
       items: this.metiers,
-      attributes: metierAttributes,
-      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
+      attributes: this.displayAttributes.metier,
+      columnSizes: this.displayAttributes.metier.map(attr => attr === 'label' ? 3 : undefined),
       mobile: this.mobile
     });
+
+    // Add sort replacement
+    this.memoryDataService.addSortByReplacement('gear', this.displayAttributes.gear[0]);
+    this.memoryDataService.addSortByReplacement('taxonGroup', this.displayAttributes.taxonGroup[0]);
+    this.memoryDataService.addSortByReplacement('targetSpecies', this.displayAttributes.metier[0]);
+
   }
 
   ngOnDestroy() {

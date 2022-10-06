@@ -109,6 +109,25 @@
           <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
         </ion-item>
 
+        <!-- debug -->
+        <app-debug *ngIf="debug">
+          <ion-grid class="ion-no-padding">
+            <ion-row>
+              <ion-col>
+                editor.loading: {{loading}}<br/>
+                editor.ready: {{readySubject|async}}<br/>
+                editor.dirty: {{dirty}}<br/>
+              </ion-col>
+              <ion-col>
+                measurementsForm.loading: {{measurementsForm.loading}}<br/>
+                measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+                measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+                measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </app-debug>
+
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
@@ -153,24 +172,6 @@
                     </ion-col>
                   </ion-row>
                 </ion-grid>
-
-                <app-debug *ngIf="debug">
-                  <ion-grid class="ion-no-padding">
-                    <ion-row>
-                      <ion-col>
-                        editor.loading: {{loading}}<br/>
-                        editor.ready: {{readySubject|async}}<br/>
-                        editor.dirty: {{dirty}}<br/>
-                      </ion-col>
-                      <ion-col>
-                        measurementsForm.loading: {{measurementsForm.loading}}<br/>
-                        measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
-                        measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
-                        measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
-                      </ion-col>
-                    </ion-row>
-                  </ion-grid>
-                </app-debug>
               </form-trip>
             </ion-col>
 
@@ -210,6 +211,19 @@
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
         </ion-item>
+
+        <!-- debug -->
+        <app-debug *ngIf="debug" [title]="'Physical gears table'">
+          <ion-grid class="ion-no-padding">
+            <ion-row>
+              <ion-col>
+                loading: {{physicalGearsTable.loading}}<br/>
+                ready: {{physicalGearsTable.readySubject|async}}<br/>
+                dirty: {{physicalGearsTable.dirtySubject|async}}<br/>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </app-debug>
 
         <app-physical-gears-table #physicalGearsTable
                                  [programLabel]="$programLabel|async"

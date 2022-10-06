@@ -100,10 +100,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
 
   weightPmfm: IPmfm;
 
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
-
   @Input() displayParentPmfm: IPmfm;
   @Input() showForm = false;
   @Input() tabindex: number;
@@ -234,8 +230,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.cd = injector.get(ChangeDetectorRef);
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<SubBatch, SubBatchFilter>);
     this.tabindex = 1;
     this.inlineEdition = !this.mobile;
 

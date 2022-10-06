@@ -1,7 +1,7 @@
-import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import {Directive, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup} from '@angular/forms';
 import {
   Alerts,
   AppFormUtils,
@@ -12,7 +12,6 @@ import {
   firstNotNilPromise,
   firstTruePromise,
   IEntitiesService,
-  InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -21,19 +20,16 @@ import {
   toNumber,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { EntitiesWithMeasurementService } from './measurements.service';
-import { AcquisitionLevelType } from '../../referential/services/model/model.enum';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '../../referential/services/model/pmfm.model';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
-import { BaseValidatorService } from '@app/shared/service/base.validator.service';
-import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
-import { Popovers } from '@app/shared/popover/popover.utils';
-import { PopoverController } from '@ionic/angular';
+import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {EntitiesWithMeasurementService} from './measurements.service';
+import {AcquisitionLevelType} from '@app/referential/services/model/model.enum';
+import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
+import {distinctUntilChanged, filter, map} from 'rxjs/operators';
+import {AppBaseTable, BaseTableConfig} from '@app/shared/table/base.table';
+import {BaseValidatorService} from '@app/shared/service/base.validator.service';
 
 
 export interface BaseMeasurementsTableConfig<
@@ -202,10 +198,6 @@ export abstract class BaseMeasurementsTable<
     }
   }
 
-  get dataService(): IEntitiesService<T, F> {
-    return this.measurementsDataService.delegate;
-  }
-
   protected constructor(
     injector: Injector,
     dataType: new() => T,
@@ -251,12 +243,13 @@ export abstract class BaseMeasurementsTable<
   }
 
   ngOnInit() {
-    const isMemoryDataService = (this.dataService instanceof InMemoryEntitiesService);
     // Remember the value of autoLoad, but force to false, to make sure pmfm will be loaded before
     this._autoLoadAfterPmfm = this.autoLoad;
     this.autoLoad = false;
     this.i18nPmfmPrefix = this.i18nPmfmPrefix || this.i18nColumnPrefix;
-    this.keepEditedRowOnSave = !this.mobile && this.inlineEdition && !isMemoryDataService;
+    this.keepEditedRowOnSave = !this.mobile && this.inlineEdition
+      // Disable keepEditedRowOnSave, when in memory data service, because rows are reload twice after save - FIXME
+      && !this.memoryDataService;
 
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.requiredStrategy = this.options.requiredStrategy || false;

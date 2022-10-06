@@ -5,6 +5,8 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import {BatchGroupUtils} from '@app/trip/batch/group/batch-group.model';
+import {FormGroup} from '@angular/forms';
+import {MeasurementValuesTypes, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
 
 
 @EntityClass({typename: 'BatchModelVO'})
@@ -55,18 +57,24 @@ export class BatchModel<
       treeDepth++;
 
       if (treeDepth < maxTreeDepth && isNotEmptyArray(pmfms)) {
-        childrenQvPmfm = childrenQvPmfm.clone();
-        childrenQvPmfm.hidden = true;
+
 
         const childLabelPrefix = isCatchBatch ?
           `${AcquisitionLevelCodes.SORTING_BATCH}#` : `${target.label}.`;
         const childrenPath = isCatchBatch ? 'children' : `${path}.children`;
         // Create children batches
         target.children = childrenQvPmfm.qualitativeValues.map((qv, index) => {
+          childrenQvPmfm = childrenQvPmfm.clone();
+          childrenQvPmfm.hidden = true;
+          childrenQvPmfm.defaultValue = qv;
+
           const childSource = (source.children || []).find(c => PmfmValueUtils.equals(c.measurementValues?.[childrenQvPmfm.id], qv))
-            || new Batch();
-          childSource.measurementValues = target.measurementValues || {};
-          childSource.measurementValues[childrenQvPmfm.id] = qv.id.toString();
+            || Batch.fromObject({
+              measurementValues: {
+                __typename: MeasurementValuesTypes.MeasurementModelValues,
+                [childrenQvPmfm.id]: qv.id.toString()
+              }
+            });
           childSource.label = `${childLabelPrefix}${qv.label}`;
 
           // Recursive call
@@ -107,29 +115,44 @@ export class BatchModel<
   }
 
   name: string;
+  path: string;
   pmfms?: IPmfm[];
   childrenPmfms?: IPmfm[];
   disabled?: boolean;
   hidden?: boolean;
   error?: string;
   selected?: boolean;
-  invalid?: boolean;
-  path: string;
+  form?: FormGroup;
 
   fromObject(source: any, opts?: FO) {
     super.fromObject(source);
     this.name = source.name;
+    this.path = source.path || null;
     this.pmfms = source.pmfms || [];
     this.childrenPmfms = source.childrenPmfms || [];
     this.disabled = source.disabled || false;
     this.hidden = source.hidden || false;
     this.error = source.error || null;
     this.selected = source.selected || false;
-    this.invalid = source.invalid || false;
-    this.path = source.path || null;
   }
 
   get parentModel(): BatchModel | undefined {
     return (this.parent instanceof BatchModel) ? this.parent : undefined;
+  }
+
+  get fullName(): string {
+    const parent = this.parentModel;
+    if (parent && parent.hidden !== true) return [parent.fullName, this.name].join(' &gt; ');
+    return this.name;
+  }
+
+  get invalid(): boolean {
+    return this.form?.invalid || false;
+  }
+  get valid(): boolean {
+    return this.form?.valid || false;
+  }
+  get dirty(): boolean {
+    return this.form?.dirty || false;
   }
 }
