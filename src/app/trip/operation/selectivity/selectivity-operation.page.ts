@@ -62,6 +62,32 @@ export class SelectivityOperationPage
     )
   }
 
+  onNewFabButtonClick(event: UIEvent) {
+    const selectedTabIndex = this.selectedTabIndex;
+    if (selectedTabIndex >= OperationPage.TABS.CATCH) {
+      const batchTree = this.subBatchTrees.get(selectedTabIndex - OperationPage.TABS.CATCH);
+      if (batchTree) batchTree.addRow(event);
+    }
+    else {
+      super.onNewFabButtonClick(event)
+    }
+  }
+
+  async openReport(event?: UIEvent) {
+    if (this.dirty) {
+      const data = await this.saveAndGetDataIfValid();
+      if (!data) return; // Cancel
+    }
+    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+  }
+
+  protected updateTablesState() {
+    //if (this.showCatchTab) this.tabCount++;
+    this.tabCount = 3;
+
+    super.updateTablesState();
+  }
+
   protected async setProgram(program: Program): Promise<void> {
     await super.setProgram(program);
 
