@@ -69,9 +69,9 @@ export abstract class AppRootDataReport<
     }
   }
 
-  // TODO !!!
   ngOnDestroy() {
     console.debug(`[${this.constructor.name}.ngOnDestroy]`);
+    this.destroySubject.next();
   }
 
   async start() {
@@ -189,7 +189,7 @@ export abstract class AppRootDataReport<
   protected async waitIdle(opts: WaitForOptions) {
     console.debug(`[${this.constructor.name}.waitIdle]`);
     if (this.loaded) return;
-    await firstFalsePromise(this.loadingSubject, opts);
+    await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
   }
 
 }
