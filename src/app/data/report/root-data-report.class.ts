@@ -44,6 +44,7 @@ export abstract class AppRootDataReport<
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
 
   constructor(injector: Injector) {
+    console.debug(`[${this.constructor.name}.constructor]`, arguments);
 
     this.cd = injector.get(ChangeDetectorRef);
     this.route = injector.get(ActivatedRoute);
@@ -61,15 +62,18 @@ export abstract class AppRootDataReport<
   }
 
   ngAfterViewInit() {
+    console.debug(`[${this.constructor.name}.ngAfterViewInit]`);
     if (this._autoLoad) {
       setTimeout(() => this.start(), this._autoLoadDelay);
     }
   }
 
   ngOnDestroy() {
+    console.debug(`[${this.constructor.name}.ngOnDestroy]`);
   }
 
   async start() {
+    console.debug(`[${this.constructor.name}.start]`);
     await this.platform.ready();
     this.markAsReady();
     try {
@@ -83,6 +87,7 @@ export abstract class AppRootDataReport<
   };
 
   async load(id: number) {
+    console.debug(`[${this.constructor.name}.id]`, arguments);
     const data = await this.loadData(id);
 
     this.$defaultBackHref.next(this.computeDefaultBackHref(data));
@@ -99,6 +104,7 @@ export abstract class AppRootDataReport<
     detailsCssClass?: string;
     emitEvent?: boolean;
   }) {
+    console.debug(`[${this.constructor.name}.setError]`, arguments);
     if (!err) {
       this.error = undefined;
     } else if (typeof err === 'string') {
@@ -127,6 +133,7 @@ export abstract class AppRootDataReport<
   }
 
   markAsReady() {
+    console.debug(`[${this.constructor.name}.markAsReady]`, arguments);
     if (!this.readySubject.value) {
       this.readySubject.next(true);
     }
@@ -139,6 +146,7 @@ export abstract class AppRootDataReport<
   protected abstract computeDefaultBackHref(data: T): string;
 
   protected computeSlidesOptions(): Partial<IRevealOptions> {
+    console.debug(`[${this.constructor.name}.computeSlidesOptions]`);
     const mobile = this.settings.mobile;
     return {
       autoInitialize: false,
@@ -148,6 +156,7 @@ export abstract class AppRootDataReport<
   }
 
   protected async loadFromRoute(): Promise<void> {
+    console.debug(`[${this.constructor.name}.loadFromRoute]`);
     const route = this.route.snapshot;
     const id: number = route.params[this._pathIdAttribute];
     if (isNil(id)) {
@@ -161,17 +170,26 @@ export abstract class AppRootDataReport<
   }
 
   async updateView() {
+    console.debug(`[${this.constructor.name}.updateView]`);
     this.slides.initialize();
   }
 
   protected markForCheck() {
+    console.debug(`[${this.constructor.name}.markForCheck]`);
     this.cd.markForCheck();
   }
 
   protected markAsLoaded() {
+    console.debug(`[${this.constructor.name}.markAsLoaded]`);
     if (this.loadingSubject.value) {
       this.loadingSubject.next(false);
     }
+  }
+
+  protected async waitIdle(opts: WaitForOptions) {
+    console.debug(`[${this.constructor.name}.waitIdle]`);
+    if (this.loaded) return;
+    await firstFalsePromise(this.loadingSubject, opts);
   }
 
 }
