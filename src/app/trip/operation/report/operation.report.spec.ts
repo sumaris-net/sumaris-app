@@ -1,20 +1,20 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SelectivityOperationReport } from './selectivity-operation.report';
+import { OperationReport as OperationReport } from './operation.report';
 
-describe('SelectivityOperationReport', () => {
-  let component: SelectivityOperationReport;
-  let fixture: ComponentFixture<SelectivityOperationReport>;
+describe('OperationReport', () => {
+  let component: OperationReport;
+  let fixture: ComponentFixture<OperationReport>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SelectivityOperationReport ]
+      declarations: [ OperationReport ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(SelectivityOperationReport);
+    fixture = TestBed.createComponent(OperationReport);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -791,6 +791,11 @@
         "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtrage non disponible",
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Aucun métier pratiqué trouvé dans les données disponibles."
+      },
+      "REPORT": {
+        "TITLE": "Rapport OP #{{rankOrder}} <small>du {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "Rapport OP {{startDateTime}}",
+        "TITLE_SLIDE": "Rapport opération"
       }
     },
     "OPERATION_GROUP": {
@@ -1066,8 +1071,8 @@
       }
     },
     "REPORT": {
-      "TITLE": "<small>{{ vessel }}</small> Rapport de marée du {{ departureDate }}",
-      "TITLE_SHORT": "Rapport de marée"
+      "TITLE": "<small>{{ vessel }}</small> Rapport marée du {{ departureDate }}",
+      "TITLE_SLIDE": "Rapport marée"
     }
   },
   "EXPECTED_SALE": {
