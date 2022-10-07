@@ -1,5 +1,5 @@
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import { EntityClass, isEmptyArray, isNilOrBlank, isNotEmptyArray, toBoolean } from '@sumaris-net/ngx-components';
+import {EntityClass, isEmptyArray, isNilOrBlank, isNotEmptyArray, toBoolean, toNumber} from '@sumaris-net/ngx-components';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -76,6 +76,7 @@ export class BatchModel<
               }
             });
           childSource.label = `${childLabelPrefix}${qv.label}`;
+          childSource.rankOrder = index;
 
           // Recursive call
           const childTarget = BatchModel.fromBatch(childSource, pmfms, maxTreeDepth, treeDepth, target, `${childrenPath}.${index}`);
