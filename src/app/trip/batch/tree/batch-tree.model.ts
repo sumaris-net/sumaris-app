@@ -132,6 +132,7 @@ export class BatchModel
     super.fromObject(source);
     this.name = source.name;
     this.path = source.path || null;
+    this.parent = source.parent || null;
     this.pmfms = source.pmfms || [];
     this.childrenPmfms = source.childrenPmfms || [];
     this.disabled = source.disabled || false;

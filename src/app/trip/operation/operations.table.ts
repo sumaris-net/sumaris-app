@@ -268,6 +268,8 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
       tripId: this.tripId
     }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/});
 
+    if (!res.total) return; // No data
+
     const modal = await this.modalCtrl.create({
       component: OperationsMap,
       componentProps: <OperationsMapModalOptions>{
