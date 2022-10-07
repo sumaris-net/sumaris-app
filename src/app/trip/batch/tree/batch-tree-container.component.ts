@@ -605,8 +605,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     if (!this.editingBatch) return true; // Already saved
 
     // Update filter form
-    const form = this.filterForm?.get(this.editingBatch.path);
-    if (!form || !(form instanceof FormGroup)) throw new Error('Invalid filterForm path: ' +  this.editingBatch.path);
+    const path = this.editingBatch.path;
+    const form = isNotNilOrBlank(path) ? this.filterForm?.get(path) : this.filterForm;
+    if (!form || !(form instanceof FormGroup)) throw new Error('Invalid filterForm path: ' + this.editingBatch.path);
     const withChildren = isNotEmptyArray(this.editingBatch.childrenPmfms);
 
     // Save if need
