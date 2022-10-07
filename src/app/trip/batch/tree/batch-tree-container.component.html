@@ -62,11 +62,22 @@
 
           <!-- current batch name -->
           <ion-button (click)="$event.stopImmediatePropagation()"
-                      [matMenuTriggerFor]="batchModelButtonMenu"
+                      [matMenuTriggerFor]="brothersMenu"
                       [matMenuTriggerData]="{node: editingBatch}">
             <ion-label>{{editingBatch.name}}</ion-label>
             <ion-icon *ngIf="submitted && editingBatch.invalid" class="small-icon" color="danger" name="alert-circle"></ion-icon>
           </ion-button>
+
+          <ng-container *ngIf="!node.isLeaf">
+            <ion-text color="dark">&gt;</ion-text>
+
+            <!-- Children menu -->
+            <ion-button (click)="$event.stopImmediatePropagation()"
+                        [matMenuTriggerFor]="childrenMenu"
+                        [matMenuTriggerData]="{node: editingBatch}">
+              <ion-label>...</ion-label>
+            </ion-button>
+          </ng-container>
 
         </ion-buttons>
 
@@ -224,14 +235,20 @@
 </ng-template>
 
 <!-- Batch model menu -->
-<mat-menu #batchModelButtonMenu="matMenu" xPosition="after">
+<mat-menu #brothersMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-node="node">
-    <ng-container *ngIf="node.isLeaf">
-      <button *ngFor="let child of node.brothers" mat-menu-item
-        (click)="editBatch(null, child)">
-        <ion-label>{{child.name}}</ion-label>
-      </button>
-    </ng-container>
+    <button *ngFor="let brother of node.brothers" mat-menu-item
+      (click)="editBatch(null, brother)">
+      <ion-label>{{brother.name}}</ion-label>
+    </button>
+  </ng-template>
+</mat-menu>
+<mat-menu #childrenMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent let-node="node">
+    <button *ngFor="let child of node.children" mat-menu-item
+            (click)="editBatch(null, child)">
+      <ion-label>{{child.name}}</ion-label>
+    </button>
   </ng-template>
 </mat-menu>
 
