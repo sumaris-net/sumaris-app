@@ -147,7 +147,6 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   async start() {
     await this.platform.ready();
-    this.markAsReady();
     try {
       await this.loadFromRoute();
     } catch (err) {
