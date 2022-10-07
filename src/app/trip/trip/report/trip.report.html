@@ -20,7 +20,11 @@
       <ng-container *ngIf="loaded; else loadingTemplate">
         <section>
           <h1>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
-          <h2>Work in progress...</h2>
+          <ul>
+            <li>{{ 'TRIP.TABLE.VESSEL'|translateContext: i18nContext.suffix }} : {{ data.vesselSnapshot.exteriorMarking }}</li>
+            <li>{{ 'TRIP.DEPARTURE_DATE_TIME'|translateContext: i18nContext.suffix }} : {{ data.departureDateTime|dateFormat:{time: false} }}</li>
+            <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
+          </ul>
         </section>
       </ng-container>
     </section>
