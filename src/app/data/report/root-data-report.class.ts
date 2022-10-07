@@ -1,15 +1,20 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
+import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
 import { AppErrorWithDetails, DateFormatPipe, firstFalsePromise, isNil, isNotNilOrBlank, LocalSettingsService, PlatformService, WaitForOptions } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { RootDataEntity } from '../services/model/root-data-entity.model';
+import { DataEntity } from '../services/model/data-entity.model';
+
+export interface RootDataReportOptions {
+  pathIdAttribute?: string,
+  pathParentIdAttribute?: string,
+}
 
 @Directive()
-export abstract class AppRootDataReport<
-  T extends RootDataEntity<T, ID>,
-  ID = number> implements AfterViewInit, OnDestroy {
+export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number> implements AfterViewInit, OnDestroy {
 
   protected readonly route: ActivatedRoute;
   protected readonly cd: ChangeDetectorRef;
@@ -18,6 +23,7 @@ export abstract class AppRootDataReport<
 
   protected readonly platform: PlatformService;
   protected readonly translate: TranslateService;
+  protected readonly programRefService: ProgramRefService;
 
   protected readonly destroySubject = new Subject();
   protected readonly readySubject = new BehaviorSubject<boolean>(false);
@@ -26,6 +32,7 @@ export abstract class AppRootDataReport<
   protected _autoLoad = true;
   protected _autoLoadDelay = 0;
   protected _pathIdAttribute: string;
+  protected _pathParentIdAttribute: string;
 
   error: string;
   slidesOptions: Partial<IRevealOptions>;
@@ -40,12 +47,17 @@ export abstract class AppRootDataReport<
 
   @Input() showError = true;
   @Input() showToolbar = true;
+  @Input() debug = !environment.production;
+  @Input() data: T;
 
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
 
   get loaded(): boolean { return !this.loadingSubject.value; }
 
-  constructor(injector: Injector) {
+  constructor(
+    injector: Injector,
+    @Optional() options?: RootDataReportOptions,
+  ) {
     console.debug(`[${this.constructor.name}.constructor]`, arguments);
 
     this.cd = injector.get(ChangeDetectorRef);
@@ -55,9 +67,11 @@ export abstract class AppRootDataReport<
 
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);
+    this.programRefService = injector.get(ProgramRefService);
 
-    // NOTE: pathIdParam is optional. On which case it may be not set ???
-    this._pathIdAttribute = this.route.snapshot.data?.pathIdParam;
+    this._pathParentIdAttribute = options?.pathParentIdAttribute;
+    // NOTE: In route.snapshot data is optional. On which case it may be not set ???
+    this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'id';
 
     this.slidesOptions = this.computeSlidesOptions();
   }
@@ -83,17 +97,19 @@ export abstract class AppRootDataReport<
       // NOTE: Test if setError work correctly
       this.setError(err);
     } finally {
+      // NOTE : check this : why update view need to be in finally block ? If we get an error, we don't initialise the sliedes ?
+      await this.updateView();
     }
   };
 
-  async load(id: number) {
+  async load(id: number): Promise<void> {
     console.debug(`[${this.constructor.name}.id]`, arguments);
     const data = await this.loadData(id);
 
+    this.data = data;
+
     this.$defaultBackHref.next(this.computeDefaultBackHref(data));
     this.$title.next(await this.computeTitle(data));
-
-    this.markAsLoaded();
   };
 
   protected abstract loadData(id: number): Promise<T>;
@@ -156,16 +172,9 @@ export abstract class AppRootDataReport<
 
   protected async loadFromRoute(): Promise<void> {
     console.debug(`[${this.constructor.name}.loadFromRoute]`);
-    const route = this.route.snapshot;
-    const id: number = route.params[this._pathIdAttribute];
-    if (isNil(id)) {
-      throw new Error(`[loadFromRoute] id for param ${this._pathIdAttribute} is nil`);
-    }
-
+    const id = this.getIdFromPathIdAttribute(this._pathIdAttribute);
     await this.load(id);
-    await this.updateView();
-
-    return;
+    this.markAsLoaded();
   }
 
   async updateView() {
@@ -190,6 +199,16 @@ export abstract class AppRootDataReport<
     console.debug(`[${this.constructor.name}.waitIdle]`);
     if (this.loaded) return;
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
+  }
+
+  protected getIdFromPathIdAttribute(pathIdAttribute: string): number {
+    console.debug(`[${this.constructor.name}.getIdFromPathIdAttribute]`, arguments);
+    const route = this.route.snapshot;
+    const id: number = route.params[pathIdAttribute];
+    if (isNil(id)) {
+      throw new Error(`[getIdFromPathIdAttribute] id for param ${pathIdAttribute} is nil`);
+    }
+    return id;
   }
 
 }

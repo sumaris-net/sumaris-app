@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 import { SelectivityOperationPage } from '@app/trip/operation/selectivity/selectivity-operation.page';
-import { AppSelectivityOperationModule } from '@app/trip/operation/selectivity/selectivity-operation.module';
 
 const routes: Routes = [
   {
@@ -18,10 +17,6 @@ const routes: Routes = [
         component: SelectivityOperationPage,
         canDeactivate: [ComponentDirtyGuard],
       },
-      {
-        path: 'report',
-        loadChildren: () => import('./report/selectivity-operation-report-routing.module').then(m => m.SelectivityOperationReportRoutingModule),
-      },
     ],
   }
 ];
@@ -29,7 +24,6 @@ const routes: Routes = [
 
 @NgModule({
   imports: [
-    AppSelectivityOperationModule,
     RouterModule.forChild(routes)
   ],
   exports: [
