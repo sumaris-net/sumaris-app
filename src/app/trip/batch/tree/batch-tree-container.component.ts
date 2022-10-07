@@ -9,7 +9,7 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank, LocalSettingsService,
+  isNotNilOrBlank, LocalSettingsService, sleep,
   toBoolean,
   UsageMode,
   WaitForOptions
@@ -65,8 +65,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   listenProgramChanges = true;
   errorTranslatorOptions: FormErrorTranslatorOptions;
 
-  treeControl = new NestedTreeControl<Batch>(node => node.children);
-  treeDataSource = new MatTreeNestedDataSource<Batch>();
+  treeControl = new NestedTreeControl<BatchModel>(node => node.children);
+  treeDataSource = new MatTreeNestedDataSource<BatchModel>();
   filterPanelFloating = true;
   filterForm: FormGroup;
 
@@ -333,8 +333,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   async editBatch(event: UIEvent, source: BatchModel) {
 
-    event?.preventDefault();
-    event?.stopPropagation();
+    event?.stopImmediatePropagation();
 
     if (this.editingBatch === source) {
       if (this.filterPanelFloating) this.closeFilterPanel();
@@ -353,7 +352,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         if (!saved) return; // Cannot save
       }
 
-      console.info(this.logPrefix + `Selected parent ${source?.label}`);
+      console.info(this.logPrefix + `Selected parent ${source?.name}`);
 
       if (this.filterPanelFloating) this.closeFilterPanel();
       this.editingBatch = source;
@@ -391,9 +390,12 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       }
 
       // Apply value (after clone(), to keep pmfms unchanged)
-      const target = Batch.fromObject(source.asObject({ withChildren: true }));
-      target.parent = source.parent;
-      await this.batchTree.setValue(target);
+      // const target = Batch.fromObject(source.originalData.asObject({ withChildren: true }));
+      // target.parent = source.parent;
+
+      await sleep(100);
+
+      await this.batchTree.setValue(source.originalData);
 
     }
     finally {
@@ -431,24 +433,23 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return target;
   }
 
-  hasChild = (_: number, node: BatchModel) => isNotEmptyArray(node.children) && isEmptyArray(node.childrenPmfms);
+  hasChild = (_: number, model: BatchModel) => !model.isLeaf;
 
   createFilterForm(model: BatchModel, level = 0): FormGroup {
     const isCatchBatch = level === 0;
-    const isLeaf = !this.hasChild(undefined, model);
     if (isCatchBatch && this.debug) console.debug(this.logPrefix + 'Creating filter form, from batch model...', model);
 
-    const form = this.batchModelValidatorService.getFormGroup(model, {
+    const form = this.batchModelValidatorService.getFormGroup(model.originalData, {
       pmfms: model.pmfms,
       withMeasurements: true,
       withMeasurementTypename: true,
-      withChildren: isLeaf,
-      childrenPmfms: isLeaf && model.childrenPmfms
+      withChildren: model.isLeaf,
+      childrenPmfms: model.isLeaf && model.childrenPmfms
     });
-    model.form = form;
+    model.validator = form;
 
     level = level+1;
-    if (!isLeaf) {
+    if (!model.isLeaf) {
       // Recursive call, on each children model
       const childrenForm = new FormArray((model.children || [])
         .filter(c => c instanceof BatchModel)
@@ -551,6 +552,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   async save(event?: Event): Promise<boolean> {
 
+    try {
     console.info(this.logPrefix + `Saving...`);
 
     if (this.dirty) {
@@ -565,6 +567,13 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
 
     return true;
+    }
+    finally {
+      if (!this.submitted) {
+        this.submitted = true;
+        this.markForCheck();
+      }
+    }
   }
 
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
@@ -601,55 +610,47 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   /**
    * Save editing batch
    */
-  protected async saveEditingBatch(): Promise<boolean> {
-    if (!this.editingBatch) return true; // Already saved
-
-    // Update filter form
-    const path = this.editingBatch.path;
-    const form = isNotNilOrBlank(path) ? this.filterForm?.get(path) : this.filterForm;
-    if (!form || !(form instanceof FormGroup)) throw new Error('Invalid filterForm path: ' + this.editingBatch.path);
-    const withChildren = isNotEmptyArray(this.editingBatch.childrenPmfms);
+  protected async saveEditingBatch(model?: BatchModel): Promise<boolean> {
+    model = model || this.editingBatch;
+    if (!model) return true; // Already saved
 
     // Save if need
     let saved = true;
     if (this.batchTree.dirty) {
-      console.info(this.logPrefix + `Saving editing batch ${this.editingBatch.label} ...`);
+      console.info(this.logPrefix + `Saving ${model.label} ...`);
       saved = await this.batchTree.save();
     }
 
     // Check if valid
     if (!saved || this.batchTree.invalid) {
       this.batchTree.logFormErrors(this.editingBatch.path);
-      this.editingBatch.error = this.batchTree.error;
-      this.setError(this.editingBatch.error);
+      const error = this.batchTree.error || 'QUALITY.ERROR.INVALID_FORM';
+      this.setError(error);
+      //model.validator.setError(error);
       return false;
     }
+
+    // Get the filter sub-form
+    const path = this.editingBatch.path;
+    const form = isNotNilOrBlank(path) ? this.filterForm?.get(path) : this.filterForm;
+    if (!form || !(form instanceof FormGroup)) throw new Error('Invalid filterForm path: ' + this.editingBatch.path);
+    const withChildren = isNotEmptyArray(this.editingBatch.childrenPmfms);
 
     // Get saved data
     const savedBatch = this.batchTree.value;
     this.batchTree.markAsPristine();
 
-    // Update the model
-    this.editingBatch.measurementValues = {
-      ...this.editingBatch.measurementValues,
-      ...savedBatch.measurementValues
-    };
-    if (withChildren) {
-      this.editingBatch.children = savedBatch.children;
-    }
+    if (savedBatch.label !== this.editingBatch.label)
+      throw new Error(`Invalid saved batch label. Expected: ${this.editingBatch.label} Actual: ${savedBatch.label}`);
 
-    // Update the filter form
-    //const json = savedBatch.asObject({withChildren: false});
+    // Update model
     form.patchValue({
-      measurementValues: savedBatch.measurementValues
+      measurementValues: {
+        ...this.editingBatch.originalData.measurementValues,
+        ...savedBatch.measurementValues
+      },
+      children: withChildren ? savedBatch.children : undefined
     });
-    if (withChildren) {
-      // const childrenArray = new FormArray(
-      //   (savedBatch.children || [])
-      //     .map(c => this.batchModelValidatorService.getFormGroup(c as BatchModel, {pmfms: this.editingBatch.childrenPmfms, withChildren: true}))
-      // );
-      //form.setControl('children', childrenArray);
-    }
 
     return form.valid;
   }
@@ -662,7 +663,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     const isCatchBatch = treeDepth === 0;
     // Append current batch to result array
     const pmfmLabelsStr = (batch.pmfms || []).map(p => p.label).join(', ');
-    result.push(`${treeIndent} - ${batch.name || batch.label}`
+    result.push(`${treeIndent} - ${batch.name}`
     + (isNotNilOrBlank(pmfmLabelsStr) ? ': ' : '') + pmfmLabelsStr);
 
     // Recursive call, for each children
@@ -678,7 +679,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
   }
 
-  protected expandDescendants(node: BatchModel|Batch) {
+  protected expandDescendants(node: BatchModel) {
     if (node instanceof BatchModel) {
       this.treeControl.expand(node);
       (node.children || [])

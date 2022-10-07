@@ -11,16 +11,16 @@ function getSortingMeasValues(opts: {
   const res = {};
 
   if (isNotNil(opts.gearPosition)) {
-    res[PmfmIds.BATCH_GEAR_POSITION] = ''+ (opts.gearPosition === 'B' ? QualitativeValueIds.BATCH_GEAR_POSITION.PORT : QualitativeValueIds.BATCH_GEAR_POSITION.STARBOARD); // Bâbord, Tribord
+    res[PmfmIds.BATCH_GEAR_POSITION] = '' + (opts.gearPosition === 'B' ? QualitativeValueIds.BATCH_GEAR_POSITION.PORT : QualitativeValueIds.BATCH_GEAR_POSITION.STARBOARD); // Bâbord, Tribord
   }
   if (isNotNil(opts.sizeCategory)) {
-    res[PmfmIds.TRAWL_SIZE_CAT] = opts.sizeCategory;
+    res[PmfmIds.TRAWL_SIZE_CAT] = '' + opts.sizeCategory;
   }
   if (isNotNil(opts.discardOrLanding)) {
-    res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD;
+    res[PmfmIds.DISCARD_OR_LANDING] = '' + (opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
   }
   if (isNotNil(opts.weight)) {
-    res[PmfmIds.BATCH_MEASURED_WEIGHT] = opts.weight;
+    res[PmfmIds.BATCH_MEASURED_WEIGHT] = '' + opts.weight;
   }
 
   return res;
@@ -38,15 +38,16 @@ function getIndivMeasValues(opts?: {
   const res = {};
 
   if (isNotNil(opts.discardOrLanding)) {
-    res[PmfmIds.DISCARD_OR_LANDING] = opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD;
+    res[PmfmIds.DISCARD_OR_LANDING] = '' + (opts.discardOrLanding === 'LAN' ? QualitativeValueIds.DISCARD_OR_LANDING.LANDING : QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
   }
+
   if (isNotNil(opts.length)) {
-    res[PmfmIds.LENGTH_TOTAL_CM] = opts.length;
+    res[PmfmIds.LENGTH_TOTAL_CM] = '' + opts.length;
   }
 
   // Computed weight, by Weight/Length conversion
   if (isNotNil(opts.weight)) {
-    res[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH] = opts.weight;
+    res[PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH] = '' + opts.weight;
   }
 
   return res;

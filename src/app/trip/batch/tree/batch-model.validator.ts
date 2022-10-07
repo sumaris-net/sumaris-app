@@ -28,7 +28,7 @@ export interface BatchValidatorOptions extends DataEntityValidatorOptions {
 
 @Injectable()
 export class BatchModelValidatorService<
-  T extends BatchModel<T> = BatchModel,
+  T extends Batch<T> = Batch,
   O extends BatchValidatorOptions = BatchValidatorOptions,
   AO extends BatchAsObjectOptions = BatchAsObjectOptions,
   FO extends BatchFromObjectOptions = BatchFromObjectOptions
@@ -66,7 +66,7 @@ export class BatchModelValidatorService<
         withChildrenWeight: true,
         childrenPmfms: opts.childrenPmfms || null
       });
-      childrenFormHelper.setValue(data.children);
+      childrenFormHelper.patchValue(data.children);
     }
 
     // Add measurement values
@@ -89,10 +89,7 @@ export class BatchModelValidatorService<
 
     delete config.parent;
 
-    return {
-      ...config,
-      name: [data?.name || null]
-    };
+    return config;
   }
 
 }
