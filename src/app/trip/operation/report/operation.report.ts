@@ -1,12 +1,9 @@
 import { Component, Injector } from '@angular/core';
 import { AppRootDataReport } from '@app/data/report/root-data-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { Operation } from '@app/trip/services/model/trip.model';
 import { OperationService } from '@app/trip/services/operation.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
 import { TripService } from '@app/trip/services/trip.service';
-import { isNilOrBlank } from '@sumaris-net/ngx-components';
 
 import { moment } from '@app/vendor';
 
@@ -56,8 +53,8 @@ export class OperationReport extends AppRootDataReport<Operation> {
       title = await this.translate.get('TRIP.OPERATION.REPORT.TITLE_NO_RANK', { startDateTime }).toPromise();
     } else {
       const rankOrder = await this.operationService.computeRankOrder(data, { fetchPolicy: 'cache-first' });
-      const startDateTime = this.dateFormatPipe.transform(data.startDateTime, {time: true});
-      title = await this.translate.get('TRIP.OPERATION.REPORT.TITLE', {startDateTime, rankOrder}).toPromise();
+      const startDateTime = this.dateFormatPipe.transform(data.startDateTime, { time: true });
+      title = await this.translate.get('TRIP.OPERATION.REPORT.TITLE', { startDateTime, rankOrder }).toPromise();
     }
     return titlePrefix + title;
   }

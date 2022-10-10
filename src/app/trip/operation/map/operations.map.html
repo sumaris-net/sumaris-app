@@ -1,81 +1,92 @@
-<app-modal-toolbar [modalName]="modalName"
-                   [title]="'TRIP.OPERATION.MAP.TITLE'|translate"
-                   [color]="'secondary'"
-                   (cancel)="cancel()"
-                   [canValidate]="false">
+<!-- map in modal -->
+<ng-container *ngIf="modal">
+  <app-modal-toolbar [modalName]="modalName"
+                     [title]="'TRIP.OPERATION.MAP.TITLE'|translate"
+                     [color]="'secondary'"
+                     (cancel)="cancel()"
+                     [canValidate]="false">
 
-  <!-- Add close button (on desktop screen) -->
-  <ion-button hidden-xs hidden-sm hidden-mobile
-              slot="end"
-              (click)="cancel()"
-              (keyup.enter)="cancel()">
-    <ion-label translate>COMMON.BTN_CLOSE</ion-label>
-  </ion-button>
-</app-modal-toolbar>
+    <!-- Add close button (on desktop screen) -->
+    <ion-button hidden-xs hidden-sm hidden-mobile
+                slot="end"
+                (click)="cancel()"
+                (keyup.enter)="cancel()">
+      <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+    </ion-button>
+  </app-modal-toolbar>
 
 
-<ion-content>
+  <ion-content>
 
-  <!-- Bottom right cards -->
-  <ion-grid class="bottom-right">
+    <!-- Bottom right cards -->
+    <ion-grid class="bottom-right">
 
-    <ion-row>
-      <ion-col></ion-col>
+      <ion-row>
+        <ion-col></ion-col>
 
-      <ion-col class="ion-align-self-end">
+        <ion-col class="ion-align-self-end">
 
-        <!-- Details card -->
-        <ion-card color="light" class="details ng-hide" *ngIf="$selectedFeature | async as item" [@fadeInOutAnimation]>
+          <!-- Details card -->
+          <ion-card color="light" class="details ng-hide" *ngIf="$selectedFeature | async as item" [@fadeInOutAnimation]>
 
-          <ion-item color="secondary" *ngIf="item.properties.trip">
-            <ion-label>{{ item.properties.trip }}</ion-label>
-          </ion-item>
+            <ion-item color="secondary" *ngIf="item.properties.trip">
+              <ion-label>{{ item.properties.trip }}</ion-label>
+            </ion-item>
 
-          <ion-card-header>
-            <ion-card-title>
-              <app-operation-icon [value]="item.properties.source"></app-operation-icon>
-              {{'TRIP.OPERATION.OPE_PREFIX'|translate}} #{{item.properties.rankOrderOnPeriod}}
-            </ion-card-title>
-            <ion-card-subtitle>
-              {{item.properties.startDateTime}}<br/>
-              <ion-text color="medium"><small><span translate>COMMON.DURATION_DOTS</span> {{ item.properties.duration }}</small></ion-text>
-            </ion-card-subtitle>
-          </ion-card-header>
+            <ion-card-header>
+              <ion-card-title>
+                <app-operation-icon [value]="item.properties.source"></app-operation-icon>
+                {{'TRIP.OPERATION.OPE_PREFIX'|translate}} #{{item.properties.rankOrderOnPeriod}}
+              </ion-card-title>
+              <ion-card-subtitle>
+                {{item.properties.startDateTime}}<br/>
+                <ion-text color="medium"><small><span translate>COMMON.DURATION_DOTS</span> {{ item.properties.duration }}</small></ion-text>
+              </ion-card-subtitle>
+            </ion-card-header>
 
-          <ion-card-content class="ion-no-padding">
-            <!-- duration -->
-            <ion-grid>
-              <ion-row>
-                <ion-col class="ion-text-center">
-                  {{item.properties.startPosition.latitude | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
-                </ion-col>
-                <ion-col class="ion-text-center">
-                  {{item.properties.startPosition.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
-                </ion-col>
-              </ion-row>
-              <ion-row>
-                <ion-col class="ion-text-center">
-                  {{item.properties.endPosition.latitude | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
-                </ion-col>
-                <ion-col class="ion-text-center">
-                  {{item.properties.endPosition.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
-                </ion-col>
-              </ion-row>
-            </ion-grid>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+            <ion-card-content class="ion-no-padding">
+              <!-- duration -->
+              <ion-grid>
+                <ion-row>
+                  <ion-col class="ion-text-center">
+                    {{item.properties.startPosition.latitude | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+                  </ion-col>
+                  <ion-col class="ion-text-center">
+                    {{item.properties.startPosition.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+                  </ion-col>
+                </ion-row>
+                <ion-row>
+                  <ion-col class="ion-text-center">
+                    {{item.properties.endPosition.latitude | latitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+                  </ion-col>
+                  <ion-col class="ion-text-center">
+                    {{item.properties.endPosition.longitude | longitudeFormat: {pattern: latLongPattern, placeholderChar: '0'} }}
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
 
+    <ng-container  *ngIf="modalReady">
+      <ng-container *ngTemplateOutlet="map"></ng-container>
+    </ng-container>
+  </ion-content>
+</ng-container>
+
+<!-- map without modal -->
+<ng-container *ngIf="!modal">
+  <ng-container *ngTemplateOutlet="map"></ng-container>
+</ng-container>
+
+<ng-template #map>
   <!-- Leaflet map -->
-  <div *ngIf="modalReady" #map leaflet
+  <div leaflet
        (leafletMapReady)="onMapReady($event)"
        [leafletOptions]="options"
        [leafletLayersControl]="layersControl">
-
     <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
   </div>
-</ion-content>
-
-
+</ng-template>

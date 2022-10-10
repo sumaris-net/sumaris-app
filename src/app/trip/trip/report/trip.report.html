@@ -26,6 +26,16 @@
             <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
           </ul>
         </section>
+        <section>
+          <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
+          <div style="height: 550px">
+            <app-operations-map
+                [modal]="false"
+                [programLabel]="data.program.label"
+                [data]="[data.operations]"
+                [latLongPattern]="settings.latLongFormat"></app-operations-map>
+          </div>
+        </section>
       </ng-container>
     </section>
   </app-slides>
