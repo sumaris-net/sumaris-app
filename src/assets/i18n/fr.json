@@ -43,6 +43,7 @@
     "BTN_SEARCH": "Rechercher",
     "BTN_NEXT": "Suivant",
     "BTN_NEXT_SHORT": "Suiv.",
+    "BTN_PREVIOUS": "Précédent",
     "BTN_PREVIEW": "Prévisualiser",
     "BTN_BACK": "Retour",
     "BTN_SEND": "Envoyer",
@@ -902,9 +903,11 @@
       },
       "TREE": {
         "SELECT_PARENT_HELP": "Veuillez sélectionner un lot, dans la liste ci-dessous",
-        "BATCHES_COUNT": "{{rowCount}} lot{{rowCount > 1 ? 's' : ''}}"
+        "BATCH_COUNT": "{{rowCount}} lot",
+        "BATCHES_COUNT": "{{rowCount}} lots"
       },
       "PMFM": {
+        "DISCARD_OR_LANDING": "Partie retenue ou rejetée ?",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
         "TRAWL_SELECTIVITY": {

@@ -146,7 +146,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
   }
 
   ngOnInit() {
-    this._logPrefix = this._logPrefix || `[meas-${this._acquisitionLevel?.toLowerCase().replace(/[_]/g, '-') || '?'}]`;
+    this._logPrefix = this._logPrefix || `[measurements-form-${this._acquisitionLevel?.toLowerCase().replace(/[_]/g, '-') || '?'}]`;
 
     super.ngOnInit();
 
@@ -163,6 +163,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
   ngOnDestroy() {
     super.ngOnDestroy();
     this.$initStep.unsubscribe();
+    this.$pmfms.complete();
     this.$pmfms.unsubscribe();
     this.$programLabel.unsubscribe();
     this.$strategyLabel.unsubscribe();
@@ -425,9 +426,9 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     await this.setPmfms(pmfms);
   }
 
-  protected async setPmfms(value: IPmfm[] | Observable<IPmfm[]>): Promise<IPmfm[]> {
+  protected async setPmfms(pmfms: IPmfm[] | Observable<IPmfm[]>): Promise<IPmfm[]> {
     // If undefined: reset pmfms
-    if (!value) {
+    if (!pmfms) {
       this.resetPmfms();
       return undefined; // break
     }
@@ -442,12 +443,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     try {
 
       // Wait loaded, if observable
-      let pmfms: IPmfm[];
-      if (isObservable<IPmfm[]>(value)) {
+      if (isObservable<IPmfm[]>(pmfms)) {
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable...`);
-        pmfms = await firstNotNil(value, {stop: this.destroySubject}).toPromise();
-      } else {
-        pmfms = value;
+        pmfms = await firstNotNil(pmfms).toPromise();
+        if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable [OK]`);
       }
 
       // If force to optional, create a copy of each pmfms that should be forced

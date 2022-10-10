@@ -4,10 +4,8 @@ import {FormArrayHelper, isNotEmptyArray, LocalSettingsService} from '@sumaris-n
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {MeasurementsValidatorService} from '@app/trip/services/validator/measurement.validator';
 import {DataEntityValidatorOptions} from '@app/data/services/validator/data-entity.validator';
-import {BatchModel} from '@app/trip/batch/tree/batch-tree.model';
 import {Batch, BatchAsObjectOptions, BatchFromObjectOptions} from '@app/trip/batch/common/batch.model';
 import {BatchValidatorService} from '@app/trip/batch/common/batch.validator';
-import {BatchUtils} from '@app/trip/batch/common/batch.utils';
 import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
 
 export interface BatchValidatorOptions extends DataEntityValidatorOptions {
@@ -53,10 +51,10 @@ export class BatchModelValidatorService<
     });
 
     // Children array:
-    if (opts?.withChildren && isNotEmptyArray(data?.children)) {
+    if (opts?.withChildren) {
 
       // DEBUG
-      console.debug(`[batch-model-validator] Creating validator for ${data.children.length} children, with pmfms: `, opts.childrenPmfms);
+      console.debug(`[batch-model-validator] Creating children form array, with pmfms: `, opts.childrenPmfms);
 
       const childrenFormHelper: FormArrayHelper<Batch> = this.getChildrenFormHelper(form, {
         withWeight: true,
@@ -64,9 +62,16 @@ export class BatchModelValidatorService<
         ...opts,
         withChildren: this.enableSamplingBatch,
         withChildrenWeight: true,
-        childrenPmfms: opts.childrenPmfms || null
+        pmfms: opts.childrenPmfms || null,
+        childrenPmfms: null
       });
-      childrenFormHelper.patchValue(data.children);
+      // Normalize children
+      // data.children.forEach(child => {
+      //   child.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(child.measurementValues, opts.childrenPmfms);
+      // })
+      // childrenFormHelper.resize(data.children?.length);
+      // childrenFormHelper.formArray.patchValue(data.children);
+      childrenFormHelper.patchValue(data?.children || []);
     }
 
     // Add measurement values

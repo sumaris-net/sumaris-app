@@ -9,7 +9,7 @@ import {
   Entity,
   EntityFilter,
   filterNotNil,
-  firstNotNilPromise,
+  firstNotNilPromise, firstTrue,
   firstTruePromise,
   IEntitiesService,
   isNil,
@@ -27,7 +27,7 @@ import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
-import {distinctUntilChanged, filter, map} from 'rxjs/operators';
+import {distinctUntilChanged, filter, first, map, mergeMap} from 'rxjs/operators';
 import {AppBaseTable, BaseTableConfig} from '@app/shared/table/base.table';
 import {BaseValidatorService} from '@app/shared/service/base.validator.service';
 
@@ -258,11 +258,14 @@ export abstract class BaseMeasurementsTable<
     this.measurementsDataService.gearId = this._gearId;
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
-    firstTruePromise(this.readySubject, {stop: this.destroySubject})
-      .then(() => {
-        console.debug(this.logPrefix + 'Starting measurements data service...');
-        this.measurementsDataService.start();
-      });
+    this.registerSubscription(
+      firstTrue(this.readySubject)
+        .pipe(
+          mergeMap(_ => {
+            console.debug(this.logPrefix + 'Starting measurements data service...');
+            return this.measurementsDataService.start();
+          })
+        ).subscribe());
 
     super.ngOnInit();
 

@@ -1,4 +1,8 @@
-
+mat-toolbar {
+  &.expanded {
+    background-color: var(--ion-color-secondary);
+  }
+}
 .table-container {
   --table-toolbar-height: 0;
   --table-paginator-height: 0;

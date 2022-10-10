@@ -467,7 +467,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
    */
   protected async waitViewInit(): Promise<void> {
     if (this._$afterViewInit.value !== true) {
-      await firstTruePromise(this._$afterViewInit);
+      await firstTruePromise(this._$afterViewInit, {stop: this.destroySubject});
     }
   }
 
@@ -506,71 +506,76 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   protected async onUpdateFormGroup(form?: FormGroup): Promise<void> {
     form = form || this.form;
 
-    // Wait ngAfterViewInit()
-    await this.waitViewInit();
+    try {
+      // Wait ngAfterViewInit()
+      await this.waitViewInit();
 
-    // Add pmfms to form
-    const measFormGroup = form.get('measurementValues') as FormGroup;
-    if (measFormGroup) {
-      this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
-    }
-
-    const childrenFormHelper = this.getChildrenFormHelper(form);
-    const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;
-
-    // If the sample batch exists
-    if (this.showSamplingBatch) {
-
-      childrenFormHelper.resize(1);
-      const samplingForm = childrenFormHelper.at(0) as FormGroup;
-
-      // Reset measurementValues (if exists)
-      const samplingMeasFormGroup = samplingForm.get('measurementValues');
-      if (samplingMeasFormGroup) {
-        this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, {pmfms: []});
+      // Add pmfms to form
+      const measFormGroup = form.get('measurementValues') as FormGroup;
+      if (measFormGroup) {
+        this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
       }
 
-      // Adapt exists sampling child, if any
-      if (this.data) {
-        const samplingChildBatch = BatchUtils.getOrCreateSamplingChild(this.data);
+      const childrenFormHelper = this.getChildrenFormHelper(form);
+      const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;
 
-        this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingChildBatch));
+      // If the sample batch exists
+      if (this.showSamplingBatch) {
 
-      } else {
-        // No data: disable sampling
-        this.setIsSampling(false);
+        childrenFormHelper.resize(1);
+        const samplingForm = childrenFormHelper.at(0) as FormGroup;
+
+        // Reset measurementValues (if exists)
+        const samplingMeasFormGroup = samplingForm.get('measurementValues');
+        if (samplingMeasFormGroup) {
+          this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, {pmfms: []});
+        }
+
+        // Adapt exists sampling child, if any
+        if (this.data) {
+          const samplingChildBatch = BatchUtils.getOrCreateSamplingChild(this.data);
+
+          this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingChildBatch));
+
+        } else {
+          // No data: disable sampling
+          this.setIsSampling(false);
+        }
+
+        // If sampling weight is required, make batch weight required also
+        if (this._requiredSampleWeight) {
+          this.weightForm.setValidators(
+            SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
+          );
+        }
+
+        // If sampling weight is required, make batch weight required also
+        if (this._requiredIndividualCount) {
+          this.form.get('individualCount').setValidators(Validators.required);
+        }
+
+        // Has sample batch, and weight is enable
+        if (this.showWeight) {
+          await this.enableSamplingWeightComputation();
+        }
       }
 
-      // If sampling weight is required, make batch weight required also
-      if (this._requiredSampleWeight) {
-        this.weightForm.setValidators(
-          SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
-        );
+      // Remove existing sample, if exists but showSample=false
+      else if (hasSamplingForm) {
+        childrenFormHelper.resize(0);
+
+        // Unregister to previous sampling weight validator
+        this._formValidatorSubscription?.unsubscribe();
       }
 
-      // If sampling weight is required, make batch weight required also
-      if (this._requiredIndividualCount) {
-        this.form.get('individualCount').setValidators(Validators.required);
-      }
-
-      // Has sample batch, and weight is enable
       if (this.showWeight) {
-        await this.enableSamplingWeightComputation();
+        this.enableWeightFormGroup({emitEvent: false});
+      } else {
+        this.disableWeightFormGroup({emitEvent: false});
       }
     }
-
-    // Remove existing sample, if exists but showSample=false
-    else if (hasSamplingForm) {
-      childrenFormHelper.resize(0);
-
-      // Unregister to previous sampling weight validator
-      this._formValidatorSubscription?.unsubscribe();
-    }
-
-    if (this.showWeight) {
-      this.enableWeightFormGroup({emitEvent: false});
-    } else {
-      this.disableWeightFormGroup({emitEvent: false});
+    catch (err) {
+      console.error('[batch-form] Error while updating controls', err);
     }
   }
 

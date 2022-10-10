@@ -1,3 +1,20 @@
+mat-toolbar {
+  &.expanded {
+    background-color: var(--ion-color-secondary);
+  }
+  ion-label {
+    /*font-family: var(--ion-font-family, inherit);*/
+    font-size: inherit;
+  }
+}
+
+.form-container {
+  --table-toolbar-height: 0;
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+}
+
 .batch-tree {
   --app-tree-indent: 16px;
   --padding-start: 0;
@@ -21,23 +38,18 @@
   }
 
 }
+
 .filter-panel {
   --expansion-panel-padding: 0;
 
-  mat-expansion-panel-header {
-    //padding-inline-start: 0;
-
-    ion-item {
-      width: calc(100% - 15px);
-
-      ion-buttons[slot="start"] {
-
-        ion-button ion-label {
-          text-transform: none !important;
-        }
-      }
-    }
+  &.filter-panel-floating {
+    z-index: 999;
+    position: absolute;
+    top: var(--table-toolbar-height);
+    left: 0;
+    right: 0;
   }
+
   mat-tree, ion-list {
     background: transparent !important;
   }

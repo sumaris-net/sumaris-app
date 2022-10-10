@@ -171,7 +171,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   ngOnInit() {
-    this._logPrefix = this._logPrefix || `[meas-values-${this._acquisitionLevel?.toLowerCase().replace(/[_]/g, '-') || '?'}]`;
+    this._logPrefix = this._logPrefix || `[measurement-values-${this._acquisitionLevel?.toLowerCase().replace(/[_]/g, '-') || '?'}]`;
 
     super.ngOnInit();
 
@@ -504,7 +504,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       let pmfms: IPmfm[];
       if (isObservable<IPmfm[]>(value)) {
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable...`);
-        pmfms = await firstNotNilPromise(value, {stop: this.destroySubject});
+        pmfms = await firstNotNilPromise(value, {stop: this.destroySubject, stopError: false});
+        if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable [OK]`);
       } else {
         pmfms = value;
       }

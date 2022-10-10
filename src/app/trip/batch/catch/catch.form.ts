@@ -132,8 +132,13 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     }
 
     // Make sure pmfms have been dispatched before markAsReady()
-    firstNotNilPromise(this.$otherPmfms, {stop: this.destroySubject})
-      .then(() => super.markAsReady(opts));
+    {
+      const otherSubscription = this.$otherPmfms
+        .pipe(filter(isNotNil))
+        .subscribe(_ => super.markAsReady(opts));
+      otherSubscription.add(() => this.unregisterSubscription(otherSubscription))
+      this.registerSubscription(otherSubscription);
+    }
   }
 
   /* -- protected functions -- */
@@ -144,35 +149,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     const pmfmFilterFn = DenormalizedPmfmFilter.fromObject(this._pmfmFilter)?.asFilterFn();
     if (pmfmFilterFn) {
       pmfms = pmfms.filter(pmfmFilterFn);
-    }
-
-    // Fill CHILD_GEAR_xxx pmfms
-    const childGearPmfmIndexes = pmfms
-      .map((p, index) => p.label?.indexOf('CHILD_GEAR') === 0 ? index : undefined)
-      .filter(isNotNil);
-    if (isNotEmptyArray(childGearPmfmIndexes)) {
-
-      // DEBUG
-      //console.debug('[catch-form] Waiting children physical gears...');
-      let now = Date.now();
-      const physicalGearId = await firstNotNilPromise(this._$physicalGearId, {stop: this.destroySubject});
-
-      // Load children gears
-      const { data } = await this.physicalGearService.loadAllByParentId(physicalGearId, { toEntity: false, withTotal: false });
-
-      // Convert to referential item
-      const items = data.map(pg => ReferentialRef.fromObject({
-        id: pg.rankOrder,
-        label: pg.rankOrder,
-        name: pg.measurementValues[PmfmIds.GEAR_LABEL]
-      }));
-
-      if (now) console.debug(`[catch-form] Waiting children physical gears [OK] after ${Date.now() - now}ms`, items);
-
-      childGearPmfmIndexes.forEach(index => {
-        pmfms[index] = pmfms[index].clone();
-        pmfms[index].qualitativeValues = items;
-      });
     }
 
     return pmfms;

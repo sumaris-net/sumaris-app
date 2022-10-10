@@ -303,7 +303,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
                   this.markForCheck();
                 }
               }));
-        });
+        })
+        .catch(err => console.error(err));
       }
 
       // Desktop

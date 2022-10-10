@@ -403,6 +403,18 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: PmfmIds.GEAR_LABEL
   },
+  PMFM_CHILD_GEAR_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.CHILD_GEAR.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_CHILD_GEAR_ID',
+    type: 'entity',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: PmfmIds.CHILD_GEAR
+  },
   PMFM_HAS_ACCIDENTAL_CATCHES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.HAS_ACCIDENTAL_CATCHES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HAS_ACCIDENTAL_CATCHES_ID',

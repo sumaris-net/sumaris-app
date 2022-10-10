@@ -445,7 +445,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
           BatchUtils.getOrCreateSamplingChild(batch);
         }
       }
-      MeasurementValuesUtils.normalizeEntityToForm(batch, this._initialPmfms, null, {keepOtherExistingPmfms: true});
+      MeasurementValuesUtils.normalizeEntityToForm(batch, this._speciesPmfms, null, {keepOtherExistingPmfms: true});
 
       return batch;
     });
@@ -607,7 +607,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         .map((qv, qvIndex) => this.prepareChildToSave(batch, qv, qvIndex));
       batch.measurementValues = MeasurementValuesUtils.normalizeValuesToModel(batch.measurementValues, this._speciesPmfms);
     } else {
-      batch.measurementValues = {};
+
+      batch.measurementValues = MeasurementValuesUtils.normalizeValuesToModel(batch.measurementValues, this._speciesPmfms);
       this.prepareChildToSave(batch);
     }
   }

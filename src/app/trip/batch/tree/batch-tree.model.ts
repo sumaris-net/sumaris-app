@@ -1,8 +1,8 @@
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { EntityClass, isEmptyArray, isNotEmptyArray, ITreeItemEntity, Entity, EntityAsObjectOptions } from '@sumaris-net/ngx-components';
+import {EntityClass, isEmptyArray, isNotEmptyArray, ITreeItemEntity, Entity, EntityAsObjectOptions, waitWhilePending, IconRef} from '@sumaris-net/ngx-components';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { FormGroup } from '@angular/forms';
 import { MeasurementValuesTypes } from '@app/trip/services/model/measurement.model';
@@ -14,7 +14,7 @@ export class BatchModel
   implements ITreeItemEntity<BatchModel> {
 
   static fromObject: (source: any, opts?: { withChildren?: boolean; }) => BatchModel;
-  static fromBatch(source: Batch,
+  static fromBatch(batch: Batch,
                    pmfms: IPmfm[],
                    // Internal arguments (used by recursive call)
                    maxTreeDepth = 3,
@@ -25,29 +25,28 @@ export class BatchModel
     pmfms = pmfms || [];
 
     // Make sure the first batch is a catch batch
-    const isCatchBatch = treeDepth === 0 || BatchUtils.isCatchBatch(source);
-    if (isCatchBatch && !source) {
-      source = Batch.fromObject({ rankOrder: 1, label: AcquisitionLevelCodes.CATCH_BATCH});
+    const isCatchBatch = treeDepth === 0 || BatchUtils.isCatchBatch(batch);
+    if (isCatchBatch && !batch) {
+      batch = Batch.fromObject({ label: AcquisitionLevelCodes.CATCH_BATCH, rankOrder: 1});
     }
-    // if (pmfmStartIndex > 0) {
-    //   pmfms = pmfms.slice(pmfmStartIndex);
-    // }
-    const target = BatchModel.fromObject(<Partial<BatchModel>>{
+
+    const model = new BatchModel({
       parent,
       path,
-      originalData: source
+      originalData: batch
     });
 
-    // Find the first QV pmfm (with QV
-    let childrenQvPmfm: IPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms, {
+    // Find the first QV pmfm
+    const qvPmfm: IPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms, {
       excludeHidden: true,
       minQvCount: 2,
-      maxQvCount: 3
+      maxQvCount: 3,
+      excludePmfmIds: [PmfmIds.CHILD_GEAR] // Avoid child gear be a qvPmfm
     });
-    if (childrenQvPmfm) {
-      const qvPmfmIndex = pmfms.indexOf(childrenQvPmfm);
+    if (qvPmfm) {
+      const qvPmfmIndex = pmfms.indexOf(qvPmfm);
       if (qvPmfmIndex > 0) {
-        target.pmfms = pmfms.slice(0, qvPmfmIndex);
+        model.pmfms = pmfms.slice(0, qvPmfmIndex);
       }
 
       // Prepare next iteration
@@ -57,87 +56,103 @@ export class BatchModel
       if (treeDepth < maxTreeDepth && isNotEmptyArray(pmfms)) {
 
         const childLabelPrefix = isCatchBatch ?
-          `${AcquisitionLevelCodes.SORTING_BATCH}#` : `${source.label}.`;
+          `${AcquisitionLevelCodes.SORTING_BATCH}#` : `${batch.label}.`;
         const childrenPath = isCatchBatch ? 'children' : `${path}.children`;
         // Create children batches
-        target.children = childrenQvPmfm.qualitativeValues.map((qv, index) => {
-          childrenQvPmfm = childrenQvPmfm.clone();
-          childrenQvPmfm.hidden = true;
-          childrenQvPmfm.defaultValue = qv.id;
+        model.children = qvPmfm.qualitativeValues.map((qv, index) => {
+          const childQvPmfm = qvPmfm.clone();
+          childQvPmfm.hidden = true;
+          childQvPmfm.defaultValue = qv.id;
 
-          const childSource = (source.children || []).find(c => PmfmValueUtils.equals(c.measurementValues?.[childrenQvPmfm.id], qv))
+          const childBatch = (batch.children || []).find(c => PmfmValueUtils.equals(c.measurementValues?.[childQvPmfm.id], qv))
             || Batch.fromObject({
               measurementValues: {
                 __typename: MeasurementValuesTypes.MeasurementModelValues,
-                [childrenQvPmfm.id]: qv.id.toString()
+                [childQvPmfm.id]: qv.id.toString()
               }
             });
-          childSource.measurementValues.__typename = childSource.measurementValues.__typename || MeasurementValuesTypes.MeasurementModelValues;
-          childSource.label = `${childLabelPrefix}${qv.label}`;
-          childSource.rankOrder = index;
+          childBatch.measurementValues.__typename = childBatch.measurementValues.__typename || MeasurementValuesTypes.MeasurementModelValues;
+          childBatch.label = `${childLabelPrefix}${qv.label}`;
+          childBatch.rankOrder = index+1;
 
           // Recursive call
-          const childTarget = BatchModel.fromBatch(childSource, pmfms, maxTreeDepth, treeDepth, target, `${childrenPath}.${index}`);
-          childTarget.pmfms = [
-            childrenQvPmfm,
-            ...childTarget.pmfms
+          const childModel = BatchModel.fromBatch(childBatch, pmfms, maxTreeDepth, treeDepth, model, `${childrenPath}.${index}`);
+          childModel.pmfms = [
+            childQvPmfm,
+            ...(childModel.pmfms || [])
           ];
 
           // Set name
-          childTarget.name = qv.name;
+          childModel.name = qv.name;
 
-          return childTarget;
+          return childModel;
         });
       }
       else {
-        target.childrenPmfms = [
-          childrenQvPmfm,
+        model.childrenPmfms = [
+          qvPmfm,
           ...pmfms
         ];
       }
     }
     else {
       // No QV pmfm found
-      target.pmfms = [];
-      target.childrenPmfms = pmfms;
+      model.pmfms = [];
+      model.childrenPmfms = pmfms;
     }
 
     // Disabled root node, if no pmfms (e.g. when catch batch has no pmfm)
-    target.disabled = isEmptyArray(target.pmfms)
-      && !target.isLeaf
-      && !target.parent;
+    model.disabled = isEmptyArray(model.pmfms)
+      && !model.isLeaf
+      && !model.parent;
     // Hide is disabled and no parent
-    target.hidden = target.disabled && !target.parent;
+    model.hidden = model.disabled && !model.parent;
     // Leaf = leaf in the batch model tree, NOT in the final batch tree
-    target.isLeaf = isEmptyArray(target.children) || isNotEmptyArray(target.childrenPmfms);
+    model.isLeaf = isEmptyArray(model.children) || isNotEmptyArray(model.childrenPmfms);
+    model.pmfms = model.pmfms || [];
+    model.childrenPmfms = model.childrenPmfms || [];
 
-    return target;
+    return model;
   }
 
+  private _valid = false;
+
   name: string;
-  path: string;
+  icon: IconRef;
   isLeaf: boolean;
-  originalData: Batch;
+  originalData?: Batch;
   pmfms?: IPmfm[];
   childrenPmfms?: IPmfm[];
   validator?: FormGroup;
   disabled?: boolean;
   hidden?: boolean;
 
+  path: string;
   parentId: number = null;
   parent: BatchModel = null;
   children: BatchModel[] = null;
 
+  constructor(init: Partial<BatchModel>) {
+    super();
+    this.validator = init.validator;
+    Object.assign(this, init);
+  }
+
   fromObject(source: any, opts?: any) {
     super.fromObject(source);
     this.name = source.name;
-    this.path = source.path || null;
-    this.parent = source.parent || null;
+    this.icon = source.icon;
+    this.originalData = source.originalData;
     this.pmfms = source.pmfms || [];
     this.childrenPmfms = source.childrenPmfms || [];
+
     this.disabled = source.disabled || false;
     this.hidden = source.hidden || false;
     this.isLeaf = source.isLeaf || (this.childrenPmfms?.length > 0);
+
+    this.path = source.path || null;
+    this.parent = source.parent || null;
+    this.children = source.children || source.children.map(BatchModel.fromObject) || null;
   }
 
   get fullName(): string {
@@ -146,10 +161,13 @@ export class BatchModel
   }
 
   get invalid(): boolean {
-    return this.validator?.invalid || false;
+    return !this.valid;
   }
   get valid(): boolean {
-    return this.validator?.valid || false;
+    return this._valid || (this.validator?.valid || false);
+  }
+  set valid(value: boolean) {
+    this._valid = value;
   }
   get dirty(): boolean {
     return this.validator?.dirty || false;
@@ -158,10 +176,113 @@ export class BatchModel
     return this.validator?.enabled || false;
   }
 
+  set editing(value: boolean) {
+    if (value) {
+      this.validator.enable({onlySelf: true});
+      this.validator.get('children')?.disable({onlySelf: true});
+    } else {
+      if (this.validator.enabled) {
+        // Save the valid state
+        this._valid = this.validator.valid;
+      }
+      this.validator.disable();
+    }
+  }
+
+  async isValid(): Promise<boolean> {
+
+    // Enable temporarily the validator to get the valid status
+    const disabled = this.validator.disabled;
+    if (disabled) {
+      this.validator.enable({emitEvent: false, onlySelf: true});
+    }
+
+    try {
+      if (!this.validator.valid) {
+
+        // Wait end of async validation
+        if (this.validator.pending) {
+          await waitWhilePending(this.validator);
+        }
+
+        // Quit if really invalid
+        if (this.validator.invalid) {
+          return false;
+        }
+      }
+
+      return true;
+    } finally {
+      // Re-disabled, if need
+      if (disabled) {
+        this.validator.disable({emitEvent: false, onlySelf: true});
+      }
+    }
+  }
+
   get brothers(): BatchModel[] {
     return (this.parent?.children || []).filter(b => b !== this);
   }
-  get label(): string {
-    return this.originalData?.label;
+
+  set currentData(value: Batch) {
+    this.validator.patchValue(value);
+  }
+
+  get currentData(): Batch {
+    return this.validator.getRawValue();
+  }
+
+  get next(): BatchModel|undefined {
+    // get first child, if any
+    if (isNotEmptyArray(this.children)) return this.children[0];
+
+    // No parent: end
+    if (!this.parent) return undefined; // Nothing next
+
+    // Try to get next brother
+    let current: BatchModel = this;
+    let parent: BatchModel = this.parent;
+    let result: BatchModel;
+    while (!result && parent) {
+      const currentIndex = (parent.children || []).indexOf(current);
+      result = (parent.children || []).find((b, i) => i > currentIndex && !b.hidden);
+      current = parent;
+      parent = parent.parent;
+    }
+
+    // If root batch AND hidden, goto to first visible root's child
+    if (!result && !current.parent && current.hidden) return current.next;
+
+    return result || current;
+  }
+
+  get previous(): BatchModel|undefined {
+
+    let result: BatchModel;
+    let parent: BatchModel = this.parent;
+
+    // If root is hidden: go to very last leaf
+    if (!parent) {
+      // Try to get next brother
+      result = this;
+      while (isNotEmptyArray(result.children)) {
+        result = result.children[this.children.length-1];
+      }
+      return result;
+    }
+
+    // Try to get next brother
+    let current: BatchModel = this;
+    while (!result && parent) {
+      const currentIndex = (parent.children || []).indexOf(current);
+      result = (parent.children || []).find((b, i) => i < currentIndex && !b.hidden);
+      current = parent;
+      parent = parent.parent;
+    }
+
+    // If root is hidden: go next
+    if (!result && !current.parent && current.hidden) return current.previous;
+
+    return result || current;
   }
 }

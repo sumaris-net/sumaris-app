@@ -137,6 +137,27 @@
   <ng-template #noQvPmfm>
     <!-- TODO: use a simple batch modal, instead of this complex modal ?? -->
     <ion-label color="danger" translate>ERROR.FEATURE_NOT_IMPLEMENTED</ion-label>
+
+    <app-batch-form #childForm
+                    [tabindex]="tabindex + 10 + 10*i"
+                    [acquisitionLevel]="acquisitionLevel"
+                    [pmfms]="$pmfms | async"
+                    [showTaxonName]="false"
+                    [showTaxonGroup]="false"
+                    [availableTaxonGroups]="[]"
+                    [showWeight]="showChildrenWeight"
+                    [showIndividualCount]="showChildrenIndividualCount"
+                    [showSamplingBatch]="showChildrenSamplingBatch"
+                    [showSampleWeight]="showChildrenWeight"
+                    [samplingRatioFormat]="samplingRatioFormat"
+                    [requiredWeight]="hasSubBatches && showChildrenWeight"
+                    [requiredSampleWeight]="hasSubBatches && showChildrenWeight"
+                    [requiredIndividualCount]="hasSubBatches && showChildrenIndividualCount"
+                    [maxVisibleButtons]="maxVisibleButtons"
+                    [i18nSuffix]="i18nSuffix"
+                    [mobile]="mobile"
+                    [debug]="debug"
+    ></app-batch-form>
   </ng-template>
 
 </form>

@@ -105,6 +105,7 @@ export const PmfmIds = {
   GPS_USED: 188,
 
   /* APASE */
+  CHILD_GEAR: 400,
   BATCH_GEAR_POSITION: 411,
   TRAWL_SIZE_CAT: 418
 };

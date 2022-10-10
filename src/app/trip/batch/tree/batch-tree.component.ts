@@ -3,7 +3,7 @@ import {
   AppFormUtils,
   AppTabEditor,
   AppTable,
-  Entity,
+  Entity, firstTrue,
   firstTruePromise,
   IAppTabEditor,
   InMemoryEntitiesService,
@@ -334,11 +334,13 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     if (this.subBatchesTable) {
 
       // Enable sub batches table, only when table pmfms ready
-      firstTruePromise(this.subBatchesTable.$hasPmfms)
-        .then(() => {
-          this.showSubBatchesTable = true;
-          this.markForCheck();
-        });
+      this.registerSubscription(
+        firstTrue(this.subBatchesTable.$hasPmfms, {stop: this.destroySubject})
+          .subscribe(() => {
+            this.showSubBatchesTable = true;
+            this.markForCheck();
+          })
+      );
 
       // Update available parent on individual batch table, when batch group changes
       this.registerSubscription(
@@ -430,8 +432,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
       label: this.rootAcquisitionLevel
     });
 
-    // If catch batch (=no parent nor parentId) or rootAcquisitionLevel = CATCH_BATCH
-    if ((!rootBatch.parent && isNil(rootBatch.parentId)) || this.rootAcquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH) {
+    // If catch batch (=no parent nor parentId) and rootAcquisitionLevel = CATCH_BATCH
+    if (!rootBatch.parent && isNil(rootBatch.parentId) && this.rootAcquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH) {
       // Check expected label
       if (rootBatch.label !== AcquisitionLevelCodes.CATCH_BATCH) {
         throw new Error(`[batch-tree] Invalid catch batch label. Expected: ${AcquisitionLevelCodes.CATCH_BATCH} - Actual: ${rootBatch.label}`);
@@ -578,15 +580,20 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   async onSubBatchesChanges(subbatches: SubBatch[]) {
     if (isNil(subbatches)) return; // user cancelled
 
-    if (this.subBatchesTable) {
-      this.subBatchesTable.value = subbatches;
+    try {
+      if (this.subBatchesTable) {
+        this.subBatchesTable.value = subbatches;
 
-      // Wait table not busy
-      await this.subBatchesTable.waitIdle();
+        // Wait table not busy
+        await this.subBatchesTable.waitIdle({stop: this.destroySubject, stopError: false});
 
-      this.subBatchesTable.markAsDirty();
-    } else  {
-      await this._subBatchesService.saveAll(subbatches);
+        this.subBatchesTable.markAsDirty();
+      } else  {
+        await this._subBatchesService.saveAll(subbatches);
+      }
+    }
+    catch (err) {
+      console.error('[batch-tree] Error while updating sub batches', err)
     }
   }
 

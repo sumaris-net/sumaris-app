@@ -94,11 +94,12 @@ export class BatchValidatorService<
     if (opts?.withChildren) {
       if (isNotEmptyArray(data?.children)) {
         console.warn('[batch-validator] Creating validator for children batches - TODO: code review');
-        form.addControl('children', this.formBuilder.array(
-          data.children
-            .filter(BatchUtils.isSortingBatch)
-            .map(source => this.getFormGroup(source as T, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, ...opts}))
-        ));
+        const formChildrenHelper = this.getChildrenFormHelper(form, {
+          withChildren: opts.withChildren,
+          withChildrenWeight: opts.withChildrenWeight,
+          childrenPmfms: opts.childrenPmfms
+        });
+        formChildrenHelper.patchValue(data.children.filter(BatchUtils.isSortingBatch) as T[]);
       }
       else {
         const formChildrenHelper = this.getChildrenFormHelper(form, {
@@ -175,7 +176,7 @@ export class BatchValidatorService<
       (value) => this.getFormGroup(value, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, childrenPmfms: this.childrenPmfms, ...opts}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
       (value) => isNil(value),
-      {allowEmptyArray: true}
+      {allowEmptyArray: true, helperProperty: true}
     );
   }
 
