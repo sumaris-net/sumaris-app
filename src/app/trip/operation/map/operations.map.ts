@@ -94,6 +94,7 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
     return this.constructor.name;
   }
 
+  @Input() modal = true;
   @Input() data: (Trip|Operation[])[];
   @Input() latLongPattern: LatLongPattern;
 
