@@ -87,6 +87,5 @@
        (leafletMapReady)="onMapReady($event)"
        [leafletOptions]="options"
        [leafletLayersControl]="layersControl">
-    <div *ngFor="let layer of $layers | async" [leafletLayer]="layer"></div>
   </div>
 </ng-template>

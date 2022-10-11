@@ -78,7 +78,6 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
   };
 
   map: L.Map;
-  $layers = new BehaviorSubject<L.GeoJSON<L.Polygon>[]>(null);
   $onOverFeature = new Subject<Feature>();
   $onOutFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature>(null);
@@ -223,7 +222,6 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
       // Clean existing layers, if any
       this.cleanMapLayers();
 
-      const layers = [];
       let bounds: L.LatLngBounds;
 
       (this.data || []).forEach(tripContent => {
@@ -244,7 +242,6 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
           onEachFeature: this.onEachFeature.bind(this),
           style: (feature) => this.getOperationLayerStyle(feature)
         });
-        layers.push(operationLayer);
 
         // Add each operation to layer
         (operations || [])
@@ -278,11 +275,11 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
           }, {
             style: this.getTripLayerStyle()
           });
-          layers.push(tripLayer);
 
           // Add trip layer to control
           const tripLayerName = tripTitle || this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER');
           this.layersControl.overlays[tripLayerName] = tripLayer;
+          this.map.addLayer(tripLayer);
         }
 
         // Add operations layer to control
@@ -299,14 +296,15 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
         } else {
           bounds.extend(operationLayer.getBounds());
         }
+
+        this.map.addLayer(operationLayer);
+
       });
 
       if (bounds.isValid()) {
         this.map.fitBounds(bounds, {maxZoom: 10});
       }
 
-      // Refresh layer
-      this.$layers.next(layers);
     } catch (err) {
       console.error("[operations-map] Error while load layers:", err);
       this.error = err && err.message || err;
