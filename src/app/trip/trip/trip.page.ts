@@ -51,6 +51,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
 import { moment } from '@app/vendor';
+import { TripReport } from '@app/trip/trip/report/trip.report';
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -409,10 +410,18 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   async openReport(event?: UIEvent) {
-    if (this.dirty) {
-      const data = await this.saveAndGetDataIfValid();
-      if (!data) return; // Cancel
-    }
+    const data = await this.saveAndGetDataIfValid();
+    if (!data) return; // Cancel
+
+    /*const modal = await this.modalCtrl.create({
+      component: TripReport,
+      componentProps: {
+        id: data.id
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+    await modal.present();*/
     return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
   }
 

@@ -1,5 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
-import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
+import { AppSlidesComponent} from '@app/shared/report/slides/slides.component';
+import { IRevealOptions } from '@app/shared/report/reveal';
 
 @Component({
   selector: 'app-report-test-page',

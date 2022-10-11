@@ -1,14 +1,14 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { L } from '@app/shared/map/leaflet';
 import { LayerGroup, MapOptions, PathOptions } from 'leaflet';
 import {
-  AppEditor,
+  ConfigService,
   DateDiffDurationPipe,
   DateFormatPipe,
   EntityUtils,
   fadeInOutAnimation,
-  firstNotNilPromise,
+  firstNotNilPromise, isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -16,15 +16,12 @@ import {
   joinPropertiesPath,
   LatLongPattern,
   LocalSettingsService,
-  PlatformService,
-  sleep,
-  waitFor
+  PlatformService, sleep
 } from '@sumaris-net/ngx-components';
 import { Feature, LineString, MultiPolygon, Position } from 'geojson';
-import { AlertController, ModalController } from '@ionic/angular';
+import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { distinctUntilChanged, filter, switchMap, tap, throttleTime } from 'rxjs/operators';
-import { ActivatedRoute, Router } from '@angular/router';
+import { debounceTime, distinctUntilChanged, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -35,12 +32,12 @@ import { LocationUtils } from '@app/referential/location/location.utils';
 import { Geometries } from '@app/shared/geometries.utils';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 
-export interface OperationsMapModalOptions {
-  data: (Trip|Operation[])[];
-  latLongPattern: LatLongPattern;
-  programLabel: string;
-}
-const maxZoom = 18;
+import { MapGraticule } from '@app/shared/map/map.graticule';
+import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
+import uuid from 'uuid';
+import { uuidv4 } from '@app/vendor';
+
+const maxZoom = 10;
 
 @Component({
   selector: 'app-operations-map',
@@ -49,7 +46,7 @@ const maxZoom = 18;
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnDestroy, OperationsMapModalOptions {
+export class OperationsMap implements OnInit, OnDestroy {
 
   private readonly $programLabel = new BehaviorSubject<string>(undefined);
   private readonly $program = new BehaviorSubject<Program>(undefined);
@@ -77,25 +74,29 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
     }
   };
 
+  protected readonly subscription = new Subscription();
+  protected readonly destroySubject = new Subject();
+  protected readonly loadingSubject = new BehaviorSubject<boolean>(true);
+  protected layers: L.Layer[];
+  protected graticule: MapGraticule;
+  protected $center = new BehaviorSubject<{center: L.LatLng, zoom: number}>(undefined);
+
+  debug: boolean;
   map: L.Map;
+  mapId: string;
+  error: string;
   $onOverFeature = new Subject<Feature>();
   $onOutFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature>(null);
-  modalReady = false; // Need to be false. Will be set to true after a delay
+  $fitToBounds = new Subject<L.LatLngBounds>();
   vesselSnapshotAttributes: string[];
-  destroySubject = new Subject();
 
-  get isNewData(): boolean {
-    return false;
-  }
-
-  get modalName(): string {
-    return this.constructor.name;
-  }
-
-  @Input() modal = true;
+  @Input() showTooltip: boolean;
   @Input() data: (Trip|Operation[])[];
   @Input() latLongPattern: LatLongPattern;
+  @Input() flyToBoundsDelay = 450;
+  @Input() flyToBoundsDuration = 1; // seconds
+  @Input() showGraticule = false;
 
   @Input()
   set programLabel(value: string) {
@@ -108,34 +109,34 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
     return this.$programLabel.value;
   }
 
-  // TODO REMOVE THIS AFTER UPDATE OF ngx-component > 1.23.42
-  get loaded(): boolean {
-    return !this.loading;
-  }
+  @Output('ready') onReady = new EventEmitter();
+  @Output('operationClick') onOperationClick = new EventEmitter<Operation>();
 
   constructor(
-    protected route: ActivatedRoute,
-    protected router: Router,
-    protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected platform: PlatformService,
     protected viewCtrl: ModalController,
     protected dateFormatPipe: DateFormatPipe,
     protected dateDiffDurationPipe: DateDiffDurationPipe,
     protected settings: LocalSettingsService,
+    protected configService: ConfigService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected zone: NgZone,
     protected cd: ChangeDetectorRef,
     protected programRefService: ProgramRefService
   ) {
-    super(route, router, alertCtrl, translate);
 
     this.debug = !environment.production;
   }
 
-  ngOnInit() {
 
-    this.registerSubscription(
+  ngOnInit() {
+    // Default values
+    this.latLongPattern = this.latLongPattern || this.settings.latLongFormat;
+    this.mapId = uuidv4();
+
+
+    this.subscription.add(
       this.$programLabel
         .pipe(
           filter(isNotNilOrBlank),
@@ -145,60 +146,80 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
         )
         .subscribe());
 
-    this.registerSubscription(
-      this.$onOverFeature
-        .pipe(
-          throttleTime(200),
-          filter(feature => feature !== this.$selectedFeature.value
-            // Exclude rectangle feature
-            && feature.geometry.type === 'LineString'),
-          tap(feature => this.$selectedFeature.next(feature))
-        ).subscribe());
-
-    this.registerSubscription(
-      this.$onOutFeature
-        .pipe(
-          throttleTime(5000),
-          filter(feature => feature === this.$selectedFeature.value),
-          tap(_ => this.$selectedFeature.next(undefined))
-        ).subscribe());
-
-    sleep(500)
-      .then(() => {
-        this.modalReady = true;
-        this.markForCheck();
+    this.subscription.add(
+      this.configService.config.subscribe(config => {
+        let centerCoords = config.getPropertyAsNumbers(EXTRACTION_CONFIG_OPTIONS.EXTRACTION_MAP_CENTER_LAT_LNG);
+        centerCoords = (centerCoords?.length === 2) ? centerCoords : [0, 0];
+        const zoom = config.getPropertyAsInt(EXTRACTION_CONFIG_OPTIONS.EXTRACTION_MAP_CENTER_ZOOM);
+        this.$center.next({
+          center: L.latLng(centerCoords as [number, number]),
+          zoom: zoom || maxZoom
+        });
       })
-      // Wait onMapReady to be called
-      .then(() => waitFor(() => !!this.map, {stop: this.destroySubject}))
-      // Start
-      .then(() => this.start());
+    );
+
+    if (this.showTooltip) {
+      this.subscription.add(
+        this.$onOverFeature
+          .pipe(
+            throttleTime(200),
+            filter(feature => feature !== this.$selectedFeature.value
+              // Exclude rectangle feature
+              && feature.geometry.type === 'LineString'),
+            tap(feature => this.$selectedFeature.next(feature))
+          ).subscribe());
+
+      this.subscription.add(
+        this.$onOutFeature
+          .pipe(
+            throttleTime(5000),
+            filter(feature => feature === this.$selectedFeature.value),
+            tap(_ => this.$selectedFeature.next(undefined))
+          ).subscribe());
+    }
   }
 
   ngOnDestroy() {
-    super.ngOnDestroy();
+    this.subscription.unsubscribe();
     this.destroySubject.next();
     this.destroySubject.unsubscribe();
   }
 
-  onMapReady(leafletMap: L.Map) {
-    console.info("[operations-map] Leaflet map is ready");
-    this.map = leafletMap;
-  }
+  async onMapReady(map: L.Map) {
+    console.info("[operations-map] Leaflet map is ready", map);
 
-  async cancel(_event?: Event) {
-    await this.viewCtrl.dismiss(null, 'cancel');
-  }
+    // Create graticule
+    if (this.showGraticule) {
+      this.graticule = new MapGraticule({latLngPattern: this.latLongPattern});
+      this.graticule.addTo(map);
+    }
 
-  protected getFirstInvalidTabIndex(): number {
-    return 0;
+    // Center map
+    const { center, zoom } = await firstNotNilPromise(this.$center, { stop: this.destroySubject });
+
+    // Call ready in a timeout to let leaflet map to initialize
+    setTimeout(() => {
+      if (this.flyToBoundsDelay > 0 || this.flyToBoundsDuration > 0) {
+        if (center && (center.lat !== 0 || center.lng !== 0)) {
+          console.debug(`[extraction-map] Center: `, center);
+          map.setView(center, zoom);
+        } else {
+          map.fitWorld();
+        }
+      }
+      this.map = map;
+
+      this.load();
+    });
   }
 
   /* -- protected functions -- */
 
-  protected async start() {
+  protected async load() {
 
-    if (this.debug) console.debug("[operations-map] Starting...");
-    this.markAsLoaded({emitEvent: false});
+    if (this.debug) console.debug("[operations-map] Loading...");
+    this.loadingSubject.next(true);
+    this.error = null;
 
     // Wait program to be loaded
     const program = await firstNotNilPromise(this.$program, {stop: this.destroySubject});
@@ -213,21 +234,20 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
 
     // Load layers
     await this.loadLayers();
+
+    this.onReady.next();
+    this.loadingSubject.next(false);
   }
 
-  loadLayers(): Promise<void> {
+  async loadLayers(): Promise<void> {
     // Should never call load() without leaflet map
     if (!this.map) return; // Skip
 
     if (this.debug) console.debug('[operations-map] Creating layers...');
-    this.markAsLoading();
-    this.error = null;
 
     try {
       // Clean existing layers, if any
       this.cleanMapLayers();
-
-      let bounds: L.LatLngBounds;
 
       (this.data || []).forEach(tripContent => {
 
@@ -244,9 +264,10 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
 
         // Create a layer for all trip's operations
         const operationLayer = L.geoJSON(null, {
-          onEachFeature: this.onEachFeature.bind(this),
+          onEachFeature: this.showTooltip ? this.onEachFeature.bind(this) : undefined,
           style: (feature) => this.getOperationLayerStyle(feature)
         });
+        this.layers.push(operationLayer);
 
         // Add each operation to layer
         (operations || [])
@@ -268,8 +289,6 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
             }
           });
 
-        this.map.addLayer(operationLayer);
-
         // Add trip feature to layer
         if (tripCoordinates.length) {
           const tripLayer = L.geoJSON(<Feature>{
@@ -282,11 +301,11 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
           }, {
             style: this.getTripLayerStyle()
           });
+          this.layers.push(tripLayer);
 
           // Add trip layer to control
           const tripLayerName = tripTitle || this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER');
           this.layersControl.overlays[tripLayerName] = tripLayer;
-          this.map.addLayer(tripLayer);
         }
 
         // Add operations layer to control
@@ -297,39 +316,18 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
         : this.translate.instant('TRIP.OPERATION.MAP.OPERATIONS_LAYER');
         this.layersControl.overlays[operationLayerName] = operationLayer;
 
-        // Update layers bounds
-        if (!bounds) {
-          bounds = operationLayer.getBounds();
-        } else {
-          bounds.extend(operationLayer.getBounds());
-        }
-
       });
 
-      if (bounds.isValid()) {
-        this.map.fitBounds(bounds, {maxZoom: 10});
-      }
+      this.layers.forEach(layer => layer.addTo(this.map));
+
+      await this.flyToBounds();
 
     } catch (err) {
       console.error("[operations-map] Error while load layers:", err);
       this.error = err && err.message || err;
     } finally {
-      this.markAsLoaded();
       this.markForCheck();
     }
-  }
-
-
-  async save(_event, _options?: any): Promise<any> {
-    throw new Error('Nothing to save');
-  }
-
-  load(_id?: number, _options?: any): Promise<void> {
-    return this.loadLayers();
-  }
-
-  async reload(): Promise<any> {
-    return this.load();
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
@@ -340,7 +338,7 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
 
   protected onFeatureClick(feature: Feature) {
     const operation = this.getOperationFromFeature(feature);
-    this.viewCtrl.dismiss(operation);
+    this.onOperationClick.emit(operation);
   }
 
   protected getOperationFromFeature(feature: Feature): Operation|undefined {
@@ -401,15 +399,8 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
 
   protected cleanMapLayers() {
 
-    // Remove all layers (except first = graticule)
-    Object.getOwnPropertyNames(this.layersControl.overlays)
-      .forEach((layerName, index) => {
-        if (index === 0) return; // We keep the graticule layer
-
-        const existingLayer = this.layersControl.overlays[layerName] as LayerGroup<any>;
-        existingLayer.remove();
-        delete this.layersControl.overlays[layerName];
-      });
+    (this.layers || []).forEach((layer) => this.map.removeLayer(layer));
+    this.layers = [];
   }
 
   protected getOperationFeature(ope: Operation, index: number): Feature {
@@ -454,5 +445,62 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
     return features;
   }
 
+  async flyToBounds(opts = {skipDebounce : false}): Promise<void> {
 
+    if (!opts.skipDebounce && this.flyToBoundsDelay > 0) {
+      if (!this.$fitToBounds.observers.length) {
+        this.subscription.add(
+          this.$fitToBounds
+            .pipe(
+              debounceTime(this.flyToBoundsDelay)
+            )
+            .subscribe(b => this.flyToBounds({skipDebounce: true}))
+        );
+      }
+
+      this.$fitToBounds.next();
+
+      // Wait end of fit
+      return sleep(this.flyToBoundsDelay + this.flyToBoundsDuration);
+    }
+
+    if (isEmptyArray(this.layers)) {
+      console.debug('[operations-map] Skip fit to bounds (no layers)');
+      return;
+    }
+
+    // Create bounds, from layers
+    let bounds: L.LatLngBounds;
+    this.layers
+      .filter((layer) => layer instanceof L.GeoJSON)
+      .forEach((layer) => {
+        const layerBounds = (layer as L.GeoJSON).getBounds();
+        if (layerBounds.isValid()) {
+          bounds = !bounds ? layerBounds : bounds.extend(layerBounds);
+        }
+      });
+
+    this.goTo(bounds);
+  }
+
+  protected goTo(bounds: L.LatLngBounds) {
+    console.debug('[operations-map] Go to bounds:', bounds);
+    if (bounds && bounds.isValid()) {
+      if (this.flyToBoundsDuration <= 0) {
+        this.map.fitBounds(bounds, { maxZoom } );
+        return;
+      }
+      else {
+        try {
+          this.map.flyToBounds(bounds, { maxZoom, duration: this.flyToBoundsDuration });
+          return;
+        }
+        catch(err) {
+          console.error('Cannot go to bounds: ' +( err && err.message || err ), bounds);
+        }
+      }
+    }
+
+    this.map.fitWorld();
+  }
 }

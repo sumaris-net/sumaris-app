@@ -3,7 +3,7 @@ import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
 import { OperationService } from '../services/operation.service';
 import { AccountService, AppFormUtils, isNotNil, LatLongPattern, LocalSettings, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
-import { OperationsMap, OperationsMapModalOptions } from './map/operations.map';
+import { OperationsMapModal, OperationsMapModalOptions } from './map/operations-map.modal';
 import { environment } from '@environments/environment';
 import { Operation } from '../services/model/trip.model';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
@@ -271,7 +271,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     if (!res.total) return; // No data
 
     const modal = await this.modalCtrl.create({
-      component: OperationsMap,
+      component: OperationsMapModal,
       componentProps: <OperationsMapModalOptions>{
         data: [res.data],
         latLongPattern: this.latLongPattern,

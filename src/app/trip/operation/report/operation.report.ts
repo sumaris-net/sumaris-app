@@ -39,6 +39,11 @@ export class OperationReport extends AppRootDataReport<Operation> {
     return `/trips/${data.trip.id}/operation/${data.id}?tab=1`;
   }
 
+  protected computePrintHref(data: Operation): string {
+    console.debug(`[${this.constructor.name}.computePrintHref]`, arguments);
+    return `/trips/${data.trip.id}/operation/${data.id}/report`;
+  }
+
   protected async computeTitle(data: Operation, opts?: { withPrefix?: boolean }): Promise<string> {
     console.debug(`[${this.constructor.name}.computeTitle]`, arguments);
     const titlePrefix = (!opts || opts.withPrefix) && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {

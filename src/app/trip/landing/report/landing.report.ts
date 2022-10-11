@@ -1,5 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
-import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
+import { AppSlidesComponent } from '@app/shared/report/slides/slides.component';
+import { IRevealOptions } from '@app/shared/report/reveal';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -25,7 +26,7 @@ import { ObservedLocation } from '@app/trip/services/model/observed-location.mod
 import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
 

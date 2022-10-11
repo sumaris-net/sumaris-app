@@ -1,0 +1,27 @@
+
+<app-modal-toolbar *ngIf="showToolbar"
+                   [modalName]="modalName"
+                   [title]="'TRIP.OPERATION.MAP.TITLE'|translate"
+                   [color]="'secondary'"
+                   (cancel)="cancel()"
+                   [canValidate]="false">
+
+  <!-- Add close button (on desktop screen) -->
+  <ion-button hidden-xs hidden-sm hidden-mobile
+              slot="end"
+              (click)="cancel()"
+              (keyup.enter)="cancel()">
+    <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+  </ion-button>
+</app-modal-toolbar>
+
+<ion-content>
+  <!-- Operation map -->
+  <app-operations-map *ngIf="modalReady"
+                      (operationClick)="onOperationClick($event)"
+                      [showTooltip]="showTooltip"
+                      [programLabel]="programLabel"
+                      [data]="data"
+                      [latLongPattern]="latLongPattern">
+  </app-operations-map>
+</ion-content>

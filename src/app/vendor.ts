@@ -3,7 +3,7 @@ import 'tweetnacl-util';
 import 'scrypt-async';
 
 // Import Hammer JS (need to manage 'tap' events)
-import 'hammerjs/hammer';
+import 'hammerjs';
 
 // Import moment-timezone - should be loaded, otherwise moment().tz() will failed
 import { Moment } from 'moment';
@@ -14,3 +14,7 @@ const moment = momentImported;
 const tz = momentTZImported;
 export { moment, tz, Moment };
 
+// Import uuid
+import * as uuidv4Imported from 'uuid/v4';
+const uuidv4 = uuidv4Imported;
+export {uuidv4};

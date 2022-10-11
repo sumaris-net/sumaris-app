@@ -433,7 +433,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     // Wait settings to be loaded
     const settings = await this.settings.ready();
 
-      // Add scale control
+    // Add scale control
     L.control.scale({
       position: 'topright'
     }).addTo(map);

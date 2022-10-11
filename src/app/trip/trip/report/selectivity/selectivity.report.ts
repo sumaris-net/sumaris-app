@@ -15,6 +15,11 @@ export class SelectivityReport extends OperationReport {
 
   protected computeDefaultBackHref(data: Operation): string {
     console.debug(`[${this.constructor.name}.computeDefaultBackHref]`, arguments);
-    return `/trips/${data.trip.id}/operation/slectivity/${data.id}?tab=1`;
+    return `/trips/${data.trip.id}/operation/selectivity/${data.id}?tab=1`;
+  }
+
+  protected computePrintHref(data: Operation): string {
+    console.debug(`[${this.constructor.name}.computePrintHref]`, arguments);
+    return `/trips/${data.trip.id}/operation/selectivity/${data.id}/report`;
   }
 }

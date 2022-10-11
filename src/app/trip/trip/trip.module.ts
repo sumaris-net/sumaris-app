@@ -16,6 +16,7 @@ import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.modu
 import { AppOperationModule } from '@app/trip/operation/operation.module';
 import { AppSaleModule } from '@app/trip/sale/sale.module';
 import { AppSocialModule } from '@app/social/social.module';
+import { TripReportModule } from '@app/trip/trip/report/trip-report.module';
 
 @NgModule({
   imports: [
@@ -30,6 +31,7 @@ import { AppSocialModule } from '@app/social/social.module';
     AppReferentialModule,
     AppDataModule,
     VesselModule,
+    TripReportModule,
 
     // Functional modules
     AppMeasurementModule,

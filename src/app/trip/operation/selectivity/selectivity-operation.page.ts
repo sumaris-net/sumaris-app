@@ -64,9 +64,8 @@ export class SelectivityOperationPage
 
   onNewFabButtonClick(event: UIEvent) {
     const selectedTabIndex = this.selectedTabIndex;
-    if (selectedTabIndex >= OperationPage.TABS.CATCH) {
-      const batchTree = this.subBatchTrees.get(selectedTabIndex - OperationPage.TABS.CATCH);
-      if (batchTree) batchTree.addRow(event);
+    if (selectedTabIndex === OperationPage.TABS.CATCH) {
+      this.batchTree.addRow(event);
     }
     else {
       super.onNewFabButtonClick(event)
