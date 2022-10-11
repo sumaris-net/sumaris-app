@@ -268,6 +268,8 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
             }
           });
 
+        this.map.addLayer(operationLayer);
+
         // Add trip feature to layer
         if (tripCoordinates.length) {
           const tripLayer = L.geoJSON(<Feature>{
@@ -301,8 +303,6 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
         } else {
           bounds.extend(operationLayer.getBounds());
         }
-
-        this.map.addLayer(operationLayer);
 
       });
 
