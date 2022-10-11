@@ -39,7 +39,8 @@
               "chart.js",
               "react",
               "leaflet-easybutton",
-              "@bepo65/leaflet.fullscreen"
+              "@bepo65/leaflet.fullscreen",
+              "reveal.js"
             ],
             "assets": [
               {
