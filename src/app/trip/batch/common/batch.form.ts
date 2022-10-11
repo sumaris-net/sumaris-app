@@ -106,6 +106,11 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return this.form.get('children') as FormArray;
   }
 
+  get samplingBatchForm(): FormGroup {
+    return this.children?.at(0) as FormGroup;
+  }
+
+
   get weightForm(): FormGroup {
     return this.form.get('weight') as FormGroup;
   }

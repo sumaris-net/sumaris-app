@@ -1,10 +1,10 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild} from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppFormUtils,
   AppTabEditor,
   AppTable,
-  Entity, firstTrue,
-  firstTruePromise,
+  Entity,
+  firstTrue,
   IAppTabEditor,
   InMemoryEntitiesService,
   isNil,
@@ -16,30 +16,30 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import {AlertController} from '@ionic/angular';
-import {BehaviorSubject, defer} from 'rxjs';
-import {FormGroup} from '@angular/forms';
-import {debounceTime, distinctUntilChanged, filter, map, switchMap} from 'rxjs/operators';
-import {Batch} from '../common/batch.model';
-import {BatchGroup, BatchGroupUtils} from '../group/batch-group.model';
-import {BatchGroupsTable} from '../group/batch-groups.table';
-import {SubBatchesTable, SubBatchFilter} from '../sub/sub-batches.table';
-import {CatchBatchForm} from '../catch/catch.form';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
-import {MatTabChangeEvent} from '@angular/material/tabs';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {SubBatch, SubBatchUtils} from '../sub/sub-batch.model';
-import {Program} from '@app/referential/services/model/program.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {BatchGroupValidatorService} from '@app/trip/batch/group/batch-group.validator';
-import {ContextService} from '@app/shared/context.service';
-import {TripContextService} from '@app/trip/services/trip-context.service';
-import {BatchContext} from '@app/trip/batch/sub/sub-batch.validator';
-import {BatchFilter} from '@app/trip/batch/common/batch.filter';
-import {IBatchGroupModalOptions} from '@app/trip/batch/group/batch-group.modal';
+import { AlertController } from '@ionic/angular';
+import { BehaviorSubject, defer } from 'rxjs';
+import { FormGroup } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
+import { Batch } from '../common/batch.model';
+import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
+import { BatchGroupsTable } from '../group/batch-groups.table';
+import { SubBatchesTable, SubBatchFilter } from '../sub/sub-batches.table';
+import { CatchBatchForm } from '../catch/catch.form';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { SubBatch, SubBatchUtils } from '../sub/sub-batch.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
+import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;

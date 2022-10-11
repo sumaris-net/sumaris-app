@@ -781,7 +781,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         }, {}));
       } else {
         // TODO create weightMethodForm when no QV Pmfm
-        console.warn('create weightMethodForm when no QV Pmfm')
+        console.warn('[batch-groups-table] TODO: create weightMethodForm, when no QV Pmfm')
       }
     }
 
