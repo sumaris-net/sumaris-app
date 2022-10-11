@@ -197,6 +197,14 @@ export class SelectivityOperationPage
     return tab.id;
   }
 
+  async openReport(event?: UIEvent) {
+    if (this.dirty) {
+      const data = await this.saveAndGetDataIfValid();
+      if (!data) return; // Cancel
+    }
+    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+  }
+
   protected getFirstInvalidTabIndex(): number {
     // find invalids tabs (keep order)
     const invalidTabs = [
