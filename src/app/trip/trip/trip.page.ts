@@ -408,6 +408,14 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
+  async openReport(event?: UIEvent) {
+    if (this.dirty) {
+      const data = await this.saveAndGetDataIfValid();
+      if (!data) return; // Cancel
+    }
+    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+  }
+
   protected async setValue(data: Trip) {
     const isNewData = isNil(data.id);
 

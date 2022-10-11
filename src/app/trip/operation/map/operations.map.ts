@@ -78,7 +78,6 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
   };
 
   map: L.Map;
-  $layers = new BehaviorSubject<L.GeoJSON<L.Polygon>[]>(null);
   $onOverFeature = new Subject<Feature>();
   $onOutFeature = new Subject<Feature>();
   $selectedFeature = new BehaviorSubject<Feature>(null);
@@ -107,6 +106,11 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
 
   get programLabel(): string {
     return this.$programLabel.value;
+  }
+
+  // TODO REMOVE THIS AFTER UPDATE OF ngx-component > 1.23.42
+  get loaded(): boolean {
+    return !this.loading;
   }
 
   constructor(
@@ -181,7 +185,7 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
     this.map = leafletMap;
   }
 
-  async cancel(event?: Event) {
+  async cancel(_event?: Event) {
     await this.viewCtrl.dismiss(null, 'cancel');
   }
 
@@ -223,7 +227,6 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
       // Clean existing layers, if any
       this.cleanMapLayers();
 
-      const layers = [];
       let bounds: L.LatLngBounds;
 
       (this.data || []).forEach(tripContent => {
@@ -244,7 +247,6 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
           onEachFeature: this.onEachFeature.bind(this),
           style: (feature) => this.getOperationLayerStyle(feature)
         });
-        layers.push(operationLayer);
 
         // Add each operation to layer
         (operations || [])
@@ -266,6 +268,8 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
             }
           });
 
+        this.map.addLayer(operationLayer);
+
         // Add trip feature to layer
         if (tripCoordinates.length) {
           const tripLayer = L.geoJSON(<Feature>{
@@ -278,11 +282,11 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
           }, {
             style: this.getTripLayerStyle()
           });
-          layers.push(tripLayer);
 
           // Add trip layer to control
           const tripLayerName = tripTitle || this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER');
           this.layersControl.overlays[tripLayerName] = tripLayer;
+          this.map.addLayer(tripLayer);
         }
 
         // Add operations layer to control
@@ -299,14 +303,13 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
         } else {
           bounds.extend(operationLayer.getBounds());
         }
+
       });
 
       if (bounds.isValid()) {
         this.map.fitBounds(bounds, {maxZoom: 10});
       }
 
-      // Refresh layer
-      this.$layers.next(layers);
     } catch (err) {
       console.error("[operations-map] Error while load layers:", err);
       this.error = err && err.message || err;
@@ -317,11 +320,11 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
   }
 
 
-  async save(event, options?: any): Promise<any> {
+  async save(_event, _options?: any): Promise<any> {
     throw new Error('Nothing to save');
   }
 
-  load(id?: number, options?: any): Promise<void> {
+  load(_id?: number, _options?: any): Promise<void> {
     return this.loadLayers();
   }
 
@@ -362,7 +365,7 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
     };
   }
 
-  protected getOperationLayerStyle(feature?: Feature): PathOptions {
+  protected getOperationLayerStyle(_feature?: Feature): PathOptions {
     return {
       weight: 10,
       opacity: 0.8,

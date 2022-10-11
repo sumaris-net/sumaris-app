@@ -27,13 +27,24 @@
           </ul>
         </section>
         <section>
+          <h2>Représentation, répartition par taille</h2>
+          <div style="height:450px">
+          <canvas baseChart
+                  [datasets]="stats.chart1.data.datasets"
+                  [labels]="stats.chart1.data.labels"
+                  [chartType]="'bar'">
+          </canvas>
+          </div>
+        </section>
+        <section>
           <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
           <div style="height: 550px">
-            <app-operations-map
+            <app-operations-map #operationsMap
                 [modal]="false"
                 [programLabel]="data.program.label"
                 [data]="[data.operations]"
-                [latLongPattern]="settings.latLongFormat"></app-operations-map>
+                [latLongPattern]="settings.latLongFormat">
+            </app-operations-map>
           </div>
         </section>
       </ng-container>

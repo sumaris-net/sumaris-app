@@ -22,12 +22,12 @@ import {
   WaitForOptions
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { LandingReport } from '../landing/report/landing.report';
-import { LandingService } from '../services/landing.service';
-import { Landing } from '../services/model/landing.model';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { ObservedLocationService } from '../services/observed-location.service';
-import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { LandingReport } from '@app/trip/landing/report/landing.report';
+import { LandingService } from '@app/trip/services/landing.service';
+import { Landing } from '@app/trip/services/model/landing.model';
+import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 
 
 @Component({
