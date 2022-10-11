@@ -49,6 +49,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   @Input() showToolbar = true;
   @Input() debug = !environment.production;
   @Input() data: T;
+  @Input() stats: any = {};
 
   @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
 

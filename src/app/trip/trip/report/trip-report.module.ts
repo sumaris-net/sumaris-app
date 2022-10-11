@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { AppOperationModule } from '@app/trip/operation/operation.module';
+import { ChartsModule } from 'ng2-charts';
 import { TripReport } from './trip.report';
 
 
@@ -13,6 +14,7 @@ import { TripReport } from './trip.report';
     AppCoreModule,
     AppSharedReportModule,
     AppOperationModule,
+    ChartsModule,
   ],
   exports: [
     TripReport,
