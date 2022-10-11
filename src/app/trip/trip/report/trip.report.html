@@ -39,7 +39,7 @@
         <section>
           <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
           <div style="height: 550px">
-            <app-operations-map
+            <app-operations-map #operationsMap
                 [modal]="false"
                 [programLabel]="data.program.label"
                 [data]="[data.operations]"

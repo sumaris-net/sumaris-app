@@ -108,6 +108,11 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
     return this.$programLabel.value;
   }
 
+  // TODO REMOVE THIS AFTER UPDATE OF ngx-component > 1.23.42
+  get loaded(): boolean {
+    return !this.loading;
+  }
+
   constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -180,7 +185,7 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
     this.map = leafletMap;
   }
 
-  async cancel(event?: Event) {
+  async cancel(_event?: Event) {
     await this.viewCtrl.dismiss(null, 'cancel');
   }
 
@@ -315,11 +320,11 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
   }
 
 
-  async save(event, options?: any): Promise<any> {
+  async save(_event, _options?: any): Promise<any> {
     throw new Error('Nothing to save');
   }
 
-  load(id?: number, options?: any): Promise<void> {
+  load(_id?: number, _options?: any): Promise<void> {
     return this.loadLayers();
   }
 
@@ -360,7 +365,7 @@ export class OperationsMap extends AppEditor<Operation[]> implements OnInit, OnD
     };
   }
 
-  protected getOperationLayerStyle(feature?: Feature): PathOptions {
+  protected getOperationLayerStyle(_feature?: Feature): PathOptions {
     return {
       weight: 10,
       opacity: 0.8,

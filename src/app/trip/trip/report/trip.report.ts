@@ -1,8 +1,9 @@
-import { Component, Injector } from '@angular/core';
+import { Component, Injector, ViewChild } from '@angular/core';
 import { AppRootDataReport } from '@app/data/report/root-data-report.class';
+import { OperationsMap } from '@app/trip/operation/map/operations.map';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripService } from '@app/trip/services/trip.service';
-import { ChartData, ChartDataSets, ChartType } from 'chart.js';
+import { waitFor } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-trip-report',
@@ -13,6 +14,7 @@ export class TripReport extends AppRootDataReport<Trip> {
 
   private tripService: TripService;
 
+  @ViewChild('operationsMap') _operationsMap!: OperationsMap;
 
   constructor(injector: Injector) {
     super(injector);
@@ -21,7 +23,7 @@ export class TripReport extends AppRootDataReport<Trip> {
 
   genDummyDataSets(sets: string[], nbSample: number): Object {
     const xData = Array(nbSample).fill(1).map((_,i) => (i+1)*3);
-    const yData = sets.map((label, index) => {
+    const yData = sets.map((label) => {
       return {
         label: label,
         data: Array(xData.length).fill(1).map((_) => Math.floor(Math.random() * 300)),
@@ -43,9 +45,13 @@ export class TripReport extends AppRootDataReport<Trip> {
         }
       },
     }
-    console.debug('MY_CHART_DATA', this.stats.chart1);
 
     return data;
+  }
+
+  async updateView() {
+    await waitFor(() => this._operationsMap?.loaded);
+    super.updateView();
   }
 
   protected computeDefaultBackHref(data: Trip): string {
