@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ContentChildren, ElementRef, EventEmitter, HostListener, Inject, Input, OnDestroy, Output, QueryList, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ContentChildren, ElementRef, EventEmitter, HostListener, Inject, Input, OnDestroy, Output, QueryList, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
 import { Reveal } from '../reveal';
 import { MarkdownComponent } from 'ngx-markdown';
@@ -20,6 +20,14 @@ export interface IRevealOptions {
   touch: boolean
   embedded: boolean; // Required for multi .reveal div
   keyboardCondition: string;
+  mouseWheel: boolean;
+  slideNumber: boolean, // Disable number
+  keyboard: boolean,
+  fragments: boolean,
+  controlsBackArrows: string;
+  pdfMaxPagesPerSlide: number;
+  hideInactiveCursor: boolean;
+
   [key: string]: any;
 }
 export interface IReveal {
@@ -53,7 +61,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
   @Input() options: Partial<IRevealOptions>;
 
-  @Output('ready') onReady = new EventEmitter()
+  @Output('ready') onReady = new EventEmitter();
 
   @ViewChild('main') _revealDiv!: ElementRef;
 
@@ -111,7 +119,8 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
     // Move content to body
     if (this.isPrintingPdf()) {
-      this._document.body.appendChild(this._revealDiv.nativeElement);
+      console.debug(`[slides] Moving <div class="reveal"> into <body> ...`);
+     this._document.body.appendChild(this._revealDiv.nativeElement);
     }
 
     // Full list of configuration options available here:
@@ -132,8 +141,8 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
       ...this.options,
 
-      embedded: true, // Required for multi .reveal div
-      keyboardCondition: 'focused'
+      embedded: !this._printing, // Required for multi .reveal div
+      keyboardCondition: !this._printing && 'focused'
     });
 
     await this._reveal.initialize();
@@ -150,6 +159,10 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
   configure(options: Partial<IRevealOptions>){
     this._reveal?.configure(options);
+  }
+
+  layout() {
+    this._reveal.layout();
   }
 
   async print(event?: UIEvent) {
