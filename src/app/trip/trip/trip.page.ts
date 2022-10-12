@@ -412,16 +412,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   async openReport(event?: UIEvent) {
     const data = await this.saveAndGetDataIfValid();
     if (!data) return; // Cancel
-
-    /*const modal = await this.modalCtrl.create({
-      component: TripReport,
-      componentProps: {
-        id: data.id
-      },
-      keyboardClose: true,
-      cssClass: 'modal-large'
-    });
-    await modal.present();*/
     return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
   }
 
