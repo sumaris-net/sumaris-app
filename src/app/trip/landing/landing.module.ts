@@ -3,10 +3,8 @@ import { LandingsTable } from './landings.table';
 import { LandingPage } from './landing.page';
 import { LandingForm } from './landing.form';
 import { SelectLandingsModal } from './select-landings.modal';
-import { AuctionControlPage } from './auctioncontrol/auction-control.page';
 import { AppDataModule } from '../../data/data.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { SamplingLandingPage } from './sampling/sampling-landing.page';
 import { VesselModule } from '../../vessel/vessel.module';
 import { AppReferentialModule } from '@app/referential/referential.module';
 import { AppCoreModule } from '@app/core/core.module';
@@ -30,14 +28,14 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
     LandingsTable,
     LandingForm,
     LandingPage,
-    SelectLandingsModal
+    SelectLandingsModal,
   ],
   exports: [
     // Components
     LandingsTable,
     LandingForm,
     LandingPage,
-    SelectLandingsModal
+    SelectLandingsModal,
   ]
 })
 export class AppLandingModule {

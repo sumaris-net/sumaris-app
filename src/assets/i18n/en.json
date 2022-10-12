@@ -771,6 +771,11 @@
         "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtering not available",
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "No practiced metiers found in the available data."
+      },
+      "REPORT": {
+        "TITLE": "Report OP #{{rankOrder}} <small>of {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "Report OP {{startDateTime}}",
+        "TITLE_SLIDE": "Operation report"
       }
     },
     "OPERATION_GROUP": {
@@ -1024,6 +1029,10 @@
           "TITLE": "Release {{label}}"
         }
       }
+    },
+    "REPORT": {
+      "TITLE": "<small>{{ vessel }}</small> Trip report of {{ departureDate }}",
+      "TITLE_SLIDE": "Trip report"
     }
   },
   "EXPECTED_SALE": {

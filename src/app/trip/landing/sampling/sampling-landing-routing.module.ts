@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { ComponentDirtyGuard } from '@sumaris-net/ngx-components';
 import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing.page';
-import { SamplingLandingReport } from '@app/trip/landing/sampling/sampling-landing.report';
 import { AppSamplingLandingModule } from '@app/trip/landing/sampling/sampling-landing.module';
 
 const routes: Routes = [
@@ -22,7 +21,7 @@ const routes: Routes = [
       },
       {
         path: 'report',
-        component: SamplingLandingReport
+        loadChildren: () => import('./report/sampling-landing-report-routing.module').then(m =>m.SamplingReportRoutingModule)
       }
     ]
   }

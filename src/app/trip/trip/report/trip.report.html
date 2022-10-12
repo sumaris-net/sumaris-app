@@ -1,0 +1,39 @@
+<app-toolbar [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
+
+<ion-title [innerHTML]="$title|async"></ion-title>
+<ion-buttons slot="end">
+  <ion-button (click)="slides.print($event)">
+    <ion-icon name="print"></ion-icon>
+  </ion-button>
+</ion-buttons>
+</app-toolbar>
+
+<ion-content>
+
+  <ion-item *ngIf="error && showError" lines="none">
+    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+  </ion-item>
+
+  <app-slides #slides *ngIf="!error" [options]="slidesOptions">
+    <section>
+      <ng-container *ngIf="loaded; else loadingTemplate">
+        <section>
+          <h1>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
+          <ul>
+            <li>{{ 'TRIP.TABLE.VESSEL'|translateContext: i18nContext.suffix }} : {{ data.vesselSnapshot.exteriorMarking }}</li>
+            <li>{{ 'TRIP.DEPARTURE_DATE_TIME'|translateContext: i18nContext.suffix }} : {{ data.departureDateTime|dateFormat:{time: false} }}</li>
+            <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
+          </ul>
+        </section>
+      </ng-container>
+    </section>
+  </app-slides>
+
+  <ng-template #loadingTemplate>
+    <div class="loader">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+
+</ion-content>

@@ -5,7 +5,6 @@ import { ObservedLocationsPage } from './observedlocation/observed-locations.pag
 import { ObservedLocationPage } from './observedlocation/observed-location.page';
 import { LandedTripPage } from './landedtrip/landed-trip.page';
 import { AppObservedLocationModule } from '@app/trip/observedlocation/observed-location.module';
-import { ObservedLocationReport } from './observedlocation/observed-location.report';
 
 const routes: Routes = [
   {
@@ -51,7 +50,7 @@ const routes: Routes = [
       },
       {
         path: 'report',
-        component: ObservedLocationReport,
+        loadChildren: () => import('./observedlocation/report/observed-location-report-routing.module').then(m => m.AppObservedLocationReportRoutingModule)
       }
     ]
   }

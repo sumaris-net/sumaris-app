@@ -22,18 +22,18 @@ import {
   WaitForOptions
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { LandingReport } from '../landing/landing.report';
-import { LandingService } from '../services/landing.service';
-import { Landing } from '../services/model/landing.model';
-import { ObservedLocation } from '../services/model/observed-location.model';
-import { ObservedLocationService } from '../services/observed-location.service';
-import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { LandingReport } from '@app/trip/landing/report/landing.report';
+import { LandingService } from '@app/trip/services/landing.service';
+import { Landing } from '@app/trip/services/model/landing.model';
+import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 
 
 @Component({
   selector: 'app-observed-location',
   templateUrl: './observed-location.report.html',
-  styleUrls: ['./observed-location.report.scss'],
+  styleUrls: ['../../landing/report/landing.report.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ObservedLocationReport<T extends ObservedLocation = ObservedLocation> implements AfterViewInit {
@@ -56,9 +56,9 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   private readonly _autoLoad = true;
   private readonly _autoLoadDelay = 0;
 
-  defaultBackHref: string = null;
   error: string;
   $title = new Subject();
+  $defaultBackHref = new Subject<string>();
   slidesOptions: Partial<IRevealOptions>;
   i18nContext = {
     prefix: '',
@@ -129,9 +129,9 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
       console.error(`[${this.constructor.name}] Error: ${err}`);
       this.error = err as string;
     } else {
-      console.log(`[${this.constructor.name}] Error: ${err.message}`, err);
+      console.error(`[${this.constructor.name}] Error: ${err.message}`, err);
       let userMessage: string = err.message && this.translate.instant(err.message) || err;
-      const detailMessage: string = (!err.details || typeof (err.details === 'string'))
+      const detailMessage: string = (!err.details || typeof(err.details) === 'string')
         ? err.details as string
         : err.details.message;
       if (isNotNilOrBlank(detailMessage)) {
@@ -149,7 +149,6 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   async start() {
     await this.platform.ready();
-    this.markAsReady();
     try {
       await this.loadFromRoute();
     } catch (err) {
@@ -186,6 +185,8 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     this.i18nContext.suffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     if (this.i18nContext.suffix === 'legacy') {this.i18nContext.suffix = ''}
     this.landingEditor = program.getProperty(ProgramProperties.LANDING_EDITOR);
+    // Force landing editor to default for testing
+    //this.landingEditor = 'landing'
     this.landingShowSampleCount = program.getPropertyAsBoolean(ProgramProperties.LANDING_SAMPLES_COUNT_ENABLE);
 
     // Load full landings
@@ -203,7 +204,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     this.pmfms = pmfms;
     this.landingPmfms = landingPmfms;
     this.landingSamplesPmfms = await this.loadLandingsPmfms(data.landings, program);
-    this.data = await this.onDataLoaded(data as T, pmfms);
+    this.data = await this.onDataLoaded(data as T);
 
     this.markAsReady();
     this.markAsLoaded();
@@ -221,7 +222,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     await this.slides.initialize();
   }
 
-  protected async onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {
+  protected async onDataLoaded(data: T): Promise<T> {
     this.stats.vesselCount = arrayDistinct(data.landings, 'vesselSnapshot.id').length;
     return data;
   }
@@ -256,7 +257,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   }
 
   protected computeDefaultBackHref(data: ObservedLocation) {
-    this.defaultBackHref = `/observations/${data.id}?tab=1`;
+    this.$defaultBackHref.next(`/observations/${data.id}?tab=1`);
   }
 
   protected computeSlidesOptions() {
@@ -288,7 +289,6 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   protected async waitIdle(opts: WaitForOptions) {
     if (this.loaded) return; // skip
-
     await firstFalsePromise(this.loadingSubject, opts);
     await Promise.all(
       this.children.map(c => c.waitIdle(opts))

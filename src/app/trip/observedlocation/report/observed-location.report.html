@@ -1,4 +1,4 @@
-<app-toolbar  *ngIf="showToolbar" [defaultBackHref]="defaultBackHref" canGoBack="true">
+<app-toolbar  *ngIf="showToolbar" [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
   <ion-title [innerHTML]="$title|async"></ion-title>
   <ion-buttons slot="end">
     <ion-button (click)="slides.print($event)" >
@@ -101,6 +101,17 @@
                                     [i18nContext]="i18nContext"
                                     [pmfms]="landingSamplesPmfms[index]"
         ></app-sampling-landing-report>
+
+        <!-- landing report by default -->
+        <app-landing-report #landingReport
+                            *ngSwitchCase="'landing'"
+                            [embedded]="true"
+                            [data]="landing"
+                            [parent]="data"
+                            [i18nContext]="i18nContext"
+                            [pmfms]="landingSamplesPmfms[index]"
+        ></app-landing-report>
+
 
       </section>
   </app-slides>

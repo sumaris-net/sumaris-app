@@ -7,13 +7,18 @@ import { AppSelectivityOperationModule } from '@app/trip/operation/selectivity/s
 const routes: Routes = [
   {
     path: ':selectivityOperationId',
-    pathMatch: 'full',
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
       pathIdParam: 'selectivityOperationId'
     },
-    component: SelectivityOperationPage,
-    canDeactivate: [ComponentDirtyGuard]
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        component: SelectivityOperationPage,
+        canDeactivate: [ComponentDirtyGuard],
+      },
+    ],
   }
 ];
 
@@ -27,5 +32,4 @@ const routes: Routes = [
     RouterModule
   ]
 })
-export class AppSelectivityOperationRoutingModule {
-}
+export class AppSelectivityOperationRoutingModule {}
