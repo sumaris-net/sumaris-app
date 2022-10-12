@@ -41,7 +41,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -51,7 +51,6 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
 import { moment } from '@app/vendor';
-import { TripReport } from '@app/trip/trip/report/trip.report';
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -89,6 +88,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   mobile = false;
   settingsId: string;
   devAutoFillData = false;
+  enableReport: boolean;
   operationEditor: OperationEditor;
   operationPasteFlags: number;
 
@@ -252,6 +252,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
     this.operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE);
 
     // Trip form
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
@@ -410,8 +411,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   async openReport(event?: UIEvent) {
-    const data = await this.saveAndGetDataIfValid();
-    if (!data) return; // Cancel
+    if (this.dirty) {
+      const data = await this.saveAndGetDataIfValid();
+      if (!data) return; // Cancel
+    }
     return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
   }
 

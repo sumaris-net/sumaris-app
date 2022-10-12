@@ -81,6 +81,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showRecorder = true;
   showObservers = true;
   landingEditor: LandingEditor = undefined;
+  enableReport: boolean;
 
   get table(): ILandingsTable {
     return this.$table.value;
@@ -380,6 +381,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
+      this.enableReport = program.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE);
       this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
       this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
       this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
