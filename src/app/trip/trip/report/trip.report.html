@@ -50,7 +50,7 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <app-slides #slides [options]="slidesOptions" *ngIf="loaded; else loadingTemplate" (slideChanged)="onSlideChanged($event)">
+  <app-reveal #slides [options]="slidesOptions" *ngIf="loaded; else loadingTemplate" (slideChanged)="onSlideChanged($event)">
     <section>
       <section>
         <h1>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
@@ -63,22 +63,23 @@
       <section>
         <h2>Représentation, répartition par taille</h2>
         <div style="height:450px">
-        <canvas baseChart
+        <canvas baseChart #chart
                 [datasets]="stats.chart1.data.datasets"
                 [labels]="stats.chart1.data.labels"
                 [chartType]="'bar'">
         </canvas>
         </div>
       </section>
-      <section>
+      <section (entered)="!slides.printing && showMap()">
         <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
         <!-- Operations map -->
         <div style="height: 550px;">
-          <ng-container #mapContainer></ng-container>
+          <ng-container #mapContainer>
+          </ng-container>
         </div>
       </section>
     </section>
-  </app-slides>
+  </app-reveal>
 
   <ng-template #loadingTemplate>
     <div class="loader">
@@ -89,14 +90,13 @@
 </ion-content>
 
 <ng-template #mapTemplate>
-  <app-operations-map
-    (ready)="onMapReady()"
-    [showTooltip]="false"
-    [programLabel]="data.program.label"
-    [data]="[data.operations]"
-    [flyToBoundsDelay]="0"
-    [flyToBoundsDuration]="0"
-    [showGraticule]="true"
-    [latLongPattern]="settings.latLongFormat">
+  <app-operations-map (ready)="onMapReady()"
+                      [showTooltip]="false"
+                      [programLabel]="data.program.label"
+                      [data]="[data.operations]"
+                      [flyToBoundsDelay]="0"
+                      [flyToBoundsDuration]="0"
+                      [showGraticule]="true"
+                      [latLongPattern]="settings.latLongFormat">
   </app-operations-map>
 </ng-template>

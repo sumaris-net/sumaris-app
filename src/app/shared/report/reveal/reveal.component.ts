@@ -1,21 +1,23 @@
 import {
   AfterViewInit,
-  ApplicationRef, ChangeDetectorRef,
+  ApplicationRef,
+  ChangeDetectorRef,
   Component,
-  ComponentFactoryResolver, ComponentRef,
   ContentChildren,
-  ElementRef, EmbeddedViewRef,
+  ElementRef,
+  EmbeddedViewRef,
   EventEmitter,
   HostListener,
-  Inject, Injector,
+  Inject,
   Input,
   OnDestroy,
   Output,
   QueryList,
-  ViewChild, ViewRef
+  ViewChild,
+  ViewRef
 } from '@angular/core';
 import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
-import { IReveal, IRevealOptions, Reveal, RevealSlideChangedEvent } from '../reveal';
+import { IReveal, IRevealOptions, Reveal, RevealSlideChangedEvent } from './reveal.utils';
 import { MarkdownComponent } from 'ngx-markdown';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
@@ -24,19 +26,18 @@ import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 
 
-export interface ISlidesOptions extends IRevealOptions {
+export interface IRevealExtendedOptions extends IRevealOptions {
   autoInitialize: boolean;
   autoPrint: boolean;
   printHref: string;
 }
 
 @Component({
-  selector: 'app-slides',
-  templateUrl: './slides.component.html',
-  styleUrls: ['./slides.component.scss'],
-  //encapsulation: ViewEncapsulation.None
+  selector: 'app-reveal',
+  templateUrl: './reveal.component.html',
+  styleUrls: ['./reveal.component.scss']
 })
-export class AppSlidesComponent implements AfterViewInit, OnDestroy
+export class RevealComponent implements AfterViewInit, OnDestroy
 {
   private _reveal: IReveal;
   private loadingSubject = new BehaviorSubject(true);
@@ -56,7 +57,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     return this._printing;
   }
 
-  @Input() options: Partial<ISlidesOptions>;
+  @Input() options: Partial<IRevealExtendedOptions>;
   @Input() autoPrint = true;
 
   @Output('ready') onReady = new EventEmitter();
@@ -119,7 +120,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     console.debug(`[slides] Moving <div class="reveal"> into <body> ...`);
     this.viewRef.detach();
     this.appRef.attachView(this.viewRef);
-    const domElement: HTMLElement = (this.viewRef as EmbeddedViewRef<AppSlidesComponent>)
+    const domElement: HTMLElement = (this.viewRef as EmbeddedViewRef<RevealComponent>)
       .rootNodes[0];
     this._document.body.appendChild(domElement);
   }
@@ -161,13 +162,13 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
     await this._reveal.initialize();
 
-    console.log(Object.keys(this._reveal));
-
     console.info(`[slides] Reveal initialized in ${Date.now()-now}ms`);
     this.onReady.emit();
     this.markAsLoaded();
 
-    this._reveal.on( 'slidechanged', event => this.onSlideChanged.emit(event));
+    this._reveal.on( 'slidechanged', (event: RevealSlideChangedEvent) => {
+      this.onSlideChanged.emit(event);
+    });
 
     this._subscription.add(() => {
       this._reveal.destroy();

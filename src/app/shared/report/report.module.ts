@@ -1,18 +1,18 @@
-import {NgModule} from '@angular/core';
-import {SharedModule} from '@sumaris-net/ngx-components';
-import {AppSlidesComponent} from '@app/shared/report/slides/slides.component';
-import {ChartsModule} from 'ng2-charts';
+import { NgModule } from '@angular/core';
+import { SharedModule } from '@sumaris-net/ngx-components';
+import { ChartsModule } from 'ng2-charts';
+import { RevealModule } from '@app/shared/report/reveal/reveal.module';
 
 @NgModule({
   imports: [
     SharedModule,
-    ChartsModule
-  ],
-  declarations: [
-    AppSlidesComponent
+    ChartsModule,
+
+    // Sub module
+    RevealModule
   ],
   exports: [
-    AppSlidesComponent
+    RevealModule
   ]
 })
 export class AppSharedReportModule {

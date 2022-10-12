@@ -14,7 +14,7 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <app-slides #slides *ngIf="!error" [options]="slidesOptions">
+  <app-reveal #slides *ngIf="!error" [options]="slidesOptions">
       <section>
         <ng-container *ngIf="loaded; else loadingTemplate">
           <section>
@@ -114,7 +114,7 @@
 
 
       </section>
-  </app-slides>
+  </app-reveal>
 
   <ng-template #loadingTemplate>
     <div class="loader">

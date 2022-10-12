@@ -6,8 +6,8 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { AppSlidesComponent } from '@app/shared/report/slides/slides.component';
-import { IRevealOptions } from '@app/shared/report/reveal';
+import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
+import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
 import { TranslateService } from '@ngx-translate/core';
 import {
   AppErrorWithDetails,
@@ -83,7 +83,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   @Input() showToolbar = true;
   @Input() showError = true;
 
-  @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+  @ViewChild(RevealComponent) slides!: RevealComponent;
   @ViewChildren("landingReport") children!: QueryList<LandingReport>;
 
   get loading(): boolean {

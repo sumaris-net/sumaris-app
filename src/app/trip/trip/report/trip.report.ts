@@ -5,8 +5,8 @@ import { TripService } from '@app/trip/services/trip.service';
 import { firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
-import { ISlidesOptions } from '@app/shared/report/slides/slides.component';
-import { RevealSlideChangedEvent } from '@app/shared/report/reveal';
+import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
+import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
 
 @Component({
   selector: 'app-trip-report',
@@ -19,7 +19,7 @@ export class TripReport extends AppRootDataReport<Trip> {
   private tripService: TripService;
   private operationService: OperationService;
   mapReadySubject = new BehaviorSubject<boolean>(false)
-
+  mapVisible = false;
 
   @ViewChild('mapContainer', {'read': ViewContainerRef}) mapContainer;
   @ViewChild('mapTemplate') mapTemplate: TemplateRef<null>;
@@ -57,7 +57,7 @@ export class TripReport extends AppRootDataReport<Trip> {
     this.mapReadySubject.next(true);
   }
 
-  protected computeSlidesOptions(): Partial<ISlidesOptions> {
+  protected computeSlidesOptions(): Partial<IRevealExtendedOptions> {
     return {
       ...super.computeSlidesOptions(),
       printHref: isNotNil(this.id) ? `/trips/${this.id}/report` : undefined
@@ -73,22 +73,19 @@ export class TripReport extends AppRootDataReport<Trip> {
     console.debug(`[${this.constructor.name}.updateView]`);
     this.cd.detectChanges();
 
-    await waitFor(() => !!this.slides);
-    await this.slides.initialize();
-    await sleep(500);
+    await waitFor(() => !!this.reveal);
+    await this.reveal.initialize();
 
-    // Insert the map
-    this.mapContainer.createEmbeddedView(this.mapTemplate);
-    await firstTruePromise(this.mapReadySubject);
+    // this.cd.detectChanges();
+    // this.slides.sync();
+    // this.slides.layout();
+    // await sleep(1000);
 
-    this.cd.detectChanges();
-    this.slides.sync();
-    this.slides.layout();
-    await sleep(1000);
-
-    if (this.slides.printing) {
-      await sleep(1000);
-      await this.slides.print();
+    if (this.reveal.printing) {
+      await sleep(500);
+      await this.showMap();
+      //await sleep(1000);
+      await this.reveal.print();
     }
   }
 
@@ -111,6 +108,11 @@ export class TripReport extends AppRootDataReport<Trip> {
       vessel: data.vesselSnapshot.exteriorMarking,
     }).toPromise();
     return title;
+  }
+
+  async showMap() {
+    this.mapContainer.createEmbeddedView(this.mapTemplate);
+    await firstTruePromise(this.mapReadySubject);
   }
 
   /* -- DEBUG only -- */

@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
-import { AppSlidesComponent } from '@app/shared/report/slides/slides.component';
-import { IRevealOptions } from '@app/shared/report/reveal';
+import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
+import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
 import {
@@ -83,7 +83,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   @Input() showError = true;
   @Input() debug = !environment.production;
 
-  @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+  @ViewChild(RevealComponent) slides!: RevealComponent;
 
   get loading(): boolean {
     return this.loadingSubject.value;

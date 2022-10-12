@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { AppSlidesComponent, ISlidesOptions } from '@app/shared/report/slides/slides.component';
+import { RevealComponent, IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
 import { AppErrorWithDetails, DateFormatPipe, firstFalsePromise, isNil, isNotNil, isNotNilOrBlank, isNumber, LocalSettingsService, PlatformService, WaitForOptions } from '@sumaris-net/ngx-components';
@@ -38,7 +38,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   protected _pathParentIdAttribute: string;
 
   error: string;
-  slidesOptions: Partial<ISlidesOptions>;
+  slidesOptions: Partial<IRevealExtendedOptions>;
   // NOTE: Interface for this ?
   i18nContext = {
     prefix: '',
@@ -56,7 +56,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   @Input() stats: any = {};
   @Input() debug = !environment.production;
 
-  @ViewChild('slides', {read: AppSlidesComponent, static: false}) slides: AppSlidesComponent;
+  @ViewChild(RevealComponent) reveal: RevealComponent;
 
   get loaded(): boolean { return !this.loadingSubject.value; }
 
@@ -194,7 +194,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
 
   protected abstract computePrintHref(data: T): string;
 
-  protected computeSlidesOptions(): Partial<ISlidesOptions> {
+  protected computeSlidesOptions(): Partial<IRevealExtendedOptions> {
     console.debug(`[${this.constructor.name}.computeSlidesOptions]`);
     const mobile = this.settings.mobile;
     return {
@@ -218,7 +218,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   async updateView() {
     console.debug(`[${this.constructor.name}.updateView]`);
     this.cd.detectChanges();
-    await this.slides.initialize();
+    await this.reveal.initialize();
   }
 
   protected markForCheck() {

@@ -1,6 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
-import { AppSlidesComponent} from '@app/shared/report/slides/slides.component';
-import { IRevealOptions } from '@app/shared/report/reveal';
+import { RevealComponent} from '@app/shared/report/reveal/reveal.component';
+import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
 
 @Component({
   selector: 'app-report-test-page',
@@ -9,7 +9,6 @@ import { IRevealOptions } from '@app/shared/report/reveal';
 export class ReportTestPage {
 
   slidesOptions: Partial<IRevealOptions> = {};
-  shouldPrint = true;
 
   chart = {
     backgroundColor: "rgba(100,100,100,1)",
@@ -28,7 +27,7 @@ export class ReportTestPage {
     ]
   };
 
-  @ViewChild(AppSlidesComponent) slides: AppSlidesComponent;
+  @ViewChild(RevealComponent) slides: RevealComponent;
 
   constructor() {
   }
