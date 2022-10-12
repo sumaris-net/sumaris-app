@@ -3,11 +3,6 @@
     [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
 
     <ion-title [innerHTML]="$title|async"></ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="slides.print($event)">
-        <ion-icon name="print"></ion-icon>
-      </ion-button>
-    </ion-buttons>
 
     <!-- Help button -->
     <ion-button slot="end" (click)="slides.toggleHelp()">
@@ -18,7 +13,6 @@
     <ion-button slot="end" (click)="slides.print($event)">
       <ion-icon slot="icon-only" name="print"></ion-icon>
     </ion-button>
-
 
   </app-toolbar>
 
@@ -64,14 +58,14 @@
           <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
         </ul>
       </section>
-      <section>
-        <h2>Représentation, répartition par taille</h2>
+      <section *ngFor="let c of stats.charts | keyvalue">
         <div style="height:450px">
-        <canvas baseChart
-                [datasets]="stats.chart1.data.datasets"
-                [labels]="stats.chart1.data.labels"
-                [chartType]="'bar'">
-        </canvas>
+          <canvas baseChart
+                  [datasets]="c.value.data.datasets"
+                  [options]="c.value.options"
+                  [labels]="c.value.data.labels"
+                  [chartType]="c.value.type">
+          </canvas>
         </div>
       </section>
       <section>
