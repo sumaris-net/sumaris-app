@@ -71,6 +71,7 @@ export class TripReport extends AppRootDataReport<Trip> {
 
 
     if (this.reveal.printing) {
+      await sleep(500);
       await this.showMap();
       await sleep(500);
       await this.reveal.print();
