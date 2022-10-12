@@ -1,6 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from '@angular/core';
 import {
   AppEditor, AppFormUtils, arrayDistinct,
+  changeCaseToUnderscore,
   firstNotNil, firstNotNilPromise, FormArrayHelper,
   FormErrorTranslatorOptions,
   getPropertyByPath,
@@ -36,7 +37,6 @@ import {BatchModel} from '@app/trip/batch/tree/batch-tree.model';
 import {MatExpansionPanel} from '@angular/material/expansion';
 import {AbstractControl, FormArray, FormControl, FormGroup} from '@angular/forms';
 import {BatchModelValidatorService} from '@app/trip/batch/tree/batch-model.validator';
-import {changeCaseToUnderscore} from '../../../../../ngx-sumaris-components/src/app/shared/functions';
 import {PhysicalGearService} from '@app/trip/physicalgear/physicalgear.service';
 import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
 

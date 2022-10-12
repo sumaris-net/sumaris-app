@@ -1,6 +1,6 @@
 <ng-container *ngIf="showToolbar">
   <app-toolbar *ngIf="!modal; else modalToolbar"
-               [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
+    [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
 
     <ion-title [innerHTML]="$title|async"></ion-title>
 
@@ -14,15 +14,14 @@
       <ion-icon slot="icon-only" name="print"></ion-icon>
     </ion-button>
 
-
   </app-toolbar>
 
   <ng-template #modalToolbar>
     <app-modal-toolbar *ngIf="showToolbar"
-                       [modalName]="modalName"
-                       [color]="'secondary'"
-                       (cancel)="cancel()"
-                       [canValidate]="false">
+                                 [modalName]="modalName"
+                                 [color]="'secondary'"
+                                 (cancel)="cancel()"
+                                 [canValidate]="false">
 
       <ion-title [innerHTML]="$title|async"></ion-title>
 
@@ -42,7 +41,6 @@
   </ng-template>
 </ng-container>
 
-
 <ion-content>
 
   <ion-item *ngIf="error && showError" lines="none">
@@ -60,25 +58,25 @@
           <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
         </ul>
       </section>
-      <section>
-        <h2>Représentation, répartition par taille</h2>
+      <section *ngFor="let c of stats.charts | keyvalue">
         <div style="height:450px">
-        <canvas baseChart #chart
-                [datasets]="stats.chart1.data.datasets"
-                [labels]="stats.chart1.data.labels"
-                [chartType]="'bar'">
-        </canvas>
+          <canvas baseChart
+                  [datasets]="c.value.data.datasets"
+                  [options]="c.value.options"
+                  [labels]="c.value.data.labels"
+                  [chartType]="c.value.type">
+          </canvas>
         </div>
       </section>
       <section (entered)="!slides.printing && showMap()">
         <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
         <!-- Operations map -->
         <div style="height: 550px;">
-          <ng-container #mapContainer>
-          </ng-container>
+          <ng-container #mapContainer></ng-container>
         </div>
       </section>
     </section>
+
   </app-reveal>
 
   <ng-template #loadingTemplate>
