@@ -28,6 +28,7 @@ import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   $childrenPmfmsByQvId = new BehaviorSubject<{[key: number]: IPmfm[]}>(undefined);
+  $childPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hasSubBatchesControl: AbstractControl;
 
   @Input() qvPmfm: IPmfm;
@@ -251,6 +252,11 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       // Limit to species pmfms
       pmfms = speciesPmfms;
     }
+    else {
+      if (this.debug) console.debug('[batch-group-form] No qv pmfms...');
+      const weightPmfms = pmfms.filter(PmfmUtils.isWeight);
+      this.$childPmfms.next(weightPmfms);
+    }
 
     return super.mapPmfms(pmfms);
   }
@@ -265,6 +271,20 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
       // Should have sub batches, when sampling batch exists
       hasSubBatches = hasSubBatches || isNotNil(BatchUtils.getSamplingChild(data));
+
+      // Make sure unique child batch form exists
+      if (this.childrenList.length !== 1) {
+        this.cd.detectChanges();
+        if (this.childrenList.length !== 1) throw new Error('Unique batch form not found in the template. In case no Qv Pmfm, there should be only one batch form!');
+      }
+      const childForm = this.childrenList.get(0);
+
+      // Configure child form
+      this.configureChildForm(childForm, {hasSubBatches});
+
+      // Set the value of the child batch form
+      await childForm.setValue(data, {emitEvent: true});
+
     } else {
 
       // Prepare data array, for each qualitative values
@@ -294,25 +314,14 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       // Set value (batch group)
       await super.updateView(data, opts);
 
-      // Then set value of each child form
+      // Configure child forms
       this.cd.detectChanges();
+      this.childrenList.forEach(c => this.configureChildForm(c, {hasSubBatches}));
 
+      // Set value of each child form
       await Promise.all(
         this.childrenList.map((childForm, index) => {
-
           const childBatch = data.children[index] || new Batch();
-          childForm.showWeight = this.showChildrenWeight;
-          childForm.requiredWeight = this.showChildrenWeight && hasSubBatches;
-          childForm.requiredSampleWeight = this.showChildrenWeight && hasSubBatches;
-          childForm.requiredIndividualCount = !this.showChildrenWeight && hasSubBatches;
-          childForm.setIsSampling(hasSubBatches, {emitEvent: true});
-          if (this.enabled) {
-            childForm.enable();
-          } else {
-            childForm.disable();
-          }
-
-          childForm.markAsReady();
           return childForm.setValue(childBatch, {emitEvent: true});
         })
       );
@@ -335,11 +344,40 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     }
   }
 
+  protected configureChildForm(childForm: BatchForm, opts: {hasSubBatches: boolean}){
+
+    childForm.showWeight = this.showChildrenWeight;
+    childForm.requiredWeight = this.showChildrenWeight && opts.hasSubBatches;
+    childForm.requiredSampleWeight = this.showChildrenWeight && opts.hasSubBatches;
+    childForm.requiredIndividualCount = !this.showChildrenWeight && opts.hasSubBatches;
+    childForm.setIsSampling(opts.hasSubBatches, {emitEvent: true});
+    if (this.enabled) {
+      childForm.enable();
+    } else {
+      childForm.disable();
+    }
+
+    childForm.markAsReady();
+  }
+
   protected getValue(): BatchGroup {
     const data = super.getValue();
     if (!data) return; // No set yet
 
-    if (this.qvPmfm) {
+    if (!this.qvPmfm) {
+
+      const childForm = this.childrenList.get(0);
+      const child = childForm.value;
+      if (child) {
+        data.measurementValues = data.measurementValues || {};
+        // Merge measurement values : copy values from child, when not already defined
+        const childMeasurementValues = childForm.measurementValuesForm.value;
+        Object.keys(childMeasurementValues)
+          .filter(key => isNil(data.measurementValues[key]))
+          .forEach(key => data.measurementValues[key] = childMeasurementValues[key]);
+      }
+    }
+    else {
       // FOr each children
       data.children = this.childrenList.map((childForm, index) => {
         const qv = this.qvPmfm.qualitativeValues[index];

@@ -47,7 +47,7 @@ export class BatchTreeContainerTestPage implements OnInit {
   $gearId = new BehaviorSubject<number>(undefined);
   filterForm: FormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
-  selectedTabIndex = 1; // desktop
+  selectedTabIndex = 0; // 0= mobile, 1= desktop
 
   outputs: {
     [key: string]: string;
@@ -80,7 +80,7 @@ export class BatchTreeContainerTestPage implements OnInit {
       example: [null, Validators.required],
       autofill: [false, Validators.required]
     });
-    this.selectedTabIndex = +(activeRoute.snapshot.queryParamMap['tab']) || this.selectedTabIndex || 0;
+    this.selectedTabIndex = toNumber(activeRoute.snapshot.queryParamMap['tab'], this.selectedTabIndex || 0);
   }
 
   ngOnInit() {

@@ -1,8 +1,8 @@
 import { AfterViewInit, Component, ContentChildren, ElementRef, EventEmitter, HostListener, Inject, Input, OnDestroy, Output, QueryList, ViewChild } from '@angular/core';
 import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
-import * as Reveal from 'reveal.js/dist/reveal';
+import { Reveal } from '../reveal';
 import { MarkdownComponent } from 'ngx-markdown';
-import { BehaviorSubject, Subscription, timer } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
 import { OverlayEventDetail } from '@ionic/core';
 import { ToastController } from '@ionic/angular';

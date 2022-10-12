@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import * as L from 'leaflet';
+import { L } from '@app/shared/map/leaflet';
 import { LayerGroup, MapOptions, PathOptions } from 'leaflet';
 import {
   AppEditor,
