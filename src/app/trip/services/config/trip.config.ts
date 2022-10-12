@@ -4,6 +4,7 @@ import { TypePolicies } from '@apollo/client/core';
 import { ObservedLocation } from '../model/observed-location.model';
 import { Landing } from '../model/landing.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { UnitLabel } from '@app/referential/services/model/model.enum';
 
 /**
  * Name of the features (e.g. to be used by settings)
@@ -69,6 +70,31 @@ export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
     label: 'TRIP.SAMPLE.SETTINGS.BURST_MODE_ENABLE',
     type: 'boolean',
     defaultValue: true
+  },
+  SAMPLE_WEIGHT_UNIT: <FormFieldDefinition>{
+    key: 'sumaris.landing.samples.weightUnit',
+    label: 'TRIP.SAMPLE.SETTINGS.SAMPLE_WEIGHT_UNIT',
+    type: 'enum',
+    values: [
+      {
+        key: UnitLabel.KG,
+        value: UnitLabel.KG
+      },
+      {
+        key: UnitLabel.GRAM,
+        value: UnitLabel.GRAM
+      },
+      {
+        key: UnitLabel.MG,
+        value: UnitLabel.MG
+      },
+      {
+        key: UnitLabel.TON,
+        value: UnitLabel.TON
+      }
+    ],
+    // No default value (keep program or PMFM unit)
+    //defaultValue: UnitLabel.KG
   }
 });
 
