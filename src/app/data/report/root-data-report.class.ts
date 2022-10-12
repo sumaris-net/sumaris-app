@@ -38,7 +38,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   protected _pathParentIdAttribute: string;
 
   error: string;
-  slidesOptions: Partial<IRevealExtendedOptions>;
+  revealOptions: Partial<IRevealExtendedOptions>;
   // NOTE: Interface for this ?
   i18nContext = {
     prefix: '',
@@ -56,7 +56,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   @Input() stats: any = {};
   @Input() debug = !environment.production;
 
-  @ViewChild(RevealComponent) reveal: RevealComponent;
+  @ViewChild('reveal', {read: RevealComponent, static: false}) reveal: RevealComponent;
 
   get loaded(): boolean { return !this.loadingSubject.value; }
 
@@ -84,7 +84,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
     // NOTE: In route.snapshot data is optional. On which case it may be not set ???
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'id';
 
-    this.slidesOptions = this.computeSlidesOptions();
+    this.revealOptions = this.computeSlidesOptions();
   }
 
   async ngOnInit() {
@@ -118,7 +118,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
         this.markAsLoaded();
       }
 
-      // Update the view: initialise slides
+      // Update the view: initialise reveal
       await this.updateView();
 
     } catch (err) {
@@ -135,7 +135,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
 
     this.$defaultBackHref.next(this.computeDefaultBackHref(data));
     this.$title.next(await this.computeTitle(data));
-    this.slidesOptions.printHref = this.slidesOptions.printHref || this.computePrintHref(data);
+    this.revealOptions.printHref = this.revealOptions.printHref || this.computePrintHref(data);
   };
 
   protected abstract loadData(id: ID): Promise<T>;
@@ -198,7 +198,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
     console.debug(`[${this.constructor.name}.computeSlidesOptions]`);
     const mobile = this.settings.mobile;
     return {
-      // Custom slides options
+      // Custom reveal options
       autoInitialize: false,
       autoPrint: false,
       // Reveal options

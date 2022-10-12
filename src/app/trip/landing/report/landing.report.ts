@@ -65,7 +65,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   $title = new Subject<string>();
   $defaultBackHref = new Subject<string>();
   error: string;
-  slidesOptions: Partial<IRevealOptions>;
+  revealOptions: Partial<IRevealOptions>;
   weightDisplayedUnit: WeightUnitSymbol;
   i18nPmfmPrefix: string;
 
@@ -83,7 +83,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   @Input() showError = true;
   @Input() debug = !environment.production;
 
-  @ViewChild(RevealComponent) slides!: RevealComponent;
+  @ViewChild(RevealComponent) reveal!: RevealComponent;
 
   get loading(): boolean {
     return this.loadingSubject.value;
@@ -110,7 +110,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'landingId';
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     const mobile = this.settings.mobile;
-    this.slidesOptions = {
+    this.revealOptions = {
       autoInitialize: false,
       disableLayout: mobile,
       touch: mobile
@@ -206,7 +206,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     this.markAsLoaded();
     this.cd.detectChanges();
 
-    await this.slides.initialize();
+    await this.reveal.initialize();
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {

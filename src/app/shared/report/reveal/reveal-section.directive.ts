@@ -14,14 +14,14 @@ export class RevealSectionDirective implements OnInit, OnDestroy{
 
   constructor(
     private readonly _elementRef: ElementRef,
-    @Optional() private readonly _slides: RevealComponent
+    @Optional() private readonly _reveal: RevealComponent
   ) {
 
   }
 
   ngOnInit() {
-    if (this._slides) {
-      this.startWorkflow(this._slides);
+    if (this._reveal) {
+      this.startWorkflow(this._reveal);
     }
   }
 
@@ -29,15 +29,15 @@ export class RevealSectionDirective implements OnInit, OnDestroy{
     this._destroySubject.next();
   }
 
-  private async startWorkflow(slides: RevealComponent) {
-    await slides.waitIdle({stop: this._destroySubject, stopError: false});
+  private async startWorkflow(reveal: RevealComponent) {
+    await reveal.waitIdle({stop: this._destroySubject, stopError: false});
 
     // First, check classList, in case current section is the first visible
     if (this._elementRef.nativeElement.classList.contains('present' /*reveal current section style*/)) {
       this.onEntered.emit({ currentSlide: this._elementRef.nativeElement});
     }
     else {
-      slides.onSlideChanged
+      reveal.onSlideChanged
         .pipe(
           takeUntil(this._destroySubject),
           filter(event => event.currentSlide === this._elementRef.nativeElement),

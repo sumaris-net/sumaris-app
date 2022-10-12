@@ -104,16 +104,6 @@ export class TripReport extends AppRootDataReport<Trip> {
   }
 
   /* -- DEBUG only -- */
-  private genDummyDataSets(sets: string[], nbSample: number): Object {
-    const xData = Array(nbSample).fill(1).map((_,i) => (i+1)*3);
-    const yData = sets.map((label) => {
-      return {
-        label: label,
-        data: Array(xData.length).fill(1).map((_) => Math.floor(Math.random() * 300)),
-      }
-    });
-    return {labels: xData, datasets: yData};
-  }
 
   protected computeDummyCharts(): { [key: string]: ChartConfiguration } {
     const defaultTitleOptions: ChartTitleOptions = {
@@ -273,7 +263,7 @@ export class TripReport extends AppRootDataReport<Trip> {
   }
 
   protected getColorFromStyle(name: string): string {
-    console.debug(`[${this.constructor.name}.computeTitle]`, arguments);
+    console.debug(`[${this.constructor.name}.getColorFromStyle]`, arguments);
     const color: string = getComputedStyle(document.documentElement).getPropertyValue(`--ion-color-${name}`);
     return color || '#000000';
   }
