@@ -1,13 +1,9 @@
-import { ApplicationRef, Component, ElementRef, Injector, QueryList, Renderer2, TemplateRef, ViewChild, ViewChildren, ViewContainerRef, ViewEncapsulation } from '@angular/core';
+import { Component, Injector, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { AppRootDataReport } from '@app/data/report/root-data-report.class';
-import { OperationsMap } from '@app/trip/operation/map/operations.map';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripService } from '@app/trip/services/trip.service';
 import { firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, Subject } from 'rxjs';
-import { L } from '@app/shared/map/leaflet';
-import { MapOptions } from 'leaflet';
-import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
+import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ISlidesOptions } from '@app/shared/report/slides/slides.component';
 import { RevealSlideChangedEvent } from '@app/shared/report/reveal';
