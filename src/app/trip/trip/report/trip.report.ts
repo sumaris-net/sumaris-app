@@ -28,7 +28,7 @@ export class TripReport extends AppRootDataReport<Trip> {
   @ViewChild('mapContainer', {'read': ViewContainerRef}) mapContainer;
   @ViewChild('mapTemplate') mapTemplate: TemplateRef<null>;
 
-  constructor(injector: Injector, private appRef: ApplicationRef) {
+  constructor(injector: Injector) {
     super(injector);
     this.tripService = injector.get(TripService);
     this.operationService = injector.get(OperationService);
