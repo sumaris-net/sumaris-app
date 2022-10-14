@@ -20,6 +20,7 @@ export class RevealSectionDirective implements OnInit, OnDestroy{
   }
 
   ngOnInit() {
+    console.debug(`[${this.constructor.name}.ngOnInit]`, arguments);
     if (this._reveal) {
       this.startWorkflow(this._reveal);
     }
