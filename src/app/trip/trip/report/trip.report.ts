@@ -2,7 +2,7 @@ import { Component, Inject, Injector, TemplateRef, ViewChild, ViewContainerRef, 
 import { AppRootDataReport } from '@app/data/report/root-data-report.class';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripService } from '@app/trip/services/trip.service';
-import { Color, firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
+import { Color, ColorScale, ColorScaleOptions, firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
@@ -18,6 +18,7 @@ import { DOCUMENT } from '@angular/common';
 })
 export class TripReport extends AppRootDataReport<Trip> {
 
+  // Landing categories fucntion color variance
   private graphColors = {
     title: this.getColorFromStyle('secondary'),
     landing: this.getColorFromStyle('secondary'),
@@ -142,14 +143,14 @@ export class TripReport extends AppRootDataReport<Trip> {
     const legendDefaultOption: ChartLegendOptions = {
       position: 'right',
     };
-    const charts: { [key: string]: ChartConfiguration } = { };
+    const charts: { [key: string]: ChartConfiguration } = {};
 
     // NOTE : Replace this by real data extractors
-    var labels = [
-      { label: 'Débarquement', color: this.graphColors.landing },
-      { label: 'Rejet', color: this.graphColors.discard },
-    ];
-    charts['01_repartTailleMerlu'] = {
+    var labels = this.computeChartColorsScaleFromLabels(
+      ['Selectif - Tribord', 'Selectif - Babord'],
+      {mainColor: this.graphColors.landing.rgb},
+    );
+    charts['01_repartLangouCapture'] = {
       type: 'bar',
       options: {
         title: {
@@ -185,12 +186,51 @@ export class TripReport extends AppRootDataReport<Trip> {
     }
 
     // NOTE : Replace this by real data extractors
-    var labels = [
-      { label: 'Langoustine G', color: this.graphColors.gearPositions.babord },
-      { label: 'Langoustine P', color: this.graphColors.gearPositions.tribord },
-      { label: 'Langoustine R', color: this.graphColors.discard },
-    ];
-    charts['02_comparDebarqRejet'] = {
+    var labels = this.computeChartColorsScaleFromLabels(
+      ['Selectif - Tribord', 'Selectif - Babord'],
+      {mainColor: this.graphColors.discard.rgb},
+    );
+    charts['02_repartLangouDebarq'] = {
+      type: 'bar',
+      options: {
+        title: {
+          ...defaultTitleOptions,
+          text: ['Répartition en taille des langoustines', '- Débarquement -'],
+        },
+        scales: {
+          xAxes: [
+            {
+              scaleLabel: {
+                ...scaleLableDefaultOption,
+                labelString: 'Taille céphalotoracique (mm)',
+              },
+            }
+          ],
+          yAxes: [
+            {
+              scaleLabel: {
+                ...scaleLableDefaultOption,
+                labelString: 'Nb individus',
+              },
+            }
+          ],
+        },
+        legend: {
+          ...legendDefaultOption,
+        },
+
+      },
+      data: {
+        ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
+      }
+    }
+
+    // NOTE : Replace this by real data extractors
+    var labels = this.computeChartColorsScaleFromLabels(
+      ['Langoustine G', 'Langoustine P', 'Langoustine R'],
+      {startColor: this.graphColors.discard.rgb, endColor: this.graphColors.landing.rgb},
+    );
+    charts['03_comparDebarqRejet'] = {
       type: 'bubble',
       options: {
         title: {
@@ -281,7 +321,7 @@ export class TripReport extends AppRootDataReport<Trip> {
     });
     return {
       labels: categs.map(c => c.label),
-      datasets: dataForChart.map((d, i) => {
+      datasets: dataForChart.map((_d, i) => {
         return {
           label: labels[i].label,
           data: dataForChart[i],
@@ -303,6 +343,17 @@ export class TripReport extends AppRootDataReport<Trip> {
         };
       })
     };
+  }
+
+  protected computeChartColorsScaleFromLabels(labels: string[], options?: ColorScaleOptions): {label: string, color: Color}[] {
+    const count = labels.length;
+    const colorScale = ColorScale.custom(count, {min: 1, max: labels.length, ...options});
+    return labels.map((label, index) => {
+      return {
+        label: label,
+        color: colorScale.getLegendAtIndex(index).color,
+      }
+    })
   }
 
   protected getColorFromStyle(name: string): Color {
