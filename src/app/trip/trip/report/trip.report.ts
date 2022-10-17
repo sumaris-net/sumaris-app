@@ -7,8 +7,10 @@ import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
-import { ChartConfiguration, ChartData, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
+import { Chart, ChartConfiguration, ChartData, ChartDataSets, ChartLegendOptions, ChartPoint, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
+import chartTrendline from 'chartjs-plugin-trendline';
+import annotationPlugin from 'chartjs-plugin-annotation';
 
 @Component({
   selector: 'app-trip-report',
@@ -43,6 +45,8 @@ export class TripReport extends AppRootDataReport<Trip> {
     super(injector);
     this.tripService = injector.get(TripService);
     this.operationService = injector.get(OperationService);
+    Chart.plugins.register(chartTrendline);
+    Chart.plugins.register(annotationPlugin);
   }
 
   protected async loadData(id: number): Promise<Trip> {
@@ -148,7 +152,7 @@ export class TripReport extends AppRootDataReport<Trip> {
     // NOTE : Replace this by real data extractors
     var labels = this.computeChartColorsScaleFromLabels(
       ['Selectif - Tribord', 'Selectif - Babord'],
-      {mainColor: this.graphColors.landing.rgb},
+      { mainColor: this.graphColors.landing.rgb },
     );
     charts['01_repartLangouCapture'] = {
       type: 'bar',
@@ -178,17 +182,37 @@ export class TripReport extends AppRootDataReport<Trip> {
         legend: {
           ...legendDefaultOption,
         },
-
+        plugins: {
+          // TODO : This not work
+          annotations: {
+            line1: {
+              type: 'line',
+              yMin: 60,
+              yMax: 60,
+              borderColor: 'rgb(255, 99, 132)',
+              borderWidth: 2,
+            },
+            box1: {
+              type: 'box',
+              xMin: 1,
+              xMax: 2,
+              yMin: 50,
+              yMax: 70,
+              backgroundColor: 'rgba(255, 99, 132, 0.25)'
+            }
+          }
+        }
       },
       data: {
         ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
       }
     }
+    //this.computeTresholdCateg(charts['01_repartLangouCapture'], 3);
 
     // NOTE : Replace this by real data extractors
     var labels = this.computeChartColorsScaleFromLabels(
       ['Selectif - Tribord', 'Selectif - Babord'],
-      {mainColor: this.graphColors.discard.rgb},
+      { mainColor: this.graphColors.discard.rgb },
     );
     charts['02_repartLangouDebarq'] = {
       type: 'bar',
@@ -228,7 +252,7 @@ export class TripReport extends AppRootDataReport<Trip> {
     // NOTE : Replace this by real data extractors
     var labels = this.computeChartColorsScaleFromLabels(
       ['Langoustine G', 'Langoustine P', 'Langoustine R'],
-      {startColor: this.graphColors.discard.rgb, endColor: this.graphColors.landing.rgb},
+      { startColor: this.graphColors.discard.rgb, endColor: this.graphColors.landing.rgb },
     );
     charts['03_comparDebarqRejet'] = {
       type: 'bubble',
@@ -264,6 +288,7 @@ export class TripReport extends AppRootDataReport<Trip> {
       }
     }
 
+    this.computeTrendLine(charts['03_comparDebarqRejet']);
     //Object.entries(charts).map(item => this.compouteMedianLineOnChart(item[1]));
     return charts;
   }
@@ -339,15 +364,15 @@ export class TripReport extends AppRootDataReport<Trip> {
         return {
           label: l.label,
           backgroundColor: l.color.rgba(1),
-          data: samples[i].map(s => { return { x: s[0], y: s[1], r: bubuleRadius } })
+          data: samples[i].map(s => { return { x: s[0], y: s[1], r: bubuleRadius } }),
         };
       })
     };
   }
 
-  protected computeChartColorsScaleFromLabels(labels: string[], options?: ColorScaleOptions): {label: string, color: Color}[] {
+  protected computeChartColorsScaleFromLabels(labels: string[], options?: ColorScaleOptions): { label: string, color: Color }[] {
     const count = labels.length;
-    const colorScale = ColorScale.custom(count, {min: 1, max: labels.length, ...options});
+    const colorScale = ColorScale.custom(count, { min: 1, max: labels.length, ...options });
     return labels.map((label, index) => {
       return {
         label: label,
@@ -367,37 +392,36 @@ export class TripReport extends AppRootDataReport<Trip> {
     return new Color(colorHexaToRgbArr(colorHexa), 1, name);
   }
 
-  protected compouteMedianLineOnChart(chart: ChartConfiguration) {
-    // NOTE : This is dummy median only for testing purpose
-    switch (chart.type) {
-      case 'bar':
-        chart.data.datasets.push({
-          type: 'line',
-          label: 'Median',
-          borderDash: [5, 5],
-          data: [{ x: 6, y: 0 }, { x: 6, y: 300 }],
-          borderColor: '#FF0000',
-          backgroundColor: '#FF0000',
-          hideInLegendAndTooltip: true,
-        });
-        break;
-      case 'bubble':
-        chart.data.datasets.push({
-          type: 'line',
-          label: 'Median',
-          borderDash: [5, 5],
-          data: [{ x: 0, y: 0 }, { x: 90, y: 90 }],
-          borderColor: '#FF0000',
-          backgroundColor: '#00FF00',
-          fill: false,
-          hideInLegendAndTooltip: true,
-          order: 9999,
-          pointStyle: 'line',
-          pointRadius: 0,
-          pointHitRadius: 0,
-        });
-        break;
-    }
+  protected computeTresholdCateg(chart: ChartConfiguration, categIndex: number) {
+    chart.data.datasets.push({
+      type: 'line',
+      label: 'Seuil',
+      borderDash: [5, 5],
+      // TODO : this is dummy value for testing purpose
+      data: [{ x: 3, y: 0 }, { x: 4, y: 300 }],
+      borderColor: this.graphColors.median.rgba(1),
+      backgroundColor: this.graphColors.median.rgba(1),
+      hideInLegendAndTooltip: true,
+      fill: false,
+    });
+  }
+
+  protected computeTrendLine(chart: ChartConfiguration) {
+    // TODO disable show label on hover
+    chart.data.datasets.push({
+      label: 'Median',
+      fill: false,
+      hideInLegendAndTooltip: true,
+      pointRadius: 0,
+      pointHitRadius: 0,
+      backgroundColor: this.graphColors.median.rgba(1),
+      data: chart.data.datasets.map((d) => d.data).flat(),
+      trendlineLinear: {
+        style: this.graphColors.median.rgba(1),
+        lineStyle: "line",
+        width: 2,
+      }
+    } as any);
   }
 
 }
