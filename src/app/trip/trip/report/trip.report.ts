@@ -218,7 +218,7 @@ export class TripReport extends AppRootDataReport<Trip> {
           ...legendDefaultOption,
         },
         plugins: {
-          tresholdLine: {
+          tresholdLine: { // NOTE : custom plugin
             color:  this.graphColors.median.rgba(1),
             style: 'dashed',
             width: 3,
@@ -230,6 +230,7 @@ export class TripReport extends AppRootDataReport<Trip> {
         ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
       }
     }
+    this.computeTresholdLine(charts['01_repartLangouCapture']);
     //this.computeTresholdCateg(charts['01_repartLangouCapture'], 3);
 
     // NOTE : Replace this by real data extractors
@@ -266,7 +267,7 @@ export class TripReport extends AppRootDataReport<Trip> {
           ...legendDefaultOption,
         },
         plugins: {
-          tresholdLine: {
+          tresholdLine: { // NOTE : Custom plugin
             color: this.graphColors.median.rgba(1),
             style: 'dashed',
             width: 3,
@@ -278,6 +279,7 @@ export class TripReport extends AppRootDataReport<Trip> {
         ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
       }
     }
+    this.computeTresholdLine(charts['02_repartLangouDebarq']);
 
     // NOTE : Replace this by real data extractors
     var labels = this.computeChartColorsScaleFromLabels(
@@ -317,9 +319,7 @@ export class TripReport extends AppRootDataReport<Trip> {
         ... this.computeChartDataSetsForBubule(labels, labels.map(_ => this.genDummySamplesSets(30, 2, 0, 90))),
       }
     }
-
     this.computeTrendLine(charts['03_comparDebarqRejet']);
-    //Object.entries(charts).map(item => this.compouteMedianLineOnChart(item[1]));
     return charts;
   }
 
@@ -422,17 +422,11 @@ export class TripReport extends AppRootDataReport<Trip> {
     return new Color(colorHexaToRgbArr(colorHexa), 1, name);
   }
 
-  protected computeTresholdCateg(chart: ChartConfiguration, categIndex: number) {
+  protected computeTresholdLine(chart: ChartConfiguration) {
     chart.data.datasets.push({
-      type: 'line',
       label: 'Seuil',
-      borderDash: [5, 5],
-      // TODO : this is dummy value for testing purpose
-      data: [{ x: 3, y: 0 }, { x: 4, y: 300 }],
-      borderColor: this.graphColors.median.rgba(1),
       backgroundColor: this.graphColors.median.rgba(1),
-      hideInLegendAndTooltip: true,
-      fill: false,
+      data: [],
     });
   }
 
