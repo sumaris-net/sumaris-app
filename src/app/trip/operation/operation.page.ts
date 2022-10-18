@@ -211,7 +211,7 @@ export class OperationPage
     }
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production && !this.mobile;
+    this.debug = !environment.production; //  && !this.mobile;
   }
 
   // TODO Hide lastOperation on to small screen

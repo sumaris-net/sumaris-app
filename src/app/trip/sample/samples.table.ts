@@ -111,8 +111,8 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() requiredLabel = true;
   @Input() showPmfmDetails = false;
   @Input() showFabButton = false;
-  @Input() showIndividualReleaseButton = false;
   @Input() showIndividualMonitoringButton = false;
+  @Input() showIndividualReleaseButton = false;
   @Input() defaultSampleDate: Moment = null;
   @Input() defaultTaxonGroup: TaxonGroupRef = null;
   @Input() defaultTaxonName: TaxonNameRef = null;
@@ -326,6 +326,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       showSampleDate: !this.defaultSampleDate ? true : this.showSampleDateColumn, // Show sampleDate, if no default date
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
+      showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
       onReady: (modal) => {
         this.onPrepareRowForm.emit({
@@ -347,7 +348,9 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         await this.onNewEntity(newData);
         return newData;
       },
-      openSubSampleModal: (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel),
+      openSubSampleModal: this.allowSubSamples
+        ? (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel)
+        : undefined,
 
       // Override using given options
       ...this.modalOptions,

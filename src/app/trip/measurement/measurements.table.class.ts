@@ -168,7 +168,7 @@ export abstract class BaseMeasurementsTable<
   }
 
   get $pmfms(): Observable<IPmfm[]> {
-    return this.measurementsDataService.$pmfms.asObservable();
+    return this.measurementsDataService.$pmfms;
   }
 
   get $hasPmfms(): Observable<boolean> {

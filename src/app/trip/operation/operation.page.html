@@ -290,7 +290,7 @@
     <!-- TAB: Samples  -->
     <mat-tab #sampleTab
              [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
-             [disabled]="(loadingSubject | delay: 600 | async) || !showSamplesTab">
+             [disabled]="!showSamplesTab">
       <ng-template mat-tab-label>
         <mat-icon svgIcon="fish-oblique"></mat-icon>
         <ion-label *ngVar="sampleTree.samplesTable.totalRowCount as count"
@@ -380,10 +380,19 @@
             </span>
         </ion-col>
         <ion-col>
-            measurementsForm.loading: {{measurementsForm.loading}}<br/>
-            measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
-            measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
-            measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+          measurementsForm.loading: {{measurementsForm.loading}}<br/>
+          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+          measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+
+          <!-- Sample debug -->
+          <span *ngIf="sampleTree">
+            <br/>
+            sampleTree.loading: {{sampleTree.loading}}<br/>
+            sampleTree.ready: {{sampleTree.readySubject|async}}<br/>
+            sampleTree.loaded: {{sampleTree.loaded}}<br/>
+            sampleTree.dirty: {{sampleTree.dirty}}<br/>
+          </span>
         </ion-col>
       </ion-row>
     </ion-grid>

@@ -30,6 +30,18 @@
 
 <ion-content class="ion-padding">
 
+  <!-- debug -->
+  <app-debug *ngIf="debug">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          showIndividualMonitoringButton: {{showIndividualMonitoringButton}}<br/>
+          showIndividualReleaseButton: {{showIndividualReleaseButton}}<br/>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+
   <app-sample-form #form
                    [debug]="debug"
                    [acquisitionLevel]="acquisitionLevel"
@@ -58,14 +70,22 @@
 
     <ion-grid afterComment *ngIf="mobile && !disabled" class="ion-no-padding">
       <ion-row class="ion-no-padding ion-row-buttons">
+        <ion-col *ngIf="showIndividualMonitoringButton">
+          <ion-button class="mat-form-field-button button-round"
+                      color="tertiary" fill="outline" expand="full"
+                      [disabled]="form.invalid"
+                      (click)="onIndividualMonitoringClick($event)">
+            <mat-icon slot="start">center_focus_strong</mat-icon>
+            <ion-label>{{'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING'|translateContext: i18nSuffix}}</ion-label>
+          </ion-button>
+        </ion-col>
         <ion-col *ngIf="showIndividualReleaseButton">
           <ion-button class="mat-form-field-button button-round"
                       color="tertiary" fill="outline" expand="full"
                       [disabled]="form.invalid"
-                      [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translate"
-                      (click)="showIndividualReleaseModal($event, 'INDIVIDUAL_RELEASE')">
+                      (click)="onIndividualReleaseClick($event)">
             <mat-icon slot="start">room</mat-icon>
-            <ion-label translate>TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE</ion-label>
+            <ion-label>{{'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translateContext: i18nSuffix}}</ion-label>
           </ion-button>
         </ion-col>
         <ion-col>
