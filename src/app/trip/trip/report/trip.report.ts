@@ -1,39 +1,129 @@
-import { Component, Injector } from '@angular/core';
+import { Component, Injector, TemplateRef, ViewChild, ViewContainerRef, ViewEncapsulation } from '@angular/core';
 import { AppRootDataReport } from '@app/data/report/root-data-report.class';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripService } from '@app/trip/services/trip.service';
+import { firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
+import { BehaviorSubject } from 'rxjs';
+import { OperationService } from '@app/trip/services/operation.service';
+import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
+import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
 
 @Component({
   selector: 'app-trip-report',
   templateUrl: './trip.report.html',
-  styleUrls: ['./trip.report.scss']
+  styleUrls: ['./trip.report.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class TripReport extends AppRootDataReport<Trip> {
 
-  private dataService: TripService;
+  private tripService: TripService;
+  private operationService: OperationService;
+  mapReadySubject = new BehaviorSubject<boolean>(false)
+  mapVisible = false;
+
+  @ViewChild('mapContainer', {'read': ViewContainerRef}) mapContainer;
+  @ViewChild('mapTemplate') mapTemplate: TemplateRef<null>;
 
   constructor(injector: Injector) {
     super(injector);
-    this.dataService = injector.get(TripService);
+    this.tripService = injector.get(TripService);
+    this.operationService = injector.get(OperationService);
   }
 
   protected async loadData(id: number): Promise<Trip> {
     console.debug(`[${this.constructor.name}.loadData]`, arguments);
-    return await this.dataService.load(id);
+    const data = await this.tripService.load(id, { withOperation: false });
+
+    const res = await this.operationService.loadAllByTrip({
+      tripId: id
+    }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/});
+
+    data.operations = res.data;
+
+    // NOTE : This is a test
+    this.stats.chart1 = {
+      type: 'bar',
+      data: this.genDummyDataSets(['Débarquement', 'Rejet'], 21),
+      options: {
+        scales: {
+        }
+      },
+    }
+
+    return data;
+  }
+
+  onMapReady() {
+    this.mapReadySubject.next(true);
+  }
+
+  protected computeSlidesOptions(): Partial<IRevealExtendedOptions> {
+    return {
+      ...super.computeSlidesOptions(),
+      printHref: isNotNil(this.id) ? `/trips/${this.id}/report` : undefined
+    };
+  }
+
+  onSlideChanged(event: RevealSlideChangedEvent) {
+    console.debug(`[${this.constructor.name}.onSlideChanged]`, event);
+  }
+
+  async updateView() {
+
+    console.debug(`[${this.constructor.name}.updateView]`);
+    this.cd.detectChanges();
+
+    await waitFor(() => !!this.reveal);
+    await this.reveal.initialize();
+
+    // this.cd.detectChanges();
+    // this.slides.sync();
+    // this.slides.layout();
+    // await sleep(1000);
+
+    if (this.reveal.printing) {
+      await sleep(500);
+      await this.showMap();
+      //await sleep(1000);
+      await this.reveal.print();
+    }
   }
 
   protected computeDefaultBackHref(data: Trip): string {
     console.debug(`[${this.constructor.name}.computeDefaultBackHref]`, arguments);
-    return `/trips/${data.id}?tab=1`;
+    const baseTripPath = `/trips/${data.id}`;
+    return `${baseTripPath}?tab=1`;
+  }
+
+  protected computePrintHref(data: Trip): string {
+    console.debug(`[${this.constructor.name}.computePrintHref]`, arguments);
+    const baseTripPath = `/trips/${data.id}`;
+    return `${baseTripPath}/report`;
   }
 
   protected async computeTitle(data: Trip): Promise<string> {
     console.debug(`[${this.constructor.name}.computeTitle]`, arguments);
     const title = await this.translate.get('TRIP.REPORT.TITLE', {
-      departureDate: this.dateFormatPipe.transform(data.departureDateTime, {time: false}),
+      departureDate: this.dateFormatPipe.transform(data.departureDateTime, { time: false }),
       vessel: data.vesselSnapshot.exteriorMarking,
     }).toPromise();
     return title;
   }
 
+  async showMap() {
+    this.mapContainer.createEmbeddedView(this.mapTemplate);
+    await firstTruePromise(this.mapReadySubject);
+  }
+
+  /* -- DEBUG only -- */
+  private genDummyDataSets(sets: string[], nbSample: number): Object {
+    const xData = Array(nbSample).fill(1).map((_,i) => (i+1)*3);
+    const yData = sets.map((label) => {
+      return {
+        label: label,
+        data: Array(xData.length).fill(1).map((_) => Math.floor(Math.random() * 300)),
+      }
+    });
+    return {labels: xData, datasets: yData};
+  }
 }

@@ -21,7 +21,7 @@
 <mat-menu #optionsMenu="matMenu">
 
   <!-- report -->
-  <button mat-menu-item
+  <button mat-menu-item *ngIf="enableReport"
           [disabled]="isNewData || disabled"
           (click)="openReport($event)">
     <ion-label>

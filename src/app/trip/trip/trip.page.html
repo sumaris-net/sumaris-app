@@ -37,6 +37,16 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
 
+  <!-- report -->
+  <button mat-menu-item *ngIf="enableReport"
+          [disabled]="isNewData || disabled"
+          (click)="openReport($event)">
+    <ion-label>
+      <mat-icon>description</mat-icon>&nbsp;
+      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
+    </ion-label>
+  </button>
+
   <!-- reset -->
   <button mat-menu-item
           [disabled]="!dirty"

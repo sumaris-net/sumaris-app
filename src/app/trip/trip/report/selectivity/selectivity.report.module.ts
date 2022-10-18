@@ -1,14 +1,15 @@
 import { NgModule } from '@angular/core';
+
 import { AppCoreModule } from '@app/core/core.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { AppOperationModule } from '@app/trip/operation/operation.module';
 import { ChartsModule } from 'ng2-charts';
-import { TripReport } from './trip.report';
+import { SelectivityReport } from './selectivity.report';
 
 
 @NgModule({
   declarations: [
-    TripReport,
+    SelectivityReport
   ],
   imports: [
     AppCoreModule,
@@ -17,7 +18,7 @@ import { TripReport } from './trip.report';
     ChartsModule,
   ],
   exports: [
-    TripReport,
+    SelectivityReport,
   ],
 })
-export class TripReportModule { }
+export class SelectivityReportModule { }

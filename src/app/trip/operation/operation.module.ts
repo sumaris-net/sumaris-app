@@ -17,6 +17,7 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.component';
+import { OperationsMapModal } from '@app/trip/operation/map/operations-map.modal';
 
 @NgModule({
   imports: [
@@ -39,6 +40,7 @@ import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.
   declarations: [
     OperationsTable,
     OperationsMap,
+    OperationsMapModal,
     OperationForm,
     OperationPage,
     SelectOperationModal,
@@ -46,9 +48,11 @@ import { OperationIconComponent } from '@app/trip/operation/icon/operation-icon.
     OperationIconComponent
   ],
   exports: [
+    LeafletModule,
     // Components
     OperationsTable,
     OperationsMap,
+    OperationsMapModal,
     OperationForm,
     OperationPage,
     OperationIconComponent

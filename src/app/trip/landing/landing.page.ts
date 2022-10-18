@@ -9,7 +9,7 @@ import {
   firstNotNilPromise,
   firstTruePromise,
   fromDateISOString,
-  HistoryPageReference, InMemoryEntitiesService,
+  HistoryPageReference,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -51,6 +51,7 @@ import { moment } from '@app/vendor';
 import { BaseMeasurementsTable } from '@app/trip/measurement/measurements.table.class';
 import { SampleFilter } from '@app/trip/services/filter/sample.filter';
 import { Sample } from '@app/trip/services/model/sample.model';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';
 
 export class LandingEditorOptions extends AppEditorOptions {
 }
@@ -375,7 +376,8 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.samplesTable.i18nColumnSuffix = i18nSuffix;
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
       this.samplesTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
-      this.samplesTable.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT);
+      this.samplesTable.weightDisplayedUnit = this.settings.getProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT,
+        program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT));
 
       // Apply sample table pmfms
       // If strategy is required, pmfms will be set by setStrategy()

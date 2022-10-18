@@ -16,7 +16,7 @@
       <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-    <app-slides #slides *ngIf="!error"
+    <app-reveal #slides *ngIf="!error"
                 [options]="slidesOptions">
       <section *ngIf="loaded; else loadingTemplate">
         <section markdown ngPreserveWhitespaces>
@@ -35,7 +35,7 @@
           <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
         </section>
       </section>
-    </app-slides>
+    </app-reveal>
 
     <ng-template #loadingTemplate>
       <div class="loader">

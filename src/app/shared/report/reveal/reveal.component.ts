@@ -1,6 +1,23 @@
-import { AfterViewInit, Component, ContentChildren, ElementRef, EventEmitter, HostListener, Inject, Input, OnDestroy, Output, QueryList, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ApplicationRef,
+  ChangeDetectorRef,
+  Component,
+  ContentChildren,
+  ElementRef,
+  EmbeddedViewRef,
+  EventEmitter,
+  HostListener,
+  Inject,
+  Input,
+  OnDestroy,
+  Output,
+  QueryList,
+  ViewChild,
+  ViewRef
+} from '@angular/core';
 import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
-import { Reveal } from '../reveal';
+import { IReveal, IRevealOptions, Reveal, RevealSlideChangedEvent } from './reveal.utils';
 import { MarkdownComponent } from 'ngx-markdown';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
@@ -9,35 +26,20 @@ import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 
 
-export interface IRevealOptions {
-  config: boolean;
-  control?: boolean;
-  progress: boolean;
-  history: boolean;
-  center: boolean;
+export interface IRevealExtendedOptions extends IRevealOptions {
   autoInitialize: boolean;
-  disableLayout: boolean;
-  touch: boolean
-  embedded: boolean; // Required for multi .reveal div
-  keyboardCondition: string;
-  [key: string]: any;
-}
-export interface IReveal {
-  initialize();
-  destroy();
-  layout();
-  configure(options: Partial<IRevealOptions>);
+  autoPrint: boolean;
+  printHref: string;
 }
 
 @Component({
-  selector: 'app-slides',
-  templateUrl: './slides.component.html',
-  styleUrls: ['./slides.component.scss'],
-  //encapsulation: ViewEncapsulation.None
+  selector: 'app-reveal',
+  templateUrl: './reveal.component.html',
+  styleUrls: ['./reveal.component.scss']
 })
-export class AppSlidesComponent implements AfterViewInit, OnDestroy
+export class RevealComponent implements AfterViewInit, OnDestroy
 {
-  private _reveal: Reveal & IReveal;
+  private _reveal: IReveal;
   private loadingSubject = new BehaviorSubject(true);
   private _subscription = new Subscription();
   private _printing = false;
@@ -47,26 +49,33 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     return this.loadingSubject.value;
   }
 
+  get loaded(): boolean {
+    return !this.loadingSubject.value;
+  }
+
   get printing(): boolean {
     return this._printing;
   }
 
-  @Input() options: Partial<IRevealOptions>;
+  @Input() options: Partial<IRevealExtendedOptions>;
+  @Input() autoPrint = true;
 
-  @Output('ready') onReady = new EventEmitter()
+  @Output('ready') onReady = new EventEmitter();
+  @Output('slideChanged') onSlideChanged = new EventEmitter<RevealSlideChangedEvent>();
 
   @ViewChild('main') _revealDiv!: ElementRef;
-
   @ContentChildren('[markdown]') markdownList: QueryList<MarkdownComponent>;
 
   constructor(
+    private appRef: ApplicationRef,
+    @Inject(ChangeDetectorRef) private viewRef: ViewRef,
     @Inject(DOCUMENT) private _document: Document,
     private toastController: ToastController,
-    private translate: TranslateService) {
+    private translate: TranslateService
+    ) {
 
-    if (this.isPrintingPdf()) {
+    if (this.isPrintingPDF()) {
       this.configurePrintPdfCss();
-      this.waitIdle().then(() => this.print());
     }
   }
 
@@ -77,7 +86,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
   @HostListener('window:beforeprint')
   onbeforeprint(event: Event) {
-    if (!this.isPrintingPdf()) {
+    if (!this.isPrintingPDF()) {
       event?.preventDefault();
       this.print();
     }
@@ -85,7 +94,7 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
 
   @HostListener('window:afterprint')
   onafterprint(event: Event) {
-    if (this.isPrintingPdf()) {
+    if (this.isPrintingPDF()) {
       window.close();
     }
   }
@@ -94,10 +103,26 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     if (this.options.autoInitialize !== false) {
       setTimeout(() => this.initialize(), 100);
     }
+
+    if (this.isPrintingPDF() && this.options.autoPrint !== false) {
+      this.waitIdle()
+        .then(() => this.print());
+    }
+
   }
 
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
+  }
+
+  moveToBody(): void {
+
+    console.debug(`[slides] Moving <div class="reveal"> into <body> ...`);
+    this.viewRef.detach();
+    this.appRef.attachView(this.viewRef);
+    const domElement: HTMLElement = (this.viewRef as EmbeddedViewRef<RevealComponent>)
+      .rootNodes[0];
+    this._document.body.appendChild(domElement);
   }
 
   async initialize() {
@@ -110,13 +135,13 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     console.debug(`[slides] Initialize Reveal.js ... {printing: ${this._printing}}`);
 
     // Move content to body
-    if (this.isPrintingPdf()) {
-      this._document.body.appendChild(this._revealDiv.nativeElement);
+    if (this.isPrintingPDF()) {
+      this.moveToBody();
     }
 
     // Full list of configuration options available here:
     // https://github.com/hakimel/reveal.js#configuration
-    this._reveal = new Reveal(this._revealDiv.nativeElement, {
+    this._reveal = new Reveal(this._revealDiv.nativeElement, <IRevealOptions>{
       controls: true,
       progress: true,
       history: true,
@@ -126,13 +151,12 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
       keyboard: true,
       fragments: true,
       controlsBackArrows: 'faded',
-      //pdfMaxPagesPerSlide: 1,
       hideInactiveCursor: true,
       touch: true,
 
       ...this.options,
 
-      embedded: true, // Required for multi .reveal div
+      embedded: !this._printing, // Required for multi .reveal div
       keyboardCondition: 'focused'
     });
 
@@ -141,6 +165,10 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     console.info(`[slides] Reveal initialized in ${Date.now()-now}ms`);
     this.onReady.emit();
     this.markAsLoaded();
+
+    this._reveal.on( 'slidechanged', (event: RevealSlideChangedEvent) => {
+      this.onSlideChanged.emit(event);
+    });
 
     this._subscription.add(() => {
       this._reveal.destroy();
@@ -152,12 +180,29 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
     this._reveal?.configure(options);
   }
 
+  layout() {
+    this._reveal.layout();
+  }
+
+  sync() {
+    this._reveal.sync();
+  }
+
+  navigatePrev() {
+    this._reveal.navigatePrev();
+  }
+
+  toggleHelp() {
+    this._reveal.toggleHelp();
+  }
+
   async print(event?: UIEvent) {
     if (this.loading) return; // skip
 
     console.debug('[slides] Print...');
 
-    if (this.isPrintingPdf()) {
+    if (this.isPrintingPDF()) {
+
       await this.waitIdle();
       await sleep(1000); // Wait end of render
       window.print();
@@ -223,20 +268,23 @@ export class AppSlidesComponent implements AfterViewInit, OnDestroy
   }
 
   private getPrintPdfUrl() {
-    let href = window.location.href;
+    let href = this.options.printHref || window.location.href;
+    let query = !this.options.printHref && window.location.search || '?';
+    let hash = !this.options.printHref && window.location.hash || '';
     if (href.lastIndexOf('#') !== -1) {
       href = href.substring(0, href.lastIndexOf('#'));
     }
     if (href.indexOf('?') !== -1) {
       href = href.substring(0, href.indexOf('?'));
     }
-    let query = window.location.search || '?';
+    // Set query
     if (query.indexOf('print-pdf') !== -1) return; // not need
     query += 'print-pdf';
-    return href + query + (window.location.hash || '');
+    // Compute final URL
+    return href + query + hash;
   }
 
-  private isPrintingPdf(): boolean {
+  private isPrintingPDF(): boolean {
     if (this._printing) return true;
     const query = window.location.search || '?';
     return query.indexOf('print-pdf') !== -1;

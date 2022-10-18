@@ -6,7 +6,8 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
+import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
+import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
 import { TranslateService } from '@ngx-translate/core';
 import {
   AppErrorWithDetails,
@@ -22,7 +23,7 @@ import {
   WaitForOptions
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
+import { LANDING_I18N_PMFM_PREFIX, LANDING_TABLE_DEFAULT_I18N_PREFIX } from '@app/trip/landing/landings.table';
 import { LandingReport } from '@app/trip/landing/report/landing.report';
 import { LandingService } from '@app/trip/services/landing.service';
 import { Landing } from '@app/trip/services/model/landing.model';
@@ -82,7 +83,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   @Input() showToolbar = true;
   @Input() showError = true;
 
-  @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+  @ViewChild(RevealComponent) slides!: RevealComponent;
   @ViewChildren("landingReport") children!: QueryList<LandingReport>;
 
   get loading(): boolean {

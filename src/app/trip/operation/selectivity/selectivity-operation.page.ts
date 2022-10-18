@@ -62,6 +62,23 @@ export class SelectivityOperationPage
     )
   }
 
+  onNewFabButtonClick(event: UIEvent) {
+    const selectedTabIndex = this.selectedTabIndex;
+    if (selectedTabIndex === OperationPage.TABS.CATCH) {
+      this.batchTree.addRow(event);
+    }
+    else {
+      super.onNewFabButtonClick(event)
+    }
+  }
+
+  protected updateTablesState() {
+    //if (this.showCatchTab) this.tabCount++;
+    this.tabCount = 3;
+
+    super.updateTablesState();
+  }
+
   protected async setProgram(program: Program): Promise<void> {
     await super.setProgram(program);
 

@@ -1044,7 +1044,8 @@
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire"
       },
       "SETTINGS": {
-        "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
+        "BURST_MODE_ENABLE": "Échantillons : Activer le mode rafale ?",
+        "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"
       }
     },
     "SUB_SAMPLE": {

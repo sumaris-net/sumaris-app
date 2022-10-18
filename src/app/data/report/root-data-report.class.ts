@@ -1,25 +1,28 @@
-import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
+import { RevealComponent, IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, DateFormatPipe, firstFalsePromise, isNil, isNotNilOrBlank, LocalSettingsService, PlatformService, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, DateFormatPipe, firstFalsePromise, isNil, isNotNil, isNotNilOrBlank, isNumber, LocalSettingsService, PlatformService, WaitForOptions } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { DataEntity } from '../services/model/data-entity.model';
+import { ModalController } from '@ionic/angular';
 
 export interface RootDataReportOptions {
-  pathIdAttribute?: string,
-  pathParentIdAttribute?: string,
+  pathIdAttribute?: string;
+  pathParentIdAttribute?: string;
 }
 
 @Directive()
-export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number> implements AfterViewInit, OnDestroy {
+export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number>
+  implements OnInit, AfterViewInit, OnDestroy {
 
   protected readonly route: ActivatedRoute;
   protected readonly cd: ChangeDetectorRef;
   protected readonly dateFormatPipe: DateFormatPipe;
   protected readonly settings: LocalSettingsService;
+  protected readonly modalCtrl: ModalController;
 
   protected readonly platform: PlatformService;
   protected readonly translate: TranslateService;
@@ -35,7 +38,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   protected _pathParentIdAttribute: string;
 
   error: string;
-  slidesOptions: Partial<IRevealOptions>;
+  slidesOptions: Partial<IRevealExtendedOptions>;
   // NOTE: Interface for this ?
   i18nContext = {
     prefix: '',
@@ -45,16 +48,23 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   $defaultBackHref = new Subject<string>();
   $title = new Subject<string>();
 
+  @Input() modal: boolean;
   @Input() showError = true;
   @Input() showToolbar = true;
-  @Input() debug = !environment.production;
+  @Input() id: ID;
   @Input() data: T;
+  @Input() stats: any = {};
+  @Input() debug = !environment.production;
 
-  @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+  @ViewChild(RevealComponent) reveal: RevealComponent;
 
   get loaded(): boolean { return !this.loadingSubject.value; }
 
-  constructor(
+  get modalName(): string {
+    return this.constructor.name;
+  }
+
+  protected constructor(
     injector: Injector,
     @Optional() options?: RootDataReportOptions,
   ) {
@@ -64,6 +74,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
     this.route = injector.get(ActivatedRoute);
     this.dateFormatPipe = injector.get(DateFormatPipe);
     this.settings = injector.get(LocalSettingsService);
+    this.modalCtrl = injector.get(ModalController);
 
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);
@@ -74,6 +85,10 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'id';
 
     this.slidesOptions = this.computeSlidesOptions();
+  }
+
+  async ngOnInit() {
+    this.modal = isNotNil(this.modal) ? this.modal : !!(await this.modalCtrl.getTop());
   }
 
   ngAfterViewInit() {
@@ -92,17 +107,27 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
     console.debug(`[${this.constructor.name}.start]`);
     await this.platform.ready();
     try {
-      await this.loadFromRoute();
+      // Load data by id
+      if (isNotNil(this.id)) {
+        await this.load(this.id);
+        this.markAsLoaded();
+      }
+      // Load data by route
+      else {
+        await this.loadFromRoute();
+        this.markAsLoaded();
+      }
+
+      // Update the view: initialise slides
+      await this.updateView();
+
     } catch (err) {
       // NOTE: Test if setError work correctly
       this.setError(err);
-    } finally {
-      // NOTE : check this : why update view need to be in finally block ? If we get an error, we don't initialise the sliedes ?
-      await this.updateView();
     }
   };
 
-  async load(id: number): Promise<void> {
+  async load(id: ID): Promise<void> {
     console.debug(`[${this.constructor.name}.id]`, arguments);
     const data = await this.loadData(id);
 
@@ -110,9 +135,10 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
 
     this.$defaultBackHref.next(this.computeDefaultBackHref(data));
     this.$title.next(await this.computeTitle(data));
+    this.slidesOptions.printHref = this.slidesOptions.printHref || this.computePrintHref(data);
   };
 
-  protected abstract loadData(id: number): Promise<T>;
+  protected abstract loadData(id: ID): Promise<T>;
 
   // NOTE: an interface for opts ???
   setError(err: string | AppErrorWithDetails, opts?: {
@@ -147,6 +173,12 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
     }
   }
 
+  cancel() {
+    if (this.modal) {
+      this.modalCtrl.dismiss();
+    }
+  }
+
   markAsReady() {
     console.debug(`[${this.constructor.name}.markAsReady]`, arguments);
     if (!this.readySubject.value) {
@@ -154,20 +186,26 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
     }
   }
 
-  // NOTE : Can have parrent. Can take param from interface ?
+  // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeTitle(data: T): Promise<string>;
 
-  // NOTE : Can have parrent. Can take param from interface ?
+  // NOTE : Can have parent. Can take param from interface ?
   protected abstract computeDefaultBackHref(data: T): string;
 
-  protected computeSlidesOptions(): Partial<IRevealOptions> {
+  protected abstract computePrintHref(data: T): string;
+
+  protected computeSlidesOptions(): Partial<IRevealExtendedOptions> {
     console.debug(`[${this.constructor.name}.computeSlidesOptions]`);
     const mobile = this.settings.mobile;
     return {
+      // Custom slides options
       autoInitialize: false,
+      autoPrint: false,
+      // Reveal options
+      pdfMaxPagesPerSlide: 1,
       disableLayout: mobile,
-      touch: mobile,
-    }
+      touch: mobile
+    };
   }
 
   protected async loadFromRoute(): Promise<void> {
@@ -180,7 +218,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   async updateView() {
     console.debug(`[${this.constructor.name}.updateView]`);
     this.cd.detectChanges();
-    this.slides.initialize();
+    await this.reveal.initialize();
   }
 
   protected markForCheck() {
@@ -201,12 +239,15 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
   }
 
-  protected getIdFromPathIdAttribute(pathIdAttribute: string): number {
+  protected getIdFromPathIdAttribute(pathIdAttribute: string): ID {
     console.debug(`[${this.constructor.name}.getIdFromPathIdAttribute]`, arguments);
     const route = this.route.snapshot;
-    const id: number = route.params[pathIdAttribute];
+    const id = route.params[pathIdAttribute] as ID;
     if (isNil(id)) {
       throw new Error(`[getIdFromPathIdAttribute] id for param ${pathIdAttribute} is nil`);
+    }
+    if (typeof id === 'string' && isNumber(id)) {
+      return (+id) as any as ID;
     }
     return id;
   }

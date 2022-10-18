@@ -1,12 +1,47 @@
-<app-toolbar [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
+<ng-container *ngIf="showToolbar">
+  <app-toolbar *ngIf="!modal; else modalToolbar"
+               [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
 
-<ion-title [innerHTML]="$title|async"></ion-title>
-<ion-buttons slot="end">
-  <ion-button (click)="slides.print($event)">
-    <ion-icon name="print"></ion-icon>
-  </ion-button>
-</ion-buttons>
-</app-toolbar>
+    <ion-title [innerHTML]="$title|async"></ion-title>
+
+    <!-- Help button -->
+    <ion-button slot="end" (click)="slides.toggleHelp()">
+      <mat-icon slot="icon-only">help_outline</mat-icon>
+    </ion-button>
+
+    <!-- Print button -->
+    <ion-button slot="end" (click)="slides.print($event)">
+      <ion-icon slot="icon-only" name="print"></ion-icon>
+    </ion-button>
+
+
+  </app-toolbar>
+
+  <ng-template #modalToolbar>
+    <app-modal-toolbar *ngIf="showToolbar"
+                       [modalName]="modalName"
+                       [color]="'secondary'"
+                       (cancel)="cancel()"
+                       [canValidate]="false">
+
+      <ion-title [innerHTML]="$title|async"></ion-title>
+
+      <!-- Print button -->
+      <ion-button slot="end" (click)="slides.print($event)">
+        <ion-icon name="print"></ion-icon>
+      </ion-button>
+
+      <!-- Close button (on desktop screen) -->
+      <ion-button hidden-xs hidden-sm hidden-mobile
+                  slot="end"
+                  (click)="cancel()"
+                  (keyup.enter)="cancel()">
+        <ion-label translate>COMMON.BTN_CLOSE</ion-label>
+      </ion-button>
+    </app-modal-toolbar>
+  </ng-template>
+</ng-container>
+
 
 <ion-content>
 
@@ -15,20 +50,36 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <app-slides #slides *ngIf="!error" [options]="slidesOptions">
+  <app-reveal #slides [options]="slidesOptions" *ngIf="loaded; else loadingTemplate" (slideChanged)="onSlideChanged($event)">
     <section>
-      <ng-container *ngIf="loaded; else loadingTemplate">
-        <section>
-          <h1>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
-          <ul>
-            <li>{{ 'TRIP.TABLE.VESSEL'|translateContext: i18nContext.suffix }} : {{ data.vesselSnapshot.exteriorMarking }}</li>
-            <li>{{ 'TRIP.DEPARTURE_DATE_TIME'|translateContext: i18nContext.suffix }} : {{ data.departureDateTime|dateFormat:{time: false} }}</li>
-            <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
-          </ul>
-        </section>
-      </ng-container>
+      <section>
+        <h1>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
+        <ul>
+          <li>{{ 'TRIP.TABLE.VESSEL'|translateContext: i18nContext.suffix }} : {{ data.vesselSnapshot.exteriorMarking }}</li>
+          <li>{{ 'TRIP.DEPARTURE_DATE_TIME'|translateContext: i18nContext.suffix }} : {{ data.departureDateTime|dateFormat:{time: false} }}</li>
+          <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
+        </ul>
+      </section>
+      <section>
+        <h2>Représentation, répartition par taille</h2>
+        <div style="height:450px">
+        <canvas baseChart #chart
+                [datasets]="stats.chart1.data.datasets"
+                [labels]="stats.chart1.data.labels"
+                [chartType]="'bar'">
+        </canvas>
+        </div>
+      </section>
+      <section (entered)="!slides.printing && showMap()">
+        <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
+        <!-- Operations map -->
+        <div style="height: 550px;">
+          <ng-container #mapContainer>
+          </ng-container>
+        </div>
+      </section>
     </section>
-  </app-slides>
+  </app-reveal>
 
   <ng-template #loadingTemplate>
     <div class="loader">
@@ -37,3 +88,15 @@
   </ng-template>
 
 </ion-content>
+
+<ng-template #mapTemplate>
+  <app-operations-map (ready)="onMapReady()"
+                      [showTooltip]="false"
+                      [programLabel]="data.program.label"
+                      [data]="[data.operations]"
+                      [flyToBoundsDelay]="0"
+                      [flyToBoundsDuration]="0"
+                      [showGraticule]="true"
+                      [latLongPattern]="settings.latLongFormat">
+  </app-operations-map>
+</ng-template>
