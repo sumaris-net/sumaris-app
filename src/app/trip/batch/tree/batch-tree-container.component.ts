@@ -106,7 +106,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   get programLabel(): string {
-    return this.$programLabel.value;
+    return this.$programLabel.value || this.$program.value?.label;
   }
 
   @Input()
@@ -427,6 +427,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.batchTree.gearId = this.gearId;
       this.batchTree.physicalGearId = this.physicalGearId;
       this.batchTree.i18nContext = this.i18nContext;
+      this.batchTree.setSubBatchesModalOption('programLabel', this.programLabel);
       this.batchTree.showCatchForm = this.showCatchForm && source.pmfms && isNotEmptyArray(PmfmUtils.filterPmfms(source.pmfms, { excludeHidden: true }));
       this.batchTree.showBatchTables = this.showBatchTables && source.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(source.childrenPmfms, { excludeHidden: true }));
       this.batchTree.allowSubBatches = this.allowSubBatches && this.batchTree.showBatchTables;

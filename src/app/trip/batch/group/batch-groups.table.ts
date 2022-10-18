@@ -43,6 +43,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
 import { hasFlag } from '@app/shared/flags.utils';
+import { BatchModal, IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -1092,6 +1093,35 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     }
 
     this.markAsLoading();
+
+/*
+    const modal = await this.modalCtrl.create({
+      component: BatchModal,
+      componentProps: <IBatchModalOptions>{
+        acquisitionLevel: this.acquisitionLevel,
+        pmfms: this._initialPmfms,
+        qvPmfm: this.qvPmfm,
+        disabled: this.disabled,
+        data: initialData,
+        isNew,
+        showTaxonGroup: this.showTaxonGroupColumn,
+        showTaxonName: this.showTaxonNameColumn,
+        availableTaxonGroups: this.availableTaxonGroups,
+        taxonGroupsNoWeight: this.taxonGroupsNoWeight,
+        showSamplingBatch: this.showSamplingBatchColumns,
+        allowSubBatches: this.allowSubBatches,
+        defaultHasSubBatches: this.defaultHasSubBatches,
+        samplingRatioFormat: this.samplingRatioFormat,
+        mobile: this.mobile,
+        openSubBatchesModal: (batchGroup) => this.openSubBatchesModalFromParentModal(batchGroup),
+        onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup as BatchGroup),
+        // Override using given options
+        ...this.modalOptions
+      },
+      cssClass: 'modal-large',
+      backdropDismiss: false,
+      keyboardClose: true
+    });*/
 
     const modal = await this.modalCtrl.create({
       component: BatchGroupModal,

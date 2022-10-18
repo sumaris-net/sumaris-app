@@ -33,6 +33,7 @@ export interface ISubBatchesModalOptions {
   i18nSuffix: string;
   mobile: boolean;
 
+  programLabel: string;
   parentGroup: BatchGroup;
 
   availableParents: BatchGroup[] | Observable<BatchGroup[]>;

@@ -116,7 +116,7 @@
       </ion-row>
     </ng-template>
 
-    <ion-row>
+    <ion-row [class.ion-margin-top]="!!qvPmfm">
       <ion-col *ngIf="allowSubBatches && showHasSubBatchesButton">
         <!-- Has individual measures ? -->
         <mat-form-field floatLabel="always" >

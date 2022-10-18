@@ -41,6 +41,7 @@ import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
 import { FormControlStatus } from '@app/shared/forms.utils';
+import { ISubBatchesModalOptions } from '@app/trip/batch/sub/sub-batches.modal';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
@@ -398,6 +399,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
     this.batchGroupsTable.setModalOption(key, value);
+  }
+
+  setSubBatchesModalOption(key: keyof ISubBatchesModalOptions, value: ISubBatchesModalOptions[typeof key]) {
+    this.batchGroupsTable.setSubBatchesModalOption(key, value);
   }
 
   async save(event?: Event, options?: any): Promise<any> {

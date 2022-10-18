@@ -267,6 +267,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     let hasSubBatches = data.observedIndividualCount > 0 || this.defaultHasSubBatches || false;
 
     if (!this.qvPmfm) {
+
       await super.updateView(data);
 
       // Should have sub batches, when sampling batch exists
@@ -280,10 +281,11 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       const childForm = this.childrenList.get(0);
 
       // Configure child form
-      this.configureChildForm(childForm, {hasSubBatches});
+      this.configureChildForm(childForm, {hasSubBatches: false});
+
 
       // Set the value of the child batch form
-      await childForm.setValue(data, {emitEvent: true});
+      await childForm.setValue(data.clone(), {emitEvent: true});
 
     } else {
 
@@ -378,7 +380,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       }
     }
     else {
-      // FOr each children
+      // For each child
       data.children = this.childrenList.map((childForm, index) => {
         const qv = this.qvPmfm.qualitativeValues[index];
         const child = childForm.value;
