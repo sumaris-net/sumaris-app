@@ -117,7 +117,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
 
   moveToBody(): void {
 
-    console.debug(`[slides] Moving <div class="reveal"> into <body> ...`);
+    console.debug(`[reveal] Moving <div class="reveal"> into <body> ...`);
     this.viewRef.detach();
     this.appRef.attachView(this.viewRef);
     const domElement: HTMLElement = (this.viewRef as EmbeddedViewRef<RevealComponent>)
@@ -132,7 +132,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
       .map(md => md.ready.toPromise()));
 
     const now = Date.now();
-    console.debug(`[slides] Initialize Reveal.js ... {printing: ${this._printing}}`);
+    console.debug(`[reveal] Initialize Reveal.js ... {printing: ${this._printing}}`);
 
     // Move content to body
     if (this.isPrintingPDF()) {
@@ -162,7 +162,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
 
     await this._reveal.initialize();
 
-    console.info(`[slides] Reveal initialized in ${Date.now()-now}ms`);
+    console.info(`[reveal] Reveal initialized in ${Date.now()-now}ms`);
     this.onReady.emit();
     this.markAsLoaded();
 
@@ -199,7 +199,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
   async print(event?: UIEvent) {
     if (this.loading) return; // skip
 
-    console.debug('[slides] Print...');
+    console.debug('[reveal] Print...');
 
     if (this.isPrintingPDF()) {
 
@@ -236,7 +236,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
         }
 
       } catch(err) {
-        console.error('[slides] Failed to create hidden iframe. Will opening a new window');
+        console.error('[reveal] Failed to create hidden iframe. Will opening a new window');
       }
       finally {
         this.markAsLoaded();

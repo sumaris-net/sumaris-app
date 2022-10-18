@@ -3,7 +3,7 @@
     [defaultBackHref]="defaultBackHref" canGoBack="true">
     <ion-title [innerHTML]="$title|async"></ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="slides.print($event)" >
+      <ion-button (click)="reveal.print($event)" >
         <ion-icon name="print"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -17,8 +17,8 @@
       <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-    <app-reveal #slides *ngIf="!error"
-                [options]="slidesOptions">
+    <app-reveal #reveal *ngIf="!error"
+                [options]="revealOptions">
       <ng-container *ngIf="loaded; else loadingTemplate">
         <section>
           <section markdown ngPreserveWhitespaces>
@@ -39,7 +39,7 @@
         </section>
         <section *ngIf="data.samples|isArrayLength:{greaterThan: 5}">
           <section markdown ngPreserveWhitespaces
-                   *ngFor="let samples of (data.samples | splitArrayInChunks: slides.printing ? -1 : 25); index as index; count as count">
+                   *ngFor="let samples of (data.samples | splitArrayInChunks: reveal.printing ? -1 : 25); index as index; count as count">
             ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
 
             <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>

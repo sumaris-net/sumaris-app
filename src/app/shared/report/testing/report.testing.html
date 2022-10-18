@@ -8,7 +8,7 @@
     <ion-title>Slides Reveal.js</ion-title>
 
     <ion-buttons slot="end">
-      <ion-button (click)="slides.print()" >
+      <ion-button (click)="reveal.print()" >
         <ion-icon name="print"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -17,7 +17,7 @@
 
 <ion-content>
 
-  <app-reveal [options]="slidesOptions" #slides>
+  <app-reveal [options]="revealOptions" #reveal>
     <section>
       <section markdown ngPreserveWhitespaces>
         # Title 1

@@ -60,7 +60,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   error: string;
   $title = new Subject();
   $defaultBackHref = new Subject<string>();
-  slidesOptions: Partial<IRevealOptions>;
+  revealOptions: Partial<IRevealOptions>;
   i18nContext = {
     prefix: '',
     suffix: ''
@@ -83,7 +83,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   @Input() showToolbar = true;
   @Input() showError = true;
 
-  @ViewChild(RevealComponent) slides!: RevealComponent;
+  @ViewChild(RevealComponent) reveal!: RevealComponent;
   @ViewChildren("landingReport") children!: QueryList<LandingReport>;
 
   get loading(): boolean {
@@ -219,8 +219,8 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
     // Make sure all sections has been rendered
     this.cd.detectChanges();
 
-    // Run slides
-    await this.slides.initialize();
+    // Run reveal
+    await this.reveal.initialize();
   }
 
   protected async onDataLoaded(data: T): Promise<T> {
@@ -263,7 +263,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   protected computeSlidesOptions() {
     const mobile = this.settings.mobile;
-    this.slidesOptions = {
+    this.revealOptions = {
       autoInitialize: false,
       disableLayout: mobile,
       touch: mobile,

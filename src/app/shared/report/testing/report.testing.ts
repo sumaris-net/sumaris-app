@@ -8,7 +8,7 @@ import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
 })
 export class ReportTestPage {
 
-  slidesOptions: Partial<IRevealOptions> = {};
+  revealOptions: Partial<IRevealOptions> = {};
 
   chart = {
     backgroundColor: "rgba(100,100,100,1)",
@@ -27,12 +27,12 @@ export class ReportTestPage {
     ]
   };
 
-  @ViewChild(RevealComponent) slides: RevealComponent;
+  @ViewChild(RevealComponent) reveal: RevealComponent;
 
   constructor() {
   }
 
   print() {
-    return this.slides.print();
+    return this.reveal.print();
   }
 }
