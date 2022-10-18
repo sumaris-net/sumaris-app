@@ -9,8 +9,7 @@ import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.compone
 import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
 import { Chart, ChartConfiguration, ChartData, ChartDataSets, ChartLegendOptions, ChartPoint, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
-import chartTrendline from 'chartjs-plugin-trendline';
-import annotationPlugin from 'chartjs-plugin-annotation';
+import pluginTrendlineLinear from 'chartjs-plugin-trendline';
 
 @Component({
   selector: 'app-trip-report',
@@ -45,8 +44,44 @@ export class TripReport extends AppRootDataReport<Trip> {
     super(injector);
     this.tripService = injector.get(TripService);
     this.operationService = injector.get(OperationService);
-    Chart.plugins.register(chartTrendline);
-    Chart.plugins.register(annotationPlugin);
+    Chart.plugins.register(pluginTrendlineLinear);
+    // NOTE : Begin of a tresholdLine plugin : [wip] (this is a first test)
+    Chart.plugins.register({
+      id: 'tresholdLine',
+      afterDraw: function(chartInstance) {
+        if (
+          chartInstance.options.plugins.tresholdLine === undefined
+          || chartInstance.options.plugins.tresholdLine.value === undefined
+        ) {
+          return;
+        }
+        var ctx = chartInstance.ctx;
+        const lineColor = chartInstance.options.plugins.tresholdLine.color || '#000000';
+        const lineStyle = chartInstance.options.plugins.tresholdLine.style || 'solid';
+        const lineWidth = chartInstance.options.plugins.tresholdLine.width || 3;
+        const thesholdIndex = chartInstance.options.plugins.tresholdLine.value;
+        var xScale;
+        var yScale;
+        //Find the first x axis
+        for (var axis in chartInstance['scales']) {
+          if (axis[0] === 'x') xScale = chartInstance['scales'][axis];
+          if (axis[0] === 'y') yScale = chartInstance['scales'][axis];
+          if (xScale && yScale) break;
+        }
+        // Draw the treshold line
+        const yStart = chartInstance.chartArea.top;
+        const yStop = chartInstance.chartArea.bottom;
+        const xStart = xScale._gridLineItems[thesholdIndex].tx2;
+        // Draw tresholdline
+        ctx.lineWidth = lineWidth;
+        if (lineStyle === 'dashed') ctx.setLineDash([8, 8]);
+        ctx.beginPath();
+        ctx.moveTo(xStart, yStart);
+        ctx.lineTo(xStart, yStop);
+        ctx.strokeStyle = lineColor;
+        ctx.stroke();
+      },
+    });
   }
 
   protected async loadData(id: number): Promise<Trip> {
@@ -183,25 +218,13 @@ export class TripReport extends AppRootDataReport<Trip> {
           ...legendDefaultOption,
         },
         plugins: {
-          // TODO : This not work
-          annotations: {
-            line1: {
-              type: 'line',
-              yMin: 60,
-              yMax: 60,
-              borderColor: 'rgb(255, 99, 132)',
-              borderWidth: 2,
-            },
-            box1: {
-              type: 'box',
-              xMin: 1,
-              xMax: 2,
-              yMin: 50,
-              yMax: 70,
-              backgroundColor: 'rgba(255, 99, 132, 0.25)'
-            }
-          }
-        }
+          tresholdLine: {
+            color:  this.graphColors.median.rgba(1),
+            style: 'dashed',
+            width: 3,
+            value: 4,
+          },
+        },
       },
       data: {
         ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
@@ -242,7 +265,14 @@ export class TripReport extends AppRootDataReport<Trip> {
         legend: {
           ...legendDefaultOption,
         },
-
+        plugins: {
+          tresholdLine: {
+            color: this.graphColors.median.rgba(1),
+            style: 'dashed',
+            width: 3,
+            value: 6,
+          },
+        },
       },
       data: {
         ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
