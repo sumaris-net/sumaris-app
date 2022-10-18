@@ -22,7 +22,15 @@ export class TripReport extends AppRootDataReport<Trip> {
   // Landing categories fucntion color variance
   private graphColors = {
     title: this.getColorFromStyle('secondary'),
-    landing: this.getColorFromStyle('secondary'),
+    capture: {
+      landing: Color.get('primary'),
+      discard: Color.get('secondary'),
+    },
+    grear: {
+      selective: new Color([127, 127, 0]),
+      standard: new Color([0, 127, 127]),
+    },
+    landing: Color.get('primary'),
     discard: this.getColorFromStyle('accent'),
     //landingCategories: {}, // scale landing
     //disardCategories: {}, // scale discard
@@ -186,8 +194,8 @@ export class TripReport extends AppRootDataReport<Trip> {
 
     // NOTE : Replace this by real data extractors
     var labels = this.computeChartColorsScaleFromLabels(
-      ['Selectif - Tribord', 'Selectif - Babord'],
-      { mainColor: this.graphColors.landing.rgb },
+      ['Débarquement - Babord', 'Rejet - Babord', 'Débarquement - Tribord', 'Rejet - Tribord'],
+      { startColor: [255, 0, 0],  endColor: [0, 0, 255]},
     );
     charts['01_repartLangouCapture'] = {
       type: 'bar',
@@ -199,6 +207,7 @@ export class TripReport extends AppRootDataReport<Trip> {
         scales: {
           xAxes: [
             {
+              stacked: true,
               scaleLabel: {
                 ...scaleLableDefaultOption,
                 labelString: 'Taille céphalotoracique (mm)',
@@ -207,6 +216,7 @@ export class TripReport extends AppRootDataReport<Trip> {
           ],
           yAxes: [
             {
+              stacked: true,
               scaleLabel: {
                 ...scaleLableDefaultOption,
                 labelString: 'Nb individus',
@@ -227,12 +237,12 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
       },
       data: {
-        ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
+        ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets((labels.length), 300, 9, 70), 12, [0, 0, 1, 1]),
       }
     }
-    this.computeTresholdLine(charts['01_repartLangouCapture']);
-    //this.computeTresholdCateg(charts['01_repartLangouCapture'], 3);
+    this.computeTresholdLineLegend(charts['01_repartLangouCapture']);
 
+    //this.computeTresholdCateg(charts['01_repartLangouCapture'], 3);
     // NOTE : Replace this by real data extractors
     var labels = this.computeChartColorsScaleFromLabels(
       ['Selectif - Tribord', 'Selectif - Babord'],
@@ -279,7 +289,7 @@ export class TripReport extends AppRootDataReport<Trip> {
         ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
       }
     }
-    this.computeTresholdLine(charts['02_repartLangouDebarq']);
+    this.computeTresholdLineLegend(charts['02_repartLangouDebarq']);
 
     // NOTE : Replace this by real data extractors
     var labels = this.computeChartColorsScaleFromLabels(
@@ -358,7 +368,11 @@ export class TripReport extends AppRootDataReport<Trip> {
     });
   }
 
-  protected computeChartDataSetForBar(labels: { label: string, color: Color }[], samples: number[][], nbCategs: number): ChartData {
+  protected computeChartDataSetForBar(
+    labels: { label: string, color: Color }[],
+    samples: number[][], nbCategs: number,
+    stackMap: number[] = [],
+  ): ChartData {
     console.debug(`[${this.constructor.name}.computeChartDataSetForBar]`, arguments);
     const categs = this.computeCategsForCharts(nbCategs, samples.flat());
     // Gen data for chart
@@ -377,11 +391,13 @@ export class TripReport extends AppRootDataReport<Trip> {
     return {
       labels: categs.map(c => c.label),
       datasets: dataForChart.map((_d, i) => {
-        return {
+        let res = {
           label: labels[i].label,
           data: dataForChart[i],
           backgroundColor: labels[i].color.rgba(1),
         }
+        if (stackMap[i]) res['stack'] = `${stackMap[i]}`;
+        return res;
       }),
     };
   }
@@ -422,7 +438,7 @@ export class TripReport extends AppRootDataReport<Trip> {
     return new Color(colorHexaToRgbArr(colorHexa), 1, name);
   }
 
-  protected computeTresholdLine(chart: ChartConfiguration) {
+  protected computeTresholdLineLegend(chart: ChartConfiguration) {
     chart.data.datasets.push({
       label: 'Seuil',
       backgroundColor: this.graphColors.median.rgba(1),
