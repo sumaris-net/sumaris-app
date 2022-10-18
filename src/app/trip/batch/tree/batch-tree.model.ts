@@ -1,5 +1,5 @@
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import {EntityClass, isEmptyArray, isNotEmptyArray, ITreeItemEntity, Entity, EntityAsObjectOptions, waitWhilePending, IconRef} from '@sumaris-net/ngx-components';
+import { EntityClass, isEmptyArray, isNotEmptyArray, ITreeItemEntity, Entity, EntityAsObjectOptions, waitWhilePending, IconRef, isNil } from '@sumaris-net/ngx-components';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
@@ -164,7 +164,11 @@ export class BatchModel
     return !this.valid;
   }
   get valid(): boolean {
-    return this._valid || (this.validator?.valid || false);
+    if (isNil(this._valid) && this.editing) {
+      this._valid = this.validator.valid;
+    }
+    if (!this._valid) return false;
+    return !this.children || !this.children.some(c => !c.valid);
   }
   set valid(value: boolean) {
     this._valid = value;

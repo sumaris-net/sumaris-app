@@ -1,44 +1,48 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import {
-  AppEditor, AppFormUtils, arrayDistinct,
+  AppEditor,
+  arrayDistinct,
   changeCaseToUnderscore,
-  firstNotNil, firstNotNilPromise, FormArrayHelper,
+  firstNotNil,
+  firstNotNilPromise,
+  FormArrayHelper,
   FormErrorTranslatorOptions,
   getPropertyByPath,
-  isEmptyArray,
   isNil,
-  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank, LocalSettingsService, ReferentialRef, sleep,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  ReferentialRef,
+  sleep,
   toBoolean,
   UsageMode,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import {AlertController} from '@ionic/angular';
-import {BatchTreeComponent, IBatchTreeComponent} from '@app/trip/batch/tree/batch-tree.component';
-import {Batch} from '@app/trip/batch/common/batch.model';
-import {IBatchGroupModalOptions} from '@app/trip/batch/group/batch-group.modal';
-import {Program} from '@app/referential/services/model/program.model';
-import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
-import {BehaviorSubject, merge} from 'rxjs';
-import {debounceTime, distinctUntilChanged, filter, map, switchMap, tap} from 'rxjs/operators';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BatchFilter} from '@app/trip/batch/common/batch.filter';
-import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
-import {NestedTreeControl} from '@angular/cdk/tree';
-import {MatTreeNestedDataSource} from '@angular/material/tree';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {BatchModel} from '@app/trip/batch/tree/batch-tree.model';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {AbstractControl, FormArray, FormControl, FormGroup} from '@angular/forms';
-import {BatchModelValidatorService} from '@app/trip/batch/tree/batch-model.validator';
-import {PhysicalGearService} from '@app/trip/physicalgear/physicalgear.service';
-import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
+import { AlertController } from '@ionic/angular';
+import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
+import { Program } from '@app/referential/services/model/program.model';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { BehaviorSubject, merge, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { NestedTreeControl } from '@angular/cdk/tree';
+import { MatTreeNestedDataSource } from '@angular/material/tree';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { FormArray, FormControl, FormGroup } from '@angular/forms';
+import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
+import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
 @Component({
   selector: 'app-batch-tree-container',
@@ -132,11 +136,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   get invalid(): boolean {
-    return this._form?.invalid || (this.editingBatch && this.batchTree?.invalid) || false;
+    return !this.valid;
   }
 
   get valid(): boolean {
-    return !this.invalid;
+    return (!this._model || this._model.valid);
   }
 
   get loading(): boolean {
@@ -382,7 +386,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     if (touched) this.markAllAsTouched();
   }
 
-
+  private _listenStatusChangesSubscription: Subscription;
 
   async startEditBatch(event: UIEvent, source: BatchModel) {
 
@@ -392,6 +396,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       if (this.filterPanelFloating) this.closeFilterPanel();
       return; // Skip
     }
+
+    this._listenStatusChangesSubscription?.unsubscribe();
 
     // Save current state
     await this.ready();
@@ -439,8 +445,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       await this.batchTree.batchGroupsTable.ready();
 
       if (this.batchTree.subBatchesTable) {
+        // TODO: pass sub pmfms
         this.batchTree.subBatchesTable.programLabel = this.programLabel;
-        //await this.batchTree.subBatchesTable.ready();
+        await this.batchTree.subBatchesTable.ready();
       }
 
       // Apply value (after clone(), to keep pmfms unchanged)
@@ -452,6 +459,21 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       const batch = Batch.fromObject(source.currentData, {withChildren: source.isLeaf});
       await this.batchTree.setValue(batch);
 
+      // Listen row status, when editing a row
+      const subscription = this.batchTree.statusChanges
+        .pipe(
+          filter(status => source === this.editingBatch && status !== 'PENDING')
+        )
+        .subscribe(status => {
+          if (this.debug) console.debug(this.logPrefix + 'batchTree status changes: ', status);
+          this.editingBatch.valid = (status === 'VALID');
+          this.markForCheck();
+        });
+      this.registerSubscription(subscription);
+      subscription.add(() => {
+        this.unregisterSubscription(subscription);
+        if (this._listenStatusChangesSubscription === subscription) this._listenStatusChangesSubscription = null;
+      })
     }
     finally {
       // Restore previous state
@@ -702,8 +724,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   /**
    * Save editing batch
    */
-  protected async confirmEditingBatch(model?: BatchModel): Promise<boolean> {
-    model = model || this.editingBatch;
+  protected async confirmEditingBatch(): Promise<boolean> {
+    const model = this.editingBatch;
     if (!model) return true; // Already saved
 
     // Save current state
@@ -725,8 +747,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     if (savedBatch.label !== model.originalData.label)
       throw new Error(`Invalid saved batch label. Expected: ${model.originalData.label} Actual: ${savedBatch.label}`);
 
-    // Update model
+    // Stop listening editing row
+    this._listenStatusChangesSubscription?.unsubscribe();
 
+    // Update model
     model.validator.patchValue({
       ...savedBatch.asObject({withChildren: false})
     });
@@ -747,6 +771,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
 
     model.valid = model.validator.valid;
+
+    this.editingBatch = null;
     model.editing = false;
 
     // Reset dirty state

@@ -91,6 +91,9 @@ ion-item {
     word-wrap: break-word;
     white-space: normal;
 
+    // Show matBadge in h2
+    overflow: visible;
+
     .text-bold {
       font-weight: bold;
     }
