@@ -1,5 +1,103 @@
-import { ChartData } from "chart.js";
+import { ChartData, ChartScales, PluginServiceGlobalRegistration, PluginServiceRegistrationOptions } from "chart.js";
 import { Color, ColorScale, ColorScaleOptions } from '@sumaris-net/ngx-components';
+import { throws } from "assert";
+
+export interface ChartJsUtilsTresholdLineOptions {
+  options?: {
+    plugins?: {
+      tresholdLine?: TresholdLineOptions,
+    }
+  }
+}
+
+interface TresholdLineOptions {
+  color?: string,
+  style?: 'solid' | 'dashed',
+  width?: number,
+  value: number,
+  orientation?: 'x' | 'y',
+}
+
+export const ChartJsStandardColors = {
+  threshold: Color.get('red'),
+}
+
+export const ChartJsPluginTresholdLine: PluginServiceRegistrationOptions & PluginServiceGlobalRegistration = {
+  id: 'thresholdLine',
+  afterDraw: function(chart: Chart) {
+    function computeStop(scale: ChartScales, value: number) {
+      var res: number;
+      var lengthType = scale['id'][0] === 'y' ? 'height' : 'width';
+      switch (scale.type) {
+        case 'category':
+          res = (scale[lengthType] / (scale['maxIndex'] + 1)) * value;
+          break;
+        case 'linear':
+          res = Math.round(scale[lengthType] * (value / scale['max']));
+          break;
+        default:
+          throw new Error(`Scale type ${scale.type} not implemented`);
+      }
+      return res;
+    }
+    console.debug(`[${this.constructor.name}.genDummySamplesSets]`, arguments);
+    if (chart.options.plugins.tresholdLine === undefined) return;
+    if (chart.options.plugins.tresholdLine.value === undefined) {
+      console.warn(`[${this.constructor.name}.genDummySamplesSets]: called without value`)
+      return
+    }
+
+    // NOTE : This is the method parameters
+    const param:TresholdLineOptions = {
+      color: chart.options.plugins.tresholdLine.color || '#000000',
+      style: chart.options.plugins.tresholdLine.style || 'solid',
+      width: chart.options.plugins.tresholdLine.width || 3,
+      value: chart.options.plugins.tresholdLine.value,
+      orientation: chart.options.plugins.tresholdLine.orientation || 'x',
+    }
+
+    var scale: ChartScales;
+    for (let i in chart['scales']) {
+      if (i[0] === param.orientation) scale = chart['scales'][i];
+      if (scale) break;
+    }
+    if (!scale) {
+      console.warn(`[${this.constructor.name}.genDummySamplesSets]: no scale found for orientation ${orientation}`)
+      return;
+    }
+
+    try {
+      var stopVal = computeStop(scale, param.value);
+    } catch (e) {
+      console.warn(`[${this.constructor.name}.genDummySamplesSets]: `, e);
+    }
+    var xStart = 0;
+    var xStop = 0;
+    var yStart = 0;
+    var yStop = 0;
+    if (param.orientation === 'y') {
+      yStart = chart.chartArea.bottom - stopVal;
+      yStop = yStart;
+      xStart = chart.chartArea.left;
+      xStop = chart.chartArea.right;
+    } else {
+      yStart = chart.chartArea.top;
+      yStop = chart.chartArea.bottom;
+      xStart = chart.chartArea.left + stopVal;
+      xStop = xStart;
+    }
+
+    // Draw tresholdline
+    const ctx = chart.ctx;
+    ctx.lineWidth = param.width;
+    if (param.style === 'dashed') ctx.setLineDash([8, 8]);
+    ctx.beginPath();
+    ctx.moveTo(xStart, yStart);
+    ctx.lineTo(xStop, yStop);
+    ctx.strokeStyle = param.color;
+    ctx.stroke();
+  },
+}
 
 export class ChartUtils {
 
