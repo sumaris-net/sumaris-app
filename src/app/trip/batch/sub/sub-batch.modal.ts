@@ -76,7 +76,7 @@ export class SubBatchModal implements OnInit, OnDestroy {
   }
 
 
-  async ngOnInit() {
+  ngOnInit() {
     this.disabled = toBoolean(this.disabled, false);
     this.isNew = toBoolean(this.isNew, false);
 
@@ -132,11 +132,8 @@ export class SubBatchModal implements OnInit, OnDestroy {
     try {
       // Set form value
       this.data = this.data || new SubBatch();
-      const isNew = isNil(this.data.id);
 
-
-      let promiseOrVoid = this.form.setValue(this.data);
-      if (promiseOrVoid) await promiseOrVoid;
+      await this.form.setValue(this.data);
 
       // Call ready callback
       /*if (this.onReady) {

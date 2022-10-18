@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Batch } from '../common/batch.model';
-import { Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import {Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
@@ -139,6 +139,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   async ngOnInit() {
+
+    console.debug('[sub-batches-modal] Init modal...');
+
     super.ngOnInit();
 
     // default values
@@ -149,7 +152,14 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.showForm = this.showForm && (this.form && !this.disabled);
 
     if (this.form) {
-      await this.form.setPmfms(this.pmfms);
+      const pmfms = this.pmfms;
+      if (isNotNil(pmfms)) {
+        await this.form.setPmfms(pmfms);
+      }
+      else {
+        console.debug('[sub-batches-modal] Applying program: ' + this.programLabel);
+        this.form.programLabel = this.programLabel;
+      }
       this.form.markAsReady();
 
       // Reset the form, using default value
@@ -191,6 +201,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   }
 
   setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
+    console.debug('[sub-batches-modal] Applying value to table...', data);
+
     // Compute the first rankOrder to save
     this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
 
