@@ -11,6 +11,9 @@ import { Chart, ChartConfiguration, ChartData, ChartDataSets, ChartLegendOptions
 import { DOCUMENT } from '@angular/common';
 import pluginTrendlineLinear from 'chartjs-plugin-trendline';
 
+// TODO : Testing boxplot : (not working, can't load charttype boxplot)
+import "@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js";
+
 @Component({
   selector: 'app-trip-report',
   templateUrl: './trip.report.html',
@@ -195,7 +198,7 @@ export class TripReport extends AppRootDataReport<Trip> {
     // NOTE : Replace this by real data extractors
     var labels = this.computeChartColorsScaleFromLabels(
       ['Débarquement - Babord', 'Rejet - Babord', 'Débarquement - Tribord', 'Rejet - Tribord'],
-      { startColor: [255, 0, 0],  endColor: [0, 0, 255]},
+      { startColor: [255, 0, 0], endColor: [0, 0, 255] },
     );
     charts['01_repartLangouCapture'] = {
       type: 'bar',
@@ -229,7 +232,7 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
         plugins: {
           tresholdLine: { // NOTE : custom plugin
-            color:  this.graphColors.median.rgba(1),
+            color: this.graphColors.median.rgba(1),
             style: 'dashed',
             width: 3,
             value: 4,
@@ -330,6 +333,68 @@ export class TripReport extends AppRootDataReport<Trip> {
       }
     }
     this.computeTrendLine(charts['03_comparDebarqRejet']);
+
+    // TODO : Testing boxplot : (not working, can't load charttype boxplot)
+    //charts['04_testboxplot'] = {
+      //type: 'boxplot',
+      //options: {
+        //title: {
+          //...defaultTitleOptions,
+          //text: ['Comparaison des débarquements et rejets', '(sous trait)'],
+        //},
+        //legend: {
+          //...legendDefaultOption,
+        //},
+        //scales: {
+          //xAxes: [
+            //{
+              //scaleLabel: {
+                //...scaleLableDefaultOption,
+                //labelString: 'Quantité dans le chalut sélectif (kg)',
+              //},
+            //}
+          //],
+          //yAxes: [
+            //{
+              //scaleLabel: {
+                //...scaleLableDefaultOption,
+                //labelString: 'Quantité dans le chalut standard (kg)',
+              //},
+            //}
+          //],
+        //},
+      //},
+      //data: {
+        //labels: ["January", "February", "March", "April", "May", "June", "July"],
+        //datasets: [
+          //{
+            //label: "Dataset 1",
+            //backgroundColor: "rgba(255,0,0,0.5)",
+            //borderColor: "red",
+            //borderWidth: 1,
+            ////outlierColor: "#999999",
+            ////padding: 10,
+            ////itemRadius: 0,
+            //data: [
+            //]
+          //},
+          //{
+            //label: "Dataset 2",
+            //backgroundColor: "rgba(0,0,255,0.5)",
+            //borderColor: "blue",
+            //borderWidth: 1,
+            ////outlierColor:
+            ////"#999999",
+            ////padding:
+            ////10,
+            ////itemRadius: 0,
+            //data: [
+            //]
+          //}
+        //]
+      //}
+    //}
+
     return charts;
   }
 
