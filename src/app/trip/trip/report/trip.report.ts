@@ -7,6 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
+import { ChartUtils } from '@app/shared/charts.utils.ts';
 import { Chart, ChartConfiguration, ChartData, ChartDataSets, ChartLegendOptions, ChartPoint, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
 import pluginTrendlineLinear from 'chartjs-plugin-trendline';
@@ -105,14 +106,6 @@ export class TripReport extends AppRootDataReport<Trip> {
 
     data.operations = res.data;
 
-    // NOTE : Replace this by real data extractors
-    const labels = [
-      { label: 'Débarquement', color: this.graphColors.landing },
-      { label: 'Rejet', color: this.graphColors.discard },
-    ];
-    const samples = this.genDummySamplesSets(2, 300, 9, 70);
-    this.computeChartDataSetForBar(labels, samples, 7);
-
     // NOTE : This may be done in another place
     this.stats.charts = this.computeDummyCharts();
 
@@ -196,7 +189,7 @@ export class TripReport extends AppRootDataReport<Trip> {
     const charts: { [key: string]: ChartConfiguration } = {};
 
     // NOTE : Replace this by real data extractors
-    var labels = this.computeChartColorsScaleFromLabels(
+    var labels = ChartUtils.computeColorsScaleFromLabels(
       ['Débarquement - Babord', 'Rejet - Babord', 'Débarquement - Tribord', 'Rejet - Tribord'],
       { startColor: [255, 0, 0], endColor: [0, 0, 255] },
     );
@@ -240,14 +233,13 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
       },
       data: {
-        ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets((labels.length), 300, 9, 70), 12, [0, 0, 1, 1]),
+        ... ChartUtils.computeDatasetForBar(labels, ChartUtils.genDummySamplesSets((labels.length), 300, 9, 70), 12, [0, 0, 1, 1]),
       }
     }
     this.computeTresholdLineLegend(charts['01_repartLangouCapture']);
 
-    //this.computeTresholdCateg(charts['01_repartLangouCapture'], 3);
     // NOTE : Replace this by real data extractors
-    var labels = this.computeChartColorsScaleFromLabels(
+    var labels = ChartUtils.computeColorsScaleFromLabels(
       ['Selectif - Tribord', 'Selectif - Babord'],
       { mainColor: this.graphColors.discard.rgb },
     );
@@ -289,13 +281,13 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
       },
       data: {
-        ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
+        ... ChartUtils.computeDatasetForBar(labels, ChartUtils.genDummySamplesSets(labels.length, 300, 9, 70), 12),
       }
     }
     this.computeTresholdLineLegend(charts['02_repartLangouDebarq']);
 
     // NOTE : Replace this by real data extractors
-    var labels = this.computeChartColorsScaleFromLabels(
+    var labels = ChartUtils.computeColorsScaleFromLabels(
       ['Langoustine G', 'Langoustine P', 'Langoustine R'],
       { startColor: this.graphColors.discard.rgb, endColor: this.graphColors.landing.rgb },
     );
@@ -329,7 +321,7 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
       },
       data: {
-        ... this.computeChartDataSetsForBubule(labels, labels.map(_ => this.genDummySamplesSets(30, 2, 0, 90))),
+        ... ChartUtils.computeDatasetForBubble(labels, labels.map(_ => ChartUtils.genDummySamplesSets(30, 2, 0, 90))),
       }
     }
     this.computeTrendLine(charts['03_comparDebarqRejet']);
@@ -396,100 +388,6 @@ export class TripReport extends AppRootDataReport<Trip> {
     //}
 
     return charts;
-  }
-
-  protected computeCategsForCharts(nbCategs: number, values: number[]): { start: number, stop: number, label: string }[] {
-    console.debug(`[${this.constructor.name}.computeCategsForCharts]`, arguments);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const diffMaxMin = (max - min);
-    const interval = Math.trunc(diffMaxMin / nbCategs);
-    return Array(nbCategs).fill(0).map((_, index) => {
-      const next = (interval * (index + 1)) + min;
-      const start = (next - interval);
-      var stop = 0;
-      var label = '';
-      if ((index + 1) === nbCategs) { // This is the last categorie
-        stop = max + 1; // The last categorie must include the max value
-        label = `>=${start} - <=${max}`;
-      } else {
-        stop = next;
-        label = `>=${start} - <${stop}`;
-      }
-      return ({
-        start: start,
-        stop: stop,
-        label: label,
-      });
-    });
-  }
-
-  protected genDummySamplesSets(nbSets: number, nbSamples: number, minVal: number, maxVal: number): number[][] {
-    console.debug(`[${this.constructor.name}.genDummySamples]`, arguments);
-    return Array(nbSets).fill([]).map(_ => {
-      return Array(nbSamples).fill(0).map((_) => {
-        return Math.floor(minVal + (Math.random() * (maxVal - minVal + 1)));
-      });
-    });
-  }
-
-  protected computeChartDataSetForBar(
-    labels: { label: string, color: Color }[],
-    samples: number[][], nbCategs: number,
-    stackMap: number[] = [],
-  ): ChartData {
-    console.debug(`[${this.constructor.name}.computeChartDataSetForBar]`, arguments);
-    const categs = this.computeCategsForCharts(nbCategs, samples.flat());
-    // Gen data for chart
-    const dataForChart = Array(samples.length).fill({}).map((_, index) => {
-      var res = new Map();
-      // Gen the map first with categs to get ordered map (smallest to largest)
-      categs.forEach(c => res.set(c.label, 0));
-      // Count the nb of sample that fit into a given categorie
-      samples[index].forEach(s => {
-        //NOTE : For the last categ, stop is the max + 1
-        const currentCateg = categs.find(c => (s >= c.start && s < c.stop)).label;
-        res.set(currentCateg, res.get(currentCateg) + 1);
-      });
-      return Array.from(res.values());
-    });
-    return {
-      labels: categs.map(c => c.label),
-      datasets: dataForChart.map((_d, i) => {
-        let res = {
-          label: labels[i].label,
-          data: dataForChart[i],
-          backgroundColor: labels[i].color.rgba(1),
-        }
-        if (stackMap[i]) res['stack'] = `${stackMap[i]}`;
-        return res;
-      }),
-    };
-  }
-
-  protected computeChartDataSetsForBubule(labels: { label: string, color: Color }[], samples: number[][][]): ChartData {
-    console.debug(`[${this.constructor.name}.computeChartDataSetsForBubule]`, arguments);
-    const bubuleRadius = 6;
-    return {
-      datasets: labels.map((l, i) => {
-        return {
-          label: l.label,
-          backgroundColor: l.color.rgba(1),
-          data: samples[i].map(s => { return { x: s[0], y: s[1], r: bubuleRadius } }),
-        };
-      })
-    };
-  }
-
-  protected computeChartColorsScaleFromLabels(labels: string[], options?: ColorScaleOptions): { label: string, color: Color }[] {
-    const count = labels.length;
-    const colorScale = ColorScale.custom(count, { min: 1, max: labels.length, ...options });
-    return labels.map((label, index) => {
-      return {
-        label: label,
-        color: colorScale.getLegendAtIndex(index).color,
-      }
-    })
   }
 
   protected getColorFromStyle(name: string): Color {
