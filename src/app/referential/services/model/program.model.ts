@@ -4,7 +4,7 @@ import {
   EntityClass,
   EntityUtils,
   FormFieldDefinition,
-  isNotNil,
+  isNotNil, ObjectMap,
   Person,
   PropertiesMap,
   ReferentialAsObjectOptions,
@@ -24,7 +24,7 @@ export class Program extends BaseReferential<Program> {
   static ENTITY_NAME = 'Program';
   static fromObject: (source: any, opts?: any) => Program;
 
-  properties: PropertiesMap = {};
+  properties: ObjectMap = {};
   gearClassification: ReferentialRef = null;
   taxonGroupType: ReferentialRef = null;
   locationClassifications: ReferentialRef[] = null;

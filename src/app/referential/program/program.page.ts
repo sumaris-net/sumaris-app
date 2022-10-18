@@ -19,13 +19,13 @@ import {
   FormFieldDefinition,
   FormFieldDefinitionMap,
   HistoryPageReference,
-  isNil,
-  isNotNil,
+  isNil, isNotEmptyArray,
+  isNotNil, isNotNilOrBlank,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
   SharedValidators,
-  StatusIds
+  StatusIds, SuggestFn
 } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
@@ -101,10 +101,13 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this._enabled = this.accountService.isAdmin();
 
     this.propertyDefinitions = Object.values(ProgramProperties).map(def => {
-      if (def.type === 'entity') {
+      if (def.type === 'entity' || def.type === 'entities') {
         def = Object.assign({}, def); // Copy
-        def.autocomplete = def.autocomplete || {};
-        def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
+        def.autocomplete = {
+          suggestFn: (value, filter) => this.referentialRefService.suggest(value, filter),
+          attributes: ['label', 'name'],
+          ...(def.autocomplete || {})
+        };
       }
       return def;
     });
@@ -243,31 +246,59 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
 
   protected async loadEntityProperties(data: Program | null) {
 
-    return Promise.all(Object.keys(data.properties)
-      .map(key => this.propertyDefinitions.find(def => def.key === key && def.type === 'entity'))
+    await Promise.all(Object.keys(data.properties)
+      .map(key => this.propertyDefinitions.find(def => def.key === key && (def.type === 'entity' || def.type === 'entities')))
       .filter(isNotNil)
-      .map(def => {
-        let value = data.properties[def.key];
-        const filter = {...def.autocomplete.filter};
-        const joinAttribute = def.autocomplete.filter.joinAttribute || 'id';
-        if (joinAttribute === 'id') {
-          filter.id = parseInt(value);
-          value = '*';
+      .map(async (def) => {
+        if (def.type === 'entities') {
+          const values = (data.properties[def.key] || '').trim().split(/[|,]+/);
+          if (isNotEmptyArray(values)) {
+            const entities = await Promise.all(values.map(value => this.resolveEntity(def, value)));
+            data.properties[def.key] = entities;
+          }
+          else {
+            data.properties[def.key] = null;
+          }
         }
         else {
-          filter.searchAttribute = joinAttribute;
+          let value = data.properties[def.key];
+          if (isNotNilOrBlank(value)) {
+            const entity = await this.resolveEntity(def, value.trim())
+            data.properties[def.key] = entity;
+          }
+          else {
+            data.properties[def.key] = null;
+          }
         }
-        // Fetch entity, as a referential
-        return this.referentialRefService.suggest(value, filter)
-          .then(matches => {
-            data.properties[def.key] = (matches && matches.data && matches.data[0] || {id: value,  label: '??'}) as any;
-          })
-          // Cannot ch: display an error
-          .catch(err => {
-            console.error('Cannot fetch entity, from option: ' + def.key + '=' + value, err);
-            data.properties[def.key] = ({id: value,  label: '??'}) as any;
-          });
       }));
+  }
+
+  protected async resolveEntity(def: FormFieldDefinition, value: any): Promise<any> {
+    if (!def.autocomplete) {
+      console.warn('Missing autocomplete, in definition of property ' + def.key);
+      return; // Skip
+    }
+
+    const filter = Object.assign({}, def.autocomplete.filter); // Copy filter
+    const joinAttribute = def.autocomplete.filter.joinAttribute || 'id';
+    if (joinAttribute === 'id') {
+      filter.id = parseInt(value);
+      value = '*';
+    }
+    else {
+      filter.searchAttribute = joinAttribute;
+    }
+    const suggestFn: SuggestFn<any, any> = def.autocomplete.suggestFn || this.referentialRefService.suggest;
+    try {
+      // Fetch entity, as a referential
+      const res = await suggestFn(value, filter);
+      const data = Array.isArray(res) ? res : res.data;
+      return (data && data[0] || {id: value,  label: '??'}) as any;
+    }
+    catch (err) {
+      console.error('Cannot fetch entity, from option: ' + def.key + '=' + value, err);
+      return {id: value,  label: '??'};
+    }
   }
 
   protected async getJsonValueToSave(): Promise<any> {
@@ -279,8 +310,15 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     // Transform properties
     data.properties = this.propertiesForm.value;
     data.properties
-      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && def.type === 'entity'))
-      .forEach(property => property.value = (property.value as any)?.id);
+      .filter(property => this.propertyDefinitions.find(def => def.key === property.key && (def.type === 'entity' || def.type === 'entities')))
+      .forEach(property => {
+        if (Array.isArray(property.value)) {
+          property.value = property.value.map(v => v?.id).filter(isNotNil).join(',');
+        }
+        else {
+          property.value = (property.value as any)?.id
+        }
+      });
 
     // Users
     if (this.personsTable.dirty) {
