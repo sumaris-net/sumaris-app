@@ -333,7 +333,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       console.warn(`${this._logPrefix} Trying to set value, but form not ready!`);
     }
 
-    if (this.debug) console.debug(`${this._logPrefix} updateView() with:`, data);
+    if (this.debug) console.debug(`${this._logPrefix} updateView() with value:`, data);
 
     // Adapt measurement values to form (if not skip)
     if (!opts || opts.normalizeEntityToForm !== false) {

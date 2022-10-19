@@ -1,0 +1,13 @@
+:host {
+
+  .mat-checkbox-checkmark {
+    .mat-checkbox-checkmark-path {
+      stroke: black !important;
+      //stroke: var(--ion-color-secondary100-contrast, white) !important;
+    }
+    //svg path {
+    //  stroke: var(--ion-color-light-contrast, white) !important;
+    //}
+  }
+
+}

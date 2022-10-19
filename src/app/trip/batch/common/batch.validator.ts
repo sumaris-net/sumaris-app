@@ -24,6 +24,7 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import { debounceTime } from 'rxjs/operators';
 
 export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
@@ -187,10 +188,20 @@ export class BatchValidatorService<
     markForCheck?: () => void;
     debounceTime?: number;
   }): Subscription {
-    return SharedAsyncValidators.registerAsyncValidator(form,
-      BatchValidators.samplingRatioAndWeight(opts),
-      {markForCheck: opts?.markForCheck, debounceTime: opts?.debounceTime}
-    );
+    // return SharedAsyncValidators.registerAsyncValidator(form,
+    //   BatchValidators.samplingRatioAndWeight(opts),
+    //   {markForCheck: opts?.markForCheck, debounceTime: opts?.debounceTime}
+    // );
+
+    const compute = BatchValidators.samplingRatioAndWeight(opts);
+
+    return form.valueChanges
+      .pipe(debounceTime(opts?.debounceTime || 0))
+      .subscribe(value =>{
+        const errors = compute(form);
+        if (errors) form.setErrors(errors);
+        if (opts?.markForCheck) opts.markForCheck();
+      });
 
   }
 

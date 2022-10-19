@@ -1277,10 +1277,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       };
     }
 
-    if (!this.qvPmfm) {
-      const {individualCount, childrenWeight} = updateSortingBatch(parent, children);
-      parent.observedIndividualCount = individualCount || 0;
-    } else {
+    if (this.qvPmfm) {
       const qvPmfmId = this.qvPmfm.id.toString();
       let observedIndividualCount = 0;
 
@@ -1300,6 +1297,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       });
 
       parent.observedIndividualCount = observedIndividualCount;
+    }
+    else {
+      const {individualCount, childrenWeight} = updateSortingBatch(parent, children);
+      parent.observedIndividualCount = individualCount || 0;
     }
 
     return parent;
@@ -1369,7 +1370,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     // If sampling
     else if (this.showSamplingBatchColumns) {
       const samplingLabel = data.label + Batch.SAMPLING_BATCH_SUFFIX;
-      const samplingChild: Batch = new Batch();
+      const samplingChild: Batch = (data.children || []).find(b => b.label === samplingLabel) || new Batch();
       samplingChild.rankOrder = 1;
       samplingChild.label = samplingLabel;
       samplingChild.measurementValues = {};

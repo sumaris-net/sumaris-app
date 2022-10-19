@@ -5,11 +5,11 @@ import { MeasurementsValidatorService } from '../../services/validator/measureme
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
-  AppFormUtils,
+  AppFormUtils, changeCaseToUnderscore,
   EntityUtils,
   firstArrayValue,
   firstTruePromise,
-  FormArrayHelper,
+  FormArrayHelper, FormErrorTranslatorOptions, IAppForm,
   IReferentialRef,
   isNil,
   isNotNil,
@@ -32,6 +32,11 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { equals, roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+
+export interface IBatchForm<T extends Batch<any> = Batch<any>> extends IAppForm {
+
+}
 
 @Component({
   selector: 'app-batch-form',
@@ -52,6 +57,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   protected _requiredIndividualCount = false;
   protected _initialPmfms: IPmfm[];
   protected _disableByDefaultControls: AbstractControl[] = [];
+  protected _pmfmNamePipe: PmfmNamePipe;
 
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
@@ -180,6 +186,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
 
     this.childrenFormHelper = this.getChildrenFormHelper(this.form);
+    this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
 
     // for DEV only
     //this.debug = !environment.production;
@@ -235,6 +242,28 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   ngOnDestroy() {
     super.ngOnDestroy();
     this._$afterViewInit.complete();
+  }
+
+  translateControlPath(path: string): string {
+    if (path.includes('.measurementValues.')) {
+      const parts = path.split('.');
+      const pmfmId = parseInt(parts[parts.length-1]);
+      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
+      if (pmfm) {
+        return this._pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix});
+      }
+    }
+    let fieldName: string;
+    switch (path) {
+      case 'children.0.weight.value':
+        fieldName = 'SAMPLING_WEIGHT';
+        break;
+      default:
+        fieldName = path; // .indexOf('.') !== -1 ? path.substring(path.lastIndexOf('.')+1) : path;
+        break;
+    }
+    const i18nKey = (this.i18nFieldPrefix || 'TRIP.BATCH.EDIT.') + changeCaseToUnderscore(fieldName).toUpperCase();
+    return this.translate.instant(i18nKey);
   }
 
   /* -- protected method -- */
@@ -409,7 +438,8 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       data.fromObject(json);
     }
 
-    if (this.debug) console.debug(`[batch-form] ${data.label} getValue():`, data);
+    // DEBUG
+    //if (this.debug) console.debug(`[batch-form] ${data.label} getValue():`, data);
 
     return data;
   }
@@ -549,9 +579,9 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
         // If sampling weight is required, make batch weight required also
         if (this._requiredSampleWeight) {
-          this.weightForm.setValidators(
-            SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
-          );
+          // this.weightForm.setValidators(
+          //   SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
+          // );
         }
 
         // If sampling weight is required, make batch weight required also

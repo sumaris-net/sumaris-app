@@ -160,9 +160,11 @@ export class BatchModel
     return this.name;
   }
 
+
   get invalid(): boolean {
     return !this.valid;
   }
+
   get valid(): boolean {
     if (isNil(this._valid) && this.editing) {
       this._valid = this.validator.valid;
@@ -170,12 +172,23 @@ export class BatchModel
     if (!this._valid) return false;
     return !this.children || !this.children.some(c => !c.valid);
   }
+
   set valid(value: boolean) {
     this._valid = value;
   }
+
   get dirty(): boolean {
     return this.validator?.dirty || false;
   }
+
+  get touched(): boolean {
+    return this.validator.touched;
+  }
+
+  get untouched(): boolean {
+    return this.validator.untouched;
+  }
+
   get editing(): boolean {
     return this.validator?.enabled || false;
   }
@@ -222,10 +235,6 @@ export class BatchModel
         this.validator.disable({emitEvent: false, onlySelf: true});
       }
     }
-  }
-
-  get brothers(): BatchModel[] {
-    return (this.parent?.children || []).filter(b => b !== this);
   }
 
   set currentData(value: Batch) {

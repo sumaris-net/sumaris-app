@@ -8,6 +8,7 @@ import { Subscription } from 'rxjs';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { environment } from '@environments/environment';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { debounceTime } from 'rxjs/operators';
 
 export interface BatchGroupValidatorOptions extends BatchValidatorOptions {
 }
@@ -63,12 +64,22 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
       return null;
     }
 
-    return SharedAsyncValidators.registerAsyncValidator(form,
-      BatchGroupValidators.samplingRatioAndWeight({qvPmfm: this.qvPmfm, ...opts}),
-      {
-        markForCheck: opts?.markForCheck,
-        debounceTime: opts?.debounceTime,
-        debug: !environment.production
+    // return SharedAsyncValidators.registerAsyncValidator(form,
+    //   BatchGroupValidators.samplingRatioAndWeight({qvPmfm: this.qvPmfm, ...opts}),
+    //   {
+    //     markForCheck: opts?.markForCheck,
+    //     debounceTime: opts?.debounceTime,
+    //     debug: !environment.production
+    //   });
+
+    const compute = BatchValidators.samplingRatioAndWeight({qvPmfm: this.qvPmfm, ...opts});
+
+    return form.valueChanges
+      .pipe(debounceTime(opts?.debounceTime || 0))
+      .subscribe(value =>{
+        const errors = compute(form);
+        if (errors) form.setErrors(errors);
+        if (opts?.markForCheck) opts.markForCheck();
       });
   }
 

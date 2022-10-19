@@ -121,7 +121,7 @@
       <ng-container *matCellDef="let row">
         <td mat-cell [class.ion-padding-start]="mobile"
             *ngVar="row.editing && row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions) as error"
-            [title]="error">
+            [title]="error||''">
           <ion-text matBadge="!"
                     [matBadgeHidden]="!error"
                     matBadgeOverlap="false"

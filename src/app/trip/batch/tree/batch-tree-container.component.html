@@ -2,7 +2,7 @@
 <mat-toolbar [class.expanded]="filterExpansionPanel.expanded">
   <button mat-icon-button (click)="filterExpansionPanel.toggle()">
     <mat-icon slot="icon-only"
-              [matBadge]="'!'"
+              matBadge="!"
               [matBadgeHidden]="valid"
               matBadgeOverlap="false"
               matBadgeColor="accent"
@@ -10,16 +10,17 @@
               matBadgePosition="above after">account_tree</mat-icon>
   </button>
 
-  <ng-container *ngIf="filterExpansionPanel.closed && editingBatch; let node else helpMessage">
-    <ng-container *ngIf="node.parent">
-      <ion-text  [class.cdk-visually-hidden]="node.parent.hidden" color="dark">&nbsp;&gt;&nbsp;</ion-text>
+  <div *ngIf="editingBatch; let node"
+       [class.cdk-visually-hidden]="filterExpansionPanel.expanded">
+
+    <!-- Parent button -->
+    <ng-container *ngIf="node.parent && !node.parent.hidden">
+      <ion-text color="dark">&nbsp;&gt;&nbsp;</ion-text>
       <button mat-button
-              *ngIf="!node.parent.hidden"
-              [title]="node.validator|translateFormError: errorTranslatorOptions"
               [matMenuTriggerFor]="childrenMenu"
               [matMenuTriggerData]="{node: node.parent.parent, selected: node.parent}">
-        <span [matBadge]="'!'"
-              [matBadgeHidden]="node.parent.valid"
+        <span matBadge="!"
+              [matBadgeHidden]="!node.parent.invalid"
               matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"
@@ -32,13 +33,13 @@
     <!-- current batch name -->
     <button mat-button
             [matMenuTriggerFor]="childrenMenu"
-            [matMenuTriggerData]="{node: editingBatch.parent}">
-      <span [matBadge]="'!'"
-            [matBadgeHidden]="batchTree.valid"
+            [matMenuTriggerData]="{node: node.parent}">
+      <span matBadge="!"
+            [matBadgeHidden]="node.valid"
             matBadgeOverlap="false"
             matBadgeColor="accent"
             matBadgeSize="small"
-            matBadgePosition="above after">{{editingBatch.name}}</span>
+            matBadgePosition="above after">{{node.name}}</span>
     </button>
 
     <ng-container *ngIf="!node.isLeaf">
@@ -47,17 +48,17 @@
       <!-- Children menu -->
       <button mat-button
               [matMenuTriggerFor]="childrenMenu"
-              [matMenuTriggerData]="{node: editingBatch}">
+              [matMenuTriggerData]="{node: node}">
         <span>...</span>
       </button>
     </ng-container>
-  </ng-container>
-  <ng-template #helpMessage>
-    <ion-item color="transparent" class="ion-padding-start" lines="none" (click)="filterExpansionPanel.toggle()">
-      <ion-icon color="primary" name="help-circle-outline"></ion-icon>
-      <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
-    </ion-item>
-  </ng-template>
+  </div>
+
+  <!-- help message -->
+  <ion-item *ngIf="filterExpansionPanel.expanded" color="transparent" class="ion-padding-start" lines="none" (click)="filterExpansionPanel.toggle()">
+    <ion-icon color="primary" name="help-circle-outline"></ion-icon>
+    <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
+  </ion-item>
 
   <div class="toolbar-spacer"></div>
 
@@ -92,7 +93,7 @@
             [class.activated]="item.editing || item === selected"
             (click)="startEditBatch(null, item)">
       <app-icon *ngIf="item.icon" [ref]="item.icon"></app-icon>
-      <span [matBadge]="'!'"
+      <span matBadge="!"
             [matBadgeHidden]="item.valid"
             matBadgeOverlap="false"
             matBadgeColor="accent"
@@ -137,9 +138,8 @@
                         matBadgeSize="small"
                         matBadgePosition="above after">{{node.name}}</span>
                 </h2>
-                <p *ngIf="submitted && (node.validator | translateFormError: errorTranslatorOptions); let error"
-                   [class.cdk-visually-hidden]="!error">
-                  <ion-text color="danger" [innerHTML]="error"></ion-text>
+                <p [class.cdk-visually-hidden]="!node.touched || node.valid">
+                  <ion-text color="danger" [innerHTML]="node.validator | translateFormError: errorTranslatorOptions"></ion-text>
                 </p>
               </ion-label>
 

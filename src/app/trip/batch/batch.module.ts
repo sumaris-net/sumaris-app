@@ -18,11 +18,12 @@ import { AppCoreModule } from '@app/core/core.module';
 import { VesselModule } from '@app/vessel/vessel.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { MatSamplingRatioFieldModule } from '@app/shared/material/sampling-ratio/material.sampling-ratio.module';
-import { IsSamplingRatioComputedPipe, SamplingRatioFormatPipe } from '@app/trip/batch/common/batch.pipes';
+import { BatchSortingValueIconPipe, IsSamplingRatioComputedPipe, SamplingRatioFormatPipe } from '@app/trip/batch/common/batch.pipes';
 import { BatchFilterForm } from '@app/trip/batch/filter/batch-filter.form';
 import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
 import { MatTreeModule } from '@angular/material/tree';
 import { BatchesTable } from '@app/trip/batch/common/batches.table';
+import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
 
 @NgModule({
   imports: [
@@ -46,6 +47,7 @@ import { BatchesTable } from '@app/trip/batch/common/batches.table';
     // Pipes
     IsSamplingRatioComputedPipe,
     SamplingRatioFormatPipe,
+    BatchSortingValueIconPipe,
 
     // Components
     BatchTreeComponent,
@@ -60,6 +62,7 @@ import { BatchesTable } from '@app/trip/batch/common/batches.table';
     BatchForm,
     BatchModal,
     BatchFilterForm,
+    BatchFormContent,
 
     SubBatchesTable,
     SubBatchForm,
@@ -73,6 +76,7 @@ import { BatchesTable } from '@app/trip/batch/common/batches.table';
     // Pipes
     IsSamplingRatioComputedPipe,
     SamplingRatioFormatPipe,
+    BatchSortingValueIconPipe,
 
     // Components
     BatchTreeContainerComponent,
