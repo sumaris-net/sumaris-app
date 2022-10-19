@@ -591,7 +591,7 @@ export abstract class BaseMeasurementsTable<
       if (row.editing) {
         // Confirm the created row
         if (!opts || opts.confirmCreate !== false) {
-          if (row.validator?.pending) {
+          if (row.pending) {
             await AppFormUtils.waitWhilePending(row.validator);
           }
           const confirmed = this.confirmEditCreate(null, row);

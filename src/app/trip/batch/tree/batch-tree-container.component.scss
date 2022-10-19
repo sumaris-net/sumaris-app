@@ -6,6 +6,10 @@ mat-toolbar {
     /*font-family: var(--ion-font-family, inherit);*/
     font-size: inherit;
   }
+
+  .mat-button.mat-primary {
+    color: var(--ion-color-primary);
+  }
 }
 
 .form-container {

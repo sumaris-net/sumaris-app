@@ -32,12 +32,13 @@
 
     <!-- current batch name -->
     <button mat-button
+            color="primary"
             [matMenuTriggerFor]="childrenMenu"
             [matMenuTriggerData]="{node: node.parent}">
-      <span matBadge="!"
-            [matBadgeHidden]="node.valid"
+      <span [matBadge]="node.valid ? (visibleRowCount || '') : '!'"
+            [matBadgeHidden]="node.valid && !node.isLeaf"
             matBadgeOverlap="false"
-            matBadgeColor="accent"
+            [matBadgeColor]="node.valid ? 'primary' : 'accent'"
             matBadgeSize="small"
             matBadgePosition="above after">{{node.name}}</span>
     </button>
@@ -73,7 +74,11 @@
           [class.cdk-visually-hidden]="!editingBatch"
           (click)="forward($event)"
           [title]="'COMMON.BTN_NEXT'|translate">
-    <ion-icon slot="icon-only" name="chevron-forward-circle-outline"></ion-icon>
+
+    <ion-icon *ngIf="highlightForwardButton; else normalIcon" slot="icon-only" name="chevron-forward-circle" color="tertiary"></ion-icon>
+    <ng-template #normalIcon>
+      <ion-icon slot="icon-only" name="chevron-forward-circle-outline"></ion-icon>
+    </ng-template>
   </button>
 
   <!-- Show filter (hide if mobile, to keep only navigation button accessible on the right) -->
@@ -283,7 +288,7 @@
                   (ngInit)="addChildForm(batchTree)"
                   [class.cdk-visually-hidden]="!editingBatch"
                   [queryTabIndexParamName]="queryTabIndexParamName"
-                  [showBatchTables]="showBatchTables"
+                  [showBatchTables]="_showBatchTables"
                   [allowSamplingBatches]="allowSamplingBatches"
                   [allowSubBatches]="allowSubBatches"
                   [defaultHasSubBatches]="defaultHasSubBatches"

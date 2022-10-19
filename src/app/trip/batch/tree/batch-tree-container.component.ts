@@ -56,6 +56,7 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 export class BatchTreeContainerComponent extends AppEditor<Batch>
   implements IBatchTreeComponent {
 
+
   protected logPrefix = '[batch-tree-container] ';
   protected editingBatch: BatchModel;
 
@@ -74,6 +75,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   filterPanelFloating = true;
   _form: FormGroup;
   _model: BatchModel;
+  _showBatchTables: boolean;
 
   @ViewChild('batchTree') batchTree!: BatchTreeComponent;
   @ViewChild('filterExpansionPanel') filterExpansionPanel!: MatExpansionPanel;
@@ -81,7 +83,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   @Input() queryTabIndexParamName: string;
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
   @Input() showCatchForm: boolean;
-  @Input() showBatchTables: boolean;
   @Input() defaultHasSubBatches: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[];
   @Input() allowSamplingBatches: boolean;
@@ -158,6 +159,16 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return this.$physicalGearId.value;
   }
 
+  @Input() set showBatchTables(value: boolean) {
+    if (this._showBatchTables !== value) {
+      this._showBatchTables = value;
+    }
+  }
+
+  get showBatchTables(): boolean {
+    return this._showBatchTables && this.batchTree?.showBatchTables || false;
+  }
+
   get isNewData(): boolean {
     return isNil(this.data?.id);
   }
@@ -172,6 +183,19 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   get form(): FormGroup {
     return this._form;
+  }
+
+  get highlightForwardButton(): boolean {
+    return this.editingBatch?.valid && (
+      !this.batchTree?.showBatchTables
+      || this.visibleRowCount > 0
+    );
+  }
+
+  get visibleRowCount(): number {
+    return this.batchTree?.showBatchTables
+      ? this.batchTree.batchGroupsTable.visibleRowCount
+      : 0;
   }
 
   constructor(injector: Injector,
@@ -201,8 +225,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   ngOnInit() {
     super.ngOnInit();
     this.showCatchForm = toBoolean(this.showCatchForm, true);
-    this.showBatchTables = toBoolean(this.showBatchTables, true);
-    this.allowSubBatches = toBoolean(this.allowSubBatches, this.showBatchTables);
+    this._showBatchTables = toBoolean(this._showBatchTables, true);
+    this.allowSubBatches = toBoolean(this.allowSubBatches, this._showBatchTables);
 
     // Watch program, to configure tables from program properties
     this.registerSubscription(
@@ -429,7 +453,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.batchTree.i18nContext = this.i18nContext;
       this.batchTree.setSubBatchesModalOption('programLabel', this.programLabel);
       this.batchTree.showCatchForm = this.showCatchForm && source.pmfms && isNotEmptyArray(PmfmUtils.filterPmfms(source.pmfms, { excludeHidden: true }));
-      this.batchTree.showBatchTables = this.showBatchTables && source.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(source.childrenPmfms, { excludeHidden: true }));
+      this.batchTree.showBatchTables = this._showBatchTables && source.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(source.childrenPmfms, { excludeHidden: true }));
       this.batchTree.allowSubBatches = this.allowSubBatches && this.batchTree.showBatchTables;
       this.batchTree.batchGroupsTable.showTaxonGroupColumn = this.showTaxonGroup;
       this.batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;

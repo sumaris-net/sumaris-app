@@ -70,6 +70,16 @@ export class SelectivityOperationPage extends OperationPage {
     }
   }
 
+  get showFabButton(): boolean {
+    if (!this._enabled) return false;
+    switch (this._selectedTabIndex) {
+      case OperationPage.TABS.CATCH:
+        return this.batchTree.showBatchTables;
+      default:
+        return false;
+    }
+  }
+
   protected updateTablesState() {
     //if (this.showCatchTab) this.tabCount++;
     this.tabCount = 3;
