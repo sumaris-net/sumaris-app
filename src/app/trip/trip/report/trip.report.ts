@@ -7,7 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
-import { ChartUtils, ChartJsPluginTresholdLine, ChartJsPluginMedianLine, ChartJsStandardColors, ChartJsUtilsTresholdLineOptions, ChartJsUtilsMediandLineOptions } from '@app/shared/chartsjs.utils.ts';
+import { ChartJsUtils, ChartJsPluginTresholdLine, ChartJsPluginMedianLine, ChartJsStandardColors, ChartJsUtilsTresholdLineOptions, ChartJsUtilsMediandLineOptions, ChartJsUtilsBarWithAutoCategHelper } from '@app/shared/chartsjs.utils.ts';
 import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
 import pluginTrendlineLinear from 'chartjs-plugin-trendline';
@@ -151,13 +151,38 @@ export class TripReport extends AppRootDataReport<Trip> {
     const legendDefaultOption: ChartLegendOptions = {
       position: 'right',
     };
-    const charts: { [key: string]: ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions} = {};
+    const charts: { [key: string]: ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions } = {};
 
     // NOTE : Replace this by real data extractors
-    var labels = ChartUtils.computeColorsScaleFromLabels(
+    var labels = ChartJsUtils.computeColorsScaleFromLabels(
       ['Débarquement - Babord', 'Rejet - Babord', 'Débarquement - Tribord', 'Rejet - Tribord'],
       { startColor: [255, 0, 0], endColor: [0, 0, 255] },
     );
+    const chart01_data = new ChartJsUtilsBarWithAutoCategHelper(12);
+    chart01_data.addSet({
+      label: labels[0].label,
+      color: labels[0].color,
+      data: ChartJsUtils.genDummySamples(300, 9, 70),
+      stack: '0',
+    });
+    chart01_data.addSet({
+      label: labels[1].label,
+      color: labels[1].color,
+      data: ChartJsUtils.genDummySamples(300, 9, 70),
+      stack: '0',
+    });
+    chart01_data.addSet({
+      label: labels[2].label,
+      color: labels[2].color,
+      data: ChartJsUtils.genDummySamples(300, 9, 70),
+      stack: '1',
+    });
+    chart01_data.addSet({
+      label: labels[3].label,
+      color: labels[3].color,
+      data: ChartJsUtils.genDummySamples(300, 9, 70),
+      stack: '1',
+    });
     charts['01_repartLangouCapture'] = {
       type: 'bar',
       options: {
@@ -193,21 +218,30 @@ export class TripReport extends AppRootDataReport<Trip> {
             color: ChartJsStandardColors.threshold.rgba(1),
             style: 'dashed',
             width: 3,
-            value: 16,
+            value: 3,
             orientation: 'x',
           },
         },
       },
-      data: {
-        ... ChartUtils.computeDatasetForBar(labels, ChartUtils.genDummySamplesSets((labels.length), 300, 9, 70), 12, [0, 0, 1, 1]),
-      }
     }
+    chart01_data.computeDataSetsOnChart(charts['01_repartLangouCapture']);
 
     // NOTE : Replace this by real data extractors
-    var labels = ChartUtils.computeColorsScaleFromLabels(
+    var labels = ChartJsUtils.computeColorsScaleFromLabels(
       ['Selectif - Tribord', 'Selectif - Babord'],
       { mainColor: this.graphColors.discard.rgb },
     );
+    const chart02_data = new ChartJsUtilsBarWithAutoCategHelper(12);
+    chart02_data.addSet({
+      label: labels[0].label,
+      color: labels[0].color,
+      data: ChartJsUtils.genDummySamples(300, 9, 70),
+    });
+    chart02_data.addSet({
+      label: labels[1].label,
+      color: labels[1].color,
+      data: ChartJsUtils.genDummySamples(300, 9, 70),
+    });
     charts['02_repartLangouDebarq'] = {
       type: 'bar',
       options: {
@@ -245,13 +279,11 @@ export class TripReport extends AppRootDataReport<Trip> {
           },
         },
       },
-      data: {
-        ... ChartUtils.computeDatasetForBar(labels, ChartUtils.genDummySamplesSets(labels.length, 300, 9, 70), 12),
-      },
     }
+    chart02_data.computeDataSetsOnChart(charts['02_repartLangouDebarq']);
 
     // NOTE : Replace this by real data extractors
-    var labels = ChartUtils.computeColorsScaleFromLabels(
+    var labels = ChartJsUtils.computeColorsScaleFromLabels(
       ['Langoustine G', 'Langoustine P', 'Langoustine R'],
       { startColor: this.graphColors.discard.rgb, endColor: this.graphColors.landing.rgb },
     );
@@ -293,69 +325,69 @@ export class TripReport extends AppRootDataReport<Trip> {
         }
       },
       data: {
-        ... ChartUtils.computeDatasetForBubble(labels, labels.map(_ => ChartUtils.genDummySamplesSets(30, 2, 0, 90))),
+        ...ChartJsUtils.computeDatasetForBubble(labels, labels.map(_ => ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))),
       }
     }
 
     // TODO : Testing boxplot : (not working, can't load charttype boxplot)
     //charts['04_testboxplot'] = {
-      //type: 'boxplot',
-      //options: {
-        //title: {
-          //...defaultTitleOptions,
-          //text: ['Comparaison des débarquements et rejets', '(sous trait)'],
-        //},
-        //legend: {
-          //...legendDefaultOption,
-        //},
-        //scales: {
-          //xAxes: [
-            //{
-              //scaleLabel: {
-                //...scaleLableDefaultOption,
-                //labelString: 'Quantité dans le chalut sélectif (kg)',
-              //},
-            //}
-          //],
-          //yAxes: [
-            //{
-              //scaleLabel: {
-                //...scaleLableDefaultOption,
-                //labelString: 'Quantité dans le chalut standard (kg)',
-              //},
-            //}
-          //],
-        //},
-      //},
-      //data: {
-        //labels: ["January", "February", "March", "April", "May", "June", "July"],
-        //datasets: [
-          //{
-            //label: "Dataset 1",
-            //backgroundColor: "rgba(255,0,0,0.5)",
-            //borderColor: "red",
-            //borderWidth: 1,
-            ////outlierColor: "#999999",
-            ////padding: 10,
-            ////itemRadius: 0,
-            //data: [
-            //]
-          //},
-          //{
-            //label: "Dataset 2",
-            //backgroundColor: "rgba(0,0,255,0.5)",
-            //borderColor: "blue",
-            //borderWidth: 1,
-            ////outlierColor:
-            ////"#999999",
-            ////padding:
-            ////10,
-            ////itemRadius: 0,
-            //data: [
-            //]
-          //}
-        //]
-      //}
+    //type: 'boxplot',
+    //options: {
+    //title: {
+    //...defaultTitleOptions,
+    //text: ['Comparaison des débarquements et rejets', '(sous trait)'],
+    //},
+    //legend: {
+    //...legendDefaultOption,
+    //},
+    //scales: {
+    //xAxes: [
+    //{
+    //scaleLabel: {
+    //...scaleLableDefaultOption,
+    //labelString: 'Quantité dans le chalut sélectif (kg)',
+    //},
+    //}
+    //],
+    //yAxes: [
+    //{
+    //scaleLabel: {
+    //...scaleLableDefaultOption,
+    //labelString: 'Quantité dans le chalut standard (kg)',
+    //},
+    //}
+    //],
+    //},
+    //},
+    //data: {
+    //labels: ["January", "February", "March", "April", "May", "June", "July"],
+    //datasets: [
+    //{
+    //label: "Dataset 1",
+    //backgroundColor: "rgba(255,0,0,0.5)",
+    //borderColor: "red",
+    //borderWidth: 1,
+    ////outlierColor: "#999999",
+    ////padding: 10,
+    ////itemRadius: 0,
+    //data: [
+    //]
+    //},
+    //{
+    //label: "Dataset 2",
+    //backgroundColor: "rgba(0,0,255,0.5)",
+    //borderColor: "blue",
+    //borderWidth: 1,
+    ////outlierColor:
+    ////"#999999",
+    ////padding:
+    ////10,
+    ////itemRadius: 0,
+    //data: [
+    //]
+    //}
+    //]
+    //}
     //}
 
     return charts;

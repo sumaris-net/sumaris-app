@@ -1,12 +1,16 @@
-import { ChartArea, ChartData, ChartScales, PluginServiceGlobalRegistration, PluginServiceRegistrationOptions } from "chart.js";
+import { ChartArea, ChartConfiguration, ChartData, ChartScales, PluginServiceGlobalRegistration, PluginServiceRegistrationOptions } from "chart.js";
 import { Color, ColorScale, ColorScaleOptions } from '@sumaris-net/ngx-components';
-import { throws } from "assert";
 
 
 export const ChartJsStandardColors = {
   threshold: Color.get('red'),
 }
 
+export interface ChartJsUtilsAutoCategItem {
+  label: string,
+  start: number,
+  stop: number,
+}
 
 interface TresholdLineOptions {
   color?: string,
@@ -131,14 +135,14 @@ export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginS
       let median = 0;
       switch (orientation) {
         case 'x':
-          median = scales.y['height']/2;
+          median = scales.y['height'] / 2;
           res.start.x = area.left;
           res.start.y = area.top + median;
           res.stop.x = area.right;
           res.stop.y = area.top + median;
           break;
         case 'y':
-          median = scales.x['width']/2;
+          median = scales.x['width'] / 2;
           res.start.x = area.left + median;
           res.start.y = area.top;
           res.stop.x = area.left + median;
@@ -151,7 +155,6 @@ export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginS
           res.stop.y = area.top;
           break
       }
-      console.debug('MYTEST', res);
       return res;
     }
 
@@ -193,7 +196,7 @@ export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginS
 }
 
 
-export class ChartUtils {
+export class ChartJsUtils {
   static genDummySamplesSets(nbSets: number, nbSamples: number, minVal: number, maxVal: number): number[][] {
     console.debug(`[${this.constructor.name}.genDummySamplesSets]`, arguments);
     return Array(nbSets).fill([]).map(_ => {
@@ -203,18 +206,21 @@ export class ChartUtils {
     });
   }
 
-  static computeCategsFromValuesSet(nbCategs: number, values: number[]): { start: number, stop: number, label: string }[] {
-    console.debug(`[${this.constructor.name}.computeCategsFromValuesSet]`, arguments);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const diffMaxMin = (max - min);
-    const interval = Math.trunc(diffMaxMin / nbCategs);
-    return Array(nbCategs).fill(0).map((_, index) => {
-      const next = (interval * (index + 1)) + min;
+  static genDummySamples(nbSamples: number, minVal: number, maxVal: number): number[] {
+    console.debug(`[${this.constructor.name}.genDummySamples]`, arguments);
+    return Array(nbSamples).fill(0).map(_ => Math.floor(minVal + (Math.random() * (maxVal - minVal + 1))));
+  }
+
+  static computeCategsFromMinMax(min: number, max: number, nb: number): ChartJsUtilsAutoCategItem[] {
+    console.debug(`[${this.constructor.name}.computeCategsFromMinMax]`, arguments);
+    const diff = max - min;
+    const interval = Math.trunc(diff / nb);
+    return Array(nb).fill(0).map((_, i) => {
+      const next = (interval * (i + 1)) + min;
       const start = (next - interval);
       var stop = 0;
       var label = '';
-      if ((index + 1) === nbCategs) { // This is the last categorie
+      if ((i + 1) === nb) { // This is the last categorie
         stop = max + 1; // The last categorie must include the max value
         label = `>=${start} - <=${max}`;
       } else {
@@ -222,45 +228,15 @@ export class ChartUtils {
         label = `>=${start} - <${stop}`;
       }
       return ({
+        label: label,
         start: start,
         stop: stop,
-        label: label,
       });
     });
   }
 
-  static computeDatasetForBar(
-    labels: { label: string, color: Color }[],
-    samples: number[][], nbCategs: number,
-    stackMap: number[] = [],
-  ): ChartData {
-    console.debug(`[${this.constructor.name}.computeDatasetForBar]`, arguments);
-    const categs = ChartUtils.computeCategsFromValuesSet(nbCategs, samples.flat());
-    // Gen data for chart
-    const dataForChart = Array(samples.length).fill({}).map((_, index) => {
-      var res = new Map();
-      // Gen the map first with categs to get ordered map (smallest to largest)
-      categs.forEach(c => res.set(c.label, 0));
-      // Count the nb of sample that fit into a given categorie
-      samples[index].forEach(s => {
-        //NOTE : For the last categ, stop is the max + 1
-        const currentCateg = categs.find(c => (s >= c.start && s < c.stop)).label;
-        res.set(currentCateg, res.get(currentCateg) + 1);
-      });
-      return Array.from(res.values());
-    });
-    return {
-      labels: categs.map(c => c.label),
-      datasets: dataForChart.map((_d, i) => {
-        let res = {
-          label: labels[i].label,
-          data: dataForChart[i],
-          backgroundColor: labels[i].color.rgba(1),
-        }
-        if (stackMap[i]) res['stack'] = `${stackMap[i]}`;
-        return res;
-      }),
-    };
+  static computeDataSetIntoCategs(dataset: number[], categs: ChartJsUtilsAutoCategItem[]): number[] {
+    return categs.map(c => dataset.filter(d => d >= c.start && d < c.stop).length);
   }
 
   static computeDatasetForBubble(labels: { label: string, color: Color }[], samples: number[][][]): ChartData {
@@ -287,4 +263,56 @@ export class ChartUtils {
       }
     })
   }
+
+  static getMinMaxOfSetsOfDataSets(setOfDataset: number[][]): {min, max} {
+    const flatten = setOfDataset.flat();
+    return {min:Math.min(...flatten) , max: Math.max(...flatten)};
+  }
+}
+
+interface ChartJsUtilsBarWithAutoCategHelperItem {
+  label: string,
+  color: Color,
+  data: number[],
+  stack?: string,
+}
+export class ChartJsUtilsBarWithAutoCategHelper {
+
+  private _datasets: ChartJsUtilsBarWithAutoCategHelperItem[] = [];
+
+  constructor(public nbCategs: number) {
+    console.debug(`[${this.constructor.name}]`, arguments);
+  }
+
+  public addSet(set: ChartJsUtilsBarWithAutoCategHelperItem) {
+    console.debug(`[${this.constructor.name}].addSet`, arguments);
+    this._datasets.push(set);
+  }
+
+  computeDataSetsOnChart(chart: ChartConfiguration) {
+    const computedData = this.computeDatasetsIntoCategs();
+    if (chart.data === undefined) chart.data = {};
+    if (chart.data.labels === undefined) chart.data.labels = [];
+    if (chart.data.datasets === undefined) chart.data.datasets = [];
+    chart.data.labels = chart.data.labels.concat(computedData.labels);
+    chart.data.datasets = chart.data.datasets.concat(computedData.datasets);
+  }
+
+  computeDatasetsIntoCategs(): ChartData {
+    console.debug(`[${this.constructor.name}].computeDatasetsIntoCategs`, arguments);
+    const {min, max} =  ChartJsUtils.getMinMaxOfSetsOfDataSets(this._datasets.map(ds => ds.data));
+    const categs = ChartJsUtils.computeCategsFromMinMax(min, max, this.nbCategs);
+    return {
+      labels: categs.map(c => c.label),
+      datasets: this._datasets.map(ds => {
+        return {
+          label: ds.label,
+          backgroundColor: ds.color.rgba(1),
+          data: ChartJsUtils.computeDataSetIntoCategs(ds.data, categs),
+          stack: ds.stack,
+        }
+      })
+    }
+  }
+
 }
