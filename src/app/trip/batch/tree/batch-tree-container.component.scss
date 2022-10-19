@@ -9,7 +9,7 @@ mat-toolbar {
 }
 
 .form-container {
-  --table-toolbar-height: 0;
+  --table-toolbar-height: 0px;
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
   }
@@ -122,16 +122,9 @@ ion-col.selector-toggle {
   }
 }
 
-.tree-panel {
-  position: absolute;
-  z-index: 1000;
-  min-width: 250px;
-  animation: left ease-in-out 0.4s;
-
-  &.hidden {
-    transform: translateX(-100%);
-  }
+.cdk-visually-hidden{
+  visibility: hidden !important;
+  display: none !important;
 }
-
 
 
