@@ -1373,7 +1373,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       const samplingChild: Batch = (data.children || []).find(b => b.label === samplingLabel) || new Batch();
       samplingChild.rankOrder = 1;
       samplingChild.label = samplingLabel;
-      samplingChild.measurementValues = {};
+      samplingChild.measurementValues = samplingChild.measurementValues || {};
       data.children = [samplingChild];
     }
   }
