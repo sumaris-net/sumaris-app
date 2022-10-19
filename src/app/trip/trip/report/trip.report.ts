@@ -2,13 +2,13 @@ import { Component, Inject, Injector, TemplateRef, ViewChild, ViewContainerRef, 
 import { AppRootDataReport } from '@app/data/report/root-data-report.class';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripService } from '@app/trip/services/trip.service';
-import { Color, ColorScale, ColorScaleOptions, firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
+import { Color, firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
-import { ChartUtils, ChartJsPluginTresholdLine, ChartJsStandardColors, ChartJsUtilsTresholdLineOptions } from '@app/shared/chartsjs.utils.ts';
-import { Chart, ChartConfiguration, ChartData, ChartDataSets, ChartLegendOptions, ChartPoint, ChartTitleOptions, plugins, ScaleTitleOptions } from 'chart.js';
+import { ChartUtils, ChartJsPluginTresholdLine, ChartJsPluginMedianLine, ChartJsStandardColors, ChartJsUtilsTresholdLineOptions, ChartJsUtilsMediandLineOptions } from '@app/shared/chartsjs.utils.ts';
+import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
 import pluginTrendlineLinear from 'chartjs-plugin-trendline';
 
@@ -57,8 +57,8 @@ export class TripReport extends AppRootDataReport<Trip> {
     this.tripService = injector.get(TripService);
     this.operationService = injector.get(OperationService);
     Chart.plugins.register(pluginTrendlineLinear);
-    // NOTE : Begin of a tresholdLine plugin : [wip] (this is a first test)
     Chart.plugins.register(ChartJsPluginTresholdLine);
+    Chart.plugins.register(ChartJsPluginMedianLine);
   }
 
   protected async loadData(id: number): Promise<Trip> {
@@ -151,7 +151,7 @@ export class TripReport extends AppRootDataReport<Trip> {
     const legendDefaultOption: ChartLegendOptions = {
       position: 'right',
     };
-    const charts: { [key: string]: ChartConfiguration & ChartJsUtilsTresholdLineOptions } = {};
+    const charts: { [key: string]: ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions} = {};
 
     // NOTE : Replace this by real data extractors
     var labels = ChartUtils.computeColorsScaleFromLabels(
@@ -194,7 +194,7 @@ export class TripReport extends AppRootDataReport<Trip> {
             style: 'dashed',
             width: 3,
             value: 16,
-            orientation: 'y',
+            orientation: 'x',
           },
         },
       },
@@ -283,12 +283,19 @@ export class TripReport extends AppRootDataReport<Trip> {
             }
           ],
         },
+        plugins: {
+          medianLine: {
+            color: ChartJsStandardColors.threshold.rgba(1),
+            orientation: 'b',
+            style: 'solid',
+            width: 3,
+          },
+        }
       },
       data: {
         ... ChartUtils.computeDatasetForBubble(labels, labels.map(_ => ChartUtils.genDummySamplesSets(30, 2, 0, 90))),
       }
     }
-    this.computeTrendLine(charts['03_comparDebarqRejet']);
 
     // TODO : Testing boxplot : (not working, can't load charttype boxplot)
     //charts['04_testboxplot'] = {
@@ -365,22 +372,5 @@ export class TripReport extends AppRootDataReport<Trip> {
     return new Color(colorHexaToRgbArr(colorHexa), 1, name);
   }
 
-  protected computeTrendLine(chart: ChartConfiguration) {
-    // TODO disable show label on hover
-    chart.data.datasets.push({
-      label: 'Median',
-      fill: false,
-      hideInLegendAndTooltip: true,
-      pointRadius: 0,
-      pointHitRadius: 0,
-      backgroundColor: this.graphColors.median.rgba(1),
-      data: chart.data.datasets.map((d) => d.data).flat(),
-      trendlineLinear: {
-        style: this.graphColors.median.rgba(1),
-        lineStyle: "line",
-        width: 2,
-      }
-    } as any);
-  }
 
 }
