@@ -316,7 +316,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
         data: row.currentData,
         packetSalePmfms: this.packetSalePmfms,
         disabled: this.disabled,
-        mobile: this.disabled
+        mobile: this.mobile
       },
       backdropDismiss: false,
       cssClass: 'modal-large'

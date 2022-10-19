@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import { Alerts, isNil, LocalSettingsService, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { Alerts, AppFormUtils, isNil, LocalSettingsService, sleep, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
 import {AlertController, ModalController} from '@ionic/angular';
 import {BehaviorSubject, Subscription} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
@@ -9,6 +9,7 @@ import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {IWithProductsEntity, Product} from '@app/trip/services/model/product.model';
 import {ProductForm} from '@app/trip/product/product.form';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
+import { filter } from 'rxjs/operators';
 
 export interface IProductModalOptions extends IDataEntityModalOptions<Product> {
   mobile: boolean;
@@ -94,34 +95,52 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
   }
 
   ngOnInit() {
+    this.disabled = toBoolean(this.disabled, false);
 
     this.isNew = toBoolean(this.isNew, !this.data);
     this.data = this.data || new Product();
 
-    this.form.setValue(this.data);
-
-    this.disabled = toBoolean(this.disabled, false);
-
-    if (this.disabled) {
-      this.disable();
-    }
-    else {
-      this.enable();
-    }
-
-    // Compute the title
-    this.computeTitle();
-
-    if (!this.isNew) {
-      // Update title each time value changes
-      this.form.valueChanges.subscribe(product => this.computeTitle(product));
-    }
-
-    this.form.markAsReady();
+    this.load();
   }
 
   ngOnDestroy(): void {
     this._subscription.unsubscribe();
+  }
+
+  async load() {
+
+    try {
+
+      this.form.markAsReady();
+      await this.form.setValue(this.data);
+
+      if (this.disabled) {
+        this.disable();
+      }
+      else {
+        this.enable();
+      }
+
+      // Compute the title
+      await this.computeTitle();
+
+      if (!this.isNew) {
+        // Update title each time value changes
+        this.form.valueChanges.subscribe(product => this.computeTitle(product));
+      }
+
+    }
+    catch (err) {
+      const error = (err?.message || err);
+      this.form.error = error
+      console.error(error);
+    }
+    finally {
+      // Workaround to force form to be untouched, even if 'requiredIf' validator force controls as touched
+      await sleep(500);
+      this.form.markAsUntouched();
+      this.form.markAsPristine();
+    }
   }
 
   async cancel(event: UIEvent) {

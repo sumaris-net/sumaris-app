@@ -1,7 +1,7 @@
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
-import { AppFormUtils } from '@sumaris-net/ngx-components';
+import { AppFormUtils, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { Packet } from '../services/model/packet.model';
 import { PacketSaleForm } from './packet-sale.form';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -44,10 +44,11 @@ export class PacketSaleModal implements OnInit, OnDestroy, IPacketSaleModalOptio
   }
 
   constructor(
+    injector: Injector,
     protected viewCtrl: ModalController,
     protected translate: TranslateService
   ) {
-
+    this.mobile = injector.get(LocalSettingsService).mobile;
   }
 
   ngOnInit(): void {

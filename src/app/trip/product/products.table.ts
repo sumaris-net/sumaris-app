@@ -283,7 +283,7 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
         data: product,
-        parents: this.$parents && this.$parents.getValue() || null,
+        parents: this.$parents.value || null,
         parentAttributes: this.parentAttributes,
         disabled: this.disabled,
         mobile: this.mobile,

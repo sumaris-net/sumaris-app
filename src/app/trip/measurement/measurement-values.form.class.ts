@@ -348,7 +348,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     this.data = data;
 
-    super.setValue(data, opts);
+    await super.setValue(data, opts);
 
     if (!opts || opts.emitEvent !== false) {
       this.form.markAsPristine();

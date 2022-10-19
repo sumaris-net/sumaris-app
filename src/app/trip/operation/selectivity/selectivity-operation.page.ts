@@ -28,9 +28,7 @@ import { Program } from '@app/referential/services/model/program.model';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-
-export class SelectivityOperationPage
-  extends OperationPage {
+export class SelectivityOperationPage extends OperationPage {
 
   constructor(injector: Injector,
               dataService: OperationService) {

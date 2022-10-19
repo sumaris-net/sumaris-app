@@ -4,7 +4,8 @@ import { FormGroup, Validators } from '@angular/forms';
 import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
-  ColumnItem, firstArrayValue,
+  ColumnItem,
+  firstArrayValue,
   FormFieldDefinition,
   FormFieldType,
   InMemoryEntitiesService,
@@ -43,7 +44,6 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
 import { hasFlag } from '@app/shared/flags.utils';
-import { BatchModal, IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -213,6 +213,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   @Input() subBatchesModalOptions: Partial<ISubBatchesModalOptions>;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() enableWeightLengthConversion: boolean;
+  @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
 
   @Input() set showSamplingBatchColumns(value: boolean) {
     if (this._showSamplingBatchColumns !== value) {
@@ -1094,35 +1095,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
     this.markAsLoading();
 
-/*
-    const modal = await this.modalCtrl.create({
-      component: BatchModal,
-      componentProps: <IBatchModalOptions>{
-        acquisitionLevel: this.acquisitionLevel,
-        pmfms: this._initialPmfms,
-        qvPmfm: this.qvPmfm,
-        disabled: this.disabled,
-        data: initialData,
-        isNew,
-        showTaxonGroup: this.showTaxonGroupColumn,
-        showTaxonName: this.showTaxonNameColumn,
-        availableTaxonGroups: this.availableTaxonGroups,
-        taxonGroupsNoWeight: this.taxonGroupsNoWeight,
-        showSamplingBatch: this.showSamplingBatchColumns,
-        allowSubBatches: this.allowSubBatches,
-        defaultHasSubBatches: this.defaultHasSubBatches,
-        samplingRatioFormat: this.samplingRatioFormat,
-        mobile: this.mobile,
-        openSubBatchesModal: (batchGroup) => this.openSubBatchesModalFromParentModal(batchGroup),
-        onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup as BatchGroup),
-        // Override using given options
-        ...this.modalOptions
-      },
-      cssClass: 'modal-large',
-      backdropDismiss: false,
-      keyboardClose: true
-    });*/
-
     const modal = await this.modalCtrl.create({
       component: BatchGroupModal,
       componentProps: <IBatchGroupModalOptions>{
@@ -1311,8 +1283,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
     await super.onNewEntity(data);
 
-    // generate label
-    data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
+    // generate label (override default)
+    data.label = this.labelPrefix
+      ? `${this.labelPrefix}#${data.rankOrder}`
+      : `${this.acquisitionLevel}#${data.rankOrder}`;
 
     // Default taxon name
     if (isNotNil(this.defaultTaxonName)) {

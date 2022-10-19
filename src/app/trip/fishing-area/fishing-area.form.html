@@ -29,6 +29,7 @@
         <mat-autocomplete-field formControlName="distanceToCoastGradient"
                                 [placeholder]="'FISHING_AREA.DISTANCE_TO_COAST_GRADIENT'|translate"
                                 [config]="autocompleteFields.distanceToCoastGradient"
+                                [readonly]="hasNoLocation$|async"
                                 >
         </mat-autocomplete-field>
       </ion-col>
@@ -40,7 +41,7 @@
         <mat-autocomplete-field formControlName="depthGradient"
                                 [placeholder]="'FISHING_AREA.DEPTH_GRADIENT'|translate"
                                 [config]="autocompleteFields.depthGradient"
-                                >
+                                [readonly]="hasNoLocation$|async">
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>
@@ -51,7 +52,7 @@
         <mat-autocomplete-field formControlName="nearbySpecificArea"
                                 [placeholder]="'FISHING_AREA.NEARBY_SPECIFIC_AREA'|translate"
                                 [config]="autocompleteFields.nearbySpecificArea"
-                                >
+                                [readonly]="hasNoLocation$|async">
         </mat-autocomplete-field>
       </ion-col>
     </ion-row>

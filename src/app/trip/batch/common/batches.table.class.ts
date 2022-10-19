@@ -313,7 +313,7 @@ export abstract class AbstractBatchesTable<
     await super.onNewEntity(data);
 
     // generate label
-    data.label = this.acquisitionLevel + '#' + data.rankOrder;
+    data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
 
     // Default values
     if (isNotNil(this.defaultTaxonName)) {

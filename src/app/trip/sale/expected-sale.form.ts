@@ -86,7 +86,7 @@ export class ExpectedSaleForm extends AppFormProvider<MeasurementsForm> implemen
         'individualCount'
       );
       const target = {...product, ...saleProduct};
-      target.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(target.measurementValues, pmfms);
+      target.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(target.measurementValues || {}, pmfms);
 
       // add measurements for each calculated or non calculated values
       MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE, saleProduct.averageWeightPrice);
