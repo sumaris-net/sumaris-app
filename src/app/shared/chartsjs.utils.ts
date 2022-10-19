@@ -1,4 +1,4 @@
-import { ChartArea, ChartConfiguration, ChartData, ChartScales, PluginServiceGlobalRegistration, PluginServiceRegistrationOptions } from "chart.js";
+import { ChartArea, ChartConfiguration, ChartData, ChartDataSets, ChartPoint, ChartScales, PluginServiceGlobalRegistration, PluginServiceRegistrationOptions } from "chart.js";
 import { Color, ColorScale, ColorScaleOptions } from '@sumaris-net/ngx-components';
 
 
@@ -8,7 +8,7 @@ export interface ChartJsUtilsAutoCategItem {
   stop: number,
 }
 
-interface ChartJsUtilsBarWithAutoCategHelperItem {
+interface ChartJsUtilsItemHelper {
   label: string,
   color: Color,
   data: number[],
@@ -256,6 +256,11 @@ export class ChartJsUtils {
     };
   }
 
+  static computeSamplesToChartPoint(samples: number[][]): ChartPoint[] {
+    const radius = 6;
+    return samples.map(s => {return {x: s[0], y: s[1], r: radius}});
+  }
+
   static computeColorsScaleFromLabels(labels: string[], options?: ColorScaleOptions): { label: string, color: Color }[] {
     const count = labels.length;
     const colorScale = ColorScale.custom(count, { min: 1, max: labels.length, ...options });
@@ -272,6 +277,13 @@ export class ChartJsUtils {
     return { min: Math.min(...flatten), max: Math.max(...flatten) };
   }
 
+  static pushDataSetOnChart(chart: ChartConfiguration, dataset: ChartDataSets) {
+    console.debug(`[${this.constructor.name}.pushDataSetOnChart]`, arguments);
+    if (chart.data === undefined) chart.data = {};
+    if (chart.data.datasets === undefined) chart.data.datasets = [];
+    chart.data.datasets.push(dataset);
+  }
+
   static getComplementaryColor(color: Color): Color {
     return new Color(color.rgb.map(c => 255 - c));
   }
@@ -285,11 +297,6 @@ export class ChartJsUtils {
 }
 
 export class ChartJsUtilsColor {
-  readonly standard = {
-    threshold: Color.get('red'),
-    discard: Color.get('red'),
-    landing: Color.get('blue'),
-  }
 
   static getComplementaryColor(color: Color): Color {
     return new Color(color.rgb.map(c => 255 - c));
@@ -303,15 +310,16 @@ export class ChartJsUtilsColor {
 
 }
 
+
 export class ChartJsUtilsBarWithAutoCategHelper {
 
-  private _datasets: ChartJsUtilsBarWithAutoCategHelperItem[] = [];
+  private _datasets: ChartJsUtilsItemHelper[] = [];
 
   constructor(public nbCategs: number) {
     console.debug(`[${this.constructor.name}]`, arguments);
   }
 
-  public addSet(set: ChartJsUtilsBarWithAutoCategHelperItem) {
+  public addSet(set: ChartJsUtilsItemHelper) {
     console.debug(`[${this.constructor.name}].addSet`, arguments);
     this._datasets.push(set);
   }

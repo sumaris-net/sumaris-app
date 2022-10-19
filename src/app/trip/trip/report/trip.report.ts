@@ -306,52 +306,59 @@ export class TripReport extends AppRootDataReport<Trip> {
     }
     chart03_data.computeDataSetsOnChart(charts['03']);
 
-    // NOTE : Replace this by real data extractors
-    //var labels = ChartJsUtils.computeColorsScaleFromLabels(
-      //['Langoustine G', 'Langoustine P', 'Langoustine R'],
-      //{ startColor: this.graphColors.discard.rgb, endColor: this.graphColors.landing.rgb },
-    //);
-    //charts['03_comparDebarqRejet'] = {
-      //type: 'bubble',
-      //options: {
-        //title: {
-          //...defaultTitleOptions,
-          //text: ['Comparaison des débarquements et rejets', '(sous trait)'],
-        //},
-        //legend: {
-          //...legendDefaultOption,
-        //},
-        //scales: {
-          //xAxes: [
-            //{
-              //scaleLabel: {
-                //...scaleLableDefaultOption,
-                //labelString: 'Quantité dans le chalut sélectif (kg)',
-              //},
-            //}
-          //],
-          //yAxes: [
-            //{
-              //scaleLabel: {
-                //...scaleLableDefaultOption,
-                //labelString: 'Quantité dans le chalut standard (kg)',
-              //},
-            //}
-          //],
-        //},
-        //plugins: {
-          //medianLine: {
-            //color: Color.get('red').rgba(1),
-            //orientation: 'b',
-            //style: 'solid',
-            //width: 3,
-          //},
-        //}
-      //},
-      //data: {
-        //...ChartJsUtils.computeDatasetForBubble(labels, labels.map(_ => ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))),
-      //}
-    //}
+    charts['04'] = {
+      type: 'bubble',
+      options: {
+        title: {
+          ...defaultTitleOptions,
+          text: ['Comparaison des débarquements et rejets', '(sous trait)'],
+        },
+        legend: {
+          ...legendDefaultOption,
+        },
+        scales: {
+          xAxes: [
+            {
+              scaleLabel: {
+                ...scaleLableDefaultOption,
+                labelString: 'Quantité dans le chalut sélectif (kg)',
+              },
+            }
+          ],
+          yAxes: [
+            {
+              scaleLabel: {
+                ...scaleLableDefaultOption,
+                labelString: 'Quantité dans le chalut standard (kg)',
+              },
+            }
+          ],
+        },
+        plugins: {
+          medianLine: {
+            color: Color.get('red').rgba(1),
+            orientation: 'b',
+            style: 'solid',
+            width: 3,
+          },
+        }
+      },
+    }
+    ChartJsUtils.pushDataSetOnChart(charts['04'], {
+      label: 'Langoustine G',
+      backgroundColor: colorLanding[0].rgba(1),
+      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90)),
+    })
+    ChartJsUtils.pushDataSetOnChart(charts['04'], {
+      label: 'Langoustine D',
+      backgroundColor: colorLanding[1].rgba(1),
+      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90)),
+    })
+    ChartJsUtils.pushDataSetOnChart(charts['04'], {
+      label: 'Langoustine R',
+      backgroundColor: colorDiscard[0].rgba(1),
+      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90)),
+    })
 
     // TODO : Testing boxplot : (not working, can't load charttype boxplot)
     //charts['04_testboxplot'] = {
