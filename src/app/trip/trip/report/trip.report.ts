@@ -136,31 +136,6 @@ export class TripReport extends AppRootDataReport<Trip> {
     const colorLanding = ChartJsUtilsColor.getDerivativeColor(Color.get('blue'), 2)
     const colorDiscard = ChartJsUtilsColor.getDerivativeColor(Color.get('red'), 2);
 
-    const chart01_data = new ChartJsUtilsBarWithAutoCategHelper(12);
-    chart01_data.addSet({
-      label: 'Débarquement - Babord',
-      color: colorLanding[0],
-      data: ChartJsUtils.genDummySamples(300, 9, 70),
-      stack: '0',
-    });
-    chart01_data.addSet({
-      label: 'Rejet - Babord',
-      color: colorDiscard[0],
-      data: ChartJsUtils.genDummySamples(300, 9, 70),
-      stack: '0',
-    });
-    chart01_data.addSet({
-      label: 'Débarquement - Tribord',
-      color: colorLanding[1],
-      data: ChartJsUtils.genDummySamples(300, 9, 70),
-      stack: '1',
-    });
-    chart01_data.addSet({
-      label: 'Rejet - Tribord',
-      color: colorDiscard[1],
-      data: ChartJsUtils.genDummySamples(300, 9, 70),
-      stack: '1',
-    });
     charts['01'] = {
       type: 'bar',
       options: {
@@ -202,19 +177,33 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
       },
     }
-    chart01_data.computeDataSetsOnChart(charts['01']);
+    const chart01_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
+    ChartJsUtils.pushLabels(charts['01'], chart01_label);
+    ChartJsUtils.pushDataSetOnChart(charts['01'], {
+      label: 'Débarquement - Babord',
+      backgroundColor: colorLanding[0].rgba(1),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 20, 3, 2),
+      stack: '0',
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['01'], {
+      label: 'Rejet - Babord',
+      backgroundColor: colorDiscard[0].rgba(1),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 20, 3, 1/2),
+      stack: '0',
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['01'], {
+      label: 'Débarquement - Tribord',
+      backgroundColor: colorLanding[1].rgba(1),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 80, 20, 3, 2),
+      stack: '1',
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['01'], {
+      label: 'Rejet - Tribord',
+      backgroundColor: colorDiscard[1].rgba(1),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 80, 20, 3, 1/2),
+      stack: '1',
+    });
 
-    const chart02_data = new ChartJsUtilsBarWithAutoCategHelper(12);
-    chart02_data.addSet({
-      label: 'Selectif - Tribord',
-      color: colorLanding[0],
-      data: ChartJsUtils.genDummySamples(300, 9, 70),
-    });
-    chart02_data.addSet({
-      label: 'Selectif - Babord',
-      color: colorLanding[1],
-      data: ChartJsUtils.genDummySamples(300, 9, 70),
-    });
     charts['02'] = {
       type: 'bar',
       options: {
@@ -253,19 +242,19 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
       },
     }
-    chart02_data.computeDataSetsOnChart(charts['02']);
-
-    const chart03_data = new ChartJsUtilsBarWithAutoCategHelper(12);
-    chart03_data.addSet({
+    const chart02_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
+    ChartJsUtils.pushLabels(charts['02'], chart02_label);
+    ChartJsUtils.pushDataSetOnChart(charts['02'], {
       label: 'Selectif - Tribord',
-      color: colorDiscard[0],
-      data: ChartJsUtils.genDummySamples(300, 9, 70),
+      backgroundColor: colorLanding[0].rgba(1),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 70, 20, 4, 1.2),
     });
-    chart03_data.addSet({
+    ChartJsUtils.pushDataSetOnChart(charts['02'], {
       label: 'Selectif - Babord',
-      color: colorDiscard[1],
-      data: ChartJsUtils.genDummySamples(300, 9, 70),
+      backgroundColor: colorLanding[1].rgba(1),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 60, 20, 4, 2),
     });
+
     charts['03'] = {
       type: 'bar',
       options: {
@@ -304,7 +293,18 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
       },
     }
-    chart03_data.computeDataSetsOnChart(charts['03']);
+    const chart03_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
+    ChartJsUtils.pushLabels(charts['03'], chart03_label);
+    ChartJsUtils.pushDataSetOnChart(charts['03'], {
+      label: 'Selectif - Tribord',
+      backgroundColor: colorDiscard[0].rgba(1),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 30, 4, 1.2),
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['03'], {
+      label: 'Selectif - Babord',
+      backgroundColor: colorDiscard[1].rgba(1),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 70, 30, 4, 1.2),
+    });
 
     charts['04'] = {
       type: 'bubble',

@@ -214,6 +214,27 @@ export class ChartJsUtils {
     return Array(nbSamples).fill(0).map(_ => Math.floor(minVal + (Math.random() * (maxVal - minVal + 1))));
   }
 
+  static genDummySampleFromLabels(labels: string[], min: number, max: number) {
+    return labels.map((l,i) => Math.floor(min + (Math.random() * (max - min + 1))));
+  }
+
+  static genDummySampleFromLabelsWithWeight(
+    labels: string[],
+    max: number,
+    variation: number,
+    treshold: number,
+    tresholdWeight: number
+  ) {
+    return labels.map((l,i) => {
+      const factor = i < treshold
+        ? (i+1) * (1/treshold) * tresholdWeight
+        : (((labels.length-treshold)-(i-treshold)) * (1/(labels.length-treshold))) / tresholdWeight;
+      const varFactor = (variation/100) * max;
+      const res = (factor*max) + ((Math.random() * varFactor) - (varFactor/2))
+      return res > 0 ? res : 0;
+    });
+  }
+
   static computeCategsFromMinMax(min: number, max: number, nb: number): ChartJsUtilsAutoCategItem[] {
     console.debug(`[${this.constructor.name}.computeCategsFromMinMax]`, arguments);
     const diff = max - min;
@@ -242,20 +263,6 @@ export class ChartJsUtils {
     return categs.map(c => dataset.filter(d => d >= c.start && d < c.stop).length);
   }
 
-  static computeDatasetForBubble(labels: { label: string, color: Color }[], samples: number[][][]): ChartData {
-    console.debug(`[${this.constructor.name}.computeDatasetForBubble]`, arguments);
-    const bubuleRadius = 6;
-    return {
-      datasets: labels.map((l, i) => {
-        return {
-          label: l.label,
-          backgroundColor: l.color.rgba(1),
-          data: samples[i].map(s => { return { x: s[0], y: s[1], r: bubuleRadius } }),
-        };
-      })
-    };
-  }
-
   static computeSamplesToChartPoint(samples: number[][]): ChartPoint[] {
     const radius = 6;
     return samples.map(s => {return {x: s[0], y: s[1], r: radius}});
@@ -277,21 +284,18 @@ export class ChartJsUtils {
     return { min: Math.min(...flatten), max: Math.max(...flatten) };
   }
 
+  static pushLabels(chart: ChartConfiguration, labels: string[]) {
+    console.debug(`[${this.constructor.name}.pushDataSetOnChart]`, arguments);
+    if (chart.data === undefined) chart.data = {};
+    if (chart.data.labels === undefined) chart.data.labels = [];
+    chart.data.labels.push(...labels);
+  }
+
   static pushDataSetOnChart(chart: ChartConfiguration, dataset: ChartDataSets) {
     console.debug(`[${this.constructor.name}.pushDataSetOnChart]`, arguments);
     if (chart.data === undefined) chart.data = {};
     if (chart.data.datasets === undefined) chart.data.datasets = [];
     chart.data.datasets.push(dataset);
-  }
-
-  static getComplementaryColor(color: Color): Color {
-    return new Color(color.rgb.map(c => 255 - c));
-  }
-
-  static getDerivativeColor(color: Color, nb: number): Color[] {
-    const scale = ColorScale.custom(nb, { mainColor: color.rgb });
-    var res = Array(nb).fill(0);
-    return res.map((_, i) => scale.getLegendAtIndex(i).color);
   }
 
 }
