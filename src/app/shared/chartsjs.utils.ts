@@ -2,14 +2,17 @@ import { ChartArea, ChartConfiguration, ChartData, ChartScales, PluginServiceGlo
 import { Color, ColorScale, ColorScaleOptions } from '@sumaris-net/ngx-components';
 
 
-export const ChartJsStandardColors = {
-  threshold: Color.get('red'),
-}
-
 export interface ChartJsUtilsAutoCategItem {
   label: string,
   start: number,
   stop: number,
+}
+
+interface ChartJsUtilsBarWithAutoCategHelperItem {
+  label: string,
+  color: Color,
+  data: number[],
+  stack?: string,
 }
 
 interface TresholdLineOptions {
@@ -264,18 +267,42 @@ export class ChartJsUtils {
     })
   }
 
-  static getMinMaxOfSetsOfDataSets(setOfDataset: number[][]): {min, max} {
+  static getMinMaxOfSetsOfDataSets(setOfDataset: number[][]): { min, max } {
     const flatten = setOfDataset.flat();
-    return {min:Math.min(...flatten) , max: Math.max(...flatten)};
+    return { min: Math.min(...flatten), max: Math.max(...flatten) };
   }
+
+  static getComplementaryColor(color: Color): Color {
+    return new Color(color.rgb.map(c => 255 - c));
+  }
+
+  static getDerivativeColor(color: Color, nb: number): Color[] {
+    const scale = ColorScale.custom(nb, { mainColor: color.rgb });
+    var res = Array(nb).fill(0);
+    return res.map((_, i) => scale.getLegendAtIndex(i).color);
+  }
+
 }
 
-interface ChartJsUtilsBarWithAutoCategHelperItem {
-  label: string,
-  color: Color,
-  data: number[],
-  stack?: string,
+export class ChartJsUtilsColor {
+  readonly standard = {
+    threshold: Color.get('red'),
+    discard: Color.get('red'),
+    landing: Color.get('blue'),
+  }
+
+  static getComplementaryColor(color: Color): Color {
+    return new Color(color.rgb.map(c => 255 - c));
+  }
+
+  static getDerivativeColor(color: Color, nb: number): Color[] {
+    const scale = ColorScale.custom(nb, { mainColor: color.rgb });
+    var res = Array(nb).fill(0);
+    return res.map((_, i) => scale.getLegendAtIndex(i).color);
+  }
+
 }
+
 export class ChartJsUtilsBarWithAutoCategHelper {
 
   private _datasets: ChartJsUtilsBarWithAutoCategHelperItem[] = [];
@@ -300,7 +327,7 @@ export class ChartJsUtilsBarWithAutoCategHelper {
 
   computeDatasetsIntoCategs(): ChartData {
     console.debug(`[${this.constructor.name}].computeDatasetsIntoCategs`, arguments);
-    const {min, max} =  ChartJsUtils.getMinMaxOfSetsOfDataSets(this._datasets.map(ds => ds.data));
+    const { min, max } = ChartJsUtils.getMinMaxOfSetsOfDataSets(this._datasets.map(ds => ds.data));
     const categs = ChartJsUtils.computeCategsFromMinMax(min, max, this.nbCategs);
     return {
       labels: categs.map(c => c.label),

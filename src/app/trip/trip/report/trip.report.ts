@@ -7,7 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
-import { ChartJsUtils, ChartJsPluginTresholdLine, ChartJsPluginMedianLine, ChartJsStandardColors, ChartJsUtilsTresholdLineOptions, ChartJsUtilsMediandLineOptions, ChartJsUtilsBarWithAutoCategHelper } from '@app/shared/chartsjs.utils.ts';
+import { ChartJsUtils, ChartJsPluginTresholdLine, ChartJsPluginMedianLine, ChartJsUtilsTresholdLineOptions, ChartJsUtilsMediandLineOptions, ChartJsUtilsBarWithAutoCategHelper, ChartJsUtilsColor } from '@app/shared/chartsjs.utils.ts';
 import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
 import pluginTrendlineLinear from 'chartjs-plugin-trendline';
@@ -24,26 +24,6 @@ import "@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js";
 export class TripReport extends AppRootDataReport<Trip> {
 
   // Landing categories fucntion color variance
-  private graphColors = {
-    title: this.getColorFromStyle('secondary'),
-    capture: {
-      landing: Color.get('primary'),
-      discard: Color.get('secondary'),
-    },
-    grear: {
-      selective: new Color([127, 127, 0]),
-      standard: new Color([0, 127, 127]),
-    },
-    landing: Color.get('primary'),
-    discard: this.getColorFromStyle('accent'),
-    //landingCategories: {}, // scale landing
-    //disardCategories: {}, // scale discard
-    gearPositions: {
-      babord: this.getColorFromStyle('warning'),
-      tribord: this.getColorFromStyle('success'),
-    },
-    median: Color.get('red'),
-  }
 
   private tripService: TripService;
   private operationService: OperationService;
@@ -139,7 +119,7 @@ export class TripReport extends AppRootDataReport<Trip> {
 
   protected computeDummyCharts(): { [key: string]: ChartConfiguration } {
     const defaultTitleOptions: ChartTitleOptions = {
-      fontColor: this.graphColors.title.rgba(),
+      fontColor: Color.get('secondary').rgba(1),
       fontSize: 42,
       display: true,
     };
@@ -153,37 +133,35 @@ export class TripReport extends AppRootDataReport<Trip> {
     };
     const charts: { [key: string]: ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions } = {};
 
-    // NOTE : Replace this by real data extractors
-    var labels = ChartJsUtils.computeColorsScaleFromLabels(
-      ['Débarquement - Babord', 'Rejet - Babord', 'Débarquement - Tribord', 'Rejet - Tribord'],
-      { startColor: [255, 0, 0], endColor: [0, 0, 255] },
-    );
+    const colorLanding = ChartJsUtilsColor.getDerivativeColor(Color.get('blue'), 2)
+    const colorDiscard = ChartJsUtilsColor.getDerivativeColor(Color.get('red'), 2);
+
     const chart01_data = new ChartJsUtilsBarWithAutoCategHelper(12);
     chart01_data.addSet({
-      label: labels[0].label,
-      color: labels[0].color,
+      label: 'Débarquement - Babord',
+      color: colorLanding[0],
       data: ChartJsUtils.genDummySamples(300, 9, 70),
       stack: '0',
     });
     chart01_data.addSet({
-      label: labels[1].label,
-      color: labels[1].color,
+      label: 'Rejet - Babord',
+      color: colorDiscard[0],
       data: ChartJsUtils.genDummySamples(300, 9, 70),
       stack: '0',
     });
     chart01_data.addSet({
-      label: labels[2].label,
-      color: labels[2].color,
+      label: 'Débarquement - Tribord',
+      color: colorLanding[1],
       data: ChartJsUtils.genDummySamples(300, 9, 70),
       stack: '1',
     });
     chart01_data.addSet({
-      label: labels[3].label,
-      color: labels[3].color,
+      label: 'Rejet - Tribord',
+      color: colorDiscard[1],
       data: ChartJsUtils.genDummySamples(300, 9, 70),
       stack: '1',
     });
-    charts['01_repartLangouCapture'] = {
+    charts['01'] = {
       type: 'bar',
       options: {
         title: {
@@ -215,7 +193,7 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
         plugins: {
           tresholdLine: { // NOTE : custom plugin
-            color: ChartJsStandardColors.threshold.rgba(1),
+            color: Color.get('red').rgba(1),
             style: 'dashed',
             width: 3,
             value: 3,
@@ -224,25 +202,20 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
       },
     }
-    chart01_data.computeDataSetsOnChart(charts['01_repartLangouCapture']);
+    chart01_data.computeDataSetsOnChart(charts['01']);
 
-    // NOTE : Replace this by real data extractors
-    var labels = ChartJsUtils.computeColorsScaleFromLabels(
-      ['Selectif - Tribord', 'Selectif - Babord'],
-      { mainColor: this.graphColors.discard.rgb },
-    );
     const chart02_data = new ChartJsUtilsBarWithAutoCategHelper(12);
     chart02_data.addSet({
-      label: labels[0].label,
-      color: labels[0].color,
+      label: 'Selectif - Tribord',
+      color: colorLanding[0],
       data: ChartJsUtils.genDummySamples(300, 9, 70),
     });
     chart02_data.addSet({
-      label: labels[1].label,
-      color: labels[1].color,
+      label: 'Selectif - Babord',
+      color: colorLanding[1],
       data: ChartJsUtils.genDummySamples(300, 9, 70),
     });
-    charts['02_repartLangouDebarq'] = {
+    charts['02'] = {
       type: 'bar',
       options: {
         title: {
@@ -272,7 +245,7 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
         plugins: {
           tresholdLine: { // NOTE : Custom plugin
-            color: this.graphColors.median.rgba(1),
+            color: Color.get('red').rgba(1),
             style: 'dashed',
             width: 3,
             value: 4,
@@ -280,29 +253,32 @@ export class TripReport extends AppRootDataReport<Trip> {
         },
       },
     }
-    chart02_data.computeDataSetsOnChart(charts['02_repartLangouDebarq']);
+    chart02_data.computeDataSetsOnChart(charts['02']);
 
-    // NOTE : Replace this by real data extractors
-    var labels = ChartJsUtils.computeColorsScaleFromLabels(
-      ['Langoustine G', 'Langoustine P', 'Langoustine R'],
-      { startColor: this.graphColors.discard.rgb, endColor: this.graphColors.landing.rgb },
-    );
-    charts['03_comparDebarqRejet'] = {
-      type: 'bubble',
+    const chart03_data = new ChartJsUtilsBarWithAutoCategHelper(12);
+    chart03_data.addSet({
+      label: 'Selectif - Tribord',
+      color: colorDiscard[0],
+      data: ChartJsUtils.genDummySamples(300, 9, 70),
+    });
+    chart03_data.addSet({
+      label: 'Selectif - Babord',
+      color: colorDiscard[1],
+      data: ChartJsUtils.genDummySamples(300, 9, 70),
+    });
+    charts['03'] = {
+      type: 'bar',
       options: {
         title: {
           ...defaultTitleOptions,
-          text: ['Comparaison des débarquements et rejets', '(sous trait)'],
-        },
-        legend: {
-          ...legendDefaultOption,
+          text: ['Répartition en taille des langoustines', '- Rejet -'],
         },
         scales: {
           xAxes: [
             {
               scaleLabel: {
                 ...scaleLableDefaultOption,
-                labelString: 'Quantité dans le chalut sélectif (kg)',
+                labelString: 'Taille céphalotoracique (mm)',
               },
             }
           ],
@@ -310,24 +286,72 @@ export class TripReport extends AppRootDataReport<Trip> {
             {
               scaleLabel: {
                 ...scaleLableDefaultOption,
-                labelString: 'Quantité dans le chalut standard (kg)',
+                labelString: 'Nb individus',
               },
             }
           ],
         },
+        legend: {
+          ...legendDefaultOption,
+        },
         plugins: {
-          medianLine: {
-            color: ChartJsStandardColors.threshold.rgba(1),
-            orientation: 'b',
-            style: 'solid',
+          tresholdLine: { // NOTE : Custom plugin
+            color: Color.get('red').rgba(1),
+            style: 'dashed',
             width: 3,
+            value: 4,
           },
-        }
+        },
       },
-      data: {
-        ...ChartJsUtils.computeDatasetForBubble(labels, labels.map(_ => ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))),
-      }
     }
+    chart03_data.computeDataSetsOnChart(charts['03']);
+
+    // NOTE : Replace this by real data extractors
+    //var labels = ChartJsUtils.computeColorsScaleFromLabels(
+      //['Langoustine G', 'Langoustine P', 'Langoustine R'],
+      //{ startColor: this.graphColors.discard.rgb, endColor: this.graphColors.landing.rgb },
+    //);
+    //charts['03_comparDebarqRejet'] = {
+      //type: 'bubble',
+      //options: {
+        //title: {
+          //...defaultTitleOptions,
+          //text: ['Comparaison des débarquements et rejets', '(sous trait)'],
+        //},
+        //legend: {
+          //...legendDefaultOption,
+        //},
+        //scales: {
+          //xAxes: [
+            //{
+              //scaleLabel: {
+                //...scaleLableDefaultOption,
+                //labelString: 'Quantité dans le chalut sélectif (kg)',
+              //},
+            //}
+          //],
+          //yAxes: [
+            //{
+              //scaleLabel: {
+                //...scaleLableDefaultOption,
+                //labelString: 'Quantité dans le chalut standard (kg)',
+              //},
+            //}
+          //],
+        //},
+        //plugins: {
+          //medianLine: {
+            //color: Color.get('red').rgba(1),
+            //orientation: 'b',
+            //style: 'solid',
+            //width: 3,
+          //},
+        //}
+      //},
+      //data: {
+        //...ChartJsUtils.computeDatasetForBubble(labels, labels.map(_ => ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))),
+      //}
+    //}
 
     // TODO : Testing boxplot : (not working, can't load charttype boxplot)
     //charts['04_testboxplot'] = {
@@ -392,17 +416,5 @@ export class TripReport extends AppRootDataReport<Trip> {
 
     return charts;
   }
-
-  protected getColorFromStyle(name: string): Color {
-    function colorHexaToRgbArr(hexColor: string): number[] {
-      const split = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexColor);
-      return split ? split.slice(1, 4).map(i => parseInt(i, 16)) : [0, 0, 0];
-    }
-    console.debug(`[${this.constructor.name}.getColorFromStyle]`, arguments);
-    const colorHexa: string = getComputedStyle(this._document.documentElement).getPropertyValue(`--ion-color-${name}`)
-      || '#000000';
-    return new Color(colorHexaToRgbArr(colorHexa), 1, name);
-  }
-
 
 }
