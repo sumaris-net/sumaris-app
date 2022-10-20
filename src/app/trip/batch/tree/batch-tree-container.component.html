@@ -6,7 +6,7 @@
     <mat-icon class="mat-icon-rtl-mirror"
               matBadge="!"
               [matBadgeHidden]="valid"
-              matBadgeOverlap="false"
+              matBadgeOverlap="true"
               matBadgeColor="accent"
               matBadgeSize="small"
               matBadgePosition="above after"
@@ -248,42 +248,33 @@
                  *ngIf="node.childrenPmfms?.length; let count;"
                  [title]="node.childrenPmfms|arrayPluck:'label'">{{count}} columns</ion-badge>
       &nbsp;
-      <!-- has weight pmfms -->
-      <mat-icon class="small-icon" slot="end" *ngIf="node.pmfms|arrayFilter:isWeightPmfm|isNotEmptyArray">scale</mat-icon>
+      &nbsp;
     </ng-container>
 
-
-    <!-- for leaf node -->
-    <ng-container *ngIf="node.isLeaf">
-      <ion-badge *ngIf="node===editingBatch ? batchTree.batchGroupsTable?.totalRowCount : node.currentData.children?.length; let rowCount"
-                 [color]="rowCount ? 'tertiary' : 'warning'"
-                 slot="end">{{(rowCount === 1 ? 'TRIP.BATCH.TREE.BATCH_COUNT' : 'TRIP.BATCH.TREE.BATCHES_COUNT') | translate:{rowCount: rowCount} }}
+    <!-- expanded node -->
+    <ng-container *ngIf="node.isExpanded; else leafBadges">
+      <!-- weight pmfms count -->
+      <ion-badge *ngIf="(node.pmfms|arrayFilter:isWeightPmfm)?.length; let count"
+                 [color]="node.valid ? 'success' : 'danger'"
+                 slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.WEIGHT_COUNT' : 'TRIP.BATCH.TREE.WEIGHTS_COUNT') | translate:{count: count} }}
       </ion-badge>
     </ng-container>
 
-    <!-- has error
-    <ion-icon *ngIf="node.invalid"
-              class="small-icon" slot="end" name="alert-circle" color="danger"
-              [title]="error||''"></ion-icon> -->
+    <!-- for leaf node -->
+    <ng-template #leafBadges>
+      <ion-badge *ngIf="node===editingBatch ? batchTree.batchGroupsTable?.totalRowCount : node.currentData.children?.length; let count"
+                 [color]="count ? 'tertiary' : 'warning'"
+                 slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.BATCH_COUNT' : 'TRIP.BATCH.TREE.BATCHES_COUNT') | translate:{count: count} }}
+      </ion-badge>
 
-  <!--  <ion-button size="small" color="tertiary"-->
-  <!--              [matBadge]="5"-->
-  <!--              [matBadgeHidden]="!5"-->
-  <!--              matBadgeOverlap="false"-->
-  <!--              matBadgeColor="primary"-->
-  <!--              matBadgeSize="small"-->
-  <!--              matBadgePosition="above after">-->
-  <!--    <mat-icon slot="icon-only" svgIcon="fish"></mat-icon>-->
-  <!--  </ion-button>-->
-  <!--  <ion-button size="small" color="tertiary">-->
-  <!--    <mat-icon slot="icon-only"-->
-  <!--              [matBadge]="15"-->
-  <!--              [matBadgeHidden]="!15"-->
-  <!--              matBadgeOverlap="false"-->
-  <!--              matBadgeColor="primary"-->
-  <!--              matBadgeSize="small"-->
-  <!--              matBadgePosition="above after">straighten</mat-icon>-->
-  <!--  </ion-button>-->
+      &nbsp;
+
+      <!-- TODO measure count
+      <ion-badge *ngIf="node===editingBatch ? batchTree.subBatchesCount : 0; let count"
+                 [color]="count ? 'tertiary' : 'warning'"
+                 slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.MEASURE_COUNT' : 'TRIP.BATCH.TREE.MEASURES_COUNT') | translate:{count: count} }}
+      </ion-badge> -->
+    </ng-template>
 
   </ng-template>
 

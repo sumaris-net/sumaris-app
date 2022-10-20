@@ -239,6 +239,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     return this.batchGroupsTable.modalOptions;
   }
 
+  get subBatchesCount(): number {
+    return this._subBatchesService
+      ? (this._subBatchesService.count + this._subBatchesService.hiddenCount)
+      : (this.subBatchesTable?.totalRowCount || 0);
+  }
+
   get statusChanges(): Observable<FormControlStatus> {
     const delegates: Observable<any>[] = [
       ...(this.forms || []).map(c => c.form?.statusChanges).filter(isNotNil)

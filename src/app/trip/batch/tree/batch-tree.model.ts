@@ -206,6 +206,10 @@ export class BatchModel
     }
   }
 
+  get isExpanded(): boolean {
+    return !this.isLeaf;
+  }
+
   async isValid(): Promise<boolean> {
 
     // Enable temporarily the validator to get the valid status

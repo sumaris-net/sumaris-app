@@ -908,8 +908,12 @@
       },
       "TREE": {
         "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-dessous : ",
-        "BATCH_COUNT": "{{rowCount}} lot",
-        "BATCHES_COUNT": "{{rowCount}} lots"
+        "BATCH_COUNT": "{{count}} lot",
+        "BATCHES_COUNT": "{{count}} lots",
+        "WEIGHT_COUNT": "{{count}} poids",
+        "WEIGHTS_COUNT": "{{count}} poids",
+        "MEASURE_COUNT": "{{count}} mesure",
+        "MEASURES_COUNT": "{{count}} mesures"
       },
       "PMFM": {
         "DISCARD_OR_LANDING": "Partie retenue ou rejetée ?",
