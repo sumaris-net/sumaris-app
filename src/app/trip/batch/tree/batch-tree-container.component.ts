@@ -556,7 +556,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       childrenPmfms: model.isLeaf && model.childrenPmfms
     });
 
-    // Mark model has vlid (check this BEFORE children)
+    // Update model valid marker (check this BEFORE to add the children form array)
     model.valid = form.valid;
 
     if (!model.isLeaf) {
