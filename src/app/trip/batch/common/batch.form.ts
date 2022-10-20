@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Batch, BatchWeight } from './batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
@@ -33,6 +33,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { equals, roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
 
 export interface IBatchForm<T extends Batch<any> = Batch<any>> extends IAppForm {
 
@@ -159,6 +160,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
   get hasAvailableTaxonGroups() {
     return isNotNil(this.availableTaxonGroups) && (!Array.isArray(this.availableTaxonGroups) || this.availableTaxonGroups.length > 0);
+  }
+
+  get touched(): boolean {
+    return this.form?.touched;
   }
 
   constructor(

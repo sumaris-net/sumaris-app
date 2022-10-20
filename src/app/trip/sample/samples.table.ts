@@ -677,8 +677,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         return false;
       }
       else {
-        console.log('TODO', data);
-        await this.addEntityToTable(data);
+        await this.addOrUpdateEntityToTable(data);
       }
     }
     return true;

@@ -55,12 +55,16 @@
     </ion-row>
 
     <!-- Total weight -->
-    <ion-row *ngIf="delegate.defaultWeightPmfm && delegate.showWeight && delegate.weightForm; let weightForm" [formGroup]="weightForm">
-      <ion-col class="ion-no-padding">
-        <app-pmfm-field [class.computed]="(weightForm|formGetControl: 'computed').value"
-                        [readonly]="(weightForm|formGetControl: 'computed').value"
-                        [pmfm]="delegate.defaultWeightPmfm"
-                        formControlName="value"
+    <ion-row *ngIf="delegate.defaultWeightPmfm && delegate.showWeight">
+      <ion-col class="ion-no-padding"
+               *ngVar="{
+                      weightValue: delegate.form|formGetControl: 'weight.value',
+                      weightComputed: delegate.form|formGetControl: 'weight.computed'
+                    } as controls">
+        <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
+                        [formControl]="controls.weightValue"
+                        [class.computed]="controls.weightComputed.value"
+                        [readonly]="controls.weightComputed.value"
                         [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                         [compact]="delegate.compact"
                         [tabindex]="delegate.tabindex+28"

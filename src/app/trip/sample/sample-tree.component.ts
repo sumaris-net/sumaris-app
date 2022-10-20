@@ -184,6 +184,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
           .subscribe(([hasMonitoringPmfms, hasReleasePmfms]) => {
             this.showIndividualMonitoringTable = hasMonitoringPmfms;
             this.showIndividualReleaseTable = hasReleasePmfms;
+            this.samplesTable.showIndividualMonitoringButton = hasMonitoringPmfms;
+            this.samplesTable.showIndividualReleaseButton = hasReleasePmfms;
             this.samplesTable.allowSubSamples = hasMonitoringPmfms || hasReleasePmfms;
             this.tabCount = hasReleasePmfms ? 3 : (hasMonitoringPmfms ? 2 : 1);
             this.markForCheck();
@@ -209,9 +211,12 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
             }).then(isNotEmptyArray)
           ]))
         ).subscribe(([hasMonitoringPmfms, hasReleasePmfms]) => {
+          this.showIndividualMonitoringTable = hasMonitoringPmfms;
+          this.showIndividualReleaseTable = hasReleasePmfms;
           this.samplesTable.showIndividualMonitoringButton = hasMonitoringPmfms;
           this.samplesTable.showIndividualReleaseButton = hasReleasePmfms;
           this.samplesTable.allowSubSamples = hasMonitoringPmfms || hasReleasePmfms;
+          this.markForCheck();
         })
       )
     }

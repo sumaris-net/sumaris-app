@@ -228,11 +228,13 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
 
 
   async addOrUpdateEntityToTable(data: E, opts?: {confirmEditCreate?: boolean}){
-    if (isNil(data.id)){
+    // Always try to get the row, even if no ID, because the row can exists (e.g. in memory table)
+    // THis find should use a equals() function
+    const row = await this.findRowByEntity(data);
+    if (!row){
       await this.addEntityToTable(data, opts && {confirmCreate: opts.confirmEditCreate});
     }
     else {
-      const row = await this.findRowByEntity(data);
       await this.updateEntityToTable(data, row, opts && {confirmEdit: opts.confirmEditCreate});
     }
   }

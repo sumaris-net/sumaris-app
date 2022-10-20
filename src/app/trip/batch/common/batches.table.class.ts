@@ -152,7 +152,9 @@ export abstract class AbstractBatchesTable<
 
     const data = await this.openDetailModal();
     if (data) {
-      await this.addEntityToTable(data);
+      // Can be an update, and not only a add,
+      // (e.g. the batch group modal can add row, before opening the sub batches modal)
+      await this.addOrUpdateEntityToTable(data);
     }
     return true;
   }
