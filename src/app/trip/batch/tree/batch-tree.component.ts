@@ -498,9 +498,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
         // Apply to table
         this.batchGroupsTable.gearId = this._gearId;
-        this.batchGroupsTable.labelPrefix = this.rootAcquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH
-          ? AcquisitionLevelCodes.SORTING_BATCH
-          : rootBatch.label;
+        this.batchGroupsTable.labelPrefix = this.rootAcquisitionLevel !== AcquisitionLevelCodes.CATCH_BATCH
+          && rootBatch.label;
         this.batchGroupsTable.markAsReady();
         this.batchGroupsTable.value = batchGroups;
         await this.batchGroupsTable.ready(); // Wait loaded (need to be sure the QV pmfm is set)

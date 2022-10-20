@@ -28,6 +28,7 @@ import {PHYSICAL_GEAR_DATA_SERVICE_TOKEN} from '@app/trip/physicalgear/physicalg
 import {PhysicalGearTable} from '@app/trip/physicalgear/physical-gears.table';
 import {switchMap, tap} from 'rxjs/operators';
 import {PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import { slideDownAnimation } from '@app/shared/material/material.animation';
 
 export interface IPhysicalGearModalOptions
   extends IEntityEditorModalOptions<PhysicalGear> {
@@ -53,8 +54,6 @@ const INVALID_GEAR_ID = -999;
   selector: 'app-physical-gear-modal',
   templateUrl: './physical-gear.modal.html',
   styleUrls: ['./physical-gear.modal.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None,
   providers: [
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
@@ -62,13 +61,18 @@ const INVALID_GEAR_ID = -999;
         equals: PhysicalGear.equals
       })
     }
-  ]
+  ],
+  animations: [
+    slideDownAnimation
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None
 })
 export class PhysicalGearModal
   extends AppEntityEditorModal<PhysicalGear>
   implements OnInit, OnDestroy, AfterViewInit, IPhysicalGearModalOptions {
 
-  showChildrenTable = false;
+  showChildrenTable: boolean = null; // Important: set to null, to the helpMessage ngIf animation
   $gear = new BehaviorSubject<ReferentialRef>(null);
   $gearId = new BehaviorSubject<number>(INVALID_GEAR_ID);
   $childrenTable = new BehaviorSubject<PhysicalGearTable>(undefined);
@@ -158,7 +162,7 @@ export class PhysicalGearModal
           this.$gearId.next(toNumber(gear?.id, INVALID_GEAR_ID));
 
           // Auto-hide children table, if new gear is null
-          if (this.showChildrenTable && isNil(this.gearId)) {
+          if (isNil(this.showChildrenTable) && isNil(this.gearId)) {
             this.showChildrenTable = false;
             this.updateChildrenTableState();
             this.markForCheck();
@@ -283,7 +287,7 @@ export class PhysicalGearModal
         this.childrenTable.gearId = data.gear?.id;
         this.childrenTable.markAsReady();
         this.childrenGearService.value = children || [];
-        await this.childrenTable.waitIdle();
+        await this.childrenTable.waitIdle({timeout: 2000, stop: this.destroySubject, stopError: false});
 
         // Restore children
         data.children = children;

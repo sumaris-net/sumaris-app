@@ -227,6 +227,8 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     super.setFilter(value as PhysicalGearFilter, opts);
   }
 
+  /* -- protected function -- */
+
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
@@ -235,10 +237,10 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       return true;
     }
 
-    const newGear = await this.openDetailModal();
-    if (newGear) {
-      if (this.debug) console.debug("Adding new gear:", newGear);
-      await this.addEntityToTable(newGear);
+    const data = await this.openDetailModal();
+    if (data) {
+      if (this.debug) console.debug("Adding new gear:", data);
+      await this.addEntityToTable(data);
     }
     return true;
   }
@@ -251,15 +253,15 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       return true;
     }
 
-    const gear = PhysicalGear.fromObject({
-      ...row.currentData,
-      // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
-      measurementValues: MeasurementValuesUtils.asObject(row.currentData.measurementValues, {minify: true})
-    });
+    // Clone to keep original object unchanged
+    const gear = PhysicalGear.fromObject(row.currentData).clone();
 
-    const updatedGear = await this.openDetailModal(gear);
-    if (updatedGear) {
-      await this.updateEntityToTable(updatedGear, row);
+    // Convert measurementValues to model, in order to force values of not required PMFM to be converted later, in the modal's form
+    gear.measurementValues = MeasurementValuesUtils.asObject(gear.measurementValues, {minify: true});
+
+    const updatedData = await this.openDetailModal(gear);
+    if (updatedData) {
+      await this.updateEntityToTable(updatedData, row);
     }
     else {
       this.editedRow = null;
@@ -355,7 +357,6 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   protected async findRowByEntity(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
     return PhysicalGear && this.dataSource.getRows().find(r => r.currentData.equals(physicalGear));
   }
-
 }
 
 

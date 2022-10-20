@@ -340,7 +340,7 @@ export abstract class BaseMeasurementsTable<
   }
 
   trackByFn(index: number, row: TableElement<T>): any {
-    return this.hasRankOrder ? row.currentData.rankOrder : row.currentData.id;
+    return row.id;
   }
 
   /**

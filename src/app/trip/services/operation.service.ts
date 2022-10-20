@@ -1630,31 +1630,39 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    * @param targets
    * @param savedOperation
    */
-  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[], savedOperation: Operation) {
+  protected copyIdAndUpdateDateOnSamples(sources: (Sample | any)[], targets: Sample[], savedOperation: Operation, parentSample?: Sample) {
     // DEBUG
     //console.debug("[operation-service] Calling copyIdAndUpdateDateOnSamples()");
 
     // Update samples
     if (sources && targets) {
+      // Copy source, to be able to use splice() if array is a readonly (apollo cache)
+      sources = [...sources];
+
       targets.forEach(target => {
         // Set the operation id (required by equals function)
         target.operationId = savedOperation.id;
+        // Try to set parent id (need by equals, when new entity)
+        target.parentId = parentSample?.id || target.parentId;
 
-        const source = sources.find(json => target.equals(json));
-        if (!source) {
-          console.warn('Missing a sample, equals to this target: ', target)
-        }
-        else {
+        const index = sources.findIndex(json => target.equals(json));
+        if (index !== -1) {
+          // Remove from sources list, as it has been found
+          const source = sources.splice(index, 1)[0];
+
           EntityUtils.copyIdAndUpdateDate(source, target);
           DataRootEntityUtils.copyControlAndValidationDate(source, target);
 
           // Copy parent Id (need for link to parent)
           target.parentId = source.parentId;
           target.parent = null;
+        }
+        else {
+          console.warn('Missing a sample, equals to this target: ', target)
 
           // Apply to children
           if (target.children?.length) {
-            this.copyIdAndUpdateDateOnSamples(sources, target.children, savedOperation);
+            this.copyIdAndUpdateDateOnSamples(sources, target.children, savedOperation, target);
           }
         }
       });
@@ -1669,19 +1677,21 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    */
   protected copyIdAndUpdateDateOnBatch(sources: (Batch | any)[], targets: Batch[]) {
     if (sources && targets) {
+      // Copy source, to be able to use splice() if array is a readonly (apollo cache)
+      sources = [...sources];
+
       targets.forEach(target => {
         const index = sources.findIndex(json => target.equals(json));
         if (index !== -1) {
-          EntityUtils.copyIdAndUpdateDate(sources[index], target);
-          const items = [...sources];
-          items.splice(index, 1); // remove from sources list, as it has been found
-          sources = items;
+          // Remove from sources list, as it has been found
+          const source = sources.splice(index, 1)[0];
+          EntityUtils.copyIdAndUpdateDate(source, target);
         } else {
-          console.error('Batch NOT found ! ', target);
+          console.error('Missing a Batch, equals to this target:', target);
         }
 
         // Loop on children
-        if (target.children && target.children.length) {
+        if (target.children?.length) {
           this.copyIdAndUpdateDateOnBatch(sources, target.children);
         }
       });

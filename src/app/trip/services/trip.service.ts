@@ -49,7 +49,7 @@ import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_E
 import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
 import { Operation, OperationGroup, Trip } from './model/trip.model';
 import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { fillRankOrder, fillTreeRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
@@ -669,13 +669,13 @@ export class TripService
         const query = isLandedTrip ? TripQueries.loadLandedTrip : TripQueries.load;
 
         // Load remotely
-        const res = await this.graphql.query<{ data: Trip }>({
+        const { data } = await this.graphql.query<{ data: Trip }>({
           query,
           variables: {id},
           error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
-        source = res && res.data;
+        source = data;
       }
 
       // Add operations
@@ -1477,32 +1477,40 @@ export class TripService
    * @param sources
    * @param targets
    */
-  protected copyIdAndUpdateDateOnGears(sources: (PhysicalGear | any)[], targets: PhysicalGear[], savedTrip: Trip) {
+  protected copyIdAndUpdateDateOnGears(sources: (PhysicalGear | any)[], targets: PhysicalGear[], savedTrip: Trip, parentGear?: PhysicalGear) {
     // DEBUG
     //console.debug("[trip-service] Calling copyIdAndUpdateDateOnGears()");
 
     // Update gears
     if (sources && targets) {
+      // Copy source, to be able to use splice() if array is a readonly (apollo cache)
+      sources = [...sources];
+
       targets.forEach(target => {
         // Set the trip id (required by equals function)
         target.tripId = savedTrip.id;
+        // Try to set parent id (need by equals, when new entity)
+        target.parentId = parentGear?.id || target.parentId;
 
-        const source = sources.find(json => target.equals(json));
-        if (!source) {
-          console.warn('Missing a gear, equals to this target: ', target)
-        }
-        else {
+        const index = sources.findIndex(json => target.equals(json));
+        if (index !== -1) {
+          // Remove from sources list, as it has been found
+          const source = sources.splice(index, 1)[0];
+
           EntityUtils.copyIdAndUpdateDate(source, target);
           DataRootEntityUtils.copyControlAndValidationDate(source, target);
 
           // Copy parent Id (need for link to parent)
           target.parentId = source.parentId;
           target.parent = null;
+        }
+        else {
+          console.warn('Missing a gear, equals to this target: ', target);
+        }
 
-          // Apply to children
-          if (target.children?.length) {
-            this.copyIdAndUpdateDateOnGears(sources, target.children, savedTrip);
-          }
+        // Update children
+        if (target.children?.length) {
+          this.copyIdAndUpdateDateOnGears(sources, target.children, savedTrip, target);
         }
       });
     }
@@ -1608,7 +1616,7 @@ export class TripService
     // todo maybe others tables ?
 
     // Physical gears: compute rankOrder
-    fillRankOrder(entity.gears);
+    fillTreeRankOrder(entity.gears);
 
     // Measurement: compute rankOrder
     fillRankOrder(entity.measurements);

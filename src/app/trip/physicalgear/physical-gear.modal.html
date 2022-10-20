@@ -58,7 +58,9 @@
 
       <div>
         <!-- help message (only in leaf modal) -->
-        <ion-item *ngIf="enabled && helpMessage && !showChildrenTable" color="accent" lines="none">
+        <ion-item *ngIf="enabled && helpMessage && showChildrenTable === false"
+                  color="accent" lines="none"
+                  @slideDownAnimation>
           <ion-icon slot="start" name="information-circle-outline"></ion-icon>
           <ion-label [innerHTML]="helpMessage|translate"></ion-label>
         </ion-item>

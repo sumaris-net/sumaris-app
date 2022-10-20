@@ -422,7 +422,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     const isNewData = isNil(data.id);
 
     // Set data to form
-    const formPromise = this.tripForm.setValue(data);
+    let promises: Promise<any>[] = [
+      this.tripForm.setValue(data)
+    ];
 
     this.saleForm.value = data && data.sale || new Sale();
     this.measurementsForm.value = data && data.measurements || [];
@@ -430,11 +432,12 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Set physical gears
     this.physicalGearsTable.tripId = data.id;
     this.physicalGearService.value = data && data.gears || [];
+    promises.push(this.physicalGearService.waitIdle({timeout: 2000}));
 
     // Operations table
     if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
 
-    await formPromise;
+    await Promise.all(promises);
   }
 
   async onOpenOperation({id, row}: { id?: number; row: TableElement<any>; }) {
