@@ -1,4 +1,7 @@
 mat-toolbar {
+  // Reduce start padding
+  padding-inline-start: 0 !important;
+
   &.expanded {
     background-color: var(--ion-color-secondary);
   }
@@ -7,9 +10,30 @@ mat-toolbar {
     font-size: inherit;
   }
 
-  .mat-button.mat-primary {
-    color: var(--ion-color-primary);
+  .breadcrumb-separator {
+    color: var(--ion-color-step-550, #73849a);
   }
+
+  .mat-button.breadcrumb {
+    --padding-start: 16px;
+    --padding-end: 16px;
+    padding-left: unset;
+    padding-right: unset;
+    padding-inline-start: var(--padding-start);
+    padding-inline-end: var(--padding-end);
+    color: var(--ion-color-step-600, #677483);
+
+    &.selected {
+      color: var(--ion-color-dark);
+    }
+
+    .breadcrumb-separator {
+      margin-inline-start: var(--padding-start);
+      margin-inline-end: calc(-1 * var(--padding-end));
+    }
+  }
+
+
 }
 
 .form-container {
