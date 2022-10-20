@@ -6,7 +6,7 @@
     <mat-icon class="mat-icon-rtl-mirror"
               matBadge="!"
               [matBadgeHidden]="valid"
-              matBadgeOverlap="true"
+              matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"
               matBadgePosition="above after"
@@ -57,12 +57,14 @@
         <span>...</span>
       </button>
     </ng-container>
+
   </div>
 
   <!-- help message -->
-  <ion-item *ngIf="filterExpansionPanel.expanded" color="transparent" class="ion-padding-start" lines="none" (click)="filterExpansionPanel.toggle()">
-    <ion-icon color="primary" name="help-circle-outline"></ion-icon>
-    <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
+  <ion-item color="transparent"
+            class="ion-padding-start help" lines="none" (click)="filterExpansionPanel.toggle()" tappable>
+    <ion-icon *ngIf="filterExpansionPanel.expanded || !editingBatch" color="primary" name="help-circle-outline"></ion-icon>
+    <ion-label *ngIf="filterExpansionPanel.expanded || !editingBatch" color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
   </ion-item>
 
   <div class="toolbar-spacer"></div>
@@ -97,9 +99,9 @@
 
 <!-- Children batches menu -->
 <mat-menu #childrenMenu="matMenu" xPosition="after">
-  <ng-template matMenuContent let-node="node" let-selected="selected">
-    <button *ngFor="let item of node.children" mat-menu-item
-            [class.activated]="item.editing || item === selected"
+  <ng-template matMenuContent let-node="node">
+    <button *ngFor="let item of node?.children" mat-menu-item
+            [class.activated]="item.editing"
             (click)="startEditBatch(null, item)">
       <app-icon *ngIf="item.icon" [ref]="item.icon"></app-icon>
       <span matBadge="!"
@@ -233,43 +235,49 @@
 
     <ng-container *ngIf="debug">
       <!-- editing (=enabled) -->
-      <ion-badge *ngIf="node.editing" color="success"
-                 slot="end">enabled</ion-badge>
-      <ion-badge *ngIf="!node.editing" color="light"
-                 slot="end">disabled</ion-badge>
+      <ion-badge *ngIf="node.editing"
+                 color="success" class="visible-hover" slot="end">enabled</ion-badge>
+      <ion-badge *ngIf="!node.editing"
+                 color="light" class="visible-hover" slot="end">disabled</ion-badge>
+      &nbsp;
 
       <!-- pmfm count  -->
       <ion-badge *ngIf="node.pmfms?.length; let count"
-                 color="secondary"
-                 slot="end">{{count}} pmfms</ion-badge>
+                 slot="end" class="visible-hover" color="secondary"
+                 >{{count}} pmfms</ion-badge>
       &nbsp;
       <!-- table pmfm count  -->
-      <ion-badge color="secondary" slot="end"
-                 *ngIf="node.childrenPmfms?.length; let count;"
+      <ion-badge *ngIf="node.childrenPmfms?.length; let count;"
+                 color="secondary" slot="end" class="visible-hover"
                  [title]="node.childrenPmfms|arrayPluck:'label'">{{count}} columns</ion-badge>
-      &nbsp;
-      &nbsp;
+      &nbsp;&nbsp;
     </ng-container>
 
     <!-- expanded node -->
     <ng-container *ngIf="node.isExpanded; else leafBadges">
       <!-- weight pmfms count -->
       <ion-badge *ngIf="(node.pmfms|arrayFilter:isWeightPmfm)?.length; let count"
-                 [color]="node.valid ? 'success' : 'danger'"
+                 [color]="node.valid ? 'success' : 'accent'"
                  slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.WEIGHT_COUNT' : 'TRIP.BATCH.TREE.WEIGHTS_COUNT') | translate:{count: count} }}
       </ion-badge>
     </ng-container>
 
     <!-- for leaf node -->
     <ng-template #leafBadges>
-      <ion-badge *ngIf="node===editingBatch ? batchTree.batchGroupsTable?.totalRowCount : node.currentData.children?.length; let count"
+      <!-- batches count -->
+      <ion-badge *ngIf="node===editingBatch ? batchTree.batchGroupsTable?.totalRowCount : node.currentData.children?.length; let count; else emptyLeaf"
                  [color]="count ? 'tertiary' : 'warning'"
                  slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.BATCH_COUNT' : 'TRIP.BATCH.TREE.BATCHES_COUNT') | translate:{count: count} }}
       </ion-badge>
+      <!-- empty -->
+      <ng-template #emptyLeaf>
+        <ion-badge color="accent" slot="end"
+                   translate>TRIP.BATCH.TREE.EMPTY</ion-badge>
+      </ng-template>
 
       &nbsp;
 
-      <!-- TODO measure count
+      <!-- TODO measure count - need a cached value in model
       <ion-badge *ngIf="node===editingBatch ? batchTree.subBatchesCount : 0; let count"
                  [color]="count ? 'tertiary' : 'warning'"
                  slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.MEASURE_COUNT' : 'TRIP.BATCH.TREE.MEASURES_COUNT') | translate:{count: count} }}
@@ -298,6 +306,17 @@
                   [filter]="filter"
                   [debug]="false">
   </app-batch-tree>
+
+  <!-- Forward button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed"
+           *ngIf="mobile && editingBatch?.isExpanded"
+           visible-xs visible-sm visible-mobile>
+
+    <ion-fab-button [color]="highlightForwardButton ? 'tertiary': 'light'" (click)="forward($event)">
+      <ion-icon name="chevron-forward"></ion-icon>
+    </ion-fab-button>
+
+  </ion-fab>
 </div>
 
 

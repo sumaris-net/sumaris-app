@@ -908,6 +908,7 @@
       },
       "TREE": {
         "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-dessous : ",
+        "EMPTY": "vide",
         "BATCH_COUNT": "{{count}} lot",
         "BATCHES_COUNT": "{{count}} lots",
         "WEIGHT_COUNT": "{{count}} poids",
