@@ -27,6 +27,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
+import { Sale } from '@app/trip/services/model/sale.model';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -142,8 +143,8 @@ export abstract class AbstractBatchesTable<
       this.setFilter({} as F);
     } else if (data instanceof Operation) {
       this.setFilter({operationId: data.id} as F);
-    } else if (data instanceof Landing) {
-      this.setFilter({landingId: data.id} as F);
+    } else if (data instanceof Sale) {
+      this.setFilter({saleId: data.id} as F);
     }
   }
 

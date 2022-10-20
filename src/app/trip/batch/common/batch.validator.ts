@@ -84,7 +84,8 @@ export class BatchValidatorService<
       controlDate: [data && data.controlDate || null],
       qualificationDate: [data && data.qualificationDate || null],
       qualificationComments: [data && data.qualificationComments || null],
-      qualityFlagId: [toNumber(data && data.qualityFlagId, 0)]
+      qualityFlagId: [toNumber(data && data.qualityFlagId, 0)],
+      // TODO: add operationId, saleId, parentId
     };
   }
 
