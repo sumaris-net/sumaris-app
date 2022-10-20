@@ -1134,21 +1134,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return data instanceof BatchGroup ? data : undefined;
   }
 
-  async deleteEntity(event: UIEvent, data: BatchGroup): Promise<boolean> {
-    const row = await this.findRowByEntity(data);
-
-    // Row not exists: OK
-    if (!row) return true;
-
-    const confirmed = await this.canDeleteRows([row]);
-    if (!confirmed) return false;
-
-    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
-    if (!deleted) event?.preventDefault(); // Mark as cancelled
-
-    return deleted;
-  }
-
   async openSelectColumnsModal(event?: UIEvent) {
 
     let userColumns = this.getUserColumns();

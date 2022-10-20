@@ -1,16 +1,16 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
-import { OperationGroupValidatorService } from '../services/validator/operation-group.validator';
-import { Observable } from 'rxjs';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { InMemoryEntitiesService, isNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
-import { MetierService } from '@app/referential/services/metier.service';
-import { OperationGroup } from '../services/model/trip.model';
-import { environment } from '@environments/environment';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { IOperationGroupModalOptions, OperationGroupModal } from '@app/trip/operationgroup/operation-group.modal';
-import { OperationGroupFilter } from '@app/trip/services/filter/operation-group.filter';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {BaseMeasurementsTable} from '../measurement/measurements.table.class';
+import {OperationGroupValidatorService} from '../services/validator/operation-group.validator';
+import {Observable} from 'rxjs';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {InMemoryEntitiesService, isNil, LocalSettingsService, ReferentialRef, referentialToString} from '@sumaris-net/ngx-components';
+import {MetierService} from '@app/referential/services/metier.service';
+import {OperationGroup} from '../services/model/trip.model';
+import {environment} from '@environments/environment';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {IOperationGroupModalOptions, OperationGroupModal} from '@app/trip/operationgroup/operation-group.modal';
+import {OperationGroupFilter} from '@app/trip/services/filter/operation-group.filter';
 
 export const OPERATION_GROUP_RESERVED_START_COLUMNS: string[] = ['metier'];
 export const OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE: string[] = ['gear', 'targetSpecies'];
@@ -93,7 +93,6 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
     };
 
     // Metier combo
-    const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: true,
       items: this.metiers,
@@ -221,7 +220,7 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
+      await this.updateEntityToTable(updatedData, row, {confirmEdit: false});
     }
     else {
       this.editedRow = null;

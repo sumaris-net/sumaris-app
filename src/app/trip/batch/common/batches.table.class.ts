@@ -172,7 +172,7 @@ export abstract class AbstractBatchesTable<
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
+      await this.updateEntityToTable(updatedData, row, {confirmEdit: false});
     } else {
       this.editedRow = null;
     }

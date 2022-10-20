@@ -8,24 +8,23 @@ import {
   EntityFilter,
   EntityUtils,
   Hotkeys,
-  IEntitiesService, InMemoryEntitiesService,
+  IEntitiesService,
+  InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from '@sumaris-net/ngx-components';
-import { TableElement } from '@e-is/ngx-material-table';
-import { PredefinedColors } from '@ionic/core';
-import { FormGroup } from '@angular/forms';
-import { BaseValidatorService } from '@app/shared/service/base.validator.service';
-import { MatExpansionPanel } from '@angular/material/expansion';
-import { environment } from '@environments/environment';
+import {TableElement} from '@e-is/ngx-material-table';
+import {PredefinedColors} from '@ionic/core';
+import {FormGroup} from '@angular/forms';
+import {BaseValidatorService} from '@app/shared/service/base.validator.service';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {environment} from '@environments/environment';
 import {filter, map, tap} from 'rxjs/operators';
-import { PopoverController } from '@ionic/angular';
-import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
-import { Popovers } from '@app/shared/popover/popover.utils';
-import {Sample} from '@app/trip/services/model/sample.model';
-import {SampleFilter} from '@app/trip/services/filter/sample.filter';
+import {PopoverController} from '@ionic/angular';
+import {SubBatch} from '@app/trip/batch/sub/sub-batch.model';
+import {Popovers} from '@app/shared/popover/popover.utils';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -228,13 +227,13 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   }
 
 
-  async addOrUpdateEntityToTable(data: E){
+  async addOrUpdateEntityToTable(data: E, opts?: {confirmEditCreate?: boolean}){
     if (isNil(data.id)){
-      await this.addEntityToTable(data);
+      await this.addEntityToTable(data, opts && {confirmCreate: opts.confirmEditCreate});
     }
     else {
       const row = await this.findRowByEntity(data);
-      await this.updateEntityToTable(data, row);
+      await this.updateEntityToTable(data, row, opts && {confirmEdit: opts.confirmEditCreate});
     }
   }
 
@@ -291,7 +290,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
    * @param row the row to update
    * @param opts
    */
-  protected async updateEntityToTable(data: E, row: TableElement<E>, opts?: { confirmCreate?: boolean; }): Promise<TableElement<E>> {
+  protected async updateEntityToTable(data: E, row: TableElement<E>, opts?: { confirmEdit?: boolean; }): Promise<TableElement<E>> {
     if (!data || !row) throw new Error("Missing data, or table row to update");
     if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
 
@@ -307,7 +306,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     }
 
     // Confirm the created row
-    if (!opts || opts.confirmCreate !== false) {
+    if (!opts || opts.confirmEdit !== false) {
       this.confirmEditCreate(null, row);
       this.editedRow = null;
     }
@@ -318,6 +317,21 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.markAsDirty();
 
     return row;
+  }
+
+  async deleteEntity(event: UIEvent, data: E): Promise<boolean> {
+    const row = await this.findRowByEntity(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const confirmed = await this.canDeleteRows([row]);
+    if (!confirmed) return false;
+
+    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
+    if (!deleted) event?.preventDefault(); // Mark as cancelled
+
+    return deleted;
   }
 
   /* -- protected function -- */

@@ -247,7 +247,7 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
 
     const res = await this.openDetailModal(data);
     if (res && res.data) {
-      await this.updateEntityToTable(res.data, row, {confirmCreate: false});
+      await this.updateEntityToTable(res.data, row, {confirmEdit: false});
     } else {
       this.editedRow = null;
     }
@@ -288,7 +288,7 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
         disabled: this.disabled,
         mobile: this.mobile,
         isNew,
-        onDelete: (event, Product) => this.deleteProduct(event, Product)
+        onDelete: (event, Product) => this.deleteEntity(event, Product)
       },
       cssClass: 'modal-large',
       keyboardClose: true
@@ -312,19 +312,6 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
     return undefined;
   }
 
-  async deleteProduct(event: UIEvent, data: Product): Promise<boolean> {
-    const row = await this.findRowByProduct(data);
-
-    // Row not exists: OK
-    if (!row) return true;
-
-    const canDeleteRow = await this.canDeleteRows([row]);
-    if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
-    }
-    return canDeleteRow;
-  }
-
   /* -- protected methods -- */
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
@@ -337,10 +324,6 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
 
   protected markForCheck() {
     this.cd.markForCheck();
-  }
-
-  protected async findRowByProduct(product: Product): Promise<TableElement<Product>> {
-    return Product && this.dataSource.getRows().find(r => product.equals(r.currentData));
   }
 
   private onStartEditProduct(row: TableElement<Product>) {

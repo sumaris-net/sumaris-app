@@ -413,8 +413,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return row;
   }
 
-  protected async updateEntityToTable(updatedBatch: SubBatch, row: TableElement<SubBatch>):  Promise<TableElement<SubBatch>> {
-    const updatedRow = await super.updateEntityToTable(updatedBatch, row);
+  protected async updateEntityToTable(updatedBatch: SubBatch, row: TableElement<SubBatch>, opts?: {confirmEdit?: boolean}):  Promise<TableElement<SubBatch>> {
+    const updatedRow = await super.updateEntityToTable(updatedBatch, row, opts);
 
     // Highlight the row, few seconds
     if (updatedRow) this.onRowChanged(updatedRow);
@@ -424,7 +424,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   protected onInvalidForm() {
 
-    // Play a error beep, if on field
+    // Play an error beep, if on field
     if (this.isOnFieldMode) this.audio.playBeepError();
 
     super.onInvalidForm();

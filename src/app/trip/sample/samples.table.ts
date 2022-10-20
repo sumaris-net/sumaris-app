@@ -337,9 +337,9 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       onDelete: (event, data) => this.deleteEntity(event, data),
       onSaveAndNew: async (dataToSave) => {
         if (isNew) {
-          await this.addEntityToTable(dataToSave);
+          await this.addEntityToTable(dataToSave, {editing: false});
         } else {
-          this.updateEntityToTable(dataToSave, row);
+          await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
           row = null; // Avoid updating twice (should never occur, because onSubmitAndNext always create a new entity)
           isNew = true; // Next row should be new
         }
@@ -348,9 +348,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         await this.onNewEntity(newData);
         return newData;
       },
-      openSubSampleModal: this.allowSubSamples
-        ? (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel)
-        : undefined,
+      openSubSampleModal: (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel),
 
       // Override using given options
       ...this.modalOptions,
@@ -679,6 +677,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         return false;
       }
       else {
+        console.log('TODO', data);
         await this.addEntityToTable(data);
       }
     }
@@ -705,7 +704,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         return false;
       }
       else {
-        await this.updateEntityToTable(data, row);
+        await this.updateEntityToTable(data, row, {confirmEdit: false});
       }
     } else {
       this.editedRow = null;
@@ -722,22 +721,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return this.dataSource.getRows()
       .find(r => r.currentData.rankOrder === data.rankOrder);
   }
-
-  async deleteEntity(event: UIEvent, data: Sample): Promise<boolean> {
-    const row = await this.findRowByEntity(data);
-
-    // Row not exists: OK
-    if (!row) return true;
-
-    const confirmed = await this.canDeleteRows([row]);
-    if (!confirmed) return false;
-
-    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
-    if (!deleted) event?.preventDefault(); // Mark as cancelled
-
-    return deleted;
-  }
-
 
   protected async addPmfmColumns(pmfmIds: number[]) {
     if (isEmptyArray(pmfmIds)) return; // Skip if empty

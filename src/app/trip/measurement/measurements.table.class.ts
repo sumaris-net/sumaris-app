@@ -565,7 +565,6 @@ export abstract class BaseMeasurementsTable<
 
       // Creat a row
       const row = await this.addRowToTable(null, {editing: opts?.editing, emitEvent: opts?.emitEvent});
-
       if (!row) throw new Error("Could not add row to table");
 
       // Override rankOrder (with a computed value)
@@ -602,6 +601,9 @@ export abstract class BaseMeasurementsTable<
           this.editedRow = row;
         }
       }
+      else if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
+      }
 
       this.markAsDirty({emitEvent: false});
 
@@ -622,33 +624,8 @@ export abstract class BaseMeasurementsTable<
    * @param row the row to update
    * @param opts
    */
-  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
-    if (!data || !row) throw new Error("Missing data, or table row to update");
-    if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(data, row);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(data);
-      row.validator.markAsDirty();
-    } else {
-      row.currentData = data;
-    }
-
-    // Confirm the created row
-    if (!opts || opts.confirmCreate !== false) {
-      this.confirmEditCreate(null, row);
-      this.editedRow = null;
-    }
-    else if (this.inlineEdition) {
-      this.editedRow = row;
-    }
-
-    this.markAsDirty();
-
-    return row;
+  protected updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmEdit?: boolean; }): Promise<TableElement<T>> {
+    return super.updateEntityToTable(data, row, opts);
   }
 
   protected getI18nColumnName(columnName: string): string {
