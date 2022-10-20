@@ -393,6 +393,7 @@
 
   <ng-template #readonly>
     <table mat-table matSort matSortDisableClear
+           [class.compact]="compact"
            [dataSource]="dataSource"
            [matSortActive]="defaultSortBy"
            [matSortDirection]="defaultSortDirection"

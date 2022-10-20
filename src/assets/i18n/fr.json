@@ -993,7 +993,8 @@
         "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
         "AUCTION_CONTROL": {
           "LABEL": "N° Lot",
-          "LABEL_PLACEHOLDER": "N° Lot"
+          "LABEL_PLACEHOLDER": "N° Lot",
+          "COMMENTS": "Commentaires"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Mesures individuelles",
