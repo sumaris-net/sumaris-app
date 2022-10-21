@@ -4,7 +4,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { RevealComponent, IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, DateFormatPipe, firstFalsePromise, isNil, isNotNil, isNotNilOrBlank, isNumber, LocalSettingsService, PlatformService, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, DateFormatPipe, firstFalsePromise, isNil, isNotNil, isNotNilOrBlank, isNumber, LocalSettingsService, PlatformService, WaitForOptions, LatLongPattern } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { DataEntity } from '../services/model/data-entity.model';
 import { ModalController } from '@ionic/angular';
@@ -62,6 +62,10 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
 
   get modalName(): string {
     return this.constructor.name;
+  }
+
+  get latLongFormat(): LatLongPattern{
+    return this.settings?.latLongFormat;
   }
 
   protected constructor(

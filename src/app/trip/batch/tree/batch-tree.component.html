@@ -41,7 +41,7 @@
         subBatchesTable.program: {{subBatchesTable.programLabel}}<br/>
         batchGroupsTable.showTaxonNameColumn: {{subBatchesTable.showTaxonNameColumn}}<br/>
         batchGroupsTable.showIndividualCount: {{subBatchesTable.showIndividualCount}}<br/>
-        batchGroupsTable.availableParents: {{subBatchesTable.availableParents?.length||0}}<br/>
+<!--        batchGroupsTable.availableParents: {{subBatchesTable.availableParents?.length||0}}<br/>-->
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -53,7 +53,6 @@
   <form-catch-batch #catchBatchForm
                     [programLabel]="$programLabel|async"
                     [acquisitionLevel]="rootAcquisitionLevel"
-                    [physicalGearId]="physicalGearId"
                     (onSubmit)="save($event)"
                     [tabindex]="200"
                     [showError]="false"

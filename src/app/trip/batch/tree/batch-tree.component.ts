@@ -90,7 +90,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   implements OnInit, AfterViewInit, IBatchTreeComponent {
 
   private _gearId: number = null;
-  private _physicalGear: PhysicalGear = null;
   private _allowSubBatches: boolean;
   private _subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
@@ -109,16 +108,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   @Input() enableWeightLengthConversion: boolean;
   @Input() i18nPmfmPrefix: string;
   @Input() debug: boolean;
-
-  @Input() set physicalGear(value: PhysicalGear) {
-    if (this._physicalGear !== value) {
-      this._physicalGear = value;
-    }
-  }
-
-  get physicalGearId(): PhysicalGear {
-    return this._physicalGear;
-  }
+  @Input() physicalGear: PhysicalGear = null;
 
   @Input() set disabled(value: boolean) {
     if (value && this._enabled) {

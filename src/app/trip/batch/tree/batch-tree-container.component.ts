@@ -58,8 +58,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
 
   protected logPrefix = '[batch-tree-container] ';
-  protected editingBatch: BatchModel;
 
+  editingBatch: BatchModel;
   data: Batch = null;
   $gearId = new BehaviorSubject<number>(null);
   $physicalGear = new BehaviorSubject<PhysicalGear>(null);
