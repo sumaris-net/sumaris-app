@@ -1015,6 +1015,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     // DEBUG
     if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
+    // FIXME: opts.showParent=true is not working well !!
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
     const $dismiss = new Subject<any>();
@@ -1045,7 +1046,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         onNewParentClick: async () => {
           const { data, role } = await this.openDetailModal();
           if (data) {
-            await this.addEntityToTable(data, {confirmCreate: false});
+            await this.addEntityToTable(data, {editing: false});
           }
           return data;
         },
