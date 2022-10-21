@@ -361,7 +361,9 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
 
     const items = await this.openSelectReferentialModal({
       allowMultiple: true,
-      entityName: 'LocationClassification'
+      filter: {
+        entityName: 'LocationClassification'
+      }
     });
 
     // Add to list
@@ -427,14 +429,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     }
   }
 
-  protected async openSelectReferentialModal(opts: Partial<ISelectReferentialModalOptions>): Promise<ReferentialRef[]> {
+  protected async openSelectReferentialModal(opts: ISelectReferentialModalOptions): Promise<ReferentialRef[]> {
 
     const hasTopModal = !!(await this.modalCtrl.getTop());
-    const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
-      componentProps: <ISelectReferentialModalOptions>{
-        ...opts,
-        filter: ReferentialRefFilter.fromObject(opts.filter)
-      },
+    const modal = await this.modalCtrl.create({
+      component: SelectReferentialModal,
+      componentProps:opts,
       keyboardClose: true,
       backdropDismiss: false,
       cssClass: hasTopModal ? 'modal-large stack-modal' : 'modal-large',

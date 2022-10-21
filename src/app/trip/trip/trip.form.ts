@@ -239,7 +239,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
     // Combo: metiers
     const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
-    this.registerAutocompleteField<ReferentialRef>('metier', {
+    this.registerAutocompleteField<Metier>('metier', {
       // Important, to get the current (focused) control value, in suggestMetiers() function (otherwise it will received '*').
       //showAllOnFocus: false,
       suggestFn: (value, options) => this.suggestMetiers(value, options),

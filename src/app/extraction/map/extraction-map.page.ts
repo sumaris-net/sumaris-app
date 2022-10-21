@@ -1397,8 +1397,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return (feature) => {
 
       const value = feature.properties[propertyName];
-      const color = scale.getLegendForValue(value).color.rgba(1);
+      const color = scale.getValueColor(value).rgba(1);
 
+      // DEBUG
       //console.debug(`${options.propertyName}=${value} | color=${color} | ${feature.properties['square']}`);
 
       return {

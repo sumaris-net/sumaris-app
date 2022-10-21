@@ -16,7 +16,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { PmfmStrategiesTable} from './pmfm-strategies.table';
 import { ReferentialRefService } from '../services/referential-ref.service';
-import { SelectReferentialModal } from '../list/select-referential.modal';
+import { ISelectReferentialModalOptions, SelectReferentialModal } from '../list/select-referential.modal';
 import { ModalController } from '@ionic/angular';
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { BehaviorSubject } from 'rxjs';
@@ -29,6 +29,7 @@ import { ReferentialFilter } from '../services/filter/referential.filter';
 import { ReferentialRefFilter } from '../services/filter/referential-ref.filter';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
+import { IBaseSelectEntityModalOptions } from '@app/referential/list/base-select-entity.modal';
 
 @Component({
   selector: 'app-strategy-form',
@@ -238,14 +239,11 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
     await super.updateView(data, {...opts, updateRoute: false});
   }
 
-  async openSelectReferentialModal(opts: {
-    filter: Partial<ReferentialRefFilter>
-  }): Promise<ReferentialRef[]> {
+  async openSelectReferentialModal(opts: ISelectReferentialModalOptions): Promise<ReferentialRef[]> {
 
-    const modal = await this.modalCtrl.create({ component: SelectReferentialModal,
-      componentProps: {
-        filter: ReferentialFilter.fromObject(opts.filter)
-      },
+    const modal = await this.modalCtrl.create({
+      component: SelectReferentialModal,
+      componentProps: opts,
       keyboardClose: true,
       cssClass: 'modal-large'
     });
