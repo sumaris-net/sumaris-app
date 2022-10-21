@@ -6,6 +6,7 @@ import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class
 import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { BatchModal, IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
+import { OverlayEventDetail } from '@ionic/core';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName', 'weight'];
 
@@ -57,7 +58,7 @@ export class BatchesTable extends AbstractBatchesTable<Batch>{
 
   /* -- protected methods  -- */
 
-  protected async openDetailModal(dataToOpen?: Batch): Promise<Batch | undefined> {
+  protected async openDetailModal(dataToOpen?: Batch): Promise<OverlayEventDetail<Batch | undefined>> {
     const isNew = !dataToOpen && true;
     if (isNew) {
       dataToOpen = new this.dataType();
@@ -92,16 +93,13 @@ export class BatchesTable extends AbstractBatchesTable<Batch>{
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug('[batches-table] Batch modal result: ', data);
+    const {data, role} = await modal.onDidDismiss();
+
+    if (data && this.debug) console.debug('[batches-table] Batch modal result: ', data, role);
+
     this.markAsLoaded();
 
-    if (data instanceof Batch) {
-      return data as Batch;
-    }
-
-    // Exit if empty
-    return undefined;
+    return {data: (data instanceof Batch) ? data as Batch : undefined, role};
   }
 }
 

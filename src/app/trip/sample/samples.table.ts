@@ -340,7 +340,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
           await this.addEntityToTable(dataToSave, {editing: false});
         } else {
           await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
-          row = null; // Avoid updating twice (should never occur, because onSubmitAndNext always create a new entity)
+          row = null; // Forget the row to update, for the next iteration (should never occur, because onSubmitAndNext always create a new entity)
           isNew = true; // Next row should be new
         }
         // Prepare new sample
@@ -371,7 +371,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
     // Wait until closed
     const {data, role} = await modal.onDidDismiss();
-
 
     if (data && this.debug) console.debug('[samples-table] Sample modal result: ', data, role);
 

@@ -35,7 +35,7 @@ export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef
       this.filter.entityName = this.entityName;
     }
     if (!this.filter.entityName) {
-      throw Error('Missing entityName');
+      throw new Error('Missing entityName');
     }
   }
 

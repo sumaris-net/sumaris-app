@@ -176,7 +176,6 @@
 
 </mat-menu>
 
-<!--<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">-->
 <ion-content>
 
   <mat-tab-group #tabGroup
@@ -233,6 +232,7 @@
                                              entityName="VesselUseMeasurement"
                                              [acquisitionLevel]="$acquisitionLevel|async"
                                              [forceOptional]="forceMeasurementAsOptional"
+                                             [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
                                              [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
                                              [i18nSuffix]="i18nContext.suffix"
                                              [tabindex]="30"
@@ -242,8 +242,6 @@
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>
-
-
                 </ion-grid>
               </app-form-operation>
             </ion-col>
@@ -275,6 +273,7 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid"></ion-icon>
       </ng-template>
 
+      <!-- batch tree -->
       <app-batch-tree #batchTree
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
@@ -344,10 +343,6 @@
   </ion-fab-button>
 
 </ion-fab>
-
-<ng-template #skeletonText100>
-  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
-</ng-template>
 
 <!-- DEBUG -->
 <ng-template #debugPanel>

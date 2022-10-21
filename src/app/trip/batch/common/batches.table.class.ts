@@ -26,8 +26,8 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { Sale } from '@app/trip/services/model/sale.model';
+import { OverlayEventDetail } from '@ionic/core';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -151,8 +151,8 @@ export abstract class AbstractBatchesTable<
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const data = await this.openDetailModal();
-    if (data) {
+    const {data, role} = await this.openDetailModal();
+    if (data && role !== 'delete') {
       // Can be an update, and not only a add,
       // (e.g. the batch group modal can add row, before opening the sub batches modal)
       await this.addOrUpdateEntityToTable(data);
@@ -168,14 +168,14 @@ export abstract class AbstractBatchesTable<
       return true;
     }
 
-    const data = this.toEntity(row, true);
+    const dataToOpen = this.toEntity(row, true);
 
     // Prepare entity measurement values
-    this.prepareEntityToSave(data);
+    this.prepareEntityToSave(dataToOpen);
 
-    const updatedData = await this.openDetailModal(data);
-    if (updatedData) {
-      await this.updateEntityToTable(updatedData, row, {confirmEdit: false});
+    const { data, role } = await this.openDetailModal(dataToOpen);
+    if (data && role !== 'delete') {
+      await this.updateEntityToTable(data, row, {confirmEdit: false});
     } else {
       this.editedRow = null;
     }
@@ -263,7 +263,7 @@ export abstract class AbstractBatchesTable<
 
   /* -- protected methods -- */
 
-  protected abstract openDetailModal(dataToOpen?: T): Promise<T | undefined>;
+  protected abstract openDetailModal(dataToOpen?: T): Promise<OverlayEventDetail<T | undefined>>;
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];

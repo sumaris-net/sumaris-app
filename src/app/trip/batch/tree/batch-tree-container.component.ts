@@ -41,8 +41,8 @@ import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
-import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 @Component({
   selector: 'app-batch-tree-container',
@@ -62,7 +62,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   data: Batch = null;
   $gearId = new BehaviorSubject<number>(null);
-  $physicalGearId = new BehaviorSubject<number>(null);
+  $physicalGear = new BehaviorSubject<PhysicalGear>(null);
   $programLabel = new BehaviorSubject<string>(null);
   $program = new BehaviorSubject<Program>(null);
   $sortingPmfms = new BehaviorSubject<IPmfm[]>(null);
@@ -149,14 +149,14 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return this.loadingSubject.value;
   }
 
-  @Input() set physicalGearId(value: number) {
-    if (value !== this.$physicalGearId.value) {
-      this.$physicalGearId.next(value);
+  @Input() set physicalGear(value: PhysicalGear) {
+    if (value !== this.$physicalGear.value) {
+      this.$physicalGear.next(value);
     }
   }
 
-  get physicalGearId(): number {
-    return this.$physicalGearId.value;
+  get physicalGear(): PhysicalGear {
+    return this.$physicalGear.value;
   }
 
   @Input() set showBatchTables(value: boolean) {
@@ -205,7 +205,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               translate: TranslateService,
               protected programRefService: ProgramRefService,
               protected batchModelValidatorService: BatchModelValidatorService,
-              protected physicalGearService: PhysicalGearService,
               protected pmfmNamePipe: PmfmNamePipe,
               protected cd: ChangeDetectorRef) {
     super(route, router, alertCtrl, translate);
@@ -250,7 +249,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
           switchMap(() => merge(
               this.$program,
               this.$gearId,
-              this.$physicalGearId
+              this.$physicalGear
             )
           ),
           debounceTime(100),
@@ -352,62 +351,71 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     const touched = this.touched;
     const dirty = this.dirty;
 
-    // Save data if dirty and enabled (do not save when disabled, e.g. when reload)
-    if (dirty && enabled) {
-      console.info('[selectivity-operation] Save batches... (before to reset tabs)')
-      try {
-        await this.save();
+    try {
+      // Save data if dirty and enabled (do not save when disabled, e.g. when reload)
+      if (dirty && enabled) {
+        console.info('[selectivity-operation] Save batches... (before to reset tabs)')
+        try {
+          await this.save();
+        }
+        catch (err) {
+          // Log then continue
+          console.error(err && err.message || err);
+        }
       }
-      catch (err) {
-        // Log then continue
-        console.error(err && err.message || err);
+
+      // Load pmfms for batches
+      const [catchPmfms, sortingPmfms] = await Promise.all([
+        this.programRefService.loadProgramPmfms(program.label, {
+          acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
+          gearId
+        }),
+        this.programRefService.loadProgramPmfms(program.label, {
+          acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
+          gearId
+        })
+      ]);
+
+      // Fill CHILD_GEAR pmfms
+      const childGearPmfmIndex = sortingPmfms
+        .findIndex(p => p.id === PmfmIds.CHILD_GEAR);
+      if (childGearPmfmIndex !== -1) {
+
+        // DEBUG
+        let now = Date.now();
+        console.debug(this.logPrefix + 'Waiting physical gear to be set...');
+
+        // Load operation's physical gears
+        const physicalGear = await firstNotNilPromise(this.$physicalGear, {stop: this.destroySubject, stopError: false});
+
+        // Convert to referential item
+        const items = (physicalGear?.children || []).map(pg => ReferentialRef.fromObject({
+          id: pg.rankOrder,
+          label: pg.rankOrder,
+          name: pg.measurementValues[PmfmIds.GEAR_LABEL] || pg.gear.name
+        }));
+
+        if (now) console.debug(`[batch-tree-container] Waiting physical gear [OK] after ${Date.now() - now}ms`, items);
+
+
+        sortingPmfms[childGearPmfmIndex] = sortingPmfms[childGearPmfmIndex].clone();
+        sortingPmfms[childGearPmfmIndex].qualitativeValues = items;
       }
+
+      this.$catchPmfms.next(catchPmfms);
+      this.$sortingPmfms.next(sortingPmfms);
+
     }
-
-    // Load pmfms for batches
-    const [catchPmfms, sortingPmfms] = await Promise.all([
-      this.programRefService.loadProgramPmfms(program.label, {
-        acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
-        gearId
-      }),
-      this.programRefService.loadProgramPmfms(program.label, {
-        acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
-        gearId
-      })
-    ]);
-
-    // Fill CHILD_GEAR pmfms
-    const childGearPmfmIndex = sortingPmfms
-      .findIndex(p => p.id === PmfmIds.CHILD_GEAR);
-    if (childGearPmfmIndex !== -1) {
-
-      // DEBUG
-      console.debug(this.logPrefix + 'Waiting physical gears to be set...');
-      let now = Date.now();
-      const physicalGearId = await firstNotNilPromise(this.$physicalGearId, {stop: this.destroySubject, stopError: false});
-
-      // Load children gears
-      const { data } = await this.physicalGearService.loadAllByParentId(physicalGearId, { toEntity: false, withTotal: false });
-
-      // Convert to referential item
-      const items = data.map(pg => ReferentialRef.fromObject({
-        id: pg.rankOrder,
-        label: pg.rankOrder,
-        name: pg.measurementValues[PmfmIds.GEAR_LABEL] || pg.gear.name
-      }));
-
-      if (now) console.debug(`[catch-form] Waiting children physical gears [OK] after ${Date.now() - now}ms`, items);
-
-      sortingPmfms[childGearPmfmIndex] = sortingPmfms[childGearPmfmIndex].clone();
-      sortingPmfms[childGearPmfmIndex].qualitativeValues = items;
+    catch (err) {
+      const error = err?.message || err;
+      this.setError(error);
     }
-
-    this.$catchPmfms.next(catchPmfms);
-    this.$sortingPmfms.next(sortingPmfms);
-
-    if (enabled) this.enable();
-    if (dirty) this.markAsDirty();
-    if (touched) this.markAllAsTouched();
+    finally {
+      // Restore component state
+      if (enabled) this.enable();
+      if (dirty) this.markAsDirty();
+      if (touched) this.markAllAsTouched();
+    }
   }
 
   private _listenStatusChangesSubscription: Subscription;
@@ -449,7 +457,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
       // Configure batch tree
       this.batchTree.gearId = this.gearId;
-      this.batchTree.physicalGearId = this.physicalGearId;
+      this.batchTree.physicalGear = this.physicalGear;
       this.batchTree.i18nContext = this.i18nContext;
       this.batchTree.setSubBatchesModalOption('programLabel', this.programLabel);
       this.batchTree.showCatchForm = this.showCatchForm && source.pmfms && isNotEmptyArray(PmfmUtils.filterPmfms(source.pmfms, { excludeHidden: true }));

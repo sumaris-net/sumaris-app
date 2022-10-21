@@ -42,12 +42,13 @@ import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
 import { FormControlStatus } from '@app/shared/forms.utils';
 import { ISubBatchesModalOptions } from '@app/trip/batch/sub/sub-batches.modal';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
   program: Program;
-  physicalGearId: number;
   gearId: number;
+  physicalGear: PhysicalGear;
   usageMode: UsageMode;
   showCatchForm: boolean;
   showBatchTables: boolean;
@@ -88,8 +89,8 @@ export interface IBatchTreeComponent extends IAppTabEditor {
 export class BatchTreeComponent extends AppTabEditor<Batch, any>
   implements OnInit, AfterViewInit, IBatchTreeComponent {
 
-  private _gearId: number;
-  private _physicalGearId: number;
+  private _gearId: number = null;
+  private _physicalGear: PhysicalGear = null;
   private _allowSubBatches: boolean;
   private _subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
@@ -109,15 +110,14 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   @Input() i18nPmfmPrefix: string;
   @Input() debug: boolean;
 
-  @Input() set physicalGearId(value: number) {
-    if (this._physicalGearId !== value) {
-      this._physicalGearId = value;
-      if (this.catchBatchForm) this.catchBatchForm.physicalGearId = value;
+  @Input() set physicalGear(value: PhysicalGear) {
+    if (this._physicalGear !== value) {
+      this._physicalGear = value;
     }
   }
 
-  get physicalGearId(): number {
-    return this._physicalGearId;
+  get physicalGearId(): PhysicalGear {
+    return this._physicalGear;
   }
 
   @Input() set disabled(value: boolean) {

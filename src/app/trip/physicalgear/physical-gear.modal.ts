@@ -107,21 +107,6 @@ export class PhysicalGearModal
     return this.$gear.value?.id;
   }
 
-
-  /**
-   * @deprecated Remove after newt release of ngx-component (isNew should exist in parent class)
-   */
-  get isNew(): boolean {
-    return super.isNewData;
-  }
-
-  /**
-   * @deprecated Remove after newt release of ngx-component (isNew should exist in parent class)
-   */
-  @Input() set isNew(value: boolean) {
-    super.isNewData = value;
-  }
-
   constructor(injector: Injector,
               protected translateContext: TranslateContextService,
               @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) protected childrenGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>,

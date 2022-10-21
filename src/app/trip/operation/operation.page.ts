@@ -52,9 +52,7 @@ import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { flagsToString, removeFlag } from '@app/shared/flags.utils';
-
 import { moment } from '@app/vendor';
-
 
 @Component({
   selector: 'app-operation-page',
@@ -84,6 +82,7 @@ export class OperationPage
     CATCH: 1,
     SAMPLE: 2,
   };
+
   private _lastOperationsTripId: number;
   private _measurementSubscription: Subscription;
   private _sampleRowSubscription: Subscription;
@@ -126,6 +125,7 @@ export class OperationPage
   showSampleTablesByProgram = false;
   isDuplicatedData = false;
   operationPasteFlags: number;
+  readonly forceOptionalExcludedPmfmIds: number[];
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -192,6 +192,11 @@ export class OperationPage
     // Init defaults
     this.mobile = this.settings.mobile;
     this.showLastOperations = this.settings.isUsageMode('FIELD');
+    this.forceOptionalExcludedPmfmIds = [
+      PmfmIds.SURVIVAL_SAMPLING_TYPE,
+      PmfmIds.HAS_ACCIDENTAL_CATCHES,
+      PmfmIds.HAS_INDIVIDUAL_MEASURES
+    ];
 
     // Get paste flags from clipboard, if related to Operation
     const clipboard = this.tripContext?.clipboard;
@@ -541,7 +546,7 @@ export class OperationPage
       );
     }
 
-    // Show default tables
+    // Show default tables state
     if (defaultTableStates) {
       if (this.debug) console.debug('[operation] Enable default tables (Nor SUMARiS nor ADAP pmfms were found)');
       this.showBatchTables = this.showBatchTablesByProgram;
@@ -575,6 +580,7 @@ export class OperationPage
           })
       );
     }
+
 
     // If has errors from context, applies it on form.
     const error = isNil(this.data?.controlDate) && this.data?.qualificationComments;
@@ -636,6 +642,7 @@ export class OperationPage
     }
 
     this.measurementsForm.i18nSuffix = i18nSuffix;
+    this.measurementsForm.forceOptional = this.forceMeasurementAsOptional;
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
@@ -662,7 +669,7 @@ export class OperationPage
     this.measurementsForm.gearId = gearId;
     if (this.readySubject.value) this.measurementsForm.markAsReady();
     if (this.batchTree) {
-      this.batchTree.physicalGearId = toNumber(physicalGear?.id, null);
+      this.batchTree.physicalGear = physicalGear || null;
       this.batchTree.gearId = gearId;
       if (this.readySubject.value) this.batchTree.markAsReady();
     }
@@ -941,7 +948,7 @@ export class OperationPage
 
     // Set batch tree
     if (this.batchTree) {
-      this.batchTree.physicalGearId = physicalGearId;
+      this.batchTree.physicalGear = data.physicalGear;
       this.batchTree.gearId = gearId;
       await this.batchTree.setValue(data && data.catchBatch || null);
     }
@@ -1090,6 +1097,8 @@ export class OperationPage
     // If not the expected trip: reload
     if (trip?.id !== tripId) {
       trip = await this.tripService.load(tripId, {fullLoad: true});
+      // Update the context
+      this.tripContext.setValue('trip', trip);
     }
     this.trip = trip;
     this.saveOptions.trip = trip;

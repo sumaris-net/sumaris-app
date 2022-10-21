@@ -21,9 +21,9 @@
   </mat-autocomplete-field>
 
   <!-- rankOrder -->
-  <mat-form-field *ngIf="canEditRankOrder">
+  <mat-form-field *ngIf="canEditRankOrder && form|formGetControl:'rankOrder'; let control">
     <input matInput #inputField
-           formControlName="rankOrder"
+           [formControl]="control"
            autocomplete="off"
            type="number"
            step="1"
@@ -35,11 +35,15 @@
            [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.RANK_ORDER'|translateContext: i18nSuffix"
            [tabindex]="tabindex + 1">
 
-    <mat-error *ngIf="form.controls.rankOrder.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-    <mat-error *ngIf="form.controls.rankOrder.hasError('min')">
-      {{'ERROR.FIELD_MIN' | translate:form.controls.rankOrder.errors['min'] }}</mat-error>
-    <mat-error *ngIf="form.controls.rankOrder.hasError('integer')">
-      {{'ERROR.FIELD_NOT_VALID_INTEGER'| translate }}</mat-error>
+    <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey">
+      <ng-container [ngSwitch]="errorKey">
+        <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+        <span *ngSwitchCase="'integer'" translate>ERROR.FIELD_NOT_VALID_INTEGER</span>
+        <span *ngSwitchCase="'min'">
+          {{ (compact ? 'ERROR.FIELD_MIN_COMPACT' : 'ERROR.FIELD_MIN')| translate:control.errors.min }}</span>
+        <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
+      </ng-container>
+    </mat-error>
   </mat-form-field>
 
   <ng-content></ng-content>

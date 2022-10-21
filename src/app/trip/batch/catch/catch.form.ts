@@ -4,17 +4,16 @@ import { MeasurementsValidatorService } from '../../services/validator/measureme
 import { MeasurementFormInitSteps, MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { BehaviorSubject } from 'rxjs';
 import { BatchValidatorService } from '../common/batch.validator';
-import {firstNotNilPromise, isNotEmptyArray, isNotNil, ReferentialRef, ReferentialUtils, toNumber} from '@sumaris-net/ngx-components';
+import { isNotNil, toNumber } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { filter } from 'rxjs/operators';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { MatrixIds, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
+import { MatrixIds } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { equals } from '@app/shared/functions';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
-import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 
 @Component({
   selector: 'form-catch-batch',
@@ -29,7 +28,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
   private _filter: BatchFilter;
   private _pmfmFilter: Partial<DenormalizedPmfmFilter> = null;
-  private _$physicalGearId = new BehaviorSubject<number>(undefined);
 
   $gearPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $onDeckPmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -53,10 +51,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
       this._pmfmFilter = value;
       if (!this.loading) this.dispatchPmfms();
     }
-  }
-
-  @Input() set physicalGearId(value: number) {
-    this._$physicalGearId.next(value);
   }
 
   constructor(
@@ -87,7 +81,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this._$physicalGearId.unsubscribe();
     this.$gearPmfms.unsubscribe();
     this.$onDeckPmfms.unsubscribe();
     this.$sortingPmfms.unsubscribe();

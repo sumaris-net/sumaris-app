@@ -9,7 +9,7 @@ import { AppForm, firstNotNilPromise, isNil, isNotNil, toNumber } from '@sumaris
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
-export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
+export interface IMeasurementValuesFormOptions {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
   onUpdateFormGroup?: (formGroup: FormGroup) => void | Promise<void>;
   skipDisabledPmfmControl?: boolean; // True by default
@@ -42,7 +42,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected data: T;
   protected applyingValue = false;
   protected _measurementValuesForm: FormGroup;
-  protected options: MeasurementValuesFormOptions<T>;
+  protected options: IMeasurementValuesFormOptions;
   protected cd: ChangeDetectorRef = null;
 
   @Input() compact = false;
@@ -146,7 +146,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
                         protected formBuilder: FormBuilder,
                         protected programRefService: ProgramRefService,
                         form?: FormGroup,
-                        options?: MeasurementValuesFormOptions<T>
+                        options?: IMeasurementValuesFormOptions
   ) {
     super(injector, form);
     this.cd = injector.get(ChangeDetectorRef);
@@ -604,11 +604,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     // Call options function
-    if (this.options && this.options.onUpdateFormGroup) {
-      const res = this.options.onUpdateFormGroup(form);
-      if (res instanceof Promise) {
-        await res;
-      }
+    if (this.options?.onUpdateFormGroup) {
+      await this.options.onUpdateFormGroup(form);
     }
 
     if (this.debug) console.debug(`${this._logPrefix} Form controls updated`);

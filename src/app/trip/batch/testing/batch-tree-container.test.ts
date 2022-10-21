@@ -30,6 +30,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { MatTabGroup } from '@angular/material/tabs';
 import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
 import { ActivatedRoute } from '@angular/router';
+import { TripService } from '@app/trip/services/trip.service';
 
 
 @Component({
@@ -70,6 +71,7 @@ export class BatchTreeContainerTestPage implements OnInit {
     protected programRefService: ProgramRefService,
     private entities: EntitiesStorage,
     private context: ContextService<BatchContext>,
+    private tripService: TripService,
     private activeRoute: ActivatedRoute
   ) {
 
@@ -199,8 +201,8 @@ export class BatchTreeContainerTestPage implements OnInit {
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.batchTree.program = program;
     if (program.label === 'APASE' && this.batchTree.gearId === 7) {
-      //this.batchTree.gearId = 7; // Parent gear
-      this.batchTree.physicalGearId = 70; // Parent gear
+      const trip = await this.tripService.load(70);
+      this.batchTree.physicalGear = trip?.gears?.[0]; // Parent gear
     }
 
     this.markAsReady();

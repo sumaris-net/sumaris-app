@@ -44,6 +44,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
 import { hasFlag } from '@app/shared/flags.utils';
+import { OverlayEventDetail } from '@ionic/core';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -1016,19 +1017,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
-    // Define a function to add new parent
-    const onNewParentClick = showParentGroup ? async () => {
-      const newParent = await this.openDetailModal();
-      if (newParent) {
-        await this.addEntityToTable(newParent, {confirmCreate: false});
-      }
-      return newParent;
-    } : undefined;
-
-    // Define available parent, as an observable (if new parent can added)
-    // - If mobile, create an observable, linked to table rows
-    // - else (if desktop), create a copy
-    const onModalDismiss = new Subject<any>();
+    const $dismiss = new Subject<any>();
 
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
@@ -1039,20 +1028,27 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         usageMode: this.usageMode,
         showParentGroup,
         parentGroup,
+        data: this.availableSubBatches,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
         // Scientific species is required, only not already set in batch groups
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
+        // Define available parent, as an observable (if new parent can added)
         availableParents: this.dataSource.rowsSubject
           .pipe(
-            takeUntil(onModalDismiss),
+            takeUntil($dismiss),
             map((rows) => rows.map(r => r.currentData)),
             tap((data) => console.warn('[batch-groups-table] Modal -> New available parents:', data))
           ),
-        data: this.availableSubBatches,
-        onNewParentClick,
+        onNewParentClick: async () => {
+          const { data, role } = await this.openDetailModal();
+          if (data) {
+            await this.addEntityToTable(data, {confirmCreate: false});
+          }
+          return data;
+        },
         i18nSuffix: this.i18nColumnSuffix,
         mobile: this.mobile,
         // Override using input options
@@ -1070,7 +1066,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     // Wait until closed
     const {data} = await modal.onDidDismiss();
 
-    onModalDismiss.next(); // disconnect datasource observables
+    $dismiss.next(); // disconnect datasource observables
 
     // User cancelled
     if (isNil(data)) {
@@ -1085,12 +1081,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return data;
   }
 
-  protected async openDetailModal(initialData?: BatchGroup): Promise<BatchGroup | undefined> {
-    const isNew = !initialData && true;
-    initialData = initialData || new BatchGroup();
+  protected async openDetailModal(dataToOpen?: BatchGroup): Promise<OverlayEventDetail<BatchGroup | undefined>> {
+    const isNew = !dataToOpen && true;
 
     if (isNew) {
-      await this.onNewEntity(initialData);
+      dataToOpen = new BatchGroup();
+      await this.onNewEntity(dataToOpen);
     }
 
     this.markAsLoading();
@@ -1102,7 +1098,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         pmfms: this._initialPmfms,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
-        data: initialData,
+        data: dataToOpen,
         isNew,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
@@ -1127,11 +1123,13 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug('[batch-group-table] Batch group modal result: ', data);
+    const {data, role} = await modal.onDidDismiss();
+
+    if (data && this.debug) console.debug('[batch-group-table] Batch group modal result: ', data, role);
+
     this.markAsLoaded();
 
-    return data instanceof BatchGroup ? data : undefined;
+    return {data: data instanceof BatchGroup ? data : undefined, role};
   }
 
   async openSelectColumnsModal(event?: UIEvent) {

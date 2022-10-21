@@ -323,7 +323,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     if (this.isOnFieldMode) {
       // Default start date to 00:00 (locale) - otherwise
-      data.departureDateTime = DateUtils.resetTime(moment());
+      data.departureDateTime = DateUtils.markNoTime(DateUtils.resetTime(moment()));
       // Default end date to now
       data.returnDateTime = moment();
 

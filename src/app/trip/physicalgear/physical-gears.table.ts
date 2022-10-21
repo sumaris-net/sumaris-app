@@ -1,20 +1,19 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
-import {createPromiseEventEmitter, IEntitiesService, InMemoryEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
+import { createPromiseEventEmitter, IEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PhysicalGearFilter } from './physical-gear.filter';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import {debounceTime, filter, tap} from 'rxjs/operators';
+import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
-import {BehaviorSubject, merge, Subscription} from 'rxjs';
+import { BehaviorSubject, merge, Subscription } from 'rxjs';
 import { OverlayEventDetail } from '@ionic/core';
-import { Sample } from '@app/trip/services/model/sample.model';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed', 'comments'];
@@ -252,7 +251,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     const { data, role } = await this.openDetailModal();
     if (data && role !== 'delete') {
       if (this.debug) console.debug("Adding new gear:", data);
-      await this.addEntityToTable(data, {editing: false});
+      await this.addEntityToTable(data, {confirmCreate: false});
     }
     return true;
   }
