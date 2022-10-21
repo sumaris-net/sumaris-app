@@ -1,11 +1,12 @@
-import { BehaviorSubject, isObservable, Observable, Subject } from 'rxjs';
-import { distinctUntilChanged, filter, first, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { BehaviorSubject, from, isObservable, Observable } from 'rxjs';
+import { distinctUntilChanged, filter, first, map, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { EntityUtils, firstNotNilPromise, IEntitiesService, IEntityFilter, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
+import { EntityUtils, firstNotNil, firstNotNilPromise, IEntitiesService, IEntityFilter, InMemoryEntitiesService, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
 import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
 import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
 import { SortDirection } from '@angular/material/sort';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { equals } from '@app/shared/functions';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -25,7 +26,6 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   private _delegate: IEntitiesService<T, F>;
 
   protected programRefService: ProgramRefService;
-  protected readonly destroySubject = new Subject();
 
   loadingPmfms = false;
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -145,9 +145,16 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     );
   }
 
-  protected ngOnStart(): Promise<IPmfm[]> {
-    this._onRefreshPmfms.emit('start');
-    return this.$pmfms.toPromise();
+  protected async ngOnStart(): Promise<IPmfm[]> {
+    if (!this.loadingPmfms) this._onRefreshPmfms.emit('start');
+    try {
+      return await this.$pmfms.pipe(filter(isNotNil)).toPromise();
+    }
+    catch(err) {
+      if (!this.stopped) {
+        console.error(err);
+      }
+    }
   }
 
   protected async ngOnStop() {
@@ -167,11 +174,13 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     options?: any
   ): Observable<LoadResult<T>> {
 
+    if (!this.started) this.start();
+
     return this.$pmfms
       .pipe(
+        takeUntil(this.stopSubject),
         filter(isNotNil),
-        first(),
-        switchMap(pmfms => {
+        mergeMap(pmfms => {
           let cleanSortBy = sortBy;
 
           // Do not apply sortBy to delegated service, when sort on a pmfm
@@ -184,6 +193,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
 
           return this.delegate.watchAll(offset, size, cleanSortBy, sortDirection, selectionFilter, options)
             .pipe(
+              takeUntil(this.stopSubject),
               map((res) => {
 
                 // Prepare measurement values for reactive form
@@ -260,16 +270,18 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     if (this._debug) console.debug(`[meas-service] Loading pmfms... {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}̀̀`);
 
     // Watch pmfms
-    let res = this.programRefService.watchProgramPmfms(this._programLabel, {
+    let pmfm$ = this.programRefService.watchProgramPmfms(this._programLabel, {
         acquisitionLevel: this._acquisitionLevel,
         strategyLabel: this._strategyLabel || undefined,
         gearId: this._gearId || undefined
-      });
+      })
+      .pipe(
+        takeUntil(this.stopSubject)
+      );
 
     // DEBUG log
     if (this._debug) {
-      res = res.pipe(
-        takeUntil(this.destroySubject),
+      pmfm$ = pmfm$.pipe(
         tap(pmfms => {
           if (!pmfms.length) {
             console.debug(`[meas-service] No pmfm found for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}. Please fill program's strategies !`);
@@ -280,40 +292,47 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
       );
     }
 
-    return res;
+    return pmfm$;
   }
 
   private async applyPmfms(pmfms: IPmfm[] | Observable<IPmfm[]>) {
     if (!pmfms) return undefined; // skip
 
-    // Wait loaded
-    if (isObservable<IPmfm[]>(pmfms)) {
-      if (this._debug) console.debug("[meas-service] setPmfms(): waiting pmfms observable to emit...");
-      pmfms = await firstNotNilPromise(pmfms, {stop: this.destroySubject});
-    }
+    try {
+      // Wait loaded
+      if (isObservable<IPmfm[]>(pmfms)) {
+        if (this._debug) console.debug(`[meas-service] setPmfms(): waiting pmfms observable...`);
+        pmfms = await firstNotNil(pmfms).toPromise();
+        if (this._debug) console.debug(`[meas-service] setPmfms(): waiting pmfms observable [OK]`);
+      }
 
-    // Map
-    if (this.options && this.options.mapPmfms) {
-      const res = this.options.mapPmfms(pmfms);
-      pmfms = (res instanceof Promise) ? await res : res;
-    }
+      // Map
+      if (this.options && this.options.mapPmfms) {
+        const res = this.options.mapPmfms(pmfms);
+        pmfms = (res instanceof Promise) ? await res : res;
+      }
 
-    // Make pmfms is an array
-    if (!Array.isArray(pmfms)) {
-      console.error(`[meas-service] Invalid pmfms. Should be an array:`, pmfms);
-      return;
-    }
+      // Make pmfms is an array
+      if (!Array.isArray(pmfms)) {
+        console.error(`[meas-service] Invalid pmfms. Should be an array:`, pmfms);
+        return;
+      }
 
-    // Mark as loaded
-    this.loadingPmfms = false;
+      // Mark as loaded
+      this.loadingPmfms = false;
 
-    // Apply, if changed
-    if (pmfms !== this.$pmfms.value) {
+      // Apply, if changed
+      if (!equals(pmfms, this.$pmfms.value)) {
 
-      // DEBUG log
-      if (this._debug) console.debug(`[meas-service] Pmfms loaded for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}`, pmfms);
+        // DEBUG log
+        if (this._debug) console.debug(`[meas-service] Pmfms loaded for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}`, pmfms);
 
-      this.$pmfms.next(pmfms);
+        this.$pmfms.next(pmfms);
+      }
+    } catch (err) {
+      if (!this.stopped) {
+        console.error(`[meas-service] Error while applying pmfms: ${err && err.message || err}`, err);
+      }
     }
   }
 }

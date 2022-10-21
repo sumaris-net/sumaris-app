@@ -1,8 +1,9 @@
 /* -- Extraction -- */
 
-import {arraySize, isNotEmptyArray} from "@sumaris-net/ngx-components";
-import {ExtractionColumn, ExtractionFilter, ExtractionType} from "../type/extraction-type.model";
+import { arraySize, isNotEmptyArray, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import { CRITERION_OPERATOR_LIST, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import {ExtractionProduct} from "../product/product.model";
+import { DEFAULT_CRITERION_OPERATOR } from '@app/extraction/criteria/extraction-criteria.form';
 
 export const SPATIAL_COLUMNS: string[] = [
   //'area', FIXME no area geometries in Pod
@@ -73,6 +74,35 @@ export class ExtractionUtils {
       }, []).join(";");
     }
     return queryParams;
+  }
+
+  static parseCriteriaFromString(sheet: string, q: string): ExtractionFilterCriterion[] {
+    const criteria = (q||'').split(';');
+    const operationRegexp = new RegExp('(' + CRITERION_OPERATOR_LIST.map(co => co.symbol)
+      .map(symbol => symbol.replace(/\\!/, '\\\\!'))
+      .join('|') + ')');
+    return criteria
+      .filter(isNotNilOrBlank)
+      .map(criterion => {
+        const matches = operationRegexp.exec(criterion);
+        const operator = matches && matches[0];
+        if (!operator) return;
+        const name = criterion.substring(0, matches.index);
+        const value = criterion.substring(matches.index + operator.length);
+        let values = value.split(':', 2);
+        if (values.length === 2) {
+          return {sheetName: sheet, name, operator, value: values[0], endValue: values[1]};
+        }
+        else {
+          values = value.split(',');
+          if (values.length > 1) {
+            return {sheetName: sheet, name, operator, values};
+          }
+          return {sheetName: sheet, name, operator, value};
+        }
+      })
+      .filter(isNotNilOrBlank)
+      .map(ExtractionFilterCriterion.fromObject);
   }
 
   static filterWithValues(columns: ExtractionColumn[]) {

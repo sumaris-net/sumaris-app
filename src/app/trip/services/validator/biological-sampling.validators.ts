@@ -21,7 +21,7 @@ export class BiologicalSamplingValidators {
     }
 
     // DEBUG
-    console.debug('Calling BiologicalSamplingValidators.addSampleValidators()')
+    //console.debug('Calling BiologicalSamplingValidators.addSampleValidators()')
 
     form.setValidators( (control) => {
       const measurementValues = form.controls.measurementValues.value;

@@ -14,7 +14,7 @@ import {
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean,
-  USER_EVENT_SERVICE,
+  APP_USER_EVENT_SERVICE,
   IUserEventAction
 } from '@sumaris-net/ngx-components';
 import { UserEvent, UserEventFilter } from '@app/social/user-event/user-event.model';
@@ -78,7 +78,7 @@ export class UserEventsTable
   constructor(
     injector: Injector,
     protected accountService: AccountService,
-    @Inject(USER_EVENT_SERVICE) protected userEvenService: UserEventService,
+    @Inject(APP_USER_EVENT_SERVICE) protected userEvenService: UserEventService,
     protected entities: EntitiesStorage,
     protected cd: ChangeDetectorRef
   ) {

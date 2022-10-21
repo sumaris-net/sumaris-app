@@ -211,3 +211,12 @@ mat-sampling-ratio-field {
     //border-radius: 5px !important;
   }
 }
+
+/* -- Mat menu -- */
+
+.mat-menu-panel {
+  .mat-menu-item.activated {
+    background-color: var(--ion-color-secondary100);
+    color: var(--ion-color-secondary100-contrast);
+  }
+}

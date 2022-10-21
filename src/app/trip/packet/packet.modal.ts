@@ -116,7 +116,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
 
     if (result) {
-      await this.viewCtrl.dismiss();
+      await this.viewCtrl.dismiss(this.data, 'delete');
     }
   }
 

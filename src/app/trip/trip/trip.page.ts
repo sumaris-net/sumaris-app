@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, OnDestroy, Self, ViewChild } from '@angular/core';
 
 import { TripService } from '../services/trip.service';
 import { TripForm } from './trip.form';
@@ -6,7 +6,7 @@ import { SaleForm } from '../sale/sale.form';
 import { OperationsTable } from '../operation/operations.table';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
-import * as momentImported from 'moment';
+
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { FormGroup, Validators } from '@angular/forms';
@@ -41,7 +41,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -50,7 +50,7 @@ import { Sale } from '@app/trip/services/model/sale.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -72,7 +72,8 @@ export const TripPageSettingsEnum = {
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
-        equals: PhysicalGear.equals
+        equals: PhysicalGear.equals,
+        sortByReplacement: {'id': 'rankOrder'}
       })
     }
   ],
@@ -87,6 +88,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   mobile = false;
   settingsId: string;
   devAutoFillData = false;
+  enableReport: boolean;
   operationEditor: OperationEditor;
   operationPasteFlags: number;
 
@@ -100,12 +102,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   @ViewChild('operationsTable', {static: true}) operationsTable: OperationsTable;
 
   get dirty(): boolean {
-    // Ignore operation table, when computing dirty state
-    return this._dirty || (this.children?.filter(form => form !== this.operationsTable).findIndex(c => c.dirty) !== -1);
-  }
-
-  get $ready(): Observable<boolean> {
-    return this._$ready.asObservable();
+    return this.dirtySubject.value
+      // Ignore operation table, when computing dirty state
+      || (this.children?.filter(form => form !== this.operationsTable).findIndex(c => c.dirty) !== -1);
   }
 
   get forceMeasurementAsOptional(): boolean {
@@ -121,7 +120,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     protected context: ContextService,
     protected tripContext: TripContextService,
     public network: NetworkService,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) private physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) public physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
       Trip,
@@ -253,6 +252,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
     this.operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
+    this.enableReport = program.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE);
 
     // Trip form
     this.tripForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.TRIP_OBSERVERS_ENABLE);
@@ -277,7 +277,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Physical gears
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
-    this.physicalGearsTable.allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN)
+    this.physicalGearsTable.allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN);
+    this.physicalGearsTable.showSubGearsCountColumn = this.physicalGearsTable.allowChildrenGears;
+    this.physicalGearsTable.setModalOption('helpMessage', program.getProperty(ProgramProperties.TRIP_PHYSICAL_GEAR_HELP_MESSAGE));
     this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
 
@@ -319,7 +321,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.markForCheck();
 
     // Listen program, to reload if changes
-    this.startListenProgramRemoteChanges(program);
+    if (this.network.online) this.startListenProgramRemoteChanges(program);
   }
 
   protected async onNewEntity(data: Trip, options?: EntityServiceLoadOptions): Promise<void> {
@@ -409,23 +411,42 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
+  async openReport(event?: UIEvent) {
+    if (this.dirty) {
+      const data = await this.saveAndGetDataIfValid();
+      if (!data) return; // Cancel
+    }
+    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+  }
+
   protected async setValue(data: Trip) {
-    const isNewData = isNil(data.id);
+    try {
+      const isNewData = isNil(data.id);
 
-    // Set data to form
-    const formPromise = this.tripForm.setValue(data);
+      const jobs: Promise<any>[] = [];
 
-    this.saleForm.value = data && data.sale || new Sale();
-    this.measurementsForm.value = data && data.measurements || [];
+      // Set data to form
+      jobs.push(this.tripForm.setValue(data));
 
-    // Set physical gears
-    this.physicalGearsTable.tripId = data.id;
-    this.physicalGearService.value = data && data.gears || [];
+      this.saleForm.value = data && data.sale || new Sale();
+      this.measurementsForm.value = data && data.measurements || [];
 
-    // Operations table
-    if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
+      // Set physical gears
+      this.physicalGearsTable.tripId = data.id;
+      this.physicalGearService.value = data && data.gears || [];
+      jobs.push(this.physicalGearsTable.waitIdle({ timeout: 2000 }));
 
-    await formPromise;
+      // Operations table
+      if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
+
+      await Promise.all(jobs);
+
+      console.debug('[trip] setValue() [OK]');
+    }
+    catch (err) {
+      const error = err?.message || err;
+      this.setError(error);
+    }
   }
 
   async onOpenOperation({id, row}: { id?: number; row: TableElement<any>; }) {

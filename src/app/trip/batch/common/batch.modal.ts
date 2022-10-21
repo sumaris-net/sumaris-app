@@ -20,7 +20,6 @@ export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEn
   showIndividualCount: boolean;
 
   // Other options
-  qvPmfm?: IPmfm;
   availableTaxonGroups?: IReferentialRef[] | Observable<IReferentialRef[]>;
   taxonGroupsNoWeight?: string[]; // TODO: voir pour utiliser des IReferentialRef
 
@@ -52,7 +51,6 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() showIndividualCount = false;
   @Input() showTotalIndividualCount = false;
   @Input() showSamplingBatch = false;
-  @Input() qvPmfm: IPmfm;
   @Input() maxVisibleButtons: number;
   @Input() usageMode: UsageMode;
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];

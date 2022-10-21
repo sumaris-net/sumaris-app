@@ -16,7 +16,10 @@
   }
 
   .mat-column-comments {
-    max-width: inherit; // Override default limitation
+    min-width: unset !important;
+    max-width: unset !important;
+    width: 46px !important;
+    padding-left: 6px;
   }
 
   .mat-column-80,

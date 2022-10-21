@@ -176,7 +176,6 @@
 
 </mat-menu>
 
-<!--<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">-->
 <ion-content>
 
   <mat-tab-group #tabGroup
@@ -203,6 +202,10 @@
           <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
         </ion-item>
 
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
+
         <ion-grid class="ion-no-padding">
 
           <ion-row>
@@ -224,72 +227,19 @@
                     <ion-col size="12" size-md="3" size-lg="3">
                       <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
                     </ion-col>
-                    <ion-col [class.measurements-form-padding-start]="mobile">
+                    <ion-col>
                       <app-form-measurements #measurementsForm
                                              entityName="VesselUseMeasurement"
                                              [acquisitionLevel]="$acquisitionLevel|async"
                                              [forceOptional]="forceMeasurementAsOptional"
+                                             [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
                                              [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
+                                             [i18nSuffix]="i18nContext.suffix"
                                              [tabindex]="30"
                                              [mobile]="mobile"
                                              [compact]="false"
                                              [debug]="debug">
                       </app-form-measurements>
-                    </ion-col>
-                  </ion-row>
-
-                  <!-- DEBUG -->
-                  <ion-row *ngIf="debug" style="pointer-events: auto; user-select: text; margin-bottom: 16px;">
-                    <ion-col size="0" size-md="3" size-lg="3">
-                      <ion-label class="ion-float-end">Debug :</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-text color="primary" class="text-italic">
-                        <small>
-                          editor.loading: {{loading}}<br/>
-                          editor.ready: {{readySubject|async}}<br/>
-                          editor.dirty: {{dirty}}<br/>
-                        </small>
-                      </ion-text>
-                    </ion-col>
-                    <ion-col>
-                      <ion-text color="primary" class="text-italic">
-                        <small>
-                          opeForm.loading: {{opeForm.loading}}<br/>
-                          opeForm.ready: {{opeForm.readySubject|async}}<br/>
-                          opeForm.dirty: {{opeForm.dirty}}<br/>
-                        </small>
-                        <small>
-                          opeForm.startDateTime: {{form|formGetValue:'startDateTime'|dateFormat: {time: true} }}<br/>
-                          opeForm.fishingStartDateTime: {{form.controls.fishingStartDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
-                          opeForm.fishingEndDateTime: {{form.controls.fishingEndDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
-                          opeForm.endDateTime: {{form.controls.endDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
-                        </small>
-                      </ion-text>
-                    </ion-col>
-                    <ion-col>
-                      <ion-text color="primary" class="text-italic">
-                        <small>
-                          <span *ngIf="allowParentOperation && opeForm.isChildOperation">
-                            parentOperation.startDateTime: {{form.get('parentOperation.startDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
-                            parentOperation.fishingStartDateTime: {{form.get('parentOperation.fishingStartDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
-                          </span>
-                          <span *ngIf="allowParentOperation && opeForm.isParentOperation">
-                            childOperation.fishingEndDateTime: {{form.get('childOperation.fishingEndDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
-                            childOperation.endDateTime: {{form.get('childOperation.endDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
-                          </span>
-                        </small>
-                      </ion-text>
-                    </ion-col>
-                    <ion-col>
-                      <ion-text color="primary" class="text-italic">
-                        <small>
-                          measurementsForm.loading: {{measurementsForm.loading}}<br/>
-                          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
-                          measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
-                          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
-                        </small>
-                      </ion-text>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
@@ -323,6 +273,7 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid"></ion-icon>
       </ng-template>
 
+      <!-- batch tree -->
       <app-batch-tree #batchTree
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
@@ -338,7 +289,7 @@
     <!-- TAB: Samples  -->
     <mat-tab #sampleTab
              [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
-             [disabled]="(loadingSubject | delay: 600 | async) || !showSamplesTab">
+             [disabled]="!showSamplesTab">
       <ng-template mat-tab-label>
         <mat-icon svgIcon="fish-oblique"></mat-icon>
         <ion-label *ngVar="sampleTree.samplesTable.totalRowCount as count"
@@ -393,6 +344,52 @@
 
 </ion-fab>
 
-<ng-template #skeletonText100>
-  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          editor.loading: {{loading}}<br/>
+          editor.ready: {{readySubject|async}}<br/>
+          editor.dirty: {{dirty}}<br/>
+        </ion-col>
+        <ion-col>
+            opeForm.loading: {{opeForm.loading}}<br/>
+            opeForm.ready: {{opeForm.readySubject|async}}<br/>
+            opeForm.dirty: {{opeForm.dirty}}<br/>
+          <br/>
+            opeForm.startDateTime: {{form|formGetValue:'startDateTime'|dateFormat: {time: true} }}<br/>
+            opeForm.fishingStartDateTime: {{form.controls.fishingStartDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
+            opeForm.fishingEndDateTime: {{form.controls.fishingEndDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
+            opeForm.endDateTime: {{form.controls.endDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
+        </ion-col>
+        <ion-col>
+            <span *ngIf="allowParentOperation && opeForm.isChildOperation">
+              parentOperation.startDateTime: {{form.get('parentOperation.startDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
+              parentOperation.fishingStartDateTime: {{form.get('parentOperation.fishingStartDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
+            </span>
+            <span *ngIf="allowParentOperation && opeForm.isParentOperation">
+              childOperation.fishingEndDateTime: {{form.get('childOperation.fishingEndDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
+              childOperation.endDateTime: {{form.get('childOperation.endDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
+            </span>
+        </ion-col>
+        <ion-col>
+          measurementsForm.loading: {{measurementsForm.loading}}<br/>
+          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+          measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+
+          <!-- Sample debug -->
+          <span *ngIf="sampleTree">
+            <br/>
+            sampleTree.loading: {{sampleTree.loading}}<br/>
+            sampleTree.ready: {{sampleTree.readySubject|async}}<br/>
+            sampleTree.loaded: {{sampleTree.loaded}}<br/>
+            sampleTree.dirty: {{sampleTree.dirty}}<br/>
+          </span>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
 </ng-template>

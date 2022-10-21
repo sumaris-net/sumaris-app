@@ -14,7 +14,7 @@ import {
   PlatformService,
   suggestFromArray,
   toNumber,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { Sample } from '../services/model/sample.model';
@@ -26,7 +26,6 @@ import { SampleFilter } from '../services/filter/sample.filter';
 import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sample.modal';
 import { merge, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, mergeMap, tap } from 'rxjs/operators';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 export const SUB_SAMPLE_RESERVED_START_COLUMNS: string[] = ['parent'];
 export const SUB_SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -47,9 +46,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   private _availableSortedParents: Sample[] = [];
   private _availableParents: Sample[] = [];
-
-  protected cd: ChangeDetectorRef;
-  protected memoryDataService: InMemoryEntitiesService<Sample, SampleFilter>;
 
   onParentChanges = new Subject();
   displayParentPmfm: IPmfm;
@@ -108,15 +104,17 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       }
     );
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<Sample, SampleFilter>);
-    this.cd = injector.get(ChangeDetectorRef);
     this.i18nColumnPrefix = 'TRIP.SAMPLE.TABLE.';
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     this.confirmBeforeDelete = this.mobile;
     this.inlineEdition = !this.mobile;
     this.errorTranslatorOptions = {controlPathTranslator: this, separator: '\n'};
 
-    //this.debug = false;
+    // Default value
+    this.showCommentsColumn = !this.mobile;
+
+    // DEBUG
+    this.logPrefix = '[sub-samples-table] ';
     this.debug = !environment.production;
   }
 
@@ -124,7 +122,6 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     super.ngOnInit();
 
     this.setShowColumn('label', this.showLabelColumn);
-    this.setShowColumn('comments', !this.mobile);
 
     // Parent combo
     // the exact list of attributes to display will be set when receiving the pmfms and parents
@@ -176,7 +173,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
 
       // Read existing rows
-      const existingSamples = (await this.dataSource.getRows() || []).map(r => r.currentData);
+      const existingSamples = this.dataSource.getRows().map(r => r.currentData);
 
       const displayParentPmfmId = this.displayParentPmfm?.id;
       const availableParents = this._availableSortedParents || this._availableParents
@@ -397,7 +394,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
 
   protected async findRowByEntity(data: Sample): Promise<TableElement<Sample>> {
     if (!data || isNil(data.rankOrder)) throw new Error('Missing argument data or data.rankOrder');
-    return (await this.dataSource.getRows())
+    return this.dataSource.getRows()
       .find(r => r.currentData.rankOrder === data.rankOrder);
   }
 
@@ -449,7 +446,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     // Check if need to delete some rows
     let hasRemovedItem = false;
     const data = rows
-      .filter(row => {
+      .map(row => {
         const item = row.currentData;
         const parentId = toNumber(item.parentId, item.parent?.id);
 
@@ -481,17 +478,18 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
               row.currentData.parent = parent;
             }
           }
-          return true; // Keep only rows with a parent (or in editing mode)
+          return item; // Keep only rows with a parent (or in editing mode)
         }
 
-        // Could not found the parent anymore (parent has been delete)
+        // Could not find the parent anymore (parent has been deleted)
         hasRemovedItem = true;
-        return false;
+        return undefined;
       })
-      .map(r => r.currentData);
+      .map(isNotNil);
 
     if (hasRemovedItem) {
-      this.value = data;
+      // Make sure to convert into a Sample - fix issue #371
+      this.value = data.map(c => Sample.fromObject(c));
     }
   }
 

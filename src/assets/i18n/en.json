@@ -771,6 +771,11 @@
         "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtering not available",
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "No practiced metiers found in the available data."
+      },
+      "REPORT": {
+        "TITLE": "Report OP #{{rankOrder}} <small>of {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "Report OP {{startDateTime}}",
+        "TITLE_SLIDE": "Operation report"
       }
     },
     "OPERATION_GROUP": {
@@ -1024,6 +1029,10 @@
           "TITLE": "Release {{label}}"
         }
       }
+    },
+    "REPORT": {
+      "TITLE": "<small>{{ vessel }}</small> Trip report of {{ departureDate }}",
+      "TITLE_SLIDE": "Trip report"
     }
   },
   "EXPECTED_SALE": {
@@ -1116,6 +1125,8 @@
         "END_DATE": "End period"
       }
     },
+    "PMFM": {
+    },
     "OFFLINE_MODAL": {
       "TITLE": "Configuring offline mode",
       "HISTORICAL_DATA_DIVIDER": "Data history",
@@ -1134,6 +1145,19 @@
     "CONFIRM": {
       "OBSERVATION_HAS_SAMPLE": "Selected observation has sampling.<br/><br/><b>Are you sure</b> you want to delete it?",
       "OBSERVATIONS_HAS_SAMPLE": "Selected observations have sampling.<br/><br/><b>Are you sure</b> you want to delete them?"
+    },
+    "REPORT": {
+      "TITLE": "Observation report - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Observation report",
+      "LOCATION": "Location :",
+      "DATE_TIME": "Date/time :",
+      "OBSERVERS": "Observers(s) :",
+      "VESSEL_COUNT": "Number of vessels :",
+      "AUCTION_CONTROL": {
+        "TITLE": "Summary of the monitoring of controls under auctions : {{ location }} - {{ dateTime }}",
+        "TITLE_SHORT": "Summary of the monitoring of controls under auctions",
+        "VESSEL_COUNT": "Number of vessels checked :"
+      }
     }
   },
   "LANDING": {

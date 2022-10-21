@@ -7,16 +7,13 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppLandingModule } from '@app/trip/landing/landing.module';
-import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { SamplingLandingPage } from '@app/trip/landing/sampling/sampling-landing.page';
-import { SamplingLandingReport } from '@app/trip/landing/sampling/sampling-landing.report';
 
 
 @NgModule({
   imports: [
     AppCoreModule,
     AppDataModule,
-    AppSharedReportModule,
     TranslateModule.forChild(),
 
     // Functional modules
@@ -25,16 +22,13 @@ import { SamplingLandingReport } from '@app/trip/landing/sampling/sampling-landi
     AppMeasurementModule,
     AppSampleModule,
     AppLandingModule,
-
   ],
   declarations: [
     SamplingLandingPage,
-    SamplingLandingReport
   ],
   exports: [
     // Components
     SamplingLandingPage,
-    SamplingLandingReport
   ]
 })
 export class AppSamplingLandingModule {

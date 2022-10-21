@@ -151,32 +151,6 @@
                         (forward)="confirmAndForward($event.event, $event.row)"
                         [canCancel]="false">
     </app-actions-column>
-    <!--<ng-container matColumnDef="actions" [stickyEnd]="useSticky">
-      <th mat-header-cell *matHeaderCellDef>
-        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-      </th>
-      <td mat-cell *matCellDef="let row">
-        &lt;!&ndash; undo or delete  &ndash;&gt;
-        <button mat-icon-button color="light" *ngIf="row.validator.invalid" [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-                (click)="cancelOrDelete($event, row)" [hidden]="!inlineEdition">
-          <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-        </button>
-        &lt;!&ndash; validate &ndash;&gt;
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1" [title]="'COMMON.BTN_VALIDATE'|translate"
-                (click)="confirmEditCreate($event, row)" [hidden]="!inlineEdition">
-          <mat-icon>check</mat-icon>
-        </button>
-        &lt;!&ndash; add &ndash;&gt;
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1" [title]="'COMMON.BTN_ADD'|translate"
-                (click)="confirmAndAdd($event, row)" [hidden]="!inlineEdition">
-          <mat-icon>add</mat-icon>
-        </button>
-
-      </td>
-    </ng-container>-->
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"

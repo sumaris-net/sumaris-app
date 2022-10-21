@@ -1,12 +1,11 @@
-import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 
-import {MeasurementsForm} from '../measurement/measurements.form.component';
-import * as momentImported from 'moment';
-import {AcquisitionLevelCodes, SaleTypeIds} from '@app/referential/services/model/model.enum';
-import {AppRootDataEditor} from '@app/data/form/root-data-editor.class';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
+import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
+import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import {
-  AccountService,
+  AccountService, DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
@@ -17,40 +16,40 @@ import {
   isNotNil,
   isNotNilOrBlank,
   NetworkService,
-  ReferentialRef,
+  ReferentialRef, ReferentialUtils,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import {TripForm} from '../trip/trip.form';
-import {BehaviorSubject} from 'rxjs';
-import {TripSaveOptions, TripService} from '../services/trip.service';
-import {ObservedLocationService} from '../services/observed-location.service';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {OperationGroupTable} from '../operationgroup/operation-groups.table';
-import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
-import {ProductsTable} from '../product/products.table';
-import {Product, ProductFilter, ProductUtils} from '../services/model/product.model';
-import {PacketsTable} from '../packet/packets.table';
-import {Packet, PacketFilter} from '../services/model/packet.model';
-import {OperationGroup, Trip} from '../services/model/trip.model';
-import {ObservedLocation} from '../services/model/observed-location.model';
-import {fillRankOrder, isRankOrderValid} from '@app/data/services/model/model.utils';
-import {SaleProductUtils} from '../services/model/sale-product.model';
+import { TripForm } from '../trip/trip.form';
+import { BehaviorSubject } from 'rxjs';
+import { TripSaveOptions, TripService } from '../services/trip.service';
+import { ObservedLocationService } from '../services/observed-location.service';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { OperationGroupTable } from '../operationgroup/operation-groups.table';
+import { MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { ProductsTable } from '../product/products.table';
+import { Product, ProductFilter, ProductUtils } from '../services/model/product.model';
+import { PacketsTable } from '../packet/packets.table';
+import { Packet, PacketFilter } from '../services/model/packet.model';
+import { OperationGroup, Trip } from '../services/model/trip.model';
+import { ObservedLocation } from '../services/model/observed-location.model';
+import { fillRankOrder, isRankOrderValid } from '@app/data/services/model/model.utils';
+import { SaleProductUtils } from '../services/model/sale-product.model';
 import { debounceTime, filter, first, map } from 'rxjs/operators';
-import {ExpenseForm} from '../expense/expense.form';
-import {FishingAreaForm} from '../fishing-area/fishing-area.form';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {Landing} from '../services/model/landing.model';
-import {Program} from '@app/referential/services/model/program.model';
-import {environment} from '@environments/environment';
-import {Sample} from '../services/model/sample.model';
-import {ExpectedSaleForm} from '@app/trip/sale/expected-sale.form';
-import {TableElement} from '@e-is/ngx-material-table';
-import {LandingService} from '@app/trip/services/landing.service';
-import {APP_ENTITY_EDITOR} from '@app/data/quality/entity-quality-form.component';
-import {LandedTripService} from '@app/trip/services/landed-trip.service';
+import { ExpenseForm } from '../expense/expense.form';
+import { FishingAreaForm } from '../fishing-area/fishing-area.form';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Landing } from '../services/model/landing.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { environment } from '@environments/environment';
+import { Sample } from '../services/model/sample.model';
+import { ExpectedSaleForm } from '@app/trip/sale/expected-sale.form';
+import { TableElement } from '@e-is/ngx-material-table';
+import { LandingService } from '@app/trip/services/landing.service';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { LandedTripService } from '@app/trip/services/landed-trip.service';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -145,11 +144,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Update available operation groups for catches forms
     this.registerSubscription(
-      this.operationGroupTable.dataSource.rowsSubject
+      this.operationGroupTable.dataSource.datasourceSubject
         .pipe(
           debounceTime(400),
           filter(() => !this.loading),
-          map(() => this.operationGroupTable.dataSource.getData())
         ).subscribe(operationGroups => this.$operationGroups.next(operationGroups))
     );
 
@@ -324,7 +322,9 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }
 
     if (this.isOnFieldMode) {
-      data.departureDateTime = moment();
+      // Default start date to 00:00 (locale) - otherwise
+      data.departureDateTime = DateUtils.markNoTime(DateUtils.resetTime(moment()));
+      // Default end date to now
       data.returnDateTime = moment();
 
       if (isEmptyArray(data.observers)) {
@@ -598,8 +598,9 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     // Concat trip and expense measurements
     json.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
 
-    // FishingArea
-    json.fishingAreas = [!this.fishingAreaForm.empty ? this.fishingAreaForm.value : null];
+    // FishingArea (only if not empty AND with a location)
+    const fishingAreaJson = this.fishingAreaForm.value;
+    json.fishingAreas = fishingAreaJson ? [fishingAreaJson] : [];
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 
@@ -689,8 +690,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }
     if (this.operationGroupTable.dirty) {
       await this.operationGroupTable.save();
+      this.operationGroupTable.markAsDirty();
       saveOptions.withOperationGroup = true;
     }
+
+    // Wait end of save
+    await this.waitIdle({timeout: 2000});
 
     // todo same for other tables
 

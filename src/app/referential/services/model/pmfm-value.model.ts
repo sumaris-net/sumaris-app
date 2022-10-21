@@ -1,13 +1,15 @@
 import { isMoment, Moment } from 'moment';
 import {
   DateUtils,
-  fromDateISOString, IReferentialRef,
+  fromDateISOString,
+  IReferentialRef,
   isNil,
   isNilOrBlank,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   isNotNilOrNaN,
   joinPropertiesPath,
-  ReferentialRef,
+  notNilOrDefault,
   referentialToString,
   ReferentialUtils,
   toDateISOString
@@ -15,12 +17,21 @@ import {
 import { IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
 import { isNilOrNaN } from '@app/shared/functions';
+import { moment } from '@app/vendor';
 
 export declare type PmfmValue = number | string | boolean | Moment | IReferentialRef<any>;
 export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;
 export const PMFM_VALUE_SEPARATOR = '|';
 
+export declare type ConvertedNumber = Number & {__conversionCoefficient: number};
+
 export abstract class PmfmValueUtils {
+
+  private static readonly CONVERSION_COEFFICIENT_PROPERTY = '__conversionCoefficient';
+
+  static isConvertedNumber(value: any): value is ConvertedNumber {
+    return (value instanceof Number) && isNotNilOrNaN(value[PmfmValueUtils.CONVERSION_COEFFICIENT_PROPERTY]);
+  }
 
   static isEmpty(value: PmfmValue | any) {
     return isNilOrBlank(value) || ReferentialUtils.isEmpty(value);
@@ -99,6 +110,31 @@ export abstract class PmfmValueUtils {
     }
   }
 
+  static asObject(value: PmfmValue | PmfmValue[] | any): string|any {
+    if (isNil(value)) return undefined;
+    // If moment object, then convert to ISO string- fix #157
+    if (isMoment(value)) {
+      return toDateISOString(value);
+    }
+    // If date, convert to ISO string
+    if (value instanceof Date) {
+     return toDateISOString(moment(value));
+    }
+    if (Array.isArray(value)) {
+      // Do nothing, managed in measurementValuesMultiples property
+      return value;
+    }
+    // Number with conversion
+    else if (this.isConvertedNumber(value)) {
+      return '' + (+value / value.__conversionCoefficient);
+    }
+    // Qualitative value, String or number
+    else {
+      value = notNilOrDefault(value.id, value);
+      return '' + value;
+    }
+  }
+
   static fromModelValue(value: any, pmfm: IPmfm): PmfmValue | PmfmValue[] {
     if (!pmfm) return value;
     // If empty, apply the pmfm default value
@@ -117,7 +153,7 @@ export abstract class PmfmValueUtils {
       case 'qualitative_value':
         if (isNotNil(value)) {
           const qvId = (typeof value === 'object') ? value.id : parseInt(value);
-          return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter && pmfm.parameter.qualitativeValues) || [])
+          return (pmfm.qualitativeValues || (PmfmUtils.isFullPmfm(pmfm) && pmfm.parameter?.qualitativeValues) || [])
             .find(qv => qv.id === qvId) || null;
 
         }
@@ -127,7 +163,12 @@ export abstract class PmfmValueUtils {
         value = parseInt(value);
         // Apply conversion excepted for displaying the value
         if (pmfm.displayConversion) {
-          value = value * pmfm.displayConversion.conversionCoefficient;
+
+          // DEBUG
+          console.debug(`[pmfm-value] Applying conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
+
+          value = new Number(value * pmfm.displayConversion.conversionCoefficient);
+          value.__conversionCoefficient = pmfm.displayConversion.conversionCoefficient;
         }
         return value;
       case 'double':
@@ -135,7 +176,13 @@ export abstract class PmfmValueUtils {
         value = parseFloat(value);
         // Apply conversion excepted for displaying the value
         if (pmfm.displayConversion) {
-          value = value * pmfm.displayConversion.conversionCoefficient;
+          // DEBUG
+          //console.debug(`[pmfm-value] Applying conversion: ${value} * ${pmfm.displayConversion.conversionCoefficient}`);
+
+          value = new Number(value * pmfm.displayConversion.conversionCoefficient);
+
+          // Storage conversion coefficient (need by inverse conversion)
+          value.__conversionCoefficient = pmfm.displayConversion.conversionCoefficient;
         }
         return value;
       case 'string':

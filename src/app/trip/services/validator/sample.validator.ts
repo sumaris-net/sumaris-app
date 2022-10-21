@@ -48,7 +48,14 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       size: [toNumber(data && data.size, null)],
       sizeUnit: [data && data.sizeUnit || null],
       comments: [data && data.comments || null],
-      children: this.formBuilder.array([])
+      children: this.formBuilder.array([]),
+      parent: [data && data.parent || null, SharedValidators.entity],
+      // Quality properties
+      controlDate: [data && data.controlDate || null],
+      qualificationDate: [data && data.qualificationDate || null],
+      qualificationComments: [data && data.qualificationComments || null],
+      qualityFlagId: [toNumber(data && data.qualityFlagId, 0)],
+      // TODO: add operationId, saleId, parentId
     }
 
     // Add children form array

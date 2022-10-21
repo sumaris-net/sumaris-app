@@ -241,7 +241,7 @@ export abstract class PmfmUtils {
   }
 
   static filterPmfms<P extends IPmfm>(pmfms: P[], opts?: {
-    excludeHidden?: boolean;
+    excludeHidden?: boolean; // true by default
     excludePmfmIds?: number[];
   }): P[] {
     return pmfms.filter(p => p
@@ -251,16 +251,26 @@ export abstract class PmfmUtils {
       && (!opts || !opts.excludePmfmIds?.length || !opts.excludePmfmIds.includes(p.id)));
   }
 
-  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[], opts?: {
+  static getFirstQualitativePmfm<P extends IPmfm>(pmfms: P[], opts: {
     excludeHidden?: boolean;
     excludePmfmIds?: number[];
+    minQvCount?: number;
+    maxQvCount?: number;
+    filterFn?: (IPmfm, index) => boolean;
+  } = {
+    minQvCount: 1 // Should have at least 2 values (by default)
   }): P {
     // exclude hidden pmfm (see batch modal)
-    let qvPmfm = this.filterPmfms(pmfms, opts)
+    const qvPmfm = this.filterPmfms(pmfms, opts)
       .find((p, index) => {
         return p.type === 'qualitative_value'
-          // Should be the first visible pmfms. If not (e.g. a numeric pmfm is before: not a group pmfm)
-          && index === 0;
+          && p.qualitativeValues
+          // Exclude if no enough qualitative values
+          && p.qualitativeValues.length >= opts.minQvCount
+          // Exclude if too many qualitative values
+          && (!opts.maxQvCount || p.qualitativeValues.length <= opts.maxQvCount)
+          // Apply the first function, if any
+          && (!opts.filterFn || opts.filterFn(p, index));
       });
     return qvPmfm;
   }
@@ -283,8 +293,19 @@ export abstract class PmfmUtils {
   */
   static isWeight(pmfm: IPmfm): boolean {
     return UnitLabelGroups.WEIGHT.includes(pmfm.unitLabel)
-      || UnitLabelPatterns.WEIGHT.test(pmfm.label)
-      || (pmfm instanceof Pmfm && UnitLabelPatterns.WEIGHT.test(pmfm.parameter?.label));
+      || PmfmLabelPatterns.WEIGHT.test(pmfm.label)
+      || (pmfm instanceof Pmfm && PmfmLabelPatterns.WEIGHT.test(pmfm.parameter?.label));
+  }
+
+
+  /**
+   * Check if dressing pmfms (by id or by  label like 'DRESSING_%')
+   * @param pmfm
+   */
+  static isDressing(pmfm: IPmfm): boolean {
+  return pmfm.id === PmfmIds.DRESSING
+    || PmfmLabelPatterns.DRESSING.test(pmfm.label)
+    || (pmfm instanceof Pmfm && PmfmLabelPatterns.DRESSING.test(pmfm.parameter?.label));
   }
 
   /**
@@ -293,8 +314,10 @@ export abstract class PmfmUtils {
    */
   static isLength(pmfm: IPmfm): boolean {
     return pmfm && (
-      (UnitLabelGroups.LENGTH.includes(pmfm.unitLabel) && (UnitLabelPatterns.LENGTH.test(pmfm.label)))
-      || (pmfm instanceof Pmfm && UnitLabelGroups.LENGTH.includes(pmfm.unit?.label) && UnitLabelPatterns.LENGTH.test(pmfm.parameter?.label))
+      (UnitLabelGroups.LENGTH.includes(pmfm.unitLabel) && (PmfmLabelPatterns.LENGTH.test(pmfm.label)))
+      || (pmfm instanceof Pmfm
+        && UnitLabelGroups.LENGTH.includes(pmfm.unit?.label)
+        && PmfmLabelPatterns.LENGTH.test(pmfm.parameter?.label))
     );
   }
 
@@ -421,7 +444,7 @@ export abstract class PmfmUtils {
 
       // Convert max number decimals
       if (isNotNil(target.maximumNumberDecimals)) {
-        const convertedMaximumNumberDecimals = Math.log(conversionCoefficient);
+        const convertedMaximumNumberDecimals = Math.log10(conversionCoefficient);
         target.maximumNumberDecimals = Math.max(0, target.maximumNumberDecimals - convertedMaximumNumberDecimals);
       }
     }

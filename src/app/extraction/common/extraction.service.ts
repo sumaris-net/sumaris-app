@@ -50,7 +50,7 @@ const Queries = {
     $filter: ExtractionFilterVOInput,
     $strata: AggregationStrataVOInput,
     $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
-    aggregationGeoJson(
+    data: aggregationGeoJson(
       type: $type, filter: $filter, strata: $strata,
       offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection
     )
@@ -251,15 +251,15 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
       filter: filter && filter.asPodObject()
     };
 
-    const res = await this.graphql.query<{ aggregationGeoJson: any }>({
+    const res = await this.graphql.query<{ data: any }>({
       query: Queries.loadGeoJson,
       variables: variables,
       error: {code: ExtractionErrorCodes.LOAD_EXTRACTION_GEO_JSON_ERROR, message: "EXTRACTION.ERROR.LOAD_GEO_JSON_ERROR"},
       fetchPolicy: options && options.fetchPolicy || 'network-only'
     });
-    if (!res || !res.aggregationGeoJson) return null;
+    if (!res || !res.data) return null;
 
-    return Object.assign({}, res.aggregationGeoJson);
+    return Object.assign({}, res.data);
   }
 
   async loadAggByTech(type: ExtractionType,

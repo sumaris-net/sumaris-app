@@ -82,7 +82,7 @@
     </ng-container>
 
     <!-- parent -->
-    <ng-container matColumnDef="parentGroup" [sticky]="useSticky">
+    <ng-container matColumnDef="parentGroup">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>
           <span *ngIf="displayParentPmfm">{{displayParentPmfm | pmfmName}}</span>
@@ -174,7 +174,6 @@
     <!-- Comment column -->
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef>
-        <ion-label translate>REFERENTIAL.COMMENTS</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" >
         <button *ngIf="row.validator|formGetControl: 'comments'; let control"
@@ -208,7 +207,7 @@
       </button>
     </app-actions-column>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"
         [class.mat-row-selected]="row.editing"
         [class.mat-row-error]="row.validator.invalid"

@@ -66,6 +66,17 @@
     <ion-label translate>COMMON.DISPLAYED_COLUMNS_DOTS</ion-label>
   </button>
 
+  <mat-divider></mat-divider>
+
+  <!-- Compact mode -->
+  <button mat-menu-item
+          (click)="toggleCompactMode()">
+    <mat-icon *ngIf="compact; else notCompactIcon">check_box</mat-icon>
+    <ng-template #notCompactIcon>
+      <mat-icon >check_box_outline_blank</mat-icon>
+    </ng-template>
+    <ion-label translate>COMMON.BTN_COMPACT_ROWS</ion-label>
+  </button>
 </mat-menu>
 
 <!-- error -->
@@ -88,6 +99,7 @@
   <table mat-table matSort
          matSortDisableClear
          *ngIf="inlineEdition; else readonly"
+         [class.compact]="compact"
          [dataSource]="dataSource"
          [matSortActive]="defaultSortBy"
          [matSortDirection]="defaultSortDirection"
@@ -148,20 +160,31 @@
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky">
+    <ng-container matColumnDef="id" [sticky]="useSticky" *ngIf="showIdColumn">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
       <ng-container *matCellDef="let row">
         <td mat-cell *ngVar="row.editing && row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions) as error"
             [title]="error||''">
-          <ion-text matBadge="!"
+          <ion-label matBadge="!"
                     [matBadgeHidden]="!error"
                     matBadgeOverlap="false"
                     matBadgeColor="accent"
                     matBadgeSize="small">
-            {{ row.currentData?.rankOrder }}
-          </ion-text>
+            <ng-container *ngIf="showIdColumn">{{ row.currentData?.rankOrder }}</ng-container>
+          </ion-label>
+        </td>
+      </ng-container>
+    </ng-container>
+    <ng-container matColumnDef="id" [sticky]="useSticky" *ngIf="!showIdColumn">
+      <th mat-header-cell *matHeaderCellDef>
+      </th>
+      <ng-container *matCellDef="let row">
+        <td mat-cell *ngVar="row.editing && row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions) as error"
+            [title]="error||''">
+          <ion-icon *ngIf="error" color="danger" slot="start" name="alert-circle">
+          </ion-icon>
         </td>
       </ng-container>
     </ng-container>
@@ -172,7 +195,7 @@
         <ion-label>{{'TRIP.SAMPLE.TABLE.LABEL' | translateContext: i18nColumnSuffix}}</ion-label>
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn='label'">
-        <mat-form-field floatLabel="never">
+        <mat-form-field floatLabel="never" *ngIf="row.editing; else readonlyCell">
           <input matInput autocomplete="off"
                  [appAutofocus]="row.editing && focusColumn === 'label'"
                  [formControl]="row.validator.controls.label"
@@ -184,6 +207,10 @@
           <mat-error *ngIf="row.validator.controls.label.hasError('pattern')" translate>ERROR.FIELD_NOT_VALID_PATTERN
           </mat-error>
         </mat-form-field>
+        <!-- readonly -->
+        <ng-template #readonlyCell>
+          {{row.validator|formGetValue:'label'}}
+        </ng-template>
       </td>
 
     </ng-container>
@@ -195,6 +222,7 @@
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonGroup'">
         <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+                                [readonly]="!row.editing"
                                 [autofocus]="row.editing && focusColumn === 'taxonGroup'"
                                 [formControl]="row.validator.controls.taxonGroup"
                                 [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_GROUP_PLACEHOLDER'|translateContext: i18nColumnSuffix"
@@ -212,6 +240,7 @@
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonName'">
         <mat-autocomplete-field floatLabel="never" class="min-width-medium"
+                                [readonly]="!row.editing"
                                 [autofocus]="row.editing && focusColumn === 'taxonName'"
                                 [formControl]="row.validator.controls.taxonName"
                                 [placeholder]="'TRIP.SAMPLE.TABLE.TAXON_NAME_PLACEHOLDER'|translateContext: i18nColumnSuffix"
@@ -229,6 +258,7 @@
       </th>
       <td mat-cell *matCellDef="let row" class="mat-cell-date-time">
         <mat-date-time-field floatLabel="never"
+                             [readonly]="!row.editing"
                              [formControl]="row.validator.controls.sampleDate"
                              [autofocus]="row.editing && focusColumn === 'sampleDate'"
                              [placeholder]="'TRIP.SAMPLE.TABLE.SAMPLE_DATE_PLACEHOLDER'|translateContext: i18nColumnSuffix"
@@ -267,7 +297,7 @@
 
         <!-- readonly value-->
         <ng-template #readonlyPmfmField>
-          <ion-label  [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-label>
+          <span [innerHTML]="row.validator|formGetValue: ['measurementValues', pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></span>
         </ng-template>
       </td>
 
@@ -278,21 +308,19 @@
       <th mat-header-cell *matHeaderCellDef>
         &nbsp;
       </th>
-      <td mat-cell *matCellDef="let row"
-          class="mat-cell-content-start-padding"
-          (click)="focusColumn='comments'">
-        <mat-form-field *ngIf="row.editing; else readonlyComment"
-                        floatLabel="never">
-          <input matInput
-                 [formControl]="row.validator.controls.comments"
-                 [placeholder]="'TRIP.SAMPLE.TABLE.COMMENTS_PLACEHOLDER'|translateContext: i18nColumnSuffix"
-                 [appAutofocus]="focusColumn === 'comments'">
-        </mat-form-field>
-        <ng-template #readonlyComment>
-          <mat-icon *ngIf="row.currentData.comments"
-                    [title]="row.currentData.comments"
-                    class="comment"></mat-icon>
-        </ng-template>
+      <td mat-cell *matCellDef="let row">
+        <button *ngVar="row.validator|formGetValue: 'comments'; let comments"
+                mat-icon-button
+                [class.visible-hover]="!row.editing && !comments"
+                (click)="openCommentPopover($event, row)"
+                [disabled]="disabled"
+                [title]="comments || ''">
+          <ion-icon
+            [color]="comments ? 'tertiary' : 'medium'"
+            name="chatbox"
+            slot="icon-only"
+          ></ion-icon>
+        </button>
       </td>
 
     </ng-container>
@@ -365,6 +393,7 @@
 
   <ng-template #readonly>
     <table mat-table matSort matSortDisableClear
+           [class.compact]="compact"
            [dataSource]="dataSource"
            [matSortActive]="defaultSortBy"
            [matSortDirection]="defaultSortDirection"
@@ -479,7 +508,7 @@
             [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
             [style.background-color]="getPmfmValueColor(row.currentData.measurementValues[pmfm.id], pmfm)">
           <!-- TODO BLA: manage color -->
-          <ion-text [innerHTML]="row.currentData.measurementValues[pmfm.id] | pmfmValue: {pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
+          <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
         </td>
       </ng-container>
 
@@ -511,7 +540,6 @@
                   *ngIf="showIndividualMonitoringButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
                   [color]="(row.currentData.children | arrayFilter: isIndividualMonitoring | isNotEmptyArray) ? 'primary': 'dark'"
                   color="primary"
-                  [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING'|translate"
                   (click)="onIndividualMonitoringClick($event, row)">
             <mat-icon>center_focus_strong</mat-icon>
           </button>
@@ -520,7 +548,6 @@
           <button mat-icon-button
                   *ngIf="showIndividualReleaseButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
                   [color]="(row.currentData.children | arrayFilter: isIndividualRelease | isNotEmptyArray) && 'primary'"
-                  [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translate"
                   (click)="onIndividualReleaseClick($event, row)">
             <mat-icon>room</mat-icon>
           </button>

@@ -37,6 +37,16 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
 
+  <!-- report -->
+  <button mat-menu-item *ngIf="enableReport"
+          [disabled]="isNewData || disabled"
+          (click)="openReport($event)">
+    <ion-label>
+      <mat-icon>description</mat-icon>&nbsp;
+      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
+    </ion-label>
+  </button>
+
   <!-- reset -->
   <button mat-menu-item
           [disabled]="!dirty"
@@ -109,6 +119,25 @@
           <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
         </ion-item>
 
+        <!-- debug -->
+        <app-debug *ngIf="debug">
+          <ion-grid class="ion-no-padding">
+            <ion-row>
+              <ion-col>
+                editor.loading: {{loading}}<br/>
+                editor.ready: {{readySubject|async}}<br/>
+                editor.dirty: {{dirty}}<br/>
+              </ion-col>
+              <ion-col>
+                measurementsForm.loading: {{measurementsForm.loading}}<br/>
+                measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+                measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+                measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </app-debug>
+
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">
@@ -152,34 +181,7 @@
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>
-
-                  <ion-row *ngIf="debug">
-                    <ion-col size="12" size-md="2" size-lg="3">
-                      <ion-label class="ion-float-end">Debug :</ion-label>
-                    </ion-col>
-                    <ion-col>
-                      <ion-text color="primary" class="text-italic">
-                        <small>
-                          editor.loading: {{loading}}<br/>
-                          editor.ready: {{$ready|async}}<br/>
-                          editor.dirty: {{dirty}}<br/>
-                        </small>
-                      </ion-text>
-                    </ion-col>
-                    <ion-col>
-                      <ion-text color="primary" class="text-italic">
-                        <small>
-                          measurementsForm.loading: {{measurementsForm.loading}}<br/>
-                          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
-                          measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
-                          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
-                        </small>
-                      </ion-text>
-                    </ion-col>
-
-                  </ion-row>
                 </ion-grid>
-
               </form-trip>
             </ion-col>
 
@@ -220,6 +222,25 @@
           <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
         </ion-item>
 
+        <!-- debug -->
+        <app-debug *ngIf="debug" [title]="'Physical gears table'">
+          <ion-grid class="ion-no-padding">
+            <ion-row>
+              <ion-col>
+                loading: {{physicalGearsTable.loading}}<br/>
+                ready: {{physicalGearsTable.readySubject|async}}<br/>
+                dirty: {{physicalGearsTable.dirtySubject|async}}<br/>
+              </ion-col>
+              <ion-col>
+                service.count: {{physicalGearService.count}}<br/>
+                service.hiddenCount: {{physicalGearService.hiddenCount}}<br/>
+                service.dirty: {{physicalGearService.dirtySubject|async}}<br/>
+                service.value: {{!!physicalGearService.value}}<br/>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </app-debug>
+
         <app-physical-gears-table #physicalGearsTable
                                  [programLabel]="$programLabel|async"
                                  [showToolbar]="!mobile"
@@ -238,7 +259,7 @@
           <ion-icon matPrefix slot="start" name="navigate"></ion-icon>
         </mat-icon>
         <ion-label [matBadge]="operationsTable.totalRowCount"
-                   [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount || operationsTable.error"
+                   [matBadgeHidden]="operationsTable.invalid || !operationsTable.totalRowCount || !!operationsTable.error"
                    matBadgeColor="primary"
                    matBadgeOverlap="false"
                    matBadgeSize="small"

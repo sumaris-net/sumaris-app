@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
-import * as momentImported from 'moment';
 import { ObservedLocationForm } from './observed-location.form';
 import { ObservedLocationService } from '../services/observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
@@ -43,8 +42,7 @@ import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 
 const ObservedLocationPageTabs = {
@@ -83,6 +81,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showRecorder = true;
   showObservers = true;
   landingEditor: LandingEditor = undefined;
+  enableReport: boolean;
 
   get table(): ILandingsTable {
     return this.$table.value;
@@ -338,6 +337,14 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return false;
   }
 
+  async openReport(event?: UIEvent) {
+    if (this.dirty) {
+      const data = await this.saveAndGetDataIfValid();
+      if (!data) return; // Cancel
+    }
+    return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
+  }
+
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
@@ -374,6 +381,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
       this.i18nContext.suffix = i18nSuffix;
 
+      this.enableReport = program.getPropertyAsBoolean(ProgramProperties.REPORT_ENABLE);
       this.landingEditor = program.getProperty<LandingEditor>(ProgramProperties.LANDING_EDITOR);
       this.showVesselType = program.getPropertyAsBoolean(ProgramProperties.VESSEL_TYPE_ENABLE);
       this.showVesselBasePortLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE);
@@ -414,7 +422,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.markAsReady();
 
       // Listen program, to reload if changes
-      this.startListenProgramRemoteChanges(program);
+      if (this.network.online) this.startListenProgramRemoteChanges(program);
     }
     catch (err) {
       this.setError(err);

@@ -1,15 +1,15 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Batch, BatchWeight } from './batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
-  AppFormUtils,
+  AppFormUtils, changeCaseToUnderscore,
   EntityUtils,
   firstArrayValue,
   firstTruePromise,
-  FormArrayHelper,
+  FormArrayHelper, FormErrorTranslatorOptions, IAppForm,
   IReferentialRef,
   isNil,
   isNotNil,
@@ -32,6 +32,12 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { equals, roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
+
+export interface IBatchForm<T extends Batch<any> = Batch<any>> extends IAppForm {
+
+}
 
 @Component({
   selector: 'app-batch-form',
@@ -52,6 +58,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   protected _requiredIndividualCount = false;
   protected _initialPmfms: IPmfm[];
   protected _disableByDefaultControls: AbstractControl[] = [];
+  protected _pmfmNamePipe: PmfmNamePipe;
 
   defaultWeightPmfm: IPmfm;
   weightPmfms: IPmfm[];
@@ -106,6 +113,11 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return this.form.get('children') as FormArray;
   }
 
+  get samplingBatchForm(): FormGroup {
+    return this.children?.at(0) as FormGroup;
+  }
+
+
   get weightForm(): FormGroup {
     return this.form.get('weight') as FormGroup;
   }
@@ -150,6 +162,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return isNotNil(this.availableTaxonGroups) && (!Array.isArray(this.availableTaxonGroups) || this.availableTaxonGroups.length > 0);
   }
 
+  get touched(): boolean {
+    return this.form?.touched;
+  }
+
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
@@ -175,6 +191,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
 
     this.childrenFormHelper = this.getChildrenFormHelper(this.form);
+    this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
 
     // for DEV only
     //this.debug = !environment.production;
@@ -230,6 +247,28 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   ngOnDestroy() {
     super.ngOnDestroy();
     this._$afterViewInit.complete();
+  }
+
+  translateControlPath(path: string): string {
+    if (path.includes('.measurementValues.')) {
+      const parts = path.split('.');
+      const pmfmId = parseInt(parts[parts.length-1]);
+      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
+      if (pmfm) {
+        return this._pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix});
+      }
+    }
+    let fieldName: string;
+    switch (path) {
+      case 'children.0.weight.value':
+        fieldName = 'SAMPLING_WEIGHT';
+        break;
+      default:
+        fieldName = path; // .indexOf('.') !== -1 ? path.substring(path.lastIndexOf('.')+1) : path;
+        break;
+    }
+    const i18nKey = (this.i18nFieldPrefix || 'TRIP.BATCH.EDIT.') + changeCaseToUnderscore(fieldName).toUpperCase();
+    return this.translate.instant(i18nKey);
   }
 
   /* -- protected method -- */
@@ -404,7 +443,8 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       data.fromObject(json);
     }
 
-    if (this.debug) console.debug(`[batch-form] ${data.label} getValue():`, data);
+    // DEBUG
+    //if (this.debug) console.debug(`[batch-form] ${data.label} getValue():`, data);
 
     return data;
   }
@@ -467,7 +507,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
    */
   protected async waitViewInit(): Promise<void> {
     if (this._$afterViewInit.value !== true) {
-      await firstTruePromise(this._$afterViewInit);
+      await firstTruePromise(this._$afterViewInit, {stop: this.destroySubject});
     }
   }
 
@@ -506,71 +546,76 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   protected async onUpdateFormGroup(form?: FormGroup): Promise<void> {
     form = form || this.form;
 
-    // Wait ngAfterViewInit()
-    await this.waitViewInit();
+    try {
+      // Wait ngAfterViewInit()
+      await this.waitViewInit();
 
-    // Add pmfms to form
-    const measFormGroup = form.get('measurementValues') as FormGroup;
-    if (measFormGroup) {
-      this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
-    }
-
-    const childrenFormHelper = this.getChildrenFormHelper(form);
-    const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;
-
-    // If the sample batch exists
-    if (this.showSamplingBatch) {
-
-      childrenFormHelper.resize(1);
-      const samplingForm = childrenFormHelper.at(0) as FormGroup;
-
-      // Reset measurementValues (if exists)
-      const samplingMeasFormGroup = samplingForm.get('measurementValues');
-      if (samplingMeasFormGroup) {
-        this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, {pmfms: []});
+      // Add pmfms to form
+      const measFormGroup = form.get('measurementValues') as FormGroup;
+      if (measFormGroup) {
+        this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
       }
 
-      // Adapt exists sampling child, if any
-      if (this.data) {
-        const samplingChildBatch = BatchUtils.getOrCreateSamplingChild(this.data);
+      const childrenFormHelper = this.getChildrenFormHelper(form);
+      const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;
 
-        this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingChildBatch));
+      // If the sample batch exists
+      if (this.showSamplingBatch) {
 
-      } else {
-        // No data: disable sampling
-        this.setIsSampling(false);
+        childrenFormHelper.resize(1);
+        const samplingForm = childrenFormHelper.at(0) as FormGroup;
+
+        // Reset measurementValues (if exists)
+        const samplingMeasFormGroup = samplingForm.get('measurementValues');
+        if (samplingMeasFormGroup) {
+          this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, {pmfms: []});
+        }
+
+        // Adapt exists sampling child, if any
+        if (this.data) {
+          const samplingChildBatch = BatchUtils.getOrCreateSamplingChild(this.data);
+
+          this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingChildBatch));
+
+        } else {
+          // No data: disable sampling
+          this.setIsSampling(false);
+        }
+
+        // If sampling weight is required, make batch weight required also
+        if (this._requiredSampleWeight) {
+          // this.weightForm.setValidators(
+          //   SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
+          // );
+        }
+
+        // If sampling weight is required, make batch weight required also
+        if (this._requiredIndividualCount) {
+          this.form.get('individualCount').setValidators(Validators.required);
+        }
+
+        // Has sample batch, and weight is enable
+        if (this.showWeight) {
+          await this.enableSamplingWeightComputation();
+        }
       }
 
-      // If sampling weight is required, make batch weight required also
-      if (this._requiredSampleWeight) {
-        this.weightForm.setValidators(
-          SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
-        );
+      // Remove existing sample, if exists but showSample=false
+      else if (hasSamplingForm) {
+        childrenFormHelper.resize(0);
+
+        // Unregister to previous sampling weight validator
+        this._formValidatorSubscription?.unsubscribe();
       }
 
-      // If sampling weight is required, make batch weight required also
-      if (this._requiredIndividualCount) {
-        this.form.get('individualCount').setValidators(Validators.required);
-      }
-
-      // Has sample batch, and weight is enable
       if (this.showWeight) {
-        await this.enableSamplingWeightComputation();
+        this.enableWeightFormGroup({emitEvent: false});
+      } else {
+        this.disableWeightFormGroup({emitEvent: false});
       }
     }
-
-    // Remove existing sample, if exists but showSample=false
-    else if (hasSamplingForm) {
-      childrenFormHelper.resize(0);
-
-      // Unregister to previous sampling weight validator
-      this._formValidatorSubscription?.unsubscribe();
-    }
-
-    if (this.showWeight) {
-      this.enableWeightFormGroup({emitEvent: false});
-    } else {
-      this.disableWeightFormGroup({emitEvent: false});
+    catch (err) {
+      console.error('[batch-form] Error while updating controls', err);
     }
   }
 

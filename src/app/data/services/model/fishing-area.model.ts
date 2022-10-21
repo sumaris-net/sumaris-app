@@ -10,6 +10,13 @@ export class FishingArea extends DataEntity<FishingArea> {
 
   static fromObject: (source: any, opts?: any) => FishingArea;
 
+  static isEmpty(value: Partial<FishingArea>): boolean {
+    return !value || (!value.location || !value.location.id)
+      && (!value.distanceToCoastGradient || !value.distanceToCoastGradient.id)
+      && (!value.depthGradient || !value.depthGradient.id)
+      && (!value.nearbySpecificArea || !value.nearbySpecificArea.id)
+  }
+
   location: ReferentialRef;
 
   distanceToCoastGradient: ReferentialRef;

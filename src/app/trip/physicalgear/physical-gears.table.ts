@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
@@ -12,10 +12,11 @@ import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, merge, Subscription } from 'rxjs';
+import { OverlayEventDetail } from '@ionic/core';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
-export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
+export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed', 'comments'];
 
 
 @Component({
@@ -26,6 +27,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['lastUsed', 'comments'];
 })
 export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
+  touchedSubject = new BehaviorSubject<boolean>(false);
   filterForm: FormGroup;
   modalOptions: Partial<IPhysicalGearModalOptions>;
 
@@ -41,6 +43,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   @Input() showPmfmDetails = false;
   @Input() compactFields = true;
   @Input() mobile: boolean;
+  @Input() minRowCount = 0;
 
   @Input() set tripId(tripId: number) {
     this.setTripId(tripId);
@@ -74,12 +77,41 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     return this.getModalOption('allowChildrenGears') as boolean;
   }
 
+  @Input() set showSubGearsCountColumn(show: boolean) {
+    this.setShowColumn('subGearsCount', show);
+  }
+
+  get showSubGearsCountColumn(): boolean {
+    return this.getShowColumn('subGearsCount');
+  }
+
+  get valid() {
+    return super.valid && (this.totalRowCount >= this.minRowCount);
+  }
+
+  get invalid() {
+    return super.invalid || (this.totalRowCount < this.minRowCount);
+  }
+
+  get touched(): boolean {
+    return this.touchedSubject.value;
+  }
+
   @Output() openSelectPreviousGearModal = createPromiseEventEmitter<PhysicalGear>();
+
+  markAllAsTouched(opts?: { emitEvent?: boolean }) {
+    this.touchedSubject.next(true);
+    super.markAllAsTouched(opts);
+  }
+
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    this.touchedSubject.next(false);
+    super.markAsPristine(opts);
+  }
 
   constructor(
     injector: Injector,
     formBuilder: FormBuilder,
-    protected cd: ChangeDetectorRef,
     @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
@@ -98,7 +130,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       'endDate': [null, Validators.compose([SharedValidators.validDate, SharedValidators.dateRangeEnd('startDate')])],
     });
 
-    this.defaultSortBy = 'rankOrder';
+    this.defaultSortBy = 'id';
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.TABLE.';
     this.i18nPmfmPrefix = 'TRIP.PHYSICAL_GEAR.PMFM.';
     this.autoLoad = true;
@@ -109,12 +141,16 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
 
     // Excluded columns, by default
     this.excludesColumns.push('lastUsed');
+    this.excludesColumns.push('subGearsCount');
+    this.excludesColumns.push('actions'); // not need, because PMFM columns order change is not supportted
 
     // FOR DEV ONLY ----
+    this.logPrefix = '[physical-gears-table] ';
     this.debug = !environment.production;
   }
 
   ngOnInit() {
+
     super.ngOnInit();
 
     this.mobile = toBoolean(this.mobile, this.settings.mobile);
@@ -138,6 +174,31 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
           {emitEvent: true /*always apply*/}))
     );
 
+    if (this.minRowCount > 0) {
+      this.registerSubscription(
+        merge(
+          this.touchedSubject,
+          this.dataSource.rowsSubject
+        )
+       .pipe(
+          debounceTime(100),
+          //tap(() => console.debug(this.logPrefix + 'Updating minRowCount error'))
+          filter(_ => this.enabled)
+        )
+        .subscribe(_ => {
+          if (this.totalRowCount < this.minRowCount) {
+            const error = this.translate.instant((this.minRowCount === 1
+              ? 'TRIP.PHYSICAL_GEAR.ERROR.NOT_ENOUGH_SUB_GEAR'
+              : 'TRIP.PHYSICAL_GEAR.ERROR.NOT_ENOUGH_SUB_GEARS'),
+              {minRowCount: this.minRowCount});
+            this.setError(error);
+          }
+          else {
+            this.resetError();
+          }
+        })
+      )
+    }
   }
 
   ngOnDestroy() {
@@ -177,6 +238,8 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     super.setFilter(value as PhysicalGearFilter, opts);
   }
 
+  /* -- protected function -- */
+
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
@@ -185,10 +248,10 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       return true;
     }
 
-    const newGear = await this.openDetailModal();
-    if (newGear) {
-      if (this.debug) console.debug("Adding new gear:", newGear);
-      await this.addEntityToTable(newGear);
+    const { data, role } = await this.openDetailModal();
+    if (data && role !== 'delete') {
+      if (this.debug) console.debug("Adding new gear:", data);
+      await this.addEntityToTable(data, {confirmCreate: false});
     }
     return true;
   }
@@ -201,15 +264,15 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       return true;
     }
 
-    const gear = PhysicalGear.fromObject({
-      ...row.currentData,
-      // Convert measurementValues as JSON, in order to force values of not required PMFM to be converted, in the form
-      measurementValues: MeasurementValuesUtils.asObject(row.currentData.measurementValues, {minify: true})
-    });
+    // Clone to keep original object unchanged
+    const gear = PhysicalGear.fromObject(row.currentData).clone();
 
-    const updatedGear = await this.openDetailModal(gear);
-    if (updatedGear) {
-      await this.updateEntityToTable(updatedGear, row);
+    // Convert measurementValues to model, in order to force values of not required PMFM to be converted later, in the modal's form
+    gear.measurementValues = MeasurementValuesUtils.asObject(gear.measurementValues, {minify: true});
+
+    const { data, role } = await this.openDetailModal(gear);
+    if (data && role !== 'delete') {
+      await this.updateEntityToTable(data, row);
     }
     else {
       this.editedRow = null;
@@ -217,17 +280,18 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     return true;
   }
 
-  async openDetailModal(dataToOpen?: PhysicalGear): Promise<PhysicalGear | undefined> {
 
-    const isNewData = !dataToOpen && true;
-    if (isNewData) {
+  async openDetailModal(dataToOpen?: PhysicalGear): Promise<OverlayEventDetail<PhysicalGear | undefined>> {
+
+    const isNew = !dataToOpen && true;
+    if (isNew) {
       dataToOpen = new PhysicalGear();
       await this.onNewEntity(dataToOpen);
     }
     dataToOpen.tripId = this.tripId;
 
     const subscription = new Subscription();
-    const showSearchButton = isNewData && this.openSelectPreviousGearModal.observers.length > 0;
+    const showSearchButton = isNew && this.openSelectPreviousGearModal.observers.length > 0;
     const hasTopModal = !!(await this.modalCtrl.getTop());
 
     const modal = await this.modalCtrl.create({
@@ -237,7 +301,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
         acquisitionLevel: this.acquisitionLevel,
         disabled: this.disabled,
         data: dataToOpen.clone(), // Do a copy, because edition can be cancelled
-        isNewData,
+        isNew,
         canEditGear: this.canEditGear,
         canEditRankOrder: this.canEditRankOrder,
         showSearchButton,
@@ -262,13 +326,13 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const {data, role} = await modal.onDidDismiss();
 
     subscription.unsubscribe();
 
-    if (data && this.debug) console.debug("[physical-gear-table] Modal result: ", data);
+    if (data && this.debug) console.debug(this.logPrefix + 'Modal result: ', data, role);
 
-    return (data instanceof PhysicalGear) ? data : undefined;
+    return {data: (data instanceof PhysicalGear) ? data : undefined, role};
   }
 
   async deleteEntity(event: UIEvent, data: PhysicalGear): Promise<boolean> {
@@ -291,7 +355,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   /* -- protected methods -- */
 
   protected async onNewEntity(data: PhysicalGear): Promise<void> {
-    console.debug('[physical-gear-table] Initializing new row data...');
+    console.debug(this.logPrefix + 'Initializing new row data...');
 
     await super.onNewEntity(data);
 
@@ -301,14 +365,9 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     }
   }
 
-  protected markForCheck() {
-    this.cd.markForCheck();
-  }
-
   protected async findRowByEntity(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {
-    return PhysicalGear && (await this.dataSource.getRows()).find(r => r.currentData.equals(physicalGear));
+    return PhysicalGear && this.dataSource.getRows().find(r => r.currentData.equals(physicalGear));
   }
-
 }
 
 

@@ -43,6 +43,7 @@
     "BTN_SEARCH": "Rechercher",
     "BTN_NEXT": "Suivant",
     "BTN_NEXT_SHORT": "Suiv.",
+    "BTN_PREVIOUS": "Précédent",
     "BTN_PREVIEW": "Prévisualiser",
     "BTN_BACK": "Retour",
     "BTN_SEND": "Envoyer",
@@ -108,6 +109,7 @@
     "YES": "Oui",
     "NO": "Non",
 
+    "DEBUG": "Debug",
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
@@ -232,6 +234,7 @@
         "PMFM_TRIP_PROGRESS": "Référentiel > PSFM > Déroulement normal ? (Booléen)",
         "PMFM_DRESSING": "Référentiel > PSFM > Présentation de l'espèce (Entier, ...)",
         "PMFM_PRESERVATION": "Référentiel > PSFM > État de l'espèce (Frais, ...)",
+        "PMFM_TRAWL_SIZE_CAT": "Référentiel > PSFM > Catégorie de tri chalut (SANS, ...)",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "PMFM_GEAR_LABEL_ID": "Référentiel > PSFM > Libellé de l'engin physique",
@@ -252,6 +255,7 @@
         "QUALITATIVE_VALUE_LANDING_ID": "Référentiel > Valeur qualitative > Partie retenue (LAN)",
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Référentiel > Valeur qualitative > Présentation de l'espèce / Entier",
         "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Référentiel > Valeur qualitative > État de l'espèce / Frais",
+        "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Référentiel > Valeur qualitative > Catégorie de tri terrain / Sans",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métier nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métier DCF niv 5"
@@ -611,6 +615,7 @@
       "TABLE": {
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
+        "SUB_GEARS_COUNT": "Nb Sous-engins",
         "LAST_USED": "Dernière utilisation",
         "COMMENTS": "Commentaires",
         "FILTER": {
@@ -635,14 +640,14 @@
         "VERTICAL_OPENING_INSTRUMENT": "Ouverture verticale - Mesurée (m)",
         "CHILD": {
           "GEAR_LABEL": "Libellé du sous-engin"
-        },
-        "TRAWL_SELECTIVITY": {
         }
       },
       "ERROR": {
         "LOAD_PHYSICAL_GEARS_ERROR": "Erreur de chargement des engins.",
         "CANNOT_DELETE": "Suppression impossible",
-        "CANNOT_DELETE_USED_GEAR_HELP": "Engin(s) utilisé(s) dans une ou plusieurs opérations.<br/><br/>Veuillez <b>modifier ces opérations</b> avant de réessayer."
+        "CANNOT_DELETE_USED_GEAR_HELP": "Engin(s) utilisé(s) dans une ou plusieurs opérations.<br/><br/>Veuillez <b>modifier ces opérations</b> avant de réessayer.",
+        "NOT_ENOUGH_SUB_GEAR": "Au moins un sous-engin est nécessaire.",
+        "NOT_ENOUGH_SUB_GEARS": "Au moins {{minRowCount}} sous-engins sont nécessaire."
       }
     },
     "OPERATION": {
@@ -740,6 +745,10 @@
           "TARGET_SPECIE" : "Espèce cible"
         }
       },
+      "PMFM": {
+        "SORTING_START_DATE_TIME": "Début de tri",
+        "SORTING_END_DATE_TIME": "Fin de tri"
+      },
       "MAP": {
         "TITLE": "Carte des positions",
         "TRIP_LAYER_WITH_DETAILS": "{{vessel}} - Marée {{departureDateTime}}",
@@ -783,6 +792,11 @@
         "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtrage non disponible",
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Aucun métier pratiqué trouvé dans les données disponibles."
+      },
+      "REPORT": {
+        "TITLE": "Rapport OP #{{rankOrder}} <small>du {{startDateTime}}</small>",
+        "TITLE_NO_RANK": "Rapport OP {{startDateTime}}",
+        "TITLE_SLIDE": "Rapport opération"
       }
     },
     "OPERATION_GROUP": {
@@ -842,6 +856,9 @@
         "TAXON_GROUP": "Espèce commerciale (FAO)",
         "TAXON_NAME": "Espèce scientifique",
         "PARENT_GROUP": "Lot espèce",
+        "CATCH_BATCH": "Capture",
+        "RANK_ORDER": "Numéro Lot",
+        "LABEL": "Libellé Lot",
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures",
         "BTN_APPLY_CHILDREN_WEIGHT": "Appliquer ce poids",
@@ -879,6 +896,7 @@
         "TOTAL_INDIVIDUAL_COUNT": "Nb indiv. total",
         "TOTAL_WEIGHT": "Poids total",
         "SAMPLING_RATIO": "Taux échant.",
+        "SAMPLING_COEFFICIENT": "Coef. échant.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
         "SAMPLING_WEIGHT": "Poids échant.",
         "PARENT_GROUP": "Lot espèce",
@@ -889,7 +907,18 @@
         "ESTIMATED_WEIGHT_QUESTION": "Poids estimés ?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
       },
+      "TREE": {
+        "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-dessous : ",
+        "EMPTY": "vide",
+        "BATCH_COUNT": "{{count}} lot",
+        "BATCHES_COUNT": "{{count}} lots",
+        "WEIGHT_COUNT": "{{count}} poids",
+        "WEIGHTS_COUNT": "{{count}} poids",
+        "MEASURE_COUNT": "{{count}} mesure",
+        "MEASURES_COUNT": "{{count}} mesures"
+      },
       "PMFM": {
+        "DISCARD_OR_LANDING": "Partie retenue ou rejetée ?",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
         "TRAWL_SELECTIVITY": {
@@ -970,7 +999,8 @@
         "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
         "AUCTION_CONTROL": {
           "LABEL": "N° Lot",
-          "LABEL_PLACEHOLDER": "N° Lot"
+          "LABEL_PLACEHOLDER": "N° Lot",
+          "COMMENTS": "Commentaires"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Mesures individuelles",
@@ -1021,7 +1051,8 @@
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire"
       },
       "SETTINGS": {
-        "BURST_MODE_ENABLE": "Echantillon: activer le mode rafale ?"
+        "BURST_MODE_ENABLE": "Échantillons : Activer le mode rafale ?",
+        "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"
       }
     },
     "SUB_SAMPLE": {
@@ -1046,6 +1077,10 @@
           "TITLE": "Relâché {{label}}"
         }
       }
+    },
+    "REPORT": {
+      "TITLE": "<small>{{ vessel }}</small> Rapport marée du {{ departureDate }}",
+      "TITLE_SLIDE": "Rapport marée"
     }
   },
   "EXPECTED_SALE": {
@@ -1113,7 +1148,8 @@
       },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
-        "TAB_LANDINGS": "Échantillonnages"
+        "TAB_LANDINGS": "Échantillonnages",
+        "TAB_GENERAL": "Sortie"
       }
     },
     "SELECT_VESSEL_MODAL": {
@@ -1138,6 +1174,8 @@
         "END_DATE": "Fin de période"
       }
     },
+    "PMFM": {
+    },
     "OFFLINE_MODAL": {
       "TITLE": "Configuration du mode hors-ligne",
       "HISTORICAL_DATA_DIVIDER": "Historique de données",
@@ -1156,6 +1194,23 @@
     "CONFIRM": {
       "OBSERVATION_HAS_SAMPLE": "La sortie sélectionnée est liée à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir la supprimer ?",
       "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
+    },
+    "REPORT": {
+      "TITLE": "Raport de sortie - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Raport de sortie",
+      "LOCATION": "Lieu :",
+      "DATE_TIME": "Date/heure :",
+      "OBSERVERS": "Observateur(s) :",
+      "VESSEL_COUNT": "Nombre de navire :",
+      "SUMMARY_TITLE": "Synthèse globale",
+      "SAMPLING": {
+        "SUMMARY_TITLE": "Synthèse des échantillonnages"
+      },
+      "AUCTION_CONTROL": {
+        "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
+        "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées",
+        "VESSEL_COUNT": "Nombre de navire contrôlés :"
+      }
     }
   },
   "LANDING": {
@@ -1204,7 +1259,12 @@
       "STRATEGY": "Stratégie",
       "CREATION_DATE": "Date de création",
       "RECORDER_PERSON" : "Saisisseur",
-      "SAMPLES_COUNT": "Nb. prélèvements",
+      "SAMPLES_COUNT": "Nb mesures",
+      "SAMPLING": {
+        "SAMPLES_COUNT": "Nb. prélèvements"
+      }
+    },
+    "PMFM": {
       "SAMPLING": {
         "STRATEGY_LABEL": "Ligne de plan"
       }
@@ -1671,6 +1731,7 @@
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
+      "TRIP_PHYSICAL_GEAR_HELP_MESSAGE": "Marée > Engin: Message d'aide",
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
       "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",
       "TRIP_MAP_ZOOM": "Marée > Carte: Niveau du zoom",
@@ -1748,6 +1809,7 @@
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
       "LANDING_SAMPLES_WEIGHT_UNIT": "Sortie > Débarquements : Unité du poids",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
+      "REPORT_ENABLE": "Rapport > Activer les rapports ?",
       "STRATEGY_EDITOR" : "Stratégie > Éditeur",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Par défaut",
@@ -2025,7 +2087,9 @@
       }
     },
     "TABLE": {
-      "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>"
+      "TITLE": "Extraction de données",
+      "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>",
+      "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :"
     },
     "MAP": {
       "BTN_MAP_LIST": "Liste des cartes",
@@ -2077,6 +2141,9 @@
       "SELECT_MODAL": {
         "TITLE": "Liste des cartes",
         "HELP": "Veuillez choisir la carte à afficher :"
+      },
+      "WARNING": {
+        "NO_DATA": "Aucun donnée trouvée. Veuillez choisir une autre carte."
       }
     },
     "CATEGORY": {
@@ -2088,7 +2155,7 @@
       "LANDING_COUNTRY": "Pays de débarquement",
       "RECORD_TYPE": "Type",
       "HARBOUR": "Port",
-      "PROJECT": "Projet",
+      "PROJECT": "Programme de collecte",
       "TRIP_CODE": "Code marée",
       "STATION_NUMBER": "Numéro de station",
       "YEAR": "Année",
@@ -2217,6 +2284,9 @@
           "SM": "Suivi de stratégies"
         }
       }
+    },
+    "INFO": {
+      "PLEASE_WAIT_WHILE_RUNNING": "Extraction en cours. Veuillez patientez..."
     },
     "ERROR": {
       "LOAD_TYPES_ERROR": "Erreur de chargement des types d'extraction",

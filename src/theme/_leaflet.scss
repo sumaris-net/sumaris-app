@@ -7,6 +7,7 @@
 // Import leaflet
 // --------------------------------------------------
 @import "~leaflet/dist/leaflet.css";
+@import "~leaflet-easybutton/src/easy-button.css";
 @import '~@bepo65/leaflet.fullscreen/Control.FullScreen.css';
 
 /* visual tweaks */
@@ -26,5 +27,21 @@ button.easy-button-button {
   i.leaflet-control-icon {
     font-size: large;
     line-height: 28px;
+  }
+}
+
+/* -- print configuration -- */
+@media print {
+  .leaflet-control-container {
+    visibility: hidden;
+    display: none;
+  }
+}
+
+
+html.print-pdf {
+  .leaflet-control-container {
+    visibility: hidden;
+    display: none;
   }
 }

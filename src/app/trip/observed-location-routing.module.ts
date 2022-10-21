@@ -47,6 +47,10 @@ const routes: Routes = [
         component: LandedTripPage,
         runGuardsAndResolvers: 'pathParamsChange',
         canDeactivate: [ComponentDirtyGuard]
+      },
+      {
+        path: 'report',
+        loadChildren: () => import('./observedlocation/report/observed-location-report-routing.module').then(m => m.AppObservedLocationReportRoutingModule)
       }
     ]
   }

@@ -22,6 +22,18 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu">
 
+  <!-- report -->
+  <button mat-menu-item
+          [disabled]="isNewData || disabled"
+          (click)="openReport($event)">
+    <ion-label>
+      <mat-icon>description</mat-icon>&nbsp;
+      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
+    </ion-label>
+  </button>
+
+  <mat-divider></mat-divider>
+
   <!-- delete -->
   <button mat-menu-item
           [disabled]="isNewData || disabled"
@@ -47,11 +59,11 @@
 <ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">
 
   <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
-                 [animationDuration]="mobile ? tabGroupAnimationDuration : '0s'"
-                 [dynamicHeight]="false"
-                 class="mat-tab-disabled-hidden mat-tab-fixed-content">
+                 [animationDuration]="tabGroupAnimationDuration"
+                 [dynamicHeight]="false">
 
     <!-- TAB: general -->
     <mat-tab label="{{'LANDING.EDIT.TAB_GENERAL'|translate}}">
@@ -61,53 +73,60 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && landingForm.invalid"></ion-icon>
       </ng-template>
 
-      <!-- error -->
-      <ion-item *ngIf="landingForm.error" visible-xs visible-sm visible-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-      </ion-item>
+      <div>
+        <!-- error -->
+        <ion-item *ngIf="landingForm.error||error as error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+        </ion-item>
 
-      <ion-grid class="ion-no-padding">
-        <ion-row class="ion-no-padding">
-          <ion-col class="ion-padding ion-padding-top">
+        <ion-grid class="ion-no-padding">
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-padding">
 
-            <!-- landing form-->
-            <app-landing-form #landingForm
-                              [programLabel]="$programLabel|async"
-                              [i18nSuffix]="i18nContext.suffix"
-                              [showError]="false"
-                              (onSubmit)="save($event)"
-                              [debug]="debug">
-            </app-landing-form>
-          </ion-col>
+              <!-- landing form-->
+              <app-landing-form #landingForm
+                                [programLabel]="$programLabel|async"
+                                [i18nSuffix]="i18nContext.suffix"
+                                [showError]="false"
+                                (onSubmit)="save($event)"
+                                [debug]="debug">
+              </app-landing-form>
+            </ion-col>
 
-          <ion-col class="ion-no-padding" size="12" size-xl="3">
+            <ion-col class="ion-no-padding" size="12" size-xl="3">
 
-            <!-- strategy summary -->
-            <app-strategy-summary-card #strategyCard
-                                       [editor]="this"
-                                       [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE'|translateContext: i18nContext.suffix">
-            </app-strategy-summary-card>
+              <!-- strategy summary -->
+              <app-strategy-summary-card #strategyCard
+                                         [editor]="this"
+                                         [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE'|translateContext: i18nContext.suffix">
+              </app-strategy-summary-card>
 
-            <!-- data quality -->
-            <app-entity-metadata [value]="data">
-              <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
-              </app-entity-quality-form>
-            </app-entity-metadata>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+              <!-- data quality -->
+              <app-entity-metadata [value]="data" *ngIf="showEntityMetadata">
+                <app-entity-quality-form *ngIf="showQualityForm">
+                </app-entity-quality-form>
+              </app-entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
     </mat-tab>
 
     <!-- TAB: samples -->
     <mat-tab #samplesTab [label]="'LANDING.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix">
       <ng-template mat-tab-label>
-        <mat-icon >center_focus_strong</mat-icon>
-        <ion-label>{{samplesTab.textLabel}}</ion-label>
+        <mat-icon>center_focus_strong</mat-icon>
+        <ion-label [matBadge]="samplesTable.visibleRowCount"
+                   [matBadgeHidden]="samplesTable.invalid || !samplesTable.visibleRowCount"
+                   matBadgeOverlap="false"
+                   matBadgeColor="primary"
+                   matBadgeSize="small"
+                   matBadgePosition="above after">{{samplesTab.textLabel}}</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
-      <div #tabContent>
+      <div>
 
         <!-- error -->
         <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
@@ -120,13 +139,16 @@
                            [showSampleDateColumn]="false"
                            [showTaxonNameColumn]="false"
                            [showTaxonGroupColumn]="false"
+                           [showToolbar]="!mobile"
+                           [showGroupHeader]="false"
+                           [tabIndex]="61"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
+                           (onPrepareRowForm)="onPrepareSampleForm($event)"
+                           [compactFields]="true"
+                           [i18nColumnSuffix]="i18nContext.suffix"
                            [debug]="debug">
         </app-samples-table>
-
-        <!-- final space-->
-        <p visible-xs visible-sm visible-mobile>&nbsp;</p>
       </div>
     </mat-tab>
 
@@ -152,9 +174,8 @@
 
 <!-- FAB button -->
 <ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="selectedTabIndex === 1"
-         @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
+         *ngIf="mobile && showSamplesTable && selectedTabIndex === 1"
+         @fadeInOutAnimation>
   <ion-fab-button color="tertiary" (click)="samplesTable.addRow($event)">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>

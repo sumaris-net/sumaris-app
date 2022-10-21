@@ -9,7 +9,7 @@ import { AppForm, firstNotNilPromise, isNil, isNotNil, toNumber } from '@sumaris
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
-export interface MeasurementValuesFormOptions<T extends IEntityWithMeasurement<T>> {
+export interface IMeasurementValuesFormOptions {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
   onUpdateFormGroup?: (formGroup: FormGroup) => void | Promise<void>;
   skipDisabledPmfmControl?: boolean; // True by default
@@ -42,7 +42,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected data: T;
   protected applyingValue = false;
   protected _measurementValuesForm: FormGroup;
-  protected options: MeasurementValuesFormOptions<T>;
+  protected options: IMeasurementValuesFormOptions;
   protected cd: ChangeDetectorRef = null;
 
   @Input() compact = false;
@@ -146,7 +146,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
                         protected formBuilder: FormBuilder,
                         protected programRefService: ProgramRefService,
                         form?: FormGroup,
-                        options?: MeasurementValuesFormOptions<T>
+                        options?: IMeasurementValuesFormOptions
   ) {
     super(injector, form);
     this.cd = injector.get(ChangeDetectorRef);
@@ -171,7 +171,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   ngOnInit() {
-    this._logPrefix = this._logPrefix || `[meas-values-${this._acquisitionLevel?.toLowerCase().replace(/[_]/g, '-') || '?'}]`;
+    this._logPrefix = this._logPrefix || `[measurement-values-${this._acquisitionLevel?.toLowerCase().replace(/[_]/g, '-') || '?'}]`;
 
     super.ngOnInit();
 
@@ -321,9 +321,9 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   }
 
   protected onApplyingEntity(data: T, opts?: {[key: string]: any;}) {
-    if (data.program?.label) {
-      // Propagate program
-      this.setProgramLabel(data.program?.label);
+    // Propagate program
+    if (data?.program?.label) {
+      this.setProgramLabel(data.program.label);
     }
   }
 
@@ -333,7 +333,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       console.warn(`${this._logPrefix} Trying to set value, but form not ready!`);
     }
 
-    if (this.debug) console.debug(`${this._logPrefix} updateView() with:`, data);
+    if (this.debug) console.debug(`${this._logPrefix} updateView() with value:`, data);
 
     // Adapt measurement values to form (if not skip)
     if (!opts || opts.normalizeEntityToForm !== false) {
@@ -348,7 +348,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
 
     this.data = data;
 
-    super.setValue(data, opts);
+    await super.setValue(data, opts);
 
     if (!opts || opts.emitEvent !== false) {
       this.form.markAsPristine();
@@ -412,13 +412,11 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       const filteredPmfms = (this.$pmfms.value || [])
         .filter(pmfm => {
           const control = measurementValuesForm.controls[pmfm.id];
-          return control && (
-            // Dirty
-            control.dirty
+          return control
             // Disabled (skipped by default)
-            || (this.options.skipDisabledPmfmControl === false && control.disabled))
+            && (!control.disabled || this.options.skipDisabledPmfmControl === false)
             // Computed (skipped by default)
-            || (this.options.skipComputedPmfmControl === false && pmfm.isComputed);
+            && (!pmfm.isComputed || this.options.skipComputedPmfmControl === false);
         });
 
       if (filteredPmfms.length) {
@@ -506,7 +504,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       let pmfms: IPmfm[];
       if (isObservable<IPmfm[]>(value)) {
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable...`);
-        pmfms = await firstNotNilPromise(value, {stop: this.destroySubject});
+        pmfms = await firstNotNilPromise(value, {stop: this.destroySubject, stopError: false});
+        if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable [OK]`);
       } else {
         pmfms = value;
       }
@@ -605,11 +604,8 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     }
 
     // Call options function
-    if (this.options && this.options.onUpdateFormGroup) {
-      const res = this.options.onUpdateFormGroup(form);
-      if (res instanceof Promise) {
-        await res;
-      }
+    if (this.options?.onUpdateFormGroup) {
+      await this.options.onUpdateFormGroup(form);
     }
 
     if (this.debug) console.debug(`${this._logPrefix} Form controls updated`);

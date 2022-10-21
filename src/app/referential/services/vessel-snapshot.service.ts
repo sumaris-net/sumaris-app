@@ -449,13 +449,22 @@ export class VesselSnapshotService
     return VesselSnapshotFilter.fromObject(source);
   }
 
-  async getAutocompleteFieldOptions(fieldName?: string, defaultAttributes?: string[]): Promise<MatAutocompleteFieldAddOptions<VesselSnapshot, VesselSnapshotFilter>> {
-
+  async getDisplayAttributes(fieldName?: string, defaultAttributes?: string[]): Promise<string[]> {
     // Make sure defaults have been loaded
     if (!this.started) await this.ready();
 
     const baseAttributes = this.settings.getFieldDisplayAttributes(fieldName || 'vesselSnapshot', defaultAttributes || VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
 
+    const displayAttributes = this.defaultLoadOptions?.withBasePortLocation
+      ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
+      : baseAttributes;
+
+    return displayAttributes;
+  }
+
+  async getAutocompleteFieldOptions(fieldName?: string, defaultAttributes?: string[]): Promise<MatAutocompleteFieldAddOptions<VesselSnapshot, VesselSnapshotFilter>> {
+
+    const baseAttributes = this.settings.getFieldDisplayAttributes(fieldName || 'vesselSnapshot', defaultAttributes || VesselSnapshotFilter.DEFAULT_SEARCH_ATTRIBUTES);
     const displayAttributes = this.defaultLoadOptions?.withBasePortLocation
       ? baseAttributes.concat(this.settings.getFieldDisplayAttributes('location').map(key => 'basePortLocation.' + key))
       : baseAttributes;

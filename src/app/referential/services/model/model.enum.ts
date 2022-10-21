@@ -105,8 +105,9 @@ export const PmfmIds = {
   GPS_USED: 188,
 
   /* APASE */
+  CHILD_GEAR: 400,
   BATCH_GEAR_POSITION: 411,
-
+  TRAWL_SIZE_CAT: 418
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -133,6 +134,9 @@ export const QualitativeValueIds = {
   },
   PRESERVATION: {
     FRESH: 332
+  },
+  SIZE_UNLI_CAT: {
+    NONE: 319
   },
   BATCH_GEAR_POSITION: {
     PORT: 473, // Bâbord
@@ -210,9 +214,12 @@ export const FractionId = {
 export const ParameterGroups = Object.freeze(Object.keys(ParameterLabelGroups));
 
 export const PmfmLabelPatterns = {
-  BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/,
-  LATITUDE: /^latitude$/i,
-  LONGITUDE: /^longitude$/i
+  BATCH_WEIGHT: /^BATCH_(.+)_WEIGHT$/i,
+  LATITUDE: /^LATITUDE$/i,
+  LONGITUDE: /^LONGITUDE$/i,
+  LENGTH: /LENGTH/i,
+  WEIGHT: /WEIGHT$/i,
+  DRESSING: /^DRESSING/i
 };
 
 export const UnitIds = {
@@ -256,12 +263,9 @@ export const LengthMeterConversion: Record<LengthUnitSymbol, number> = Object.fr
   'cm': 1/100,
   'mm': 1/1000
 });
-
 export const UnitLabelPatterns = {
-  DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
   DATE_TIME: /^Date[ &]+Time$/,
-  LENGTH: /LENGTH/,
-  WEIGHT: /WEIGHT$/
+  DECIMAL_HOURS: /^(h[. ]+dec[.]?|hours)$/,
 };
 export const UnitLabelGroups = {
   WEIGHT: Object.keys(WeightKgConversion),

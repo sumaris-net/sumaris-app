@@ -1,13 +1,12 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit} from "@angular/core";
-import {ModalController} from "@ionic/angular";
-import {changeCaseToUnderscore} from "@sumaris-net/ngx-components";
-import {ReferentialFilter} from "../services/filter/referential.filter";
-import {ReferentialRefService} from "../services/referential-ref.service";
-import {ReferentialRef}  from "@sumaris-net/ngx-components";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ModalController } from '@ionic/angular';
+import { changeCaseToUnderscore, ReferentialRef } from '@sumaris-net/ngx-components';
+import { ReferentialRefService } from '../services/referential-ref.service';
 import { BaseSelectEntityModal, IBaseSelectEntityModalOptions } from './base-select-entity.modal';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
-export interface ISelectReferentialModalOptions extends IBaseSelectEntityModalOptions<ReferentialRef, ReferentialFilter> {
-
+export interface ISelectReferentialModalOptions extends Partial<IBaseSelectEntityModalOptions<ReferentialRef, ReferentialRefFilter>> {
+  filter: Partial<ReferentialRefFilter>;
 }
 
 @Component({
@@ -15,7 +14,7 @@ export interface ISelectReferentialModalOptions extends IBaseSelectEntityModalOp
   templateUrl: './select-referential.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef, ReferentialFilter>
+export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef, ReferentialRefFilter>
   implements OnInit, ISelectReferentialModalOptions {
 
   constructor(
@@ -27,7 +26,7 @@ export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef
   }
 
   ngOnInit() {
-    this.filter = this.filter || new ReferentialFilter();
+    this.filter = ReferentialRefFilter.fromObject(this.filter);
 
     super.ngOnInit();
 
@@ -36,7 +35,7 @@ export class SelectReferentialModal extends BaseSelectEntityModal<ReferentialRef
       this.filter.entityName = this.entityName;
     }
     if (!this.filter.entityName) {
-      throw Error('Missing entityName');
+      throw new Error('Missing entityName');
     }
   }
 

@@ -1,11 +1,14 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, Injector, Input, OnInit, ViewChild } from '@angular/core';
-import { AppSlidesComponent, IRevealOptions } from '@app/shared/report/slides/slides.component';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, Optional, ViewChild } from '@angular/core';
+import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
+import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
 import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
 import {
   AppErrorWithDetails,
   DateFormatPipe,
-  EntityServiceLoadOptions, IEntity,
+  EntityServiceLoadOptions,
+  firstFalsePromise,
+  FirstOptions,
   isInt,
   isNil,
   isNilOrBlank,
@@ -20,11 +23,10 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ObservedLocationService } from '@app/trip/services/observed-location.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
 
@@ -33,9 +35,14 @@ export class LandingReportOptions {
   pathParentIdAttribute?: string;
 }
 
-@Directive()
+@Component({
+  selector: 'app-landing-report',
+  styleUrls: ['./landing.report.scss'],
+  templateUrl: './landing.report.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
 // tslint:disable-next-line:directive-class-suffix
-export abstract class LandingReport<T extends Landing = Landing> implements AfterViewInit {
+export class LandingReport<T extends Landing = Landing> implements AfterViewInit, OnDestroy {
 
   private readonly route: ActivatedRoute;
   private readonly platform: PlatformService;
@@ -44,26 +51,30 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad = true;
   private readonly _autoLoadDelay = 0;
-  protected readonly _readySubject = new BehaviorSubject<boolean>(false);
-  protected readonly _loadingSubject = new BehaviorSubject(true);
-  protected readonly translate :TranslateService;
+  protected readonly translate: TranslateService;
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly landingService: LandingService;
   protected readonly dateFormatPipe: DateFormatPipe;
   protected readonly programRefService: ProgramRefService;
   protected readonly settings: LocalSettingsService;
+  protected readonly destroySubject = new Subject();
 
-  defaultBackHref: string = null;
-  $title = new Subject();
+  readonly readySubject = new BehaviorSubject<boolean>(false);
+  readonly loadingSubject = new BehaviorSubject<boolean>(true);
+
+  $title = new Subject<string>();
+  $defaultBackHref = new Subject<string>();
   error: string;
-  slidesOptions: Partial<IRevealOptions>;
-  data: T;
-  parent: ObservedLocation;
-  stats: any = {};
+  revealOptions: Partial<IRevealOptions>;
   weightDisplayedUnit: WeightUnitSymbol;
-  pmfms: IPmfm[];
   i18nPmfmPrefix: string;
-  i18nContext = {
+
+  @Input() parent: ObservedLocation;
+  @Input() embedded = false;
+  @Input() data: T;
+  @Input() pmfms: IPmfm[];
+  @Input() stats: any = {};
+  @Input() i18nContext = {
     prefix: '',
     suffix: ''
   }
@@ -72,18 +83,18 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   @Input() showError = true;
   @Input() debug = !environment.production;
 
-  @ViewChild(AppSlidesComponent) slides!: AppSlidesComponent;
+  @ViewChild(RevealComponent) reveal!: RevealComponent;
 
   get loading(): boolean {
-    return this._loadingSubject.value;
+    return this.loadingSubject.value;
   }
   get loaded(): boolean {
-    return !this._loadingSubject.value;
+    return !this.loadingSubject.value;
   }
 
-  protected constructor(
+  constructor(
     injector: Injector,
-    options?: LandingReportOptions
+    @Optional() options?: LandingReportOptions
   ) {
     this.route = injector.get(ActivatedRoute);
     this.platform = injector.get(PlatformService);
@@ -96,10 +107,10 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     this.cd = injector.get(ChangeDetectorRef);
 
     this._pathParentIdAttribute = options?.pathParentIdAttribute || 'observedLocationId';
-    this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'landingId' ;
+    this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'landingId';
     this.i18nPmfmPrefix = 'TRIP.SAMPLE.PMFM.';
     const mobile = this.settings.mobile;
-    this.slidesOptions = {
+    this.revealOptions = {
       autoInitialize: false,
       disableLayout: mobile,
       touch: mobile
@@ -107,23 +118,35 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     if (!this.route || isNilOrBlank(this._pathIdAttribute)) {
       throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
     }
+    if (!environment.production) {
+      this.debug = true;
+    }
   }
-  ngAfterViewInit() {
 
+  ngAfterViewInit() {
     // Load data
+    //if (this._autoLoad && !this.embedded) { // If !this.embeded start is never called
     if (this._autoLoad) {
       setTimeout(() => this.start(), this._autoLoadDelay);
     }
   }
 
+  ngOnDestroy() {
+    this.destroySubject.next();
+  }
+
   async start() {
     await this.platform.ready();
-    this.markAsReady();
 
     try {
-      await this.loadFromRoute();
+      if (this.embedded) {
+        await this.loadFromInput();
+      } else {
+        this.markAsReady();
+        await this.loadFromRoute();
+      }
     }
-    catch(err) {
+    catch (err) {
       this.setError(err);
     }
     finally {
@@ -132,7 +155,7 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
   }
 
 
-  async load(id?: number, opts?: EntityServiceLoadOptions & {[key: string]: string}) {
+  async load(id?: number, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
 
     let parentId = opts && opts[this._pathParentIdAttribute] || undefined;
 
@@ -154,13 +177,15 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
 
     const program = await this.programRefService.loadByLabel(parent.program.label);
     this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+    this.i18nContext.suffix = i18nSuffix === 'legacy' ? '' : i18nSuffix;
 
     // Compute agg data
-    this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup || {};
+    const taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
 
     let pmfms = await this.programRefService.loadProgramPmfms(parent.program.label, {
       acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
-      taxonGroupId: this.stats.taxonGroup?.id
+      taxonGroupId: taxonGroup?.id
     });
 
     // Apply weight conversion, if need
@@ -170,24 +195,26 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     this.pmfms = pmfms;
     this.parent = parent;
 
-    this.data = await this.onDataLoaded(data as T, pmfms);
-    this.stats.sampleCount = data.samples?.length || 0;
+    this.data = await this.onDataLoaded(data as T, this.pmfms);
 
     const title = await this.computeTitle(this.data, this.parent);
     this.$title.next(title);
 
+    const defaultBackHref = await this.computeDefaultBackHref(this.data, this.parent);
+    this.$defaultBackHref.next(defaultBackHref);
+
     this.markAsLoaded();
     this.cd.detectChanges();
 
-    await this.slides.initialize();
+    await this.reveal.initialize();
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
-    if (this._readySubject.value) return;
-    await waitForTrue(this._readySubject, opts);
+    if (this.readySubject.value) return;
+    await waitForTrue(this.readySubject, opts);
   }
 
-  setError(err: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
+  setError(err: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string; }) {
     if (!err) {
       this.error = undefined;
     }
@@ -214,17 +241,35 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     if (!opts || opts.emitEvent !== false) this.markForCheck();
   }
 
+  waitIdle(opts?: FirstOptions): Promise<void> {
+    return firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
+  }
+
+  markAsReady() {
+    console.log('markAsReady');
+    this.readySubject.next(true);
+  }
+
+
   /* -- protected function -- */
 
-  protected abstract computeTitle(data: T, parent?: ObservedLocation): Promise<string>;
+  protected async computeTitle(data: T, parent?: ObservedLocation): Promise<string> {
+    const titlePrefix = await this.translate.get('LANDING.TITLE_PREFIX', {
+      location: data.location?.name || '',
+      date: this.dateFormatPipe.transform(data.dateTime, {time: false})
+    }).toPromise();
+    const title = await this.translate.get('LANDING.REPORT.TITLE').toPromise();
+    return titlePrefix + title;
+  }
 
+  protected async computeDefaultBackHref(data: T, parent?: ObservedLocation): Promise<string> {
+    return `/observations/${parent.id}/landing/${data.id}?tab=1`;
+  }
 
-
-  protected onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<T> {
-
+  protected onDataLoaded(data: T, pmfms: IPmfm[]): Promise<T> {
     // FOR DEV ONLY : add more data
     if (this.debug && !environment.production && data.samples.length < 5) this.addFakeSamplesForDev(data);
-
+    this.stats.sampleCount = data.samples?.length || 0;
     return Promise.resolve(data as T);
   }
 
@@ -245,20 +290,23 @@ export abstract class LandingReport<T extends Landing = Landing> implements Afte
     }
   }
 
-  protected markAsReady() {
-    this._readySubject.next(true);
+  protected async loadFromInput() {
+    await this.ready({ stop: this.destroySubject });
+    await this.onDataLoaded(this.data, this.pmfms);
+    this.markAsLoaded();
+    this.cd.detectChanges();
   }
 
-  protected markAsLoaded(opts = {emitEvent: true}) {
-    if (this._loadingSubject.value) {
-      this._loadingSubject.next(false);
+  protected markAsLoaded(opts = { emitEvent: true }) {
+    if (this.loadingSubject.value) {
+      this.loadingSubject.next(false);
       if (opts.emitEvent !== false) this.markForCheck();
     }
   }
 
-  protected markAsLoading(opts = {emitEvent: true}) {
-    if (!this._loadingSubject.value) {
-      this._loadingSubject.next(true);
+  protected markAsLoading(opts = { emitEvent: true }) {
+    if (!this.loadingSubject.value) {
+      this.loadingSubject.next(true);
       if (opts.emitEvent !== false) this.markForCheck();
     }
   }

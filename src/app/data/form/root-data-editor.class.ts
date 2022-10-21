@@ -8,6 +8,7 @@ import {
   changeCaseToUnderscore,
   EntityServiceLoadOptions,
   EntityUtils,
+  fromDateISOString,
   HistoryPageReference,
   IEntityService,
   isNil,
@@ -26,9 +27,9 @@ import { RootDataEntity } from '../services/model/root-data-entity.model';
 import { Strategy } from '../../referential/services/model/strategy.model';
 import { StrategyRefService } from '../../referential/services/strategy-ref.service';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { Moment } from 'moment';
 import { FormControl } from '@angular/forms';
-
+import { equals } from '@app/shared/functions';
+import { moment } from '@app/vendor';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -153,8 +154,7 @@ export abstract class AppRootDataEditor<
         ),
         // DEBUG
         //tap(strategy => console.debug("[root-data-editor] Received strategy: ", strategy)),
-
-        filter(strategy => strategy !== this.$strategy.value),
+        filter(strategy => !equals(strategy, this.$strategy.value)),
         tap(strategy => this.$strategy.next(strategy))
       )
       .subscribe());
@@ -280,51 +280,47 @@ export abstract class AppRootDataEditor<
     console.debug(`[root-data-editor] Listening program #${program.id} changes...`);
 
     // Remove previous subscription, if exists
-    if (this.remoteProgramSubscription) {
-      this.unregisterSubscription(this.remoteProgramSubscription);
-      this.remoteProgramSubscription.unsubscribe();
-    }
+    this.remoteProgramSubscription?.unsubscribe();
 
-    this.remoteProgramSubscription = this.programRefService.listenChanges(program.id)
+    const previousUpdateDate = fromDateISOString(program.updateDate) || moment();
+    const subscription = this.programRefService.listenChanges(program.id)
       .pipe(
         filter(isNotNil),
-        mergeMap(async (data) => {
-          if (data.updateDate && (data.updateDate as Moment).isAfter(program.updateDate)) {
-            if (this.debug) console.debug(`[root-data-editor] Program changes detected on server, at {${data.updateDate}}: clearing program cache...`);
-            // Reload program & strategies
-            return this.reloadProgram();
-          }
-        })
+        filter(() => !this.dirty), // Avoid reloading while editing the page
+        filter(data => previousUpdateDate.isBefore(data.updateDate)),
+        // Reload program & strategies
+        mergeMap(_ => this.reloadProgram())
       )
       .subscribe()
       // DEBUG
       //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
     ;
 
-    this.registerSubscription(this.remoteProgramSubscription);
+    subscription.add(() => this.unregisterSubscription(subscription));
+    this.registerSubscription(subscription);
+    this.remoteProgramSubscription = subscription;
   }
 
   protected startListenStrategyRemoteChanges(program: Program) {
     if (!program || isNil(program.id)) return; // Skip
 
     // Remove previous listener (e.g. on a previous program id)
-    if (this.remoteStrategySubscription) {
-      this.unregisterSubscription(this.remoteStrategySubscription);
-      this.remoteStrategySubscription.unsubscribe();
-    }
+    this.remoteStrategySubscription?.unsubscribe();
 
-    this.remoteStrategySubscription = this.strategyRefService.listenChangesByProgram(program.id)
+    const subscription = this.strategyRefService.listenChangesByProgram(program.id)
         .pipe(
           filter(isNotNil),
+          filter(() => !this.dirty), // Avoid reloading while editing the page
           // Reload strategies
           mergeMap((_) => this.reloadStrategy())
         )
         .subscribe()
-    // DEBUG
-    //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to program changes on server.`))
-    ;
+        // DEBUG
+        //.add(() =>  console.debug(`[root-data-editor] [WS] Stop listening to strategies changes on server.`))
 
-    this.registerSubscription(this.remoteStrategySubscription);
+    subscription.add(() => this.unregisterSubscription(subscription));
+    this.registerSubscription(subscription);
+    this.remoteStrategySubscription = subscription;
   }
 
   /**

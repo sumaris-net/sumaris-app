@@ -5,12 +5,19 @@ import {Pmfm} from "../services/model/pmfm.model";
 import {BaseSelectEntityModal} from "../list/base-select-entity.modal";
 import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
 
+export interface ISelectPmfmModalOptions {
+  filter?: Partial<PmfmFilter>;
+  showFilter?: boolean;
+  allowMultiple?: boolean;
+}
+
 @Component({
   selector: 'app-select-pmfm-modal',
+  styleUrls: ['./select-pmfm.modal.scss'],
   templateUrl: './select-pmfm.modal.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SelectPmfmModal extends BaseSelectEntityModal<Pmfm, PmfmFilter> implements OnInit {
+export class SelectPmfmModal extends BaseSelectEntityModal<Pmfm, PmfmFilter> implements OnInit, ISelectPmfmModalOptions {
 
   constructor(
       protected viewCtrl: ModalController,

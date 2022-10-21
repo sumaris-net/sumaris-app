@@ -23,7 +23,8 @@ import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/dat
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { MeasurementFormValues, MeasurementUtils, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import { debounceTime } from 'rxjs/operators';
 
 export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
@@ -60,10 +61,7 @@ export class BatchValidatorService<
     super(formBuilder, settings);
   }
 
-  getFormGroupConfig(data?: T, opts?: {
-    rankOrderRequired?: boolean;
-    labelRequired?: boolean;
-  }): { [key: string]: any } {
+  getFormGroupConfig(data?: T, opts?: O): { [key: string]: any } {
     const rankOrder = toNumber(data && data.rankOrder, null);
     const label = data && data.label || null;
     return {
@@ -86,7 +84,8 @@ export class BatchValidatorService<
       controlDate: [data && data.controlDate || null],
       qualificationDate: [data && data.qualificationDate || null],
       qualificationComments: [data && data.qualificationComments || null],
-      qualityFlagId: [toNumber(data && data.qualityFlagId, 0)]
+      qualityFlagId: [toNumber(data && data.qualityFlagId, 0)],
+      // TODO: add operationId, saleId, parentId
     };
   }
 
@@ -96,24 +95,26 @@ export class BatchValidatorService<
     // there is a second level of children only if there is qvPmfm and sampling batch columns
     if (opts?.withChildren) {
       if (isNotEmptyArray(data?.children)) {
-        console.warn('MAKE thi working. Trip control => Operation control => batch control')
-        form.addControl('children', this.formBuilder.array(
-          data.children
-            .filter(BatchUtils.isSortingBatch)
-            .map(source => this.getFormGroup(source as T, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, childrenPmfms: this.childrenPmfms, ...opts}))
-        ));
+        console.warn('[batch-validator] Creating validator for children batches - TODO: code review');
+        const formChildrenHelper = this.getChildrenFormHelper(form, {
+          withChildren: opts.withChildren,
+          withChildrenWeight: opts.withChildrenWeight,
+          childrenPmfms: opts.childrenPmfms
+        });
+        formChildrenHelper.patchValue(data.children.filter(BatchUtils.isSortingBatch) as T[]);
       }
       else {
         const formChildrenHelper = this.getChildrenFormHelper(form, {
           withChildren: !!opts.qvPmfm && this.enableSamplingBatch,
-          withChildrenWeight: true
+          withChildrenWeight: true,
+          childrenPmfms: !!opts.qvPmfm && opts.childrenPmfms || null
         });
         formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
       }
     }
 
     if (opts?.withWeight || opts?.withChildrenWeight) {
-      const weightPmfms = opts.childrenPmfms && opts.childrenPmfms.filter(PmfmUtils.isWeight);
+      const weightPmfms = opts.childrenPmfms?.filter(PmfmUtils.isWeight);
 
       // Add weight sub form
       if (opts?.withWeight) {
@@ -136,14 +137,13 @@ export class BatchValidatorService<
 
     // Add measurement values
     if (opts?.withMeasurements && isNotEmptyArray(opts.childrenPmfms)) {
-      if (form.contains('measurementValues')) form.removeControl('measurementValues');
-      const measurementValues = data && data.measurementValues && MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, opts.childrenPmfms);
-      const measControl = this.measurementsValidatorService.getFormGroup(measurementValues, {
+      const measControl = this.getMeasurementValuesForm(data?.measurementValues, {
         pmfms: opts.childrenPmfms,
         forceOptional: opts.isOnFieldMode,
         withTypename: opts.withMeasurementTypename
       });
-      form.addControl('measurementValues', measControl);
+      if (form.contains('measurementValues')) form.setControl('measurementValues', measControl)
+      else form.addControl('measurementValues', measControl);
     }
 
     return form;
@@ -158,7 +158,16 @@ export class BatchValidatorService<
     return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
   }
 
-  protected getChildrenFormHelper(form: FormGroup, opts?: { withChildren: boolean; withChildrenWeight: boolean }): FormArrayHelper<T> {
+  protected getMeasurementValuesForm(data: undefined|MeasurementFormValues|MeasurementModelValues, opts: {pmfms: IPmfm[]; forceOptional?: boolean, withTypename?: boolean}) {
+    const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
+    return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
+  }
+
+  protected getChildrenFormHelper(form: FormGroup, opts?: {
+    withChildren: boolean;
+    withChildrenWeight: boolean;
+    childrenPmfms?: IPmfm[]
+  }): FormArrayHelper<T> {
     let arrayControl = form.get('children') as FormArray;
     if (!arrayControl) {
       arrayControl = this.formBuilder.array([]);
@@ -169,7 +178,7 @@ export class BatchValidatorService<
       (value) => this.getFormGroup(value, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, childrenPmfms: this.childrenPmfms, ...opts}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
       (value) => isNil(value),
-      {allowEmptyArray: true}
+      {allowEmptyArray: true, helperProperty: true}
     );
   }
 
@@ -180,10 +189,20 @@ export class BatchValidatorService<
     markForCheck?: () => void;
     debounceTime?: number;
   }): Subscription {
-    return SharedAsyncValidators.registerAsyncValidator(form,
-      BatchValidators.samplingRatioAndWeight(opts),
-      {markForCheck: opts?.markForCheck, debounceTime: opts?.debounceTime}
-    );
+    // return SharedAsyncValidators.registerAsyncValidator(form,
+    //   BatchValidators.samplingRatioAndWeight(opts),
+    //   {markForCheck: opts?.markForCheck, debounceTime: opts?.debounceTime}
+    // );
+
+    const compute = BatchValidators.samplingRatioAndWeight(opts);
+
+    return form.valueChanges
+      .pipe(debounceTime(opts?.debounceTime || 0))
+      .subscribe(value =>{
+        const errors = compute(form);
+        if (errors) form.setErrors(errors);
+        if (opts?.markForCheck) opts.markForCheck();
+      });
 
   }
 

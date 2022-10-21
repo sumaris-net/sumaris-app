@@ -39,7 +39,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { OperationService } from '@app/trip/services/operation.service';
-import { OperationsMap, OperationsMapModalOptions } from '@app/trip/operation/map/operations.map';
+import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operation/map/operations-map.modal';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -355,7 +355,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       .sort(TripComparators.sortByDepartureDateFn);
     if (isEmptyArray(trips)) return // Skip if empty
 
-    const programs = arrayDistinct(trips.map(t => t.program), ['label']);
+    const programs = arrayDistinct(trips.map(t => t.program), 'label');
     if (programs.length == 1) {
       this.showToast({
         type: 'warning',
@@ -373,7 +373,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       .sort(TripComparators.sortByDepartureDateFn);
     if (isEmptyArray(trips)) return // Skip if empty
 
-    const programs = arrayDistinct(trips.map(t => t.program), ['label']);
+    const programs = arrayDistinct(trips.map(t => t.program), 'label');
     if (programs.length > 1) {
       this.showToast({
         type: 'warning',
@@ -391,7 +391,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       ));
 
     const modal = await this.modalCtrl.create({
-      component: OperationsMap,
+      component: OperationsMapModal,
       componentProps: <OperationsMapModalOptions>{
         data: operations,
         programLabel,

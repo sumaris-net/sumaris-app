@@ -1,4 +1,4 @@
-import { Department, EntityAsObjectOptions, IEntity, isNotNilOrNaN, Person, Referential, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
+import { Department, EntityAsObjectOptions, IEntity, isNotNilOrNaN, ITreeItemEntity, Person, Referential, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import {PredefinedColors} from '@ionic/core';
 import {QualityFlagIds} from '@app/referential/services/model/model.enum';
 import { SynchronizationIonIcon } from '@app/data/quality/entity-quality-icon.component';
@@ -97,6 +97,15 @@ export function fillRankOrder(values: { rankOrder: number }[]) {
   let maxRankOrder = getMaxRankOrder(values);
   (values || []).forEach(m => {
     m.rankOrder = m.rankOrder || ++maxRankOrder;
+  });
+}
+
+export function fillTreeRankOrder(values: (ITreeItemEntity<any> & { rankOrder: number })[]) {
+  // Compute rankOrder
+  let maxRankOrder = getMaxRankOrder(values);
+  (values || []).forEach(m => {
+    m.rankOrder = m.rankOrder || ++maxRankOrder;
+    if (m.children) fillTreeRankOrder(m.children);
   });
 }
 

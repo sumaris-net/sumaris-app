@@ -62,15 +62,6 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   }
 }
 
-const subBatchTableOptionsFactory = () => {
-  return {
-    prependNewElements: false,
-    suppressErrors: environment.production,
-    reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
-    reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
-  };
-};
-
 @Component({
   selector: 'app-sub-batches-table',
   templateUrl: 'sub-batches.table.html',
@@ -79,14 +70,20 @@ const subBatchTableOptionsFactory = () => {
     {provide: ContextService, useExisting: TripContextService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
-      useFactory: subBatchTableOptionsFactory
+      useFactory: () => {
+        return {
+          prependNewElements: false,
+          suppressErrors: environment.production,
+          reservedStartColumns: SUB_BATCH_RESERVED_START_COLUMNS,
+          reservedEndColumns: SUB_BATCH_RESERVED_END_COLUMNS
+        };
+      }
     }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFilter>
   implements OnInit, OnDestroy {
-
 
   private _qvPmfm: IPmfm;
   private _parentSubscription: Subscription;
@@ -98,7 +95,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
 
   protected cd: ChangeDetectorRef;
   protected referentialRefService: ReferentialRefService;
-  protected popoverController: PopoverController;
   protected memoryDataService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
   protected enableWeightConversion = false;
 
@@ -205,9 +201,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     return this.getShowColumn('comments');
   }
 
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
 
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
@@ -219,10 +212,13 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     super(injector,
       SubBatch, SubBatchFilter,
       new InMemoryEntitiesService<SubBatch, SubBatchFilter>(SubBatch, SubBatchFilter, {
-        onSort: (data, sortBy, sortDirection) => this.sortData(data, sortBy, sortDirection),
         onLoad: (data) => this.onLoadData(data),
         onSave: (data) => this.onSaveData(data),
-        equals: Batch.equals
+        equals: Batch.equals,
+        sortByReplacement: {
+          'id': 'rankOrder',
+          'parentGroup': 'parentGroup.rankOrder'
+        }
       }),
       validatorService,
       {
@@ -234,26 +230,20 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
       }
     );
     this.referentialRefService = injector.get(ReferentialRefService);
-    this.popoverController = injector.get(PopoverController);
-    this.cd = injector.get(ChangeDetectorRef);
-    this.memoryDataService = (this.dataService as InMemoryEntitiesService<SubBatch, SubBatchFilter>);
     this.tabindex = 1;
     this.inlineEdition = !this.mobile;
-    this.defaultSortBy = 'rankOrder';
-    this.defaultSortDirection = 'asc';
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
-    this.showCommentsColumn = true;
+    this.showCommentsColumn = !this.mobile;
 
     // DEBUG
     this.debug = !environment.production;
+    this.logPrefix = '[sub-batches-table] ';
   }
 
   ngOnInit() {
     super.ngOnInit();
-
-    this.setShowColumn('comments', this.showCommentsColumn);
 
     // Parent combo
     this.registerAutocompleteField('parentGroup', {
@@ -332,6 +322,13 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
             });
           }));
     }
+  }
+
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.memoryDataService.stop();
+    this.memoryDataService = null;
   }
 
   async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
@@ -414,7 +411,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
    */
   setValue(data: SubBatch[], opts?: { emitEvent?: boolean; }) {
     this.memoryDataService.value = data;
-    this.markAsLoaded();
+    //this.markAsLoaded();
   }
 
   /* -- protected methods -- */
@@ -686,7 +683,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     // If individual count column is shown (can be greater than 1)
     if (this.showIndividualCount) {
       // Try to find an identical sub-batch
-      const row = (await this.dataSource.getRows()).find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
+      const row = this.dataSource.getRows().find(r => BatchUtils.canMergeSubBatch(newBatch, r.currentData, pmfms));
 
       // Already exists: increment individual count
       if (row) {
@@ -780,12 +777,12 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
    */
   protected async linkDataToParentAndDeleteOrphan() {
 
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
 
     // Check if need to delete some rows
     let hasRemovedItem = false;
     const data = rows
-      .filter(row => {
+      .map(row => {
         const item = row.currentData;
 
         let parentGroup;
@@ -813,23 +810,19 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
             // If row use a validator, force update
             if (!row.editing && row.validator) row.validator.patchValue(item, {emitEvent: false});
           }
-          return true; // Keep only rows with a parent (or in editing mode)
+          return item; // Keep only rows with a parent (or in editing mode)
         }
 
-        // Could not found the parent anymore (parent has been delete)
+        // Could not find the parent anymore (parent has been deleted)
         hasRemovedItem = true;
-        return false;
+        return undefined;
       })
-      .map(r => r.currentData);
+      .filter(isNotNil);
 
     if (hasRemovedItem) {
-      this.value = data;
+      // Make sure to convert into a Sample - fix issue #371
+      this.value = data.map(c => SubBatch.fromObject(c));
     }
-  }
-
-  protected sortData(data: SubBatch[], sortBy?: string, sortDirection?: SortDirection): SubBatch[] {
-    sortBy = (sortBy && sortBy !== 'parentGroup') ? sortBy : 'parentGroup.rankOrder'; // Replace parent by its rankOrder
-    return this.memoryDataService.sort(data, sortBy, sortDirection);
   }
 
   protected onLoadData(data: SubBatch[]): SubBatch[] {
@@ -882,31 +875,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
           this.unregisterSubscription(subscription);
           this._rowValidatorSubscription = null;
         });
-      }
-    }
-  }
-
-  async openCommentPopover(event: UIEvent, row: TableElement<SubBatch>) {
-
-    const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
-    const {data} = await Popovers.showText(this.popoverController, event, {
-      editing: this.inlineEdition && this.enabled,
-      autofocus: this.enabled,
-      multiline: true,
-      text: row.currentData.comments,
-      placeholder
-    });
-
-    // User cancel
-    if (isNil(data) || this.disabled) return;
-
-    if (this.inlineEdition) {
-      if (row.validator) {
-        row.validator.patchValue({comments: data});
-        row.validator.markAsDirty();
-      }
-      else {
-        row.currentData.comments = data;
       }
     }
   }

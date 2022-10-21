@@ -78,88 +78,94 @@
         </ng-template>
       </ng-template>
 
-      <!-- error -->
-      <ion-item *ngIf="landingForm.error||error" visible-xs visible-sm visible-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
-      </ion-item>
+      <div>
+        <!-- error -->
+        <ion-item *ngIf="landingForm.error||error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="(landingForm.error||error) | translate"></ion-label>
+        </ion-item>
 
-      <ion-grid class="ion-no-padding">
-        <ion-row class="ion-no-padding">
-          <ion-col class="ion-padding">
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
 
-            <!-- landing form-->
-            <app-landing-form #landingForm
-                              [programLabel]="$programLabel|async"
-                              [i18nSuffix]="i18nContext.suffix"
-                              [requiredStrategy]="true"
-                              [showMeasurements]="true"
-                              [showError]="false"
-                              [showProgram]="false"
-                              [showStrategy]="true"
-                              [showMetier]="true"
-                              [showFishingArea]="true"
-                              [showTripDepartureDateTime]="true"
-                              [allowManyMetiers]="false"
-                              (onSubmit)="save($event)"
-                              [debug]="debug">
+        <ion-grid class="ion-no-padding">
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-padding">
 
-              <!-- zero effort (warning) -->
-              <mat-hint afterStrategy *ngIf="landingForm.strategyControl.valid && zeroEffortWarning">
-                <ion-icon color="tertiary" name="warning"></ion-icon>&nbsp;
-                <ion-text color="tertiary" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</ion-text>
-              </mat-hint>
-              <!-- no effort (error) -->
-              <mat-error afterStrategy *ngIf="noEffortError" translate>LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR</mat-error>
-            </app-landing-form>
-          </ion-col>
+              <!-- landing form-->
+              <app-landing-form #landingForm
+                                [programLabel]="$programLabel|async"
+                                [i18nSuffix]="i18nContext.suffix"
+                                [requiredStrategy]="true"
+                                [showMeasurements]="true"
+                                [showError]="false"
+                                [showProgram]="false"
+                                [showStrategy]="true"
+                                [showMetier]="true"
+                                [showFishingArea]="true"
+                                [showTripDepartureDateTime]="true"
+                                [allowManyMetiers]="false"
+                                (onSubmit)="save($event)"
+                                [debug]="debug">
 
-          <ion-col class="ion-no-padding" size="12" size-xl="5">
+                <!-- zero effort (warning) -->
+                <mat-hint afterStrategy *ngIf="landingForm.strategyControl.valid && zeroEffortWarning">
+                  <ion-icon color="tertiary" name="warning"></ion-icon>&nbsp;
+                  <ion-text color="tertiary" translate>LANDING.ERROR.ZERO_STRATEGY_EFFORT_ERROR</ion-text>
+                </mat-hint>
+                <!-- no effort (error) -->
+                <mat-error afterStrategy *ngIf="noEffortError" translate>LANDING.ERROR.NO_STRATEGY_EFFORT_ERROR</mat-error>
+              </app-landing-form>
+            </ion-col>
 
-            <ion-grid class="ion-no-padding">
-              <ion-row class="ion-no-padding">
-                <!-- strategy summary -->
-                <ion-col class="ion-no-padding">
-                  <app-strategy-summary-card #strategyCard
-                                             [editor]="this"
-                                             [value]="$strategy|async"
-                                             [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE'|translateContext: i18nContext.suffix"
-                                             [calcifiedTypesDisplayed]="true">
-                    <!-- age fractions -->
-                    <ng-container *ngIf="strategyCard.data?.pmfms | isNotEmptyArray">
-                      <ion-label color="primary">{{'LANDING.EDIT.CALCIFIED_TYPE'|translateContext: i18nContext.suffix}}</ion-label>
-                      <ion-label class="status">
-                        <ul>
-                          <ng-container *ngFor="let calcifiedType of strategyCard.data.pmfms; let i=index">
-                          <li *ngIf="calcifiedType.fraction && !calcifiedType.pmfm">
-                            <span>{{calcifiedType.fraction | referentialToString:strategyCard.displayAttributes.fraction }}</span>
-                          </li>
-                          </ng-container>
-                        </ul>
-                      </ion-label>
-                    </ng-container>
-                  </app-strategy-summary-card>
-                </ion-col>
+            <ion-col class="ion-no-padding" size="12" size-xl="5">
 
-                <!-- data quality -->
-                <ion-col class="ion-no-padding" *ngIf="showEntityMetadata">
-                  <app-entity-metadata [value]="data">
-                    <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
-                    </app-entity-quality-form>
+              <ion-grid class="ion-no-padding">
+                <ion-row class="ion-no-padding">
+                  <!-- strategy summary -->
+                  <ion-col class="ion-no-padding">
+                    <app-strategy-summary-card #strategyCard
+                                               [editor]="this"
+                                               [value]="$strategy|async"
+                                               [title]="'LANDING.EDIT.STRATEGY_SUMMARY_TITLE'|translateContext: i18nContext.suffix"
+                                               [calcifiedTypesDisplayed]="true">
+                      <!-- age fractions -->
+                      <ng-container *ngIf="strategyCard.data?.pmfms | isNotEmptyArray">
+                        <ion-label color="primary">{{'LANDING.EDIT.CALCIFIED_TYPE'|translateContext: i18nContext.suffix}}</ion-label>
+                        <ion-label class="status">
+                          <ul>
+                            <ng-container *ngFor="let calcifiedType of strategyCard.data.pmfms; let i=index">
+                            <li *ngIf="calcifiedType.fraction && !calcifiedType.pmfm">
+                              <span>{{calcifiedType.fraction | referentialToString:strategyCard.displayAttributes.fraction }}</span>
+                            </li>
+                            </ng-container>
+                          </ul>
+                        </ion-label>
+                      </ng-container>
+                    </app-strategy-summary-card>
+                  </ion-col>
 
-                    <!-- not observer (warning) -->
-                    <ion-text color="tertiary" *ngIf="warning">
-                      <br/>
-                      <ion-icon name="warning"></ion-icon>&nbsp;
-                        {{warning|translate}}
-                    </ion-text>
-                  </app-entity-metadata>
-                </ion-col>
-              </ion-row>
-            </ion-grid>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+                  <!-- data quality -->
+                  <ion-col class="ion-no-padding" *ngIf="showEntityMetadata">
+                    <app-entity-metadata [value]="data">
+                      <app-entity-quality-form [editor]="this" *ngIf="showQualityForm">
+                      </app-entity-quality-form>
+
+                      <!-- not observer (warning) -->
+                      <ion-text color="tertiary" *ngIf="warning">
+                        <br/>
+                        <ion-icon name="warning"></ion-icon>&nbsp;
+                          {{warning|translate}}
+                      </ion-text>
+                    </app-entity-metadata>
+                  </ion-col>
+                </ion-row>
+              </ion-grid>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
     </mat-tab>
 
     <!-- TAB: samples -->
@@ -177,33 +183,33 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>
       </ng-template>
 
-      <!-- error -->
-      <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
-      </ion-item>
+      <div>
+        <!-- error -->
+        <ion-item *ngIf="samplesTable.error" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="samplesTable.error|translate"></ion-label>
+        </ion-item>
 
-      <app-samples-table  #samplesTable
-                          [disabled]="noEffortError"
-                          [showError]="mobile"
-                          [showLabelColumn]="false"
-                          [showSampleDateColumn]="false"
-                          [showTaxonNameColumn]="false"
-                          [showTaxonGroupColumn]="false"
-                          [showPmfmDetails]="true"
-                          [showDisplayColumnModal]="false"
-                          [canAddPmfm]="true"
-                          [defaultSampleDate]="data?.dateTime"
-                          [showIndividualReleaseButton]="false"
-                          [usageMode]="usageMode"
-                          [useSticky]="true"
-                          [compactFields]="false"
-                          (onPrepareRowForm)="onPrepareSampleForm($event)"
-                          [debug]="debug">
-      </app-samples-table>
-
-      <!-- final space-->
-      <p visible-xs visible-sm visible-mobile>&nbsp;</p>
+        <app-samples-table  #samplesTable
+                            [disabled]="noEffortError"
+                            [showError]="mobile"
+                            [showIdColumn]="false"
+                            [showLabelColumn]="false"
+                            [showSampleDateColumn]="false"
+                            [showTaxonNameColumn]="false"
+                            [showTaxonGroupColumn]="false"
+                            [showPmfmDetails]="true"
+                            [showDisplayColumnModal]="false"
+                            [canAddPmfm]="true"
+                            [defaultSampleDate]="data?.dateTime"
+                            [allowSubSamples]="false"
+                            [usageMode]="usageMode"
+                            [useSticky]="true"
+                            [compactFields]="false"
+                            (onPrepareRowForm)="onPrepareSampleForm($event)"
+                            [debug]="debug">
+        </app-samples-table>
+      </div>
     </mat-tab>
 
   </mat-tab-group>
@@ -235,3 +241,31 @@
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>
+
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          editor.loading: {{loading}}<br/>
+          editor.ready: {{readySubject|async}}<br/>
+          editor.dirty: {{dirty}}<br/>
+        </ion-col>
+        <ion-col>
+          landingForm.loading: {{landingForm.loading}}<br/>
+          landingForm.ready: {{landingForm.readySubject|async}}<br/>
+          landingForm.dirty: {{landingForm.dirty}}<br/>
+          <br/>
+          landingForm.dateTime: {{form|formGetValue:'dateTime'|dateFormat: {time: true} }}<br/>
+        </ion-col>
+        <ion-col>
+          samplesTable.loading: {{samplesTable.loading}}<br/>
+          samplesTable.ready: {{samplesTable.readySubject|async}}<br/>
+          samplesTable.dirty: {{samplesTable.dirty}}<br/>
+          samplesTable.dirtySubject: {{samplesTable.dirtySubject|async}}<br/>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

@@ -6,11 +6,12 @@ import { ReferentialRefService } from '../../../referential/services/referential
 import { filter, mergeMap } from 'rxjs/operators';
 import { BatchTreeComponent } from '../tree/batch-tree.component';
 import {
-  ConfigService,
   EntitiesStorage,
   EntityUtils,
   firstNotNilPromise,
-  isEmptyArray, isNil, isNotNilOrBlank,
+  isEmptyArray,
+  isNil,
+  isNotNilOrBlank,
   MatAutocompleteConfigHolder,
   SharedValidators,
   StatusIds,
@@ -26,8 +27,8 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/batch-tree.utils';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { Program } from '@app/referential/services/model/program.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { MatTabGroup } from '@angular/material/tabs';
+import { TripService } from '@app/trip/services/trip.service';
 
 
 @Component({
@@ -45,7 +46,7 @@ export class BatchTreeTestPage implements OnInit {
   $gearId = new BehaviorSubject<number>(undefined);
   filterForm: FormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
-  selectedTabIndex = 1; // TODO 0 = mobile
+  selectedTabIndex = 0; // TODO 0 = mobile
 
   outputs: {
     [key: string]: string;
@@ -57,7 +58,9 @@ export class BatchTreeTestPage implements OnInit {
 
 
   get batchTree(): BatchTreeComponent {
-    return this.mobileBatchTree || this.desktopBatchTree;
+    return (this.selectedTabIndex === 0)
+      ? this.mobileBatchTree
+      : this.desktopBatchTree;
   }
 
   constructor(
@@ -65,6 +68,7 @@ export class BatchTreeTestPage implements OnInit {
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     private entities: EntitiesStorage,
+    private tripService: TripService,
     private context: ContextService<BatchContext>
   ) {
 
@@ -192,11 +196,9 @@ export class BatchTreeTestPage implements OnInit {
 
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.batchTree.program = program;
-    if (program.label === 'APASE') {
-      this.batchTree.physicalGearId = 70; // Parent gear
-      if (this.batchTree.catchBatchForm) {
-        this.batchTree.catchBatchForm.physicalGearId = 70; // Parent gear
-      }
+    if (program.label === 'APASE' && this.batchTree.gearId === 7) {
+      const trip = await this.tripService.load(70);
+      this.batchTree.physicalGear = trip?.gears?.[0]; // Parent gear
     }
 
     this.markAsReady();
@@ -284,7 +286,7 @@ export class BatchTreeTestPage implements OnInit {
 
     if (batchTree.mobile) {
       let html = "<br/>Sub batches :<br/>";
-      const subBatches = await batchTree.getSubBatches();
+      const subBatches = catchBatch.children;
       if (isEmptyArray(subBatches)) {
         html += '&nbsp;No result';
       }

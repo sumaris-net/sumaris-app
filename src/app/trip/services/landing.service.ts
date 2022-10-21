@@ -1,10 +1,11 @@
-import {Injectable, Injector} from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
   chainPromises,
   EntitiesServiceWatchOptions,
-  EntitiesStorage, Entity,
+  EntitiesStorage,
+  Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
   EntityUtils,
@@ -22,33 +23,31 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person, StatusIds, toNumber
+  Person,
+  toNumber
 } from '@sumaris-net/ngx-components';
-import {BehaviorSubject, EMPTY, Observable, of} from 'rxjs';
-import {Landing} from './model/landing.model';
+import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
+import { Landing } from './model/landing.model';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import {DataFragments, DataCommonFragments} from './trip.queries';
-import {filter, map, tap} from 'rxjs/operators';
-import {BaseRootDataService} from '@app/data/services/root-data-service.class';
-import {Sample} from './model/sample.model';
-import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
-import * as momentImported from 'moment';
-import {DataRootEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import { DataCommonFragments, DataFragments } from './trip.queries';
+import { filter, map } from 'rxjs/operators';
+import { BaseRootDataService } from '@app/data/services/root-data-service.class';
+import { Sample } from './model/sample.model';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
+import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
 
-import {SortDirection} from '@angular/material/sort';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {ReferentialFragments} from '@app/referential/services/referential.fragments';
-import {LandingFilter} from './filter/landing.filter';
-import {DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
-import {TripFragments, TripService} from '@app/trip/services/trip.service';
-import {Trip} from '@app/trip/services/model/trip.model';
-import {environment} from '@environments/environment';
-import {ErrorCodes} from '@app/data/services/errors';
-import {TripFilter} from '@app/trip/services/filter/trip.filter';
-import {ObservedLocation} from '@app/trip/services/model/observed-location.model';
-import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { SortDirection } from '@angular/material/sort';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { LandingFilter } from './filter/landing.filter';
+import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import { TripFragments, TripService } from '@app/trip/services/trip.service';
+import { Trip } from '@app/trip/services/model/trip.model';
+import { ErrorCodes } from '@app/data/services/errors';
+import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
@@ -248,7 +247,7 @@ const LandingSubscriptions: BaseEntityGraphqlSubscriptions = {
 
 const sortByDateOrIdFn = (n1: Landing, n2: Landing) => {
   return n1.dateTime.isSame(n2.dateTime)
-    ? (n1.id === n2.id ? 0 : n1.id > n2.id ? 1 : -1)
+    ? (n1.id === n2.id ? 0 : Math.abs(n1.id) > Math.abs(n2.id) ? 1 : -1)
     : (n1.dateTime.isAfter(n2.dateTime) ? 1 : -1);
 };
 
@@ -313,7 +312,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       || (dataFilter && (
         (dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC')
         || EntityUtils.isLocalId(dataFilter.observedLocationId)
-        || EntityUtils.isLocalId(dataFilter.tripId))) || false;
+        || EntityUtils.isLocalId(dataFilter.tripId)
+      )) || false;
     if (offline) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
@@ -680,9 +680,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
         // Compute rankOrder, by tripId or observedLocationId
         if (!opts || opts.computeRankOrder !== false) {
-          this.computeRankOrderAndSort(entities, offset, total,
-            sortBy !== 'id' ? sortBy : 'rankOrder',
-            sortDirection, dataFilter);
+          this.computeRankOrderAndSort(entities, offset, total, sortBy, sortDirection, dataFilter);
         }
 
         return {
@@ -695,17 +693,13 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
   async deleteAll(entities: Landing[], options?: any): Promise<any> {
 
     // Get local entity ids, then delete id
-    const localIds = entities && entities
-      .map(t => t.id)
-      .filter(id => id < 0);
+    const localIds = entities?.filter(EntityUtils.isLocal).map(t => t.id);
     if (isNotEmptyArray(localIds)) {
       if (this._debug) console.debug('[landing-service] Deleting landings locally... ids:', localIds);
       await this.entities.deleteMany<Landing>(localIds, {entityName: Landing.TYPENAME});
     }
 
-    const ids = entities && entities
-      .map(t => t.id)
-      .filter(id => id >= 0);
+    const ids = entities.filter(EntityUtils.isRemote).map(t => t.id);
     if (isEmptyArray(ids)) return; // stop, if nothing else to do
 
     const now = Date.now();
@@ -1038,13 +1032,13 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     // Compute rankOrder, by tripId or observedLocationId
     if (filter && (isNotNil(filter.tripId) || isNotNil(filter.observedLocationId))) {
       const asc = (!sortDirection || sortDirection === 'asc');
-      let rankOrder = asc ? 1 + offset : total - offset;
+      let rankOrder = asc ? 1 + offset : (total - offset - data.length + 1);
       // apply a sorted copy (do NOT change original order), then compute rankOrder
       data.slice().sort(sortByDateOrIdFn)
-        .forEach(o => o.rankOrder = asc ? rankOrder++ : rankOrder--);
+        .forEach(o => o.rankOrder = rankOrder++);
 
-      // Sort by rankOrder
-      if (!sortBy || sortBy === 'rankOrder') {
+      // Sort by rankOrder (even if 'id' because never used)
+      if (!sortBy || sortBy === 'rankOrder' || sortBy === 'id') {
         data.sort(asc ? sortByAscRankOrder : sortByDescRankOrder);
       }
     }

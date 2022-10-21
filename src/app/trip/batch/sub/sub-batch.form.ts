@@ -303,7 +303,8 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
                   this.markForCheck();
                 }
               }));
-        });
+        })
+        .catch(err => console.error(err));
       }
 
       // Desktop
@@ -686,13 +687,14 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
       json.individualCount = this.form.get('individualCount').value || 1;
     }
 
-    const pmfmForm = this.form.get('measurementValues');
+    const measurementValuesForm = this.measurementValuesForm;
 
     // Adapt measurement values for entity
-    if (pmfmForm) {
+    if (measurementValuesForm) {
+      const pmfms = this.$pmfms.value;
       json.measurementValues = Object.assign({},
-        this.data.measurementValues || {}, // Keep additionnal PMFM values
-        MeasurementValuesUtils.normalizeValuesToModel(pmfmForm.value, this.$pmfms.getValue() || []));
+        this.data.measurementValues || {}, // Keep additional PMFM values
+        MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, pmfms || []));
     } else {
       json.measurementValues = {};
     }

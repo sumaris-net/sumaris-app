@@ -72,7 +72,7 @@
   <mat-label mat-menu-item class="mat-menu-title" translate>EXTRACTION.MAP.TECH_VALUE</mat-label>
 
   <button mat-menu-item *ngFor="let item of $techColumns | async"
-          (click)="setTechStrata(item.columnName)">
+          (click)="setTechColumn(item.columnName)">
     <ion-icon *ngIf="techColumnName === item.columnName" name="checkmark"></ion-icon>
     <ion-label>{{columnNames[item.columnName]}}</ion-label>
   </button>
@@ -139,7 +139,6 @@
        (leafletMapReady)="onMapReady($event)"
        [leafletOptions]="mapOptions"
        [leafletLayersControl]="layersControl">
-
   </div>
 
   <!-- filter panel -->
@@ -147,7 +146,7 @@
        [class.expanded]="filterExpansionPanel.expanded"
        [class.cdk-visually-hidden]="!type">
 
-    <mat-accordion [formGroup]="strataForm">
+    <mat-accordion [formGroup]="strataForm" (dblclick)="$event.stopPropagation()">
 
       <!-- sheet selector -->
       <mat-expansion-panel #sheetExpansionPanel>
@@ -200,7 +199,7 @@
           <ion-item *ngFor="let item of aggColumns"
                     [class.selected]="aggColumnName===item.columnName"
                     tappable
-                    (click)="setAggStrata(item.columnName)">
+                    (click)="setAggColumn(item.columnName)">
             <ion-label>{{columnNames[item.columnName]}}</ion-label>
           </ion-item>
           <ion-item *ngIf="aggColumns | isEmptyArray">
@@ -256,7 +255,8 @@
           </ion-toolbar>
         </mat-expansion-panel-header>
 
-        <div [class.cdk-visually-hidden]="!filterExpansionPanel.expanded">
+        <div [class.cdk-visually-hidden]="!filterExpansionPanel.expanded"
+             >
 
           <form [formGroup]="form" class="form-container">
 

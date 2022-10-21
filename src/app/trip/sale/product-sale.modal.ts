@@ -1,11 +1,12 @@
 import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController } from '@ionic/angular';
-import { AppEntityEditorModal, AppFormUtils, IEntityEditorModalOptions, referentialToString } from '@sumaris-net/ngx-components';
+import { AppEntityEditorModal, IEntityEditorModalOptions, referentialToString } from '@sumaris-net/ngx-components';
 import { ProductSaleForm } from './product-sale.form';
 import { Product } from '../services/model/product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { TranslateService } from '@ngx-translate/core';
-import { FormGroup } from '@angular/forms';
+import { FormArray, FormGroup } from '@angular/forms';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 export interface IProductSaleModalOptions extends IEntityEditorModalOptions<Product, number> {
   productSalePmfms: DenormalizedPmfmStrategy[];
@@ -32,8 +33,12 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
     protected translate: TranslateService
   ) {
     super(injector, Product, {
+      tabCount: 1
+    });
+  }
 
-    })
+  saveAndClose(event?: Event): Promise<boolean> {
+    return super.saveAndClose(event);
   }
 
   protected registerForms() {
@@ -44,6 +49,14 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
     await super.ngOnInit();
 
     this.productSaleForm.markAsReady();
+
+    const formArray = this.productSaleForm.form.get('saleProducts') as FormArray;
+    formArray.statusChanges
+      .pipe(distinctUntilChanged())
+      .subscribe((status) => {
+        const control = formArray.at(0);
+        console.log('saleProducts.dirty=' + control.enabled, control);
+      });
   }
 
   ngOnDestroy(): void {
@@ -52,6 +65,10 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
 
   protected async setValue(data: Product) {
     await this.productSaleForm.setValue(Product.fromObject(data));
+  }
+
+  protected async getJsonValueToSave(): Promise<any> {
+    return this.productSaleForm.value;
   }
 
   protected async computeTitle(data: Product): Promise<string> {

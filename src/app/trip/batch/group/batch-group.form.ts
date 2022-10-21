@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryList, ViewChildren } from '@angular/core';
 import { Batch} from '../common/batch.model';
 import { AbstractControl, FormBuilder, FormControl } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -21,7 +21,8 @@ import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
   styleUrls: ['batch-group.form.scss'],
   providers: [
     { provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService},
-    { provide: BatchValidatorService, useClass: BatchValidatorService}
+    { provide: BatchValidatorService, useClass: BatchValidatorService},
+    { provide: BatchForm, useExisting: forwardRef(() => BatchGroupForm)},
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -42,6 +43,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   @ViewChildren('firstInput') firstInputFields !: QueryList<InputElement>;
   @ViewChildren('childForm') childrenList !: QueryList<BatchForm>;
+
 
   get invalid(): boolean {
     return this.form.invalid || this.hasSubBatchesControl.invalid ||
@@ -175,9 +177,14 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         .pipe(filter(() => !this.applyingValue && !this.loading))
         .subscribe(hasSubBatches => {
             hasSubBatches = hasSubBatches && !this.showIndividualCount;
-            (this.childrenList || []).forEach((childForm, index) => {
-              childForm.setIsSampling(hasSubBatches, {emitEvent: true} /*Important, to force async validator*/);
-            });
+            if (this.qvPmfm) {
+              (this.childrenList || []).forEach((childForm, index) => {
+                childForm.setIsSampling(hasSubBatches, {emitEvent: true} /*Important, to force async validator*/);
+              });
+            }
+            else {
+              this.setIsSampling(hasSubBatches, {emitEvent: true} /*Important, to force async validator*/);
+            }
           }));
 
     // Listen form changes
@@ -205,20 +212,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     await super.ready();
 
   }
-
-  /*onInitSubForm(form: AppForm<any>) {
-    if (!this.children.includes(form)) {
-      this.addChildForm(form);
-    }
-    // Mark table as ready, if main component is ready
-    if (this._$ready.value) {
-      table.markAsReady();
-    }
-    // Mark table as loaded, if main component is loaded
-    if (!this.loading) {
-      table.markAsLoaded();
-    }
-  }*/
 
   /* -- protected methods -- */
 
@@ -251,21 +244,22 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       // Limit to species pmfms
       pmfms = speciesPmfms;
     }
+    else {
+      if (this.debug) console.debug('[batch-group-form] No qv pmfms...');
+
+      // Not need child form, so apply children properties to self
+      this.configureChildForm(this, {hasSubBatches: this.hasSubBatches});
+    }
 
     return super.mapPmfms(pmfms);
   }
 
   protected async updateView(data: BatchGroup, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
 
-    if (this.debug) console.debug('[batch-group-form] updateView() with value:', data);
+    if (this.debug) console.debug(this._logPrefix + ' updateView() with value:', data);
     let hasSubBatches = data.observedIndividualCount > 0 || this.defaultHasSubBatches || false;
 
-    if (!this.qvPmfm) {
-      await super.updateView(data);
-
-      // Should have sub batches, when sampling batch exists
-      hasSubBatches = hasSubBatches || isNotNil(BatchUtils.getSamplingChild(data));
-    } else {
+    if (this.qvPmfm) {
 
       // Prepare data array, for each qualitative values
       data.children = this.qvPmfm.qualitativeValues.map((qv, index) => {
@@ -294,30 +288,36 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
       // Set value (batch group)
       await super.updateView(data, opts);
 
-      // Then set value of each child form
+      // Configure child forms
       this.cd.detectChanges();
+      this.childrenList.forEach(c => this.configureChildForm(c, {hasSubBatches}));
 
+      // Set value of each child form
       await Promise.all(
         this.childrenList.map((childForm, index) => {
-
           const childBatch = data.children[index] || new Batch();
-          childForm.showWeight = this.showChildrenWeight;
-          childForm.requiredWeight = this.showChildrenWeight && hasSubBatches;
-          childForm.requiredSampleWeight = this.showChildrenWeight && hasSubBatches;
-          childForm.requiredIndividualCount = !this.showChildrenWeight && hasSubBatches;
-          childForm.setIsSampling(hasSubBatches, {emitEvent: true});
-          if (this.enabled) {
-            childForm.enable();
-          } else {
-            childForm.disable();
-          }
-
-          childForm.markAsReady();
           return childForm.setValue(childBatch, {emitEvent: true});
         })
       );
 
       this.computeShowTotalIndividualCount(data);
+
+    }
+
+    // No QV pmfm
+    else {
+
+      // Should have sub batches, when sampling batch exists
+      hasSubBatches = hasSubBatches || isNotNil(BatchUtils.getSamplingChild(data));
+
+      // Configure as child form (will copy some childrenXXX properties into self)
+      if (hasSubBatches !== this.hasSubBatches) {
+        this.hasSubBatches = hasSubBatches;
+        this.configureChildForm(this, {hasSubBatches});
+      }
+
+      // Set value (batch group)
+      await super.updateView(data, opts);
 
     }
 
@@ -335,12 +335,41 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     }
   }
 
+  protected configureChildForm(childForm: BatchForm, opts: {hasSubBatches: boolean; emitEvent?: boolean}){
+
+    childForm.showWeight = this.showChildrenWeight;
+    childForm.showIndividualCount=this.showChildrenIndividualCount;
+    childForm.showSamplingBatch=this.showChildrenSamplingBatch;
+    childForm.showSampleWeight=this.showChildrenWeight;
+    childForm.requiredWeight = this.showChildrenWeight && opts.hasSubBatches;
+    childForm.requiredSampleWeight = this.showChildrenWeight && opts.hasSubBatches;
+    childForm.requiredIndividualCount = !this.showChildrenWeight && this.showChildrenIndividualCount && opts.hasSubBatches;
+
+    childForm.setIsSampling(opts.hasSubBatches, {emitEvent: true});
+
+    if (this.qvPmfm) {
+      if (this.enabled) {
+        childForm.enable();
+      } else {
+        childForm.disable();
+      }
+
+      childForm.markAsReady();
+    }
+    else {
+      // Is self form: mark for check
+      if (childForm === this && opts.emitEvent !== false) {
+        this.markForCheck();
+      }
+    }
+  }
+
   protected getValue(): BatchGroup {
     const data = super.getValue();
     if (!data) return; // No set yet
 
     if (this.qvPmfm) {
-      // FOr each children
+      // For each child
       data.children = this.childrenList.map((childForm, index) => {
         const qv = this.qvPmfm.qualitativeValues[index];
         const child = childForm.value;
@@ -360,15 +389,18 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         return child;
       });
     }
+    else {
+      // Nothing to do
+    }
 
-    if (this.debug) console.debug('[batch-group-form] getValue():', data);
+    if (this.debug) console.debug(this._logPrefix + 'getValue():', data);
 
     return data;
   }
 
   protected computeShowTotalIndividualCount(data?: Batch) {
     data = data || this.data;
-    if (this.debug) console.debug('[batch-group-form] computeShowTotalIndividualCount():', data);
+    if (this.debug) console.debug(this._logPrefix + 'computeShowTotalIndividualCount():', data);
 
     // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
     // but some species (e.g. RJB) can have no weight.

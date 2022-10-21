@@ -37,7 +37,8 @@ export const ProgramProperties = Object.freeze({
       filter: {
         entityName: 'LocationLevel',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+      },
+      attributes: ['name']
     },
     defaultValue: LocationLevelIds.PORT.toString()
   },
@@ -62,7 +63,14 @@ export const ProgramProperties = Object.freeze({
   TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.offline.import.location.level.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS',
-    type: 'string',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
     defaultValue: undefined // = Import all locations define in LocationLevelIds
   },
   TRIP_METIERS_ENABLE: <FormFieldDefinition>{
@@ -94,6 +102,12 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN',
     defaultValue: 'false',
     type: 'boolean'
+  },
+  TRIP_PHYSICAL_GEAR_HELP_MESSAGE: <FormFieldDefinition>{
+    key: 'sumaris.trip.gear.help.message',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_HELP_MESSAGE',
+    defaultValue: undefined,
+    type: 'string'
   },
   // Trip map
   TRIP_MAP_ENABLE: <FormFieldDefinition>{
@@ -402,7 +416,8 @@ export const ProgramProperties = Object.freeze({
       filter: {
         entityName: 'LocationLevel',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+      },
+      attributes: ['name']
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
   },
@@ -458,7 +473,14 @@ export const ProgramProperties = Object.freeze({
   OBSERVED_LOCATION_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.location.level.ids',
     label: 'PROGRAM.OPTIONS.OBSERVED_LOCATION_LOCATION_LEVEL_IDS',
-    type: 'string',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
     defaultValue: LocationLevelIds.PORT.toString()
   },
   OBSERVED_LOCATION_OBSERVERS_ENABLE: <FormFieldDefinition>{
@@ -622,7 +644,8 @@ export const ProgramProperties = Object.freeze({
       filter: {
         entityName: 'LocationLevel',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+      },
+      attributes: ['name']
     },
     defaultValue: LocationLevelIds.ICES_RECTANGLE.toString()
   },
@@ -674,7 +697,8 @@ export const ProgramProperties = Object.freeze({
       filter: {
         entityName: 'LocationLevel',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
+      },
+      attributes: ['name']
     },
     defaultValue: LocationLevelIds.ICES_DIVISION.toString()
   },

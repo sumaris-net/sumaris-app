@@ -33,9 +33,10 @@ import {
   APP_TESTING_PAGES,
   AppGestureConfig,
   CORE_CONFIG_OPTIONS,
+  CORE_TESTING_PAGES,
   DATE_ISO_PATTERN,
   Department,
-  EntitiesStorageTypePolicies, ENVIRONMENT,
+  EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
   LocalSettings,
   MenuItem,
@@ -43,7 +44,7 @@ import {
   SOCIAL_TESTING_PAGES,
   SocialModule,
   TestingPage,
-  USER_EVENT_SERVICE
+  APP_USER_EVENT_SERVICE
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -77,7 +78,6 @@ import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
 import { AppImageModule } from '@app/image/image.module';
 import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
 import { UserEventService } from '@app/social/user-event/user-event.service';
-import { CORE_TESTING_PAGES } from '@sumaris-net/ngx-components';
 
 @NgModule({
   declarations: [
@@ -192,8 +192,8 @@ import { CORE_TESTING_PAGES } from '@sumaris-net/ngx-components';
     {provide: DateAdapter, useExisting: MomentDateAdapter},
 
     // User event
-    { provide: USER_EVENT_SERVICE, useClass: UserEventService },
-    {provide: UserEventService, useExisting: USER_EVENT_SERVICE},
+    {provide: UserEventService, useClass: UserEventService},
+    {provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService},
 
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {

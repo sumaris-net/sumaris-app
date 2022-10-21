@@ -1,21 +1,27 @@
 import { Injectable, Injector } from '@angular/core';
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from "@apollo/client/core";
-import {ReferentialFragments} from "./referential.fragments";
-import {BaseEntityGraphqlQueries, GraphqlService} from '@sumaris-net/ngx-components';
-import {CacheService} from "ionic-cache";
-import {ErrorCodes} from "./errors";
-import {AccountService}  from "@sumaris-net/ngx-components";
-import {NetworkService}  from "@sumaris-net/ngx-components";
-import {EntitiesStorage}  from "@sumaris-net/ngx-components";
-import {ReferentialFilter} from "./filter/referential.filter";
-import {Strategy} from "./model/strategy.model";
-import {PlatformService}  from "@sumaris-net/ngx-components";
-import {StrategyFragments} from "./strategy.fragments";
-import {firstArrayValue, isNil, isNotEmptyArray, isNotNil, toNumber} from "@sumaris-net/ngx-components";
-import {defer, Observable, Subject, Subscription} from "rxjs";
-import {filter, finalize, map, tap} from "rxjs/operators";
-import {BaseReferentialService} from "./base-referential-service.class";
-import {firstNotNilPromise} from "@sumaris-net/ngx-components";
+import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { ReferentialFragments } from './referential.fragments';
+import {
+  AccountService,
+  BaseEntityGraphqlQueries,
+  EntitiesStorage,
+  firstArrayValue,
+  firstNotNilPromise, fromDateISOString,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
+  NetworkService,
+  toNumber
+} from '@sumaris-net/ngx-components';
+import { CacheService } from 'ionic-cache';
+import { ErrorCodes } from './errors';
+import { ReferentialFilter } from './filter/referential.filter';
+import { Strategy } from './model/strategy.model';
+import { StrategyFragments } from './strategy.fragments';
+import { defer, Observable, Subject, Subscription } from 'rxjs';
+import { filter, finalize, map } from 'rxjs/operators';
+import { BaseReferentialService } from './base-referential-service.class';
+import { Moment } from 'moment';
 
 
 export class StrategyRefFilter extends ReferentialFilter {
@@ -72,14 +78,8 @@ const Queries: BaseEntityGraphqlQueries = {
 };
 
 const SUBSCRIPTIONS = {
-  // WARN: do not fetch all properties, but only id, label, updateDate
-  // (to avoid too many queries, in the POD)
-  listenChangesByProgram: gql`subscription UpdateProgramStrategies($programId: Int!, $interval: Int){
-    data: updateProgramStrategies(programId: $programId, interval: $interval) {
-      id
-      label
-      updateDate
-    }
+  listenChangesByProgram: gql`subscription LastStrategiesUpdateDate($filter: StrategyFilterVOInput!, $interval: Int){
+    data: lastStrategiesUpdateDate(filter: $filter, interval: $interval)
   }`
 };
 
@@ -87,7 +87,7 @@ const StrategyRefCacheKeys = {
   CACHE_GROUP: 'strategy',
 
   STRATEGY_BY_LABEL: 'strategyByLabel',
-  STRATEGIES_BY_PROGRAM_ID: 'strategiesByProgramId'
+  LAST_UPDATE_DATE_BY_PROGRAM_ID: 'strategiesByProgramId'
 };
 
 
@@ -95,7 +95,7 @@ const StrategyRefCacheKeys = {
 export class StrategyRefService extends BaseReferentialService<Strategy, StrategyRefFilter> {
 
   private _subscriptionCache: {[key: string]: {
-      subject: Subject<Strategy[]>;
+      subject: Subject<any>;
       subscription: Subscription;
     }} = {};
 
@@ -199,39 +199,34 @@ export class StrategyRefService extends BaseReferentialService<Strategy, Strateg
     await this.cache.clearGroup(StrategyRefCacheKeys.CACHE_GROUP);
   }
 
-
   listenChangesByProgram(programId: number, opts?: {
     interval?: number;
-  }): Observable<Strategy[]> {
+  }): Observable<Moment> {
     if (isNil(programId)) throw Error('Missing argument \'programId\' ');
 
-    const cacheKey = [StrategyRefCacheKeys.STRATEGIES_BY_PROGRAM_ID, programId].join('|');
+    const cacheKey = [StrategyRefCacheKeys.LAST_UPDATE_DATE_BY_PROGRAM_ID, programId].join('|');
     let cache = this._subscriptionCache[cacheKey];
     if (!cache) {
-      const variables = {
-        programId,
-        interval: opts && opts.interval || 10 // seconds
-      };
-      const subject = new Subject<Strategy[]>();
       if (this._debug) console.debug(`[strategy-ref-service] [WS] Listening for changes on strategies, from program {${programId}}...`);
+      const program$ = this.graphql.subscribe<{data: any}>({
+        query: SUBSCRIPTIONS.listenChangesByProgram,
+        fetchPolicy: 'no-cache',
+        variables: {
+          filter: {programIds: [programId]},
+          interval: opts?.interval || 30 // seconds
+        },
+        error: {
+          code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
+          message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
+        }
+      })
+        .pipe(
+          map(({data}) =>  fromDateISOString(data))
+        );
+      const subject = new Subject<Moment>();
       cache = {
         subject,
-        subscription: this.graphql.subscribe<{data: any}>({
-          query: SUBSCRIPTIONS.listenChangesByProgram,
-          fetchPolicy: 'no-cache',
-          variables,
-          error: {
-            code: ErrorCodes.SUBSCRIBE_REFERENTIAL_ERROR,
-            message: 'REFERENTIAL.ERROR.SUBSCRIBE_REFERENTIAL_ERROR'
-          }
-        })
-          .pipe(
-            map(({data}) => {
-              const entities = (data || []).map(s => this.fromObject(s));
-              if (isNotEmptyArray(entities) && this._debug) console.debug(`[strategy-ref-service] [WS] Received changes on strategies, from program {${programId}}`, entities);
-              return entities;
-            }))
-          .subscribe(subject)
+        subscription: program$.subscribe(subject)
       };
       this._subscriptionCache[cacheKey] = cache;
     }

@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
 import { OperationValidatorOptions, OperationValidatorService } from '../services/validator/operation.validator';
-import * as momentImported from 'moment';
 import { Moment } from 'moment';
 import {
   AccountService,
@@ -58,7 +57,7 @@ import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -505,8 +504,11 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       const gearLabelPath = 'measurementValues.' + PmfmIds.GEAR_LABEL;
       const physicalGears = (trip.gears || []).map((ps, i) => {
         const physicalGear = PhysicalGear.fromObject(ps).clone();
-        physicalGear.children = null;
-        // Use physical gear label, if any (see issue #314)
+
+        // Keep children (need by selection operation page)
+        //physicalGear.children = null;
+
+        // Use physical gear label, if present (see issue #314)
         const physicalGearLabel = getPropertyByPath(ps, gearLabelPath);
         if (isNotNilOrBlank(physicalGearLabel)) {
           physicalGear.gear.name = physicalGearLabel;

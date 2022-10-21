@@ -58,7 +58,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
 
   data: ExtractionResult;
-  $title = new Subject<string>();
+  $title = new BehaviorSubject<string>('EXTRACTION.TABLE.TITLE');
   sortedColumns: ExtractionColumn[];
   displayedColumns: string[];
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
@@ -68,7 +68,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   isAdmin = false;
 
   typesByCategory$: Observable<{key: string, value: ExtractionType[]}[]>;
-  criteriaCount$: Observable<number>;
+  filterCriteriaCount$: Observable<number>;
+  filterPanelFloating = true;
+  stickyEnd = true;
   $programs = new BehaviorSubject<Program[]>(null);
   $selectedProgram = new BehaviorSubject<Program>(null);
 
@@ -100,6 +102,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
     this.isAdmin = this.accountService.isAdmin();
+    this.stickyEnd = !this.mobile;
   }
 
   ngOnInit() {
@@ -130,10 +133,17 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         this.onRefresh
       )
       .pipe(
+        debounceTime(100),
         throttleTime(500) // Need because of 'this.paginator.pageIndex = 0' later
       )
       .subscribe(() => {
-        if (this.loading || isNil(this.type)) return; // avoid multiple load
+        if (isNil(this.type)) return; // Skip if no type
+        // If already loading: skip
+        if (this.loading) {
+          // Warn user that he should wait
+          if (this.started) this.showToast({type: 'warning', message: 'EXTRACTION.INFO.PLEASE_WAIT_WHILE_RUNNING'})
+          return;
+        }
 
         // Reset paginator if filter change
         if (this.paginator && this.paginator.pageIndex > 0 && this.dirty) {
@@ -143,7 +153,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         return this.loadData();
       }));
 
-    this.criteriaCount$ = this.criteriaForm.form.valueChanges
+    this.filterCriteriaCount$ = this.criteriaForm.form.valueChanges
       .pipe(
         map(_ => this.criteriaForm.criteriaCount)
       );
@@ -194,6 +204,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       // Wait end of datasource loading
       //await firstFalsePromise(this.dataSource.loadingSubject);
 
+      setTimeout(() => this.updateQueryParams());
     }
     catch(err) {
       console.error('Error while updating the view', err);
@@ -224,23 +235,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         this.filterExpansionPanel.close();
       }
 
-      // Apply filter
-      const programLabel = 'SUMARiS';
-      const program = programLabel && (await this.programRefService.loadByLabel(programLabel));
-      if (this.criteriaForm.sheetName && isNotNilOrBlank(program.label)) {
-        this.criteriaForm.setValue([
-          ExtractionFilterCriterion.fromObject({
-            sheetName: this.criteriaForm.sheetName,
-            name: 'project',
-            operator: '=',
-            value: program.label
-          })], {emitEvent: false});
-        this.$selectedProgram.next(program);
-      }
-      else {
-        // Reset program
-        this.$selectedProgram.next(null);
-      }
+      // Reset program
+      this.$selectedProgram.next(null);
 
       this.markAsReady();
 
@@ -648,7 +644,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   private async updateTitle() {
     if (!this.type) {
-      this.$title.next('');
+      this.$title.next('EXTRACTION.TABLE.TITLE');
       return;
     }
 

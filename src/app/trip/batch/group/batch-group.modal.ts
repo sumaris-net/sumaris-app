@@ -15,6 +15,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
@@ -22,6 +23,7 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   showSamplingBatch: boolean;
 
   // Other options
+  qvPmfm?: IPmfm;
   childrenPmfms: IPmfm[];
   enableWeightConversion: boolean;
 
@@ -30,8 +32,6 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
   allowSubBatches: boolean;
   defaultHasSubBatches: boolean;
   openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
-
-  mobile: boolean;
 }
 
 @Component({
@@ -157,7 +157,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       .subscribe((data) => this.computeTitle(data))
     );
 
-    this.setValue(this.data);
+    this.load();
   }
 
   ngAfterViewInit(): void {
@@ -172,7 +172,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this._subscription.unsubscribe();
   }
 
-  async setValue(data?: BatchGroup) {
+  async load() {
 
     console.debug('[sample-modal] Applying value to form...', this.data);
 
@@ -180,9 +180,12 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
     try {
       // Set form value
-      this.data = data || new BatchGroup();
-      let promiseOrVoid = this.form.setValue(this.data);
-      if (promiseOrVoid) await promiseOrVoid;
+      this.data = this.data || new BatchGroup();
+      await this.form.setValue(this.data);
+    }
+    catch(err) {
+      this.form.error = (err && err.message || err);
+      console.error('[batch-group-modal] Error while load data: ' + (err && err.message || err), err);
     }
     finally {
       this.enable();
@@ -190,8 +193,6 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       this.form.markAsPristine();
       this.markForCheck();
     }
-
-
   }
 
   async cancel(event?: UIEvent) {

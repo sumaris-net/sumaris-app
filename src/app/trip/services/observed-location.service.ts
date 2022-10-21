@@ -24,7 +24,7 @@ import {
   toNumber,
 } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
-import * as momentImported from 'moment';
+
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from './trip.queries';
 import { filter, map } from 'rxjs/operators';
@@ -52,6 +52,7 @@ import { VesselService } from '@app/vessel/services/vessel-service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { AggregatedLanding } from '@app/trip/services/model/aggregated-landing.model';
 import { AggregatedLandingService } from '@app/trip/services/aggregated-landing.service';
+import { moment } from '@app/vendor';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -284,7 +285,7 @@ export class ObservedLocationService
            opts?: EntitiesServiceWatchOptions): Observable<LoadResult<ObservedLocation>> {
 
     // Load offline
-    const offlineData = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
+    const offlineData = this.network.offline || (dataFilter?.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
     if (offlineData) {
       return this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, opts);
     }
@@ -386,6 +387,9 @@ export class ObservedLocationService
       const entities = (!opts || opts.toEntity !== false)
         ? ObservedLocation.fromObject(data)
         : (data as ObservedLocation);
+      if (id > 0 && entities && opts && opts.withLanding) {
+        entities.landings = (await this.landingService.loadAllByObservedLocation({observedLocationId: id})).data;
+      }
 
       if (entities && this._debug) console.debug(`[observed-location-service] Observed location #${id} loaded in ${Date.now() - now}ms`, entities);
 
@@ -558,13 +562,12 @@ export class ObservedLocationService
   }): Promise<any> {
 
     // Delete local entities
-    const localEntities = entities && entities.filter(DataRootEntityUtils.isLocal);
+    const localEntities = entities?.filter(DataRootEntityUtils.isLocal);
     if (isNotEmptyArray(localEntities)) {
       return this.deleteAllLocally(localEntities, opts);
     }
 
-    const ids = entities && entities.map(t => t.id)
-      .filter(id => id >= 0);
+    const ids = entities?.filter(EntityUtils.isRemote).map(t => t.id);
     if (isEmptyArray(ids)) return; // stop if empty
 
     const now = Date.now();
@@ -609,7 +612,7 @@ export class ObservedLocationService
     trash?: boolean; // True by default
   }): Promise<any> {
     const trash = !opts || opts !== false;
-    const trashUpdateDate = trash && momentImported();
+    const trashUpdateDate = trash && moment();
 
     if (this._debug) console.debug(`[observedLocation-service] Deleting observed location #${entity.id}... {trash: ${trash}`);
 
@@ -718,7 +721,7 @@ export class ObservedLocationService
     // Get local vessels (not saved)
     const localVessels = arrayDistinct(
       [...landings, ...aggregatedLandings].map(value => value.vesselSnapshot).filter(EntityUtils.isLocal),
-      ['id']
+      'id'
     )
       .map(VesselSnapshot.toVessel);
     if (isNotEmptyArray(localVessels)) {

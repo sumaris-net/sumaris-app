@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
-import { LandingReport } from '@app/trip/landing/landing.report';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { environment } from '@environments/environment';
+import { LandingReport } from '../../report/landing.report';
 
 @Component({
   selector: 'app-auction-control-report',
-  styleUrls: ['../landing.report.scss', 'auction-control.report.scss'],
+  styleUrls: ['../../report/landing.report.scss'],
   templateUrl: './auction-control.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -21,20 +21,17 @@ export class AuctionControlReport extends LandingReport {
       pathParentIdAttribute: 'observedLocationId',
       pathIdAttribute: 'controlId'
     });
-    this.i18nContext.suffix = 'AUCTION_CONTROL.';
-    this.debug = true;
   }
 
   /* -- protected function -- */
 
   protected async onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<Landing> {
     data = await super.onDataLoaded(data, pmfms);
-
     // Remove invalid sample label
     (data.samples || []).forEach(sample => {
       if (sample.label?.startsWith('#')) sample.label = null;
     });
-
+    this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
     return data;
   }
 
@@ -43,14 +40,14 @@ export class AuctionControlReport extends LandingReport {
       vessel: data.vesselSnapshot.name,
       date: this.dateFormatPipe.transform(data.dateTime),
     }).toPromise();
-
-    this.defaultBackHref = `/observations/${parent.id}/control/${data.id}?tab=1`;
-
     return title;
   }
 
+  protected async computeDefaultBackHref(data: Landing, parent?: ObservedLocation): Promise<string> {
+    return `/observations/${parent.id}/control/${data.id}?tab=1`;
+  }
 
-  protected addFakeSamplesForDev(data: Landing, count = 5) {
+  protected addFakeSamplesForDev(data: Landing, count = 40) {
     if (environment.production) return; // Skip
 
     super.addFakeSamplesForDev(data, count);

@@ -165,6 +165,18 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
 }
 
 export declare type CriterionOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'BETWEEN' | 'NULL' | 'NOT NULL';
+export const CRITERION_OPERATOR_LIST: Readonly<{ symbol: CriterionOperator; name?: String; }[]> = Object.freeze([
+  {symbol: '='},
+  {symbol: '!='},
+  {symbol: '>'},
+  {symbol: '>='},
+  {symbol: '<'},
+  {symbol: '<='},
+  {symbol: 'BETWEEN', name: "EXTRACTION.FILTER.BETWEEN"},
+  {symbol: 'NULL', name: "EXTRACTION.FILTER.NULL"},
+  {symbol: 'NOT NULL', name: "EXTRACTION.FILTER.NOT_NULL"}
+]);
+
 
 @EntityClass({typename: 'ExtractionFilterCriterionVO'})
 export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion> {

@@ -40,15 +40,15 @@ export class BatchUtils {
   }
 
   static isCatchBatch(source: Batch | any): source is Batch {
-    return source.label?.startsWith(AcquisitionLevelCodes.CATCH_BATCH + '#');
+    return source?.label?.startsWith(AcquisitionLevelCodes.CATCH_BATCH) || false;
   }
 
   static isSortingBatch(source: Batch | any): source is Batch {
-    return source?.label && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#');
+    return source?.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH + '#') || false;
   }
 
   static isIndividualBatch(source: Batch | any): source is Batch {
-    return source?.label && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL + '#');
+    return source?.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL + '#') || false;
   }
 
   static parentToString(parent: Batch, opts?: {

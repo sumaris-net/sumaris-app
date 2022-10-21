@@ -58,7 +58,7 @@ export abstract class BaseReferentialTable<
   ID = number,
   O extends BaseReferentialTableOptions<E, ID> = BaseReferentialTableOptions<E, ID>
   >
-  extends AppBaseTable<E, F, V, ID>
+  extends AppBaseTable<E, F, V, ID, O>
   implements OnInit, AfterViewInit {
 
   /**
@@ -98,7 +98,7 @@ export abstract class BaseReferentialTable<
     filterType: new () => F,
     entityService: IEntitiesService<E, F>,
     validatorService?: V,
-    protected options?: O
+    options?: O
   ) {
     super(
       injector,
@@ -119,8 +119,8 @@ export abstract class BaseReferentialTable<
     this.canUpload = options?.canUpload || false;
     this.withStatusId = this.columns.includes('statusId');
 
-    const config = this.getFilterFormConfig();
-    this.filterForm = config && injector.get(FormBuilder).group(config);
+    const filterFormConfig = this.getFilterFormConfig();
+    this.filterForm = filterFormConfig && injector.get(FormBuilder).group(filterFormConfig);
   }
 
   ngOnInit() {
@@ -201,7 +201,7 @@ export abstract class BaseReferentialTable<
     const separator = this.getExportSeparator();
     const encoding = this.getExportEncoding();
     const headers = this.columnDefinitions.map(def => def.key);
-    const rows = (await this.dataSource.getRows())
+    const rows = this.dataSource.getRows()
       .map(element => element.currentData)
       .map(data => this.columnDefinitions.map(definition => this.propertyFormatPipe.transform(data, definition)));
 

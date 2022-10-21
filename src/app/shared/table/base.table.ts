@@ -1,4 +1,4 @@
-import { AfterViewInit, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild} from '@angular/core';
 import {
   AppTable,
   EntitiesServiceWatchOptions,
@@ -9,18 +9,22 @@ import {
   EntityUtils,
   Hotkeys,
   IEntitiesService,
+  InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS
 } from '@sumaris-net/ngx-components';
-import { TableElement } from '@e-is/ngx-material-table';
-import { PredefinedColors } from '@ionic/core';
-import { FormGroup } from '@angular/forms';
-import { BaseValidatorService } from '@app/shared/service/base.validator.service';
-import { MatExpansionPanel } from '@angular/material/expansion';
-import { environment } from '@environments/environment';
-import { filter, map } from 'rxjs/operators';
+import {TableElement} from '@e-is/ngx-material-table';
+import {PredefinedColors} from '@ionic/core';
+import {FormGroup} from '@angular/forms';
+import {BaseValidatorService} from '@app/shared/service/base.validator.service';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {environment} from '@environments/environment';
+import {filter, map, tap} from 'rxjs/operators';
+import {PopoverController} from '@ionic/angular';
+import {SubBatch} from '@app/trip/batch/sub/sub-batch.model';
+import {Popovers} from '@app/shared/popover/popover.utils';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -45,6 +49,13 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   O extends BaseTableConfig<E, ID> = BaseTableConfig<E, ID>>
   extends AppTable<E, F, ID> implements OnInit, AfterViewInit {
 
+  private _canEdit: boolean;
+
+  protected memoryDataService: InMemoryEntitiesService<E, F, ID>;
+  protected cd: ChangeDetectorRef;
+  protected readonly hotkeys: Hotkeys;
+  protected logPrefix: string = null;
+  protected popoverController: PopoverController;
 
   @Input() canGoBack = false;
   @Input() showTitle = true;
@@ -56,6 +67,8 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   @Input() sticky = false;
   @Input() stickyEnd = false;
   @Input() compact = false;
+  @Input() mobile = false;
+
 
   @Input() set canEdit(value: boolean) {
     this._canEdit = value;
@@ -76,10 +89,10 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return this.filterCriteriaCount === 0;
   }
 
-  protected readonly hotkeys: Hotkeys;
-  protected logPrefix: string = null;
-
-  private _canEdit: boolean;
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    if (this.memoryDataService?.dirty) return; // Skip if service still dirty
+    super.markAsPristine(opts);
+  }
 
   constructor(
     protected injector: Injector,
@@ -98,7 +111,6 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
       new EntitiesTableDataSource<E, F, ID>(dataType, entityService, validatorService, {
           prependNewElements: false,
           restoreOriginalDataOnCancel: false,
-          saveOnlyDirtyRows: true,
           suppressErrors: environment.production,
           onRowCreated: (row) => this.onDefaultRowCreated(row),
           ...options
@@ -106,16 +118,35 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
         null
     );
 
+    this.mobile = this.settings.mobile;
     this.hotkeys = injector.get(Hotkeys);
+    this.popoverController = injector.get(PopoverController);
     this.i18nColumnPrefix = options?.i18nColumnPrefix || '';
-    this.logPrefix = '[base-table]';
+    this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
+    this.memoryDataService = (this.entityService instanceof InMemoryEntitiesService)
+      ? this.entityService as InMemoryEntitiesService<E, F, ID> : null;
+
+    // DEBUG
+    this.logPrefix = '[base-table] ';
     this.debug = options?.debug && !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Propagate dirty state of the in-memory service
+    if (this.memoryDataService) {
+      this.registerSubscription(
+        this.memoryDataService.dirtySubject
+          .pipe(
+            filter(dirty => dirty === true && !this.dirty),
+            tap(_ => this.markAsDirty())
+          )
+          .subscribe()
+      );
+    }
 
     this.restoreCompactMode();
   }
@@ -196,13 +227,15 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   }
 
 
-  async addOrUpdateEntityToTable(data: E){
-    if (isNil(data.id)){
-      await this.addEntityToTable(data);
+  async addOrUpdateEntityToTable(data: E, opts?: {confirmEditCreate?: boolean}){
+    // Always try to get the row, even if no ID, because the row can exists (e.g. in memory table)
+    // THis find should use a equals() function
+    const row = await this.findRowByEntity(data);
+    if (!row){
+      await this.addEntityToTable(data, opts && {confirmCreate: opts.confirmEditCreate});
     }
     else {
-      const row = await this.findRowByEntity(data);
-      await this.updateEntityToTable(data, row);
+      await this.updateEntityToTable(data, row, opts && {confirmEdit: opts.confirmEditCreate});
     }
   }
 
@@ -259,7 +292,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
    * @param row the row to update
    * @param opts
    */
-  protected async updateEntityToTable(data: E, row: TableElement<E>, opts?: { confirmCreate?: boolean; }): Promise<TableElement<E>> {
+  protected async updateEntityToTable(data: E, row: TableElement<E>, opts?: { confirmEdit?: boolean; }): Promise<TableElement<E>> {
     if (!data || !row) throw new Error("Missing data, or table row to update");
     if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
 
@@ -275,7 +308,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     }
 
     // Confirm the created row
-    if (!opts || opts.confirmCreate !== false) {
+    if (!opts || opts.confirmEdit !== false) {
       this.confirmEditCreate(null, row);
       this.editedRow = null;
     }
@@ -286,6 +319,21 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.markAsDirty();
 
     return row;
+  }
+
+  async deleteEntity(event: UIEvent, data: E): Promise<boolean> {
+    const row = await this.findRowByEntity(data);
+
+    // Row not exists: OK
+    if (!row) return true;
+
+    const confirmed = await this.canDeleteRows([row]);
+    if (!confirmed) return false;
+
+    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
+    if (!deleted) event?.preventDefault(); // Mark as cancelled
+
+    return deleted;
   }
 
   /* -- protected function -- */
@@ -329,6 +377,31 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.settings.savePageSetting(this.settingsId, this.compact, BASE_TABLE_SETTINGS_ENUM.compactRowsKey);
   }
 
+  async openCommentPopover(event: UIEvent, row: TableElement<SubBatch>) {
+
+    const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
+    const {data} = await Popovers.showText(this.popoverController, event, {
+      editing: this.inlineEdition && this.enabled,
+      autofocus: this.enabled,
+      multiline: true,
+      text: row.currentData.comments,
+      placeholder
+    });
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
+
+    if (this.inlineEdition) {
+      if (row.validator) {
+        row.validator.patchValue({comments: data});
+        row.validator.markAsDirty();
+      }
+      else {
+        row.currentData.comments = data;
+      }
+    }
+  }
+
   /* -- protected functions -- */
 
   protected onDefaultRowCreated(row: TableElement<E>) {
@@ -366,7 +439,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     // Make sure using an entity class, to be able to use equals()
     data = this.asEntity(data);
 
-    return (await this.dataSource.getRows())
+    return this.dataSource.getRows()
       .find(r => data.equals(r.currentData));
   }
 
@@ -384,5 +457,9 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return EntityUtils.isEntity(d1) ? d1.equals(d2)
       : (EntityUtils.isEntity(d2) ? d2.equals(d1)
         : super.equals(d1, d2));
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

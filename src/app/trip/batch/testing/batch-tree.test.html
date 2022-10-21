@@ -215,3 +215,13 @@
   </mat-tab-group>
 
 </ion-content>
+
+<!-- FAB button -->
+<ion-fab vertical="bottom" horizontal="end" slot="fixed"
+         [class.cdk-visually-hidden]="selectedTabIndex">
+
+  <ion-fab-button color="tertiary" (click)="mobileBatchTree.addRow($event)">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+
+</ion-fab>

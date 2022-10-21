@@ -62,6 +62,14 @@ export class PmfmNamePipe implements PipeTransform {
   }
 }
 
+interface PmfmValueOptions {
+  pmfm: IPmfm;
+  propertyNames?: string[];
+  html?: boolean;
+  hideIfDefaultValue?: boolean;
+  showLabelForPmfmIds?: number[];
+  applyDisplayConversion?: boolean;
+}
 @Pipe({
   name: 'pmfmValue'
 })
@@ -74,14 +82,7 @@ export class PmfmValuePipe implements PipeTransform {
   ) {
   }
 
-  transform(value: any, opts: {
-    pmfm: IPmfm;
-    propertyNames?: string[];
-    html?: boolean;
-    hideIfDefaultValue?: boolean;
-    showLabelForPmfmIds?: number[];
-    unitConversion?: boolean;
-  }): any {
+  transform(value: any, opts: PmfmValueOptions): any {
     const type = PmfmUtils.getExtendedType(opts?.pmfm);
     switch (type) {
       case 'date':
@@ -96,7 +97,7 @@ export class PmfmValuePipe implements PipeTransform {
         return formatLongitude(value, {pattern: this.settings.latLongFormat, placeholderChar: '0'});
       case 'integer':
       case 'double':
-        if (isNotNil(value) && opts?.pmfm?.displayConversion && opts.unitConversion) {
+        if (opts.applyDisplayConversion && isNotNil(value) && opts.pmfm.displayConversion) {
           value = opts.pmfm.displayConversion.conversionCoefficient * value;
         }
         return PmfmValueUtils.valueToString(value, opts);

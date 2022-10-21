@@ -1,11 +1,13 @@
 import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { FishingArea } from '../../data/services/model/fishing-area.model';
-import { FormBuilder } from '@angular/forms';
+import { AbstractControl, FormBuilder } from '@angular/forms';
 import { ReferentialRefService } from '../../referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
-import { AppForm, NetworkService, StatusIds } from '@sumaris-net/ngx-components';
+import { AppForm, NetworkService, ReferentialUtils, StatusIds } from '@sumaris-net/ngx-components';
 import { FishingAreaValidatorService } from '../services/validator/fishing-area.validator';
 import { LocationLevelIds } from '../../referential/services/model/model.enum';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-fishing-area-form',
@@ -24,15 +26,34 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
   @Input() locationLevelIds = [LocationLevelIds.ICES_RECTANGLE];
 
   get empty(): boolean {
-    const value = this.value;
-    return (!value.location || !value.location.id)
-      && (!value.distanceToCoastGradient || !value.distanceToCoastGradient.id)
-      && (!value.depthGradient || !value.depthGradient.id)
-      && (!value.nearbySpecificArea || !value.nearbySpecificArea.id)
+    return FishingArea.isEmpty(this.value);
   }
 
   get valid(): boolean {
     return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
+  }
+
+  get locationControl(): AbstractControl {
+    return this.form.get('location');
+  }
+
+  get hasNoLocation$(): Observable<boolean> {
+    return this.locationControl.valueChanges
+      .pipe(
+        startWith(this.locationControl.value),
+        map(ReferentialUtils.isEmpty)
+      )
+  }
+
+  get value(): any {
+    const value = super.value;
+    // Do NOT return a value, if no location (has it mandatory in DB)
+    if (ReferentialUtils.isEmpty(value.location)) return null;
+    return value;
+  }
+
+  set value(value: any){
+    super.value = value;
   }
 
   constructor(
@@ -100,6 +121,4 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
-
 }

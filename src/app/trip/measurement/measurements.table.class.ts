@@ -1,7 +1,7 @@
-import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import {Directive, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
+import {FormBuilder, FormGroup} from '@angular/forms';
 import {
   Alerts,
   AppFormUtils,
@@ -9,27 +9,27 @@ import {
   Entity,
   EntityFilter,
   filterNotNil,
-  firstNotNilPromise,
+  firstNotNilPromise, firstTrue,
+  firstTruePromise,
   IEntitiesService,
-  InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toNumber,
-  waitFor
+  WaitForOptions
 } from '@sumaris-net/ngx-components';
-import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { EntitiesWithMeasurementService } from './measurements.service';
-import { AcquisitionLevelType } from '../../referential/services/model/model.enum';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '../../referential/services/model/pmfm.model';
-import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { distinctUntilChanged, filter, map } from 'rxjs/operators';
-import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
-import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {EntitiesWithMeasurementService} from './measurements.service';
+import {AcquisitionLevelType} from '@app/referential/services/model/model.enum';
+import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
+import {distinctUntilChanged, filter, first, map, mergeMap} from 'rxjs/operators';
+import {AppBaseTable, BaseTableConfig} from '@app/shared/table/base.table';
+import {BaseValidatorService} from '@app/shared/service/base.validator.service';
 
 
 export interface BaseMeasurementsTableConfig<
@@ -73,7 +73,7 @@ export abstract class BaseMeasurementsTable<
   protected pmfmNamePipe: PmfmNamePipe;
   protected formBuilder: FormBuilder;
 
-  measurementValuesFormGroupConfig: { [key: string]: any } = null;
+  protected readonly $measurementValuesFormGroupConfig = new BehaviorSubject<{ [key: string]: any }>(null);
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
@@ -168,7 +168,7 @@ export abstract class BaseMeasurementsTable<
   }
 
   get $pmfms(): Observable<IPmfm[]> {
-    return this.measurementsDataService.$pmfms.asObservable();
+    return this.measurementsDataService.$pmfms;
   }
 
   get $hasPmfms(): Observable<boolean> {
@@ -184,8 +184,7 @@ export abstract class BaseMeasurementsTable<
   }
 
   @Input() set pmfms(pmfms: IPmfm[]) {
-    this.markAsLoading();
-    this.measurementsDataService.pmfms = pmfms;
+    this.applyPmfms(pmfms);
   }
 
   get hasPmfms(): boolean {
@@ -197,10 +196,6 @@ export abstract class BaseMeasurementsTable<
     if (!this.loading) {
       this.onRefresh.emit("new dataService");
     }
-  }
-
-  get dataService(): IEntitiesService<T, F> {
-    return this.measurementsDataService.delegate;
   }
 
   protected constructor(
@@ -231,6 +226,8 @@ export abstract class BaseMeasurementsTable<
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
     this.markAsLoaded({emitEvent: false});
     this.i18nPmfmPrefix = options?.i18nPmfmPrefix;
+    this.defaultSortBy = 'id';
+    this.defaultSortDirection = 'asc';
 
     this.measurementsDataService = new EntitiesWithMeasurementService<T, F, ID>(injector, this.dataType, dataService, {
       mapPmfms: this.options.mapPmfms || undefined,
@@ -240,18 +237,19 @@ export abstract class BaseMeasurementsTable<
 
     this.setValidatorService(validatorService);
 
-
     // For DEV only
     //this.debug = !environment.production;
+    this.logPrefix = '[measurements-table] ';
   }
 
   ngOnInit() {
-    const isMemoryDataService = (this.dataService instanceof InMemoryEntitiesService);
     // Remember the value of autoLoad, but force to false, to make sure pmfm will be loaded before
     this._autoLoadAfterPmfm = this.autoLoad;
     this.autoLoad = false;
     this.i18nPmfmPrefix = this.i18nPmfmPrefix || this.i18nColumnPrefix;
-    this.keepEditedRowOnSave = this.inlineEdition && !isMemoryDataService;
+    this.keepEditedRowOnSave = !this.mobile && this.inlineEdition
+      // Disable keepEditedRowOnSave, when in memory data service, because rows are reload twice after save - FIXME
+      && !this.memoryDataService;
 
     this.measurementsDataService.programLabel = this._programLabel;
     this.measurementsDataService.requiredStrategy = this.options.requiredStrategy || false;
@@ -261,11 +259,13 @@ export abstract class BaseMeasurementsTable<
     this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
 
     this.registerSubscription(
-      this.readySubject.subscribe(() => {
-        console.info(this.logPrefix + 'Starting measurements data service...');
-        this.measurementsDataService.start();
-      })
-    );
+      firstTrue(this.readySubject)
+        .pipe(
+          mergeMap(_ => {
+            console.debug(this.logPrefix + 'Starting measurements data service...');
+            return this.measurementsDataService.start();
+          })
+        ).subscribe());
 
     super.ngOnInit();
 
@@ -273,9 +273,10 @@ export abstract class BaseMeasurementsTable<
       filterNotNil(this.$pmfms)
         .subscribe(pmfms => {
           // DEBUG
-          console.debug("[measurement-table] Received PMFMs to applied: ", pmfms);
+          console.debug(this.logPrefix + "Received PMFMs to applied: ", pmfms);
 
-          this.measurementValuesFormGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
+          const formGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
+          this.$measurementValuesFormGroupConfig.next(formGroupConfig);
 
           // Update the settings id, as program could have changed
           this.settingsId = this.generateTableId();
@@ -283,8 +284,13 @@ export abstract class BaseMeasurementsTable<
           // Add pmfm columns
           this.updateColumns();
 
-          // Load the table, if already loaded or if autoLoad was set to true
-          if (this._autoLoadAfterPmfm || this.dataSource.loaded/*already load*/) {
+          // Load (if autoLoad was enabled)
+          if (this._autoLoadAfterPmfm) {
+            this.onRefresh.emit();
+            this._autoLoadAfterPmfm = false; // Avoid new execution
+          }
+          // Or reload, if not dirty (to avoid data lost)
+          else if (this.dataSource.loaded && !this.dirty){
             this.onRefresh.emit();
           }
         }));
@@ -302,19 +308,29 @@ export abstract class BaseMeasurementsTable<
 
   ngOnDestroy() {
     super.ngOnDestroy();
-
-    this.measurementsDataService.stop();
+    this.$measurementValuesFormGroupConfig.unsubscribe();
+    this.measurementsDataService?.stop();
     this.measurementsDataService = null;
+
+  }
+
+  protected applyPmfms(pmfms: IPmfm[]){
+    this.markAsLoading();
+    this.measurementsDataService.pmfms = pmfms;
   }
 
   getRowValidator(): FormGroup {
     const formGroup = this.validatorService.getRowValidator();
-    if (this.measurementValuesFormGroupConfig) {
+
+    // Create the measurement values form (is exists)
+    const measValueConfig = this.$measurementValuesFormGroupConfig.value;
+    if (measValueConfig) {
       if (formGroup.contains('measurementValues')) {
         formGroup.removeControl('measurementValues');
       }
-      formGroup.addControl('measurementValues', this.formBuilder.group(this.measurementValuesFormGroupConfig));
+      formGroup.addControl('measurementValues', this.formBuilder.group(measValueConfig));
     }
+
     return formGroup;
   }
 
@@ -324,7 +340,7 @@ export abstract class BaseMeasurementsTable<
   }
 
   trackByFn(index: number, row: TableElement<T>): any {
-    return this.hasRankOrder ? row.currentData.rankOrder : row.currentData.id;
+    return row.id;
   }
 
   /**
@@ -344,7 +360,9 @@ export abstract class BaseMeasurementsTable<
 
     // Create the new datasource, BUT redirect to this
     const encapsulatedValidator = validatorService ? this : null;
-    this.setDatasource(new EntitiesTableDataSource(this.dataType, this.measurementsDataService, encapsulatedValidator, {
+    this.setDatasource(new EntitiesTableDataSource(this.dataType,
+      this.measurementsDataService, encapsulatedValidator,
+      {
       ...this.options,
       // IMPORTANT: Always use this custom onRowCreated, that will call options.onRowCreated if need
       onRowCreated: (row) => this.onRowCreated(row)
@@ -391,22 +409,18 @@ export abstract class BaseMeasurementsTable<
     if (!this.loading) this.updateColumns();
   }
 
-  isReady() {
-    return this.measurementsDataService.started
-      && !!this.measurementValuesFormGroupConfig;
-  }
-
-  async ready() {
-    await super.ready();
-
-    // Wait pmfms load, and controls load
-    await firstNotNilPromise(this.$pmfms, {stop: this.destroySubject});
-
-    // Wait form config initialized
-    if (!this.measurementValuesFormGroupConfig) {
-      console.debug(`[${this.constructor.name}] Waiting row validator config to be set...`);
-      await waitFor(() => !!this.measurementValuesFormGroupConfig);
+  async ready(opts?: WaitForOptions) {
+    opts = {
+      stop: this.destroySubject,
+      ...opts
     }
+    await Promise.all([
+      super.ready(opts),
+      // Wait pmfms load, and controls load
+      firstNotNilPromise(this.$pmfms, opts),
+      // Wait form config initialized
+      firstNotNilPromise(this.$measurementValuesFormGroupConfig, opts)
+    ]);
   }
 
   /**
@@ -457,13 +471,6 @@ export abstract class BaseMeasurementsTable<
     return super.duplicateRow(event, row, {...opts, skipProperties});
   }
 
-  markAsReady(opts?: { emitEvent?: boolean }) {
-    // Avoid to many call to ready
-    if (!this.readySubject.value) {
-      super.markAsReady(opts);
-    }
-  }
-
   /* -- protected methods -- */
 
   protected updateColumns() {
@@ -479,26 +486,24 @@ export abstract class BaseMeasurementsTable<
   }
 
   protected async getMaxRankOrder(): Promise<number> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
   protected async existsRankOrder(rankOrder: number): Promise<boolean> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return rows.findIndex(row => row.currentData.rankOrder === rankOrder) !== -1;
   }
 
   private async onRowCreated(row: TableElement<T>) {
     // Deprecated
     if (this.options.onRowCreated) {
-      const res = this.options.onRowCreated(row);
-      if (res instanceof Promise) await res;
+      await this.options.onRowCreated(row);
     }
 
     // WARN: must be called BEFORE row.validator.patchValue(), to be able to add group's validators
     if (row.validator && this.options.onPrepareRowForm) {
-      const res = this.options.onPrepareRowForm(row.validator);
-      if (res instanceof Promise) await res;
+      await this.options.onPrepareRowForm(row.validator);
     }
 
     if (this._addingRow) return; // Skip if already adding a row (e.g. when calling addEntityToTable)
@@ -560,7 +565,6 @@ export abstract class BaseMeasurementsTable<
 
       // Creat a row
       const row = await this.addRowToTable(null, {editing: opts?.editing, emitEvent: opts?.emitEvent});
-
       if (!row) throw new Error("Could not add row to table");
 
       // Override rankOrder (with a computed value)
@@ -586,7 +590,7 @@ export abstract class BaseMeasurementsTable<
       if (row.editing) {
         // Confirm the created row
         if (!opts || opts.confirmCreate !== false) {
-          if (row.validator?.pending) {
+          if (row.pending) {
             await AppFormUtils.waitWhilePending(row.validator);
           }
           const confirmed = this.confirmEditCreate(null, row);
@@ -596,6 +600,9 @@ export abstract class BaseMeasurementsTable<
         else {
           this.editedRow = row;
         }
+      }
+      else if (!opts || opts.emitEvent !== false) {
+        this.markForCheck();
       }
 
       this.markAsDirty({emitEvent: false});
@@ -617,33 +624,8 @@ export abstract class BaseMeasurementsTable<
    * @param row the row to update
    * @param opts
    */
-  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmCreate?: boolean; }): Promise<TableElement<T>> {
-    if (!data || !row) throw new Error("Missing data, or table row to update");
-    if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
-
-    // Adapt measurement values to row
-    this.normalizeEntityToRow(data, row);
-
-    // Affect new row
-    if (row.validator) {
-      row.validator.patchValue(data);
-      row.validator.markAsDirty();
-    } else {
-      row.currentData = data;
-    }
-
-    // Confirm the created row
-    if (!opts || opts.confirmCreate !== false) {
-      this.confirmEditCreate(null, row);
-      this.editedRow = null;
-    }
-    else if (this.inlineEdition) {
-      this.editedRow = row;
-    }
-
-    this.markAsDirty();
-
-    return row;
+  protected updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmEdit?: boolean; }): Promise<TableElement<T>> {
+    return super.updateEntityToTable(data, row, opts);
   }
 
   protected getI18nColumnName(columnName: string): string {

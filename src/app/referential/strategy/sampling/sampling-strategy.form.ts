@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { AsyncValidatorFn, FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
-import * as momentImported from 'moment';
 import {
   AppForm,
   AppFormUtils,
@@ -59,8 +58,7 @@ import { filter, map } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'lengthPmfm' | 'weightPmfm' | 'maturityPmfm' | 'fractionPmfm';
 
@@ -233,15 +231,16 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       form.get('age').disable();
       form.get('sex').disable();
 
-      // Allow user to update efforts for current quarter and after even when strategy already has samples (#IMAGINE-471)
+      // Commented, because now all efforts should be edited, even past quarters - Fix issue OBSBIO-48
+      /* Allow user to update efforts for current quarter and after even when strategy already has samples (#IMAGINE-471)
       this.appliedPeriodsForm.controls.map(control => {
-        const formGroupControl = control as FormGroup;
-        if (moment().isAfter((formGroupControl.controls.endDate as FormControl).value)) {
-          formGroupControl.disable();
-        } else {
-          formGroupControl.enable();
-        }
-      });
+          const formGroupControl = control as FormGroup;
+          if (moment().isAfter((formGroupControl.controls.endDate as FormControl).value)) {
+            formGroupControl.disable();
+          } else {
+            formGroupControl.enable();
+          }
+        });*/
     }
   }
 

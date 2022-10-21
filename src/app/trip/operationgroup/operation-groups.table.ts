@@ -4,7 +4,7 @@ import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { OperationGroupValidatorService } from '../services/validator/operation-group.validator';
 import { Observable } from 'rxjs';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { InMemoryEntitiesService, isNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
+import { InMemoryEntitiesService, isNil, LocalSettingsService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
 import { MetierService } from '@app/referential/services/metier.service';
 import { OperationGroup } from '../services/model/trip.model';
 import { environment } from '@environments/environment';
@@ -25,7 +25,8 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
     {
       provide: InMemoryEntitiesService,
       useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationGroupFilter>(OperationGroup, OperationGroupFilter,  {
-        equals: OperationGroup.equals
+        equals: OperationGroup.equals,
+        sortByReplacement: {'id': 'rankOrder'}
       })
     }
   ],
@@ -49,16 +50,11 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
     return this.memoryDataService.value;
   }
 
-  get dirty(): boolean {
-    return super.dirty || this.memoryDataService.dirty;
-  }
-
   @Input() showToolbar = true;
   @Input() useSticky = false;
 
   constructor(
     injector: Injector,
-    platform: PlatformService,
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
     protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
@@ -70,8 +66,8 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
       memoryDataService,
       validatorService,
       {
-        reservedStartColumns: platform.mobile ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
-        reservedEndColumns: platform.mobile ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
+        reservedStartColumns: settings.mobile ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),
+        reservedEndColumns: settings.mobile ? [] : OPERATION_GROUP_RESERVED_END_COLUMNS,
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         i18nColumnPrefix: 'TRIP.OPERATION.LIST.'
       });
@@ -90,20 +86,31 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
   ngOnInit() {
     super.ngOnInit();
 
-      this.displayAttributes = {
+    this.displayAttributes = {
       gear: this.settings.getFieldDisplayAttributes('gear'),
-      taxonGroup: ['taxonGroup.label', 'taxonGroup.name']
+      taxonGroup: ['taxonGroup.label', 'taxonGroup.name'],
+      metier: this.settings.getFieldDisplayAttributes('metier')
     };
 
     // Metier combo
-    const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: true,
       items: this.metiers,
-      attributes: metierAttributes,
-      columnSizes: metierAttributes.map(attr => attr === 'label' ? 3 : undefined),
+      attributes: this.displayAttributes.metier,
+      columnSizes: this.displayAttributes.metier.map(attr => attr === 'label' ? 3 : undefined),
       mobile: this.mobile
     });
+
+    // Add sort replacement
+    this.memoryDataService.addSortByReplacement('gear', this.displayAttributes.gear[0]);
+    this.memoryDataService.addSortByReplacement('taxonGroup', this.displayAttributes.taxonGroup[0]);
+    this.memoryDataService.addSortByReplacement('targetSpecies', this.displayAttributes.metier[0]);
+
+  }
+
+  ngOnDestroy() {
+    super.ngOnDestroy();
+    this.memoryDataService.stop();
   }
 
   async openDetailModal(dataToOpen?: OperationGroup): Promise<OperationGroup | undefined> {
@@ -125,7 +132,7 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
         mobile: this.mobile,
         data: dataToOpen,
         isNew,
-        onDelete: (event, OperationGroup) => this.deleteOperationGroup(event, OperationGroup)
+        onDelete: (event, OperationGroup) => this.deleteEntity(event, OperationGroup)
       },
       keyboardClose: true
     });
@@ -147,7 +154,7 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
   }
 
   protected async getMaxRankOrderOnPeriod(): Promise<number> {
-    const rows = await this.dataSource.getRows();
+    const rows = this.dataSource.getRows();
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrderOnPeriod || 0), 0);
   }
 
@@ -165,19 +172,6 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
         row.validator.controls['metier'].setValue(metier);
       }
     }
-  }
-
-  async deleteOperationGroup(event: UIEvent, data: OperationGroup): Promise<boolean> {
-    const row = await this.findRowByOperationGroup(data);
-
-    // Row not exists: OK
-    if (!row) return true;
-
-    const canDeleteRow = await this.canDeleteRows([row]);
-    if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
-    }
-    return canDeleteRow;
   }
 
   /* -- protected methods -- */
@@ -213,7 +207,7 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
+      await this.updateEntityToTable(updatedData, row, {confirmEdit: false});
     }
     else {
       this.editedRow = null;
@@ -228,7 +222,7 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
   }
 
   protected async findRowByOperationGroup(operationGroup: OperationGroup): Promise<TableElement<OperationGroup>> {
-    return OperationGroup && (await this.dataSource.getRows()).find(r => operationGroup.equals(r.currentData));
+    return OperationGroup && this.dataSource.getRows().find(r => operationGroup.equals(r.currentData));
   }
 
 }

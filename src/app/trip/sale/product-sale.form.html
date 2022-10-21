@@ -1,14 +1,14 @@
-<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+<form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
-  <ion-item *ngIf="error && showError" lines="none">
+  <ion-item *ngIf="error && showError" lines="none" class="ion-padding">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
-  <ion-grid class="ion-margin-bottom form-container">
+  <ion-grid class="ion-margin-bottom" style="--ion-grid-columns: 9" [class.mobile]="mobile">
 
-    <ion-row>
+    <ion-row class="ion-padding"  (focusin)="salesFocusIndex=-1">
 
       <!-- weight -->
       <ion-col *ngIf="isProductWithWeight()">
@@ -21,7 +21,7 @@
       </ion-col>
 
       <!-- individualCount -->
-      <ion-col *ngIf="hasIndividualCount">
+      <ion-col *ngIf="hasIndividualCount" class="ion-padding">
         <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  formControlName="individualCount"
@@ -34,10 +34,13 @@
 
     <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first; last as last; even as even"
              [formGroup]="saleForm|formGetGroup"
-             [class.even]="even">
+             class="ion-padding"
+             [class.mat-row-selected]="salesFocusIndex===i"
+             [class.even]="even"
+             (focusin)="salesFocusIndex=i">
 
       <!-- sale type -->
-      <ion-col size-lg="2" size-xs="3">
+      <ion-col>
         <mat-autocomplete-field formControlName="saleType"
                                 [placeholder]="'TRIP.PRODUCT.SALE.SALE_TYPE'|translate"
                                 [floatLabel]="first ? 'always' : 'never'"
@@ -50,14 +53,14 @@
       </ion-col>
 
       <!-- ratio -->
-      <ion-col size-lg="1" size-xs="3">
+      <ion-col size="1" class="even">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="hasIndividualCount || (saleForm|formGetValue:'ratioCalculated')"
                         [class.mat-form-field-disabled]="hasIndividualCount">
           <input matInput formControlName="ratio"
                  [placeholder]="'TRIP.PRODUCT.SALE.RATIO'|translate"
                  autocomplete="off" type="number" step="1" max="100"
-                 [tabIndex]="tabindex+3+i*9+1"
+                 [tabIndex]="hasIndividualCount ? -1 : tabindex+3+i*9+1"
                  [readonly]="hasIndividualCount"
                  required>
           <mat-error *ngIf="saleForm.controls.ratio.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -65,33 +68,31 @@
       </ion-col>
 
       <!-- weight -->
-      <ion-col *ngIf="isProductWithWeight()" size-lg="1" size-xs="3">
+      <ion-col *ngIf="isProductWithWeight()" size="1">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="hasIndividualCount || (saleForm|formGetValue:'weightCalculated')"
                         [class.mat-form-field-disabled]="hasIndividualCount">
           <input matInput formControlName="weight"
                  [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
                  autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*9+2"
-                 [readonly]="hasIndividualCount"
-          >
+                 [tabIndex]="hasIndividualCount ? -1 : tabindex+3+i*9+2"
+                 [readonly]="hasIndividualCount">
         </mat-form-field>
       </ion-col>
 
       <!-- avg weight price -->
-      <ion-col *ngIf="isProductWithWeight()" size-lg="2" size-xs="3">
+      <ion-col *ngIf="isProductWithWeight()" size="1" class="even">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="saleForm|formGetValue:'averageWeightPriceCalculated'">
           <input matInput formControlName="averageWeightPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.AVG_WEIGHT_PRICE'|translate"
                  autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*9+3"
-                 >
+                 [tabIndex]="tabindex+3+i*9+3">
         </mat-form-field>
       </ion-col>
 
       <!-- individualCount -->
-      <ion-col *ngIf="hasIndividualCount" size-lg="2" size-xs="3">
+      <ion-col *ngIf="hasIndividualCount" size="1">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'">
           <input matInput formControlName="individualCount"
                  [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
@@ -101,7 +102,7 @@
       </ion-col>
 
       <!-- avg packaging price -->
-      <ion-col *ngIf="hasIndividualCount" size-lg="2" size-xs="3">
+      <ion-col *ngIf="hasIndividualCount" size="1" class="even">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="saleForm|formGetValue:'averagePackagingPriceCalculated'">
           <input matInput formControlName="averagePackagingPrice"
@@ -112,7 +113,7 @@
       </ion-col>
 
       <!-- total price -->
-      <ion-col size-lg="1" size-xs="3">
+      <ion-col size="1" class="even">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="saleForm|formGetValue:'totalPriceCalculated'">
           <input matInput formControlName="totalPrice"
@@ -123,17 +124,24 @@
       </ion-col>
 
       <!-- buttons -->
-      <ion-col size-lg="1" size-xs="3" class="ion-align-self-center ion-text-end">
-        <button type="button" mat-icon-button [tabindex]="tabindex+3+i*9+7" [disabled]="disabled"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addSale()">
-          <mat-icon>add</mat-icon>
-        </button>
-        <button type="button" mat-icon-button [tabindex]="-1" [disabled]="disabled"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="removeSale(i)">
-          <mat-icon>close</mat-icon>
-        </button>
+      <ion-col size="auto" class="ion-align-self-center ion-text-end ion-no-padding">
+        <ion-buttons>
+          <button type="button" mat-icon-button
+                  *ngIf="last && !mobile"
+                  [disabled]="disabled"
+                  [title]="'COMMON.BTN_ADD'|translate"
+                  (click)="addSale()"
+                  [tabindex]="tabindex+3+i*9+7">
+            <mat-icon>add</mat-icon>
+          </button>
+          <button type="button" mat-icon-button
+                  *ngIf="salesFocusIndex === i && !disabled"
+                  [tabindex]="-1"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="removeSale(i)">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </ion-buttons>
       </ion-col>
     </ion-row>
 

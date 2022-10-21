@@ -187,7 +187,7 @@ export class DenormalizedPmfmStrategy
       methodId: source.methodId,
       unitLabel: source.unitLabel,
       isComputed: PmfmUtils.isComputed(source),
-      qualitativeValues: source.parameter.qualitativeValues && source.parameter.qualitativeValues.map(ReferentialRef.fromObject),
+      qualitativeValues: isNotEmptyArray(source.parameter.qualitativeValues) ? source.parameter.qualitativeValues.map(ReferentialRef.fromObject) : undefined,
       displayConversion: source.displayConversion
     });
     return target;
@@ -298,7 +298,7 @@ export class DenormalizedPmfmStrategy
   asObject(options?: EntityAsObjectOptions): any {
     const target: any = super.asObject(options);
     target.qualitativeValues = this.qualitativeValues && this.qualitativeValues.map(qv => qv.asObject(options)) || undefined;
-    target.defaultValue = +(PmfmValueUtils.toModelValue(this.defaultValue, this));
+    target.defaultValue = PmfmValueUtils.toModelValue(this.defaultValue, this);
     target.children = this.children && this.children.map(c => c.asObject(options)) || undefined;
     return target;
   }

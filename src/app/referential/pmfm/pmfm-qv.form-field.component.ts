@@ -12,7 +12,7 @@ import {
   Output,
   QueryList,
   ViewChild,
-  ViewChildren,
+  ViewChildren
 } from '@angular/core';
 import { merge, Observable, of } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
@@ -25,7 +25,7 @@ import {
   AppFormUtils,
   focusInput,
   InputElement,
-  isEmptyArray,
+  IReferentialRef,
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
@@ -33,7 +33,8 @@ import {
   referentialToString,
   ReferentialUtils,
   SharedValidators,
-  sort, StatusIds,
+  sort,
+  StatusIds,
   suggestFromArray,
   toBoolean,
   toNumber
@@ -61,12 +62,12 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   private _onChangeCallback = (_: any) => { };
   private _onTouchedCallback = () => { };
-  private _implicitValue: ReferentialRef | any;
+  private _implicitValue: IReferentialRef | any;
   private _onDestroy = new EventEmitter(true);
-  private _qualitativeValues: ReferentialRef[];
-  private _sortedQualitativeValues: ReferentialRef[];
+  private _qualitativeValues: IReferentialRef[];
+  private _sortedQualitativeValues: IReferentialRef[];
 
-  items: Observable<ReferentialRef[]>;
+  items: Observable<IReferentialRef[]>;
   onShowDropdown = new EventEmitter<UIEvent>(true);
   selectedIndex = -1;
   _tabindex: number;
@@ -134,7 +135,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
-    let qualitativeValues = this.pmfm.qualitativeValues || [];
+    let qualitativeValues: IReferentialRef[] = this.pmfm.qualitativeValues || [];
     if (!qualitativeValues.length && PmfmUtils.isFullPmfm(this.pmfm)) {
       // Get qualitative values from parameter
       qualitativeValues = this.pmfm.parameter?.qualitativeValues || [];
@@ -156,7 +157,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       ? this.sortAttribute
       : (this.style === 'button' ? 'name' : attributes[0]);
 
-    // Sort values
+    // Sort values (keep original order if LANDING/DISCARD)
     this._sortedQualitativeValues = (this.pmfm.id !== PmfmIds.DISCARD_OR_LANDING) ?
       sort(this._qualitativeValues, this.sortAttribute, {numeric: true, sensitivity: 'base'}) :
       this._qualitativeValues;

@@ -1,0 +1,21 @@
+ion-item {
+  mat-icon,
+  ion-icon {
+    color: var(--ion-color-primary);
+  }
+  cursor: pointer !important;
+}
+.mat-expansion-panel {
+  --expansion-panel-padding: 4px;
+  margin-bottom: 4px !important;
+  background: var(--ion-color-secondary50) !important;
+
+  .mat-expansion-panel-body {
+    * {
+      color: var(--ion-color-primary100);
+    }
+
+  }
+
+
+}

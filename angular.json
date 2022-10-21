@@ -37,8 +37,12 @@
               "zen-observable",
               "subscriptions-transport-ws",
               "chart.js",
+              "chartjs-plugin-annotation",
+              "chartjs-plugin-trendline",
               "react",
-              "@bepo65/leaflet.fullscreen"
+              "leaflet-easybutton",
+              "@bepo65/leaflet.fullscreen",
+              "reveal.js"
             ],
             "assets": [
               {

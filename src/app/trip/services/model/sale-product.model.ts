@@ -81,8 +81,8 @@ export class SaleProductUtils {
       && product.taxonGroup && saleProduct.taxonGroup && product.taxonGroup.equals(saleProduct.taxonGroup)
       && product.rankOrder === saleProduct.rankOrder
       && product.measurementValues && saleProduct.measurementValues
-      && MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.PACKAGING) === MeasurementValuesUtils.getValue(saleProduct.measurementValues, pmfms, PmfmIds.PACKAGING)
-      && MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY) === MeasurementValuesUtils.getValue(saleProduct.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY)
+      && MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.PACKAGING) === MeasurementValuesUtils.getFormValue(saleProduct.measurementValues, pmfms, PmfmIds.PACKAGING)
+      && MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY) === MeasurementValuesUtils.getFormValue(saleProduct.measurementValues, pmfms, PmfmIds.SIZE_CATEGORY)
       ;
   }
 
@@ -96,21 +96,21 @@ export class SaleProductUtils {
 
     // parse measurements to sale properties
     if (product.measurementValues && pmfms) {
-      const rankOrder = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER);
+      const rankOrder = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER);
       if (rankOrder) {
         // replace product rankOrder by saleRankOrder
         target.rankOrder = isNotNilOrNaN(rankOrder) ? +rankOrder : undefined;
       }
-      const ratio = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO);
+      const ratio = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO);
       target.ratio = isNotNilOrNaN(ratio) ? +ratio : undefined;
       target.ratioCalculated = !target.ratio;
-      const averageWeightPrice = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE);
+      const averageWeightPrice = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE);
       target.averageWeightPrice = isNotNilOrNaN(averageWeightPrice) ? +averageWeightPrice : undefined;
       target.averageWeightPriceCalculated = !target.averageWeightPrice;
-      const averagePackagingPrice = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE);
+      const averagePackagingPrice = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE);
       target.averagePackagingPrice = isNotNilOrNaN(averagePackagingPrice) ? +averagePackagingPrice : undefined;
       target.averagePackagingPriceCalculated = !target.averagePackagingPrice;
-      const totalPrice = MeasurementValuesUtils.getValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE);
+      const totalPrice = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE);
       target.totalPrice = isNotNilOrNaN(totalPrice) ? +totalPrice : undefined;
       target.totalPriceCalculated = !target.totalPrice;
     }
@@ -183,13 +183,13 @@ export class SaleProductUtils {
     target.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(target.measurementValues, pmfms);
 
     // even a calculated ratio need to be saved
-    MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO, saleProduct.ratio);
+    MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO, saleProduct.ratio);
     // add measurements for each non-calculated values
-    MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE,
+    MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE,
       isNotNilOrNaN(saleProduct.averageWeightPrice) && !saleProduct.averageWeightPriceCalculated ? saleProduct.averageWeightPrice : undefined);
-    MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE,
+    MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE,
       isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated ? saleProduct.averagePackagingPrice : undefined);
-    MeasurementValuesUtils.setValue(target.measurementValues, pmfms, PmfmIds.TOTAL_PRICE,
+    MeasurementValuesUtils.setFormValue(target.measurementValues, pmfms, PmfmIds.TOTAL_PRICE,
       isNotNilOrNaN(saleProduct.totalPrice) && !saleProduct.totalPriceCalculated ? saleProduct.totalPrice : undefined);
 
     return Product.fromObject(target);
@@ -225,16 +225,16 @@ export class SaleProductUtils {
         product.weightCalculated = true;
 
         // sale rank order
-        MeasurementValuesUtils.setValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER, saleProduct.rankOrder);
+        MeasurementValuesUtils.setFormValue(product.measurementValues, pmfms, PmfmIds.SALE_RANK_ORDER, saleProduct.rankOrder);
 
         // average packaging converted to average weight price
-        MeasurementValuesUtils.setValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE,
+        MeasurementValuesUtils.setFormValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE,
           isNotNilOrNaN(saleProduct.averagePackagingPrice) && !saleProduct.averagePackagingPriceCalculated
             ? round(compositionAverageRatio * saleProduct.averagePackagingPrice)
             : undefined);
 
         // total price
-        MeasurementValuesUtils.setValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE,
+        MeasurementValuesUtils.setFormValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE,
           isNotNilOrNaN(saleProduct.totalPrice) && !saleProduct.totalPriceCalculated
             ? round(compositionAverageRatio * saleProduct.totalPrice)
             : undefined);
@@ -333,6 +333,11 @@ export class SaleProductUtils {
           const total = ratio * parentWeight * getValueFn(saleProduct, averageWeightPriceProperty);
           setValueFn(saleProduct, totalPriceProperty, total);
           setValueFn(saleProduct, averagePackagingPriceProperty, total / count);
+        } else {
+          resetValueFn(saleProduct, averagePackagingPriceProperty);
+          resetValueFn(saleProduct, totalPriceProperty);
+          if (useRatioAndWeight)
+            resetValueFn(saleProduct, averageWeightPriceProperty);
         }
 
         if (useRatioAndWeight) {

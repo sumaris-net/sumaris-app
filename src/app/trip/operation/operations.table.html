@@ -1,4 +1,4 @@
-<mat-toolbar *ngIf="showToolbar" [style.background-color]="filterExpansionPanel.expanded ? 'var(--ion-color-secondary)' : undefined">
+<mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
 
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
     <!-- Add -->

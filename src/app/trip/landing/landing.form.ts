@@ -16,7 +16,8 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  MatAutocompleteField, NetworkService,
+  MatAutocompleteField,
+  NetworkService,
   Person,
   PersonService,
   PersonUtils,
@@ -37,16 +38,12 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TranslateService } from '@ngx-translate/core';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { Program } from '@app/referential/services/model/program.model';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripValidatorService } from '@app/trip/services/validator/trip.validator';
 import { Metier } from '@app/referential/services/model/metier.model';
-import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 
-export const LANDING_DEFAULT_I18N_PREFIX = 'LANDING.EDIT.';
 
 const TRIP_FORM_EXCLUDED_FIELD_NAMES = ['program', 'vesselSnapshot', 'departureDateTime', 'departureLocation', 'returnDateTime', 'returnLocation'];
 

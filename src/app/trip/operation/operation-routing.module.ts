@@ -10,13 +10,22 @@ const routes: Routes = [
   },
   {
     path: ':operationId',
-    pathMatch: 'full',
-    runGuardsAndResolvers: 'pathParamsChange',
     data: {
       pathIdParam: 'operationId'
     },
-    component: OperationPage,
-    canDeactivate: [ComponentDirtyGuard]
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        runGuardsAndResolvers: 'pathParamsChange',
+        component: OperationPage,
+        canDeactivate: [ComponentDirtyGuard],
+      },
+      {
+        path: 'report',
+        loadChildren:() => import('./report/operation-report-routing.module').then(m => m.OperationReportRoutingModule),
+      },
+    ],
   }
 ];
 

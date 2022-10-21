@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
-import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round, WaitForOptions } from '@sumaris-net/ngx-components';
+import { filterNotNil,firstNotNil,  FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round, WaitForOptions } from '@sumaris-net/ngx-components';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
@@ -261,25 +261,27 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   async setIceValue(data: Measurement[]) {
 
-    if (!this.iceForm.$pmfms.getValue()) {
+    let icePmfms = this.iceForm.$pmfms.getValue();
+    if (!icePmfms) {
       if (this.debug) console.debug('[expense-form] waiting for ice pmfms');
-      await firstNotNilPromise(this.iceForm.$pmfms, {stop: this.destroySubject});
+      icePmfms = await firstNotNil(this.iceForm.$pmfms, {stop: this.destroySubject}).toPromise();
     }
 
     // filter data before set to ice form
-    this.iceForm.value = MeasurementUtils.filter(data, this.iceForm.$pmfms.getValue());
+    this.iceForm.value = MeasurementUtils.filter(data, icePmfms);
 
   }
 
   async setBaitValue(data: Measurement[]) {
 
-    if (!this.baitForms.first.$pmfms.getValue()) {
+    let baitPmfms = this.baitForms.first.$pmfms.getValue();
+    if (!baitPmfms) {
       if (this.debug) console.debug('[expense-form] waiting for bait pmfms');
-      await firstNotNilPromise(this.baitForms.first.$pmfms, {stop: this.destroySubject});
+      baitPmfms = await firstNotNil(this.baitForms.first.$pmfms, {stop: this.destroySubject}).toPromise();
     }
 
     // filter data before set to each bait form
-    this.baitMeasurements = MeasurementUtils.filter(data, this.baitForms.first.$pmfms.getValue());
+    this.baitMeasurements = MeasurementUtils.filter(data, baitPmfms);
 
     // get max rankOrder (should be = nbBaits)
     const nbBait = getMaxRankOrder(this.baitMeasurements);
@@ -532,8 +534,8 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
   markAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsTouched(opts);
-    this.iceForm && this.iceForm.markAsTouched(opts);
-    this.baitForms && this.baitForms.forEach(form => form.markAsTouched(opts));
+    this.iceForm?.markAsTouched(opts);
+    this.baitForms?.forEach(form => form.markAsTouched(opts));
   }
 
   markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

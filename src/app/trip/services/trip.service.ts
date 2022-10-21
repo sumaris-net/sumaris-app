@@ -1,8 +1,9 @@
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { filter, map } from 'rxjs/operators';
-import * as momentImported from 'moment';
+
 import {
+  APP_USER_EVENT_SERVICE,
   AppFormUtils,
   BaseEntityGraphqlQueries,
   chainPromises,
@@ -21,7 +22,8 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank, IUserEventService,
+  isNotNilOrBlank,
+  IUserEventService,
   JobUtils,
   LoadResult,
   LocalSettingsService,
@@ -29,8 +31,7 @@ import {
   PersonService,
   ShowToastOptions,
   Toasts,
-  toNumber,
-  UserEventAction
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
 import {
@@ -48,7 +49,7 @@ import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_E
 import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
 import { Operation, OperationGroup, Trip } from './model/trip.model';
 import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { fillRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { fillRankOrder, fillTreeRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
 import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
@@ -75,10 +76,8 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { BBox } from 'geojson';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent } from '@app/social/user-event/user-event.model';
-import { UserEventService } from '@app/social/user-event/user-event.service';
-import { USER_EVENT_SERVICE } from '@sumaris-net/ngx-components';
 
-const moment = momentImported;
+import { moment } from '@app/vendor';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -437,7 +436,7 @@ export class TripService
     protected validatorService: TripValidatorService,
     protected trashRemoteService: TrashRemoteService,
     protected formErrorTranslator: FormErrorTranslator,
-    @Inject(USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any,  any>,
+    @Inject(APP_USER_EVENT_SERVICE) @Optional() protected userEventService: IUserEventService<any,  any>,
     @Optional() protected translate: TranslateService,
     @Optional() protected toastController: ToastController
   ) {
@@ -670,13 +669,13 @@ export class TripService
         const query = isLandedTrip ? TripQueries.loadLandedTrip : TripQueries.load;
 
         // Load remotely
-        const res = await this.graphql.query<{ data: Trip }>({
+        const { data } = await this.graphql.query<{ data: Trip }>({
           query,
           variables: {id},
           error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: opts && opts.fetchPolicy || undefined
         });
-        source = res && res.data;
+        source = data;
       }
 
       // Add operations
@@ -918,7 +917,7 @@ export class TripService
     await this.fillOfflineDefaultProperties(entity);
 
     // Reset synchro status
-    entity.synchronizationStatus = 'DIRTY';
+    entity.synchronizationStatus = SynchronizationStatusEnum.DIRTY;
 
     // Extract operations (saved just after)
     const operations = entity.operations;
@@ -961,6 +960,7 @@ export class TripService
       entity.landing.observers = entity.observers;
       entity.landing.observedLocationId = entity.observedLocationId;
     }
+
 
     return entity;
   }
@@ -1018,8 +1018,13 @@ export class TripService
           }
         });
 
-        // Remove not used physical gears with synchronizationStatus = "DIRTY" (= Physical gear added automatically)
-        entity.gears = (entity.gears || []).filter(physicalGear => data.find(o => o.physicalGear.id === physicalGear.id));
+        // Clean gears, to keep only :
+        // - gears set manually, and not automatically by addGear() (marked as SYNC - see addGear())
+        // - used gears
+        entity.gears = (entity.gears || []).filter(physicalGear =>
+          physicalGear.synchronizationStatus !== SynchronizationStatusEnum.SYNC
+          || data.some(o => o.physicalGear.id === physicalGear.id)
+        );
       }
 
       if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
@@ -1478,32 +1483,40 @@ export class TripService
    * @param sources
    * @param targets
    */
-  protected copyIdAndUpdateDateOnGears(sources: (PhysicalGear | any)[], targets: PhysicalGear[], savedTrip: Trip) {
+  protected copyIdAndUpdateDateOnGears(sources: (PhysicalGear | any)[], targets: PhysicalGear[], savedTrip: Trip, parentGear?: PhysicalGear) {
     // DEBUG
     //console.debug("[trip-service] Calling copyIdAndUpdateDateOnGears()");
 
     // Update gears
     if (sources && targets) {
+      // Copy source, to be able to use splice() if array is a readonly (apollo cache)
+      sources = [...sources];
+
       targets.forEach(target => {
         // Set the trip id (required by equals function)
         target.tripId = savedTrip.id;
+        // Try to set parent id (need by equals, when new entity)
+        target.parentId = parentGear?.id || target.parentId;
 
-        const source = sources.find(json => target.equals(json));
-        if (!source) {
-          console.warn('Missing a gear, equals to this target: ', target)
-        }
-        else {
+        const index = sources.findIndex(json => target.equals(json));
+        if (index !== -1) {
+          // Remove from sources list, as it has been found
+          const source = sources.splice(index, 1)[0];
+
           EntityUtils.copyIdAndUpdateDate(source, target);
           DataRootEntityUtils.copyControlAndValidationDate(source, target);
 
           // Copy parent Id (need for link to parent)
           target.parentId = source.parentId;
           target.parent = null;
+        }
+        else {
+          console.warn('Missing a gear, equals to this target: ', target);
+        }
 
-          // Apply to children
-          if (target.children?.length) {
-            this.copyIdAndUpdateDateOnGears(sources, target.children, savedTrip);
-          }
+        // Update children
+        if (target.children?.length) {
+          this.copyIdAndUpdateDateOnGears(sources, target.children, savedTrip, target);
         }
       });
     }
@@ -1526,16 +1539,19 @@ export class TripService
       // Make sure to get an entity
       entity = PhysicalGear.fromObject(entity);
 
+      // Mark gear as added automatically (useful to clear unused gears in save() )
+      entity.synchronizationStatus = SynchronizationStatusEnum.SYNC;
+
       // Load the trip
       const trip = await this.load(tripId);
       if (!trip) throw new Error(`Cannot find trip #{tripId}`); // Should never occur
 
       // Compute new rankOrder, according to existing trip's gear
       // RankOrder was compute for original trip, it can be used on actual trip and needed to be re-computed
-      if (trip.gears?.find(gear => gear.rankOrder === entity.rankOrder)){
-        entity.rankOrder = trip.gears.map(gear => gear.rankOrder)
+      if (trip.gears?.some(gear => gear.rankOrder === entity.rankOrder)) {
+        const maxRankOrder = trip.gears.map(gear => gear.rankOrder)
           .reduce((max, rankOrder) => Math.max(max, rankOrder), 0)
-          + 1;
+        entity.rankOrder = maxRankOrder + 1;
       }
 
       // Add it to the trip
@@ -1609,7 +1625,7 @@ export class TripService
     // todo maybe others tables ?
 
     // Physical gears: compute rankOrder
-    fillRankOrder(entity.gears);
+    fillTreeRankOrder(entity.gears);
 
     // Measurement: compute rankOrder
     fillRankOrder(entity.measurements);
@@ -1618,9 +1634,14 @@ export class TripService
   protected async fillOfflineDefaultProperties(entity: Trip) {
     await super.fillOfflineDefaultProperties(entity);
 
-    // Fill gear id
-    const gears = entity.gears || [];
-    await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
+    // Fill gear ids
+    if (isNotEmptyArray(entity.gears)) {
+      const gears = EntityUtils.listOfTreeToArray(entity.gears);
+      await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
+      gears.forEach(g => {
+        g.tripId = entity.id;
+      });
+    }
 
     // Fill packets ids
     if (isNotEmptyArray(entity.operationGroups)) {

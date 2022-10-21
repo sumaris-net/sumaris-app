@@ -14,11 +14,13 @@ import { PhysicalGearsTestPage } from '@app/trip/physicalgear/testing/physical-g
 import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppBatchModule } from '@app/trip/batch/batch.module';
 import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
+import { BatchTreeContainerTestPage } from '@app/trip/batch/testing/batch-tree-container.test';
 
 export const TRIP_TESTING_PAGES: TestingPage[] = [
   {label: 'Trip module', divider: true},
   {label: 'Physical gears', page: '/testing/trip/physicalGears'},
   {label: 'Batch tree', page: '/testing/trip/batchTree'},
+  {label: 'Batch tree container', page: '/testing/trip/batchTreeContainer'},
   {label: 'Batch group form', page: '/testing/trip/batchGroupForm'},
   {label: 'Sample tree', page: '/testing/trip/sampleTree'}
 ];
@@ -28,6 +30,11 @@ const routes: Routes = [
     path: 'batchTree',
     pathMatch: 'full',
     component: BatchTreeTestPage
+  },
+  {
+    path: 'batchTreeContainer',
+    pathMatch: 'full',
+    component: BatchTreeContainerTestPage
   },
   {
     path: 'batchGroupForm',
@@ -62,12 +69,14 @@ const routes: Routes = [
   declarations: [
     BatchGroupFormTestPage,
     BatchTreeTestPage,
+    BatchTreeContainerTestPage,
     PhysicalGearsTestPage,
     SampleTreeTestPage,
   ],
   exports: [
     BatchGroupFormTestPage,
     BatchTreeTestPage,
+    BatchTreeContainerTestPage,
     SampleTreeTestPage,
     PhysicalGearsTestPage
   ]

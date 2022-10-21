@@ -26,7 +26,7 @@
 </mat-menu>
 
 
-<ion-content class="ion-no-padding" cdkTrapFocus>
+<ion-content class="ion-no-padding ion-padding-top" cdkTrapFocus>
   <app-packet-form #form
                    [showParent]="mobile"
                    [mobile]="mobile"
@@ -34,18 +34,24 @@
                    [parentAttributes]="parentAttributes">
 
     <!-- open packet sale modal -->
-    <ion-button packetSaleButtons mat-button
-                fill="clear" color="tertiary" expand="full"
-                [title]="'PACKET.COMPOSITION.BTN_SALE'|translate"
-                (click)="onSave($event, 'sale')">
-      <mat-icon slot="start">local_offer</mat-icon>
-      <ion-label>
-        <span translate>PACKET.COMPOSITION.BTN_SALE</span>
-        <span *ngIf="form.value.saleProducts && form.value.saleProducts.length && form.value.composition && form.value.composition.length">&nbsp;
-          ({{(form.value.saleProducts.length / form.value.composition.length).toString()}})
-        </span>
-      </ion-label>
-    </ion-button>
+    <ion-grid endButtons class="ion-margin-top" *ngIf="enabled">
+      <ion-row>
+        <ion-col></ion-col>
+        <ion-col class="ion-align-items-start">
+          <ion-button color="tertiary" fill="solid" expand="block" shape="round"
+                      [title]="'PACKET.COMPOSITION.BTN_SALE'|translate"
+                      (click)="onSave($event, 'sale')">
+            <mat-icon slot="start">local_offer</mat-icon>
+            <ion-label>
+              <span translate>PACKET.COMPOSITION.BTN_SALE</span>
+              <span *ngIf="form.value.saleProducts && form.value.saleProducts.length && form.value.composition && form.value.composition.length">&nbsp;
+                ({{(form.value.saleProducts.length / form.value.composition.length).toString()}})
+              </span>
+            </ion-label>
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
 
   </app-packet-form>
 

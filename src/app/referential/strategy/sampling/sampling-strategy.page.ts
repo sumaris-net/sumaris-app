@@ -1,7 +1,6 @@
-import {ChangeDetectionStrategy, Component, Injector, ViewChild} from '@angular/core';
-import {FormBuilder, FormGroup} from '@angular/forms';
-import {ActivatedRoute} from '@angular/router';
-import * as momentImported from 'moment';
+import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import {
   AccountService,
   AppEntityEditor,
@@ -16,19 +15,19 @@ import {
   StatusIds,
   toNumber
 } from '@sumaris-net/ngx-components';
-import {ProgramProperties} from '../../services/config/program.config';
-import {PmfmStrategy} from '../../services/model/pmfm-strategy.model';
-import {Strategy} from '../../services/model/strategy.model';
-import {PmfmService} from '../../services/pmfm.service';
-import {SamplingStrategyForm} from './sampling-strategy.form';
-import {BehaviorSubject} from 'rxjs';
-import {Program} from '../../services/model/program.model';
-import {ProgramService} from '../../services/program.service';
-import {AcquisitionLevelCodes, PmfmIds} from '../../services/model/model.enum';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
-import {SamplingStrategy} from '@app/referential/services/model/sampling-strategy.model';
+import { ProgramProperties } from '../../services/config/program.config';
+import { PmfmStrategy } from '../../services/model/pmfm-strategy.model';
+import { Strategy } from '../../services/model/strategy.model';
+import { PmfmService } from '../../services/pmfm.service';
+import { SamplingStrategyForm } from './sampling-strategy.form';
+import { BehaviorSubject } from 'rxjs';
+import { Program } from '../../services/model/program.model';
+import { ProgramService } from '../../services/program.service';
+import { AcquisitionLevelCodes, PmfmIds } from '../../services/model/model.enum';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import { SamplingStrategy } from '@app/referential/services/model/sampling-strategy.model';
+import { moment } from '@app/vendor';
 
-const moment = momentImported;
 
 @Component({
   selector: 'app-sampling-strategy-page',

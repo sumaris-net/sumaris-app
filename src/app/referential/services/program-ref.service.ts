@@ -596,7 +596,7 @@ export class ProgramRefService
         .pipe(
           map(program => program.strategies || []),
           // get all gears
-          map(strategies => arrayDistinct(strategies.flatMap(strategy => strategy.gears ||[]), ['id'])),
+          map(strategies => arrayDistinct(strategies.flatMap(strategy => strategy.gears ||[]), 'id')),
           map(data => {
             if (this._debug) console.debug(`[program-ref-service] Found ${data.length} gears on program {${programLabel}}`);
 

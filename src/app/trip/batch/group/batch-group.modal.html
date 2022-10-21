@@ -46,10 +46,10 @@
                         [mobile]="mobile"
                         [debug]="debug">
 
-      <!-- open individual modal -->
-      <ion-button afterSpecies class="ion-margin-bottom"
-                  *ngIf="form.hasSubBatches && allowSubBatches"
-                  color="tertiary" fill="solid" expand="block" shape="round"
+
+    <!-- open individual modal -->
+    <ion-col beforeChildren *ngIf="form.hasSubBatches && allowSubBatches" class="ion-padding-top">
+      <ion-button color="tertiary" fill="solid" expand="block" shape="round"
                   (click)="onShowSubBatchesButtonClick($event)">
         <ion-label>
           <span translate>TRIP.BATCH.EDIT.BTN_INDIVIDUAL_MEASURE</span>
@@ -57,9 +57,9 @@
         </ion-label>
         <ion-icon slot="end" name="arrow-forward"></ion-icon>
       </ion-button>
+    </ion-col>
 
   </app-batch-group-form>
-
 
 </ion-content>
 
