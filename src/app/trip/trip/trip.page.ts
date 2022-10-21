@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, OnDestroy, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, OnDestroy, Self, ViewChild } from '@angular/core';
 
 import { TripService } from '../services/trip.service';
 import { TripForm } from './trip.form';
@@ -120,7 +120,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     protected context: ContextService,
     protected tripContext: TripContextService,
     public network: NetworkService,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) private physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) public physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
       Trip,
@@ -277,7 +277,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Physical gears
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
-    this.physicalGearsTable.allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN)
+    this.physicalGearsTable.allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN);
+    this.physicalGearsTable.showSubGearsCountColumn = this.physicalGearsTable.allowChildrenGears;
     this.physicalGearsTable.setModalOption('helpMessage', program.getProperty(ProgramProperties.TRIP_PHYSICAL_GEAR_HELP_MESSAGE));
     this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
@@ -419,25 +420,33 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   protected async setValue(data: Trip) {
-    const isNewData = isNil(data.id);
+    try {
+      const isNewData = isNil(data.id);
 
-    // Set data to form
-    let promises: Promise<any>[] = [
-      this.tripForm.setValue(data)
-    ];
+      const jobs: Promise<any>[] = [];
 
-    this.saleForm.value = data && data.sale || new Sale();
-    this.measurementsForm.value = data && data.measurements || [];
+      // Set data to form
+      jobs.push(this.tripForm.setValue(data));
 
-    // Set physical gears
-    this.physicalGearsTable.tripId = data.id;
-    this.physicalGearService.value = data && data.gears || [];
-    promises.push(this.physicalGearService.waitIdle({timeout: 2000}));
+      this.saleForm.value = data && data.sale || new Sale();
+      this.measurementsForm.value = data && data.measurements || [];
 
-    // Operations table
-    if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
+      // Set physical gears
+      this.physicalGearsTable.tripId = data.id;
+      this.physicalGearService.value = data && data.gears || [];
+      jobs.push(this.physicalGearsTable.waitIdle({ timeout: 2000 }));
 
-    await Promise.all(promises);
+      // Operations table
+      if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
+
+      await Promise.all(jobs);
+
+      console.debug('[trip] setValue() [OK]');
+    }
+    catch (err) {
+      const error = err?.message || err;
+      this.setError(error);
+    }
   }
 
   async onOpenOperation({id, row}: { id?: number; row: TableElement<any>; }) {

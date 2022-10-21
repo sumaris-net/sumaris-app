@@ -615,6 +615,7 @@
       "TABLE": {
         "SELECT_ROW_HELP": "Sélectionnez un engin dans la liste, pour pouvoir l'éditer",
         "GEAR": "Engin",
+        "SUB_GEARS_COUNT": "Nb Sous-engins",
         "LAST_USED": "Dernière utilisation",
         "COMMENTS": "Commentaires",
         "FILTER": {
