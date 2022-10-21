@@ -163,7 +163,7 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
     if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
 
     if (result) {
-      await this.modalCtrl.dismiss();
+      await this.modalCtrl.dismiss(this.data, 'delete');
     }
   }
 

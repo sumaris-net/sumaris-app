@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, Self } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { ProductValidatorService } from '../services/validator/product.validator';
@@ -243,19 +243,19 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
   protected async openRow(id: number, row: TableElement<Product>): Promise<boolean> {
     if (!this.allowRowDetail || this.readOnly) return false;
 
-    const data = this.toEntity(row, true);
+    const entity = this.toEntity(row, true);
 
-    const res = await this.openDetailModal(data);
-    if (res && res.data) {
-      await this.updateEntityToTable(res.data, row, {confirmEdit: false});
+    const { data, role } = await this.openDetailModal(entity);
+    if (data && role !== 'delete') {
+      await this.updateEntityToTable(data, row, {confirmEdit: false});
     } else {
       this.editedRow = null;
     }
 
-    if (res && res.role) {
-      if (res.role === 'sampling') {
+    if (role) {
+      if (role === 'sampling') {
         await this.openSampling(null, row);
-      } else if (res.role === 'sale') {
+      } else if (role === 'sale') {
         await this.openProductSale(null, row);
       }
     }

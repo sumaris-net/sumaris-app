@@ -60,7 +60,7 @@
           <input matInput formControlName="ratio"
                  [placeholder]="'TRIP.PRODUCT.SALE.RATIO'|translate"
                  autocomplete="off" type="number" step="1" max="100"
-                 [tabIndex]="tabindex+3+i*9+1"
+                 [tabIndex]="hasIndividualCount ? -1 : tabindex+3+i*9+1"
                  [readonly]="hasIndividualCount"
                  required>
           <mat-error *ngIf="saleForm.controls.ratio.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
@@ -75,7 +75,7 @@
           <input matInput formControlName="weight"
                  [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
                  autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*9+2"
+                 [tabIndex]="hasIndividualCount ? -1 : tabindex+3+i*9+2"
                  [readonly]="hasIndividualCount">
         </mat-form-field>
       </ion-col>

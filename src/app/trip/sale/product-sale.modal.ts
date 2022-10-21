@@ -1,6 +1,6 @@
 import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController } from '@ionic/angular';
-import { AppEntityEditorModal, AppFormUtils, IEntityEditorModalOptions, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
+import { AppEntityEditorModal, IEntityEditorModalOptions, referentialToString } from '@sumaris-net/ngx-components';
 import { ProductSaleForm } from './product-sale.form';
 import { Product } from '../services/model/product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -65,6 +65,10 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
 
   protected async setValue(data: Product) {
     await this.productSaleForm.setValue(Product.fromObject(data));
+  }
+
+  protected async getJsonValueToSave(): Promise<any> {
+    return this.productSaleForm.value;
   }
 
   protected async computeTitle(data: Product): Promise<string> {

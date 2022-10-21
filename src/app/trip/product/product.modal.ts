@@ -1,15 +1,14 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import { Alerts, AppFormUtils, isNil, LocalSettingsService, sleep, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
-import {AlertController, ModalController} from '@ionic/angular';
-import {BehaviorSubject, Subscription} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {environment} from '@environments/environment';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {IWithProductsEntity, Product} from '@app/trip/services/model/product.model';
-import {ProductForm} from '@app/trip/product/product.form';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Alerts, isNil, LocalSettingsService, sleep, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
+import { AlertController, ModalController } from '@ionic/angular';
+import { BehaviorSubject, Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { environment } from '@environments/environment';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { IWithProductsEntity, Product } from '@app/trip/services/model/product.model';
+import { ProductForm } from '@app/trip/product/product.form';
 import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
-import { filter } from 'rxjs/operators';
 
 export interface IProductModalOptions extends IDataEntityModalOptions<Product> {
   mobile: boolean;
@@ -182,7 +181,7 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
     if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
 
     if (result) {
-      await this.modalCtrl.dismiss();
+      await this.modalCtrl.dismiss(this.data, 'delete');
     }
   }
 
