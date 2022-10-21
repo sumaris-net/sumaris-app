@@ -33,6 +33,7 @@ import { slideDownAnimation } from '@app/shared/material/material.animation';
 export interface IPhysicalGearModalOptions
   extends IEntityEditorModalOptions<PhysicalGear> {
 
+  isNew: boolean;
   helpMessage: string;
 
   acquisitionLevel: string;
@@ -58,7 +59,8 @@ const INVALID_GEAR_ID = -999;
     {
       provide: PHYSICAL_GEAR_DATA_SERVICE_TOKEN,
       useFactory: () => new InMemoryEntitiesService(PhysicalGear, PhysicalGearFilter, {
-        equals: PhysicalGear.equals
+        equals: PhysicalGear.equals,
+        sortByReplacement: {'id': 'rankOrder'}
       })
     }
   ],
@@ -103,6 +105,21 @@ export class PhysicalGearModal
 
   get gearId(): number {
     return this.$gear.value?.id;
+  }
+
+
+  /**
+   * @deprecated Remove after newt release of ngx-component (isNew should exist in parent class)
+   */
+  get isNew(): boolean {
+    return super.isNewData;
+  }
+
+  /**
+   * @deprecated Remove after newt release of ngx-component (isNew should exist in parent class)
+   */
+  @Input() set isNew(value: boolean) {
+    super.isNewData = value;
   }
 
   constructor(injector: Injector,
@@ -202,10 +219,15 @@ export class PhysicalGearModal
           .subscribe()
       );
     }
+    else {
+      this.showChildrenTable = false;
+      this.markForCheck();
+    }
+
     // Focus on the first field, is not in mobile
-     if (this.isNewData && !this.mobile && this.enabled) {
+    if (this.isNewData && !this.mobile && this.enabled) {
        setTimeout(() => this.physicalGearForm.focusFirstInput(), 400);
-     }
+    }
   }
 
   async openSearchModal(event?: UIEvent) {

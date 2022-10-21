@@ -617,8 +617,13 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     // Physical gears
     if (!opts || opts.withGearTree !== false) {
       // Convert list to tree (useful when fetching from a pod)
-      this.gears = source.gears && PhysicalGear.fromObjectArrayAsTree(source.gears)
-        .sort(EntityUtils.sortComparator('rankOrder')) || undefined;
+      this.gears = source.gears && (source.id < 0
+          // Local entity: should be already as a tree
+          ? source.gears.map(g => PhysicalGear.fromObject(g, {withChildren: true}))
+          // Convert array to tree (when fetching from pod)
+          : PhysicalGear.fromObjectArrayAsTree(source.gears)
+            .sort(EntityUtils.sortComparator('rankOrder'))
+      ) || undefined;
     }
     else {
       this.gears = source.gears && source.gears.filter(isNotNil)

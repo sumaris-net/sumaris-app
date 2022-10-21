@@ -9,7 +9,7 @@
   <ion-buttons slot="end" >
 
     <!-- search button -->
-    <ion-button *ngIf="showSearchButton"
+    <ion-button *ngIf="showSearchButton && selectedTabIndex === 0"
                 (click)="openSearchModal($event)">
       <ion-icon slot="start" name="search"></ion-icon>
       <ion-label>

@@ -231,6 +231,12 @@
                 ready: {{physicalGearsTable.readySubject|async}}<br/>
                 dirty: {{physicalGearsTable.dirtySubject|async}}<br/>
               </ion-col>
+              <ion-col>
+                service.count: {{physicalGearService.count}}<br/>
+                service.hiddenCount: {{physicalGearService.hiddenCount}}<br/>
+                service.dirty: {{physicalGearService.dirtySubject|async}}<br/>
+                service.value: {{!!physicalGearService.value}}<br/>
+              </ion-col>
             </ion-row>
           </ion-grid>
         </app-debug>
