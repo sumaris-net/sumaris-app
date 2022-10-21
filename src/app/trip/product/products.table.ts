@@ -227,12 +227,14 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail || this.readOnly) return false;
 
-    const res = await this.openDetailModal();
-    if (res && res.data) {
-      const row = await this.addEntityToTable(res.data);
-      if (res.role === 'sampling') {
+    const { data, role } = await this.openDetailModal();
+    if (data && role !== 'delete') {
+      const row = await this.addEntityToTable(data);
+
+      // Redirect to another modal
+      if (role === 'sampling') {
         await this.openSampling(null, row);
-      } else if (res.role === 'sale') {
+      } else if (role === 'sale') {
         await this.openProductSale(null, row);
       }
     }
@@ -262,16 +264,17 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
     return true;
   }
 
-  async openDetailModal(product?: Product): Promise<{ data: Product, role: string } | undefined> {
-    const isNew = !product && true;
+  async openDetailModal(dataToOpen?: Product): Promise<{ data: Product, role: string } | undefined> {
+    const isNew = !dataToOpen && true;
+
     if (isNew) {
-      product = new this.dataType();
-      await this.onNewEntity(product);
+      dataToOpen = new this.dataType();
+      await this.onNewEntity(dataToOpen);
 
       if (this.filter?.parent) {
-       product.parent = this.filter.parent;
+       dataToOpen.parent = this.filter.parent;
       } else if (this.$parents.value?.length === 1) {
-        product.parent =  this.$parents.value[0];
+        dataToOpen.parent =  this.$parents.value[0];
       }
     }
 
@@ -282,7 +285,7 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
       componentProps: <IProductModalOptions>{
         programLabel: this.programLabel,
         acquisitionLevel: this.acquisitionLevel,
-        data: product,
+        data: dataToOpen,
         parents: this.$parents.value || null,
         parentAttributes: this.parentAttributes,
         disabled: this.disabled,
@@ -302,14 +305,7 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
     if (data && this.debug) console.debug('[product-table] product modal result: ', data, role);
     this.markAsLoaded();
 
-    if (data) {
-      return {data: data as Product, role};
-    } else if (role) {
-      return {data: undefined, role};
-    }
-
-    // Exit if empty
-    return undefined;
+    return {data: (data as Product) ? data as Product : undefined, role};
   }
 
   /* -- protected methods -- */

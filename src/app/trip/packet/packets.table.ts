@@ -203,9 +203,10 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     const { data, role } = await this.openDetailModal();
 
-    if (data) {
+    if (data && role !== 'delete') {
       const row = await this.addEntityToTable(data);
 
+      // Redirect to another modal
       if (role === 'sale') {
         await this.openPacketSale(null, row);
       }
