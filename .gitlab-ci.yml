@@ -116,10 +116,10 @@ docker:ci:
   <<: *git-setup
   stage: release
   script:
-      - if [[ "_${RELEASE_VERSION}" == "_" ]]; then exit 1; fi
-      - echo "Release in progress"
+      - if [[ "_${RELEASE_VERSION}" == "_" ]]; then echo "Missing required 'RELEASE_VERSION' pipeline property!" && exit 1; fi
+      - echo "--- Release in progress"
       - git checkout -b release/${RELEASE_VERSION}
-      - echo "manage app version"
+      - echo "--- Manage app version"
       - 'currentAndroid=`grep -oP "android-versionCode=\"[0-9]+\"" config.xml | grep -oP "\d+"`'
       - 'IFS="."'
       - 'read -ra SPLITED_VERSION <<< "${RELEASE_VERSION}"'
@@ -138,6 +138,7 @@ docker:ci:
       # Copy cached dependencies and build
       - ls -artl /tmp/.build-cache
       - cp -R /tmp/.build-cache/node_modules .
+      - export NODE_OPTIONS=--max-old-space-size=4096
       - npm run build.prod
       # Git process for release (ISO gitflow)
       - git add .
