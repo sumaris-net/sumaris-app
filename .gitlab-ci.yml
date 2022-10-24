@@ -22,6 +22,7 @@ variables:
   CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
   BUILD_ENVIRONMENT: prod
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
+  ENV_FILE: variables.env
 
 # ---------------------------------------------------------------
 # Jobs templates
@@ -49,7 +50,6 @@ variables:
 # ---------------------------------------------------------------
 # Build jobs
 # ---------------------------------------------------------------
-
 .build:
   stage: build
   tags: [sih_public_runner]
@@ -60,12 +60,12 @@ variables:
   after_script:
     # Remember version
     - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
-    - echo "APP_VERSION=${APP_VERSION}" > variables.env
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
     paths:
       - www
     reports:
-      dotenv: variables.env
+      dotenv: ${ENV_FILE}
     expire_in: 72 hours
 
 build:
@@ -116,7 +116,7 @@ docker:ci:
   <<: *git-setup
   stage: release
   script:
-      - if [[ "_${RELEASE_VERSION}" == "_" ]]; then echo "Missing required 'RELEASE_VERSION' pipeline property!" && exit 1; fi
+      - if [[ "_${RELEASE_VERSION}" == "_" ]]; then exit 1; fi
       - echo "--- Release in progress"
       - git checkout -b release/${RELEASE_VERSION}
       - echo "--- Manage app version"
@@ -138,34 +138,37 @@ docker:ci:
       # Copy cached dependencies and build
       - ls -artl /tmp/.build-cache
       - cp -R /tmp/.build-cache/node_modules .
+      # Show version
+      - ng version
+      - npm version
+      # Build
       - export NODE_OPTIONS=--max-old-space-size=4096
       - npm run build.prod
       # Git process for release (ISO gitflow)
       - git add .
       - git commit -m "Prepare release ${RELEASE_VERSION}"
       - git checkout master
-      - git merge --no-ff --no-edit -m "Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
-      - git tag -a ${RELEASE_VERSION} -m "${RELEASE_VERSION}"
+      - git merge --no-ff --no-edit -m "Release ${RELEASE_VERSION}" "release/${RELEASE_VERSION}"
+      - git tag -a "${RELEASE_VERSION}" -m "${RELEASE_VERSION}"
       - git checkout develop
-      - git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
+      - git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" "release/${RELEASE_VERSION}"
       - git push origin develop
       - git push origin master
       - git push --tags
-      - git branch -D release/${RELEASE_VERSION}
+      - git branch -D "release/${RELEASE_VERSION}"
   after_script:
     # Remember version
     - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
-    - echo "APP_VERSION=${APP_VERSION}" > variables.env
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
     paths:
       - www
     reports:
-      dotenv: variables.env
+      dotenv: ${ENV_FILE}
     expire_in: 24 hours
   allow_failure: false
   only:
     - develop
-    - imagine/develop
   when: manual
 
 release:
@@ -194,7 +197,6 @@ gitlab-release:
 # ---------------------------------------------------------------
 # Docker jobs
 # ---------------------------------------------------------------
-
 .docker-build:
   extends: .docker
   stage: docker
@@ -212,14 +214,6 @@ docker:develop:
   only:
     - develop
 
-docker:imagine:
-  extends: .docker-build
-  variables:
-    IMAGE_TAG: imagine
-  needs: [build]
-  only:
-    - imagine/develop
-
 docker:feature:
   extends: .docker-build
   needs: [build]
@@ -236,7 +230,6 @@ docker:release:
   needs: [release]
   only:
     - develop
-    - imagine/develop
 
 # ---------------------------------------------------------------
 # Docs jobs
