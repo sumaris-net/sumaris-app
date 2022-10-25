@@ -79,6 +79,31 @@
           <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
         </ion-item>
 
+        <!-- DEBUG -->
+        <app-debug *ngIf="debug" title="Observed location form">
+          <ion-grid>
+            <ion-row>
+              <ion-col>
+                editor.ready: {{readySubject|async}}<br/>
+                editor.loading: {{loading}}<br/>
+                editor.enabled: {{enabled}}<br/>
+                editor.data: {{!!data}}<br/>
+              </ion-col>
+              <ion-col>
+                form.ready: {{observedLocationForm.readySubject|async}}<br/>
+                form.loading: {{observedLocationForm.loading}}<br/>
+                form.enabled: {{observedLocationForm.enabled}}<br/>
+                form.data: {{!!observedLocationForm.value}}<br/>
+              </ion-col>
+              <ion-col>
+                form.startDateTime: {{form|formGetValue:'startDateTime'|dateFormat:{time: true} }}<br/>
+                form.endDateTime: {{form|formGetValue:'endDateTime'|dateFormat:{time: true} }}<br/>
+                form.program: {{form|formGetValue:'program' | propertyGet: 'label' }}<br/>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </app-debug>
+
         <ion-grid class="ion-no-padding">
           <ion-row class="ion-no-padding">
             <ion-col class="ion-padding">

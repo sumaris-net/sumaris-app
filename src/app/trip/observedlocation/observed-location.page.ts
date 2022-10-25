@@ -239,13 +239,14 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
-    if (!this.data.startDateTime || !this.data.program) {
+    const programLabel = this.aggregatedLandingsTable?.programLabel || this.$programLabel.value || this.data.program.label;
+    if (!this.data.startDateTime || !programLabel) {
       throw new Error('Root entity has no program and start date. Cannot open select vessels modal');
     }
 
+    // Prepare filter's value
     const startDate = this.data.startDateTime.clone().add(-15, 'days');
     const endDate = this.data.startDateTime.clone();
-    const programLabel = (this.aggregatedLandingsTable?.programLabel) || this.data.program.label;
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
       && (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) || [];
     const defaultVesselSynchronizationStatus = this.network.offline ? 'DIRTY' : 'SYNC';
