@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
-import { Injector } from '@angular/core';
-import { Moment } from 'moment';
+import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, UsageMode } from '@sumaris-net/ngx-components';
 import { PacketValidatorService } from '../services/validator/packet.validator';
 import { Packet } from '../services/model/packet.model';
 import { ReferentialRefService } from '../../referential/services/referential-ref.service';
@@ -94,14 +92,16 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     this._data = data;
 
     // Initialize product sales by converting products to aggregated sale products
-    const aggregatedSaleProducts = isNotEmptyArray(data.saleProducts) ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.packetSalePmfms) : [{}];
+    const aggregatedSaleProducts = isNotEmptyArray(data.saleProducts)
+      ? SaleProductUtils.productsToAggregatedSaleProduct(data.saleProducts, this.packetSalePmfms)
+        .map(p => p.asObject())
+      : [{ }];
     this.salesHelper.resize(Math.max(1, aggregatedSaleProducts.length));
+
+    data.saleProducts = aggregatedSaleProducts;
 
     // Set value
     super.setValue(data, opts);
-
-    // Then patch saleProducts to keep this._packet safe
-    this.form.patchValue({saleProducts: aggregatedSaleProducts});
 
     // update saleFromArray validators
     this.validatorService.updateFormGroup(this.form, {withSaleProducts: true});

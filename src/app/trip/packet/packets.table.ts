@@ -250,11 +250,8 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     const { data, role } = await modal.onDidDismiss();
     this.markAsLoaded();
 
-    if (data) {
-      if (this.debug) console.debug('[packet-table] packet modal result: ', {data, role});
-
-      return {data: data as Packet, role};
-    }
+    if (this.debug) console.debug('[packet-table] packet modal result: ', {data, role});
+    return {data: (data instanceof Packet ? data as Packet : undefined), role};
   }
 
   async deleteEntity(event: UIEvent, data): Promise<boolean> {

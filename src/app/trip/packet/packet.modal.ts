@@ -101,7 +101,9 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     try {
       const value = this.packetForm.value;
       this.disable();
-      await this.viewCtrl.dismiss(value, role);
+
+      const data = Packet.fromObject(value);
+      await this.viewCtrl.dismiss(data, role);
       this.packetForm.error = null;
     } catch (err) {
       this.packetForm.error = err && err.message || err;
