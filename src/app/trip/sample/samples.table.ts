@@ -882,12 +882,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return color ? `var(--ion-color-${color})` : undefined;
   }
 
-  addRow(event?: Event, insertAt?: number): boolean {
-    // TODO remove this after upgrading ngx component
-    if (this.inlineEdition) this.focusColumn = this.firstUserColumn;
-    return super.addRow(event, insertAt);
-  }
-
   protected addFooterListener(pmfms: IPmfm[]) {
 
     this.tagIdPmfm = this.tagIdPmfm || pmfms && pmfms.find(pmfm => pmfm.id === PmfmIds.TAG_ID);

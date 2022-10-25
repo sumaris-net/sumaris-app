@@ -271,6 +271,7 @@
              [class.mat-row-error]="row.validator?.invalid"
              [class.mat-row-dirty]="row.validator?.dirty"
              [class.mat-row-disabled]="!row.editing"
+             [class.mat-row-selected]="highlightedRowId === row.id"
              (click)="clickRow($event, row)"></tr>
 
   </table>

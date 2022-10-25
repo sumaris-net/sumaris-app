@@ -84,6 +84,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   filterForm: FormGroup = null;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
+  highlightedRowId: number;
 
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
@@ -226,6 +227,12 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
+  clickRow(event: UIEvent|undefined, row: TableElement<E>): boolean {
+    if (!this.inlineEdition) this.highlightedRowId = row?.id;
+
+    //console.debug('[base-table] click row');
+    return super.clickRow(event, row);
+  }
 
   async addOrUpdateEntityToTable(data: E, opts?: {confirmEditCreate?: boolean}){
     // Always try to get the row, even if no ID, because the row can exists (e.g. in memory table)

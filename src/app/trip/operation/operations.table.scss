@@ -4,10 +4,9 @@ mat-toolbar {
   }
 }
 .table-container {
-  height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height));
-
   --table-toolbar-height: 0px;
   --table-paginator-height: 0px;
+  height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height));
 
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);

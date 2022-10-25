@@ -67,7 +67,6 @@ export abstract class AppRootDataTable<
   $progression = new BehaviorSubject<number>(0);
   hasOfflineMode = false;
   featureId: string;
-  highlightedRow: TableElement<T>;
 
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
@@ -361,10 +360,6 @@ export abstract class AppRootDataTable<
 
   clickRow(event: UIEvent|undefined, row: TableElement<T>): boolean {
     if (this.importing) return; // Skip
-
-    console.debug('[root-table] click row');
-    this.highlightedRow = row;
-
     return super.clickRow(event, row);
   }
 

@@ -42,7 +42,8 @@
               "react",
               "leaflet-easybutton",
               "@bepo65/leaflet.fullscreen",
-              "reveal.js"
+              "reveal.js",
+              "clone"
             ],
             "assets": [
               {

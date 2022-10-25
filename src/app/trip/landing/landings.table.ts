@@ -288,15 +288,14 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
     return landing.dateTime;
   }
 
-  addRow(event?: any): boolean {
+  async addRow(event?: any): Promise<boolean> {
 
     if (this.isTripDetailEditor) {
       if (!this._enabled) return false;
       if (this.debug) console.debug("[landings-table] Asking for new landing...");
 
       // Force modal
-      this.openNewRowDetail(event);
-      return false;
+      return this.openNewRowDetail(event);
     }
 
     // default behavior
