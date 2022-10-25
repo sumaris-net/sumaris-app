@@ -1400,7 +1400,15 @@
       "NEW_REGISTRATION": "Declare a change",
       "EDIT_FEATURES": "Fix features",
       "NEW_FEATURES": "Declare a change",
-      "EDIT_STATUS": "Modify status"
+      "EDIT_STATUS": "Modify status",
+      "REPLACE": "Replace this temporary vessel...",
+      "REPLACE_CONFIRMATION": "Are you sure to replace this temporary vessel with '{{vessel}}' ?",
+      "REPLACE_MANY": "Replace selected temporary vessels...",
+      "REPLACE_MANY_CONFIRMATION": "Are you sure to replace selected temporary vessels with '{{vessel}}' ?"
+    },
+    "SELECT_MODAL": {
+      "TITLE": "Vessel selection",
+      "REPLACE_TITLE": "Replacement vessel selection"
     },
     "EDIT": {
       "TITLE": "Vessel {{exteriorMarking}}"
@@ -1419,7 +1427,8 @@
       }
     },
     "ERROR": {
-      "LOAD_ERROR": "Error while loading vessels."
+      "LOAD_ERROR": "Error while loading vessels.",
+      "REPLACE_ERROR": "Error while replacing temporary vessel.<small><br/>If the problem persists, please contact your administrator.</small>"
     }
   },
   "REFERENTIAL": {
@@ -1604,7 +1613,8 @@
       "SOFTWARE": "Softwares"
     },
     "OPTIONS": {
-      "VESSELS_ENABLE": "Referential > Vessels: Enable?"
+      "VESSELS_ENABLE": "Referential > Vessels: Enable?",
+      "VESSELS_REPLACEMENT_ENABLE": "Referential > Vessels > Replacement: Enable?"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Error while saving data.",

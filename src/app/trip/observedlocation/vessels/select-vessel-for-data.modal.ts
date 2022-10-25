@@ -1,26 +1,26 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation} from '@angular/core';
-import {LandingsTable} from '../../landing/landings.table';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { LandingsTable } from '../../landing/landings.table';
 
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {ModalController} from '@ionic/angular';
-import {Landing} from '../../services/model/landing.model';
-import {VesselService} from '@app/vessel/services/vessel-service';
-import {VesselFilter} from '@app/vessel/services/filter/vessel.filter';
-import {VesselsTable} from '@app/vessel/list/vessels.table';
-import {AppFormUtils, AppTable, ConfigService, isEmptyArray, isNil, isNotNil, ReferentialRef, toBoolean} from '@sumaris-net/ngx-components';
-import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
-import {VesselForm} from '@app/vessel/form/form-vessel';
-import {Vessel} from '@app/vessel/services/model/vessel.model';
-import {Subscription} from 'rxjs';
-import {MatTabGroup} from '@angular/material/tabs';
-import {LandingFilter} from '../../services/filter/landing.filter';
-import {VESSEL_CONFIG_OPTIONS} from '@app/vessel/services/config/vessel.config';
-import {SynchronizationStatus} from '@app/data/services/model/model.utils';
-import {Moment} from 'moment';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { ModalController } from '@ionic/angular';
+import { Landing } from '../../services/model/landing.model';
+import { VesselService } from '@app/vessel/services/vessel-service';
+import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
+import { VesselsTable } from '@app/vessel/list/vessels.table';
+import { AppFormUtils, AppTable, ConfigService, isEmptyArray, isNil, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { VesselForm } from '@app/vessel/form/form-vessel';
+import { Vessel } from '@app/vessel/services/model/vessel.model';
+import { Subscription } from 'rxjs';
+import { MatTabGroup } from '@angular/material/tabs';
+import { LandingFilter } from '../../services/filter/landing.filter';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
+import { SynchronizationStatus } from '@app/data/services/model/model.utils';
+import { Moment } from 'moment';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { debounceTime, mergeMap } from 'rxjs/operators';
 
-export interface SelectVesselsModalOptions {
+export interface SelectVesselsForDataModalOptions {
   landingFilter: LandingFilter|null;
   vesselFilter: VesselFilter|null;
   allowMultiple: boolean;
@@ -32,13 +32,13 @@ export interface SelectVesselsModalOptions {
 }
 
 @Component({
-  selector: 'app-select-vessel-modal',
-  templateUrl: 'select-vessel.modal.html',
-  styleUrls: ['select-vessel.modal.scss'],
+  selector: 'app-select-vessel-for-data-modal',
+  templateUrl: 'select-vessel-for-data.modal.html',
+  styleUrls: ['select-vessel-for-data.modal.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None
 })
-export class SelectVesselsModal implements OnInit, AfterViewInit, OnDestroy {
+export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptions, OnInit, AfterViewInit, OnDestroy {
 
   selectedTabIndex = 0;
   subscription = new Subscription();

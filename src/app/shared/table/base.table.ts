@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppTable,
   EntitiesServiceWatchOptions,
@@ -13,18 +13,18 @@ import {
   isNil,
   isNotEmptyArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS,
 } from '@sumaris-net/ngx-components';
-import {TableElement} from '@e-is/ngx-material-table';
-import {PredefinedColors} from '@ionic/core';
-import {FormGroup} from '@angular/forms';
-import {BaseValidatorService} from '@app/shared/service/base.validator.service';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {environment} from '@environments/environment';
-import {filter, map, tap} from 'rxjs/operators';
-import {PopoverController} from '@ionic/angular';
-import {SubBatch} from '@app/trip/batch/sub/sub-batch.model';
-import {Popovers} from '@app/shared/popover/popover.utils';
+import { TableElement } from '@e-is/ngx-material-table';
+import { PredefinedColors } from '@ionic/core';
+import { FormGroup } from '@angular/forms';
+import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { environment } from '@environments/environment';
+import { filter, map, tap } from 'rxjs/operators';
+import { PopoverController } from '@ionic/angular';
+import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
+import { Popovers } from '@app/shared/popover/popover.utils';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -211,6 +211,8 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   }
 
   applyFilterAndClosePanel(event?: UIEvent) {
+    const filter = this.filterForm.value;
+    this.setFilter(filter, {emitEvent: false});
     this.onRefresh.emit(event);
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
@@ -219,9 +221,9 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
 
-  resetFilter(event?: UIEvent) {
-    this.filterForm.reset();
-    this.setFilter(null, {emitEvent: true});
+  resetFilter(value?: any, opts?: { emitEvent: boolean }) {
+    this.filterForm.reset(value, opts);
+    this.setFilter(value || null, opts);
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }

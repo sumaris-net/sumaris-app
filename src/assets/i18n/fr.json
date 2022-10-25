@@ -1464,7 +1464,15 @@
       "NEW_REGISTRATION": "Declarer un changement",
       "EDIT_FEATURES": "Corriger les caractéristiques",
       "NEW_FEATURES": "Declarer un changement",
-      "EDIT_STATUS": "Modifier l'état de saisie"
+      "EDIT_STATUS": "Modifier l'état de saisie",
+      "REPLACE": "Remplacer ce navire temporaire...",
+      "REPLACE_CONFIRMATION": "Etes-vous sûr de vouloir remplacer ce navires temporaire avec '{{vessel}}' ?",
+      "REPLACE_MANY": "Remplacer les navires temporaires sélectionnés...",
+      "REPLACE_MANY_CONFIRMATION": "Etes-vous sûr de vouloir remplacer les navires temporaires sélectionnés avec '{{vessel}}' ?"
+    },
+    "SELECT_MODAL": {
+      "TITLE": "Selection du navire",
+      "REPLACE_TITLE": "Selection du navire de remplacement"
     },
     "EDIT": {
       "TITLE": "Navire {{exteriorMarking}}"
@@ -1483,7 +1491,8 @@
       }
     },
     "ERROR": {
-      "LOAD_ERROR": "Erreur de chargement des navires."
+      "LOAD_ERROR": "Erreur de chargement des navires.",
+      "REPLACE_ERROR": "Erreur de remplacement de navire temporaire.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     }
   },
   "REFERENTIAL": {
@@ -1668,7 +1677,8 @@
       "SOFTWARE": "Logiciels"
     },
     "OPTIONS": {
-      "VESSELS_ENABLE": "Référentiel > Navires: Activer ?"
+      "VESSELS_ENABLE": "Référentiel > Navires: Activer ?",
+      "VESSELS_REPLACEMENT_ENABLE": "Référentiel > Navires > Remplacement: Activer ?"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",

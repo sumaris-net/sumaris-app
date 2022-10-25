@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { VesselForm } from './form/form-vessel';
+import { ToRegistrationCodeDirective, VesselForm } from './form/form-vessel';
 import { VesselPage } from './page/vessel.page';
 import { VesselsTable } from './list/vessels.table';
 import { VesselModal } from './modal/vessel-modal';
@@ -13,6 +13,7 @@ import { VesselFeaturesHistoryComponent } from './page/vessel-features-history.c
 import { VesselRegistrationHistoryComponent } from './page/vessel-registration-history.component';
 import { AppReferentialModule } from '../referential/referential.module';
 import { AppCoreModule } from '@app/core/core.module';
+import { SelectVesselsModal } from '@app/vessel/modal/select-vessel.modal';
 
 @NgModule({
   imports: [
@@ -34,7 +35,9 @@ import { AppCoreModule } from '@app/core/core.module';
     VesselForm,
     VesselModal,
     VesselFeaturesHistoryComponent,
-    VesselRegistrationHistoryComponent
+    VesselRegistrationHistoryComponent,
+    SelectVesselsModal,
+    ToRegistrationCodeDirective
   ],
   exports: [
     TranslateModule,

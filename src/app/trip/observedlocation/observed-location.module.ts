@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { ObservedLocationForm } from './observed-location.form';
 import { ObservedLocationPage } from './observed-location.page';
 import { ObservedLocationsPage } from './observed-locations.page';
-import { SelectVesselsModal } from './vessels/select-vessel.modal';
+import { SelectVesselsForDataModal } from './vessels/select-vessel-for-data.modal';
 import { TranslateModule } from '@ngx-translate/core';
 import { ObservedLocationOfflineModal } from './offline/observed-location-offline.modal';
 import { AppCoreModule } from '@app/core/core.module';
@@ -37,7 +37,7 @@ import { VesselModule } from '@app/vessel/vessel.module';
     ObservedLocationPage,
     ObservedLocationsPage,
     ObservedLocationOfflineModal,
-    SelectVesselsModal
+    SelectVesselsForDataModal
   ],
   exports: [
     // Components

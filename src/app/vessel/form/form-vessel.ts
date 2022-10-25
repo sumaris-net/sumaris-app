@@ -1,12 +1,23 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit} from '@angular/core';
-import {VesselValidatorOptions, VesselValidatorService} from '../services/validator/vessel.validator';
-import {Vessel} from '../services/model/vessel.model';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, HostListener, Injector, Input, OnInit } from '@angular/core';
+import { VesselValidatorOptions, VesselValidatorService } from '../services/validator/vessel.validator';
+import { Vessel } from '../services/model/vessel.model';
+import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { AccountService, AppForm, AppFormUtils, isNil, LocalSettingsService, ReferentialRef, StatusById, StatusIds, StatusList, toBoolean } from '@sumaris-net/ngx-components';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {FormGroup} from '@angular/forms';
-import {Moment} from 'moment';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { FormGroup } from '@angular/forms';
+import { Moment } from 'moment';
 
+@Directive({ selector: 'input[toRegistrationCode]'})
+export class ToRegistrationCodeDirective {
+  constructor() {
+  }
+
+  @HostListener('input', ['$event'])
+  onInput(event) {
+    // Filters only A-Z 0-9 characters
+    event.target.value = event.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  }
+}
 
 @Component({
   selector: 'form-vessel',
@@ -191,4 +202,5 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   protected markForCheck() {
     this.cd.markForCheck();
   }
+
 }

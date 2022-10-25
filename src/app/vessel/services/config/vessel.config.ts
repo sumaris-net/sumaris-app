@@ -1,6 +1,5 @@
-import {TypePolicies} from "@apollo/client/core";
-import {FormFieldDefinition, FormFieldDefinitionMap, StatusIds} from '@sumaris-net/ngx-components';
-import {LocationLevelIds} from '@app/referential/services/model/model.enum';
+import { TypePolicies } from '@apollo/client/core';
+import { FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
 
 export const VESSEL_FEATURE_NAME = 'vessel';
 
@@ -58,7 +57,13 @@ export const VESSEL_CONFIG_OPTIONS = {
     label: 'REFERENTIAL.OPTIONS.VESSELS_ENABLE',
     type: 'boolean',
     defaultValue: 'false'
-  }
+  },
+  TEMPORARY_VESSEL_REPLACEMENT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.referential.vessel.replacement.enable',
+    label: 'REFERENTIAL.OPTIONS.VESSELS_REPLACEMENT_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
+  },
 };
 
 export const VESSEL_LOCAL_SETTINGS_OPTIONS = Object.freeze({

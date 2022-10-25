@@ -25,6 +25,7 @@
 
   <!-- other (change status) -->
   <button mat-menu-item translate (click)="editStatus()">VESSEL.ACTION.EDIT_STATUS</button>
+  <button mat-menu-item translate (click)="replace($event)" *ngIf='replacementEnabled' [disabled]='data?.statusId !== temporaryStatusId'>VESSEL.ACTION.REPLACE</button>
 </mat-menu>
 
 <!-- (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)" -->
