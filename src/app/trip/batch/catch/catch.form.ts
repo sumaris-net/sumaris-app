@@ -34,6 +34,8 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   $sortingPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $weightPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $otherPmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  labelColSize = 1;
+  gridColCount = 12;
   hasPmfms: boolean;
 
   @Input() showError = true;
@@ -58,8 +60,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
-    protected validatorService: BatchValidatorService,
-    protected physicalGearService: PhysicalGearService
+    protected validatorService: BatchValidatorService
   ) {
 
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
@@ -162,10 +163,21 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
       && !this.$sortingPmfms.value.includes(p)));
 
     this.$gearPmfms.next(pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.label?.indexOf('CHILD_GEAR') === 0));
+
+    // Compute grid column count
+    this.gridColCount = this.labelColSize /*label*/
+      + Math.min(3, Math.max(
+        this.$onDeckPmfms.value.length,
+        this.$sortingPmfms.value.length,
+        this.$weightPmfms.value.length,
+        this.$gearPmfms.value.length
+      ));
+
     this.$otherPmfms.next(pmfms.filter(p => !this.$onDeckPmfms.value.includes(p)
       && !this.$sortingPmfms.value.includes(p)
       && !this.$weightPmfms.value.includes(p)
       && !this.$gearPmfms.value.includes(p)));
+
 
     this.hasPmfms = pmfms.length > 0;
     this.markForCheck();
