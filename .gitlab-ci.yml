@@ -109,6 +109,16 @@ docker:ci:
     - tags
     - master
 
+docker:ci:nocache:
+  extends: .docker
+  stage: alt_build
+  when: manual
+  script:
+    - docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
+    - docker push ${CI_BUILD_IMAGE}
+  except:
+    - master
+
 # ---------------------------------------------------------------
 # Release jobs
 # ---------------------------------------------------------------
@@ -180,6 +190,38 @@ failsafe-release:
     extends: .release
     needs: [failsafe-build]
 
+release:tags:
+  <<: *git-setup
+  image: ${CI_BUILD_IMAGE}
+  stage: release
+  script:
+    - RELEASE_VERSION=$(node -e "console.log(require('./package.json').version)")
+    - echo "--- Release in progress"
+    - git checkout -b release/${RELEASE_VERSION}
+    # Copy cached dependencies and build
+    - ls -artl /tmp/.build-cache
+    - cp -R /tmp/.build-cache/node_modules .
+    # Show version
+    - ng version
+    - npm version
+    # Build
+    - export NODE_OPTIONS=--max-old-space-size=4096
+    - npm run build.prod
+  after_script:
+    # Remember version
+    - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
+  artifacts:
+    paths:
+      - www
+    reports:
+      dotenv: ${ENV_FILE}
+    expire_in: 24 hours
+  allow_failure: false
+  when: manual
+  only:
+    - tags
+
 gitlab-release:
     stage: release
     tags: [sih_public_runner]
@@ -230,6 +272,14 @@ docker:release:
   needs: [release]
   only:
     - develop
+
+docker:release:tags:
+  extends: .docker-build
+  variables:
+    IMAGE_TAG: ${APP_VERSION}
+  needs: [release:tags]
+  only:
+    - tags
 
 # ---------------------------------------------------------------
 # Docs jobs
