@@ -265,9 +265,12 @@ gitlab-release:
   extends: .docker
   stage: docker
   script:
+    # Create the target directory
+    - mkdir -p target/docker
+    - cp -rf scripts/docker/run/* target/docker
     # Build docker image
     - docker pull ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} || true
-    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTML=www" --build-arg="NGINX_CONF=scripts/docker/site.conf" -f scripts/docker/Dockerfile .
+    - docker build --cache-from ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --pull -t ${CI_REGISTRY_IMAGE}:${IMAGE_TAG} --build-arg="HTML=www" --build-arg="NGINX_CONF=target/docker/site.conf" -f target/docker/Dockerfile .
     - docker push ${CI_REGISTRY_IMAGE}:${IMAGE_TAG}
 
 docker:develop:
