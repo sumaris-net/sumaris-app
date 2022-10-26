@@ -567,7 +567,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   }
 
   protected normalizeChildToRow(data: Batch, qvIndex?: number) {
-    if (this.debug) console.debug('[batch-group-table] Normalize QV child batch', data);
+    // DEBUG
+    //if (this.debug) console.debug('[batch-group-table] Normalize QV child batch', data);
 
     if (isNil(qvIndex)) {
       const qvId = this.qvPmfm && data.measurementValues[this.qvPmfm.id];

@@ -4,7 +4,7 @@ import { BehaviorSubject, isObservable, Observable } from 'rxjs';
 import { filter, first } from 'rxjs/operators';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, firstNotNil, isNil, isNotNil, PromiseEvent, toNumber } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, firstNotNil, firstNotNilPromise, isNil, isNotNil, PromiseEvent, toNumber } from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
@@ -466,7 +466,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       // Wait loaded, if observable
       if (isObservable<IPmfm[]>(pmfms)) {
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable...`);
-        pmfms = await firstNotNil(pmfms).toPromise();
+        pmfms = await firstNotNilPromise(pmfms, {stop: this.destroySubject});
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable [OK]`);
       }
 

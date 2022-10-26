@@ -312,6 +312,44 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return true;
   }
 
+
+  filterMatSelectFocusEvent(event: FocusEvent) {
+    if (!event || event.defaultPrevented) return;
+    // DEBUG
+    // console.debug(this.logPrefix + " Received <mat-select> focus event", event);
+    this.focused.emit(event);
+  }
+
+  filterMatSelectBlurEvent(event: FocusEvent) {
+    if (!event || event.defaultPrevented) return;
+
+    // DEBUG
+    // console.debug(this.logPrefix + " Received <mat-select> blur event", event);
+
+
+    if (event.relatedTarget instanceof HTMLElement && (
+      // Ignore event from mat-option
+      (event.relatedTarget.tagName === 'MAT-OPTION')
+      || (event.relatedTarget.tagName === 'INPUT') && event.relatedTarget.classList.contains('searchbar-input'))) {
+      event.preventDefault();
+      if (event.stopPropagation) event.stopPropagation();
+      event.returnValue = false;
+      // DEBUG
+      // console.debug(this.logPrefix + " Cancelling <mat-select> blur event");
+      return false;
+    }
+
+    // When leave component without object, use implicit value if stored
+    if (this._implicitValue && typeof this.formControl.value !== "object") {
+      this.writeValue(this._implicitValue);
+    }
+    this._implicitValue = null;
+    this.checkIfTouched();
+
+    this.blurred.emit(event);
+    return true;
+  }
+
   clear() {
     this.formControl.setValue(null);
     this.markForCheck();

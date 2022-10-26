@@ -38,6 +38,7 @@ export interface IPhysicalGearModalOptions
 
   acquisitionLevel: string;
   programLabel: string;
+  tripId: number;
 
   showSearchButton: boolean;
   showGear: boolean;
@@ -83,6 +84,7 @@ export class PhysicalGearModal
   @Input() acquisitionLevel: string;
   @Input() childAcquisitionLevel: AcquisitionLevelType = 'CHILD_PHYSICAL_GEAR';
   @Input() programLabel: string;
+  @Input() tripId: number;
   @Input() canEditGear = false;
   @Input() canEditRankOrder = false;
   @Input() allowChildrenGears: boolean
