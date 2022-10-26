@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { DateUtils, fadeInOutAnimation, isNotNil, PromiseEvent } from '@sumaris-net/ngx-components';
+import { DateUtils, fadeInOutAnimation, PromiseEvent } from '@sumaris-net/ngx-components';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -9,9 +9,6 @@ import { OperationService } from '@app/trip/services/operation.service';
 import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { moment } from '@app/vendor';
-import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
-import { BehaviorSubject } from 'rxjs';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
 
 
