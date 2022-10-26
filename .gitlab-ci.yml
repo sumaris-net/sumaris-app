@@ -108,8 +108,13 @@ build:
 build:feature:
   extends: .build
   image: ${CI_BUILD_IMAGE}
+  before_script:
+    # Get project dependencies
+    - ls -artl ${BUILD_CACHE_DIR}
+    - cp -R ${BUILD_CACHE_DIR}/node_modules .
   only:
     - /^feature\/.*/
+    - /^features\/.*/
   when: manual
 
 failsafe-build:
