@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { MeasurementFormInitSteps, MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
+import { PmfmFormReadySteps, MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { BehaviorSubject } from 'rxjs';
 import { BatchValidatorService } from '../common/batch.validator';
 import { isNotNil, toNumber } from '@sumaris-net/ngx-components';
@@ -121,7 +121,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     // Start loading pmfms
     if (this.starting) {
-      this.setLoadingProgression(MeasurementFormInitSteps.LOADING_PMFMS);
+      this.setInitStep(PmfmFormReadySteps.LOADING_PMFMS);
       this.loadPmfms();
     }
 

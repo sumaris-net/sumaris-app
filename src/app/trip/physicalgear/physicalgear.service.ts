@@ -432,16 +432,16 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
               fetchPolicy?: WatchQueryFetchPolicy;
               toEntity?: boolean;
               withTotal?: boolean;
-            }): Promise<LoadResult<PhysicalGear>> {
+            }): Promise<PhysicalGear[]> {
 
     // If we know the local trip, load it
     if (isNotNil(filter.tripId) && filter.tripId < 0) {
       const trip = await this.entities.load(filter.tripId, Trip.TYPENAME) as Trip;
-      const data = (trip.gears || []).find(g => g.id === filter.parentGearId)?.children;
-      return { data };
+      return (trip.gears || []).find(g => g.id === filter.parentGearId)?.children;
     }
 
-    return this.loadAll(0, 100, 'rankOrder', 'asc', filter, opts);
+    const res = await this.loadAll(0, 100, 'rankOrder', 'asc', filter, opts)
+    return res?.data;
   }
 
   async executeImport(filter: Partial<PhysicalGearFilter>,

@@ -216,7 +216,7 @@ export class OperationPage
     }
 
     // FOR DEV ONLY ----
-    this.debug = !environment.production; //  && !this.mobile;
+    this.debug = !environment.production;
   }
 
   // TODO Hide lastOperation on to small screen
@@ -344,12 +344,13 @@ export class OperationPage
     super.ngAfterViewInit();
 
     this.registerSubscription(
-      this.form.get('physicalGear').valueChanges
-        .pipe(
-          // skip if loading
-          filter(() => !this.loading)
-        )
-        .subscribe(physicalGear => this.setPhysicalGear(physicalGear))
+      this.opeForm.physicalGearControl.valueChanges
+        .subscribe(physicalGear => {
+          // skip if loading (when opening an existing operation, setPhysicalGear() is called by onEntityLoaded())
+          if (!this.loading) {
+            this.setPhysicalGear(physicalGear)
+          }
+        })
     );
 
     if (this.measurementsForm) {
@@ -667,11 +668,9 @@ export class OperationPage
   protected setPhysicalGear(physicalGear: PhysicalGear) {
     const gearId = toNumber(physicalGear?.gear?.id, null);
     this.measurementsForm.gearId = gearId;
-    if (this.readySubject.value) this.measurementsForm.markAsReady();
     if (this.batchTree) {
-      this.batchTree.physicalGear = physicalGear || null;
       this.batchTree.gearId = gearId;
-      if (this.readySubject.value) this.batchTree.markAsReady();
+      this.batchTree.physicalGear = physicalGear || null;
     }
   }
 
@@ -734,6 +733,7 @@ export class OperationPage
       }
     }
 
+    // Propage program
     if (data.programLabel) this.$programLabel.next(data.programLabel);
   }
 
@@ -752,7 +752,11 @@ export class OperationPage
 
     await this.loadLinkedOperation(data);
 
+    // Propage program
     if (data.programLabel) this.$programLabel.next(data.programLabel);
+
+    // Propage physical gear
+    if (data.physicalGear) this.setPhysicalGear(data.physicalGear);
   }
 
   onNewFabButtonClick(event: UIEvent) {

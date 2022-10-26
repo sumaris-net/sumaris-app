@@ -480,6 +480,8 @@ export abstract class BaseMeasurementsTable<
 
   // Can be override by subclass
   protected async onNewEntity(data: T): Promise<void> {
+    await super.onNewEntity(data);
+
     if (this.hasRankOrder && isNil(data.rankOrder)) {
       data.rankOrder = (await this.getMaxRankOrder()) + 1;
     }
@@ -490,9 +492,9 @@ export abstract class BaseMeasurementsTable<
     return rows.reduce((res, row) => Math.max(res, row.currentData.rankOrder || 0), 0);
   }
 
-  protected async existsRankOrder(rankOrder: number): Promise<boolean> {
+  protected async existsRankOrder(rankOrder: number, excludedRows?: TableElement<T>[]): Promise<boolean> {
     const rows = this.dataSource.getRows();
-    return rows.findIndex(row => row.currentData.rankOrder === rankOrder) !== -1;
+    return rows.findIndex(row => excludedRows?.includes(row) || row.currentData.rankOrder === rankOrder) !== -1;
   }
 
   private async onRowCreated(row: TableElement<T>) {
@@ -532,6 +534,30 @@ export abstract class BaseMeasurementsTable<
     }
   }
 
+  protected async canAddEntity(data: T): Promise<boolean> {
+    // Before using the given rankOrder, check if not already exists
+    if (this.canEditRankOrder && isNotNil(data.rankOrder)) {
+      if (await this.existsRankOrder(data.rankOrder)) {
+        const message = this.translate.instant('TRIP.MEASUREMENT.ERROR.DUPLICATE_RANK_ORDER', data);
+        await Alerts.showError(message, this.alertCtrl, this.translate);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  protected async canUpdateEntity(data: T, row: TableElement<T>): Promise<boolean> {
+    // Before using the given rankOrder, check if not already exists
+    if (this.canEditRankOrder && isNotNil(data.rankOrder)) {
+      if (await this.existsRankOrder(data.rankOrder, [row])) {
+        const message = this.translate.instant('TRIP.MEASUREMENT.ERROR.DUPLICATE_RANK_ORDER', data);
+        await Alerts.showError(message, this.alertCtrl, this.translate);
+        return false;
+      }
+    }
+    return true;
+  }
+
   /**
    * Insert an entity into the table. This can be useful when entity is created by a modal (e.g. BatchGroupTable).
    *
@@ -543,27 +569,20 @@ export abstract class BaseMeasurementsTable<
    * @param opts
    */
   protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; editing?: boolean; emitEvent?: boolean; }): Promise<TableElement<T>> {
-    if (!data) throw new Error("Missing data to add");
-    if (this.debug) console.debug("[measurement-table] Adding new entity", data);
 
-    // Before using the given rankOrder, check if not already exists
-    if (this.canEditRankOrder && isNotNil(data.rankOrder)) {
-      if (await this.existsRankOrder(data.rankOrder)) {
-        const message = this.translate.instant('TRIP.MEASUREMENT.ERROR.DUPLICATE_RANK_ORDER', data);
-        await Alerts.showError(message, this.alertCtrl, this.translate);
-        throw new Error('DUPLICATE_RANK_ORDER');
-      }
-    }
+    // Check entity can be added
+    const canAdd = await this.canAddEntity(data);
+    if (!canAdd) return undefined;
 
     if (this._addingRow) {
-      console.warn("[measurement-table] Skipping add new row. Another add is in progress.");
+      console.warn(" Skipping add new row. Another add is in progress.");
       return;
     }
     this._addingRow = true;
 
     try {
 
-      // Creat a row
+      // Create a row
       const row = await this.addRowToTable(null, {editing: opts?.editing, emitEvent: opts?.emitEvent});
       if (!row) throw new Error("Could not add row to table");
 

@@ -3,14 +3,13 @@ import {
   AppEditor,
   arrayDistinct,
   changeCaseToUnderscore,
+  equals,
   firstNotNil,
-  firstNotNilPromise,
   FormArrayHelper,
   FormErrorTranslatorOptions,
-  getPropertyByPath,
+  getPropertyByPath, isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
   ReferentialRef,
@@ -27,8 +26,8 @@ import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { BehaviorSubject, merge, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
@@ -43,6 +42,8 @@ import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
 
 @Component({
   selector: 'app-batch-tree-container',
@@ -149,6 +150,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return this.loadingSubject.value;
   }
 
+  get rootNode(): BatchModel {
+    return this._model;
+  }
+
   @Input() set physicalGear(value: PhysicalGear) {
     if (value !== this.$physicalGear.value) {
       this.$physicalGear.next(value);
@@ -206,6 +211,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               protected programRefService: ProgramRefService,
               protected batchModelValidatorService: BatchModelValidatorService,
               protected pmfmNamePipe: PmfmNamePipe,
+              protected physicalGearService: PhysicalGearService,
+              protected tripContext: TripContextService,
               protected cd: ChangeDetectorRef) {
     super(route, router, alertCtrl, translate);
 
@@ -246,22 +253,21 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
           // DEBUG
           //tap(key => console.debug(this.logPrefix + 'Starting pmfm key computation')),
 
-          switchMap(() => merge(
+          switchMap(() => combineLatest(
               this.$program,
               this.$gearId,
               this.$physicalGear
             )
           ),
           debounceTime(100),
-          map(() => this.computePmfmsKey()),
-          filter(isNotNil),
+          filter(values => !values.some(isNil)),
+          distinctUntilChanged(equals),
           // DEBUG
-          tap(key => console.debug(this.logPrefix + 'Pmfm key changed to: ' + key)),
-          distinctUntilChanged()
+          //tap(values => console.debug(this.logPrefix + 'Need to reload pmfms: ', values))
         )
-        .subscribe(async () => {
-          await this.setProgram(this.$program.value);
-          await this.loadPmfms();
+        .subscribe(async ([program, gearId, physicalGear]) => {
+          await this.setProgram(program);
+          await this.loadPmfms(program, gearId, physicalGear);
           // Reload form
           if (!this.loading) {
             this._model = null;
@@ -339,10 +345,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return [program.label, gearId].join('|');
   }
 
-  protected async loadPmfms() {
-    const program = this.program;
-    const gearId = this.gearId;
-    if (!program || isNil(gearId)) return; // Skip
+  protected async loadPmfms(program: Program, gearId: number, physicalGear: PhysicalGear) {
+    if (!program || isNil(gearId) || isNil(physicalGear)) return; // Skip
 
     console.info(this.logPrefix + 'Loading pmfms...');
 
@@ -381,22 +385,22 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         .findIndex(p => p.id === PmfmIds.CHILD_GEAR);
       if (childGearPmfmIndex !== -1) {
 
-        // DEBUG
-        let now = Date.now();
-        console.debug(this.logPrefix + 'Waiting physical gear to be set...');
-
-        // Load operation's physical gears
-        const physicalGear = await firstNotNilPromise(this.$physicalGear, {stop: this.destroySubject, stopError: false});
+        // Load physical gear's children
+        let subGears = physicalGear.children;
+        if (isEmptyArray(subGears)) {
+          const tripId = this.tripContext.trip?.id;
+          subGears = await this.physicalGearService.loadAllByParentId({tripId, parentGearId: physicalGear.id});
+        }
 
         // Convert to referential item
-        const items = (physicalGear?.children || []).map(pg => ReferentialRef.fromObject({
+        const items = (subGears || []).map(pg => ReferentialRef.fromObject({
           id: pg.rankOrder,
           label: pg.rankOrder,
           name: pg.measurementValues[PmfmIds.GEAR_LABEL] || pg.gear.name
         }));
 
-        if (now) console.debug(`[batch-tree-container] Waiting physical gear [OK] after ${Date.now() - now}ms`, items);
-
+        // DEBUG
+        console.debug(`[batch-tree-container] Fill CHILD_GEAR PMFM, with items:`, items);
 
         sortingPmfms[childGearPmfmIndex] = sortingPmfms[childGearPmfmIndex].clone();
         sortingPmfms[childGearPmfmIndex].qualitativeValues = items;
@@ -612,9 +616,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   async autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean; }): Promise<void> {
     await this.ready();
 
-   console.warn(this.logPrefix + 'autoFill() not implemented yet!');
+    console.warn(this.logPrefix + 'autoFill() not implemented yet!');
   }
-
 
   toggleFilterPanelFloating() {
     this.filterPanelFloating = !this.filterPanelFloating;

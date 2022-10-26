@@ -12,6 +12,7 @@ import { moment } from '@app/vendor';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { BehaviorSubject } from 'rxjs';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { environment } from '@environments/environment';
 
 
 @Component({
@@ -35,14 +36,14 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 })
 export class SelectivityOperationPage extends OperationPage {
 
-  tripGears = new BehaviorSubject<PhysicalGear[]>(undefined);
-
   constructor(injector: Injector,
               dataService: OperationService) {
     super(injector, dataService, {
       pathIdAttribute: 'selectivityOperationId',
     });
-    //this.debug = false;
+
+    // FOR DEV ONLY ----
+    this.debug = !environment.production;
   }
 
   protected registerForms() {
@@ -54,17 +55,7 @@ export class SelectivityOperationPage extends OperationPage {
     ]);
   }
 
-  ngAfterViewInit() {
-    super.ngAfterViewInit();
-
-    // Listen physical gears, to enable tabs
-    this.registerSubscription(
-      this.opeForm.physicalGearControl.valueChanges
-        .subscribe(pg => this.onPhysicalGearChanged(pg))
-    )
-  }
-
-  async mapMeasurementFormPmfm(event: PromiseEvent<IPmfm[], {pmfms: IPmfm[]}>) {
+  async mapPmfms(event: PromiseEvent<IPmfm[], {pmfms: IPmfm[]}>) {
     if (!event || !event.detail.success) return; // Skip (missing callback)
     let pmfms: IPmfm[] = event.detail.pmfms;
 
@@ -120,9 +111,4 @@ export class SelectivityOperationPage extends OperationPage {
     return parentUrl && `${parentUrl}/operation/selectivity/${id}`;
   }
 
-  protected async onPhysicalGearChanged(physicalGear: PhysicalGear) {
-    const gearId = physicalGear?.gear?.id;
-    this.batchTree.gearId = isNotNil(gearId) ? gearId : null;
-    this.batchTree.physicalGear = physicalGear || null;
-  }
 }

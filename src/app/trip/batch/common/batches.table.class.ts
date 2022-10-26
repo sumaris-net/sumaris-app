@@ -10,7 +10,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  ReferentialUtils,
+  ReferentialUtils, removeDuplicatesFromArray,
   splitByProperty,
   UsageMode
 } from '@sumaris-net/ngx-components';
@@ -186,71 +186,65 @@ export abstract class AbstractBatchesTable<
    * Auto fill table (e.g. with taxon groups found in strategies) - #176
    */
   async autoFillTable(opts  = { skipIfDisabled: true, skipIfNotEmpty: false}) {
-    // Wait table loaded
-    await this.waitIdle();
-
-    // Skip if disabled
-    if (opts.skipIfDisabled && this.disabled) {
-      console.warn(this.logPrefix + 'Skipping autofill as table is disabled');
-      return;
-    }
-
-    // Skip if not empty
-    if (opts.skipIfNotEmpty && this.totalRowCount > 0) {
-      console.warn('[batches-table] Skipping autofill because table is not empty');
-      return;
-    }
-
-    // Skip if no available taxon group configured (should be set by parent page - e.g. OperationPage)
-    if (isEmptyArray(this.availableTaxonGroups)) {
-      console.warn('[batches-table] Skipping autofill, because no availableTaxonGroups has been set');
-      return;
-    }
-
-    // Skip when editing a row
-    if (!this.confirmEditCreate()) {
-      console.warn('[batches-table] Skipping autofill, as table still editing a row');
-      return;
-    }
-
-    this.markAsLoading();
-
     try {
+      // Wait table loaded
+      await this.waitIdle({stop: this.destroySubject});
+
+      // Skip if disabled
+      if (opts.skipIfDisabled && this.disabled) {
+        console.warn(this.logPrefix + 'Skipping autofill as table is disabled');
+        return;
+      }
+
+      // Skip if not empty
+      if (opts.skipIfNotEmpty && this.totalRowCount > 0) {
+        console.warn('[batches-table] Skipping autofill because table is not empty');
+        return;
+      }
+
+      // Skip if no available taxon group configured (should be set by parent page - e.g. OperationPage)
+      if (isEmptyArray(this.availableTaxonGroups)) {
+        console.warn('[batches-table] Skipping autofill, because no availableTaxonGroups has been set');
+        return;
+      }
+
+      // Skip when editing a row
+      if (!this.confirmEditCreate()) {
+        console.warn('[batches-table] Skipping autofill, as table still editing a row');
+        return;
+      }
+
+      this.markAsLoading();
+
       console.debug('[batches-table] Auto fill table, using options:', opts);
 
       // Read existing taxonGroups
       let data = this.dataSource.getData()
-      const existingTaxonGroups = data.map(batch => batch.taxonGroup)
-        .filter(isNotNil);
-      let rowCount = data.length;
+      const existingTaxonGroups = removeDuplicatesFromArray(
+        data.map(batch => batch.taxonGroup).filter(isNotNil),
+        'id');
 
       const taxonGroupsToAdd = this.availableTaxonGroups
         // Exclude if already exists
         .filter(taxonGroup => !existingTaxonGroups.some(tg => ReferentialUtils.equals(tg, taxonGroup)));
 
       if (isNotEmptyArray(taxonGroupsToAdd)) {
-
-        this.focusColumn = undefined;
         let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
 
+        const entities = [];
         for (const taxonGroup of taxonGroupsToAdd) {
           const entity = new this.dataType();
           entity.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
           entity.rankOrder = rankOrder++;
-          const newRow = await this.addEntityToTable(entity, { confirmCreate: true, editing: false, emitEvent: false /*done in markAsLoaded()*/ });
-          rowCount += !!newRow ? 1 : 0;
+          entities.push(entity);
         }
+
+        await this.addEntitiesToTable(entities, {emitEvent: false});
 
         // Mark as dirty
         this.markAsDirty({emitEvent: false /* done in markAsLoaded() */});
       }
 
-      if (this.totalRowCount !== rowCount) {
-        // FIXME Workaround to update row count
-        console.warn('[batches-table] Updating rowCount manually! (should be fixed when table confirmEditCreate() are async ?)');
-        this.totalRowCount = rowCount;
-        this.visibleRowCount = rowCount;
-      }
       this.markForCheck();
 
     } catch (err) {
