@@ -118,7 +118,7 @@
             formControlName="taxonName"
             [config]="autocompleteFields.taxonName"
             [clearable]="true">
-            <mat-icon matPrefix svgIcon="fish"></mat-icon>
+            <ion-icon matPrefix name="fish"></ion-icon>
           </mat-autocomplete-field>
         </ion-col>
 
@@ -393,7 +393,7 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"
         class="mat-row-disabled"
-        [class.mat-row-selected]="highlightedRow === row"
+        [class.mat-row-selected]="highlightedRowId === row.id"
         (click)="clickRow($event, row)"></tr>
 
   </table>

@@ -111,8 +111,8 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() requiredLabel = true;
   @Input() showPmfmDetails = false;
   @Input() showFabButton = false;
-  @Input() showIndividualReleaseButton = false;
   @Input() showIndividualMonitoringButton = false;
+  @Input() showIndividualReleaseButton = false;
   @Input() defaultSampleDate: Moment = null;
   @Input() defaultTaxonGroup: TaxonGroupRef = null;
   @Input() defaultTaxonName: TaxonNameRef = null;
@@ -326,6 +326,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       showSampleDate: !this.defaultSampleDate ? true : this.showSampleDateColumn, // Show sampleDate, if no default date
       showTaxonGroup: this.showTaxonGroupColumn,
       showTaxonName: this.showTaxonNameColumn,
+      showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
       onReady: (modal) => {
         this.onPrepareRowForm.emit({
@@ -336,10 +337,10 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       onDelete: (event, data) => this.deleteEntity(event, data),
       onSaveAndNew: async (dataToSave) => {
         if (isNew) {
-          await this.addEntityToTable(dataToSave);
+          await this.addEntityToTable(dataToSave, {editing: false});
         } else {
-          this.updateEntityToTable(dataToSave, row);
-          row = null; // Avoid updating twice (should never occur, because onSubmitAndNext always create a new entity)
+          await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
+          row = null; // Forget the row to update, for the next iteration (should never occur, because onSubmitAndNext always create a new entity)
           isNew = true; // Next row should be new
         }
         // Prepare new sample
@@ -370,7 +371,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
     // Wait until closed
     const {data, role} = await modal.onDidDismiss();
-
 
     if (data && this.debug) console.debug('[samples-table] Sample modal result: ', data, role);
 
@@ -676,7 +676,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         return false;
       }
       else {
-        await this.addEntityToTable(data);
+        await this.addOrUpdateEntityToTable(data);
       }
     }
     return true;
@@ -702,7 +702,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         return false;
       }
       else {
-        await this.updateEntityToTable(data, row);
+        await this.updateEntityToTable(data, row, {confirmEdit: false});
       }
     } else {
       this.editedRow = null;
@@ -719,22 +719,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return this.dataSource.getRows()
       .find(r => r.currentData.rankOrder === data.rankOrder);
   }
-
-  async deleteEntity(event: UIEvent, data: Sample): Promise<boolean> {
-    const row = await this.findRowByEntity(data);
-
-    // Row not exists: OK
-    if (!row) return true;
-
-    const confirmed = await this.canDeleteRows([row]);
-    if (!confirmed) return false;
-
-    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
-    if (!deleted) event?.preventDefault(); // Mark as cancelled
-
-    return deleted;
-  }
-
 
   protected async addPmfmColumns(pmfmIds: number[]) {
     if (isEmptyArray(pmfmIds)) return; // Skip if empty
@@ -896,12 +880,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         break;
     }
     return color ? `var(--ion-color-${color})` : undefined;
-  }
-
-  addRow(event?: Event, insertAt?: number): boolean {
-    // TODO remove this after upgrading ngx component
-    if (this.inlineEdition) this.focusColumn = this.firstUserColumn;
-    return super.addRow(event, insertAt);
   }
 
   protected addFooterListener(pmfms: IPmfm[]) {

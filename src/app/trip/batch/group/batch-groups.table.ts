@@ -4,7 +4,8 @@ import { FormGroup, Validators } from '@angular/forms';
 import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
-  ColumnItem, firstArrayValue,
+  ColumnItem,
+  firstArrayValue,
   FormFieldDefinition,
   FormFieldType,
   InMemoryEntitiesService,
@@ -43,6 +44,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
 import { hasFlag } from '@app/shared/flags.utils';
+import { OverlayEventDetail } from '@ionic/core';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -212,6 +214,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   @Input() subBatchesModalOptions: Partial<ISubBatchesModalOptions>;
   @Input() availableSubBatches: SubBatch[] | Observable<SubBatch[]>;
   @Input() enableWeightLengthConversion: boolean;
+  @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
 
   @Input() set showSamplingBatchColumns(value: boolean) {
     if (this._showSamplingBatchColumns !== value) {
@@ -564,7 +567,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   }
 
   protected normalizeChildToRow(data: Batch, qvIndex?: number) {
-    if (this.debug) console.debug('[batch-group-table] Normalize QV child batch', data);
+    // DEBUG
+    //if (this.debug) console.debug('[batch-group-table] Normalize QV child batch', data);
 
     if (isNil(qvIndex)) {
       const qvId = this.qvPmfm && data.measurementValues[this.qvPmfm.id];
@@ -1012,21 +1016,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     // DEBUG
     if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
+    // FIXME: opts.showParent=true is not working well !!
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
-    // Define a function to add new parent
-    const onNewParentClick = showParentGroup ? async () => {
-      const newParent = await this.openDetailModal();
-      if (newParent) {
-        await this.addEntityToTable(newParent, {confirmCreate: false});
-      }
-      return newParent;
-    } : undefined;
-
-    // Define available parent, as an observable (if new parent can added)
-    // - If mobile, create an observable, linked to table rows
-    // - else (if desktop), create a copy
-    const onModalDismiss = new Subject<any>();
+    const $dismiss = new Subject<any>();
 
     const hasTopModal = !!(await this.modalCtrl.getTop());
     const modal = await this.modalCtrl.create({
@@ -1037,20 +1030,27 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         usageMode: this.usageMode,
         showParentGroup,
         parentGroup,
+        data: this.availableSubBatches,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
         // Scientific species is required, only not already set in batch groups
         showTaxonNameColumn: !this.showTaxonNameColumn,
         // If on field mode: use individualCount=1 on each sub-batches
         showIndividualCount: !this.settings.isOnFieldMode(this.usageMode),
+        // Define available parent, as an observable (if new parent can added)
         availableParents: this.dataSource.rowsSubject
           .pipe(
-            takeUntil(onModalDismiss),
+            takeUntil($dismiss),
             map((rows) => rows.map(r => r.currentData)),
             tap((data) => console.warn('[batch-groups-table] Modal -> New available parents:', data))
           ),
-        data: this.availableSubBatches,
-        onNewParentClick,
+        onNewParentClick: async () => {
+          const { data, role } = await this.openDetailModal();
+          if (data) {
+            await this.addEntityToTable(data, {editing: false});
+          }
+          return data;
+        },
         i18nSuffix: this.i18nColumnSuffix,
         mobile: this.mobile,
         // Override using input options
@@ -1068,7 +1068,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     // Wait until closed
     const {data} = await modal.onDidDismiss();
 
-    onModalDismiss.next(); // disconnect datasource observables
+    $dismiss.next(); // disconnect datasource observables
 
     // User cancelled
     if (isNil(data)) {
@@ -1083,12 +1083,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return data;
   }
 
-  protected async openDetailModal(initialData?: BatchGroup): Promise<BatchGroup | undefined> {
-    const isNew = !initialData && true;
-    initialData = initialData || new BatchGroup();
+  protected async openDetailModal(dataToOpen?: BatchGroup): Promise<OverlayEventDetail<BatchGroup | undefined>> {
+    const isNew = !dataToOpen && true;
 
     if (isNew) {
-      await this.onNewEntity(initialData);
+      dataToOpen = new BatchGroup();
+      await this.onNewEntity(dataToOpen);
     }
 
     this.markAsLoading();
@@ -1100,7 +1100,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         pmfms: this._initialPmfms,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
-        data: initialData,
+        data: dataToOpen,
         isNew,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
@@ -1125,26 +1125,13 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
-    if (data && this.debug) console.debug('[batch-group-table] Batch group modal result: ', data);
+    const {data, role} = await modal.onDidDismiss();
+
+    if (data && this.debug) console.debug('[batch-group-table] Batch group modal result: ', data, role);
+
     this.markAsLoaded();
 
-    return data instanceof BatchGroup ? data : undefined;
-  }
-
-  async deleteEntity(event: UIEvent, data: BatchGroup): Promise<boolean> {
-    const row = await this.findRowByEntity(data);
-
-    // Row not exists: OK
-    if (!row) return true;
-
-    const confirmed = await this.canDeleteRows([row]);
-    if (!confirmed) return false;
-
-    const deleted = await this.deleteRow(null, row, {interactive: false /*already confirmed*/});
-    if (!deleted) event?.preventDefault(); // Mark as cancelled
-
-    return deleted;
+    return {data: data instanceof BatchGroup ? data : undefined, role};
   }
 
   async openSelectColumnsModal(event?: UIEvent) {
@@ -1247,10 +1234,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       };
     }
 
-    if (!this.qvPmfm) {
-      const {individualCount, childrenWeight} = updateSortingBatch(parent, children);
-      parent.observedIndividualCount = individualCount || 0;
-    } else {
+    if (this.qvPmfm) {
       const qvPmfmId = this.qvPmfm.id.toString();
       let observedIndividualCount = 0;
 
@@ -1271,6 +1255,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
       parent.observedIndividualCount = observedIndividualCount;
     }
+    else {
+      const {individualCount, childrenWeight} = updateSortingBatch(parent, children);
+      parent.observedIndividualCount = individualCount || 0;
+    }
 
     return parent;
   }
@@ -1280,8 +1268,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
     await super.onNewEntity(data);
 
-    // generate label
-    data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
+    // generate label (override default)
+    data.label = this.labelPrefix
+      ? `${this.labelPrefix}${data.rankOrder}`
+      : `${this.acquisitionLevel}#${data.rankOrder}`;
 
     // Default taxon name
     if (isNotNil(this.defaultTaxonName)) {
@@ -1339,10 +1329,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     // If sampling
     else if (this.showSamplingBatchColumns) {
       const samplingLabel = data.label + Batch.SAMPLING_BATCH_SUFFIX;
-      const samplingChild: Batch = new Batch();
+      const samplingChild: Batch = (data.children || []).find(b => b.label === samplingLabel) || new Batch();
       samplingChild.rankOrder = 1;
       samplingChild.label = samplingLabel;
-      samplingChild.measurementValues = {};
+      samplingChild.measurementValues = samplingChild.measurementValues || {};
       data.children = [samplingChild];
     }
   }

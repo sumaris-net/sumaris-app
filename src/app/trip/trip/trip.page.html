@@ -124,14 +124,15 @@
           <ion-grid class="ion-no-padding">
             <ion-row>
               <ion-col>
-                editor.loading: {{loading}}<br/>
                 editor.ready: {{readySubject|async}}<br/>
+                editor.loading: {{loading}}<br/>
+                editor.enabled: {{enabled}}<br/>
                 editor.dirty: {{dirty}}<br/>
               </ion-col>
               <ion-col>
-                measurementsForm.loading: {{measurementsForm.loading}}<br/>
                 measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
-                measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+                measurementsForm.loading: {{measurementsForm.loading}}<br/>
+                measurementsForm.enabled: {{measurementsForm.enabled}}<br/>
                 measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
               </ion-col>
             </ion-row>
@@ -176,8 +177,7 @@
                                              [debug]="debug"
                                              [programLabel]="$programLabel|async"
                                              [tabindex]="30"
-                                             [mobile]="mobile"
-                                             [compact]="false">
+                                             [mobile]="mobile">
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>
@@ -227,9 +227,20 @@
           <ion-grid class="ion-no-padding">
             <ion-row>
               <ion-col>
-                loading: {{physicalGearsTable.loading}}<br/>
                 ready: {{physicalGearsTable.readySubject|async}}<br/>
+                loading: {{physicalGearsTable.loading}}<br/>
+                enabled: {{physicalGearsTable.enabled}}<br/>
                 dirty: {{physicalGearsTable.dirtySubject|async}}<br/>
+              </ion-col>
+              <ion-col>
+                service.starting: {{physicalGearService.starting}}<br/>
+                service.started: {{physicalGearService.started}}<br/>
+                service.dirty: {{physicalGearService.dirtySubject|async}}<br/>
+                service.value: {{!!physicalGearService.value}}<br/>
+              </ion-col>
+              <ion-col>
+                service.count: {{physicalGearService.count}}<br/>
+                service.hiddenCount: {{physicalGearService.hiddenCount}}<br/>
               </ion-col>
             </ion-row>
           </ion-grid>

@@ -35,7 +35,7 @@
 
     <!-- show filter -->
     <button mat-icon-button (click)="filterExpansionPanel.toggle()">
-      <mat-icon *ngIf="criteriaCount$|async; let criteriaCount; else noCriteriaIcon"
+      <mat-icon *ngIf="filterCriteriaCount$|async; let criteriaCount; else noCriteriaIcon"
                 [matBadge]="criteriaCount"
                 matBadgeColor="accent"
                 matBadgeSize="small"

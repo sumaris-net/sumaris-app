@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
 import {FormArrayHelper, isNotEmptyArray, LocalSettingsService} from '@sumaris-net/ngx-components';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {MeasurementsValidatorService} from '@app/trip/services/validator/measurement.validator';
@@ -75,12 +75,20 @@ export class BatchModelValidatorService<
     }
 
     // Add measurement values
-    if (opts?.withMeasurements && isNotEmptyArray(opts.pmfms)) {
-      const measControl = this.getMeasurementValuesForm(data?.measurementValues, {
-        pmfms: opts.pmfms,
-        forceOptional: opts.isOnFieldMode,
-        withTypename: opts.withMeasurementTypename
-      });
+    if (opts?.withMeasurements) {
+      let measControl: AbstractControl;
+      if (isNotEmptyArray(opts.pmfms)) {
+        measControl = this.getMeasurementValuesForm(data?.measurementValues, {
+          pmfms: opts.pmfms,
+          forceOptional: false, // We always need full validation, in model form
+          withTypename: opts.withMeasurementTypename
+        });
+      }
+      else {
+        // WARN: we need to keep existing measurement (e.g. for individual sub-batch)
+        // => create a simple control, without PMFMs validation. This should be done in sub-batch form/modal
+        measControl = this.formBuilder.control(data?.measurementValues || null);
+      }
       if (form.contains('measurementValues')) form.setControl('measurementValues', measControl);
       else form.addControl('measurementValues', measControl);
     }

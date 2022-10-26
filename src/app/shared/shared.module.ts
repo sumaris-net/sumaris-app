@@ -8,12 +8,14 @@ import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
 import { AppSharedDebugModule } from '@app/shared/debug/debug.module';
+import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-fields-skeleton.module';
 
 @NgModule({
   imports: [
     SharedModule,
     // Sub modules
-    AppSharedDebugModule
+    AppSharedDebugModule,
+    MatFormFieldsSkeletonModule
   ],
   declarations: [
     // Pipes
@@ -34,7 +36,8 @@ import { AppSharedDebugModule } from '@app/shared/debug/debug.module';
     PaginationToStringPipe,
 
     //Sub modules
-    AppSharedDebugModule
+    AppSharedDebugModule,
+    MatFormFieldsSkeletonModule
   ]
 })
 export class AppSharedModule {

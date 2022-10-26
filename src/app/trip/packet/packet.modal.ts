@@ -101,7 +101,9 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     try {
       const value = this.packetForm.value;
       this.disable();
-      await this.viewCtrl.dismiss(value, role);
+
+      const data = Packet.fromObject(value);
+      await this.viewCtrl.dismiss(data, role);
       this.packetForm.error = null;
     } catch (err) {
       this.packetForm.error = err && err.message || err;
@@ -116,7 +118,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
 
     if (result) {
-      await this.viewCtrl.dismiss();
+      await this.viewCtrl.dismiss(this.data, 'delete');
     }
   }
 

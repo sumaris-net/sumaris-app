@@ -6,6 +6,7 @@
 image: node:14-slim
 
 stages:
+  - environment
   - build
   - alt_build
 #  - test
@@ -20,8 +21,11 @@ stages:
 variables:
   DOCKER_IMAGE_REGISTRY: gitlab-registry.ifremer.fr/ifremer-commons/docker/images/
   CI_BUILD_IMAGE: $CI_REGISTRY_IMAGE/build:develop
+  BUILD_CACHE_DIR: /tmp/.build-cache
   BUILD_ENVIRONMENT: prod
+  DOCKER_BUILDKIT: 1
   ARTIFACT_ZIP_FILES: ${OUTPUT_DIR}/${CI_PROJECT_NAME}-*.zip
+  ENV_FILE: variables.env
 
 # ---------------------------------------------------------------
 # Jobs templates
@@ -47,25 +51,46 @@ variables:
   allow_failure: false
 
 # ---------------------------------------------------------------
+# Environment jobs : Create docker image for builds/release, this
+# offers possibility to cache project dependencies so we don't
+# have to download them every time.
+# ---------------------------------------------------------------
+build:env:
+  extends: .docker
+  stage: environment
+  script:
+    # Create the target directory
+    - mkdir -p target/docker
+    - cp -rf scripts/docker/build/* target/docker
+    # Build and push the CI image
+    - docker build --cache-from ${CI_BUILD_IMAGE} -t ${CI_BUILD_IMAGE} --build-arg BUILDKIT_INLINE_CACHE=1 --build-arg="CACHE_DIR=${BUILD_CACHE_DIR}" --build-arg="IMAGE_REGISTRY=${DOCKER_IMAGE_REGISTRY}" -f target/docker/Dockerfile .
+    - docker push ${CI_BUILD_IMAGE}
+  except:
+    - tags
+    - master
+
+# ---------------------------------------------------------------
 # Build jobs
 # ---------------------------------------------------------------
-
 .build:
   stage: build
   tags: [sih_public_runner]
+  needs: ["build:env"]
   script:
-    # Update dependencies
-    - scripts/ci/dependencies.sh check || yarn install
-    - yarn run build.${BUILD_ENVIRONMENT}
+    # Show version
+    - ng version
+    - npm version
+    # Build
+    - npm run build.${BUILD_ENVIRONMENT}
   after_script:
     # Remember version
     - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
-    - echo "APP_VERSION=${APP_VERSION}" > variables.env
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
   artifacts:
     paths:
       - www
     reports:
-      dotenv: variables.env
+      dotenv: ${ENV_FILE}
     expire_in: 72 hours
 
 build:
@@ -73,12 +98,19 @@ build:
   image: ${CI_BUILD_IMAGE}
   before_script:
     # Get project dependencies
-    - cp -R /tmp/.build-cache/node_modules .
+    - ls -artl ${BUILD_CACHE_DIR}
+    - cp -R ${BUILD_CACHE_DIR}/node_modules .
   variables:
     BUILD_ENVIRONMENT: dev
-  except:
-    - tags
-    - master
+  only:
+    - develop
+
+build:feature:
+  extends: .build
+  image: ${CI_BUILD_IMAGE}
+  only:
+    - /^feature\/.*/
+  when: manual
 
 failsafe-build:
   extends: .build
@@ -86,28 +118,14 @@ failsafe-build:
   when: on_failure
   before_script:
     # Install global dependencies
-    - yarn global add @ionic/cli@6.19.1 @angular/cli@11.2.19
+    - npm install -g @ionic/cli@6.19.1 @angular/cli@11.2.19
     # Update project dependencies
-    - yarn install
+    - npm install
   variables:
     BUILD_ENVIRONMENT: dev
-  except:
-    - tags
-    - master
-
-docker:ci:
-  extends: .docker
-  stage: alt_build
-  when: on_failure
-  allow_failure: true
-  script:
-    # Build and push the CI image
-    - docker build --cache-from ${CI_BUILD_IMAGE} --pull -t ${CI_BUILD_IMAGE} -f scripts/ci/Dockerfile .
-    #- docker build --no-cache -t ${CI_BUILD_IMAGE} -f target/ci/DockerFile .
-    - docker push ${CI_BUILD_IMAGE}
-  except:
-    - tags
-    - master
+  only:
+    - develop
+    - /^feature\/.*/
 
 # ---------------------------------------------------------------
 # Release jobs
@@ -117,9 +135,9 @@ docker:ci:
   stage: release
   script:
       - if [[ "_${RELEASE_VERSION}" == "_" ]]; then exit 1; fi
-      - echo "Release in progress"
+      - echo "--- Release in progress"
       - git checkout -b release/${RELEASE_VERSION}
-      - echo "manage app version"
+      - echo "--- Manage app version"
       - 'currentAndroid=`grep -oP "android-versionCode=\"[0-9]+\"" config.xml | grep -oP "\d+"`'
       - 'IFS="."'
       - 'read -ra SPLITED_VERSION <<< "${RELEASE_VERSION}"'
@@ -136,35 +154,53 @@ docker:ci:
       - 'sed -i "s/version\": \"$currentManifestJsonVersion\"/version\": \"${RELEASE_VERSION}\"/g" src/assets/manifest.json'
       - 'sed -i "s/echo \".*\" #lastest/echo \"${RELEASE_VERSION}\" #lastest/g" install.sh'
       # Copy cached dependencies and build
-      - ls -artl /tmp/.build-cache
-      - cp -R /tmp/.build-cache/node_modules .
+      - ls -artl "${BUILD_CACHE_DIR}"
+      - cp -R "${BUILD_CACHE_DIR}/node_modules" .
+      # Show version
+      - ng version
+      - npm version
+      # Build
+      - export NODE_OPTIONS=--max-old-space-size=4096
       - npm run build.prod
       # Git process for release (ISO gitflow)
       - git add .
       - git commit -m "Prepare release ${RELEASE_VERSION}"
       - git checkout master
-      - git merge --no-ff --no-edit -m "Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
-      - git tag -a ${RELEASE_VERSION} -m "${RELEASE_VERSION}"
+      - git merge --no-ff --no-edit -m "Release ${RELEASE_VERSION}" "release/${RELEASE_VERSION}"
+      - git tag -a "${RELEASE_VERSION}" -m "${RELEASE_VERSION}"
       - git checkout develop
-      - git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" release/${RELEASE_VERSION}
+      - git merge --no-ff --no-edit -m "[skip ci] Release ${RELEASE_VERSION}" "release/${RELEASE_VERSION}"
       - git push origin develop
       - git push origin master
       - git push --tags
-      - git branch -D release/${RELEASE_VERSION}
+      - git branch -D "release/${RELEASE_VERSION}"
   after_script:
     # Remember version
     - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
-    - echo "APP_VERSION=${APP_VERSION}" > variables.env
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
+    # Zip output
+    - fileName=sumaris-app-${APP_VERSION}.zip
+    - currentDir=$(pwd)
+    - mkdir -p ${currentDir}/dist
+    - zipFile=${currentDir}/dist/${fileName}
+    - if [[ -f "${zipFile}" ]]; then rm "${zipFile}"; fi
+    - cd www || exit 1
+    - if ! zip -q -r "${zipFile}" . ; then echo "Cannot create the archive for the web artifact"; exit 1; fi
+    - cd ..
+    - targetUrl="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/sumaris-app/${APP_VERSION}/${fileName}"
+    - echo "Deploy to gitlab generic package :"
+    - echo " File= ${zipFile}"
+    - echo " Url= ${targetUrl}"
+    - 'if ! curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${zipFile}" "${targetUrl}"; then exit 1; fi'
   artifacts:
     paths:
       - www
     reports:
-      dotenv: variables.env
+      dotenv: ${ENV_FILE}
     expire_in: 24 hours
   allow_failure: false
   only:
     - develop
-    - imagine/develop
   when: manual
 
 release:
@@ -175,6 +211,38 @@ release:
 failsafe-release:
     extends: .release
     needs: [failsafe-build]
+
+release:tags:
+  <<: *git-setup
+  image: ${CI_BUILD_IMAGE}
+  stage: release
+  script:
+    - RELEASE_VERSION=$(node -e "console.log(require('./package.json').version)")
+    - echo "--- Release in progress"
+    - git checkout -b release/${RELEASE_VERSION}
+    # Copy cached dependencies and build
+    - ls -artl /tmp/.build-cache
+    - cp -R /tmp/.build-cache/node_modules .
+    # Show version
+    - ng version
+    - npm version
+    # Build
+    - export NODE_OPTIONS=--max-old-space-size=4096
+    - npm run build.prod
+  after_script:
+    # Remember version
+    - APP_VERSION=$(node -e "console.log(require('./package.json').version)")
+    - echo "APP_VERSION=${APP_VERSION}" > ${ENV_FILE}
+  artifacts:
+    paths:
+      - www
+    reports:
+      dotenv: ${ENV_FILE}
+    expire_in: 24 hours
+  allow_failure: false
+  when: manual
+  only:
+    - tags
 
 gitlab-release:
     stage: release
@@ -193,7 +261,6 @@ gitlab-release:
 # ---------------------------------------------------------------
 # Docker jobs
 # ---------------------------------------------------------------
-
 .docker-build:
   extends: .docker
   stage: docker
@@ -211,17 +278,9 @@ docker:develop:
   only:
     - develop
 
-docker:imagine:
-  extends: .docker-build
-  variables:
-    IMAGE_TAG: imagine
-  needs: [build]
-  only:
-    - imagine/develop
-
 docker:feature:
   extends: .docker-build
-  needs: [build]
+  needs: [build:feature]
   variables:
     IMAGE_TAG: feature
   only:
@@ -235,7 +294,14 @@ docker:release:
   needs: [release]
   only:
     - develop
-    - imagine/develop
+
+docker:release:tags:
+  extends: .docker-build
+  variables:
+    IMAGE_TAG: ${APP_VERSION}
+  needs: [release:tags]
+  only:
+    - tags
 
 # ---------------------------------------------------------------
 # Docs jobs

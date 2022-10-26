@@ -154,6 +154,15 @@
       </td>
     </ng-container>
 
+    <ng-container matColumnDef="subGearsCount">
+      <th mat-header-cell *matHeaderCellDef>
+        <ion-label translate>TRIP.PHYSICAL_GEAR.TABLE.SUB_GEARS_COUNT</ion-label>
+      </th>
+      <td mat-cell *matCellDef="let row">
+        <ion-text class="computed" *ngIf="row.currentData.children?.length as count">{{count}}</ion-text>
+      </td>
+    </ng-container>
+
     <!-- Comments column -->
     <ng-container matColumnDef="comments">
       <th mat-header-cell *matHeaderCellDef>
@@ -190,13 +199,6 @@
       <ng-container *ngTemplateOutlet="addRowButton"></ng-container>
     </ion-item>
   </ng-template>
-
-  <!--<ion-item lines="none" *ngIf="!showToolbar && !mobile">
-    <ion-button color="tertiary" (click)="addRow($event)">
-      <ion-icon name="add"></ion-icon>
-      <span translate>COMMON.BTN_ADD</span>
-    </ion-button>
-  </ion-item>-->
 </div>
 
 <ng-template #addRowButton>

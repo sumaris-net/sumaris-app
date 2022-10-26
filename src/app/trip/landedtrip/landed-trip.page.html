@@ -65,61 +65,67 @@
                   *ngIf="submitted && (tripForm.invalid || measurementsForm.invalid || fishingAreaForm.invalid)"></ion-icon>
       </ng-template>
 
-      <!-- error -->
-      <ion-item *ngIf="error || tripForm.error || measurementsForm.error || fishingAreaForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
-        <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-        <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
-      </ion-item>
+      <div>
+        <!-- error -->
+        <ion-item *ngIf="error || tripForm.error || measurementsForm.error || fishingAreaForm.error; let errorMsg" visible-xs visible-sm visible-mobile lines="none">
+          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+          <ion-label color="danger" class="error" [innerHTML]="errorMsg | translate"></ion-label>
+        </ion-item>
 
-      <ion-grid class="ion-no-padding">
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
 
-        <ion-row class="ion-no-padding">
-          <ion-col class="ion-padding">
-            <!-- trip -->
-            <form-trip #tripForm
-                       (onSubmit)="save($event)"
-                       [showError]="false"
-                       [allowAddNewVessel]="false"
-                       [returnFieldsRequired]="true">
+        <ion-grid class="ion-no-padding">
 
-              <!-- Main fishing area  -->
-              <app-fishing-area-form #fishingAreaForm
-                                     [showError]="false"
-                                     [showDepthGradient]="false"
-                                     [showNearbySpecificArea]="false"
-                                     [required]="false"
-                                     [debug]="debug">
-              </app-fishing-area-form>
+          <ion-row class="ion-no-padding">
+            <ion-col class="ion-padding">
+              <!-- trip -->
+              <form-trip #tripForm
+                         (onSubmit)="save($event)"
+                         [showError]="false"
+                         [allowAddNewVessel]="false"
+                         [returnFieldsRequired]="true">
 
-              <!-- Other features (Measurements) -->
-              <ion-grid class="ion-no-padding ion-padding-top">
-                <ion-row>
-                  <ion-col size="12" size-md="2" size-lg="3">
-                    <ion-label class="ion-float-end" translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
-                  </ion-col>
-                  <ion-col>
-                    <app-form-measurements #measurementsForm
-                                           entityName="VesselUseMeasurement"
-                                           [forceOptional]="usageMode|isOnField"
-                                           [acquisitionLevel]="acquisitionLevel"
-                                           [debug]="debug"
-                                           [programLabel]="$programLabel|async"
-                                           [tabindex]="30">
-                    </app-form-measurements>
-                  </ion-col>
-                </ion-row>
-              </ion-grid>
+                <!-- Main fishing area  -->
+                <app-fishing-area-form #fishingAreaForm
+                                       [showError]="false"
+                                       [showDepthGradient]="false"
+                                       [showNearbySpecificArea]="false"
+                                       [required]="false"
+                                       [debug]="debug">
+                </app-fishing-area-form>
 
-            </form-trip>
-          </ion-col>
-          <ion-col size="12" size-xl="3" class="ion-no-padding">
-            <app-entity-metadata [value]="data">
-              <app-entity-quality-form>
-              </app-entity-quality-form>
-            </app-entity-metadata>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
+                <!-- Other features (Measurements) -->
+                <ion-grid class="ion-no-padding ion-padding-top">
+                  <ion-row>
+                    <ion-col size="12" size-md="2" size-lg="3">
+                      <ion-label class="ion-float-end" translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
+                    </ion-col>
+                    <ion-col>
+                      <app-form-measurements #measurementsForm
+                                             entityName="VesselUseMeasurement"
+                                             [forceOptional]="usageMode|isOnField"
+                                             [acquisitionLevel]="acquisitionLevel"
+                                             [programLabel]="$programLabel|async"
+                                             [tabindex]="30"
+                                             [mobile]="mobile">
+                      </app-form-measurements>
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
+
+              </form-trip>
+            </ion-col>
+            <ion-col size="12" size-xl="3" class="ion-no-padding">
+              <app-entity-metadata [value]="data">
+                <app-entity-quality-form>
+                </app-entity-quality-form>
+              </app-entity-metadata>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
     </mat-tab>
 
     <!-- TAB: operations (effort) -->
@@ -302,3 +308,30 @@
   </ion-fab-button>
 
 </ion-fab>
+
+
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          editor.loading: {{loading}}<br/>
+          editor.ready: {{readySubject|async}}<br/>
+          editor.dirty: {{dirty}}<br/>
+        </ion-col>
+        <ion-col>
+          measurementsForm.loading: {{measurementsForm.loading}}<br/>
+          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+          measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
+          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+        </ion-col>
+        <ion-col>
+          operationGroupTable.loading: {{operationGroupTable.loadingSubject|async}}<br/>
+          operationGroupTable.ready: {{operationGroupTable.readySubject|async}}<br/>
+          operationGroupTable.dirty: {{operationGroupTable.dirty}}<br/>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+</ng-template>

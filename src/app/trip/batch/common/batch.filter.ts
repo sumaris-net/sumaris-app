@@ -8,7 +8,7 @@ export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   operationId: number = null;
   parentId: number = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = {};
-  landingId: number = null; // not used yet
+  saleId: number = null; // not used yet
 
   static fromObject: (source: any, opts?: any) => BatchFilter;
 
@@ -17,7 +17,7 @@ export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
     this.operationId = source.operationId;
     this.parentId = source.parentId;
     this.measurementValues = source.measurementValues && { ...source.measurementValues } || MeasurementUtils.toMeasurementValues(source.measurements);
-    this.landingId = source.landingId;
+    this.saleId = source.saleId;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -33,8 +33,8 @@ export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
       filterFns.push(b => b.operationId === this.operationId);
     }
 
-    if (isNotNil(this.landingId)) {
-      filterFns.push(b => b.landingId === this.landingId);
+    if (isNotNil(this.saleId)) {
+      filterFns.push(b => b.saleId === this.saleId);
     }
 
     if (isNotNil(this.parentId)) {

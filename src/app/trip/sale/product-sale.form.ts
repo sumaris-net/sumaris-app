@@ -193,6 +193,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       this.salesFocusIndex = this.salesHelper.size() - 1;
     }
     this.adding = true;
+    this.markForCheck();
   }
 
   removeSale(index: number) {

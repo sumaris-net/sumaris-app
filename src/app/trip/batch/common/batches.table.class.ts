@@ -10,7 +10,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  ReferentialUtils,
+  ReferentialUtils, removeDuplicatesFromArray,
   splitByProperty,
   UsageMode
 } from '@sumaris-net/ngx-components';
@@ -26,7 +26,8 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
+import { Sale } from '@app/trip/services/model/sale.model';
+import { OverlayEventDetail } from '@ionic/core';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
@@ -142,17 +143,19 @@ export abstract class AbstractBatchesTable<
       this.setFilter({} as F);
     } else if (data instanceof Operation) {
       this.setFilter({operationId: data.id} as F);
-    } else if (data instanceof Landing) {
-      this.setFilter({landingId: data.id} as F);
+    } else if (data instanceof Sale) {
+      this.setFilter({saleId: data.id} as F);
     }
   }
 
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
-    const data = await this.openDetailModal();
-    if (data) {
-      await this.addEntityToTable(data);
+    const {data, role} = await this.openDetailModal();
+    if (data && role !== 'delete') {
+      // Can be an update, and not only a add,
+      // (e.g. the batch group modal can add row, before opening the sub batches modal)
+      await this.addOrUpdateEntityToTable(data);
     }
     return true;
   }
@@ -165,14 +168,14 @@ export abstract class AbstractBatchesTable<
       return true;
     }
 
-    const data = this.toEntity(row, true);
+    const dataToOpen = this.toEntity(row, true);
 
     // Prepare entity measurement values
-    this.prepareEntityToSave(data);
+    this.prepareEntityToSave(dataToOpen);
 
-    const updatedData = await this.openDetailModal(data);
-    if (updatedData) {
-      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
+    const { data, role } = await this.openDetailModal(dataToOpen);
+    if (data && role !== 'delete') {
+      await this.updateEntityToTable(data, row, {confirmEdit: false});
     } else {
       this.editedRow = null;
     }
@@ -183,71 +186,65 @@ export abstract class AbstractBatchesTable<
    * Auto fill table (e.g. with taxon groups found in strategies) - #176
    */
   async autoFillTable(opts  = { skipIfDisabled: true, skipIfNotEmpty: false}) {
-    // Wait table loaded
-    await this.waitIdle();
-
-    // Skip if disabled
-    if (opts.skipIfDisabled && this.disabled) {
-      console.warn(this.logPrefix + 'Skipping autofill as table is disabled');
-      return;
-    }
-
-    // Skip if not empty
-    if (opts.skipIfNotEmpty && this.totalRowCount > 0) {
-      console.warn('[batches-table] Skipping autofill because table is not empty');
-      return;
-    }
-
-    // Skip if no available taxon group configured (should be set by parent page - e.g. OperationPage)
-    if (isEmptyArray(this.availableTaxonGroups)) {
-      console.warn('[batches-table] Skipping autofill, because no availableTaxonGroups has been set');
-      return;
-    }
-
-    // Skip when editing a row
-    if (!this.confirmEditCreate()) {
-      console.warn('[batches-table] Skipping autofill, as table still editing a row');
-      return;
-    }
-
-    this.markAsLoading();
-
     try {
+      // Wait table loaded
+      await this.waitIdle({stop: this.destroySubject});
+
+      // Skip if disabled
+      if (opts.skipIfDisabled && this.disabled) {
+        console.warn(this.logPrefix + 'Skipping autofill as table is disabled');
+        return;
+      }
+
+      // Skip if not empty
+      if (opts.skipIfNotEmpty && this.totalRowCount > 0) {
+        console.warn('[batches-table] Skipping autofill because table is not empty');
+        return;
+      }
+
+      // Skip if no available taxon group configured (should be set by parent page - e.g. OperationPage)
+      if (isEmptyArray(this.availableTaxonGroups)) {
+        console.warn('[batches-table] Skipping autofill, because no availableTaxonGroups has been set');
+        return;
+      }
+
+      // Skip when editing a row
+      if (!this.confirmEditCreate()) {
+        console.warn('[batches-table] Skipping autofill, as table still editing a row');
+        return;
+      }
+
+      this.markAsLoading();
+
       console.debug('[batches-table] Auto fill table, using options:', opts);
 
       // Read existing taxonGroups
       let data = this.dataSource.getData()
-      const existingTaxonGroups = data.map(batch => batch.taxonGroup)
-        .filter(isNotNil);
-      let rowCount = data.length;
+      const existingTaxonGroups = removeDuplicatesFromArray(
+        data.map(batch => batch.taxonGroup).filter(isNotNil),
+        'id');
 
       const taxonGroupsToAdd = this.availableTaxonGroups
         // Exclude if already exists
         .filter(taxonGroup => !existingTaxonGroups.some(tg => ReferentialUtils.equals(tg, taxonGroup)));
 
       if (isNotEmptyArray(taxonGroupsToAdd)) {
-
-        this.focusColumn = undefined;
         let rankOrder = data.reduce((res, b) => Math.max(res, b.rankOrder || 0), 0) + 1;
 
+        const entities = [];
         for (const taxonGroup of taxonGroupsToAdd) {
           const entity = new this.dataType();
           entity.taxonGroup = TaxonGroupRef.fromObject(taxonGroup);
           entity.rankOrder = rankOrder++;
-          const newRow = await this.addEntityToTable(entity, { confirmCreate: true, editing: false, emitEvent: false /*done in markAsLoaded()*/ });
-          rowCount += !!newRow ? 1 : 0;
+          entities.push(entity);
         }
+
+        await this.addEntitiesToTable(entities, {emitEvent: false});
 
         // Mark as dirty
         this.markAsDirty({emitEvent: false /* done in markAsLoaded() */});
       }
 
-      if (this.totalRowCount !== rowCount) {
-        // FIXME Workaround to update row count
-        console.warn('[batches-table] Updating rowCount manually! (should be fixed when table confirmEditCreate() are async ?)');
-        this.totalRowCount = rowCount;
-        this.visibleRowCount = rowCount;
-      }
       this.markForCheck();
 
     } catch (err) {
@@ -260,7 +257,7 @@ export abstract class AbstractBatchesTable<
 
   /* -- protected methods -- */
 
-  protected abstract openDetailModal(dataToOpen?: T): Promise<T | undefined>;
+  protected abstract openDetailModal(dataToOpen?: T): Promise<OverlayEventDetail<T | undefined>>;
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];
@@ -313,7 +310,7 @@ export abstract class AbstractBatchesTable<
     await super.onNewEntity(data);
 
     // generate label
-    data.label = this.acquisitionLevel + '#' + data.rankOrder;
+    data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
 
     // Default values
     if (isNotNil(this.defaultTaxonName)) {

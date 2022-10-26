@@ -124,11 +124,16 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       console.warn('[physical-gear-service] Missing physical gears filter. At least \'parentGearId\', or \'program\' and \'vesselId\' or \'startDate\'. Skipping.');
       return EMPTY;
     }
+
+    dataFilter = this.asFilter(dataFilter);
+
     // Fix sortBy
     sortBy = sortBy !== 'id' ? sortBy : 'rankOrder';
     sortBy = sortBy !== 'label' ? sortBy : 'gear.label';
 
-    const forceOffline = this.network.offline || (isNotNil(dataFilter.tripId) && dataFilter.tripId < 0);
+    const forceOffline = this.network.offline
+      || (isNotNil(dataFilter.tripId) && dataFilter.tripId < 0)
+      || (isNotNil(dataFilter.parentGearId) && dataFilter.parentGearId < 0);;
     const offline = forceOffline || opts?.withOffline || false;
     const online = !forceOffline;
 
@@ -156,7 +161,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     return data;
   }
 
-  watchAllRemotely(
+  protected watchAllRemotely(
     offset: number,
     size: number,
     sortBy?: string,
@@ -168,8 +173,6 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       console.warn('[physical-gear-service] Missing physical gears filter. Expected at least \'parentGearId\', or \'program\' and \'vesselId\' or \'startDate\'. Skipping.');
       return EMPTY;
     }
-
-    dataFilter = this.asFilter(dataFilter);
 
     const variables: any = {
       offset: offset || 0,
@@ -231,7 +234,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     }
 
     const withTrip = isNil(dataFilter.tripId);
-    const fromTrip$ = withTrip && this.watchAllLocallyFromTrips(offset, size, sortBy, sortDirection, dataFilter, {...opts, toEntity: false, distinctBy: undefined});
+    const fromTrip$ = this.watchAllLocallyFromTrips(offset, size, sortBy, sortDirection, dataFilter, {...opts, toEntity: false, distinctBy: undefined});
 
     // Then, search from predoc (physical gears imported by the offline mode, into the local storage)
     const variables: any = {
@@ -263,11 +266,12 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     dataFilter?: Partial<PhysicalGearFilter>,
     opts?: PhysicalGearServiceWatchOptions
   ): Observable<LoadResult<PhysicalGear>> {
-    if (!dataFilter || isNil(dataFilter.vesselId) || (isNil(dataFilter.program))) {
-      console.warn('[physical-gear-service] Trying to load gears from trips, without \'filter.vesselId\' and \'filter.program\'. Skipping.');
+    if (!dataFilter || (isNil(dataFilter.tripId) && (isNil(dataFilter.vesselId) || isNil(dataFilter.program)))) {
+      console.warn('[physical-gear-service] Trying to load gears from trips without \'filter.vesselId\' and \'filter.program\' and without \'filter.tripdId\'. Skipping.');
       return EMPTY;
     }
     const tripFilter = TripFilter.fromObject(dataFilter && <Partial<TripFilter>>{
+      id: dataFilter.tripId,
       vesselId: dataFilter.vesselId,
       startDate: dataFilter.startDate,
       endDate: dataFilter.endDate,
@@ -423,13 +427,21 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
   }
 
 
-  async loadAllByParentId(parentGearId: number,
+  async loadAllByParentId(filter: {tripId?: number, parentGearId: number},
             opts?: {
               fetchPolicy?: WatchQueryFetchPolicy;
               toEntity?: boolean;
               withTotal?: boolean;
-            }): Promise<LoadResult<PhysicalGear>> {
-    return this.loadAll(0, 100, 'rankOrder', 'asc', {parentGearId}, opts);
+            }): Promise<PhysicalGear[]> {
+
+    // If we know the local trip, load it
+    if (isNotNil(filter.tripId) && filter.tripId < 0) {
+      const trip = await this.entities.load(filter.tripId, Trip.TYPENAME) as Trip;
+      return (trip.gears || []).find(g => g.id === filter.parentGearId)?.children;
+    }
+
+    const res = await this.loadAll(0, 100, 'rankOrder', 'asc', filter, opts)
+    return res?.data;
   }
 
   async executeImport(filter: Partial<PhysicalGearFilter>,

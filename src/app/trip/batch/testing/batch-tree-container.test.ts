@@ -2,9 +2,9 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Batch } from '../common/batch.model';
-import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { filter, mergeMap } from 'rxjs/operators';
-import { BatchTreeComponent } from '../tree/batch-tree.component';
+import { IBatchTreeComponent } from '../tree/batch-tree.component';
 import {
   EntitiesStorage,
   EntityUtils,
@@ -18,8 +18,8 @@ import {
   toNumber,
   waitFor
 } from '@sumaris-net/ngx-components';
-import { LocationLevels } from '../../../referential/services/model/model.enum';
-import { ProgramRefService } from '../../../referential/services/program-ref.service';
+import { LocationLevels } from '@app/referential/services/model/model.enum';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
@@ -30,6 +30,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { MatTabGroup } from '@angular/material/tabs';
 import { BatchTreeContainerComponent } from '@app/trip/batch/tree/batch-tree-container.component';
 import { ActivatedRoute } from '@angular/router';
+import { TripService } from '@app/trip/services/trip.service';
 
 
 @Component({
@@ -70,6 +71,7 @@ export class BatchTreeContainerTestPage implements OnInit {
     protected programRefService: ProgramRefService,
     private entities: EntitiesStorage,
     private context: ContextService<BatchContext>,
+    private tripService: TripService,
     private activeRoute: ActivatedRoute
   ) {
 
@@ -199,8 +201,8 @@ export class BatchTreeContainerTestPage implements OnInit {
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.batchTree.program = program;
     if (program.label === 'APASE' && this.batchTree.gearId === 7) {
-      //this.batchTree.gearId = 7; // Parent gear
-      this.batchTree.physicalGearId = 70; // Parent gear
+      const trip = await this.tripService.load(70);
+      this.batchTree.physicalGear = trip?.gears?.[0]; // Parent gear
     }
 
     this.markAsReady();
@@ -279,7 +281,7 @@ export class BatchTreeContainerTestPage implements OnInit {
      this.dumpCatchBatch(catchBatch, 'example');
   }
 
-  async dumpBatchTree(batchTree: BatchTreeComponent, outputName?: string, finalize?: boolean) {
+  async dumpBatchTree(batchTree: IBatchTreeComponent, outputName?: string, finalize?: boolean) {
 
     const catchBatch = await this.getValue(batchTree, finalize);
 
@@ -332,7 +334,7 @@ export class BatchTreeContainerTestPage implements OnInit {
     console.debug(html);
   }
 
-  async copyBatchTree(source: BatchTreeComponent, target: BatchTreeComponent) {
+  async copyBatchTree(source: IBatchTreeComponent, target: IBatchTreeComponent) {
     await source.save();
 
     source.disable();
@@ -348,13 +350,13 @@ export class BatchTreeContainerTestPage implements OnInit {
     }
   }
 
-  async save(event: UIEvent, batchTree: BatchTreeComponent, outputName: string) {
+  async save(event: UIEvent, batchTree: IBatchTreeComponent, outputName: string) {
     await this.dumpBatchTree(batchTree, outputName, true);
   }
 
   /* -- protected methods -- */
 
-  async getValue(batchTree: BatchTreeComponent, finalize?: boolean): Promise<Batch> {
+  async getValue(batchTree: IBatchTreeComponent, finalize?: boolean): Promise<Batch> {
 
     await batchTree.save();
     const catchBatch = batchTree.value;

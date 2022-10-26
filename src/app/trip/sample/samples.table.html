@@ -393,6 +393,7 @@
 
   <ng-template #readonly>
     <table mat-table matSort matSortDisableClear
+           [class.compact]="compact"
            [dataSource]="dataSource"
            [matSortActive]="defaultSortBy"
            [matSortDirection]="defaultSortDirection"
@@ -539,7 +540,6 @@
                   *ngIf="showIndividualMonitoringButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
                   [color]="(row.currentData.children | arrayFilter: isIndividualMonitoring | isNotEmptyArray) ? 'primary': 'dark'"
                   color="primary"
-                  [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_MONITORING'|translate"
                   (click)="onIndividualMonitoringClick($event, row)">
             <mat-icon>center_focus_strong</mat-icon>
           </button>
@@ -548,7 +548,6 @@
           <button mat-icon-button
                   *ngIf="showIndividualReleaseButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
                   [color]="(row.currentData.children | arrayFilter: isIndividualRelease | isNotEmptyArray) && 'primary'"
-                  [title]="'TRIP.SAMPLE.TABLE.BTN_INDIVIDUAL_RELEASE'|translate"
                   (click)="onIndividualReleaseClick($event, row)">
             <mat-icon>room</mat-icon>
           </button>

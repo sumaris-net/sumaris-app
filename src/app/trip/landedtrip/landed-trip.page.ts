@@ -5,7 +5,7 @@ import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/mo
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import {
-  AccountService,
+  AccountService, DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
   fadeInOutAnimation,
@@ -16,7 +16,7 @@ import {
   isNotNil,
   isNotNilOrBlank,
   NetworkService,
-  ReferentialRef,
+  ReferentialRef, ReferentialUtils,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripForm } from '../trip/trip.form';
@@ -144,11 +144,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // Update available operation groups for catches forms
     this.registerSubscription(
-      this.operationGroupTable.dataSource.rowsSubject
+      this.operationGroupTable.dataSource.datasourceSubject
         .pipe(
           debounceTime(400),
           filter(() => !this.loading),
-          map(() => this.operationGroupTable.dataSource.getData())
         ).subscribe(operationGroups => this.$operationGroups.next(operationGroups))
     );
 
@@ -323,7 +322,9 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }
 
     if (this.isOnFieldMode) {
-      data.departureDateTime = moment();
+      // Default start date to 00:00 (locale) - otherwise
+      data.departureDateTime = DateUtils.markNoTime(DateUtils.resetTime(moment()));
+      // Default end date to now
       data.returnDateTime = moment();
 
       if (isEmptyArray(data.observers)) {
@@ -597,8 +598,9 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     // Concat trip and expense measurements
     json.measurements = (this.measurementsForm.value || []).concat(this.expenseForm.value);
 
-    // FishingArea
-    json.fishingAreas = [!this.fishingAreaForm.empty ? this.fishingAreaForm.value : null];
+    // FishingArea (only if not empty AND with a location)
+    const fishingAreaJson = this.fishingAreaForm.value;
+    json.fishingAreas = fishingAreaJson ? [fishingAreaJson] : [];
 
     const operationGroups: OperationGroup[] = this.operationGroupTable.value || [];
 
@@ -688,8 +690,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     }
     if (this.operationGroupTable.dirty) {
       await this.operationGroupTable.save();
+      this.operationGroupTable.markAsDirty();
       saveOptions.withOperationGroup = true;
     }
+
+    // Wait end of save
+    await this.waitIdle({timeout: 2000});
 
     // todo same for other tables
 

@@ -323,7 +323,7 @@ export class MeasurementValuesUtils {
 
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts?.onlyExistingPmfms) {
-      pmfms = Object.getOwnPropertyNames(source)
+      pmfms = Object.getOwnPropertyNames(source || {})
         .filter(controlName => controlName !== '__typename')
         .reduce((res, pmfmId) => {
         const pmfm = pmfms.find(p => p.id === +pmfmId);

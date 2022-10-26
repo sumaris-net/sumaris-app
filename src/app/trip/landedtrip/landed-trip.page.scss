@@ -1,5 +1,3 @@
-
-
 ion-col>ion-label {
   word-wrap: break-word;
   white-space: normal;
@@ -10,18 +8,13 @@ ion-col>ion-label {
 
   .mat-tab-group-body-catches.has-filter {
     --app-catches-filter-height: 65.5px;
+
+    &.has-toolbar {
+      --table-toolbar-height: var(--mat-toolbar-height);
+    }
   }
 
   .mat-tab-group {
     --mat-tab-body-content-height: calc(var(--mat-tab-body-content-height-root) - var(--table-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-catches-filter-height, 0px) - 1px);
   }
 }
-
-
-
-//.mat-tab-group {
-//
-//  .mat-tab-body .mat-tab-body-content {
-//    min-height: var(--ion-tab-min-height, 250px);
-//  }
-//}

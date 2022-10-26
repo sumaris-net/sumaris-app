@@ -4,7 +4,7 @@ import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { OperationGroupValidatorService } from '../services/validator/operation-group.validator';
 import { Observable } from 'rxjs';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { InMemoryEntitiesService, isNil, LocalSettingsService, PlatformService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
+import { InMemoryEntitiesService, isNil, LocalSettingsService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
 import { MetierService } from '@app/referential/services/metier.service';
 import { OperationGroup } from '../services/model/trip.model';
 import { environment } from '@environments/environment';
@@ -93,7 +93,6 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
     };
 
     // Metier combo
-    const metierAttributes = this.settings.getFieldDisplayAttributes('metier');
     this.registerAutocompleteField('metier', {
       showAllOnFocus: true,
       items: this.metiers,
@@ -133,7 +132,7 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
         mobile: this.mobile,
         data: dataToOpen,
         isNew,
-        onDelete: (event, OperationGroup) => this.deleteOperationGroup(event, OperationGroup)
+        onDelete: (event, OperationGroup) => this.deleteEntity(event, OperationGroup)
       },
       keyboardClose: true
     });
@@ -175,19 +174,6 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
     }
   }
 
-  async deleteOperationGroup(event: UIEvent, data: OperationGroup): Promise<boolean> {
-    const row = await this.findRowByOperationGroup(data);
-
-    // Row not exists: OK
-    if (!row) return true;
-
-    const canDeleteRow = await this.canDeleteRows([row]);
-    if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
-    }
-    return canDeleteRow;
-  }
-
   /* -- protected methods -- */
 
   private mapPmfms(pmfms: IPmfm[]): IPmfm[] {
@@ -221,7 +207,7 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
 
     const updatedData = await this.openDetailModal(data);
     if (updatedData) {
-      await this.updateEntityToTable(updatedData, row, {confirmCreate: false});
+      await this.updateEntityToTable(updatedData, row, {confirmEdit: false});
     }
     else {
       this.editedRow = null;

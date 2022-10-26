@@ -1,6 +1,6 @@
 <ng-container *ngIf="!embedded">
   <app-toolbar *ngIf="showToolbar"
-    [defaultBackHref]="defaultBackHref" canGoBack="true">
+    [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
     <ion-title [innerHTML]="$title|async"></ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="reveal.print($event)" >

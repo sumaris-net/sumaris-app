@@ -1,36 +1,31 @@
+# PREPARE STAGE
+ARG IMAGE_REGISTRY
 ARG DOCKER_IMAGE="node:14-slim"
-FROM $DOCKER_IMAGE
-ENV CACHE_DIR=/tmp/.build-cache
+FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS prepare
+ARG CACHE_DIR=/tmp/.build-cache
 
 # Use a cache dir
-WORKDIR ${CACHE_DIR}
-
+WORKDIR $CACHE_DIR
 # Copy need files, to check deps
-COPY ./package.json ./
-# COPY ./yarn.lock ./ FIXME : comment to fix pipeline
-COPY ./scripts/ci/*.sh scripts/ci/
+COPY package.json .
+# set version to 0.0.0 in order not to upload dependencies if only version change
+RUN sed -i 's/version\": \".*\"/version\": \"0.0.0\"/g' package.json
 
-# Store disk usage (before install)
-RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > /tmp/before.txt
-RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` >> /tmp/before.txt
+# BUILD STAGE
+FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS build
+ARG CACHE_DIR=/tmp/.build-cache
+WORKDIR $CACHE_DIR
 
+# Caching npm depedencies
+COPY --from=prepare $CACHE_DIR/package.json .
 # Install global dependencies
-RUN yarn global add @ionic/cli @angular/cli
-
+RUN npm install -g @ionic/cli @angular/cli
 # Install project dependencies
-RUN yarn install
+RUN npm install --unsafe-perm
 
-# Store disk usage (after install)
-RUN du -s `find . -maxdepth 1 | egrep -v "^\.$"` > /tmp/after.txt
-RUN du -s `find /tmp/.cache/yarn -maxdepth 1 | egrep -v "^\.$"` >> /tmp/after.txt
-
-# Force docker to detect any changes
-RUN diff /tmp/before.txt /tmp/after.txt || true
-
-# Store dependencies (to be able to check it the 'build' task)
-RUN cd scripts/ci && ./dependencies.sh store ${CACHE_DIR}
+RUN ls -artl
 
 RUN apt update && \
-    apt -y install git
+    apt -y install git zip curl
 
 WORKDIR /build

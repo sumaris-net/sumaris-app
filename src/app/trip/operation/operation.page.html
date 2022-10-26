@@ -176,7 +176,6 @@
 
 </mat-menu>
 
-<!--<ion-content (swipeleft)="onSwipeTab($event)" (swiperight)="onSwipeTab($event)">-->
 <ion-content>
 
   <mat-tab-group #tabGroup
@@ -233,17 +232,14 @@
                                              entityName="VesselUseMeasurement"
                                              [acquisitionLevel]="$acquisitionLevel|async"
                                              [forceOptional]="forceMeasurementAsOptional"
+                                             [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
                                              [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
                                              [i18nSuffix]="i18nContext.suffix"
                                              [tabindex]="30"
-                                             [mobile]="mobile"
-                                             [compact]="false"
-                                             [debug]="debug">
+                                             [mobile]="mobile">
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>
-
-
                 </ion-grid>
               </app-form-operation>
             </ion-col>
@@ -275,6 +271,7 @@
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid"></ion-icon>
       </ng-template>
 
+      <!-- batch tree -->
       <app-batch-tree #batchTree
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
@@ -290,7 +287,7 @@
     <!-- TAB: Samples  -->
     <mat-tab #sampleTab
              [label]="'TRIP.OPERATION.EDIT.TAB_SAMPLES'|translateContext: i18nContext.suffix"
-             [disabled]="(loadingSubject | delay: 600 | async) || !showSamplesTab">
+             [disabled]="!showSamplesTab">
       <ng-template mat-tab-label>
         <mat-icon svgIcon="fish-oblique"></mat-icon>
         <ion-label *ngVar="sampleTree.samplesTable.totalRowCount as count"
@@ -345,10 +342,6 @@
 
 </ion-fab>
 
-<ng-template #skeletonText100>
-  &nbsp;<ion-skeleton-text style="min-width: 100px"></ion-skeleton-text>
-</ng-template>
-
 <!-- DEBUG -->
 <ng-template #debugPanel>
   <app-debug>
@@ -360,14 +353,15 @@
           editor.dirty: {{dirty}}<br/>
         </ion-col>
         <ion-col>
-            opeForm.loading: {{opeForm.loading}}<br/>
-            opeForm.ready: {{opeForm.readySubject|async}}<br/>
-            opeForm.dirty: {{opeForm.dirty}}<br/>
+          opeForm.ready: {{opeForm.readySubject|async}}<br/>
+          opeForm.loading: {{opeForm.loading}}<br/>
+          opeForm.enabled: {{opeForm.enabled}}<br/>
+          opeForm.dirty: {{opeForm.dirty}}<br/>
           <br/>
-            opeForm.startDateTime: {{form|formGetValue:'startDateTime'|dateFormat: {time: true} }}<br/>
-            opeForm.fishingStartDateTime: {{form.controls.fishingStartDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
-            opeForm.fishingEndDateTime: {{form.controls.fishingEndDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
-            opeForm.endDateTime: {{form.controls.endDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
+          opeForm.startDateTime: {{form|formGetValue:'startDateTime'|dateFormat: {time: true} }}<br/>
+          opeForm.fishingStartDateTime: {{form.controls.fishingStartDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
+          opeForm.fishingEndDateTime: {{form.controls.fishingEndDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
+          opeForm.endDateTime: {{form.controls.endDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
         </ion-col>
         <ion-col>
             <span *ngIf="allowParentOperation && opeForm.isChildOperation">
@@ -380,10 +374,19 @@
             </span>
         </ion-col>
         <ion-col>
-            measurementsForm.loading: {{measurementsForm.loading}}<br/>
-            measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
-            measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
-            measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+          measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
+          measurementsForm.loading: {{measurementsForm.loading}}<br/>
+          measurementsForm.enabled: {{measurementsForm.enabled}}<br/>
+          measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+
+          <!-- Sample debug -->
+          <span *ngIf="sampleTree">
+            <br/>
+            sampleTree.ready: {{sampleTree.readySubject|async}}<br/>
+            sampleTree.loading: {{sampleTree.loading}}<br/>
+            sampleTree.enabled: {{sampleTree.enabled}}<br/>
+            sampleTree.dirty: {{sampleTree.dirty}}<br/>
+          </span>
         </ion-col>
       </ion-row>
     </ion-grid>

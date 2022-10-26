@@ -41,6 +41,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   showTaxonGroup: boolean;
   showTaxonName: boolean;
   showIndividualReleaseButton: boolean;
+  showIndividualMonitoringButton: boolean;
 
   availableTaxonGroups?: TaxonGroupRef[];
   defaultSampleDate?: Moment;
@@ -86,6 +87,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showTaxonName = true;
   @Input() showComment: boolean;
   @Input() showIndividualReleaseButton: boolean;
+  @Input() showIndividualMonitoringButton: boolean;
   @Input() maxVisibleButtons: number;
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   @Input() defaultSampleDate: Moment;
@@ -142,8 +144,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     // Show/Hide individual release button
     this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
     if (this.tagIdPmfm) {
-      this.showIndividualReleaseButton =  !!this.openSubSampleModal
-        && toBoolean(this.showIndividualReleaseButton, !this.isNew && isNotNil(this.data.measurementValues[this.tagIdPmfm.id]));
+      this.showIndividualMonitoringButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
+      this.showIndividualReleaseButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
 
       this.form.ready().then(() => {
         this.registerSubscription(
@@ -157,6 +159,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       });
     }
     else {
+      this.showIndividualMonitoringButton = !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
       this.showIndividualReleaseButton = !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
     }
 
@@ -324,27 +327,12 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  async showIndividualReleaseModal(event: UIEvent, acquisitionLevel: AcquisitionLevelType) {
-    if (!this.openSubSampleModal) return; // Skip
+  onIndividualMonitoringClick(event?: Event) {
+    return this.doOpenSubSampleModal(AcquisitionLevelCodes.INDIVIDUAL_MONITORING)
+  }
 
-    // Save
-    const savedSample = await this.getDataToSave({disable: false});
-    if (!savedSample) return;
-
-    try {
-
-      // Execute the callback
-      const updatedParent = await this.openSubSampleModal(savedSample, acquisitionLevel);
-
-      if (!updatedParent) return; // User cancelled
-
-      this.form.setChildren(updatedParent.children);
-
-      this.form.markAsDirty();
-    } finally {
-      this.loading = false;
-      this.form.enable();
-    }
+  onIndividualReleaseClick(event?: Event) {
+    return this.doOpenSubSampleModal(AcquisitionLevelCodes.INDIVIDUAL_RELEASE)
   }
 
   toggleComment() {
@@ -417,6 +405,29 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       // Label can be optional (e.g. in auction control)
       const label = this.showLabel && data.label || ('#' + data.rankOrder);
       this.$title.next(prefix + this.translateContext.instant('TRIP.SAMPLE.EDIT.TITLE', this.i18nSuffix, {label}));
+    }
+  }
+
+  protected async doOpenSubSampleModal(acquisitionLevel: AcquisitionLevelType) {
+    if (!this.openSubSampleModal) return; // Skip
+
+    // Save
+    const savedSample = await this.getDataToSave({disable: false});
+    if (!savedSample) return;
+
+    try {
+
+      // Execute the callback
+      const updatedParent = await this.openSubSampleModal(savedSample, acquisitionLevel);
+
+      if (!updatedParent) return; // User cancelled
+
+      this.form.setChildren(updatedParent.children);
+
+      this.form.markAsDirty();
+    } finally {
+      this.loading = false;
+      this.form.enable();
     }
   }
 

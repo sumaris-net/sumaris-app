@@ -1,3 +1,25 @@
-ion-row.even {
-  background-color:var(--ion-color-light, whitesmoke) !important;
+ion-row {
+  &.mat-row-selected {
+    background-color: var(--ion-color-secondary100) !important;
+  }
+  &.even {
+    background-color: var(--ion-color-light-tint, whitesmoke);
+  }
+
+  ion-buttons {
+    min-width: 80px;
 }
+
+}
+ion-col.even {
+  background-color: rgba(0,0,0, 0.1) !important;
+}
+
+.mobile {
+  ion-col {
+    ion-buttons {
+      min-width: 40px;
+    }
+  }
+}
+

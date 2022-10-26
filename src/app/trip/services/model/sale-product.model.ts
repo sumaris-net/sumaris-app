@@ -333,6 +333,11 @@ export class SaleProductUtils {
           const total = ratio * parentWeight * getValueFn(saleProduct, averageWeightPriceProperty);
           setValueFn(saleProduct, totalPriceProperty, total);
           setValueFn(saleProduct, averagePackagingPriceProperty, total / count);
+        } else {
+          resetValueFn(saleProduct, averagePackagingPriceProperty);
+          resetValueFn(saleProduct, totalPriceProperty);
+          if (useRatioAndWeight)
+            resetValueFn(saleProduct, averageWeightPriceProperty);
         }
 
         if (useRatioAndWeight) {

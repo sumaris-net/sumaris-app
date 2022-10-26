@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { fadeInOutAnimation } from '@sumaris-net/ngx-components';
+import { DateUtils, fadeInOutAnimation, PromiseEvent } from '@sumaris-net/ngx-components';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -7,6 +7,9 @@ import { IonRouterOutlet } from '@ionic/angular';
 import { OperationPage } from '@app/trip/operation/operation.page';
 import { OperationService } from '@app/trip/services/operation.service';
 import { Program } from '@app/referential/services/model/program.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { moment } from '@app/vendor';
+import { environment } from '@environments/environment';
 
 
 @Component({
@@ -28,16 +31,16 @@ import { Program } from '@app/referential/services/model/program.model';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-
-export class SelectivityOperationPage
-  extends OperationPage {
+export class SelectivityOperationPage extends OperationPage {
 
   constructor(injector: Injector,
               dataService: OperationService) {
     super(injector, dataService, {
       pathIdAttribute: 'selectivityOperationId',
     });
-    //this.debug = false;
+
+    // FOR DEV ONLY ----
+    this.debug = !environment.production;
   }
 
   protected registerForms() {
@@ -49,17 +52,22 @@ export class SelectivityOperationPage
     ]);
   }
 
-  ngAfterViewInit() {
-    super.ngAfterViewInit();
+  async mapPmfms(event: PromiseEvent<IPmfm[], {pmfms: IPmfm[]}>) {
+    if (!event || !event.detail.success) return; // Skip (missing callback)
+    let pmfms: IPmfm[] = event.detail.pmfms;
 
-    // Listen physical gears, to enable tabs
-    this.registerSubscription(
-      this.opeForm.physicalGearControl.valueChanges
-        .subscribe(g => {
-          this.batchTree.gearId = g && g.gear?.id;
-          this.batchTree.physicalGearId = g?.id;
-        })
-    )
+    // If PMFM date/time, set default date, in on field mode
+    if (this.isNewData && this.isOnFieldMode && pmfms?.some(PmfmUtils.isDate)) {
+      pmfms = pmfms.map(p => {
+        if (PmfmUtils.isDate(p)) {
+          p = p.clone();
+          p.defaultValue = DateUtils.markNoTime(DateUtils.resetTime(moment()));
+        }
+        return p;
+      });
+    }
+
+    event.detail.success(pmfms);
   }
 
   onNewFabButtonClick(event: UIEvent) {
@@ -72,9 +80,18 @@ export class SelectivityOperationPage
     }
   }
 
+  get showFabButton(): boolean {
+    if (!this._enabled) return false;
+    switch (this._selectedTabIndex) {
+      case OperationPage.TABS.CATCH:
+        return this.batchTree.showBatchTables;
+      default:
+        return false;
+    }
+  }
+
   protected updateTablesState() {
-    //if (this.showCatchTab) this.tabCount++;
-    this.tabCount = 3;
+    this.tabCount = this.showCatchTab ? 2 : 1;
 
     super.updateTablesState();
   }
@@ -90,4 +107,5 @@ export class SelectivityOperationPage
     const parentUrl = this.getParentPageUrl();
     return parentUrl && `${parentUrl}/operation/selectivity/${id}`;
   }
+
 }

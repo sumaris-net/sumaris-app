@@ -64,8 +64,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   readonly quarters = Object.freeze([1, 2, 3, 4]);
   readonly parameterGroupLabels: string[];
 
-  highlightedRow: TableElement<SamplingStrategy>;
-
+  highlightedRowId: number;
   errorDetails: any;
   parameterIdsByGroupLabel: ObjectMap<number[]>;
 
@@ -258,7 +257,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   }
 
   clickRow(event: MouseEvent|undefined, row: TableElement<SamplingStrategy>): boolean {
-    this.highlightedRow = row;
+    this.highlightedRowId = row?.id;
     return super.clickRow(event, row);
   }
 

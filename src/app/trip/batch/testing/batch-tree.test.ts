@@ -28,6 +28,7 @@ import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/bat
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { Program } from '@app/referential/services/model/program.model';
 import { MatTabGroup } from '@angular/material/tabs';
+import { TripService } from '@app/trip/services/trip.service';
 
 
 @Component({
@@ -67,6 +68,7 @@ export class BatchTreeTestPage implements OnInit {
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     private entities: EntitiesStorage,
+    private tripService: TripService,
     private context: ContextService<BatchContext>
   ) {
 
@@ -194,12 +196,9 @@ export class BatchTreeTestPage implements OnInit {
 
     this.batchTree.availableTaxonGroups = availableTaxonGroups;
     this.batchTree.program = program;
-    if (program.label === 'APASE') {
-      this.batchTree.gearId = 7;
-      this.batchTree.physicalGearId = 70; // Parent gear
-      // if (this.batchTree.catchBatchForm) {
-      //   this.batchTree.catchBatchForm.physicalGearId = 70; // Parent gear
-      // }
+    if (program.label === 'APASE' && this.batchTree.gearId === 7) {
+      const trip = await this.tripService.load(70);
+      this.batchTree.physicalGear = trip?.gears?.[0]; // Parent gear
     }
 
     this.markAsReady();

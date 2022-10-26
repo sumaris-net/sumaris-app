@@ -52,7 +52,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
   @Output() onSubmit = new EventEmitter<any>();
 
-  @ViewChildren('inputField') inputFields: QueryList<ElementRef>;
+  @ViewChildren('matInput') matInputs: QueryList<ElementRef>;
 
   constructor(
     injector: Injector,
@@ -129,7 +129,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   async focusFirstInput() {
     await waitFor(() => this.enabled, {timeout: 2000});
 
-    const inputElements = getFocusableInputElements(this.inputFields);
+    const inputElements = getFocusableInputElements(this.matInputs);
     if (inputElements.length) inputElements[0].focus();
   }
 
@@ -138,7 +138,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     // DEBUG
     //return focusNextInput(event, this.inputFields, opts{debug: this.debug, ...opts});
 
-    return focusNextInput(event, this.inputFields, opts);
+    return focusNextInput(event, this.matInputs, opts);
   }
 
   async setValue(data: PhysicalGear, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [p: string]: any; waitIdle?: boolean }) {

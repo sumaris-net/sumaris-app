@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Batch } from '../common/batch.model';
-import { Alerts, AppFormUtils, AudioProvider, isEmptyArray, isNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { Alerts, AppFormUtils, AudioProvider, firstNotNilPromise, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
 import { BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
@@ -33,6 +33,7 @@ export interface ISubBatchesModalOptions {
   i18nSuffix: string;
   mobile: boolean;
 
+  programLabel: string;
   parentGroup: BatchGroup;
 
   availableParents: BatchGroup[] | Observable<BatchGroup[]>;
@@ -138,7 +139,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.debug = !environment.production;
   }
 
-  async ngOnInit() {
+  ngOnInit() {
+
+    console.debug('[sub-batches-modal] Init modal...');
+
     super.ngOnInit();
 
     // default values
@@ -148,49 +152,76 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     this.showForm = this.showForm && (this.form && !this.disabled);
 
-    if (this.form) {
-      await this.form.setPmfms(this.pmfms);
-      this.form.markAsReady();
-
-      // Reset the form, using default value
-      let defaultBatch: SubBatch;
-      if (this.parentGroup) {
-        defaultBatch = new SubBatch();
-        defaultBatch.parentGroup = this.parentGroup;
-      }
-      await this.resetForm(defaultBatch);
-
-      // Update table content when changing parent
-      this.registerSubscription(
-        this.form.form.get('parentGroup').valueChanges
-          // Init table with existing values
-          //.pipe(startWith(() => this._defaultValue && this._defaultValue.parent))
-          .subscribe(parent => this.onParentChanges(parent))
-      );
-    }
-
     this.markAsReady();
 
-    // Read data
-    const data = isObservable<SubBatch[]>(this.data) ? await this.data.toPromise() : this.data;
-
-    // Apply data to table
-    this.setValue(data);
-
-    // Compute the title
-    this.computeTitle();
+    this.load();
   }
+
+  async load() {
+
+    try {
+      // Wait for table pmfms
+      const pmfms = await firstNotNilPromise(this.$pmfms, { stop: this.destroySubject, stopError: false });
+
+      await this.initForm(pmfms);
+
+      // Read data
+      const data = isObservable<SubBatch[]>(this.data) ? await this.data.toPromise() : this.data;
+
+      // Apply data to table
+      this.setValue(data);
+
+      // Compute the title
+      await this.computeTitle();
+    } catch (err) {
+      console.error(this.logPrefix + 'Error while loading modal');
+    }
+  }
+
+  async initForm(pmfms: IPmfm[]) {
+    if (!pmfms || !this.form) return; // skip
+
+    // Configure form's properties
+    this.form.qvPmfm = this.qvPmfm;
+    await this.form.setPmfms(pmfms);
+
+    // Marks as ready
+    this.form.markAsReady();
+
+    await this.form.ready();
+
+    // Reset the form, using default value
+    let defaultBatch: SubBatch;
+    if (this.parentGroup) {
+      defaultBatch = new SubBatch();
+      defaultBatch.parentGroup = this.parentGroup;
+    }
+    await this.resetForm(defaultBatch);
+
+    // Update table content when changing parent
+    this.registerSubscription(
+      this.form.form.get('parentGroup').valueChanges
+        // Init table with existing values
+        //.pipe(startWith(() => this._defaultValue && this._defaultValue.parent))
+        .subscribe(parent => this.onParentChanges(parent))
+    );
+  }
+
 
   markAsReady() {
     super.markAsReady();
-    this.form?.markAsReady();
+
+    // Should be done inside initForm(), when pmfms has set
+    //this.form?.markAsReady();
   }
 
   async ready() {
-    await this.form.ready();
+    await this.form?.ready();
   }
 
   setValue(data: SubBatch[], opts?: { emitEvent?: boolean }) {
+    console.debug('[sub-batches-modal] Applying value to table...', data);
+
     // Compute the first rankOrder to save
     this._initialMaxRankOrder = (data || []).reduce((max, b) => Math.max(max, b.rankOrder || 0), 0);
 
@@ -382,8 +413,8 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return row;
   }
 
-  protected async updateEntityToTable(updatedBatch: SubBatch, row: TableElement<SubBatch>):  Promise<TableElement<SubBatch>> {
-    const updatedRow = await super.updateEntityToTable(updatedBatch, row);
+  protected async updateEntityToTable(updatedBatch: SubBatch, row: TableElement<SubBatch>, opts?: {confirmEdit?: boolean}):  Promise<TableElement<SubBatch>> {
+    const updatedRow = await super.updateEntityToTable(updatedBatch, row, opts);
 
     // Highlight the row, few seconds
     if (updatedRow) this.onRowChanged(updatedRow);
@@ -393,7 +424,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   protected onInvalidForm() {
 
-    // Play a error beep, if on field
+    // Play an error beep, if on field
     if (this.isOnFieldMode) this.audio.playBeepError();
 
     super.onInvalidForm();

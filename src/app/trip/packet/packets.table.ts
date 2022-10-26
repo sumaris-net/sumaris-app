@@ -1,14 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { AppTable, EntitiesTableDataSource, InMemoryEntitiesService, isNil, isNotEmptyArray, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
+import { AppTable, EntitiesTableDataSource, InMemoryEntitiesService, isNil, isNotEmptyArray, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS } from '@sumaris-net/ngx-components';
 import { IWithPacketsEntity, Packet, PacketFilter, PacketUtils } from '../services/model/packet.model';
 import { PacketValidatorService } from '../services/validator/packet.validator';
-import { ModalController, Platform } from '@ionic/angular';
-import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { PacketModal, IPacketModalOptions } from './packet.modal';
+import { IPacketModalOptions, PacketModal } from './packet.modal';
 import { IPacketSaleModalOptions, PacketSaleModal } from '../sale/packet-sale.modal';
 import { SaleProductUtils } from '../services/model/sale-product.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
@@ -87,8 +84,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
         ])
         .concat(RESERVED_END_COLUMNS),
       new EntitiesTableDataSource<Packet, PacketFilter>(Packet, memoryDataService, validatorService, {
-        prependNewElements: false,
-        suppressErrors: environment.production,
+        suppressErrors: true,
         onRowCreated: (row) => this.onRowCreated(row)
       }),
       null // Filter
@@ -206,9 +202,10 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     const { data, role } = await this.openDetailModal();
 
-    if (data) {
+    if (data && role !== 'delete') {
       const row = await this.addEntityToTable(data);
 
+      // Redirect to another modal
       if (role === 'sale') {
         await this.openPacketSale(null, row);
       }
@@ -239,7 +236,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
         parentAttributes: this.parentAttributes,
         data: dataToOpen,
         isNew,
-        onDelete: (event, packet) => this.deletePacket(event, packet)
+        onDelete: (event, packet) => this.deleteEntity(event, packet)
       },
       backdropDismiss: false,
       cssClass: 'modal-large'
@@ -252,14 +249,11 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     const { data, role } = await modal.onDidDismiss();
     this.markAsLoaded();
 
-    if (data) {
-      if (this.debug) console.debug('[packet-table] packet modal result: ', {data, role});
-
-      return {data: data as Packet, role};
-    }
+    if (this.debug) console.debug('[packet-table] packet modal result: ', {data, role});
+    return {data: (data instanceof Packet ? data as Packet : undefined), role};
   }
 
-  async deletePacket(event: UIEvent, data): Promise<boolean> {
+  async deleteEntity(event: UIEvent, data): Promise<boolean> {
     const row = await this.findRowByPacket(data);
 
     // Row not exists: OK
@@ -267,7 +261,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
 
     const canDeleteRow = await this.canDeleteRows([row]);
     if (canDeleteRow === true) {
-      this.cancelOrDelete(event, row, {interactive: false /*already confirmed*/});
+      this.cancelOrDelete(undefined, row, {interactive: false /*already confirmed*/});
     }
     return canDeleteRow;
   }
@@ -276,10 +270,10 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
   async openComposition(event: MouseEvent, row: TableElement<Packet>) {
     if (event) event.stopPropagation();
 
-    const res = await this.openDetailModal(row.currentData);
+    const { data, role } = await this.openDetailModal(row.currentData);
 
-    if (res && res.data) {
-      row.validator.patchValue(res.data, {onlySelf: false, emitEvent: true});
+    if (data && role !== 'delete') {
+      row.validator.patchValue(data, {onlySelf: false, emitEvent: true});
 
       // update sales
       this.updateSaleProducts(row);
@@ -287,7 +281,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
       this.markAsDirty({emitEvent: false});
       this.markForCheck();
 
-      if (res.role === 'sale') {
+      if (role === 'sale') {
         await this.openPacketSale(null, row);
       }
     }
@@ -316,7 +310,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
         data: row.currentData,
         packetSalePmfms: this.packetSalePmfms,
         disabled: this.disabled,
-        mobile: this.disabled
+        mobile: this.mobile
       },
       backdropDismiss: false,
       cssClass: 'modal-large'

@@ -532,7 +532,7 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"
                class="mat-row-disabled"
                [class.cdk-visually-hidden]="loadingSubject|async"
-               [class.mat-row-selected]="highlightedRow === row"
+               [class.mat-row-selected]="highlightedRowId === row.id"
                (click)="clickRow($event, row)">
       </tr>
     </table>

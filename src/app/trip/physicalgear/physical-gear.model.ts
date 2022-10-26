@@ -196,6 +196,10 @@ export class PhysicalGear
         (this.gear && other.gear && this.gear.id === other.gear.id)
         // Same rankOrder
         && (this.rankOrder === other.rankOrder)
+        // Same parent
+        && ((!this.parentId && !other.parentId) || this.parentId === other.parentId)
+        // Same trip
+        && ((!this.tripId && !other.tripId) || this.tripId === other.tripId)
         // Same measurementsValues
         && (opts.withMeasurementValues !== true || MeasurementValuesUtils.equals(this.measurementValues, other.measurementValues))
       );

@@ -17,7 +17,7 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AlertController } from '@ionic/angular';
-import { BehaviorSubject, defer } from 'rxjs';
+import { BehaviorSubject, defer, merge, Observable } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { Batch } from '../common/batch.model';
@@ -40,12 +40,15 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
+import { FormControlStatus } from '@app/shared/forms.utils';
+import { ISubBatchesModalOptions } from '@app/trip/batch/sub/sub-batches.modal';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
   program: Program;
-  physicalGearId: number;
   gearId: number;
+  physicalGear: PhysicalGear;
   usageMode: UsageMode;
   showCatchForm: boolean;
   showBatchTables: boolean;
@@ -60,6 +63,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   // Form
   disabled: boolean;
   touched: boolean;
+  readySubject?: BehaviorSubject<boolean>;
 
   // Value
   value: Batch;
@@ -86,8 +90,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
 export class BatchTreeComponent extends AppTabEditor<Batch, any>
   implements OnInit, AfterViewInit, IBatchTreeComponent {
 
-  private _gearId: number;
-  private _physicalGearId: number;
+  private _gearId: number = null;
   private _allowSubBatches: boolean;
   private _subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
@@ -106,17 +109,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   @Input() enableWeightLengthConversion: boolean;
   @Input() i18nPmfmPrefix: string;
   @Input() debug: boolean;
-
-  @Input() set physicalGearId(value: number) {
-    if (this._physicalGearId !== value) {
-      this._physicalGearId = value;
-      if (this.catchBatchForm) this.catchBatchForm.physicalGearId = value;
-    }
-  }
-
-  get physicalGearId(): number {
-    return this._physicalGearId;
-  }
+  @Input() physicalGear: PhysicalGear = null;
 
   @Input() set disabled(value: boolean) {
     if (value && this._enabled) {
@@ -235,6 +228,34 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
   get modalOptions(): Partial<IBatchGroupModalOptions> {
     return this.batchGroupsTable.modalOptions;
+  }
+
+  get subBatchesCount(): number {
+    return this._subBatchesService
+      ? (this._subBatchesService.count + this._subBatchesService.hiddenCount)
+      : (this.subBatchesTable?.totalRowCount || 0);
+  }
+
+  get statusChanges(): Observable<FormControlStatus> {
+    const delegates: Observable<any>[] = [
+      ...(this.forms || []).map(c => c.form?.statusChanges).filter(isNotNil)
+      // TODO: add tables ?
+    ];
+    // Warn if empty
+    if (this.debug && !delegates.length) console.warn('[batch-tree] No child allow to observe the status');
+
+    return merge(...delegates)
+      .pipe(
+        debounceTime(450),
+        map(_ => {
+          if (this.debug) console.debug('[batch-tree] Updating tree status');
+          if (this.loading) return <FormControlStatus>'PENDING';
+          if (this.disabled) return <FormControlStatus>'DISABLED';
+          if (this.valid) return <FormControlStatus>'VALID';
+          return this.pending ? <FormControlStatus>'PENDING' : <FormControlStatus>'INVALID';
+        }),
+        distinctUntilChanged()
+      );
   }
 
   @ViewChild('catchBatchForm', {static: true}) catchBatchForm: CatchBatchForm;
@@ -377,6 +398,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     this.batchGroupsTable.setModalOption(key, value);
   }
 
+  setSubBatchesModalOption(key: keyof ISubBatchesModalOptions, value: ISubBatchesModalOptions[typeof key]) {
+    this.batchGroupsTable.setSubBatchesModalOption(key, value);
+  }
+
   async save(event?: Event, options?: any): Promise<any> {
 
     // Create (or fill) the catch form entity
@@ -464,6 +489,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
         // Apply to table
         this.batchGroupsTable.gearId = this._gearId;
+        this.batchGroupsTable.labelPrefix = this.rootAcquisitionLevel !== AcquisitionLevelCodes.CATCH_BATCH
+          && rootBatch.label;
         this.batchGroupsTable.markAsReady();
         this.batchGroupsTable.value = batchGroups;
         await this.batchGroupsTable.ready(); // Wait loaded (need to be sure the QV pmfm is set)

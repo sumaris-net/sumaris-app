@@ -121,7 +121,7 @@
       <ng-container *matCellDef="let row">
         <td mat-cell [class.ion-padding-start]="mobile"
             *ngVar="row.editing && row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions) as error"
-            [title]="error">
+            [title]="error||''">
           <ion-text matBadge="!"
                     [matBadgeHidden]="!error"
                     matBadgeOverlap="false"
@@ -187,7 +187,6 @@
           (click)="focusColumn=col.key">
 
         <ng-container [ngSwitch]="col.type" *ngVar="isComputed(col, row) as computed">
-
           <app-pmfm-field *ngSwitchCase="'pmfm'"
                           floatLabel="never"
                           [pmfm]="col.pmfm"

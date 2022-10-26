@@ -1,12 +1,12 @@
 
 .table-container {
   --table-toolbar-height: 0px;
-  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px));
   min-width: 100%;
   overflow: auto;
 
   &.has-toolbar {
-    --table-toolbar-height: var(--mat-toolbar-height);
+    --table-toolbar-height: var(--mat-toolbar-height, 0px);
   }
   &.has-group-header .mat-header-row.second-header-row {
     .mat-header-cell {

@@ -20,6 +20,10 @@ export class TripContextService extends ContextService<TripContext> {
     return this.getValue('clipboard') as DataClipboard;
   }
 
+  get trip(): Trip|undefined {
+    return this.getValue('trip') as Trip;
+  }
+
   get operation(): Operation|undefined {
     return this.getValue('operation') as Operation;
   }

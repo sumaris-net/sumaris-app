@@ -148,7 +148,7 @@
   </div>
 
   <!-- pmfms -->
-  <ng-container *ngIf="$pmfms | async as pmfms; else loadingSpinner">
+  <ng-container *ngIf="$pmfms | async as pmfms; else measurementsSkeleton">
     <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last"
                     #inputField
                     [control]="form|formGetControl: ['measurementValues', pmfm.id]"
@@ -229,7 +229,7 @@
 
 </form>
 
-<ng-template #loadingSpinner>
-  <ion-spinner class="ion-align-self-center"></ion-spinner>
+<ng-template #measurementsSkeleton>
+  <mat-form-fields-skeleton count="2"></mat-form-fields-skeleton>
 </ng-template>
 

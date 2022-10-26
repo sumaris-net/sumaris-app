@@ -1,4 +1,4 @@
-<form class="form-container ion-margin-top" [formGroup]="form" (ngSubmit)="doSubmit($event)">
+<form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
   <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
@@ -60,7 +60,7 @@
   <table class="mat-table" [style.--packet-count]="packetCount" [class.mobile]="mobile">
 
     <!-- header row -->
-    <tr class="mat-header-row ">
+    <tr class="mat-header-row">
       <th class="mat-header-cell mat-column-taxonGroup ion-text-center" rowspan="2">
         <ion-label translate>PACKET.COMPOSITION.TAXON_GROUP</ion-label>
       </th>
@@ -186,10 +186,6 @@
 
   </table>
 
-  <ion-item lines="none" class="ion-margin-top ion-no-padding">
-    <ion-buttons class="ion-justify-content-between">
-      <ng-content select="[packetSaleButtons]"></ng-content>
-    </ion-buttons>
-  </ion-item>
+  <ng-content select="[endButtons]"></ng-content>
 
 </form>

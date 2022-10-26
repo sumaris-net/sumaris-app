@@ -35,6 +35,7 @@ import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { OperationPasteFlags } from '@app/referential/services/config/program.config';
 import { hasFlag } from '@app/shared/flags.utils';
+import { PositionUtils } from '@app/trip/services/position.utils';
 
 /* -- Helper function -- */
 
@@ -112,8 +113,8 @@ export class Operation
     target.fishingStartDateTime = toDateISOString(this.fishingStartDateTime);
     target.fishingEndDateTime = toDateISOString(this.fishingEndDateTime);
 
-    // Fill start position (if valid)
-    if (target.startPosition && target.startPosition.latitude && target.startPosition.longitude) {
+    // Fill date of start position (if valid)
+    if (PositionUtils.isNotNilAndValid(target.startPosition)) {
       target.startPosition.dateTime = target.startDateTime;
     }
     else {
@@ -121,8 +122,8 @@ export class Operation
       delete target.startPosition;
     }
 
-    // Fill fishing start position (if valid)
-    if (target.fishingStartPosition && target.fishingStartPosition.latitude && target.fishingStartPosition.longitude) {
+    // Fill date of fishing start position (if valid)
+    if (PositionUtils.isNotNilAndValid(target.fishingStartPosition)) {
       // Make sure to fill fishing start date, using start date if need
       target.fishingStartDateTime = target.fishingStartDateTime || target.startDateTime;
       target.fishingStartPosition.dateTime = target.fishingStartDateTime;
@@ -133,7 +134,7 @@ export class Operation
     }
 
     // Fill fishing start position (if valid)
-    if (target.fishingEndPosition && target.fishingEndPosition.latitude && target.fishingEndPosition.longitude) {
+    if (PositionUtils.isNotNilAndValid(target.fishingEndPosition)) {
       target.fishingEndDateTime = target.fishingEndDateTime || target.fishingStartDateTime || target.startDateTime;
       target.fishingEndPosition.dateTime = target.fishingEndDateTime;
     }
@@ -146,7 +147,7 @@ export class Operation
     target.endDateTime = target.endDateTime || target.fishingEndDateTime || target.fishingStartDateTime || target.startDateTime;
 
     // Fill end position date/time (if valid = has latitude AND longitude)
-    if (target.endPosition && target.endPosition.latitude && target.endPosition.longitude) {
+    if (PositionUtils.isNotNilAndValid(target.endPosition)) {
       target.endPosition.dateTime = target.endDateTime;
     }
     // Invalid position (missing latitude or longitude - allowed in on FIELD mode): remove it
@@ -160,7 +161,7 @@ export class Operation
       target.fishingStartPosition,
       target.fishingEndPosition,
       target.endPosition]
-      .filter(p => p && p.dateTime)
+      .filter(p => p?.dateTime)
       .map(p => p && p.asObject(opts)) || undefined;
     delete target.startPosition;
     delete target.fishingStartPosition;
@@ -617,8 +618,13 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     // Physical gears
     if (!opts || opts.withGearTree !== false) {
       // Convert list to tree (useful when fetching from a pod)
-      this.gears = source.gears && PhysicalGear.fromObjectArrayAsTree(source.gears)
-        .sort(EntityUtils.sortComparator('rankOrder')) || undefined;
+      this.gears = source.gears && (source.id < 0
+          // Local entity: should be already as a tree
+          ? source.gears.map(g => PhysicalGear.fromObject(g, {withChildren: true}))
+          // Convert array to tree (when fetching from pod)
+          : PhysicalGear.fromObjectArrayAsTree(source.gears)
+            .sort(EntityUtils.sortComparator('rankOrder'))
+      ) || undefined;
     }
     else {
       this.gears = source.gears && source.gears.filter(isNotNil)

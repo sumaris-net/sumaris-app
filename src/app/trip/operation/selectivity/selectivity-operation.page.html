@@ -124,7 +124,7 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
-  <!-- report -->
+  <!-- report
   <button mat-menu-item
           [disabled]="isNewData || disabled"
           (click)="openReport($event)">
@@ -132,7 +132,7 @@
       <mat-icon>description</mat-icon>&nbsp;
       <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
     </ion-label>
-  </button>
+  </button>-->
 
   <!-- online help -->
   <!-- TODO: enable this -->
@@ -145,6 +145,8 @@
     </ion-label>
   </button>
 
+  <mat-divider></mat-divider>
+
   <!-- reset -->
   <button mat-menu-item
           [disabled]="!dirty"
@@ -154,8 +156,6 @@
       <span translate>COMMON.BTN_RESET</span>
     </ion-label>
   </button>
-
-  <mat-divider></mat-divider>
 
   <!-- delete -->
   <button mat-menu-item class="ion-color-danger"
@@ -170,7 +170,6 @@
 </mat-menu>
 
 <ion-content>
-
 
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
@@ -226,12 +225,12 @@
                                              entityName="VesselUseMeasurement"
                                              [acquisitionLevel]="$acquisitionLevel|async"
                                              [forceOptional]="forceMeasurementAsOptional"
+                                             [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
+                                             (mapPmfms)="mapPmfms($event)"
                                              [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
                                              [i18nSuffix]="i18nContext.suffix"
                                              [tabindex]="30"
-                                             [mobile]="mobile"
-                                             [compact]="false"
-                                             [debug]="debug">
+                                             [mobile]="mobile">
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>
@@ -249,7 +248,9 @@
       </div>
     </mat-tab>
 
-    <mat-tab #catchTab [label]="'TRIP.OPERATION.EDIT.TAB_CATCH'|translateContext: i18nContext.suffix"
+    <!-- TAB: Catch -->
+    <mat-tab #catchTab
+             [label]="'TRIP.OPERATION.EDIT.TAB_CATCH'|translateContext: i18nContext.suffix"
              [disabled]="!showCatchTab">
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>

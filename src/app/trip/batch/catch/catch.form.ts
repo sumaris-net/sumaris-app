@@ -1,20 +1,19 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { FormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { MeasurementFormInitSteps, MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
+import { PmfmFormReadySteps, MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { BehaviorSubject } from 'rxjs';
 import { BatchValidatorService } from '../common/batch.validator';
-import {firstNotNilPromise, isNotEmptyArray, isNotNil, ReferentialRef, ReferentialUtils, toNumber} from '@sumaris-net/ngx-components';
+import { isNotNil, toNumber } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { filter } from 'rxjs/operators';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { MatrixIds, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
+import { MatrixIds } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { equals } from '@app/shared/functions';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
-import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 
 @Component({
   selector: 'form-catch-batch',
@@ -29,13 +28,14 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
   private _filter: BatchFilter;
   private _pmfmFilter: Partial<DenormalizedPmfmFilter> = null;
-  private _$physicalGearId = new BehaviorSubject<number>(undefined);
 
   $gearPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $onDeckPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $sortingPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $weightPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   $otherPmfms = new BehaviorSubject<IPmfm[]>(undefined);
+  labelColSize = 1;
+  gridColCount = 12;
   hasPmfms: boolean;
 
   @Input() showError = true;
@@ -55,17 +55,12 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     }
   }
 
-  @Input() set physicalGearId(value: number) {
-    this._$physicalGearId.next(value);
-  }
-
   constructor(
     injector: Injector,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: FormBuilder,
     protected programRefService: ProgramRefService,
-    protected validatorService: BatchValidatorService,
-    protected physicalGearService: PhysicalGearService
+    protected validatorService: BatchValidatorService
   ) {
 
     super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
@@ -87,7 +82,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this._$physicalGearId.unsubscribe();
     this.$gearPmfms.unsubscribe();
     this.$onDeckPmfms.unsubscribe();
     this.$sortingPmfms.unsubscribe();
@@ -127,7 +121,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     // Start loading pmfms
     if (this.starting) {
-      this.setLoadingProgression(MeasurementFormInitSteps.LOADING_PMFMS);
+      this.setInitStep(PmfmFormReadySteps.LOADING_PMFMS);
       this.loadPmfms();
     }
 
@@ -169,10 +163,21 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
       && !this.$sortingPmfms.value.includes(p)));
 
     this.$gearPmfms.next(pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.label?.indexOf('CHILD_GEAR') === 0));
+
+    // Compute grid column count
+    this.gridColCount = this.labelColSize /*label*/
+      + Math.min(3, Math.max(
+        this.$onDeckPmfms.value.length,
+        this.$sortingPmfms.value.length,
+        this.$weightPmfms.value.length,
+        this.$gearPmfms.value.length
+      ));
+
     this.$otherPmfms.next(pmfms.filter(p => !this.$onDeckPmfms.value.includes(p)
       && !this.$sortingPmfms.value.includes(p)
       && !this.$weightPmfms.value.includes(p)
       && !this.$gearPmfms.value.includes(p)));
+
 
     this.hasPmfms = pmfms.length > 0;
     this.markForCheck();

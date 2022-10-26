@@ -7,20 +7,25 @@ import { Geometries } from '@app/shared/geometries.utils';
 
 export abstract class PositionUtils {
 
-  static isNilOrInvalid(position: IPosition, opts?: {debug?: boolean}) {
-    // Incomplete value: cannot compute
-    if (!position || isNil(position.latitude) || isNil(position.longitude)) return true;
+  static isNotNilAndValid(position: IPosition, opts?: {debug?: boolean}) {
+
+    if (!position || isNil(position.latitude) || isNil(position.longitude)) return false;
 
     // Invalid lat/lon
     if (position.latitude < -90 || position.latitude > 90
       || position.longitude < -180 || position.longitude > 180) {
 
       // /!\ Log in console, because should never occur
-      if (opts && opts.debug) console.warn('Invalid lat/long position:  ', position);
-      return true;
+      if (opts?.debug) console.warn('Invalid lat/long position:  ', position);
+      return false;
     }
 
-    return false;
+    // OK: valid
+    return true;
+  }
+
+  static isNilOrInvalid(position: IPosition, opts?: {debug?: boolean}) {
+    return !PositionUtils.isNotNilAndValid(position, opts);
   }
 
   static computeDistanceInMiles(position1: IPosition, position2: IPosition): number {

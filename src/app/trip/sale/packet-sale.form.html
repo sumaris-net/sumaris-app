@@ -6,16 +6,12 @@
     <ion-label color="danger" class="error" [innerHTML]="error | translate"></ion-label>
   </ion-item>
 
-  <ion-grid class="ion-margin-bottom">
+  <ion-grid class="ion-margin-bottom" style="--ion-grid-columns: 7" [class.mobile]="mobile">
 
-    <ion-row class="ion-padding">
-      <!--  label  -->
-      <!--      <ion-col>-->
-      <!--        <h3>{{'PACKET.LABEL_VALUE' | translate : {rankOrder: form.controls.rankOrder.value} }}</h3>-->
-      <!--      </ion-col>-->
+    <ion-row (focusin)="salesFocusIndex=-1">
 
       <!--  number -->
-      <ion-col>
+      <ion-col class="ion-padding" >
         <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'PACKET.NUMBER'|translate"
@@ -26,7 +22,7 @@
       </ion-col>
 
       <!--  weight  -->
-      <ion-col>
+      <ion-col class="ion-padding" >
         <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'PACKET.WEIGHT'|translate"
@@ -40,10 +36,13 @@
 
     <ion-row *ngFor="let saleForm of saleFormArray?.controls; index as i; first as first; last as last, even as even"
              [formGroup]="saleForm|formGetGroup"
-             class="ion-padding" [class.even]="even">
+             class="ion-padding"
+             [class.mat-row-selected]="salesFocusIndex===i"
+             [class.even]="even"
+             (focusin)="salesFocusIndex=i">
 
       <!-- sale type -->
-      <ion-col size-lg="3" size-xs="4">
+      <ion-col>
         <mat-autocomplete-field formControlName="saleType"
                                 [placeholder]="'PACKET.SALE.SALE_TYPE'|translate"
                                 [floatLabel]="first ? 'always' : 'never'"
@@ -56,13 +55,13 @@
       </ion-col>
 
       <!-- subgroupCount -->
-      <ion-col size-lg="2" size-xs="4">
+      <ion-col size="1" class="even">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'">
           <input matInput formControlName="subgroupCount"
                  [placeholder]="'PACKET.NUMBER'|translate"
                  autocomplete="off" type="number" pattern="[0-9]*" step="1"
                  [tabIndex]="tabindex+3+i*7+1"
-                 min="0"
+                 min="1"
                  [max]="form|formGetValue:'number'"
                  required>
           <mat-error *ngIf="saleForm.controls.subgroupCount.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
@@ -76,58 +75,59 @@
       </ion-col>
 
       <!-- weight -->
-      <ion-col size-lg="2" size-xs="4">
+      <ion-col size="1">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
                         [class.computed]="true"
-                        class="mat-form-field-disabled"
-        >
+                        class="mat-form-field-disabled">
           <input matInput formControlName="weight"
                  [placeholder]="'PACKET.WEIGHT'|translate"
                  autocomplete="off" type="number"
                  [tabIndex]="tabindex+3+i*7+2"
-                 [readonly]="true"
-          >
+                 [readonly]="true">
         </mat-form-field>
       </ion-col>
 
       <!-- avg packaging price -->
-      <ion-col size-lg="2" size-xs="4">
+      <ion-col size="1" class="even">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
-                        [class.computed]="saleForm|formGetValue:'averagePackagingPriceCalculated'"
-        >
+                        [class.computed]="saleForm|formGetValue:'averagePackagingPriceCalculated'">
           <input matInput formControlName="averagePackagingPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE'|translate"
                  autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*7+3"
-          >
+                 [tabIndex]="tabindex+3+i*7+3">
         </mat-form-field>
       </ion-col>
 
       <!-- total price -->
-      <ion-col size-lg="2" size-xs="4">
+      <ion-col size="1">
         <mat-form-field [floatLabel]="first ? 'always' : 'never'"
-                        [class.computed]="saleForm|formGetValue:'totalPriceCalculated'"
-        >
+                        [class.computed]="saleForm|formGetValue:'totalPriceCalculated'">
           <input matInput formControlName="totalPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.TOTAL_PRICE'|translate"
                  autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*7+4"
-          >
+                 [tabIndex]="tabindex+3+i*7+4">
         </mat-form-field>
       </ion-col>
 
       <!-- buttons -->
-      <ion-col size-lg="1" size-xs="4" class="ion-align-self-center ion-text-end">
-        <button type="button" mat-icon-button [tabindex]="tabindex+3+i*7+5" [disabled]="disabled"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="addSale()">
-          <mat-icon>add</mat-icon>
-        </button>
-        <button type="button" mat-icon-button [tabindex]="tabindex+3+i*7+6" [disabled]="disabled"
-                [title]="'COMMON.BTN_DELETE'|translate"
-                (click)="removeSale(i)">
-          <mat-icon>close</mat-icon>
-        </button>
+      <ion-col size="auto" class="ion-align-self-center ion-text-end ion-no-padding">
+        <ion-buttons>
+          <button type="button" mat-icon-button
+                  *ngIf="last && !mobile"
+                  [disabled]="disabled"
+                  [title]="'COMMON.BTN_ADD'|translate"
+                  (click)="addSale()"
+                  [tabindex]="tabindex+3+i*7+5">
+            <mat-icon>add</mat-icon>
+          </button>
+          <button type="button" mat-icon-button
+                  *ngIf="salesFocusIndex === i && !disabled"
+                  [tabindex]="-1"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="removeSale(i)">
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </ion-buttons>
       </ion-col>
     </ion-row>
 
