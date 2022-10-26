@@ -332,10 +332,8 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     return super.getI18nColumnName(columnName);
   }
 
-  resetFilter(event?: UIEvent) {
-    this.setFilter(<OperationFilter>{tripId: this.tripId}, {emitEvent: true});
-    this.filterCriteriaCount = 0;
-    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
+  resetFilter(value?: any, opts?: { emitEvent: boolean }) {
+    super.resetFilter(<OperationFilter>{...value, tripId: this.tripId}, opts);
     this.resetError();
   }
 

@@ -2,16 +2,34 @@ import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angula
 import { VesselService } from '../services/vessel-service';
 import { VesselForm } from '../form/form-vessel';
 import { Vessel, VesselFeatures, VesselRegistrationPeriod } from '../services/model/vessel.model';
-import { AccountService, AppEntityEditor, EntityServiceLoadOptions, EntityUtils, HistoryPageReference, isNil, NetworkService, PlatformService, SharedValidators } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  Alerts,
+  AppEntityEditor,
+  ConfigService,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  HistoryPageReference,
+  isNil,
+  NetworkService,
+  PlatformService,
+  referentialToString,
+  SharedValidators,
+  StatusIds,
+} from '@sumaris-net/ngx-components';
 import { FormGroup, Validators } from '@angular/forms';
 
 import { VesselFeaturesHistoryComponent } from './vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from './vessel-registration-history.component';
-import { VesselFeaturesFilter, VesselRegistrationFilter } from '../services/filter/vessel.filter';
+import { VesselFeaturesFilter, VesselFilter, VesselRegistrationFilter } from '../services/filter/vessel.filter';
 import { VesselFeaturesService } from '../services/vessel-features.service';
 import { VesselRegistrationService } from '../services/vessel-registration.service';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
 import { moment } from '@app/vendor';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { ModalController } from '@ionic/angular';
+import { SelectVesselsModal, SelectVesselsModalOptions } from '@app/vessel/modal/select-vessel.modal';
+import { VESSEL_CONFIG_OPTIONS } from '@app/vessel/services/config/vessel.config';
 
 @Component({
   selector: 'app-vessel-page',
@@ -26,6 +44,8 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
   isNewFeatures = false;
   isNewRegistration = false;
   mobile = false;
+  replacementEnabled = false;
+  temporaryStatusId = StatusIds.TEMPORARY;
 
   get editing(): boolean {
     return this._editing || this.isNewFeatures || this.isNewRegistration;
@@ -57,7 +77,9 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     private vesselService: VesselService,
     private vesselFeaturesService: VesselFeaturesService,
     private vesselRegistrationService: VesselRegistrationService,
-    private dateAdapter: MomentDateAdapter
+    private dateAdapter: MomentDateAdapter,
+    private modalCtrl: ModalController,
+    private configService: ConfigService
   ) {
     super(injector, Vessel, vesselService, {
       tabCount: 2
@@ -70,6 +92,12 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     // Make sure template has a form
     if (!this.form) throw new Error("No form for value setting");
     this.form.disable();
+
+    this.registerSubscription(
+      this.configService.config.subscribe((config) => {
+        this.replacementEnabled = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
+      })
+    );
 
     super.ngOnInit();
   }
@@ -261,6 +289,54 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     this.form.get("vesselFeatures").disable();
     this.form.get("vesselRegistrationPeriod").disable();
     this.form.get("vesselType").disable();
+  }
+
+  async replace(event: MouseEvent) {
+
+    const modal = await this.modalCtrl.create({
+      component: SelectVesselsModal,
+      componentProps: <SelectVesselsModalOptions>{
+        titleI18n: 'VESSEL.SELECT_MODAL.REPLACE_TITLE',
+        vesselFilter: <VesselFilter>{
+          statusId: StatusIds.ENABLE,
+          onlyWithRegistration: true
+        },
+        disableStatusFilter: true,
+        showVesselTypeColumn: true,
+        showBasePortLocationColumn: true,
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // Wait until closed
+    const {data} = await modal.onDidDismiss();
+
+    if (data && data[0] instanceof VesselSnapshot) {
+      console.debug('[observed-location] Vessel selection modal result:', data);
+      const vessel = data[0] as VesselSnapshot;
+
+      if (await Alerts.askConfirmation(
+        'VESSEL.ACTION.REPLACE_CONFIRMATION',
+        this.alertCtrl,
+        this.translate,
+        event,
+        {vessel: referentialToString(vessel, ['registrationCode', 'name'])})) {
+
+        try {
+          await this.service.replaceTemporaryVessel([this.data.id], vessel.id);
+          await this.goBack(undefined);
+        } catch (e) {
+          await Alerts.showError(e.message, this.alertCtrl, this.translate);
+        }
+      }
+
+    } else {
+      console.debug('[observed-location] Vessel selection modal was cancelled');
+    }
   }
 
   async save(event, options?: any): Promise<boolean> {

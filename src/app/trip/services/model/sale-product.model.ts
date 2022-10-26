@@ -1,6 +1,6 @@
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { MeasurementValuesUtils } from './measurement.model';
-import { isNil, isNotEmptyArray, isNotNil, isNotNilOrNaN, ObjectMap, ReferentialUtils, round } from '@sumaris-net/ngx-components';
+import { isNil, isNilOrNaN, isNotEmptyArray, isNotNil, isNotNilOrNaN, ObjectMap, ReferentialUtils, round } from '@sumaris-net/ngx-components';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { Product } from './product.model';
 import { Packet, PacketUtils } from './packet.model';
@@ -103,16 +103,16 @@ export class SaleProductUtils {
       }
       const ratio = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.SALE_ESTIMATED_RATIO);
       target.ratio = isNotNilOrNaN(ratio) ? +ratio : undefined;
-      target.ratioCalculated = !target.ratio;
+      target.ratioCalculated = isNil(target.ratio);
       const averageWeightPrice = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_WEIGHT_PRICE);
       target.averageWeightPrice = isNotNilOrNaN(averageWeightPrice) ? +averageWeightPrice : undefined;
-      target.averageWeightPriceCalculated = !target.averageWeightPrice;
+      target.averageWeightPriceCalculated = isNil(target.averageWeightPrice);
       const averagePackagingPrice = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.AVERAGE_PACKAGING_PRICE);
       target.averagePackagingPrice = isNotNilOrNaN(averagePackagingPrice) ? +averagePackagingPrice : undefined;
-      target.averagePackagingPriceCalculated = !target.averagePackagingPrice;
+      target.averagePackagingPriceCalculated = isNil(target.averagePackagingPrice);
       const totalPrice = MeasurementValuesUtils.getFormValue(product.measurementValues, pmfms, PmfmIds.TOTAL_PRICE);
       target.totalPrice = isNotNilOrNaN(totalPrice) ? +totalPrice : undefined;
-      target.totalPriceCalculated = !target.totalPrice;
+      target.totalPriceCalculated = isNil(target.totalPrice);
     }
 
     return target;
@@ -130,7 +130,7 @@ export class SaleProductUtils {
 
       // aggregate weight price to packaging price
       saleProduct.averagePackagingPrice = saleProduct.averageWeightPrice;
-      saleProduct.averagePackagingPriceCalculated = !saleProduct.averagePackagingPrice;
+      saleProduct.averagePackagingPriceCalculated = isNil(saleProduct.averagePackagingPrice);
       saleProduct.averageWeightPrice = undefined;
 
       const aggregatedSaleProduct = target.find(a => a.rankOrder === saleProduct.rankOrder);
@@ -218,7 +218,7 @@ export class SaleProductUtils {
         // get or calculate average weight
         const compositionAverageRatio = PacketUtils.getCompositionAverageRatio(packet, composition);
         let averageWeight = composition.weight;
-        if (!averageWeight) {
+        if (isNilOrNaN(averageWeight)) {
           averageWeight = compositionAverageRatio * packet.weight;
         }
         product.weight = round(averageWeight * saleProduct.subgroupCount / packet.number);

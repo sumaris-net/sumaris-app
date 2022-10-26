@@ -40,6 +40,26 @@
               class="hidden-xs hidden-sm">
         <mat-icon>delete</mat-icon>
       </button>
+
+      <ion-button
+        *ngIf='replacementEnabled'
+        [matMenuTriggerFor]="optionsMenu"
+        [title]=" 'COMMON.BTN_OPTIONS'|translate">
+        <mat-icon slot="icon-only">more_vert</mat-icon>
+      </ion-button>
+
+      <mat-menu #optionsMenu="matMenu" xPosition="after">
+
+        <!-- replace -->
+        <button mat-menu-item class="ion-color-danger"
+                [disabled]='replacementDisabled'
+                (click)="replace($event)">
+          <ion-label>
+            <span translate>VESSEL.ACTION.REPLACE_MANY</span>
+          </ion-label>
+        </button>
+      </mat-menu>
+
     </ng-template>
   </ion-buttons>
 </app-toolbar>

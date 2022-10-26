@@ -138,7 +138,9 @@
         <ion-col>
           <mat-form-field>
             <mat-select formControlName="statusId"
-                        [placeholder]=" 'REFERENTIAL.STATUS'|translate" >
+                        [placeholder]=" 'REFERENTIAL.STATUS'|translate"
+                        [disabled]='disableStatusFilter'
+            >
               <mat-option [value]="null"><i><span translate>COMMON.EMPTY_OPTION</span></i></mat-option>
               <mat-option *ngFor="let item of statusList" [value]="item.id">
                 <ion-icon [name]="item.icon"></ion-icon>

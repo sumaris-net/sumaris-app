@@ -11,12 +11,14 @@ import {
   FilesUtils,
   IEntitiesService,
   isEmptyArray,
+  isNilOrBlank,
   isNotNil,
+  isNotNilOrBlank,
   NetworkService,
   referentialToString,
   toBoolean,
   toDateISOString,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
@@ -159,6 +161,7 @@ export abstract class AppRootDataTable<
           tap(json => this.setFilter(json, {emitEvent: false})),
           // Save filter in settings (after a debounce time)
           debounceTime(500),
+          filter(() => isNotNilOrBlank(this.settingsId)),
           tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe());
@@ -296,8 +299,9 @@ export abstract class AppRootDataTable<
     this.setFilter(json, {emitEvent: true});
 
     // Save filter to settings (need to be done here, because entity creation can need it - e.g. to apply Filter as default values)
-    await this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY);
-
+    if (isNotNilOrBlank(this.settingsId)) {
+      await this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY);
+    }
     return true;
   }
 
@@ -563,18 +567,6 @@ export abstract class AppRootDataTable<
     }
   }
 
-  applyFilterAndClosePanel(event?: UIEvent) {
-    this.onRefresh.emit(event);
-    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
-  }
-
-  resetFilter(event?: UIEvent) {
-    this.filterForm.reset();
-    this.setFilter(null, {emitEvent: true});
-    this.filterCriteriaCount = 0;
-    if (this.filterExpansionPanel) this.filterExpansionPanel.close();
-  }
-
   async importFromFile(event?: UIEvent): Promise<any[]> {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
@@ -606,6 +598,7 @@ export abstract class AppRootDataTable<
   }
 
   protected async restoreFilterOrLoad(opts?: { emitEvent?: boolean; }) {
+    if (isNilOrBlank(this.settingsId)) return;
     this.markAsLoading();
 
     console.debug("[root-table] Restoring filter from settings...", opts);

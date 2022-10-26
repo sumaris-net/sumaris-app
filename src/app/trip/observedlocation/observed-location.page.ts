@@ -23,10 +23,10 @@ import {
   StatusIds,
   toBoolean,
   TranslateContextService,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
-import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
+import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { Landing } from '../services/model/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
@@ -262,8 +262,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     });
 
     const modal = await this.modalCtrl.create({
-      component: SelectVesselsModal,
-      componentProps: <SelectVesselsModalOptions>{
+      component: SelectVesselsForDataModal,
+      componentProps: <SelectVesselsForDataModalOptions>{
         allowMultiple: false,
         landingFilter,
         vesselFilter: <VesselFilter>{
