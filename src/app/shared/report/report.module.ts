@@ -8,11 +8,14 @@ import { RevealModule } from '@app/shared/report/reveal/reveal.module';
     SharedModule,
     ChartsModule,
 
-    // Sub module
+    // Sub modules
     RevealModule
   ],
   exports: [
-    RevealModule
+    ChartsModule,
+
+    // Sub modules
+    RevealModule,
   ]
 })
 export class AppSharedReportModule {

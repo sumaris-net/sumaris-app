@@ -1,5 +1,5 @@
 import { ChartArea, ChartConfiguration, ChartData, ChartDataSets, ChartPoint, ChartScales, PluginServiceGlobalRegistration, PluginServiceRegistrationOptions } from "chart.js";
-import { Color, ColorScale, ColorScaleOptions } from '@sumaris-net/ngx-components';
+import { Color, ColorScale, ColorScaleOptions, rgbArrayToHex } from '@sumaris-net/ngx-components';
 
 
 export interface ChartJsUtilsAutoCategItem {
@@ -302,14 +302,10 @@ export class ChartJsUtils {
 
 export class ChartJsUtilsColor {
 
-  static getComplementaryColor(color: Color): Color {
-    return new Color(color.rgb.map(c => 255 - c));
-  }
-
-  static getDerivativeColor(color: Color, nb: number): Color[] {
-    const scale = ColorScale.custom(nb, { mainColor: color.rgb });
-    var res = Array(nb).fill(0);
-    return res.map((_, i) => scale.getLegendAtIndex(i).color);
+  static getDerivativeColor(color: Color, count: number): Color[] {
+    return ColorScale.custom(count, { mainColor: color.rgb })
+      .legend.items
+      .map(legendItem => legendItem.color);
   }
 
 }

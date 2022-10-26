@@ -39,6 +39,7 @@
               "chart.js",
               "chartjs-plugin-annotation",
               "chartjs-plugin-trendline",
+              "@sgratzl/chartjs-chart-boxplot",
               "react",
               "leaflet-easybutton",
               "@bepo65/leaflet.fullscreen",
