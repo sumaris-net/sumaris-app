@@ -221,7 +221,7 @@
            [placeholder]="placeholder"
            [required]="required"
            [tabIndex]="tabindex"
-           (click)="selectInputContent($event)"
+           (click)="clicked.emit($event)"
            (keypress)="filterAlphanumericalInput($event)"
            (keyup.enter)="onPressEnter.emit($event)"
            (focus)="focused.emit($event)"

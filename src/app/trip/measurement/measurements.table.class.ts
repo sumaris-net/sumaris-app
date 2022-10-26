@@ -494,7 +494,7 @@ export abstract class BaseMeasurementsTable<
 
   protected async existsRankOrder(rankOrder: number, excludedRows?: TableElement<T>[]): Promise<boolean> {
     const rows = this.dataSource.getRows();
-    return rows.findIndex(row => excludedRows?.includes(row) || row.currentData.rankOrder === rankOrder) !== -1;
+    return rows.some(row => (!excludedRows || !excludedRows.includes(row)) && row.currentData.rankOrder === rankOrder);
   }
 
   private async onRowCreated(row: TableElement<T>) {

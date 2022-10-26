@@ -17,8 +17,8 @@
                [matAutocomplete]="autoCombo"
                [appAutofocus]="autofocus"
                (click)="_onClick($event)"
-               (focus)="onShowDropdown.next($event)"
-               (blur)="_onBlur($event)"
+               (focus)="filterInputTextFocusEvent($event)"
+               (blur)="filterInputTextBlurEvent($event)"
                [required]="required"
                [tabindex]="_tabindex"
                (keyup.enter)="this.onPressEnter.emit($event)">
