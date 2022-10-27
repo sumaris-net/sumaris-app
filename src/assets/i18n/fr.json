@@ -8,6 +8,7 @@
     "BTN_ADD": "Ajouter",
     "BTN_ADD_ROW": "Ajouter une ligne",
     "BTN_APPLY": "Appliquer",
+    "BTN_BACKWARD": "Reculer",
     "BTN_BURST_INPUT": "Mode rafale",
     "BTN_BURST_INPUT_HELP": "Saisir en mode rafale",
     "BTN_CLEAR": "Vider",
@@ -22,6 +23,7 @@
     "BTN_DELETE_FOREVER": "Supprimer définitivement",
     "BTN_EDIT": "Modifier",
     "BTN_EXPAND": "Déplier",
+    "BTN_FORWARD": "Avancer",
     "BTN_FREEZE_VALUE": "Figer",
     "BTN_FREEZE_VALUE_HELP": "Figer la valeur",
     "BTN_INSTALL": "Installer",
@@ -49,8 +51,8 @@
     "BTN_SEND": "Envoyer",
     "BTN_OPTIONS": "Options",
     "BTN_UNDO": "Annuler les modifications",
-    "BTN_TABLE_EDIT": "Editer dans le tableau",
-    "BTN_TABLE_OPEN": "Editer dans un formulaire",
+    "BTN_TABLE_EDIT": "Éditer dans le tableau",
+    "BTN_TABLE_OPEN": "Éditer dans un formulaire",
     "BTN_SHOW_HELP": "Aide en ligne",
     "BTN_HIDE": "Masquer",
     "BTN_HIDE_MENU": "Masquer le menu",
@@ -166,10 +168,10 @@
       "TITLE": "Configuration {{label}}"
     },
     "OPTIONS": {
-      "ANDROID_INSTALL_URL": "Android > Adresse d'installation App",
+      "ANDROID_INSTALL_URL": "Android > URL d'installation App",
       "LOGO": "Menu > Logo (largeur max 110px)",
       "FAVICON": "favicon",
-      "GRAVATAR_URL": "Utilisateur > URL Gravatar (avec '{md5}'",
+      "GRAVATAR_URL": "Utilisateur > URL Gravatar (avec '{md5}')",
       "ENABLE_GRAVATAR": "Utilisateur > Utiliser Gravatar ?",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
@@ -730,9 +732,6 @@
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Captures accidentelles"
-        },
-        "TRAWL_SELECTIVITY": {
-          "TAB_CATCH_POSITION": "Capture - {{name}}"
         }
       },
       "PARENT": {
@@ -908,27 +907,20 @@
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
       },
       "TREE": {
-        "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-dessous : ",
+        "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-dessous :",
         "EMPTY": "vide",
         "BATCH_COUNT": "{{count}} lot",
         "BATCHES_COUNT": "{{count}} lots",
         "WEIGHT_COUNT": "{{count}} poids",
         "WEIGHTS_COUNT": "{{count}} poids",
-        "MEASURE_COUNT": "{{count}} mesure",
-        "MEASURES_COUNT": "{{count}} mesures"
+        "MEASUREMENT_COUNT": "{{count}} mesure",
+        "MEASUREMENTS_COUNT": "{{count}} mesures"
       },
       "PMFM": {
         "DISCARD_OR_LANDING": "Partie retenue ou rejetée ?",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
-        "TRAWL_SELECTIVITY": {
-          "CHILD_GEAR_B": "Sous-engin Bâbord",
-          "CHILD_GEAR_T": "Sous-engin Tribord",
-          "CATCH_WEIGHT_B": "Poids total capture Bâbord (kg)",
-          "CATCH_WEIGHT_T": "Poids total capture Tribord (kg)",
-          "DISCARD_WEIGHT_B": "Poids rejet Bâbord (kg)",
-          "DISCARD_WEIGHT_T": "Poids rejet Tribord (kg)"
-        }
+        "CHILD_GEAR": "Sous-engin"
       }
     },
     "SUB_BATCH": {

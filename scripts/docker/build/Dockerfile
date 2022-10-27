@@ -1,7 +1,9 @@
 # PREPARE STAGE
 ARG IMAGE_REGISTRY
 ARG DOCKER_IMAGE="node:14-slim"
-FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS prepare
+# FIXME: BLA - this image is not found in the image resgistry - do known how to add it
+#FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS prepare
+FROM $DOCKER_IMAGE AS prepare
 ARG CACHE_DIR=/tmp/.build-cache
 
 # Use a cache dir
@@ -12,7 +14,9 @@ COPY package.json .
 RUN sed -i 's/version\": \".*\"/version\": \"0.0.0\"/g' package.json
 
 # BUILD STAGE
-FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS build
+# FIXME: BLA - this image is not found in the image resgistry - do known how to add it
+#FROM $IMAGE_REGISTRY$DOCKER_IMAGE AS build
+FROM $DOCKER_IMAGE AS build
 ARG CACHE_DIR=/tmp/.build-cache
 WORKDIR $CACHE_DIR
 

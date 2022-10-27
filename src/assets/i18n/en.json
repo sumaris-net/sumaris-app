@@ -8,6 +8,7 @@
     "BTN_ADD": "Add",
     "BTN_ADD_ROW": "Add a row",
     "BTN_APPLY": "Apply",
+    "BTN_BACKWARD": "Backward",
     "BTN_BURST_INPUT": "Burst mode",
     "BTN_BURST_INPUT_HELP": "Enable burst mode",
     "BTN_CLEAR": "Clear",
@@ -22,6 +23,7 @@
     "BTN_DELETE_FOREVER": "Delete forever",
     "BTN_EDIT": "Edit",
     "BTN_EXPAND": "Expand",
+    "BTN_FORWARD": "Forward",
     "BTN_FREEZE_VALUE": "Freeze",
     "BTN_FREEZE_VALUE_HELP": "Freeze the value",
     "BTN_INSTALL": "Install",
@@ -43,6 +45,7 @@
     "BTN_SEARCH": "Search",
     "BTN_NEXT": "Next",
     "BTN_NEXT_SHORT": "Next",
+    "BTN_PREVIOUS": "Previous",
     "BTN_PREVIEW": "Preview",
     "BTN_BACK": "Back",
     "BTN_SEND": "Send",
@@ -108,11 +111,13 @@
     "YES": "Yes",
     "NO": "No",
 
+    "DEBUG": "Debug",
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
     "RESULT_COUNT": "{{count}} results",
     "NO_RESULT": "No result",
     "LOADING_DOTS": "Loading...",
+    "PLEASE_WAIT": "Please wait...",
     "NO_DATA": "No data",
     "MISSING": "Missing",
 
@@ -149,7 +154,7 @@
     "STATUS": "State",
     "PREVIEW_DIVIDER": "Preview",
     "LOGOS": "App logo images",
-    "LOGO_PARTNERS": "Partners logo (home page):",
+    "LOGO_PARTNERS": "Partners logo (home page)",
     "PROPERTIES_DIVIDER": "Options:",
     "PROPERTY_KEY": "Key",
     "PROPERTY_VALUE": "Value",
@@ -166,7 +171,7 @@
       "ANDROID_INSTALL_URL": "Android > Install App URL",
       "LOGO": "Menu > Logo (max width: 110px)",
       "FAVICON": "favicon",
-      "GRAVATAR_URL": "User > Gravatar URL (with '{md5}'",
+      "GRAVATAR_URL": "User > Gravatar URL (with '{md5}')",
       "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
@@ -226,11 +231,12 @@
         "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
         "TAXONOMIC_LEVEL_SPECIES_ID": "Referential > Taxonomic level > Species",
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
-        "PMFM_STRATEGY_LABEL_ID": "Referential > PSFM > Strategy label",
-        "PMFM_TAG_ID": "Referential > PSFM > Sample Tag-ID",
+        "PMFM_STRATEGY_LABEL_ID": "Referential > PMFM > Strategy label",
+        "PMFM_TAG_ID": "Referential > PMFM > Sample Tag-ID",
         "PMFM_TRIP_PROGRESS": "Referential > PSFM > Trip progress ? (Booleen)",
-        "PMFM_DRESSING": "Referential > PSFM > Dressing (Whole, ...)",
-        "PMFM_PRESERVATION": "Referential > PSFM > Preservation (Fresh, ...)",
+        "PMFM_DRESSING": "Referential > PMFM > Dressing (Whole, ...)",
+        "PMFM_PRESERVATION": "Referential > PMFM > Preservation (Fresh, ...)",
+        "PMFM_TRAWL_SIZE_CAT": "Referential > PMFM > Sorting category for trawl (NONE, ...)",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "PMFM_GEAR_LABEL_ID": "Referential > PMFM > Physical gear label",
@@ -251,6 +257,7 @@
         "QUALITATIVE_VALUE_LANDING_ID": "Referential > Qualitative value > Landing (LAN)",
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Referential > Qualitative value > Dressing / Whole",
         "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Referential > Qualitative value > Preservation / Fresh",
+        "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Referential > Qualitative value > Sorting category / None",
         "TAXON_GROUP_TYPE_FAO_ID": "Referential > Taxon group type / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Taxon group type / National metier",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referential > Taxon group type / DCF metier lvl 5"
@@ -610,6 +617,7 @@
       "TABLE": {
         "SELECT_ROW_HELP": "Select a row to edit it",
         "GEAR": "Gear",
+        "SUB_GEARS_COUNT": "Sub-gears count",
         "LAST_USED": "Last use",
         "COMMENTS": "Comments",
         "FILTER": {
@@ -633,7 +641,9 @@
       "ERROR": {
         "LOAD_PHYSICAL_GEARS_ERROR": "Error while loading gears.",
         "CANNOT_DELETE": "Deletion not possible",
-        "CANNOT_DELETE_USED_GEAR_HELP": "Gear(s) used in one or more operations.<br/><br/>Please <b>edit these operations</b> before trying again."
+        "CANNOT_DELETE_USED_GEAR_HELP": "Gear(s) used in one or more operations.<br/><br/>Please <b>edit these operations</b> before trying again.",
+        "NOT_ENOUGH_SUB_GEAR": "At least one sub-gears is required.",
+        "NOT_ENOUGH_SUB_GEARS": "At least {{minRowCount}} sub-gears are required."
       }
     },
     "OPERATION": {
@@ -728,6 +738,10 @@
           "TARGET_SPECIE" : "Target species"
         }
       },
+      "PMFM": {
+        "SORTING_START_DATE_TIME": "Start of sorting",
+        "SORTING_END_DATE_TIME": "End of sorting"
+      },
       "MAP": {
         "TITLE": "Positions map",
         "TRIP_LAYER_WITH_DETAILS": "{{vessel}} - Trip {{departureDateTime}}",
@@ -788,6 +802,7 @@
     },
     "CATCH": {
       "FORM": {
+        "SUB_GEAR": "Sub-gear:",
         "ON_DECK": "On deck:",
         "SORTING": "Start/end sorting:",
         "TOTAL_CATCH": "Total catch:"
@@ -834,6 +849,9 @@
         "TAXON_GROUP": "Commercial species (FAO)",
         "TAXON_NAME": "Scientific species",
         "PARENT_GROUP": "Species batch",
+        "CATCH_BATCH": "Catch",
+        "RANK_ORDER": "Batch number",
+        "LABEL": "Batch label",
         "BTN_AUTO_INCREMENT": "Auto increment",
         "BTN_INDIVIDUAL_MEASURE": "Fill measurements",
         "BTN_APPLY_CHILDREN_WEIGHT": "Apply this weight",
@@ -871,6 +889,7 @@
         "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
         "TOTAL_WEIGHT": "Total weight",
         "SAMPLING_RATIO": "Sampling fraction",
+        "SAMPLING_COEFFICIENT": "Sampling. coef.",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
         "SAMPLING_WEIGHT": "Sampling weight",
         "PARENT_GROUP": "Species batch",
@@ -881,9 +900,21 @@
         "ESTIMATED_WEIGHT_QUESTION": "Estimated weight?",
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Estim. wht?"
       },
+      "TREE": {
+        "SELECT_PARENT_HELP": "Select a batch, in the tree below:",
+        "EMPTY": "empty",
+        "BATCH_COUNT": "{{count}} batch",
+        "BATCHES_COUNT": "{{count}} batches",
+        "WEIGHT_COUNT": "{{count}} weight",
+        "WEIGHTS_COUNT": "{{count}} weights",
+        "MEASUREMENT_COUNT": "{{count}} measurement",
+        "MEASUREMENTS_COUNT": "{{count}} measurements"
+      },
       "PMFM": {
+        "DISCARD_OR_LANDING": "Landing or discard?",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Computed weight LWR (kg)",
-        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)"
+        "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)",
+        "CHILD_GEAR": "Sub-gear"
       }
     },
     "SUB_BATCH": {
@@ -954,7 +985,8 @@
         "BTN_INDIVIDUAL_RELEASE": "Fill release",
         "AUCTION_CONTROL": {
           "LABEL": "Batch",
-          "LABEL_PLACEHOLDER": "Batch"
+          "LABEL_PLACEHOLDER": "Batch number",
+          "COMMENTS": "Comments"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Individual measures",
@@ -964,7 +996,8 @@
         "SURVIVAL_TEST": {
           "TAB_SAMPLES": "Mesures individuelles",
           "TAB_SUB_SAMPLES": "Suivi individuel",
-          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel"
+          "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
+          "TAG_COUNT": "<b>{{tagCount}}</b> Tag-ID"
         }
       },
       "PMFM_GROUP": {
@@ -982,7 +1015,7 @@
           "TAG_ID": "Tag-ID"
         },
         "AUCTION_CONTROL": {
-          "SAMPLE_MEASURED_WEIGHT": "Poids échantillon"
+          "SAMPLE_MEASURED_WEIGHT": "Sample weight (g)"
         },
         "INDIVIDUAL_RELEASE": {
           "MEASURE_TIME": "Release date",
@@ -1004,7 +1037,8 @@
         "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required"
       },
       "SETTINGS": {
-        "BURST_MODE_ENABLE": "Sample: enable burst mode?"
+        "BURST_MODE_ENABLE": "Sample: Enable burst mode?",
+        "SAMPLE_WEIGHT_UNIT": "Sample: Weight unit"
       }
     },
     "SUB_SAMPLE" : {
@@ -1100,7 +1134,8 @@
       },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
-        "TAB_LANDINGS": "Sampling"
+        "TAB_LANDINGS": "Sampling",
+        "TAB_GENERAL": "Occasion"
       }
     },
     "SELECT_VESSEL_MODAL": {
@@ -1153,6 +1188,10 @@
       "DATE_TIME": "Date/time :",
       "OBSERVERS": "Observers(s) :",
       "VESSEL_COUNT": "Number of vessels :",
+      "SUMMARY_TITLE": "Global summary",
+      "SAMPLING": {
+        "SUMMARY_TITLE": "Synthesis of samplings"
+      },
       "AUCTION_CONTROL": {
         "TITLE": "Summary of the monitoring of controls under auctions : {{ location }} - {{ dateTime }}",
         "TITLE_SHORT": "Summary of the monitoring of controls under auctions",
@@ -1206,9 +1245,25 @@
       "STRATEGY": "Strategy",
       "CREATION_DATE": "Creation date",
       "RECORDER_PERSON" : "Recorder",
-      "SAMPLES_COUNT": "Samples count",
+      "SAMPLES_COUNT": "Measurement count",
       "SAMPLING": {
-        "STRATEGY_LABEL": "Sample row"
+        "SAMPLES_COUNT": "Samples count"
+      }
+    },
+    "PMFM": {
+      "SAMPLING": {
+        "STRATEGY_LABEL": "Ligne de plan"
+      }
+    },
+    "REPORT": {
+      "TITLE": "Landings",
+      "DATE_TIME": "Date/Time:",
+      "VESSEL": "Vessel:",
+      "RECORDER_PERSON": "Recorder:",
+      "SAMPLING": {
+        "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
+        "TITLE_SHORT": "Report",
+        "SAMPLES_TITLE": "Samples"
       }
     },
     "SELECT_MODAL": {
@@ -1268,13 +1323,14 @@
   "AUCTION_CONTROL": {
     "TITLE_PREFIX": "<small>{{location}} - Control {{date}}<br/></small>",
     "TAB_SAMPLES": "Checkpoints",
-    "TAXON_GROUP_PLACEHOLDER": "COntrolled species",
+    "TAXON_GROUP_PLACEHOLDER": "Controlled species",
     "NEW": {
       "TITLE": "New controlled vessel"
     },
     "EDIT": {
       "TITLE": "Vessel {{vessel}}",
-      "OTHER_TAXON_GROUP": "Commercial species (FAO)"
+      "OTHER_TAXON_GROUP": "Commercial species (FAO)",
+      "BTN_REPORT": "Generate report"
     },
     "SAMPLE": {
       "NEW": {
@@ -1282,19 +1338,13 @@
       },
       "EDIT": {
         "TITLE": "Controlled sample {{label}}"
-      },
-      "REPORT": {
-        "TITLE": "Control report - {{vessel}} - {{date}}"
       }
     },
     "REPORT": {
       "TITLE": "Control report - {{vessel}} - {{date}}",
       "TITLE_SHORT": "Control report",
       "AUCTION": "Auction :",
-      "DATE_TIME": "Date/Time :",
-      "CONTROLLER": "Controller :",
-      "VESSEL": "Vessel",
-      "SPECIES": "Species"
+      "CONTROLLED_SPECIES": "Controlled species:"
     }
   },
   "EXPENSE": {
@@ -1677,6 +1727,7 @@
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Trip > Gear: Allow sub-gears?",
+      "TRIP_PHYSICAL_GEAR_HELP_MESSAGE": "Trip > Gear: Help message",
       "TRIP_MAP_ENABLE": "Trip > Map: Enable?",
       "TRIP_MAP_CENTER": "Trip > Map: cernter position",
       "TRIP_MAP_ZOOM": "Trip > Map: Zoom level",
@@ -1754,6 +1805,7 @@
       "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
       "LANDING_SAMPLES_WEIGHT_UNIT": "Observation > Landings: Weight unit",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
+      "REPORT_ENABLE": "Report > Enable report?",
       "STRATEGY_EDITOR" : "Strategy > editor",
       "STRATEGY_EDITOR_ENUM": {
         "LEGACY": "Default",
@@ -1762,6 +1814,7 @@
       "STRATEGY_EDITOR_LOCATION_LEVEL_IDS": "Strategy > Editor : Location level(s) (ids)",
       "STRATEGY_EDITOR_PREDOC_ENABLE": "Strategy > Editor: Auto-enable filtered fields",
       "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Strategy > Editor: Nb. items for filtered fields",
+      "STRATEGY_DEPARTMENT_ENABLE": "Strategy > Enable access right by department (STRATEGY_DEPARTMENT)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Qualitative values > Max nb buttons (mobile)",
       "VESSEL_TYPE_ENABLE": "Vessels > Enable vessel type?"
     },
@@ -2002,7 +2055,9 @@
       }
     },
     "TABLE": {
-      "BTN_SELECT_TYPE": "Data sources"
+      "TITLE": "Data extraction",
+      "BTN_SELECT_TYPE": "Data sources",
+      "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :"
     },
     "MAP": {
       "BTN_MAP_LIST": "List of maps",
@@ -2054,6 +2109,9 @@
       "SELECT_MODAL": {
         "TITLE": "Map list",
         "HELP": "Here is the list of available maps:"
+      },
+      "WARNING": {
+        "NO_DATA": "No data found. Please select another map."
       }
     },
     "CATEGORY": {
@@ -2168,6 +2226,9 @@
           "ST": "Strategies",
           "SM": "Strategy monitoring"
         }
+      },
+      "INFO": {
+        "PLEASE_WAIT_WHILE_RUNNING": "Extraction in progress. Please wait..."
       }
     },
     "ERROR": {
@@ -2229,7 +2290,8 @@
         "EMPTY": "No notification",
         "READ_ALL": "Mark all as read"
       },
-      "EVENT_TYPE": "Type",
+      "TYPE": "Type",
+      "ICON": "Icon",
       "CREATION_DATE": "Date/Time",
       "MESSAGE": "Message",
       "BTN_COPY_TO_LOCAL": "Copy locally",

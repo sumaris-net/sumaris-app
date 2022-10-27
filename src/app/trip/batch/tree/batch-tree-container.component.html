@@ -92,13 +92,13 @@
   <button mat-icon-button
           [class.cdk-visually-hidden]="!editingBatch"
           (click)="backward($event)"
-          [title]="'COMMON.BTN_PREVIOUS'|translate">
+          [title]="'COMMON.BTN_BACKWARD'|translate">
     <ion-icon slot="icon-only" name="chevron-back-circle-outline"></ion-icon>
   </button>
   <button mat-icon-button
           [class.cdk-visually-hidden]="!editingBatch"
           (click)="forward($event)"
-          [title]="'COMMON.BTN_NEXT'|translate">
+          [title]="'COMMON.BTN_FORWARD'|translate">
 
     <ion-icon *ngIf="highlightForwardButton; else normalIcon" slot="icon-only" name="chevron-forward-circle" color="tertiary"></ion-icon>
     <ng-template #normalIcon>
@@ -299,7 +299,7 @@
       <!-- TODO measure count - need a cached value in model
       <ion-badge *ngIf="node===editingBatch ? batchTree.subBatchesCount : 0; let count"
                  [color]="count ? 'tertiary' : 'warning'"
-                 slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.MEASURE_COUNT' : 'TRIP.BATCH.TREE.MEASURES_COUNT') | translate:{count: count} }}
+                 slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.MEASUREMENT_COUNT' : 'TRIP.BATCH.TREE.MEASUREMENTS_COUNT') | translate:{count: count} }}
       </ion-badge> -->
     </ng-template>
 
