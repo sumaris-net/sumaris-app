@@ -2057,7 +2057,7 @@
     "TABLE": {
       "TITLE": "Data extraction",
       "BTN_SELECT_TYPE": "Data sources",
-      "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :"
+      "SELECT_TYPE_HELP": "Please <b>choose a data source</b>, to start an extraction:"
     },
     "MAP": {
       "BTN_MAP_LIST": "List of maps",
