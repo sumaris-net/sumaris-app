@@ -1,5 +1,5 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
-import { IonicStorageModule } from '@ionic/storage';
+import { IonicStorageModule } from '@ionic/storage-angular';
 import { HttpClientModule } from '@angular/common/http';
 import { CacheModule } from 'ionic-cache';
 import { AppGraphQLModule, CoreModule } from '@sumaris-net/ngx-components';
