@@ -1,5 +1,5 @@
 import { LocalSettingsService, Person, SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { RootDataEntity } from '../model/root-data-entity.model';
 import { IWithObserversEntity } from '../model/model.utils';
 import { Program } from '../../../referential/services/model/program.model';
@@ -15,7 +15,7 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
   extends DataEntityValidatorService<T, O> {
 
   protected constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     settings?: LocalSettingsService
     ) {
     super(formBuilder, settings);
@@ -43,7 +43,7 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
     );
   }
 
-  getObserverControl(observer?: Person): FormControl {
+  getObserverControl(observer?: Person): UntypedFormControl {
     return this.formBuilder.control(observer || null, [Validators.required, SharedValidators.entity]);
   }
 }

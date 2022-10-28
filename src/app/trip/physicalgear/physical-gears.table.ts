@@ -7,7 +7,7 @@ import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.mo
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PhysicalGearFilter } from './physical-gear.filter';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
@@ -28,7 +28,7 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed',
 export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
   touchedSubject = new BehaviorSubject<boolean>(false);
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   modalOptions: Partial<IPhysicalGearModalOptions>;
 
   @Input() canDelete = true;
@@ -111,7 +111,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
 
   constructor(
     injector: Injector,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,

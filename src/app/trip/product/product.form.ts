@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit } 
 import { Moment } from 'moment';
 import { Injector } from '@angular/core';
 import { IReferentialRef, isNotNil, LoadResult, LocalSettingsService } from '@sumaris-net/ngx-components';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { MeasurementValuesForm } from '@app/trip/measurement/measurement-values.form.class';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
@@ -31,7 +31,7 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: ProductValidatorService
   ) {

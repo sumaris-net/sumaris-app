@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppForm, firstArrayValue } from '@sumaris-net/ngx-components';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { tap } from 'rxjs/operators';
@@ -32,7 +32,7 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
   @ViewChildren('navBar') navBars : QueryList<MatTabNav>;
 
   constructor(injector: Injector,
-              protected formBuilder: FormBuilder,
+              protected formBuilder: UntypedFormBuilder,
               protected cd: ChangeDetectorRef
   ) {
     super(injector, formBuilder.group({
@@ -74,7 +74,7 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
 
   setPmfms(pmfms?: IPmfm[]) {
 
-    const measurementValuesForm = this.form.get('measurementValues') as FormGroup;
+    const measurementValuesForm = this.form.get('measurementValues') as UntypedFormGroup;
 
     // Remove previous controls
     const existingControlKeys = Object.keys(measurementValuesForm.controls);

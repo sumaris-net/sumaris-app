@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, Injector, Input } from '@angular/co
 import { AppEntityEditor, LocalSettingsService, Message, MessageModal, MessageModalOptions, MessageService, Person, PersonService } from '@sumaris-net/ngx-components';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 import { UserEventService } from '@app/social/user-event/user-event.service';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 
 @Component({
@@ -13,7 +13,7 @@ import { ModalController } from '@ionic/angular';
 })
 export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventService> {
 
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   @Input() bodyAutoHeight = true;
 
@@ -22,7 +22,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
               protected messageService: MessageService,
               protected settings: LocalSettingsService,
               protected modalCtrl: ModalController,
-              protected formBuilder: FormBuilder) {
+              protected formBuilder: UntypedFormBuilder) {
     super(injector, UserEvent, injector.get(UserEventService), {
       pathIdAttribute: 'messageId',
       tabCount: 1

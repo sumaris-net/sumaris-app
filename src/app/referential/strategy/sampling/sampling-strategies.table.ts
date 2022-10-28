@@ -28,7 +28,7 @@ import { environment } from '@environments/environment';
 import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
 import { StrategyService } from '../../services/strategy.service';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ParameterService } from '@app/referential/services/parameter.service';
 import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
@@ -68,7 +68,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   errorDetails: any;
   parameterIdsByGroupLabel: ObjectMap<number[]>;
 
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   filterCriteriaCount = 0;
   i18nContext: {
     prefix?: string;
@@ -103,7 +103,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected taxonNameRefService: TaxonNameRefService,
     protected personService: PersonService,
     protected parameterService: ParameterService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected cd: ChangeDetectorRef
   ) {
     super(injector,

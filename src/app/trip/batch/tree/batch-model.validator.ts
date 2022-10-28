@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {FormArrayHelper, isNotEmptyArray, LocalSettingsService} from '@sumaris-net/ngx-components';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {MeasurementsValidatorService} from '@app/trip/services/validator/measurement.validator';
@@ -33,7 +33,7 @@ export class BatchModelValidatorService<
   > extends BatchValidatorService<T, O> {
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     measurementsValidatorService: MeasurementsValidatorService,
     settings?: LocalSettingsService
   ) {
@@ -42,7 +42,7 @@ export class BatchModelValidatorService<
 
 
 
-  getFormGroup(data?: T, opts?: O): FormGroup {
+  getFormGroup(data?: T, opts?: O): UntypedFormGroup {
 
     const form = super.getFormGroup(data, {...opts,
       withChildren: false, // Skip inherited children logic: avoid to create an unused sampling batch. See bellow

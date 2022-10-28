@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Output } from '@angular/core';
 import { Moment } from 'moment';
-import { FormArray, FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
 import {
@@ -80,8 +80,8 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   activitiesHelper: FormArrayHelper<VesselActivity>;
   activityFocusIndex = -1;
 
-  get activitiesForm(): FormArray {
-    return this.form.controls.activities as FormArray;
+  get activitiesForm(): UntypedFormArray {
+    return this.form.controls.activities as UntypedFormArray;
   }
 
   activities: VesselActivity[];
@@ -105,7 +105,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   constructor(
     injector: Injector,
     protected dateFormatPipe: DateFormatPipe,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected dataService: AggregatedLandingService,
     protected vesselActivityValidatorService: VesselActivityValidatorService,
     protected referentialRefService: ReferentialRefService,

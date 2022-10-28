@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Property } from '@sumaris-net/ngx-components';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
@@ -12,7 +12,7 @@ import { FloatLabelType } from '@angular/material/form-field';
 })
 export class AppSamplingRatioTestPage implements OnInit {
 
-  form: FormGroup;
+  form: UntypedFormGroup;
   maxDecimals: number = 6;
   format: SamplingRatioFormat = '%';
   formats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.values as Property[];
@@ -21,7 +21,7 @@ export class AppSamplingRatioTestPage implements OnInit {
 
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
     this.form = formBuilder.group({
       empty: [null, Validators.required],

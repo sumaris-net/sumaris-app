@@ -25,7 +25,7 @@ import {
   StatusList,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../environments/environment';
 import { ReferentialFilter } from '../services/filter/referential.filter';
@@ -54,7 +54,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
 
   private _entityName: string;
 
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   $selectedEntity = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }>(undefined);
   $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
@@ -114,7 +114,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     protected validatorService: ReferentialValidatorService,
     protected referentialService: ReferentialService,
     protected referentialRefService: ReferentialRefService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected translate: TranslateService
   ) {
     super(injector,

@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { BehaviorSubject, isObservable, merge, Observable, Subject } from 'rxjs';
-import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { filter, first, takeUntil } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
@@ -11,7 +11,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 
 export interface IMeasurementValuesFormOptions {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
-  onUpdateFormGroup?: (formGroup: FormGroup) => void | Promise<void>;
+  onUpdateFormGroup?: (formGroup: UntypedFormGroup) => void | Promise<void>;
   skipDisabledPmfmControl?: boolean; // True by default
   skipComputedPmfmControl?: boolean; // True by default
 }
@@ -41,7 +41,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected data: T;
   protected applyingValue = false;
-  protected _measurementValuesForm: FormGroup;
+  protected _measurementValuesForm: UntypedFormGroup;
   protected options: IMeasurementValuesFormOptions;
   protected cd: ChangeDetectorRef = null;
 
@@ -133,15 +133,15 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     return this.form.get('program');
   }
 
-  get measurementValuesForm(): FormGroup {
-    return this._measurementValuesForm || (this.form.controls.measurementValues as FormGroup);
+  get measurementValuesForm(): UntypedFormGroup {
+    return this._measurementValuesForm || (this.form.controls.measurementValues as UntypedFormGroup);
   }
 
   protected constructor(injector: Injector,
                         protected measurementValidatorService: MeasurementsValidatorService,
-                        protected formBuilder: FormBuilder,
+                        protected formBuilder: UntypedFormBuilder,
                         protected programRefService: ProgramRefService,
-                        form?: FormGroup,
+                        form?: UntypedFormGroup,
                         options?: IMeasurementValuesFormOptions
   ) {
     super(injector, form);
@@ -567,7 +567,7 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
     if (!pmfms) return; // Skip
 
     const form = this.form;
-    this._measurementValuesForm = form.get('measurementValues') as FormGroup;
+    this._measurementValuesForm = form.get('measurementValues') as UntypedFormGroup;
 
     if (this.debug) console.debug(`${this._logPrefix} Updating form controls, force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 

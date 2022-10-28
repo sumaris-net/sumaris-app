@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import { isNotNil, LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import {SaleValidatorService} from './sale.validator';
 import {MeasurementsValidatorService} from './measurement.validator';
@@ -30,7 +30,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   static readonly DEFAULT_MAX_DURATION_HOURS = 100 * 24; // 100 days
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     settings: LocalSettingsService,
     protected saleValidator: SaleValidatorService,
     protected fishingAreaValidator: FishingAreaValidatorService,
@@ -39,7 +39,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     super(formBuilder, settings);
   }
 
-  getFormGroup(data?: Trip, opts?: O): FormGroup {
+  getFormGroup(data?: Trip, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
@@ -108,7 +108,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     };
   }
 
-  updateFormGroup(form: FormGroup, opts?: O): FormGroup {
+  updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     form.get('returnLocation').setValidators(!opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);

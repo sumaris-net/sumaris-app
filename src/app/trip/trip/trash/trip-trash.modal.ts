@@ -19,7 +19,7 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {Location} from '@angular/common';
 import {TripService} from '../../services/trip.service';
 import {TripFilter} from '../../services/filter/trip.filter';
-import {FormBuilder} from '@angular/forms';
+import {UntypedFormBuilder} from '@angular/forms';
 import {TranslateService} from '@ngx-translate/core';
 import {TableElement} from '@e-is/ngx-material-table';
 import {OperationService} from '../../services/operation.service';
@@ -62,7 +62,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     protected service: TripService,
     protected entities: EntitiesStorage,
     protected trashRemoteService: TrashRemoteService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected cd: ChangeDetectorRef
   ) {
 

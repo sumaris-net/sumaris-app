@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from "@angular/forms";
 import { toNumber } from "@sumaris-net/ngx-components";
 import { SharedValidators } from "@sumaris-net/ngx-components";
 import { AppliedPeriod, AppliedStrategy, Strategy, StrategyDepartment, TaxonGroupStrategy, TaxonNameStrategy } from "../model/strategy.model";
@@ -10,13 +10,13 @@ import { ReferentialValidatorService } from "./referential.validator";
 export class StrategyValidatorService extends ReferentialValidatorService<Strategy> {
 
   constructor(
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected pmfmStrategyValidatorService: PmfmStrategyValidatorService
   ) {
     super(formBuilder);
   }
 
-  getFormGroup(data?: Strategy): FormGroup {
+  getFormGroup(data?: Strategy): UntypedFormGroup {
     //console.debug("[strategy-validator] Creating strategy form");
 
     return this.formBuilder.group({
@@ -63,7 +63,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
     );
   }
 
-  getAppliedStrategiesControl(data?: AppliedStrategy): FormGroup {
+  getAppliedStrategiesControl(data?: AppliedStrategy): UntypedFormGroup {
     return this.formBuilder.group({
       id: [toNumber(data && data.id, null)],
       strategyId: [toNumber(data && data.strategyId, null)],
@@ -78,7 +78,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
     );
   }
 
-  getAppliedPeriodsControl(data?: AppliedPeriod): FormGroup {
+  getAppliedPeriodsControl(data?: AppliedPeriod): UntypedFormGroup {
     return this.formBuilder.group({
       appliedStrategyId: [toNumber(data && data.appliedStrategyId, null)],
       startDate: [data && data.startDate, Validators.compose([Validators.required, SharedValidators.validDate])],
@@ -93,7 +93,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
     );
   }
 
-  getStrategyDepartmentsControl(data?: StrategyDepartment): FormGroup {
+  getStrategyDepartmentsControl(data?: StrategyDepartment): UntypedFormGroup {
     return this.formBuilder.group({
       strategyId: [toNumber(data && data.strategyId, null)],
       location: [data && data.location, SharedValidators.entity],
@@ -108,7 +108,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
     );
   }
 
-  getGearControl(gear?: any): FormControl {
+  getGearControl(gear?: any): UntypedFormControl {
     return this.formBuilder.control(gear || null, [Validators.required, SharedValidators.entity]);
   }
 
@@ -118,7 +118,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
     );
   }
 
-  getTaxonNameStrategyControl(data?: TaxonNameStrategy): FormGroup {
+  getTaxonNameStrategyControl(data?: TaxonNameStrategy): UntypedFormGroup {
     return this.formBuilder.group({
       strategyId: [toNumber(data && data.strategyId, null)],
       priorityLevel: [data && data.priorityLevel, SharedValidators.integer],
@@ -132,7 +132,7 @@ export class StrategyValidatorService extends ReferentialValidatorService<Strate
     );
   }
 
-  getTaxonGroupStrategyControl(data?: TaxonGroupStrategy): FormGroup {
+  getTaxonGroupStrategyControl(data?: TaxonGroupStrategy): UntypedFormGroup {
     return this.formBuilder.group({
       strategyId: [toNumber(data && data.strategyId, null)],
       priorityLevel: [data && data.priorityLevel, SharedValidators.integer],

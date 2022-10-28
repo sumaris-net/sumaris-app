@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { toNumber } from '@sumaris-net/ngx-components';
 import { IPosition } from '@app/data/services/model/vessel-position.model';
 import { BBox } from 'geojson';
@@ -8,7 +8,7 @@ import { SharedValidators } from '@sumaris-net/ngx-components';
 @Injectable({providedIn: 'root'})
 export class PositionValidatorService {
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor(private formBuilder: UntypedFormBuilder) {
   }
 
   getFormGroup(data: IPosition | undefined,
@@ -16,7 +16,7 @@ export class PositionValidatorService {
                  __typename: string;
                  required?: boolean;
                  boundingBox?: BBox;
-               }): FormGroup {
+               }): UntypedFormGroup {
     return this.formBuilder.group({
       __typename: [data?.__typename || opts.__typename],
       id: [toNumber(data?.id, null)],

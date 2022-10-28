@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
-import {FormGroup, ValidationErrors} from '@angular/forms';
+import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 import {AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups} from '@app/referential/services/model/model.enum';
@@ -279,7 +279,7 @@ export class SamplingLandingPage extends LandingPage {
     return `${parentUrl}/sampling/${id}`;
   }
 
-  protected registerSampleRowValidator(form: FormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
+  protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug('[sampling-landing-page] Adding row validator');
 
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.samplesTable.pmfmGroups || {}, {

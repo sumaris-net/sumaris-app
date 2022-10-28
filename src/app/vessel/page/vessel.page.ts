@@ -17,7 +17,7 @@ import {
   SharedValidators,
   StatusIds,
 } from '@sumaris-net/ngx-components';
-import { FormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 
 import { VesselFeaturesHistoryComponent } from './vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from './vessel-registration-history.component';
@@ -65,7 +65,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
 
   @ViewChild('registrationHistoryTable', {static: true}) private registrationHistoryTable: VesselRegistrationHistoryComponent;
 
-  protected get form(): FormGroup {
+  protected get form(): UntypedFormGroup {
     return this.vesselForm.form;
   }
 

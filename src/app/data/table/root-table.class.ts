@@ -1,5 +1,5 @@
 import { Directive, Injector, Input, ViewChild } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
@@ -57,7 +57,7 @@ export abstract class AppRootDataTable<
 
   canDelete: boolean;
   isAdmin: boolean;
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
   showUpdateOfflineFeature = false;

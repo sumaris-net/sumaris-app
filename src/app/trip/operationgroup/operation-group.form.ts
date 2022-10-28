@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { AccountService, isNotNil, PlatformService, ReferentialRef, referentialToString } from '@sumaris-net/ngx-components';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { OperationGroup } from '../services/model/trip.model';
 import { Observable } from 'rxjs';
 import { MetierService } from '@app/referential/services/metier.service';
@@ -38,7 +38,7 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: OperationGroupValidatorService,

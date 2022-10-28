@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { AppFormUtils, FormErrors, isNotEmptyArray, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
@@ -26,7 +26,7 @@ export interface BatchControlOptions extends BatchValidatorOptions {
 export class BatchService implements IDataEntityQualityService<Batch<any, any>, BatchControlOptions>{
 
   protected constructor(
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected settings: LocalSettingsService,
     protected programRefService: ProgramRefService,

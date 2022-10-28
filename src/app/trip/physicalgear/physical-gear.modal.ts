@@ -21,7 +21,7 @@ import {
 import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
 import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
 import {environment} from '@environments/environment';
-import {FormGroup} from '@angular/forms';
+import {UntypedFormGroup} from '@angular/forms';
 import {PhysicalGearFilter} from '@app/trip/physicalgear/physical-gear.filter';
 import {BehaviorSubject} from 'rxjs';
 import {PHYSICAL_GEAR_DATA_SERVICE_TOKEN} from '@app/trip/physicalgear/physicalgear.service';
@@ -97,7 +97,7 @@ export class PhysicalGearModal
 
   @ViewChild(PhysicalGearForm, {static: true}) physicalGearForm: PhysicalGearForm;
 
-  get form(): FormGroup {
+  get form(): UntypedFormGroup {
     return this.physicalGearForm.form;
   }
 

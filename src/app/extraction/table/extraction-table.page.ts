@@ -28,7 +28,7 @@ import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/ex
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { ExtractionService } from '../common/extraction.service';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { MatTable } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -88,7 +88,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     accountService: AccountService,
     service: ExtractionService,
     settings: LocalSettingsService,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,

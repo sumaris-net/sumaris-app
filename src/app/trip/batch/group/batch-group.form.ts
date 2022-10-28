@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryList, ViewChildren } from '@angular/core';
 import { Batch} from '../common/batch.model';
-import { AbstractControl, FormBuilder, FormControl } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { AppFormUtils, InputElement, isNil, isNotNil, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
@@ -142,7 +142,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: BatchGroupValidatorService,
@@ -157,7 +157,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
-    this.hasSubBatchesControl = new FormControl(false);
+    this.hasSubBatchesControl = new UntypedFormControl(false);
     this.showSamplingBatch = false;
     this._logPrefix = '[batch-group-form]';
 

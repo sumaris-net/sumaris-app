@@ -1,4 +1,4 @@
-import {AbstractControlOptions, FormBuilder, Validators} from "@angular/forms";
+import {AbstractControlOptions, UntypedFormBuilder, Validators} from "@angular/forms";
 import {isNotNil, toNumber} from "@sumaris-net/ngx-components";
 import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
 import {Injectable} from "@angular/core";
@@ -10,7 +10,7 @@ import {Pmfm} from "../model/pmfm.model";
 export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(formBuilder);
   }

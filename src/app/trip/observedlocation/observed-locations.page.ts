@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { ReferentialRefService } from '../../referential/services/referential-ref.service';
-import { FormArray, FormBuilder, FormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { Alerts, ConfigService, HammerSwipeEvent, isNotEmptyArray, isNotNil, PersonService, PersonUtils, ReferentialRef, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
 import { ObservedLocationService } from '../services/observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -45,12 +45,12 @@ export class ObservedLocationsPage extends
   @Input() showRecorder = true;
   @Input() showObservers = true;
 
-  get filterObserversForm(): FormArray {
-    return this.filterForm.controls.observers as FormArray;
+  get filterObserversForm(): UntypedFormArray {
+    return this.filterForm.controls.observers as UntypedFormArray;
   }
 
-  get filterDataQualityControl(): FormControl {
-    return this.filterForm.controls.dataQualityStatus as FormControl;
+  get filterDataQualityControl(): UntypedFormControl {
+    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
   constructor(
@@ -59,7 +59,7 @@ export class ObservedLocationsPage extends
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected configService: ConfigService,
     protected context: ContextService,
     protected cd: ChangeDetectorRef

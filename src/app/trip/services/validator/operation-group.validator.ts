@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { LocalSettingsService, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
@@ -18,18 +18,18 @@ export class OperationGroupValidatorService<O extends OperationGroupValidatorOpt
   extends DataEntityValidatorService<OperationGroup, O> implements ValidatorService {
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     settings: LocalSettingsService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, settings);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: OperationGroup, opts?: O): FormGroup {
+  getFormGroup(data?: OperationGroup, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);

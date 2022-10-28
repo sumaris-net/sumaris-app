@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import {
   AccountService,
@@ -41,13 +41,13 @@ export class SamplingStrategyPage extends AppEntityEditor<SamplingStrategy, Samp
 
   @ViewChild('form', { static: true }) strategyForm: SamplingStrategyForm;
 
-  get form(): FormGroup {
+  get form(): UntypedFormGroup {
     return this.strategyForm.form;
   }
 
   constructor(
     protected injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected accountService: AccountService,
     protected samplingStrategyService: SamplingStrategyService,
     protected programService: ProgramService,

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, PlatformService, SharedValidators, toDateISOString } from '@sumaris-net/ngx-components';
@@ -106,7 +106,7 @@ export class SampleTreeTestPage implements OnInit {
 
 
   $programLabel = new BehaviorSubject<string>(undefined);
-  form: FormGroup;
+  form: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
   defaultSampleDate = moment();
 
@@ -118,7 +118,7 @@ export class SampleTreeTestPage implements OnInit {
   @ViewChild('desktopTree', { static: true }) desktopTree: SampleTreeComponent;
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected platform: PlatformService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,

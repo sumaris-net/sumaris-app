@@ -21,7 +21,7 @@ import { Operation, Trip } from '../services/model/trip.model';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { TripService } from '@app/trip/services/trip.service';
 import { debounceTime, filter } from 'rxjs/operators';
-import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import moment from 'moment/moment';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -45,7 +45,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
 
   limitDateForLostOperation = moment().add(-4, 'day');
   trips = new Array<Trip>();
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   displayAttributes: {
     [key: string]: string[]
   };
@@ -97,7 +97,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
 
   constructor(
     injector: Injector,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
     protected referentialRefService: ReferentialRefService,

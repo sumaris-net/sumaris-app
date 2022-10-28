@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppForm, AppFormUtils, FormArrayHelper, isNotEmptyArray, UsageMode } from '@sumaris-net/ngx-components';
 import { PacketValidatorService } from '../services/validator/packet.validator';
 import { Packet } from '../services/model/packet.model';
@@ -25,8 +25,8 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   salesFocusIndex = -1;
   adding = false;
 
-  get saleFormArray(): FormArray {
-    return this.form.controls.saleProducts as FormArray;
+  get saleFormArray(): UntypedFormArray {
+    return this.form.controls.saleProducts as UntypedFormArray;
   }
 
   @Input() mobile: boolean;
@@ -50,7 +50,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     injector: Injector,
     protected validatorService: PacketValidatorService,
     protected cd: ChangeDetectorRef,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
     super(injector, validatorService.getFormGroup(undefined, {withSaleProducts: true}));
@@ -118,7 +118,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     this._saleSubscription = new Subscription();
 
     // add subscription on each sale form
-    for (const saleForm of this.saleFormArray.controls as FormGroup[] || []) {
+    for (const saleForm of this.saleFormArray.controls as UntypedFormGroup[] || []) {
       this._saleSubscription.add(
         saleForm.valueChanges.subscribe(() => {
           const dirty = saleForm.dirty;
@@ -132,7 +132,7 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   }
 
   private computeAllPrices() {
-    for (const sale of this.saleFormArray.controls as FormGroup[] || []) {
+    for (const sale of this.saleFormArray.controls as UntypedFormGroup[] || []) {
       this.computePrices(sale.controls);
     }
   }

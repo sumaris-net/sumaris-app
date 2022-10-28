@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDest
 import { Batch } from '../common/batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import {
@@ -57,9 +57,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected _disableByDefaultControls: AbstractControl[] = [];
   protected _weightConversionSubscription: Subscription;
 
-  enableIndividualCountControl: FormControl;
-  freezeTaxonNameControl: FormControl;
-  freezeQvPmfmControl: FormControl;
+  enableIndividualCountControl: UntypedFormControl;
+  freezeTaxonNameControl: UntypedFormControl;
+  freezeQvPmfmControl: UntypedFormControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
   warning: string;
@@ -168,7 +168,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -630,11 +630,11 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     return pmfms;
   }
 
-  protected async onUpdateControls(form: FormGroup): Promise<void> {
+  protected async onUpdateControls(form: UntypedFormGroup): Promise<void> {
 
     // If QV: must be required
     if (this._qvPmfm) {
-      const measFormGroup = form.get('measurementValues') as FormGroup;
+      const measFormGroup = form.get('measurementValues') as UntypedFormGroup;
       const qvControl = measFormGroup.get(this._qvPmfm.id.toString());
 
       if (qvControl) {

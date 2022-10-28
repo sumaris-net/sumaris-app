@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import {ReferentialValidatorService} from "../services/validator/referential.validator";
 import {TaxonName} from "../services/model/taxon-name.model";
 import { AppValidatorService, toBoolean } from '@sumaris-net/ngx-components';
@@ -10,12 +10,12 @@ import { WeightLengthConversion } from '@app/referential/weight-length-conversio
 export class WeightLengthConversionValidatorService extends AppValidatorService<WeightLengthConversion> {
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(formBuilder);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 

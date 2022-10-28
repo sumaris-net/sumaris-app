@@ -25,7 +25,7 @@ import {
   toNumber
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../services/model/observed-location.model';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
 import { Program } from '../../../referential/services/model/program.model';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
@@ -42,7 +42,7 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 export class AuctionControlPage extends LandingPage implements OnInit {
 
   $taxonGroupTypeId = new BehaviorSubject<number>(null);
-  taxonGroupControl: FormControl;
+  taxonGroupControl: UntypedFormControl;
   showOtherTaxonGroup = false;
   controlledSpeciesPmfmId: number;
 
@@ -56,7 +56,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   constructor(
     injector: Injector,
     protected settings: LocalSettingsService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected modalCtrl: ModalController
   ) {
     super(injector, {
@@ -378,7 +378,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return `${parentUrl}/control/${id}`;
   }
 
-  protected registerSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
+  protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: IPmfm[]): Subscription {
     // DEBUG
     // console.debug('[auction-control-page] Adding row validator');
     return AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});

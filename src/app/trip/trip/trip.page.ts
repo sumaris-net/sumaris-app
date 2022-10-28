@@ -9,7 +9,7 @@ import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
   Alerts,
   DateUtils,
@@ -632,7 +632,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   /* -- protected methods -- */
 
-  protected get form(): FormGroup {
+  protected get form(): UntypedFormGroup {
     return this.tripForm.form;
   }
 
@@ -711,7 +711,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this._measurementSubscription?.unsubscribe();
     this._measurementSubscription = new Subscription();
 
-    const formGroup = this.measurementsForm.form as FormGroup;
+    const formGroup = this.measurementsForm.form as UntypedFormGroup;
 
     // If PMFM "Use of a GPS ?" exists, then use to enable/disable positions or fishing area
     const isGPSUsed = formGroup?.controls[PmfmIds.GPS_USED];

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Referential, SharedValidators } from '@sumaris-net/ngx-components';
 import { ReferentialValidatorService } from '@app/referential/services/validator/referential.validator';
 
@@ -7,12 +7,12 @@ import { ReferentialValidatorService } from '@app/referential/services/validator
 export class TaxonGroupValidatorService extends ReferentialValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(formBuilder);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 

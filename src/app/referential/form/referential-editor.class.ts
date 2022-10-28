@@ -1,5 +1,5 @@
 import { Directive, Injector } from '@angular/core';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
@@ -43,7 +43,7 @@ export abstract class AppReferentialEditor<
   readonly mobile: boolean;
   readonly entityName: string;
   readonly uniqueLabel: boolean;
-  readonly form: FormGroup;
+  readonly form: UntypedFormGroup;
   readonly fieldDefinitions: FormFieldDefinitionMap = {};
 
   readonly withLevels: boolean;
@@ -58,7 +58,7 @@ export abstract class AppReferentialEditor<
     protected injector: Injector,
     dataType: new () => T,
     dataService: S,
-    form: FormGroup,
+    form: UntypedFormGroup,
     opts: AppReferentialEditorOptions
   ) {
     super(injector,

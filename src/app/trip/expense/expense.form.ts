@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
-import { FormArray, FormBuilder } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round, WaitForOptions } from '@sumaris-net/ngx-components';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { BehaviorSubject } from 'rxjs';
@@ -67,9 +67,9 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   @ViewChildren('baitExpenseForm') baitForms: QueryList<TypedExpenseForm>;
   @ViewChild('tabGroup', { static: true }) tabGroup: MatTabGroup;
 
-  get baitsFormArray(): FormArray {
+  get baitsFormArray(): UntypedFormArray {
     // 'baits' FormArray is just a array of number of fake rankOrder
-    return this.form.get('baits') as FormArray;
+    return this.form.get('baits') as UntypedFormArray;
   }
 
   get dirty(): boolean {
@@ -102,7 +102,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   constructor(
     injector: Injector,
     protected validatorService: ExpenseValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService
   ) {
     super(injector, validatorService, formBuilder, programRefService);

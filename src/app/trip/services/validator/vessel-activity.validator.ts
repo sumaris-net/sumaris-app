@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormArray, FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators} from "@angular/forms";
 import {toBoolean} from "@sumaris-net/ngx-components";
 import {SharedFormArrayValidators, SharedValidators} from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
@@ -18,7 +18,7 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
   implements ValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected settings: LocalSettingsService
   ) {
   }
@@ -27,7 +27,7 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: T, opts?: O): FormGroup {
+  getFormGroup(data?: T, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     return this.formBuilder.group(
@@ -56,7 +56,7 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
     return {};
   }
 
-  getMeasurementGroup(data?: T): FormGroup {
+  getMeasurementGroup(data?: T): UntypedFormGroup {
     const config = data && data.measurementValues && Object.keys(data.measurementValues)
         .reduce((res, pmfmId) => {
           res[pmfmId] = [data.measurementValues[pmfmId]];
@@ -76,14 +76,14 @@ export class VesselActivityValidatorService<T extends VesselActivity = VesselAct
   }
 
 
-  private getMetiersFormArray(data: VesselActivity, opts: O): FormArray {
+  private getMetiersFormArray(data: VesselActivity, opts: O): UntypedFormArray {
     return this.formBuilder.array(
       (data && data.metiers || []).map(metier => this.getMetierFormControl(metier, opts)),
       SharedFormArrayValidators.requiredArrayMinLength(1)
     );
   }
 
-  public getMetierFormControl(data: ReferentialRef, opts?: O): FormControl {
+  public getMetierFormControl(data: ReferentialRef, opts?: O): UntypedFormControl {
     opts = this.fillDefaultOptions(opts);
     return this.formBuilder.control(data || null, opts.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
   }

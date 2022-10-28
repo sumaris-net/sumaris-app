@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from 
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService, DateUtils,
   EntitiesStorage,
@@ -76,7 +76,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   // List of trip's operation groups, use to populate product filter
   $operationGroups = new BehaviorSubject<OperationGroup[]>(null);
-  catchFilterForm: FormGroup;
+  catchFilterForm: UntypedFormGroup;
   $productFilter = new BehaviorSubject<ProductFilter>(undefined);
   $packetFilter = new BehaviorSubject<PacketFilter>(undefined);
 
@@ -104,7 +104,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     protected landingService: LandingService,
     protected accountService: AccountService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
   ) {
     super(injector,
       Trip,
@@ -548,7 +548,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   /* -- protected methods -- */
 
-  protected get form(): FormGroup {
+  protected get form(): UntypedFormGroup {
     return this.tripForm.form;
   }
 

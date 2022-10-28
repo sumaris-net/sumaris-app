@@ -6,7 +6,7 @@ import { VesselModal, VesselModalOptions } from '../modal/vessel-modal';
 import { Vessel } from '../services/model/vessel.model';
 import { AccountService, isNil, isNotNil, LocalSettingsService, ReferentialRef, referentialToString, SharedValidators, StatusById, StatusIds, StatusList } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { statusToColor, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -78,7 +78,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
 
   constructor(
     injector: Injector,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected vesselService: VesselService,

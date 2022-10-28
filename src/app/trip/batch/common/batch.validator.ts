@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   EntityUtils,
   FormArrayHelper,
@@ -54,7 +54,7 @@ export class BatchValidatorService<
   enableSamplingBatch: boolean = true;
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected measurementsValidatorService: MeasurementsValidatorService,
     settings?: LocalSettingsService
   ) {
@@ -89,7 +89,7 @@ export class BatchValidatorService<
     };
   }
 
-  getFormGroup(data?: T, opts?: O): FormGroup {
+  getFormGroup(data?: T, opts?: O): UntypedFormGroup {
     const form = super.getFormGroup(data, opts);
 
     // there is a second level of children only if there is qvPmfm and sampling batch columns
@@ -154,7 +154,7 @@ export class BatchValidatorService<
     maxDecimals?: number;
     pmfm?: IPmfm;
     noValidator?: boolean;
-  }): FormGroup {
+  }): UntypedFormGroup {
     return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
   }
 
@@ -163,12 +163,12 @@ export class BatchValidatorService<
     return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
   }
 
-  protected getChildrenFormHelper(form: FormGroup, opts?: {
+  protected getChildrenFormHelper(form: UntypedFormGroup, opts?: {
     withChildren: boolean;
     withChildrenWeight: boolean;
     childrenPmfms?: IPmfm[]
   }): FormArrayHelper<T> {
-    let arrayControl = form.get('children') as FormArray;
+    let arrayControl = form.get('children') as UntypedFormArray;
     if (!arrayControl) {
       arrayControl = this.formBuilder.array([]);
       form.addControl('children', arrayControl);
@@ -182,7 +182,7 @@ export class BatchValidatorService<
     );
   }
 
-  enableSamplingRatioAndWeight(form: FormGroup, opts?: {
+  enableSamplingRatioAndWeight(form: UntypedFormGroup, opts?: {
     samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
@@ -206,7 +206,7 @@ export class BatchValidatorService<
 
   }
 
-  enableRoundWeightConversion(form: FormGroup, opts?: {
+  enableRoundWeightConversion(form: UntypedFormGroup, opts?: {
     requiredWeight?: boolean;
     markForCheck?: () => void;
   }): Subscription {
@@ -257,7 +257,7 @@ export class BatchValidators {
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
   }): ValidatorFn {
-    return (control) => BatchValidators.computeSamplingRatioAndWeight(control as FormGroup, {...opts, emitEvent: false, onlySelf: false})
+    return (control) => BatchValidators.computeSamplingRatioAndWeight(control as UntypedFormGroup, {...opts, emitEvent: false, onlySelf: false})
   }
 
   static roundWeightConversion(opts?: {
@@ -265,10 +265,10 @@ export class BatchValidators {
     requiredWeight?: boolean;
     weightPath?: string;
   }): ValidatorFn {
-    return (control) => BatchValidators.computeRoundWeightConversion(control as FormGroup, {...opts, emitEvent: false, onlySelf: false})
+    return (control) => BatchValidators.computeRoundWeightConversion(control as UntypedFormGroup, {...opts, emitEvent: false, onlySelf: false})
   }
 
-  static computeSamplingRatioAndWeight(form: FormGroup, opts?: {
+  static computeSamplingRatioAndWeight(form: UntypedFormGroup, opts?: {
     // Event propagation
     emitEvent?: boolean;
     onlySelf?: boolean;
@@ -484,7 +484,7 @@ export class BatchValidators {
    * @param form
    * @param opts
    */
-  private static computeRoundWeightConversion(form: FormGroup, opts?: {
+  private static computeRoundWeightConversion(form: UntypedFormGroup, opts?: {
     emitEvent?: boolean;
     onlySelf?: boolean;
     // Weight
@@ -500,7 +500,7 @@ export class BatchValidators {
     if (!weightControl) {
       console.warn('Creating missing weight control - Please add it to the validator instead')
       const weightValidators = opts?.requiredWeight ? Validators.required : undefined;
-      weightControl = new FormControl(null, weightValidators);
+      weightControl = new UntypedFormControl(null, weightValidators);
       form.addControl(weightPath, weightControl);
     }
 

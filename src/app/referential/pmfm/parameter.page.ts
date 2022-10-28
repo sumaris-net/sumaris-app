@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import { ReferentialForm } from '../form/referential.form';
 import { ParameterValidatorService } from '../services/validator/parameter.validator';
 import {
@@ -32,7 +32,7 @@ import { SimpleReferentialTable } from '../list/referential-simple.table';
 export class ParameterPage extends AppEntityEditor<Parameter> {
 
   canEdit: boolean;
-  form: FormGroup;
+  form: UntypedFormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
 
   get type(): string {

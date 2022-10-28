@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, In
 import { FloatLabelType } from '@angular/material/form-field';
 import { BehaviorSubject, isObservable, Observable } from 'rxjs';
 import { filter, first } from 'rxjs/operators';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, firstNotNil, firstNotNilPromise, isNil, isNotNil, PromiseEvent, toNumber } from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from '../services/model/measurement.model';
@@ -12,7 +12,7 @@ import { PmfmFormReadySteps } from '@app/trip/measurement/measurement-values.for
 import { environment } from '@environments/environment';
 
 export declare type MapPmfmEvent = PromiseEvent<IPmfm[], {pmfms: IPmfm[]}>;
-export declare type UpdateFormGroupEvent = PromiseEvent<void, {form: FormGroup}>;
+export declare type UpdateFormGroupEvent = PromiseEvent<void, {form: UntypedFormGroup}>;
 
 @Component({
   selector: 'app-form-measurements',
@@ -119,7 +119,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
 
   @Output() valueChanges = new EventEmitter<any>();
   @Output('mapPmfms') mapPmfms: EventEmitter<MapPmfmEvent> = createPromiseEventEmitter<IPmfm[], {pmfms: IPmfm[]}>();
-  @Output('updateFormGroup') onUpdateFormGroup: EventEmitter<UpdateFormGroupEvent> = createPromiseEventEmitter<void, {form: FormGroup}>();
+  @Output('updateFormGroup') onUpdateFormGroup: EventEmitter<UpdateFormGroupEvent> = createPromiseEventEmitter<void, {form: UntypedFormGroup}>();
 
   get starting(): boolean {
     return this.$readyStepSubject.value === PmfmFormReadySteps.STARTING;
@@ -131,7 +131,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
 
   constructor(injector: Injector,
               protected measurementValidatorService: MeasurementsValidatorService,
-              protected formBuilder: FormBuilder,
+              protected formBuilder: UntypedFormBuilder,
               protected programRefService: ProgramRefService
   ) {
     super(injector, measurementValidatorService.getFormGroup([]));
@@ -235,7 +235,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     }
   }
 
-  protected getFormError(form: FormGroup): string {
+  protected getFormError(form: UntypedFormGroup): string {
     const errors = AppFormUtils.getFormErrors(form);
     return Object.getOwnPropertyNames(errors)
       .map(field => {

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { AppForm } from '@sumaris-net/ngx-components';
 import moment, { Moment } from 'moment';
 
@@ -13,7 +13,7 @@ export class StrategyModal extends AppForm<{year: Moment}> implements OnInit {
 
   constructor(
     injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected viewCtrl: ModalController,
     protected cd: ChangeDetectorRef
   ) {

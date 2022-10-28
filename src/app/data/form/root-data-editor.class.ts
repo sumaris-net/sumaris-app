@@ -27,7 +27,7 @@ import { RootDataEntity } from '../services/model/root-data-entity.model';
 import { Strategy } from '../../referential/services/model/strategy.model';
 import { StrategyRefService } from '../../referential/services/strategy-ref.service';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { equals } from '@app/shared/functions';
 import { moment } from '@app/vendor';
 
@@ -78,8 +78,8 @@ export abstract class AppRootDataEditor<
     return this.$strategy.getValue();
   }
 
-  get programControl(): FormControl {
-    return this.form.controls.program as FormControl;
+  get programControl(): UntypedFormControl {
+    return this.form.controls.program as UntypedFormControl;
   }
 
   protected constructor(

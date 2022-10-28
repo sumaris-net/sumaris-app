@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Batch } from '../common/batch.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -46,7 +46,7 @@ export class BatchTreeContainerTestPage implements OnInit {
   $programLabel = new BehaviorSubject<string>(undefined);
   $program = new BehaviorSubject<Program>(null);
   $gearId = new BehaviorSubject<number>(undefined);
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
   selectedTabIndex = 0; // 0= mobile, 1= desktop
 
@@ -66,7 +66,7 @@ export class BatchTreeContainerTestPage implements OnInit {
   }
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     private entities: EntitiesStorage,

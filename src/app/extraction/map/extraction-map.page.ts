@@ -28,7 +28,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ExtractionService } from '../common/extraction.service';
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { Location } from '@angular/common';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
@@ -163,7 +163,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   // -- Legend card --
   showLegend = false;
-  legendForm: FormGroup;
+  legendForm: UntypedFormGroup;
   showLegendForm = false;
   customLegendOptions: Partial<LegendOptions> = undefined;
   legendStyle = {};
@@ -272,8 +272,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return this.form.dirty || this.criteriaForm.dirty;
   }
 
-  get strataForm(): FormGroup {
-    return this.form.controls.strata as FormGroup;
+  get strataForm(): UntypedFormGroup {
+    return this.form.controls.strata as UntypedFormGroup;
   }
 
   get techChartAxisType(): string {
@@ -317,7 +317,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     accountService: AccountService,
     service: ExtractionService,
     settings: LocalSettingsService,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,

@@ -1,5 +1,5 @@
 import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
@@ -373,7 +373,7 @@ export class MeasurementValuesUtils {
 
   static normalizeEntityToForm(data: IEntityWithMeasurement<any, any>,
                                pmfms: IPmfm[],
-                               form?: FormGroup,
+                               form?: UntypedFormGroup,
                                opts?: {
                                  keepOtherExistingPmfms?: boolean;
                                  onlyExistingPmfms?: boolean;
@@ -384,7 +384,7 @@ export class MeasurementValuesUtils {
     if (form) {
       const measFormGroup = form.get('measurementValues');
 
-      if (measFormGroup instanceof FormGroup) {
+      if (measFormGroup instanceof UntypedFormGroup) {
         // Remove extra PMFMS values (before adapt to form)
         const measurementValues = AppFormUtils.getFormValueFromEntity(data.measurementValues || {}, measFormGroup);
 

@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
 import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, FormGroup} from '@angular/forms';
+import {AbstractControl, UntypedFormGroup} from '@angular/forms';
 import {
   AccountService,
   AppEntityEditor,
@@ -37,7 +37,7 @@ import {environment} from '@environments/environment';
 export class PmfmPage extends AppEntityEditor<Pmfm> {
 
   canEdit: boolean;
-  form: FormGroup;
+  form: UntypedFormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
   $parameter = new BehaviorSubject<Parameter>(null);
 

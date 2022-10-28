@@ -31,7 +31,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
-import { FormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import { Moment } from 'moment';
 import { Program } from '@app/referential/services/model/program.model';
 import { Operation, OperationUtils, Trip } from '../services/model/trip.model';
@@ -136,7 +136,7 @@ export class OperationPage
   // Sample tables
   @ViewChild('sampleTree', { static: true }) sampleTree: SampleTreeComponent;
 
-  get form(): FormGroup {
+  get form(): UntypedFormGroup {
     return this.opeForm.form;
   }
 
@@ -387,7 +387,7 @@ export class OperationPage
     this._measurementSubscription?.unsubscribe();
     this._measurementSubscription = new Subscription();
 
-    const formGroup = this.measurementsForm.form as FormGroup;
+    const formGroup = this.measurementsForm.form as UntypedFormGroup;
     let defaultTableStates = true;
 
     // If PMFM "Sampling type" exists (e.g. SUMARiS), then use to enable/disable some tables

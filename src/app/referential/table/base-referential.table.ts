@@ -28,7 +28,7 @@ import {
   suggestFromArray,
 } from '@sumaris-net/ngx-components';
 import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableConfig } from '@app/shared/table/base.table';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { IonInfiniteScroll, PopoverController } from '@ionic/angular';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
@@ -122,7 +122,7 @@ export abstract class BaseReferentialTable<
     this.withStatusId = this.columns.includes('statusId');
 
     const filterFormConfig = this.getFilterFormConfig();
-    this.filterForm = filterFormConfig && injector.get(FormBuilder).group(filterFormConfig);
+    this.filterForm = filterFormConfig && injector.get(UntypedFormBuilder).group(filterFormConfig);
   }
 
   ngOnInit() {

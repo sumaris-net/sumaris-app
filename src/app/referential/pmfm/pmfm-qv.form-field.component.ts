@@ -17,7 +17,7 @@ import {
 import { merge, Observable, of } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 
-import { ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
 
 
@@ -82,7 +82,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   @Input() mobile: boolean;
   @Input() pmfm: IPmfm;
-  @Input() formControl: FormControl;
+  @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
   @Input() placeholder: string;
   @Input() floatLabel: FloatLabelType = "auto";
@@ -131,7 +131,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // Set defaults
     this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
 
-    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as UntypedFormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");

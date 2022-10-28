@@ -1,14 +1,14 @@
 import { AppValidatorService, EntitiesTableDataSource, Entity } from '@sumaris-net/ngx-components';
-import { AbstractControlOptions, FormGroup } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormGroup } from '@angular/forms';
 
 export abstract class BaseValidatorService<E extends Entity<E, ID>, ID = number, O = any> extends AppValidatorService<E> {
   dataSource: EntitiesTableDataSource<any>;
 
-  getRowValidator(data?: E, opts?: O): FormGroup {
+  getRowValidator(data?: E, opts?: O): UntypedFormGroup {
     return this.getFormGroup(data, opts);
   }
 
-  getFormGroup(data?: E, opts?: O): FormGroup {
+  getFormGroup(data?: E, opts?: O): UntypedFormGroup {
     return this.formBuilder.group(this.getFormGroupConfig(data, opts), this.getFormGroupOptions(data, opts));
   }
 

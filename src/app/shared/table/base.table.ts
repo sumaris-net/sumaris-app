@@ -17,7 +17,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
@@ -83,7 +83,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
-  filterForm: FormGroup = null;
+  filterForm: UntypedFormGroup = null;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
   highlightedRowId: number;

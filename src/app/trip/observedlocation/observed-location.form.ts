@@ -4,7 +4,7 @@ import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/opera
 import { ObservedLocationValidatorService } from '../services/validator/observed-location.validator';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormArray, FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import {
   DateUtils,
   FormArrayHelper,
@@ -101,22 +101,22 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     return this.form && (this.required ? this.form.valid : (this.form.valid || this.empty));
   }
 
-  get observersForm(): FormArray {
-    return this.form.controls.observers as FormArray;
+  get observersForm(): UntypedFormArray {
+    return this.form.controls.observers as UntypedFormArray;
   }
 
-  get measurementValuesForm(): FormGroup {
-    return this.form.controls.measurementValues as FormGroup;
+  get measurementValuesForm(): UntypedFormGroup {
+    return this.form.controls.measurementValues as UntypedFormGroup;
   }
 
-  get programControl(): FormControl {
-    return this.form.get('program') as FormControl;
+  get programControl(): UntypedFormControl {
+    return this.form.get('program') as UntypedFormControl;
   }
 
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,

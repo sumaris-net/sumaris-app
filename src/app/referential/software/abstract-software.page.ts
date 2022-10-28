@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Directive, Injector, OnInit, ViewChild} from '@angular/core';
-import {AbstractControl, FormGroup} from '@angular/forms';
+import {AbstractControl, UntypedFormGroup} from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
@@ -32,7 +32,7 @@ export abstract class AbstractSoftwarePage<
   protected referentialRefService: ReferentialRefService;
 
   propertyDefinitions: FormFieldDefinition[];
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 

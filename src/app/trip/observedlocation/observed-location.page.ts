@@ -3,7 +3,7 @@ import { ObservedLocationForm } from './observed-location.form';
 import { ObservedLocationService } from '../services/observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
@@ -523,7 +523,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  protected get form(): FormGroup {
+  protected get form(): UntypedFormGroup {
     return this.observedLocationForm.form;
   }
 

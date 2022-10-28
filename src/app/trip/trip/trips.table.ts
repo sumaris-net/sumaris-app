@@ -3,7 +3,7 @@ import { ValidatorService } from '@e-is/ngx-material-table';
 import { TripValidatorService } from '../services/validator/trip.validator';
 import { TripComparators, TripService } from '../services/trip.service';
 import { TripFilter, TripSynchroImportFilter } from '../services/filter/trip.filter';
-import { FormArray, FormBuilder, FormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   chainPromises,
@@ -70,12 +70,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   @Input() canUpload = false;
   @Input() canOpenMap = false;
 
-  get filterObserversForm(): FormArray {
-    return this.filterForm.controls.observers as FormArray;
+  get filterObserversForm(): UntypedFormArray {
+    return this.filterForm.controls.observers as UntypedFormArray;
   }
 
-  get filterDataQualityControl(): FormControl {
-    return this.filterForm.controls.dataQualityStatus as FormControl;
+  get filterDataQualityControl(): UntypedFormControl {
+    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
   constructor(
@@ -89,7 +89,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     protected configService: ConfigService,
     protected context: ContextService,
     protected tripContext: TripContextService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected cd: ChangeDetectorRef
   ) {
 

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Strategy } from '../services/model/strategy.model';
 import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ReferentialUtils } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '../services/referential-ref.service';
@@ -37,13 +37,13 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
   @ViewChild('strategyForm', { static: true }) strategyForm: StrategyForm;
 
-  get form(): FormGroup {
+  get form(): UntypedFormGroup {
     return this.strategyForm.form;
   }
 
   constructor(
     protected injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected accountService: AccountService,
     protected validatorService: StrategyValidatorService,
     dataService: StrategyService,

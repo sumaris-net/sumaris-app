@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { FishingArea } from '../../data/services/model/fishing-area.model';
-import { AbstractControl, FormBuilder } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder } from '@angular/forms';
 import { ReferentialRefService } from '../../referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
 import { AppForm, NetworkService, ReferentialUtils, StatusIds } from '@sumaris-net/ngx-components';
@@ -58,7 +58,7 @@ export class FishingAreaForm extends AppForm<FishingArea> implements OnInit {
 
   constructor(
     injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected validatorService: FishingAreaValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
