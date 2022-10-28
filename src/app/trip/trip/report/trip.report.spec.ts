@@ -8,8 +8,9 @@ describe('TripReport', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TripReport ]
-    })
+    declarations: [TripReport],
+    teardown: { destroyAfterEach: false }
+})
     .compileComponents();
   });
 

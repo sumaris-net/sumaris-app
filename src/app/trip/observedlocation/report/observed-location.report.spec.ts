@@ -8,8 +8,9 @@ describe('ObservedLocationReport', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ObservedLocationReport ]
-    })
+    declarations: [ObservedLocationReport],
+    teardown: { destroyAfterEach: false }
+})
     .compileComponents();
   });
 

@@ -182,8 +182,7 @@
               "browserTarget": "app:build:development"
             },
             "ci": {
-              "browserTarget": "app:build:production",
-              "progress": false
+              "browserTarget": "app:build:production"
             }
           }
         },
