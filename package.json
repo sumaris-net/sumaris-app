@@ -14,8 +14,8 @@
     "serve.android": "ng run app:ionic-cordova-serve --platform=android",
     "prepare.android": "ionic cordova prepare --platform=android",
     "build": "ng build",
-    "build.dev": "ng build --configuration development",
-    "build.prod": "ng build --configuration production && npm run build.i18n",
+    "build.dev": "node --max_old_space_size=4096 node_modules/@angular/cli/bin/ng build --configuration development",
+    "build.prod": "node --max_old_space_size=4096 node_modules/@angular/cli/bin/ng build --configuration production && npm run build.i18n",
     "build.android": "ionic cordova build android",
     "build.android.prod": "ionic cordova build android --prod --release",
     "build.i18n": "node scripts/node/build-i18n.js",
@@ -233,5 +233,6 @@
   "engines": {
     "node": ">= 14.20.0",
     "npm": ">= 8.17.0"
-  }
+  },
+  "browserslist": []
 }

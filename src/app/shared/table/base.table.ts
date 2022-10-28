@@ -39,6 +39,8 @@ export interface BaseTableConfig<
   SO = any>
   extends EntitiesTableDataSourceConfig<T, ID, WO, SO> {
 
+  restoreCompactMode?: boolean;
+  restoreColumnWidths?: boolean;
 }
 
 @Directive()

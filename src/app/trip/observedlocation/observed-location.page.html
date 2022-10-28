@@ -96,9 +96,9 @@
                 form.data: {{!!observedLocationForm.value}}<br/>
               </ion-col>
               <ion-col>
-                form.startDateTime: {{form|formGetValue:'startDateTime'|dateFormat:{time: true} }}<br/>
-                form.endDateTime: {{form|formGetValue:'endDateTime'|dateFormat:{time: true} }}<br/>
-                form.program: {{form|formGetValue:'program' | propertyGet: 'label' }}<br/>
+                form.startDateTime: {{observedLocationForm.form|formGetValue:'startDateTime'|dateFormat:{time: true} }}<br/>
+                form.endDateTime: {{observedLocationForm.form|formGetValue:'endDateTime'|dateFormat:{time: true} }}<br/>
+                form.program: {{observedLocationForm.form|formGetValue:'program' | propertyGet: 'label' }}<br/>
               </ion-col>
             </ion-row>
           </ion-grid>

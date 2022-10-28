@@ -135,6 +135,7 @@ failsafe-build:
   only:
     - develop
     - /^feature\/.*/
+    - /^features\/.*/
 
 # ---------------------------------------------------------------
 # Release jobs
