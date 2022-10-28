@@ -5,7 +5,7 @@
           (click)="filterExpansionPanel.toggle()">
     <mat-icon class="mat-icon-rtl-mirror"
               matBadge="!"
-              [matBadgeHidden]="valid"
+              [matBadgeHidden]="valid || !rootNode?.hidden"
               matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"
@@ -18,7 +18,9 @@
 
     <!-- Parent button -->
     <ng-container *ngIf="node.parent && !node.parent.hidden">
+      <!-- Allow to select a parent's brother -->
       <button mat-button
+              *ngIf="node.parent.parent?.children|isArrayLength:{greaterThan: 1}; else noParentBrother"
               class="breadcrumb"
               [matMenuTriggerFor]="childrenMenu"
               [matMenuTriggerData]="{node: node.parent.parent, selected: node.parent}">
@@ -31,11 +33,28 @@
 
         <span class="breadcrumb-separator">/</span>
       </button>
+
+      <!-- Parent has no brother  -->
+      <ng-template #noParentBrother>
+        <button mat-button
+                class="breadcrumb"
+                (click)="startEditBatch($event, node.parent)">
+          <span matBadge="!"
+                [matBadgeHidden]="!node.parent.invalid"
+                matBadgeOverlap="false"
+                matBadgeColor="accent"
+                matBadgeSize="small"
+                matBadgePosition="above after">{{node.parent.name}}</span>
+
+          <span class="breadcrumb-separator">/</span>
+        </button>
+      </ng-template>
     </ng-container>
 
     <!-- current batch name -->
     <button mat-button
             class="breadcrumb selected"
+            [disabled]="!node.parent"
             [matMenuTriggerFor]="childrenMenu"
             [matMenuTriggerData]="{node: node.parent}">
       <span [matBadge]="node.valid ? (visibleRowCount || '') : '!'"
@@ -62,7 +81,7 @@
 
   <!-- help message -->
   <ion-item color="transparent"
-            class="ion-padding-start help" lines="none" (click)="filterExpansionPanel.toggle()" tappable>
+            class="help" lines="none" (click)="filterExpansionPanel.toggle()" tappable>
     <ion-icon *ngIf="filterExpansionPanel.expanded || !editingBatch" color="primary" name="help-circle-outline"></ion-icon>
     <ion-label *ngIf="filterExpansionPanel.expanded || !editingBatch" color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
   </ion-item>
@@ -73,13 +92,13 @@
   <button mat-icon-button
           [class.cdk-visually-hidden]="!editingBatch"
           (click)="backward($event)"
-          [title]="'COMMON.BTN_PREVIOUS'|translate">
+          [title]="'COMMON.BTN_BACKWARD'|translate">
     <ion-icon slot="icon-only" name="chevron-back-circle-outline"></ion-icon>
   </button>
   <button mat-icon-button
           [class.cdk-visually-hidden]="!editingBatch"
           (click)="forward($event)"
-          [title]="'COMMON.BTN_NEXT'|translate">
+          [title]="'COMMON.BTN_FORWARD'|translate">
 
     <ion-icon *ngIf="highlightForwardButton; else normalIcon" slot="icon-only" name="chevron-forward-circle" color="tertiary"></ion-icon>
     <ng-template #normalIcon>
@@ -280,7 +299,7 @@
       <!-- TODO measure count - need a cached value in model
       <ion-badge *ngIf="node===editingBatch ? batchTree.subBatchesCount : 0; let count"
                  [color]="count ? 'tertiary' : 'warning'"
-                 slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.MEASURE_COUNT' : 'TRIP.BATCH.TREE.MEASURES_COUNT') | translate:{count: count} }}
+                 slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.MEASUREMENT_COUNT' : 'TRIP.BATCH.TREE.MEASUREMENTS_COUNT') | translate:{count: count} }}
       </ion-badge> -->
     </ng-template>
 

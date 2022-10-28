@@ -310,9 +310,9 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.applyEntityName(entityName);
   }
 
-  addRow(event?: any): boolean {
+  async addRow(event?: any): Promise<boolean> {
     // Create new row
-    const result = super.addRow(event);
+    const result = await super.addRow(event);
     if (!result) return result;
 
     const row = this.dataSource.getRow(-1);

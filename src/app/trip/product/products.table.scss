@@ -1,7 +1,7 @@
 .table-container {
-  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height) - 1px);
-
   --table-toolbar-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - 1px);
+
   &.has-toolbar {
     --table-toolbar-height: var(--mat-toolbar-height);
   }

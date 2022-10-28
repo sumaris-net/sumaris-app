@@ -28,7 +28,6 @@ import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { ISubBatchModalOptions, SubBatchModal } from './sub-batch.modal';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { SortDirection } from '@angular/material/sort';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup } from '../group/batch-group.model';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
@@ -36,8 +35,6 @@ import { environment } from '@environments/environment';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
-import { PopoverController } from '@ionic/angular';
-import { Popovers } from '@app/shared/popover/popover.utils';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 export const SUB_BATCH_RESERVED_START_COLUMNS: string[] = ['parentGroup', 'taxonName'];

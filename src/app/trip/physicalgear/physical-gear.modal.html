@@ -113,7 +113,8 @@
                                 [showError]="false"
                                 [i18nSuffix]="i18nSuffix"
                                 (onSubmit)="saveAndClose($event)"
-                                [mobile]="mobile">
+                                [compact]="false"
+                                [mobile]="mobile" >
         </app-physical-gear-form>
 
       </div>
@@ -139,8 +140,9 @@
                                 *ngIf="allowChildrenGears"
                                 (ngInit)="$childrenTable.next(table)"
                                 (openSelectPreviousGearModal)="openSearchChildrenModal($event)"
-                                [programLabel]="programLabel"
                                 [acquisitionLevel]="childAcquisitionLevel"
+                                [programLabel]="programLabel"
+                                [tripId]="tripId"
                                 [showGearColumn]="false"
                                 [defaultGear]="$gear|async"
                                 [canEditGear]="false"

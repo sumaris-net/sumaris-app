@@ -19,7 +19,6 @@ export abstract class BaseSelectEntityModal<
   ID = number
   > implements OnInit, IBaseSelectEntityModalOptions<T, F> {
 
-  selectedTabIndex = 0;
   $title = new Subject<string>();
   datasource: EntitiesTableDataSource<T, F, ID>;
 
@@ -45,8 +44,8 @@ export abstract class BaseSelectEntityModal<
   ngOnInit() {
 
     // Init table
-    if (!this.table) throw new Error("Missing table child component");
-    if (!this.filter) throw new Error("Missing argument 'filter'");
+    if (!this.table) throw new Error('Missing table child component');
+    if (!this.filter) throw new Error('Missing argument \'filter\'');
 
     // Set defaults
     this.allowMultiple = toBoolean(this.allowMultiple, false);

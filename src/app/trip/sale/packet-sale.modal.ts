@@ -84,7 +84,6 @@ export class PacketSaleModal implements OnInit, OnDestroy, IPacketSaleModalOptio
       const value = this.packetSaleForm.value;
       this.disable();
       await this.viewCtrl.dismiss(value);
-      this.packetSaleForm.error = null;
     } catch (err) {
       console.error(err);
       this.packetSaleForm.error = err && err.message || err;

@@ -17,8 +17,8 @@
                [matAutocomplete]="autoCombo"
                [appAutofocus]="autofocus"
                (click)="_onClick($event)"
-               (focus)="onShowDropdown.next($event)"
-               (blur)="_onBlur($event)"
+               (focus)="filterInputTextFocusEvent($event)"
+               (blur)="filterInputTextBlurEvent($event)"
                [required]="required"
                [tabindex]="_tabindex"
                (keyup.enter)="this.onPressEnter.emit($event)">
@@ -75,7 +75,8 @@
       <mat-select #matInput [required]="required"
                   [placeholder]="placeholder"
                   [formControl]="formControl"
-                  (blur)="_onBlur($event)"
+                  (focus)="filterMatSelectFocusEvent($event)"
+                  (blur)="filterMatSelectBlurEvent($event)"
                   [tabindex]="_tabindex"
                   [compareWith]="compareWith">
         <mat-select-trigger>{{ value|displayWith: displayWith }}</mat-select-trigger>

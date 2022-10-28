@@ -63,6 +63,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   // Form
   disabled: boolean;
   touched: boolean;
+  readySubject?: BehaviorSubject<boolean>;
 
   // Value
   value: Batch;

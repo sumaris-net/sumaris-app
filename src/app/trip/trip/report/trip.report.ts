@@ -2,14 +2,16 @@ import { Component, Inject, Injector, TemplateRef, ViewChild, ViewContainerRef, 
 import { AppRootDataReport } from '@app/data/report/root-data-report.class';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripService } from '@app/trip/services/trip.service';
-import { Color, ColorScale, ColorScaleOptions, firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
+import { Color, firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { RevealSlideChangedEvent } from '@app/shared/report/reveal/reveal.utils';
-import { Chart, ChartConfiguration, ChartData, ChartDataSets, ChartLegendOptions, ChartPoint, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
+import { ChartJsPluginMedianLine, ChartJsPluginTresholdLine, ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMediandLineOptions, ChartJsUtilsTresholdLineOptions } from '@app/shared/chartsjs.utils.ts';
+import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
 import pluginTrendlineLinear from 'chartjs-plugin-trendline';
+import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
 
 @Component({
   selector: 'app-trip-report',
@@ -18,20 +20,6 @@ import pluginTrendlineLinear from 'chartjs-plugin-trendline';
   encapsulation: ViewEncapsulation.None
 })
 export class TripReport extends AppRootDataReport<Trip> {
-
-  // Landing categories fucntion color variance
-  private graphColors = {
-    title: this.getColorFromStyle('secondary'),
-    landing: this.getColorFromStyle('secondary'),
-    discard: this.getColorFromStyle('accent'),
-    //landingCategories: {}, // scale landing
-    //disardCategories: {}, // scale discard
-    gearPositions: {
-      babord: this.getColorFromStyle('warning'),
-      tribord: this.getColorFromStyle('success'),
-    },
-    median: Color.get('red'),
-  }
 
   private tripService: TripService;
   private operationService: OperationService;
@@ -45,43 +33,8 @@ export class TripReport extends AppRootDataReport<Trip> {
     this.tripService = injector.get(TripService);
     this.operationService = injector.get(OperationService);
     Chart.plugins.register(pluginTrendlineLinear);
-    // NOTE : Begin of a tresholdLine plugin : [wip] (this is a first test)
-    Chart.plugins.register({
-      id: 'tresholdLine',
-      afterDraw: function(chartInstance) {
-        if (
-          chartInstance.options.plugins.tresholdLine === undefined
-          || chartInstance.options.plugins.tresholdLine.value === undefined
-        ) {
-          return;
-        }
-        var ctx = chartInstance.ctx;
-        const lineColor = chartInstance.options.plugins.tresholdLine.color || '#000000';
-        const lineStyle = chartInstance.options.plugins.tresholdLine.style || 'solid';
-        const lineWidth = chartInstance.options.plugins.tresholdLine.width || 3;
-        const thesholdIndex = chartInstance.options.plugins.tresholdLine.value;
-        var xScale;
-        var yScale;
-        //Find the first x axis
-        for (var axis in chartInstance['scales']) {
-          if (axis[0] === 'x') xScale = chartInstance['scales'][axis];
-          if (axis[0] === 'y') yScale = chartInstance['scales'][axis];
-          if (xScale && yScale) break;
-        }
-        // Draw the treshold line
-        const yStart = chartInstance.chartArea.top;
-        const yStop = chartInstance.chartArea.bottom;
-        const xStart = xScale._gridLineItems[thesholdIndex].tx2;
-        // Draw tresholdline
-        ctx.lineWidth = lineWidth;
-        if (lineStyle === 'dashed') ctx.setLineDash([8, 8]);
-        ctx.beginPath();
-        ctx.moveTo(xStart, yStart);
-        ctx.lineTo(xStart, yStop);
-        ctx.strokeStyle = lineColor;
-        ctx.stroke();
-      },
-    });
+    Chart.plugins.register(ChartJsPluginTresholdLine);
+    Chart.plugins.register(ChartJsPluginMedianLine);
   }
 
   protected async loadData(id: number): Promise<Trip> {
@@ -93,14 +46,6 @@ export class TripReport extends AppRootDataReport<Trip> {
     }, { fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/ });
 
     data.operations = res.data;
-
-    // NOTE : Replace this by real data extractors
-    const labels = [
-      { label: 'Débarquement', color: this.graphColors.landing },
-      { label: 'Rejet', color: this.graphColors.discard },
-    ];
-    const samples = this.genDummySamplesSets(2, 300, 9, 70);
-    this.computeChartDataSetForBar(labels, samples, 7);
 
     // NOTE : This may be done in another place
     this.stats.charts = this.computeDummyCharts();
@@ -156,7 +101,7 @@ export class TripReport extends AppRootDataReport<Trip> {
     console.debug(`[${this.constructor.name}.computeTitle]`, arguments);
     const title = await this.translate.get('TRIP.REPORT.TITLE', {
       departureDate: this.dateFormatPipe.transform(data.departureDateTime, { time: false }),
-      vessel: data.vesselSnapshot.exteriorMarking,
+      vessel: data.vesselSnapshot.exteriorMarking
     }).toPromise();
     return title;
   }
@@ -170,282 +115,319 @@ export class TripReport extends AppRootDataReport<Trip> {
 
   protected computeDummyCharts(): { [key: string]: ChartConfiguration } {
     const defaultTitleOptions: ChartTitleOptions = {
-      fontColor: this.graphColors.title.rgba(),
+      fontColor: Color.get('secondary').rgba(1),
       fontSize: 42,
-      display: true,
+      display: true
     };
     const scaleLableDefaultOption: ScaleTitleOptions = {
       display: true,
       fontStyle: 'bold',
-      fontSize: 18,
+      fontSize: 18
     };
     const legendDefaultOption: ChartLegendOptions = {
-      position: 'right',
+      position: 'right'
     };
-    const charts: { [key: string]: ChartConfiguration } = {};
+    const charts: { [key: string]: ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions } = {};
 
-    // NOTE : Replace this by real data extractors
-    var labels = this.computeChartColorsScaleFromLabels(
-      ['Selectif - Tribord', 'Selectif - Babord'],
-      { mainColor: this.graphColors.landing.rgb },
-    );
-    charts['01_repartLangouCapture'] = {
+    const defaultOpacity = 0.8;
+    const colorLanding = ChartJsUtilsColor.getDerivativeColor(Color.get('tertiary'), 2);
+    const colorDiscard = ChartJsUtilsColor.getDerivativeColor(Color.get('danger'), 2);
+
+    charts['01'] = {
       type: 'bar',
       options: {
         title: {
           ...defaultTitleOptions,
-          text: ['Répartition en taille des langoustines', '- Capture totales -'],
+          text: ['Répartition en taille des langoustines', '- Capture totales -']
         },
         scales: {
           xAxes: [
             {
+              stacked: true,
               scaleLabel: {
                 ...scaleLableDefaultOption,
-                labelString: 'Taille céphalotoracique (mm)',
-              },
+                labelString: 'Taille céphalotoracique (mm)'
+              }
             }
           ],
           yAxes: [
             {
+              stacked: true,
               scaleLabel: {
                 ...scaleLableDefaultOption,
-                labelString: 'Nb individus',
-              },
+                labelString: 'Nb individus'
+              }
             }
-          ],
+          ]
         },
         legend: {
-          ...legendDefaultOption,
+          ...legendDefaultOption
         },
         plugins: {
           tresholdLine: { // NOTE : custom plugin
-            color:  this.graphColors.median.rgba(1),
+            color: Color.get('red').rgba(defaultOpacity),
             style: 'dashed',
             width: 3,
-            value: 4,
-          },
-        },
-      },
-      data: {
-        ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
+            value: 3,
+            orientation: 'x'
+          }
+        }
       }
-    }
-    this.computeTresholdLine(charts['01_repartLangouCapture']);
-    //this.computeTresholdCateg(charts['01_repartLangouCapture'], 3);
+    };
+    const chart01_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
+    ChartJsUtils.pushLabels(charts['01'], chart01_label);
+    ChartJsUtils.pushDataSetOnChart(charts['01'], {
+      label: 'Débarquement - Babord',
+      backgroundColor: colorLanding[0].rgba(defaultOpacity),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 20, 3, 2),
+      stack: '0'
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['01'], {
+      label: 'Rejet - Babord',
+      backgroundColor: colorDiscard[0].rgba(defaultOpacity),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 20, 3, 1 / 2),
+      stack: '0'
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['01'], {
+      label: 'Débarquement - Tribord',
+      backgroundColor: colorLanding[1].rgba(defaultOpacity),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 80, 20, 3, 2),
+      stack: '1'
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['01'], {
+      label: 'Rejet - Tribord',
+      backgroundColor: colorDiscard[1].rgba(defaultOpacity),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 80, 20, 3, 1 / 2),
+      stack: '1'
+    });
 
-    // NOTE : Replace this by real data extractors
-    var labels = this.computeChartColorsScaleFromLabels(
-      ['Selectif - Tribord', 'Selectif - Babord'],
-      { mainColor: this.graphColors.discard.rgb },
-    );
-    charts['02_repartLangouDebarq'] = {
+    charts['02'] = {
       type: 'bar',
       options: {
         title: {
           ...defaultTitleOptions,
-          text: ['Répartition en taille des langoustines', '- Débarquement -'],
+          text: ['Répartition en taille des langoustines', '- Débarquement -']
         },
         scales: {
           xAxes: [
             {
               scaleLabel: {
                 ...scaleLableDefaultOption,
-                labelString: 'Taille céphalotoracique (mm)',
-              },
+                labelString: 'Taille céphalotoracique (mm)'
+              }
             }
           ],
           yAxes: [
             {
               scaleLabel: {
                 ...scaleLableDefaultOption,
-                labelString: 'Nb individus',
-              },
+                labelString: 'Nb individus'
+              }
             }
-          ],
+          ]
         },
         legend: {
-          ...legendDefaultOption,
+          ...legendDefaultOption
         },
         plugins: {
           tresholdLine: { // NOTE : Custom plugin
-            color: this.graphColors.median.rgba(1),
+            color: Color.get('red').rgba(defaultOpacity),
             style: 'dashed',
             width: 3,
-            value: 6,
-          },
-        },
-      },
-      data: {
-        ... this.computeChartDataSetForBar(labels, this.genDummySamplesSets(labels.length, 300, 9, 70), 12),
+            value: 4
+          }
+        }
       }
-    }
-    this.computeTresholdLine(charts['02_repartLangouDebarq']);
+    };
+    const chart02_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
+    ChartJsUtils.pushLabels(charts['02'], chart02_label);
+    ChartJsUtils.pushDataSetOnChart(charts['02'], {
+      label: 'Selectif - Tribord',
+      backgroundColor: colorLanding[0].rgba(defaultOpacity),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 70, 20, 4, 1.2)
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['02'], {
+      label: 'Selectif - Babord',
+      backgroundColor: colorLanding[1].rgba(defaultOpacity),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 60, 20, 4, 2)
+    });
 
-    // NOTE : Replace this by real data extractors
-    var labels = this.computeChartColorsScaleFromLabels(
-      ['Langoustine G', 'Langoustine P', 'Langoustine R'],
-      { startColor: this.graphColors.discard.rgb, endColor: this.graphColors.landing.rgb },
-    );
-    charts['03_comparDebarqRejet'] = {
+    charts['03'] = {
+      type: 'bar',
+      options: {
+        title: {
+          ...defaultTitleOptions,
+          text: ['Répartition en taille des langoustines', '- Rejet -']
+        },
+        scales: {
+          xAxes: [
+            {
+              scaleLabel: {
+                ...scaleLableDefaultOption,
+                labelString: 'Taille céphalotoracique (mm)'
+              }
+            }
+          ],
+          yAxes: [
+            {
+              scaleLabel: {
+                ...scaleLableDefaultOption,
+                labelString: 'Nb individus'
+              }
+            }
+          ]
+        },
+        legend: {
+          ...legendDefaultOption
+        },
+        plugins: {
+          tresholdLine: { // NOTE : Custom plugin
+            color: Color.get('red').rgba(defaultOpacity),
+            style: 'dashed',
+            width: 3,
+            value: 4
+          }
+        }
+      }
+    };
+    const chart03_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
+    ChartJsUtils.pushLabels(charts['03'], chart03_label);
+    ChartJsUtils.pushDataSetOnChart(charts['03'], {
+      label: 'Selectif - Tribord',
+      backgroundColor: colorDiscard[0].rgba(defaultOpacity),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 30, 4, 1.2)
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['03'], {
+      label: 'Selectif - Babord',
+      backgroundColor: colorDiscard[1].rgba(defaultOpacity),
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 70, 30, 4, 1.2)
+    });
+
+    charts['04'] = {
       type: 'bubble',
       options: {
         title: {
           ...defaultTitleOptions,
-          text: ['Comparaison des débarquements et rejets', '(sous trait)'],
+          text: ['Comparaison des débarquements et rejets', '(sous trait)']
         },
         legend: {
-          ...legendDefaultOption,
+          ...legendDefaultOption
         },
         scales: {
           xAxes: [
             {
               scaleLabel: {
                 ...scaleLableDefaultOption,
-                labelString: 'Quantité dans le chalut sélectif (kg)',
-              },
+                labelString: 'Quantité dans le chalut sélectif (kg)'
+              }
             }
           ],
           yAxes: [
             {
               scaleLabel: {
                 ...scaleLableDefaultOption,
-                labelString: 'Quantité dans le chalut standard (kg)',
-              },
+                labelString: 'Quantité dans le chalut standard (kg)'
+              }
+            }
+          ]
+        },
+        plugins: {
+          medianLine: {
+            color: Color.get('red').rgba(defaultOpacity),
+            orientation: 'b',
+            style: 'solid',
+            width: 3
+          }
+        }
+      }
+    };
+    ChartJsUtils.pushDataSetOnChart(charts['04'], {
+      label: 'Langoustine G',
+      backgroundColor: colorLanding[0].rgba(defaultOpacity),
+      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['04'], {
+      label: 'Langoustine D',
+      backgroundColor: colorLanding[1].rgba(defaultOpacity),
+      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))
+    });
+    ChartJsUtils.pushDataSetOnChart(charts['04'], {
+      label: 'Langoustine R',
+      backgroundColor: colorDiscard[0].rgba(defaultOpacity),
+      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))
+    });
+
+    // Box plot
+    charts['04_testboxplot'] = <ChartConfiguration>{
+      type: 'boxplot',
+      colors: [
+        // Color should be specified, in order to works well
+        colorDiscard[0].rgba(defaultOpacity),
+        colorDiscard[1].rgba(defaultOpacity),
+        colorLanding[0].rgba(defaultOpacity),
+        colorLanding[1].rgba(defaultOpacity),
+      ],
+      options: {
+        title: {
+          ...defaultTitleOptions,
+          text: ['Comparaison des débarquements et rejets', '(sous trait)']
+        },
+        legend: {
+          ...legendDefaultOption
+        },
+        scales: {
+          xAxes: [
+            {
+              scaleLabel: {
+                ...scaleLableDefaultOption,
+                labelString: 'Quantité dans le chalut sélectif (kg)'
+              }
             }
           ],
-        },
+          yAxes: [
+            {
+              scaleLabel: {
+                ...scaleLableDefaultOption,
+                labelString: 'Quantité dans le chalut standard (kg)'
+              }
+            }
+          ]
+        }
       },
       data: {
-        ... this.computeChartDataSetsForBubule(labels, labels.map(_ => this.genDummySamplesSets(30, 2, 0, 90))),
+        labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            backgroundColor: 'rgba(255,0,0,0.5)',
+            borderColor: 'red',
+            borderWidth: 1,
+            //outlierColor: "#999999",
+            //padding: 10,
+            //itemRadius: 0,
+            data: [
+              [1000, 2000, 3000,1000, 2000, 3000, 5000]
+            ]
+          },
+          {
+            label: 'Dataset 2',
+            backgroundColor: 'rgba(0,0,255,0.5)',
+            borderColor: 'blue',
+            borderWidth: 1,
+            //outlierColor:
+            //"#999999",
+            //padding:
+            //10,
+            //itemRadius: 0,
+            data: [
+              [1000, 2000, 3000,1000, 2000, 3000, 5000]
+            ]
+          }
+        ]
       }
-    }
-    this.computeTrendLine(charts['03_comparDebarqRejet']);
+    };
+
     return charts;
-  }
-
-  protected computeCategsForCharts(nbCategs: number, values: number[]): { start: number, stop: number, label: string }[] {
-    console.debug(`[${this.constructor.name}.computeCategsForCharts]`, arguments);
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const diffMaxMin = (max - min);
-    const interval = Math.trunc(diffMaxMin / nbCategs);
-    return Array(nbCategs).fill(0).map((_, index) => {
-      const next = (interval * (index + 1)) + min;
-      const start = (next - interval);
-      var stop = 0;
-      var label = '';
-      if ((index + 1) === nbCategs) { // This is the last categorie
-        stop = max + 1; // The last categorie must include the max value
-        label = `>=${start} - <=${max}`;
-      } else {
-        stop = next;
-        label = `>=${start} - <${stop}`;
-      }
-      return ({
-        start: start,
-        stop: stop,
-        label: label,
-      });
-    });
-  }
-
-  protected genDummySamplesSets(nbSets: number, nbSamples: number, minVal: number, maxVal: number): number[][] {
-    console.debug(`[${this.constructor.name}.genDummySamples]`, arguments);
-    return Array(nbSets).fill([]).map(_ => {
-      return Array(nbSamples).fill(0).map((_) => {
-        return Math.floor(minVal + (Math.random() * (maxVal - minVal + 1)));
-      });
-    });
-  }
-
-  protected computeChartDataSetForBar(labels: { label: string, color: Color }[], samples: number[][], nbCategs: number): ChartData {
-    console.debug(`[${this.constructor.name}.computeChartDataSetForBar]`, arguments);
-    const categs = this.computeCategsForCharts(nbCategs, samples.flat());
-    // Gen data for chart
-    const dataForChart = Array(samples.length).fill({}).map((_, index) => {
-      var res = new Map();
-      // Gen the map first with categs to get ordered map (smallest to largest)
-      categs.forEach(c => res.set(c.label, 0));
-      // Count the nb of sample that fit into a given categorie
-      samples[index].forEach(s => {
-        //NOTE : For the last categ, stop is the max + 1
-        const currentCateg = categs.find(c => (s >= c.start && s < c.stop)).label;
-        res.set(currentCateg, res.get(currentCateg) + 1);
-      });
-      return Array.from(res.values());
-    });
-    return {
-      labels: categs.map(c => c.label),
-      datasets: dataForChart.map((_d, i) => {
-        return {
-          label: labels[i].label,
-          data: dataForChart[i],
-          backgroundColor: labels[i].color.rgba(1),
-        }
-      }),
-    };
-  }
-
-  protected computeChartDataSetsForBubule(labels: { label: string, color: Color }[], samples: number[][][]): ChartData {
-    console.debug(`[${this.constructor.name}.computeChartDataSetsForBubule]`, arguments);
-    const bubuleRadius = 6;
-    return {
-      datasets: labels.map((l, i) => {
-        return {
-          label: l.label,
-          backgroundColor: l.color.rgba(1),
-          data: samples[i].map(s => { return { x: s[0], y: s[1], r: bubuleRadius } }),
-        };
-      })
-    };
-  }
-
-  protected computeChartColorsScaleFromLabels(labels: string[], options?: ColorScaleOptions): { label: string, color: Color }[] {
-    const count = labels.length;
-    const colorScale = ColorScale.custom(count, { min: 1, max: labels.length, ...options });
-    return labels.map((label, index) => {
-      return {
-        label: label,
-        color: colorScale.getLegendAtIndex(index).color,
-      }
-    })
-  }
-
-  protected getColorFromStyle(name: string): Color {
-    function colorHexaToRgbArr(hexColor: string): number[] {
-      const split = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexColor);
-      return split ? split.slice(1, 4).map(i => parseInt(i, 16)) : [0, 0, 0];
-    }
-    console.debug(`[${this.constructor.name}.getColorFromStyle]`, arguments);
-    const colorHexa: string = getComputedStyle(this._document.documentElement).getPropertyValue(`--ion-color-${name}`)
-      || '#000000';
-    return new Color(colorHexaToRgbArr(colorHexa), 1, name);
-  }
-
-  protected computeTresholdLine(chart: ChartConfiguration) {
-    chart.data.datasets.push({
-      label: 'Seuil',
-      backgroundColor: this.graphColors.median.rgba(1),
-      data: [],
-    });
-  }
-
-  protected computeTrendLine(chart: ChartConfiguration) {
-    // TODO disable show label on hover
-    chart.data.datasets.push({
-      label: 'Median',
-      fill: false,
-      hideInLegendAndTooltip: true,
-      pointRadius: 0,
-      pointHitRadius: 0,
-      backgroundColor: this.graphColors.median.rgba(1),
-      data: chart.data.datasets.map((d) => d.data).flat(),
-      trendlineLinear: {
-        style: this.graphColors.median.rgba(1),
-        lineStyle: "line",
-        width: 2,
-      }
-    } as any);
   }
 
 }

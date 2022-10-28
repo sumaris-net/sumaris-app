@@ -8,10 +8,10 @@
 
   <ion-grid class="ion-margin-bottom" style="--ion-grid-columns: 7" [class.mobile]="mobile">
 
-    <ion-row class="ion-padding" (focusin)="salesFocusIndex=-1">
+    <ion-row (focusin)="salesFocusIndex=-1">
 
       <!--  number -->
-      <ion-col>
+      <ion-col class="ion-padding" >
         <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'PACKET.NUMBER'|translate"
@@ -22,7 +22,7 @@
       </ion-col>
 
       <!--  weight  -->
-      <ion-col>
+      <ion-col class="ion-padding" >
         <mat-form-field class="mat-form-field-disabled">
           <input matInput
                  [placeholder]="'PACKET.WEIGHT'|translate"

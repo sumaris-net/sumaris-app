@@ -226,13 +226,11 @@
                                              [acquisitionLevel]="$acquisitionLevel|async"
                                              [forceOptional]="forceMeasurementAsOptional"
                                              [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
-                                             (mapPmfms)="mapMeasurementFormPmfm($event)"
+                                             (mapPmfms)="mapPmfms($event)"
                                              [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
                                              [i18nSuffix]="i18nContext.suffix"
                                              [tabindex]="30"
-                                             [mobile]="mobile"
-                                             [compact]="false"
-                                             [debug]="debug">
+                                             [mobile]="mobile">
                       </app-form-measurements>
                     </ion-col>
                   </ion-row>

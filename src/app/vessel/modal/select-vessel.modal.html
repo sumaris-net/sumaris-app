@@ -1,0 +1,72 @@
+<app-modal-toolbar color="secondary"
+                   (cancel)="cancel()"
+                   [canValidate]="canValidate"
+                   (validate)="close($event)">
+  <ion-title>{{ titleI18n | translate }}</ion-title>
+
+  <ion-buttons slot="end">
+      <!-- reset filter -->
+      <button mat-icon-button (click)="vesselsTable.resetFilter()"
+              *ngIf="vesselsTable.filterCriteriaCount">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button>
+
+      <!-- show filter -->
+      <button mat-icon-button (click)="vesselsTable.filterExpansionPanel.toggle()">
+        <mat-icon *ngIf="vesselsTable.filterCriteriaCount; else emptyFilter"
+                  [matBadge]="vesselsTable.filterCriteriaCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <ng-template #emptyFilter>
+          <mat-icon>filter_list_alt</mat-icon>
+        </ng-template>
+      </button>
+  </ion-buttons>
+</app-modal-toolbar>
+
+<ion-content class="ion-no-padding" scroll-y="false">
+
+  <app-vessels-table #vesselsTable
+                     [canEdit]="true"
+                     [canDelete]="false"
+                     [showToolbar]="false"
+                     [showIdColumn]="false"
+                     [disableStatusFilter]='disableStatusFilter'
+                     [showVesselTypeColumn]="showVesselTypeColumn"
+                     [showBasePortLocationColumn]="showBasePortLocationColumn"
+                     [synchronizationStatus]="'SYNC'"
+                     (onOpenRow)="selectRow($event)"
+                     (onNewRow)="close($event)">
+  </app-vessels-table>
+
+</ion-content>
+
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+
+  <ion-toolbar>
+
+    <ion-row class="ion-no-padding" nowrap>
+      <ion-col></ion-col>
+
+      <!-- buttons -->
+      <ion-col size="auto">
+        <ion-button fill="clear" color="dark"
+                    (click)="cancel()">
+          <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+        </ion-button>
+
+        <ion-button [fill]="canValidate ? 'solid' : 'clear'"
+                    [disabled]="!canValidate"
+                    (click)="close($event)"
+                    color="primary">
+          <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+
+  </ion-toolbar>
+</ion-footer>

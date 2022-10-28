@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild} from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Directive, ElementRef, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import {
   AppTable,
   EntitiesServiceWatchOptions,
@@ -13,18 +13,18 @@ import {
   isNil,
   isNotEmptyArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS
+  RESERVED_START_COLUMNS,
 } from '@sumaris-net/ngx-components';
-import {TableElement} from '@e-is/ngx-material-table';
-import {PredefinedColors} from '@ionic/core';
-import {FormGroup} from '@angular/forms';
-import {BaseValidatorService} from '@app/shared/service/base.validator.service';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {environment} from '@environments/environment';
-import {filter, map, tap} from 'rxjs/operators';
-import {PopoverController} from '@ionic/angular';
-import {SubBatch} from '@app/trip/batch/sub/sub-batch.model';
-import {Popovers} from '@app/shared/popover/popover.utils';
+import { TableElement } from '@e-is/ngx-material-table';
+import { PredefinedColors } from '@ionic/core';
+import { FormGroup } from '@angular/forms';
+import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { environment } from '@environments/environment';
+import { filter, map, tap } from 'rxjs/operators';
+import { PopoverController } from '@ionic/angular';
+import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
+import { Popovers } from '@app/shared/popover/popover.utils';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -39,6 +39,8 @@ export interface BaseTableConfig<
   SO = any>
   extends EntitiesTableDataSourceConfig<T, ID, WO, SO> {
 
+  restoreCompactMode?: boolean;
+  restoreColumnWidths?: boolean;
 }
 
 @Directive()
@@ -84,6 +86,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   filterForm: FormGroup = null;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
+  highlightedRowId: number;
 
   get filterIsEmpty(): boolean {
     return this.filterCriteriaCount === 0;
@@ -211,6 +214,8 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   }
 
   applyFilterAndClosePanel(event?: UIEvent) {
+    const filter = this.filterForm.value;
+    this.setFilter(filter, {emitEvent: false});
     this.onRefresh.emit(event);
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
@@ -219,13 +224,19 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
 
-  resetFilter(event?: UIEvent) {
-    this.filterForm.reset();
-    this.setFilter(null, {emitEvent: true});
+  resetFilter(value?: any, opts?: { emitEvent: boolean }) {
+    this.filterForm.reset(value, opts);
+    this.setFilter(value || null, opts);
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
+  clickRow(event: UIEvent|undefined, row: TableElement<E>): boolean {
+    if (!this.inlineEdition) this.highlightedRowId = row?.id;
+
+    //console.debug('[base-table] click row');
+    return super.clickRow(event, row);
+  }
 
   async addOrUpdateEntityToTable(data: E, opts?: {confirmEditCreate?: boolean}){
     // Always try to get the row, even if no ID, because the row can exists (e.g. in memory table)
@@ -239,9 +250,26 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     }
   }
 
+  /**
+   * Say if the row can be added. Useful to check unique constraints, and warn user
+   * is.s physical gear table can check is the rankOrder
+   * @param data
+   * @protected
+   */
+  protected canAddEntity(data: E): Promise<boolean> {
+    return Promise.resolve(true);
+  }
+
+  protected canAddEntities(data: E[]): Promise<boolean> {
+    return Promise.resolve(true);
+  }
+
+  protected canUpdateEntity(data: E, row: TableElement<E>): Promise<boolean> {
+    return Promise.resolve(true);
+  }
 
   /**
-   * Insert an entity into the table. This can be usefull when entity is created by a modal (e.g. BatchGroupTable).
+   * Insert an entity into the table. This can be useful when entity is created by a modal (e.g. BatchGroupTable).
    *
    * If hasRankOrder=true, then rankOrder is computed only once.
    * Will call method normalizeEntityToRow().
@@ -250,11 +278,16 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: E, opts?: { confirmCreate?: boolean; }): Promise<TableElement<E>> {
+  protected async addEntityToTable(data: E, opts?: { confirmCreate?: boolean; editing?: boolean }): Promise<TableElement<E>> {
     if (!data) throw new Error("Missing data to add");
     if (this.debug) console.debug("[measurement-table] Adding new entity", data);
 
-    const row = await this.addRowToTable();
+    // Check entity can be added
+    const canAdd = await this.canAddEntity(data);
+    if (!canAdd) return undefined;
+
+    // Create a row
+    const row = await this.addRowToTable(null, {editing: opts?.editing});
     if (!row) throw new Error("Could not add row to table");
 
     // Adapt measurement values to row
@@ -269,9 +302,9 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     }
 
     // Confirm the created row
-    if (!opts || opts.confirmCreate !== false) {
-      this.confirmEditCreate(null, row);
-      this.editedRow = null;
+    if (row.editing && (!opts || opts.confirmCreate !== false)) {
+      const confirmed = this.confirmEditCreate(null, row);
+      if (confirmed) this.editedRow = null; // Forget the edited row
     }
     else {
       this.editedRow = row;
@@ -280,6 +313,49 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.markAsDirty();
 
     return row;
+  }
+
+  protected async onNewEntity(data: E): Promise<void> {
+    // Can be overrided by subclasses
+  }
+
+  protected async addEntitiesToTable(data: E[], opts?: { editing?: boolean; emitEvent?: boolean }): Promise<TableElement<E>[]> {
+    if (!data) throw new Error("Missing data to add");
+    if (this.debug) console.debug("[measurement-table] Adding new entities", data);
+
+    // Check entity can be added
+    const canAdd = await this.canAddEntities(data);
+    if (!canAdd) return undefined;
+
+    // Prepare entities
+    await Promise.all(data.map(entity => this.onNewEntity(entity)));
+
+    // Bulk add
+    const rows = await this.dataSource.addMany(data, null, opts);
+    if (!rows) throw new Error("Failed to add entities to table");
+
+    this.totalRowCount += rows.length;
+    this.visibleRowCount += rows.length;
+
+    if (rows.length !== data.length) throw new Error("Not all entities has been added to table");
+
+    rows.map((row, index) => {
+      const entity = data[index];
+      // Adapt measurement values to row
+      this.normalizeEntityToRow(entity, row);
+
+      // Affect new row
+      if (row.validator) {
+        row.validator.patchValue(entity);
+        row.validator.markAsDirty();
+      } else {
+        row.currentData = entity;
+      }
+    })
+
+    this.markAsDirty();
+
+    return rows;
   }
 
   /**
@@ -295,6 +371,9 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   protected async updateEntityToTable(data: E, row: TableElement<E>, opts?: { confirmEdit?: boolean; }): Promise<TableElement<E>> {
     if (!data || !row) throw new Error("Missing data, or table row to update");
     if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
+
+    const canUpdate = await this.canUpdateEntity(data, row);
+    if (!canUpdate) return undefined;
 
     // Adapt measurement values to row
     this.normalizeEntityToRow(data, row);

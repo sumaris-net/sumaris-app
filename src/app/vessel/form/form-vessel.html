@@ -35,7 +35,9 @@
           <input matInput [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_CODE'|translate"
                  formControlName="registrationCode"
                  autocomplete="off"
-                 required>
+                 required
+                 toRegistrationCode
+          >
           <mat-error *ngIf="registrationForm.controls.registrationCode.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>

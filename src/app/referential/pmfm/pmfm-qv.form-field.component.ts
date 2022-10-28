@@ -37,7 +37,7 @@ import {
   StatusIds,
   suggestFromArray,
   toBoolean,
-  toNumber
+  toNumber, selectInputRange, isNotNilOrBlank
 } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../services/model/model.enum';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
@@ -175,13 +175,11 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this.items = merge(
           this.onShowDropdown
             .pipe(
-              takeUntil(this._onDestroy),
               filter(event => !event.defaultPrevented),
               map((_) => this._sortedQualitativeValues)
             ),
           this.formControl.valueChanges
             .pipe(
-              takeUntil(this._onDestroy),
               filter(ReferentialUtils.isEmpty),
               map(value => suggestFromArray(this._sortedQualitativeValues, value, {
                 searchAttributes: this.searchAttributes
@@ -189,6 +187,9 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
               map(res => res && res.data),
               tap(items => this.updateImplicitValue(items))
             )
+        )
+        .pipe(
+          takeUntil(this._onDestroy)
         );
       }
     }
@@ -246,15 +247,55 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   }
 
-  _onClick(event: UIEvent) {
+  _onClick(event: MouseEvent) {
     this.clicked.emit(event);
     this.onShowDropdown.emit(event);
   }
 
-  _onBlur(event: FocusEvent) {
+  filterInputTextFocusEvent(event: FocusEvent) {
+    if (!event || event.defaultPrevented) return;
+
+    // Ignore event from mat-option
     if (event.relatedTarget instanceof HTMLElement && event.relatedTarget.tagName === 'MAT-OPTION') {
       event.preventDefault();
-      return;
+      if (event.stopPropagation) event.stopPropagation();
+      event.returnValue = false;
+
+      // DEBUG
+      //if (this.debug) console.debug(this.logPrefix + ' Cancelling focus event');
+
+      return false;
+    }
+
+    // DEBUG
+    //if (this.debug) console.debug(this.logPrefix + ' Select input content');
+    const hasContent = isNotNilOrBlank((event.target as any)?.value);
+
+    // If combo is empty, or if has content but should force to show panel on focus
+    if (!hasContent) {
+      // DEBUG
+      //if (this.debug) console.debug(this.logPrefix + ' Emit focus event');
+
+      this.focused.emit();
+      this.onShowDropdown.emit(event);
+      return true;
+    }
+    return false;
+  }
+
+  filterInputTextBlurEvent(event: FocusEvent) {
+    if (!event || event.defaultPrevented) return;
+
+    // Ignore event from mat-option
+    if (event.relatedTarget instanceof HTMLElement && event.relatedTarget.tagName === 'MAT-OPTION') {
+      event.preventDefault();
+      if (event.stopPropagation) event.stopPropagation();
+      event.returnValue = false;
+
+      // DEBUG
+      //if (this.debug) console.debug(this.logPrefix + " Cancelling blur event");
+
+      return false;
     }
 
     // When leave component without object, use implicit value if stored
@@ -263,7 +304,50 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
     this._implicitValue = null;
     this.checkIfTouched();
+
+    // Move caret to the beginning (fix issue IMAGINE-469)
+    selectInputRange(event.target as any, 0, 0);
+
     this.blurred.emit(event);
+    return true;
+  }
+
+
+  filterMatSelectFocusEvent(event: FocusEvent) {
+    if (!event || event.defaultPrevented) return;
+    // DEBUG
+    // console.debug(this.logPrefix + " Received <mat-select> focus event", event);
+    this.focused.emit(event);
+  }
+
+  filterMatSelectBlurEvent(event: FocusEvent) {
+    if (!event || event.defaultPrevented) return;
+
+    // DEBUG
+    // console.debug(this.logPrefix + " Received <mat-select> blur event", event);
+
+
+    if (event.relatedTarget instanceof HTMLElement && (
+      // Ignore event from mat-option
+      (event.relatedTarget.tagName === 'MAT-OPTION')
+      || (event.relatedTarget.tagName === 'INPUT') && event.relatedTarget.classList.contains('searchbar-input'))) {
+      event.preventDefault();
+      if (event.stopPropagation) event.stopPropagation();
+      event.returnValue = false;
+      // DEBUG
+      // console.debug(this.logPrefix + " Cancelling <mat-select> blur event");
+      return false;
+    }
+
+    // When leave component without object, use implicit value if stored
+    if (this._implicitValue && typeof this.formControl.value !== "object") {
+      this.writeValue(this._implicitValue);
+    }
+    this._implicitValue = null;
+    this.checkIfTouched();
+
+    this.blurred.emit(event);
+    return true;
   }
 
   clear() {

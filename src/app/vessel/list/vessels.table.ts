@@ -4,20 +4,7 @@ import { VesselValidatorService } from '../services/validator/vessel.validator';
 import { VesselService } from '../services/vessel-service';
 import { VesselModal, VesselModalOptions } from '../modal/vessel-modal';
 import { Vessel } from '../services/model/vessel.model';
-import {
-  AccountService,
-  isNil,
-  isNotNil,
-  LocalSettingsService,
-  ReferentialRef,
-  referentialToString,
-  RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
-  SharedValidators,
-  StatusById,
-  StatusIds,
-  StatusList
-} from '@sumaris-net/ngx-components';
+import { AccountService, isNil, isNotNil, LocalSettingsService, ReferentialRef, referentialToString, SharedValidators, StatusById, StatusIds, StatusList } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
 import { FormBuilder } from '@angular/forms';
 import { statusToColor, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
@@ -58,6 +45,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   @Input() showToolbar = true;
   @Input() showPaginator = true;
   @Input() useSticky = true;
+  @Input() disableStatusFilter = false;
 
   @Input()
   set showIdColumn(value: boolean) {
@@ -143,13 +131,13 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     this.confirmBeforeDelete = true;
     this.autoLoad = false;
     this.showIdColumn = accountService.isAdmin();
-    this.settingsId = VesselsTableSettingsEnum.TABLE_ID; // Fixed value, to be able to reuse it in vessel modal
-    this.featureId = VesselsTableSettingsEnum.FEATURE_ID;
 
     this.debug = !environment.production;
   }
 
   ngOnInit() {
+    this.settingsId = VesselsTableSettingsEnum.TABLE_ID + (this.disableStatusFilter ? '_statusFilterDisabled' : ''); // Fixed value, to be able to reuse it in vessel modal
+    this.featureId = VesselsTableSettingsEnum.FEATURE_ID;
 
     super.ngOnInit();
 
@@ -219,14 +207,10 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     return true;
   }
 
-  applyFilterAndClosePanel(event?: UIEvent) {
-    this.onRefresh.emit(event);
-    this.filterExpansionPanel.close();
-  }
-
   resetFilter(event?: UIEvent) {
-    super.resetFilter(event);
-    this.filterExpansionPanel.close();
+    super.resetFilter({
+      statusId: this.disableStatusFilter ? this.filter.statusId : undefined
+    })
   }
 
   clearFilterStatus(event: UIEvent) {

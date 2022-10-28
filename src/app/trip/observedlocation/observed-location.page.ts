@@ -23,10 +23,10 @@ import {
   StatusIds,
   toBoolean,
   TranslateContextService,
-  UsageMode
+  UsageMode,
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
-import { SelectVesselsModal, SelectVesselsModalOptions } from './vessels/select-vessel.modal';
+import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
 import { ObservedLocation } from '../services/model/observed-location.model';
 import { Landing } from '../services/model/landing.model';
 import { LandingEditor, ProgramProperties } from '@app/referential/services/config/program.config';
@@ -239,13 +239,14 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
-    if (!this.data.startDateTime || !this.data.program) {
+    const programLabel = this.aggregatedLandingsTable?.programLabel || this.$programLabel.value || this.data.program.label;
+    if (!this.data.startDateTime || !programLabel) {
       throw new Error('Root entity has no program and start date. Cannot open select vessels modal');
     }
 
+    // Prepare filter's value
     const startDate = this.data.startDateTime.clone().add(-15, 'days');
     const endDate = this.data.startDateTime.clone();
-    const programLabel = (this.aggregatedLandingsTable?.programLabel) || this.data.program.label;
     const excludeVesselIds = (toBoolean(excludeExistingVessels, false) && this.aggregatedLandingsTable
       && (await this.aggregatedLandingsTable.vesselIdsAlreadyPresent())) || [];
     const defaultVesselSynchronizationStatus = this.network.offline ? 'DIRTY' : 'SYNC';
@@ -261,8 +262,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     });
 
     const modal = await this.modalCtrl.create({
-      component: SelectVesselsModal,
-      componentProps: <SelectVesselsModalOptions>{
+      component: SelectVesselsForDataModal,
+      componentProps: <SelectVesselsForDataModalOptions>{
         allowMultiple: false,
         landingFilter,
         vesselFilter: <VesselFilter>{

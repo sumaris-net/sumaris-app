@@ -96,7 +96,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
   @Output('focus') focused = new EventEmitter<FocusEvent>();
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
-  @Output('click') clicked = new EventEmitter<FocusEvent>();
+  @Output('click') clicked = new EventEmitter<MouseEvent>();
 
   get value(): any {
     return this.formControl.value;
@@ -248,8 +248,6 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       focusInput(this.matInput);
     }
   }
-
-  selectInputContent = AppFormUtils.selectInputContent;
 
   /* -- protected method -- */
 

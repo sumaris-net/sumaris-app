@@ -192,21 +192,6 @@
 
     <ng-content></ng-content>
 
-    <!-- DEBUG -->
-    <ion-row *ngIf="debug">
-      <ion-col size="0" size-md="3" size-lg="3">
-        <ion-label class="ion-float-end">Debug :</ion-label>
-      </ion-col>
-      <ion-col>
-        <ion-text color="primary" class="text-italic">
-          <small>
-            startDateTime: {{form|formGetValue:'startDateTime'|dateFormat:{time: true} }}<br/>
-            endDateTime: {{form|formGetValue:'endDateTime'|dateFormat:{time: true} }}<br/>
-          </small>
-        </ion-text>
-      </ion-col>
-    </ion-row>
-
     <!-- Comments -->
     <ion-row *ngIf="showComment">
       <ion-col>

@@ -86,6 +86,7 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
       memoryDataService,
       validatorService,
       {
+        suppressErrors: true,
         reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
         reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS,
         i18nColumnPrefix: 'TRIP.PRODUCT.LIST.'

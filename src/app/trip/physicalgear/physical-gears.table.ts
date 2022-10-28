@@ -302,6 +302,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
         disabled: this.disabled,
         data: dataToOpen.clone(), // Do a copy, because edition can be cancelled
         isNew,
+        tripId: this.tripId,
         canEditGear: this.canEditGear,
         canEditRankOrder: this.canEditRankOrder,
         showSearchButton,
@@ -363,6 +364,9 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     if (isNotNil(this.defaultGear)) {
       data.gear = this.defaultGear;
     }
+
+    // Link to parent
+    data.tripId = this.tripId;
   }
 
   protected async findRowByEntity(physicalGear: PhysicalGear): Promise<TableElement<PhysicalGear>> {

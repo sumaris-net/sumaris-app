@@ -36,9 +36,9 @@
     <!-- open packet sale modal -->
     <ion-grid endButtons class="ion-margin-top" *ngIf="enabled">
       <ion-row>
-        <ion-col></ion-col>
         <ion-col class="ion-align-items-start">
           <ion-button color="tertiary" fill="solid" expand="block" shape="round"
+                      [disabled]="invalid"
                       [title]="'PACKET.COMPOSITION.BTN_SALE'|translate"
                       (click)="onSave($event, 'sale')">
             <mat-icon slot="start">local_offer</mat-icon>
@@ -50,6 +50,7 @@
             </ion-label>
           </ion-button>
         </ion-col>
+        <ion-col></ion-col>
       </ion-row>
     </ion-grid>
 

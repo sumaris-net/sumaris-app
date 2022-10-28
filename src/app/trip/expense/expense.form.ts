@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { FormArray, FormBuilder } from '@angular/forms';
-import { filterNotNil,firstNotNil,  FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round, WaitForOptions } from '@sumaris-net/ngx-components';
+import { filterNotNil, firstNotNilPromise, FormArrayHelper, isNil, isNotEmptyArray, isNotNilOrNaN, ObjectMap, remove, removeAll, round, WaitForOptions } from '@sumaris-net/ngx-components';
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime, filter, mergeMap } from 'rxjs/operators';
@@ -241,58 +241,77 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
 
     await super.applyValue(data, opts);
 
-    // set ice value
-    await this.setIceValue(this.allData);
+    try {
+      // set ice value
+      await this.setIceValue(this.allData);
 
-    // set bait values
-    await this.setBaitValue(this.allData);
+      // set bait values
+      await this.setBaitValue(this.allData);
 
-    // initial calculation of tuples
-    this.calculateInitialTupleValues(this.fuelTuple);
-    this.calculateInitialTupleValues(this.engineOilTuple);
-    this.calculateInitialTupleValues(this.hydraulicOilTuple);
-    this.registerTupleSubscription(this.fuelTuple);
-    this.registerTupleSubscription(this.engineOilTuple);
-    this.registerTupleSubscription(this.hydraulicOilTuple);
+      // initial calculation of tuples
+      this.calculateInitialTupleValues(this.fuelTuple);
+      this.calculateInitialTupleValues(this.engineOilTuple);
+      this.calculateInitialTupleValues(this.hydraulicOilTuple);
+      this.registerTupleSubscription(this.fuelTuple);
+      this.registerTupleSubscription(this.engineOilTuple);
+      this.registerTupleSubscription(this.hydraulicOilTuple);
 
-    // compute total
-    this.calculateTotal();
+      // compute total
+      this.calculateTotal();
+    }
+    catch (err) {
+      if (this.destroyed) return; // Skip if component destroyed
+      console.error('[expense-form] Cannot load ice pmfms', err);
+    }
   }
 
   async setIceValue(data: Measurement[]) {
 
-    let icePmfms = this.iceForm.$pmfms.getValue();
-    if (!icePmfms) {
-      if (this.debug) console.debug('[expense-form] waiting for ice pmfms');
-      icePmfms = await firstNotNil(this.iceForm.$pmfms, {stop: this.destroySubject}).toPromise();
+    try {
+      let icePmfms = this.iceForm.$pmfms.getValue();
+      if (!icePmfms) {
+        if (this.debug) console.debug('[expense-form] waiting for ice pmfms');
+        icePmfms = await firstNotNilPromise(this.iceForm.$pmfms, {stop: this.destroySubject, timeout: 10000});
+      }
+
+      // filter data before set to ice form
+      this.iceForm.value = MeasurementUtils.filter(data, icePmfms);
     }
-
-    // filter data before set to ice form
-    this.iceForm.value = MeasurementUtils.filter(data, icePmfms);
-
+    catch (err) {
+      if (this.destroyed) return; // Skip if component destroyed
+      console.error('[expense-form] Cannot load ice pmfms', err);
+      throw new Error('Cannot load ice pmfms');
+    }
   }
 
   async setBaitValue(data: Measurement[]) {
 
-    let baitPmfms = this.baitForms.first.$pmfms.getValue();
-    if (!baitPmfms) {
-      if (this.debug) console.debug('[expense-form] waiting for bait pmfms');
-      baitPmfms = await firstNotNil(this.baitForms.first.$pmfms, {stop: this.destroySubject}).toPromise();
+    try {
+      let baitPmfms = this.baitForms.first.$pmfms.getValue();
+      if (!baitPmfms) {
+        if (this.debug) console.debug('[expense-form] Waiting for bait pmfms');
+        baitPmfms = await firstNotNilPromise(this.baitForms.first.$pmfms, {stop: this.destroySubject, timeout: 10000});
+      }
+
+      // filter data before set to each bait form
+      this.baitMeasurements = MeasurementUtils.filter(data, baitPmfms);
+
+      // get max rankOrder (should be = nbBaits)
+      const nbBait = getMaxRankOrder(this.baitMeasurements);
+      const baits = [...Array(nbBait).keys()];
+
+      this.applyingBaitMeasurements = true;
+      // resize 'baits' FormArray and patch main form to adjust number of bait children forms
+      this.baitsHelper.resize(Math.max(1, nbBait));
+      this.form.patchValue({baits});
+      // tell baitForms to call 'changes' event
+      this.baitForms.setDirty();
     }
-
-    // filter data before set to each bait form
-    this.baitMeasurements = MeasurementUtils.filter(data, baitPmfms);
-
-    // get max rankOrder (should be = nbBaits)
-    const nbBait = getMaxRankOrder(this.baitMeasurements);
-    const baits = [...Array(nbBait).keys()];
-
-    this.applyingBaitMeasurements = true;
-    // resize 'baits' FormArray and patch main form to adjust number of bait children forms
-    this.baitsHelper.resize(Math.max(1, nbBait));
-    this.form.patchValue({baits});
-    // tell baitForms to call 'changes' event
-    this.baitForms.setDirty();
+    catch(err) {
+      if (this.destroyed) return; // Skip if component destroyed
+      console.error('[expense-form] Cannot load bait pmfms', err);
+      throw new Error('Cannot load bait pmfms');
+    }
   }
 
   applyBaitMeasurements() {

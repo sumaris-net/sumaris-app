@@ -7,7 +7,7 @@
   </ion-item>
 
   <!-- GEAR -->
-  <mat-autocomplete-field #inputField
+  <mat-autocomplete-field #matInput
                           [class.cdk-visually-hidden]="!showGear"
                           formControlName="gear"
                           [placeholder]="'TRIP.PHYSICAL_GEAR.EDIT.GEAR'|translateContext: i18nSuffix"
@@ -17,12 +17,13 @@
                           [showSearchBar]="$gears|async|isArrayLength:{greaterThan: 5}"
                           (click)="selectInputContent($event)"
                           (keydown.tab)="focusNextInput($event)"
-                          (keydown.enter)="focusNextInput($event)">
+                          (keydown.enter)="focusNextInput($event)"
+                          [mobile]="mobile">
   </mat-autocomplete-field>
 
   <!-- rankOrder -->
   <mat-form-field *ngIf="canEditRankOrder && form|formGetControl:'rankOrder'; let control">
-    <input matInput #inputField
+    <input matInput #matInput
            [formControl]="control"
            autocomplete="off"
            type="number"
@@ -51,17 +52,16 @@
   <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
     <ion-grid class="ion-no-padding">
       <ion-row>
-        <ion-col size="12" size-md="6" class="ion-padding-end" *ngFor="let pmfm of pmfms; index as i; last as last" #inputField>
+        <ion-col size="12" size-md="6" class="ion-padding-end" *ngFor="let pmfm of pmfms; index as i; last as last">
 
           <!-- Measurements -->
-          <app-pmfm-field #inputField
+          <app-pmfm-field #matInput
                           [pmfm]="pmfm"
                           [controlName]="pmfm|pmfmIdString"
                           [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
                           [compact]="compact"
                           [tabindex]="tabindex+2 + i*2"
                           [floatLabel]="floatLabel"
-                          (click)="selectInputContent($event)"
                           [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
                           (keydown.tab)="focusNextInput($event)"
                           (keydown.enter)="focusNextInput($event)"
@@ -78,7 +78,7 @@
   </ion-item>
 
   <mat-form-field appearance="outline" *ngIf="showComment">
-    <textarea matInput #comments #inputField
+    <textarea matInput #comments #matInput
               [formControl]="form|formGetControl:'comments'"
               [placeholder]="'TRIP.PHYSICAL_GEAR.COMMENTS'|translate"
               matTextareaAutosize="true"

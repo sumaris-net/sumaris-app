@@ -3,6 +3,7 @@ import {
   AppFormUtils,
   changeCaseToUnderscore,
   CryptoService,
+  CsvUtils,
   EntitiesServiceWatchOptions,
   Entity,
   EntityFilter,
@@ -19,11 +20,12 @@ import {
   isNotNilOrBlank,
   IStatus,
   LoadResult,
+  PropertyFormatPipe,
   sleep,
   StartableService,
   StatusById,
   StatusList,
-  suggestFromArray, PropertyFormatPipe, CsvUtils
+  suggestFromArray,
 } from '@sumaris-net/ngx-components';
 import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableConfig } from '@app/shared/table/base.table';
 import { FormBuilder } from '@angular/forms';
@@ -188,12 +190,6 @@ export abstract class BaseReferentialTable<
       : this.settings.ready());
 
     return super.ready();
-  }
-
-  applyFilterAndClosePanel(event?: UIEvent) {
-    const filter = this.filterForm.value;
-    this.setFilter(filter, {emitEvent: false});
-    super.applyFilterAndClosePanel(event);
   }
 
   async exportToCsv(event: UIEvent) {

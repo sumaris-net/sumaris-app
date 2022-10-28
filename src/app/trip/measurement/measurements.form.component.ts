@@ -4,11 +4,15 @@ import { BehaviorSubject, isObservable, Observable } from 'rxjs';
 import { filter, first } from 'rxjs/operators';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, firstNotNil, isNil, isNotNil, toNumber } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, firstNotNil, firstNotNilPromise, isNil, isNotNil, PromiseEvent, toNumber } from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { MeasurementFormInitSteps } from '@app/trip/measurement/measurement-values.form.class';
+import { PmfmFormReadySteps } from '@app/trip/measurement/measurement-values.form.class';
+import { environment } from '@environments/environment';
+
+export declare type MapPmfmEvent = PromiseEvent<IPmfm[], {pmfms: IPmfm[]}>;
+export declare type UpdateFormGroupEvent = PromiseEvent<void, {form: FormGroup}>;
 
 @Component({
   selector: 'app-form-measurements',
@@ -18,11 +22,11 @@ import { MeasurementFormInitSteps } from '@app/trip/measurement/measurement-valu
 })
 export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, OnDestroy {
 
-  $loadingStep = new BehaviorSubject<number>(MeasurementFormInitSteps.STARTING);
   $programLabel = new BehaviorSubject<string>(undefined);
   $strategyLabel = new BehaviorSubject<string>(undefined);
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
 
+  protected $readyStepSubject = new BehaviorSubject<number>(PmfmFormReadySteps.STARTING);
   protected _logPrefix: string;
   protected _gearId: number = null;
   protected _acquisitionLevel: string;
@@ -114,11 +118,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
   @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
 
   @Output() valueChanges = new EventEmitter<any>();
-  @Output() mapPmfms = createPromiseEventEmitter<IPmfm[], {pmfms: IPmfm[]}>();
-  @Output() onUpdateFormGroup = createPromiseEventEmitter<void, {form: FormGroup}>();
+  @Output('mapPmfms') mapPmfms: EventEmitter<MapPmfmEvent> = createPromiseEventEmitter<IPmfm[], {pmfms: IPmfm[]}>();
+  @Output('updateFormGroup') onUpdateFormGroup: EventEmitter<UpdateFormGroupEvent> = createPromiseEventEmitter<void, {form: FormGroup}>();
 
   get starting(): boolean {
-    return this.$loadingStep.value === MeasurementFormInitSteps.STARTING;
+    return this.$readyStepSubject.value === PmfmFormReadySteps.STARTING;
   }
 
   get formError(): string {
@@ -165,7 +169,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.$loadingStep.unsubscribe();
+    this.$readyStepSubject.unsubscribe();
     this.$pmfms.complete();
     this.$pmfms.unsubscribe();
     this.$programLabel.unsubscribe();
@@ -196,15 +200,15 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
 
     // Start loading pmfms
     if (this.starting) {
-      this.setLoadingProgression(MeasurementFormInitSteps.LOADING_PMFMS);
+      this.setLoadingProgression(PmfmFormReadySteps.LOADING_PMFMS);
       this.loadPmfms();
     }
 
     // Wait form ready, before mark as ready
-    if (this.$loadingStep.value < MeasurementFormInitSteps.FORM_GROUP_READY) {
+    if (this.$readyStepSubject.value < PmfmFormReadySteps.FORM_GROUP_READY) {
       this.registerSubscription(
-        this.$loadingStep.pipe(
-          filter(step => step >= MeasurementFormInitSteps.FORM_GROUP_READY),
+        this.$readyStepSubject.pipe(
+          filter(step => step >= PmfmFormReadySteps.FORM_GROUP_READY),
           first()
         )
         .subscribe(() => super.markAsReady(opts))
@@ -217,10 +221,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
 
   markAsLoaded() {
     // Wait form loaded, before mark as loaded
-    if (this.$loadingStep.value < MeasurementFormInitSteps.FORM_GROUP_READY) {
+    if (this.$readyStepSubject.value < PmfmFormReadySteps.FORM_GROUP_READY) {
       this.registerSubscription(
-        this.$loadingStep.pipe(
-          filter(step => step >= MeasurementFormInitSteps.FORM_GROUP_READY),
+        this.$readyStepSubject.pipe(
+          filter(step => step >= PmfmFormReadySteps.FORM_GROUP_READY),
           first()
         )
         .subscribe(() => super.markAsLoaded())
@@ -373,25 +377,27 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     return this.data;
   }
 
-  protected setLoadingProgression(step: number) {
-    this.markAsLoading({step});
-  }
-
-  markAsLoading(opts?: {step?: number; emitEvent?: boolean;}) {
-
+  protected setLoadingProgression(step?: number) {
     // /!\ do NOT use STARTING step here (only used to avoid to many refresh, BEFORE ngOnInit())
-    const step = toNumber(opts?.step, MeasurementFormInitSteps.LOADING_PMFMS);
+    step = toNumber(step, PmfmFormReadySteps.LOADING_PMFMS);
 
     // Emit, if changed
-    if (this.$loadingStep.value !== step) {
+    if (this.$readyStepSubject.value !== step) {
+
+      // DEBUG
       if (this.debug) console.debug(`${this._logPrefix} Loading step -> ${step}`);
-      this.$loadingStep.next(step);
+
+      this.$readyStepSubject.next(step);
     }
 
     // Call inherited function (to update loadingSubject)
-    if (step <= MeasurementFormInitSteps.LOADING_PMFMS) {
-      super.markAsLoading(opts);
+    if (step <= PmfmFormReadySteps.LOADING_PMFMS) {
+      super.markAsLoading();
     }
+  }
+
+  markAsLoading(opts?: {emitEvent?: boolean;}) {
+    super.markAsLoading(opts);
   }
 
   /**
@@ -419,7 +425,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     // DEBUG
     //if (this.debug) console.debug(`${this.logPrefix} loadPmfms()`);
 
-    this.setLoadingProgression(MeasurementFormInitSteps.LOADING_PMFMS);
+    this.setLoadingProgression(PmfmFormReadySteps.LOADING_PMFMS);
 
     let pmfms;
     try {
@@ -452,15 +458,15 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     //if (this.debug) console.debug(`${this.logPrefix} setPmfms()`);
 
     // Mark as settings pmfms
-    const previousLoadingStep = this.$loadingStep.value;
-    this.setLoadingProgression(MeasurementFormInitSteps.SETTING_PMFMS);
+    const previousLoadingStep = this.$readyStepSubject.value;
+    this.setLoadingProgression(PmfmFormReadySteps.SETTING_PMFMS);
 
     try {
 
       // Wait loaded, if observable
       if (isObservable<IPmfm[]>(pmfms)) {
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable...`);
-        pmfms = await firstNotNil(pmfms).toPromise();
+        pmfms = await firstNotNilPromise(pmfms, {stop: this.destroySubject});
         if (this.debug) console.debug(`${this._logPrefix} setPmfms(): waiting pmfms observable [OK]`);
       }
 
@@ -491,7 +497,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
         if (this.debug) console.debug(`${this._logPrefix} Pmfms changed {acquisitionLevel: '${this._acquisitionLevel}'}`, pmfms);
 
         // next step
-        this.setLoadingProgression(MeasurementFormInitSteps.UPDATING_FORM_GROUP);
+        this.setLoadingProgression(PmfmFormReadySteps.UPDATING_FORM_GROUP);
         this.$pmfms.next(pmfms);
       }
       else {
@@ -513,7 +519,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
 
     if (this.debug) console.warn(`${this._logPrefix} Reset pmfms`);
 
-    if (!this.starting && !this.loading) this.setLoadingProgression(MeasurementFormInitSteps.STARTING);
+    if (!this.starting && this.loaded) this.setLoadingProgression(PmfmFormReadySteps.STARTING);
     this.$pmfms.next(undefined);
   }
 
@@ -525,7 +531,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     if (form.enabled) form.disable();
 
     // Mark as loading
-    this.setLoadingProgression(MeasurementFormInitSteps.UPDATING_FORM_GROUP);
+    this.setLoadingProgression(PmfmFormReadySteps.UPDATING_FORM_GROUP);
     if (this.debug) console.debug(`${this._logPrefix} Updating form controls, force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 
     // No pmfms (= empty form)
@@ -545,7 +551,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     }
 
     if (this.debug) console.debug(`${this._logPrefix} Form controls updated`);
-    this.setLoadingProgression(MeasurementFormInitSteps.FORM_GROUP_READY);
+    this.setLoadingProgression(PmfmFormReadySteps.FORM_GROUP_READY);
 
     // Data already set: apply value again to fill the form
     if (!this.applyingValue) {

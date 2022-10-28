@@ -243,27 +243,16 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     return false;
   }
 
-  async ready(opts?: WaitForOptions): Promise<void> {
-    await super.ready(opts);
-  }
-
-  markAsLoaded(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAsLoaded(opts);
-    this.loadingSubject.subscribe(loading => {
-      if (loading === true) {
-        throw new Error('STOP');
-      }
-    })
-  }
-
   async setValue(data: Sample[], opts?: { emitEvent?: boolean; }) {
-    console.debug('[sample-tree] Setting value', data);
+    if (this.debug) console.debug('[sample-tree] Set value', data);
 
-    await this.ready();
+    const waitOpts = {stop: this.destroySubject, stopError: false};
 
-    this.markAsLoading();
+    await this.ready(waitOpts);
 
     try {
+
+      this.markAsLoading();
 
       // Get all samples, as array (even when data is a list of parent/child tree)
       const samples = EntityUtils.listOfTreeToArray(data) || [];
@@ -289,9 +278,9 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
 
         // Wait loaded (because of markAsLoaded() in finally)
         await Promise.all([
-          this.samplesTable.ready(),
-          this.individualMonitoringTable.ready(),
-          this.individualReleasesTable.ready()
+          this.samplesTable.ready(waitOpts),
+          this.individualMonitoringTable.ready(waitOpts),
+          this.individualReleasesTable.ready(waitOpts)
         ]);
       }
       else {
@@ -300,12 +289,16 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
           parent.children = samples.filter(s => s.parentId === parent.id || (s.parent && parent.equals(s.parent)))
         })
         this.samplesTable.value = rootSamples;
-        await this.samplesTable.ready(); // Wait loaded (because of markAsLoaded() in finally)
+        await this.samplesTable.ready(waitOpts); // Wait loaded (because of markAsLoaded() in finally)
 
         // Mark other tables as loaded (because no value are set)
         this.individualMonitoringTable?.markAsLoaded();
         this.individualReleasesTable?.markAsLoaded();
       }
+    }
+    catch(err) {
+      console.error(err?.message || err, err);
+      throw err;
     }
     finally {
       this.markAsLoaded({emitEvent: false});

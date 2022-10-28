@@ -58,12 +58,13 @@
           <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
         </ul>
       </section>
-      <section *ngFor="let c of stats.charts | keyvalue">
-        <div style="height:450px">
+      <section *ngFor="let c of stats.charts | keyvalue; last as last">
+        <div class="chart-container">
           <canvas baseChart
                   [datasets]="c.value.data.datasets"
                   [options]="c.value.options"
                   [labels]="c.value.data.labels"
+                  [colors]="c.value.colors"
                   [chartType]="c.value.type">
           </canvas>
         </div>
