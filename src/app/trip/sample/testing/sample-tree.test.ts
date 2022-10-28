@@ -205,7 +205,7 @@ export class SampleTreeTestPage implements OnInit {
     this.desktopTree.markAsLoaded();
   }
 
-  doSubmit(event?: UIEvent) {
+  doSubmit(event?: Event) {
     // Nothing to do
   }
 

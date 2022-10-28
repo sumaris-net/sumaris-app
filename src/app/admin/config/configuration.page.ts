@@ -94,7 +94,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
   }
 
 
-  async clearCache(event?: UIEvent, cacheName?: string) {
+  async clearCache(event?: Event, cacheName?: string) {
     const confirm = await Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
     if (confirm) {
       await this.network.clearCache();

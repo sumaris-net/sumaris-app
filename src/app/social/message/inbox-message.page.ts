@@ -45,7 +45,7 @@ export class InboxMessagePage extends AppEntityEditor<UserEvent, UserEventServic
 
 
 
-  async reply(event?: UIEvent): Promise<any> {
+  async reply(event?: Event): Promise<any> {
 
     const source = this.form.value as Message;
 

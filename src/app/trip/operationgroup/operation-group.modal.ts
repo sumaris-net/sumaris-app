@@ -36,7 +36,7 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
   @Input() data: OperationGroup;
   @Input() pmfms: IPmfm[];
   @Input() usageMode: UsageMode;
-  @Input() onDelete: (event: UIEvent, data: OperationGroup) => Promise<boolean>;
+  @Input() onDelete: (event: Event, data: OperationGroup) => Promise<boolean>;
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
   @ViewChild('form', { static: true }) form: OperationGroupForm;
@@ -119,7 +119,7 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
     this._subscription.unsubscribe();
   }
 
-  async cancel(event: UIEvent) {
+  async cancel(event: Event) {
     await this.saveIfDirtyAndConfirm(event);
 
     // Continue (if event not cancelled)
@@ -128,7 +128,7 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
     }
   }
 
-  async save(event?: UIEvent): Promise<boolean> {
+  async save(event?: Event): Promise<boolean> {
     if (!this.form.valid || this.loading) return false;
     this.loading = true;
 
@@ -157,7 +157,7 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
     }
   }
 
-  async delete(event?: UIEvent) {
+  async delete(event?: Event) {
     if (!this.onDelete) return; // Skip
     const result = await this.onDelete(event, this.data);
     if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
@@ -168,7 +168,7 @@ export class OperationGroupModal implements OnInit, OnDestroy, IOperationGroupMo
   }
 
   /* -- protected methods -- */
-  protected async saveIfDirtyAndConfirm(event: UIEvent): Promise<void> {
+  protected async saveIfDirtyAndConfirm(event: Event): Promise<void> {
     if (!this.form.dirty) return; // skip, if nothing to save
 
     const confirmation = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);

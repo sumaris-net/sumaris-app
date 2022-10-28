@@ -189,7 +189,7 @@ export abstract class AppRootDataTable<
     }
   }
 
-  toggleOfflineMode(event?: UIEvent) {
+  toggleOfflineMode(event?: Event) {
     if (this.network.offline) {
       this.network.setForceOffline(false);
     }
@@ -202,7 +202,7 @@ export abstract class AppRootDataTable<
     this.onRefresh.emit();
   }
 
-  async prepareOfflineMode(event?: UIEvent, opts?: {
+  async prepareOfflineMode(event?: Event, opts?: {
     toggleToOfflineMode?: boolean; // Switch to offline mode ?
     showToast?: boolean; // Display success toast ?
   }): Promise<undefined | boolean> {
@@ -319,7 +319,7 @@ export abstract class AppRootDataTable<
     this.markForCheck();
   }
 
-  async addRowToSyncStatus(event: UIEvent, value: SynchronizationStatus) {
+  async addRowToSyncStatus(event: Event, value: SynchronizationStatus) {
     if (!value || !this.mobile || this.importing) return; // Skip
 
     // If 'DIRTY' but offline not init : init this mode
@@ -362,7 +362,7 @@ export abstract class AppRootDataTable<
   }
 
 
-  clickRow(event: UIEvent|undefined, row: TableElement<T>): boolean {
+  clickRow(event: Event|undefined, row: TableElement<T>): boolean {
     if (this.importing) return; // Skip
     return super.clickRow(event, row);
   }
@@ -567,7 +567,7 @@ export abstract class AppRootDataTable<
     }
   }
 
-  async importFromFile(event?: UIEvent): Promise<any[]> {
+  async importFromFile(event?: Event): Promise<any[]> {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
       fileExtension: '.json',

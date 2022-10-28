@@ -1,5 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {AlertController, ModalController} from '@ionic/angular';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AccountService,
   AppTable,
@@ -8,24 +7,18 @@ import {
   EntitiesTableDataSource,
   isEmptyArray,
   isNotNil,
-  LocalSettingsService,
-  PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   toBoolean
 } from '@sumaris-net/ngx-components';
-import {Trip} from '../../services/model/trip.model';
-import {ActivatedRoute, Router} from '@angular/router';
-import {Location} from '@angular/common';
-import {TripService} from '../../services/trip.service';
-import {TripFilter} from '../../services/filter/trip.filter';
-import {UntypedFormBuilder} from '@angular/forms';
-import {TranslateService} from '@ngx-translate/core';
-import {TableElement} from '@e-is/ngx-material-table';
-import {OperationService} from '../../services/operation.service';
-import {environment} from '@environments/environment';
-import {TrashRemoteService} from '@app/core/services/trash-remote.service';
-import {SynchronizationStatus} from "@app/data/services/model/model.utils";
+import { Trip } from '../../services/model/trip.model';
+import { TripService } from '../../services/trip.service';
+import { TripFilter } from '../../services/filter/trip.filter';
+import { UntypedFormBuilder } from '@angular/forms';
+import { TableElement } from '@e-is/ngx-material-table';
+import { environment } from '@environments/environment';
+import { TrashRemoteService } from '@app/core/services/trash-remote.service';
+import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 
 export interface TripTrashModalOptions {
   synchronizationStatus?: SynchronizationStatus;
@@ -127,13 +120,13 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     super.ngOnDestroy();
   }
 
-  async closeAndRestore(event: UIEvent, rows: TableElement<Trip>[]) {
+  async closeAndRestore(event: Event, rows: TableElement<Trip>[]) {
 
     const done = await this.restore(event, rows);
     if (done) return this.close();
   }
 
-  async restore(event: UIEvent, rows: TableElement<Trip>[]): Promise<boolean> {
+  async restore(event: Event, rows: TableElement<Trip>[]): Promise<boolean> {
     if (this.loading) return; // Skip
 
     const confirm = await this.askRestoreConfirmation();
@@ -187,7 +180,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
   }
 
 
-  clickRow(event: MouseEvent|undefined, row: TableElement<Trip>): boolean {
+  async toggleRow(event: MouseEvent, row: TableElement<Trip>): Promise<boolean> {
     if (event && event.defaultPrevented) return; // Skip
 
     if (this.selection.isEmpty()) {
@@ -209,11 +202,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     await this.modalCtrl.dismiss();
   }
 
-  async cancel() {
-    await this.modalCtrl.dismiss();
-  }
-
-  async cleanLocalTrash(event?: UIEvent, confirm?: boolean) {
+  async cleanLocalTrash(event?: Event, confirm?: boolean) {
 
     if (!confirm) {
       confirm = await this.askDeleteConfirmation(event);
@@ -234,7 +223,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
   }
 
-  async cleanRemoteTrash(event: UIEvent, rows: TableElement<Trip>[]) {
+  async cleanRemoteTrash(event: Event, rows: TableElement<Trip>[]) {
     if (this.loading) return; // Skip
 
     if (!(await this.askRestoreConfirmation(event))) return; // User cancelled

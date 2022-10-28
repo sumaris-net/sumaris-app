@@ -121,7 +121,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
     await this.loadLevels(this.entityName);
   }
 
-  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+  clearControlValue(event: Event, formControl: AbstractControl): boolean {
     if (event) event.stopPropagation(); // Avoid to enter input the field
     formControl.setValue(null);
     return false;

@@ -38,7 +38,7 @@ import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
+import { Geolocation } from '@awesome-cordova-plugins/geolocation/ngx';
 import { OperationService } from '@app/trip/services/operation.service';
 import { AlertController, ModalController } from '@ionic/angular';
 import { ISelectOperationModalOptions, SelectOperationModal } from '@app/trip/operation/select-operation.modal';
@@ -563,7 +563,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
    * Get the position by GPS sensor
    * @param fieldName
    */
-  async onFillPositionClick(event: UIEvent, fieldName: string) {
+  async onFillPositionClick(event: Event, fieldName: string) {
 
     if (event) {
       event.preventDefault();
@@ -588,7 +588,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this.markForCheck();
   }
 
-  copyPosition(event: UIEvent, source: PositionField, target?: PositionField) {
+  copyPosition(event: Event, source: PositionField, target?: PositionField) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -792,7 +792,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
   }
 
-  async toggleMetierFilter(event: UIEvent, field?: MatAutocompleteField) {
+  async toggleMetierFilter(event: Event, field?: MatAutocompleteField) {
     if (event) event.preventDefault();
 
     this.toggleFilter('metier');

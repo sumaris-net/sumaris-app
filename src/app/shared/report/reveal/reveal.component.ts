@@ -196,7 +196,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
     this._reveal.toggleHelp();
   }
 
-  async print(event?: UIEvent) {
+  async print(event?: Event) {
     if (this.loading) return; // skip
 
     console.debug('[reveal] Print...');

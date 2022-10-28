@@ -207,13 +207,13 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     return true;
   }
 
-  resetFilter(event?: UIEvent) {
+  resetFilter(event?: Event) {
     super.resetFilter({
       statusId: this.disableStatusFilter ? this.filter.statusId : undefined
     })
   }
 
-  clearFilterStatus(event: UIEvent) {
+  clearFilterStatus(event: Event) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();

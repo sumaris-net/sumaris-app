@@ -210,7 +210,7 @@ export class ObservedLocationsPage extends
     return true;
   }
 
-  async openTrashModal(event?: UIEvent) {
+  async openTrashModal(event?: Event) {
     console.debug('[observed-locations] Opening trash modal...');
     // TODO BLA
     /*const modal = await this.modalCtrl.create({
@@ -230,7 +230,7 @@ export class ObservedLocationsPage extends
     if (!res) return; // CANCELLED*/
   }
 
-  async prepareOfflineMode(event?: UIEvent, opts?: {
+  async prepareOfflineMode(event?: Event, opts?: {
     toggleToOfflineMode?: boolean;
     showToast?: boolean;
     filter?: any;
@@ -270,7 +270,7 @@ export class ObservedLocationsPage extends
     return super.prepareOfflineMode(event, opts);
   }
 
-  async deleteSelection(event: UIEvent): Promise<number> {
+  async deleteSelection(event: Event): Promise<number> {
     let oldConfirmBeforeDelete = this.confirmBeforeDelete;
     const rowsToDelete = this.selection.selected;
 

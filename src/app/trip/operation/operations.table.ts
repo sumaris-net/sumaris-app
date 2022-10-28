@@ -262,7 +262,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     }, opts);
   }
 
-  async openMapModal(event?: UIEvent) {
+  async openMapModal(event?: Event) {
 
     const res = await this.dataService.loadAllByTrip({
       tripId: this.tripId
@@ -347,7 +347,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     this.filterPanelFloating = true;
   }
 
-  clearFilterValue(key: keyof OperationFilter, event?: UIEvent) {
+  clearFilterValue(key: keyof OperationFilter, event?: Event) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();

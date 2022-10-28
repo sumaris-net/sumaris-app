@@ -68,7 +68,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   private _sortedQualitativeValues: IReferentialRef[];
 
   items: Observable<IReferentialRef[]>;
-  onShowDropdown = new EventEmitter<UIEvent>(true);
+  onShowDropdown = new EventEmitter<Event>(true);
   selectedIndex = -1;
   _tabindex: number;
   showAllButtons = false;
@@ -114,7 +114,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
   @Output('focus') focused = new EventEmitter<FocusEvent>();
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
-  @Output('click') clicked = new EventEmitter<UIEvent>();
+  @Output('click') clicked = new EventEmitter<Event>();
 
   @ViewChild('matInput') matInput: ElementRef;
   @ViewChildren('button') buttons: QueryList<IonButton>;
@@ -219,7 +219,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return this.formControl.value;
   }
 
-  writeValue(value: any, event?: UIEvent) {
+  writeValue(value: any, event?: Event) {
     if (value !== this.formControl.value) {
       this.formControl.patchValue(value, {emitEvent: false});
       this._onChangeCallback(value);

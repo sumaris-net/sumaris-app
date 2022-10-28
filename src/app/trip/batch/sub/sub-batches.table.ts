@@ -328,7 +328,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     this.memoryDataService = null;
   }
 
-  async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
+  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>) {
     // Skip if loading,
     // or if previous edited row not confirmed
     if (this.loading) return;
@@ -615,7 +615,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit(row);
       return true;
     }
 

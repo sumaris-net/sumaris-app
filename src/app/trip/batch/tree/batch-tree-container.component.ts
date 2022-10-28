@@ -424,7 +424,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   private _listenStatusChangesSubscription: Subscription;
 
-  async startEditBatch(event: UIEvent, source: BatchModel) {
+  async startEditBatch(event: Event, source: BatchModel) {
 
     event?.stopImmediatePropagation();
 
@@ -624,7 +624,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.markForCheck();
   }
 
-  openFilterPanel(event?: UIEvent, opts?: {expandAll?: boolean}) {
+  openFilterPanel(event?: Event, opts?: {expandAll?: boolean}) {
     if (event?.defaultPrevented) return; // Cancelled
 
     // First, expand model tree
@@ -642,7 +642,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.markForCheck();
   }
 
-  addRow(event: UIEvent) {
+  addRow(event: Event) {
     if (this.editingBatch?.isLeaf) {
       this.batchTree.addRow(event);
     }
@@ -864,7 +864,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return getPropertyByPath(catchBatch, path) as BatchModel|undefined;
   }
 
-  forward(event?: UIEvent, model?: BatchModel) {
+  forward(event?: Event, model?: BatchModel) {
     console.debug(this.logPrefix + 'Go foward');
     event?.stopImmediatePropagation();
 
@@ -877,7 +877,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
   }
 
-  backward(event?: UIEvent, model?: BatchModel) {
+  backward(event?: Event, model?: BatchModel) {
     console.debug(this.logPrefix + 'Go backward');
     event?.stopImmediatePropagation();
 

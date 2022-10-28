@@ -269,7 +269,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return super.save(event, options);
   }
 
-  async openHelpModal(event?: UIEvent) {
+  async openHelpModal(event?: Event) {
 
     event?.preventDefault();
     event?.stopPropagation();

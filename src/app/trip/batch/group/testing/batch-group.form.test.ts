@@ -168,7 +168,7 @@ export class BatchGroupFormTestPage implements OnInit {
     this.form.markAsLoaded();
   }
 
-  doSubmit(event?: UIEvent) {
+  doSubmit(event?: Event) {
     // Nothing to do
   }
 

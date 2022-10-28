@@ -97,7 +97,7 @@ export class BatchFilterForm extends AppForm<BatchFilter> implements OnInit, Aft
     });
 
     // Remove unused
-    existingControlKeys.forEach(measurementValuesForm.removeControl);
+    existingControlKeys.forEach(key => measurementValuesForm.removeControl(key));
 
     this._pmfms = pmfms;
     this.cd.detectChanges();

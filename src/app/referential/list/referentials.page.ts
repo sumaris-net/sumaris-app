@@ -383,7 +383,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return super.openRow(id, row);
   }
 
-  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+  clearControlValue(event: Event, formControl: AbstractControl): boolean {
     if (event) event.stopPropagation(); // Avoid to enter input the field
     formControl.setValue(null);
     return false;
@@ -394,7 +394,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     this.markForCheck();
   }
 
-  applyFilterAndClosePanel(event?: UIEvent) {
+  applyFilterAndClosePanel(event?: Event) {
     this.onRefresh.emit(event);
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
@@ -403,7 +403,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
   }
 
-  resetFilter(event?: UIEvent) {
+  resetFilter(event?: Event) {
     this.filterForm.reset({entityName: this._entityName}, {emitEvent: true});
     this.setFilter(ReferentialFilter.fromObject({entityName: this._entityName}), {emitEvent: true});
     this.filterCriteriaCount = 0;

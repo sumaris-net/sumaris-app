@@ -331,7 +331,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     super.setValue(data, opts);
   }
 
-  async addVesselModal(event?: UIEvent): Promise<any> {
+  async addVesselModal(event?: Event): Promise<any> {
     if (event) {
       event.preventDefault();
       event.stopPropagation();

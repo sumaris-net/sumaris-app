@@ -33,7 +33,6 @@ import { slideDownAnimation } from '@app/shared/material/material.animation';
 export interface IPhysicalGearModalOptions
   extends IEntityEditorModalOptions<PhysicalGear> {
 
-  isNew: boolean;
   helpMessage: string;
 
   acquisitionLevel: string;
@@ -217,7 +216,7 @@ export class PhysicalGearModal
     }
   }
 
-  async openSearchModal(event?: UIEvent) {
+  async openSearchModal(event?: Event) {
 
     if (this.onSearchButtonClick.observers.length === 0) return; // Skip
 

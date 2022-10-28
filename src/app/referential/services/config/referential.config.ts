@@ -1,5 +1,5 @@
 import { TypePolicies } from '@apollo/client/core';
-import { changeCaseToUnderscore, FormFieldDefinition, StatusIds } from '@sumaris-net/ngx-components';
+import { changeCaseToUnderscore, FormFieldDefinition, MatAutocompleteFieldConfig, StatusIds } from '@sumaris-net/ngx-components';
 import {
   FractionIdGroups,
   LocationLevelIds,
@@ -9,9 +9,9 @@ import {
   ParameterLabelGroups,
   PmfmIds,
   ProgramLabel,
-  QualitativeValueIds, TaxonGroupTypeIds,
-  TaxonomicLevelIds,
-  UnitLabelGroups
+  QualitativeValueIds,
+  TaxonGroupTypeIds,
+  TaxonomicLevelIds
 } from '../model/model.enum';
 import { FieldMergeFunction } from '@apollo/client/cache/inmemory/policies';
 
@@ -55,6 +55,14 @@ export const REFERENTIAL_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   },
 };
 
+const LocationLevelAutocompleteConfig = <MatAutocompleteFieldConfig>{
+  attributes: ['id', 'name'],
+  filter: {
+    entityName: 'LocationLevel',
+    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+  }
+};
+
 export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
   REFERENTIAL_VESSEL_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.referential.vessel.enable',
@@ -78,60 +86,35 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.enumeration.LocationLevel.COUNTRY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_COUNTRY_ID',
     type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.COUNTRY
   },
   LOCATION_LEVEL_PORT_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.HARBOUR.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_PORT_ID',
     type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.PORT
   },
   LOCATION_LEVEL_AUCTION_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.AUCTION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_AUCTION_ID',
     type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.AUCTION
   },
   LOCATION_LEVEL_ICES_RECTANGLE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.RECTANGLE_ICES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_RECTANGLE_ID',
     type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.ICES_RECTANGLE
   },
   LOCATION_LEVEL_ICES_DIVISION_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.ICES_DIVISION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_ICES_DIVISION_ID',
     type: 'entity',
-    autocomplete: {
-      filter: {
-        entityName: 'LocationLevel',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: LocationLevelAutocompleteConfig,
     defaultValue: LocationLevelIds.ICES_DIVISION
   },
   LOCATION_LEVEL_LOCATIONS_AREA_IDS: <FormFieldDefinition>{
@@ -156,6 +139,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_FAMILY_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonomicLevel',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -168,6 +152,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_GENUS_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonomicLevel',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -180,6 +165,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_SPECIES_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonomicLevel',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -192,6 +178,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXONOMIC_LEVEL_SUBSPECIES_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonomicLevel',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -204,6 +191,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRIP_PROGRESS',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -216,6 +204,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_STRATEGY_LABEL_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -228,6 +217,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TAG_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -240,6 +230,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DRESSING',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -252,6 +243,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PRESERVATION',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -264,6 +256,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRAWL_SIZE_CAT',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -276,6 +269,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AGE_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -288,6 +282,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SEX_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -300,6 +295,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PACKAGING_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -312,6 +308,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SIZE_CATEGORY_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -324,6 +321,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_RANK_ORDER_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -336,6 +334,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_ESTIMATED_RATIO_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -348,6 +347,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_WEIGHT_PRICE_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -360,6 +360,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_PACKAGING_PRICE_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -372,6 +373,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TOTAL_PRICE_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -384,6 +386,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_REFUSED_SURVEY_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -396,6 +399,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_GEAR_LABEL_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -408,6 +412,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_CHILD_GEAR_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -420,6 +425,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HAS_ACCIDENTAL_CATCHES_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -432,6 +438,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -444,6 +451,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'label'],
       filter: {
         entityName: 'Pmfm',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -456,6 +464,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_SURVEY_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'ParameterGroup',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -468,6 +477,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_MEASURED_BY_OBSERVER_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -480,6 +490,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_OBSERVED_BY_OBSERVER_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -492,6 +503,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_ESTIMATED_BY_OBSERVER_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -504,6 +516,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_CALCULATED_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -516,6 +529,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_CALCULATED_WEIGHT_LENGTH_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -528,6 +542,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'Method',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -540,6 +555,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.FRACTION_INDIVIDUAL_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'Matrix',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -588,6 +604,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.UNIT_NONE_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'Unit',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -600,6 +617,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_LANDING_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['label', 'name'],
       filter: {
         entityName: 'QualitativeValue',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -612,6 +630,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_DISCARD_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['label', 'name'],
       filter: {
         entityName: 'QualitativeValue',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -624,6 +643,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_DRESSING_WHOLE_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'QualitativeValue',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -636,6 +656,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_PRESERVATION_FRESH_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'QualitativeValue',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -648,6 +669,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'QualitativeValue',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -661,6 +683,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXON_GROUP_TYPE_FAO_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonGroupType',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -673,6 +696,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXON_GROUP_TYPE_NATIONAL_METIER_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonGroupType',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
@@ -685,6 +709,7 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID',
     type: 'entity',
     autocomplete: {
+      attributes: ['id', 'name'],
       filter: {
         entityName: 'TaxonGroupType',
         statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]

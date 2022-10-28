@@ -95,7 +95,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
-  @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
+  @Input() onDelete: (event: Event, data: Sample) => Promise<boolean>;
   @Input() openSubSampleModal: (parent: Sample, acquisitionLevel: AcquisitionLevelType) => Promise<Sample>;
 
   @ViewChild('form', {static: true}) form: SampleForm;
@@ -226,7 +226,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  async close(event?: UIEvent) {
+  async close(event?: Event) {
     if (this.dirty) {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
@@ -248,7 +248,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   /**
    * Add and reset form
    */
-  async onSubmitAndNext(event?: UIEvent) {
+  async onSubmitAndNext(event?: Event) {
     if (this.loading) return undefined; // avoid many call
     // DEBUG
     //console.debug('[sample-modal] Calling onSubmitAndNext()');
@@ -283,7 +283,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
    * Validate and close
    * @param event
    */
-  async onSubmitIfDirty(event?: UIEvent) {
+  async onSubmitIfDirty(event?: Event) {
     if (!this.dirty) {
       await this.modalCtrl.dismiss();
     }
@@ -296,7 +296,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
    * Validate and close
    * @param event
    */
-  async onSubmit(event?: UIEvent) {
+  async onSubmit(event?: Event) {
     if (this.loading) return undefined; // avoid many call
 
     // No changes: leave
@@ -316,7 +316,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  async delete(event?: UIEvent) {
+  async delete(event?: Event) {
     if (this.onDelete) {
       const deleted = await this.onDelete(event, this.data);
       if (isNil(deleted) || (event && event.defaultPrevented)) return; // User cancelled

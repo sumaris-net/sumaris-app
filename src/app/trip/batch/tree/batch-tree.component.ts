@@ -73,7 +73,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   // Methods
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]);
   autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean}): Promise<void>;
-  addRow(event: UIEvent);
+  addRow(event: Event);
   getFirstInvalidTabIndex(): number;
 }
 
@@ -652,7 +652,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     });
   }
 
-  addRow(event: UIEvent) {
+  addRow(event: Event) {
     switch (this.selectedTabIndex) {
       case 0:
         this.batchGroupsTable.addRow(event);

@@ -104,7 +104,7 @@ export class SubBatchModal implements OnInit, OnDestroy {
     await this.modalCtrl.dismiss();
   }
 
-  async close(event?: UIEvent) {
+  async close(event?: Event) {
     if (this.loading) return; // avoid many call
 
     // Leave without saving

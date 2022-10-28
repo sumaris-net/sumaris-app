@@ -469,7 +469,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
   }
 
-  copyChildrenWeight(event: UIEvent, samplingBatchForm: AbstractControl) {
+  copyChildrenWeight(event: Event, samplingBatchForm: AbstractControl) {
 
     const source = samplingBatchForm.get('childrenWeight')?.value as BatchWeight;
     if (isNil(source?.value)) return; // Nothing to copy

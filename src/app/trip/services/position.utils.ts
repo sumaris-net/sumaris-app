@@ -1,6 +1,6 @@
 import { IPosition } from '@app/trip/services/model/position.model';
 import { isNil } from '@sumaris-net/ngx-components';
-import { Geolocation, GeolocationOptions, Geoposition } from '@ionic-native/geolocation/ngx';
+import { Geolocation, GeolocationOptions, Geoposition } from '@awesome-cordova-plugins/geolocation/ngx';
 import { BBox } from 'geojson';
 import { Geometries } from '@app/shared/geometries.utils';
 

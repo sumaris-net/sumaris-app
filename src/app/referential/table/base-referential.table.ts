@@ -192,7 +192,7 @@ export abstract class BaseReferentialTable<
     return super.ready();
   }
 
-  async exportToCsv(event: UIEvent) {
+  async exportToCsv(event: Event) {
     const filename = this.getExportFileName();
     const separator = this.getExportSeparator();
     const encoding = this.getExportEncoding();
@@ -204,7 +204,7 @@ export abstract class BaseReferentialTable<
     CsvUtils.exportToFile(rows, {filename, headers, separator, encoding});
   }
 
-  async importFromCsv(event?: UIEvent) {
+  async importFromCsv(event?: Event) {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
         uniqueFile: true,
         fileExtension: '.csv',

@@ -224,7 +224,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     await this.viewCtrl.dismiss(null, 'CANCEL');
   }
 
-  async validate(event?: UIEvent) {
+  async validate(event?: Event) {
     this.form.markAllAsTouched();
 
     if (!this.form.valid) {

@@ -67,7 +67,7 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
     this.debug = !environment.production;
   }
 
-  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+  clearControlValue(event: Event, formControl: AbstractControl): boolean {
     if (event) event.stopPropagation(); // Avoid to enter input the field
     formControl.setValue(null);
     return false;

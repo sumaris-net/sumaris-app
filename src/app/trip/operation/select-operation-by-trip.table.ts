@@ -213,7 +213,7 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     return !(item.currentData instanceof OperationDivider);
   }
 
-  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+  clearControlValue(event: Event, formControl: AbstractControl): boolean {
     if (event) event.stopPropagation(); // Avoid to enter input the field
     formControl.setValue(null);
     return false;

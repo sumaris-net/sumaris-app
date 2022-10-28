@@ -213,7 +213,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.markForCheck();
   }
 
-  applyFilterAndClosePanel(event?: UIEvent) {
+  applyFilterAndClosePanel(event?: Event) {
     const filter = this.filterForm.value;
     this.setFilter(filter, {emitEvent: false});
     this.onRefresh.emit(event);
@@ -231,7 +231,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
-  clickRow(event: UIEvent|undefined, row: TableElement<E>): boolean {
+  clickRow(event: Event|undefined, row: TableElement<E>): boolean {
     if (!this.inlineEdition) this.highlightedRowId = row?.id;
 
     //console.debug('[base-table] click row');
@@ -400,7 +400,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return row;
   }
 
-  async deleteEntity(event: UIEvent, data: E): Promise<boolean> {
+  async deleteEntity(event: Event, data: E): Promise<boolean> {
     const row = await this.findRowByEntity(data);
 
     // Row not exists: OK
@@ -456,7 +456,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.settings.savePageSetting(this.settingsId, this.compact, BASE_TABLE_SETTINGS_ENUM.compactRowsKey);
   }
 
-  async openCommentPopover(event: UIEvent, row: TableElement<SubBatch>) {
+  async openCommentPopover(event: Event, row: TableElement<SubBatch>) {
 
     const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
     const {data} = await Popovers.showText(this.popoverController, event, {

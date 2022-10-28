@@ -338,7 +338,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return false;
   }
 
-  async openReport(event?: UIEvent) {
+  async openReport(event?: Event) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel

@@ -70,7 +70,7 @@ export class SelectivityOperationPage extends OperationPage {
     event.detail.success(pmfms);
   }
 
-  onNewFabButtonClick(event: UIEvent) {
+  onNewFabButtonClick(event: Event) {
     const selectedTabIndex = this.selectedTabIndex;
     if (selectedTabIndex === OperationPage.TABS.CATCH) {
       this.batchTree.addRow(event);

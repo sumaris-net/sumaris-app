@@ -702,7 +702,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     return await super.save(event, {...options, ...saveOptions});
   }
 
-  onNewFabButtonClick(event: UIEvent) {
+  onNewFabButtonClick(event: Event) {
     if (this.showOperationGroupTab && this.selectedTabIndex === 1) {
       this.operationGroupTable.addRow(event);
     }

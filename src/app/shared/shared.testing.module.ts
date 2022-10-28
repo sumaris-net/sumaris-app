@@ -3,8 +3,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CoreModule, SHARED_TESTING_PAGES, SharedModule, SharedTestingModule, TestingPage } from '@sumaris-net/ngx-components';
 import { TranslateModule } from '@ngx-translate/core';
-import { AppSharedReportTestingModule, REPORT_TESTING_PAGES } from '@app/shared/report/report.testing.module';
-import { AppSharedMaterialTestingModule, MATERIAL_TESTING_PAGES } from '@app/shared/material/material.testing.module';
+import { REPORT_TESTING_PAGES } from '@app/shared/report/report.testing.module';
+import { MATERIAL_TESTING_PAGES } from '@app/shared/material/material.testing.module';
 
 export const APP_SHARED_TESTING_PAGES: TestingPage[] = [
   ...SHARED_TESTING_PAGES,

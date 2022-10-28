@@ -118,7 +118,7 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
     this.memoryDataService = null;
   }
 
-  async openDescriptionPopover(event: UIEvent, row: TableElement<Referential>) {
+  async openDescriptionPopover(event: Event, row: TableElement<Referential>) {
 
     const placeholder = this.translate.instant(this.i18nColumnPrefix + 'DESCRIPTION');
     const {data} = await Popovers.showText(this.popoverController, event, {
@@ -143,7 +143,7 @@ export class SimpleReferentialTable extends AppInMemoryTable<Referential, Partia
     }
   }
 
-  async openCommentPopover(event: UIEvent, row: TableElement<Referential>) {
+  async openCommentPopover(event: Event, row: TableElement<Referential>) {
 
     const placeholder = this.translate.instant(this.i18nColumnPrefix + 'COMMENTS');
     const {data} = await Popovers.showText(this.popoverController, event, {

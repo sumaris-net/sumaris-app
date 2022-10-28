@@ -1141,7 +1141,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return changed;
   }
 
-  onRefreshClick(event?: UIEvent) {
+  onRefreshClick(event?: Event) {
     this.stopAnimation();
     this.onRefresh.emit(event);
   }
@@ -1207,11 +1207,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return setTimeout(() => this.closeFeatureDetails(feature, true), 4000);
   }
 
-  openLegendForm(event: UIEvent) {
+  openLegendForm(event: Event) {
     this.showLegendForm = true;
   }
 
-  cancelLegendForm(event: UIEvent) {
+  cancelLegendForm(event: Event) {
     this.showLegendForm = false;
 
     // Reset legend color
@@ -1219,13 +1219,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     //this.legendStartColor = this.scale.endColor;
   }
 
-  applyLegendForm(event: UIEvent) {
+  applyLegendForm(event: Event) {
     this.showLegendForm = false;
     this.customLegendOptions = this.legendForm.value;
     this.onRefresh.emit();
   }
 
-  async openSelectTypeModal(event?: UIEvent) {
+  async openSelectTypeModal(event?: Event) {
     if (event) {
       event.preventDefault();
     }
@@ -1264,7 +1264,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }
   }
 
-  toggleAnimation(event?: UIEvent) {
+  toggleAnimation(event?: Event) {
     if (event && event.defaultPrevented) return;
     // Avoid to expand the filter section
     if (event) {

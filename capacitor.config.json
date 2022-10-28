@@ -1,0 +1,6 @@
+{
+  appId: 'net.sumaris.app',
+  appName: 'SUMARiS',
+  webDir: 'www',
+  bundledWebRuntime: false
+}

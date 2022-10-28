@@ -253,7 +253,7 @@ export class PacketsTable extends AppTable<Packet, PacketFilter> implements OnIn
     return {data: (data instanceof Packet ? data as Packet : undefined), role};
   }
 
-  async deleteEntity(event: UIEvent, data): Promise<boolean> {
+  async deleteEntity(event: Event, data): Promise<boolean> {
     const row = await this.findRowByPacket(data);
 
     // Row not exists: OK

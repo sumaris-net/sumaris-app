@@ -378,7 +378,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.ngInitExtension();
   }
 
-  async doNewParentClick(event: UIEvent) {
+  async doNewParentClick(event: Event) {
     if (!this.onNewParentClick) return; // No callback: skip
     const res = await this.onNewParentClick();
 
@@ -441,7 +441,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this._disableByDefaultControls.forEach(c => c.disable(opts));
   }
 
-  onTaxonNameButtonClick(event: UIEvent | undefined, taxonName: TaxonNameRef, minTabindex: number) {
+  onTaxonNameButtonClick(event: Event | undefined, taxonName: TaxonNameRef, minTabindex: number) {
     this.form.patchValue({taxonName});
     if (event) {
       event.preventDefault();
@@ -450,7 +450,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.focusNextInput(null, {minTabindex});
   }
 
-  focusFirstEmptyInput(event?: UIEvent): boolean {
+  focusFirstEmptyInput(event?: Event): boolean {
     return focusNextInput(event, this.inputFields, {
       excludeEmptyInput: true,
       minTabindex: -1,
@@ -460,21 +460,21 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     });
   }
 
-  focusNextInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {
+  focusNextInput(event: Event, opts?: Partial<GetFocusableInputOptions>): boolean {
     // DEBUG
     //return focusNextInput(event, this.inputFields, opts{debug: this.debug, ...opts});
 
     return focusNextInput(event, this.inputFields, opts);
   }
 
-  focusPreviousInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {
+  focusPreviousInput(event: Event, opts?: Partial<GetFocusableInputOptions>): boolean {
     // DEBUG
     // return focusPreviousInput(event, this.inputFields, {debug: this.debug, ...opts});
 
     return focusPreviousInput(event, this.inputFields, opts);
   }
 
-  focusNextInputOrSubmit(event: UIEvent, isLastPmfm: boolean) {
+  focusNextInputOrSubmit(event: Event, isLastPmfm: boolean) {
 
     if (isLastPmfm) {
       if (this.enableIndividualCount) {

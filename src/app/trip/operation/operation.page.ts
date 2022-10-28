@@ -221,7 +221,7 @@ export class OperationPage
 
   // TODO Hide lastOperation on to small screen
   /*@HostListener('window:resize', ['$event'])
-  onResize(event?: UIEvent) {
+  onResize(event?: Event) {
     this.showLastOperations = window.innerWidth < ; // XS screen
     console.debug('[menu] Screen size (px): ' + this._screenWidth);
   }*/
@@ -759,7 +759,7 @@ export class OperationPage
     if (data.physicalGear) this.setPhysicalGear(data.physicalGear);
   }
 
-  onNewFabButtonClick(event: UIEvent) {
+  onNewFabButtonClick(event: Event) {
     switch (this.selectedTabIndex) {
       case OperationPage.TABS.CATCH:
         if (this.showBatchTables && this.batchTree) this.batchTree.addRow(event);
@@ -846,7 +846,7 @@ export class OperationPage
     return AppFormUtils.waitIdle(this, opts);
   }
 
-  async onLastOperationClick(event: UIEvent, id: number): Promise<any> {
+  async onLastOperationClick(event: Event, id: number): Promise<any> {
     if (event?.defaultPrevented) return; // Skip
 
     if (isNil(id) || this.data.id === id) return; // skip
@@ -868,7 +868,7 @@ export class OperationPage
     }
   }
 
-  async saveAndNew(event: UIEvent): Promise<any> {
+  async saveAndNew(event: Event): Promise<any> {
     if (event?.defaultPrevented) return Promise.resolve(); // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
@@ -899,7 +899,7 @@ export class OperationPage
     }
   }
 
-  async duplicate(event: UIEvent): Promise<any> {
+  async duplicate(event: Event): Promise<any> {
     if (event?.defaultPrevented || !this.tripContext) return Promise.resolve(); // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
@@ -1041,7 +1041,7 @@ export class OperationPage
     return saved;
   }
 
-  async saveIfDirtyAndConfirm(event?: UIEvent, opts?: { emitEvent: boolean }): Promise<boolean> {
+  async saveIfDirtyAndConfirm(event?: Event, opts?: { emitEvent: boolean }): Promise<boolean> {
     return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
   }
 

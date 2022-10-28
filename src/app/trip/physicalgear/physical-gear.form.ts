@@ -133,7 +133,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     if (inputElements.length) inputElements[0].focus();
   }
 
-  focusNextInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {
+  focusNextInput(event: Event, opts?: Partial<GetFocusableInputOptions>): boolean {
 
     // DEBUG
     //return focusNextInput(event, this.inputFields, opts{debug: this.debug, ...opts});

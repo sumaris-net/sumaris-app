@@ -222,7 +222,7 @@ export class BatchTreeContainerTestPage implements OnInit {
     this.batchTree.markAsLoaded();
   }
 
-  doSubmit(event?: UIEvent) {
+  doSubmit(event?: Event) {
     // Nothing to do
   }
 
@@ -350,7 +350,7 @@ export class BatchTreeContainerTestPage implements OnInit {
     }
   }
 
-  async save(event: UIEvent, batchTree: IBatchTreeComponent, outputName: string) {
+  async save(event: Event, batchTree: IBatchTreeComponent, outputName: string) {
     await this.dumpBatchTree(batchTree, outputName, true);
   }
 

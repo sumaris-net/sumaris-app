@@ -5,7 +5,7 @@ import { OverlayEventDetail } from '@ionic/core';
 export class Popovers {
 
   static async showText(popoverController: PopoverController,
-                        event: UIEvent,
+                        event: Event,
                         opts: TextPopoverOptions,
                         popoverOpts?: PopoverOptions) : Promise<OverlayEventDetail> {
     const modal = await popoverController.create({

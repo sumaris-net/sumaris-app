@@ -33,7 +33,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
 
   @Input() canDelete = true;
   @Input() canSelect = true;
-  @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
+  @Input() copyPreviousGears: (event: Event) => Promise<PhysicalGear>;
   @Input() showToolbar = true;
   @Input() useSticky = false;
   @Input() title: string = null;
@@ -260,7 +260,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit(row);
       return true;
     }
 
@@ -336,7 +336,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     return {data: (data instanceof PhysicalGear) ? data : undefined, role};
   }
 
-  async deleteEntity(event: UIEvent, data: PhysicalGear): Promise<boolean> {
+  async deleteEntity(event: Event, data: PhysicalGear): Promise<boolean> {
     const row = await this.findRowByEntity(data);
 
     // Row not exists: OK

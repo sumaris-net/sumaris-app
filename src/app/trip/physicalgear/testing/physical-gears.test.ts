@@ -149,7 +149,7 @@ export class PhysicalGearsTestPage implements OnInit {
     this.table.markAsLoaded();
   }
 
-  doSubmit(event?: UIEvent) {
+  doSubmit(event?: Event) {
     // Nothing to do
   }
 
@@ -266,7 +266,7 @@ export class PhysicalGearsTestPage implements OnInit {
     }
   }
 
-  async save(event: UIEvent, table: PhysicalGearTable, outputName: string) {
+  async save(event: Event, table: PhysicalGearTable, outputName: string) {
     await this.dumpTable(table, outputName);
   }
 

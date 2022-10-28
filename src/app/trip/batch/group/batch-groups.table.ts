@@ -679,7 +679,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return batch;
   }
 
-  async onSubBatchesClick(event: UIEvent,
+  async onSubBatchesClick(event: Event,
                           row: TableElement<BatchGroup>,
                           opts?: { showParent?: boolean; emitLoaded?: boolean; }) {
     if (event) event.preventDefault();
@@ -951,7 +951,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     if (!this.loading) this.markForCheck();
   }
 
-  deleteSelection(event: UIEvent): Promise<number> {
+  deleteSelection(event: Event): Promise<number> {
     return super.deleteSelection(event);
   }
 
@@ -1134,7 +1134,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return {data: data instanceof BatchGroup ? data : undefined, role};
   }
 
-  async openSelectColumnsModal(event?: UIEvent) {
+  async openSelectColumnsModal(event?: Event) {
 
     let userColumns = this.getUserColumns();
     const hiddenColumns = DEFAULT_USER_COLUMNS.slice(0)

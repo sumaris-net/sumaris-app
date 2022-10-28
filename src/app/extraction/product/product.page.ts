@@ -60,7 +60,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
     }
   }
 
-  async openMap(event?: UIEvent) {
+  async openMap(event?: Event) {
     if (this.dirty) {
       // Ask user confirmation
       const { confirmed, save } = await Alerts.askSaveBeforeAction(this.alertCtrl, this.translate);
@@ -84,7 +84,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
     }, 200); // Add a delay need by matTooltip to be hide
   }
 
-  async updateProduct(event?: UIEvent) {
+  async updateProduct(event?: Event) {
     if (this.dirty) {
       // Ask user confirmation
       const {confirmed, save} = await Alerts.askSaveBeforeAction(this.alertCtrl, this.translate, {valid: this.valid});

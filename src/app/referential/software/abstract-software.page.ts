@@ -60,7 +60,9 @@ export abstract class AbstractSoftwarePage<
       .map(def => {
         if (def.type === 'entity') {
           def = Object.assign({}, def); // Copy
-          def.autocomplete = def.autocomplete || {};
+          def.autocomplete = def.autocomplete || {
+            attributes: ['label', 'name']
+          };
           def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
         }
         return def;

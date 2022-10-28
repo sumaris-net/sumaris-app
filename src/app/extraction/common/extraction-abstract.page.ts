@@ -241,7 +241,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     });
   }
 
-  async downloadAsFile(event?: UIEvent) {
+  async downloadAsFile(event?: Event) {
     if (this.loading || isNil(this.type)) return;
 
     if (event) {
@@ -298,7 +298,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     return this.load(this.type?.id);
   }
 
-  async openHelpModal(event?: UIEvent) {
+  async openHelpModal(event?: Event) {
     if (!this.type) return;
 
     if (event) {
