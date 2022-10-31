@@ -8,14 +8,14 @@ This article will explain how to install your environment, then build the applic
 
 1. Install [NVM](https://github.com/nvm-sh/nvm)
 
-2. Install Node (v12) ex: 12.22.8
+2. Install Node (v12) ex: 14.20.1
 ```bash
-nvm install 12.22.8
+nvm install 14.20.1
 ```
 
 3. Install global dependency: 
 ```bash
-npm install -g yarn @ionic/cli @angular/cli cordova cordova-res native-run
+npm install -g yarn @ionic/cli @angular/cli 
 ```
 
 4. Get sources (clone the repo) : `git clone ...`

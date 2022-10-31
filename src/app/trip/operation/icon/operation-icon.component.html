@@ -1,12 +1,11 @@
 <mat-icon [svgIcon]="matSvgIcon"
           [style.pointer-events]="title ? 'auto' : 'none'"
           [style.color]="'var(--ion-color-'+color+')'"
-          matBadge
-          [ionBadgeIcon]="badgeIcon"
-          [matBadgeColor]="badgeColor"
-          [matBadgeHidden]="!badgeIcon"
-          [matBadgeFill]="badgeFill"
-          [matBadgeSize]="badgeSize"
+          appBadge
+          [appBadgeIcon]="badgeIcon"
+          [appBadgeColor]="badgeColor"
+          [appBadgeFill]="badgeFill"
+          [appBadgeSize]="badgeSize"
           [title]="title">
 
   <ion-icon *ngIf="icon" slot="icon-only"

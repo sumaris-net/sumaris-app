@@ -18,10 +18,7 @@
     "typeRoots": [
       "node_modules/@types"
     ],
-    "types": [
-      "node",
-      "webpack-env"
-    ],
+    "types": ["node"],
     "paths": {
       "@app/*": [
         "src/app/*"
@@ -32,7 +29,6 @@
       // Force using the RxJS project's version
       "rxjs": ["node_modules/rxjs"],
       "rxjs/*": ["node_modules/rxjs/*"],
-      "@ionic/*": ["node_modules/@ionic/*"],
 
       // Node JS lib
       "crypto": ["node_modules/crypto-browserify"],
@@ -48,7 +44,7 @@
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "strictTemplates": true,
+    "strictTemplates": false,
     "fullTemplateTypeCheck": true
   }
 }

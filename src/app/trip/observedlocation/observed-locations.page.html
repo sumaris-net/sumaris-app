@@ -127,11 +127,10 @@
   </ion-refresher>
 
   <!-- Network status (+ Install and upgrade link)  -->
-  <app-install-upgrade-card
-    [isLogin]="isLogin"
-    showInstallButton="false"
-    showUpgradeWarning="true"
-    showOfflineWarning="false">
+  <app-install-upgrade-card [isLogin]="isLogin"
+                            [showInstallButton]="false"
+                            [showUpgradeWarning]="true"
+                            [showOfflineWarning]="false">
   </app-install-upgrade-card>
 
   <!-- Update offline mode -->

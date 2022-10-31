@@ -63,7 +63,7 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
     this.subscription.unsubscribe();
   }
 
-  async selectRow({id, row}) {
+  async selectRow(row) {
     if (row && this.vesselsTable) {
       this.vesselsTable.selection.clear();
       this.vesselsTable.selection.select(row);

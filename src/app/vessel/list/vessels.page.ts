@@ -153,8 +153,8 @@ export class VesselsPage implements OnInit, OnDestroy {
     this.cd.markForCheck();
   }
 
-  async onOpenRow(event: {id?: number, row: TableElement<any>}) {
-    return await this.router.navigateByUrl(`/vessels/${event.row && event.row.currentData.id || event.id}` );
+  async onOpenRow(row: TableElement<any>) {
+    return await this.router.navigateByUrl(`/vessels/${row.currentData.id}` );
   }
 }
 
