@@ -86,7 +86,6 @@
     "cordova-sqlite-storage": "~6.0.0",
     "core-js": "^3.23.3",
     "cors": "^2.8.5",
-    "tslib": "^2.4.0",
     "ember-cli-roboto-fontface": "^2.0.5",
     "geojson": "^0.5.0",
     "graphql": "~15.7.2",
