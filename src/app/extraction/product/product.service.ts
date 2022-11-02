@@ -130,7 +130,6 @@ export class ProductService
   constructor(
     protected graphql: GraphqlService,
     protected extractionTypeService: ExtractionTypeService,
-    protected cryptoService: CryptoService,
     protected accountService: AccountService,
     protected translateService: TranslateService
   ) {
@@ -189,7 +188,7 @@ export class ProductService
   async computeNextLabel(format: string, types?: ExtractionType[]): Promise<string> {
     let unique = false;
     while (!unique) {
-      const hash = this.cryptoService.sha512(`${format}-${Date.now()}`).substr(0, 8);
+      const hash = CryptoService.sha512(`${format}-${Date.now()}`).substr(0, 8);
       const label = `${format}-${hash}`;
       if (types) {
         unique = !types.some(t => label.toUpperCase() == t.label.toUpperCase());

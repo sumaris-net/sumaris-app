@@ -51,4 +51,4 @@ $app-card-status-font-color: var(--ion-color-step-850);
 $app-text-color-disable: rgba(0, 0, 0, 0.57);
 
 // Load defaults
-@import "@sumaris-net/ngx-components/src/theme/globals";
+@import "../../node_modules/@sumaris-net/ngx-components/src/theme/globals";

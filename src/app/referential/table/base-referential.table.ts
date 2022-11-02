@@ -89,7 +89,6 @@ export abstract class BaseReferentialTable<
   protected popoverController: PopoverController;
   protected propertyFormatPipe: PropertyFormatPipe;
   protected referentialRefService: ReferentialRefService;
-  protected cryptoService: CryptoService;
 
   protected $status = new BehaviorSubject<IStatus[]>(null);
   private readonly withStatusId: boolean
@@ -115,7 +114,6 @@ export abstract class BaseReferentialTable<
     this.referentialRefService = injector.get(ReferentialRefService);
     this.propertyFormatPipe = injector.get(PropertyFormatPipe);
     this.popoverController = injector.get(PopoverController);
-    this.cryptoService = injector.get(CryptoService);
     this.title = this.i18nColumnPrefix && (this.i18nColumnPrefix + 'TITLE') || '';
     this.logPrefix = '[base-referential-table] ';
     this.canUpload = options?.canUpload || false;

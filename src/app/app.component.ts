@@ -28,11 +28,11 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class AppComponent {
 
-  logo: String;
-  appName: String;
+  logo: string;
+  appName: string;
 
   constructor(
-    @Inject(DOCUMENT) private _document: HTMLDocument,
+    @Inject(DOCUMENT) private _document: Document,
     private platform: PlatformService,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
@@ -65,7 +65,7 @@ export class AppComponent {
     // Make sure to scroll on top before changing state
     // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
     const scrollToTop = window.setInterval(() => {
-      const pos = window.pageYOffset;
+      const pos = window.scrollY;
       if (pos > 0) {
         window.scrollTo(0, pos - 20); // how far to scroll on each step
       } else {
@@ -111,7 +111,7 @@ export class AppComponent {
     if (options.colors) {
       console.info('[app] Changing theme colors ', options);
 
-      const style =   document.documentElement.style;
+      const style = document.documentElement.style;
 
       // Add 100 & 900 color for primary and secondary color
       ['primary', 'secondary'].forEach(colorName => {
@@ -202,10 +202,10 @@ export class AppComponent {
 
       // PIFIL
       'dolphin-damage'
-    ]
-      .forEach(filename => this.matIconRegistry.addSvgIcon(filename,
-        this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
-        ));
+    ].forEach(filename => this.matIconRegistry.addSvgIcon(filename,
+      this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
+      )
+    );
   }
 }
 

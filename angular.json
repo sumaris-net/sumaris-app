@@ -23,10 +23,10 @@
               "angular2-text-mask",
               "uuid",
               "clone",
-              "hash.js",
               "zone.js",
-              "scrypt-async",
               "tweetnacl",
+              "bn.js",
+              "ed2curve",
               "graphql-tag",
               "apollo-link-serialize",
               "apollo-link-queue",
@@ -44,7 +44,8 @@
               "reveal.js",
               "moment-timezone",
               "localforage",
-              "localforage-cordovasqlitedriver"
+              "localforage-cordovasqlitedriver",
+              "tweetnacl"
             ],
             "assets": [
               {
@@ -101,28 +102,41 @@
             "styles": [
               "src/global.scss"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/theme",
+                "node_modules"
+              ]
+            },
             "scripts": [
               "node_modules/marked/lib/marked.umd.js",
               "node_modules/emoji-toolkit/lib/js/joypixels.min.js",
               "node_modules/prismjs/prism.js"
             ],
-            "stylePreprocessorOptions": {
-              "includePaths": [
-                "src/theme"
-              ]
-            }
+            "aot": false,
+            "vendorChunk": true,
+            "extractLicenses": false,
+            "buildOptimizer": false,
+            "sourceMap": true,
+            "optimization": false,
+            "namedChunks": true
           },
           "configurations": {
             "production": {
-              "aot": true,
-              "buildOptimizer": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
               "optimization": true,
               "outputHashing": "all",
-              "sourceMap": true,
+              "sourceMap": false,
               "namedChunks": false,
+              "aot": true,
               "extractLicenses": true,
               "vendorChunk": false,
-              "serviceWorker": false,
+              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
@@ -135,39 +149,12 @@
                   "maximumError": "10kb"
                 }
               ],
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
-                }
-              ]
-            },
-            "development": {
-              "buildOptimizer": false,
-              "optimization": false,
-              "outputHashing": "none",
-              "sourceMap": true,
-              "namedChunks": true,
-              "extractLicenses": false,
-              "vendorChunk": true,
-              "budgets": [
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "6kb"
-                }
-              ]
+              "progress": false
             },
             "ci": {
-              "budgets": [
-                {
-                  "type": "anyComponentStyle",
-                  "maximumWarning": "6kb"
-                }
-              ],
               "progress": false
             }
-          },
-          "defaultConfiguration": "production"
+          }
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
@@ -178,11 +165,8 @@
             "production": {
               "browserTarget": "app:build:production"
             },
-            "development": {
-              "browserTarget": "app:build:development"
-            },
             "ci": {
-              "browserTarget": "app:build:production"
+              "progress": false
             }
           }
         },
@@ -241,22 +225,16 @@
     }
   },
   "cli": {
-    "packageManager": "yarn",
-    "analytics": false,
-    "cache": {
-      "enabled": true,
-      "environment": "all"
-    },
     "schematicCollections": [
       "@ionic/angular-toolkit"
     ]
   },
   "schematics": {
     "@ionic/angular-toolkit:component": {
-      "style": "scss"
+      "styleext": "scss"
     },
     "@ionic/angular-toolkit:page": {
-      "style": "scss"
+      "styleext": "scss"
     }
   }
 }

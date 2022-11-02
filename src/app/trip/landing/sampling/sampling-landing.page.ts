@@ -16,7 +16,7 @@ import {LandingService} from '@app/trip/services/landing.service';
 import {Moment} from 'moment';
 import {Trip} from '@app/trip/services/model/trip.model';
 
-import {moment} from '@app/vendor';
+import {moment} from '@sumaris-net/ngx-components';
 
 
 @Component({

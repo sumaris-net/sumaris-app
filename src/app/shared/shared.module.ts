@@ -41,15 +41,13 @@ import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-
   ]
 })
 export class AppSharedModule {
-  static forRoot(environment: Environment): ModuleWithProviders<AppSharedModule> {
+  static forRoot(): ModuleWithProviders<AppSharedModule> {
 
     console.debug('[app-shared] Creating module (root)');
 
     return {
       ngModule: AppSharedModule,
       providers: [
-        ...SharedModule.forRoot(environment).providers,
-
         // A context service
         {
           provide: ContextService,

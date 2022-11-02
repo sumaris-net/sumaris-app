@@ -1,14 +1,14 @@
 import './vendor';
 
-import { APP_BASE_HREF } from '@angular/common';
-import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext } from '@angular/core';
-import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
-import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
+import {APP_BASE_HREF} from '@angular/common';
+import {BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule} from '@angular/platform-browser';
+import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from '@angular/core';
+import {DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE} from '@angular/material/core';
+import {MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter} from '@angular/material-moment-adapter';
 
 // App modules
-import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
+import {AppComponent} from './app.component';
+import {AppRoutingModule} from './app-routing.module';
 import {
   APP_ABOUT_DEVELOPERS,
   APP_ABOUT_PARTNERS,
@@ -27,48 +27,49 @@ import {
   APP_USER_EVENT_SERVICE,
   AppGestureConfig,
   CORE_CONFIG_OPTIONS,
-  CORE_TESTING_PAGES,
+  CORE_TESTING_PAGES, CoreModule,
   DATE_ISO_PATTERN,
   Department,
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
+  JobModule,
   LocalSettings,
   MenuItem,
-  MenuOptions,
+  MenuOptions, SharedModule,
   SOCIAL_TESTING_PAGES,
-  SocialModule,
   StorageService,
-  TestingPage
+  TestingPage,
+  UserEventModule
 } from '@sumaris-net/ngx-components';
-import { environment } from '@environments/environment';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Network } from '@awesome-cordova-plugins/network/ngx';
-import { AudioManagement } from '@ionic-native/audio-management/ngx';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES } from './trip/services/config/trip.config';
-import { IonicStorageModule } from '@ionic/storage-angular';
-import { IonicModule } from '@ionic/angular';
-import { CacheModule } from 'ionic-cache';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
-import { TypePolicies } from '@apollo/client/core';
-import { TRIP_TESTING_PAGES } from './trip/trip.testing.module';
-import { EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES } from './extraction/common/extraction.config';
-import { REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS } from './referential/services/config/referential.config';
-import { DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES } from './data/services/config/data.config';
-import { VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS } from './vessel/services/config/vessel.config';
-import { JDENTICON_CONFIG } from 'ngx-jdenticon';
-import { REFERENTIAL_TESTING_PAGES } from './referential/referential.testing.module';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { AppSharedModule } from '@app/shared/shared.module';
-import { APP_CORE_CONFIG_OPTIONS } from '@app/core/services/config/core.config';
-import { AppCoreModule } from '@app/core/core.module';
-import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
-import { Downloader } from '@ionic-native/downloader/ngx';
-import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
-import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
-import { UserEventService } from '@app/social/user-event/user-event.service';
-import { ApolloModule } from 'apollo-angular';
+import {environment} from '@environments/environment';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {Network} from '@awesome-cordova-plugins/network/ngx';
+import {AudioManagement} from '@ionic-native/audio-management/ngx';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES} from './trip/services/config/trip.config';
+import {IonicStorageModule} from '@ionic/storage-angular';
+import {IonicModule} from '@ionic/angular';
+import {CacheModule} from 'ionic-cache';
+import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import {MarkdownModule, MarkedOptions} from 'ngx-markdown';
+import {TypePolicies} from '@apollo/client/core';
+import {TRIP_TESTING_PAGES} from './trip/trip.testing.module';
+import {EXTRACTION_CONFIG_OPTIONS, EXTRACTION_GRAPHQL_TYPE_POLICIES} from './extraction/common/extraction.config';
+import {REFERENTIAL_CONFIG_OPTIONS, REFERENTIAL_GRAPHQL_TYPE_POLICIES, REFERENTIAL_LOCAL_SETTINGS_OPTIONS} from './referential/services/config/referential.config';
+import {DATA_CONFIG_OPTIONS, DATA_GRAPHQL_TYPE_POLICIES} from './data/services/config/data.config';
+import {VESSEL_CONFIG_OPTIONS, VESSEL_GRAPHQL_TYPE_POLICIES, VESSEL_LOCAL_SETTINGS_OPTIONS} from './vessel/services/config/vessel.config';
+import {JDENTICON_CONFIG} from 'ngx-jdenticon';
+import {REFERENTIAL_TESTING_PAGES} from './referential/referential.testing.module';
+import {TranslateHttpLoader} from '@ngx-translate/http-loader';
+import {AppSharedModule} from '@app/shared/shared.module';
+import {APP_CORE_CONFIG_OPTIONS} from '@app/core/services/config/core.config';
+import {AppCoreModule} from '@app/core/core.module';
+import {SAMPLE_VALIDATOR_I18N_ERROR_KEYS} from '@app/trip/services/validator/sample.validator';
+import {Downloader} from '@ionic-native/downloader/ngx';
+import {OPERATION_VALIDATOR_I18N_ERROR_KEYS} from '@app/trip/services/validator/operation.validator';
+import {APP_SHARED_TESTING_PAGES} from '@app/shared/shared.testing.module';
+import {UserEventService} from '@app/social/user-event/user-event.service';
+import {ApolloModule} from 'apollo-angular';
 
 @NgModule({
   declarations: [
@@ -115,14 +116,16 @@ import { ApolloModule } from 'apollo-angular';
         },
       }
     }),
+
     // Need for tap event, in app-toolbar
     HammerModule,
 
     // functional modules
     AppSharedModule.forRoot(environment),
     AppCoreModule.forRoot(),
-    SocialModule,
-    AppRoutingModule
+    AppRoutingModule,
+    UserEventModule,
+    JobModule
   ],
   providers: [
     // Cordova plugins
@@ -130,7 +133,7 @@ import { ApolloModule } from 'apollo-angular';
     AudioManagement,
     Downloader,
 
-    {provide: APP_BASE_HREF, useFactory: function () {
+    {provide: APP_BASE_HREF, useFactory: () => {
         try {
           return document.getElementsByTagName('base')[0].href;
         }
@@ -197,7 +200,7 @@ import { ApolloModule } from 'apollo-angular';
     }},
 
     // Configure hammer gesture
-    // FIXME: not working well on tab
+    // FIXME: not working well on tablet
     {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
 
     // Settings default values

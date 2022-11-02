@@ -43,7 +43,7 @@ import { TripService } from '@app/trip/services/trip.service';
 import { OperationService } from '@app/trip/services/operation.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { mergeLoadResult } from '@app/shared/functions';
-import { FetchPolicy } from '@apollo/client';
+import { FetchPolicy } from '@apollo/client/core';
 
 
 export const VesselFragments = {

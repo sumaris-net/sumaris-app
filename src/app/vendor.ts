@@ -1,6 +1,5 @@
 import 'tweetnacl';
 import 'tweetnacl-util';
-import 'scrypt-async';
 
 // Import Hammer JS (need to manage 'tap' events)
 import 'hammerjs';

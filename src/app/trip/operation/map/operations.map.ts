@@ -35,7 +35,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 import { MapGraticule } from '@app/shared/map/map.graticule';
 import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
 import uuid from 'uuid';
-import { uuidv4 } from '@app/vendor';
+import { uuidv4 } from '@sumaris-net/ngx-components';
 
 const maxZoom = 10;
 
