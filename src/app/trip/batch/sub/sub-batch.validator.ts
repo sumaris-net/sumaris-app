@@ -36,7 +36,7 @@ import { DataContext } from '@app/data/services/model/data-context.model';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ContextService } from '@app/shared/context.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;

@@ -29,7 +29,7 @@ import { StrategyRefService } from '../../referential/services/strategy-ref.serv
 import { ProgramRefService } from '../../referential/services/program-ref.service';
 import { UntypedFormControl } from '@angular/forms';
 import { equals } from '@app/shared/functions';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix

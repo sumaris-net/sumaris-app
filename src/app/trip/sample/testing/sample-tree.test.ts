@@ -8,7 +8,7 @@ import { ProgramRefService } from '../../../referential/services/program-ref.ser
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { Moment } from 'moment';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 function getMeasValues(opts?: {
   totalLength?: number;

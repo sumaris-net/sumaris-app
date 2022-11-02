@@ -31,8 +31,6 @@
               "apollo-link-serialize",
               "apollo-link-queue",
               "apollo-link-logger",
-              "zen-observable",
-              "subscriptions-transport-ws",
               "chart.js",
               "chartjs-plugin-annotation",
               "chartjs-plugin-trendline",

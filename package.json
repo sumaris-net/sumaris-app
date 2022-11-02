@@ -71,7 +71,7 @@
     "@ngx-translate/core": "~14.0.0",
     "@ngx-translate/http-loader": "~7.0.0",
     "@sgratzl/chartjs-chart-boxplot": "~2.3.3",
-    "@sumaris-net/ngx-components": "2.0.0-rc19",
+    "@sumaris-net/ngx-components": "2.0.0-rc34",
     "angular-split": "^14.1.0",
     "angular2-text-mask": "~9.0.0",
     "apollo-angular": "~4.0.1",
@@ -116,7 +116,8 @@
     "rxjs": "~6.6.7",
     "seedrandom": "^3.0.5",
     "text-mask-addons": "^3.8.0",
-    "tweetnacl-util": "^0.15.1",
+    "tweetnacl": "~1.0.3",
+    "tweetnacl-util": "~0.15.1",
     "@polkadot/util-crypto": "~10.1.11",
     "util": "^0.12.5",
     "uuid": "^7.0.3",
@@ -169,7 +170,8 @@
     "typescript": "~4.7.4",
     "sass": "^1.55.0",
     "sass-loader": "^13.1.0",
-    "npm": "^8.17.0"
+    "npm": "^8.17.0",
+    "webpack-dev-server": "~4.11.1"
   },
   "repository": {
     "type": "git",

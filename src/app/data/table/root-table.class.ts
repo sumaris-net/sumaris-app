@@ -24,7 +24,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
 import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
-import { moment } from '@app/vendor';
 import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
@@ -33,7 +32,7 @@ import { PopoverController } from '@ionic/angular';
 import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
-
+import moment from 'moment';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: "filter"

@@ -48,8 +48,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { LandingService } from '@app/trip/services/landing.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { LandedTripService } from '@app/trip/services/landed-trip.service';
-
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -474,12 +473,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   }
 
   // todo attention à cette action
-  async onOpenOperationGroup(event: {id?: number, row: TableElement<Trip>}) {
+  async onOpenOperationGroup(row: TableElement<Trip>) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       this.markAsLoading();
       try {
-        await this.router.navigate(['trips', this.data.id, 'operation', event.id],
+        await this.router.navigate(['trips', this.data.id, 'operation', row.currentData.id],
           {
             queryParams: {}
           });

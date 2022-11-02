@@ -50,7 +50,7 @@ import { Sale } from '@app/trip/services/model/sale.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -449,7 +449,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
   }
 
-  async onOpenOperation({id, row}: { id?: number; row: TableElement<any>; }) {
+  async onOpenOperation(row: TableElement<any>) {
 
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
@@ -472,7 +472,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
       setTimeout(async () => {
         const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
-        await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, id], {queryParams: {} /*reset query params*/ });
+        await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, row.currentData.id], {queryParams: {} /*reset query params*/ });
 
         this.markAsLoaded();
       });

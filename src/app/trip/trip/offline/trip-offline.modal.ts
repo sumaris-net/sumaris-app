@@ -13,7 +13,7 @@ import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 export interface  TripOfflineModalOptions {
   value?: TripSynchroImportFilter

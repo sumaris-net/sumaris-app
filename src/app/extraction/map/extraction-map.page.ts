@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 import { L } from '@app/shared/map/leaflet';
 import {
   AccountService,

@@ -47,7 +47,7 @@ import { ErrorCodes } from '@app/data/services/errors';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {

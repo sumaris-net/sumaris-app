@@ -28,7 +28,7 @@ import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Moment } from 'moment';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {

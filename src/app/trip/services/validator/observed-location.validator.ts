@@ -6,9 +6,7 @@ import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import * as momentImport from 'moment';
-
-const moment = momentImport;
+import moment from 'moment';
 
 export interface ObservedLocationValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;

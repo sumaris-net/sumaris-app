@@ -77,7 +77,7 @@ import { BBox } from 'geojson';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {

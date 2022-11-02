@@ -57,7 +57,7 @@ import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 

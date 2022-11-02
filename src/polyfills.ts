@@ -53,3 +53,12 @@ import 'zone.js/dist/zone'; // Included with Angular CLI.
  * APPLICATION IMPORTS
  */
 
+import 'tweetnacl';
+import 'tweetnacl-util';
+
+// Import Hammer JS (need to manage 'tap' events)
+import 'hammerjs';
+
+// Import moment-timezone - should be loaded here, otherwise moment().tz() will failed
+import 'moment';
+import 'moment-timezone';

@@ -33,7 +33,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 @Component({
   selector: 'app-aggregated-landings-table',

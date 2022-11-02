@@ -5,7 +5,7 @@ import { Operation } from '@app/trip/services/model/trip.model';
 import { OperationService } from '@app/trip/services/operation.service';
 import { TripService } from '@app/trip/services/trip.service';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 @Component({
   selector: 'app-operation-report',

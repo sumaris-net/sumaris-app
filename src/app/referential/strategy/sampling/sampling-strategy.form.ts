@@ -58,7 +58,7 @@ import { filter, map } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 type FilterableFieldName = 'analyticReference' | 'location' | 'taxonName' | 'department' | 'lengthPmfm' | 'weightPmfm' | 'maturityPmfm' | 'fractionPmfm';
 

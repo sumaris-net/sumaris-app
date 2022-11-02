@@ -8,7 +8,7 @@ import { OperationPage } from '@app/trip/operation/operation.page';
 import { OperationService } from '@app/trip/services/operation.service';
 import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 import { environment } from '@environments/environment';
 
 

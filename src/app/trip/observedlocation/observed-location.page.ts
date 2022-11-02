@@ -42,7 +42,7 @@ import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 
 const ObservedLocationPageTabs = {

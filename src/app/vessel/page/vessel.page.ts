@@ -25,7 +25,7 @@ import { VesselFeaturesFilter, VesselFilter, VesselRegistrationFilter } from '..
 import { VesselFeaturesService } from '../services/vessel-features.service';
 import { VesselRegistrationService } from '../services/vessel-registration.service';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsModal, SelectVesselsModalOptions } from '@app/vessel/modal/select-vessel.modal';

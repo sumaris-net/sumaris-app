@@ -12,7 +12,7 @@ import { ObservedLocationOfflineFilter } from '../../services/filter/observed-lo
 import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 

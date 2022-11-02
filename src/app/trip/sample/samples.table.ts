@@ -50,7 +50,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 declare interface GroupColumnDefinition {
   key: string;

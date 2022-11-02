@@ -52,7 +52,7 @@ import { ContextService } from '@app/shared/context.service';
 import { Geometries } from '@app/shared/geometries.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { flagsToString, removeFlag } from '@app/shared/flags.utils';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 @Component({
   selector: 'app-operation-page',

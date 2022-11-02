@@ -42,7 +42,7 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 
 export const SamplingStrategiesPageSettingsEnum = {
