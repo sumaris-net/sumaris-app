@@ -15,7 +15,6 @@
     "module": "es2020",
     "lib": ["es2020","dom"],
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "typeRoots": [
       "node_modules/@types"
     ],
@@ -31,13 +30,13 @@
       "rxjs/*": ["node_modules/rxjs/*"],
 
       // Node JS lib
-      "crypto": ["node_modules/crypto-browserify"],
-      "stream": ["node_modules/stream-browserify"],
-      "assert": ["node_modules/assert"],
-      "http": ["node_modules/stream-http"],
-      "https": ["node_modules/https-browserify"],
-      "os": ["node_modules/os-browserify"],
-      "util": ["node_modules/util"]
+//      "crypto": ["node_modules/crypto-browserify"],
+//      "stream": ["node_modules/stream-browserify"],
+//      "assert": ["node_modules/assert"],
+//      "http": ["node_modules/stream-http"],
+//      "https": ["node_modules/https-browserify"],
+//      "os": ["node_modules/os-browserify"],
+//      "util": ["node_modules/util"]
     }
   },
   "angularCompilerOptions": {
