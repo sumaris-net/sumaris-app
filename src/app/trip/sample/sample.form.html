@@ -71,27 +71,28 @@
 
     <!-- Measurements -->
     <ion-row *ngIf="$pmfms | async | arrayFilter: isNotHiddenPmfm; let pmfms"
-             [formGroup]="measurementValuesForm"
-             class="ion-no-padding">
+             class="ion-no-padding"
+             [formGroup]="measurementValuesForm">
       <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
 
         <!--<ion-col *ngIf="(pmfm|pmfmName) === 'D1'" size="12" class="dolphin-damage">
           <mat-icon svgIcon="dolphin-damage"></mat-icon>
         </ion-col>-->
-        <ion-col
-                 [size]="mobile && (pmfm.isQualitative || pmfm.type === 'boolean') ? 12 : 6"
-                 *ngVar="pmfm|isComputedPmfm as computed"
+        <ion-col *ngVar="{computed: pmfm|isComputedPmfm, style: pmfm|pmfmFieldStyle:10} as vars"
+                 class="ion-no-padding"
+                 [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
+                 size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6"
                  class="pmfm-{{pmfm.id}}">
           <app-pmfm-field #matInput
-                         [pmfm]="pmfm"
-                         [class.computed]="computed"
-                         [readonly]="computed"
-                         [style]="mobile && 'button'"
-                         [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
-                         [maxVisibleButtons]="maxVisibleButtons"
-                         [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
-                         [tabindex]="computed ? -1 : (tabindex+4 + i*maxVisibleButtons)"
-                         (keyup.enter)="last && onSubmit.emit($event)">
+                          [pmfm]="pmfm"
+                          [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
+                          [style]="vars.style"
+                          [readonly]="vars.computed"
+                          [floatLabel]="vars.computed && 'always'"
+                          [class.computed]="vars.computed"
+                          [maxVisibleButtons]="maxVisibleButtons"
+                          [tabindex]="computed ? -1 : (tabindex+4 + i*maxVisibleButtons)"
+                          (keyup.enter)="last && onSubmit.emit($event)">
           </app-pmfm-field>
         </ion-col>
       </ng-container>
