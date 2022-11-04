@@ -61,7 +61,7 @@ declare type BatchGroupColumnType = FormFieldType | 'samplingRatio' | 'pmfm';
 
 declare interface BatchGroupColumnDefinition extends FormFieldDefinition<BatchGroupColumnKey, BatchGroupColumnType> {
 
-  computed: boolean | ((batch: Batch, samplingRatioFormat: SamplingRatioFormat) => boolean);
+  computed: boolean | ((batch: Batch, parent: Batch|undefined, samplingRatioFormat: SamplingRatioFormat) => boolean);
   hidden: boolean;
   unitLabel?: string;
   rankOrder: number;
@@ -100,6 +100,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     {
       type: 'double',
       key: 'totalWeight',
+      path: 'weight.value',
       label: 'TRIP.BATCH.TABLE.TOTAL_WEIGHT',
       minValue: 0,
       maxValue: 10000,
@@ -107,36 +108,36 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       isWeight: true,
       flags: BatchGroupColumnFlags.IS_WEIGHT,
       classList: 'total mat-column-weight',
-      path: 'weight.value',
       computed: (batch) => batch && batch.weight?.computed || false
     },
     {
       type: 'double',
       key: 'totalIndividualCount',
+      path: 'individualCount',
       label: 'TRIP.BATCH.TABLE.TOTAL_INDIVIDUAL_COUNT',
       minValue: 0,
       maxValue: 10000,
       maximumNumberDecimals: 2,
       isIndividualCount: true,
       flags: BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT,
-      classList: 'total',
-      path: 'individualCount'
+      classList: 'total'
     },
 
     // Column on sampling (ratio, nb indiv, weight)
     {
       type: 'samplingRatio',
       key: 'samplingRatio',
+      path: 'children.0.samplingRatio',
       label: 'TRIP.BATCH.TABLE.SAMPLING_RATIO',
       unitLabel: <SamplingRatioFormat>'%',
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_SAMPLING_RATIO,
       isSampling: true,
-      path: 'children.0.samplingRatio',
-      computed: (batch, samplingRatioFormat) => batch && BatchUtils.isSamplingRatioComputed(batch.children[0]?.samplingRatioText, samplingRatioFormat) || false
+      computed: (batch, parent, samplingRatioFormat) => batch && BatchUtils.isSamplingRatioComputed(batch.children[0]?.samplingRatioText, samplingRatioFormat) || false
     },
     {
       type: 'double',
       key: 'samplingWeight',
+      path: 'children.0.weight.value',
       label: 'TRIP.BATCH.TABLE.SAMPLING_WEIGHT',
       minValue: 0,
       maxValue: 1000,
@@ -144,18 +145,17 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       isWeight: true,
       isSampling: true,
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_WEIGHT,
-      path: 'children.0.weight.value',
       computed: (batch) => batch?.children[0]?.weight?.computed || false
     },
     {
       type: 'string',
       key: 'samplingIndividualCount',
+      path: 'children.0.individualCount',
       label: 'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT',
       isIndividualCount: true,
       isSampling: true,
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT,
-      path: 'children.0.individualCount',
-      computed: true,
+      computed: true
     }
   ];
 
@@ -479,13 +479,14 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
     if (typeof col.computed !== 'function') return col.computed === true;
 
-    const batch = col.qvIndex >= 0
-      // With qv pmfm
-      ? row.currentData.children[col.qvIndex]
-      // With no qv pmfm
-      : row.currentData;
+    // With qv pmfm
+    if (col.qvIndex >= 0) {
+      const parent = row.currentData;
+      const batch = parent.children[col.qvIndex];
+      return col.computed(batch, parent, this.samplingRatioFormat);
+    }
 
-    return col.computed(batch, this.samplingRatioFormat);
+    return col.computed(row.currentData, null, this.samplingRatioFormat);
   }
 
   isMissingValue(col: BatchGroupColumnDefinition, row: TableElement<BatchGroup>): boolean {
@@ -874,6 +875,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     const qvColumns = BatchGroupsTable.BASE_DYNAMIC_COLUMNS
       .map((def, index) => {
         const key = qvGroup ? `${qvGroup.label}_${def.key}` : def.key;
+        const path = (qvIndex >= 0 ? `children.${qvIndex}.${def.path}` : def.path);
         const rankOrder = rankOrderOffset + pmfmColumns.length + index;
         const isSamplingRatio = hasFlag(def.flags, BatchGroupColumnFlags.IS_SAMPLING_RATIO);
         const hidden = (hideWeightColumns && hasFlag(def.flags, BatchGroupColumnFlags.IS_WEIGHT))
@@ -882,6 +884,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
           || (hideSamplingRatioColumns && hasFlag(def.flags, BatchGroupColumnFlags.IS_SAMPLING_RATIO));
         const label = isSamplingRatio && this.samplingRatioFormat === '1/w' ? 'TRIP.BATCH.TABLE.SAMPLING_COEFFICIENT' : def.label;
         const unitLabel = isSamplingRatio && this.samplingRatioFormat === '1/w' ? null : def.unitLabel;
+        const computed = (def.key === 'totalIndividualCount')
+          ? (batch, parent) => !parent.taxonGroup || !this.taxonGroupsNoWeight.includes(parent.taxonGroup.label)
+          : def.computed;
         return <BatchGroupColumnDefinition>{
           ...(def.isWeight && this.defaultWeightPmfm || {}),
           ...def,
@@ -891,7 +896,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
           qvIndex,
           rankOrder,
           hidden,
-          path: qvIndex >= 0 ? `children.${qvIndex}.${def.path}` : def.path
+          path,
+          computed
         };
       });
 
@@ -1363,5 +1369,15 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         this._rowValidatorSubscription = undefined;
       });
     }
+  }
+
+  confirmEditCreate(event?: Event, row?: TableElement<BatchGroup>): boolean {
+    const confirmed = super.confirmEditCreate(event, row);
+
+    // Stop row subscription
+    if (confirmed && (!row || !row.editing)) {
+      this._rowValidatorSubscription?.unsubscribe();
+    }
+    return confirmed;
   }
 }

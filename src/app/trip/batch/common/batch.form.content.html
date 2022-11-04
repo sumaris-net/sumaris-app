@@ -45,7 +45,7 @@
         <ion-col *ngVar="pmfm|pmfmFieldStyle:10 as style"
                  class="ion-no-padding"
                  [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
-                 size="12" [sizeMd]="style === 'button' ? 12 : 6" >
+                 size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >
           <app-pmfm-field #matInput
                           [pmfm]="pmfm"
                           [style]="style"

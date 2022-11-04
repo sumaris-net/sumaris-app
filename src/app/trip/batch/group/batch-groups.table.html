@@ -180,20 +180,22 @@
         </mat-label>
       </th>
 
-      <td mat-cell *matCellDef="let row"
-          [class]="col.classList"
-          [class.mat-cell-computed]="isComputed(col, row)"
-          class="mat-cell-content-start-padding"
-          (click)="focusColumn=col.key">
+      <ng-container *matCellDef="let row">
+        <td mat-cell
+            *ngVar="isComputed(col, row) as computed"
+            [class]="col.classList"
+            [class.mat-cell-computed]="computed"
+            class="mat-cell-content-start-padding"
+            (click)="focusColumn=col.key"
+            [ngSwitch]="col.type">
 
-        <ng-container [ngSwitch]="col.type" *ngVar="isComputed(col, row) as computed">
           <app-pmfm-field *ngSwitchCase="'pmfm'"
                           floatLabel="never"
                           [pmfm]="col.pmfm"
                           [control]="row.validator|formGetControl: col.path"
-                          [tabindex]="col.computed && -1"
                           [autofocus]="row.editing && focusColumn === col.key"
-                          [readonly]="!row.editing"
+                          [readonly]="!row.editing || computed"
+                          [tabindex]="computed && -1"
                           [compact]="true">
           </app-pmfm-field>
 
@@ -210,13 +212,13 @@
                           floatLabel="never"
                           [definition]="col"
                           [readonly]="!row.editing || computed"
-                          [tabindex]="computed && -1"
                           [formControl]="row.validator|formGetControl: col.path"
                           [autofocus]="row.editing && focusColumn === col.key"
+                          [tabindex]="computed && -1"
                           [compact]="true">
           </app-form-field>
-        </ng-container>
-      </td>
+        </td>
+      </ng-container>
     </ng-container>
 
     <!-- Comment column -->

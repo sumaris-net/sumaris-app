@@ -16,7 +16,12 @@ export interface BatchGroupValidatorOptions extends BatchValidatorOptions {
 @Injectable()
 export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup, BatchGroupValidatorOptions> {
 
-  qvPmfm: IPmfm;
+  private _qvPmfm: IPmfm;
+
+  set qvPmfm(value: IPmfm) {
+    console.warn('[batch-group-validator] @deprecated use of qvPmfm property. Please use options to send qvPmfm!');
+    this._qvPmfm = value;
+  }
 
   constructor(
     formBuilder: FormBuilder,
@@ -32,14 +37,14 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
       withWeight: true,
       pmfms: this.pmfms,
       // Children
-      withChildren: !!this.qvPmfm || this.enableSamplingBatch,
-      qvPmfm: this.qvPmfm,
-      childrenPmfms: !!this.qvPmfm && this.childrenPmfms || null
+      withChildren: !!this._qvPmfm || this.enableSamplingBatch,
+      qvPmfm: this._qvPmfm,
+      childrenPmfms: !!this._qvPmfm && this.childrenPmfms || null
     });
   }
 
   getFormGroup(data?: BatchGroup, opts?: BatchGroupValidatorOptions): FormGroup {
-    return super.getFormGroup(data, {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this.qvPmfm, ...opts});
+    return super.getFormGroup(data, {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this._qvPmfm, ...opts});
   }
 
   getFormGroupConfig(data?: BatchGroup, opts?: BatchGroupValidatorOptions): { [key: string]: any } {
@@ -64,15 +69,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
       return null;
     }
 
-    // return SharedAsyncValidators.registerAsyncValidator(form,
-    //   BatchGroupValidators.samplingRatioAndWeight({qvPmfm: this.qvPmfm, ...opts}),
-    //   {
-    //     markForCheck: opts?.markForCheck,
-    //     debounceTime: opts?.debounceTime,
-    //     debug: !environment.production
-    //   });
-
-    const compute = BatchValidators.samplingRatioAndWeight({qvPmfm: this.qvPmfm, ...opts});
+    const compute = BatchValidators.samplingRatioAndWeight({qvPmfm: this._qvPmfm, ...opts});
 
     return form.valueChanges
       .pipe(debounceTime(opts?.debounceTime || 0))
@@ -87,7 +84,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
 
   protected fillDefaultOptions(opts?: BatchGroupValidatorOptions): BatchGroupValidatorOptions {
     opts = super.fillDefaultOptions(opts);
-    return {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this.qvPmfm, ...opts};
+    return {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this._qvPmfm, ...opts};
   }
 }
 
