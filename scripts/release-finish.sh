@@ -48,5 +48,5 @@ git commit -m ''"$description"''
 # -m: use default message
 # -p: push all tags after finish
 export GIT_MERGE_AUTOEDIT=no
-git flow release finish -F -p "$version" -m ''"$description"'' --set-upstream github-origin
+git flow release finish -F -p "$version" -m ''"$description"''
 unset GIT_MERGE_AUTOEDIT
