@@ -84,7 +84,7 @@
 
       <!-- avg weight price -->
       <td *ngIf="isProductWithWeight()" class="mat-cell mat-column-averageWeightPrice">
-        <mat-form-field [floatLabel]="first ? 'always' : 'never'"
+        <mat-form-field floatLabel="never"
                         [class.computed]="saleForm|formGetValue:'averageWeightPriceCalculated'">
           <input matInput formControlName="averageWeightPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.AVG_WEIGHT_PRICE'|translate"
@@ -116,7 +116,7 @@
 
       <!-- total price -->
       <td class="mat-cell mat-column-totalPrice">
-        <mat-form-field [floatLabel]="first ? 'always' : 'never'"
+        <mat-form-field floatLabel="never"
                         [class.computed]="saleForm|formGetValue:'totalPriceCalculated'">
           <input matInput formControlName="totalPrice"
                  [placeholder]="'TRIP.PRODUCT.SALE.TOTAL_PRICE'|translate"
