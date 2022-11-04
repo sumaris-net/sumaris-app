@@ -325,14 +325,17 @@ export class SaleProductUtils {
 
         } else if (hasValueFn(saleProduct, totalPriceProperty)) {
           // compute average packaging price
-          setValueFn(saleProduct, averagePackagingPriceProperty, getValueFn(saleProduct, totalPriceProperty) / count);
+          const total = getValueFn(saleProduct, totalPriceProperty);
+          const averagePackagingPrice = total / count;
+          setValueFn(saleProduct, averagePackagingPriceProperty, averagePackagingPrice);
 
         } else if (useRatioAndWeight && isNotNil(parentWeight) && hasValueFn(saleProduct, averageWeightPriceProperty)) {
           // compute average packaging price and total price
           useAverageWeightPrice = true;
           const total = ratio * parentWeight * getValueFn(saleProduct, averageWeightPriceProperty);
+          const averagePackagingPrice = total / count;
           setValueFn(saleProduct, totalPriceProperty, total);
-          setValueFn(saleProduct, averagePackagingPriceProperty, total / count);
+          setValueFn(saleProduct, averagePackagingPriceProperty, averagePackagingPrice);
         } else {
           resetValueFn(saleProduct, averagePackagingPriceProperty);
           resetValueFn(saleProduct, totalPriceProperty);

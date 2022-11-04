@@ -12,6 +12,13 @@
                         [packetSalePmfms]="packetSalePmfms"
                         [mobile]="mobile"
   ></app-packet-sale-form>
+
+  <!-- add button (mobile) -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && enabled">
+    <ion-fab-button color="tertiary" (click)="packetSaleForm.addSale()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

@@ -8,19 +8,18 @@
 
   <table class="mat-table" [class.mobile]="mobile">
 
-
     <!-- header row -->
     <tr class="mat-header-row">
       <th class="mat-header-cell mat-column-saleType ion-text-center">
         <ion-label translate>PACKET.SALE.SALE_TYPE</ion-label>
       </th>
-      <th class="mat-header-cell mat-column-subgroupCount ion-text-center even">
+      <th class="mat-header-cell mat-column-subgroupCount ion-text-center">
         <ion-label translate>PACKET.NUMBER</ion-label>
       </th>
-      <th class="mat-header-cell mat-column-weight ion-text-center">
+      <th class="mat-header-cell mat-column-weight ion-text-center even">
         <ion-label translate>PACKET.WEIGHT</ion-label>
       </th>
-      <th class="mat-header-cell mat-column-averagePackagingPrice ion-text-center even">
+      <th class="mat-header-cell mat-column-averagePackagingPrice ion-text-center">
         <ion-label translate>TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE</ion-label>
       </th>
       <th class="mat-header-cell mat-column-totalPrice ion-text-center">
@@ -49,7 +48,7 @@
       </td>
 
       <!-- subgroupCount -->
-      <td class="mat-cell mat-column-subgroupCount even">
+      <td class="mat-cell mat-column-subgroupCount">
         <mat-form-field floatLabel="never">
           <input matInput formControlName="subgroupCount"
                  [placeholder]="'PACKET.NUMBER'|translate"
@@ -69,20 +68,19 @@
       </td>
 
       <!-- weight -->
-      <td class="mat-cell mat-column-weight">
+      <td class="mat-cell mat-column-weight even">
         <mat-form-field floatLabel="never"
-                        [class.computed]="true"
-                        class="mat-form-field-disabled">
+                        class="mat-form-field-disabled computed">
           <input matInput formControlName="weight"
                  [placeholder]="'PACKET.WEIGHT'|translate"
                  autocomplete="off" type="number"
                  [tabIndex]="tabindex+3+i*7+2"
-                 [readonly]="true">
+                 readonly>
         </mat-form-field>
       </td>
 
       <!-- averagePackagingPrice -->
-      <td class="mat-cell mat-column-averagePackagingPrice even">
+      <td class="mat-cell mat-column-averagePackagingPrice">
         <mat-form-field floatLabel="never"
                         [class.computed]="saleForm|formGetValue:'averagePackagingPriceCalculated'">
           <input matInput formControlName="averagePackagingPrice"
@@ -130,29 +128,14 @@
     <!-- footer -->
     <tr class="mat-footer-row mat-row-disabled">
 
-      <!--  empty cell for alignment  -->
-      <td class="mat-footer-cell mat-column-saleType">
-        <ion-grid class="ion-no-padding">
-          <ion-row>
-            <ion-col size="auto">
-              <!-- add composition (mobile) -->
-              <ion-fab-button *ngIf="mobile" size="small"
-                              class="ion-float-start"
-                              color="tertiary"
-                              (click)="addSale()">
-                <ion-icon name="add"></ion-icon>
-              </ion-fab-button>
-            </ion-col>
-            <ion-col class="ion-text-end" style="align-self: center;">
-              <ion-label color="primary" class="text-italic" style="font-weight: bold;" translate>TRIP.PRODUCT.SALE.TOTAL</ion-label>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
+      <!-- total  -->
+      <td class="mat-footer-cell mat-column-saleType ion-text-end">
+        <ion-label color="primary" class="text-italic" style="font-weight: bold;" translate>TRIP.PRODUCT.SALE.TOTAL_PRODUCT</ion-label>
       </td>
 
       <!--  number -->
-      <td class="mat-footer-cell mat-column-subgroupCount even" >
-        <mat-form-field class="mat-form-field-disabled" floatLabel="never">
+      <td class="mat-footer-cell mat-column-subgroupCount " >
+        <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
           <input matInput
                  [placeholder]="'PACKET.NUMBER'|translate"
                  formControlName="number"
@@ -161,8 +144,8 @@
       </td>
 
       <!--  weight  -->
-      <td class="mat-footer-cell mat-column-weight" >
-        <mat-form-field class="mat-form-field-disabled" floatLabel="never">
+      <td class="mat-footer-cell mat-column-weight even" >
+        <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
           <input matInput
                  [placeholder]="'PACKET.WEIGHT'|translate"
                  formControlName="weight"
@@ -170,7 +153,7 @@
         </mat-form-field>
       </td>
 
-      <td class="mat-footer-cell even">
+      <td class="mat-footer-cell">
       </td>
 
       <td class="mat-footer-cell" colspan="2">

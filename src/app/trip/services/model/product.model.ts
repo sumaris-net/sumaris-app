@@ -116,7 +116,7 @@ export class Product extends DataEntity<Product> implements IEntityWithMeasureme
     const target = super.asObject(opts);
 
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true} as ReferentialAsObjectOptions) || undefined;
-    target.saleType = this.saleType && this.saleType.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+    target.saleType = this.saleType && ReferentialRef.fromObject(this.saleType).asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
 
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
 

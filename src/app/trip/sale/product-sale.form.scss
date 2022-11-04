@@ -1,25 +1,92 @@
-ion-row {
-  &.mat-row-selected {
-    background-color: var(--ion-color-secondary100) !important;
-  }
-  &.even {
-    background-color: var(--ion-color-light-tint, whitesmoke);
+
+.mat-table {
+  --mat-column-saleType: 210px;
+  --mat-column-small-count: 6;
+  --mat-column-actions-width: 82px;
+  --mat-column-small-size: calc(min((100vw - var(--mat-column-saleType) - var(--mat-column-actions-width)) / var(--mat-column-small-count), var(--mat-column-saleType)));
+
+  --mat-cell-vertical-padding: 4px;
+  --mat-header-background-color: var(--mat-toolbar-background-color, whitesmoke);
+  --mat-header-background-color-even: var(--ion-color-light-shade, grey);
+  --mat-footer-background-color: var(--mat-toolbar-background-color, whitesmoke);
+  --mat-footer-background-color-even: var(--ion-color-light-shade, grey);
+
+
+  &.mobile {
+    --mat-column-actions-width: 41px;
   }
 
-  ion-buttons {
-    min-width: 80px;
+  .mat-header-row {
+    //background-color: var(--mat-header-background-color);
+    //text-align: center;
+    ion-label {
+      color: unset;
+    }
+    .mat-header-cell.even {
+      background-color: var(--mat-header-background-color-even) !important;
+    }
   }
 
-}
-ion-col.even {
-  background-color: rgba(0,0,0, 0.1) !important;
-}
+  .mat-footer-row {
+    background-color: var(--mat-footer-background-color);
 
-.mobile {
-  ion-col {
-    ion-buttons {
-      min-width: 40px;
+    .mat-footer-cell.even {
+      background-color: var(--mat-footer-background-color-even) !important;
+    }
+  }
+
+  .mat-row {
+    &.mat-row-selected {
+      background-color: var(--ion-color-secondary100) !important;
+    }
+    &.even {
+      background-color: var(--ion-color-light-tint, whitesmoke);
+    }
+
+    .mat-cell.even {
+      background-color: rgba(0,0,0, 0.1) !important;
+    }
+  }
+
+  .mat-header-row,
+  .mat-footer-row,
+  .mat-row {
+    height: var(--mat-row-max-height, 48px);
+
+    .mat-header-cell,
+    .mat-footer-cell,
+    .mat-cell {
+      padding-inline-start: var(--mat-cell-vertical-padding, 0) !important;
+      padding-inline-end: var(--mat-cell-vertical-padding, 0) !important;
+    }
+
+    .mat-column-saleType {
+      padding-left: 8px;
+      min-width: var(--mat-column-saleType, 150px);
+    }
+
+    .mat-column-ratio,
+    .mat-column-weight,
+    .mat-column-averageWeightPrice,
+    .mat-column-individualCount,
+    .mat-column-averagePackagingPrice,
+    .mat-column-totalPrice,
+    {
+      max-width: var(--mat-column-small-size, 150px);
+    }
+
+    .mat-column-actions {
+      min-width: var(--mat-column-actions-width) !important;
+    }
+  }
+
+  .visible-hover-row {
+    visibility: hidden;
+  }
+
+  tr:hover {
+    .visible-hover-row {
+      visibility: unset !important;
     }
   }
 }
-

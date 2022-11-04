@@ -24,16 +24,10 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   salesHelper: FormArrayHelper<SaleProduct>;
   salesFocusIndex = -1;
   salesEditedIndex: number;
-  adding = false;
 
   get saleFormArray(): FormArray {
     return this.form.controls.saleProducts as FormArray;
   }
-
-  @Input() mobile: boolean;
-  @Input() showError = true;
-  @Input() usageMode: UsageMode;
-  @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
 
   get value(): any {
     const json = this.form.value;
@@ -46,6 +40,11 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
 
     return json;
   }
+
+  @Input() mobile: boolean;
+  @Input() showError = true;
+  @Input() usageMode: UsageMode;
+  @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
 
   constructor(
     injector: Injector,
@@ -63,11 +62,6 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     this.initSalesHelper();
 
     this.usageMode = this.usageMode || this.settings.usageMode;
-
-    // Combo: taxonGroup
-    this.registerAutocompleteField('taxonGroup', {
-      mobile: this.mobile
-    });
 
     // Combo: sale types
     this.registerAutocompleteField('saleType', {
@@ -187,7 +181,6 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
 
     this.salesHelper.add();
     this.initSubscription();
-    this.adding = true;
 
     this.editSale(this.salesHelper.size() - 1);
   }
@@ -195,7 +188,6 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   removeSale(index: number) {
     this.salesHelper.removeAt(index);
     this.initSubscription();
-    this.adding = false;
 
     this.editSale(index - 1, {focus: false});
   }
