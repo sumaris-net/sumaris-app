@@ -16,7 +16,7 @@ import {
   isNotNilOrNaN,
   LoadResult,
   LocalSettingsService,
-  ReferentialRef,
+  ReferentialRef, ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SETTINGS_DISPLAY_COLUMNS,
@@ -264,7 +264,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   @Input() showError = true;
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
-  @Input() taxonGroupsNoWeight: string[];
+  @Input() taxonGroupsNoWeight: string[] = [];
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
@@ -885,7 +885,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         const label = isSamplingRatio && this.samplingRatioFormat === '1/w' ? 'TRIP.BATCH.TABLE.SAMPLING_COEFFICIENT' : def.label;
         const unitLabel = isSamplingRatio && this.samplingRatioFormat === '1/w' ? null : def.unitLabel;
         const computed = (def.key === 'totalIndividualCount')
-          ? (batch, parent) => !parent.taxonGroup || !this.taxonGroupsNoWeight.includes(parent.taxonGroup.label)
+          ? (batch, parent) => ReferentialUtils.isEmpty(parent.taxonGroup) || !(this.taxonGroupsNoWeight || []).includes(parent.taxonGroup.label)
           : def.computed;
         return <BatchGroupColumnDefinition>{
           ...(def.isWeight && this.defaultWeightPmfm || {}),

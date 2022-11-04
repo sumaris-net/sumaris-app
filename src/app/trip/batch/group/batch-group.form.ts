@@ -414,8 +414,8 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
     // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
     // but some species (e.g. RJB) can have no weight.
-    const showChildrenIndividualCount = data && ReferentialUtils.isNotEmpty(data.taxonGroup) &&
-      (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
+    const showChildrenIndividualCount = ReferentialUtils.isNotEmpty(data?.taxonGroup)
+      && (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
 
     if (this.showChildrenIndividualCount !== showChildrenIndividualCount) {
       this.showChildrenIndividualCount = showChildrenIndividualCount;

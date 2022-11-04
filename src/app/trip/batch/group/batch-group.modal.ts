@@ -70,7 +70,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() allowSubBatches = true;
   @Input() showHasSubBatchesButton: boolean;
   @Input() defaultHasSubBatches: boolean;
-  @Input() taxonGroupsNoWeight: string[];
+  @Input() taxonGroupsNoWeight: string[] = [];
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() enableWeightConversion: boolean;
   @Input() maxVisibleButtons: number;
