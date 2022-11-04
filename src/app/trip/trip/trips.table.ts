@@ -122,6 +122,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()
+    this.inlineEdition = false;
     this.defaultSortBy = 'departureDateTime';
     this.defaultSortDirection = 'desc';
     this.confirmBeforeDelete = true;

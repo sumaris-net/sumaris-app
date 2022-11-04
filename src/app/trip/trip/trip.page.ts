@@ -429,7 +429,15 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       jobs.push(this.tripForm.setValue(data));
 
       this.saleForm.value = data && data.sale || new Sale();
-      this.measurementsForm.value = data && data.measurements || [];
+
+      // Measurements
+      if (isNewData) {
+        this.measurementsForm.value = data?.measurements || [];
+      }
+      else {
+        this.measurementsForm.programLabel = data.program?.label;
+        jobs.push(this.measurementsForm.setValue(data?.measurements || []));
+      }
 
       // Set physical gears
       this.physicalGearsTable.tripId = data.id;
@@ -445,6 +453,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
     catch (err) {
       const error = err?.message || err;
+      console.debug('[trip] Error during setValue(): ' + error, err);
       this.setError(error);
     }
   }

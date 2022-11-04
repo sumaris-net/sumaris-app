@@ -1,5 +1,5 @@
 
-<form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)" >
+<form class="form-container ion-padding" [formGroup]="form" (ngSubmit)="onSubmit.emit($event)" >
 
   <ion-item *ngIf="showError && error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
@@ -58,7 +58,8 @@
           <app-pmfm-field #matInput
                           [pmfm]="pmfm"
                           [controlName]="pmfm|pmfmIdString"
-                          [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
+                          [style]="pmfm|pmfmFieldStyle:10"
+                          [maxVisibleButtons]="maxVisibleButtons"
                           [compact]="compact"
                           [tabindex]="tabindex+2 + i*2"
                           [floatLabel]="floatLabel"
@@ -84,9 +85,9 @@
               matTextareaAutosize="true"
               matAutosizeMinRows="4"
               maxlength="2000"
-              tabindex="100"
+              [tabindex]="tabindex+100"
               (keydown.tab)="focusNextInput($event)"
-              (keydown.enter)="onSubmit.emit($event)">
+              (keydown.control.enter)="onSubmit.emit($event)">
     </textarea>
     <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
     <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

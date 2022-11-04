@@ -260,6 +260,13 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
     let fieldName: string;
     switch (path) {
+      case 'individualCount':
+        fieldName = 'TOTAL_INDIVIDUAL_COUNT';
+        break;
+      case 'weight':
+      case 'weight.value':
+        fieldName = 'TOTAL_WEIGHT';
+        break;
       case 'children.0.weight.value':
         fieldName = 'SAMPLING_WEIGHT';
         break;
@@ -584,6 +591,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
         // If sampling weight is required, make batch weight required also
         if (this._requiredSampleWeight) {
+          // FIXME : issue with the  requiredIf validator (should test it again)
           // this.weightForm.setValidators(
           //   SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
           // );

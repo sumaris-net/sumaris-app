@@ -13,3 +13,14 @@ ion-col > ion-buttons {
 ion-row.ion-row-buttons {
   height: 36px;
 }
+
+mat-card, ion-card {
+  h1 {
+    margin: 0;
+    app-icon {
+      height: 24px;
+      font-size: 24px;
+      vertical-align: top;
+    }
+  }
+}

@@ -4,12 +4,11 @@ import { BehaviorSubject, isObservable, Observable } from 'rxjs';
 import { filter, first } from 'rxjs/operators';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, firstNotNil, firstNotNilPromise, isNil, isNotNil, PromiseEvent, toNumber } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, firstNotNilPromise, isNil, isNotNil, PromiseEvent, toNumber } from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { PmfmFormReadySteps } from '@app/trip/measurement/measurement-values.form.class';
-import { environment } from '@environments/environment';
 
 export declare type MapPmfmEvent = PromiseEvent<IPmfm[], {pmfms: IPmfm[]}>;
 export declare type UpdateFormGroupEvent = PromiseEvent<void, {form: FormGroup}>;
@@ -135,7 +134,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
               protected programRefService: ProgramRefService
   ) {
     super(injector, measurementValidatorService.getFormGroup([]));
-    this.loadingSubject.next(false); // Important, must be false
     this.cd = injector.get(ChangeDetectorRef);
 
     this.registerSubscription(
@@ -170,7 +168,6 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
   ngOnDestroy() {
     super.ngOnDestroy();
     this.$readyStepSubject.unsubscribe();
-    this.$pmfms.complete();
     this.$pmfms.unsubscribe();
     this.$programLabel.unsubscribe();
     this.$strategyLabel.unsubscribe();
@@ -185,6 +182,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     this.applyingValue = false;
     this.loadingSubject.next(true);
     this.readySubject.next(false);
+    this.errorSubject.next(null);
     this.resetPmfms();
   }
 
@@ -200,7 +198,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
 
     // Start loading pmfms
     if (this.starting) {
-      this.setLoadingProgression(PmfmFormReadySteps.LOADING_PMFMS);
+      this.setInitStep(PmfmFormReadySteps.LOADING_PMFMS);
       this.loadPmfms();
     }
 
@@ -231,20 +229,26 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       )
     }
     else {
-      super.markAsLoaded()
+      super.markAsLoaded();
     }
   }
+
+  trackPmfmFn(index: number, pmfm: IPmfm): any {
+    return pmfm.id;
+  }
+
+  /* -- protected methods -- */
 
   protected getFormError(form: FormGroup): string {
     const errors = AppFormUtils.getFormErrors(form);
     return Object.getOwnPropertyNames(errors)
       .map(field => {
         let fieldName;
-          const pmfmId = parseInt(field);
-          const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
-          if (pmfm) {
-            fieldName = PmfmUtils.getPmfmName(pmfm);
-          }
+        const pmfmId = parseInt(field);
+        const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
+        if (pmfm) {
+          fieldName = PmfmUtils.getPmfmName(pmfm);
+        }
 
         const fieldErrors = errors[field];
         const errorMsg = Object.keys(fieldErrors).map(errorKey => {
@@ -256,15 +260,10 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       }).join(',');
   }
 
-  trackPmfmFn(index: number, pmfm: IPmfm): any {
-    return pmfm.id;
-  }
-
-  /* -- protected methods -- */
-
   /**
    * Wait form is ready, before setting the value to form
    * @param data
+   * @param opts
    */
   protected async applyValue(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     this.applyingValue = true;
@@ -282,7 +281,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       // Data is still the same (not changed : applying)
       if (data === this.data) {
         // Applying value to form (that should be ready).
-        await this.updateView(this.data, opts);
+        await this.updateView(data, opts);
         this.markAsLoaded();
       }
     }
@@ -377,7 +376,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     return this.data;
   }
 
-  protected setLoadingProgression(step?: number) {
+  protected setInitStep(step: number) {
     // /!\ do NOT use STARTING step here (only used to avoid to many refresh, BEFORE ngOnInit())
     step = toNumber(step, PmfmFormReadySteps.LOADING_PMFMS);
 
@@ -390,14 +389,11 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       this.$readyStepSubject.next(step);
     }
 
-    // Call inherited function (to update loadingSubject)
-    if (step <= PmfmFormReadySteps.LOADING_PMFMS) {
-      super.markAsLoading();
+    // Call markAsLoading, if the step is the first step
+    if (this.loaded && step <= PmfmFormReadySteps.LOADING_PMFMS) {
+      if (this.dirty) this.data = this.value;
+      this.markAsLoading();
     }
-  }
-
-  markAsLoading(opts?: {emitEvent?: boolean;}) {
-    super.markAsLoading(opts);
   }
 
   /**
@@ -407,34 +403,33 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     // Check if can load (must have: program, acquisition - and gear if required)
     if (isNil(this.programLabel)
       || isNil(this._acquisitionLevel)
-      // TODO: enable this
-      //|| (this.requiredStrategy && isNil(this.strategyLabel))
+      || (this.requiredStrategy && isNil(this.strategyLabel))
       || (this.requiredGear && isNil(this._gearId))) {
 
       // DEBUG
-      if (this.debug) console.debug(`${this._logPrefix} cannot load pmfms (missing some inputs)`);
+      //if (this.debug) console.debug(`${this._logPrefix} cannot load pmfms (missing some inputs)`);
 
       return false;
     }
     return true;
   }
 
-  protected async loadPmfms(event?: any) {
+  protected async loadPmfms() {
     if (!this.canLoadPmfms()) return;
 
     // DEBUG
     //if (this.debug) console.debug(`${this.logPrefix} loadPmfms()`);
 
-    this.setLoadingProgression(PmfmFormReadySteps.LOADING_PMFMS);
+    this.setInitStep(PmfmFormReadySteps.LOADING_PMFMS);
 
     let pmfms;
     try {
       // Load pmfms
+      // DO NOT call loadProgramPmfms(). Next setPmfms() will call a firstNotNilPromise() with options.stop
       pmfms = this.programRefService.watchProgramPmfms(
         this.programLabel,
         {
-          // TODO enable this
-          //strategyLabel: this.strategyLabel,
+          strategyLabel: this.strategyLabel,
           acquisitionLevel: this._acquisitionLevel,
           gearId: this._gearId
         });
@@ -443,7 +438,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       pmfms = undefined;
     }
 
-    // Apply
+    // Apply pmfms
     await this.setPmfms(pmfms);
   }
 
@@ -459,7 +454,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
 
     // Mark as settings pmfms
     const previousLoadingStep = this.$readyStepSubject.value;
-    this.setLoadingProgression(PmfmFormReadySteps.SETTING_PMFMS);
+    this.setInitStep(PmfmFormReadySteps.SETTING_PMFMS);
 
     try {
 
@@ -497,18 +492,20 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
         if (this.debug) console.debug(`${this._logPrefix} Pmfms changed {acquisitionLevel: '${this._acquisitionLevel}'}`, pmfms);
 
         // next step
-        this.setLoadingProgression(PmfmFormReadySteps.UPDATING_FORM_GROUP);
+        this.setInitStep(PmfmFormReadySteps.UPDATING_FORM_GROUP);
         this.$pmfms.next(pmfms);
       }
       else {
         // Nothing changes: restoring previous steps
-        this.setLoadingProgression(previousLoadingStep);
+        this.setInitStep(previousLoadingStep);
       }
 
       return pmfms;
     }
     catch(err) {
-      console.error(`${this._logPrefix} Error while applying pmfms: ${err && err.message || err}`, err);
+      if (err?.message !== 'stop') {
+        console.error(`${this._logPrefix} Error while applying pmfms: ${err && err.message || err}`, err);
+      }
       this.resetPmfms();
       return undefined;
     }
@@ -519,7 +516,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
 
     if (this.debug) console.warn(`${this._logPrefix} Reset pmfms`);
 
-    if (!this.starting && this.loaded) this.setLoadingProgression(PmfmFormReadySteps.STARTING);
+    if (!this.starting && this.loaded) this.setInitStep(PmfmFormReadySteps.STARTING);
     this.$pmfms.next(undefined);
   }
 
@@ -531,7 +528,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     if (form.enabled) form.disable();
 
     // Mark as loading
-    this.setLoadingProgression(PmfmFormReadySteps.UPDATING_FORM_GROUP);
+    this.setInitStep(PmfmFormReadySteps.UPDATING_FORM_GROUP);
     if (this.debug) console.debug(`${this._logPrefix} Updating form controls, force_optional: ${this._forceOptional}}, using pmfms:`, pmfms);
 
     // No pmfms (= empty form)
@@ -551,12 +548,14 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
     }
 
     if (this.debug) console.debug(`${this._logPrefix} Form controls updated`);
-    this.setLoadingProgression(PmfmFormReadySteps.FORM_GROUP_READY);
+    this.setInitStep(PmfmFormReadySteps.FORM_GROUP_READY);
 
     // Data already set: apply value again to fill the form
     if (!this.applyingValue) {
+      // Update data in view
       if (this.data) {
         await this.updateView(this.data, {onlySelf: true, emitEvent: false});
+        this.markAsLoaded();
       }
       // No data defined yet
       else {
@@ -582,7 +581,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       // Wait previous loading is finished
       await this.waitIdle({stop: this.destroySubject, stopError: false});
       // Then refresh pmfms
-      await this.loadPmfms(event);
+      await this.loadPmfms();
     }
     catch(err) {
       console.error(err);

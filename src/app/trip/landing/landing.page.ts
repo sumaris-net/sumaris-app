@@ -211,6 +211,10 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
       this.showQualityForm = true;
     }
+
+    if (!this.isNewData && this.landingForm.requiredStrategy) {
+      this.landingForm.canEditStrategy = false;
+    }
   }
 
   async openReport(event?: UIEvent) {
@@ -500,6 +504,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
 
   protected async setValue(data: Landing): Promise<void> {
     if (!data) return; // Skip
+
     await this.landingForm.setValue(data);
 
     // Set samples to table

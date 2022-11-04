@@ -131,6 +131,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     });
 
     this.defaultSortBy = 'id';
+    this.inlineEdition = false;
     this.i18nColumnPrefix = 'TRIP.PHYSICAL_GEAR.TABLE.';
     this.i18nPmfmPrefix = 'TRIP.PHYSICAL_GEAR.PMFM.';
     this.autoLoad = true;
@@ -251,7 +252,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     const { data, role } = await this.openDetailModal();
     if (data && role !== 'delete') {
       if (this.debug) console.debug("Adding new gear:", data);
-      await this.addEntityToTable(data, {confirmCreate: false});
+      await this.addEntityToTable(data, {confirmCreate: false, editing: false});
     }
     return true;
   }

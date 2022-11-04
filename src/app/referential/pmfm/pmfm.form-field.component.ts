@@ -99,7 +99,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   @Output('click') clicked = new EventEmitter<MouseEvent>();
 
   get value(): any {
-    return this.formControl.value;
+    return this.control.value;
   }
 
   get latLongFormat(): string {
@@ -107,7 +107,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   }
 
   get disabled(): boolean {
-    return this.formControl.disabled;
+    return this.control?.disabled;
   }
 
   @ViewChild('matInput') matInput: ElementRef;

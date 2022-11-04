@@ -360,14 +360,17 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
           const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
           if (measControl && measControl.value !== strategyLabel) {
             // DEBUG
-            console.debug('[landing-form] Setting measurementValues.' + PmfmIds.STRATEGY_LABEL + '=' + strategyLabel);
+            console.debug(`[landing-form] Setting measurementValues.${PmfmIds.STRATEGY_LABEL}=${strategyLabel}`);
 
             measControl.setValue(strategyLabel);
           }
+          if (this.strategyControl.value?.label !== strategyLabel) {
+            this.strategyControl.setValue({label: strategyLabel}, {emitEvent: false});
+            this.markForCheck();
+          }
 
-          this.fishingAreaFields?.forEach(fishingArea => {
-            fishingArea.reloadItems();
-          });
+          // Refresh fishing areas autocomplete
+          this.fishingAreaFields?.forEach(fishingArea => fishingArea.reloadItems());
         })
       );
 

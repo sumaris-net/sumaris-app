@@ -63,7 +63,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   private _onChangeCallback = (_: any) => { };
   private _onTouchedCallback = () => { };
   private _implicitValue: IReferentialRef | any;
-  private _onDestroy = new EventEmitter(true);
+  private destroySubject = new EventEmitter(true);
   private _qualitativeValues: IReferentialRef[];
   private _sortedQualitativeValues: IReferentialRef[];
 
@@ -77,13 +77,15 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return this.matInput && this.matInput.nativeElement;
   }
 
+  get sortedQualitativeValues(): any {
+    return this._sortedQualitativeValues;
+  }
+
   @Input()
   displayWith: (obj: ReferentialRef | any) => string;
 
   @Input() mobile: boolean;
   @Input() pmfm: IPmfm;
-  @Input() formControl: FormControl;
-  @Input() formControlName: string;
   @Input() placeholder: string;
   @Input() floatLabel: FloatLabelType = "auto";
   @Input() required: boolean;
@@ -98,6 +100,18 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() buttonsColCount: number;
   @Input() showButtonIcons: boolean;
 
+
+  @Input() formControlName: string;
+  @Input() control: FormControl;
+
+  @Input() set formControl(value: FormControl) {
+    this.control = value;
+  }
+
+  get formControl(): FormControl {
+    return this.control;
+  }
+
   @Input() set tabindex(value: number) {
     this._tabindex = value;
     this.markForCheck();
@@ -108,7 +122,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   get disabled(): boolean {
-    return this.formControl.disabled;
+    return this.control.disabled;
   }
 
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
@@ -131,8 +145,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // Set defaults
     this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
 
-    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
-    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
+    this.control = this.control || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+    if (!this.control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
     let qualitativeValues: IReferentialRef[] = this.pmfm.qualitativeValues || [];
@@ -148,7 +162,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
-    this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
+    this.control.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
     const attributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
     const displayAttributes = this.compact && attributes.length > 1 ? ['label'] : attributes;
@@ -158,7 +172,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
       : (this.style === 'button' ? 'name' : attributes[0]);
 
     // Sort values (keep original order if LANDING/DISCARD)
-    this._sortedQualitativeValues = (this.pmfm.id !== PmfmIds.DISCARD_OR_LANDING) ?
+    this._sortedQualitativeValues = !this.mobile && (this.pmfm.id !== PmfmIds.DISCARD_OR_LANDING) ?
       sort(this._qualitativeValues, this.sortAttribute, {numeric: true, sensitivity: 'base'}) :
       this._qualitativeValues;
 
@@ -178,7 +192,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
               filter(event => !event.defaultPrevented),
               map((_) => this._sortedQualitativeValues)
             ),
-          this.formControl.valueChanges
+          this.control.valueChanges
             .pipe(
               filter(ReferentialUtils.isEmpty),
               map(value => suggestFromArray(this._sortedQualitativeValues, value, {
@@ -189,7 +203,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
             )
         )
         .pipe(
-          takeUntil(this._onDestroy)
+          takeUntil(this.destroySubject)
         );
       }
     }
@@ -203,34 +217,34 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this.maxVisibleButtons = 999; // Hide the expand button
       }
 
-      this.formControl.statusChanges
+      this.control.statusChanges
         .pipe(
-          takeUntil(this._onDestroy)
+          takeUntil(this.destroySubject)
         )
-        .subscribe(() => this.markForCheck());
+        .subscribe(() => {
+          this.updateSelectedIndex(this.value, {emitEvent: false /*done after*/});
+          this.markForCheck()
+        });
     }
   }
 
   ngOnDestroy(): void {
-    this._onDestroy.emit();
+    this.destroySubject.emit();
   }
 
   get value(): any {
-    return this.formControl.value;
+    return this.control.value;
   }
 
   writeValue(value: any, event?: UIEvent) {
-    if (value !== this.formControl.value) {
-      this.formControl.patchValue(value, {emitEvent: false});
+    if (value !== this.control.value) {
+      this.control.patchValue(value, {emitEvent: false});
       this._onChangeCallback(value);
     }
 
     if (this.style === 'button') {
-      const index = (value && isNotNil(value.id)) ? this._qualitativeValues.findIndex(qv => qv.id === value.id) : -1;
-      if (this.selectedIndex !== index) {
-        this.selectedIndex = index;
-        this.markForCheck();
-      }
+      this.updateSelectedIndex(value);
+
       if (event) this.onPressEnter.emit(event);
     }
   }
@@ -299,7 +313,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
 
     // When leave component without object, use implicit value if stored
-    if (this._implicitValue && typeof this.formControl.value !== "object") {
+    if (this._implicitValue && typeof this.control.value !== "object") {
       this.writeValue(this._implicitValue);
     }
     this._implicitValue = null;
@@ -340,7 +354,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
 
     // When leave component without object, use implicit value if stored
-    if (this._implicitValue && typeof this.formControl.value !== "object") {
+    if (this._implicitValue && typeof this.control.value !== "object") {
       this.writeValue(this._implicitValue);
     }
     this._implicitValue = null;
@@ -351,7 +365,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   clear() {
-    this.formControl.setValue(null);
+    this.control.setValue(null);
     this.markForCheck();
   }
 
@@ -373,14 +387,26 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // Store implicit value (will use it onBlur if not other value selected)
     if (res && res.length === 1) {
       this._implicitValue = res[0];
-      this.formControl.setErrors(null);
+      this.control.setErrors(null);
     } else {
       this._implicitValue = undefined;
     }
   }
 
+  protected updateSelectedIndex(value: any, opts = {emitEvent: true}) {
+    const index = isNotNil(value?.id) ? this.pmfm.qualitativeValues.findIndex(qv => qv.id === value.id) : -1;
+    if (this.selectedIndex !== index) {
+      this.selectedIndex = index;
+      if (this.selectedIndex > this.maxVisibleButtons) {
+        this.showAllButtons = true;
+      }
+
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
+    }
+  }
+
   protected checkIfTouched() {
-    if (this.formControl.touched) {
+    if (this.control.touched) {
       this.markForCheck();
       this._onTouchedCallback();
     }

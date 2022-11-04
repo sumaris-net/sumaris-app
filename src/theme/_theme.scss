@@ -72,13 +72,16 @@ mat-form-field {
     align-items: center;
 
     .mat-form-field-button {
-      --flex-basis: calc(100% / var(--buttons-col-count, 4));
+      --button-padding-end: 2px;
+      --flex-basis: calc(100% / var(--buttons-col-count, 4) - var(--button-padding-end));
       flex: 0 1 var(--flex-basis);
       max-width: calc(min(var(--flex-basis), 150px));
       white-space: normal;
-      padding: 0 2px;
       height: 40px;
       text-transform: capitalize; // Avoid uppercase text
+      box-sizing: content-box; // Avoid long text to be cropped
+      margin: 0 !important;
+      padding-inline-end: var(--button-padding-end) !important;
     }
   }
 

@@ -931,39 +931,53 @@ export class OperationPage
   }
 
   async setValue(data: Operation) {
-    await this.opeForm.setValue(data);
+    try {
+      const isNewData = isNil(data?.id);
+      const jobs = [
+          this.opeForm.setValue(data)
+      ];
 
-    // Get gear, from the physical gear
-    const physicalGearId = toNumber(data.physicalGear?.id, null);
-    const gearId = toNumber(data?.physicalGear?.gear?.id, null);
+      // Get gear, from the physical gear
+      const physicalGearId = toNumber(data.physicalGear?.id, null);
+      const gearId = toNumber(data?.physicalGear?.gear?.id, null);
 
-    // Set measurements form
-    this.measurementsForm.gearId = gearId;
-    this.measurementsForm.programLabel = this.$programLabel.value;
-    const isChildOperation = data.parentOperation || isNotNil(data.parentOperationId);
-    const acquisitionLevel = isChildOperation ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
-    if (this.measurementsForm.acquisitionLevel !== acquisitionLevel && !this.measurementsForm.loading) {
-      await this.measurementsForm.unload();
+      // Set measurements form
+      this.measurementsForm.gearId = gearId;
+      this.measurementsForm.programLabel = this.$programLabel.value;
+      const isChildOperation = data.parentOperation || isNotNil(data.parentOperationId);
+      const acquisitionLevel = isChildOperation ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
+      if (this.measurementsForm.acquisitionLevel !== acquisitionLevel && !this.measurementsForm.loading) {
+        await this.measurementsForm.unload();
+      }
+      if (this.$acquisitionLevel.value !== acquisitionLevel) {
+        this.$acquisitionLevel.next(acquisitionLevel);
+      }
+      jobs.push(this.measurementsForm.setValue(data && data.measurements || []));
+
+      // Set batch tree
+      if (this.batchTree) {
+        this.batchTree.physicalGear = data.physicalGear;
+        this.batchTree.gearId = gearId;
+        jobs.push(this.batchTree.setValue(data && data.catchBatch || null));
+      }
+
+      // Set sample tree
+      if (this.sampleTree) jobs.push(this.sampleTree.setValue(data && data.samples || []));
+
+      await Promise.all(jobs);
+
+      console.debug('[operation] setValue() [OK]');
+
+      // If new data, auto fill the table
+      if (isNewData) {
+        if (this.autoFillDatesFromTrip && !this.isDuplicatedData)
+          this.opeForm.fillWithTripDates();
+      }
     }
-    if (this.$acquisitionLevel.value !== acquisitionLevel) {
-      this.$acquisitionLevel.next(acquisitionLevel);
-    }
-    await this.measurementsForm.setValue(data && data.measurements || []);
-
-    // Set batch tree
-    if (this.batchTree) {
-      this.batchTree.physicalGear = data.physicalGear;
-      this.batchTree.gearId = gearId;
-      await this.batchTree.setValue(data && data.catchBatch || null);
-    }
-
-    // Set sample tree
-    if (this.sampleTree) await this.sampleTree.setValue(data && data.samples || []);
-
-    // If new data, auto fill the table
-    if (this.isNewData) {
-      if (this.autoFillDatesFromTrip && !this.isDuplicatedData)
-        this.opeForm.fillWithTripDates();
+    catch (err) {
+      const error = err?.message || err;
+      console.debug('[operation] Error during setValue(): ' + error, err);
+      this.setError(error);
     }
   }
 

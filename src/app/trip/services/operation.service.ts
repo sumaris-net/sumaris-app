@@ -501,7 +501,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
       // Load from pod
       else {
-        const query = (opts && opts.query) || (opts && opts.fullLoad === false ? OperationQueries.loadLight : OperationQueries.load);
+        const query = opts?.query || (opts && opts.fullLoad === false ? OperationQueries.loadLight : OperationQueries.load);
         const res = await this.graphql.query<{ data: Operation }>({
           query,
           variables: { id },
@@ -983,8 +983,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (this._debug) console.debug('[operation-service] Loading operations... using options:', variables);
 
     const withTotal = !opts || opts.withTotal !== false;
-    const query = (opts && opts.query) || (withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll);
-    const mutable = !opts || opts.mutable !== false;
+    const query = opts?.query || (withTotal ? OperationQueries.loadAllWithTotal : OperationQueries.loadAll);
+    const mutable = (!opts || opts.mutable !== false) && (opts?.fetchPolicy !== 'no-cache');
 
     const result$ = mutable
       ? this.mutableWatchQuery<LoadResult<any>>({
@@ -1528,7 +1528,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     if (isNotEmptyArray(batches)) {
       await EntityUtils.fillLocalIds(batches, (_, count) => this.entities.nextValues('BatchVO', count));
       if (this._debug) {
-        console.debug('[Operation-service] Preparing batches to be saved locally:');
+        console.debug('[operation-service] Preparing batches to be saved locally:');
         BatchUtils.logTree(entity.catchBatch);
       }
     }

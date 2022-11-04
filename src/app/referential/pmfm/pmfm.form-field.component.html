@@ -5,14 +5,14 @@
   </div>
 
   <div *ngSwitchCase="'array'">
-    <ion-grid class="ion-no-padding">
+    <ion-grid class="ion-no-padding" *ngVar="control|formGetArray as formArray">
       <ion-row>
         <ion-col *ngFor="let childControl of formArray.controls; index as j; last as last"
                  size="auto">
           <ion-row>
             <ion-col size="auto" class="ion-align-self-center">
               <app-pmfm-field [pmfm]="pmfm" #pmfmField
-                              [control]="childControl"
+                              [control]="childControl|formGetControl"
                               [required]="required"
                               [readonly]="readonly"
                               [tabindex]="tabindex+j"
@@ -57,7 +57,7 @@
            [max]="pmfm.maxValue"
            [appAutofocus]="autofocus"
            [placeholder]="placeholder"
-           [formControl]="formControl"
+           [formControl]="control|formGetControl"
            (keydown.enter)="onPressEnter.emit($event)"
            (keypress)="filterNumberInput($event, false)"
            (focus)="focused.emit($event)"
@@ -100,7 +100,7 @@
            (blur)="blurred.emit($event)"
            (focus)="focused.emit($event)"
            (click)="clicked.emit($event)"
-           [formControl]="formControl"
+           [formControl]="control|formGetControl"
            [required]="required"
            [tabIndex]="tabindex">
 
@@ -125,7 +125,7 @@
 
   <!-- duration -->
   <mat-duration-field *ngSwitchCase="'duration'" #matInput
-                      [formControl]="formControl"
+                      [formControl]="control|formGetControl"
                       [placeholder]="placeholder"
                       [floatLabel]="floatLabel"
                       [required]="required"
@@ -140,7 +140,7 @@
   <!-- boolean -->
   <mat-boolean-field *ngSwitchCase="'boolean'" #matInput
                      [style]="style"
-                     [formControl]="formControl"
+                     [formControl]="control|formGetControl"
                      [placeholder]="placeholder"
                      [floatLabel]="floatLabel"
                      [required]="required"
@@ -160,7 +160,7 @@
 
   <!-- date -->
   <mat-date-field *ngSwitchCase="'date'" #matInput
-                  [formControl]="formControl"
+                  [formControl]="control|formGetControl"
                   [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                   [floatLabel]="floatLabel"
                   [required]="required"
@@ -175,7 +175,7 @@
   </mat-date-field>
 
   <mat-date-time-field *ngSwitchCase="'dateTime'" #matInput
-                       [formControl]="formControl"
+                       [formControl]="control|formGetControl"
                        [placeholder]="compact ? ('COMMON.DATE_PLACEHOLDER'|translate): placeholder"
                        [floatLabel]="floatLabel"
                        [required]="required"
@@ -193,7 +193,7 @@
   <app-pmfm-qv-field *ngSwitchCase="'qualitative_value'" #matInput
                      [pmfm]="pmfm"
                      [autofocus]="autofocus"
-                     [formControl]="formControl"
+                     [control]="control|formGetControl"
                      [floatLabel]="floatLabel"
                      [placeholder]="placeholder"
                      [required]="required"
@@ -217,7 +217,7 @@
     <input matInput #matInput
            autocomplete="off"
            [appAutofocus]="autofocus"
-           [formControl]="formControl"
+           [formControl]="control|formGetControl"
            [placeholder]="placeholder"
            [required]="required"
            [tabIndex]="tabindex"
@@ -245,7 +245,7 @@
   <!-- latitude -->
   <mat-latlong-field *ngSwitchCase="'latitude'"
                      [floatLabel]="floatLabel"
-                     [formControl]="formControl"
+                     [formControl]="control|formGetControl"
                      type="latitude"
                      [placeholder]="placeholder"
                      [required]="required"
@@ -260,7 +260,7 @@
   <!-- longitude -->
   <mat-latlong-field *ngSwitchCase="'longitude'"
                      [floatLabel]="floatLabel"
-                     [formControl]="formControl"
+                     [formControl]="control|formGetControl"
                      type="longitude"
                      [placeholder]="placeholder"
                      [required]="required"

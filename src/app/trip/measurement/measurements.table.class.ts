@@ -628,6 +628,10 @@ export abstract class BaseMeasurementsTable<
 
       return row;
     }
+    catch(err) {
+      console.error(this.logPrefix + 'Error in addEntityToTable: ', err);
+      throw err;
+    }
     finally {
       this._addingRow = false;
     }

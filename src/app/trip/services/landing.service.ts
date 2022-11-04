@@ -2,13 +2,13 @@ import { Injectable, Injector } from '@angular/core';
 import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
-  chainPromises,
+  chainPromises, DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
-  EntityUtils,
+  EntityUtils, equalsOrNil,
   firstNotNilPromise,
   FormErrors,
   fromDateISOString,
@@ -23,7 +23,7 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person,
+  Person, toDateISOString,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
@@ -48,6 +48,8 @@ import { ObservedLocation } from '@app/trip/services/model/observed-location.mod
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 import { moment } from '@app/vendor';
+import { TripFilter } from '@app/trip/services/filter/trip.filter';
+import { Moment } from 'moment/moment';
 
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
@@ -191,7 +193,14 @@ const LandingQueries = {
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
   ${DataFragments.sample}
-  ${TripFragments.embeddedLandedTrip}`
+  ${TripFragments.embeddedLandedTrip}`,
+
+  loadNearbyTripDates: gql`query LandingNearbyTripDates($filter: TripFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+    data: trips(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+      id
+      departureDateTime
+    }
+  }`,
 };
 
 const LandingMutations: BaseEntityGraphqlMutations = {
@@ -671,7 +680,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       : EntitiesStorage.REMOTE_PREFIX + Landing.TYPENAME; // Remote entities
 
     if (this._debug) console.debug(`[landing-service] Loading ${entityName} locally... using options:`, variables);
-    return this.entities.watchAll<Landing>(entityName, variables, {fullLoad: opts && opts.fullLoad})
+    return this.entities.watchAll<Landing>(entityName, variables, {fullLoad: opts?.fullLoad})
       .pipe(map(({data, total}) => {
         const entities = (!opts || opts.toEntity !== false)
           ? (data || []).map(Landing.fromObject)
@@ -883,11 +892,84 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     }
   }
 
+  /**
+   * Workaround to avoid integrity constraints on TRIP.DEPARTURE_DATE_TIME: we add a 1s delay, if another trip exists on same date
+   * @param entity
+   */
+  async fixLandingTripDate(entity: Landing) {
+    if (!entity) throw new Error('Invalid landing');
+
+    const observedLocationId = entity.observedLocationId;
+    const vesselId = entity.vesselSnapshot?.id;
+    const program = entity.program;
+    const trip = entity.trip as Trip;
+    const tripId = toNumber(trip?.id, entity.tripId);
+    const departureDateTime = fromDateISOString(trip.departureDateTime || entity.dateTime);
+
+    // Skip if no trip or no observed location
+    // or if trip already saved remotely
+    if (!trip || isNil(observedLocationId) || EntityUtils.isRemoteId(tripId)) return;
+
+    if (isNil(vesselId) || !program || isNil(departureDateTime))  {
+      throw new Error('Invalid landing: missing vessel, program or dateTime');
+    }
+
+    const offline = this.network.offline
+      || EntityUtils.isLocalId(entity.id)
+      || EntityUtils.isLocalId(observedLocationId)
+      || EntityUtils.isLocalId(tripId)
+      || false;
+
+    let departureDateTimes: Moment[];
+    if (offline) {
+
+      const {data: landings} = (await this.loadAllByObservedLocation(
+        {observedLocationId, vesselId, program},
+        {computeRankOrder: false, fetchPolicy: 'no-cache', toEntity: false, withTotal: false}));
+
+      // Workaround to avoid integrity constraints on TRIP.DEPARTURE_DATE_TIME: we add a 1s delay, if another trip exists on same date
+      departureDateTimes = (landings || [])
+          .filter(l => l.id !== entity.id && l.trip && l.trip.id !== entity.trip.id)
+          .map(l => (l.trip as Trip).departureDateTime);
+    }
+    else {
+
+      const tripFilter = TripFilter.fromObject(<TripFilter>{
+        vesselId,
+        program,
+        startDate: departureDateTime.clone().add(-1, "minute"),
+        endDate: departureDateTime.clone().add(1, "minute")
+      });
+
+      const { data: trips } = await this.tripService.loadAll(0, 999, 'departureDateTime', 'desc', tripFilter,
+        {
+          query: LandingQueries.loadNearbyTripDates,
+          // CLT - We need to use 'no-cache' fetch policy in order to transform mutable watch query into ordinary query since mutable queries doesn't manage correctly updates and cache.
+          // They doesn't wait server result to return client side result.
+          fetchPolicy: 'no-cache',
+          withTotal: false
+        });
+      departureDateTimes = (trips || [])
+        .filter(t => t.id !== entity.trip.id)
+        .map(t => t.departureDateTime);
+    }
+
+    const maxDatetime = departureDateTimes
+      .map(fromDateISOString)
+      .reduce(DateUtils.max, null);
+    if (DateUtils.isSame(maxDatetime, departureDateTime)) {
+      // Apply 1s to the max existing date
+      trip.departureDateTime = maxDatetime.add(1, 'seconds');
+      console.info('[landing-service] Trip\'s departureDateTime has been changed, to avoid integrity constraint error. New date is: ' + toDateISOString(trip.departureDateTime));
+    }
+  }
+
   /* -- protected methods -- */
 
   /**
    * Save into the local storage
-   * @param data
+   * @param entity
+   * @param opts
    */
   protected async saveLocally(entity: Landing, opts?: LandingSaveOptions): Promise<Landing> {
     if (EntityUtils.isRemoteId(entity.observedLocationId)) throw new Error('Must be linked to a local observed location');
@@ -997,7 +1079,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       targets.forEach(target => {
         // Set the landing id (required by equals function) => Obsolete : there is no more direct link between sample and landing
         target.landingId = savedLanding.id;
-        // INFO CLT: Fix on sample to landing link. We use operation to link sample to landing / #IMAGINE-569
+        // INFO CLT: Fix on sample to landing link. We use operation to link sample to landing (see issue #IMAGINE-569)
         // Set the operation id (required by equals function)
         target.operationId = operationId;
 

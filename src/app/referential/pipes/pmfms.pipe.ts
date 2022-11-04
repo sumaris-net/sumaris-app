@@ -157,7 +157,7 @@ export class PmfmFieldStylePipe implements PipeTransform {
   transform(pmfm: IPmfm, maxVisibleButtons?: number): any {
     return pmfm && this._mobile && (
       pmfm.type === 'boolean'
-      || (pmfm.isQualitative && pmfm.qualitativeValues?.length <= (maxVisibleButtons || 3))
+      || (pmfm.isQualitative && pmfm.qualitativeValues?.length <= (maxVisibleButtons || 4))
     ) ? 'button' : undefined /*default*/;
   }
 }

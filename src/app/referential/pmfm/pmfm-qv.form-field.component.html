@@ -1,6 +1,6 @@
 <!-- readonly -->
 <mat-form-field *ngIf="readonly; else writable">
-  <input matInput hidden type="text" readonly="true" [formControl]="formControl">
+  <input matInput hidden type="text" readonly="true" [formControl]="control">
   <ion-label>{{ value|displayWith: displayWith }}</ion-label>
 </mat-form-field>
 
@@ -146,6 +146,7 @@
         <ng-container *ngFor="let item of pmfm.qualitativeValues; index as i; trackBy: getQvId;">
           <ion-button #button
                       *ngIf="showAllButtons || selectedIndex === i || i < maxVisibleButtons"
+                      [class.cdk-visually-hidden]="selectedIndex !== i && item.statusId===0"
                       class="mat-form-field-button"
                       [tabindex]="_tabindex && (_tabindex + i)"
                       [color]="selectedIndex === -1 ? 'tertiary': (selectedIndex === i ? 'accent' : 'light')"

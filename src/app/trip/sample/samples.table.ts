@@ -51,6 +51,7 @@ import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 import { moment } from '@app/vendor';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -97,6 +98,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   showFooter: boolean;
   showTagCount: boolean;
   tagCount$ = new BehaviorSubject<number>(0);
+  pmfmsToCopyOnNewEntity: IPmfm[];
 
   @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
@@ -605,6 +607,9 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
     await super.onNewEntity(data);
 
+    // Init measurement values
+    data.measurementValues = data.measurementValues || {};
+
     // generate label
     if (!this.showLabelColumn && this.requiredLabel) {
       data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
@@ -632,8 +637,9 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     // Get the previous sample
     const previousSample = this.getPreviousSample();
 
+
     // server call for first sample and increment from server call value
-    if (data.measurementValues.hasOwnProperty(PmfmIds.TAG_ID) && this._strategyLabel && this.tagIdMinLength > 0) {
+    if (this.tagIdPmfm && this._strategyLabel && this.tagIdMinLength > 0) {
       const previousTagId = this.getPreviousTagId();
       const nextAvailableTagId = parseInt((await this.samplingStrategyService.computeNextSampleTagId(this._strategyLabel, '-', this.tagIdMinLength)).slice(-1 * this.tagIdMinLength));
       const newTagId = (isNilOrNaN(previousTagId) ? nextAvailableTagId
@@ -641,10 +647,20 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       data.measurementValues[PmfmIds.TAG_ID] = newTagId;
     }
 
-    // Default presentation value
-    if (data.measurementValues.hasOwnProperty(PmfmIds.DRESSING) && previousSample) {
-      data.measurementValues[PmfmIds.DRESSING] = previousSample.measurementValues[PmfmIds.DRESSING];
+    // Copy some value from previous sample
+    if (previousSample && isNotEmptyArray(this.pmfmsToCopyOnNewEntity)) {
+      this.pmfmsToCopyOnNewEntity
+        .map(pmfm => pmfm.id)
+        .forEach(pmfmId => {
+          if (isNilOrBlank(data.measurementValues[pmfmId])) {
+            data.measurementValues[pmfmId] = previousSample.measurementValues[pmfmId];
+          }
+        })
     }
+
+    // Reset __typename, to force normalization of all values
+    MeasurementValuesUtils.resetTypename(data.measurementValues);
+    data.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(data.measurementValues, this.pmfms, {keepSourceObject: true});
   }
 
   protected getPreviousSample(): Sample|undefined {
@@ -772,6 +788,12 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
 
     if (isEmptyArray(pmfms)) return pmfms; // Nothing to map
+
+    // Compute tag id
+    this.tagIdPmfm = this.tagIdPmfm || pmfms && pmfms.find(pmfm => pmfm.id === PmfmIds.TAG_ID);
+
+    // Compute pmfms to copy (need by SIH-OBSBIO)
+    this.pmfmsToCopyOnNewEntity = pmfms.filter(pmfm => !pmfm.defaultValue && !pmfm.hidden && pmfm.id === PmfmIds.DRESSING);
 
     if (this.showGroupHeader) {
       console.debug('[samples-table] Computing Pmfm group header...');

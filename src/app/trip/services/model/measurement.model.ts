@@ -268,6 +268,11 @@ export class MeasurementValuesUtils {
     return value.__typename !== MeasurementValuesTypes.MeasurementFormValue;
   }
 
+  static resetTypename(value: MeasurementFormValues | MeasurementModelValues) {
+    if (!value) return; // skip
+    delete value.__typename;
+  }
+
   static normalizeValuesToModel(source: MeasurementFormValues | MeasurementModelValues, pmfms: IPmfm[], opts = {
     keepSourceObject: false
   }): MeasurementModelValues {
