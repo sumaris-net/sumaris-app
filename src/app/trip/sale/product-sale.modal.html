@@ -7,19 +7,19 @@
                    (validate)="saveAndClose($event)"
 ></app-modal-toolbar>
 
-<ion-content class="ion-padding-top">
+<ion-content>
   <app-product-sale-form #productSaleForm
                          [productSalePmfms]="productSalePmfms"
                          [mobile]="mobile"
   ></app-product-sale-form>
 
+  <!-- add button (mobile) -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && enabled">
-
     <ion-fab-button color="tertiary" (click)="productSaleForm.addSale()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
-
   </ion-fab>
+
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

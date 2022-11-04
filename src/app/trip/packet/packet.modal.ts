@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { IWithPacketsEntity, Packet } from '../services/model/packet.model';
 import { ModalController } from '@ionic/angular';
-import { Subject, Subscription } from 'rxjs';
+import { Subscription, BehaviorSubject } from 'rxjs';
 import { PacketForm } from './packet.form';
 import { AppFormUtils, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
@@ -27,7 +27,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
   readonly debug: boolean;
   loading = false;
   subscription = new Subscription();
-  $title = new Subject<string>();
+  $title = new BehaviorSubject<string>(null);
 
   @ViewChild('form', {static: true}) packetForm: PacketForm;
 
@@ -62,7 +62,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     this.debug = !environment.production;
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.showParent = toBoolean(this.showParent, this.mobile);
     this.updateTitle();
     this.packetForm.markAsReady();

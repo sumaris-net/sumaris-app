@@ -41,17 +41,20 @@
 
     <!-- Measurements -->
     <ion-row class="ion-no-padding" [formGroup]="delegate.measurementValuesForm">
-      <ion-col *ngFor="let pmfm of delegate.$pmfms | async; trackBy: delegate.trackPmfmFn; index as i;"
-               size="12" size-md="6" class="ion-no-padding">
-        <app-pmfm-field #matInput [pmfm]="pmfm"
-                        [hidden]="pmfm.hidden || matInput.formControl?.disabled"
-                        [controlName]="pmfm|pmfmIdString"
-                        [style]="pmfm|pmfmFieldStyle:delegate.maxVisibleButtons"
-                        [compact]="delegate.compact"
-                        [tabindex]="delegate.tabindex+2 + i*2"
-                        [maxVisibleButtons]="delegate.maxVisibleButtons">
-        </app-pmfm-field>
-      </ion-col>
+      <ng-container *ngFor="let pmfm of delegate.$pmfms | async; trackBy: delegate.trackPmfmFn; index as i;">
+        <ion-col *ngVar="pmfm|pmfmFieldStyle:10 as style"
+                 class="ion-no-padding"
+                 [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
+                 size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >
+          <app-pmfm-field #matInput
+                          [pmfm]="pmfm"
+                          [style]="style"
+                          [compact]="delegate.compact"
+                          [tabindex]="delegate.tabindex+2 + i*2"
+                          [maxVisibleButtons]="delegate.maxVisibleButtons">
+          </app-pmfm-field>
+        </ion-col>
+      </ng-container>
     </ion-row>
 
     <!-- Total weight -->
@@ -62,13 +65,14 @@
                       weightComputed: delegate.form|formGetControl: 'weight.computed'
                     } as controls">
         <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
-                        [formControl]="controls.weightValue"
+                        [control]="controls.weightValue"
                         [class.computed]="controls.weightComputed.value"
                         [readonly]="controls.weightComputed.value"
                         [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                         [compact]="delegate.compact"
                         [tabindex]="delegate.tabindex+28"
-                        [listenStatusChanges]="true">
+                        [listenStatusChanges]="true"
+                        [required]="delegate.requiredWeight">
         </app-pmfm-field>
       </ion-col>
 
@@ -194,7 +198,8 @@
                               [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
                               [compact]="delegate.compact"
                               [tabindex]="delegate.tabindex+33"
-                              [listenStatusChanges]="true">
+                              [listenStatusChanges]="true"
+                              [required]="delegate.requiredSampleWeight">
               </app-pmfm-field>
 
             </ion-col>

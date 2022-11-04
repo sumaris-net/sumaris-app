@@ -51,7 +51,7 @@ export class PacketSaleModal implements OnInit, OnDestroy, IPacketSaleModalOptio
     this.mobile = injector.get(LocalSettingsService).mobile;
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.updateTitle();
     this.packetSaleForm.markAsReady();
     setTimeout(async () => {
@@ -61,7 +61,7 @@ export class PacketSaleModal implements OnInit, OnDestroy, IPacketSaleModalOptio
   }
 
   protected updateTitle() {
-    const title = this.translate.instant('PACKET.SALE.TITLE', {rankOrder: this.data.rankOrder});
+    const title = this.translate.instant('PACKET.SALE.TITLE', {rankOrder: this.data?.rankOrder});
     this.$title.next(title);
   }
 

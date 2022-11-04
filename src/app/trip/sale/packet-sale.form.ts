@@ -23,16 +23,11 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
   computing = false;
   salesHelper: FormArrayHelper<SaleProduct>;
   salesFocusIndex = -1;
-  adding = false;
+  salesEditedIndex: number;
 
   get saleFormArray(): FormArray {
     return this.form.controls.saleProducts as FormArray;
   }
-
-  @Input() mobile: boolean;
-  @Input() showError = true;
-  @Input() usageMode: UsageMode;
-  @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
 
   get value(): any {
     const json = this.form.value;
@@ -45,6 +40,11 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
 
     return json;
   }
+
+  @Input() mobile: boolean;
+  @Input() showError = true;
+  @Input() usageMode: UsageMode;
+  @Input() packetSalePmfms: DenormalizedPmfmStrategy[];
 
   constructor(
     injector: Injector,
@@ -62,11 +62,6 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
     this.initSalesHelper();
 
     this.usageMode = this.usageMode || this.settings.usageMode;
-
-    // Combo: taxonGroup
-    this.registerAutocompleteField('taxonGroup', {
-      mobile: this.mobile
-    });
 
     // Combo: sale types
     this.registerAutocompleteField('saleType', {
@@ -181,19 +176,42 @@ export class PacketSaleForm extends AppForm<Packet> implements OnInit, OnDestroy
 
   }
 
-  addSale() {
+  addSale(event?: Event) {
+    event?.stopPropagation();
+
     this.salesHelper.add();
     this.initSubscription();
-    if (!this.mobile) {
-      this.salesFocusIndex = this.salesHelper.size() - 1;
-    }
-    this.adding = true;
+
+    this.editSale(this.salesHelper.size() - 1);
   }
 
   removeSale(index: number) {
     this.salesHelper.removeAt(index);
     this.initSubscription();
-    this.adding = false;
+
+    this.editSale(index - 1, {focus: false});
+  }
+
+  editSale(index: number, opts = {focus: true}) {
+    const maxIndex = this.salesHelper.size() - 1;
+    if (index < 0) {
+      index = 0;
+    }
+    else if (index > maxIndex) {
+      index = maxIndex;
+    }
+    if (this.salesEditedIndex === index) return; // Skip if same
+
+    this.salesEditedIndex = index;
+    this.markForCheck();
+
+    // Focus
+    if (!this.mobile && (!opts || opts.focus !== false)) {
+      this.salesFocusIndex = index;
+      setTimeout(() => {
+        this.salesFocusIndex = undefined;
+      }, 500);
+    }
   }
 
   protected markForCheck() {

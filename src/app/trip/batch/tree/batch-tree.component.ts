@@ -560,10 +560,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     this.batchGroupsTable.i18nColumnSuffix = i18nSuffix;
 
     // Some specific taxon groups have no weight collected
-    const taxonGroupsNoWeight = program.getProperty(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
-    this.batchGroupsTable.taxonGroupsNoWeight = taxonGroupsNoWeight && taxonGroupsNoWeight.split(',')
+    const taxonGroupsNoWeight = program.getPropertyAsStrings(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
+    this.batchGroupsTable.taxonGroupsNoWeight = (taxonGroupsNoWeight || [])
       .map(label => label.trim().toUpperCase())
-      .filter(isNotNilOrBlank) || undefined;
+      .filter(isNotNilOrBlank);
 
     // Store country to context (to be used in sub batches modal)
     const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);

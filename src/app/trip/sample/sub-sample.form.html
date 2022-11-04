@@ -53,24 +53,28 @@
     <ion-row *ngIf="$pmfms | async | arrayFilter: isNotHiddenPmfm; let pmfms"
              [formGroup]="measurementValuesForm"
              class="ion-no-padding">
-
-      <ion-col *ngFor="let pmfm of pmfms; index as i; last as last"
-               [size]="mobile && (pmfm.isQualitative || pmfm.type === 'boolean') ? 12 : 6"
-               class="pmfm-{{pmfm.id}}">
-        <app-pmfm-field #matInput
-                        [pmfm]="pmfm"
-                        [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
-                        [style]="mobile && 'button'"
-                        [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
-                        [maxVisibleButtons]="maxVisibleButtons"
-                        [compact]="compact"
-                        [mobile]="mobile"
-                        [tabindex]="tabindex+2 + i*maxVisibleButtons"
-                        [defaultLatitudeSign]="defaultLatitudeSign"
-                        [defaultLongitudeSign]="defaultLongitudeSign"
-                        (keyup.enter)="last && doSubmit($event)">
-        </app-pmfm-field>
-      </ion-col>
+      <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
+        <ion-col *ngVar="{computed: pmfm|isComputedPmfm, style: pmfm|pmfmFieldStyle:10} as vars"
+                 [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
+                 size="12" [sizeMd]="pmfm.isQualitative && vars.style === 'button' ? 12 : 6"
+                 class="pmfm-{{pmfm.id}}">
+          <app-pmfm-field #matInput
+                          [pmfm]="pmfm"
+                          [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
+                          [style]="vars.style"
+                          [readonly]="vars.computed"
+                          [floatLabel]="vars.computed && 'always'"
+                          [class.computed]="vars.computed"
+                          [maxVisibleButtons]="maxVisibleButtons"
+                          [tabindex]="vars.computed ? -1 : (tabindex+2 + i*maxVisibleButtons)"
+                          [compact]="compact"
+                          [mobile]="mobile"
+                          [defaultLatitudeSign]="defaultLatitudeSign"
+                          [defaultLongitudeSign]="defaultLongitudeSign"
+                          (keyup.enter)="last && doSubmit($event)">
+          </app-pmfm-field>
+        </ion-col>
+      </ng-container>
     </ion-row>
 
     <ng-content></ng-content>

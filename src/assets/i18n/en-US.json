@@ -829,7 +829,8 @@
         "RATIO": "Ratio (%)",
         "AVG_WEIGHT_PRICE": "Average weight price",
         "AVG_PACKAGING_PRICE": "Average packaging price",
-        "TOTAL_PRICE": "Total price"
+        "TOTAL_PRICE": "Total price",
+        "TOTAL": "Total:"
       },
       "NEW": {
         "TITLE": "New batch"

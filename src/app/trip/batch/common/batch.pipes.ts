@@ -51,7 +51,7 @@ export class BatchSortingValueIconPipe implements PipeTransform {
       }
       // Discard
       else {
-        return {icon: 'close-circle'};
+        return {icon: 'remove-circle'};
       }
     }
     return undefined;

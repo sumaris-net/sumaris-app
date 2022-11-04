@@ -29,7 +29,7 @@ import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   $childrenPmfmsByQvId = new BehaviorSubject<{[key: number]: IPmfm[]}>(undefined);
-  hasSubBatchesControl: AbstractControl;
+  hasSubBatchesControl: FormControl;
 
   @Input() qvPmfm: IPmfm;
   @Input() childrenPmfms: IPmfm[];
@@ -257,6 +257,11 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   protected async updateView(data: BatchGroup, opts?: { emitEvent?: boolean; onlySelf?: boolean; }) {
 
     if (this.debug) console.debug(this._logPrefix + ' updateView() with value:', data);
+
+    // Compute if should show total individual count, instead of weight (eg. ADAP program, for species "RJB_x - Pocheteaux")
+    this.computeShowTotalIndividualCount(data, {emitEvent: false /*will be done in updateView()*/});
+
+    // Compute has sub batches (will be updated later in this function)
     let hasSubBatches = data.observedIndividualCount > 0 || this.defaultHasSubBatches || false;
 
     if (this.qvPmfm) {
@@ -285,6 +290,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
         return child;
       });
 
+
       // Set value (batch group)
       await super.updateView(data, opts);
 
@@ -299,8 +305,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
           return childForm.setValue(childBatch, {emitEvent: true});
         })
       );
-
-      this.computeShowTotalIndividualCount(data);
 
     }
 
@@ -398,21 +402,28 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     return data;
   }
 
-  protected computeShowTotalIndividualCount(data?: Batch) {
+  /**
+   * Compute if should show total individual count, instead of weight (eg. ADAP program, for species "RJB_x - Pocheteaux")
+   * @param data
+   * @param opts
+   * @protected
+   */
+  protected computeShowTotalIndividualCount(data?: Batch, opts = {emitEvent: true}) {
     data = data || this.data;
     if (this.debug) console.debug(this._logPrefix + 'computeShowTotalIndividualCount():', data);
 
     // Generally, individual count are not need, on a root species batch, because filled in sub-batches,
     // but some species (e.g. RJB) can have no weight.
-    const showChildrenIndividualCount = data && ReferentialUtils.isNotEmpty(data.taxonGroup) &&
-      (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
+    const showChildrenIndividualCount = ReferentialUtils.isNotEmpty(data?.taxonGroup)
+      && (this.taxonGroupsNoWeight || []).includes(data.taxonGroup.label);
 
     if (this.showChildrenIndividualCount !== showChildrenIndividualCount) {
       this.showChildrenIndividualCount = showChildrenIndividualCount;
       this.showSampleIndividualCount = showChildrenIndividualCount;
       this.showChildrenWeight = !showChildrenIndividualCount; // Hide weight
       this.showChildrenSamplingBatch = !showChildrenIndividualCount;
-      this.markForCheck();
+
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
   }
 }

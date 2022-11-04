@@ -94,7 +94,8 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     // Combo: gears
     this.registerAutocompleteField('gear', {
       items: this.$gears,
-      mobile: this.mobile
+      mobile: this.mobile,
+      showAllOnFocus: true
     });
 
     // Disable gear field

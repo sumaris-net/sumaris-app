@@ -1,22 +1,29 @@
-import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
-import {FormGroup, ValidationErrors} from '@angular/forms';
-import {Subscription} from 'rxjs';
-import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
-import {AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups} from '@app/referential/services/model/model.enum';
-import {PmfmService} from '@app/referential/services/pmfm.service';
-import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, isNotNilOrBlank, SharedValidators} from '@sumaris-net/ngx-components';
-import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
-import {LandingPage} from '../landing.page';
-import {Landing} from '../../services/model/landing.model';
-import {ObservedLocation} from '../../services/model/observed-location.model';
-import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
-import {Strategy} from '@app/referential/services/model/strategy.model';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {LandingService} from '@app/trip/services/landing.service';
-import {Moment} from 'moment';
-import {Trip} from '@app/trip/services/model/trip.model';
-
-import {moment} from '@app/vendor';
+import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
+import { FormGroup, ValidationErrors } from '@angular/forms';
+import { Subscription } from 'rxjs';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
+import { PmfmService } from '@app/referential/services/pmfm.service';
+import {
+  AccountService,
+  EntityServiceLoadOptions,
+  fadeInOutAnimation,
+  firstNotNilPromise,
+  HistoryPageReference,
+  isNil,
+  isNotNil,
+  isNotNilOrBlank,
+  SharedValidators
+} from '@sumaris-net/ngx-components';
+import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
+import { LandingPage } from '../landing.page';
+import { Landing } from '../../services/model/landing.model';
+import { ObservedLocation } from '../../services/model/observed-location.model';
+import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { LandingService } from '@app/trip/services/landing.service';
+import { Trip } from '@app/trip/services/model/trip.model';
 
 
 @Component({
@@ -121,47 +128,55 @@ export class SamplingLandingPage extends LandingPage {
 
   protected async checkStrategyEffort(strategy: Strategy) {
 
-    const [program] = await Promise.all([
-      firstNotNilPromise(this.$program, {stop: this.destroySubject}),
-      this.landingForm.waitIdle()
-    ]);
+    try {
+      const [program] = await Promise.all([
+        firstNotNilPromise(this.$program, {stop: this.destroySubject}),
+        this.landingForm.waitIdle()
+      ]);
 
-    if (strategy &&  strategy.label) {
-      // Add validator errors on expected effort for this sampleRow (issue #175)
-      const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
+      if (strategy &&  strategy.label) {
+        // Add validator errors on expected effort for this sampleRow (issue #175)
+        const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
 
-      // DEBUG
-      console.debug("[sampling-landing-page] Strategy effort loaded: ", strategyEffort);
+        // DEBUG
+        console.debug("[sampling-landing-page] Strategy effort loaded: ", strategyEffort);
 
-      // No effort defined
-      if (!strategyEffort) {
-        this.noEffortError = true;
+        // No effort defined
+        if (!strategyEffort) {
+          this.noEffortError = true;
+          this.samplesTable.disable();
+          this.zeroEffortWarning = false;
+          this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
+        }
+        // Effort is set, but = 0
+        else if (strategyEffort.expectedEffort === 0) {
+          this.zeroEffortWarning = true;
+          this.noEffortError = false;
+          SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+        }
+        // And positive effort has been defined: OK
+        else {
+          this.zeroEffortWarning = false;
+          this.noEffortError = false;
+          SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+        }
+      }
+
+      if (this.noEffortError) {
         this.samplesTable.disable();
-        this.zeroEffortWarning = false;
-        this.landingForm.strategyControl.setErrors(<ValidationErrors>{noEffort: true});
       }
-      // Effort is set, but = 0
-      else if (strategyEffort.expectedEffort === 0) {
-        this.zeroEffortWarning = true;
-        this.noEffortError = false;
-        SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
-      }
-      // And positive effort has been defined: OK
-      else {
-        this.zeroEffortWarning = false;
-        this.noEffortError = false;
-        SharedValidators.clearError(this.landingForm.strategyControl, 'noEffort');
+      else if (this.enabled) {
+        this.samplesTable.enable();
       }
     }
-
-    if (this.noEffortError) {
-      this.samplesTable.disable();
+    catch (err) {
+      const error = err?.message || err;
+      console.error(error);
+      this.setError(error);
     }
-    else if (this.enabled) {
-      this.samplesTable.enable();
+    finally {
+      this.markForCheck();
     }
-
-    this.markForCheck();
   }
 
   protected async onNewEntity(data: Landing, options?: EntityServiceLoadOptions): Promise<void> {
@@ -199,33 +214,10 @@ export class SamplingLandingPage extends LandingPage {
         }
       });
     }
+
     if (isNil(data.id) && isNotNil(data.observedLocationId)) {
-
-      const vesselId = data.vesselSnapshot.id;
-      const observedLocationParent = this.parent as ObservedLocation;
-
-      // INFO CLT : IMAGINE-639 [Obs. Individuelle - Echantillonnages] Saisie de plusieurs espèces sur un même navire
-      // We need to use 'no-cache' fetch policy in order to transform mutable watch query into ordinary query since mutable queries doesn't manage correctly updates and cache.
-      // They doesn't wait server result to return client side result.
-      // Todo use trip count instead in order to use a simpler query to figure out how many seconds to add ti landing dateTime.
-      const res = await this.landingService.loadAllByObservedLocation({observedLocationId: observedLocationParent.id, vesselId: vesselId},
-        {fullLoad: true, computeRankOrder: false, fetchPolicy: 'no-cache'});
-
-      const landings = res && res.data;
-
-      let maxDatetime: Moment = null;
-      (landings || []).forEach(landing => {
-        const trip: Trip = Trip.fromObject(landing.trip);
-        const landingTripDepartureDateTime = trip.departureDateTime;
-        if (maxDatetime == null || landingTripDepartureDateTime.isAfter(maxDatetime)) {
-          maxDatetime = landingTripDepartureDateTime;
-        }
-      });
-      if (maxDatetime != null) {
-        const dataTrip: Trip = Trip.fromObject(data.trip);
-        dataTrip.departureDateTime = moment(maxDatetime).add(1, 'seconds');
-        data.trip = dataTrip;
-      }
+      // Workaround (see issue IMAGINE-639 - Saisie de plusieurs espèces sur un même navire)
+      await this.landingService.fixLandingTripDate(data);
     }
 
     return data;

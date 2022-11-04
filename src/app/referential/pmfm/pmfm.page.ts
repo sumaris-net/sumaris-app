@@ -36,7 +36,6 @@ import {environment} from '@environments/environment';
 })
 export class PmfmPage extends AppEntityEditor<Pmfm> {
 
-  canEdit: boolean;
   form: FormGroup;
   fieldDefinitions: FormFieldDefinitionMap;
   $parameter = new BehaviorSubject<Parameter>(null);
@@ -66,7 +65,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
 
     // default values
     this.defaultBackHref = "/referential/pmfm";
-    this.canEdit = this.accountService.isAdmin();
 
     this.debug = !environment.production;
 
@@ -210,14 +208,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
 
   /* -- protected methods -- */
 
-  enable() {
-    super.enable();
-
-    if (!this.isNewData) {
-      //this.form.get('label').disable();
-    }
-  }
-
   protected registerForms() {
     this.addChildForm(this.referentialForm);
   }
@@ -288,9 +278,6 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
 
   protected async onEntityLoaded(data: Pmfm, options?: EntityServiceLoadOptions): Promise<void> {
     await super.onEntityLoaded(data, options);
-
-    this.canEdit = this.canUserWrite(data);
-
     this.markAsReady();
   }
 

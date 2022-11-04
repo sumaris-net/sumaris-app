@@ -7,18 +7,17 @@
                    (validate)="onSave($event)"
 ></app-modal-toolbar>
 
-<ion-content class="ion-padding-top">
+<ion-content>
   <app-packet-sale-form #packetSaleForm
                         [packetSalePmfms]="packetSalePmfms"
                         [mobile]="mobile"
   ></app-packet-sale-form>
 
+  <!-- add button (mobile) -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="mobile && enabled">
-
     <ion-fab-button color="tertiary" (click)="packetSaleForm.addSale()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
-
   </ion-fab>
 </ion-content>
 

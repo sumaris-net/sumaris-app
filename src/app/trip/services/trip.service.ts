@@ -311,6 +311,10 @@ export interface TripServiceCopyOptions extends TripSaveOptions {
   displaySuccessToast?: boolean;
 }
 
+export interface TripWatchOptions extends EntitiesServiceWatchOptions {
+  query?: any;
+}
+
 const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
 
   // Load a trip
@@ -514,7 +518,6 @@ export class TripService
 
     const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
     if (offlineData) {
-
       return this.loadAllLocally(offset, size, sortBy, sortDirection, filter, opts);
     }
 
@@ -567,7 +570,7 @@ export class TripService
            sortBy?: string,
            sortDirection?: SortDirection,
            dataFilter?: Partial<TripFilter>,
-           opts?: EntitiesServiceWatchOptions): Observable<LoadResult<Trip>> {
+           opts?: TripWatchOptions): Observable<LoadResult<Trip>> {
 
     // Load offline
     const offline = this.network.offline || (dataFilter && dataFilter.synchronizationStatus && dataFilter.synchronizationStatus !== 'SYNC') || false;
@@ -590,7 +593,8 @@ export class TripService
     if (this._debug) console.debug('[trip-service] Watching trips... using options:', variables);
 
     const withTotal = (!opts || opts.withTotal !== false);
-    const query = withTotal ? TripQueries.loadAllWithTotal : TripQueries.loadAll;
+    const query = opts?.query || (withTotal ? TripQueries.loadAllWithTotal : TripQueries.loadAll);
+
     return this.mutableWatchQuery<LoadResult<Trip>>({
       queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
       query,
@@ -623,9 +627,7 @@ export class TripService
                   sortBy?: string,
                   sortDirection?: SortDirection,
                   dataFilter?: Partial<TripFilter>,
-                  options?: EntitiesServiceWatchOptions & {
-                    trash?: boolean;
-                  }): Observable<LoadResult<Trip>> {
+                  options?: TripWatchOptions): Observable<LoadResult<Trip>> {
     dataFilter = this.asFilter(dataFilter);
     const variables: any = {
       offset: offset || 0,

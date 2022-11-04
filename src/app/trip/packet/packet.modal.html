@@ -36,6 +36,9 @@
     <!-- open packet sale modal -->
     <ion-grid endButtons class="ion-margin-top" *ngIf="enabled">
       <ion-row>
+
+        <ion-col>&nbsp;</ion-col>
+
         <ion-col class="ion-align-items-start">
           <ion-button color="tertiary" fill="solid" expand="block" shape="round"
                       [disabled]="invalid"
@@ -50,19 +53,11 @@
             </ion-label>
           </ion-button>
         </ion-col>
-        <ion-col></ion-col>
       </ion-row>
     </ion-grid>
 
   </app-packet-form>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="enabled">
-
-    <ion-fab-button color="tertiary" (click)="form.addComposition()">
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-
-  </ion-fab>
 </ion-content>
 
 <ion-footer hidden-xs hidden-sm hidden-mobile>

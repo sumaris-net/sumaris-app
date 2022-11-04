@@ -55,7 +55,6 @@ import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.se
 import { DenormalizedPmfmStrategyFilter } from '@app/referential/services/filter/pmfm-strategy.filter';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 
-
 export const ProgramRefQueries = {
   // Load by id, with only properties
   loadLight: gql`query ProgramRef($id: Int, $label: String){
@@ -370,7 +369,8 @@ export class ProgramRefService
     // Use cache (enable by default, if no custom query)
     if (!opts || (opts.cache !== false && !opts.query)) {
       const cacheKey = [ProgramRefCacheKeys.PROGRAM_BY_LABEL, label, opts && JSON.stringify({withStrategies: opts?.withStrategies, strategyFilter: opts?.strategyFilter})].join('|');
-      return this.cache.loadFromObservable(cacheKey,
+      // FIXME - BLA - using loadFromDelayedObservable() as a workaround for offline mode+mobile, when cache is empty. Avoid to get an empty result
+      return this.cache.loadFromDelayedObservable(cacheKey,
           defer(() => this.watchByLabel(label, {...opts, cache: false, toEntity: false})),
           ProgramRefCacheKeys.CACHE_GROUP
         ).pipe(
@@ -395,8 +395,9 @@ export class ProgramRefService
       }).pipe(
         map(res => firstArrayValue(res && res.data)),
         map(program => {
-          if (strategyFilter) {
-            program.strategies = (program.strategies || []).filter(strategyFilter.buildFilter())
+          const filterFn = strategyFilter && strategyFilter.asFilterFn();
+          if (filterFn) {
+            program.strategies = (program.strategies || []).filter(filterFn)
           }
           return program;
         })

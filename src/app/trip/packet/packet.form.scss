@@ -16,18 +16,12 @@
   }
 
   .mat-header-row {
-    //background-color: whitesmoke;
+    background-color: var(--mat-header-background-color);
+    height: 25px !important;
     text-align: center;
     ion-label {
       color: unset;
     }
-  }
-
-  .mat-header-row {
-    background-color: var(--mat-header-background-color);
-
-    height: 25px !important;
-
     .mat-header-cell.even {
       background-color: var(--mat-header-background-color-even) !important;
     }
@@ -77,11 +71,19 @@
     }
 
     .mat-column-actions {
-      width: var(--mat-column-actions-width) !important;
+      min-width: var(--mat-column-actions-width) !important;
     }
   }
 
+  .visible-hover-row {
+    visibility: hidden;
+  }
 
+  tr:hover {
+    .visible-hover-row {
+      visibility: unset !important;
+    }
+  }
 }
 
 

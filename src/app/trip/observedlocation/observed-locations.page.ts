@@ -76,6 +76,7 @@ export class ObservedLocationsPage extends
       dataService,
       null
     );
+    this.inlineEdition = false;
     this.i18nColumnPrefix = 'OBSERVED_LOCATION.TABLE.';
     this.filterForm = formBuilder.group({
       program: [null, SharedValidators.entity],
