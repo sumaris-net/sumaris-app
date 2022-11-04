@@ -81,7 +81,7 @@
         <ion-col *ngVar="{computed: pmfm|isComputedPmfm, style: pmfm|pmfmFieldStyle:10} as vars"
                  class="ion-no-padding"
                  [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
-                 size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6"
+                 size="12" [sizeMd]="pmfm.isQualitative && vars.style === 'button' ? 12 : 6"
                  class="pmfm-{{pmfm.id}}">
           <app-pmfm-field #matInput
                           [pmfm]="pmfm"
@@ -91,7 +91,7 @@
                           [floatLabel]="vars.computed && 'always'"
                           [class.computed]="vars.computed"
                           [maxVisibleButtons]="maxVisibleButtons"
-                          [tabindex]="computed ? -1 : (tabindex+4 + i*maxVisibleButtons)"
+                          [tabindex]="vars.computed ? -1 : (tabindex+4 + i*maxVisibleButtons)"
                           (keyup.enter)="last && onSubmit.emit($event)">
           </app-pmfm-field>
         </ion-col>

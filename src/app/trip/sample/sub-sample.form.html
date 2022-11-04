@@ -56,7 +56,7 @@
       <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
         <ion-col *ngVar="{computed: pmfm|isComputedPmfm, style: pmfm|pmfmFieldStyle:10} as vars"
                  [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
-                 size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6"
+                 size="12" [sizeMd]="pmfm.isQualitative && vars.style === 'button' ? 12 : 6"
                  class="pmfm-{{pmfm.id}}">
           <app-pmfm-field #matInput
                           [pmfm]="pmfm"
@@ -66,7 +66,7 @@
                           [floatLabel]="(pmfm|isComputedPmfm) && 'always'"
                           [class.computed]="vars.computed"
                           [maxVisibleButtons]="maxVisibleButtons"
-                          [tabindex]="tabindex+2 + i*maxVisibleButtons"
+                          [tabindex]="vars.computed ? -1 : (tabindex+2 + i*maxVisibleButtons)"
                           [compact]="compact"
                           [mobile]="mobile"
                           [defaultLatitudeSign]="defaultLatitudeSign"
