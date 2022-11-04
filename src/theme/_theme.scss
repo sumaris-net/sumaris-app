@@ -82,6 +82,7 @@ mat-form-field {
       box-sizing: content-box; // Avoid long text to be cropped
       margin: 0 !important;
       padding-inline-end: var(--button-padding-end) !important;
+      padding-bottom: var(--button-padding-end) !important;
     }
   }
 
@@ -162,6 +163,10 @@ form.form-container {
       }
     }
   }
+}
+
+.form-container ion-grid ion-col {
+  align-self: end;
 }
 
 /* -- FAB buttons -- */
