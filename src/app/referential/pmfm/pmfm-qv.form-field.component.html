@@ -105,7 +105,7 @@
         </mat-option>
 
         <!-- options -->
-        <mat-option *ngFor="let item of pmfm.qualitativeValues" [value]="item" class="ion-no-padding" >
+        <mat-option *ngFor="let item of sortedQualitativeValues" [value]="item" class="ion-no-padding" >
           <ion-row class="ion-no-padding">
             <ng-container *ngFor="let attr of searchAttributes" [ngSwitch]="attr">
               <ng-container *ngSwitchCase="'label'">
@@ -143,7 +143,7 @@
       <div class="mat-form-field-buttons"
            [style.--buttons-col-count]="buttonsColCount"
            *ngIf="!formControl.disabled; else disabledLabel">
-        <ng-container *ngFor="let item of pmfm.qualitativeValues; index as i; trackBy: getQvId;">
+        <ng-container *ngFor="let item of sortedQualitativeValues; index as i; trackBy: getQvId;">
           <ion-button #button
                       *ngIf="showAllButtons || selectedIndex === i || i < maxVisibleButtons"
                       [class.cdk-visually-hidden]="selectedIndex !== i && item.statusId===0"

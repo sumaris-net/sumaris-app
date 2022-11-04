@@ -180,9 +180,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     this.displayWith = this.displayWith || ((obj) => referentialToString(obj, displayAttributes));
     this.clearable = this.compact ? false : this.clearable;
 
-    if (this.mobile) {
-    }
-    else {
+    // On desktop, manage autocomplete
+    if (!this.mobile) {
       if (!this._sortedQualitativeValues.length) {
         this.items = of([]);
       } else {
@@ -394,7 +393,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   protected updateSelectedIndex(value: any, opts = {emitEvent: true}) {
-    const index = isNotNil(value?.id) ? this.pmfm.qualitativeValues.findIndex(qv => qv.id === value.id) : -1;
+    const index = isNotNil(value?.id) ? this._sortedQualitativeValues.findIndex(qv => qv.id === value.id) : -1;
     if (this.selectedIndex !== index) {
       this.selectedIndex = index;
       if (this.selectedIndex > this.maxVisibleButtons) {
