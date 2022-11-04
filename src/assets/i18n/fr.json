@@ -835,7 +835,8 @@
         "RATIO": "Ratio (%)",
         "AVG_WEIGHT_PRICE": "Prix moyen / poids",
         "AVG_PACKAGING_PRICE": "Prix moyen / conditionnement",
-        "TOTAL_PRICE": "Prix total"
+        "TOTAL_PRICE": "Prix total",
+        "TOTAL": "Totaux :"
       },
       "NEW": {
         "TITLE": "Nouveau lot"

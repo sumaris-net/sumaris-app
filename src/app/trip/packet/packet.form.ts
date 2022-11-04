@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { AppForm, AppFormUtils, FormArrayHelper, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, round, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, FormArrayHelper, ReferentialUtils, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, round, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from '../services/model/packet.model';
 import { PacketValidatorService } from '../services/validator/packet.validator';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
@@ -108,9 +108,20 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   }
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
+    const currentControlValue = ReferentialUtils.isNotEmpty(value) ? value : null;
+    const newValue = currentControlValue ? '*' : value;
+
+    // Excluded existing locations, BUT keep the current control value
+    const excludedIds = (this.compositionsFormArray.value || [])
+      .map(composition => composition?.taxonGroup)
+      .filter(ReferentialUtils.isNotEmpty)
+      .filter(item => !currentControlValue || currentControlValue !== item)
+      .map(item => parseInt(item.id));
+
     return this.programRefService.suggestTaxonGroups(value,
       {
         program: this.program,
+        excludedIds,
         searchAttribute: options && options.searchAttribute
       });
   }
@@ -232,14 +243,37 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     this.markForCheck();
   }
 
-  addComposition() {
+  addComposition(event?: Event) {
+    event?.stopPropagation();
+
     this.compositionHelper.add();
-    if (!this.mobile) {
-      this.compositionFocusIndex = this.compositionHelper.size() - 1;
-      this.compositionEditedIndex = this.compositionHelper.size() - 1;
-      this.markForCheck();
+
+    this.editComposition(this.compositionHelper.size() - 1);
+  }
+
+  removeCompositionAt(index: number) {
+    this.compositionHelper.removeAt(index);
+    this.editComposition(index - 1, {focus: false});
+  }
+
+  editComposition(index: number, opts = {focus: true}) {
+    const maxIndex = this.compositionHelper.size() - 1;
+    if (index < 0) {
+      index = 0;
+    }
+    else if (index > maxIndex) {
+      index = maxIndex;
+    }
+    if (this.compositionEditedIndex === index) return; // Skip if same
+
+    this.compositionEditedIndex = index;
+    this.markForCheck();
+
+    // Focus
+    if (!this.mobile && (!opts || opts.focus !== false)) {
+      this.compositionFocusIndex = index;
       setTimeout(() => {
-        this.compositionFocusIndex = undefined
+        this.compositionFocusIndex = undefined;
       }, 500);
     }
   }
