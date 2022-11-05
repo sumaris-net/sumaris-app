@@ -230,7 +230,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   }
 
   translateControlPath(controlPath: string): string {
-    return super.dataService.translateControlPath(controlPath, {i18nPrefix: this.i18nContext.prefix});
+    return this.dataService.translateControlPath(controlPath, {i18nPrefix: this.i18nContext.prefix});
   }
 
   protected registerForms() {
