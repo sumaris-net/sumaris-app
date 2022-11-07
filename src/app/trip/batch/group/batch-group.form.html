@@ -65,7 +65,7 @@
                     matBadgeSize="small"
                     matBadgePosition="above after">{{ qv.name }}</span>
               </h1>
-              <p *ngIf="showError" [class.cdk-visually-hidden]="!childForm.invalid">
+              <p *ngIf="showError && loaded" [class.cdk-visually-hidden]="!childForm.invalid">
                 <ion-text color="danger" [innerHTML]="childForm.form | translateFormError: errorTranslatorOptions"></ion-text>
               </p>
             </ion-label>
