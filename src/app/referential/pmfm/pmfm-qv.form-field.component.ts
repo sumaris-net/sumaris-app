@@ -99,18 +99,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() maxVisibleButtons: number;
   @Input() buttonsColCount: number;
   @Input() showButtonIcons: boolean;
-
-
   @Input() formControlName: string;
-  @Input() control: FormControl;
-
-  @Input() set formControl(value: FormControl) {
-    this.control = value;
-  }
-
-  get formControl(): FormControl {
-    return this.control;
-  }
+  @Input() formControl: FormControl;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -122,7 +112,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   get disabled(): boolean {
-    return this.control.disabled;
+    return this.formControl.disabled;
   }
 
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
@@ -145,8 +135,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // Set defaults
     this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
 
-    this.control = this.control || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
-    if (!this.control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
+    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+    if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
     let qualitativeValues: IReferentialRef[] = this.pmfm.qualitativeValues || [];
@@ -162,7 +152,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
     this.required = toBoolean(this.required, this.pmfm.required || false);
 
-    this.control.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
+    this.formControl.setValidators(this.required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
 
     const attributes = this.settings.getFieldDisplayAttributes('qualitativeValue', ['label', 'name']);
     const displayAttributes = this.compact && attributes.length > 1 ? ['label'] : attributes;
@@ -191,7 +181,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
               filter(event => !event.defaultPrevented),
               map((_) => this._sortedQualitativeValues)
             ),
-          this.control.valueChanges
+          this.formControl.valueChanges
             .pipe(
               filter(ReferentialUtils.isEmpty),
               map(value => suggestFromArray(this._sortedQualitativeValues, value, {
@@ -216,13 +206,13 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
         this.maxVisibleButtons = 999; // Hide the expand button
       }
 
-      this.control.statusChanges
+      this.formControl.statusChanges
         .pipe(
           takeUntil(this.destroySubject)
         )
         .subscribe(() => {
           this.updateSelectedIndex(this.value, {emitEvent: false /*done after*/});
-          this.markForCheck()
+          this.markForCheck();
         });
     }
   }
@@ -232,12 +222,12 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   get value(): any {
-    return this.control.value;
+    return this.formControl.value;
   }
 
   writeValue(value: any, event?: UIEvent) {
-    if (value !== this.control.value) {
-      this.control.patchValue(value, {emitEvent: false});
+    if (value !== this.formControl.value) {
+      this.formControl.patchValue(value, {emitEvent: false});
       this._onChangeCallback(value);
     }
 
@@ -312,7 +302,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
 
     // When leave component without object, use implicit value if stored
-    if (this._implicitValue && typeof this.control.value !== "object") {
+    if (this._implicitValue && typeof this.formControl.value !== "object") {
       this.writeValue(this._implicitValue);
     }
     this._implicitValue = null;
@@ -353,7 +343,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     }
 
     // When leave component without object, use implicit value if stored
-    if (this._implicitValue && typeof this.control.value !== "object") {
+    if (this._implicitValue && typeof this.formControl.value !== "object") {
       this.writeValue(this._implicitValue);
     }
     this._implicitValue = null;
@@ -364,7 +354,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   clear() {
-    this.control.setValue(null);
+    this.formControl.setValue(null);
     this.markForCheck();
   }
 
@@ -386,7 +376,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // Store implicit value (will use it onBlur if not other value selected)
     if (res && res.length === 1) {
       this._implicitValue = res[0];
-      this.control.setErrors(null);
+      this.formControl.setErrors(null);
     } else {
       this._implicitValue = undefined;
     }
@@ -405,7 +395,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   }
 
   protected checkIfTouched() {
-    if (this.control.touched) {
+    if (this.formControl.touched) {
       this.markForCheck();
       this._onTouchedCallback();
     }

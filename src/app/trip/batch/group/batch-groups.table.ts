@@ -1061,6 +1061,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         mobile: this.mobile,
         // Override using input options
         maxVisibleButtons: this.modalOptions?.maxVisibleButtons,
+        maxItemCountForButtons: this.modalOptions?.maxItemCountForButtons,
         ...this.subBatchesModalOptions
       },
       backdropDismiss: false,

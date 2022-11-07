@@ -1,6 +1,6 @@
 <!-- readonly -->
 <mat-form-field *ngIf="readonly; else writable">
-  <input matInput hidden type="text" readonly="true" [formControl]="control">
+  <input matInput hidden type="text" readonly="true" [formControl]="formControl">
   <ion-label>{{ value|displayWith: displayWith }}</ion-label>
 </mat-form-field>
 

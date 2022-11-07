@@ -42,7 +42,7 @@
     <!-- Measurements -->
     <ion-row class="ion-no-padding" [formGroup]="delegate.measurementValuesForm">
       <ng-container *ngFor="let pmfm of delegate.$pmfms | async; trackBy: delegate.trackPmfmFn; index as i;">
-        <ion-col *ngVar="pmfm|pmfmFieldStyle:10 as style"
+        <ion-col *ngVar="pmfm|pmfmFieldStyle:delegate.maxItemCountForButtons as style"
                  class="ion-no-padding"
                  [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
                  size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >

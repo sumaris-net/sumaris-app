@@ -26,6 +26,7 @@ export interface IBatchModalOptions<B extends Entity<B> = Batch> extends IDataEn
   // UI Options
   i18nSuffix: string;
   maxVisibleButtons: number;
+  maxItemCountForButtons: number;
   samplingRatioFormat: SamplingRatioFormat;
   mobile: boolean;
 }
@@ -52,6 +53,7 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() showTotalIndividualCount = false;
   @Input() showSamplingBatch = false;
   @Input() maxVisibleButtons: number;
+  @Input() maxItemCountForButtons: number;
   @Input() usageMode: UsageMode;
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
   @Input() samplingRatioFormat: SamplingRatioFormat;

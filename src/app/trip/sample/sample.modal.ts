@@ -48,6 +48,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 
   // UI Options
   maxVisibleButtons: number;
+  maxItemCountForButtons: number;
   i18nSuffix?: string;
 
   // Callback actions
@@ -89,6 +90,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showIndividualReleaseButton: boolean;
   @Input() showIndividualMonitoringButton: boolean;
   @Input() maxVisibleButtons: number;
+  @Input() maxItemCountForButtons: number;
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   @Input() defaultSampleDate: Moment;
   tagIdPmfm: IPmfm;

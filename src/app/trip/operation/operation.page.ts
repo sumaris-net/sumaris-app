@@ -195,7 +195,8 @@ export class OperationPage
     this.forceOptionalExcludedPmfmIds = [
       PmfmIds.SURVIVAL_SAMPLING_TYPE,
       PmfmIds.HAS_ACCIDENTAL_CATCHES,
-      PmfmIds.HAS_INDIVIDUAL_MEASURES
+      // Let the user save OP, even if not set
+      //PmfmIds.HAS_INDIVIDUAL_MEASURES
     ];
 
     // Get paste flags from clipboard, if related to Operation
@@ -644,6 +645,8 @@ export class OperationPage
 
     this.measurementsForm.i18nSuffix = i18nSuffix;
     this.measurementsForm.forceOptional = this.forceMeasurementAsOptional;
+    this.measurementsForm.maxVisibleButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
+    this.measurementsForm.maxItemCountForButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
 
     this.saveOptions.computeBatchRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_RANK_ORDER_COMPUTE);
     this.saveOptions.computeBatchIndividualCount = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);

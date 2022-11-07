@@ -52,23 +52,29 @@
   <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
     <ion-grid class="ion-no-padding">
       <ion-row>
-        <ion-col size="12" size-md="6" class="ion-padding-end" *ngFor="let pmfm of pmfms; index as i; last as last">
 
-          <!-- Measurements -->
-          <app-pmfm-field #matInput
-                          [pmfm]="pmfm"
-                          [controlName]="pmfm|pmfmIdString"
-                          [style]="pmfm|pmfmFieldStyle:10"
-                          [maxVisibleButtons]="maxVisibleButtons"
-                          [compact]="compact"
-                          [tabindex]="tabindex+2 + i*2"
-                          [floatLabel]="floatLabel"
-                          [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
-                          (keydown.tab)="focusNextInput($event)"
-                          (keydown.enter)="focusNextInput($event)"
-                          [mobile]="mobile">
-          </app-pmfm-field>
-        </ion-col>
+        <!-- Measurements -->
+        <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
+          <ion-col class="ion-padding-end"
+                   *ngVar="pmfm|pmfmFieldStyle:maxItemCountForButtons as style"
+                   size="12"
+                   [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >
+
+            <app-pmfm-field #matInput
+                            [pmfm]="pmfm"
+                            [controlName]="pmfm|pmfmIdString"
+                            [style]="style"
+                            [maxVisibleButtons]="maxVisibleButtons"
+                            [compact]="compact"
+                            [tabindex]="tabindex+2 + i*2"
+                            [floatLabel]="floatLabel"
+                            [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
+                            (keydown.tab)="focusNextInput($event)"
+                            (keydown.enter)="focusNextInput($event)"
+                            [mobile]="mobile">
+            </app-pmfm-field>
+          </ion-col>
+        </ng-container>
       </ion-row>
     </ion-grid>
   </form>

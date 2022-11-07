@@ -1,6 +1,6 @@
 
 .mat-table {
-  --mat-column-saleType: 210px;
+  --mat-column-saleType: 190px;
   --mat-column-small-count: 6;
   --mat-column-actions-width: 82px;
   --mat-column-small-size: calc(min((100vw - var(--mat-column-saleType) - var(--mat-column-actions-width)) / var(--mat-column-small-count), var(--mat-column-saleType)));
@@ -17,8 +17,6 @@
   }
 
   .mat-header-row {
-    //background-color: var(--mat-header-background-color);
-    //text-align: center;
     ion-label {
       color: unset;
     }
