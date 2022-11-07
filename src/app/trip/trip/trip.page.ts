@@ -274,6 +274,8 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     // Measurement form
     this._forceMeasurementAsOptionalOnFieldMode = program.getPropertyAsBoolean(ProgramProperties.TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE);
     this.measurementsForm.forceOptional = this._forceMeasurementAsOptionalOnFieldMode
+    this.measurementsForm.maxVisibleButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
+    this.measurementsForm.maxItemCountForButtons = program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS);
 
     // Physical gears
     this.physicalGearsTable.canEditRankOrder = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE);
@@ -281,6 +283,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.physicalGearsTable.showSubGearsCountColumn = this.physicalGearsTable.allowChildrenGears;
     this.physicalGearsTable.setModalOption('helpMessage', program.getProperty(ProgramProperties.TRIP_PHYSICAL_GEAR_HELP_MESSAGE));
     this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
+    this.physicalGearsTable.setModalOption('maxItemCountForButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS));
     this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
 
     // Operation table

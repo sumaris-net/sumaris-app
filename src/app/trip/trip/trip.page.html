@@ -163,13 +163,12 @@
                 <!-- Other features (Measurements) -->
                 <ion-grid class="ion-no-padding ion-padding-top">
                   <ion-row>
-                    <ion-col size="12" size-md="2" size-lg="3"
-                             >
+                    <ion-col size="12" size-md="2" size-lg="3">
                       <ion-label class="ion-float-end"
                                  [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray"
                                  translate>TRIP.EDIT.OTHER_FEATURES</ion-label>
                     </ion-col>
-                    <ion-col [class.measurements-form-padding-start]="mobile">
+                    <ion-col>
                       <app-form-measurements #measurementsForm
                                              entityName="VesselUseMeasurement"
                                              [forceOptional]="forceMeasurementAsOptional"
@@ -298,9 +297,9 @@
                         [disabled]="!dirty || loading">
 
     <!-- error -->
-    <ion-item *ngIf="error" lines="none">
+    <ion-item *ngIf="error as errorMsg" lines="none" [title]="errorMsg|translate">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
     </ion-item>
 
   </app-form-buttons-bar>

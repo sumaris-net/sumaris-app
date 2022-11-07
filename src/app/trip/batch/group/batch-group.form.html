@@ -6,7 +6,7 @@
 
   <!-- sub batches buttons -->
   <ion-row>
-    <ion-col size="6" *ngIf="allowSubBatches && showHasSubBatchesButton" class="form-container">
+    <ion-col size="12" size-sm="6" *ngIf="allowSubBatches && showHasSubBatchesButton" class="form-container">
       <!-- Has individual measures ? -->
       <mat-form-field floatLabel="always" >
         <input matInput type="text" hidden
@@ -65,7 +65,7 @@
                     matBadgeSize="small"
                     matBadgePosition="above after">{{ qv.name }}</span>
               </h1>
-              <p [class.cdk-visually-hidden]="!childForm.invalid">
+              <p *ngIf="showError" [class.cdk-visually-hidden]="!childForm.invalid">
                 <ion-text color="danger" [innerHTML]="childForm.form | translateFormError: errorTranslatorOptions"></ion-text>
               </p>
             </ion-label>
@@ -77,11 +77,13 @@
                           [tabindex]="tabindex + 10 + 10*i"
                           [acquisitionLevel]="acquisitionLevel"
                           [pmfms]="$childrenPmfmsByQvId | async | mapGet: qv.id"
+                          [showError]="false"
                           [showTaxonName]="false"
                           [showTaxonGroup]="false"
                           [availableTaxonGroups]="[]"
                           [samplingRatioFormat]="samplingRatioFormat"
                           [maxVisibleButtons]="maxVisibleButtons"
+                          [maxItemCountForButtons]="maxItemCountForButtons"
                           [i18nSuffix]="i18nSuffix"
                           [mobile]="mobile"
                           [debug]="debug"

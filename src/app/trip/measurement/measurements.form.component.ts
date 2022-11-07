@@ -46,7 +46,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
   @Input() entityName: MeasurementType;
   @Input() animated = false;
   @Input() mobile = false;
-  @Input() maxVisibleButtons: number = 4;
+  @Input() maxVisibleButtons: number;
+  @Input() maxItemCountForButtons: number;
   @Input() showButtonIcons: boolean;
   @Input() i18nPmfmPrefix: string = null;
   @Input() i18nSuffix: string = null;

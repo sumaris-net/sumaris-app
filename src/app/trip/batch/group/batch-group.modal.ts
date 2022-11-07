@@ -74,6 +74,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() enableWeightConversion: boolean;
   @Input() maxVisibleButtons: number;
+  @Input() maxItemCountForButtons: number;
   @Input() samplingRatioFormat: SamplingRatioFormat;
   @Input() i18nSuffix: string;
 
@@ -137,6 +138,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
+
     if (this.disabled) {
       this.disable();
     }

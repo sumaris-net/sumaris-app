@@ -193,7 +193,7 @@
   <app-pmfm-qv-field *ngSwitchCase="'qualitative_value'" #matInput
                      [pmfm]="pmfm"
                      [autofocus]="autofocus"
-                     [control]="control|formGetControl"
+                     [formControl]="control|formGetControl"
                      [floatLabel]="floatLabel"
                      [placeholder]="placeholder"
                      [required]="required"

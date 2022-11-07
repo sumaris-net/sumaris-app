@@ -8,186 +8,197 @@
 
   <table class="mat-table" [class.mobile]="mobile">
 
-    <!-- header row -->
-    <tr class="mat-header-row">
-      <th class="mat-header-cell mat-column-saleType ion-text-center">
-        <ion-label translate>TRIP.PRODUCT.SALE.SALE_TYPE</ion-label>
-      </th>
-      <th class="mat-header-cell mat-column-ratio ion-text-center even">
-        <ion-label translate>TRIP.PRODUCT.SALE.RATIO</ion-label>
-      </th>
-      <th *ngIf="isProductWithWeight()" class="mat-header-cell mat-column-weight ion-text-center even">
-        <ion-label translate>TRIP.PRODUCT.LIST.WEIGHT</ion-label>
-      </th>
-      <th *ngIf="isProductWithWeight()" class="mat-header-cell mat-column-averageWeightPrice ion-text-center">
-        <ion-label translate>TRIP.PRODUCT.SALE.AVG_WEIGHT_PRICE</ion-label>
-      </th>
-      <th *ngIf="hasIndividualCount" class="mat-header-cell mat-column-individualCount ion-text-center">
-        <ion-label translate>TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT</ion-label>
-      </th>
-      <th class="mat-header-cell mat-column-averagePackagingPrice ion-text-center">
-        <ion-label translate>TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE</ion-label>
-      </th>
-      <th class="mat-header-cell mat-column-totalPrice ion-text-center">
-        <ion-label translate>TRIP.PRODUCT.SALE.TOTAL_PRICE</ion-label>
-      </th>
-      <th class="mat-header-cell mat-column-actions"></th>
-    </tr>
+    <thead>
+      <!-- header row -->
+      <tr class="mat-header-row">
+        <th class="mat-header-cell mat-column-saleType ion-text-center">
+          <ion-label translate>TRIP.PRODUCT.SALE.SALE_TYPE</ion-label>
+        </th>
+        <th class="mat-header-cell mat-column-ratio ion-text-center">
+          <ion-label translate>TRIP.PRODUCT.SALE.RATIO</ion-label>
+        </th>
+        <th *ngIf="isProductWithWeight()" class="mat-header-cell mat-column-weight ion-text-center">
+          <ion-label translate>TRIP.PRODUCT.LIST.WEIGHT</ion-label>
+        </th>
+        <th *ngIf="isProductWithWeight()" class="mat-header-cell mat-column-averageWeightPrice ion-text-center">
+          <ion-label translate>TRIP.PRODUCT.SALE.AVG_WEIGHT_PRICE</ion-label>
+        </th>
+        <th *ngIf="hasIndividualCount" class="mat-header-cell mat-column-individualCount ion-text-center">
+          <ion-label translate>TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT</ion-label>
+        </th>
+        <th *ngIf="hasIndividualCount" class="mat-header-cell mat-column-averagePackagingPrice ion-text-center">
+          <ion-label translate>TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE</ion-label>
+        </th>
+        <th class="mat-header-cell mat-column-totalPrice ion-text-center">
+          <ion-label translate>TRIP.PRODUCT.SALE.TOTAL_PRICE</ion-label>
+        </th>
+        <th class="mat-header-cell mat-column-actions"></th>
+      </tr>
 
-    <!-- sale row -->
-    <tr class="mat-row"
-        *ngFor="let saleForm of saleFormArray?.controls; index as i; last as last, even as even"
-        [formGroup]="saleForm|formGetGroup"
-        [class.mat-row-disabled]="salesEditedIndex!==i"
-        [class.mat-row-selected]="salesEditedIndex===i"
-        (focusin)="salesEditedIndex=i">
+    </thead>
 
-      <!-- Sale type -->
-      <td class="mat-cell mat-column-saleType">
-        <mat-autocomplete-field formControlName="saleType" floatLabel="never"
-                                [placeholder]="'TRIP.PRODUCT.SALE.SALE_TYPE'|translate"
-                                [autofocus]="salesFocusIndex === i && salesEditedIndex === i"
-                                [config]="autocompleteFields.saleType"
-                                [tabindex]="tabindex+3+i*9"
-                                [required]="true">
-          <ion-icon matPrefix name="card"></ion-icon>
-        </mat-autocomplete-field>
-      </td>
+    <tbody>
 
-      <!-- ratio -->
-      <td class="mat-cell mat-column-ratio even">
-        <mat-form-field floatLabel="never"
-                        [class.computed]="hasIndividualCount || (saleForm|formGetValue:'ratioCalculated')"
-                        [class.mat-form-field-disabled]="hasIndividualCount">
-          <input matInput formControlName="ratio"
-                 [placeholder]="'TRIP.PRODUCT.SALE.RATIO'|translate"
-                 autocomplete="off" type="number" step="1" max="100"
-                 [tabIndex]="hasIndividualCount ? -1 : tabindex+3+i*9+1"
-                 [readonly]="hasIndividualCount"
-                 required>
-          <mat-error *ngIf="saleForm.controls.ratio.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
-        </mat-form-field>
-      </td>
+      <!-- product summary -->
+      <tr class="mat-footer-row mat-row-disabled">
 
-      <!-- weight -->
-      <td *ngIf="isProductWithWeight()" class="mat-cell mat-column-weight even">
-        <mat-form-field floatLabel="never"
-                        [class.computed]="hasIndividualCount || (saleForm|formGetValue:'weightCalculated')"
-                        [class.mat-form-field-disabled]="hasIndividualCount">
-          <input matInput formControlName="weight"
-                 [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
-                 autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="hasIndividualCount ? -1 : tabindex+3+i*9+2"
-                 [readonly]="hasIndividualCount">
-        </mat-form-field>
-      </td>
+        <!-- total  -->
+        <td class="mat-footer-cell mat-column-saleType ion-text-end">
+          <ion-label color="primary" class="text-italic" style="font-weight: bold;" translate>TRIP.PRODUCT.SALE.TOTAL_PRODUCT</ion-label>
+        </td>
 
-      <!-- avg weight price -->
-      <td *ngIf="isProductWithWeight()" class="mat-cell mat-column-averageWeightPrice">
-        <mat-form-field floatLabel="never"
-                        [class.computed]="saleForm|formGetValue:'averageWeightPriceCalculated'">
-          <input matInput formControlName="averageWeightPrice"
-                 [placeholder]="'TRIP.PRODUCT.SALE.AVG_WEIGHT_PRICE'|translate"
-                 autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*9+3">
-        </mat-form-field>
-      </td>
+        <td class="mat-footer-cell mat-column-ratio">
+        </td>
 
-      <!-- individualCount -->
-      <td *ngIf="hasIndividualCount" class="mat-cell mat-column-individualCount">
-        <mat-form-field floatLabel="never">
-          <input matInput formControlName="individualCount"
-                 [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
-                 autocomplete="off" type="number" pattern="[0-9]*" step="1"
-                 [tabIndex]="tabindex+3+i*9+4">
-        </mat-form-field>
-      </td>
+        <td *ngIf="isProductWithWeight()" class="mat-footer-cell mat-column-weight">
+          <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
+            <input matInput
+                   formControlName="weight"
+                   [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
+                   readonly>
+          </mat-form-field>
+        </td>
 
-      <!-- avg packaging price -->
-      <td *ngIf="hasIndividualCount" class="mat-cell mat-column-averagePackagingPrice">
-        <mat-form-field floatLabel="never"
-                        [class.computed]="saleForm|formGetValue:'averagePackagingPriceCalculated'">
-          <input matInput formControlName="averagePackagingPrice"
-                 [placeholder]="'TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE'|translate"
-                 autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*9+5">
-        </mat-form-field>
-      </td>
+        <td *ngIf="isProductWithWeight()" class="mat-footer-cell mat-column-averageWeightPrice">
 
-      <!-- total price -->
-      <td class="mat-cell mat-column-totalPrice">
-        <mat-form-field floatLabel="never"
-                        [class.computed]="saleForm|formGetValue:'totalPriceCalculated'">
-          <input matInput formControlName="totalPrice"
-                 [placeholder]="'TRIP.PRODUCT.SALE.TOTAL_PRICE'|translate"
-                 autocomplete="off" type="number" step="0.1"
-                 [tabIndex]="tabindex+3+i*9+6">
-        </mat-form-field>
-      </td>
-      <td class="mat-cell mat-column-actions">
-        <ion-buttons>
-          <button type="button" mat-icon-button
-                  *ngIf="!mobile"
-                  [style.visibility]="last ? 'visible' : 'hidden'"
-                  [disabled]="disabled"
-                  [title]="'COMMON.BTN_ADD'|translate"
-                  (click)="addSale($event)"
-                  [tabindex]="tabindex+3+i*9+7">
-            <mat-icon>add</mat-icon>
-          </button>
-          <button type="button" mat-icon-button
-                  *ngIf="!mobile || salesEditedIndex === i && !disabled"
-                  [class.visible-hover-row]="!mobile"
-                  [tabindex]="-1"
-                  [title]="'COMMON.BTN_DELETE'|translate"
-                  (click)="removeSale(i)">
-            <mat-icon>delete_outline</mat-icon>
-          </button>
-        </ion-buttons>
-      </td>
-    </tr>
+        </td>
 
-    <!-- footer -->
-    <tr class="mat-footer-row mat-row-disabled">
+        <td *ngIf="hasIndividualCount" class="mat-footer-cell mat-column-individualCount">
+          <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
+            <input matInput
+                   formControlName="individualCount"
+                   [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
+                   readonly>
+          </mat-form-field>
+        </td>
 
-      <!-- total  -->
-      <td class="mat-footer-cell mat-column-saleType ion-text-end">
-        <ion-label color="primary" class="text-italic" style="font-weight: bold;" translate>TRIP.PRODUCT.SALE.TOTAL_PRODUCT</ion-label>
-      </td>
+        <td *ngIf="hasIndividualCount" class="mat-footer-cell mat-column-averagePackagingPrice">
+        </td>
 
-      <td class="mat-footer-cell mat-column-ratio even">
-      </td>
+        <td class="mat-footer-cell mat-column-totalPrice">
+        </td>
+        <td class="mat-footer-cell mat-column-actions">
+        </td>
+      </tr>
 
-      <td *ngIf="isProductWithWeight()" class="mat-footer-cell mat-column-weight even">
-        <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
-          <input matInput
-                 formControlName="weight"
-                 [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
-                 readonly>
-        </mat-form-field>
-      </td>
+      <!-- sale row -->
+      <tr class="mat-row"
+          *ngFor="let saleForm of saleFormArray?.controls; index as i; last as last, even as even"
+          [formGroup]="saleForm|formGetGroup"
+          [class.mat-row-disabled]="salesEditedIndex!==i"
+          [class.mat-row-selected]="salesEditedIndex===i"
+          [class.mat-row-error]="saleForm.invalid"
+          (focusin)="salesEditedIndex=i">
 
-      <td *ngIf="isProductWithWeight()" class="mat-footer-cell mat-column-averageWeightPrice">
+        <!-- Sale type -->
+        <td class="mat-cell mat-column-saleType">
+          <mat-autocomplete-field formControlName="saleType" floatLabel="never"
+                                  [placeholder]="'TRIP.PRODUCT.SALE.SALE_TYPE'|translate"
+                                  [autofocus]="salesFocusIndex === i && salesEditedIndex === i"
+                                  [config]="autocompleteFields.saleType"
+                                  [tabindex]="tabindex+3+i*9"
+                                  [required]="true">
+            <ion-icon matPrefix name="card"></ion-icon>
+          </mat-autocomplete-field>
+        </td>
 
-      </td>
+        <!-- ratio -->
+        <td class="mat-cell mat-column-ratio"
+            [class.even]="hasIndividualCount">
+          <mat-form-field floatLabel="never"
+                          [class.computed]="hasIndividualCount || (saleForm|formGetValue:'ratioCalculated')"
+                          [class.mat-form-field-disabled]="hasIndividualCount">
+            <input matInput formControlName="ratio"
+                   [placeholder]="'TRIP.PRODUCT.SALE.RATIO'|translate"
+                   autocomplete="off" type="number" step="1" max="100"
+                   [tabIndex]="hasIndividualCount ? -1 : tabindex+3+i*9+1"
+                   [readonly]="hasIndividualCount"
+                   required>
+            <mat-error *ngIf="!hasIndividualCount && saleForm.controls.ratio.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
+          </mat-form-field>
+        </td>
 
-      <td *ngIf="hasIndividualCount" class="mat-footer-cell mat-column-individualCount">
-        <mat-form-field class="mat-form-field-disabled computed" floatLabel="never">
-          <input matInput
-                 formControlName="individualCount"
-                 [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
-                 readonly>
-        </mat-form-field>
-      </td>
+        <!-- weight -->
+        <td *ngIf="isProductWithWeight()" class="mat-cell mat-column-weight even"
+            [class.even]="hasIndividualCount">
+          <mat-form-field floatLabel="never"
+                          [class.computed]="hasIndividualCount || (saleForm|formGetValue:'weightCalculated')"
+                          [class.mat-form-field-disabled]="hasIndividualCount">
+            <input matInput formControlName="weight"
+                   [placeholder]="'TRIP.PRODUCT.LIST.WEIGHT'|translate"
+                   autocomplete="off" type="number" step="0.1"
+                   [tabIndex]="hasIndividualCount ? -1 : tabindex+3+i*9+2"
+                   [readonly]="hasIndividualCount">
+          </mat-form-field>
+        </td>
 
-      <td *ngIf="hasIndividualCount" class="mat-footer-cell mat-column-averagePackagingPrice">
-      </td>
+        <!-- avg weight price -->
+        <td *ngIf="isProductWithWeight()" class="mat-cell mat-column-averageWeightPrice">
+          <mat-form-field floatLabel="never"
+                          [class.computed]="saleForm|formGetValue:'averageWeightPriceCalculated'">
+            <input matInput formControlName="averageWeightPrice"
+                   [placeholder]="'TRIP.PRODUCT.SALE.AVG_WEIGHT_PRICE'|translate"
+                   autocomplete="off" type="number" step="0.1"
+                   [tabIndex]="tabindex+3+i*9+3">
+          </mat-form-field>
+        </td>
 
-      <td class="mat-footer-cell mat-column-totalPrice">
-      </td>
-      <td class="mat-footer-cell mat-column-actions">
-      </td>
-    </tr>
+        <!-- individualCount -->
+        <td *ngIf="hasIndividualCount" class="mat-cell mat-column-individualCount">
+          <mat-form-field floatLabel="never">
+            <input matInput formControlName="individualCount"
+                   [placeholder]="'TRIP.PRODUCT.LIST.INDIVIDUAL_COUNT'|translate"
+                   autocomplete="off" type="number" pattern="[0-9]*" step="1"
+                   [tabIndex]="tabindex+3+i*9+4">
+          </mat-form-field>
+        </td>
+
+        <!-- avg packaging price -->
+        <td *ngIf="hasIndividualCount" class="mat-cell mat-column-averagePackagingPrice">
+          <mat-form-field floatLabel="never"
+                          [class.computed]="saleForm|formGetValue:'averagePackagingPriceCalculated'">
+            <input matInput formControlName="averagePackagingPrice"
+                   [placeholder]="'TRIP.PRODUCT.SALE.AVG_PACKAGING_PRICE'|translate"
+                   autocomplete="off" type="number" step="0.1"
+                   [tabIndex]="tabindex+3+i*9+5">
+          </mat-form-field>
+        </td>
+
+        <!-- total price -->
+        <td class="mat-cell mat-column-totalPrice">
+          <mat-form-field floatLabel="never"
+                          [class.computed]="saleForm|formGetValue:'totalPriceCalculated'">
+            <input matInput formControlName="totalPrice"
+                   [placeholder]="'TRIP.PRODUCT.SALE.TOTAL_PRICE'|translate"
+                   autocomplete="off" type="number" step="0.1"
+                   [tabIndex]="tabindex+3+i*9+6">
+          </mat-form-field>
+        </td>
+
+        <td class="mat-cell mat-column-actions">
+          <ion-buttons>
+            <button type="button" mat-icon-button
+                    *ngIf="!mobile"
+                    [style.visibility]="last ? 'visible' : 'hidden'"
+                    [disabled]="disabled"
+                    [title]="'COMMON.BTN_ADD'|translate"
+                    (click)="addSale($event)"
+                    [tabindex]="tabindex+3+i*9+7">
+              <mat-icon>add</mat-icon>
+            </button>
+            <button type="button" mat-icon-button
+                    *ngIf="!mobile || salesEditedIndex === i && !disabled"
+                    [class.visible-hover-row]="!mobile"
+                    [tabindex]="-1"
+                    [title]="'COMMON.BTN_DELETE'|translate"
+                    (click)="removeSale(i)">
+              <mat-icon>delete_outline</mat-icon>
+            </button>
+          </ion-buttons>
+        </td>
+      </tr>
+
+    </tbody>
   </table>
 
 </form>

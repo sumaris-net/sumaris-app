@@ -48,6 +48,7 @@ export interface IPhysicalGearModalOptions
 
   // UI
   maxVisibleButtons?: number;
+  maxItemCountForButtons?: number;
 }
 
 const INVALID_GEAR_ID = -999;
@@ -92,6 +93,7 @@ export class PhysicalGearModal
   @Input() showGear = true;
   @Input() showSearchButton = true;
   @Input() maxVisibleButtons: number;
+  @Input() maxItemCountForButtons: number = 12;
 
   @Output() onSearchButtonClick = createPromiseEventEmitter<PhysicalGear>();
 
@@ -184,6 +186,7 @@ export class PhysicalGearModal
               this.addChildForm(table);
               table.setModalOption('helpMessage', this.helpMessage);
               table.setModalOption('maxVisibleButtons', this.maxVisibleButtons);
+              table.setModalOption('maxItemCountForButtons', this.maxItemCountForButtons);
               this.updateChildrenTableState();
             }),
             // Listen pmfm changed

@@ -55,7 +55,7 @@
                    [compact]="compact"
                    [tabindex]="tabindex+1"
                    (keyup.enter)="focusNextInput($event)"
-                   [maxVisibleButtons]="pmfm.qualitativeValues.length">
+                   [maxVisibleButtons]="pmfm.qualitativeValues?.length || maxVisibleButtons">
     <!-- checkbox to freeze -->
     <mat-checkbox  matSuffix
                    *ngIf="!mobile"
@@ -155,10 +155,11 @@
                     [pmfm]="pmfm"
                     [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"
                     [floatLabel]="floatLabel"
-                    (keyup.enter)="focusNextInputOrSubmit($event, last)"
+                    [style]="pmfm|pmfmFieldStyle: maxItemCountForButtons"
+                    [maxVisibleButtons]="maxVisibleButtons"
                     [tabindex]="tabindex + 20 + i*2"
-                    [style]="pmfm|pmfmFieldStyle: maxVisibleButtons"
-                    [maxVisibleButtons]="maxVisibleButtons">
+                    (keydown.tab)="focusNextInputOrSubmit($event, last)"
+                    (keyup.enter)="focusNextInputOrSubmit($event, last)">
     </app-pmfm-field>
   </ng-container>
 
@@ -172,6 +173,7 @@
            step="1"
            pattern="[0-9]*"
            (keypress)="filterNumberInput($event, false)"
+           (keydown.tab)="doSubmit($event)"
            (keyup.enter)="doSubmit($event)"
            (focus)="selectInputContent($event)"
            [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL.INDIVIDUAL_COUNT'|translate"

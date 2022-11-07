@@ -750,7 +750,14 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.MEASUREMENTS_MAX_VISIBLE_BUTTONS',
     type: 'integer',
     defaultValue: 4 // Use -1 for all
-  }
+  },
+  MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS: <FormFieldDefinition>{
+    key: 'sumaris.measurements.maxItemCountForButtons',
+    label: 'PROGRAM.OPTIONS.MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS',
+    type: 'integer',
+    defaultValue: 12 // Use -1 for all
+  },
+
 });
 
 

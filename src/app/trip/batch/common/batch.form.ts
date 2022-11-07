@@ -33,11 +33,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { equals, roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { BatchFormContent } from '@app/trip/batch/common/batch.form.content';
 
-export interface IBatchForm<T extends Batch<any> = Batch<any>> extends IAppForm {
-
-}
 
 @Component({
   selector: 'app-batch-form',
@@ -80,6 +76,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   @Input() showError = true;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() maxVisibleButtons: number;
+  @Input() maxItemCountForButtons: number;
   @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
   @Input() i18nSuffix: string;
 

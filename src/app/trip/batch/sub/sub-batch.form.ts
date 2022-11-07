@@ -78,6 +78,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   @Input() floatLabel: FloatLabelType;
   @Input() usageMode: UsageMode;
   @Input() maxVisibleButtons: number;
+  @Input() maxItemCountForButtons: number;
   @Input() i18nSuffix: string;
   @Input() mobile: boolean;
   @Input() weightDisplayedUnit: WeightUnitSymbol;

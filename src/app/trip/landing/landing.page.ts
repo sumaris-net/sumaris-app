@@ -380,6 +380,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       this.samplesTable.i18nColumnSuffix = i18nSuffix;
       this.samplesTable.i18nColumnPrefix = SAMPLE_TABLE_DEFAULT_I18N_PREFIX + i18nSuffix;
       this.samplesTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
+      this.samplesTable.setModalOption('maxItemCountForButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS));
       this.samplesTable.weightDisplayedUnit = this.settings.getProperty(TRIP_LOCAL_SETTINGS_OPTIONS.SAMPLE_WEIGHT_UNIT,
         program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT));
 

@@ -3,6 +3,7 @@ import { PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
 import { DateFormatPipe, formatLatitude, formatLongitude, isNotNil, isNotNilOrBlank, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 @Pipe({
   name: 'pmfmIdString'
@@ -154,10 +155,10 @@ export class PmfmFieldStylePipe implements PipeTransform {
     this._mobile = settings.mobile;
   }
 
-  transform(pmfm: IPmfm, maxVisibleButtons?: number): any {
+  transform(pmfm: IPmfm, maxItemCountForButtons?: number): any {
     return pmfm && this._mobile && (
       pmfm.type === 'boolean'
-      || (pmfm.isQualitative && pmfm.qualitativeValues?.length <= (maxVisibleButtons || 4))
+      || (pmfm.isQualitative && pmfm.qualitativeValues?.length <= (maxItemCountForButtons || ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS.defaultValue || 4))
     ) ? 'button' : undefined /*default*/;
   }
 }

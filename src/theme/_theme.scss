@@ -76,13 +76,13 @@ mat-form-field {
       --flex-basis: calc(100% / var(--buttons-col-count, 4) - var(--button-padding-end));
       flex: 0 1 var(--flex-basis);
       max-width: calc(min(var(--flex-basis), 150px));
-      white-space: normal;
-      height: 40px;
       text-transform: capitalize; // Avoid uppercase text
+      white-space: normal;
       box-sizing: content-box; // Avoid long text to be cropped
       margin: 0 !important;
       padding-inline-end: var(--button-padding-end) !important;
       padding-bottom: var(--button-padding-end) !important;
+      height: 40px;
     }
   }
 

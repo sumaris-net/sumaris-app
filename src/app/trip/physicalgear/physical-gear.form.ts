@@ -38,6 +38,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
   @Input() canEditGear = true;
+  @Input() maxItemCountForButtons: number = 12;
   @Input() maxVisibleButtons: number;
   @Input() showGear = true;
   @Input() showError = false;
