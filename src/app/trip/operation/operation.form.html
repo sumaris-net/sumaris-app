@@ -427,6 +427,7 @@
                                   [autofocus]="fishingAreaFocusIndex === i"
                                   [config]="autocompleteFields.fishingAreaLocation"
                                   [tabindex]="tabindex+30+i*3"
+                                  [class]="mobile && 'min-width-80vw'"
                                   [panelWidth]="!mobile && '500px'"
                                   [required]="i === 0">
             <mat-icon matPrefix>room</mat-icon>

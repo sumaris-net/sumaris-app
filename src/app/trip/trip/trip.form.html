@@ -59,12 +59,12 @@
                                 [placeholder]="'TRIP.DEPARTURE_LOCATION'|translate"
                                 [config]="autocompleteFields.location"
                                 [required]="true"
-                                [panelWidth]="mobile ? '80vw' : '500px'">
+                                [class]="mobile && 'min-width-80vw'"
+                                [panelWidth]="!mobile && '500px'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
-
       </ion-col>
-      <ion-col size="12" size-sm="3">
+      <ion-col size="12" size-sm="4" size-md="3">
         <mat-date-time-field [placeholder]="'TRIP.DEPARTURE_DATE_TIME'|translate"
                              formControlName="departureDateTime"
                              [required]="true">
@@ -86,14 +86,14 @@
                                 [config]="autocompleteFields.location"
                                 [required]="returnFieldsRequired"
                                 [clearable]="!returnFieldsRequired"
-                                [panelWidth]="mobile ? '80vw' : '500px'">
+                                [class]="mobile && 'min-width-80vw'"
+                                [panelWidth]="!mobile && '500px'">
           <mat-icon matPrefix>room</mat-icon>
         </mat-autocomplete-field>
       </ion-col>
-      <ion-col size="12" size-sm="3" *ngVar="form|formGetControl:'returnDateTime'; let control">
+      <ion-col size="12" size-sm="4" size-md="3" *ngVar="form|formGetControl:'returnDateTime'; let control">
         <mat-date-time-field [placeholder]="'TRIP.RETURN_DATE_TIME'|translate"
                              [formControl]="control"
-
                              [startDate]="form|formGetValue:'departureDateTime'"
                              [required]="returnFieldsRequired"
                              [clearable]="!returnFieldsRequired">
