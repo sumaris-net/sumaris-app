@@ -578,6 +578,7 @@ export class OperationPage
           )
           .subscribe(normalProgress => {
             if (!normalProgress) console.debug('[operation] Abnormal OPE: comment is now required');
+            this.opeForm.showComment = !normalProgress || this.opeForm.showComment;
             this.opeForm.requiredComment = !normalProgress;
             this.markForCheck();
           })
@@ -739,6 +740,8 @@ export class OperationPage
 
     // Propage program
     if (data.programLabel) this.$programLabel.next(data.programLabel);
+
+    this.opeForm.showComment = !this.mobile;
   }
 
   async onEntityLoaded(data: Operation, options?: EntityServiceLoadOptions): Promise<void> {
@@ -761,6 +764,8 @@ export class OperationPage
 
     // Propage physical gear
     if (data.physicalGear) this.setPhysicalGear(data.physicalGear);
+
+    this.opeForm.showComment = !this.mobile || isNotNilOrBlank(data.comments);
   }
 
   onNewFabButtonClick(event: UIEvent) {
@@ -887,14 +892,16 @@ export class OperationPage
         emitEvent: false /*do not update view*/
       });
     if (saved) {
-      if (this.mobile) {
+      // FIXME: this optimization not working well, because the page is still reloading after saving (because id changed).
+      if (this.isNewData) {
+        const tripId = this.data?.tripId || this.trip?.id;
         return this.load(undefined, {
-          tripId: this.data.tripId,
-          updateRoute: true,
+          tripId,
+          updateRoute: false,
           openTabIndex: OperationPage.TABS.GENERAL
         });
       } else {
-        return this.router.navigate(['..', 'new'], {
+        return this.router.navigate(['../new'], {
           relativeTo: this.route,
           replaceUrl: true,
           queryParams: {tab: OperationPage.TABS.GENERAL}
