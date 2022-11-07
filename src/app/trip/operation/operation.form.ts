@@ -276,6 +276,13 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       || this.form.get('startPosition');
   }
 
+  get firstActivePositionControl(): AbstractControl {
+    return this.form.get('startPosition')
+      || this.fishingStartDateTimeEnable && this.form.get('fishingStartPosition')
+      || this.fishingEndDateTimeEnable && this.form.get('fishingEndPosition')
+      || this.endDateTimeEnable && this.form.get('endPosition');
+  }
+
   get previousFishingEndDateTimeControl(): AbstractControl {
     return this.fishingStartDateTimeEnable && this.form.get('fishingStartDateTime')
       || this.form.get('startDateTime');

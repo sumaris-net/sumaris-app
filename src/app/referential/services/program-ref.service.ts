@@ -397,7 +397,11 @@ export class ProgramRefService
         map(program => {
           const filterFn = strategyFilter && strategyFilter.asFilterFn();
           if (filterFn) {
-            program.strategies = (program.strategies || []).filter(filterFn)
+            // /!\ Make sure to clone the strategy, to keep cache object unchanged
+            program = {
+              ...program,
+              strategies: (program.strategies || []).filter(filterFn)
+            };
           }
           return program;
         })

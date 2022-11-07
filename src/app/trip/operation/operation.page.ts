@@ -53,6 +53,7 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { flagsToString, removeFlag } from '@app/shared/flags.utils';
 import { moment } from '@app/vendor';
+import { PositionUtils } from '@app/trip/services/position.utils';
 
 @Component({
   selector: 'app-operation-page',
@@ -282,7 +283,7 @@ export class OperationPage
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
+          switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {debug: this.debug}))
         )
         .subscribe(program => this.setProgram(program)));
 
@@ -1377,8 +1378,11 @@ export class OperationPage
 
     // Or vessel positions
     else if (this.opeForm.showPosition) {
-      const position = this.opeForm.lastActivePositionControl?.value;
-      this.tripContext.setValue('vesselPositions', [position]);
+      const positions = [
+        this.opeForm.firstActivePositionControl?.value,
+        this.opeForm.lastActivePositionControl?.value
+      ].filter(position => PositionUtils.isNotNilAndValid(position));
+      this.tripContext.setValue('vesselPositions', positions);
       this.tripContext.resetValue('fishingAreas');
     }
   }
