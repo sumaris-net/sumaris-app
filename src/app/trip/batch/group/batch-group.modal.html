@@ -49,7 +49,9 @@
 
 
     <!-- open individual modal -->
-    <ion-col beforeChildren *ngIf="form.hasSubBatches && allowSubBatches" class="ion-padding-top">
+    <ion-col beforeChildren *ngIf="form.hasSubBatches && allowSubBatches"
+             size="12" size-md="6"
+             class="ion-padding-top ion-padding-bottom">
       <ion-button color="tertiary" fill="solid" expand="block" shape="round"
                   (click)="onShowSubBatchesButtonClick($event)">
         <ion-label>

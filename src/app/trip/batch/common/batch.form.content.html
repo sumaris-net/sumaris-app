@@ -1,7 +1,7 @@
 <form class="form-container" [formGroup]="delegate.form" (ngSubmit)="delegate.doSubmit($event)" >
 
   <!-- error -->
-  <ion-item *ngIf="delegate.error && delegate.showError" visible-xs visible-sm visible-mobile lines="none">
+  <ion-item *ngIf="delegate.error && delegate.showError" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="delegate.error|translate"></ion-label>
   </ion-item>
@@ -232,6 +232,8 @@
       ready: {{delegate.readySubject|async}}<br/>
       valid: {{delegate.valid}}<br/>
       dirty: {{delegate.dirty}}<br/>
+      touched: {{delegate.touched}}<br/>
+      showError: {{delegate.showError}}<br/>
       <ng-container *ngIf="delegate.samplingBatchForm as childForm">
         <ng-container *ngVar="{
               samplingRatio: childForm|formGetControl:'samplingRatio',

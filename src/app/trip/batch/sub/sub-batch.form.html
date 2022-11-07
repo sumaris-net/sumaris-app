@@ -55,7 +55,7 @@
                    [compact]="compact"
                    [tabindex]="tabindex+1"
                    (keyup.enter)="focusNextInput($event)"
-                   [maxVisibleButtons]="maxVisibleButtons">
+                   [maxVisibleButtons]="pmfm.qualitativeValues?.length || maxVisibleButtons">
     <!-- checkbox to freeze -->
     <mat-checkbox  matSuffix
                    *ngIf="!mobile"
