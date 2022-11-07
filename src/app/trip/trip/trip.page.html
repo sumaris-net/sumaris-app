@@ -298,9 +298,9 @@
                         [disabled]="!dirty || loading">
 
     <!-- error -->
-    <ion-item *ngIf="error" lines="none">
+    <ion-item *ngIf="error as errorMsg" lines="none" [title]="errorMsg|translate">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+      <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
     </ion-item>
 
   </app-form-buttons-bar>
