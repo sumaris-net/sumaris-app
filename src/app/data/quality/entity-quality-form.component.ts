@@ -15,7 +15,7 @@ import {
   ReferentialRef,
   ShowToastOptions,
   StatusIds,
-  Toasts, APP_USER_EVENT_SERVICE, FormErrors
+  Toasts, APP_USER_EVENT_SERVICE, FormErrors, AppErrorWithDetails
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService, IRootDataEntityQualityService, isDataQualityService, isRootDataQualityService } from '../services/data-quality-service.class';
 import { QualityFlags } from '@app/referential/services/model/model.enum';
@@ -169,15 +169,15 @@ export class EntityQualityFormComponent<
       if (!data) return false;
 
       if (this._debug) console.debug(`[quality] Control ${data.constructor.name}...`);
-      let errors = await this.service.control(data);
+      let errors: FormErrors|AppErrorWithDetails = await this.service.control(data);
       valid = isNil(errors);
 
       if (!valid) {
         await this.editor.updateView(data);
 
-        // Construct final error
+        // Construct error with details
         if (isNil(errors.details)) {
-          errors = {
+          errors = <AppErrorWithDetails>{
             message: errors.message || data.qualificationComments || 'QUALITY.ERROR.INVALID_FORM',
             details: { errors: errors as FormErrors}
           };
@@ -186,7 +186,7 @@ export class EntityQualityFormComponent<
           errors.message = errors.message || data.qualificationComments || 'QUALITY.ERROR.INVALID_FORM';
         }
 
-        this.editor.setError(errors);
+        this.editor.setError(errors as AppErrorWithDetails);
         this.editor.markAllAsTouched();
         if (!opts || opts.emitEvent !== false) {
           this.markForCheck();

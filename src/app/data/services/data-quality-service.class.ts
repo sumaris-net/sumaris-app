@@ -1,5 +1,5 @@
 import { DataEntity } from './model/data-entity.model';
-import { AppErrorWithDetails } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, FormErrors } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 
 export interface IDataEntityQualityService<
@@ -8,7 +8,7 @@ export interface IDataEntityQualityService<
   CO = any> {
 
   canUserWrite(data: T, opts?: any): boolean;
-  control(data: T, opts?: CO): Promise<AppErrorWithDetails>;
+  control(data: T, opts?: CO): Promise<AppErrorWithDetails|FormErrors>;
   qualify(data: T, qualityFlagId: number): Promise<T>;
 
 }
