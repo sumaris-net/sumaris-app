@@ -641,6 +641,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
 
     console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
+    return undefined;
   }
 
   async terminate(entity: Operation): Promise<Operation> {

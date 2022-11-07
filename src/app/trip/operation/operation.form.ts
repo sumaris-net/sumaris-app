@@ -29,7 +29,7 @@ import {
   selectInputContent,
   StatusIds,
   suggestFromArray,
-  toBoolean,
+  toBoolean, toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
@@ -540,7 +540,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   /**
    * // Fill dates using the trip's dates
    */
-  public fillWithTripDates() {
+  fillWithTripDates() {
     if (!this.trip) return;
 
     const endDateTime = fromDateISOString(this.trip.returnDateTime).clone();
@@ -825,6 +825,14 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
   }
 
+  toggleComment() {
+    this.showComment = !this.showComment;
+    if (!this.showComment) {
+      this.form.get('comments').setValue(null);
+    }
+    this.markForCheck();
+  }
+
   translateControlPath(controlPath: string): string {
     return this.operationService.translateControlPath(controlPath, {i18nPrefix: this.i18nFieldPrefix});
   }
@@ -1078,8 +1086,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
       console.warn('[operation-form] This control does not contains longitude or latitude field');
       return;
     }
-    latitudeControl.patchValue(position && position.latitude || null);
-    longitudeControl.patchValue(position && position.longitude || null);
+    latitudeControl.patchValue(toNumber(position?.latitude, null));
+    longitudeControl.patchValue(toNumber(position?.longitude, null));
   }
 
   protected updateDistance(opts = { emitEvent: true }) {

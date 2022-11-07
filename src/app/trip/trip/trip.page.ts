@@ -208,7 +208,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   setError(error: any, opts?: { emitEvent?: boolean; }) {
 
     // If errors in operations
-    if (error?.operations) {
+    if (error?.details?.errors?.operations) {
       // Show error in operation table
       this.operationsTable.setError('TRIP.ERROR.INVALID_OPERATIONS', {
         showOnlyInvalidRows: true
@@ -217,6 +217,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Open the operation tab
       this.tabGroup.selectedIndex = TripPageTabs.OPERATIONS;
     } else {
+
       super.setError(error);
 
       // Reset operation filter and error

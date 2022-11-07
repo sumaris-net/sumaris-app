@@ -3,7 +3,7 @@ import { FetchPolicy, gql } from '@apollo/client/core';
 import { filter, map } from 'rxjs/operators';
 
 import {
-  APP_USER_EVENT_SERVICE,
+  APP_USER_EVENT_SERVICE, AppErrorWithDetails,
   AppFormUtils,
   BaseEntityGraphqlQueries,
   chainPromises,
@@ -1164,7 +1164,7 @@ export class TripService
    * @param entity
    * @param opts
    */
-  async control(entity: Trip, opts?: TripValidatorOptions): Promise<FormErrors> {
+  async control(entity: Trip, opts?: TripValidatorOptions): Promise<AppErrorWithDetails> {
 
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[trip-service] Control {${entity.id}}...`, entity);
@@ -1189,7 +1189,12 @@ export class TripService
         const errors = AppFormUtils.getFormErrors(form);
 
         if (this._debug) console.debug(`[trip-service] Control trip {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
-        return errors;
+        return {
+          message: 'QUALITY.ERROR.INVALID_FORM',
+          details: {
+            errors
+          }
+        };
       }
     }
 
@@ -1197,7 +1202,14 @@ export class TripService
     if (!opts || !opts.withOperationGroup){
       const errors = await this.operationService.controlAllByTrip(entity, {program});
       if (errors) {
-        return {operations: errors};
+        return {
+          message: 'TRIP.ERROR.INVALID_OPERATIONS',
+          details: {
+            errors: {
+              operations: errors
+            }
+          }
+        };
       }
     }
 

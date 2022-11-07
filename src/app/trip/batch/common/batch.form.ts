@@ -181,6 +181,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
       });
+    this._pmfmNamePipe = injector.get(PmfmNamePipe);
 
     // Set default acquisition level
     this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -247,7 +248,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   }
 
   translateControlPath(path: string): string {
-    if (path.includes('.measurementValues.')) {
+    if (path.includes('measurementValues.')) {
       const parts = path.split('.');
       const pmfmId = parseInt(parts[parts.length-1]);
       const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
