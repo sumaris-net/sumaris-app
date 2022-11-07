@@ -937,12 +937,11 @@ export class OperationPage
   async setValue(data: Operation) {
     try {
       const isNewData = isNil(data?.id);
-      const jobs = [
+      const jobs: Promise<any>[] = [
           this.opeForm.setValue(data)
       ];
 
       // Get gear, from the physical gear
-      const physicalGearId = toNumber(data.physicalGear?.id, null);
       const gearId = toNumber(data?.physicalGear?.gear?.id, null);
 
       // Set measurements form
@@ -950,12 +949,14 @@ export class OperationPage
       this.measurementsForm.programLabel = this.$programLabel.value;
       const isChildOperation = data.parentOperation || isNotNil(data.parentOperationId);
       const acquisitionLevel = isChildOperation ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
-      if (this.measurementsForm.acquisitionLevel !== acquisitionLevel && !this.measurementsForm.loading) {
-        await this.measurementsForm.unload();
-      }
-      if (this.$acquisitionLevel.value !== acquisitionLevel) {
+      const acquisitionLevelChanged = this.$acquisitionLevel.value !== acquisitionLevel;
+      if (acquisitionLevelChanged) {
+        this.measurementsForm.unload();
+        this.measurementsForm.acquisitionLevel = acquisitionLevel;
+        this.measurementsForm.markAsReady();
         this.$acquisitionLevel.next(acquisitionLevel);
       }
+
       jobs.push(this.measurementsForm.setValue(data && data.measurements || []));
 
       // Set batch tree

@@ -169,15 +169,24 @@ export class EntityQualityFormComponent<
       if (!data) return false;
 
       if (this._debug) console.debug(`[quality] Control ${data.constructor.name}...`);
-      const errors = await this.service.control(data);
+      let errors = await this.service.control(data);
       valid = isNil(errors);
 
       if (!valid) {
         await this.editor.updateView(data);
-        this.editor.setError({
-          message: errors.message || data.qualificationComments || 'QUALITY.ERROR.INVALID_FORM',
-          details: errors && { errors: errors as FormErrors} || errors.details
-        });
+
+        // Construct final error
+        if (isNil(errors.details)) {
+          errors = {
+            message: errors.message || data.qualificationComments || 'QUALITY.ERROR.INVALID_FORM',
+            details: { errors: errors as FormErrors}
+          };
+        }
+        else {
+          errors.message = errors.message || data.qualificationComments || 'QUALITY.ERROR.INVALID_FORM';
+        }
+
+        this.editor.setError(errors);
         this.editor.markAllAsTouched();
         if (!opts || opts.emitEvent !== false) {
           this.markForCheck();

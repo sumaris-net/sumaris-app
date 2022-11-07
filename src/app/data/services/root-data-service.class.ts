@@ -1,7 +1,7 @@
 import {DataEntityAsObjectOptions} from './model/data-entity.model';
 import {Directive, Injector} from '@angular/core';
 import {
-  AccountService,
+  AccountService, AppErrorWithDetails,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
@@ -75,7 +75,7 @@ export abstract class BaseRootDataService<
       );
   }
 
-  abstract control(entity: T, opts?: any): Promise<FormErrors>;
+  abstract control(entity: T, opts?: any): Promise<AppErrorWithDetails>;
 
   async terminate(entity: T): Promise<T> {
     if (!this.mutations.terminate) throw Error('Not implemented');

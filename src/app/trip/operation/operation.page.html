@@ -323,7 +323,7 @@
                         [disabled]="!dirty || loading">
 
     <!-- error -->
-    <ion-item *ngIf="error as errorMsg" lines="none" [title]="errorMsg|translate">
+    <ion-item *ngIf="error as errorMsg" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
       <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
     </ion-item>
