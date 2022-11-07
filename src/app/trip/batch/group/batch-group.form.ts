@@ -210,7 +210,18 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   async ready(): Promise<void> {
     await super.ready();
+  }
 
+  translateControlPath(path: string): string {
+    if (path.includes('measurementValues.')) {
+      const parts = path.split('.');
+      const pmfmId = parseInt(parts[parts.length-1]);
+      // const pmfm = (this.$childrenPmfmsByQvId.value || []).find(p => p.id === pmfmId);
+      // if (pmfm) {
+      //   return this._pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix});
+      // }
+    }
+    return super.translateControlPath(path);
   }
 
   /* -- protected methods -- */

@@ -499,7 +499,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       : row.currentData
     )?.children[0]; // Get sampling batch
 
-    const missing = (isNil(samplingBatch?.weight?.value) || samplingBatch.weight.value <= 0)
+    const missing = (isNil(samplingBatch?.weight?.value) || samplingBatch.weight.value < 0)
       && isNotNil(samplingBatch?.individualCount);
 
     // DEBUG

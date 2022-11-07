@@ -335,7 +335,7 @@ export class BatchValidators {
       };
     }
     const isTotalWeightComputed = batch.weight.computed;
-    const isTotalWeightValid = !isTotalWeightComputed && isNotNilOrNaN(totalWeight) && totalWeight > 0;
+    const isTotalWeightValid = !isTotalWeightComputed && isNotNilOrNaN(totalWeight) && totalWeight >= 0;
 
     let samplingBatch = BatchUtils.getSamplingChild(batch);
     const samplingWeight: BatchWeight = samplingWeightForm?.value || samplingBatch.weight;
@@ -346,13 +346,13 @@ export class BatchValidators {
     }
     if (!samplingBatch.weight) {
       samplingBatch.weight = {
-        value: samplingWeight?.value || 0,
+        value: toNumber(samplingWeight?.value, 0),
         computed: false,
         estimated: false,
         methodId: toNumber(samplingWeight?.methodId, batch.weight.methodId)
       };
     }
-    const isSamplingWeightValid = !isSamplingWeightComputed && isNotNilOrNaN(samplingWeight?.value) && samplingWeight.value > 0;
+    const isSamplingWeightValid = !isSamplingWeightComputed && isNotNilOrNaN(samplingWeight?.value) && samplingWeight.value >= 0;
 
     opts.samplingRatioFormat = opts.samplingRatioFormat || BatchUtils.getSamplingRatioFormat(samplingBatch.samplingRatioText);
     if (!opts.samplingRatioFormat) {
@@ -363,7 +363,7 @@ export class BatchValidators {
       ? samplingBatch.samplingRatioComputed
       : BatchUtils.isSamplingRatioComputed(samplingBatch.samplingRatioText, opts.samplingRatioFormat);
     const samplingRatio = samplingBatch.samplingRatio;
-    const isSamplingRatioValid = !isSamplingRatioComputed && isNotNilOrNaN(samplingRatio) && samplingRatio > 0 && samplingRatio <= 1;
+    const isSamplingRatioValid = !isSamplingRatioComputed && isNotNilOrNaN(samplingRatio) && samplingRatio >= 0 && samplingRatio <= 1;
 
     // DEBUG
     console.debug(`[batch-validator] Start computing: totalWeight=${totalWeight}, samplingRatio=${samplingRatio}${isSamplingRatioComputed ? ' (computed)' : ''}, samplingWeight=${samplingWeight?.value}`, );
@@ -386,7 +386,7 @@ export class BatchValidators {
       }
 
       // Update sampling ratio
-      const computedSamplingRatio = samplingWeight.value / totalWeight;
+      const computedSamplingRatio = (totalWeight === 0 || samplingWeight.value === 0) ? 0 : samplingWeight.value / totalWeight;
       if (samplingRatioControl.value !== computedSamplingRatio || !isSamplingRatioComputed) {
         console.debug('[batch-validator] Applying computed sampling ratio = ' + samplingBatch.samplingRatio);
         samplingForm.patchValue({
@@ -420,7 +420,7 @@ export class BatchValidators {
     // ***********
     // totalWeight = samplingWeight / samplingRatio
     // ***********
-    else if (isSamplingRatioValid && isSamplingWeightValid) {
+    else if (isSamplingRatioValid && isSamplingWeightValid && samplingRatio > 0) {
       if (isTotalWeightComputed || isNil(totalWeight)) {
         const computedTotalWeight = roundHalfUp(samplingWeight.value / samplingRatio, opts.weightMaxDecimals || 3)
         if (totalWeight !== computedTotalWeight) {
