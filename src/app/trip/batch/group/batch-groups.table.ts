@@ -885,7 +885,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         const label = isSamplingRatio && this.samplingRatioFormat === '1/w' ? 'TRIP.BATCH.TABLE.SAMPLING_COEFFICIENT' : def.label;
         const unitLabel = isSamplingRatio && this.samplingRatioFormat === '1/w' ? null : def.unitLabel;
         const computed = (def.key === 'totalIndividualCount')
-          ? (batch, parent) => ReferentialUtils.isEmpty(parent.taxonGroup) || !(this.taxonGroupsNoWeight || []).includes(parent.taxonGroup.label)
+          ? (batch, parent) => ReferentialUtils.isEmpty(parent?.taxonGroup || batch.taxonGroup)
+              || !(this.taxonGroupsNoWeight || []).includes((parent?.taxonGroup || batch.taxonGroup).label)
           : def.computed;
         return <BatchGroupColumnDefinition>{
           ...(def.isWeight && this.defaultWeightPmfm || {}),
