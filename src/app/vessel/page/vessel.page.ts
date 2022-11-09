@@ -316,7 +316,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
     const {data} = await modal.onDidDismiss();
 
     if (data && data[0] instanceof VesselSnapshot) {
-      console.debug('[observed-location] Vessel selection modal result:', data);
+      console.debug('[vessel] Vessel selection modal result:', data);
       const vessel = data[0] as VesselSnapshot;
 
       if (await Alerts.askConfirmation(
@@ -335,7 +335,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
       }
 
     } else {
-      console.debug('[observed-location] Vessel selection modal was cancelled');
+      console.debug('[vessel] Vessel selection modal was cancelled');
     }
   }
 
