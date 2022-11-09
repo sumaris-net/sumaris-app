@@ -151,7 +151,7 @@
                          (maxDateChanges)="saleForm.minDate = $event">
                 <!-- sale -->
                 <form-sale #saleForm
-                           [class.cdk-visually-hidden]="!(measurementsForm.readySubject|async) && !showSaleForm"
+                           [class.cdk-visually-hidden]="!(showSaleForm && measurementsForm.readySubject|async)"
                            [showVessel]="false"
                            [showError]="false"
                            [showComment]="false"
