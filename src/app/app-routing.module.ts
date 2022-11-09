@@ -142,19 +142,17 @@ const routes: Routes = [
   }
 ];
 
-export const ROUTE_OPTIONS: ExtraOptions = {
-  enableTracing: false,
-  //enableTracing: !environment.production,
-  useHash: false,
-  onSameUrlNavigation: 'reload',
-  preloadingStrategy: QuicklinkStrategy
-};
-
 @NgModule({
   imports: [
     QuicklinkModule,
     SharedRoutingModule,
-    RouterModule.forRoot(routes, ROUTE_OPTIONS)
+    RouterModule.forRoot(routes, <ExtraOptions>{
+      enableTracing: false,
+      //enableTracing: !environment.production,
+      useHash: false,
+      onSameUrlNavigation: 'reload',
+      preloadingStrategy: QuicklinkStrategy
+    })
   ],
   exports: [
     RouterModule,
