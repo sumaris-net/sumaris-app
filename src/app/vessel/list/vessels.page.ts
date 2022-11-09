@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { AlertController, ModalController } from '@ionic/angular';
+import { AlertController, ModalController, PopoverController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AccountService, Alerts, ConfigService, HammerSwipeEvent, LocalSettingsService, referentialToString, StatusIds } from '@sumaris-net/ngx-components';
+import { AccountService, Alerts, ConfigService, HammerSwipeEvent, LocalSettingsService, referentialToString, StatusIds, FilesUtils } from '@sumaris-net/ngx-components';
 import { Location } from '@angular/common';
 import { VesselsTable } from './vessels.table';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
@@ -12,6 +12,9 @@ import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.
 import { Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
+import { FileTransferService } from '@app/shared/service/file-transfer.service';
+import { Vessel } from '@app/vessel/services/model/vessel.model';
+import { uuidv4 } from '@app/vendor';
 
 export const VesselsPageSettingsEnum = {
   PAGE_ID: "vessels",
@@ -26,15 +29,18 @@ export const VesselsPageSettingsEnum = {
 })
 export class VesselsPage implements OnInit, OnDestroy {
 
-  canEdit: boolean;
-  canDelete: boolean;
+  readonly canEdit: boolean;
+  readonly canDelete: boolean;
+  readonly canReplace: boolean;
+  readonly canImportFile: boolean;
   mobile: boolean;
-  replacementEnabled = false;
+  enableReplacement = false;
+  enableFileImport = false;
 
   private _subscription = new Subscription();
 
   get replacementDisabled(): boolean {
-    return this.table.selection.isEmpty() || this.table.selection.selected.some(row => row.currentData.statusId !== StatusIds.TEMPORARY);
+    return !this.canReplace && this.table.selection.isEmpty() || this.table.selection.selected.some(row => row.currentData.statusId !== StatusIds.TEMPORARY);
   }
 
   @ViewChild('table', { static: true }) table: VesselsTable;
@@ -50,12 +56,16 @@ export class VesselsPage implements OnInit, OnDestroy {
     protected translate: TranslateService,
     protected settings: LocalSettingsService,
     protected vesselService: VesselService,
+    protected popoverController: PopoverController,
+    private readonly transferService: FileTransferService,
     protected cd: ChangeDetectorRef
   ) {
     this.mobile = settings.mobile;
     const isAdmin = this.accountService.isAdmin();
     this.canEdit = isAdmin || this.accountService.isUser();
     this.canDelete = isAdmin;
+    this.canReplace = isAdmin;
+    this.canImportFile = isAdmin;
   }
 
   ngOnInit() {
@@ -63,7 +73,9 @@ export class VesselsPage implements OnInit, OnDestroy {
 
     this._subscription.add(
       this.configService.config.subscribe((config) => {
-        this.replacementEnabled = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
+        this.enableReplacement = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
+        this.enableFileImport = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_IMPORT_ENABLE);
+        this.markForCheck();
       })
     );
   }
@@ -147,6 +159,10 @@ export class VesselsPage implements OnInit, OnDestroy {
 
   }
 
+  uploadAndImport(event?: Event) {
+
+  }
+
   /* -- protected methods -- */
 
   protected markForCheck() {
@@ -155,6 +171,22 @@ export class VesselsPage implements OnInit, OnDestroy {
 
   async onOpenRow(event: {id?: number, row: TableElement<any>}) {
     return await this.router.navigateByUrl(`/vessels/${event.row && event.row.currentData.id || event.id}` );
+  }
+
+  async importFromCsv(event?: UIEvent) {
+    const {data} = await FilesUtils.showUploadPopover(this.popoverController, event, {
+      uniqueFile: true,
+      fileExtension: '.csv',
+      uploadFn: (file) => this.transferService.uploadResource(file, {
+        resourceType: Vessel.ENTITY_NAME,
+        resourceId: Date.now().toString(),
+        replace: true
+      }),
+      //deleteFn: (file) => this.deleteFile(file)
+    });
+
+    console.info('[vessel] Vessel file to import: ', data);
+    const filenames = (data || []).map(file => file.name);
   }
 }
 

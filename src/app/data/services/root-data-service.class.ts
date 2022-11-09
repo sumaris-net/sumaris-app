@@ -75,7 +75,7 @@ export abstract class BaseRootDataService<
       );
   }
 
-  abstract control(entity: T, opts?: any): Promise<AppErrorWithDetails>;
+  abstract control(entity: T, opts?: any): Promise<AppErrorWithDetails|FormErrors>;
 
   async terminate(entity: T): Promise<T> {
     if (!this.mutations.terminate) throw Error('Not implemented');

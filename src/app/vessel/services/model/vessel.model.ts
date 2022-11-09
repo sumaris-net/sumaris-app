@@ -20,6 +20,7 @@ import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
 @EntityClass({typename: 'VesselVO'})
 export class Vessel extends RootDataEntity<Vessel> {
 
+  static ENTITY_NAME = 'Vessel';
   static fromObject: (source: any, opts?: any) => Vessel;
 
   vesselType: ReferentialRef = null;

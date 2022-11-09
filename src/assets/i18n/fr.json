@@ -181,7 +181,7 @@
       "SAMPLE_UNIQUE_TAG": "Persistance > Sample : Vérifier l'unicité du code de prélèvement",
       "SAMPLE_HASH_OPTIMIZATION": "Persistance > Sample : Optimiser la sauvegarde (hash)",
       "BATCH_HASH_OPTIMIZATION": "Persistance > Batch : Optimiser la sauvegarde (hash)",
-      "PHYSICAL_GEAR_OPTIMIZATION": "Persistance > Physical Gear : Optimiser la sauvegarde (hash)",
+      "PHYSICAL_GEAR_HASH_OPTIMIZATION": "Persistance > Physical Gear : Optimiser la sauvegarde (hash)",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
       "FORUM_URL": "App > Adresse du forum (URL)",
@@ -215,7 +215,8 @@
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?",
-        "NAME_REQUIRED": "Navires: Nom obligatoire ?"
+        "NAME_REQUIRED": "Navires: Nom obligatoire ?",
+        "VESSEL_IMPORT_ENABLE": "Navires: Activer l'importation par fichier ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -1461,7 +1462,8 @@
       "REPLACE": "Remplacer ce navire temporaire...",
       "REPLACE_CONFIRMATION": "Etes-vous sûr de vouloir remplacer ce navires temporaire avec '{{vessel}}' ?",
       "REPLACE_MANY": "Remplacer les navires temporaires sélectionnés...",
-      "REPLACE_MANY_CONFIRMATION": "Etes-vous sûr de vouloir remplacer les navires temporaires sélectionnés avec '{{vessel}}' ?"
+      "REPLACE_MANY_CONFIRMATION": "Etes-vous sûr de vouloir remplacer les navires temporaires sélectionnés avec '{{vessel}}' ?",
+      "IMPORT_FROM_FILE": "Importer depuis un fichier..."
     },
     "SELECT_MODAL": {
       "TITLE": "Selection du navire",

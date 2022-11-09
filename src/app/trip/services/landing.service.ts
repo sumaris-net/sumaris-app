@@ -1,5 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import {
+  AppErrorWithDetails,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
   chainPromises, DateUtils,

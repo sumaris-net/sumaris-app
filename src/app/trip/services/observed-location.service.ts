@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import {
-  AccountService,
+  AccountService, AppErrorWithDetails,
   AppFormUtils,
   arrayDistinct,
   chainPromises,
@@ -21,7 +21,7 @@ import {
   JobUtils,
   LoadResult,
   NetworkService,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
 
@@ -664,7 +664,7 @@ export class ObservedLocationService
 
       // Get form errors
       if (form.invalid) {
-        const errors = AppFormUtils.getFormErrors(form);
+        const errors: FormErrors = AppFormUtils.getFormErrors(form);
 
         if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
 

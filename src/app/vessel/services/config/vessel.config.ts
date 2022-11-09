@@ -64,6 +64,12 @@ export const VESSEL_CONFIG_OPTIONS = {
     type: 'boolean',
     defaultValue: 'false'
   },
+  VESSEL_IMPORT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.vessel.import.enable',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.VESSEL_IMPORT_ENABLE',
+    type: 'boolean',
+    defaultValue: false
+  },
 };
 
 export const VESSEL_LOCAL_SETTINGS_OPTIONS = Object.freeze({
