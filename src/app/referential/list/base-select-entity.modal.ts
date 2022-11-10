@@ -3,6 +3,7 @@ import { ModalController } from '@ionic/angular';
 import { AppTable, EntitiesTableDataSource, EntitiesTableDataSourceConfig, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import {TableElement} from '@e-is/ngx-material-table';
 
 export interface IBaseSelectEntityModalOptions<T = any, F = any> {
   entityName: string;
@@ -78,7 +79,7 @@ export abstract class BaseSelectEntityModal<
     }, 200);
   }
 
-  async selectRow({id, row}) {
+  async selectRow(row: TableElement<T>) {
     const table = this.table;
     if (row && table) {
       if (!this.allowMultiple) {

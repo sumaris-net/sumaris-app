@@ -260,14 +260,14 @@ export class BatchValidators {
   }): ValidatorFn {
 
     if (!opts?.qvPmfm) {
-      return (control) => BatchValidators.computeSamplingRatioAndWeight(control as FormGroup, {...opts, emitEvent: false, onlySelf: false});
+      return (control) => BatchValidators.computeSamplingRatioAndWeight(control as UntypedFormGroup, {...opts, emitEvent: false, onlySelf: false});
     }
 
     return Validators.compose((opts.qvPmfm.qualitativeValues || [])
       .map((qv, qvIndex) => {
         const qvFormPath = `children.${qvIndex}`;
         return (control) => {
-          return BatchValidators.computeSamplingRatioAndWeight(control.get(qvFormPath) as FormGroup,
+          return BatchValidators.computeSamplingRatioAndWeight(control.get(qvFormPath) as UntypedFormGroup,
             {...opts, emitEvent: false, onlySelf: false});
         }
       }));

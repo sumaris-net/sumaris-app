@@ -462,7 +462,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
   }
 
-  async onOpenOperation(row: TableElement<any>) {
+  async onOpenOperation(row: TableElement<Operation>) {
 
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {

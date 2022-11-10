@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
-import { OperationSaveOptions, OperationService } from '../services/operation.service';
-import { OperationForm } from './operation.form';
-import { TripService } from '../services/trip.service';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import {ChangeDetectionStrategy, Component, Injector, Optional, ViewChild} from '@angular/core';
+import {OperationSaveOptions, OperationService} from '../services/operation.service';
+import {OperationForm} from './operation.form';
+import {TripService} from '../services/trip.service';
+import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {
   AppEditorOptions,
   AppEntityEditor,
@@ -10,6 +10,7 @@ import {
   AppFormUtils,
   AppHelpModal,
   AppHelpModalOptions,
+  DateUtils,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
@@ -27,34 +28,32 @@ import {
   toBoolean,
   toNumber,
   UsageMode,
-  WaitForOptions,
-  DateUtils
+  WaitForOptions
 } from '@sumaris-net/ngx-components';
-import { MatTabChangeEvent } from '@angular/material/tabs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
-import { UntypedFormGroup, Validators } from '@angular/forms';
-import { Moment } from 'moment';
-import { Program } from '@app/referential/services/model/program.model';
-import { Operation, OperationUtils, Trip } from '../services/model/trip.model';
-import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, from, merge, Subscription, timer } from 'rxjs';
-import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
-import { IonRouterOutlet, ModalController } from '@ionic/angular';
-import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { IPmfmForm, OperationValidators } from '@app/trip/services/validator/operation.validator';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
-import { ContextService } from '@app/shared/context.service';
-import { Geometries } from '@app/shared/geometries.utils';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { flagsToString, removeFlag } from '@app/shared/flags.utils';
-import { moment } from '@app/vendor';
-import { PositionUtils } from '@app/trip/services/position.utils';
+import {MatTabChangeEvent} from '@angular/material/tabs';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
+import {UntypedFormGroup, Validators} from '@angular/forms';
+import {Moment} from 'moment';
+import {Program} from '@app/referential/services/model/program.model';
+import {Operation, OperationUtils, Trip} from '../services/model/trip.model';
+import {OperationPasteFlags, ProgramProperties} from '@app/referential/services/config/program.config';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {IBatchTreeComponent} from '../batch/tree/batch-tree.component';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BehaviorSubject, from, merge, Subscription, timer} from 'rxjs';
+import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
+import {IonRouterOutlet, ModalController} from '@ionic/angular';
+import {SampleTreeComponent} from '@app/trip/sample/sample-tree.component';
+import {IPmfmForm, OperationValidators} from '@app/trip/services/validator/operation.validator';
+import {TripContextService} from '@app/trip/services/trip-context.service';
+import {APP_ENTITY_EDITOR} from '@app/data/quality/entity-quality-form.component';
+import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
+import {ContextService} from '@app/shared/context.service';
+import {Geometries} from '@app/shared/geometries.utils';
+import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
+import {flagsToString, removeFlag} from '@app/shared/flags.utils';
+import {PositionUtils} from '@app/trip/services/position.utils';
 
 @Component({
   selector: 'app-operation-page',
@@ -578,8 +577,7 @@ export class OperationPage
             distinctUntilChanged()
           )
           .subscribe(normalProgress => {
-            if (!normalProgress) console.debug('[operation] Abnormal OPE: comment is now required');
-            this.opeForm.showComment = !normalProgress || this.opeForm.showComment;
+            if (!normalProgress) console.debug('[operation] abnormal progress: force comment as required');
             this.opeForm.requiredComment = !normalProgress;
             this.markForCheck();
           })
@@ -818,7 +816,7 @@ export class OperationPage
     else {
       // Display date+time, or time only if today
       const startDateTime = data.startDateTime && (
-        moment().isSame(data.startDateTime, 'day')
+        DateUtils.moment().isSame(data.startDateTime, 'day')
           ? this.dateFormat.transform(data.startDateTime, {pattern: 'HH:mm'})
           : this.dateFormat.transform(data.startDateTime, {time: true})) as string;
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {startDateTime}).toPromise()) as string;
@@ -1173,7 +1171,7 @@ export class OperationPage
       && (
         isNil(this.trip) || (
           isNotNil(this.trip.departureDateTime)
-          && fromDateISOString(this.trip.departureDateTime).diff(moment(), 'day') < 15))
+          && fromDateISOString(this.trip.departureDateTime).diff(DateUtils.moment(), 'day') < 15))
         ? 'FIELD' : 'DESK';
   }
 

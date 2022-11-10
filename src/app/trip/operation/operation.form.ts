@@ -208,10 +208,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         commentControl.clearValidators();
       }
       commentControl.updateValueAndValidity({emitEvent: !this.loading, onlySelf: true});
+
+      if (this._requiredComment && !this.showComment) {
+        this.showComment = true;
+        this.markForCheck();
+      }
     }
   }
 
-  get isCommentRequired(): boolean {
+  get requiredComment(): boolean {
     return this._requiredComment;
   }
 

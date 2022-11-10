@@ -43,6 +43,7 @@ import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import moment from 'moment';
+import {TableElement} from '@e-is/ngx-material-table';
 
 
 const ObservedLocationPageTabs = {
@@ -219,7 +220,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  async onNewTrip({id, row}) {
+  async onNewTrip<T extends Landing>(row: TableElement<T>) {
     const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
       ? this.save(undefined)
@@ -231,7 +232,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.markAsLoading();
 
       try {
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${row.currentData.vesselSnapshot.id}&landing=${row.currentData.id}`);
+        const landing = row.currentData;
+        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselSnapshot.id}&landing=${landing.id}`);
       } finally {
         this.markAsLoaded();
       }

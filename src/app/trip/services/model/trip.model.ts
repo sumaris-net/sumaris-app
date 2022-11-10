@@ -14,7 +14,7 @@ import {
   Person,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import {FishingArea} from '@app/data/services/model/fishing-area.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
@@ -64,17 +64,12 @@ export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObje
 export const FISHING_AREAS_LOCATION_REGEXP = /^fishingAreas\.[0-9]+\.location$/;
 export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndPosition|endPosition$/
 
+
 @EntityClass({typename: 'OperationVO'})
 export class Operation
   extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
 
-  static fromObject(source: any, opts?: OperationFromObjectOptions): Operation {
-    if (!source) return undefined;
-    if (source instanceof Operation) return source;
-    const target = new Operation();
-    target.fromObject(source, opts);
-    return target;
-  }
+  static fromObject: (source: any, opts?: OperationFromObjectOptions) => Operation;
 
   startDateTime: Moment = null;
   endDateTime: Moment = null;
@@ -344,11 +339,11 @@ export class Operation
 
     //Parent Operation
     this.parentOperationId = source.parentOperationId;
-    this.parentOperation = (source.parentOperation || source.parentOperationId) ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId, __typename: 'OperationVO'}) : undefined;
+    this.parentOperation = (source.parentOperation || source.parentOperationId) ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId}) : undefined;
 
     //Child Operation
     this.childOperationId = source.childOperationId;
-    this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId, __typename: 'OperationVO'}) : undefined;
+    this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId}) : undefined;
   }
 
   paste(source: Operation, flags = OperationPasteFlags.ALL ) {

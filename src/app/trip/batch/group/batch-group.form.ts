@@ -29,7 +29,7 @@ import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   $childrenPmfmsByQvId = new BehaviorSubject<{[key: number]: IPmfm[]}>(undefined);
-  hasSubBatchesControl: FormControl;
+  hasSubBatchesControl: UntypedFormControl;
 
   @Input() qvPmfm: IPmfm;
   @Input() childrenPmfms: IPmfm[];

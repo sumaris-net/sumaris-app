@@ -1,16 +1,23 @@
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { EntityClass, isEmptyArray, isNotEmptyArray, ITreeItemEntity, Entity, EntityAsObjectOptions, waitWhilePending, IconRef, isNil } from '@sumaris-net/ngx-components';
-import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
-import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {Entity, EntityClass, IconRef, isEmptyArray, isNil, isNotEmptyArray, ITreeItemEntity, waitWhilePending} from '@sumaris-net/ngx-components';
+import {Batch} from '@app/trip/batch/common/batch.model';
+import {BatchUtils} from '@app/trip/batch/common/batch.utils';
 import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { UntypedFormGroup } from '@angular/forms';
-import { MeasurementValuesTypes } from '@app/trip/services/model/measurement.model';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import {UntypedFormGroup} from '@angular/forms';
+import {MeasurementValuesTypes} from '@app/trip/services/model/measurement.model';
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
 
+export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
+  withChildren?: boolean;
+}
+export interface BatchModelFromObjectOptions {
+  withChildren?: boolean;
+}
 
 @EntityClass({typename: 'BatchModelVO'})
 export class BatchModel
-  extends Entity<BatchModel>
+  extends Entity<BatchModel, number, BatchModelAsObjectOptions, BatchModelFromObjectOptions>
   implements ITreeItemEntity<BatchModel> {
 
   static fromObject: (source: any, opts?: { withChildren?: boolean; }) => BatchModel;
@@ -132,13 +139,13 @@ export class BatchModel
   parent: BatchModel = null;
   children: BatchModel[] = null;
 
-  constructor(init: Partial<BatchModel>) {
+  constructor(init?: { validator?: UntypedFormGroup; parent?: BatchModel; path?: string; originalData?: Batch}) {
     super();
-    this.validator = init.validator;
-    Object.assign(this, init);
+    this.validator = init?.validator;
+    if (init) Object.assign(this, init);
   }
 
-  fromObject(source: any, opts?: any) {
+  fromObject(source: any, opts?: BatchModelFromObjectOptions) {
     super.fromObject(source);
     this.name = source.name;
     this.icon = source.icon;

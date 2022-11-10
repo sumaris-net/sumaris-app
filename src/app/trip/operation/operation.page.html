@@ -241,11 +241,6 @@
                     </ion-col>
                   </ion-row>
                 </ion-grid>
-
-                <ion-item lines="none" class="ion-no-padding" *ngIf="mobile" (click)="opeForm.toggleComment()" tappable>
-                  <ion-toggle [checked]="opeForm.showComment" [disabled]="disabled"></ion-toggle>
-                  <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
-                </ion-item>
               </app-form-operation>
             </ion-col>
             <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile">

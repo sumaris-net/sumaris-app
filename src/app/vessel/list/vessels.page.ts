@@ -14,7 +14,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { VesselService } from '@app/vessel/services/vessel-service';
 import { FileTransferService } from '@app/shared/service/file-transfer.service';
 import { Vessel } from '@app/vessel/services/model/vessel.model';
-import { uuidv4 } from '@app/vendor';
 
 export const VesselsPageSettingsEnum = {
   PAGE_ID: "vessels",
@@ -169,7 +168,7 @@ export class VesselsPage implements OnInit, OnDestroy {
     this.cd.markForCheck();
   }
 
-  async onOpenRow(row: TableElement<any>) {
+  async onOpenRow(row: TableElement<Vessel>) {
     return await this.router.navigateByUrl(`/vessels/${row.currentData.id}` );
   }
 

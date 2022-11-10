@@ -48,8 +48,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   locationAttributes: string[];
   vesselSnapshotAttributes: string[];
 
-  @Output() onOpenTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
-  @Output() onNewTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
+  @Output() onOpenTrip = new EventEmitter<TableElement<Landing>>();
+  @Output() onNewTrip = new EventEmitter<TableElement<Landing>>();
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
@@ -313,10 +313,10 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     if (row.currentData.tripId) {
       // Edit trip
-      this.onOpenTrip.emit({id: row.currentData.tripId, row: row});
+      this.onOpenTrip.emit(row);
     } else {
       // New trip
-      this.onNewTrip.emit({id: null, row: row});
+      this.onNewTrip.emit(row);
     }
   }
 

@@ -824,18 +824,18 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.cd.markForCheck();
   }
 
-  protected logBatchModel(batch: BatchModel, treeDepth = 0, treeIndent = '', result: string[] = []) {
+  protected logBatchModel(model: BatchModel, treeDepth = 0, treeIndent = '', result: string[] = []) {
     const isCatchBatch = treeDepth === 0;
     // Append current batch to result array
-    const pmfmLabelsStr = (batch.pmfms || []).map(p => p.label).join(', ');
-    result.push(`${treeIndent} - ${batch.name}`
-    + (isNotNilOrBlank(pmfmLabelsStr) ? ': ' : '') + pmfmLabelsStr);
+    const name = isCatchBatch ? 'Catch' : (model.name || model.originalData.label)
+    const pmfmLabelsStr = (model.pmfms || []).map(p => p.label).join(', ');
+    result.push(`${treeIndent} - ${name}` + (isNotNilOrBlank(pmfmLabelsStr) ? ': ' : '') + pmfmLabelsStr);
 
     // Recursive call, for each children
-    if (isNotEmptyArray(batch.children)) {
+    if (isNotEmptyArray(model.children)) {
       treeDepth++;
       treeIndent = `${treeIndent}\t`;
-      batch.children.forEach(child => this.logBatchModel(child as BatchModel, treeDepth, treeIndent, result));
+      model.children.forEach(child => this.logBatchModel(child as BatchModel, treeDepth, treeIndent, result));
     }
 
     // Display result, if root
