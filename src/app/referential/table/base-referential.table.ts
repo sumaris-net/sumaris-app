@@ -28,7 +28,7 @@ import {
   suggestFromArray,
 } from '@sumaris-net/ngx-components';
 import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableConfig } from '@app/shared/table/base.table';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { IonInfiniteScroll, PopoverController } from '@ionic/angular';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
@@ -89,7 +89,6 @@ export abstract class BaseReferentialTable<
   protected popoverController: PopoverController;
   protected propertyFormatPipe: PropertyFormatPipe;
   protected referentialRefService: ReferentialRefService;
-  protected cryptoService: CryptoService;
 
   protected $status = new BehaviorSubject<IStatus[]>(null);
   private readonly withStatusId: boolean
@@ -115,14 +114,13 @@ export abstract class BaseReferentialTable<
     this.referentialRefService = injector.get(ReferentialRefService);
     this.propertyFormatPipe = injector.get(PropertyFormatPipe);
     this.popoverController = injector.get(PopoverController);
-    this.cryptoService = injector.get(CryptoService);
     this.title = this.i18nColumnPrefix && (this.i18nColumnPrefix + 'TITLE') || '';
     this.logPrefix = '[base-referential-table] ';
     this.canUpload = options?.canUpload || false;
     this.withStatusId = this.columns.includes('statusId');
 
     const filterFormConfig = this.getFilterFormConfig();
-    this.filterForm = filterFormConfig && injector.get(FormBuilder).group(filterFormConfig);
+    this.filterForm = filterFormConfig && injector.get(UntypedFormBuilder).group(filterFormConfig);
   }
 
   ngOnInit() {
@@ -192,7 +190,7 @@ export abstract class BaseReferentialTable<
     return super.ready();
   }
 
-  async exportToCsv(event: UIEvent) {
+  async exportToCsv(event: Event) {
     const filename = this.getExportFileName();
     const separator = this.getExportSeparator();
     const encoding = this.getExportEncoding();
@@ -204,7 +202,7 @@ export abstract class BaseReferentialTable<
     CsvUtils.exportToFile(rows, {filename, headers, separator, encoding});
   }
 
-  async importFromCsv(event?: UIEvent) {
+  async importFromCsv(event?: Event) {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
         uniqueFile: true,
         fileExtension: '.csv',

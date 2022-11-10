@@ -1,4 +1,4 @@
-@import 'src/theme/theme.globals';
+@import 'theme.globals';
 
 .strata-row {
   padding-top: 4px;
@@ -14,7 +14,7 @@
   z-index: 999;
 }
 
-@media screen and (min-width: $screen-xl) {
+@media screen and (min-width: #{$screen-xl}) {
   .ion-col-documentation-preview {
     margin-right: calc(-1 * 20vw);
   }

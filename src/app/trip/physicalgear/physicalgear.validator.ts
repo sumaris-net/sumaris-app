@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LocalSettingsService, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
@@ -15,7 +15,7 @@ export class PhysicalGearValidatorService
   extends DataRootEntityValidatorService<PhysicalGear, PhysicalGearValidatorOptions>
   implements ValidatorService {
 
-  constructor(formBuilder: FormBuilder,
+  constructor(formBuilder: UntypedFormBuilder,
               settings?: LocalSettingsService) {
     super(formBuilder, settings);
   }
@@ -43,7 +43,7 @@ export class PhysicalGearValidatorService
     return null;
   }
 
-  getChildrenArray(data?: PhysicalGear[], opts?: PhysicalGearValidatorOptions): FormArray {
+  getChildrenArray(data?: PhysicalGear[], opts?: PhysicalGearValidatorOptions): UntypedFormArray {
     return this.formBuilder.array(
       (data || []).map(child => this.getFormGroup(child, {...opts, withChildren: false /*Allow only one level*/}))
     );

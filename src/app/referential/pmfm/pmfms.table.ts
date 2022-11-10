@@ -1,13 +1,10 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input} from '@angular/core';
-import {AbstractControl, FormBuilder, FormGroup} from '@angular/forms';
-import {AppTable, LocalSettingsService, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList} from '@sumaris-net/ngx-components';
-import {ActivatedRoute, Router} from '@angular/router';
-import {ModalController, Platform} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {debounceTime, filter} from 'rxjs/operators';
-import {environment} from '../../../environments/environment';
-import {Pmfm} from '../services/model/pmfm.model';
-import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList } from '@sumaris-net/ngx-components';
+import { debounceTime, filter } from 'rxjs/operators';
+import { environment } from '@environments/environment';
+import { Pmfm } from '../services/model/pmfm.model';
+import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 @Component({
   selector: 'app-pmfms-table',
@@ -17,7 +14,7 @@ import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
 })
 export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
 
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
@@ -30,7 +27,7 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
 
   constructor(
     injector: Injector,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected cd: ChangeDetectorRef,
   ) {
     super(injector,
@@ -70,7 +67,7 @@ export class PmfmsTable extends AppTable<Pmfm, PmfmFilter> {
     this.debug = !environment.production;
   }
 
-  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+  clearControlValue(event: Event, formControl: AbstractControl): boolean {
     if (event) event.stopPropagation(); // Avoid to enter input the field
     formControl.setValue(null);
     return false;

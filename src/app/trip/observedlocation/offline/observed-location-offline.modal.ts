@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { AppForm, AppFormUtils, isEmptyArray, isNotEmptyArray, referentialsToString, referentialToString, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -12,7 +12,7 @@ import { ObservedLocationOfflineFilter } from '../../services/filter/observed-lo
 import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
 
@@ -52,7 +52,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     injector: Injector,
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef
@@ -224,7 +224,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
     await this.viewCtrl.dismiss(null, 'CANCEL');
   }
 
-  async validate(event?: UIEvent) {
+  async validate(event?: Event) {
     this.form.markAllAsTouched();
 
     if (!this.form.valid) {

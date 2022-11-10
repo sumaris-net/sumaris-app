@@ -2313,6 +2313,7 @@
       "OFFLINE": "Nœud injoignable",
       "SELECT_MODAL": {
         "TITLE": "Nœuds réseau",
+        "BTN_SET_MANUALLY": "Saisir manuellement",
         "HELP": "Veuillez choisir un nœud réseau auquel vous connecter :",
         "NOT_COMPATIBLE_HELP": "Version requise : v{{version}} ou +"
       }
@@ -2394,11 +2395,14 @@
     },
     "ERROR": {
       "LOAD_USER_EVENTS_ERROR": "Erreur de chargement des notifications",
+      "COUNT_USER_EVENT_ERROR": "Erreur de comptage des notifications",
       "SAVE_USER_EVENT_ERROR": "Erreur de sauvegarde de la notification",
-      "SEND_MESSAGE_ERROR": "Erreur lors de l'envoi du message"
+      "SUBSCRIBE_USER_EVENTS_ERROR": "Erreur lors de l'abonnement aux notifications",
+      "SEND_MESSAGE_ERROR": "Erreur lors de l'envoi du message",
+      "SUBSCRIBE_JOB_PROGRESSION_ERROR": "Erreur lors de l'abonnement à la progression de tâche"
     },
     "INFO": {
-      "MESSAGE_SENT": "Message <b>envoyé</b> !"
+      "MESSAGE_SENT": "Message <b>envoyé</b>"
     }
   },
   "FILE": {
@@ -2420,7 +2424,10 @@
   },
   "IMAGE": {
     "BTN_CAMERA_SOURCE": "Prendre une photo",
-    "BTN_GALLERY_SOURCE": "Ouvrir la galerie"
+    "BTN_GALLERY_SOURCE": "Ouvrir la galerie",
+    "GALLERY": {
+      "BTN_ADD_TITLE": "Ajouter un titre"
+    }
   },
   "ERROR": {
     "ALERT_HEADER": "Erreur",

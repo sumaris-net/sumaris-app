@@ -17,7 +17,7 @@ import {
   SharedValidators,
   StatusIds,
 } from '@sumaris-net/ngx-components';
-import { FormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 
 import { VesselFeaturesHistoryComponent } from './vessel-features-history.component';
 import { VesselRegistrationHistoryComponent } from './vessel-registration-history.component';
@@ -25,7 +25,7 @@ import { VesselFeaturesFilter, VesselFilter, VesselRegistrationFilter } from '..
 import { VesselFeaturesService } from '../services/vessel-features.service';
 import { VesselRegistrationService } from '../services/vessel-registration.service';
 import { MomentDateAdapter } from '@angular/material-moment-adapter';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsModal, SelectVesselsModalOptions } from '@app/vessel/modal/select-vessel.modal';
@@ -65,7 +65,7 @@ export class VesselPage extends AppEntityEditor<Vessel, VesselService> {
 
   @ViewChild('registrationHistoryTable', {static: true}) private registrationHistoryTable: VesselRegistrationHistoryComponent;
 
-  protected get form(): FormGroup {
+  protected get form(): UntypedFormGroup {
     return this.vesselForm.form;
   }
 

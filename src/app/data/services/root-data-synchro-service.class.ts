@@ -33,7 +33,7 @@ import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 
 

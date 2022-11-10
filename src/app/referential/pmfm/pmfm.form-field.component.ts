@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild } from '@angular/core';
-import { ControlValueAccessor, FormArray, FormBuilder, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormArray, UntypedFormBuilder, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
 import { AppFormUtils, filterNumberInput, focusInput, FormArrayHelper, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
@@ -36,15 +36,15 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   numberInputStep: string;
   formArrayHelper: FormArrayHelper<PmfmValue>;
 
-  @Input() control: FormControl|FormArray;
+  @Input() control: UntypedFormControl|UntypedFormArray;
   @Input() controlName: string;
 
-  @Input() set formControl(value: FormControl) {
+  @Input() set formControl(value: UntypedFormControl) {
     this.control = value;
   }
 
-  get formControl(): FormControl {
-    return this.control as FormControl;
+  get formControl(): UntypedFormControl {
+    return this.control as UntypedFormControl;
   }
 
   @Input() set formControlName(value: string) {
@@ -55,12 +55,12 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     return this.controlName;
   }
 
-  @Input() set formArray(value: FormArray) {
+  @Input() set formArray(value: UntypedFormArray) {
     this.control = value;
   }
 
-  get formArray(): FormArray {
-    return this.control as FormArray;
+  get formArray(): UntypedFormArray {
+    return this.control as UntypedFormArray;
   }
 
   @Input() set formArrayName(value: string) {
@@ -115,7 +115,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   constructor(
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected pmfmNamePipe: PmfmNamePipe,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
@@ -132,7 +132,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     if (!control) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-field>.");
 
 
-    if (control instanceof FormArray) {
+    if (control instanceof UntypedFormArray) {
       this.control = control;
       this.acquisitionNumber = toNumber(this.acquisitionNumber, PmfmUtils.isDenormalizedPmfm(this.pmfm) ? this.pmfm.acquisitionNumber : -1);
       this.formArrayHelper = new FormArrayHelper<PmfmValue>(
@@ -146,7 +146,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
 
       this.type = 'array';
     }
-    else if (control instanceof FormControl) {
+    else if (control instanceof UntypedFormControl) {
       this.control = control;
       this.acquisitionNumber = 1; // Force to 1
       control.setValidators(PmfmValidators.create(this.pmfm));

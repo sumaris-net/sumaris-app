@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { BatchValidatorOptions, BatchValidators, BatchValidatorService } from '../common/batch.validator';
 import { BatchGroup } from './batch-group.model';
 import { LocalSettingsService, SharedAsyncValidators, SharedValidators } from '@sumaris-net/ngx-components';
@@ -24,14 +24,14 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
   }
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     measurementsValidatorService: MeasurementsValidatorService,
     settings: LocalSettingsService
   ) {
     super(formBuilder, measurementsValidatorService, settings);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     // The first level of children can be qvPmfm or samplingColumns
     return super.getFormGroup(null, {
       withWeight: true,
@@ -43,7 +43,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
     });
   }
 
-  getFormGroup(data?: BatchGroup, opts?: BatchGroupValidatorOptions): FormGroup {
+  getFormGroup(data?: BatchGroup, opts?: BatchGroupValidatorOptions): UntypedFormGroup {
     return super.getFormGroup(data, {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this._qvPmfm, ...opts});
   }
 
@@ -55,7 +55,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
     return formConfig;
   }
 
-  enableSamplingRatioAndWeight(form: FormGroup, opts?: {
+  enableSamplingRatioAndWeight(form: UntypedFormGroup, opts?: {
     samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
@@ -101,7 +101,7 @@ export class BatchGroupValidators {
     qvPmfm?: IPmfm;
   }): ValidatorFn {
     if (!opts?.qvPmfm) {
-      return (control) => BatchValidators.computeSamplingRatioAndWeight(control as FormGroup, {...opts, emitEvent: false, onlySelf: false});
+      return (control) => BatchValidators.computeSamplingRatioAndWeight(control as UntypedFormGroup, {...opts, emitEvent: false, onlySelf: false});
     }
 
     return Validators.compose((opts.qvPmfm.qualitativeValues || [])
@@ -115,7 +115,7 @@ export class BatchGroupValidators {
           qvIndex
         };
         return (control) => {
-          const form = control as FormGroup;
+          const form = control as UntypedFormGroup;
           const individualCount = form.get(qvSuffix + 'individualCount');
           const samplingIndividualCount = form.get(qvSuffix + 'children.0.individualCount');
 

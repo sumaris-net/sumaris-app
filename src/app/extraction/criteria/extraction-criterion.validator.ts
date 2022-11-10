@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {ExtractionFilterCriterion, ExtractionType} from "../type/extraction-type.model";
 
@@ -7,14 +7,14 @@ import {ExtractionFilterCriterion, ExtractionType} from "../type/extraction-type
 export class ExtractionCriteriaValidatorService implements ValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder) {
+    protected formBuilder: UntypedFormBuilder) {
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: ExtractionType): FormGroup {
+  getFormGroup(data?: ExtractionType): UntypedFormGroup {
     return this.formBuilder.group({ });
   }
 

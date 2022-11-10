@@ -30,7 +30,7 @@ export class ContextService<S extends Record<string, any> = Context> {
     const { ttl } = options;
 
     // DEBUG
-    console.debug(`[context-service] Set '${key}'`, value);
+    //console.debug(`[context-service] Set '${String(key)}'`, value);
 
     const observableValue = this.toObservableValue(value);
 
@@ -39,7 +39,7 @@ export class ContextService<S extends Record<string, any> = Context> {
       const ttlSub = ttl$.subscribe({
         next: () => {
           // DEBUG
-          console.debug(`[context-service] Cleaning '${key}'`);
+          //console.debug(`[context-service] Cleaning '${String(key)}'`);
 
           if (observableValue.observers?.length > 0) return; // Skip if has observers
           observableValue.complete();

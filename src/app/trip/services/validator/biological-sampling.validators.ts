@@ -1,4 +1,4 @@
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { DenormalizedPmfmStrategy } from '../../../referential/services/model/pmfm-strategy.model';
 import { Subscription } from 'rxjs';
 import { isNotNil, isNotNilOrBlank, ObjectMap } from '@sumaris-net/ngx-components';
@@ -8,7 +8,7 @@ import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/s
 export class BiologicalSamplingValidators {
 
 
-  static addSampleValidators(form: FormGroup, pmfms: DenormalizedPmfmStrategy[],
+  static addSampleValidators(form: UntypedFormGroup, pmfms: DenormalizedPmfmStrategy[],
                              pmfmGroups: ObjectMap<number[]>,
                              opts?: { markForCheck: () => void }): Subscription {
     if (!form) {

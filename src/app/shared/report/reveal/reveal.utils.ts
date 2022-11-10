@@ -1,6 +1,7 @@
 // Import Reveal.js
-import Reveal from 'reveal.js';
-export {Reveal};
+import Reveal from 'reveal.js/dist/reveal.esm.js';
+import Markdown from 'reveal.js/plugin/markdown/markdown.esm.js';
+export {Reveal,Markdown};
 
 export interface IRevealOptions {
   config: boolean;

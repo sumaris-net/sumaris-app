@@ -24,7 +24,7 @@ import {
   suggestFromArray,
   toBoolean,
   toNumber,
-  UsageMode
+  UsageMode, DateUtils
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
@@ -49,8 +49,6 @@ import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sam
 import { OverlayEventDetail } from '@ionic/core';
 import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-
-import { moment } from '@app/vendor';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 declare interface GroupColumnDefinition {
@@ -381,16 +379,16 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return {data: (data instanceof Sample ? data : undefined), role};
   }
 
-  async onIndividualMonitoringClick(event: UIEvent, row: TableElement<Sample>) {
+  async onIndividualMonitoringClick(event: Event, row: TableElement<Sample>) {
     return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_MONITORING);
 
   }
 
-  async onIndividualReleaseClick(event: UIEvent, row: TableElement<Sample>) {
+  async onIndividualReleaseClick(event: Event, row: TableElement<Sample>) {
     return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_RELEASE);
   }
 
-  async onSubSampleButtonClick(event: UIEvent,
+  async onSubSampleButtonClick(event: Event,
                                row: TableElement<Sample>,
                                acquisitionLevel: AcquisitionLevelType) {
     if (event) event.preventDefault();
@@ -536,7 +534,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     }
   }
 
-  async openAddPmfmsModal(event?: UIEvent) {
+  async openAddPmfmsModal(event?: Event) {
 
     // If pending rows, save first
     if (this.dirty) {
@@ -562,7 +560,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
    * Not used yet. Implementation must manage stored samples values and different pmfms types (number, string, qualitative values...)
    * @param event
    */
-  async openChangePmfmsModal(event?: UIEvent) {
+  async openChangePmfmsModal(event?: Event) {
     const existingPmfmIds = (this.pmfms || []).map(p => p.id).filter(isNotNil);
 
     const pmfmIds = await this.openSelectPmfmsModal(event, {
@@ -620,7 +618,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       data.sampleDate = this.defaultSampleDate;
     } else {
       if (this.settings.isOnFieldMode(this.usageMode)) {
-        data.sampleDate = moment();
+        data.sampleDate = DateUtils.moment();
       }
     }
 
@@ -702,7 +700,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit(row);
       return true;
     }
 
@@ -754,7 +752,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     ];
   }
 
-  protected async openSelectPmfmsModal(event?: UIEvent, filter?: Partial<PmfmFilter>,
+  protected async openSelectPmfmsModal(event?: Event, filter?: Partial<PmfmFilter>,
                                        opts?: {
                                          allowMultiple?: boolean;
                                        }): Promise<number[]> {
@@ -886,7 +884,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return pmfms;
   }
 
-  openSelectColumnsModal(event?: UIEvent): Promise<any> {
+  openSelectColumnsModal(event?: Event): Promise<any> {
     return super.openSelectColumnsModal(event);
   }
 

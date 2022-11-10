@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { PmfmFormReadySteps, MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { BehaviorSubject } from 'rxjs';
@@ -58,7 +58,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   constructor(
     injector: Injector,
     protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: BatchValidatorService
   ) {

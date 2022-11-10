@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { AppFormUtils, EntityUtils, isNil, isNotEmptyArray, isNotNil, joinPropertiesPath, LocalSettingsService, startsWithUpperCase, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { Sample } from '../services/model/sample.model';
@@ -60,7 +60,7 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
   constructor(
     protected injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected cd: ChangeDetectorRef,
     protected validatorService: SubSampleValidatorService,

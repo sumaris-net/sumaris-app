@@ -187,7 +187,7 @@ export class UserEventService extends
     return UserEvent.fromObject(source);
   }
 
-  async add(entity: UserEvent) {
+  async add(entity: UserEvent): Promise<UserEvent> {
     throw new Error(`Don't use add for the moment`);
   }
 

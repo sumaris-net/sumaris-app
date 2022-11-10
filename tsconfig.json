@@ -6,23 +6,17 @@
     "sourceMap": true,
     "declaration": false,
     "moduleResolution": "node",
+    "downlevelIteration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es2015",
     "importHelpers": true,
-    "module": "esnext",
-    "skipLibCheck": true,
+    "incremental": true,
+    "target": "es2015",
+    "module": "es2020",
+    "lib": ["es2020","dom"],
     "allowSyntheticDefaultImports": true,
     "typeRoots": [
       "node_modules/@types"
-    ],
-    "types": [
-      "node",
-      "webpack-env"
-    ],
-    "lib": [
-      "es2020",
-      "dom"
     ],
     "paths": {
       "@app/*": [
@@ -31,18 +25,25 @@
       "@environments/*": [
         "src/environments/*"
       ],
-//      "@sumaris-net/ngx-components/*": [
-//        "ngx-sumaris-components/*"
-//      ],
       // Force using the RxJS project's version
       "rxjs": ["node_modules/rxjs"],
       "rxjs/*": ["node_modules/rxjs/*"],
-      "@ionic/*": ["node_modules/@ionic/*"]
+
+      // Node JS lib
+//      "crypto": ["node_modules/crypto-browserify"],
+//      "stream": ["node_modules/stream-browserify"],
+//      "assert": ["node_modules/assert"],
+//      "http": ["node_modules/stream-http"],
+//      "https": ["node_modules/https-browserify"],
+//      "os": ["node_modules/os-browserify"],
+//      "util": ["node_modules/util"]
     }
   },
   "angularCompilerOptions": {
-    "enableIvy": true,
-    "fullTemplateTypeCheck": true,
-    "strictInjectionParameters": true
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": false,
+    "fullTemplateTypeCheck": true
   }
 }

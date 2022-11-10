@@ -7,14 +7,14 @@ import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
 import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
-import { AppSharedDebugModule } from '@app/shared/debug/debug.module';
 import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-fields-skeleton.module';
+import { SharedDebugModule } from '@sumaris-net/ngx-components';
 
 @NgModule({
   imports: [
     SharedModule,
+    SharedDebugModule,
     // Sub modules
-    AppSharedDebugModule,
     MatFormFieldsSkeletonModule
   ],
   declarations: [
@@ -26,6 +26,7 @@ import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-
   ],
   exports: [
     SharedModule,
+    SharedDebugModule,
     RouterModule,
     TranslateModule,
 
@@ -36,7 +37,6 @@ import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-
     PaginationToStringPipe,
 
     //Sub modules
-    AppSharedDebugModule,
     MatFormFieldsSkeletonModule
   ]
 })

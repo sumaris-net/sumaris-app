@@ -8,7 +8,7 @@ import { environment } from '@environments/environment';
 import { Operation } from '../services/model/trip.model';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { from, merge } from 'rxjs';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
@@ -34,7 +34,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
   statusList = DataQualityStatusList
     .filter(s => s.id !== DataQualityStatusIds.VALIDATED);
   statusById = DataQualityStatusEnum;
-  readonly filterForm: FormGroup = this.formBuilder.group({
+  readonly filterForm: UntypedFormGroup = this.formBuilder.group({
     tripId: [null],
     dataQualityStatus: [null]
   });
@@ -138,8 +138,8 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     return this.filterCriteriaCount === 0;
   }
 
-  get filterDataQualityControl(): FormControl {
-    return this.filterForm.controls.dataQualityStatus as FormControl;
+  get filterDataQualityControl(): UntypedFormControl {
+    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
   @Output() onDuplicateRow = new EventEmitter<{ data: Operation }>();
@@ -152,7 +152,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     protected validatorService: ValidatorService,
     protected dataService: OperationService,
     protected accountService: AccountService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected cd: ChangeDetectorRef,
   ) {
     super(injector,
@@ -262,7 +262,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     }, opts);
   }
 
-  async openMapModal(event?: UIEvent) {
+  async openMapModal(event?: Event) {
 
     const res = await this.dataService.loadAllByTrip({
       tripId: this.tripId
@@ -347,7 +347,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     this.filterPanelFloating = true;
   }
 
-  clearFilterValue(key: keyof OperationFilter, event?: UIEvent) {
+  clearFilterValue(key: keyof OperationFilter, event?: Event) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();

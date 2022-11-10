@@ -28,7 +28,7 @@ import { environment } from '@environments/environment';
 import { SamplingStrategy } from '../../services/model/sampling-strategy.model';
 import { SamplingStrategyService } from '../../services/sampling-strategy.service';
 import { StrategyService } from '../../services/strategy.service';
-import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ParameterService } from '@app/referential/services/parameter.service';
 import { debounceTime, filter, tap } from 'rxjs/operators';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
@@ -42,7 +42,7 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 
 export const SamplingStrategiesPageSettingsEnum = {
@@ -68,7 +68,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   errorDetails: any;
   parameterIdsByGroupLabel: ObjectMap<number[]>;
 
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   filterCriteriaCount = 0;
   i18nContext: {
     prefix?: string;
@@ -103,7 +103,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected taxonNameRefService: TaxonNameRefService,
     protected personService: PersonService,
     protected parameterService: ParameterService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected cd: ChangeDetectorRef
   ) {
     super(injector,
@@ -261,7 +261,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     return super.clickRow(event, row);
   }
 
-  async deleteSelection(event: UIEvent): Promise<number> {
+  async deleteSelection(event: Event): Promise<number> {
     const rowsToDelete = this.selection.selected;
 
     const strategyLabelsWithData = (rowsToDelete || [])
@@ -290,12 +290,12 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.resetError();
   }
 
-  closeFilterPanel(event?: UIEvent) {
+  closeFilterPanel(event?: Event) {
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
     this.filterPanelFloating = true;
   }
 
-  async applyFilterAndClosePanel(event?: UIEvent, waitDebounceTime?: boolean) {
+  async applyFilterAndClosePanel(event?: Event, waitDebounceTime?: boolean) {
     if (this.filterExpansionPanel) this.filterExpansionPanel.close();
     this.filterPanelFloating = true;
 
@@ -319,7 +319,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     this.resetFilter();
   }
 
-  onNewData(event: UIEvent, row: TableElement<SamplingStrategy>) {
+  onNewData(event: Event, row: TableElement<SamplingStrategy>) {
 
   }
 
@@ -428,7 +428,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     return isNotEmptyArray(periods) ? periods : undefined;
   }
 
-  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+  clearControlValue(event: Event, formControl: AbstractControl): boolean {
     if (event) event.stopPropagation(); // Avoid to enter input the field
     formControl.setValue(null);
     return false;
@@ -447,7 +447,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   // INFO CLT : Imagine 355. Sampling strategy can be duplicated with selected year.
   // We keep initial strategy and remove year related data like efforts.
   // We update year-related values like applied period as done in sampling-strategy.form.ts getValue()
-  async openStrategyDuplicateYearSelectionModal(event: UIEvent, rows: TableElement<SamplingStrategy>[]) {
+  async openStrategyDuplicateYearSelectionModal(event: Event, rows: TableElement<SamplingStrategy>[]) {
     const modal = await this.modalCtrl.create({
       component: StrategyModal,
     });

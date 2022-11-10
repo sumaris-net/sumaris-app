@@ -143,11 +143,11 @@ export class StrategiesPage implements OnInit {
     this.table?.doRefresh(event)
   }
 
-  resetFilter(event?: UIEvent) {
+  resetFilter(event?: Event) {
     this.samplingTable?.resetFilter(event);
   }
 
-  async openStrategyDuplicateModal(event: UIEvent) {
+  async openStrategyDuplicateModal(event: Event) {
     await this.samplingTable?.openStrategyDuplicateYearSelectionModal(event, this.samplingTable.selection.selected);
   }
 

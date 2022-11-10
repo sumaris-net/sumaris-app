@@ -1,14 +1,12 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, FormBuilder, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { DateUtils, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../model/observed-location.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
-import * as momentImport from 'moment';
-
-const moment = momentImport;
+import moment from 'moment';
 
 export interface ObservedLocationValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
@@ -21,19 +19,19 @@ export class ObservedLocationValidatorService
   extends DataRootEntityValidatorService<ObservedLocation, ObservedLocationValidatorOptions>{
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     settings: LocalSettingsService) {
     super(formBuilder, settings);
   }
 
-  getFormGroup(data?: ObservedLocation, opts?: ObservedLocationValidatorOptions): FormGroup {
+  getFormGroup(data?: ObservedLocation, opts?: ObservedLocationValidatorOptions): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
 
     // Add measurement form
     if (opts.withMeasurements) {
-      const measForm = form.get('measurementValues') as FormGroup;
+      const measForm = form.get('measurementValues') as UntypedFormGroup;
       // TODO: find strategy from date and location
       (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
         .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
@@ -62,7 +60,7 @@ export class ObservedLocationValidatorService
 
   }
 
-  updateFormGroup(formGroup: FormGroup, opts?: ObservedLocationValidatorOptions) {
+  updateFormGroup(formGroup: UntypedFormGroup, opts?: ObservedLocationValidatorOptions) {
     opts = this.fillDefaultOptions(opts);
 
     // Update the start date validator
@@ -97,7 +95,7 @@ export class ObservedLocationValidatorService
     if (isNotNil(opts.startDateDay)) {
       const weekday = opts.startDateDay;
       const timezone = opts.timezone;
-      validators.push((control: FormControl): ValidationErrors | null => {
+      validators.push((control: UntypedFormControl): ValidationErrors | null => {
         if (!DateUtils.isAtDay(control.value, weekday, timezone)) {
           control.markAsTouched();
           return {msg: {

@@ -230,7 +230,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     super.setValue(data, opts);
   }
 
-  async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
+  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>) {
     await this.scrollToTop();
     return super.doSubmitForm(event, row);
   }
@@ -247,7 +247,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }
 
-  async cancel(event?: UIEvent) {
+  async cancel(event?: Event) {
 
     if (this.dirty) {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);

@@ -5,7 +5,7 @@ import { ProductSaleForm } from './product-sale.form';
 import { Product } from '../services/model/product.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { TranslateService } from '@ngx-translate/core';
-import { FormArray, FormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { distinctUntilChanged } from 'rxjs/operators';
 
 export interface IProductSaleModalOptions extends IEntityEditorModalOptions<Product, number> {
@@ -22,7 +22,7 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
 
   @Input() productSalePmfms: DenormalizedPmfmStrategy[];
 
-  get form(): FormGroup {
+  get form(): UntypedFormGroup {
     return this.productSaleForm.form;
   }
 
@@ -50,7 +50,7 @@ export class ProductSaleModal extends AppEntityEditorModal<Product> implements O
 
     this.productSaleForm.markAsReady();
 
-    const formArray = this.productSaleForm.form.get('saleProducts') as FormArray;
+    const formArray = this.productSaleForm.form.get('saleProducts') as UntypedFormArray;
     formArray.statusChanges
       .pipe(distinctUntilChanged())
       .subscribe((status) => {

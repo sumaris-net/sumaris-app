@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import { ControlValueAccessor, FormBuilder, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormBuilder, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { FloatLabelType } from '@angular/material/form-field';
 import { AppFormUtils, isNil, isNotNilOrNaN } from '@sumaris-net/ngx-components';
@@ -34,7 +34,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   private _writing = false;
 
   _readonly = false;
-  _inputFormControl: FormControl;
+  _inputFormControl: UntypedFormControl;
   _inputMaxDecimals: number;
   _pattern: string;
   _format: SamplingRatioFormat = '%';
@@ -45,7 +45,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
     return this.readonly || this.formControl.disabled;
   }
 
-  @Input() formControl: FormControl;
+  @Input() formControl: UntypedFormControl;
   @Input() formControlName: string;
   @Input() required = false;
   @Input() floatLabel: FloatLabelType = 'auto';
@@ -89,7 +89,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   }
 
   constructor(
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
     private cd: ChangeDetectorRef,
     @Optional() private formGroupDir: FormGroupDirective
   ) {
@@ -106,7 +106,7 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
       this.maxDecimals = DEFAULT_MAX_DECIMALS;
     }
 
-    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as UntypedFormControl;
     if (!this.formControl) throw new Error('Missing mandatory attribute \'formControl\' or \'formControlName\' in <mat-latlong-field>.');
 
 

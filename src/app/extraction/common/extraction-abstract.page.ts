@@ -15,7 +15,7 @@ import {
   propertyComparator
 } from '@sumaris-net/ngx-components';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { first, map, mergeMap } from 'rxjs/operators';
 import { ExtractionCriteriaForm } from '../criteria/extraction-criteria.form';
 import { TranslateService } from '@ngx-translate/core';
@@ -34,7 +34,7 @@ export const DEFAULT_CRITERION_OPERATOR = '=';
 export abstract class ExtractionAbstractPage<T extends ExtractionType> extends AppTabEditor<T> {
 
   type: T;
-  form: FormGroup;
+  form: UntypedFormGroup;
   canEdit = false;
   mobile: boolean;
   startSubject = new BehaviorSubject<boolean>(false);
@@ -73,7 +73,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     protected accountService: AccountService,
     protected service: ExtractionService,
     protected settings: LocalSettingsService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected platform: PlatformService,
     protected modalCtrl: ModalController
   ) {
@@ -241,7 +241,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     });
   }
 
-  async downloadAsFile(event?: UIEvent) {
+  async downloadAsFile(event?: Event) {
     if (this.loading || isNil(this.type)) return;
 
     if (event) {
@@ -298,7 +298,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     return this.load(this.type?.id);
   }
 
-  async openHelpModal(event?: UIEvent) {
+  async openHelpModal(event?: Event) {
     if (!this.type) return;
 
     if (event) {

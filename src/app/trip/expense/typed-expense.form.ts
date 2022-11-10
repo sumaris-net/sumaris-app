@@ -1,6 +1,6 @@
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { filterNotNil, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, remove, removeAll } from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from '../services/validator/typed-expense.validator';
 import { BehaviorSubject } from 'rxjs';
@@ -40,7 +40,7 @@ export class TypedExpenseForm extends MeasurementsForm {
   constructor(
     injector: Injector,
     protected validatorService: TypedExpenseValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService
   ) {
     super(injector, validatorService, formBuilder, programRefService);

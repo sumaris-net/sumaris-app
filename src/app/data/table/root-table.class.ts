@@ -1,5 +1,5 @@
 import { Directive, Injector, Input, ViewChild } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
@@ -24,7 +24,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
 import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
-import { moment } from '@app/vendor';
 import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
@@ -33,7 +32,7 @@ import { PopoverController } from '@ionic/angular';
 import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
-
+import moment from 'moment';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: "filter"
@@ -57,7 +56,7 @@ export abstract class AppRootDataTable<
 
   canDelete: boolean;
   isAdmin: boolean;
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
   showUpdateOfflineFeature = false;
@@ -189,7 +188,7 @@ export abstract class AppRootDataTable<
     }
   }
 
-  toggleOfflineMode(event?: UIEvent) {
+  toggleOfflineMode(event?: Event) {
     if (this.network.offline) {
       this.network.setForceOffline(false);
     }
@@ -202,7 +201,7 @@ export abstract class AppRootDataTable<
     this.onRefresh.emit();
   }
 
-  async prepareOfflineMode(event?: UIEvent, opts?: {
+  async prepareOfflineMode(event?: Event, opts?: {
     toggleToOfflineMode?: boolean; // Switch to offline mode ?
     showToast?: boolean; // Display success toast ?
   }): Promise<undefined | boolean> {
@@ -319,7 +318,7 @@ export abstract class AppRootDataTable<
     this.markForCheck();
   }
 
-  async addRowToSyncStatus(event: UIEvent, value: SynchronizationStatus) {
+  async addRowToSyncStatus(event: Event, value: SynchronizationStatus) {
     if (!value || !this.mobile || this.importing) return; // Skip
 
     // If 'DIRTY' but offline not init : init this mode
@@ -362,7 +361,7 @@ export abstract class AppRootDataTable<
   }
 
 
-  clickRow(event: UIEvent|undefined, row: TableElement<T>): boolean {
+  clickRow(event: Event|undefined, row: TableElement<T>): boolean {
     if (this.importing) return; // Skip
     return super.clickRow(event, row);
   }
@@ -567,7 +566,7 @@ export abstract class AppRootDataTable<
     }
   }
 
-  async importFromFile(event?: UIEvent): Promise<any[]> {
+  async importFromFile(event?: Event): Promise<any[]> {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
       fileExtension: '.json',

@@ -352,7 +352,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
     }
   }
 
-  addRow(event: UIEvent) {
+  addRow(event: Event) {
     switch (this.selectedTabIndex) {
       case 0:
         this.samplesTable.addRow(event);

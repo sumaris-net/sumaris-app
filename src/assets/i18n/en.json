@@ -2252,6 +2252,7 @@
       "OFFLINE": "Unreachable node",
       "SELECT_MODAL": {
         "TITLE": "Network nodes",
+        "BTN_SET_MANUALLY": "Define manually",
         "HELP": "Please choose a network node to connect to:",
         "NOT_COMPATIBLE_HELP": "Required version: v{{version}} or +"
       }
@@ -2266,7 +2267,7 @@
       "IMPORTATION_SUCCEED": "Import successfully completed!<br/><b>Offline mode</b> is now available.",
       "OFFLINE": "No network connection.",
       "OFFLINE_OR_UNAUTHORIZED": "No network connection, or unauthorized access.",
-      "ONLINE": "Sucesfully connected to the network!",
+      "ONLINE": "Successfully connected to the network!",
       "OFFLINE_HELP": "The application works in <b>offline mode</b>.",
       "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>",
       "UPDATE_OFFLINE_MODE": "<b>Offline mode</b> update available.",
@@ -2333,11 +2334,14 @@
     },
     "ERROR": {
       "LOAD_USER_EVENTS_ERROR": "Error while loading notifications",
+      "COUNT_USER_EVENT_ERROR": "Error while counting notifications",
       "SAVE_USER_EVENT_ERROR": "Error while saving user notification",
-      "SEND_MESSAGE_ERROR": "Error while sending message"
+      "SUBSCRIBE_USER_EVENTS_ERROR": "Error while listening user events changes",
+      "SEND_MESSAGE_ERROR": "Error while sending message",
+      "SUBSCRIBE_JOB_PROGRESSION_ERROR": "Error while listening job progression changes"
     },
     "INFO": {
-      "MESSAGE_SENT": "Message <b>sent</b>!"
+      "MESSAGE_SENT": "Message <b>sent</b>"
     }
   },
   "FILE": {
@@ -2351,10 +2355,10 @@
       }
     },
     "UPLOAD": {
-      "DRAG_AND_DROP": "Drag and drop a file{{ extension }} here<br/>ou",
+      "DRAG_AND_DROP": "Drag and drop a file{{ extension }} here<br/>or",
       "BROWSE": "Browse",
       "IMPORTING": "Import in progress",
-      "ERROR": "Error while sending file"
+      "ERROR": "Error while uploading file"
     }
   },
   "IMAGE": {
@@ -2436,7 +2440,7 @@
     "SAVE_ENTITY_ERROR": "Error while saving",
     "SAVE_ENTITIES_ERROR": "Error while saving the list",
     "DELETE_ENTITY_ERROR": "Error while deleting. <small><br/>If the problem persists, please contact your administrator.</small>",
-    "SUBSCRIBE_ENTITY_ERROR": "Error while subscribing to remte changes",
+    "SUBSCRIBE_ENTITY_ERROR": "Error while subscribing to remote changes",
     "CONTROL_ENTITY_ERROR": "Error while checking data validity",
     "TERMINATE_ENTITY_ERROR": "Cannot terminate entry. <small><br/>If the problem persists, please contact your administrator.</small>",
     "VALIDATE_ENTITY_ERROR": "Error when validating data",

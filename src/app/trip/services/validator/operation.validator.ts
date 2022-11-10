@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, FormArray, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { PositionValidatorService } from './position.validator';
 import { AppFormUtils, FormErrors, fromDateISOString, isNil, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
@@ -22,7 +22,7 @@ import { DataValidators } from '@app/data/services/validator/data.validators';
 
 
 export interface IPmfmForm {
-  form: FormGroup;
+  form: UntypedFormGroup;
   pmfms: IPmfm[];
   markForCheck: () => void;
 }
@@ -57,7 +57,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   static readonly DEFAULT_MAX_SHOOTING_DURATION_HOURS = 12; // 12 hours
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     settings: LocalSettingsService,
     private positionValidator: PositionValidatorService,
     private fishingAreaValidator: FishingAreaValidatorService,
@@ -66,11 +66,11 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     super(formBuilder, settings);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Operation, opts?: O): FormGroup {
+  getFormGroup(data?: Operation, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
@@ -201,7 +201,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
    * @param form
    * @param opts
    */
-  updateFormGroup(form: FormGroup, opts?: O) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
 
     // DEBUG
@@ -489,7 +489,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // Max distance validators
     if (opts.withPosition) {
       if (opts.maxDistance > 0) {
-        const startPositionControl = form.controls.startPosition as FormGroup;
+        const startPositionControl = form.controls.startPosition as UntypedFormGroup;
         const lastEndPositionControl = [endPositionControl, fishingEndPositionControl, fishingStartPositionControl]
           .find(c => c?.enabled);
         if (lastEndPositionControl) {
@@ -588,7 +588,7 @@ export class OperationValidators {
 
   static requiredArrayMinLength(minLength?: number): ValidatorFn {
     minLength = minLength || 1;
-    return (array: FormArray): ValidationErrors | null => {
+    return (array: UntypedFormArray): ValidationErrors | null => {
       if (!array || array.length < minLength) {
         return {required: true};
       }
@@ -624,7 +624,7 @@ export class OperationValidators {
    */
   static listenIndividualOnDeck(event: IPmfmForm): Observable<any> | null {
     const {form, pmfms, markForCheck} = event;
-    const measFormGroup = form.controls['measurementValues'] as FormGroup;
+    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
 
     // Create listener on column 'INDIVIDUAL_ON_DECK' value changes
     const individualOnDeckPmfm = pmfms.find(pmfm => pmfm.id === PmfmIds.INDIVIDUAL_ON_DECK);
@@ -668,7 +668,7 @@ export class OperationValidators {
   }
 
 
-  static maxDistance(otherPositionForm: FormGroup, maxInMiles: number): ValidatorFn {
+  static maxDistance(otherPositionForm: UntypedFormGroup, maxInMiles: number): ValidatorFn {
     return (control): FormErrors => {
       const distance = PositionUtils.computeDistanceInMiles(otherPositionForm.value, control.value);
       if (distance > maxInMiles) {

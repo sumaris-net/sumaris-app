@@ -1,12 +1,12 @@
-import {Injectable} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
-import {VesselRegistrationPeriod} from '../model/vessel.model';
-import {fromDateISOString, isNotNil, SharedValidators, toNumber} from '@sumaris-net/ngx-components';
-import {Moment, unitOfTime} from 'moment';
-import {VesselValidatorOptions} from '@app/vessel/services/validator/vessel.validator';
-import {DateAdapter} from '@angular/material/core';
-import {TranslateService} from '@ngx-translate/core';
+import { Injectable } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { VesselRegistrationPeriod } from '../model/vessel.model';
+import { fromDateISOString, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { Moment } from 'moment';
+import { VesselValidatorOptions } from '@app/vessel/services/validator/vessel.validator';
+import { DateAdapter } from '@angular/material/core';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface VesselRegistrationValidatorOptions extends VesselValidatorOptions {
   required?: boolean;
@@ -16,16 +16,16 @@ export interface VesselRegistrationValidatorOptions extends VesselValidatorOptio
 @Injectable({providedIn: 'root'})
 export class VesselRegistrationValidatorService<O extends VesselRegistrationValidatorOptions = VesselRegistrationValidatorOptions> implements ValidatorService {
 
-  constructor(private formBuilder: FormBuilder,
+  constructor(private formBuilder: UntypedFormBuilder,
               protected dateAdapter: DateAdapter<Moment>,
               protected translate: TranslateService) {
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: VesselRegistrationPeriod, opts?: O): FormGroup {
+  getFormGroup(data?: VesselRegistrationPeriod, opts?: O): UntypedFormGroup {
     return this.formBuilder.group({
       __typename: [VesselRegistrationPeriod.TYPENAME],
       id: [toNumber(data && data.id, null)],
@@ -37,7 +37,7 @@ export class VesselRegistrationValidatorService<O extends VesselRegistrationVali
     });
   }
 
-  updateFormGroup(form: FormGroup, opts?: O) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
     const startDateControl = form.get('startDate');
 
     if (opts && opts.maxDate) {

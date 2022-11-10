@@ -1,5 +1,5 @@
 // @dynamic
-import { FormGroup, ValidatorFn } from '@angular/forms';
+import { UntypedFormGroup, ValidatorFn } from '@angular/forms';
 import { AppFormUtils, isNotNil } from '@sumaris-net/ngx-components';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 
@@ -18,7 +18,7 @@ export class DataValidators {
   }
 
   static resetCalculatedFlag(fieldName: string, fieldNamesToReset: string[]): ValidatorFn {
-    return (group: FormGroup): null => {
+    return (group: UntypedFormGroup): null => {
       const control = group.get(fieldName);
       const calculatedFieldName = fieldName + AppFormUtils.calculatedSuffix;
       const calculatedControl = group.get(calculatedFieldName);

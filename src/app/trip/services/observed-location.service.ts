@@ -52,7 +52,7 @@ import { VesselService } from '@app/vessel/services/vessel-service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { AggregatedLanding } from '@app/trip/services/model/aggregated-landing.model';
 import { AggregatedLandingService } from '@app/trip/services/aggregated-landing.service';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {

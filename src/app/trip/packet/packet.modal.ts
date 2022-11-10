@@ -15,7 +15,7 @@ export interface IPacketModalOptions {
   isNew: boolean;
   parents: IWithPacketsEntity<any, any>[];
   parentAttributes: string[];
-  onDelete: (event: UIEvent, data: Packet) => Promise<boolean>;
+  onDelete: (event: Event, data: Packet) => Promise<boolean>;
 }
 
 @Component({
@@ -38,7 +38,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
   @Input() isNew: boolean;
   @Input() parents: IWithPacketsEntity<any, any>[];
   @Input() parentAttributes: string[];
-  @Input() onDelete: (event: UIEvent, data: Packet) => Promise<boolean>;
+  @Input() onDelete: (event: Event, data: Packet) => Promise<boolean>;
 
   get enabled() {
     return this.packetForm.enabled;
@@ -112,7 +112,7 @@ export class PacketModal implements OnInit, OnDestroy, IPacketModalOptions {
     }
   }
 
-  async delete(event?: UIEvent) {
+  async delete(event?: Event) {
     if (!this.onDelete) return; // Skip
     const result = await this.onDelete(event, this.data as Packet);
     if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled

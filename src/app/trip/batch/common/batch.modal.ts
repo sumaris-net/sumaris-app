@@ -60,7 +60,7 @@ export class BatchModal implements OnInit, IBatchModalOptions {
   @Input() i18nSuffix: string;
   @Input() mobile: boolean;
 
-  @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
+  @Input() onDelete: (event: Event, data: Batch) => Promise<boolean>;
 
     @ViewChild('form', {static: true}) form: BatchForm;
 
@@ -116,7 +116,7 @@ export class BatchModal implements OnInit, IBatchModalOptions {
         await this.viewCtrl.dismiss();
     }
 
-    async close(event?: UIEvent) {
+    async close(event?: Event) {
         if (this.loading) return; // avoid many call
 
         if (this.invalid) {

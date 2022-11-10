@@ -1,5 +1,5 @@
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { DataEntity } from '../model/data-entity.model';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
@@ -15,16 +15,16 @@ export abstract class DataEntityValidatorService<
   implements ValidatorService {
 
   protected constructor(
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected settings?: LocalSettingsService
     ) {
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: T, opts?: O): FormGroup {
+  getFormGroup(data?: T, opts?: O): UntypedFormGroup {
 
     opts = this.fillDefaultOptions(opts);
 
@@ -54,7 +54,7 @@ export abstract class DataEntityValidatorService<
     return null;
   }
 
-  updateFormGroup(form: FormGroup, opts?: O) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
     // Must be override by subclasses
     console.warn(`${this.constructor.name}.updateFormGroup() not implemented yet!`);
   }

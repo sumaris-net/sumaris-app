@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormArray, FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import {SharedValidators} from "@sumaris-net/ngx-components";
 import {ExtractionProduct} from "./product.model";
 import {AppValidatorService}  from "@sumaris-net/ngx-components";
@@ -11,13 +11,13 @@ import { AggregationStrataValidatorService } from '@app/extraction/strata/strata
 export class ExtractionProductValidatorService extends AppValidatorService<ExtractionProduct> {
 
   constructor(
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected strataValidatorService: AggregationStrataValidatorService,
     ) {
     super(formBuilder);
   }
 
-  getFormGroup(data?: ExtractionProduct): FormGroup {
+  getFormGroup(data?: ExtractionProduct): UntypedFormGroup {
     return this.formBuilder.group({
       __typename: ExtractionProduct.TYPENAME,
       id: [data && data.id || null],
@@ -41,7 +41,7 @@ export class ExtractionProductValidatorService extends AppValidatorService<Extra
     });
   }
 
-  getStratumArray(data?: ExtractionProduct): FormArray {
+  getStratumArray(data?: ExtractionProduct): UntypedFormArray {
     return this.formBuilder.array(
       (data && data.stratum || []).map(this.getStrataFormGroup)
     );

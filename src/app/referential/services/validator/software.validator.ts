@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import {Software}  from "@sumaris-net/ngx-components";
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {EntityUtils}  from "@sumaris-net/ngx-components";
@@ -8,15 +8,15 @@ import {EntityUtils}  from "@sumaris-net/ngx-components";
 export class SoftwareValidatorService<T extends Software<T> = Software<any>> implements ValidatorService{
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: T): FormGroup {
+  getFormGroup(data?: T): UntypedFormGroup {
     return this.formBuilder.group({
       id: [data && data.id || null],
       label: [data && data.label || null, Validators.compose([Validators.required, Validators.max(50)])],
@@ -37,7 +37,7 @@ export class SoftwareValidatorService<T extends Software<T> = Software<any>> imp
     );
   }
 
-  getPropertyFormGroup(data?: { key: string; value?: string; }): FormGroup {
+  getPropertyFormGroup(data?: { key: string; value?: string; }): UntypedFormGroup {
     return this.formBuilder.group({
       key: [data && data.key || null, Validators.compose([Validators.required, Validators.max(50)])],
       value: [data && data.value || null, Validators.compose([Validators.required, Validators.max(100)])]

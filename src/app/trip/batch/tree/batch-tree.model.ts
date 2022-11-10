@@ -4,7 +4,7 @@ import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/b
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { MeasurementValuesTypes } from '@app/trip/services/model/measurement.model';
 
 
@@ -123,7 +123,7 @@ export class BatchModel
   originalData?: Batch;
   pmfms?: IPmfm[];
   childrenPmfms?: IPmfm[];
-  validator?: FormGroup;
+  validator?: UntypedFormGroup;
   disabled?: boolean;
   hidden?: boolean;
 

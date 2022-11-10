@@ -8,8 +8,9 @@ describe('AppRootDataReport', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ AppRootDataReport ]
-    })
+    declarations: [AppRootDataReport],
+    teardown: { destroyAfterEach: false }
+})
     .compileComponents();
   });
 

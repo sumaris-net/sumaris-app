@@ -2,15 +2,15 @@
 // `ng build ---prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
-import { Environment } from '@sumaris-net/ngx-components';
+import {StorageDrivers} from '@sumaris-net/ngx-components';
 /*
  * In development mode, to ignore zone related error stack frames such as
  * `zone.run`, `zoneDelegate.invokeTask` for easier debugging, you can
  * import the following file, but please comment it out in production mode
  * because it will have performance impact when throw error
  */
-import 'zone.js/dist/zone-error';
-import { AppEnvironment } from '@environments/environment.class';
+import 'zone.js/plugins/zone-error';
+import {AppEnvironment} from '@environments/environment.class';
 
 const pkg = require('../../package.json');
 
@@ -107,7 +107,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   // Storage
   storage: {
-    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage]
   },
 
   // Default login user

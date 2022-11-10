@@ -21,7 +21,7 @@ import { ModalController } from '@ionic/angular';
 import { StrategyValidatorService } from '../services/validator/strategy.validator';
 import { BehaviorSubject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
 import { Strategy, TaxonGroupStrategy, TaxonNameStrategy } from '../services/model/strategy.model';
 import { Program } from '../services/model/program.model';
@@ -44,7 +44,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
 
   private $isPmfmStrategyEmpty = new BehaviorSubject<boolean>(true);
 
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   $filter = new BehaviorSubject<Partial<PmfmStrategyFilter>>({});
   $allAcquisitionLevels = new BehaviorSubject<ReferentialRef[]>(undefined);
   gearListOptions = <AppListFormOptions<ReferentialRef>>{
@@ -113,7 +113,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
   @ViewChild('taxonNameList', { static: true }) taxonNameListForm: AppListForm;
   @ViewChild('pmfmsTable', { static: true }) pmfmsTable: PmfmStrategiesTable;
 
-  get form(): FormGroup {
+  get form(): UntypedFormGroup {
     return this.referentialForm.form;
   }
 
@@ -129,7 +129,7 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
 
   constructor(
     injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected settings: LocalSettingsService,
     protected validatorService: StrategyValidatorService,
     protected referentialRefService: ReferentialRefService,

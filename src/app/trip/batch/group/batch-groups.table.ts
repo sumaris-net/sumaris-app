@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { FormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
@@ -165,7 +165,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   private _speciesPmfms: IPmfm[]; // Pmfms at species level (when has QV pmfm)
   private _childrenPmfms: IPmfm[]; // Pmfms ar children levels (if has QV pmfms) or species levels (if no QV Pmfm)
 
-  weightMethodForm: FormGroup;
+  weightMethodForm: UntypedFormGroup;
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: BatchGroupColumnDefinition[];
 
@@ -680,7 +680,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return batch;
   }
 
-  async onSubBatchesClick(event: UIEvent,
+  async onSubBatchesClick(event: Event,
                           row: TableElement<BatchGroup>,
                           opts?: { showParent?: boolean; emitLoaded?: boolean; }) {
     if (event) event.preventDefault();
@@ -958,7 +958,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     if (!this.loading) this.markForCheck();
   }
 
-  deleteSelection(event: UIEvent): Promise<number> {
+  deleteSelection(event: Event): Promise<number> {
     return super.deleteSelection(event);
   }
 
@@ -1142,7 +1142,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return {data: data instanceof BatchGroup ? data : undefined, role};
   }
 
-  async openSelectColumnsModal(event?: UIEvent) {
+  async openSelectColumnsModal(event?: Event) {
 
     let userColumns = this.getUserColumns();
     const hiddenColumns = DEFAULT_USER_COLUMNS.slice(0)
@@ -1345,7 +1345,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     }
   }
 
-  private onPrepareRowForm(form?: FormGroup) {
+  private onPrepareRowForm(form?: UntypedFormGroup) {
     if (!form) return; // Skip
     console.debug('[batch-group-table] Init row validator');
 

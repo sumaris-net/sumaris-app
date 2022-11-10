@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { AlertController } from '@ionic/angular';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import {
   AccountService,
@@ -33,7 +33,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { AggregatedLandingFormOption } from './aggregated-landing.form';
 import { AggregatedLandingFilter } from '@app/trip/services/filter/aggregated-landing.filter';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 @Component({
   selector: 'app-aggregated-landings-table',
@@ -117,7 +117,7 @@ export class AggregatedLandingsTable extends AppTable<AggregatedLanding, Aggrega
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     protected vesselSnapshotService: VesselSnapshotService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected alertCtrl: AlertController,
     protected translate: TranslateService,
     protected cd: ChangeDetectorRef,

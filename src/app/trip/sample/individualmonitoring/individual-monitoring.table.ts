@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { SubSampleValidatorService } from '../../services/validator/sub-sample.validator';
-import { FormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import { AcquisitionLevelCodes, PmfmIds } from '../../../referential/services/model/model.enum';
 import { SubSamplesTable } from '../sub-samples.table';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
@@ -35,7 +35,7 @@ export class IndividualMonitoringTable extends SubSamplesTable implements OnInit
           .subscribe((isDeadValue) => {
             if (!this.editedRow) return; // Should never occur
             const row = this.editedRow;
-            const controls = (row.validator.get('measurementValues') as FormGroup).controls;
+            const controls = (row.validator.get('measurementValues') as UntypedFormGroup).controls;
             if (isDeadValue) {
               if (controls[PmfmIds.DEATH_TIME]) {
                 if (row.validator.enabled) {

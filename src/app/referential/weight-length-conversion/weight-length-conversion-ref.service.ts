@@ -65,7 +65,6 @@ export class WeightLengthConversionRefService
     protected platform: PlatformService,
     protected network: NetworkService,
     protected cache: CacheService,
-    protected cryptoService: CryptoService,
     protected entities: EntitiesStorage
   ) {
     super(graphql, platform,
@@ -143,7 +142,7 @@ export class WeightLengthConversionRefService
     if (!opts || opts.cache !== false) {
       const cacheKey = [
         CacheKeys.LOAD,
-        this.cryptoService.sha256(JSON.stringify(filter.asObject())).substring(0,8)
+        CryptoService.sha256(JSON.stringify(filter.asObject())).substring(0,8)
       ].join('|');
       return this.cache.getOrSetItem(cacheKey,
         () => this.loadByFilter(filter, {...opts, cache: false})

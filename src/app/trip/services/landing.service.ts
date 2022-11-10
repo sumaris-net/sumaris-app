@@ -48,7 +48,6 @@ import { ErrorCodes } from '@app/data/services/errors';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-import { moment } from '@app/vendor';
 import { TripFilter } from '@app/trip/services/filter/trip.filter';
 import { Moment } from 'moment/moment';
 
@@ -842,7 +841,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     const maxProgression = opts && opts.maxProgression || 100;
 
     filter = {
-      startDate: moment().startOf('day').add(-15, 'day'),
+      startDate: DateUtils.moment().startOf('day').add(-15, 'day'),
       ...filter
     };
 

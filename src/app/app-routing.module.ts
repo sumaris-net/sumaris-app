@@ -1,7 +1,8 @@
 import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
-import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
+import {AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule} from '@sumaris-net/ngx-components';
 import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
+import { environment } from '@environments/environment';
 
 const routes: Routes = [
   // Core path
@@ -105,32 +106,42 @@ const routes: Routes = [
       // Shared module
       {
         path: 'shared',
-        loadChildren: () => import('./shared/shared.testing.module').then(m => m.AppSharedTestingModule)
+        loadChildren: () => import('./shared/shared.testing.module').then(m => m.AppSharedTestingModule),
+        data: {
+          preload: false
+        }
       },
       // Core module
       {
         path: 'core',
-        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.CoreTestingModule)
+        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.CoreTestingModule),
+        data: {
+          preload: false
+        }
       },
       // Social module
       {
         path: 'social',
-        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SocialTestingModule)
+        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SocialTestingModule),
+        data: {
+          preload: false
+        }
       },
       // Trip module
       {
         path: 'trip',
-        loadChildren: () => import('./trip/trip.testing.module').then(m => m.TripTestingModule)
+        loadChildren: () => import('./trip/trip.testing.module').then(m => m.TripTestingModule),
+        data: {
+          preload: false
+        }
       },
       // Referential module
       {
         path: 'referential',
-        loadChildren: () => import('./referential/referential.testing.module').then(m => m.ReferentialTestingModule)
-      },
-      // Image module
-      {
-        path: 'image',
-        loadChildren: () => import('./image/image.testing.module').then(m => m.ImageTestingModule)
+        loadChildren: () => import('./referential/referential.testing.module').then(m => m.ReferentialTestingModule),
+        data: {
+          preload: false
+        }
       }
     ]
   },
@@ -157,6 +168,9 @@ const routes: Routes = [
   exports: [
     RouterModule,
     SharedRoutingModule
+  ],
+  providers: [
+    {provide: ComponentDirtyGuard, useClass: ComponentDirtyGuard}
   ]
 })
 export class AppRoutingModule {

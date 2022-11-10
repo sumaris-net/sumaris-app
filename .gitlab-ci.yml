@@ -291,6 +291,7 @@ docker:feature:
     IMAGE_TAG: feature
   only:
     - /^feature\/.*/
+    - /^features\/.*/
   when: manual
 
 docker:release:
@@ -303,9 +304,9 @@ docker:release:
 
 docker:release:tags:
   extends: .docker-build
+  needs: [release:tags]
   variables:
     IMAGE_TAG: ${CI_COMMIT_TAG}
-  needs: [release:tags]
   only:
     - tags
 

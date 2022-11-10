@@ -28,7 +28,7 @@ import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/ex
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { ExtractionService } from '../common/extraction.service';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { MatTable } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -88,7 +88,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     accountService: AccountService,
     service: ExtractionService,
     settings: LocalSettingsService,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
@@ -350,7 +350,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }
   }
 
-  async aggregateAndSave(event?: UIEvent) {
+  async aggregateAndSave(event?: Event) {
     if (!this.type || !this.canCreateProduct) return; // Skip
 
     this.markAsLoading();
@@ -400,7 +400,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }
   }
 
-  async save(event?: UIEvent) {
+  async save(event?: Event) {
     if (!this.type) return; // Skip
 
     this.markAsLoading();
@@ -448,7 +448,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }
   }
 
-  async delete(event?: UIEvent) {
+  async delete(event?: Event) {
     if (!this.type || isNil(this.type.id)) return;
 
     if (this.type.category !== ExtractionCategories.PRODUCT) {
@@ -490,7 +490,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   }
 
-  async openMap(event?: UIEvent) {
+  async openMap(event?: Event) {
     if (this.type?.isSpatial !== true) return; // Skip
 
     if (event) {
@@ -511,7 +511,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }, 200); // Add a delay need by matTooltip to be hide
   }
 
-  openProduct(type?: ExtractionType, event?: UIEvent) {
+  openProduct(type?: ExtractionType, event?: Event) {
     type = type || this.type;
 
     if (event) {
@@ -530,12 +530,12 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }, 100);
   }
 
-  applyFilterAndClosePanel(event?: UIEvent) {
+  applyFilterAndClosePanel(event?: Event) {
     this.onRefresh.emit(event);
     this.filterExpansionPanel.close();
   }
 
-  resetFilter(event?: UIEvent) {
+  resetFilter(event?: Event) {
     this.criteriaForm.reset();
     this.applyFilterAndClosePanel(event);
   }
@@ -621,7 +621,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     return ExtractionType.equals(t1, t2);
   }
 
-  protected askDeleteConfirmation(event?: UIEvent): Promise<boolean> {
+  protected askDeleteConfirmation(event?: Event): Promise<boolean> {
     return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
   }
 

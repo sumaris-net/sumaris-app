@@ -1,29 +1,19 @@
-import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { FormGroup, ValidationErrors } from '@angular/forms';
-import { Subscription } from 'rxjs';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import {
-  AccountService,
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  firstNotNilPromise,
-  HistoryPageReference,
-  isNil,
-  isNotNil,
-  isNotNilOrBlank,
-  SharedValidators
-} from '@sumaris-net/ngx-components';
-import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
-import { LandingPage } from '../landing.page';
-import { Landing } from '../../services/model/landing.model';
-import { ObservedLocation } from '../../services/model/observed-location.model';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
-import { Strategy } from '@app/referential/services/model/strategy.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { LandingService } from '@app/trip/services/landing.service';
-import { Trip } from '@app/trip/services/model/trip.model';
+import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
+import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
+import {Subscription} from 'rxjs';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups} from '@app/referential/services/model/model.enum';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, isNotNilOrBlank, SharedValidators} from '@sumaris-net/ngx-components';
+import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
+import {LandingPage} from '../landing.page';
+import {Landing} from '../../services/model/landing.model';
+import {ObservedLocation} from '../../services/model/observed-location.model';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import {Strategy} from '@app/referential/services/model/strategy.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {LandingService} from '@app/trip/services/landing.service';
+import {Trip} from '@app/trip/services/model/trip.model';
 
 
 @Component({
@@ -271,7 +261,7 @@ export class SamplingLandingPage extends LandingPage {
     return `${parentUrl}/sampling/${id}`;
   }
 
-  protected registerSampleRowValidator(form: FormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
+  protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug('[sampling-landing-page] Adding row validator');
 
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.samplesTable.pmfmGroups || {}, {

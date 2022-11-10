@@ -8,8 +8,9 @@ describe('OperationReport', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ OperationReport ]
-    })
+    declarations: [OperationReport],
+    teardown: { destroyAfterEach: false }
+})
     .compileComponents();
   });
 

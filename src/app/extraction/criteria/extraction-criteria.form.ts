@@ -18,7 +18,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { CRITERION_OPERATOR_LIST, CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { ExtractionService } from '../common/extraction.service';
-import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { filter, map } from 'rxjs/operators';
 import { ExtractionCriteriaValidatorService } from './extraction-criterion.validator';
 
@@ -78,15 +78,15 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     }
   }
 
-  get sheetCriteriaForm(): FormArray {
-    return this._sheetName && (this.form.get(this._sheetName) as FormArray) || undefined;
+  get sheetCriteriaForm(): UntypedFormArray {
+    return this._sheetName && (this.form.get(this._sheetName) as UntypedFormArray) || undefined;
   }
 
   get criteriaCount(): number {
     return Object.values(this.form.controls)
-      .map(sheetForm => (sheetForm as FormArray))
+      .map(sheetForm => (sheetForm as UntypedFormArray))
       .map(sheetForm => sheetForm.controls
-        .map(criterionForm => (criterionForm as FormGroup).value)
+        .map(criterionForm => (criterionForm as UntypedFormGroup).value)
         .filter(ExtractionFilterCriterion.isNotEmpty)
         .length
       )
@@ -95,7 +95,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
   constructor(
     injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected route: ActivatedRoute,
     protected router: Router,
     protected translate: TranslateService,
@@ -145,7 +145,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     // Skip if same, or loading
     if (isNil(sheetName) || this._sheetName === sheetName) return;
 
-    let sheetCriteriaForm = this.form.get(sheetName) as FormArray;
+    let sheetCriteriaForm = this.form.get(sheetName) as UntypedFormArray;
 
     // No criterion array found, for this sheet: create a new
     if (!sheetCriteriaForm) {
@@ -169,7 +169,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     let index = -1;
 
     const sheetName = criterion && criterion.sheetName || this.sheetName;
-    let arrayControl = this.form.get(sheetName) as FormArray;
+    let arrayControl = this.form.get(sheetName) as UntypedFormArray;
     if (!arrayControl) {
       arrayControl = this.formBuilder.array([]);
       this.form.addControl(sheetName, arrayControl);
@@ -191,7 +191,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     // Replace the existing criterion value
     if (index >= 0) {
       if (criterion && criterion.name) {
-        const criterionForm = arrayControl.at(index) as FormGroup;
+        const criterionForm = arrayControl.at(index) as UntypedFormGroup;
         const existingCriterion = criterionForm.value as ExtractionFilterCriterion;
         opts.appendValue = opts.appendValue && isNotNil(criterion.value) && isNotNil(existingCriterion.value)
           && (existingCriterion.operator === '=' || existingCriterion.operator === '!=');
@@ -236,7 +236,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
   hasFilterCriteria(sheetName?: string): boolean {
     sheetName = sheetName || this.sheetName;
-    const sheetCriteriaForm = sheetName && (this.form.get(sheetName) as FormArray);
+    const sheetCriteriaForm = sheetName && (this.form.get(sheetName) as UntypedFormArray);
     return sheetCriteriaForm && sheetCriteriaForm.controls
       .map(c => c.value)
       .findIndex(ExtractionFilterCriterion.isNotEmpty) !== -1;
@@ -303,7 +303,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     const arrayControl = this.sheetCriteriaForm;
     if (!arrayControl) return;
 
-    const criterionForm = arrayControl.at(index) as FormGroup;
+    const criterionForm = arrayControl.at(index) as UntypedFormGroup;
     columnName = columnName || (criterionForm && criterionForm.controls.name.value);
     const operator = criterionForm && criterionForm.controls.operator.value || '=';
     const definition = (operator === 'NULL' || operator === 'NOT NULL')

@@ -1,7 +1,7 @@
 import {Directive, Injector, Input, OnDestroy, OnInit} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {FormBuilder, FormGroup} from '@angular/forms';
+import {UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
 import {
   Alerts,
   AppFormUtils,
@@ -9,8 +9,8 @@ import {
   Entity,
   EntityFilter,
   filterNotNil,
-  firstNotNilPromise, firstTrue,
-  firstTruePromise,
+  firstNotNilPromise,
+  firstTrue,
   IEntitiesService,
   isNil,
   isNotEmptyArray,
@@ -27,7 +27,7 @@ import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
-import {distinctUntilChanged, filter, first, map, mergeMap} from 'rxjs/operators';
+import {distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
 import {AppBaseTable, BaseTableConfig} from '@app/shared/table/base.table';
 import {BaseValidatorService} from '@app/shared/service/base.validator.service';
 
@@ -39,7 +39,7 @@ export interface BaseMeasurementsTableConfig<
 
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
-  onPrepareRowForm?: (form: FormGroup) => void | Promise<void>;
+  onPrepareRowForm?: (form: UntypedFormGroup) => void | Promise<void>;
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
   requiredStrategy?: boolean;
   requiredGear?: boolean;
@@ -71,7 +71,7 @@ export abstract class BaseMeasurementsTable<
 
   protected programRefService: ProgramRefService;
   protected pmfmNamePipe: PmfmNamePipe;
-  protected formBuilder: FormBuilder;
+  protected formBuilder: UntypedFormBuilder;
 
   protected readonly $measurementValuesFormGroupConfig = new BehaviorSubject<{ [key: string]: any }>(null);
   i18nPmfmPrefix: string = null;
@@ -221,7 +221,7 @@ export abstract class BaseMeasurementsTable<
     this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
     this.programRefService = injector.get(ProgramRefService);
     this.pmfmNamePipe = injector.get(PmfmNamePipe);
-    this.formBuilder = injector.get(FormBuilder);
+    this.formBuilder = injector.get(UntypedFormBuilder);
     this.defaultPageSize = -1; // Do not use paginator
     this.hasRankOrder = Object.getOwnPropertyNames(new dataType()).findIndex(key => key === 'rankOrder') !== -1;
     this.markAsLoaded({emitEvent: false});
@@ -319,7 +319,7 @@ export abstract class BaseMeasurementsTable<
     this.measurementsDataService.pmfms = pmfms;
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     const formGroup = this.validatorService.getRowValidator();
 
     // Create the measurement values form (is exists)

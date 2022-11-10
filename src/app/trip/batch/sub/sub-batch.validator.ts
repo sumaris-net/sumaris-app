@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   isEmptyArray,
   isNil,
@@ -36,7 +36,7 @@ import { DataContext } from '@app/data/services/model/data-context.model';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ContextService } from '@app/shared/context.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;
@@ -53,7 +53,7 @@ export interface SubBatchValidatorValidatorOptions extends DataEntityValidatorOp
 export class SubBatchValidatorService extends DataEntityValidatorService<SubBatch, SubBatchValidatorValidatorOptions> {
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     settings: LocalSettingsService,
     protected wlService: WeightLengthConversionRefService,
     protected rwService: RoundWeightConversionRefService,
@@ -87,7 +87,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     };
   }
 
-  getFormGroup(data?: SubBatch, opts?: SubBatchValidatorValidatorOptions): FormGroup {
+  getFormGroup(data?: SubBatch, opts?: SubBatchValidatorValidatorOptions): UntypedFormGroup {
     const form = super.getFormGroup(data, opts);
 
     // Add weight sub form
@@ -102,7 +102,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     return form;
   }
 
-  updateFormGroup(form: FormGroup, opts?: SubBatchValidatorValidatorOptions) {
+  updateFormGroup(form: UntypedFormGroup, opts?: SubBatchValidatorValidatorOptions) {
 
     // Add/remove weight form group, if need
     if (opts?.withWeight) {
@@ -132,7 +132,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     })
   }
 
-  async enableWeightLengthConversion(form: FormGroup, opts: {
+  async enableWeightLengthConversion(form: UntypedFormGroup, opts: {
     pmfms: IPmfm[];
     qvPmfm?: IPmfm;
     // Context
@@ -220,7 +220,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     required?: boolean;
     maxDecimals?: number;
     pmfm?: IPmfm;
-  }): FormGroup {
+  }): UntypedFormGroup {
     // DEBUG
     console.debug('[sub-batch-validator] Creating weight form group...', opts);
     return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
@@ -282,7 +282,7 @@ export class SubBatchValidators {
   }): ValidatorFn {
 
 
-    return (control) => SubBatchValidators.computeWeightLengthConversion(control as FormGroup,
+    return (control) => SubBatchValidators.computeWeightLengthConversion(control as UntypedFormGroup,
       wlService, rwService,
       {...opts, emitEvent: false, onlySelf: false})
   }
@@ -294,7 +294,7 @@ export class SubBatchValidators {
    * @param rwService
    * @param opts
    */
-  private static async computeWeightLengthConversion(form: FormGroup,
+  private static async computeWeightLengthConversion(form: UntypedFormGroup,
                                                      wlService: WeightLengthConversionRefService,
                                                      rwService: RoundWeightConversionRefService,
                                                      opts: {

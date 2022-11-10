@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import { fromDateISOString, SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
 import {toBoolean} from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
@@ -23,18 +23,18 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
   extends DataRootEntityValidatorService<Sale, SaleValidatorOptions> {
 
   constructor(
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected dateAdapter: DateAdapter<Moment>,
     protected translate: TranslateService,
     protected settings: LocalSettingsService) {
     super(formBuilder, settings);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Sale, opts?: O): FormGroup {
+  getFormGroup(data?: Sale, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
     return this.formBuilder.group(
       this.getFormGroupConfig(data, opts),
@@ -70,7 +70,7 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
     };
   }
 
-  updateFormGroup(form: FormGroup, opts?: O): FormGroup {
+  updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     if (opts.required === true) {

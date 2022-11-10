@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ValidatorService} from '@e-is/ngx-material-table';
-import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
 import {LocalSettingsService, SharedFormArrayValidators, toBoolean} from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementFormValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from '../model/measurement.model';
@@ -21,15 +21,15 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   implements ValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected settings: LocalSettingsService) {
   }
 
-  getRowValidator(opts?: O): FormGroup {
+  getRowValidator(opts?: O): UntypedFormGroup {
     return this.getFormGroup(null, opts);
   }
 
-  getFormGroup(data: T[] | MeasurementFormValues, opts?: O): FormGroup {
+  getFormGroup(data: T[] | MeasurementFormValues, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     return this.formBuilder.group(
@@ -73,7 +73,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     return null;
   }
 
-  updateFormGroup(form: FormGroup, opts?: O) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
 
     const controlNamesToRemove = Object.getOwnPropertyNames(form.controls)

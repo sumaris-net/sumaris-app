@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import { AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, FormGroup, Validators } from '@angular/forms';
 import {SharedValidators} from "@sumaris-net/ngx-components";
 import {Sample} from "../model/sample.model";
 import {toNumber} from "@sumaris-net/ngx-components";
@@ -16,7 +16,7 @@ export interface SubSampleValidatorOptions extends SampleValidatorOptions{
 export class SubSampleValidatorService extends SampleValidatorService<SubSampleValidatorOptions> {
 
   constructor(
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected translate: TranslateService) {
     super(formBuilder, translate);
   }

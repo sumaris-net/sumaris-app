@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
-import { FormArray, FormBuilder } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ModalController } from '@ionic/angular';
 import { FormArrayHelper, isNotNilOrBlank, NetworkService, ReferentialRef, ReferentialUtils } from '@sumaris-net/ngx-components';
@@ -30,8 +30,8 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
   onRefresh = new EventEmitter<any>();
   dates: Moment[];
 
-  get metiersForm(): FormArray {
-    return this.form.controls.metiers as FormArray;
+  get metiersForm(): UntypedFormArray {
+    return this.form.controls.metiers as UntypedFormArray;
   }
 
   metierFilter: MetierFilter = MetierFilter.fromObject(METIER_DEFAULT_FILTER);
@@ -42,7 +42,7 @@ export class VesselActivityForm extends MeasurementValuesForm<VesselActivity> im
 
   constructor(
     injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected dataService: AggregatedLandingService,
     protected programRefService: ProgramRefService,
     protected validatorService: VesselActivityValidatorService,

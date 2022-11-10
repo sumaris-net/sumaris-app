@@ -1,4 +1,4 @@
-import {FormGroup, ValidationErrors, Validators} from "@angular/forms";
+import {UntypedFormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {Subject, Subscription} from "rxjs";
 import {debounceTime, filter, map, startWith, tap} from "rxjs/operators";
 import {PmfmIds} from "../../../referential/services/model/model.enum";
@@ -9,7 +9,7 @@ import {IPmfm} from "../../../referential/services/model/pmfm.model";
 
 export class AuctionControlValidators {
 
-  static addSampleValidators(form: FormGroup, pmfms: IPmfm[],
+  static addSampleValidators(form: UntypedFormGroup, pmfms: IPmfm[],
                              opts?: { markForCheck: () => void }): Subscription {
     if (!form) {
       console.warn("Argument 'form' required");
@@ -68,7 +68,7 @@ export class AuctionControlValidators {
    * @param pmfms
    * @param opts
    */
-  static computeAndValidate(form: FormGroup,
+  static computeAndValidate(form: UntypedFormGroup,
                             pmfms: IPmfm[],
                             opts?: {
     emitEvent?: boolean;
@@ -84,7 +84,7 @@ export class AuctionControlValidators {
     const indivCountPmfm = pmfms.find(p => p.id === PmfmIds.SAMPLE_INDIV_COUNT);
 
     // Get controls
-    const measFormGroup = form.controls['measurementValues'] as FormGroup;
+    const measFormGroup = form.controls['measurementValues'] as UntypedFormGroup;
     const outOfSizeWeightControl = measFormGroup.controls[PmfmIds.OUT_OF_SIZE_WEIGHT];
     const outOfSizeCountControl = measFormGroup.controls[PmfmIds.OUT_OF_SIZE_INDIV_COUNT];
     const outOfSizePctControl = measFormGroup.controls[PmfmIds.OUT_OF_SIZE_PCT];

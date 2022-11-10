@@ -268,7 +268,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
   }
 
 
-  async deleteEntity(event: UIEvent, data: Sample): Promise<boolean> {
+  async deleteEntity(event: Event, data: Sample): Promise<boolean> {
     const row = await this.findRowByEntity(data);
 
     // Row not exists: OK
@@ -366,7 +366,7 @@ export class SubSamplesTable extends BaseMeasurementsTable<Sample, SampleFilter>
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit(row);
       return true;
     }
 

@@ -2,7 +2,8 @@ import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity,
 import {MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol} from './model.enum';
 import {Parameter, ParameterType} from './parameter.model';
 import {PmfmValue} from './pmfm-value.model';
-import {Moment} from 'moment';import { FullReferential } from '@app/referential/services/model/referential.model';
+import {Moment} from 'moment';
+import { FullReferential } from '@app/referential/services/model/referential.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 

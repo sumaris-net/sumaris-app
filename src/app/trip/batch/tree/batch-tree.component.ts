@@ -18,7 +18,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { AlertController } from '@ionic/angular';
 import { BehaviorSubject, defer, merge, Observable } from 'rxjs';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, switchMap } from 'rxjs/operators';
 import { Batch } from '../common/batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
@@ -73,7 +73,7 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   // Methods
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]);
   autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean}): Promise<void>;
-  addRow(event: UIEvent);
+  addRow(event: Event);
   getFirstInvalidTabIndex(): number;
 }
 
@@ -521,7 +521,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
   /* -- protected method -- */
 
-  protected get form(): FormGroup {
+  protected get form(): UntypedFormGroup {
     return this.catchBatchForm.form;
   }
 
@@ -653,7 +653,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     });
   }
 
-  addRow(event: UIEvent) {
+  addRow(event: Event) {
     switch (this.selectedTabIndex) {
       case 0:
         this.batchGroupsTable.addRow(event);

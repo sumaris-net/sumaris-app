@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { ExtractionColumn, ExtractionFilterCriterion } from '../type/extraction-type.model';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ReferentialForm } from '../../referential/form/referential.form';
 import { BehaviorSubject } from 'rxjs';
 import { AppForm, arraySize, EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, LocalSettingsService, StatusIds } from '@sumaris-net/ngx-components';
@@ -45,7 +45,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     }
   ];
 
-  stratumFormArray: FormArray;
+  stratumFormArray: UntypedFormArray;
   stratumHelper: FormArrayHelper<AggregationStrata>;
 
   showMarkdownPreview = true;
@@ -70,8 +70,8 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     this.setValue(value);
   }
 
-  get strataForms(): FormGroup[] {
-    return this.stratumFormArray.controls as FormGroup[];
+  get strataForms(): UntypedFormGroup[] {
+    return this.stratumFormArray.controls as UntypedFormGroup[];
   }
 
   get isSpatial(): boolean {
@@ -94,7 +94,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
   }
 
   constructor(injector: Injector,
-              protected formBuilder: FormBuilder,
+              protected formBuilder: UntypedFormBuilder,
               protected settings: LocalSettingsService,
               protected validatorService: ExtractionProductValidatorService,
               protected service: ProductService,
@@ -103,7 +103,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
       validatorService.getFormGroup());
 
     // Stratum
-    this.stratumFormArray = this.form.controls.stratum as FormArray;
+    this.stratumFormArray = this.form.controls.stratum as UntypedFormArray;
     this.stratumHelper = new FormArrayHelper<AggregationStrata>(
       this.stratumFormArray,
       (strata) => validatorService.getStrataFormGroup(strata),

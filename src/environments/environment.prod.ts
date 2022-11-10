@@ -1,4 +1,5 @@
-import { AppEnvironment } from '@environments/environment.class';
+import {AppEnvironment} from '@environments/environment.class';
+import {StorageDrivers} from '@sumaris-net/ngx-components';
 
 const pkg = require('../../package.json')
 
@@ -64,7 +65,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   // Storage
   storage: {
-    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage]
   },
 
   account: {

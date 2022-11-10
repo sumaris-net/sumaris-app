@@ -105,7 +105,7 @@ export class StrategySummaryCardComponent<T extends Strategy<T> = Strategy<any>>
     }
   }
 
-  async open(event?: UIEvent): Promise<boolean> {
+  async open(event?: Event): Promise<boolean> {
     console.debug('[strategy-summary-card] Opening strategy...');
 
     const programId = this.data && this.data.programId;

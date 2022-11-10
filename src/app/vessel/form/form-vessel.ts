@@ -4,7 +4,7 @@ import { Vessel } from '../services/model/vessel.model';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { AccountService, AppForm, AppFormUtils, isNil, LocalSettingsService, ReferentialRef, StatusById, StatusIds, StatusList, toBoolean } from '@sumaris-net/ngx-components';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { Moment } from 'moment';
 
 @Directive({ selector: 'input[toRegistrationCode]'})
@@ -100,12 +100,12 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
   }
 
 
-  get registrationForm(): FormGroup {
-    return this.form.controls.vesselRegistrationPeriod as FormGroup;
+  get registrationForm(): UntypedFormGroup {
+    return this.form.controls.vesselRegistrationPeriod as UntypedFormGroup;
   }
 
-  get featuresForm(): FormGroup {
-    return this.form.controls.vesselFeatures as FormGroup;
+  get featuresForm(): UntypedFormGroup {
+    return this.form.controls.vesselFeatures as UntypedFormGroup;
   }
 
   constructor(

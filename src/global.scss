@@ -31,7 +31,7 @@
 
   // Extra small device
   @media screen and (max-width: #{$screen-xs-max}) {
-    --mat-toolbar-height: #{$mat-toolbar-height-mobile};
+    --mat-toolbar-height: #{56px};
   }
 
   ion-icon {

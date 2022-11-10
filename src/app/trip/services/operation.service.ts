@@ -58,8 +58,7 @@ import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential
 import { environment } from '@environments/environment';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
-import { GeolocationOptions } from '@ionic-native/geolocation';
+import { Geolocation, GeolocationOptions } from '@awesome-cordova-plugins/geolocation/ngx';
 import moment from 'moment';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';

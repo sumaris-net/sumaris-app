@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
-import { FormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
   AppFormUtils,
   EntityFilter,
@@ -264,7 +264,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
           .subscribe((value) => {
             if (!this.editedRow) return; // Should never occur
             const row = this.editedRow;
-            const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+            const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
             if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
               if (controls[PmfmIds.DISCARD_REASON]) {
                 if (row.validator.enabled) {
@@ -293,7 +293,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
             const row = this.editedRow;
 
             const formEnabled = row.validator.enabled;
-            const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+            const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
 
             (this.pmfms || []).forEach(pmfm => {
               const enable = !pmfm.isComputed &&
@@ -328,7 +328,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     this.memoryDataService = null;
   }
 
-  async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
+  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>) {
     // Skip if loading,
     // or if previous edited row not confirmed
     if (this.loading) return;
@@ -615,7 +615,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit(row);
       return true;
     }
 
@@ -847,7 +847,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     this.cd.markForCheck();
   }
 
-  private async onPrepareRowForm(form: FormGroup) {
+  private async onPrepareRowForm(form: UntypedFormGroup) {
     if (!form) return; // Skip
     console.debug('[sub-batches-table] Initializing row validator');
 

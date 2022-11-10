@@ -1,5 +1,5 @@
 import {Injectable, Optional} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import {LocalSettingsService, SharedValidators, toBoolean, toNumber} from '@sumaris-net/ngx-components';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {MeasurementsValidatorService} from './measurement.validator';
@@ -21,20 +21,20 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   extends DataRootVesselEntityValidatorService<Landing, O> {
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected measurementsValidatorService: MeasurementsValidatorService,
     @Optional() settings?: LocalSettingsService
   ) {
     super(formBuilder, settings);
   }
 
-  getFormGroup(data?: Landing, opts?: O): FormGroup {
+  getFormGroup(data?: Landing, opts?: O): UntypedFormGroup {
 
     const form = super.getFormGroup(data, opts);
 
     // Add measurement form
     if (opts && opts.withMeasurements) {
-      const measForm = form.get('measurementValues') as FormGroup;
+      const measForm = form.get('measurementValues') as UntypedFormGroup;
       const pmfms = (opts.strategy && opts.strategy.denormalizedPmfms)
         || (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms)
         || [];

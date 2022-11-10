@@ -3,7 +3,7 @@ import { ObservedLocationForm } from './observed-location.form';
 import { ObservedLocationService } from '../services/observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
@@ -42,7 +42,7 @@ import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 
 const ObservedLocationPageTabs = {
@@ -158,10 +158,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  async onOpenLanding({id, row}) {
+  async onOpenLanding(row) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${id}`);
+    if (row && savedOrContinue) {
+      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${row.currentData.id}`);
     }
   }
 
@@ -338,7 +338,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return false;
   }
 
-  async openReport(event?: UIEvent) {
+  async openReport(event?: Event) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
@@ -523,7 +523,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  protected get form(): FormGroup {
+  protected get form(): UntypedFormGroup {
     return this.observedLocationForm.form;
   }
 

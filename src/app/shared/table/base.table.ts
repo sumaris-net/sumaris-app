@@ -17,7 +17,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { TableElement } from '@e-is/ngx-material-table';
 import { PredefinedColors } from '@ionic/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
@@ -83,7 +83,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
   @ViewChild('tableContainer', { read: ElementRef }) tableContainerRef: ElementRef;
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
-  filterForm: FormGroup = null;
+  filterForm: UntypedFormGroup = null;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
   highlightedRowId: number;
@@ -213,7 +213,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.markForCheck();
   }
 
-  applyFilterAndClosePanel(event?: UIEvent) {
+  applyFilterAndClosePanel(event?: Event) {
     const filter = this.filterForm.value;
     this.setFilter(filter, {emitEvent: false});
     this.onRefresh.emit(event);
@@ -231,7 +231,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
-  clickRow(event: UIEvent|undefined, row: TableElement<E>): boolean {
+  clickRow(event: Event|undefined, row: TableElement<E>): boolean {
     if (!this.inlineEdition) this.highlightedRowId = row?.id;
 
     //console.debug('[base-table] click row');
@@ -400,7 +400,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return row;
   }
 
-  async deleteEntity(event: UIEvent, data: E): Promise<boolean> {
+  async deleteEntity(event: Event, data: E): Promise<boolean> {
     const row = await this.findRowByEntity(data);
 
     // Row not exists: OK
@@ -456,7 +456,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.settings.savePageSetting(this.settingsId, this.compact, BASE_TABLE_SETTINGS_ENUM.compactRowsKey);
   }
 
-  async openCommentPopover(event: UIEvent, row: TableElement<SubBatch>) {
+  async openCommentPopover(event: Event, row: TableElement<SubBatch>) {
 
     const placeholder = this.translate.instant('REFERENTIAL.COMMENTS');
     const {data} = await Popovers.showText(this.popoverController, event, {

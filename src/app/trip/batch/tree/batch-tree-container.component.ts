@@ -38,7 +38,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
-import { FormArray, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
@@ -74,7 +74,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   treeControl = new NestedTreeControl<BatchModel>(node => node.children);
   treeDataSource = new MatTreeNestedDataSource<BatchModel>();
   filterPanelFloating = true;
-  _form: FormGroup;
+  _form: UntypedFormGroup;
   _model: BatchModel;
   _showBatchTables: boolean;
 
@@ -186,7 +186,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return this.data;
   }
 
-  get form(): FormGroup {
+  get form(): UntypedFormGroup {
     return this._form;
   }
 
@@ -424,7 +424,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   private _listenStatusChangesSubscription: Subscription;
 
-  async startEditBatch(event: UIEvent, source: BatchModel) {
+  async startEditBatch(event: Event, source: BatchModel) {
 
     event?.stopImmediatePropagation();
 
@@ -552,7 +552,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   hasChild = (_: number, model: BatchModel) => !model.isLeaf;
 
-  async createForm(model?: BatchModel, level = 0): Promise<FormGroup> {
+  async createForm(model?: BatchModel, level = 0): Promise<UntypedFormGroup> {
 
     const isCatchBatch = level === 0;
     if (isCatchBatch && this.debug) console.debug(this.logPrefix + 'Creating batch model validator...', model);
@@ -573,9 +573,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     if (!model.isLeaf) {
       // Recursive call, on each children model
-      const childrenFormGroups: FormGroup[] = await Promise.all((model.children || [])
+      const childrenFormGroups: UntypedFormGroup[] = await Promise.all((model.children || [])
         .map(c => this.createForm(c, level+1)));
-      const childrenFormArray = new FormArray(childrenFormGroups);
+      const childrenFormArray = new UntypedFormArray(childrenFormGroups);
       if (form.contains('children')) form.setControl('children', childrenFormArray)
       else form.addControl('children', childrenFormArray);
     }
@@ -624,7 +624,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.markForCheck();
   }
 
-  openFilterPanel(event?: UIEvent, opts?: {expandAll?: boolean}) {
+  openFilterPanel(event?: Event, opts?: {expandAll?: boolean}) {
     if (event?.defaultPrevented) return; // Cancelled
 
     // First, expand model tree
@@ -642,7 +642,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.markForCheck();
   }
 
-  addRow(event: UIEvent) {
+  addRow(event: Event) {
     if (this.editingBatch?.isLeaf) {
       this.batchTree.addRow(event);
     }
@@ -791,18 +791,18 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       ...savedBatch.asObject({withChildren: false})
     });
     if (model.isLeaf) {
-      const childrenForm = model.validator.get('children') as FormArray;
+      const childrenForm = model.validator.get('children') as UntypedFormArray;
       if (FormArrayHelper.hasHelper(childrenForm)) {
         childrenForm._helper.patchValue(savedBatch.children);
       }
       else {
         //throw new Error(`Missing FormArrayHelper for children batches, at ${model.path}`);
         const childrenForms = (savedBatch.children || []).map(c => c.asObject({withChildren: true}))
-            .map(json => new FormControl(json))
+            .map(json => new UntypedFormControl(json))
         if (model.validator.contains('children'))
-          model.validator.setControl('children', new FormArray(childrenForms))
+          model.validator.setControl('children', new UntypedFormArray(childrenForms))
         else
-          model.validator.addControl('children', new FormArray(childrenForms));
+          model.validator.addControl('children', new UntypedFormArray(childrenForms));
       }
     }
 
@@ -864,7 +864,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return getPropertyByPath(catchBatch, path) as BatchModel|undefined;
   }
 
-  forward(event?: UIEvent, model?: BatchModel) {
+  forward(event?: Event, model?: BatchModel) {
     console.debug(this.logPrefix + 'Go foward');
     event?.stopImmediatePropagation();
 
@@ -877,7 +877,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
   }
 
-  backward(event?: UIEvent, model?: BatchModel) {
+  backward(event?: Event, model?: BatchModel) {
     console.debug(this.logPrefix + 'Go backward');
     event?.stopImmediatePropagation();
 

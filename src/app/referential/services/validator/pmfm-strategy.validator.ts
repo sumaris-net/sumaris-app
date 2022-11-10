@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import {PmfmStrategy} from "../model/pmfm-strategy.model";
 
 import {ValidatorService} from "@e-is/ngx-material-table";
@@ -20,19 +20,19 @@ export class PmfmStrategyValidatorService implements ValidatorService {
   }
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
     this._withDetails = true;
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
   getFormGroup(data?: PmfmStrategy, opts?: {
     withDetails?: boolean;
     required?: boolean;
-  }): FormGroup {
+  }): UntypedFormGroup {
     opts = {
       withDetails: this._withDetails,
       ...opts
@@ -77,7 +77,7 @@ export class PmfmStrategyValidatorService implements ValidatorService {
   }): AbstractControlOptions | any {
     if (!opts || opts.required !== false) {
       return {
-        validator: (form: FormGroup) => {
+        validator: (form: UntypedFormGroup) => {
           const pmfm = form.get('pmfm').value;
           const parameter = form.get('parameter').value;
           const fraction = form.get('fraction').value;

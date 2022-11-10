@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { AppValidatorService, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from '../model/sample.model';
 import { TranslateService } from '@ngx-translate/core';
@@ -15,16 +15,16 @@ export interface SampleValidatorOptions {
 export class SampleValidatorService<O extends SampleValidatorOptions = SampleValidatorOptions> extends AppValidatorService implements ValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected translate: TranslateService) {
     super(formBuilder, translate);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Sample, opts?: O): FormGroup {
+  getFormGroup(data?: Sample, opts?: O): UntypedFormGroup {
     return this.formBuilder.group(
       this.getFormGroupConfig(data, opts),
       this.getFormGroupOptions(data, opts)
