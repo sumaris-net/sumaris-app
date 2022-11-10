@@ -41,7 +41,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   static fromObjectArrayAsTree(sources: any[], opts?: SampleFromObjectOptions): Sample[] {
     if (!sources) return null;
     // Convert to entities
-    const targets = (sources || []).map(json => Sample.fromObject(json, {...opts, withChildren: false}));
+    const targets = (sources || []).map(json => this.fromObject(json, {...opts, withChildren: false}));
 
     // Find roots
     const roots = targets.filter(g => isNil(g.parentId));

@@ -1,13 +1,10 @@
-import { EntityClass, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, ITreeItemEntity, ReferentialRef } from '@sumaris-net/ngx-components';
-import { IRootDataEntity, RootDataEntity } from '@app/data/services/model/root-data-entity.model';
-import { IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
-import { SortDirection } from '@angular/material/sort';
-import { DataEntityAsObjectOptions, IDataEntity } from '@app/data/services/model/data-entity.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { Moment } from 'moment';
-import { TripRef } from '@app/trip/trip/trip-ref.model';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import {EntityClass, isEmptyArray, isNil, isNotEmptyArray, isNotNil, ITreeItemEntity, ReferentialRef} from '@sumaris-net/ngx-components';
+import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
+import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import {SortDirection} from '@angular/material/sort';
+import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
+import {TripRef} from '@app/trip/trip/trip-ref.model';
 
 export interface PhysicalGearAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -60,7 +57,7 @@ export class PhysicalGear
 
     // Convert to entities
     const targets = (sources || [])
-      .map(json => PhysicalGear.fromObject(json, {...opts, withChildren: false}));
+      .map(json => this.fromObject(json, {...opts, withChildren: false}));
 
     // Find roots
     const root = targets.filter(g => isNil(g.parentId));
@@ -144,7 +141,7 @@ export class PhysicalGear
 
     // Parent / children
     this.parentId = source.parentId;
-    this.parent = source.parent && PhysicalGear.fromObject(source.parent);
+    this.parent = source.parent && this.fromObject(source.parent);
     if (source.children && (!opts || opts.withChildren !== false)) {
       this.children = source.children.map(child => PhysicalGear.fromObject(child, opts));
     }

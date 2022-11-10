@@ -9,8 +9,8 @@ import {
   Entity,
   EntityFilter,
   filterNotNil,
-  firstNotNilPromise, firstTrue,
-  firstTruePromise,
+  firstNotNilPromise,
+  firstTrue,
   IEntitiesService,
   isNil,
   isNotEmptyArray,
@@ -27,7 +27,7 @@ import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/
 import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
 import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
-import {distinctUntilChanged, filter, first, map, mergeMap} from 'rxjs/operators';
+import {distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
 import {AppBaseTable, BaseTableConfig} from '@app/shared/table/base.table';
 import {BaseValidatorService} from '@app/shared/service/base.validator.service';
 
