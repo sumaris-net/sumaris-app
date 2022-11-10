@@ -12,7 +12,7 @@ export class VesselSnapshotFilter extends EntityFilter<VesselSnapshotFilter, Ves
 
   static fromVesselFilter(filter?: Partial<VesselFilter>) {
     if (!filter) return undefined;
-    return VesselSnapshotFilter.fromObject(filter);
+    return this.fromObject(filter);
   }
 
   program: ReferentialRef;
