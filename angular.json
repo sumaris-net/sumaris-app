@@ -21,6 +21,7 @@
             "allowedCommonJsDependencies": [
               "hammerjs",
               "angular2-text-mask",
+              "text-mask-core",
               "uuid",
               "clone",
               "zone.js",

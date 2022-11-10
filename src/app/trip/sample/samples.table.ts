@@ -682,7 +682,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return true;
   }
 
-  protected async openRowDetail(row: TableElement<Sample>): Promise<boolean> {
+  protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
