@@ -158,10 +158,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  async onOpenLanding({id, row}) {
+  async onOpenLanding(row) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${id}`);
+    if (row && savedOrContinue) {
+      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${row.currentData.id}`);
     }
   }
 
