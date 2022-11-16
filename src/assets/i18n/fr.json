@@ -955,6 +955,7 @@
         "SAMPLE_DATE_PLACEHOLDER": "Date de la mesure",
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
+        "PICTURES": "Photos",
         "AUCTION_CONTROL": {
           "TITLE": "Lot n°{{label}}",
           "LABEL_PLACEHOLDER": "Numéro du lot"
@@ -1138,7 +1139,8 @@
       "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
       "FISHING_AREAS": "Zones de pêche :",
       "AUCTION_CONTROL": {
-        "TITLE": "{{location}} - Contrôle du {{dateTime}}"
+        "TITLE": "{{location}} - Contrôle du {{dateTime}}",
+        "TAB_LANDINGS": "Navires contrôlés"
       },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
@@ -2426,7 +2428,9 @@
     "BTN_CAMERA_SOURCE": "Prendre une photo",
     "BTN_GALLERY_SOURCE": "Ouvrir la galerie",
     "GALLERY": {
-      "BTN_ADD_TITLE": "Ajouter un titre"
+      "BTN_EDIT_TITLE": "Éditer le titre",
+      "BTN_ADD_TITLE": "Ajouter un titre",
+      "TITLE": "Titre"
     }
   },
   "ERROR": {

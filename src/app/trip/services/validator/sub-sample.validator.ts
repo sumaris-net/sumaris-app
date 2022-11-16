@@ -6,6 +6,7 @@ import {Sample} from "../model/sample.model";
 import {toNumber} from "@sumaris-net/ngx-components";
 import { SampleValidatorOptions, SampleValidatorService } from '@app/trip/services/validator/sample.validator';
 import { TranslateService } from '@ngx-translate/core';
+import {ImageAttachmentValidator} from '@app/data/image/image-attachment.validator';
 
 export interface SubSampleValidatorOptions extends SampleValidatorOptions{
   withParent?: boolean;
@@ -17,8 +18,10 @@ export class SubSampleValidatorService extends SampleValidatorService<SubSampleV
 
   constructor(
     protected formBuilder: UntypedFormBuilder,
-    protected translate: TranslateService) {
-    super(formBuilder, translate);
+    protected translate: TranslateService,
+    protected imageAttachmentValidator: ImageAttachmentValidator
+  ) {
+    super(formBuilder, translate, imageAttachmentValidator);
   }
 
   getFormGroupConfig(data?: any, opts?: SubSampleValidatorOptions): { [p: string]: any } {

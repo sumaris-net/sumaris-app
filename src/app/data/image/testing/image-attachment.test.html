@@ -1,0 +1,35 @@
+<ion-header>
+  <ion-toolbar color="primary">
+
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Image attachment test</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <mat-tab-group #tabGroup
+                 class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
+                 [dynamicHeight]="false">
+    <mat-tab label="Mobile">
+      <ng-template matTabContent>
+        <app-image-attachment-gallery #mobileGallery
+                        [mode]="'list'"
+                        [mobile]="true">
+        </app-image-attachment-gallery>
+      </ng-template>
+    </mat-tab>
+
+    <mat-tab label="Desktop">
+      <ng-template matTabContent>
+        <app-image-attachment-gallery #desktopGallery
+                                      [mobile]="false">
+        </app-image-attachment-gallery>
+      </ng-template>
+    </mat-tab>
+  </mat-tab-group>
+
+</ion-content>

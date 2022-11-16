@@ -68,6 +68,7 @@ import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validato
 import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { ApolloModule } from 'apollo-angular';
+import {DATA_TESTING_PAGES} from '@app/data/data.testing.module';
 
 @NgModule({
   declarations: [
@@ -361,6 +362,7 @@ import { ApolloModule } from 'apollo-angular';
         ...REFERENTIAL_TESTING_PAGES,
         ...CORE_TESTING_PAGES,
         ...SOCIAL_TESTING_PAGES,
+        ...DATA_TESTING_PAGES,
         ...TRIP_TESTING_PAGES
       ]},
 

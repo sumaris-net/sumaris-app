@@ -1,22 +1,20 @@
 import {NgModule} from '@angular/core';
-import {CoreModule} from '@sumaris-net/ngx-components';
-import {AppImageModal} from '@app/data/image/image.modal/image.modal';
+import {CoreModule, ImageGalleryModule} from '@sumaris-net/ngx-components';
+import {AppImageAttachmentGallery} from './image-attachment-gallery.component';
 
 @NgModule({
   imports: [
     CoreModule,
-
-    // Sub modules
+    ImageGalleryModule,
   ],
   declarations: [
     // Components
-    AppImageModal
+    AppImageAttachmentGallery
 
   ],
   exports: [
-
     // Components
-    AppImageModal
+    AppImageAttachmentGallery
   ]
 })
 export class AppDataImageModule {

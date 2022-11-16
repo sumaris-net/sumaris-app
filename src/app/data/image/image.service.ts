@@ -1,14 +1,18 @@
-import { Injectable } from '@angular/core';
-import { Platform } from '@ionic/angular';
-import { BaseEntityGraphqlQueries, EntitiesServiceWatchOptions, EntityUtils, IEntitiesService, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
-import { ImageAttachment, ImageAttachmentFilter } from '@app/image/image.model';
-import { SortDirection } from '@angular/material/sort';
-import { map } from 'rxjs/operators';
-import { BehaviorSubject, Observable } from 'rxjs';
+import {Injectable, InjectionToken} from '@angular/core';
+import {Platform} from '@ionic/angular';
+import {BaseEntityGraphqlQueries, EntitiesServiceWatchOptions, EntityUtils, IEntitiesService, isNil, isNotNil, LoadResult, StartableService} from '@sumaris-net/ngx-components';
+import {ImageAttachment, ImageAttachmentFilter} from '@app/data/image/image.model';
+import {SortDirection} from '@angular/material/sort';
+import {map} from 'rxjs/operators';
+import {BehaviorSubject, Observable} from 'rxjs';
+
+export const IMAGE_ATTACHMENT_SERVICE_TOKEN = new InjectionToken<IEntitiesService<ImageAttachment, ImageAttachmentFilter>>('ImageAttachmentService');
+
 
 const queries: BaseEntityGraphqlQueries = {
   loadAll: null,
 }
+
 
 @Injectable({providedIn: 'root'})
 export class ImageAttachmentService extends StartableService
@@ -18,6 +22,15 @@ export class ImageAttachmentService extends StartableService
     {id: 0, url: 'https://test.sumaris.net/assets/img/bg/ray-1.jpg', title: 'ray #1'},
     {id: 1, url: 'https://test.sumaris.net/assets/img/bg/ray-2.jpg', title: 'ray #2'}
   ]);
+
+  set value(value: ImageAttachment[]) {
+    this.dataSubject.next(value);
+  }
+
+  get value(): ImageAttachment[]{
+    return (this.dataSubject.value || [])
+      .map(ImageAttachment.fromObject);
+  }
 
   constructor(protected platform: Platform
   ) {

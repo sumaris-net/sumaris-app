@@ -1771,9 +1771,9 @@
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Trip > Operation: Fishing area: Location level(s)",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Trip > Operation: Target species: Level(s)",
-      "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Trip > Operation : Fishing start date?",
-      "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Trip > Operation : Fishing end date?",
-      "TRIP_OPERATION_END_DATE_ENABLE": "Trip > Operation : End date?",
+      "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Trip > Operation: Fishing start date?",
+      "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Trip > Operation: Fishing end date?",
+      "TRIP_OPERATION_END_DATE_ENABLE": "Trip > Operation: End date?",
       "TRIP_OPERATION_PASTE_FLAGS": "Trip > Operation: Duplication",
       "TRIP_OPERATION_PASTE_FLAGS_ENUM": {
         "NONE": "Disable",
@@ -2227,10 +2227,10 @@
           "ST": "Strategies",
           "SM": "Strategy monitoring"
         }
-      },
-      "INFO": {
-        "PLEASE_WAIT_WHILE_RUNNING": "Extraction in progress. Please wait..."
       }
+    },
+    "INFO": {
+      "PLEASE_WAIT_WHILE_RUNNING": "Extraction in progress. Please wait..."
     },
     "ERROR": {
       "LOAD_TYPES_ERROR": "Error while load extraction types",
@@ -2363,7 +2363,12 @@
   },
   "IMAGE": {
     "BTN_CAMERA_SOURCE": "Take a picture",
-    "BTN_GALLERY_SOURCE": "Open gallery"
+    "BTN_GALLERY_SOURCE": "Open gallery",
+    "GALLERY": {
+      "BTN_EDIT_TITLE": "Edit title",
+      "BTN_ADD_TITLE": "Add a title",
+      "TITLE": "Title"
+    }
   },
   "ERROR": {
     "ALERT_HEADER": "Error",

@@ -2227,10 +2227,10 @@
           "ST": "Strategies",
           "SM": "Strategy monitoring"
         }
-      },
-      "INFO": {
-        "PLEASE_WAIT_WHILE_RUNNING": "Extraction in progress. Please wait..."
       }
+    },
+    "INFO": {
+      "PLEASE_WAIT_WHILE_RUNNING": "Extraction in progress. Please wait..."
     },
     "ERROR": {
       "LOAD_TYPES_ERROR": "Error while load extraction types",
@@ -2363,7 +2363,12 @@
   },
   "IMAGE": {
     "BTN_CAMERA_SOURCE": "Take a picture",
-    "BTN_GALLERY_SOURCE": "Open gallery"
+    "BTN_GALLERY_SOURCE": "Open gallery",
+    "GALLERY": {
+      "BTN_EDIT_TITLE": "Edit title",
+      "BTN_ADD_TITLE": "Add a title",
+      "TITLE": "Title"
+    }
   },
   "ERROR": {
     "ALERT_HEADER": "Error",

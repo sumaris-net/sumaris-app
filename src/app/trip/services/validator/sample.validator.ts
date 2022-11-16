@@ -1,9 +1,10 @@
-import { Injectable } from '@angular/core';
+import {Injectable, Optional} from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { AppValidatorService, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from '../model/sample.model';
 import { TranslateService } from '@ngx-translate/core';
+import {ImageAttachmentValidator} from '@app/data/image/image-attachment.validator';
 
 export interface SampleValidatorOptions {
   requiredLabel?: boolean;
@@ -16,7 +17,9 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
 
   constructor(
     protected formBuilder: UntypedFormBuilder,
-    protected translate: TranslateService) {
+    protected translate: TranslateService,
+    @Optional() protected imageAttachmentValidator?: ImageAttachmentValidator
+  ) {
     super(formBuilder, translate);
   }
 
@@ -55,8 +58,8 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       qualificationDate: [data && data.qualificationDate || null],
       qualificationComments: [data && data.qualificationComments || null],
       qualityFlagId: [toNumber(data && data.qualityFlagId, 0)],
-      // TODO: add operationId, saleId, parentId
     }
+
 
     // Add children form array
     if (!opts || opts.withChildren !== false) {
@@ -69,6 +72,12 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     }
     else {
       config['measurementValues'] = this.formBuilder.control(data?.measurementValues || null);
+    }
+
+    // Add image attachments
+    if (this.imageAttachmentValidator) {
+      config['images'] = this.formBuilder.array((data?.images || [])
+        .map(image => this.imageAttachmentValidator.getFormGroup(image)))
     }
 
 

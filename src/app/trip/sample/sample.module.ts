@@ -15,6 +15,8 @@ import { IndividualReleasesTable } from '@app/trip/sample/individualrelease/indi
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { SamplesModal } from '@app/trip/sample/samples.modal';
+import {ImageGalleryModule} from "@sumaris-net/ngx-components";
+import {AppDataImageModule} from '@app/data/image/image.module';
 
 @NgModule({
   imports: [
@@ -25,9 +27,11 @@ import { SamplesModal } from '@app/trip/sample/samples.modal';
     AppCoreModule,
     AppReferentialModule,
     AppDataModule,
+    AppDataImageModule,
 
     // Functional modules
-    AppMeasurementModule
+    AppMeasurementModule,
+    ImageGalleryModule
   ],
   declarations: [
     SamplesTable,

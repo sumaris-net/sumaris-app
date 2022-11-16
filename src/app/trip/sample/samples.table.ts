@@ -60,7 +60,7 @@ declare interface GroupColumnDefinition {
 }
 
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
-export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
+export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments', 'pictures'];
 export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 
 
@@ -113,6 +113,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() showFabButton = false;
   @Input() showIndividualMonitoringButton = false;
   @Input() showIndividualReleaseButton = false;
+  @Input() showImagesButton = false;
   @Input() defaultSampleDate: Moment = null;
   @Input() defaultTaxonGroup: TaxonGroupRef = null;
   @Input() defaultTaxonName: TaxonNameRef = null;
@@ -328,6 +329,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       showTaxonName: this.showTaxonNameColumn,
       showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
+      showImages: this.showImagesButton,
       onReady: (modal) => {
         this.onPrepareRowForm.emit({
           form: modal.form.form,
@@ -511,6 +513,10 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     }
 
     return {data, role};
+  }
+
+  openPicturesModal(){
+
   }
 
   filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {

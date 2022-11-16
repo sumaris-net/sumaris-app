@@ -3,6 +3,7 @@ import { ExtraOptions, RouterModule, Routes } from '@angular/router';
 import {AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule} from '@sumaris-net/ngx-components';
 import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
 import { environment } from '@environments/environment';
+import {DataTestingModule} from '@app/data/data.testing.module';
 
 const routes: Routes = [
   // Core path
@@ -102,6 +103,9 @@ const routes: Routes = [
         path: '',
         pathMatch: 'full',
         redirectTo: 'shared',
+        data: {
+          preload: false
+        }
       },
       // Shared module
       {
@@ -123,6 +127,14 @@ const routes: Routes = [
       {
         path: 'social',
         loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SocialTestingModule),
+        data: {
+          preload: false
+        }
+      },
+      // Data module
+      {
+        path: 'data',
+        loadChildren: () => import('./data/data.testing.module').then(m => m.DataTestingModule),
         data: {
           preload: false
         }

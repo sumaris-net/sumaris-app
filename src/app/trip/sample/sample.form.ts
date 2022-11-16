@@ -105,6 +105,11 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     this.form.patchValue({children}, opts);
   }
 
+  toggleComment() {
+    this.showComment = !this.showComment;
+    this.markForCheck();
+  }
+
   /* -- protected methods -- */
 
   protected onApplyingEntity(data: Sample, opts?: { [p: string]: any }) {
