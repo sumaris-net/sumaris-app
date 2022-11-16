@@ -42,7 +42,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   showTaxonName: boolean;
   showIndividualReleaseButton: boolean;
   showIndividualMonitoringButton: boolean;
-  showImages: boolean;
+  showPictures: boolean;
 
   availableTaxonGroups?: TaxonGroupRef[];
   defaultSampleDate?: Moment;
@@ -91,7 +91,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showComment: boolean;
   @Input() showIndividualReleaseButton: boolean;
   @Input() showIndividualMonitoringButton: boolean;
-  @Input() showImages: boolean;
+  @Input() showPictures: boolean;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
@@ -145,7 +145,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
     this.showComment = !this.mobile || isNotNil(this.data.comments);
-    this.showImages = toBoolean(this.showImages, isNotEmptyArray(this.data?.images));
+    this.showPictures = toBoolean(this.showPictures, isNotEmptyArray(this.data?.images));
 
     // Show/Hide individual release button
     this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
@@ -303,7 +303,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   }
 
   toggleImageGallery() {
-    this.showImages = !this.showImages;
+    this.showPictures = !this.showPictures;
     this.markForCheck();
   }
 
@@ -339,8 +339,8 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       //     {id: 0, url: 'https://test.sumaris.net/assets/img/bg/ray-1.jpg', title: 'ray #1'},
       //     {id: 1, url: 'https://test.sumaris.net/assets/img/bg/ray-2.jpg', title: 'ray #2'}
       //   ].map(ImageAttachment.fromObject);
-      this.showImages = this.showImages || isNotEmptyArray(this.data.images);
-      this.gallery.value = this.showImages && this.data.images || [];
+      this.showPictures = this.showPictures || isNotEmptyArray(this.data.images);
+      this.gallery.value = this.showPictures && this.data.images || [];
 
       // Call ready callback
       if (this.onReady) await this.onReady(this);
@@ -385,7 +385,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       const data: Sample = this.form.value;
 
       // Add images
-      if (this.showImages) {
+      if (this.showPictures) {
         if (this.gallery.dirty) {
           await this.gallery.save();
         }

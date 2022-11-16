@@ -113,7 +113,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() showFabButton = false;
   @Input() showIndividualMonitoringButton = false;
   @Input() showIndividualReleaseButton = false;
-  @Input() showImagesButton = false;
+  @Input() showPicturesButton = false;
   @Input() defaultSampleDate: Moment = null;
   @Input() defaultTaxonGroup: TaxonGroupRef = null;
   @Input() defaultTaxonName: TaxonNameRef = null;
@@ -329,7 +329,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       showTaxonName: this.showTaxonNameColumn,
       showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
-      showImages: this.showImagesButton,
+      showPictures: this.showPicturesButton,
       onReady: (modal) => {
         this.onPrepareRowForm.emit({
           form: modal.form.form,

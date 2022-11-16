@@ -37,7 +37,7 @@
         <ion-col>
           showIndividualMonitoringButton: {{showIndividualMonitoringButton}}<br/>
           showIndividualReleaseButton: {{showIndividualReleaseButton}}<br/>
-          showImages: {{showImages}}<br/>
+          showImages: {{showPictures}}<br/>
         </ion-col>
       </ion-row>
     </ion-grid>
@@ -62,7 +62,7 @@
                    (onSubmit)="onSubmitAndNext($event)">
 
 
-    <ion-row beforeComment [class.cdk-visually-hidden]="!showImages">
+    <ion-row beforeComment [class.cdk-visually-hidden]="!showPictures">
       <ion-col size="12">
         <ion-label color="medium">{{'TRIP.SAMPLE.EDIT.PICTURES'|translateContext: i18nSuffix}}</ion-label>
       </ion-col>
