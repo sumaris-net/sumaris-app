@@ -4,7 +4,7 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { RevealComponent, IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, DateFormatPipe, firstFalsePromise, isNil, isNotNil, isNotNilOrBlank, isNumber, LocalSettingsService, PlatformService, WaitForOptions, LatLongPattern } from '@sumaris-net/ngx-components';
+import { AppErrorWithDetails, DateFormatService, firstFalsePromise, isNil, isNotNil, isNotNilOrBlank, isNumber, LocalSettingsService, PlatformService, WaitForOptions, LatLongPattern } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
 import { DataEntity } from '../services/model/data-entity.model';
 import { ModalController } from '@ionic/angular';
@@ -20,7 +20,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
 
   protected readonly route: ActivatedRoute;
   protected readonly cd: ChangeDetectorRef;
-  protected readonly dateFormatPipe: DateFormatPipe;
+  protected readonly dateFormat: DateFormatService;
   protected readonly settings: LocalSettingsService;
   protected readonly modalCtrl: ModalController;
 
@@ -76,7 +76,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
 
     this.cd = injector.get(ChangeDetectorRef);
     this.route = injector.get(ActivatedRoute);
-    this.dateFormatPipe = injector.get(DateFormatPipe);
+    this.dateFormat = injector.get(DateFormatService);
     this.settings = injector.get(LocalSettingsService);
     this.modalCtrl = injector.get(ModalController);
 

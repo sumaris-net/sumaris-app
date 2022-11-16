@@ -5,7 +5,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { ModalController } from '@ionic/angular';
 import {
   AppForm,
-  DateFormatPipe,
+  DateFormatService,
   DisplayFn,
   fadeInOutAnimation,
   filterNotNil,
@@ -104,7 +104,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
 
   constructor(
     injector: Injector,
-    protected dateFormatPipe: DateFormatPipe,
+    protected dateFormat: DateFormatService,
     protected formBuilder: UntypedFormBuilder,
     protected dataService: AggregatedLandingService,
     protected vesselActivityValidatorService: VesselActivityValidatorService,
@@ -192,7 +192,7 @@ export class AggregatedLandingForm extends AppForm<AggregatedLanding> implements
   }
 
   get displayDateFn(): DisplayFn {
-    return (obj: any) => this.dateFormatPipe.transform(obj, {pattern: 'dddd L'}).toString();
+    return (obj: any) => this.dateFormat.transform(obj, {pattern: 'dddd L'}).toString();
   }
 
   compareDateFn(d1: Moment, d2: Moment)  {

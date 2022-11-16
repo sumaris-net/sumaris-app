@@ -104,8 +104,6 @@ build:
     # Get project dependencies
     - ls -artl ${BUILD_CACHE_DIR}
     - cp -R ${BUILD_CACHE_DIR}/node_modules .
-  variables:
-    BUILD_ENVIRONMENT: dev
   only:
     - develop
 
@@ -130,8 +128,6 @@ failsafe-build:
     - npm install -g @ionic/cli@6.19.1 @angular/cli@11.2.19
     # Update project dependencies
     - npm install
-  variables:
-    BUILD_ENVIRONMENT: dev
   only:
     - develop
     - /^feature\/.*/

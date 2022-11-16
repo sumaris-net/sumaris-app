@@ -100,7 +100,7 @@ export class TripReport extends AppRootDataReport<Trip> {
   protected async computeTitle(data: Trip): Promise<string> {
     console.debug(`[${this.constructor.name}.computeTitle]`, arguments);
     const title = await this.translate.get('TRIP.REPORT.TITLE', {
-      departureDate: this.dateFormatPipe.transform(data.departureDateTime, { time: false }),
+      departureDate: this.dateFormat.transform(data.departureDateTime, { time: false }),
       vessel: data.vesselSnapshot.exteriorMarking
     }).toPromise();
     return title;

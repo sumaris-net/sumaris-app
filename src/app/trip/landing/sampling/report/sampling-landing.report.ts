@@ -49,7 +49,7 @@ export class SamplingLandingReport extends LandingReport {
   protected async computeTitle(data: Landing, parent?: ObservedLocation): Promise<string> {
     const titlePrefix = await this.translate.get('LANDING.TITLE_PREFIX', {
       location: data.location?.name || '',
-      date: this.dateFormatPipe.transform(data.dateTime, {time: false})
+      date: this.dateFormat.transform(data.dateTime, {time: false})
     }).toPromise();
     const strategyLabel = this.strategyLabel || data.measurementValues[PmfmIds.STRATEGY_LABEL] || '';
     const title = await this.translate.get('LANDING.REPORT.SAMPLING.TITLE', {

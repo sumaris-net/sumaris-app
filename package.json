@@ -12,6 +12,7 @@
     "start.prod": "ng serve  --configuration production",
     "build": "ng build",
     "build.dev": "ng build --configuration development",
+    "build.ci": "ng build --configuration ci",
     "build.prod": "ng build --configuration production && npm run build.i18n",
     "build.i18n": "node scripts/node/build-i18n.js",
     "android-sync": "npx jetifier && npx cap sync android",
@@ -71,7 +72,7 @@
     "@ngx-translate/core": "~14.0.0",
     "@ngx-translate/http-loader": "~7.0.0",
     "@sgratzl/chartjs-chart-boxplot": "~2.3.3",
-    "@sumaris-net/ngx-components": "2.0.0",
+    "@sumaris-net/ngx-components": "~2.0.2",
     "angular-split": "^14.1.0",
     "angular2-text-mask": "~9.0.0",
     "apollo-angular": "~4.0.1",
@@ -184,7 +185,7 @@
   },
   "engines": {
     "node": ">= 14.20.0",
-    "npm": ">= 8.17.0",
+    "npm": ">= 9.1.1",
     "yarn": ">= 1.22.0"
   }
 }

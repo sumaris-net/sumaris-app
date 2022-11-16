@@ -1,7 +1,7 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
 import { PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { DateFormatPipe, formatLatitude, formatLongitude, isNotNil, isNotNilOrBlank, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
+import { DateFormatService, formatLatitude, formatLongitude, isNotNil, isNotNilOrBlank, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 
@@ -78,7 +78,7 @@ interface PmfmValueOptions {
 export class PmfmValuePipe implements PipeTransform {
 
   constructor(
-    private dateFormatPipe: DateFormatPipe,
+    private dateFormat: DateFormatService,
     private settings: LocalSettingsService
   ) {
   }
@@ -87,9 +87,9 @@ export class PmfmValuePipe implements PipeTransform {
     const type = PmfmUtils.getExtendedType(opts?.pmfm);
     switch (type) {
       case 'date':
-        return this.dateFormatPipe.transform(value, {time: false});
+        return this.dateFormat.transform(value, {time: false});
       case 'dateTime':
-        return this.dateFormatPipe.transform(value, {time: true});
+        return this.dateFormat.transform(value, {time: true});
       case 'duration':
         return value || null;
       case 'latitude':

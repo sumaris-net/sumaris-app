@@ -1,5 +1,5 @@
-import {Injectable, Pipe, PipeTransform} from '@angular/core';
-import { DateFormatPipe, FormFieldDefinition, isNil, isNotNil, referentialToString, ReferentialUtils } from '@sumaris-net/ngx-components';
+import { Pipe, PipeTransform } from '@angular/core';
+import { ReferentialUtils } from '@sumaris-net/ngx-components';
 
 @Pipe({
   name: 'isNotEmptyReferential'

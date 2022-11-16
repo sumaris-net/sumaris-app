@@ -5,7 +5,7 @@ import {
   AccountService,
   Alerts,
   AppForm,
-  DateFormatPipe,
+  DateFormatService,
   DateUtils,
   EntityUtils,
   firstNotNilPromise,
@@ -314,7 +314,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   constructor(
     injector: Injector,
     protected router: Router,
-    protected dateFormat: DateFormatPipe,
+    protected dateFormat: DateFormatService,
     protected validatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,

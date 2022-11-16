@@ -5,7 +5,7 @@ import { LandingService } from '@app/trip/services/landing.service';
 import { ActivatedRoute } from '@angular/router';
 import {
   AppErrorWithDetails,
-  DateFormatPipe,
+  DateFormatService,
   EntityServiceLoadOptions,
   firstFalsePromise,
   FirstOptions,
@@ -54,7 +54,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   protected readonly translate: TranslateService;
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly landingService: LandingService;
-  protected readonly dateFormatPipe: DateFormatPipe;
+  protected readonly dateFormat: DateFormatService;
   protected readonly programRefService: ProgramRefService;
   protected readonly settings: LocalSettingsService;
   protected readonly destroySubject = new Subject();
@@ -101,7 +101,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     this.translate = injector.get(TranslateService);
     this.observedLocationService = injector.get(ObservedLocationService);
     this.landingService = injector.get(LandingService);
-    this.dateFormatPipe = injector.get(DateFormatPipe);
+    this.dateFormat = injector.get(DateFormatService);
     this.programRefService = injector.get(ProgramRefService);
     this.settings = injector.get(LocalSettingsService);
     this.cd = injector.get(ChangeDetectorRef);
@@ -256,7 +256,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   protected async computeTitle(data: T, parent?: ObservedLocation): Promise<string> {
     const titlePrefix = await this.translate.get('LANDING.TITLE_PREFIX', {
       location: data.location?.name || '',
-      date: this.dateFormatPipe.transform(data.dateTime, {time: false})
+      date: this.dateFormat.transform(data.dateTime, {time: false})
     }).toPromise();
     const title = await this.translate.get('LANDING.REPORT.TITLE').toPromise();
     return titlePrefix + title;

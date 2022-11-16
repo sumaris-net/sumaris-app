@@ -38,7 +38,7 @@ export class AuctionControlReport extends LandingReport {
   protected async computeTitle(data: Landing, parent?: ObservedLocation): Promise<string> {
     const title = await this.translate.get('AUCTION_CONTROL.REPORT.TITLE', {
       vessel: data.vesselSnapshot.name,
-      date: this.dateFormatPipe.transform(data.dateTime),
+      date: this.dateFormat.transform(data.dateTime),
     }).toPromise();
     return title;
   }
