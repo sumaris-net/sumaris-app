@@ -146,27 +146,25 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.i18nSuffix = this.i18nSuffix || '';
     this.showComment = !this.mobile || isNotNil(this.data.comments);
     this.showPictures = toBoolean(this.showPictures, isNotEmptyArray(this.data?.images));
+    this.showIndividualMonitoringButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
+    this.showIndividualReleaseButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
 
     // Show/Hide individual release button
-    this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
-    if (this.tagIdPmfm) {
-      this.showIndividualMonitoringButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
-      this.showIndividualReleaseButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
+    if (this.showIndividualReleaseButton) {
+      this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
+      if (this.tagIdPmfm) {
 
-      this.form.ready().then(() => {
-        this.registerSubscription(
-          this.form.form.get('measurementValues.' + this.tagIdPmfm.id)
-            .valueChanges
-            .subscribe(tagId => {
-              this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
-              this.markForCheck();
-            })
-        );
-      });
-    }
-    else {
-      this.showIndividualMonitoringButton = !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
-      this.showIndividualReleaseButton = !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
+        this.form.ready().then(() => {
+          this.registerSubscription(
+            this.form.form.get('measurementValues.' + this.tagIdPmfm.id)
+              .valueChanges
+              .subscribe(tagId => {
+                this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
+                this.markForCheck();
+              })
+          );
+        });
+      }
     }
 
     if (this.disabled) {
