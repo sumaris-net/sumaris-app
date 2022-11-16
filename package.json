@@ -71,7 +71,7 @@
     "@ngx-translate/core": "~14.0.0",
     "@ngx-translate/http-loader": "~7.0.0",
     "@sgratzl/chartjs-chart-boxplot": "~2.3.3",
-    "@sumaris-net/ngx-components": "2.0.0-rc47",
+    "@sumaris-net/ngx-components": "2.0.0",
     "angular-split": "^14.1.0",
     "angular2-text-mask": "~9.0.0",
     "apollo-angular": "~4.0.1",
