@@ -14,6 +14,7 @@ import {
   APP_FORM_ERROR_I18N_KEYS,
   APP_GRAPHQL_TYPE_POLICIES,
   APP_HOME_BUTTONS,
+  APP_JOB_PROGRESSION_SERVICE,
   APP_LOCAL_SETTINGS,
   APP_LOCAL_SETTINGS_OPTIONS,
   APP_LOCAL_STORAGE_TYPE_POLICIES,
@@ -68,7 +69,8 @@ import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validato
 import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
 import { UserEventService } from '@app/social/user-event/user-event.service';
 import { ApolloModule } from 'apollo-angular';
-import {DATA_TESTING_PAGES} from '@app/data/data.testing.module';
+import { DATA_TESTING_PAGES } from '@app/data/data.testing.module';
+import { JobProgressionService } from '@app/social/job/job-progression.service';
 
 @NgModule({
   declarations: [
@@ -191,6 +193,10 @@ import {DATA_TESTING_PAGES} from '@app/data/data.testing.module';
     // User event
     {provide: UserEventService, useClass: UserEventService},
     {provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService},
+
+    // Job
+    {provide: JobProgressionService, useClass: JobProgressionService},
+    {provide: APP_JOB_PROGRESSION_SERVICE, useExisting: JobProgressionService},
 
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {

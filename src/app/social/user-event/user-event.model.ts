@@ -17,14 +17,15 @@ import {
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 
+export declare type UserEventType = 'FEED' | 'DEBUG_DATA' | 'INBOX_MESSAGE' | 'JOB';
 
-export const UserEventTypes = {
-  DEBUG_DATA: 'DEBUG_DATA',
-  INBOX_MESSAGE: 'INBOX_MESSAGE'
-
+export const UserEventTypeEnum = Object.freeze({
+  FEED: <UserEventType>'FEED',
+  DEBUG_DATA: <UserEventType>'DEBUG_DATA',
+  INBOX_MESSAGE: <UserEventType>'INBOX_MESSAGE',
+  JOB: <UserEventType>'JOB'
   // TODO: add all types of event
-};
-
+});
 
 @EntityClass({ typename: 'UserEventVO' })
 export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent> {
@@ -47,6 +48,8 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
 
   readDate: Moment;
   readSignature: string;
+
+  jobId: number;
 
   actions: IUserEventAction[];
 
@@ -120,6 +123,8 @@ export class UserEventFilter
   includedIds: number[] = [];
   excludeRead = false;
 
+  jobId: number = null;
+
   constructor() {
     super(UserEventFilter.TYPENAME);
   }
@@ -133,6 +138,7 @@ export class UserEventFilter
     this.startDate = fromDateISOString(source.startDate);
     this.includedIds = source.includedIds || [];
     this.excludeRead = source.excludeRead || false;
+    this.jobId = source.jobId;
   }
 
   protected buildFilter(): FilterFn<UserEvent>[] {
@@ -159,6 +165,9 @@ export class UserEventFilter
     }
     if (this.excludeRead === true) {
       filterFns.push((t) => isNil(t.readDate));
+    }
+    if (isNotNil(this.jobId)) {
+      filterFns.push(t => t.jobId === this.jobId);
     }
 
     return filterFns;

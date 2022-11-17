@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { AlertController, ModalController, PopoverController } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AccountService, Alerts, ConfigService, HammerSwipeEvent, LocalSettingsService, referentialToString, StatusIds, FilesUtils } from '@sumaris-net/ngx-components';
+import { AccountService, Alerts, ConfigService, FilesUtils, HammerSwipeEvent, isNotEmptyArray, isNotNil, LocalSettingsService, referentialToString, StatusIds } from '@sumaris-net/ngx-components';
 import { Location } from '@angular/common';
 import { VesselsTable } from './vessels.table';
 import { VESSEL_CONFIG_OPTIONS, VESSEL_FEATURE_NAME } from '../services/config/vessel.config';
@@ -73,7 +73,7 @@ export class VesselsPage implements OnInit, OnDestroy {
     this._subscription.add(
       this.configService.config.subscribe((config) => {
         this.enableReplacement = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.TEMPORARY_VESSEL_REPLACEMENT_ENABLE);
-        this.enableFileImport = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_IMPORT_ENABLE);
+        this.enableFileImport = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.REFERENTIAL_VESSEL_IMPORT_ENABLE);
         this.markForCheck();
       })
     );
@@ -172,7 +172,8 @@ export class VesselsPage implements OnInit, OnDestroy {
     return await this.router.navigateByUrl(`/vessels/${row.currentData.id}` );
   }
 
-  async importFromCsv(event?: UIEvent) {
+  async importFromCsv(event?: UIEvent, format = 'siop') {
+
     const {data} = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
       fileExtension: '.csv',
@@ -180,12 +181,24 @@ export class VesselsPage implements OnInit, OnDestroy {
         resourceType: Vessel.ENTITY_NAME,
         resourceId: Date.now().toString(),
         replace: true
-      }),
-      //deleteFn: (file) => this.deleteFile(file)
+      })
     });
 
-    console.info('[vessel] Vessel file to import: ', data);
-    const filenames = (data || []).map(file => file.name);
+    console.debug('[vessel] Vessel files uploaded! Response: ', data);
+
+    const uploadedFileNames = (data || [])
+      .map(file => file.response?.body)
+      .filter(isNotNil)
+      .map(({fileName}) => fileName);
+
+    if (isNotEmptyArray(uploadedFileNames)) {
+      const jobs = await Promise.all(
+        uploadedFileNames.map(uploadedFileName => this.vesselService.importFile(uploadedFileName, format))
+      );
+
+      console.info('[vessel] Vessel imported with success!: ', jobs);
+    }
+
   }
 }
 

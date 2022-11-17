@@ -215,8 +215,7 @@
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?",
-        "NAME_REQUIRED": "Navires: Nom obligatoire ?",
-        "VESSEL_IMPORT_ENABLE": "Navires: Activer l'importation par fichier ?"
+        "NAME_REQUIRED": "Navires: Nom obligatoire ?"
       },
       "ENUMERATION": {
         "PROGRAM_SIH_LABEL": "Référentiel > Programme des navires",
@@ -1489,7 +1488,8 @@
     },
     "ERROR": {
       "LOAD_ERROR": "Erreur de chargement des navires.",
-      "REPLACE_ERROR": "Erreur de remplacement de navire temporaire.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+      "REPLACE_ERROR": "Erreur de remplacement de navire temporaire.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+      "SIOP_IMPORT_ERROR": "Erreur lors de l'importation du fichier SIOP.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     }
   },
   "REFERENTIAL": {
@@ -1674,8 +1674,9 @@
       "SOFTWARE": "Logiciels"
     },
     "OPTIONS": {
-      "VESSELS_ENABLE": "Référentiel > Navires: Activer ?",
-      "VESSELS_REPLACEMENT_ENABLE": "Référentiel > Navires > Remplacement: Activer ?"
+      "VESSELS_ENABLE": "Référentiels > Navires: Activer ?",
+      "VESSELS_IMPORT_ENABLE": "Référentiels > Navires: Activer l'importation fichier ?",
+      "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires > Remplacement: Activer ?"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
@@ -2364,15 +2365,25 @@
         "COPIED_LOCALLY": "Copier localement avec succès"
       },
       "TYPE_ENUM": {
-        "DEBUG_DATA": "Un problème a été remonté: <b>{{message}}</b><br/>par <a>{{issuer}}</a>",
-        "INBOX_MESSAGE": "Vous avez <b>reçu un message</b><br/>de <a>{{issuer}}</a>",
-        "FEED": "Actualité"
+        "DEBUG_DATA": "Problème remonté par <a>{{issuer}}</a>: <b>{{message}}</b>",
+        "INBOX_MESSAGE": "Vous avez <b>reçu un message</b> de <a>{{issuer}}</a>",
+        "FEED": "Actualité",
+        "JOB": "{{name}}<br/><b>{{status}}</b>"
       }
     },
     "JOB": {
       "PROGRESSION": {
         "TITLE": "Liste des tâches en cours",
         "EMPTY": "Aucune tâche en cours"
+      },
+      "STATUS_ENUM": {
+        "PENDING": "En attente",
+        "RUNNING": "En cours",
+        "SUCCESS": "Terminé avec succès",
+        "WARNING": "Terminé avec avertissements",
+        "ERROR": "Erreur",
+        "FATAL": "Erreur fatale",
+        "CANCELLED": "Annulé"
       }
     },
     "MESSAGE": {
@@ -2401,7 +2412,8 @@
       "SAVE_USER_EVENT_ERROR": "Erreur de sauvegarde de la notification",
       "SUBSCRIBE_USER_EVENTS_ERROR": "Erreur lors de l'abonnement aux notifications",
       "SEND_MESSAGE_ERROR": "Erreur lors de l'envoi du message",
-      "SUBSCRIBE_JOB_PROGRESSION_ERROR": "Erreur lors de l'abonnement à la progression de tâche"
+      "LOAD_JOB_PROGRESSIONS_ERROR": "Erreur lors du chargement des tâches",
+      "SUBSCRIBE_JOB_PROGRESSION_ERROR": "Erreur lors de l'abonnement à une tâche"
     },
     "INFO": {
       "MESSAGE_SENT": "Message <b>envoyé</b>"

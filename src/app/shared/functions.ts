@@ -7,7 +7,6 @@ export function isNilOrNaN<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null || (typeof obj === 'number' && isNaN(obj));
 }
 
-
 export function mergeLoadResult<T>(res1: LoadResult<T>, res2: LoadResult<T>): LoadResult<T> {
   return {
     data : (res1.data || []).concat(...res2.data),

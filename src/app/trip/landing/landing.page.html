@@ -9,8 +9,6 @@
              [canGoBack]="true">
 
   <ion-buttons slot="end">
-    <ion-spinner *ngIf="loading"></ion-spinner>
-
     <ion-button *ngIf="enabled && !isNewData || debug"
                 [matMenuTriggerFor]="optionsMenu"
                 [title]=" 'COMMON.BTN_OPTIONS'|translate">
