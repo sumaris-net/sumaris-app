@@ -167,7 +167,7 @@ export class UserEventService extends
   }
 
   canUserWrite(data: UserEvent, opts?: any): boolean {
-    return false;// Cannot write a existing UserEvent
+    return false;// Cannot write an existing UserEvent
   }
 
   listenChanges(id: number, opts?: any): Observable<UserEvent> {
@@ -287,6 +287,8 @@ export class UserEventService extends
   }
 
   protected async onReceived(source: UserEvent): Promise<UserEvent> {
+    console.log('Converting user event', source);
+
     // Choose default avatarIcon
     switch (source.level) {
       case 'ERROR':
