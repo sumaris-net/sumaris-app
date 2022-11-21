@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { SampleValidatorService } from '../services/validator/sample.validator';
+import { SampleValidatorOptions, SampleValidatorService } from '../services/validator/sample.validator';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
@@ -28,11 +28,11 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../measurement/measurements.table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Sample, SampleUtils } from '../services/model/sample.model';
-import { AcquisitionLevelCodes, AcquisitionLevelType, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType, MethodIds, ParameterGroups, PmfmIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { debounceTime } from 'rxjs/operators';
@@ -52,6 +52,7 @@ import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
+import { UntypedFormGroup } from '@angular/forms';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -81,7 +82,10 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
+export class SamplesTable extends BaseMeasurementsTable<Sample,
+  SampleFilter, SampleValidatorService,
+  number,
+  BaseMeasurementsTableConfig<Sample>, SampleValidatorOptions> {
 
   private _footerRowsSubscription: Subscription;
 
@@ -128,6 +132,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() allowSubSamples = false;
   @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
+  @Input() computedPmfmGroups: string[];
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {
@@ -213,7 +218,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     super(injector,
       Sample, SampleFilter,
       memoryDataService,
-      injector.get(LocalSettingsService).mobile ? null : injector.get(AppValidatorService),
+      injector.get(LocalSettingsService).mobile ? null : injector.get(SampleValidatorService),
       {
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
@@ -294,6 +299,10 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     this.pmfmGroupColumns$.complete();
     this.pmfmGroupColumns$.unsubscribe();
     this.memoryDataService.stop();
+  }
+
+  getRowValidator(data?: Sample, opts?: SampleValidatorOptions): UntypedFormGroup {
+    return super.getRowValidator(data, {withImages: this.showImagesButton, ...opts});
   }
 
   /**
@@ -585,7 +594,9 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
   }
 
-  async openPicturesModal(event: Event, row: TableElement<Sample>){
+  async openImagesModal(event: Event, row: TableElement<Sample>){
+    event.stopPropagation();
+
     const modal = await this.modalCtrl.create({
       component: AppImageAttachmentsModal,
       componentProps: <IImageModalOptions>{
@@ -600,16 +611,16 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     // User cancel
     if (isNil(data) || this.disabled) return;
 
-    if (this.inlineEdition && Array.isArray(data)) {
-      if (row.validator) {
-        const formArray = row.validator.get('images');
-        formArray.patchValue(data);
-        row.validator.markAsDirty();
-        row.confirmEditCreate();
-      }
-      else {
-        row.currentData.images = data;
-      }
+    if (this.inlineEdition && row.validator) {
+      const formArray = row.validator.get('images');
+      formArray.patchValue(data);
+      row.validator.markAsDirty();
+      this.confirmEditCreate();
+      this.markAsDirty();
+    }
+    else {
+      row.currentData.images = data;
+      this.markAsDirty();
     }
   }
 
@@ -865,8 +876,15 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         }
         const cssClass = groupIndex % 2 === 0 ? 'even' : 'odd';
 
+        const groupComputed = this.computedPmfmGroups && this.computedPmfmGroups.includes(group);
+
         groupPmfms.forEach(pmfm => {
           pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
+
+          // Force as computed
+          if (groupComputed && !pmfm.isComputed) {
+            pmfm.isComputed = true;
+          }
 
           // Use rankOrder as a group index (will be used in template, to computed column class)
           if (PmfmUtils.isDenormalizedPmfm(pmfm)) {

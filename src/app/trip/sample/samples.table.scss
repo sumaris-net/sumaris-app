@@ -117,6 +117,9 @@
         &.even {
           background-color: rgba(var(--ion-color-light-rgb), 0.8) !important;
           color: var(--ion-color-light-contrast, black) !important;
+          &.mat-cell-computed {
+            color: var(--ion-color-primary-tint) !important;
+          }
         }
       }
 

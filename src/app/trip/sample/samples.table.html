@@ -337,7 +337,7 @@
                 *ngVar="(row.validator|formGetArray: 'images')?.length as imageCount"
                 [class.visible-hover]="!row.editing && !imageCount"
                 [title]="'TRIP.SAMPLE.TABLE.BTN_IMAGES'|translateContext: i18nColumnSuffix"
-                (click)="openPicturesModal($event, row)"
+                (click)="openImagesModal($event, row)"
                 >
           <mat-icon
                   [matBadge]="imageCount"

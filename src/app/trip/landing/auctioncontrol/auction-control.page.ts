@@ -9,7 +9,7 @@ import { ModalController } from '@ionic/angular';
 import {
   AppHelpModal,
   AppHelpModalOptions,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, EntityUtils,
   fadeInOutAnimation,
   filterNotNil,
   firstNotNilPromise,
@@ -77,6 +77,11 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     // Configure sample table
     this.samplesTable.inlineEdition = !this.mobile;
 
+    this.samplesTable.loadingSubject.pipe(
+      filter(l => l === true)
+    ).subscribe(
+      (l) => console.warn('TODO Loading=true')
+    );
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
@@ -175,6 +180,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.selectedTaxonGroup$
       .pipe(
         filter(isNotNil),
+        distinctUntilChanged((tg1, tg2) => EntityUtils.equals(tg1, tg2, 'id')),
         mergeMap(taxonGroup => this.programRefService.watchProgramPmfms(this.$programLabel.value, {
           acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
           taxonGroupId: toNumber(taxonGroup && taxonGroup.id, undefined)

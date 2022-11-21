@@ -3,7 +3,7 @@ import { ExtractionColumn, ExtractionFilterCriterion } from '../type/extraction-
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ReferentialForm } from '../../referential/form/referential.form';
 import { BehaviorSubject } from 'rxjs';
-import { AppForm, arraySize, EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, LocalSettingsService, StatusIds } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormArray, arraySize, EntityUtils, FormArrayHelper, isNil, isNotNilOrBlank, LocalSettingsService, StatusIds } from '@sumaris-net/ngx-components';
 import { debounceTime } from 'rxjs/operators';
 import { ExtractionUtils } from '../common/extraction.utils';
 import { ExtractionCriteriaForm } from '@app/extraction/criteria/extraction-criteria.form';
@@ -45,8 +45,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     }
   ];
 
-  stratumFormArray: UntypedFormArray;
-  stratumHelper: FormArrayHelper<AggregationStrata>;
+  stratumFormArray: AppFormArray<AggregationStrata, UntypedFormGroup>;
 
   showMarkdownPreview = true;
   $markdownContent = new BehaviorSubject<string>(undefined);
@@ -103,16 +102,7 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
       validatorService.getFormGroup());
 
     // Stratum
-    this.stratumFormArray = this.form.controls.stratum as UntypedFormArray;
-    this.stratumHelper = new FormArrayHelper<AggregationStrata>(
-      this.stratumFormArray,
-      (strata) => validatorService.getStrataFormGroup(strata),
-      (v1, v2) => EntityUtils.equals(v1, v2, 'id') || v1.sheetName === v2.sheetName,
-      (strata) => !strata || isNil(strata.sheetName),
-      {
-        allowEmptyArray: false
-      }
-    );
+    this.stratumFormArray = this.form.controls.stratum as AppFormArray<AggregationStrata, UntypedFormGroup>;
 
     this.registerSubscription(
       this.form.get('documentation').valueChanges
@@ -194,15 +184,15 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
         .subscribe(isSpatial => {
            // Not need stratum
            if (!isSpatial) {
-             this.stratumHelper.resize(0);
-             this.stratumHelper.allowEmptyArray = true;
+             this.stratumFormArray.resize(0);
+             this.stratumFormArray.allowEmptyArray = true;
              this.stratumFormArray.disable();
            }
            else {
-             if (this.stratumHelper.size() === 0) {
-               this.stratumHelper.resize(1);
+             if (this.stratumFormArray.length === 0) {
+               this.stratumFormArray.resize(1);
              }
-             this.stratumHelper.allowEmptyArray = false;
+             this.stratumFormArray.allowEmptyArray = false;
              this.stratumFormArray.enable();
              this.updateLists();
            }
@@ -260,15 +250,15 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
     // If spatial, load columns
     if (data && data.isSpatial) {
+      this.stratumFormArray.enable();
       // If spatial product, make sure there is one strata
-      this.stratumHelper.resize(Math.max(1, arraySize(data.stratum)));
-      this.stratumHelper.allowEmptyArray = false;
-      this.stratumHelper.enable();
+      this.stratumFormArray.resize(Math.max(1, arraySize(data.stratum)));
+      this.stratumFormArray.allowEmptyArray = false;
     }
     else {
-      this.stratumHelper.resize(0);
-      this.stratumHelper.allowEmptyArray = true;
-      this.stratumHelper.disable();
+      this.stratumFormArray.disable();
+      this.stratumFormArray.resize(0);
+      this.stratumFormArray.allowEmptyArray = true;
     }
 
     // Show doc preview, if doc exists

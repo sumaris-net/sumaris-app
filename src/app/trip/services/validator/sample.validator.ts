@@ -7,15 +7,19 @@ import { TranslateService } from '@ngx-translate/core';
 import { ImageAttachmentValidator } from '@app/data/image/image-attachment.validator';
 
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
+import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 
 export interface SampleValidatorOptions {
   requiredLabel?: boolean;
   withChildren?: boolean;
   measurementValuesAsGroup?: boolean;
+  withImages?: boolean;
 }
 
 @Injectable({providedIn: 'root'})
-export class SampleValidatorService<O extends SampleValidatorOptions = SampleValidatorOptions> extends AppValidatorService implements ValidatorService {
+export class SampleValidatorService<O extends SampleValidatorOptions = SampleValidatorOptions>
+  extends BaseValidatorService<Sample, number, O>
+  implements ValidatorService {
 
   constructor(
     protected formBuilder: UntypedFormBuilder,
@@ -23,17 +27,6 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     @Optional() protected imageAttachmentValidator?: ImageAttachmentValidator
   ) {
     super(formBuilder, translate);
-  }
-
-  getRowValidator(): UntypedFormGroup {
-    return this.getFormGroup();
-  }
-
-  getFormGroup(data?: Sample, opts?: O): UntypedFormGroup {
-    return this.formBuilder.group(
-      this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data, opts)
-    );
   }
 
   getFormGroupConfig(data?: any, opts?: O): { [p: string]: any } {
@@ -62,7 +55,6 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       qualityFlagId: [toNumber(data && data.qualityFlagId, 0)],
     }
 
-
     // Add children form array
     if (!opts || opts.withChildren !== false) {
       config['children'] = this.formBuilder.array([]);
@@ -77,16 +69,8 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     }
 
     // Add image attachments
-    if (this.imageAttachmentValidator) {
-      const formArray = new AppFormArray(
-        (image) => this.imageAttachmentValidator.getFormGroup(image),
-        ImageAttachment.equals,
-        ImageAttachment.isEmpty
-      );
-      if (isNotEmptyArray(data?.images)) {
-        formArray.patchValue(data.images);
-      }
-      config['images'] = formArray;
+    if (this.imageAttachmentValidator && (opts?.withImages === true)) {
+      config['images'] = this.getImagesFormArray(data?.images);
     }
 
     return config;
@@ -106,6 +90,27 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     return super.getI18nError(errorKey, errorContent);
   }
 
+  protected getImagesFormArray(data?: ImageAttachment[], opts?: O) {
+    const formArray = new AppFormArray(
+      (image) => this.imageAttachmentValidator.getFormGroup(image),
+      ImageAttachment.equals,
+      ImageAttachment.isEmpty,
+      {
+        allowEmptyArray: true,
+        resizeStrategy: 'reuse'
+      }
+    );
+
+    formArray.statusChanges.subscribe(status => {
+      console.warn('TODO status  formArray changes', status);
+    })
+    console.warn('TODO creating image formArray', formArray);
+    if (isNotEmptyArray(data)) {
+      //formArray.patchValue(data);
+    }
+
+    return formArray;
+  }
 }
 
 

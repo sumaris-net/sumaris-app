@@ -125,9 +125,8 @@ export class IsDatePmfmPipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class IsComputedPmfmPipe implements PipeTransform {
 
-  transform(pmfm: IPmfm): any {
-
-    return pmfm && pmfm.isComputed;
+  transform(pmfm: IPmfm): boolean {
+    return pmfm?.isComputed || false;
   }
 }
 
@@ -138,8 +137,8 @@ export class IsComputedPmfmPipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class IsMultiplePmfmPipe implements PipeTransform {
 
-  transform(pmfm: IPmfm): any {
-    return pmfm && pmfm.isMultiple;
+  transform(pmfm: IPmfm): boolean {
+    return pmfm?.isMultiple || false;
   }
 }
 

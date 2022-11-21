@@ -51,9 +51,10 @@ export interface BaseMeasurementsTableConfig<
 export abstract class BaseMeasurementsTable<
   T extends IEntityWithMeasurement<T, ID>,
   F extends EntityFilter<any, T, any>,
-  V extends BaseValidatorService<T, ID> = any,
+  V extends BaseValidatorService<T, ID, VO> = any,
   ID = number,
-  O extends BaseMeasurementsTableConfig<T, ID> = BaseMeasurementsTableConfig<T, ID>
+  O extends BaseMeasurementsTableConfig<T, ID> = BaseMeasurementsTableConfig<T, ID>,
+  VO = any
   >
   extends AppBaseTable<T, F, V, ID, O>
   implements OnInit, OnDestroy, ValidatorService {
@@ -319,8 +320,8 @@ export abstract class BaseMeasurementsTable<
     this.measurementsDataService.pmfms = pmfms;
   }
 
-  getRowValidator(): UntypedFormGroup {
-    const formGroup = this.validatorService.getRowValidator();
+  getRowValidator(data?: T, opts?: VO): UntypedFormGroup {
+    const formGroup = this.validatorService.getRowValidator(data, opts);
 
     // Create the measurement values form (is exists)
     const measValueConfig = this.$measurementValuesFormGroupConfig.value;

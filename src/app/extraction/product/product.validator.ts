@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
-import {UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
-import {SharedValidators} from "@sumaris-net/ngx-components";
+import { FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AppFormArray, EntityUtils, isNil, isNotEmptyArray, SharedValidators } from '@sumaris-net/ngx-components';
 import {ExtractionProduct} from "./product.model";
 import {AppValidatorService}  from "@sumaris-net/ngx-components";
 import {toBoolean, toNumber} from "@sumaris-net/ngx-components";
@@ -42,9 +42,18 @@ export class ExtractionProductValidatorService extends AppValidatorService<Extra
   }
 
   getStratumArray(data?: ExtractionProduct): UntypedFormArray {
-    return this.formBuilder.array(
-      (data && data.stratum || []).map(this.getStrataFormGroup)
-    );
+    const formArray = new AppFormArray<AggregationStrata, FormGroup>(
+      (strata) => this.getStrataFormGroup(strata),
+      (v1, v2) => EntityUtils.equals(v1, v2, 'id') || v1.sheetName === v2.sheetName,
+      (strata) => !strata || isNil(strata.sheetName),
+      {
+        allowEmptyArray: false,
+        resizeStrategy: 'reuse'
+      });
+    if (isNotEmptyArray(data?.stratum)) {
+      formArray.patchValue(data?.stratum);
+    }
+    return formArray;
   }
 
   getStrataFormGroup(data?: AggregationStrata) {
