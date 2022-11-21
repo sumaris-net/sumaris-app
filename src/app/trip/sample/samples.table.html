@@ -326,18 +326,29 @@
     </ng-container>
 
 
-    <!-- Pictures column -->
-    <ng-container matColumnDef="pictures">
+    <!-- Images column -->
+    <ng-container matColumnDef="images">
       <th mat-header-cell *matHeaderCellDef>
         &nbsp;
       </th>
       <td mat-cell *matCellDef="let row">
         <!-- open pictures modal -->
-        <button mat-icon-button *ngVar="row.validator|formGetValue: 'images.length'; let pictureCount"
-                [class.visible-hover]="!row.editing && !pictureCount"
-                [color]="pictureCount ? 'primary' : 'medium'"
-                (click)="openPicturesModal($event, row)">
-          <ion-icon  slot="icon-only" name="camera"></ion-icon>
+        <button mat-icon-button
+                *ngVar="(row.validator|formGetArray: 'images')?.length as imageCount"
+                [class.visible-hover]="!row.editing && !imageCount"
+                [title]="'TRIP.SAMPLE.TABLE.BTN_IMAGES'|translateContext: i18nColumnSuffix"
+                (click)="openPicturesModal($event, row)"
+                >
+          <mat-icon
+                  [matBadge]="imageCount"
+                  [matBadgeHidden]="!imageCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">
+            <ion-icon [color]="imageCount ? 'tertiary' : 'medium'"
+                      slot="icon-only"
+                      name="camera"></ion-icon>
+          </mat-icon>
         </button>
       </td>
 
@@ -545,18 +556,18 @@
         </td>
       </ng-container>
 
-      <!-- Pictures column -->
-      <ng-container matColumnDef="pictures">
+      <!-- Images column -->
+      <ng-container matColumnDef="images">
         <th mat-header-cell *matHeaderCellDef>
           &nbsp;
         </th>
         <td mat-cell *matCellDef="let row">
-          <mat-icon *ngIf="row.currentData.images | isNotEmptyArray"
-                    [matBadge]="row.currentData.images.length"
+          <mat-icon *ngIf="row.currentData.images?.length; let imageCount"
+                    [matBadge]="imageCount"
                     matBadgeColor="accent"
                     matBadgeSize="small"
                     matBadgePosition="above after">
-          <ion-icon
+            <ion-icon
                     color="tertiary"
                     name="camera"
                     slot="icon-only"></ion-icon>

@@ -1,6 +1,6 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, Self} from '@angular/core';
-import {IMAGE_ATTACHMENT_SERVICE_TOKEN} from './image.service';
-import {ImageAttachment, ImageAttachmentFilter} from './image.model';
+import {APP_IMAGE_ATTACHMENT_SERVICE} from './image-attachment.service';
+import {ImageAttachment, ImageAttachmentFilter} from './image-attachment.model';
 import {BehaviorSubject, of, Subscription} from 'rxjs';
 import {ModalController} from '@ionic/angular';
 import {EntitiesTableDataSource, EntityUtils, GalleryMode, Image, InMemoryEntitiesService, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
@@ -14,7 +14,7 @@ import {environment} from '@environments/environment';
   styleUrls: ['./image-attachment-gallery.component.scss'],
   providers: [
     {
-      provide: IMAGE_ATTACHMENT_SERVICE_TOKEN,
+      provide: APP_IMAGE_ATTACHMENT_SERVICE,
       useFactory: () => new InMemoryEntitiesService(ImageAttachment, ImageAttachmentFilter, {
         equals: EntityUtils.equals
       })
@@ -103,7 +103,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
     protected modalCtrl: ModalController,
     protected settings: LocalSettingsService,
     protected cd: ChangeDetectorRef,
-    @Self() @Inject(IMAGE_ATTACHMENT_SERVICE_TOKEN) protected dataService: InMemoryEntitiesService<ImageAttachment, ImageAttachmentFilter>
+    @Self() @Inject(APP_IMAGE_ATTACHMENT_SERVICE) protected dataService: InMemoryEntitiesService<ImageAttachment, ImageAttachmentFilter>
   ) {
 
     this.debug = !environment.production;

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import {
-  AppEditor,
+  AppEditor, AppFormArray,
   arrayDistinct,
   changeCaseToUnderscore,
   equals,
@@ -38,7 +38,7 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
-import { UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormGroup, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
@@ -791,19 +791,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       ...savedBatch.asObject({withChildren: false})
     });
     if (model.isLeaf) {
-      const childrenForm = model.validator.get('children') as UntypedFormArray;
-      if (FormArrayHelper.hasHelper(childrenForm)) {
-        childrenForm._helper.patchValue(savedBatch.children);
-      }
-      else {
-        //throw new Error(`Missing FormArrayHelper for children batches, at ${model.path}`);
-        const childrenForms = (savedBatch.children || []).map(c => c.asObject({withChildren: true}))
-            .map(json => new UntypedFormControl(json))
-        if (model.validator.contains('children'))
-          model.validator.setControl('children', new UntypedFormArray(childrenForms))
-        else
-          model.validator.addControl('children', new UntypedFormArray(childrenForms));
-      }
+      const childrenForm = model.validator.get('children') as AppFormArray<Batch, FormGroup>;
+      childrenForm.setValue(savedBatch.children);
     }
 
     model.valid = model.validator.valid;

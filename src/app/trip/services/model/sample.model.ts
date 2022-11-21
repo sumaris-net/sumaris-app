@@ -21,7 +21,7 @@ import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
 import { sampleTime } from 'rxjs/operators';
 import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
-import {ImageAttachment} from '@app/data/image/image.model';
+import {ImageAttachment} from '@app/data/image/image-attachment.model';
 
 export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -144,7 +144,6 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     target.operationId = this.operationId;
 
     target.images = this.images && this.images.map(image => image.asObject(opts)) || undefined;
-    console.log('TODO asObj', target.images);
 
     if (opts && opts.minify) {
       // Parent not need, as the tree will be used by pod
@@ -173,7 +172,6 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     this.landingId = source.landingId;
     this.measurementValues = source.measurementValues && { ...source.measurementValues } || MeasurementUtils.toMeasurementValues(source.measurements);
     this.images = source.images && source.images.map(ImageAttachment.fromObject) || undefined;
-    console.log('TODO fromObj', this.images);
 
     if (source.children && (!opts || opts.withChildren !== false)) {
       this.children = source.children.map(child => Sample.fromObject(child, opts));

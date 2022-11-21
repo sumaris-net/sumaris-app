@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { FormGroup, UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
+  AppFormArray,
   EntityUtils,
   FormArrayHelper,
   isNil, isNotEmptyArray,
@@ -96,20 +97,20 @@ export class BatchValidatorService<
     if (opts?.withChildren) {
       if (isNotEmptyArray(data?.children)) {
         console.warn('[batch-validator] Creating validator for children batches - TODO: code review');
-        const formChildrenHelper = this.getChildrenFormHelper(form, {
+        const childrenArray = this.getChildrenFormArray(form, {
           withChildren: opts.withChildren,
           withChildrenWeight: opts.withChildrenWeight,
           childrenPmfms: opts.childrenPmfms
         });
-        formChildrenHelper.patchValue(data.children.filter(BatchUtils.isSortingBatch) as T[]);
+        childrenArray.setValue(data.children.filter(BatchUtils.isSortingBatch) as T[]);
       }
       else {
-        const formChildrenHelper = this.getChildrenFormHelper(form, {
+        const childrenArray = this.getChildrenFormArray(form, {
           withChildren: !!opts.qvPmfm && this.enableSamplingBatch,
           withChildrenWeight: true,
           childrenPmfms: !!opts.qvPmfm && opts.childrenPmfms || null
         });
-        formChildrenHelper.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
+        childrenArray.resize(opts.qvPmfm?.qualitativeValues?.length || 1);
       }
     }
 
@@ -163,23 +164,24 @@ export class BatchValidatorService<
     return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
   }
 
-  protected getChildrenFormHelper(form: UntypedFormGroup, opts?: {
+  protected  getChildrenFormArray(form: UntypedFormGroup, opts?: {
     withChildren: boolean;
     withChildrenWeight: boolean;
     childrenPmfms?: IPmfm[]
-  }): FormArrayHelper<T> {
-    let arrayControl = form.get('children') as UntypedFormArray;
-    if (!arrayControl) {
-      arrayControl = this.formBuilder.array([]);
-      form.addControl('children', arrayControl);
-    }
-    return new FormArrayHelper<T>(
-      arrayControl,
+  }): AppFormArray<T, FormGroup> {
+    let existingControl = form.get('children');
+    if (existingControl) form.removeControl('children', {emitEvent: false});
+
+    const formArray = new AppFormArray<T, UntypedFormGroup>(
       (value) => this.getFormGroup(value, <O>{withWeight: true, qvPmfm: undefined, withMeasurements: true, childrenPmfms: this.childrenPmfms, ...opts}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
       (value) => isNil(value),
-      {allowEmptyArray: true, helperProperty: true}
-    );
+      {
+        allowEmptyArray: true,
+        resizeStrategy: 'recreate'
+      });
+    form.addControl('children', formArray);
+    return formArray;
   }
 
   enableSamplingRatioAndWeight(form: UntypedFormGroup, opts?: {

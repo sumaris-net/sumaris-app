@@ -1,10 +1,12 @@
-import {Injectable, Optional} from '@angular/core';
+import { Injectable, Optional } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { AppValidatorService, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AppFormArray, AppValidatorService, FormArrayHelper, isNotEmptyArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from '../model/sample.model';
 import { TranslateService } from '@ngx-translate/core';
-import {ImageAttachmentValidator} from '@app/data/image/image-attachment.validator';
+import { ImageAttachmentValidator } from '@app/data/image/image-attachment.validator';
+
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
 
 export interface SampleValidatorOptions {
   requiredLabel?: boolean;
@@ -76,10 +78,16 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
 
     // Add image attachments
     if (this.imageAttachmentValidator) {
-      config['images'] = this.formBuilder.array((data?.images || [])
-        .map(image => this.imageAttachmentValidator.getFormGroup(image)))
+      const formArray = new AppFormArray(
+        (image) => this.imageAttachmentValidator.getFormGroup(image),
+        ImageAttachment.equals,
+        ImageAttachment.isEmpty
+      );
+      if (isNotEmptyArray(data?.images)) {
+        formArray.patchValue(data.images);
+      }
+      config['images'] = formArray;
     }
-
 
     return config;
   }

@@ -1,31 +1,8 @@
-import {Injectable, InjectionToken} from '@angular/core';
-import {Platform} from '@ionic/angular';
-import {
-  AppValidatorService,
-  BaseEntityGraphqlQueries,
-  EntitiesServiceWatchOptions,
-  EntityUtils,
-  IEntitiesService,
-  isNil,
-  isNotNil,
-  LoadResult, SharedValidators,
-  StartableService, toBoolean,
-  toNumber
-} from '@sumaris-net/ngx-components';
-import {ImageAttachment, ImageAttachmentFilter} from '@app/data/image/image.model';
-import {SortDirection} from '@angular/material/sort';
-import {map} from 'rxjs/operators';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {ExtractionProduct} from '@app/extraction/product/product.model';
-import {Validators} from '@angular/forms';
-
-export const IMAGE_ATTACHMENT_SERVICE_TOKEN = new InjectionToken<IEntitiesService<ImageAttachment, ImageAttachmentFilter>>('ImageAttachmentService');
-
-
-const queries: BaseEntityGraphqlQueries = {
-  loadAll: null,
-}
-
+import { Injectable } from '@angular/core';
+import { AppValidatorService, SharedValidators } from '@sumaris-net/ngx-components';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
+import { Validators } from '@angular/forms';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 
 @Injectable({providedIn: 'root'})
 export class ImageAttachmentValidator extends AppValidatorService {
@@ -36,8 +13,13 @@ export class ImageAttachmentValidator extends AppValidatorService {
       id: [data?.id || null],
       url: [data?.url || null],
       dataUrl: [data?.dataUrl || null],
-      title: [data?.title || null, Validators.maxLength(255)],
-      updateDate: [data && data.updateDate || null]
+      dateTime: [data?.dateTime || null],
+      comments: [data?.comments || null, Validators.maxLength(2000)],
+      updateDate: [data?.updateDate || null],
+      creationDate: [data?.creationDate || null],
+      qualityFlagId: [data?.qualityFlagId || QualityFlagIds.NOT_QUALIFIED],
+      recorderDepartment: [data?.recorderDepartment || null, SharedValidators.entity],
+      recorderPerson: [data?.recorderPerson || null, SharedValidators.entity]
     };
   }
 }

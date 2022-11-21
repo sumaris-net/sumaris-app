@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 import { SampleValidatorService } from '../services/validator/sample.validator';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
@@ -6,6 +6,7 @@ import {
   AppFormUtils,
   AppValidatorService,
   ColorName,
+  DateUtils,
   firstNotNilPromise,
   InMemoryEntitiesService,
   IReferentialRef,
@@ -16,15 +17,15 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
-  LoadResult, LocalSettingsService,
+  LoadResult,
+  LocalSettingsService,
   ObjectMap,
-  PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   suggestFromArray,
   toBoolean,
   toNumber,
-  UsageMode, DateUtils
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
@@ -50,6 +51,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -60,7 +62,7 @@ declare interface GroupColumnDefinition {
 }
 
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
-export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments', 'pictures'];
+export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments', 'images'];
 export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 
 
@@ -113,7 +115,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() showFabButton = false;
   @Input() showIndividualMonitoringButton = false;
   @Input() showIndividualReleaseButton = false;
-  @Input() showPicturesButton = false;
   @Input() defaultSampleDate: Moment = null;
   @Input() defaultTaxonGroup: TaxonGroupRef = null;
   @Input() defaultTaxonName: TaxonNameRef = null;
@@ -176,6 +177,15 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return this.getShowColumn('taxonName');
   }
 
+  @Input()
+  set showImagesButton(value: boolean) {
+    this.setShowColumn('images', value);
+  }
+
+  get showImagesButton(): boolean {
+    return this.getShowColumn('images');
+  }
+
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
 
   getRowError(row, opts): string {
@@ -229,6 +239,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
     // Set default value
     this._acquisitionLevel = null; // Avoid load to early. Need sub classes to set it
+    this.excludesColumns = ['images']; // Hide images by default
 
     //this.debug = false;
     this.debug = !environment.production;
@@ -329,7 +340,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       showTaxonName: this.showTaxonNameColumn,
       showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
-      showPictures: this.showPicturesButton,
+      showPictures: this.showImagesButton,
       onReady: (modal) => {
         this.onPrepareRowForm.emit({
           form: modal.form.form,
@@ -515,10 +526,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return {data, role};
   }
 
-  openPicturesModal(){
-
-  }
-
   filterColumnsByTaxonGroup(taxonGroup: TaxonGroupRef) {
     const toggleLoading = !this.loading;
     if (toggleLoading) this.markAsLoading();
@@ -577,6 +584,35 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     if (!pmfmIds) return; // USer cancelled
 
   }
+
+  async openPicturesModal(event: Event, row: TableElement<Sample>){
+    const modal = await this.modalCtrl.create({
+      component: AppImageAttachmentsModal,
+      componentProps: <IImageModalOptions>{
+        data: row.currentData.images
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+    await modal.present();
+    const {data, role} = await modal.onDidDismiss();
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
+
+    if (this.inlineEdition && Array.isArray(data)) {
+      if (row.validator) {
+        const formArray = row.validator.get('images');
+        formArray.patchValue(data);
+        row.validator.markAsDirty();
+        row.confirmEditCreate();
+      }
+      else {
+        row.currentData.images = data;
+      }
+    }
+  }
+
 
   /* -- protected methods -- */
 
@@ -771,6 +807,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         allowMultiple: opts?.allowMultiple
       },
       keyboardClose: true,
+      backdropDismiss: false,
       cssClass: 'modal-large'
     });
 

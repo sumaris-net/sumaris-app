@@ -979,6 +979,7 @@
         "PARENT": "Prélèvement parent",
         "COMMENTS": "Commentaires",
         "COMMENTS_PLACEHOLDER": "Commentaires",
+        "IMAGES": "Images",
         "BTN_AUTO_FILL": "Remplir automatiquement",
         "BTN_ADD_PMFM": "Ajouter un PSFM...",
         "WEIGHT": "Poids",
@@ -991,6 +992,7 @@
         "TAG_COUNT": "<b>{{tagCount}}</b> prélèvement(s)",
         "BTN_INDIVIDUAL_MONITORING": "Saisir le sous-prélèvement",
         "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
+        "BTN_IMAGES": "Ajouter des images",
         "AUCTION_CONTROL": {
           "LABEL": "N° Lot",
           "LABEL_PLACEHOLDER": "N° Lot",

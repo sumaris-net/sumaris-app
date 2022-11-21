@@ -1,24 +1,10 @@
-import {
-  AccountService,
-  BaseGraphqlService,
-  GraphqlService,
-  IJobProgressionService,
-  isNil,
-  isNotNil,
-  JobProgression,
-  LoadResult,
-  removeDuplicatesFromArray,
-  SocialErrorCodes,
-  toNumber
-} from '@sumaris-net/ngx-components';
+import { AccountService, BaseGraphqlService, GraphqlService, IJobProgressionService, isNil, JobProgression, removeDuplicatesFromArray, SocialErrorCodes, toNumber } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
 import gql from 'graphql-tag';
-import { ErrorCodes } from '@app/referential/services/errors';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { FetchPolicy, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { concatAll, filter, map, mergeMap, switchMap, takeUntil } from 'rxjs/operators';
+import { FetchPolicy } from '@apollo/client/core';
+import { map, mergeMap, takeUntil } from 'rxjs/operators';
 import { environment } from '@environments/environment';
-import { JobFilter } from '@app/social/job/job.model';
 import { JobService } from '@app/social/job/job.service';
 
 export const JobProgressionFragments = {
@@ -90,7 +76,10 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
       this.dataSubject.asObservable(),
       this.accountService.onLogin
       .pipe(
-        mergeMap((account) => this.jobService.watchAll({issuer: account.pubkey}, {toEntity: false})),
+        mergeMap((account) => this.jobService.watchAll({
+          issuer: account.pubkey,
+          status: ['PENDING', 'RUNNING']
+        }, {toEntity: false})),
         takeUntil(this.accountService.onLogout)
       )
     ).pipe(

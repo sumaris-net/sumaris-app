@@ -1,5 +1,6 @@
 import { gql } from '@apollo/client/core';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
+import { ImageAttachmentFragments } from '@app/data/image/image-attachment.service';
 
 
 export const DataCommonFragments = {
@@ -101,13 +102,18 @@ export const DataFragments = {
       ...TaxonNameFragment
     }
     measurementValues
+    images {
+      ...LightImageAttachmentFragment
+    }
     qualityFlagId
     operationId
     landingId
     __typename
   }
   ${DataCommonFragments.referential}
-  ${ReferentialFragments.taxonName}`,
+  ${ReferentialFragments.taxonName}
+  ${ImageAttachmentFragments.light}
+  `,
   batch: gql`fragment BatchFragment on BatchVO {
     id
     label

@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
-import { AppImageModal } from './image.modal';
+import { AppImageAttachmentsModal } from './image.modal';
 
 describe('AppImageModal', () => {
-  let component: AppImageModal;
-  let fixture: ComponentFixture<AppImageModal>;
+  let component: AppImageAttachmentsModal;
+  let fixture: ComponentFixture<AppImageAttachmentsModal>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ AppImageModal ],
+      declarations: [ AppImageAttachmentsModal ],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AppImageModal);
+    fixture = TestBed.createComponent(AppImageAttachmentsModal);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));

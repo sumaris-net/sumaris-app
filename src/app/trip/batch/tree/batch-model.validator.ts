@@ -1,12 +1,11 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import {FormArrayHelper, isNotEmptyArray, LocalSettingsService} from '@sumaris-net/ngx-components';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {MeasurementsValidatorService} from '@app/trip/services/validator/measurement.validator';
-import {DataEntityValidatorOptions} from '@app/data/services/validator/data-entity.validator';
-import {Batch, BatchAsObjectOptions, BatchFromObjectOptions} from '@app/trip/batch/common/batch.model';
-import {BatchValidatorService} from '@app/trip/batch/common/batch.validator';
-import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import { isNotEmptyArray, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
+import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
+import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
+import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 
 export interface BatchValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
@@ -56,7 +55,7 @@ export class BatchModelValidatorService<
       // DEBUG
       console.debug(`[batch-model-validator] Creating children form array, with pmfms: `, opts.childrenPmfms);
 
-      const childrenFormHelper: FormArrayHelper<Batch> = this.getChildrenFormHelper(form, {
+      const childrenForm = this.getChildrenFormArray(form, {
         withWeight: true,
         withMeasurements: true,
         ...opts,
@@ -65,13 +64,7 @@ export class BatchModelValidatorService<
         pmfms: opts.childrenPmfms || null,
         childrenPmfms: null
       });
-      // Normalize children
-      // data.children.forEach(child => {
-      //   child.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(child.measurementValues, opts.childrenPmfms);
-      // })
-      // childrenFormHelper.resize(data.children?.length);
-      // childrenFormHelper.formArray.patchValue(data.children);
-      childrenFormHelper.patchValue(data?.children || []);
+      childrenForm.patchValue(data?.children || []);
     }
 
     // Add measurement values

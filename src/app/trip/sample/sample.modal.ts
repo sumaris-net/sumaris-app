@@ -28,7 +28,7 @@ import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import moment, {Moment} from 'moment';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {AppImageAttachmentGallery} from '@app/data/image/image-attachment-gallery.component';
-import {ImageAttachment} from '@app/data/image/image.model';
+import {ImageAttachment} from '@app/data/image/image-attachment.model';
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
