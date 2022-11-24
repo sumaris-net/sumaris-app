@@ -159,7 +159,7 @@ export class BatchValidatorService<
       (value) => isNil(value),
       {
         allowEmptyArray: true,
-        resizeStrategy: 'recreate'
+        allowReuseControls: false
       });
     if (data) {
       formArray.patchValue(data);

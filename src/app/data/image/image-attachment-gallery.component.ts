@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, Self } from '@angular/core';
 import { APP_IMAGE_ATTACHMENT_SERVICE } from './image-attachment.service';
-import { ImageAttachment, ImageAttachmentFilter } from './image-attachment.model';
+import { ImageAttachment, ImageAttachmentComparators, ImageAttachmentFilter } from './image-attachment.model';
 import { BehaviorSubject, of, Subscription } from 'rxjs';
 import { ModalController } from '@ionic/angular';
-import { EntitiesTableDataSource, EntityUtils, GalleryMode, Image, InMemoryEntitiesService, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { EntitiesTableDataSource, EntityUtils, GalleryMode, Image, InMemoryEntitiesService, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { TableDataSource, TableElement } from '@e-is/ngx-material-table';
 import { startWith, switchMap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { PredefinedColors } from '@ionic/core';
+import { getMaxRankOrder } from '@app/data/services/model/model.utils';
 
 @Component({
   selector: 'app-image-attachment-gallery',
@@ -27,9 +28,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
 
   private readonly debug: boolean;
   private readonly _subscription = new Subscription();
-  protected readonly dataSource = new EntitiesTableDataSource<ImageAttachment, ImageAttachmentFilter>(ImageAttachment, this.dataService, null, {
-    prependNewElements: false
-  });
+  protected readonly dataSource: EntitiesTableDataSource<ImageAttachment, ImageAttachmentFilter>;
 
   readySubject = new BehaviorSubject<boolean>(false);
   dirtySubject = new BehaviorSubject<boolean>(false);
@@ -47,7 +46,11 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
   @Input()
   set value(value: ImageAttachment[]) {
     // DEBUG
-    console.debug('[image-gallery] Setting value', value);
+    if (this.debug) console.debug(`[image-gallery] Setting ${value?.length || 0} image(s): `);
+
+    // Fill rankOrder (keep original order) - need by the equals() function
+    ImageAttachment.fillRankOrder(value);
+
     this.dataService.setValue(value);
   }
 
@@ -107,7 +110,9 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
     protected cd: ChangeDetectorRef,
     @Self() @Inject(APP_IMAGE_ATTACHMENT_SERVICE) protected dataService: InMemoryEntitiesService<ImageAttachment, ImageAttachmentFilter>
   ) {
-
+    this.dataSource = new EntitiesTableDataSource<ImageAttachment, ImageAttachmentFilter>(ImageAttachment, this.dataService, null, {
+      prependNewElements: false
+    });
     this.debug = !environment.production;
   }
 
@@ -137,7 +142,19 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
   }
 
   async onAfterAddRows(rows: TableElement<ImageAttachment>[]) {
+
+    // Fill rankOrder
+    let rankOrder = getMaxRankOrder(this.dataSource.getData()) + 1;
+    (rows || []).forEach(row => {
+      const data = row.currentData;
+      if (isNil(data.rankOrder)) {
+        data.rankOrder = rankOrder++;
+        row.currentData = data;
+      }
+    });
+
     await this.save();
+
     this.markAsDirty();
   }
 

@@ -41,7 +41,7 @@ import { SortDirection } from '@angular/material/sort';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { LandingFilter } from './filter/landing.filter';
-import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import { DataEntityAsObjectOptions, DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
 import { TripFragments, TripService } from '@app/trip/services/trip.service';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { ErrorCodes } from '@app/data/services/errors';
@@ -50,6 +50,7 @@ import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 import { TripFilter } from '@app/trip/services/filter/trip.filter';
 import { Moment } from 'moment/moment';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
 
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
@@ -1095,7 +1096,30 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         if (target.children && target.children.length) {
           this.copyIdAndUpdateDateOnSamples(savedLanding, sources, target.children); // recursive call
         }
+
+        // Update images
+        if (target.images && source.images) {
+          this.copyIdAndUpdateDateOnImages(source, source.images, target.images); // recursive call
+        }
       });
+    }
+  }
+
+  /**
+   * Copy Id and update, on images
+   * @param sources
+   * @param targets
+   */
+  protected copyIdAndUpdateDateOnImages(savedSample: Sample, sources: (ImageAttachment | any)[], targets: ImageAttachment[]) {
+    if (sources && targets && sources.length === targets.length && sources.length > 0) {
+      sources.forEach((source, index) => {
+        // Find by index, as order should not be changed during saving
+        const target = targets[index];
+
+        EntityUtils.copyIdAndUpdateDate(source, target);
+        DataEntityUtils.copyControlDate(source, target);
+        DataEntityUtils.copyQualificationDateAndFlag(source, target);
+      })
     }
   }
 

@@ -1,10 +1,17 @@
 #!/bin/bash
+
 # Get to the root project
 if [[ "_" == "_${PROJECT_DIR}" ]]; then
   SCRIPT_DIR=$(dirname $0)
   PROJECT_DIR=$(cd ${SCRIPT_DIR}/.. && pwd)
   export PROJECT_DIR
 fi;
+
+# Script source has been sourced: exit
+if [[ "/" == "${PROJECT_DIR}" ]]; then
+ echo "ERROR: Cannot source this file. Please executed it instead"
+ exit 1
+fi
 
 echo "--- Preparing project environment..."
 echo " - using Project dir: $PROJECT_DIR"
@@ -26,11 +33,11 @@ NODE_VERSION=14
 NODE_OPTIONS=--max-old-space-size=4096 # Avoid Javascript memory heap space
 
 ANDROID_NDK_VERSION=21.0.6113669 # Should be compatible with 'cordova-sqlite-storage' plugin
-ANDROID_SDK_VERSION=29.0.2
-ANDROID_SDK_CLI_VERSION=6858069
+ANDROID_SDK_VERSION=30.0.3
+ANDROID_SDK_CLI_VERSION=8512546 # See https://developer.android.com/studio#command-tools
 ANDROID_SDK_ROOT="${HOME}/Android/Sdk"
 ANDROID_ALTERNATIVE_SDK_ROOT=/usr/lib/android-sdk
-ANDROID_SDK_CLI_ROOT=${ANDROID_SDK_ROOT}/cli
+ANDROID_SDK_CLI_ROOT=${ANDROID_SDK_ROOT}/cmdline-tools/${ANDROID_SDK_CLI_VERSION}
 ANDROID_OUTPUT_APK_PREFIX=app
 ANDROID_OUTPUT_APK=${PROJECT_DIR}/platforms/android/${ANDROID_OUTPUT_APK_PREFIX}/build/outputs/apk
 ANDROID_OUTPUT_APK_DEBUG=${ANDROID_OUTPUT_APK}/debug
@@ -41,7 +48,7 @@ ANDROID_OUTPUT_APK_RELEASE=${ANDROID_OUTPUT_APK}/release
 # /!\ WARN can be define in your <project>/.local/env.sh file
 #JAVA_HOME=
 
-GRADLE_VERSION=6.5.1
+GRADLE_VERSION=7.1.1
 GRADLE_HOME=${HOME}/.gradle/${GRADLE_VERSION}
 CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-all.zip
 GRADLE_OPTS=-Dorg.gradle.jvmargs=-Xmx512m
@@ -66,7 +73,7 @@ if [[ "_" == "_${JAVA_HOME}" ]]; then
   # Check the Java version
   JAVA_VERSION=`java -version 2>&1 | egrep "(java|openjdk) version" | awk '{print $3}' | tr -d \"`
   if [[ $? -ne 0 ]]; then
-    echo "No Java JRE 1.8 found in machine. This is required for Android artifacts."
+    echo "No Java JRE 11.0 found in machine. This is required for Android artifacts."
     exit 1
   fi
   JAVA_MAJOR_VERSION=`echo ${JAVA_VERSION} | awk '{split($0, array, ".")} END{print array[1]}'`
@@ -89,7 +96,6 @@ fi
 
 # Add Java, Android SDK tools to path
 PATH=${ANDROID_SDK_CLI_ROOT}/bin:${GRADLE_HOME}/bin:${JAVA_HOME}/bin$:$PATH
-
 
 # Node JS (using nvm - Node Version Manager)
 NVM_DIR="$HOME/.config/nvm"
@@ -132,13 +138,12 @@ export PATH \
   CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL
 
 # Install global dependencies
+YARN_PATH=`which yarn`
 IONIC_PATH=`which ionic`
-CORDOVA_PATH=`which cordova`
-CORDOVA_RES_PATH=`which cordova-res`
 NATIVE_RUN_PATH=`which native-run`
-if [[ "_" == "_${IONIC_PATH}" || "_" == "_${CORDOVA_PATH}" || "_" == "_${CORDOVA_RES_PATH}" || "_" == "_${NATIVE_RUN_PATH}" ]]; then
+if [[ "_" == "_${YARN_PATH}" ||"_" == "_${IONIC_PATH}" || "_" == "_${NATIVE_RUN_PATH}" ]]; then
   echo "--- Installing global dependencies..."
-  npm install -g cordova cordova-res @ionic/cli native-run yarn
+  npm install -g @ionic/cli native-run yarn
   [[ $? -ne 0 ]] && exit 1
 fi
 

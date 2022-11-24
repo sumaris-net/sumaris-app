@@ -319,10 +319,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this._showMetiers = this._showMetiers || isNotEmptyArray(data?.metiers);
     if (this._showMetiers) {
       data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
-      this.metiersHelper.resize(Math.max(1, data.metiers.length));
+      this.metiersHelper.resize(Math.max(1, data.metiers.length), {emitEvent: false});
     } else {
       data.metiers = [];
-      this.metiersHelper?.resize(0);
+      this.metiersHelper?.resize(0, {emitEvent: false});
     }
 
     this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));

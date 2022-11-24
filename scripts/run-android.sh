@@ -1,5 +1,7 @@
 #!/bin/bash
 
+BUILD_CONFIGURATION=development
+
 # Get to the root project
 if [[ "_" == "_${PROJECT_DIR}" ]]; then
   SCRIPT_DIR=$(dirname $0)
@@ -39,13 +41,13 @@ if [[ ! -f ${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.ap
    [[ ! -f "${ANDROID_OUTPUT_APK_DEBUG}/${ANDROID_OUTPUT_APK_PREFIX}-debug.apk" ]]; then
   echo "-------------------------------------------"
   echo "--- Building Android APK..."
-  cd "${PROJECT_DIR}"
-  node ${NODE_OPTIONS} ./node_modules/@ionic/cli/bin/ionic cordova build android --warning-mode=none --color $*
+  cd ${PROJECT_DIR}
+  npx jetifier && ionic capacitor build android --configuration ${BUILD_CONFIGURATION}
   [[ $? -ne 0 ]] && exit 1
 fi
 
 echo "-------------------------------------------"
-echo "--- Running Android APK..."
+echo "--- Running Android application..."
 if [[ -f "${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.apk" ]]; then
   native-run android --app ${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.apk
 elif [[ -f "${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-unsigned.apk" ]]; then

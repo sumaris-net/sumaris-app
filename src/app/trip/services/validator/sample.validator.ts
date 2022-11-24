@@ -94,12 +94,7 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     const formArray = new AppFormArray(
       (image) => this.imageAttachmentValidator.getFormGroup(image),
       ImageAttachment.equals,
-      ImageAttachment.isEmpty,
-      {
-        allowEmptyArray: true,
-        resizeStrategy: 'reuse'
-      }
-    );
+      ImageAttachment.isEmpty);
     if (isNotEmptyArray(data)) {
       formArray.patchValue(data);
     }

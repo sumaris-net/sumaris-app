@@ -1,4 +1,6 @@
 #!/bin/bash
+BUILD_CONFIGURATION=production
+
 # Get to the root project
 if [[ "_" == "_${PROJECT_DIR}" ]]; then
   cd ..
@@ -10,8 +12,7 @@ fi;
 . ${PROJECT_DIR}/scripts/env-android.sh
 [[ $? -ne 0 ]] && exit 1
 
-cd ${PROJECT_DIR}
-
 # Run the build
-echo "Running cordova build..."
-ionic cordova build android --warning-mode=none --color $*
+echo "--- Building Android APK..."
+cd ${PROJECT_DIR}
+npx jetifier && ionic capacitor build android --configuration ${BUILD_CONFIGURATION}

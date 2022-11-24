@@ -47,8 +47,7 @@ export class ExtractionProductValidatorService extends AppValidatorService<Extra
       (v1, v2) => EntityUtils.equals(v1, v2, 'id') || v1.sheetName === v2.sheetName,
       (strata) => !strata || isNil(strata.sheetName),
       {
-        allowEmptyArray: false,
-        resizeStrategy: 'reuse'
+        allowEmptyArray: false
       });
     if (isNotEmptyArray(data?.stratum)) {
       formArray.patchValue(data?.stratum);

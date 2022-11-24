@@ -35,6 +35,9 @@ if [[ ! -d "${ANDROID_SDK_CLI_ROOT}" ]]; then
   cd "${PROJECT_DIR}/scripts"
   ./install-android-sdk-tools.sh
   [[ $? -ne 0 ]] && exit 1
+else
+  # Add SDK CLI to path
+  export PATH=${ANDROID_SDK_CLI_ROOT}/bin:$PATH
 fi
 
 # Install Gradle
@@ -54,10 +57,10 @@ fi
 
 
 # Prepare Android platform
-if [[ ! -d "${PROJECT_DIR}/platforms/android" ]]; then
-  echo "--- Adding Cordova Android platform..."
+if [[ ! -d "${PROJECT_DIR}/android" ]]; then
+  echo "--- Adding Capacitor Android platform..."
   cd "${PROJECT_DIR}"
-  ionic cordova prepare android --color --verbose
+  npx cap add android
   [[ $? -ne 0 ]] && exit 1
 fi
 
@@ -70,29 +73,11 @@ else
   echo "No directory '${PROJECT_DIR}/.local/android' found. Please create it, with a file 'release-signing.properties' for release signing"
 fi
 
-
-# Check if check requirements is need
-# => If last execution was more than 24h ago: need check requirements
-LAST_REQUIREMENT_TIME_FILE=${PROJECT_DIR}/.local/.cordova_last_requirement_check
-if [[ -f ${LAST_REQUIREMENT_TIME_FILE} ]]; then
-  PREVIOUS_EXEC_TIME=$(cat ${LAST_REQUIREMENT_TIME_FILE})
-else
-  PREVIOUS_EXEC_TIME=0
-fi;
-NOW=$(date +"%s")
-DELTA_TIME=$(($NOW - $PREVIOUS_EXEC_TIME))
-if [[ $DELTA_TIME -ge $((24 * 60 * 60)) ]]; then
   echo
-  echo "--- Checking Cordova requirements..."
-  ionic cordova requirements android
-  [[ $? -ne 0 ]] && exit 1
+echo "--- Synchronizing..."
+cd "${PROJECT_DIR}"
+npx jetifier && npx cap sync android
+[[ $? -ne 0 ]] && exit 1
 
-  # Remember check time
-  mkdir -p ${PROJECT_DIR}/.local
-  echo $NOW > ${LAST_REQUIREMENT_TIME_FILE}
-fi
-
-echo "-------------------------------------------"
 echo "--- Android environment is ready!"
-echo "-------------------------------------------"
 

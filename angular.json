@@ -111,14 +111,7 @@
               "node_modules/marked/lib/marked.umd.js",
               "node_modules/emoji-toolkit/lib/js/joypixels.min.js",
               "node_modules/prismjs/prism.js"
-            ],
-            "aot": false,
-            "vendorChunk": true,
-            "extractLicenses": false,
-            "buildOptimizer": false,
-            "sourceMap": true,
-            "optimization": false,
-            "namedChunks": true
+            ]
           },
           "configurations": {
             "production": {
@@ -150,15 +143,25 @@
               ],
               "progress": false
             },
+            "development": {
+              "aot": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "buildOptimizer": false,
+              "sourceMap": true,
+              "optimization": false,
+              "namedChunks": true
+            },
             "ci": {
               "progress": false
             }
-          }
+          },
+          "defaultConfiguration": "development"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "app:build"
+            "browserTarget": "app:build:development"
           },
           "configurations": {
             "production": {
