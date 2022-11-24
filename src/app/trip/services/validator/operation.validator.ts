@@ -19,6 +19,7 @@ import { BBox } from 'geojson';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { Geometries } from '@app/shared/geometries.utils';
 import { DataValidators } from '@app/data/services/validator/data.validators';
+import { TranslateService } from '@ngx-translate/core';
 
 
 export interface IPmfmForm {
@@ -58,16 +59,13 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
   constructor(
     formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService,
     private positionValidator: PositionValidatorService,
     private fishingAreaValidator: FishingAreaValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
-    super(formBuilder, settings);
-  }
-
-  getRowValidator(): UntypedFormGroup {
-    return this.getFormGroup();
+    super(formBuilder, translate, settings);
   }
 
   getFormGroup(data?: Operation, opts?: O): UntypedFormGroup {

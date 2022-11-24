@@ -9,6 +9,7 @@ import {DataRootVesselEntityValidatorService} from '@app/data/services/validator
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
 import {Strategy} from '@app/referential/services/model/strategy.model';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface LandingValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
@@ -22,10 +23,11 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
 
   constructor(
     formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
+    settings: LocalSettingsService,
     protected measurementsValidatorService: MeasurementsValidatorService,
-    @Optional() settings?: LocalSettingsService
   ) {
-    super(formBuilder, settings);
+    super(formBuilder,translate, settings);
   }
 
   getFormGroup(data?: Landing, opts?: O): UntypedFormGroup {

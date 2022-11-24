@@ -996,7 +996,8 @@
         "AUCTION_CONTROL": {
           "LABEL": "N° Lot",
           "LABEL_PLACEHOLDER": "N° Lot",
-          "COMMENTS": "Commentaires"
+          "COMMENTS": "Commentaires",
+          "IMAGES": "Images"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Mesures individuelles",
@@ -1166,6 +1167,7 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les sorties <b>non envoyées</b>)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
+        "STRATEGY": "Stratégie",
         "LOCATION": "Lieu de la sortie",
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période"
@@ -1204,9 +1206,9 @@
         "SUMMARY_TITLE": "Synthèse des échantillonnages"
       },
       "AUCTION_CONTROL": {
-        "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
-        "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées",
-        "VESSEL_COUNT": "Nombre de navire contrôlés :"
+        "TITLE": "Synthèse du contrôle sous criée : {{ location }} - {{ dateTime }}",
+        "TITLE_SHORT": "Synthèse du contrôle sous criée",
+        "VESSEL_COUNT": "Nombre de navires contrôlés :"
       }
     }
   },
@@ -1275,6 +1277,9 @@
         "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}} (rapport)",
         "TITLE_SHORT": "Rapport d'échantillonnage",
         "SAMPLES_TITLE": "Mesures individuelles"
+      },
+      "AUCTION_CONTROL": {
+        "EMBEDDED_TITLE": "Contrôle <b>{{species}}</b>"
       }
     },
     "SELECT_MODAL": {

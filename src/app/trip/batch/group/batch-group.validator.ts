@@ -2,57 +2,43 @@ import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { BatchValidatorOptions, BatchValidators, BatchValidatorService } from '../common/batch.validator';
 import { BatchGroup } from './batch-group.model';
-import { LocalSettingsService, SharedAsyncValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import { AppFormUtils, isNotEmptyArray, isNotNil, LocalSettingsService, SharedAsyncValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { Subscription } from 'rxjs';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { environment } from '@environments/environment';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { debounceTime } from 'rxjs/operators';
+import { TranslateService } from '@ngx-translate/core';
 
-export interface BatchGroupValidatorOptions extends BatchValidatorOptions {
+export interface BatchGroupValidatorOptions extends BatchValidatorOptions<BatchGroupValidatorOptions> {
+  root?: boolean;
+  qvPmfm?: IPmfm;
+  childrenPmfms?: IPmfm[];
+  enableSamplingBatch?: boolean;
 }
 
-@Injectable()
-export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup, BatchGroupValidatorOptions> {
-
-  private _qvPmfm: IPmfm;
-
-  set qvPmfm(value: IPmfm) {
-    console.warn('[batch-group-validator] @deprecated use of qvPmfm property. Please use options to send qvPmfm!');
-    this._qvPmfm = value;
-  }
+@Injectable({providedIn: 'root'})
+export class BatchGroupValidatorService extends
+  BatchValidatorService<BatchGroup, BatchGroupValidatorOptions> {
 
   constructor(
     formBuilder: UntypedFormBuilder,
-    measurementsValidatorService: MeasurementsValidatorService,
-    settings: LocalSettingsService
+    translate: TranslateService,
+    settings: LocalSettingsService,
+    measurementsValidatorService: MeasurementsValidatorService
   ) {
-    super(formBuilder, measurementsValidatorService, settings);
-  }
-
-  getRowValidator(): UntypedFormGroup {
-    // The first level of children can be qvPmfm or samplingColumns
-    return super.getFormGroup(null, {
-      withWeight: true,
-      pmfms: this.pmfms,
-      // Children
-      withChildren: !!this._qvPmfm || this.enableSamplingBatch,
-      qvPmfm: this._qvPmfm,
-      childrenPmfms: !!this._qvPmfm && this.childrenPmfms || null
-    });
-  }
-
-  getFormGroup(data?: BatchGroup, opts?: BatchGroupValidatorOptions): UntypedFormGroup {
-    return super.getFormGroup(data, {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this._qvPmfm, ...opts});
+    super(formBuilder, translate, settings, measurementsValidatorService);
   }
 
   getFormGroupConfig(data?: BatchGroup, opts?: BatchGroupValidatorOptions): { [key: string]: any } {
-    const formConfig = super.getFormGroupConfig(data, opts);
+    const config = super.getFormGroupConfig(data, opts);
 
-    formConfig.observedIndividualCount = [data && data.observedIndividualCount, SharedValidators.integer];
+    if (opts?.root) {
+      config['observedIndividualCount'] = [data && data.observedIndividualCount, SharedValidators.integer];
+    }
 
-    return formConfig;
+    return config;
   }
 
   enableSamplingRatioAndWeight(form: UntypedFormGroup, opts?: {
@@ -69,7 +55,7 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
       return null;
     }
 
-    const compute = BatchValidators.samplingRatioAndWeight({qvPmfm: this._qvPmfm, ...opts});
+    const compute = BatchValidators.samplingRatioAndWeight(opts);
 
     return form.valueChanges
       .pipe(debounceTime(opts?.debounceTime || 0))
@@ -83,9 +69,58 @@ export class BatchGroupValidatorService extends BatchValidatorService<BatchGroup
   /* -- protected method -- */
 
   protected fillDefaultOptions(opts?: BatchGroupValidatorOptions): BatchGroupValidatorOptions {
-    opts = super.fillDefaultOptions(opts);
-    return {withWeight: true, withChildrenWeight: false, withChildren: true, qvPmfm: this._qvPmfm, ...opts};
+    opts = opts || <BatchGroupValidatorOptions>{};
+
+    opts.root = toBoolean(opts.root, true);
+    if (opts.root) {
+
+      opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : (this.settings?.isOnFieldMode() || false);
+
+      if (opts.qvPmfm) {
+        opts.withChildren = true;
+        opts.childrenCount = opts.qvPmfm.qualitativeValues?.length || 1;
+        opts.childrenOptions = {
+          root: false,
+          withWeight: true,
+          pmfms: opts.childrenPmfms,
+          withMeasurements: isNotEmptyArray(opts.childrenPmfms)
+        };
+        opts.childrenOptions.withChildren = opts.enableSamplingBatch;
+        if (opts.childrenOptions.withChildren) {
+          opts.childrenOptions.childrenCount = 1;
+          opts.childrenOptions.childrenOptions = {
+            root: false,
+            withWeight: true,
+            withMeasurements: false
+          };
+        }
+      }
+      else {
+        opts.withWeight = true;
+        opts.withChildren = opts.enableSamplingBatch;
+        if (opts.withChildren) {
+          opts.childrenOptions.childrenCount = 1;
+          opts.childrenOptions = {
+            root: false,
+            withWeight: true,
+            pmfms: null,
+            withMeasurements: false
+          };
+        }
+      }
+
+      opts.withMeasurements = toBoolean(opts.withMeasurements, isNotEmptyArray(opts.pmfms));
+      opts.withMeasurementTypename = toBoolean(opts.withMeasurementTypename, opts.withMeasurements);
+
+    }
+
+    return opts;
   }
+/*
+  protected fillDefaultOptions(opts?: BatchGroupValidatorOptions): BatchGroupValidatorOptions {
+    return super.fillDefaultOptions(opts);
+    //return opts || {}; // Do not apply any defaults here
+  }*/
 }
 
 

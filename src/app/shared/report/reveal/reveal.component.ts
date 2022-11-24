@@ -17,7 +17,7 @@ import {
   ViewRef
 } from '@angular/core';
 import { ShowToastOptions, sleep, Toasts, waitForFalse, WaitForOptions } from '@sumaris-net/ngx-components';
-import {IReveal, IRevealOptions, Markdown, Reveal, RevealSlideChangedEvent} from './reveal.utils';
+import { IReveal, IRevealOptions, Reveal, RevealMarkdown, RevealSlideChangedEvent } from './reveal.utils';
 import { MarkdownComponent } from 'ngx-markdown';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { DOCUMENT } from '@angular/common';
@@ -158,7 +158,7 @@ export class RevealComponent implements AfterViewInit, OnDestroy
 
       embedded: !this._printing, // Required for multi .reveal div
       keyboardCondition: 'focused',
-      plugins: [Markdown]
+      plugins: [RevealMarkdown]
     });
 
     await this._reveal.initialize();

@@ -9,6 +9,7 @@ import {
   arrayDistinct,
   BaseEntityGraphqlSubscriptions,
   ConfigService,
+  EntitiesServiceLoadOptions,
   EntitiesStorage,
   firstArrayValue,
   firstNotNilPromise,
@@ -92,29 +93,6 @@ export const ProgramRefQueries = {
   ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}`,
 
-  // Load by id or label, with strategies
-  loadStrategies: gql`query ProgramRef($id: Int, $label: String, $strategyFilter: StrategyFilterVOInput){
-    data: program(id: $id, label: $label){
-      ...ProgramRefFragment
-      strategies(filter: $strategyFilter) {
-        ...StrategyRefFragment
-      }
-    }
-  }
-  ${ProgramFragments.programRef}
-  ${StrategyFragments.strategyRef}
-  ${StrategyFragments.strategyDepartment}
-  ${StrategyFragments.appliedStrategy}
-  ${StrategyFragments.appliedPeriod}
-  ${StrategyFragments.lightPmfmStrategy}
-  ${ReferentialFragments.lightPmfm}
-  ${StrategyFragments.denormalizedPmfmStrategy}
-  ${StrategyFragments.taxonGroupStrategy}
-  ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
-  ${ReferentialFragments.taxonName}`,
-
-
   // Load all query
   loadAll: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -133,10 +111,10 @@ export const ProgramRefQueries = {
   ${ProgramFragments.programRef}`,
 
   // Load all query with strategies
-  loadAllWithStrategies: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithStrategies: gql` query Programs($filter: ProgramFilterVOInput!, $strategyFilter: StrategyFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ProgramRefFragment
-      strategies {
+      strategies(filter: $strategyFilter) {
         ...StrategyRefFragment
       }
     }
@@ -153,10 +131,10 @@ export const ProgramRefQueries = {
   ${ReferentialFragments.taxonName}`,
 
   // Load all query (with total, and strategies)
-  loadAllWithStrategiesAndTotal: gql` query Programs($filter: ProgramFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithStrategiesAndTotal: gql` query Programs($filter: ProgramFilterVOInput!, $strategyFilter: StrategyFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: programs(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...ProgramRefFragment
-      strategies {
+      strategies(filter: $strategyFilter) {
         ...StrategyRefFragment
       }
     }
@@ -296,7 +274,7 @@ export class ProgramRefService
 
   async loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection,
                 filter?: Partial<ProgramFilter>,
-                opts?: { [p: string]: any; query?: any; fetchPolicy?: FetchPolicy; debug?: boolean; withTotal?: boolean; toEntity?: boolean }): Promise<LoadResult<Program>> {
+                opts?: EntitiesServiceLoadOptions & {debug?: boolean}): Promise<LoadResult<Program>> {
     // Use search attribute as default sort, is set
     sortBy = sortBy || filter?.searchAttribute
       || filter?.searchAttributes && filter.searchAttributes.length && filter.searchAttributes[0]
@@ -798,15 +776,22 @@ export class ProgramRefService
       // Create search filter
       filter = {
         ...filter,
+        label: opts?.program?.label,
         acquisitionLevelLabels: opts?.acquisitionLevels,
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
+      const strategyFilter = isNotEmptyArray(filter.strategyIds) ? StrategyFilter.fromObject({includedIds: filter.strategyIds})
+        // By default, all strategies of imported programs
+        : null;
 
       // Step 1. load all programs, with strategies
       const importedProgramLabels = [];
       const {data} = await JobUtils.fetchAllPages<any>((offset, size) =>
           this.loadAll(offset, size, 'id', 'asc', filter, {
             query: (offset === 0) ? ProgramRefQueries.loadAllWithStrategiesAndTotal : ProgramRefQueries.loadAllWithStrategies,
+            variables: {
+              strategyFilter: strategyFilter?.asPodObject()
+            },
             fetchPolicy: 'no-cache',
             toEntity: false
           }),

@@ -55,7 +55,7 @@ export class ObservedLocationsPage extends
 
   constructor(
     injector: Injector,
-    protected dataService: ObservedLocationService,
+    protected _dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
@@ -73,7 +73,7 @@ export class ObservedLocationsPage extends
       'observers',
       'recorderPerson',
       'comments'],
-      dataService,
+      _dataService,
       null
     );
     this.inlineEdition = false;
@@ -239,8 +239,8 @@ export class ObservedLocationsPage extends
     if (this.importing) return; // Skip
 
     if (event) {
-      const feature = this.settings.getOfflineFeature(this.dataService.featureName) || {
-        name: this.dataService.featureName
+      const feature = this.settings.getOfflineFeature(this._dataService.featureName) || {
+        name: this._dataService.featureName
       };
       const value = <ObservedLocationOfflineFilter>{
         ...this.filter,
@@ -282,7 +282,7 @@ export class ObservedLocationsPage extends
 
     // ask confirmation if one observation has samples
     if (isNotEmptyArray(observations)) {
-      const samplesCount = await this.dataService.countSamples(observations);
+      const samplesCount = await this._dataService.countSamples(observations);
       if (samplesCount > 0) {
         const messageKey = observations.length === 1
           ? 'OBSERVED_LOCATION.CONFIRM.OBSERVATION_HAS_SAMPLE'

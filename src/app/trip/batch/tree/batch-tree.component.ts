@@ -34,13 +34,12 @@ import { SubBatch, SubBatchUtils } from '../sub/sub-batch.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
-import { FormControlStatus } from '@app/shared/forms.utils';
+import { AppSharedFormUtils, FormControlStatus } from '@app/shared/forms.utils';
 import { ISubBatchesModalOptions } from '@app/trip/batch/sub/sub-batches.modal';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
@@ -82,7 +81,6 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   templateUrl: './batch-tree.component.html',
   styleUrls: ['./batch-tree.component.scss'],
   providers: [
-    {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService},
     { provide: ContextService, useExisting: TripContextService}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -99,6 +97,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   $program = new BehaviorSubject<Program>(null);
   showSubBatchesTable = false;
   listenProgramChanges = true;
+
+  debugObject: any; // TODO remove
 
   @Input() rootAcquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
   @Input() mobile: boolean;
@@ -728,5 +728,15 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
   markForCheck() {
     this.cd.markForCheck();
+  }
+  dumpDebugData(type:'rowValidator'): any {
+    switch (type) {
+      case 'rowValidator':
+        this.debugObject = AppSharedFormUtils.dumpForm(this.batchGroupsTable.getDebugData(type));
+        break;
+      default:
+        throw new Error('Unknown type: ' + type);
+    }
+    this.markForCheck();
   }
 }

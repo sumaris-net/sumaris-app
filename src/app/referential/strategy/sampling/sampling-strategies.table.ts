@@ -21,7 +21,7 @@ import {
   toBoolean
 } from '@sumaris-net/ngx-components';
 import { Program } from '../../services/model/program.model';
-import { LocationLevelIds, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
+import { LocationLevelGroups, ParameterLabelGroups, TaxonomicLevelIds } from '../../services/model/model.enum';
 import { ReferentialRefService } from '../../services/referential-ref.service';
 import { ProgramProperties, SAMPLING_STRATEGIES_FEATURE_NAME } from '../../services/config/program.config';
 import { environment } from '@environments/environment';
@@ -207,7 +207,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
       filter: {
         entityName: 'Location',
         // TODO BLA: rendre ceci paramètrable par program properties
-        levelIds: LocationLevelIds.LOCATIONS_AREA,
+        levelIds: LocationLevelGroups.FISHING_AREA,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
       mobile: this.mobile

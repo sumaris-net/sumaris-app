@@ -626,17 +626,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Control batches
     if (entity.catchBatch && opts?.program) {
-      console.warn('[operation-service] TODO: enable/test batch control() !!')
-      // TODO enable batch control
-      // - make sure to translate all errors
-      // - add sub batches validation
-      // - Optimize validator form creation
-
-      /*const errors = await this.batchService.control(entity.catchBatch, {program: opts.program, controlName: 'catch'});
+      const errors = await this.batchService.control(entity.catchBatch, {program: opts.program, controlName: 'catch'});
       if (errors) {
         console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
         return errors;
-      }*/
+      }
     }
 
     console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);

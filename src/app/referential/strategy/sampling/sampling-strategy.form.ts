@@ -37,7 +37,7 @@ import { StrategyValidatorService } from '../../services/validator/strategy.vali
 import {
   AcquisitionLevelCodes,
   autoCompleteFractions,
-  FractionIdGroups,
+  FractionIdGroups, LocationLevelGroups,
   LocationLevelIds,
   ParameterLabelGroups,
   PmfmIds,
@@ -442,9 +442,7 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
       suggestFn: (value, filter) => this.suggestLocations(value, {
         ...filter,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        // TODO BLA: pourquoi utiliser une constante globale,
-        //  et non pas un option de Program ?
-        levelIds: LocationLevelIds.LOCATIONS_AREA
+        levelIds: LocationLevelGroups.FISHING_AREA
       }),
       mobile: this.mobile
     });

@@ -498,11 +498,11 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     }
     if (this._showMetiers) {
       if (this.metiersHelper.size() === 0) {
-        this.metiersHelper.resize(1);
+        this.metiersHelper.resize(1, {emitEvent: false});
       }
     }
     else if (this.metiersHelper.size() > 0) {
-      this.metiersHelper.resize(0);
+      this.metiersHelper.resize(0, {emitEvent: false});
     }
   }
 

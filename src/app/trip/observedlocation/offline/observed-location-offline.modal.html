@@ -11,6 +11,38 @@
   <form class="form-container" [formGroup]="form">
 
     <ion-grid class="ion-no-padding">
+
+      <ion-row>
+        <ion-col>
+          <!-- Program -->
+          <mat-autocomplete-field
+            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM'|translate"
+            formControlName="program"
+            [config]="autocompleteFields.program"
+            [required]="true"
+            [clearable]="true"
+            [tabindex]="1">
+            <ion-icon matPrefix name="contract"></ion-icon>
+          </mat-autocomplete-field>
+        </ion-col>
+      </ion-row>
+
+
+      <ion-row class="ion-padding-start"
+               [class.cdk-visually-hidden]="(form|formGetControl:'strategy').disabled">
+        <ion-col>
+          <!-- Strategy -->
+          <mat-chips-field formControlName="strategy"
+                           [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.STRATEGY'|translate"
+                           [config]="autocompleteFields.strategy"
+                           [clearable]="true"
+                           chipColor="accent"
+                           [tabindex]="2">
+            <mat-icon matPrefix>date_range</mat-icon>
+          </mat-chips-field>
+        </ion-col>
+      </ion-row>
+
       <ion-row>
         <ion-col>
           <!-- enable history ? -->
@@ -33,32 +65,18 @@
         </ion-col>
       </ion-row>
 
-      <ion-row>
-        <ion-col>
-          <!-- Program -->
-          <mat-autocomplete-field
-            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.PROGRAM'|translate"
-            formControlName="program"
-            [config]="autocompleteFields.program"
-            [required]="true"
-            [clearable]="true"
-            [tabindex]="1">
-            <ion-icon matPrefix name="contract"></ion-icon>
-          </mat-autocomplete-field>
-        </ion-col>
-      </ion-row>
 
       <ion-row class="ion-padding-start">
         <ion-col>
           <!-- Location -->
-          <mat-autocomplete-field formControlName="location"
-                                  [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
-                                  [config]="autocompleteFields.location"
-                                  [clearable]="true"
-                                  [multiple]="true"
-                                  [tabindex]="2">
+          <mat-chips-field #chipsField formControlName="location"
+                           [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.LOCATION'|translate"
+                           [config]="autocompleteFields.location"
+                           [clearable]="true"
+                           [chipColor]="(form|formGetControl:'location').enabled ? 'accent' : 'medium'"
+                           [tabindex]="3">
             <mat-icon matPrefix>room</mat-icon>
-          </mat-autocomplete-field>
+          </mat-chips-field>
         </ion-col>
       </ion-row>
 
@@ -69,7 +87,7 @@
             <ion-icon matPrefix name="calendar-outline"></ion-icon>
             <mat-select formControlName="periodDuration"
                         [placeholder]="'OBSERVED_LOCATION.OFFLINE_MODAL.DURATION_PLACEHOLDER'|translate"
-                        [tabindex]="3"
+                        [tabindex]="4"
                         required>
               <mat-option *ngFor="let item of periodDurationLabels" [value]="item.key">{{ item.label | translate }}
               </mat-option>
@@ -99,8 +117,10 @@
         </ion-button>
 
         <ion-button [fill]="valid ? 'solid' : 'clear'"
+                    [disabled]="disabled"
                     (click)="validate($event)"
                     (keyup.enter)="validate($event)"
+                    [tabindex]="5"
                     color="tertiary">
           <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
         </ion-button>

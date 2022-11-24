@@ -2,7 +2,7 @@
                    [title]="$title|async"
                    (cancel)="cancel()"
                    (validate)="close($event)"
-                   [canValidate]="!loading"
+                   [canValidate]="!loading && !disabled"
                    [showSpinner]="loading">
 
     <ion-buttons slot="end" >
@@ -81,7 +81,7 @@
         </ion-button>
 
         <ion-button [fill]="loading ? 'clear' : 'solid'"
-                    [disabled]="loading"
+                    [disabled]="disabled || loading"
                     (keyup.enter)="close($event)"
                     (click)="close($event)" color="tertiary">
           <ion-label *ngIf="!isNew" translate>COMMON.BTN_VALIDATE</ion-label>

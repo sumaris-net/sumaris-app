@@ -79,7 +79,12 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFilter>
+export class SubBatchesTable
+  extends BaseMeasurementsTable<SubBatch,
+    SubBatchFilter,
+    InMemoryEntitiesService<SubBatch, SubBatchFilter>,
+    SubBatchValidatorService
+    >
   implements OnInit, OnDestroy {
 
   private _qvPmfm: IPmfm;
@@ -202,8 +207,8 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
   constructor(
-    protected injector: Injector,
-    protected validatorService: SubBatchValidatorService,
+    injector: Injector,
+    validatorService: SubBatchValidatorService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<Batch>
   ) {
     super(injector,
@@ -319,13 +324,6 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
             });
           }));
     }
-  }
-
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
-    this.memoryDataService.stop();
-    this.memoryDataService = null;
   }
 
   async doSubmitForm(event?: Event, row?: TableElement<SubBatch>) {
@@ -836,7 +834,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     const pmfms = this._initialPmfms;
     if (!pmfms) return; // Not loaded
 
-    this.measurementsDataService.pmfms = this._initialPmfms;
+    this._dataService.pmfms = this._initialPmfms;
 
     this.updateColumns();
   }
@@ -859,7 +857,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     // Add length -> weight conversion
     this._rowValidatorSubscription?.unsubscribe();
     if (this.enableWeightConversion) {
-      const subscription = await this.validatorService.enableWeightLengthConversion(form, {
+      const subscription = await this.validatorService.delegate.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
         onError: (err) => this.setError(err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),

@@ -81,5 +81,4 @@ export class ObservedLocationFilter extends RootDataEntityFilter<ObservedLocatio
 export class ObservedLocationOfflineFilter extends DataSynchroImportFilter {
   locationIds?: number[];
 
-
 }

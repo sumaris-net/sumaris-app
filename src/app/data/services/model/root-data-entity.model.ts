@@ -63,7 +63,8 @@ export class RootDataEntity<
     this.creationDate = fromDateISOString(source.creationDate);
     this.validationDate = fromDateISOString(source.validationDate);
     this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
-    this.program = source.program && ReferentialRef.fromObject(source.program);
+    // Keep existing program, if not in source (because some forms can disable the program field - e.g. ObservedLocationForm)
+    this.program = source.program && ReferentialRef.fromObject(source.program) || this.program;
     this.synchronizationStatus = source.synchronizationStatus;
   }
 }

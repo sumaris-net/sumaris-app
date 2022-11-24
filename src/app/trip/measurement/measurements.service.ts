@@ -10,9 +10,12 @@ import { equals } from '@app/shared/functions';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, ID>,
+export class EntitiesWithMeasurementService<
+  T extends IEntityWithMeasurement<T, ID>,
   F extends IEntityFilter<any, T, any>,
-  ID = number>
+  S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
+  ID = number
+  >
   extends StartableService<IPmfm[]>
   implements IEntitiesService<T, F> {
 
@@ -23,11 +26,11 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   private _requiredGear: boolean;
   private _gearId: number;
   private _onRefreshPmfms = new EventEmitter<any>();
-  private _delegate: IEntitiesService<T, F>;
+  private _delegate: S;
 
   protected programRefService: ProgramRefService;
 
-  loadingPmfms = false;
+  loadingSubject = new BehaviorSubject<boolean>(false);
   $pmfms = new BehaviorSubject<IPmfm[]>(undefined);
   hasRankOrder = false;
 
@@ -35,7 +38,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   set programLabel(value: string) {
     if (this._programLabel !== value && isNotNil(value)) {
       this._programLabel = value;
-      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set program');
+      if (!this.loading) this._onRefreshPmfms.emit('set program');
     }
   }
 
@@ -47,7 +50,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   set acquisitionLevel(value: string) {
     if (this._acquisitionLevel !== value && isNotNil(value)) {
       this._acquisitionLevel = value;
-      if (!this.loadingPmfms) this._onRefreshPmfms.emit();
+      if (!this.loading) this._onRefreshPmfms.emit();
     }
   }
 
@@ -59,7 +62,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   set strategyLabel(value: string) {
     if (this._strategyLabel !== value && isNotNil(value)) {
       this._strategyLabel = value;
-      if (!this.loadingPmfms) this._onRefreshPmfms.emit();
+      if (!this.loading) this._onRefreshPmfms.emit();
     }
   }
 
@@ -70,7 +73,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   @Input() set requiredStrategy(value: boolean) {
     if (this._requiredStrategy !== value && isNotNil(value)) {
       this._requiredStrategy = value;
-      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set required strategy');
+      if (!this.loading) this._onRefreshPmfms.emit('set required strategy');
     }
   }
 
@@ -82,7 +85,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   set gearId(value: number) {
     if (this._gearId !== value) {
       this._gearId = value;
-      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set gear id');
+      if (!this.loading) this._onRefreshPmfms.emit('set gear id');
     }
   }
 
@@ -93,7 +96,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   @Input() set requiredGear(value: boolean) {
     if (this._requiredGear !== value && isNotNil(value)) {
       this._requiredGear = value;
-      if (!this.loadingPmfms) this._onRefreshPmfms.emit('set required gear');
+      if (!this.loading) this._onRefreshPmfms.emit('set required gear');
     }
   }
 
@@ -106,18 +109,22 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     this.applyPmfms(pmfms);
   }
 
-  @Input() set delegate(value: IEntitiesService<T, F>) {
+  @Input() set delegate(value: S) {
     this._delegate = value;
   }
 
-  get delegate(): IEntitiesService<T, F> {
+  get delegate(): S {
     return this._delegate;
+  }
+
+  get loading(): boolean {
+    return this.loadingSubject.value;
   }
 
   constructor(
     injector: Injector,
     protected dataType: new() => T,
-    delegate?: IEntitiesService<T, F>,
+    delegate?: S,
     @Optional() protected options?: {
       mapPmfms: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
       requiredStrategy?: boolean;
@@ -146,9 +153,9 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   }
 
   protected async ngOnStart(): Promise<IPmfm[]> {
-    if (!this.loadingPmfms) this._onRefreshPmfms.emit('start');
+    if (!this.loading) this._onRefreshPmfms.emit('start');
     try {
-      return await this.$pmfms.pipe(filter(isNotNil)).toPromise();
+      return await firstNotNil(this.$pmfms).toPromise();
     }
     catch(err) {
       if (!this.stopped) {
@@ -162,6 +169,9 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
     this.$pmfms.unsubscribe();
     this._onRefreshPmfms.complete();
     this._onRefreshPmfms.unsubscribe();
+    if (this._delegate instanceof InMemoryEntitiesService) {
+      await this._delegate.stop();
+    }
     this._delegate = null;
   }
 
@@ -264,7 +274,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
   }
 
   private watchProgramPmfms(): Observable<IPmfm[]> {
-    this.loadingPmfms = true;
+    this.markAsLoading();
 
     // DEBUG
     if (this._debug) console.debug(`[meas-service] Loading pmfms... {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}̀̀`);
@@ -308,8 +318,7 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
 
       // Map
       if (this.options && this.options.mapPmfms) {
-        const res = this.options.mapPmfms(pmfms);
-        pmfms = (res instanceof Promise) ? await res : res;
+        pmfms = await this.options.mapPmfms(pmfms);
       }
 
       // Make pmfms is an array
@@ -318,14 +327,12 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
         return;
       }
 
-      // Mark as loaded
-      this.loadingPmfms = false;
 
-      // Apply, if changed
+      // Apply, only if changed
       if (!equals(pmfms, this.$pmfms.value)) {
 
         // DEBUG log
-        if (this._debug) console.debug(`[meas-service] Pmfms loaded for {program: '${this.programLabel}', acquisitionLevel: '${this._acquisitionLevel}', strategyLabel: '${this._strategyLabel}'}`, pmfms);
+        if (this._debug) console.debug(`[meas-service] Pmfms to applied: `, pmfms);
 
         this.$pmfms.next(pmfms);
       }
@@ -333,6 +340,22 @@ export class EntitiesWithMeasurementService<T extends IEntityWithMeasurement<T, 
       if (!this.stopped) {
         console.error(`[meas-service] Error while applying pmfms: ${err && err.message || err}`, err);
       }
+    }
+    finally {
+      // Mark as loaded
+      this.markAsLoaded();
+    }
+  }
+
+  protected markAsLoading() {
+    if (!this.loadingSubject.value) {
+      this.loadingSubject.next(true);
+    }
+  }
+
+  protected markAsLoaded() {
+    if (this.loadingSubject.value) {
+      this.loadingSubject.next(false);
     }
   }
 }

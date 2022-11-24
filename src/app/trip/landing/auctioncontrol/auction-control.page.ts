@@ -77,11 +77,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     // Configure sample table
     this.samplesTable.inlineEdition = !this.mobile;
 
-    this.samplesTable.loadingSubject.pipe(
-      filter(l => l === true)
-    ).subscribe(
-      (l) => console.warn('TODO Loading=true')
-    );
     const taxonGroupAttributes = this.settings.getFieldDisplayAttributes('taxonGroup');
     this.registerAutocompleteField('taxonGroup', {
       suggestFn: (value: any, options?: any) => this.suggestTaxonGroups(value, options),
@@ -188,7 +183,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       )
       .subscribe(async (pmfms) => {
           // Save existing samples
-          if (this.samplesTable.dirty) {
+          if (this.samplesTable.dirty && !this.saving) {
             await this.samplesTable.save();
           }
 

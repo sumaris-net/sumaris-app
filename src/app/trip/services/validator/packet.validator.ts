@@ -6,6 +6,7 @@ import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/dat
 import { Packet, PacketComposition, PacketIndexes } from '../model/packet.model';
 import { PacketCompositionValidatorService } from './packet-composition.validator';
 import { DataValidators } from '@app/data/services/validator/data.validators';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;
@@ -18,10 +19,11 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
 
   constructor(
     formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService,
     protected packetCompositionValidatorService: PacketCompositionValidatorService
   ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
   getFormGroupConfig(data?: Packet, opts?: O): { [key: string]: any } {

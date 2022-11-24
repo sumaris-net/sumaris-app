@@ -80,7 +80,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
 
   constructor(
     injector: Injector,
-    protected dataService: TripService,
+    protected _dataService: TripService,
     protected operationService: OperationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -104,7 +104,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       'observers',
       'recorderPerson',
       'comments'],
-        dataService,
+        _dataService,
       null
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
@@ -271,8 +271,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     if (this.importing) return; // Skip
 
     if (event) {
-      const feature = this.settings.getOfflineFeature(this.dataService.featureName) || {
-        name: this.dataService.featureName
+      const feature = this.settings.getOfflineFeature(this._dataService.featureName) || {
+        name: this._dataService.featureName
       };
       const filter = this.asFilter(this.filterForm.value);
       const value = <TripSynchroImportFilter>{
@@ -314,7 +314,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     for (let json of data) {
       try {
         const entity = Trip.fromObject(json);
-        const savedEntity = await this.dataService.copyLocally(entity);
+        const savedEntity = await this._dataService.copyLocally(entity);
         entities.push(savedEntity);
       } catch (err) {
         const message = err && err.message || err;
@@ -441,7 +441,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     if (isEmptyArray(ids)) return; // Skip if empty
 
     // Create file content
-    const entities = (await Promise.all(ids.map(id => this.dataService.load(id, {fullLoad: true, withOperation: true}))))
+    const entities = (await Promise.all(ids.map(id => this._dataService.load(id, {fullLoad: true, withOperation: true}))))
       .map(entity => entity.asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE));
     const content = JSON.stringify(entities);
 

@@ -430,7 +430,7 @@ export abstract class PmfmUtils {
     const conversionCoefficient = WeightKgConversion[actualWeightUnit] / WeightKgConversion[expectedWeightSymbol];
 
     // Clone to keep existing pmfm unchanged
-    const target = opts.clone ? source.clone() as P : source;
+    const target = (!opts || opts.clone !== false) ? source.clone() as P : source;
 
     target.displayConversion =  UnitConversion.fromObject({conversionCoefficient});
 

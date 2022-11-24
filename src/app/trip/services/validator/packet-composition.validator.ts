@@ -4,6 +4,7 @@ import {PacketComposition, PacketIndexes} from '../model/packet.model';
 import {ValidatorService} from '@e-is/ngx-material-table';
 import {UntypedFormBuilder, Validators} from '@angular/forms';
 import {LocalSettingsService, SharedValidators} from '@sumaris-net/ngx-components';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({providedIn: 'root'})
 export class PacketCompositionValidatorService
@@ -11,9 +12,10 @@ export class PacketCompositionValidatorService
 
   constructor(
     formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService
   ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
   getFormGroupConfig(data?: PacketComposition, opts?: DataEntityValidatorOptions): { [p: string]: any } {

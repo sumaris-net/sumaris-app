@@ -189,24 +189,40 @@
             (click)="focusColumn=col.key"
             [ngSwitch]="col.type">
 
-          <app-pmfm-field *ngSwitchCase="'pmfm'"
-                          floatLabel="never"
-                          [pmfm]="col.pmfm"
-                          [control]="row.validator|formGetControl: col.path"
-                          [autofocus]="row.editing && focusColumn === col.key"
-                          [readonly]="!row.editing || computed"
-                          [tabindex]="computed && -1"
-                          [compact]="true">
-          </app-pmfm-field>
+          <ng-container *ngSwitchCase="'pmfm'">
+            <ng-container *ngIf="row.validator|formGetControl: col.path; let control; else missingControl">
+              <app-pmfm-field
+                              floatLabel="never"
+                              [pmfm]="col.pmfm"
+                              [control]="control"
+                              [autofocus]="row.editing && focusColumn === col.key"
+                              [readonly]="!row.editing || computed"
+                              [tabindex]="computed && -1"
+                              [compact]="true">
+              </app-pmfm-field>
+            </ng-container>
+            <ng-template #missingControl>
+              Missing control {{col.path}}
+            </ng-template>
 
-          <mat-sampling-ratio-field *ngSwitchCase="'samplingRatio'"
-                                    floatLabel="never"
-                                    [formControl]="row.validator|formGetControl: col.path"
-                                    [format]="samplingRatioFormat"
-                                    [readonly]="!row.editing || computed"
-                                    [autofocus]="row.editing && focusColumn === col.key"
-                                    [tabindex]="computed && -1">
-          </mat-sampling-ratio-field>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'samplingRatio'">
+            <ng-container *ngIf="row.validator|formGetControl: col.path; let control; else missingControl">
+              <mat-sampling-ratio-field
+                                        floatLabel="never"
+                                        [formControl]="control"
+                                        [format]="samplingRatioFormat"
+                                        [readonly]="!row.editing || computed"
+                                        [autofocus]="row.editing && focusColumn === col.key"
+                                        [tabindex]="computed && -1">
+              </mat-sampling-ratio-field>
+            </ng-container>
+
+            <ng-template #missingControl>
+              Missing control {{col.path}}
+            </ng-template>
+          </ng-container>
 
           <app-form-field *ngSwitchDefault
                           floatLabel="never"

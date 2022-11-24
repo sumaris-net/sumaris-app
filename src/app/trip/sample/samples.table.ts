@@ -53,6 +53,8 @@ import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
 import { UntypedFormGroup } from '@angular/forms';
+import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from '@app/trip/services/validator/measurement-table.validator';
+import { MeasurementsValidatorOptions } from '@app/trip/services/validator/measurement.validator';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -82,10 +84,13 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends BaseMeasurementsTable<Sample,
-  SampleFilter, SampleValidatorService,
-  number,
-  BaseMeasurementsTableConfig<Sample>, SampleValidatorOptions> {
+export class SamplesTable
+  extends BaseMeasurementsTable<Sample,
+    SampleFilter,
+    InMemoryEntitiesService<Sample, SampleFilter>,
+    SampleValidatorService,
+    BaseMeasurementsTableConfig<Sample>,
+    SampleValidatorOptions> {
 
   private _footerRowsSubscription: Subscription;
 
@@ -257,9 +262,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample,
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
 
-    // in DEBUG only: force validator = null
-    if (this.debug && this.mobile) this.setValidatorService(null);
-
     super.ngOnInit();
 
     // Add footer listener
@@ -301,8 +303,10 @@ export class SamplesTable extends BaseMeasurementsTable<Sample,
     this.memoryDataService.stop();
   }
 
-  getRowValidator(data?: Sample, opts?: SampleValidatorOptions): UntypedFormGroup {
-    return super.getRowValidator(data, {withImages: this.showImagesButton, ...opts});
+  protected configureValidator(opts: MeasurementsTableValidatorOptions) {
+    super.configureValidator(opts);
+
+    this.validatorService.delegateOptions = {withImages: this.showImagesButton};
   }
 
   /**

@@ -46,7 +46,7 @@ export class BatchTreeTestPage implements OnInit {
   $gearId = new BehaviorSubject<number>(undefined);
   filterForm: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
-  selectedTabIndex = 0; // TODO 0 = mobile
+  selectedTabIndex = 1; // 0 = mobile, 1 = desktop
 
   outputs: {
     [key: string]: string;
@@ -165,12 +165,13 @@ export class BatchTreeTestPage implements OnInit {
 
     this.filterForm.patchValue({
       //program: {id: 1, label: 'SUMARiS' },
-      //program: {id: 10, label: 'ADAP-MER' },
-      program: {id: 70, label: 'APASE' },
-      //gear: {id: 6, label: 'OTB'},
-      gear: {id: 7, label: 'OTT'},
+      program: {id: 10, label: 'ADAP-MER' },
+      gear: {id: 6, label: 'OTB'},
+      //program: {id: 70, label: 'APASE' },
+      //gear: {id: 7, label: 'OTT'},
       fishingArea: {id: 110, label: '65F1'},
-      example: {id: 1, label: 'default'}
+      //example: {id: 1, label: 'default'}
+      example: {id: 3, label: 'empty'}
     });
 
     this.applyExample();

@@ -150,7 +150,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
     injector: Injector,
     protected settings: LocalSettingsService,
     protected validatorService: ValidatorService,
-    protected dataService: OperationService,
+    protected _dataService: OperationService,
     protected accountService: AccountService,
     protected formBuilder: UntypedFormBuilder,
     protected cd: ChangeDetectorRef,
@@ -175,7 +175,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
           'endPosition',
           'fishingArea',
           'comments'],
-        dataService,
+        _dataService,
         null,
         // DataSource options
         {
@@ -264,7 +264,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
 
   async openMapModal(event?: Event) {
 
-    const res = await this.dataService.loadAllByTrip({
+    const res = await this._dataService.loadAllByTrip({
       tripId: this.tripId
     }, {fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/});
 

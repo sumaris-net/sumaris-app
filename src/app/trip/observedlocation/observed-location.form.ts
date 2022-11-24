@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { Moment } from 'moment';
-import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { ObservedLocationValidatorService } from '../services/validator/observed-location.validator';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
@@ -16,10 +16,10 @@ import {
   Person,
   PersonService,
   PersonUtils,
-  referentialToString,
   ReferentialUtils,
   StatusIds,
   toBoolean,
+  toDateISOString,
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../services/model/observed-location.model';
@@ -28,10 +28,7 @@ import { ReferentialRefService } from '@app/referential/services/referential-ref
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { environment } from '@environments/environment';
-import { toDateISOString } from '@sumaris-net/ngx-components';
 import { DateFilterFn } from '@angular/material/datepicker';
-import { Program } from '@app/referential/services/model/program.model';
-import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 
 @Component({
   selector: 'app-form-observed-location',
@@ -219,7 +216,8 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
     super.onApplyingEntity(data, opts);
 
     // Make sure to have (at least) one observer
-    data.observers = data.observers && data.observers.length ? data.observers : [null];
+    // TODO BLA enable this
+    //data.observers = data.observers && data.observers.length ? data.observers : [null];
 
     // Resize observers array
     if (this._showObservers) {

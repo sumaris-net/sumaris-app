@@ -1,7 +1,7 @@
 import { TypePolicies } from '@apollo/client/core';
 import { changeCaseToUnderscore, FormFieldDefinition, MatAutocompleteFieldConfig, StatusIds } from '@sumaris-net/ngx-components';
 import {
-  FractionIdGroups,
+  FractionIdGroups, LocationLevelGroups,
   LocationLevelIds,
   MatrixIds,
   MethodIds,
@@ -121,13 +121,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.enumeration.LocationLevel.LOCATIONS_AREA.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.LOCATION_LEVEL_LOCATIONS_AREA_IDS',
     type: 'string',
-    defaultValue: LocationLevelIds.LOCATIONS_AREA.join(',')
+    defaultValue: LocationLevelGroups.FISHING_AREA.join(',')
   },
   WEIGHT_LENGTH_CONVERSION_AREA_IDS: <FormFieldDefinition>{
     key: 'sumaris.enumeration.LocationLevel.WEIGHT_LENGTH_CONVERSION_AREA.ids',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.WEIGHT_LENGTH_CONVERSION_AREA_IDS',
     type: 'string',
-    defaultValue: LocationLevelIds.WEIGHT_LENGTH_CONVERSION_AREA.join(',')
+    defaultValue: LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA.join(',')
   },
   ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Location.ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY.id',

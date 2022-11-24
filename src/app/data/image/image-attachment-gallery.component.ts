@@ -1,12 +1,13 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, Self} from '@angular/core';
-import {APP_IMAGE_ATTACHMENT_SERVICE} from './image-attachment.service';
-import {ImageAttachment, ImageAttachmentFilter} from './image-attachment.model';
-import {BehaviorSubject, of, Subscription} from 'rxjs';
-import {ModalController} from '@ionic/angular';
-import {EntitiesTableDataSource, EntityUtils, GalleryMode, Image, InMemoryEntitiesService, LocalSettingsService, toBoolean} from '@sumaris-net/ngx-components';
-import {TableDataSource, TableElement} from '@e-is/ngx-material-table';
-import {startWith, switchMap} from 'rxjs/operators';
-import {environment} from '@environments/environment';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, Self } from '@angular/core';
+import { APP_IMAGE_ATTACHMENT_SERVICE } from './image-attachment.service';
+import { ImageAttachment, ImageAttachmentFilter } from './image-attachment.model';
+import { BehaviorSubject, of, Subscription } from 'rxjs';
+import { ModalController } from '@ionic/angular';
+import { EntitiesTableDataSource, EntityUtils, GalleryMode, Image, InMemoryEntitiesService, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
+import { TableDataSource, TableElement } from '@e-is/ngx-material-table';
+import { startWith, switchMap } from 'rxjs/operators';
+import { environment } from '@environments/environment';
+import { PredefinedColors } from '@ionic/core';
 
 @Component({
   selector: 'app-image-attachment-gallery',
@@ -35,6 +36,7 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
 
   @Input() mobile: boolean;
   @Input() mode: GalleryMode;
+  @Input() cardColor: PredefinedColors | string = 'light';
   @Input() disabled: boolean = false;
   @Input() readOnly: boolean = false;
   @Input() showToolbar: boolean;

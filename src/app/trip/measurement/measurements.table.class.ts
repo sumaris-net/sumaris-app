@@ -1,17 +1,18 @@
-import {Directive, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
-import {TableElement, ValidatorService} from '@e-is/ngx-material-table';
-import {UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
+import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Observable } from 'rxjs';
+import { TableElement } from '@e-is/ngx-material-table';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   Alerts,
   AppFormUtils,
-  EntitiesTableDataSource,
   Entity,
   EntityFilter,
   filterNotNil,
+  firstFalse,
   firstNotNilPromise,
   firstTrue,
   IEntitiesService,
+  InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -20,23 +21,23 @@ import {
   toNumber,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
-import {EntitiesWithMeasurementService} from './measurements.service';
-import {AcquisitionLevelType} from '@app/referential/services/model/model.enum';
-import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {MeasurementsValidatorService} from '../services/validator/measurement.validator';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
-import {distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
-import {AppBaseTable, BaseTableConfig} from '@app/shared/table/base.table';
-import {BaseValidatorService} from '@app/shared/service/base.validator.service';
+import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
+import { EntitiesWithMeasurementService } from './measurements.service';
+import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
+import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
+import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from '@app/trip/services/validator/measurement-table.validator';
 
 
 export interface BaseMeasurementsTableConfig<
-  T extends IEntityWithMeasurement<T, ID>,
-  ID = number>
-  extends BaseTableConfig<T, ID> {
+  T extends IEntityWithMeasurement<T>>
+  extends BaseTableConfig<T> {
 
+  onRowCreated?: undefined; // IMPORTANT: leave 'undefined'. subclasses should use onPrepareRowForm instead
   reservedStartColumns?: string[];
   reservedEndColumns?: string[];
   onPrepareRowForm?: (form: UntypedFormGroup) => void | Promise<void>;
@@ -49,15 +50,17 @@ export interface BaseMeasurementsTableConfig<
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class BaseMeasurementsTable<
-  T extends IEntityWithMeasurement<T, ID>,
+  T extends IEntityWithMeasurement<T>,
   F extends EntityFilter<any, T, any>,
-  V extends BaseValidatorService<T, ID, VO> = any,
-  ID = number,
-  O extends BaseMeasurementsTableConfig<T, ID> = BaseMeasurementsTableConfig<T, ID>,
-  VO = any
+  S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
+  V extends BaseValidatorService<T, number, VO> = any,
+  O extends BaseMeasurementsTableConfig<T> = BaseMeasurementsTableConfig<T>,
+  VO = any,
+  MS extends EntitiesWithMeasurementService<T, F, S> = EntitiesWithMeasurementService<T, F, S>,
+  MV extends MeasurementsTableValidatorService<T, V, number, VO> = MeasurementsTableValidatorService<T, V, number, VO>
   >
-  extends AppBaseTable<T, F, V, ID, O>
-  implements OnInit, OnDestroy, ValidatorService {
+  extends AppBaseTable<T, F, MS, MV, number, O>
+  implements OnInit, OnDestroy {
 
   private _programLabel: string;
   private _autoLoadAfterPmfm = true;
@@ -66,15 +69,11 @@ export abstract class BaseMeasurementsTable<
   protected _acquisitionLevel: AcquisitionLevelType = null;
   protected _strategyLabel: string = null;
   protected _gearId: number = null;
-
-  protected measurementsDataService: EntitiesWithMeasurementService<T, F, ID>;
-  protected measurementsValidatorService: MeasurementsValidatorService;
-
   protected programRefService: ProgramRefService;
   protected pmfmNamePipe: PmfmNamePipe;
   protected formBuilder: UntypedFormBuilder;
 
-  protected readonly $measurementValuesFormGroupConfig = new BehaviorSubject<{ [key: string]: any }>(null);
+  //protected readonly $measurementValuesFormGroupConfig = new BehaviorSubject<{ [key: string]: any }>(null);
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
@@ -87,8 +86,8 @@ export abstract class BaseMeasurementsTable<
   @Input()
   set programLabel(value: string) {
     this._programLabel = value;
-    if (this.measurementsDataService) {
-      this.measurementsDataService.programLabel = value;
+    if (this._dataService) {
+      this._dataService.programLabel = value;
     }
   }
 
@@ -99,8 +98,8 @@ export abstract class BaseMeasurementsTable<
   @Input()
   set acquisitionLevel(value: AcquisitionLevelType) {
     this._acquisitionLevel = value;
-    if (this.measurementsDataService) {
-      this.measurementsDataService.acquisitionLevel = value;
+    if (this._dataService) {
+      this._dataService.acquisitionLevel = value;
     }
   }
 
@@ -111,8 +110,8 @@ export abstract class BaseMeasurementsTable<
   @Input()
   set strategyLabel(value: string) {
     this._strategyLabel = value;
-    if (this.measurementsDataService) {
-      this.measurementsDataService.strategyLabel = value;
+    if (this._dataService) {
+      this._dataService.strategyLabel = value;
     }
   }
 
@@ -123,8 +122,8 @@ export abstract class BaseMeasurementsTable<
 
   @Input() set requiredStrategy(value: boolean) {
     this.options.requiredStrategy = value;
-    if (this.measurementsDataService) {
-      this.measurementsDataService.requiredStrategy = value;
+    if (this._dataService) {
+      this._dataService.requiredStrategy = value;
     }
   }
 
@@ -134,8 +133,8 @@ export abstract class BaseMeasurementsTable<
 
   @Input() set requiredGear(value: boolean) {
     this.options.requiredGear = value;
-    if (this.measurementsDataService) {
-      this.measurementsDataService.requiredGear = value;
+    if (this._dataService) {
+      this._dataService.requiredGear = value;
     }
   }
 
@@ -146,7 +145,7 @@ export abstract class BaseMeasurementsTable<
   @Input() set gearId(value: number) {
     if (this._gearId !== value) {
       this._gearId = value;
-      this.measurementsDataService.gearId = this._gearId;
+      this._dataService.gearId = this._gearId;
     }
   }
 
@@ -163,13 +162,12 @@ export abstract class BaseMeasurementsTable<
     return this.getShowColumn('comments');
   }
 
-  @Input() set $pmfms(pmfms$: Observable<IPmfm[]>) {
-    this.markAsLoading();
-    this.measurementsDataService.pmfms = pmfms$;
+  @Input() set $pmfms(pmfms: Observable<IPmfm[]>) {
+    this.applyPmfms(pmfms);
   }
 
   get $pmfms(): Observable<IPmfm[]> {
-    return this.measurementsDataService.$pmfms;
+    return this._dataService.$pmfms;
   }
 
   get $hasPmfms(): Observable<boolean> {
@@ -181,7 +179,7 @@ export abstract class BaseMeasurementsTable<
   }
 
   get pmfms(): IPmfm[] {
-    return this.measurementsDataService.$pmfms.value;
+    return this._dataService.$pmfms.value;
   }
 
   @Input() set pmfms(pmfms: IPmfm[]) {
@@ -192,10 +190,13 @@ export abstract class BaseMeasurementsTable<
     return isNotEmptyArray(this.pmfms);
   }
 
-  @Input() set dataService(value: IEntitiesService<T, F>) {
-    this.measurementsDataService.delegate = value;
-    if (!this.loading) {
-      this.onRefresh.emit("new dataService");
+  set dataService(value: S) {
+    if (this._dataService.delegate !== value) {
+      console.warn('TODO: check if \'get dataService()\' is need', new Error());
+      this._dataService.delegate = value;
+      if (!this.loading) {
+        this.onRefresh.emit("new dataService");
+      }
     }
   }
 
@@ -203,7 +204,7 @@ export abstract class BaseMeasurementsTable<
     injector: Injector,
     dataType: new() => T,
     filterType: new() => F,
-    dataService?: IEntitiesService<T, F>,
+    dataService?: S,
     validatorService?: V,
     options?: O
   ) {
@@ -212,14 +213,21 @@ export abstract class BaseMeasurementsTable<
       // Columns:
       (options?.reservedStartColumns || [])
         .concat(options?.reservedEndColumns || []),
-      dataService, null,
+      // Specific data service
+      new EntitiesWithMeasurementService(injector, dataType, dataService, {
+        mapPmfms: options?.mapPmfms || undefined,
+        requiredStrategy: options?.requiredStrategy,
+        debug: options?.debug || false
+      }) as MS,
+      validatorService ? new MeasurementsTableValidatorService(injector, validatorService) as MV : null,
       {
-        requiredStrategy: false,
-        ...options
+        ...options,
+        // IMPORTANT: Always use our private function onRowCreated()
+        onRowCreated: (row) => this.onRowCreated(row)
       }
     );
-
-    this.measurementsValidatorService = injector.get(MeasurementsValidatorService);
+    this.memoryDataService = (dataService instanceof InMemoryEntitiesService)
+      ? dataService as InMemoryEntitiesService<T, F, number> : null;
     this.programRefService = injector.get(ProgramRefService);
     this.pmfmNamePipe = injector.get(PmfmNamePipe);
     this.formBuilder = injector.get(UntypedFormBuilder);
@@ -230,13 +238,13 @@ export abstract class BaseMeasurementsTable<
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
 
-    this.measurementsDataService = new EntitiesWithMeasurementService<T, F, ID>(injector, this.dataType, dataService, {
-      mapPmfms: this.options.mapPmfms || undefined,
-      requiredStrategy: this.options.requiredStrategy,
-      debug: this.options.debug || false
-    });
+    // this.measurementsDataService = new EntitiesWithMeasurementService<T, F, ID>(injector, this.dataType, dataService, {
+    //   mapPmfms: this.options.mapPmfms || undefined,
+    //   requiredStrategy: this.options.requiredStrategy,
+    //   debug: this.options.debug || false
+    // });
 
-    this.setValidatorService(validatorService);
+    //this.setValidatorService(validatorService);
 
     // For DEV only
     //this.debug = !environment.production;
@@ -252,19 +260,19 @@ export abstract class BaseMeasurementsTable<
       // Disable keepEditedRowOnSave, when in memory data service, because rows are reload twice after save - FIXME
       && !this.memoryDataService;
 
-    this.measurementsDataService.programLabel = this._programLabel;
-    this.measurementsDataService.requiredStrategy = this.options.requiredStrategy || false;
-    this.measurementsDataService.strategyLabel = this._strategyLabel;
-    this.measurementsDataService.requiredGear = this.options.requiredGear || false;
-    this.measurementsDataService.gearId = this._gearId;
-    this.measurementsDataService.acquisitionLevel = this._acquisitionLevel;
+    this._dataService.programLabel = this._programLabel;
+    this._dataService.requiredStrategy = this.options.requiredStrategy || false;
+    this._dataService.strategyLabel = this._strategyLabel;
+    this._dataService.requiredGear = this.options.requiredGear || false;
+    this._dataService.gearId = this._gearId;
+    this._dataService.acquisitionLevel = this._acquisitionLevel;
 
     this.registerSubscription(
       firstTrue(this.readySubject)
         .pipe(
           mergeMap(_ => {
             console.debug(this.logPrefix + 'Starting measurements data service...');
-            return this.measurementsDataService.start();
+            return this._dataService.start();
           })
         ).subscribe());
 
@@ -272,35 +280,35 @@ export abstract class BaseMeasurementsTable<
 
     this.registerSubscription(
       filterNotNil(this.$pmfms)
-        .subscribe(pmfms => {
-          // DEBUG
-          console.debug(this.logPrefix + "Received PMFMs to applied: ", pmfms);
+      .subscribe(pmfms => {
+        console.debug(this.logPrefix + "Received PMFMs to applied: ", pmfms);
 
-          const formGroupConfig = this.measurementsValidatorService.getFormGroupConfig(null, {pmfms});
-          this.$measurementValuesFormGroupConfig.next(formGroupConfig);
+        if (this.validatorService) {
+          this.configureValidator({pmfms});
+          this.validatorService.markAsReady();
+        }
 
-          // Update the settings id, as program could have changed
-          this.settingsId = this.generateTableId();
+        // Update the settings id, as program could have changed
+        this.settingsId = this.generateTableId();
 
-          // Add pmfm columns
-          this.updateColumns();
+        // Add pmfm columns
+        this.updateColumns();
 
-          // Load (if autoLoad was enabled)
-          if (this._autoLoadAfterPmfm) {
-            this.onRefresh.emit();
-            this._autoLoadAfterPmfm = false; // Avoid new execution
-          }
-          // Or reload, if not dirty (to avoid data lost)
-          else if (this.dataSource.loaded && !this.dirty){
-            this.onRefresh.emit();
-          }
-        }));
+        // Load (if autoLoad was enabled)
+        if (this._autoLoadAfterPmfm) {
+          this.onRefresh.emit();
+          this._autoLoadAfterPmfm = false; // Avoid new execution
+        }
+        // Or reload, only if pristine (to avoid to lost not saved data)
+        else if (this.dataSource.loaded && !this.dirty){
+          this.onRefresh.emit();
+        }
+      }));
 
-    if (this.inlineEdition && (this.options.onRowCreated || this.options.onPrepareRowForm)) {
+    if (this.inlineEdition && this.options.onPrepareRowForm) {
       this.registerSubscription(this.onStartEditingRow
         .pipe(filter(row => row.id !== -1)) // Skip new row, because already processed by this.onRowCreated()
         .subscribe(row => {
-          if (this.options.onRowCreated) this.options.onRowCreated(row);
           if (this.options.onPrepareRowForm) this.options.onPrepareRowForm(row.validator);
         })
       );
@@ -309,30 +317,28 @@ export abstract class BaseMeasurementsTable<
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.$measurementValuesFormGroupConfig.unsubscribe();
-    this.measurementsDataService?.stop();
-    this.measurementsDataService = null;
-
+    this._dataService?.stop();
   }
 
-  protected applyPmfms(pmfms: IPmfm[]){
-    this.markAsLoading();
-    this.measurementsDataService.pmfms = pmfms;
-  }
+  protected async applyPmfms(pmfms: IPmfm[] | Observable<IPmfm[]>) {
+    // Mark as loading
+    const loaded = this.loaded;
+    if (loaded) this.markAsLoading();
 
-  getRowValidator(data?: T, opts?: VO): UntypedFormGroup {
-    const formGroup = this.validatorService.getRowValidator(data, opts);
+    // Apply pmfms
+    this._dataService.pmfms = pmfms;
 
-    // Create the measurement values form (is exists)
-    const measValueConfig = this.$measurementValuesFormGroupConfig.value;
-    if (measValueConfig) {
-      if (formGroup.contains('measurementValues')) {
-        formGroup.removeControl('measurementValues');
-      }
-      formGroup.addControl('measurementValues', this.formBuilder.group(measValueConfig));
+    // Restore the previous loading state, when service finished to apply pmfms
+    if (loaded) {
+      await firstFalse(this._dataService.loadingSubject, {stop: this.destroySubject});
+      //this.markAsLoaded();
     }
+  }
 
-    return formGroup;
+  protected configureValidator(opts?: MeasurementsTableValidatorOptions) {
+    if (opts) {
+      this.validatorService.measurementsOptions = opts;
+    }
   }
 
   setFilter(filterData: F, opts?: { emitEvent: boolean }) {
@@ -342,32 +348,6 @@ export abstract class BaseMeasurementsTable<
 
   trackByFn(index: number, row: TableElement<T>): any {
     return row.id;
-  }
-
-  /**
-   * Allow to change the validator service (will recreate the datasource)
-   * @param validatorService
-   * @protected
-   */
-  setValidatorService(validatorService?: V) {
-    if (this.validatorService === validatorService && this._dataSource) return; // Skip if same
-
-    // If already exists: destroy previous database
-    this._dataSource?.disconnect();
-    this._dataSource = null;
-
-    if (this.debug) console.debug('[measurement-table] Settings validator service to: ', validatorService);
-    this.validatorService = validatorService;
-
-    // Create the new datasource, BUT redirect to this
-    const encapsulatedValidator = validatorService ? this : null;
-    this.setDatasource(new EntitiesTableDataSource(this.dataType,
-      this.measurementsDataService, encapsulatedValidator,
-      {
-      ...this.options,
-      // IMPORTANT: Always use this custom onRowCreated, that will call options.onRowCreated if need
-      onRowCreated: (row) => this.onRowCreated(row)
-    }));
   }
 
   protected generateTableId(): string {
@@ -417,10 +397,7 @@ export abstract class BaseMeasurementsTable<
     }
     await Promise.all([
       super.ready(opts),
-      // Wait pmfms load, and controls load
-      firstNotNilPromise(this.$pmfms, opts),
-      // Wait form config initialized
-      firstNotNilPromise(this.$measurementValuesFormGroupConfig, opts)
+      this.validatorService ? this.validatorService.ready(opts) :  firstNotNilPromise(this.$pmfms, opts)
     ]);
   }
 
@@ -499,10 +476,6 @@ export abstract class BaseMeasurementsTable<
   }
 
   private async onRowCreated(row: TableElement<T>) {
-    // Deprecated
-    if (this.options.onRowCreated) {
-      await this.options.onRowCreated(row);
-    }
 
     // WARN: must be called BEFORE row.validator.patchValue(), to be able to add group's validators
     if (row.validator && this.options.onPrepareRowForm) {

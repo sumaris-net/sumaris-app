@@ -3,15 +3,17 @@ import {Injectable} from "@angular/core";
 import {UntypedFormBuilder, UntypedFormGroup} from "@angular/forms";
 import {Measurement} from "../model/measurement.model";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({providedIn: 'root'})
 export class ExpenseValidatorService extends MeasurementsValidatorService {
 
   constructor(
     formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService
   ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
   getFormGroupConfig(data: Measurement[], opts?: MeasurementsValidatorOptions): { [p: string]: any } {

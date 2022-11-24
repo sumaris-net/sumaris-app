@@ -19,7 +19,7 @@
 
   <app-reveal [options]="revealOptions" #reveal>
     <section>
-      <section markdown ngPreserveWhitespaces>
+      <section data-markdown ngPreserveWhitespaces>
         # Title 1
         ## Title 2
         ### Title 3
@@ -36,7 +36,7 @@
          Item         | Price     | # In stock |
         --------------|-----------|------------|
          Juicy Apples | 1.99      | *7*        |
-         Bananas  | **1.89**  | 5234       |
+         Bananas      | **1.89**  | 5234       |
       </section>
     </section>
 
@@ -62,7 +62,7 @@
         ## Diapo 2
         ![image](assets/img/logo/logo-sumaris.png)
       </section>
-      <section markdown ngPreserveWhitespaces>
+      <section data-markdown ngPreserveWhitespaces>
         # Documentation
 
         - [Guide de la syntaxe Markdown](https://www.markdownguide.org/basic-syntax)
@@ -72,6 +72,14 @@
 
     <!-- Chart -->
     <section>
+      <section>
+        <p>
+          Today's winning 3 digit number is :
+          <span class="random"></span>,
+          <span class="random"></span>,
+          <span class="random"></span>.
+        </p>
+      </section>
       <section>
         <div markdown ngPreserveWhitespaces>
           # Chart

@@ -8,6 +8,7 @@ import { MeasurementsValidatorService } from './measurement.validator';
 import { Product } from '../model/product.model';
 import { OperationGroup } from '../model/trip.model';
 import { DataValidators } from '@app/data/services/validator/data.validators';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface ProductValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -21,10 +22,11 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
 
   constructor(
     formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService,
     protected measurementsValidatorService: MeasurementsValidatorService,
   ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
   getRowValidator(): UntypedFormGroup {

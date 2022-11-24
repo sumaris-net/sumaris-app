@@ -37,6 +37,7 @@ import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.m
 import { ContextService } from '@app/shared/context.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import moment from 'moment';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;
@@ -54,12 +55,13 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
 
   constructor(
     formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService,
     protected wlService: WeightLengthConversionRefService,
     protected rwService: RoundWeightConversionRefService,
     protected context: ContextService<BatchContext>
     ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
 
     //console.debug(`[sub-batch-validator] Creating validator (context: ${this.context.constructor.name})`);
   }

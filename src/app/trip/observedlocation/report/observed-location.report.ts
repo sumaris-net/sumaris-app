@@ -303,4 +303,8 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   isNotQualitativePmfm(pmfm: IPmfm) {
     return !pmfm.isQualitative || !pmfm.qualitativeValues?.length || (pmfm.qualitativeValues.length > 3);
   }
+
+  hasSamples(landing: Landing): boolean {
+    return isNotEmptyArray(landing?.samples);
+  }
 }

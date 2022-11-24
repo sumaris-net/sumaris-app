@@ -1,5 +1,5 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, isNotNilOrNaN, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
@@ -607,7 +607,19 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
-
+  LANDING_FISHING_AREA_LOCATION_LEVEL_IDS: <FormFieldDefinition>{
+    key: 'sumaris.landing.fishingArea.locationLevel.ids',
+    label: 'PROGRAM.OPTIONS.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'LocationLevel',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
+    defaultValue: LocationLevelGroups.FISHING_AREA.toString()
+  },
   LANDING_WEIGHT_DISPLAYED_UNIT: <FormFieldDefinition>{
     key: 'sumaris.landing.samples.weightUnit',
     label: 'PROGRAM.OPTIONS.LANDING_SAMPLES_WEIGHT_UNIT',
@@ -774,6 +786,7 @@ export class ProgramPropertiesUtils {
     ProgramProperties.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS.defaultValue = TaxonGroupTypeIds.METIER_DCF_5.toString();
     ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
+    ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.toString();
   }
 
   static getPropertiesByType(type: FormFieldType | FormFieldType[]): FormFieldDefinition[] {

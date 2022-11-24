@@ -7,6 +7,7 @@ import { Measurement, MeasurementFormValues, MeasurementUtils, MeasurementValues
 import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -22,7 +23,9 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
   constructor(
     protected formBuilder: UntypedFormBuilder,
-    protected settings: LocalSettingsService) {
+    protected translate: TranslateService,
+    protected settings: LocalSettingsService
+    ) {
   }
 
   getRowValidator(opts?: O): UntypedFormGroup {

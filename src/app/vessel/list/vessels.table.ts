@@ -223,9 +223,6 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     this.filterForm.patchValue({statusId: null});
   }
 
-  referentialToString = referentialToString;
-  statusToColor = statusToColor;
-
   /* -- protected methods -- */
 
   protected markForCheck() {

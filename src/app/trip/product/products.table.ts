@@ -1,9 +1,8 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, referentialToString } from '@sumaris-net/ngx-components';
+import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
 import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
 import { ProductValidatorService } from '../services/validator/product.validator';
 import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
-import { Platform } from '@ionic/angular';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { BehaviorSubject } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -33,7 +32,13 @@ export const PRODUCT_RESERVED_END_COLUMNS: string[] = []; // ['comments']; // to
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter> implements OnInit, OnDestroy {
+export class ProductsTable
+  extends BaseMeasurementsTable<Product,
+    ProductFilter,
+    InMemoryEntitiesService<Product, ProductFilter>,
+    ProductValidatorService
+    >
+  implements OnInit, OnDestroy {
 
   @Input() $parents: BehaviorSubject<IWithProductsEntity<any>[]>;
   @Input() parentAttributes: string[];
@@ -77,18 +82,18 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
 
   constructor(
     injector: Injector,
-    protected platform: Platform,
-    protected validatorService: ProductValidatorService,
-    protected memoryDataService: InMemoryEntitiesService<Product, ProductFilter>
+    settings: LocalSettingsService,
+    dataService: InMemoryEntitiesService<Product, ProductFilter>,
+    validatorService: ProductValidatorService
   ) {
     super(injector,
       Product, ProductFilter,
-      memoryDataService,
+      dataService,
       validatorService,
       {
         suppressErrors: true,
         reservedStartColumns: PRODUCT_RESERVED_START_COLUMNS,
-        reservedEndColumns: platform.is('mobile') ? [] : PRODUCT_RESERVED_END_COLUMNS,
+        reservedEndColumns: settings.mobile ? [] : PRODUCT_RESERVED_END_COLUMNS,
         i18nColumnPrefix: 'TRIP.PRODUCT.LIST.'
       });
     this.autoLoad = false; // waiting parent to be loaded
@@ -136,11 +141,6 @@ export class ProductsTable extends BaseMeasurementsTable<Product, ProductFilter>
         }));
 
     this.registerSubscription(this.onStartEditingRow.subscribe(row => this.onStartEditProduct(row)));
-  }
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
-    this.memoryDataService.stop();
   }
 
   confirmEditCreate(event?: any, row?: TableElement<Product>): boolean {

@@ -792,7 +792,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     });
     if (model.isLeaf) {
       const childrenForm = model.validator.get('children') as AppFormArray<Batch, FormGroup>;
-      childrenForm.setValue(savedBatch.children);
+      childrenForm.patchValue(savedBatch.children);
     }
 
     model.valid = model.validator.valid;

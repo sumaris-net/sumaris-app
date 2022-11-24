@@ -91,6 +91,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return this._showWeight;
   }
 
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+  }
+
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
 

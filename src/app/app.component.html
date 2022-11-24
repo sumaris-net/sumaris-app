@@ -2,8 +2,8 @@
 
   <app-menu [logo]="logo" [appName]="appName" contentId="menu-content">
 
-    <!-- TODO enable notification icon  -->
-    <app-job-progression-icon [autoHide]="false" headerBottomRight></app-job-progression-icon>
+    <!-- job and notification icons  -->
+    <app-job-progression-icon [autoHide]="true" headerBottomRight></app-job-progression-icon>
     <app-user-event-notification-icon headerBottomRight></app-user-event-notification-icon>
 
     <ion-router-outlet id="menu-content"></ion-router-outlet>

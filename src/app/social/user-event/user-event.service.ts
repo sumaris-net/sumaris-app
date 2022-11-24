@@ -358,8 +358,11 @@ export class UserEventService extends
 
       // Inbox messages:
       case UserEventTypeEnum.JOB:
-        const job = Job.fromObject(source.content);
-        const status = job.status || 'PENDING';
+        const job = Job.fromObject(source.content || {});
+        const status = job.status
+          || (source.level === 'INFO' && 'SUCCESS')
+          || (source.level === 'ERROR' && 'ERROR')
+          || 'PENDING';
         const color = (status === 'PENDING' && 'secondary')
           || (status === 'RUNNING' && 'tertiary')
           || (status === 'SUCCESS' && 'success')

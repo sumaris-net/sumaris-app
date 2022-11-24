@@ -5,6 +5,7 @@ import { IWithObserversEntity } from '../model/model.utils';
 import { Program } from '../../../referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from './data-entity.validator';
 import {OperationValidators} from '@app/trip/services/validator/operation.validator';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
   withObservers?: boolean;
@@ -16,9 +17,10 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
 
   protected constructor(
     formBuilder: UntypedFormBuilder,
-    settings?: LocalSettingsService
+    translate: TranslateService,
+    settings: LocalSettingsService
     ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
   getFormGroupConfig(data?: T, opts?: O): {

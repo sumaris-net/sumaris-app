@@ -102,10 +102,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   }) {
     super.disable(opts);
     (this.childrenList || []).forEach(child => child.disable(opts));
-    if (this._enable || (opts && opts.emitEvent)) {
-      this._enable = false;
-      this.markForCheck();
-    }
     this.hasSubBatchesControl.disable(opts);
   }
 
@@ -115,10 +111,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   }) {
     super.enable(opts);
     (this.childrenList || []).forEach(child => child.enable(opts));
-    if (!this._enable || (opts && opts.emitEvent)) {
-      this._enable = true;
-      this.markForCheck();
-    }
   }
 
   get hasSubBatches(): boolean {

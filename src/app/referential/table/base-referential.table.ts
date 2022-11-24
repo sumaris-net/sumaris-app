@@ -54,13 +54,14 @@ export const IGNORED_ENTITY_COLUMNS = ['__typename', 'id', 'updateDate'];
 
 @Directive()
 export abstract class BaseReferentialTable<
-  E extends Entity<E, ID>,
-  F extends EntityFilter<any, E, any>,
-  V extends BaseValidatorService<E, ID> = any,
+  T extends Entity<T, ID>,
+  F extends EntityFilter<any, T, any>,
+  S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
+  V extends BaseValidatorService<T, ID> = any,
   ID = number,
-  O extends BaseReferentialTableOptions<E, ID> = BaseReferentialTableOptions<E, ID>
+  O extends BaseReferentialTableOptions<T, ID> = BaseReferentialTableOptions<T, ID>
   >
-  extends AppBaseTable<E, F, V, ID, O>
+  extends AppBaseTable<T, F, S, V, ID, O>
   implements OnInit, AfterViewInit {
 
   /**
@@ -68,7 +69,8 @@ export abstract class BaseReferentialTable<
    * @param dataType
    * @param validatorService
    */
-  static getEntityDisplayProperties<T>(dataType: new () => T, validatorService?: ValidatorService): string[] {
+  static getEntityDisplayProperties<T>(dataType: new () => T,
+                                       validatorService?: ValidatorService): string[] {
     return Object.keys(validatorService && validatorService.getRowValidator().controls || new dataType())
       .filter(key => !IGNORED_ENTITY_COLUMNS.includes(key));
   }
@@ -95,9 +97,9 @@ export abstract class BaseReferentialTable<
 
   protected constructor(
     injector: Injector,
-    dataType: new () => E,
+    dataType: new () => T,
     filterType: new () => F,
-    entityService: IEntitiesService<E, F>,
+    entityService: S,
     validatorService?: V,
     options?: O
   ) {
@@ -183,8 +185,8 @@ export abstract class BaseReferentialTable<
   }
 
   async ready(): Promise<void> {
-    await (this.entityService instanceof StartableService
-      ? this.entityService.ready()
+    await (this._dataService instanceof StartableService
+      ? this._dataService.ready()
       : this.settings.ready());
 
     return super.ready();
@@ -296,7 +298,7 @@ export abstract class BaseReferentialTable<
     return 'UTF-8'; // Default encoding
   }
 
-  protected uploadFile(file: File): Observable<FileEvent<E[]>> {
+  protected uploadFile(file: File): Observable<FileEvent<T[]>> {
     console.info(this.logPrefix + `Importing CSV file ${file.name}...`);
 
     const separator = this.getExportSeparator();
@@ -314,17 +316,17 @@ export abstract class BaseReferentialTable<
           }
           // Unknown event: skip
           else {
-            return of<FileEvent<E[]>>();
+            return of<FileEvent<T[]>>();
           }
         }),
         filter(isNotNil)
       );
   }
 
-  protected uploadCsvRows(rows: string[][]): Observable<FileEvent<E[]>> {
+  protected uploadCsvRows(rows: string[][]): Observable<FileEvent<T[]>> {
     if (!rows || rows.length <= 1) throw {message: 'FILE.CSV.ERROR.EMPTY_FILE'};
 
-    const $progress = new Subject<FileEvent<E[]>>();
+    const $progress = new Subject<FileEvent<T[]>>();
 
     const headerNames = rows.splice(0, 1)[0];
     const total = rows.length;
@@ -363,7 +365,7 @@ export abstract class BaseReferentialTable<
     return $progress.asObservable();
   }
 
-  protected async parseCsvRowsToEntities(headers: FormFieldDefinition[], rows: string[][]): Promise<E[]> {
+  protected async parseCsvRowsToEntities(headers: FormFieldDefinition[], rows: string[][]): Promise<T[]> {
     const defaultValue = this.defaultNewRowValue();
     return rows
       .filter(cells => cells?.length === headers.length)
@@ -403,7 +405,7 @@ export abstract class BaseReferentialTable<
     });
   }
 
-  protected async resolveEntitiesFields(headers: FormFieldDefinition[], entities: E[]): Promise<E[]> {
+  protected async resolveEntitiesFields(headers: FormFieldDefinition[], entities: T[]): Promise<T[]> {
 
     const autocompleteFields = headers.filter(def => def.autocomplete && (!!def.autocomplete.suggestFn || def.autocomplete.items));
     if (isEmptyArray(autocompleteFields)) return entities;
@@ -422,7 +424,7 @@ export abstract class BaseReferentialTable<
         || ((value, opts) => suggestFromArray(autocomplete.items as any[], value, opts));
     });
 
-    const result: E[] = [];
+    const result: T[] = [];
 
     // For each entities
     for (let entity of entities) {
@@ -465,13 +467,13 @@ export abstract class BaseReferentialTable<
 
     // Convert to entity
     return result.map(source => {
-      const target: E = new this.dataType();
+      const target: T = new this.dataType();
       target.fromObject(source);
       return target
     });
   }
 
-  protected async fillEntitiesId(entities: E[]): Promise<E[]> {
+  protected async fillEntitiesId(entities: T[]): Promise<T[]> {
     // TODO: manage pagination - using JobUtils.fetchAllPages() ?
     const existingEntities = (await this.dataSource.getData());
 

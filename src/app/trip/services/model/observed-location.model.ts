@@ -21,7 +21,6 @@ export class ObservedLocation extends RootDataEntity<ObservedLocation>
   location: ReferentialRef;
   measurementValues: MeasurementModelValues | MeasurementFormValues;
   observers: Person[];
-
   landings: Landing[];
 
   constructor() {

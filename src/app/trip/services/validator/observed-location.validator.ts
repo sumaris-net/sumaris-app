@@ -7,6 +7,7 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { PmfmValidators } from '@app/referential/services/validator/pmfm.validators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import moment from 'moment';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface ObservedLocationValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
@@ -20,8 +21,9 @@ export class ObservedLocationValidatorService
 
   constructor(
     formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
   getFormGroup(data?: ObservedLocation, opts?: ObservedLocationValidatorOptions): UntypedFormGroup {

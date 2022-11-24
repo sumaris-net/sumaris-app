@@ -23,7 +23,7 @@ import {
   StatusIds,
   toBoolean,
   TranslateContextService,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
@@ -43,7 +43,7 @@ import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import moment from 'moment';
-import {TableElement} from '@e-is/ngx-material-table';
+import { TableElement } from '@e-is/ngx-material-table';
 
 
 const ObservedLocationPageTabs = {
@@ -134,6 +134,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   canUserWrite(data: ObservedLocation, opts?: any): boolean {
     return isNil(data.validationDate)
       && this.dataService.canUserWrite(data, opts);
+  }
+
+  updateView(data: ObservedLocation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {
+    //return super.updateView(Object.freeze(data), opts);
+    return super.updateView(data, opts);
   }
 
   updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
@@ -523,6 +528,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       // Propagate to table parent
       this.table?.setParent(data);
     }
+  }
+
+  protected async getValue(): Promise<ObservedLocation> {
+    const data = await super.getValue();
+    return data;
   }
 
   protected get form(): UntypedFormGroup {

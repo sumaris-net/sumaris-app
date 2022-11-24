@@ -1689,10 +1689,9 @@ export class TripService
   }): Observable<number>[] {
 
     filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
+    filter = this.asFilter(filter);
 
-    filter = this.asFilter(filter)
     const programLabel = filter && filter.program?.label;
-
     if (programLabel) {
 
       return [

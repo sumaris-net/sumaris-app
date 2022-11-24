@@ -406,9 +406,16 @@ export abstract class MeasurementValuesForm<T extends IEntityWithMeasurement<T>>
       }
     }
 
-    if (this.data && this.data.fromObject) {
+    // Restore program, if disabled
+    const programControl = this.form.get('program');
+    if (programControl?.disabled) {
+      json.program = programControl.value;
+    }
+
+    if (this.data?.fromObject) {
       this.data.fromObject(json);
-    } else {
+    }
+    else {
       this.data = json;
     }
 

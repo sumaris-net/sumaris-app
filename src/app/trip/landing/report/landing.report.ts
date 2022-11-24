@@ -9,9 +9,11 @@ import {
   EntityServiceLoadOptions,
   firstFalsePromise,
   FirstOptions,
+  Image,
   isInt,
   isNil,
   isNilOrBlank,
+  isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
@@ -35,6 +37,11 @@ export class LandingReportOptions {
   pathParentIdAttribute?: string;
 }
 
+export interface LandingStats {
+  sampleCount: number;
+  images?: Image[];
+}
+
 @Component({
   selector: 'app-landing-report',
   styleUrls: ['./landing.report.scss'],
@@ -42,7 +49,7 @@ export class LandingReportOptions {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 // tslint:disable-next-line:directive-class-suffix
-export class LandingReport<T extends Landing = Landing> implements AfterViewInit, OnDestroy {
+export class LandingReport<T extends Landing = Landing, S extends LandingStats = LandingStats> implements AfterViewInit, OnDestroy {
 
   private readonly route: ActivatedRoute;
   private readonly platform: PlatformService;
@@ -73,7 +80,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   @Input() embedded = false;
   @Input() data: T;
   @Input() pmfms: IPmfm[];
-  @Input() stats: any = {};
+  @Input() stats: Partial<S> = {};
   @Input() i18nContext = {
     prefix: '',
     suffix: ''
@@ -83,7 +90,7 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
   @Input() showError = true;
   @Input() debug = !environment.production;
 
-  @ViewChild(RevealComponent) reveal!: RevealComponent;
+  @ViewChild(RevealComponent, {static: false}) reveal!: RevealComponent;
 
   get loading(): boolean {
     return this.loadingSubject.value;
@@ -157,56 +164,60 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
 
   async load(id?: number, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
 
-    let parentId = opts && opts[this._pathParentIdAttribute] || undefined;
+    try {
+      let parentId = opts && opts[this._pathParentIdAttribute] || undefined;
 
-    //await sleep(2000);
+      let [data, parent] = await Promise.all([
+        this.landingService.load(id),
+        isNotNil(parentId) ? this.observedLocationService.load(parentId) : Promise.resolve(null)
+      ]);
 
-    let [data, parent] = await Promise.all([
-      this.landingService.load(id),
-      isNotNil(parentId) ? this.observedLocationService.load(parentId) : Promise.resolve(null)
-    ]);
+      // Make sure to load the parent
+      if (!parent || (data && parent.id !== data.observedLocationId)) {
+        parent = await this.observedLocationService.load(data.observedLocationId);
+      }
 
-    // Make sure to load the parent
-    if (!parent || (data && parent.id !== data.observedLocationId)) {
-      parent = await this.observedLocationService.load(data.observedLocationId);
+      if (!data || !parent) {
+        throw new Error('ERROR.LOAD_ENTITY_ERROR');
+      }
+
+      const program = await this.programRefService.loadByLabel(parent.program.label);
+      this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
+      let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
+      this.i18nContext.suffix = i18nSuffix === 'legacy' ? '' : i18nSuffix;
+
+      // Compute agg data
+      const taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
+
+      let pmfms = await this.programRefService.loadProgramPmfms(parent.program.label, {
+        acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
+        taxonGroupId: taxonGroup?.id
+      });
+
+      // Apply weight conversion, if need
+      if (this.weightDisplayedUnit) {
+        pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit);
+      }
+      this.pmfms = pmfms;
+      this.parent = parent;
+
+      this.data = await this.onDataLoaded(data as T, this.pmfms);
+
+      const title = await this.computeTitle(this.data, this.parent);
+      this.$title.next(title);
+
+      const defaultBackHref = await this.computeDefaultBackHref(this.data, this.parent);
+      this.$defaultBackHref.next(defaultBackHref);
+
+      this.error = null;
+      this.markAsLoaded();
+      this.cd.detectChanges();
+
+      await this.reveal.initialize();
     }
-
-    if (!data || !parent) {
-      throw new Error('ERROR.LOAD_ENTITY_ERROR');
+    catch (err) {
+      console.error(err);
     }
-
-    const program = await this.programRefService.loadByLabel(parent.program.label);
-    this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
-    let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
-    this.i18nContext.suffix = i18nSuffix === 'legacy' ? '' : i18nSuffix;
-
-    // Compute agg data
-    const taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
-
-    let pmfms = await this.programRefService.loadProgramPmfms(parent.program.label, {
-      acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
-      taxonGroupId: taxonGroup?.id
-    });
-
-    // Apply weight conversion, if need
-    if (this.weightDisplayedUnit) {
-      pmfms = PmfmUtils.setWeightUnitConversions(pmfms, this.weightDisplayedUnit);
-    }
-    this.pmfms = pmfms;
-    this.parent = parent;
-
-    this.data = await this.onDataLoaded(data as T, this.pmfms);
-
-    const title = await this.computeTitle(this.data, this.parent);
-    this.$title.next(title);
-
-    const defaultBackHref = await this.computeDefaultBackHref(this.data, this.parent);
-    this.$defaultBackHref.next(defaultBackHref);
-
-    this.markAsLoaded();
-    this.cd.detectChanges();
-
-    await this.reveal.initialize();
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
@@ -270,7 +281,25 @@ export class LandingReport<T extends Landing = Landing> implements AfterViewInit
     // FOR DEV ONLY : add more data
     //if (this.debug && !environment.production && data.samples.length < 5) this.addFakeSamplesForDev(data);
 
+    // Compute sample count
     this.stats.sampleCount = data.samples?.length || 0;
+
+    // Remove technical label (starting with #)
+    (data.samples || []).forEach(sample => {
+      // Remove invalid sample label
+      if (sample.label?.startsWith('#')) sample.label = null;
+    });
+
+    // Compute images, with title
+    this.stats.images = (data.samples || [])
+      .filter(s => isNotEmptyArray(s.images))
+      .flatMap(s => {
+        // Add title to image
+        s.images.forEach(image => {
+          image.title = image.title || s.label || `#${s.rankOrder}`;
+        })
+        return s.images;
+      });
     return Promise.resolve(data as T);
   }
 

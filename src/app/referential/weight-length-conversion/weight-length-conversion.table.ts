@@ -8,10 +8,9 @@ import { firstNotNilPromise, ReferentialRef, StatusIds } from '@sumaris-net/ngx-
 import { WeightLengthConversionValidatorService } from '@app/referential/weight-length-conversion/weight-length-conversion.validator';
 import moment from 'moment';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { LocationLevelIds, ParameterLabelGroups, UnitLabelGroups } from '@app/referential/services/model/model.enum';
+import { LocationLevelGroups, ParameterLabelGroups, UnitLabelGroups } from '@app/referential/services/model/model.enum';
 import { ParameterService } from '@app/referential/services/parameter.service';
 import { BehaviorSubject } from 'rxjs';
-import { ErrorCodes } from '@app/referential/services/errors';
 
 @Component({
   selector: 'app-weight-length-conversion-table',
@@ -158,7 +157,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
     await this.referentialRefService.ready();
 
     // Set the location levels used to filter
-    this._locationLevelIds = LocationLevelIds.WEIGHT_LENGTH_CONVERSION_AREA;
+    this._locationLevelIds = LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA;
 
     // Length parameters
     await this.parameterService.loadAllByLabels(ParameterLabelGroups.LENGTH, {toEntity: false})

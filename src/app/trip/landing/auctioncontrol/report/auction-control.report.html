@@ -1,6 +1,5 @@
-<ng-container *ngIf="!embedded">
-  <app-toolbar *ngIf="showToolbar"
-    [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
+<ng-container *ngIf="!embedded; else embeddedSection">
+  <app-toolbar *ngIf="showToolbar" [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
     <ion-title [innerHTML]="$title|async"></ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="reveal.print($event)" >
@@ -17,7 +16,7 @@
       <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
     </ion-item>
 
-    <app-reveal #reveal *ngIf="!error"
+    <app-reveal #reveal [class.cdk-visually-hidden]="error"
                 [options]="revealOptions">
       <ng-container *ngIf="loaded; else loadingTemplate">
         <section>
@@ -29,22 +28,29 @@
             - {{'LANDING.REPORT.VESSEL'|translate}} **{{data.vesselSnapshot.name}}**
             - {{'AUCTION_CONTROL.REPORT.CONTROLLED_SPECIES'|translate}} **{{stats.taxonGroup?.name || '?'}}**
 
-            <div *ngIf="data.samples|isArrayLength: {lessThan: 6}">
-              &nbsp;
-              <ng-container
-                [ngTemplateOutlet]="samplesTable" [ngTemplateOutletContext]="{$implicit: data.samples}">
+            <div *ngIf="data.samples|isArrayLength: {lessThan: 6}">              &nbsp;
+              <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: data.samples, pmfms: pmfms}">
               </ng-container>
             </div>
           </section>
         </section>
         <section *ngIf="data.samples|isArrayLength:{greaterThan: 5}">
-          <section markdown ngPreserveWhitespaces
-                   *ngFor="let samples of (data.samples | splitArrayInChunks: reveal.printing ? -1 : 25); index as index; count as count">
-            ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
+          <section *ngFor="let samples of (data.samples | splitArrayInChunks: reveal.printing ? -1 : 25); index as index; count as count">
+            <h3>{{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}</h3>
 
             <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
           </section>
         </section>
+
+        <!-- images -->
+        <ng-container >
+          <section *ngIf="stats.images|isNotEmptyArray">
+            <section *ngFor="let images of (stats.images | splitArrayInChunks: reveal.printing ? -1 : 6); index as index; count as count">
+              <ng-container *ngTemplateOutlet="imagesTable; context: {$implicit: images, count: 3}"></ng-container>
+            </section>
+          </section>
+
+        </ng-container>
       </ng-container>
     </app-reveal>
 
@@ -56,13 +62,19 @@
   </ion-content>
 </ng-container>
 
-<ng-container *ngIf="embedded && loaded">
-  <section markdown ngPreserveWhitespaces
-   *ngFor="let samples of (data.samples | splitArrayInChunks: 25); index as index; count as count">
-    ## {{data.vesselSnapshot?.name}} {{data.dateTime|dateFormat: {time: true} }} - {{stats.taxonGroup?.name}} {{index|paginationToString:count:true}}
-    <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
-  </section>
-</ng-container>
+<ng-template #embeddedSection>
+  <ng-container *ngIf="loaded">
+    <section *ngFor="let samples of (data.samples | splitArrayInChunks: 25); index as index; count as count"
+             markdown ngPreserveWhitespaces>
+      ### {{data.vesselSnapshot?.name}} - {{stats.taxonGroup?.name || ''}} {{index|paginationToString:count:true}}
+      {{'LANDING.REPORT.DATE_TIME'|translate}} {{data.dateTime|dateFormat: {time: true} }}
+      <ng-container *ngTemplateOutlet="samplesTable; context: {$implicit: samples, pmfms: pmfms}"></ng-container>
+    </section>
+    <section *ngFor="let images of (stats.images | splitArrayInChunks: 6); index as index; count as count">
+      <ng-container *ngTemplateOutlet="imagesTable; context: {$implicit: images, count: 3}"></ng-container>
+    </section>
+  </ng-container>
+</ng-template>
 
 <ng-template #samplesTable let-samples let-pmfms="pmfms">
 
@@ -81,6 +93,20 @@
       <td *ngFor="let pmfm of pmfms" [innerHTML]="sample|measurementValueGet:{pmfm: pmfm, html: true}"></td>
       <td>{{sample.comments}}</td>
     </tr>
+    </tbody>
+  </table>
+
+</ng-template>
+
+<ng-template #imagesTable let-images let-count="count">
+  <table [style.--col-count]="count" class="gallery">
+    <tbody>
+      <tr *ngFor="let rowImages of (images|splitArrayInChunks: 3)">
+        <td *ngFor="let image of rowImages">
+          <p>{{image.title}}</p>
+          <img [src]="image.url||image.dataUrl" [alt]="image.title">
+        </td>
+      </tr>
     </tbody>
   </table>
 

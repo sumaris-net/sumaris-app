@@ -228,3 +228,23 @@ mat-sampling-ratio-field {
     color: var(--ion-color-secondary100-contrast);
   }
 }
+
+/* -- image gallery -- */
+
+.gallery-container {
+  .image-card {
+    &.zoom-hover:hover {
+      --img-scale: 0.8 !important;
+    }
+    .card-thumbnail {
+      background-color: var(--ion-color-light);
+    }
+  }
+
+  &.list {
+    --img-max-height: 50vh;
+  }
+  &.mosaic {
+    --img-max-height: 30vh;
+  }
+}

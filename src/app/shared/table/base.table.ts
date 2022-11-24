@@ -21,7 +21,7 @@ import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
-import { filter, map, tap } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
@@ -41,19 +41,21 @@ export interface BaseTableConfig<
 
   restoreCompactMode?: boolean;
   restoreColumnWidths?: boolean;
+  i18nColumnPrefix?: string;
 }
 
 @Directive()
-export abstract class AppBaseTable<E extends Entity<E, ID>,
-  F extends EntityFilter<any, E, any>,
-  V extends BaseValidatorService<E, ID> = any,
+export abstract class AppBaseTable<T extends Entity<T, ID>,
+  F extends EntityFilter<any, T, any>,
+  S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
+  V extends BaseValidatorService<T, ID> = any,
   ID = number,
-  O extends BaseTableConfig<E, ID> = BaseTableConfig<E, ID>>
-  extends AppTable<E, F, ID> implements OnInit, AfterViewInit {
+  O extends BaseTableConfig<T, ID> = BaseTableConfig<T, ID>>
+  extends AppTable<T, F, ID> implements OnInit, AfterViewInit {
 
   private _canEdit: boolean;
 
-  protected memoryDataService: InMemoryEntitiesService<E, F, ID>;
+  protected memoryDataService: InMemoryEntitiesService<T, F, ID>;
   protected cd: ChangeDetectorRef;
   protected readonly hotkeys: Hotkeys;
   protected logPrefix: string = null;
@@ -97,12 +99,12 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     super.markAsPristine(opts);
   }
 
-  constructor(
+  protected constructor(
     protected injector: Injector,
-    protected dataType: new () => E,
+    protected dataType: new () => T,
     protected filterType: new () => F,
     columnNames: string[],
-    protected entityService: IEntitiesService<E, F>,
+    protected _dataService: S,
     protected validatorService?: V,
     protected options?: O
   ) {
@@ -111,7 +113,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
       RESERVED_START_COLUMNS
         .concat(columnNames)
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource<E, F, ID>(dataType, entityService, validatorService, {
+      new EntitiesTableDataSource<T, F, ID>(dataType, _dataService, validatorService, {
           prependNewElements: false,
           restoreOriginalDataOnCancel: false,
           suppressErrors: environment.production,
@@ -128,8 +130,8 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     this.cd = injector.get(ChangeDetectorRef);
     this.defaultSortBy = 'label';
     this.inlineEdition = !!this.validatorService;
-    this.memoryDataService = (this.entityService instanceof InMemoryEntitiesService)
-      ? this.entityService as InMemoryEntitiesService<E, F, ID> : null;
+    this.memoryDataService = (this._dataService instanceof InMemoryEntitiesService)
+      ? this._dataService as InMemoryEntitiesService<T, F, ID> : null;
 
     // DEBUG
     this.logPrefix = '[base-table] ';
@@ -144,10 +146,9 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
       this.registerSubscription(
         this.memoryDataService.dirtySubject
           .pipe(
-            filter(dirty => dirty === true && !this.dirty),
-            tap(_ => this.markAsDirty())
+            filter(dirty => dirty === true && !this.dirty)
           )
-          .subscribe()
+          .subscribe(_ => this.markAsDirty())
       );
     }
 
@@ -231,14 +232,14 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
-  clickRow(event: Event|undefined, row: TableElement<E>): boolean {
+  clickRow(event: Event|undefined, row: TableElement<T>): boolean {
     if (!this.inlineEdition) this.highlightedRowId = row?.id;
 
     //console.debug('[base-table] click row');
     return super.clickRow(event, row);
   }
 
-  async addOrUpdateEntityToTable(data: E, opts?: {confirmEditCreate?: boolean}){
+  async addOrUpdateEntityToTable(data: T, opts?: {confirmEditCreate?: boolean}){
     // Always try to get the row, even if no ID, because the row can exists (e.g. in memory table)
     // THis find should use a equals() function
     const row = await this.findRowByEntity(data);
@@ -256,15 +257,15 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
    * @param data
    * @protected
    */
-  protected canAddEntity(data: E): Promise<boolean> {
+  protected canAddEntity(data: T): Promise<boolean> {
     return Promise.resolve(true);
   }
 
-  protected canAddEntities(data: E[]): Promise<boolean> {
+  protected canAddEntities(data: T[]): Promise<boolean> {
     return Promise.resolve(true);
   }
 
-  protected canUpdateEntity(data: E, row: TableElement<E>): Promise<boolean> {
+  protected canUpdateEntity(data: T, row: TableElement<T>): Promise<boolean> {
     return Promise.resolve(true);
   }
 
@@ -278,7 +279,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
    * @param data the entity to insert.
    * @param opts
    */
-  protected async addEntityToTable(data: E, opts?: { confirmCreate?: boolean; editing?: boolean }): Promise<TableElement<E>> {
+  protected async addEntityToTable(data: T, opts?: { confirmCreate?: boolean; editing?: boolean }): Promise<TableElement<T>> {
     if (!data) throw new Error("Missing data to add");
     if (this.debug) console.debug("[measurement-table] Adding new entity", data);
 
@@ -315,11 +316,11 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return row;
   }
 
-  protected async onNewEntity(data: E): Promise<void> {
+  protected async onNewEntity(data: T): Promise<void> {
     // Can be overrided by subclasses
   }
 
-  protected async addEntitiesToTable(data: E[], opts?: { editing?: boolean; emitEvent?: boolean }): Promise<TableElement<E>[]> {
+  protected async addEntitiesToTable(data: T[], opts?: { editing?: boolean; emitEvent?: boolean }): Promise<TableElement<T>[]> {
     if (!data) throw new Error("Missing data to add");
     if (this.debug) console.debug("[measurement-table] Adding new entities", data);
 
@@ -368,7 +369,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
    * @param row the row to update
    * @param opts
    */
-  protected async updateEntityToTable(data: E, row: TableElement<E>, opts?: { confirmEdit?: boolean; }): Promise<TableElement<E>> {
+  protected async updateEntityToTable(data: T, row: TableElement<T>, opts?: { confirmEdit?: boolean; }): Promise<TableElement<T>> {
     if (!data || !row) throw new Error("Missing data, or table row to update");
     if (this.debug) console.debug("[measurement-table] Updating entity to an existing row", data);
 
@@ -400,7 +401,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return row;
   }
 
-  async deleteEntity(event: Event, data: E): Promise<boolean> {
+  async deleteEntity(event: Event, data: T): Promise<boolean> {
     const row = await this.findRowByEntity(data);
 
     // Row not exists: OK
@@ -483,7 +484,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
 
   /* -- protected functions -- */
 
-  protected onDefaultRowCreated(row: TableElement<E>) {
+  protected async onDefaultRowCreated(row: TableElement<T>) {
     if (row.validator) {
       row.validator.patchValue(this.defaultNewRowValue());
     } else {
@@ -505,14 +506,14 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
     return target;
   }
 
-  protected asEntity(source: Partial<E>): E {
-    if (EntityUtils.isEntity(source)) return source as unknown as E;
+  protected asEntity(source: Partial<T>): T {
+    if (EntityUtils.isEntity(source)) return source as unknown as T;
     const target = new this.dataType();
     if (source) target.fromObject(source);
     return target;
   }
 
-  protected async findRowByEntity(data: E): Promise<TableElement<E>> {
+  protected async findRowByEntity(data: T): Promise<TableElement<T>> {
     if (!data) throw new Error('Missing argument data');
 
     // Make sure using an entity class, to be able to use equals()
@@ -522,7 +523,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
       .find(r => data.equals(r.currentData));
   }
 
-  protected normalizeEntityToRow(data: E, row: TableElement<E>, opts?: any) {
+  protected normalizeEntityToRow(data: T, row: TableElement<T>, opts?: any) {
     // Can be override by subclasses
   }
 
@@ -532,7 +533,7 @@ export abstract class AppBaseTable<E extends Entity<E, ID>,
    * @param d2
    * @protected
    */
-  protected equals(d1: E, d2: E): boolean {
+  protected equals(d1: T, d2: T): boolean {
     return EntityUtils.isEntity(d1) ? d1.equals(d2)
       : (EntityUtils.isEntity(d2) ? d2.equals(d1)
         : super.equals(d1, d2));

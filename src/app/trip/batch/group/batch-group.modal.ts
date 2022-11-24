@@ -139,9 +139,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
 
-    if (this.disabled) {
-      this.disable();
-    }
+    if (this.disabled) this.disable();
 
     // Update title, when form change
     this._subscription.add(
@@ -190,7 +188,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       console.error('[batch-group-modal] Error while load data: ' + (err && err.message || err), err);
     }
     finally {
-      this.enable();
+      if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
       this.markForCheck();

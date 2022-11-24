@@ -1,7 +1,7 @@
 import { Injectable, Optional } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { AppFormArray, AppValidatorService, FormArrayHelper, isNotEmptyArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormBuilder, Validators } from '@angular/forms';
+import { AppFormArray, isNotEmptyArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from '../model/sample.model';
 import { TranslateService } from '@ngx-translate/core';
 import { ImageAttachmentValidator } from '@app/data/image/image-attachment.validator';
@@ -100,13 +100,8 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
         resizeStrategy: 'reuse'
       }
     );
-
-    formArray.statusChanges.subscribe(status => {
-      console.warn('TODO status  formArray changes', status);
-    })
-    console.warn('TODO creating image formArray', formArray);
     if (isNotEmptyArray(data)) {
-      //formArray.patchValue(data);
+      formArray.patchValue(data);
     }
 
     return formArray;

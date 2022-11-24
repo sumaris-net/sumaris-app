@@ -39,6 +39,7 @@ import moment from 'moment';
 
 export class DataSynchroImportFilter {
   programLabel?: string;
+  strategyIds?: number[];
   vesselId?: number;
   startDate?: Date | Moment;
   endDate?: Date | Moment

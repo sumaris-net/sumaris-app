@@ -1,5 +1,6 @@
 import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { isNotNil } from '@sumaris-net/ngx-components';
+import { MeasurementValuesTypes } from '@app/trip/services/model/measurement.model';
 
 function getSortingMeasValues(opts: {
   gearPosition?: 'B'|'T';
@@ -22,6 +23,7 @@ function getSortingMeasValues(opts: {
   if (isNotNil(opts.weight)) {
     res[PmfmIds.BATCH_MEASURED_WEIGHT] = '' + opts.weight;
   }
+  res['__typename'] = MeasurementValuesTypes.MeasurementModelValues;
 
   return res;
 }

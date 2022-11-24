@@ -143,7 +143,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     // Excluded columns, by default
     this.excludesColumns.push('lastUsed');
     this.excludesColumns.push('subGearsCount');
-    this.excludesColumns.push('actions'); // not need, because PMFM columns order change is not supportted
+    this.excludesColumns.push('actions'); // not need, because PMFM columns order change is not supported
 
     // FOR DEV ONLY ----
     this.logPrefix = '[physical-gears-table] ';
