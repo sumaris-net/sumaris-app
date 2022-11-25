@@ -668,7 +668,7 @@ export class SamplesTable
 
     // generate label
     if (!this.showLabelColumn && this.requiredLabel) {
-      data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
+      data.label = `${this.acquisitionLevel||''}#${data.rankOrder}`;
     }
 
     // Default date

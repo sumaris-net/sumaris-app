@@ -1,15 +1,15 @@
 import { Injectable, Injector } from '@angular/core';
 import {
-  AppErrorWithDetails,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
-  chainPromises, DateUtils,
+  chainPromises,
+  DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
-  EntityUtils, equalsOrNil,
+  EntityUtils,
   firstNotNilPromise,
   FormErrors,
   fromDateISOString,
@@ -24,7 +24,8 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person, toDateISOString,
+  Person,
+  toDateISOString,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, EMPTY, Observable } from 'rxjs';

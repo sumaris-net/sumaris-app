@@ -1290,7 +1290,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // generate label (override default)
     data.label = this.labelPrefix
       ? `${this.labelPrefix}${data.rankOrder}`
-      : `${this.acquisitionLevel}#${data.rankOrder}`;
+      : `${this.acquisitionLevel||''}#${data.rankOrder}`;
 
     // Default taxon name
     if (isNotNil(this.defaultTaxonName)) {
