@@ -209,6 +209,9 @@
         "SUPERVISOR": "Libellé du profil Superviseur",
         "GUEST": "Libellé du profil Invité"
       },
+      "SOCIAL": {
+        "ENABLE_NOTIFICATION_ICONS": "Menu > Afficher les icônes de notifications"
+      },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",

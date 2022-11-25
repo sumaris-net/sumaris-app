@@ -287,7 +287,8 @@ export class UserEventService extends
   }
 
   protected async onReceived(source: UserEvent): Promise<UserEvent> {
-    console.log('Converting user event', source);
+    // DEBUG
+    //console.debug('Converting user event', source);
 
     // Choose default avatarIcon
     switch (source.level) {

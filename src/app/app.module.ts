@@ -71,6 +71,7 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
 import { ApolloModule } from 'apollo-angular';
 import { DATA_TESTING_PAGES } from '@app/data/data.testing.module';
 import { JobProgressionService } from '@app/social/job/job-progression.service';
+import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 
 @NgModule({
   declarations: [
@@ -226,6 +227,7 @@ import { JobProgressionService } from '@app/social/job/job-progression.service';
     { provide: APP_CONFIG_OPTIONS, useValue: <FormFieldDefinitionMap>{
       ...CORE_CONFIG_OPTIONS,
       ...APP_CORE_CONFIG_OPTIONS,
+      ...APP_SOCIAL_CONFIG_OPTIONS,
       ...REFERENTIAL_CONFIG_OPTIONS,
       ...VESSEL_CONFIG_OPTIONS,
       ...DATA_CONFIG_OPTIONS,

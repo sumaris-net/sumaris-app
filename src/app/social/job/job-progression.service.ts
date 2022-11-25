@@ -51,6 +51,9 @@ export class JobProgressionService extends BaseGraphqlService<JobProgression> im
               ) {
     super(graphql, environment);
     this._logPrefix = '[job-progression-service]';
+
+    // Clean data on logout
+    this.accountService.onLogout.subscribe(() => this.dataSubject.next([]))
   }
 
   addJob(id: number, job?: JobProgression) {

@@ -3,6 +3,7 @@ import {
   AccountService,
   ConfigService,
   Configuration,
+  CORE_CONFIG_OPTIONS,
   FormFieldDefinition,
   getColorContrast,
   getColorShade,
@@ -20,6 +21,7 @@ import { throttleTime } from 'rxjs/operators';
 import { ReferentialRefService } from './referential/services/referential-ref.service';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
+import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 
 @Component({
   selector: 'app-root',
@@ -28,8 +30,9 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class AppComponent {
 
-  logo: string;
-  appName: string;
+  protected logo: string;
+  protected appName: string;
+  protected enabledNotificationIcons = false;
 
   constructor(
     @Inject(DOCUMENT) private _document: Document,
@@ -80,16 +83,21 @@ export class AppComponent {
     this.appName = config.label;
 
     // Set document title
-    const title = isNotNil(config.name) ? `${config.label} - ${config.name}` : config.label;
-    this._document.getElementById('appTitle').textContent = title;
-
-    // Set document favicon
-    const favicon = config.properties && config.properties['sumaris.favicon'];
-    if (isNotNil(favicon)) {
-      this._document.getElementById('appFavicon').setAttribute('href', favicon);
-    }
+    const title = isNotNil(config.name) ? `${config.label} - ${config.name}` : this.appName;
+    this._document.getElementById('appTitle').textContent = title || '';
 
     if (config.properties) {
+
+      // Set document favicon
+      const favicon = config.getProperty(CORE_CONFIG_OPTIONS.FAVICON);
+      if (isNotNil(favicon)) {
+        this._document.getElementById('appFavicon').setAttribute('href', favicon);
+      }
+
+      // Enable user event and notification icons
+      this.enabledNotificationIcons = config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS)
+
+      // Set theme colors
       this.updateTheme({
         colors: {
           primary: config.properties['sumaris.color.primary'],
