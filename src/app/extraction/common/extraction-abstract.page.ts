@@ -118,8 +118,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     if (this.debug) console.debug('[extraction-abstract-page] Reading queryParams...', this.route.snapshot.queryParams);
     const paramType = this.fromObject({category, label});
 
-    // Read type
     const types = await firstNotNilPromise(this.$types, {stop: this.destroySubject});
+
+    //DEBUG
+    //console.debug('[extraction-abstract-page] Extraction types found:', types);
+
+    // Read type
     let selectedType;
 
     // If not type found in params, redirect to first one

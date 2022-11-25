@@ -107,7 +107,7 @@ export class SamplesTable
   showFooter: boolean;
   showTagCount: boolean;
   tagCount$ = new BehaviorSubject<number>(0);
-  pmfmsToCopyOnNewEntity: IPmfm[];
+  existingPmfmIdsToCopy: number[];
 
   @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
@@ -138,6 +138,7 @@ export class SamplesTable
   @Input() allowSubSamples = false;
   @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
   @Input() computedPmfmGroups: string[];
+  @Input() pmfmIdsToCopy: number[];
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {
@@ -703,14 +704,13 @@ export class SamplesTable
     }
 
     // Copy some value from previous sample
-    if (previousSample && isNotEmptyArray(this.pmfmsToCopyOnNewEntity)) {
-      this.pmfmsToCopyOnNewEntity
-        .map(pmfm => pmfm.id)
+    if (previousSample && isNotEmptyArray(this.existingPmfmIdsToCopy)) {
+      this.existingPmfmIdsToCopy
         .forEach(pmfmId => {
           if (isNilOrBlank(data.measurementValues[pmfmId])) {
             data.measurementValues[pmfmId] = previousSample.measurementValues[pmfmId];
           }
-        })
+        });
     }
 
     // Reset __typename, to force normalization of all values
@@ -848,8 +848,10 @@ export class SamplesTable
     // Compute tag id
     this.tagIdPmfm = this.tagIdPmfm || pmfms && pmfms.find(pmfm => pmfm.id === PmfmIds.TAG_ID);
 
-    // Compute pmfms to copy (need by SIH-OBSBIO)
-    this.pmfmsToCopyOnNewEntity = pmfms.filter(pmfm => !pmfm.defaultValue && !pmfm.hidden && pmfm.id === PmfmIds.DRESSING);
+    // Compute pmfms to copy (e.g. need by SIH-OBSBIO)
+    this.existingPmfmIdsToCopy = this.pmfmIdsToCopy
+      && pmfms.filter(pmfm => !pmfm.defaultValue && !pmfm.hidden && this.pmfmIdsToCopy.includes(pmfm.id))
+              .map(pmfm => pmfm.id);
 
     if (this.showGroupHeader) {
       console.debug('[samples-table] Computing Pmfm group header...');
@@ -880,13 +882,13 @@ export class SamplesTable
         }
         const cssClass = groupIndex % 2 === 0 ? 'even' : 'odd';
 
-        const groupComputed = this.computedPmfmGroups && this.computedPmfmGroups.includes(group);
+        const computedGroup = this.computedPmfmGroups?.includes(group) || false;
 
         groupPmfms.forEach(pmfm => {
           pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
 
           // Force as computed
-          if (groupComputed && !pmfm.isComputed) {
+          if (computedGroup && !pmfm.isComputed) {
             pmfm.isComputed = true;
           }
 

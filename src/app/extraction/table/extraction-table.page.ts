@@ -67,7 +67,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   canCreateProduct = false;
   isAdmin = false;
 
-  typesByCategory$: Observable<{key: string, value: ExtractionType[]}[]>;
   filterCriteriaCount$: Observable<number>;
   filterPanelFloating = true;
   stickyEnd = true;
@@ -78,6 +77,18 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+
+  get categories$(): Observable<{category: string, types: ExtractionType[]}[]> {
+    // Create a types map by category (use for type sub menu)
+    return this.$types
+      .pipe(
+        map(types => arrayGroupBy(types, 'category')),
+        filter(isNotNil),
+        map(map => Object.getOwnPropertyNames(map)
+          .map(category => ({category, types: map[category]}))
+        )
+      );
+  }
 
   constructor(
     route: ActivatedRoute,
@@ -108,16 +119,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   ngOnInit() {
 
     super.ngOnInit();
-
-    // Create a types map by category (use for type sub menu)
-    this.typesByCategory$ = this.$types
-      .pipe(
-        map(types => arrayGroupBy(types, 'category')),
-        filter(isNotNil),
-        map(map => Object.getOwnPropertyNames(map)
-            .map(key => ({key, value: map[key]}))
-        )
-      );
 
     // If the user changes the sort order, reset back to the first page.
     if (this.sort && this.paginator) {

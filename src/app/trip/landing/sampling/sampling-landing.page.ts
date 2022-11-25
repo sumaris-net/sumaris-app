@@ -62,6 +62,7 @@ export class SamplingLandingPage extends LandingPage {
     this.pmfmService.loadIdsGroupByParameterLabels(SampleParameterLabelsGroups)
       .then(pmfmGroups => {
         this.samplesTable.computedPmfmGroups = ['AGE'];
+        this.samplesTable.pmfmIdsToCopy = [PmfmIds.DRESSING];
         this.samplesTable.pmfmGroups = pmfmGroups;
       });
   }
