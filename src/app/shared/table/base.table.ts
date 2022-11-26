@@ -21,7 +21,7 @@ import { UntypedFormGroup } from '@angular/forms';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { environment } from '@environments/environment';
-import { filter, map } from 'rxjs/operators';
+import {filter, first, map, mergeMap, switchMap, takeUntil} from 'rxjs/operators';
 import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
@@ -149,6 +149,26 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
             filter(dirty => dirty === true && !this.dirty)
           )
           .subscribe(_ => this.markAsDirty())
+      );
+    }
+
+    // Propagate dirty state from the first valueChanges of a row
+    if (this.inlineEdition) {
+      this.registerSubscription(
+        this.onStartEditingRow
+          .pipe(
+            filter(row => row.id !== -1 && !!row.validator && !this.dirty),
+            switchMap(row => row.validator.valueChanges
+              .pipe(
+                filter(() => row.dirty),
+                first(),
+                takeUntil(this.onStartEditingRow)
+              ))
+          )
+          .subscribe(() => {
+            console.debug(this.logPrefix + 'Mark table as dirty, because row is dirty');
+            this.markAsDirty();
+          })
       );
     }
 
@@ -442,7 +462,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   }
 
   restoreCompactMode() {
-    if (!this.compact) {
+    if (!this.compact && this.settingsId) {
       const compact = this.settings.getPageSettings(this.settingsId, BASE_TABLE_SETTINGS_ENUM.compactRowsKey) || false;
       if (this.compact !== compact) {
         this.compact = compact;

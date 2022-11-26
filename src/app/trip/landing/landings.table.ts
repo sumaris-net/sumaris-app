@@ -3,7 +3,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 
 import { AccountService, AppValidatorService, isNil, isNotNil } from '@sumaris-net/ngx-components';
 import { LandingService } from '../services/landing.service';
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';

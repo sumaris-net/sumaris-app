@@ -4,7 +4,7 @@ import { Batch } from '../common/batch.model';
 import { Alerts, AppFormUtils, AudioProvider, firstNotNilPromise, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
-import { BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
+import { BaseMeasurementsTableConfig } from '../../measurement/measurements-table.class';
 import { IonContent, ModalController } from '@ionic/angular';
 import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';

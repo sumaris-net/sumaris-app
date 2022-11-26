@@ -1,14 +1,13 @@
-import { Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { Observable } from 'rxjs';
-import { TableElement } from '@e-is/ngx-material-table';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import {Directive, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {Observable} from 'rxjs';
+import {TableElement} from '@e-is/ngx-material-table';
+import {UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
 import {
   Alerts,
   AppFormUtils,
   Entity,
   EntityFilter,
   filterNotNil,
-  firstFalse,
   firstNotNilPromise,
   firstTrue,
   IEntitiesService,
@@ -21,16 +20,16 @@ import {
   toNumber,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { EntitiesWithMeasurementService } from './measurements.service';
-import { AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { IPmfm, PMFM_ID_REGEXP, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
-import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
-import { BaseValidatorService } from '@app/shared/service/base.validator.service';
-import { MeasurementsTableValidatorOptions, MeasurementsTableValidatorService } from '@app/trip/services/validator/measurement-table.validator';
+import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {AcquisitionLevelType} from '@app/referential/services/model/model.enum';
+import {IPmfm, PMFM_ID_REGEXP, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
+import {distinctUntilChanged, filter, map, mergeMap} from 'rxjs/operators';
+import {AppBaseTable, BaseTableConfig} from '@app/shared/table/base.table';
+import {BaseValidatorService} from '@app/shared/service/base.validator.service';
+import {MeasurementsTableEntitiesService} from './measurements-table.service';
+import {MeasurementsTableValidatorOptions, MeasurementsTableValidatorService} from './measurements-table.validator';
 
 
 export interface BaseMeasurementsTableConfig<
@@ -56,7 +55,7 @@ export abstract class BaseMeasurementsTable<
   V extends BaseValidatorService<T, number, VO> = any,
   O extends BaseMeasurementsTableConfig<T> = BaseMeasurementsTableConfig<T>,
   VO = any,
-  MS extends EntitiesWithMeasurementService<T, F, S> = EntitiesWithMeasurementService<T, F, S>,
+  MS extends MeasurementsTableEntitiesService<T, F, S> = MeasurementsTableEntitiesService<T, F, S>,
   MV extends MeasurementsTableValidatorService<T, V, number, VO> = MeasurementsTableValidatorService<T, V, number, VO>
   >
   extends AppBaseTable<T, F, MS, MV, number, O>
@@ -163,11 +162,19 @@ export abstract class BaseMeasurementsTable<
   }
 
   @Input() set $pmfms(pmfms: Observable<IPmfm[]>) {
-    this.applyPmfms(pmfms);
+    this._dataService.$pmfms = pmfms;
   }
 
   get $pmfms(): Observable<IPmfm[]> {
     return this._dataService.$pmfms;
+  }
+
+  get pmfms(): IPmfm[] {
+    return this._dataService.pmfms;
+  }
+
+  @Input() set pmfms(pmfms: IPmfm[]) {
+    this._dataService.pmfms = pmfms;
   }
 
   get $hasPmfms(): Observable<boolean> {
@@ -176,14 +183,6 @@ export abstract class BaseMeasurementsTable<
       map(isNotEmptyArray),
       distinctUntilChanged()
     );
-  }
-
-  get pmfms(): IPmfm[] {
-    return this._dataService.$pmfms.value;
-  }
-
-  @Input() set pmfms(pmfms: IPmfm[]) {
-    this.applyPmfms(pmfms);
   }
 
   get hasPmfms(): boolean {
@@ -217,17 +216,18 @@ export abstract class BaseMeasurementsTable<
       // Columns:
       (options?.reservedStartColumns || [])
         .concat(options?.reservedEndColumns || []),
-      // Specific data service
-      new EntitiesWithMeasurementService(injector, dataType, dataService, {
+      // Use a decorator data service
+      new MeasurementsTableEntitiesService(injector, dataType, dataService, {
         mapPmfms: options?.mapPmfms || undefined,
         requiredStrategy: options?.requiredStrategy,
         debug: options?.debug || false
       }) as MS,
+      // Use a specific decorator validator
       validatorService ? new MeasurementsTableValidatorService(injector, validatorService) as MV : null,
       {
         ...options,
         // IMPORTANT: Always use our private function onRowCreated()
-        onRowCreated: (row) => this.onRowCreated(row)
+        onRowCreated: (row) => this._onRowCreated(row)
       }
     );
     this.memoryDataService = (dataService instanceof InMemoryEntitiesService)
@@ -309,12 +309,10 @@ export abstract class BaseMeasurementsTable<
         }
       }));
 
-    if (this.inlineEdition && this.options.onPrepareRowForm) {
+    // Listen row edition
+    if (this.inlineEdition) {
       this.registerSubscription(this.onStartEditingRow
-        .pipe(filter(row => row.id !== -1)) // Skip new row, because already processed by this.onRowCreated()
-        .subscribe(row => {
-          if (this.options.onPrepareRowForm) this.options.onPrepareRowForm(row.validator);
-        })
+        .subscribe(row => this._onRowEditing(row))
       );
     }
   }
@@ -322,27 +320,6 @@ export abstract class BaseMeasurementsTable<
   ngOnDestroy() {
     super.ngOnDestroy();
     this._dataService?.stop();
-  }
-
-  protected async applyPmfms(pmfms: IPmfm[] | Observable<IPmfm[]>) {
-
-    // FIXME: Ce code sert à mettre le tableau en loading, si les PMFMS change.
-    // Mais le data_service peut NE PAS mettre à jour les pmfms, s'ils sont identiques aux précédents, et donc $pmfms peut ne PAS émettre
-    //  je pense qu'il faut supprimer ce code commenté, car maintenant le getter loading de measurements-table  prend en compte le dataService.loading
-
-    // Mark as loading
-    //const loaded = this.loaded;
-    //if (loaded) this.markAsLoading();
-
-    // Apply pmfms
-    this._dataService.pmfms = pmfms;
-
-    // Restore the previous loading state, when service finished to apply pmfms
-    // /!\ This is very important, to avoid landing's sample table to keep the loading state
-    // if (loaded) {
-    //   await firstFalse(this._dataService.loadingSubject, {stop: this.destroySubject});
-    //   this.markAsLoaded();
-    // }
   }
 
   protected configureValidator(opts?: MeasurementsTableValidatorOptions) {
@@ -493,39 +470,6 @@ export abstract class BaseMeasurementsTable<
     return rows.some(row => (!excludedRows || !excludedRows.includes(row)) && row.currentData.rankOrder === rankOrder);
   }
 
-  private async onRowCreated(row: TableElement<T>) {
-
-    // WARN: must be called BEFORE row.validator.patchValue(), to be able to add group's validators
-    if (row.validator && this.options.onPrepareRowForm) {
-      await this.options.onPrepareRowForm(row.validator);
-    }
-
-    if (this._addingRow) return; // Skip if already adding a row (e.g. when calling addEntityToTable)
-
-    this._addingRow = true;
-    try {
-      const data = row.currentData; // if validator enable, this will call a getter function
-
-      await this.onNewEntity(data);
-
-      // Normalize measurement values
-      this.normalizeEntityToRow(data, row);
-
-      // Set row data
-      if (row.validator) {
-        row.validator.patchValue(data);
-      }
-      else {
-        row.currentData = data;
-      }
-
-      this.markForCheck();
-    }
-    finally {
-      this._addingRow = false;
-    }
-  }
-
   protected async canAddEntity(data: T): Promise<boolean> {
     // Before using the given rankOrder, check if not already exists
     if (this.canEditRankOrder && isNotNil(data.rankOrder)) {
@@ -669,10 +613,54 @@ export abstract class BaseMeasurementsTable<
     if (!data) return; // skip
 
     // Adapt entity measurement values to reactive form
-    const pmfms = this.pmfms || [];
-    MeasurementValuesUtils.normalizeEntityToForm(data, pmfms, row.validator, opts);
+    MeasurementValuesUtils.normalizeEntityToForm(data, this.pmfms || [], row.validator, opts);
   }
 
+  /* -- private function -- */
 
+  /**
+   * /!\ do NOT override this function. Use onPrepareRowForm instead
+   * @param row
+   * @private
+   */
+  private async _onRowCreated(row: TableElement<T>) {
+
+    // WARN: must be called BEFORE row.validator.patchValue(), to be able to add group's validators
+    if (row.validator && this.options.onPrepareRowForm) {
+      await this.options.onPrepareRowForm(row.validator);
+    }
+
+    if (this._addingRow) return; // Skip if already adding a row (e.g. when calling addEntityToTable)
+
+    this._addingRow = true;
+    try {
+      const data = row.currentData; // if validator enable, this will call a getter function
+
+      await this.onNewEntity(data);
+
+      // Normalize measurement values
+      this.normalizeEntityToRow(data, row);
+
+      // Set row data
+      if (row.validator) {
+        row.validator.patchValue(data);
+      }
+      else {
+        row.currentData = data;
+      }
+
+      this.markForCheck();
+    }
+    finally {
+      this._addingRow = false;
+    }
+  }
+
+  private _onRowEditing(row: TableElement<T>) {
+    if (row.validator && this.options.onPrepareRowForm) {
+      // Skip new row, because already processed by onRowCreated()
+      if (row.id !== -1) this.options.onPrepareRowForm(row.validator);
+    }
+  }
 }
 

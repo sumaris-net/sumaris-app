@@ -20,7 +20,7 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements-table.class';
 import { Batch } from '../common/batch.model';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import { SubBatchForm } from './sub-batch.form';

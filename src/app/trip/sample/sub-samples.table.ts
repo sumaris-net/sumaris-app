@@ -16,7 +16,7 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
 import { Sample } from '../services/model/sample.model';
 import { SortDirection } from '@angular/material/sort';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';

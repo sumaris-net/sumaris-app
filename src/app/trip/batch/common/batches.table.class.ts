@@ -15,7 +15,7 @@ import {
   splitByProperty,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements-table.class';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Batch } from './batch.model';
 import { Landing } from '../../services/model/landing.model';

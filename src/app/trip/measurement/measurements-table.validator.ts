@@ -1,5 +1,5 @@
 import { FormBuilder, FormGroup, UntypedFormGroup } from '@angular/forms';
-import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues } from '../model/measurement.model';
+import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues } from '../services/model/measurement.model';
 import { MeasurementsValidatorOptions, MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { Injector } from '@angular/core';

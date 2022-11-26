@@ -48,7 +48,7 @@ import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 import moment from 'moment';
-import { BaseMeasurementsTable } from '@app/trip/measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '@app/trip/measurement/measurements-table.class';
 import { SampleFilter } from '@app/trip/services/filter/sample.filter';
 import { Sample } from '@app/trip/services/model/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';

@@ -46,7 +46,7 @@ import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
 import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
-import { MeasurementsTableValidatorOptions } from '@app/trip/services/validator/measurement-table.validator';
+import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 

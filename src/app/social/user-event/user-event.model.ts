@@ -16,6 +16,7 @@ import {
   IUserEventAction
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
+import {StoreObject} from '@apollo/client/core';
 
 export declare type UserEventType = 'FEED' | 'DEBUG_DATA' | 'INBOX_MESSAGE' | 'JOB';
 
@@ -50,6 +51,7 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
   readSignature: string;
 
   jobId: number;
+  source: string;
 
   actions: IUserEventAction[];
 
@@ -71,6 +73,11 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
     delete target.avatarIcon;
     delete target.icon;
     delete target.actions;
+
+    // Pod
+    if (opts?.keepLocalId === false) {
+      delete target.jobId;
+    }
 
     return target;
   }
@@ -124,6 +131,7 @@ export class UserEventFilter
   excludeRead = false;
 
   jobId: number = null;
+  source: string = null;
 
   constructor() {
     super(UserEventFilter.TYPENAME);
@@ -139,6 +147,20 @@ export class UserEventFilter
     this.includedIds = source.includedIds || [];
     this.excludeRead = source.excludeRead || false;
     this.jobId = source.jobId;
+    this.source = source.source;
+  }
+
+  asObject(opts?: EntityAsObjectOptions): StoreObject {
+    const target = super.asObject(opts);
+
+    target.source = target.source || (target.jobId && 'job:' + target.jobId) || undefined;
+
+    // Pod
+    if (opts?.keepLocalId === false) {
+      delete target.jobId;
+    }
+
+    return target;
   }
 
   protected buildFilter(): FilterFn<UserEvent>[] {
@@ -168,6 +190,9 @@ export class UserEventFilter
     }
     if (isNotNil(this.jobId)) {
       filterFns.push(t => t.jobId === this.jobId);
+    }
+    if (isNotNil(this.source)) {
+      filterFns.push(t => t.source === this.source);
     }
 
     return filterFns;

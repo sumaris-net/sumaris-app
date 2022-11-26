@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
 import { createPromiseEventEmitter, IEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';

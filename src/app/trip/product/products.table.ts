@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { filterNotNil, InMemoryEntitiesService, IReferentialRef, isNotEmptyArray, LoadResult, LocalSettingsService, referentialToString } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
 import { ProductValidatorService } from '../services/validator/product.validator';
 import { IWithProductsEntity, Product, ProductFilter } from '../services/model/product.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';

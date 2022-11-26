@@ -113,5 +113,11 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
       key: `${value} ${unit}`,
       value: `${value} ${unit}`
     }))
+  },
+  DATA_IMAGES_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.data.images.enable',
+    label: 'CONFIGURATION.OPTIONS.DATA_IMAGES_ENABLE',
+    type: 'boolean',
+    defaultValue: 'false'
   }
 });
