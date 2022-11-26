@@ -353,7 +353,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerSubscription(
       this.$strategyLabel
         .pipe(
-          mergeMap(value => this.waitIdle().then(() => value))
+          mergeMap(value => this.waitIdle({stop: this.destroySubject})
+            .then(() => value))
         )
         .subscribe(strategyLabel => {
 

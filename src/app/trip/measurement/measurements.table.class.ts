@@ -200,6 +200,10 @@ export abstract class BaseMeasurementsTable<
     }
   }
 
+  get loading(): boolean {
+    return super.loading || this._dataService.loading;
+  }
+
   protected constructor(
     injector: Injector,
     dataType: new() => T,
@@ -321,18 +325,24 @@ export abstract class BaseMeasurementsTable<
   }
 
   protected async applyPmfms(pmfms: IPmfm[] | Observable<IPmfm[]>) {
+
+    // FIXME: Ce code sert à mettre le tableau en loading, si les PMFMS change.
+    // Mais le data_service peut NE PAS mettre à jour les pmfms, s'ils sont identiques aux précédents, et donc $pmfms peut ne PAS émettre
+    //  je pense qu'il faut supprimer ce code commenté, car maintenant le getter loading de measurements-table  prend en compte le dataService.loading
+
     // Mark as loading
-    const loaded = this.loaded;
-    if (loaded) this.markAsLoading();
+    //const loaded = this.loaded;
+    //if (loaded) this.markAsLoading();
 
     // Apply pmfms
     this._dataService.pmfms = pmfms;
 
     // Restore the previous loading state, when service finished to apply pmfms
-    if (loaded) {
-      await firstFalse(this._dataService.loadingSubject, {stop: this.destroySubject});
-      //this.markAsLoaded();
-    }
+    // /!\ This is very important, to avoid landing's sample table to keep the loading state
+    // if (loaded) {
+    //   await firstFalse(this._dataService.loadingSubject, {stop: this.destroySubject});
+    //   this.markAsLoaded();
+    // }
   }
 
   protected configureValidator(opts?: MeasurementsTableValidatorOptions) {
@@ -447,6 +457,14 @@ export abstract class BaseMeasurementsTable<
     const skipProperties = opts && opts.skipProperties
       || ['id', 'rankOrder', 'updateDate', 'creationDate', 'label'].concat(this.hasRankOrder ? ['rankOrder'] : []);
     return super.duplicateRow(event, row, {...opts, skipProperties});
+  }
+
+  async waitIdle(opts?: WaitForOptions): Promise<void> {
+    await Promise.all([
+      super.waitIdle(opts),
+      // Waiting PMFMS to be loaded
+      this._dataService.waitIdle(opts)
+    ]);
   }
 
   /* -- protected methods -- */

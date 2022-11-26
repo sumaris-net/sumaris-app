@@ -1,12 +1,24 @@
-import { BehaviorSubject, from, isObservable, Observable } from 'rxjs';
-import { distinctUntilChanged, filter, first, map, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { EntityUtils, firstNotNil, firstNotNilPromise, IEntitiesService, IEntityFilter, InMemoryEntitiesService, isNil, isNotNil, LoadResult, StartableService } from '@sumaris-net/ngx-components';
-import { Directive, EventEmitter, Injector, Input, Optional } from '@angular/core';
-import { IPmfm, PMFM_ID_REGEXP } from '@app/referential/services/model/pmfm.model';
-import { SortDirection } from '@angular/material/sort';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { equals } from '@app/shared/functions';
+import {BehaviorSubject, isObservable, Observable} from 'rxjs';
+import {distinctUntilChanged, filter, map, mergeMap, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {IEntityWithMeasurement, MeasurementValuesUtils} from '../services/model/measurement.model';
+import {
+  EntityUtils,
+  firstNotNil,
+  IEntitiesService,
+  IEntityFilter,
+  InMemoryEntitiesService,
+  isNil,
+  isNotNil,
+  LoadResult,
+  StartableService,
+  waitForFalse,
+  WaitForOptions
+} from '@sumaris-net/ngx-components';
+import {Directive, EventEmitter, Injector, Input, Optional} from '@angular/core';
+import {IPmfm, PMFM_ID_REGEXP} from '@app/referential/services/model/pmfm.model';
+import {SortDirection} from '@angular/material/sort';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {equals} from '@app/shared/functions';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -251,6 +263,10 @@ export class EntitiesWithMeasurementService<
 
   asFilter(filter: Partial<F>): F {
     return this.delegate.asFilter(filter);
+  }
+
+  async waitIdle(opts: WaitForOptions): Promise<void> {
+    await waitForFalse(this.loadingSubject, opts);
   }
 
   /* -- private methods -- */

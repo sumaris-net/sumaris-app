@@ -722,7 +722,7 @@ export class SubBatchesTable
     }
 
     if (!opts || opts.emitEvent !== false) {
-      this.refreshPmfms();
+      await this.refreshPmfms();
       this.markForCheck();
     }
   }
@@ -830,11 +830,12 @@ export class SubBatchesTable
     return data;
   }
 
-  protected refreshPmfms() {
+  protected async refreshPmfms() {
     const pmfms = this._initialPmfms;
     if (!pmfms) return; // Not loaded
 
     this._dataService.pmfms = this._initialPmfms;
+    await this._dataService.waitIdle({stop: this.destroySubject});
 
     this.updateColumns();
   }
