@@ -311,7 +311,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       return false;
     }
 
-    if (row.currentData.tripId) {
+    if (isNotNil(row.currentData.tripId)) {
       // Edit trip
       this.onOpenTrip.emit(row);
     } else {

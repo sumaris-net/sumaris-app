@@ -245,6 +245,26 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
+  async onOpenTrip<T extends Landing>(row: TableElement<T>) {
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? this.save(undefined)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm();
+
+    const savedOrContinue = await savePromise;
+    if (savedOrContinue) {
+      this.markAsLoading();
+
+      try {
+        const landing = row.currentData;
+        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${landing.tripId}`);
+      } finally {
+        this.markAsLoaded();
+      }
+    }
+  }
+
   async openSelectVesselModal(excludeExistingVessels?: boolean): Promise<VesselSnapshot | undefined> {
     const programLabel = this.aggregatedLandingsTable?.programLabel || this.$programLabel.value || this.data.program.label;
     if (!this.data.startDateTime || !programLabel) {
