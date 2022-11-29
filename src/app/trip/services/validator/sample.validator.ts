@@ -49,6 +49,7 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       children: this.formBuilder.array([]),
       parent: [data && data.parent || null, SharedValidators.entity],
       // Quality properties
+      validationDate: [data && data.validationDate || null],
       controlDate: [data && data.controlDate || null],
       qualificationDate: [data && data.qualificationDate || null],
       qualificationComments: [data && data.qualificationComments || null],
