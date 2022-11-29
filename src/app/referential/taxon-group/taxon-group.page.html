@@ -122,10 +122,11 @@
         </ion-item>
 
         <app-round-weight-conversion-table #rwcTable
-                                            [taxonGroupId]="this.form.controls.id.valueChanges|async"
-                                            [showTaxonGroupIdColumn]="false"
-                                            [canDownload]="true"
-                                            [canUpload]="true">
+                                           [taxonGroupId]="this.form.controls.id.valueChanges|async"
+                                           [showTaxonGroupIdColumn]="false"
+                                           [canDownload]="true"
+                                           [canUpload]="true"
+                                           [showPaginator]="true">
 
         </app-round-weight-conversion-table>
 
