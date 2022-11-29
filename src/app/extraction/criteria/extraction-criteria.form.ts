@@ -5,7 +5,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import {
   AccountService,
   AppForm,
-  AppFormUtils, arrayDistinct,
+  AppFormUtils,
+  arrayDistinct,
   firstNotNilPromise,
   FormFieldDefinition,
   FormFieldType,
@@ -13,13 +14,14 @@ import {
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
-  sleep,
-  toBoolean
+  toBoolean,
+  waitFor,
+  WaitForOptions
 } from '@sumaris-net/ngx-components';
-import { CRITERION_OPERATOR_LIST, CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
+import { CRITERION_OPERATOR_LIST, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { ExtractionService } from '../common/extraction.service';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { filter, map } from 'rxjs/operators';
+import { filter, map, switchMap } from 'rxjs/operators';
 import { ExtractionCriteriaValidatorService } from './extraction-criterion.validator';
 
 export const DEFAULT_EXTRACTION_COLUMNS: Partial<ExtractionColumn>[] = [
@@ -296,6 +298,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   getCriterionValueDefinition(index: number): Observable<FormFieldDefinition> {
+
     return this.$columnValueDefinitionsByIndex[index] || this.updateCriterionValueDefinition(index);
   }
 
@@ -303,12 +306,26 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     const arrayControl = this.sheetCriteriaForm;
     if (!arrayControl) return;
 
+    // Make sure to wait $columnValueDefinitions has been loaded
+    if (!this.$columnValueDefinitions.value) {
+      return this.$columnValueDefinitions
+        .pipe(
+          switchMap(_ => this.updateCriterionValueDefinition(index, columnName, resetValue))
+        );
+    }
+
     const criterionForm = arrayControl.at(index) as UntypedFormGroup;
     columnName = columnName || (criterionForm && criterionForm.controls.name.value);
     const operator = criterionForm && criterionForm.controls.operator.value || '=';
-    const definition = (operator === 'NULL' || operator === 'NOT NULL')
+    let definition = (operator === 'NULL' || operator === 'NOT NULL')
       ? undefined
       : columnName && (this.$columnValueDefinitions.value || []).find(d => d.key === columnName) || null;
+
+    // Workaround : use a default string definition, when column cannot be found
+    if (definition == null) {
+      console.warn('[extraction-form] Cannot find column definition for ' + columnName);
+      definition = <FormFieldDefinition>{key: columnName, type: 'string'};
+    }
 
     // Reset the criterion value, is ask by caller
     if (resetValue) criterionForm.patchValue({value: null});
@@ -324,12 +341,11 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     return subject;
   }
 
-  async waitIdle(): Promise<any> {
-    if (!this.type) {
-      await sleep(200);
-      return this.waitIdle();
-    }
-    return firstNotNilPromise(this.$columnValueDefinitions);
+  async waitIdle(opts?: WaitForOptions): Promise<any> {
+    await Promise.all([
+      waitFor(() => !!this.type, {stop: this.destroySubject, ...opts}),
+      firstNotNilPromise(this.$columnValueDefinitions, {stop: this.destroySubject, ...opts})
+    ]);
   }
 
   protected toFieldDefinition(column: ExtractionColumn): FormFieldDefinition {
@@ -366,6 +382,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   async setValue(data: ExtractionFilterCriterion[], opts?: {emitEvent?: boolean; onlySelf?: boolean }): Promise<void>{
 
     await this.ready();
+    await this.waitIdle();
 
     // Create a map (using sheetname as key)
     const json = (data || [])
@@ -389,7 +406,6 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
     // Convert object to json, then apply it to form (e.g. convert 'undefined' into 'null')
     AppFormUtils.copyEntity2Form(json, this.form, {emitEvent: false, onlySelf: true, ...opts});
-
 
     // Add missing criteria
     Object.keys(json).forEach(sheet => {

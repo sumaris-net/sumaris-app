@@ -1171,7 +1171,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     if (matches) {
       title = matches[1];
       let unit = matches[2];
-      unit = unit || (strata.aggColumnName.endsWith('_weight') ? UnitLabel.KG : undefined);
+      unit = unit || (strata.aggColumnName?.endsWith('_weight') ? UnitLabel.KG : undefined);
       if (unit) {
         // Append unit to value
         if (value) value += ` ${unit}`;

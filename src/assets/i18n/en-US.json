@@ -209,6 +209,9 @@
         "SUPERVISOR": "Label for Supervisor profile",
         "GUEST": "Label for Guest profile"
       },
+      "SOCIAL": {
+        "ENABLE_NOTIFICATION_ICONS": "Menu > Display notifications icons"
+      },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel",
         "DEFAULT_FILTER_COUNTRY_ID": "Vessels: Default country (id)",
@@ -273,10 +276,11 @@
         "TOKEN": "Crypto",
         "BASIC_AND_TOKEN": "Basic and crypto"
       },
-      "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process?",
-      "DATA_SHOW_RECORDER": "Show recorder person?",
-      "DATA_SHOW_OBSERVERS": "Show observers?",
+      "DATA_QUALITY_PROCESS_ENABLE": "Forms > Enable quality process?",
+      "DATA_SHOW_RECORDER": "Forms > Show recorder person?",
+      "DATA_SHOW_OBSERVERS": "Forms > Show observers?",
       "DATA_IMPORT_DEFAULT_PERIOD": "Offline mode > Period to import (by default)",
+      "DATA_IMAGES_ENABLE": "Forms > Allow images",
       "LANDING": {
         "FILTER_PROGRAM": "Landing > Show program filter?",
         "FILTER_LOCATION": "Landing > Show locations filter?",
@@ -948,6 +952,7 @@
         "SAMPLE_DATE_PLACEHOLDER": "Sample date",
         "TAXON_GROUP_PLACEHOLDER": "Commercial species (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Scientific species (FAO)",
+        "IMAGES": "Pictures",
         "AUCTION_CONTROL": {
           "TITLE": "Batch {{label}}",
           "LABEL_PLACEHOLDER": "Batch number"
@@ -972,6 +977,7 @@
         "PARENT": "Parent sample",
         "COMMENTS": "Comments",
         "COMMENTS_PLACEHOLDER": "Comments",
+        "IMAGES": "Pictures",
         "BTN_AUTO_FILL": "Automatically fill",
         "BTN_ADD_PMFM": "Add a PMFM...",
         "WEIGHT": "Weight",
@@ -984,10 +990,12 @@
         "TAG_COUNT": "<b>{{tagCount}}</b> sample(s)",
         "BTN_INDIVIDUAL_MONITORING": "Fill sub-sample",
         "BTN_INDIVIDUAL_RELEASE": "Fill release",
+        "BTN_IMAGES": "Add pictures",
         "AUCTION_CONTROL": {
           "LABEL": "Batch",
           "LABEL_PLACEHOLDER": "Batch number",
-          "COMMENTS": "Comments"
+          "COMMENTS": "Comments",
+          "IMAGES": "Pictures"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Individual measures",
@@ -1131,7 +1139,8 @@
       "FISHING_AREA_PLACEHOLDER": "Fishing area #",
       "FISHING_AREAS": "Fishing areas:",
       "AUCTION_CONTROL": {
-        "TITLE": "{{location}} - Control of {{dateTime}}"
+        "TITLE": "{{location}} - Control of {{dateTime}}",
+        "TAB_LANDINGS": "Controlled vessels"
       },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
@@ -1156,6 +1165,7 @@
       "NO_LOCAL_RESULT": "No result (in occasions <b>NOT sent</b>)",
       "FILTER": {
         "PROGRAM": "Data collection program",
+        "STRATEGY": "Strategy",
         "LOCATION": "Location",
         "START_DATE": "Start period",
         "END_DATE": "End period"
@@ -1265,6 +1275,9 @@
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Report",
         "SAMPLES_TITLE": "Samples"
+      },
+      "AUCTION_CONTROL": {
+        "EMBEDDED_TITLE": "Control <b>{{species}}</b>"
       }
     },
     "SELECT_MODAL": {
@@ -1455,7 +1468,8 @@
       "REPLACE": "Replace this temporary vessel...",
       "REPLACE_CONFIRMATION": "Are you sure to replace this temporary vessel with '{{vessel}}' ?",
       "REPLACE_MANY": "Replace selected temporary vessels...",
-      "REPLACE_MANY_CONFIRMATION": "Are you sure to replace selected temporary vessels with '{{vessel}}' ?"
+      "REPLACE_MANY_CONFIRMATION": "Are you sure to replace selected temporary vessels with '{{vessel}}' ?",
+      "IMPORT_FROM_FILE": "Import from a file..."
     },
     "SELECT_MODAL": {
       "TITLE": "Vessel selection",
@@ -1479,7 +1493,8 @@
     },
     "ERROR": {
       "LOAD_ERROR": "Error while loading vessels.",
-      "REPLACE_ERROR": "Error while replacing temporary vessel.<small><br/>If the problem persists, please contact your administrator.</small>"
+      "REPLACE_ERROR": "Error while replacing temporary vessel.<small><br/>If the problem persists, please contact your administrator.</small>",
+      "SIOP_IMPORT_ERROR": "Error while importing SIOP vessel file.<small><br/>If the problem persists, please contact your administrator.</small>"
     }
   },
   "REFERENTIAL": {
@@ -1665,6 +1680,7 @@
     },
     "OPTIONS": {
       "VESSELS_ENABLE": "Referential > Vessels: Enable?",
+      "VESSELS_IMPORT_ENABLE": "Referential > Navires: Enable vessel file import?",
       "VESSELS_REPLACEMENT_ENABLE": "Referential > Vessels > Replacement: Enable?"
     },
     "ERROR": {
@@ -2301,15 +2317,25 @@
         "COPIED_LOCALLY": "Successfully copied"
       },
       "TYPE_ENUM": {
-        "DEBUG_DATA": "Debug data",
-        "INBOX_MESSAGE": "Inbox message",
-        "FEED": "Feed"
+        "DEBUG_DATA": "Issue reported by <a>{{issuer}}</a>: <b>{{message}}</b>",
+        "INBOX_MESSAGE": "You have <b>received a message</b> from <a>{{issuer}}</a>",
+        "FEED": "Feed",
+        "JOB": "{{name}}<br/><b>{{status}}</b>"
       }
     },
     "JOB": {
       "PROGRESSION": {
         "TITLE": "Running tasks",
         "EMPTY": "No running task"
+      },
+      "STATUS_ENUM": {
+        "PENDING": "Pending",
+        "RUNNING": "Running",
+        "SUCCESS": "Completed successfully",
+        "WARNING": "Completed with warnings",
+        "ERROR": "Error",
+        "FATAL": "Fatal error",
+        "CANCELLED": "Cancelled"
       }
     },
     "MESSAGE": {
@@ -2338,6 +2364,7 @@
       "SAVE_USER_EVENT_ERROR": "Error while saving user notification",
       "SUBSCRIBE_USER_EVENTS_ERROR": "Error while listening user events changes",
       "SEND_MESSAGE_ERROR": "Error while sending message",
+      "LOAD_JOB_PROGRESSIONS_ERROR": "Error while loading job progressions",
       "SUBSCRIBE_JOB_PROGRESSION_ERROR": "Error while listening job progression changes"
     },
     "INFO": {

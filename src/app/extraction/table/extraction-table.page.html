@@ -47,8 +47,9 @@
 
     &nbsp;
 
-    <ion-button [matMenuTriggerFor]="selectTypeMenu"
-                *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+    <ion-button *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+                [matMenuTriggerFor]="selectTypeMenu"
+                [matMenuTriggerData]="{$implicit: ($categories|async)}"
                 color="accent" fill="solid">
       <ion-icon slot="start" name="server"></ion-icon>
       <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE'|translate"></ion-label>
@@ -83,8 +84,8 @@
       <button mat-menu-item
               *ngFor="let item of categories"
               [matMenuTriggerFor]="typesMenu"
-              [matMenuTriggerData]="{$implicit: item.types, title: 'EXTRACTION.TYPES_MENU.' + item.category + '_DIVIDER'}"
-      >{{ ('EXTRACTION.CATEGORY.' + item.category) | uppercase | translate }}</button>
+              [matMenuTriggerData]="{$implicit: item.types, title: 'EXTRACTION.TYPES_MENU.' + item.label + '_DIVIDER'}"
+      >{{ ('EXTRACTION.CATEGORY.' + item.label) | uppercase | translate }}</button>
     </ng-template>
   </ng-template>
 </mat-menu>
@@ -327,7 +328,7 @@
         <p class="ion-text-center">
           <ion-button *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
                       [matMenuTriggerFor]="selectTypeMenu"
-                      [matMenuTriggerData]="{$implicit: (categories$|async) }"
+                      [matMenuTriggerData]="{$implicit: ($categories|async) }"
                       color="tertiary" fill="solid">
             <ion-icon slot="start" name="server"></ion-icon>
             <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE'|translate"></ion-label>

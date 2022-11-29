@@ -62,7 +62,7 @@
     </h3>
 
     <!-- stratum -->
-    <ion-row *ngFor="let strataForm of strataForms; index as i; first as first; last as last; odd as odd"
+    <ion-row *ngFor="let strataForm of strataForms; index as i; last as last; odd as odd"
              class="strata-row"
              [class.odd]="odd"
              [formGroup]="strataForm">
@@ -152,7 +152,7 @@
                   (click)="stratumFormArray.add()">
             <mat-icon>add</mat-icon>
           </button>
-          <button mat-icon-button (click)="stratumFormArray.removeAt(i)">
+          <button mat-icon-button (click)="removeStrata(i)">
             <mat-icon>close</mat-icon>
           </button>
         </ion-col>

@@ -20,10 +20,19 @@ import {
   TableSelectColumnsComponent
 } from '@sumaris-net/ngx-components';
 import { TableDataSource } from '@e-is/ngx-material-table';
-import { ExtractionCategories, ExtractionColumn, ExtractionFilterCriterion, ExtractionResult, ExtractionRow, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
+import {
+  ExtractionCategories,
+  ExtractionColumn,
+  ExtractionFilterCriterion,
+  ExtractionResult,
+  ExtractionRow,
+  ExtractionType,
+  ExtractionTypeCategory,
+  ExtractionTypeUtils
+} from '../type/extraction-type.model';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { Location } from '@angular/common';
-import { debounceTime, filter, first, map, tap, throttleTime } from 'rxjs/operators';
+import { combineAll, concatAll, debounceTime, filter, first, map, tap, throttleTime } from 'rxjs/operators';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -41,6 +50,7 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { Program } from '@app/referential/services/model/program.model';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+
 
 
 @Component({
@@ -72,23 +82,12 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   stickyEnd = true;
   $programs = new BehaviorSubject<Program[]>(null);
   $selectedProgram = new BehaviorSubject<Program>(null);
+  $categories = new BehaviorSubject<ExtractionTypeCategory[]>(null);
 
   @ViewChild(MatTable, {static: true}) table: MatSort;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
-
-  get categories$(): Observable<{category: string, types: ExtractionType[]}[]> {
-    // Create a types map by category (use for type sub menu)
-    return this.$types
-      .pipe(
-        map(types => arrayGroupBy(types, 'category')),
-        filter(isNotNil),
-        map(map => Object.getOwnPropertyNames(map)
-          .map(category => ({category, types: map[category]}))
-        )
-      );
-  }
 
   constructor(
     route: ActivatedRoute,
@@ -166,6 +165,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       })
       .subscribe(({data}) => this.$programs.next(data))
     )
+
+    this.registerSubscription(this.$types
+      .pipe(
+        filter(isNotNil),
+        map(ExtractionTypeCategory.fromTypes)
+      )
+      .subscribe(categories => this.$categories.next(categories))
+    );
   }
 
   ngOnDestroy() {
@@ -257,7 +264,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     // Apply filter
     if (this.criteriaForm.sheetName && isNotNilOrBlank(program.label)) {
-      this.criteriaForm.setValue([
+      await this.criteriaForm.setValue([
         ExtractionFilterCriterion.fromObject({
           sheetName: this.criteriaForm.sheetName,
           name: 'project',
@@ -269,7 +276,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.$selectedProgram.next(program);
 
     // Refresh data
-    if (opts.emitEvent === true) {
+    if (opts.emitEvent !== false) {
       this.onRefresh.emit();
     }
   }
@@ -536,18 +543,27 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.filterExpansionPanel.close();
   }
 
-  resetFilter(event?: Event) {
-    this.criteriaForm.reset();
+  async resetFilter(event?: Event) {
+
+    if (this.$selectedProgram.value) {
+      await this.setTypeAndProgram(this.type, this.$selectedProgram.value, {emitEvent: false})
+    }
+
+    else {
+      this.criteriaForm.reset();
+    }
     this.applyFilterAndClosePanel(event);
+
   }
 
   /* -- protected method -- */
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {
     return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', <ExtractionTypeFilter>{
-      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      isSpatial: false
-    });
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        // Exclude spatial because we cannot load columns yet
+        isSpatial: false
+      });
   }
 
   protected async loadData() {

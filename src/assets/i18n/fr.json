@@ -281,7 +281,6 @@
       "DATA_SHOW_OBSERVERS": "Saisie > Afficher les observateurs ?",
       "DATA_IMPORT_DEFAULT_PERIOD": "Saisie hors-ligne > Période à importer (par défaut)",
       "DATA_IMAGES_ENABLE": "Saisie > Activer la gestion des images",
-
       "LANDING": {
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
@@ -959,7 +958,7 @@
         "SAMPLE_DATE_PLACEHOLDER": "Date de la mesure",
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
-        "PICTURES": "Photos",
+        "IMAGES": "Photos",
         "AUCTION_CONTROL": {
           "TITLE": "Lot n°{{label}}",
           "LABEL_PLACEHOLDER": "Numéro du lot"
@@ -984,7 +983,7 @@
         "PARENT": "Prélèvement parent",
         "COMMENTS": "Commentaires",
         "COMMENTS_PLACEHOLDER": "Commentaires",
-        "IMAGES": "Images",
+        "IMAGES": "Photos",
         "BTN_AUTO_FILL": "Remplir automatiquement",
         "BTN_ADD_PMFM": "Ajouter un PSFM...",
         "WEIGHT": "Poids",
@@ -997,12 +996,12 @@
         "TAG_COUNT": "<b>{{tagCount}}</b> prélèvement(s)",
         "BTN_INDIVIDUAL_MONITORING": "Saisir le sous-prélèvement",
         "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
-        "BTN_IMAGES": "Ajouter des images",
+        "BTN_IMAGES": "Ajouter des photos",
         "AUCTION_CONTROL": {
           "LABEL": "N° Lot",
           "LABEL_PLACEHOLDER": "N° Lot",
           "COMMENTS": "Commentaires",
-          "IMAGES": "Images"
+          "IMAGES": "Photos"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Mesures individuelles",
@@ -2377,7 +2376,7 @@
         "COPIED_LOCALLY": "Copier localement avec succès"
       },
       "TYPE_ENUM": {
-        "DEBUG_DATA": "Problème remonté par <a>{{issuer}}</a>: <b>{{message}}</b>",
+        "DEBUG_DATA": "Problème remonté par <a>{{issuer}}</a> : <b>{{message}}</b>",
         "INBOX_MESSAGE": "Vous avez <b>reçu un message</b> de <a>{{issuer}}</a>",
         "FEED": "Actualité",
         "JOB": "{{name}}<br/><b>{{status}}</b>"

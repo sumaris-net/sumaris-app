@@ -251,14 +251,14 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     // If spatial, load columns
     if (data && data.isSpatial) {
       this.stratumFormArray.enable();
-      // If spatial product, make sure there is one strata
-      this.stratumFormArray.resize(Math.max(1, arraySize(data.stratum)));
       this.stratumFormArray.allowEmptyArray = false;
+      // If spatial product, make sure there is one stratum
+      this.stratumFormArray.resize(Math.max(1, arraySize(data.stratum)));
     }
     else {
       this.stratumFormArray.disable();
-      this.stratumFormArray.resize(0);
       this.stratumFormArray.allowEmptyArray = true;
+      this.stratumFormArray.resize(0);
     }
 
     // Show doc preview, if doc exists
@@ -268,6 +268,9 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
 
   }
 
+  removeStrata(index: number) {
+    this.stratumFormArray.removeAt(index);
+  }
 
   /* -- protected -- */
 
