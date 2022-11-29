@@ -5,23 +5,23 @@ import {
   isNotEmptyArray,
   isNotNil,
   ITreeItemEntity,
+  Person,
   ReferentialAsObjectOptions,
   ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { sampleTime } from 'rxjs/operators';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
-import {ImageAttachment} from '@app/data/image/image-attachment.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
+import { SynchronizationStatus } from '@app/data/services/model/model.utils';
 
 export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -30,7 +30,7 @@ export interface SampleFromObjectOptions {
   withChildren?: boolean;
 }
 @EntityClass({typename: 'SampleVO'})
-export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions, SampleFromObjectOptions>
+export class Sample extends DataEntity<Sample, number, SampleAsObjectOptions, SampleFromObjectOptions>
   implements IEntityWithMeasurement<Sample>, ITreeItemEntity<Sample>{
 
   static fromObject: (source: any, opts?: SampleFromObjectOptions) => Sample;
@@ -118,12 +118,19 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   size: number = null;
   sizeUnit: string = null;
 
+  creationDate: Moment = null;
   operationId: number = null;
   landingId: number = null;
 
   parentId: number = null;
   parent: Sample = null;
   children: Sample[] = null;
+
+  validationDate: Moment = null;
+  comments: string = null;
+  recorderPerson: Person = null;
+  program: ReferentialRef = null;
+  synchronizationStatus?: SynchronizationStatus = null;
 
   images: ImageAttachment[];
 
@@ -133,7 +140,10 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
 
   asObject(opts?: SampleAsObjectOptions): any {
     const target = super.asObject(opts);
+    target.creationDate = toDateISOString(this.creationDate);
     target.sampleDate = toDateISOString(this.sampleDate);
+    target.validationDate = toDateISOString(this.validationDate);
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts) || undefined;
     target.taxonGroup = this.taxonGroup && this.taxonGroup.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
     target.taxonName = this.taxonName && this.taxonName.asObject({ ...opts, ...NOT_MINIFY_OPTIONS, keepEntityName: true /*fix #32*/} as ReferentialAsObjectOptions) || undefined;
     target.individualCount = isNotNil(this.individualCount) ? this.individualCount : null;
@@ -158,6 +168,9 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     super.fromObject(source);
     this.label = source.label;
     this.rankOrder = source.rankOrder;
+    this.creationDate = fromDateISOString(source.creationDate);
+    this.validationDate = fromDateISOString(source.validationDate);
+    this.recorderPerson = source.recorderPerson && Person.fromObject(source.recorderPerson);
     this.sampleDate = fromDateISOString(source.sampleDate);
     this.individualCount = isNotNil(source.individualCount) && source.individualCount !== "" ? source.individualCount : null;
     this.taxonGroup = source.taxonGroup && TaxonGroupRef.fromObject(source.taxonGroup) || undefined;
