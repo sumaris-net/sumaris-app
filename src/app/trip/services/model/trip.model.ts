@@ -592,6 +592,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     // Operation groups
     target.operationGroups = this.operationGroups && this.operationGroups.filter(isNotNil).map(o => o.asObject(opts)) || undefined;
+    // FIXME: remove in the future, to allow sampling landing page to force as empty (=[]) and avoid a refetch after saving, on pod
     if (isEmptyArray(target.operationGroups)) delete target.operationGroups; // Clean if empty, for compat with previous version
 
     // Fishing areas

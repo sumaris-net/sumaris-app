@@ -133,7 +133,7 @@ export class SamplingLandingPage extends LandingPage {
         const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
 
         // DEBUG
-        console.debug("[sampling-landing-page] Strategy effort loaded: ", strategyEffort);
+        console.debug('[sampling-landing-page] Strategy effort loaded: ', strategyEffort);
 
         // No effort defined
         if (!strategyEffort) {
@@ -207,6 +207,15 @@ export class SamplingLandingPage extends LandingPage {
           sample.measurementValues[PmfmIds.TAG_ID] = sampleLabelPrefix + tagId;
         }
       });
+    }
+
+    if (data.trip) {
+      const trip = data.trip as Trip;
+
+      // Force trip.operations and trip.operationGroup as empty array (instead of undefined)
+      // This is useful to avoid a unused fetch in the pod, after saving a landing
+      if (!trip.operations) trip.operations = [];
+      if (!trip.operationGroups) trip.operationGroups = [];
     }
 
     if (isNil(data.id) && isNotNil(data.observedLocationId)) {

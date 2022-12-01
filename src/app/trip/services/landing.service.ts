@@ -99,9 +99,6 @@ export const LandingFragments = {
     recorderPerson {
       ...LightPersonFragment
     }
-    observers {
-      ...LightPersonFragment
-    }
     measurementValues
     samplesCount
   }
@@ -109,8 +106,7 @@ export const LandingFragments = {
   ${DataCommonFragments.lightDepartment}
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${ReferentialFragments.referential}
-  `,
+  ${ReferentialFragments.referential}`,
 
   landing: gql`fragment LandingFragment on LandingVO {
     id
@@ -458,9 +454,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         // Load remotely
         const res = await this.graphql.query<{ data: any }>({
           query: this.queries.load,
-          variables: {
-            id: id
-          },
+          variables: { id },
           error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
@@ -939,8 +933,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       const tripFilter = TripFilter.fromObject(<TripFilter>{
         vesselId,
         program,
-        startDate: departureDateTime.clone().add(-1, "minute"),
-        endDate: departureDateTime.clone().add(1, "minute")
+        startDate: departureDateTime.clone().add(-1, 'minute'),
+        endDate: departureDateTime.clone().add(1, 'minute')
       });
 
       const { data: trips } = await this.tripService.loadAll(0, 999, 'departureDateTime', 'desc', tripFilter,

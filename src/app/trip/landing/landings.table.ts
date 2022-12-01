@@ -216,6 +216,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+    this.showObserversColumn = false;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
