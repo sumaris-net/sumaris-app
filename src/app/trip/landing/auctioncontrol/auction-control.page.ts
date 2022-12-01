@@ -339,11 +339,16 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       // CLean invalid sample label
       (data.samples || []).forEach(sample => {
         if (sample.label?.startsWith('#') || isNil(sample.label)) sample.label = '';
-      })
+      });
     }
     // Reset samples, if no taxon group
     else {
       data.samples = [];
+    }
+
+    if (data.trip) {
+      // Force trip to be undefined (unused)
+      data.trip = undefined;
     }
 
     return data;
