@@ -248,7 +248,7 @@ export class SamplingLandingPage extends LandingPage {
         const tagId = sample.measurementValues?.[PmfmIds.TAG_ID];
         if (tagId?.startsWith(samplePrefix)) {
           sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
-          prefixCount++
+          prefixCount++;
         }
       });
       // Check if replacements has been done on every sample. If not, log a warning
