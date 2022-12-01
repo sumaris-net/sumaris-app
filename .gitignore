@@ -39,3 +39,6 @@ Thumbs.db
 UserInterfaceState.xcuserstate
 yarn.lock
 resources/android/build/local
+resources/android/icon/
+resources/android/splash/
+resources/ios/
