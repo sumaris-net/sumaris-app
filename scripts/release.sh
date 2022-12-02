@@ -58,7 +58,7 @@ fi
 echo "Current version: $current"
 
 ### Get current version for Android
-currentAndroid=`grep -oP "versionCode \"[0-9]+\"" android/app/build.gradle | grep -oP "\d+"`
+currentAndroid=`grep -oP "versionCode [0-9]+" android/app/build.gradle | grep -oP "\d+"`
 if [[ "_$currentAndroid" == "_" ]]; then
   echo ">> Unable to read the current Android version in 'android/app/build.gradle'. Please check version format is an integer."
   exit 1;
