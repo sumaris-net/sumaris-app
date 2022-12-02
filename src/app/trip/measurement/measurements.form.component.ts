@@ -4,7 +4,7 @@ import { BehaviorSubject, isObservable, Observable } from 'rxjs';
 import { filter, first } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, firstNotNilPromise, isNil, isNotNil, PromiseEvent, toNumber } from '@sumaris-net/ngx-components';
+import { AppForm, AppFormUtils, createPromiseEventEmitter, emitPromiseEvent, filterNotNil, firstNotNilPromise, isNil, isNotNil, PromiseEvent, toNumber } from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementType, MeasurementUtils, MeasurementValuesUtils } from '../services/model/measurement.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
@@ -141,9 +141,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       this._onRefreshPmfms.subscribe(() => this.loadPmfms())
     );
     // Auto update form, when pmfms are loaded
-    this.registerSubscription(
-      this.$pmfms
-        .pipe(filter(isNotNil))
+    this.registerSubscription(filterNotNil(this.$pmfms)
         .subscribe(pmfms => this.updateFormGroup(pmfms))
     );
 

@@ -5,7 +5,7 @@ import { filterNotNil, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, remo
 import { TypedExpenseValidatorService } from '../services/validator/typed-expense.validator';
 import { BehaviorSubject } from 'rxjs';
 import { Measurement } from '../services/model/measurement.model';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, filter, mergeMap } from 'rxjs/operators';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
 import { IPmfm } from '../../referential/services/model/pmfm.model';
 
@@ -59,15 +59,11 @@ export class TypedExpenseForm extends MeasurementsForm {
       maximumNumberDecimals: 2
     };
 
-
-    this.registerSubscription(
-      this.$pmfms.subscribe(async (pmfms) => {
-        // Wait form is ready
-        await this.ready();
-        // dispatch pmfms
-        this.parsePmfms(pmfms);
-      })
-    );
+    this.registerSubscription(filterNotNil(this.$pmfms)
+        // Wait form controls ready
+        .pipe(mergeMap((pmfms) => this.ready().then(_ => pmfms)))
+        .subscribe(pmfms => this.parsePmfms(pmfms))
+      );
 
     this.registerSubscription(filterNotNil(this.$totalPmfm)
       .subscribe(totalPmfm => {

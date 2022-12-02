@@ -92,6 +92,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.markAsReady(opts);
     this.iceForm?.markAsReady(opts);
+    this.baitForms?.forEach(form => form.markAsReady(opts));
   }
 
   async ready(opts?: WaitForOptions): Promise<void> {
