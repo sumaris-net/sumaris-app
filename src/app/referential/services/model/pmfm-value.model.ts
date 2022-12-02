@@ -1,4 +1,4 @@
-import { isMoment, Moment } from 'moment';
+import moment, { isMoment, Moment } from 'moment';
 import {
   DateUtils,
   fromDateISOString,
@@ -17,7 +17,6 @@ import {
 import { IPmfm, Pmfm, PmfmType, PmfmUtils, UnitConversion } from './pmfm.model';
 import { DenormalizedPmfmStrategy } from './pmfm-strategy.model';
 import { isNilOrNaN } from '@app/shared/functions';
-import moment from 'moment';
 
 export declare type PmfmValue = number | string | boolean | Moment | IReferentialRef<any>;
 export declare type PmfmDefinition = DenormalizedPmfmStrategy | Pmfm;

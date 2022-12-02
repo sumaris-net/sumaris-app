@@ -1,12 +1,46 @@
 <ng-container *ngIf="!embedded; else embeddedSection">
-  <app-toolbar *ngIf="showToolbar" [defaultBackHref]="$defaultBackHref|async" canGoBack="true">
+  <app-toolbar *ngIf="showToolbar"
+               [defaultBackHref]="$defaultBackHref|async"
+               canGoBack="true">
+    <!-- title -->
     <ion-title [innerHTML]="$title|async"></ion-title>
+
     <ion-buttons slot="end">
-      <ion-button (click)="reveal.print($event)" >
+
+      <!-- Print -->
+      <!-- FIXME enable for mobile, using a Capacitor plugin ? -->
+      <ion-button (click)="reveal.print($event)" *ngIf="!mobile">
         <ion-icon name="print"></ion-icon>
       </ion-button>
+
+      <!-- share menu -->
+      <button mat-icon-button matHeader
+              [title]="'COMMON.SHARE.BTN_SHARE'|translate"
+              [matMenuTriggerFor]="shareMenu">
+        <mat-icon>share</mat-icon>
+      </button>
     </ion-buttons>
   </app-toolbar>
+
+  <!-- Share menu -->
+  <mat-menu #shareMenu="matMenu" xPosition="after">
+
+    <!-- Share popover -->
+    <button mat-menu-item
+            (click)="showSharePopover($event)"
+            [disabled]="(loadingSubject|async) || network.offline">
+      <ion-label translate>COMMON.SHARE.BTN_SHARE_DOTS</ion-label>
+    </button>
+
+    <!-- Download button -->
+    <button mat-menu-item *ngIf="!mobile"
+            (click)="exportToJson($event)"
+            download="true"
+            [disabled]="loadingSubject|async">
+      <mat-icon slot="start">download</mat-icon>
+      <ion-label translate>FILE.JSON.BTN_DOWNLOAD_HELP</ion-label>
+    </button>
+  </mat-menu>
 
   <ion-content>
 

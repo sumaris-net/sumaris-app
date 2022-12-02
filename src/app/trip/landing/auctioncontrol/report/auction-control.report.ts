@@ -21,7 +21,7 @@ export class AuctionControlReport extends LandingReport<Landing, AuctionControlS
 
 
   constructor(
-    private injector: Injector
+    injector: Injector
   ) {
     super(injector, {
       pathParentIdAttribute: 'observedLocationId',

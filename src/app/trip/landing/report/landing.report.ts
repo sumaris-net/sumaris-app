@@ -2,11 +2,17 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, I
 import { RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { IRevealOptions } from '@app/shared/report/reveal/reveal.utils';
 import { LandingService } from '@app/trip/services/landing.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
+  AccountService,
   AppErrorWithDetails,
   DateFormatService,
+  DateUtils,
+  Department,
+  Entity,
+  EntityAsObjectOptions,
   EntityServiceLoadOptions,
+  FilesUtils,
   firstFalsePromise,
   FirstOptions,
   Image,
@@ -17,7 +23,11 @@ import {
   isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
+  NetworkService,
+  Person,
   PlatformService,
+  toDateISOString,
+  TranslateContextService,
   WaitForOptions,
   waitForTrue
 } from '@sumaris-net/ngx-components';
@@ -31,6 +41,16 @@ import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { environment } from '@environments/environment';
+import { Moment } from 'moment';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { Share } from '@capacitor/share';
+import { FileTransferService } from '@app/shared/service/file-transfer.service';
+import { decodeUTF8 } from 'tweetnacl-util';
+import { filter, first, map, takeUntil } from 'rxjs/operators';
+import { HttpEventType } from '@angular/common/http';
+import { v4 as uuidv4 } from 'uuid';
+import { Popovers } from '@app/shared/popover/popover.utils';
+import { PopoverController } from '@ionic/angular';
 
 export class LandingReportOptions {
   pathIdAttribute?: string;
@@ -42,6 +62,35 @@ export interface LandingStats {
   images?: Image[];
 }
 
+export class ReportFileContent<T extends Entity<T> = Entity<any>, S = any> {
+  // File metadata
+  reportUrl: string;
+  recorderPerson: Person;
+  recorderDepartment: Department;
+  creationDate: Moment;
+
+  data: T;
+  stats: Partial<S>;
+
+  asObject(opts?: EntityAsObjectOptions) {
+    const target: any = Object.assign({}, this);
+    target.creationDate = toDateISOString(this.creationDate);
+    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts) || null;
+    target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || null;
+    target.data = this.data.asObject(opts);
+
+    // Clean unused properties
+    if (opts?.minify) {
+      if (target.recorderDepartment) {
+        delete target.recorderDepartment.creationDate;
+        delete target.recorderDepartment.comments;
+      }
+    }
+
+    return target;
+  }
+}
+
 @Component({
   selector: 'app-landing-report',
   styleUrls: ['./landing.report.scss'],
@@ -51,14 +100,21 @@ export interface LandingStats {
 // tslint:disable-next-line:directive-class-suffix
 export class LandingReport<T extends Landing = Landing, S extends LandingStats = LandingStats> implements AfterViewInit, OnDestroy {
 
+  private readonly router: Router;
   private readonly route: ActivatedRoute;
   private readonly platform: PlatformService;
   private readonly cd: ChangeDetectorRef;
+  private readonly accountService: AccountService;
+  private readonly fileTransferService: FileTransferService;
+  private readonly network: NetworkService;
   private readonly _pathParentIdAttribute: string;
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad = true;
   private readonly _autoLoadDelay = 0;
+
+
   protected readonly translate: TranslateService;
+  protected readonly translateContext: TranslateContextService;
   protected readonly observedLocationService: ObservedLocationService;
   protected readonly landingService: LandingService;
   protected readonly dateFormat: DateFormatService;
@@ -69,20 +125,21 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   readonly readySubject = new BehaviorSubject<boolean>(false);
   readonly loadingSubject = new BehaviorSubject<boolean>(true);
 
-  $title = new Subject<string>();
+  $title = new BehaviorSubject<string>('');
   $defaultBackHref = new Subject<string>();
   error: string;
   revealOptions: Partial<IRevealOptions>;
   weightDisplayedUnit: WeightUnitSymbol;
   i18nPmfmPrefix: string;
 
+  @Input() mobile: boolean;
   @Input() parent: ObservedLocation;
   @Input() embedded = false;
   @Input() data: T;
   @Input() pmfms: IPmfm[];
   @Input() stats: Partial<S> = {};
   @Input() i18nContext = {
-    prefix: '',
+    prefix: 'LANDING.REPORT.',
     suffix: ''
   }
 
@@ -100,18 +157,24 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   }
 
   constructor(
-    injector: Injector,
+    private injector: Injector,
     @Optional() options?: LandingReportOptions
   ) {
+    this.router = injector.get(Router);
     this.route = injector.get(ActivatedRoute);
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);
+    this.translateContext = injector.get(TranslateContextService);
+    this.accountService = injector.get(AccountService);
+    this.network = injector.get(NetworkService);
+    this.fileTransferService = injector.get(FileTransferService);
     this.observedLocationService = injector.get(ObservedLocationService);
     this.landingService = injector.get(LandingService);
     this.dateFormat = injector.get(DateFormatService);
     this.programRefService = injector.get(ProgramRefService);
     this.settings = injector.get(LocalSettingsService);
     this.cd = injector.get(ChangeDetectorRef);
+    this.mobile = this.settings.mobile;
 
     this._pathParentIdAttribute = options?.pathParentIdAttribute || 'observedLocationId';
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'landingId';
@@ -265,7 +328,9 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   /* -- protected function -- */
 
   protected async computeTitle(data: T, parent?: ObservedLocation): Promise<string> {
-    const titlePrefix = await this.translate.get('LANDING.TITLE_PREFIX', {
+    const titlePrefix = await this.translateContext.get('LANDING.TITLE_PREFIX',
+      this.i18nContext.suffix,
+      {
       location: data.location?.name || '',
       date: this.dateFormat.transform(data.dateTime, {time: false})
     }).toPromise();
@@ -325,6 +390,121 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
     await this.onDataLoaded(this.data, this.pmfms);
     this.markAsLoaded();
     this.cd.detectChanges();
+  }
+
+  protected async exportToJson(event?: Event) {
+
+    const filename = this.getExportFileName('json');
+    const encoding = this.getExportEncoding('json');
+    const content  = await this.getReportFileContent();
+    const jsonContent = content.asObject({minify: true});
+
+    // Write to file
+    FilesUtils.writeTextToFile(
+      JSON.stringify(jsonContent), {
+        type: 'application/json',
+        filename,
+        encoding
+      }
+    );
+  }
+
+
+
+  protected async showSharePopover(event?: UIEvent) {
+
+    const {url} = await this.uploadReportFile();
+
+    // Use Capacitor plugin
+    if (this.mobile && this.platform.isCapacitor()) {
+      await Share.share({
+        title: this.$title.value,
+        text: 'Really awesome thing you need to see right meow',
+        url,
+        dialogTitle: this.translate.instant('COMMON.SHARE.DIALOG_TITLE'),
+      });
+    }
+    else {
+      await Popovers.showText(
+        this.injector.get(PopoverController),
+        event,
+        {
+          text: url,
+          editing: false,
+          autofocus: false,
+          multiline: false
+        }
+      )
+    }
+  }
+
+  protected async uploadReportFile(): Promise<{url: string}> {
+    const filename = this.getExportFileName('json');
+    const content  = await this.getReportFileContent();
+    const json = content.asObject({ minify: true });
+    const arrayUt8 = decodeUTF8(JSON.stringify(json));
+    //const base64 = encodeBase64(arrayUt8);
+
+    const blob = new Blob([arrayUt8], {type: "application/json"});
+    blob['lastModifiedDate'] = (new Date()).toISOString();
+    blob['name'] = filename;
+
+    const { fileName, message } = await this.fileTransferService.uploadResource(<File>blob, {
+      resourceType: 'report',
+      resourceId: uuidv4() + '.json',
+      reportProgress: false
+    })
+      .pipe(
+        map(event => {
+          if (event.type === HttpEventType.Response) {
+            return event.body;
+          }
+        }),
+        filter(body => !!body),
+        first(),
+        takeUntil(this.destroySubject)
+      ).toPromise();
+
+    if (message !== "OK" || !fileName) {
+      console.error('Failed to upload report data!');
+      // TODO throw error ?
+      return;
+    }
+
+    const appUrl = window.location.href;
+    const shareUrl = `${appUrl}/share/report/${fileName}`;
+    return { url: shareUrl};
+  }
+
+  protected async getReportFileContent(): Promise<ReportFileContent> {
+    // Wait data loaded
+    await this.waitIdle({timeout: 5000});
+
+    const content  = new ReportFileContent();
+    content.data = this.data;
+    content.stats = this.stats;
+    content.reportUrl = this.router.url;
+    content.creationDate = DateUtils.moment();
+    if (this.accountService.isLogin()) {
+      content.recorderPerson = this.accountService.person;
+      content.recorderDepartment = this.accountService.department;
+    }
+
+    return content;
+  }
+
+  protected getExportFileName(format = 'json', params?: any): string {
+    const key = `${this.i18nContext.prefix}EXPORT_${format.toUpperCase()}_FILENAME`;
+    const filename = this.translateContext.instant(key, this.i18nContext.suffix, params || {title: this.$title.value});
+    if (filename !== key) return filename;
+    return `export.${format}`; // Default filename
+  }
+
+  protected getExportEncoding(format = 'json'): string {
+    const key = `FILE.${format.toUpperCase()}.ENCODING`;
+    const encoding = this.translate.instant(key);
+    if (encoding !== key) return encoding;
+    return 'UTF-8'; // Default encoding
   }
 
   protected markAsLoaded(opts = { emitEvent: true }) {

@@ -140,6 +140,11 @@
       "BTN_COPY_LOCALLY": "Copy locally",
       "BTN_AUTO_FILL": "Auto fill data"
     },
+    "SHARE": {
+      "BTN_SHARE": "Share",
+      "BTN_SHARE_DOTS": "Share...",
+      "DIALOG_TITLE": "Share"
+    },
     "HELP": {
       "TITLE": "Online help"
     }
@@ -774,6 +779,9 @@
         "GEAR" : "Gear",
         "START_DATE" : "Start date",
         "QUALITY": "State"
+      },
+      "SETTINGS": {
+        "GEOLOCATION_TIMEOUT": "GPS Shipset > Acquisition timeout (seconds)"
       },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Before trip's start",

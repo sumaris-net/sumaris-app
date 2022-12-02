@@ -1,23 +1,23 @@
 import { Injectable } from '@angular/core';
-import {
-  AccountService,
-  FileEvent,
-  FileProgressEvent,
-  FileResponse,
-  filterNotNil,
-  isNilOrBlank,
-  isNotNil,
-  isNotNilOrBlank,
-  NetworkService, StartableService
-} from '@sumaris-net/ngx-components';
+import { AccountService, isNilOrBlank, isNotNil, isNotNilOrBlank, NetworkService, StartableService, toBoolean } from '@sumaris-net/ngx-components';
 import { Observable, of } from 'rxjs';
-import { HttpClient, HttpErrorResponse, HttpEvent, HttpEventType, HttpHeaders, HttpRequest } from '@angular/common/http';
-import { map, switchMap } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse, HttpEvent, HttpHeaders, HttpRequest } from '@angular/common/http';
+import { switchMap } from 'rxjs/operators';
 
 export interface UploadOptions {
-  replace?: boolean;
   resourceType?: string;
   resourceId?: string;
+  replace?: boolean;
+
+  reportProgress?: boolean;
+}
+
+export interface UploadResponseBody {
+  fileName: string;
+  fileType: string;
+  fileUri: string;
+  message: string;
+  size: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -65,7 +65,7 @@ export class FileTransferService extends StartableService<void> {
     return `${this.network.peer.url}/download/resource/${type}/${file}`;
   }
 
-  uploadResource(file: File, opts?: UploadOptions): Observable<HttpEvent<any>> {
+  uploadResource(file: File, opts?: UploadOptions): Observable<HttpEvent<UploadResponseBody>> {
     if (!this.started) {
       return of(this.ready())
         .pipe(switchMap(_ => this.uploadResource(file, opts)));
@@ -79,14 +79,17 @@ export class FileTransferService extends StartableService<void> {
       if (isNotNil(opts.replace)) formData.append('replace', opts.replace ? 'true' : 'false');
     }
 
+    const reportProgress = toBoolean(opts?.reportProgress, true);
+
     const req = new HttpRequest('POST', `${this.network.peer.url}/upload`, formData, {
       headers: this.headers,
-      reportProgress: true,
+      reportProgress,
       responseType: 'json',
     });
 
     return this.http.request(req);
   }
+
 
   async deleteResource(resourceType: string, filename: string): Promise<boolean> {
     if (isNilOrBlank(resourceType) || isNilOrBlank(filename)) {

@@ -134,6 +134,7 @@ import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
     Network,
     AudioManagement,
     Downloader,
+    //Geolocation,
 
     {provide: APP_BASE_HREF, useFactory: () => {
         try {

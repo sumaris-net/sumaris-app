@@ -65,14 +65,8 @@ export const TRIP_CONFIG_OPTIONS = Object.freeze({
 });
 
 export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
-  SAMPLE_BURST_MODE_ENABLE: <FormFieldDefinition>{
-    key: 'sumaris.sample.modal.enableBurstMode',
-    label: 'TRIP.SAMPLE.SETTINGS.BURST_MODE_ENABLE',
-    type: 'boolean',
-    defaultValue: true
-  },
   SAMPLE_WEIGHT_UNIT: <FormFieldDefinition>{
-    key: 'sumaris.landing.samples.weightUnit',
+    key: 'sumaris.trip.samples.weightUnit',
     label: 'TRIP.SAMPLE.SETTINGS.SAMPLE_WEIGHT_UNIT',
     type: 'enum',
     values: [
@@ -95,6 +89,28 @@ export const TRIP_LOCAL_SETTINGS_OPTIONS = Object.freeze({
     ],
     // No default value (keep program or PMFM unit)
     //defaultValue: UnitLabel.KG
+  },
+
+  OPERATION_GEOLOCATION_TIMEOUT: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.geolocation.timeout',
+    label: 'TRIP.OPERATION.SETTINGS.GEOLOCATION_TIMEOUT',
+    type: 'enum',
+    values: [
+      {
+        key: '20',
+        value: '20'
+      },
+      {
+        key: '40',
+        value: '40'
+      },
+      {
+        key: '60',
+        value: '60'
+      }
+    ],
+    // 40s
+    defaultValue: '40'
   }
 });
 

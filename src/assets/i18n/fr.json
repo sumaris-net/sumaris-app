@@ -140,6 +140,11 @@
       "BTN_COPY_LOCALLY": "Copier en local",
       "BTN_AUTO_FILL": "Remplissage auto"
     },
+    "SHARE": {
+      "BTN_SHARE": "Partager",
+      "BTN_SHARE_DOTS": "Partager...",
+      "DIALOG_TITLE": "Partager"
+    },
     "HELP": {
       "TITLE": "Aide en ligne"
     }
@@ -781,6 +786,9 @@
         "START_DATE" : "Début de période",
         "QUALITY": "État"
       },
+      "SETTINGS": {
+        "GEOLOCATION_TIMEOUT": "Capteur GPS > Délai d'acquisition maximale (secondes)"
+      },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
         "FIELD_DATE_AFTER_TRIP": "Après le retour de la marée",
@@ -1052,7 +1060,6 @@
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire"
       },
       "SETTINGS": {
-        "BURST_MODE_ENABLE": "Échantillons : Activer le mode rafale ?",
         "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"
       }
     },
@@ -1199,20 +1206,22 @@
       "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "REPORT": {
-      "TITLE": "Raport de sortie - {{ location }} - {{ dateTime }}",
-      "TITLE_SHORT": "Raport de sortie",
+      "TITLE": "Rapport de sortie - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Rapport de sortie",
       "LOCATION": "Lieu :",
       "DATE_TIME": "Date/heure :",
       "OBSERVERS": "Observateur(s) :",
       "VESSEL_COUNT": "Nombre de navire :",
       "SUMMARY_TITLE": "Synthèse globale",
+      "EXPORT_JSON_FILENAME": "Rapport_de_sortie-{{ location }}-{{ dateTime }}.json",
       "SAMPLING": {
         "SUMMARY_TITLE": "Synthèse des échantillonnages"
       },
       "AUCTION_CONTROL": {
-        "TITLE": "Synthèse du contrôle sous criée : {{ location }} - {{ dateTime }}",
-        "TITLE_SHORT": "Synthèse du contrôle sous criée",
-        "VESSEL_COUNT": "Nombre de navires contrôlés :"
+        "TITLE": "Synthèse des contrôles : {{ location }} - {{ dateTime }}",
+        "TITLE_SHORT": "Synthèse des contrôles",
+        "VESSEL_COUNT": "Nombre de navires contrôlés :",
+        "EXPORT_JSON_FILENAME": "Rapport_de_contrôle-{{ location }}-{{ dateTime }}.json"
       }
     }
   },
@@ -1277,13 +1286,15 @@
       "DATE_TIME": "Date/Heure :",
       "VESSEL": "Navire :",
       "RECORDER_PERSON": "Saisisseur : ",
+      "EXPORT_JSON_FILENAME": "Rapport-de-débarquement-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
-        "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}} (rapport)",
+        "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Rapport d'échantillonnage",
         "SAMPLES_TITLE": "Mesures individuelles"
       },
       "AUCTION_CONTROL": {
-        "EMBEDDED_TITLE": "Contrôle <b>{{species}}</b>"
+        "EMBEDDED_TITLE": "Contrôle <b>{{species}}</b>",
+        "EXPORT_JSON_FILENAME": "Rapport-de-contrôle.json"
       }
     },
     "SELECT_MODAL": {
@@ -2431,9 +2442,14 @@
     }
   },
   "FILE": {
+    "JSON": {
+      "ENCODING": "UTF-8",
+      "BTN_DOWNLOAD_HELP": "Télécharger les données (JSON)"
+    },
     "CSV": {
       "SEPARATOR": ";",
       "ENCODING": "UTF-8",
+      "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
       "ERROR": {
         "EMPTY_FILE": "Fichier vide, ou ligne d'entête manquante",
         "NO_HEADER_OR_INVALID_SEPARATOR": "Ligne d'entête invalide. vérifier que le séparateur '{{separator}}' est utilisé.",
@@ -2544,7 +2560,8 @@
     "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
     "FIELD_NOT_EXISTS": "Cette valeur n'existe pas",
     "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
-    "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>"
+    "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
+    "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

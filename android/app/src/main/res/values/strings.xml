@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SUMARiS</string>
+    <string name="title_activity_main">SUMARiS</string>
+    <string name="package_name">net.sumaris.app</string>
+    <string name="custom_url_scheme">net.sumaris.app</string>
+</resources>

@@ -8,7 +8,7 @@ import { AuctionControlValidators } from '../../services/validator/auction-contr
 import { ModalController } from '@ionic/angular';
 import {
   AppHelpModal,
-  AppHelpModalOptions,
+  AppHelpModalOptions, ColorName,
   EntityServiceLoadOptions, EntityUtils,
   fadeInOutAnimation,
   filterNotNil,
@@ -21,7 +21,7 @@ import {
   LoadResult,
   LocalSettingsService,
   ReferentialUtils,
-  SharedValidators,
+  SharedValidators, toBoolean,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../services/model/observed-location.model';
@@ -307,6 +307,29 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       });
   }
 
+  pmfmValueColor(pmfmValue: any, pmfm: IPmfm): ColorName {
+
+    let color: ColorName;
+
+    switch (pmfm.id) {
+      case PmfmIds.OUT_OF_SIZE_PCT:
+        if (isNotNil(pmfmValue) && +pmfmValue > 50) {
+          color = 'danger';
+        } else {
+          color = 'success';
+        }
+        break;
+      case PmfmIds.COMPLIANT_PRODUCT:
+        if (toBoolean(pmfmValue) === false) {
+          color = 'danger';
+        } else {
+          color = 'success';
+        }
+        break;
+    }
+    return color;
+  }
+
   /* -- protected method -- */
 
   protected async setValue(data: Landing): Promise<void> {
@@ -394,5 +417,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return this.landingForm.invalid && !this.landingForm.measurementValuesForm.invalid ? 0 : (
       (this.samplesTable.invalid || this.landingForm.measurementValuesForm.invalid) ? 1 : -1);
   }
+
 
 }

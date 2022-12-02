@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
 import { OperationValidatorOptions, OperationValidatorService } from '../services/validator/operation.validator';
-import { Moment } from 'moment';
+import moment, { Moment } from 'moment';
 import {
   AccountService,
   Alerts,
@@ -29,7 +29,8 @@ import {
   selectInputContent,
   StatusIds,
   suggestFromArray,
-  toBoolean, toNumber,
+  toBoolean,
+  toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
@@ -38,7 +39,6 @@ import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { Geolocation } from '@awesome-cordova-plugins/geolocation/ngx';
 import { OperationService } from '@app/trip/services/operation.service';
 import { AlertController, ModalController } from '@ionic/angular';
 import { ISelectOperationModalOptions, SelectOperationModal } from '@app/trip/operation/select-operation.modal';
@@ -47,7 +47,7 @@ import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { LocationLevelGroups, LocationLevelIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelGroups, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
@@ -56,8 +56,6 @@ import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-
 import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-
-import moment from 'moment';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -93,6 +91,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   private _requiredComment = false;
   private _positionSubscription: Subscription;
   private _usageMode: UsageMode;
+  private _showGeolocationSpinner = true;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -583,8 +582,30 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
     const positionGroup = this.form.controls[fieldName];
     if (positionGroup && positionGroup instanceof UntypedFormGroup) {
-      const coords = await this.operationService.getCurrentPosition();
-      positionGroup.patchValue(coords, {emitEvent: false, onlySelf: true});
+      try {
+        // Show loading spinner, when first time
+        if (this._showGeolocationSpinner) this.markAsLoading();
+
+        // Get position
+        const coords = await this.operationService.getCurrentPosition();
+        positionGroup.patchValue(coords, {emitEvent: false, onlySelf: true});
+
+        // OK, next time not need to show a spinner
+        this._showGeolocationSpinner = false;
+      }
+      catch(err) {
+        this._showGeolocationSpinner = true;
+
+        // Display error to user
+        let message = err?.message || err;
+        if (typeof message === 'object') message = JSON.stringify(message);
+        this.setError(this.translate.instant('ERROR.GEOLOCATION_ERROR', {message: this.translate.instant(message)}));
+        return; // Stop here
+      }
+      finally {
+        // Hide loading spinner
+        if (this.loading) this.markAsLoaded();
+      }
     }
     // Set also the end date time
     if (fieldName === 'endPosition') {

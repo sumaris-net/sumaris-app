@@ -535,8 +535,7 @@
             [class.mat-cell-computed]="pmfm|isComputedPmfm"
             [class.mat-cell-content-start-padding]="showGroupHeader"
             [class.even]="showGroupHeader && pmfm.rankOrder % 2 === 0"
-            [style.background-color]="getPmfmValueColor(row.currentData.measurementValues[pmfm.id], pmfm)">
-          <!-- TODO BLA: manage color -->
+            [style.background-color]="row.currentData.measurementValues[pmfm.id]|pmfmValueColor:{pmfm: pmfm, mapWith: pmfmValueColorWith}">
           <ion-text [innerHTML]="row.currentData|measurementValueGet:{pmfm: pmfm, html: true, propertyNames: compactFields && ['label'] }"></ion-text>
         </td>
       </ng-container>

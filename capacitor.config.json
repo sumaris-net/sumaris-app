@@ -2,5 +2,21 @@
   appId: 'net.sumaris.app',
   appName: 'SUMARiS',
   webDir: 'www',
-  bundledWebRuntime: false
+  bundledWebRuntime: false,
+  cordova: {
+    preferences: {
+      ScrollEnabled: 'false',
+      'android-minSdkVersion': '22',
+      BackupWebStorage: 'none',
+      SplashMaintainAspectRatio: 'true',
+      FadeSplashScreen: 'true',
+      FadeSplashScreenDuration: '300',
+      SplashShowOnlyFirstTime: 'false',
+      SplashScreen: 'screen',
+      SplashScreenDelay: '3000',
+      AutoHideSplashScreen: 'false',
+      ShowSplashScreen: 'true',
+      loadUrlTimeoutValue: '60000'
+    }
+  }
 }

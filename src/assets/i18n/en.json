@@ -140,6 +140,11 @@
       "BTN_COPY_LOCALLY": "Copy locally",
       "BTN_AUTO_FILL": "Auto fill data"
     },
+    "SHARE": {
+      "BTN_SHARE": "Share",
+      "BTN_SHARE_DOTS": "Share...",
+      "DIALOG_TITLE": "Share"
+    },
     "HELP": {
       "TITLE": "Online help"
     }
@@ -775,6 +780,9 @@
         "START_DATE" : "Start date",
         "QUALITY": "State"
       },
+      "SETTINGS": {
+        "GEOLOCATION_TIMEOUT": "GPS Shipset > Acquisition timeout (seconds)"
+      },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Before trip's start",
         "FIELD_DATE_AFTER_TRIP": "After trip's end ",
@@ -1193,20 +1201,22 @@
       "OBSERVATIONS_HAS_SAMPLE": "Selected observations have sampling.<br/><br/><b>Are you sure</b> you want to delete them?"
     },
     "REPORT": {
-      "TITLE": "Observation report - {{ location }} - {{ dateTime }}",
-      "TITLE_SHORT": "Observation report",
+      "TITLE": "Occasion report - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Occasion report",
       "LOCATION": "Location :",
       "DATE_TIME": "Date/time :",
       "OBSERVERS": "Observers(s) :",
       "VESSEL_COUNT": "Number of vessels :",
       "SUMMARY_TITLE": "Global summary",
+      "EXPORT_JSON_FILENAME": "Occasion-report-{{ location }}-{{ dateTime }}.json",
       "SAMPLING": {
-        "SUMMARY_TITLE": "Synthesis of samplings"
+        "SUMMARY_TITLE": "Synthesis of biological sampling"
       },
       "AUCTION_CONTROL": {
         "TITLE": "Summary of the monitoring of controls under auctions : {{ location }} - {{ dateTime }}",
-        "TITLE_SHORT": "Summary of the monitoring of controls under auctions",
-        "VESSEL_COUNT": "Number of vessels checked :"
+        "TITLE_SHORT": "Summary of controls",
+        "VESSEL_COUNT": "Number of controlled vessels :",
+        "EXPORT_JSON_FILENAME": "Control_report-{{ location }}-{{ dateTime }}.json"
       }
     }
   },
@@ -1234,7 +1244,7 @@
       "OTHER_FEATURES": "Other features:",
       "TAB_SAMPLES": "Samples",
       "SAMPLING": {
-        "TITLE": "Strategy {{strategyLabel}} - Vessel  {{vessel}}",
+        "TITLE": "<span class=\"hidden-xs hidden-sm\">Sampling plan </span>{{strategyLabel}} - <ion-icon name=\"boat\"></ion-icon> {{vessel}}",
         "STRATEGY": "Sample row:",
         "STRATEGY_PLACEHOLDER": "Sample row code",
         "STRATEGY_SUMMARY_TITLE": "Sampling scheme",
@@ -1271,13 +1281,15 @@
       "DATE_TIME": "Date/Time:",
       "VESSEL": "Vessel:",
       "RECORDER_PERSON": "Recorder:",
+      "EXPORT_JSON_FILENAME": "Landing_report-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Report",
         "SAMPLES_TITLE": "Samples"
       },
       "AUCTION_CONTROL": {
-        "EMBEDDED_TITLE": "Control <b>{{species}}</b>"
+        "EMBEDDED_TITLE": "Control <b>{{species}}</b>",
+        "EXPORT_JSON_FILENAME": "Rapport_de_contrôle-{{vessel}}-{{dateTime}}.json"
       }
     },
     "SELECT_MODAL": {
