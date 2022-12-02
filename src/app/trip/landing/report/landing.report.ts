@@ -106,13 +106,12 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   private readonly cd: ChangeDetectorRef;
   private readonly accountService: AccountService;
   private readonly fileTransferService: FileTransferService;
-  private readonly network: NetworkService;
   private readonly _pathParentIdAttribute: string;
   private readonly _pathIdAttribute: string;
   private readonly _autoLoad = true;
   private readonly _autoLoadDelay = 0;
 
-
+  protected readonly network: NetworkService;
   protected readonly translate: TranslateService;
   protected readonly translateContext: TranslateContextService;
   protected readonly observedLocationService: ObservedLocationService;

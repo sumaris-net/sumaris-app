@@ -30,8 +30,10 @@ if [[ -f "${APK_UNSIGNED_FILE}" ]]; then
 fi;
 
 # Run the build
-echo "Running cordova build..."
-ionic cordova build android --warning-mode=none --color --prod --release
+echo "--- Running Android build..."
+echo ""
+
+ionic run android-build
 [[ $? -ne 0 ]] && exit 1
 
 if [[ ! -f "${APK_SIGNED_FILE}" ]]; then
@@ -47,5 +49,7 @@ if [[ ! -f "${APK_SIGNED_FILE}" ]]; then
 else
   echo "Successfully generated signed APK at: ${APK_SIGNED_FILE}"
 fi
+
+echo "--- Running Android build [OK]"
 
 exit 0

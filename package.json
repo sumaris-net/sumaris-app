@@ -17,7 +17,7 @@
     "build.i18n": "node scripts/node/build-i18n.js",
     "android-sync": "npx jetifier && npx cap sync android",
     "android-start": "ionic capacitor run android -l --external",
-    "android-build": "npx jetifier && ionic capacitor build android --configuration production --release",
+    "android-build": "npx jetifier && npm run build.i18n && ionic capacitor build android --configuration production --release --no-open",
     "android-list": "npx native-run android --list",
     "resources": "cordova-res ios && cordova-res android && node scripts/node/resources.js",
     "test": "ng test",
