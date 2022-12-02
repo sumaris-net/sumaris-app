@@ -70,7 +70,7 @@ export class ImageAttachment extends DataEntity<ImageAttachment>
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts) || undefined;
 
     // For pod
-    if (opts.keepLocalId === false) {
+    if (opts && opts.keepLocalId === false) {
       // Reset unused attributes
       delete target.rankOrder;
     }

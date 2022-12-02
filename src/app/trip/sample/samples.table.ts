@@ -188,11 +188,11 @@ export class SamplesTable
   }
 
   @Input()
-  set showImagesButton(value: boolean) {
+  set showImagesColumn(value: boolean) {
     this.setShowColumn('images', value);
   }
 
-  get showImagesButton(): boolean {
+  get showImagesColumn(): boolean {
     return this.getShowColumn('images');
   }
 
@@ -306,7 +306,7 @@ export class SamplesTable
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
     super.configureValidator(opts);
 
-    this.validatorService.delegateOptions = {withImages: this.showImagesButton};
+    this.validatorService.delegateOptions = {withImages: this.showImagesColumn};
   }
 
   /**
@@ -353,7 +353,7 @@ export class SamplesTable
       showTaxonName: this.showTaxonNameColumn,
       showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
-      showPictures: this.showImagesButton,
+      showPictures: this.showImagesColumn,
       onReady: (modal) => {
         this.onPrepareRowForm.emit({
           form: modal.form.form,

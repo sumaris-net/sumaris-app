@@ -776,7 +776,11 @@ export class ProgramRefService
       // Create search filter
       filter = {
         ...filter,
-        label: opts?.program?.label,
+
+        // FIXME: cannot limit on only one program, from SFA (at least 2: META and OBSDEB)
+        // => Offline modal should allowed to select more than one program
+        //label: opts?.program?.label,
+
         acquisitionLevelLabels: opts?.acquisitionLevels,
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
