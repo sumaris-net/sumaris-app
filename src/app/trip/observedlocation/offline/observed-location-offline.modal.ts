@@ -1,8 +1,22 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, Validators } from '@angular/forms';
-import { AppForm, AppFormUtils, isEmptyArray, isNilOrBlank, isNotEmptyArray, isNotNil, referentialsToString, referentialToString, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
+import {
+  AppForm,
+  AppFormUtils,
+  IReferentialRef,
+  isEmptyArray,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  LoadResult,
+  MatChipsField,
+  referentialsToString,
+  referentialToString,
+  SharedValidators,
+  StatusIds
+} from '@sumaris-net/ngx-components';
 import moment, { Moment } from 'moment';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ProgramRefQueries, ProgramRefService } from '../../../referential/services/program-ref.service';
@@ -145,8 +159,8 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
       suggestFn: (value, filter) => this.strategyRefService.suggest(value, {
         ...filter,
         level: programSubject.value
-      }),
-      displayWith: (arg) => referentialToString(arg, ['label']),
+      }, 'label', 'desc', {fetchPolicy: 'cache-first'} ),
+      displayWith: (item) => item?.label || '',
       mobile: this.mobile
     });
     this.registerSubscription(

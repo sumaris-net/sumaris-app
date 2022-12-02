@@ -32,7 +32,7 @@
                [class.cdk-visually-hidden]="(form|formGetControl:'strategy').disabled">
         <ion-col>
           <!-- Strategy -->
-          <mat-chips-field formControlName="strategy"
+          <mat-chips-field formControlName="strategy" #strategyChipsField
                            [placeholder]="'OBSERVED_LOCATION.TABLE.FILTER.STRATEGY'|translate"
                            [config]="autocompleteFields.strategy"
                            [clearable]="true"

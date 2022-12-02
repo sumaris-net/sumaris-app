@@ -15,7 +15,7 @@ import {
   firstNotNilPromise,
   IEntitiesService,
   IEntityService,
-  IReferentialRef,
+  IReferentialRef, isNil,
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
@@ -776,17 +776,21 @@ export class ProgramRefService
       // Create search filter
       filter = {
         ...filter,
-
-        // FIXME: cannot limit on only one program, from SFA (at least 2: META and OBSDEB)
-        // => Offline modal should allowed to select more than one program
-        //label: opts?.program?.label,
-
         acquisitionLevelLabels: opts?.acquisitionLevels,
         statusIds:  [StatusIds.ENABLE, StatusIds.TEMPORARY]
       };
       const strategyFilter = isNotEmptyArray(filter.strategyIds) ? StrategyFilter.fromObject({includedIds: filter.strategyIds})
         // By default, all strategies of imported programs
         : null;
+
+      // If strategy are filtered, import only ONE program - fix issue IMAGINE (avoid to import all DB programs)
+      if (strategyFilter) {
+        filter.label = filter.label || opts?.program?.label
+      }
+
+      // Keep other programs, when ONLY ONE program is imported here
+      // (e.g. imported from another offline feature)
+      const resetLocalStorage = isNil(filter.label);
 
       // Step 1. load all programs, with strategies
       const importedProgramLabels = [];
@@ -814,7 +818,7 @@ export class ProgramRefService
       // Step 2. Saving locally
       await this.entities.saveAll(data || [], {
         entityName: Program.TYPENAME,
-        reset: true
+        reset: resetLocalStorage
       });
 
       if (this._debug) console.debug(`[program-ref-service] Importing programs [OK] in ${Date.now() - now}ms`, data);
