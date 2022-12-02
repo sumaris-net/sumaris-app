@@ -637,7 +637,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     return result;
   }
 
-
   async autoFill(opts = { skipIfDisabled: true, skipIfNotEmpty: false}): Promise<void> {
     const dirty = this.dirty;
     await this.batchGroupsTable.autoFillTable(opts);

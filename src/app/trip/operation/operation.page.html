@@ -1,10 +1,10 @@
 
 <!-- Top toolbar -->
 <app-toolbar color="primary"
-             [hasValidate]="!loading && dirty"
+             [hasValidate]="!loading && (dirty || saving)"
+             [hasClose]="!loading && (!dirty && !saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
-             [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
@@ -32,18 +32,19 @@
 
     <!-- duplicate (if desktop) -->
     <ion-button *ngIf="!mobile && canDuplicate"
-                [disabled]="disabled || invalid"
+                [disabled]="disabled || invalid || saving"
                 [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE'|translate"
                 (click)="duplicate($event)">
       <mat-icon slot="icon-only">content_copy</mat-icon>
     </ion-button>
 
     <!-- option menu -->
-    <ion-button
+    <button slot="end" mat-icon-button
+            *ngIf="enabled && !isNewData || debug"
             [matMenuTriggerFor]="optionsMenu"
             [title]=" 'COMMON.BTN_OPTIONS'|translate">
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
+      <mat-icon>more_vert</mat-icon>
+    </button>
   </ion-buttons>
 </app-toolbar>
 
@@ -132,6 +133,16 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
+  <!-- reset -->
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
+  </button>
+
   <!-- duplicate (if mobile) -->
   <button mat-menu-item class="ion-color-danger" *ngIf="mobile && enabled && canDuplicate"
           (click)="duplicate($event)">
@@ -152,17 +163,8 @@
     </ion-label>
   </button>
 
-  <mat-divider></mat-divider>
 
-  <!-- reset -->
-  <button mat-menu-item
-          [disabled]="!dirty"
-          (click)="cancel($event)">
-    <ion-label>
-      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
-      <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
-  </button>
+  <mat-divider></mat-divider>
 
   <!-- delete -->
   <button mat-menu-item class="ion-color-danger"
