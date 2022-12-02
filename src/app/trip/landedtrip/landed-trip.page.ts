@@ -60,6 +60,14 @@ import moment from 'moment';
 })
 export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
 
+  private static TABS = {
+    GENERAL: 0,
+    OPERATION_GROUP: 1,
+    CATCH: 2,
+    SALE: 3,
+    EXPENSE: 4
+  }
+
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   observedLocationId: number;
 
@@ -192,10 +200,20 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
     const changed = super.onTabChange(event, queryParamName);
-    // Force sub-tabgroup realign
     if (changed) {
-      if (this.catchTabGroup && this.selectedTabIndex === 2) this.catchTabGroup.realignInkBar();
-      if (this.expenseForm && this.selectedTabIndex === 4) this.expenseForm.realignInkBar();
+      // Force sub-tabgroup realign
+      switch (this.selectedTabIndex) {
+        case LandedTripPage.TABS.CATCH:
+          this.catchTabGroup?.realignInkBar();
+          break;
+        case LandedTripPage.TABS.EXPENSE:
+          this.expenseForm?.realignInkBar();
+          break;
+      }
+
+      // - Force row confirmation, and force sub-tabgroup realign
+      if (this.operationGroupTable?.dirty) this.operationGroupTable.save();
+
       this.markForCheck();
     }
     return changed;
@@ -698,7 +716,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // todo same for other tables
 
-    return await super.save(event, {...options, ...saveOptions});
+    return super.save(event, {...options, ...saveOptions});
   }
 
   onNewFabButtonClick(event: Event) {
