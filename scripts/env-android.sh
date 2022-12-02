@@ -19,7 +19,9 @@ fi
 echo "--- Preparing Android environment:"
 echo "        Root: ${PROJECT_DIR}"
 echo "      NodeJS: version ${NODE_VERSION} with options: ${NODE_OPTIONS}"
-echo " Android SDK: ${ANDROID_SDK_ROOT} with CLI: ${ANDROID_SDK_CLI_ROOT}"
+echo " Android SDK: ${ANDROID_SDK_ROOT}"
+echo " Android CLI: ${ANDROID_SDK_CLI_ROOT}"
+echo " Build Tools: ${ANDROID_BUILD_TOOLS_ROOT}"
 echo "      Gradle: ${GRADLE_HOME} with options: ${GRADLE_OPTS}"
 echo "        Java: ${JAVA_HOME}"
 
@@ -66,8 +68,8 @@ fi
 
 # Copy local files
 if [[ -d "${PROJECT_DIR}/.local/android" ]]; then
-  echo "Copying files from directory '${PROJECT_DIR}/.local/android' into '${PROJECT_DIR}/platforms/android'..."
-  cp -rf ${PROJECT_DIR}/.local/android/* ${PROJECT_DIR}/platforms/android
+  echo "Copying files from directory '${PROJECT_DIR}/.local/android' into '${PROJECT_DIR}/android'..."
+  cp -rf ${PROJECT_DIR}/.local/android/* ${PROJECT_DIR}/android
   [[ $? -ne 0 ]] && exit 1
 else
   echo "No directory '${PROJECT_DIR}/.local/android' found. Please create it, with a file 'release-signing.properties' for release signing"

@@ -158,7 +158,6 @@ if [[ "_$description" == "_" ]]; then
     description="Release $version"
 fi
 
-
 echo "**********************************"
 echo "* Finishing release"
 echo "**********************************"

@@ -30,11 +30,12 @@ if [[ -f "${APK_UNSIGNED_FILE}" ]]; then
 fi;
 
 # Run the build
-echo "--- Running Android build..."
+echo "--- Building Capacitor App..."
 echo ""
-
 ionic run android-build
 [[ $? -ne 0 ]] && exit 1
+
+
 
 if [[ ! -f "${APK_SIGNED_FILE}" ]]; then
 
