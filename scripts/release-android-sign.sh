@@ -50,14 +50,17 @@ echo "Executing zipalign..."
 echo "Executing zipalign [OK]"
 
 echo "Executing apksigner..."
-./apksigner sign --ks ${KEYSTORE_FILE} --ks-pass "pass:${KEYSTORE_PWD}" --ks-key-alias ${KEY_ALIAS} \
-  --v1-signing-enabled true --min-sdk-version ${ANDROID_OUTPUT_MIN_SDK_VERSION} \
+./apksigner sign --ks ${KEYSTORE_FILE} --ks-pass "pass:${KEYSTORE_PWD}" --key-pass "pass:${KEYSTORE_PWD}" --ks-key-alias ${KEY_ALIAS} \
+  --min-sdk-version ${ANDROID_OUTPUT_MIN_SDK_VERSION} \
+  --max-sdk-version ${ANDROID_OUTPUT_MAX_SDK_VERSION} \
   --out ${APK_SIGNED_FILE} ${APK_UNSIGNED_FILE}.align
 [[ $? -ne 0 ]] && exit 1
 echo "Executing apksigner [OK]"
 
 echo "Verify APK signature..."
-./apksigner verify ${APK_SIGNED_FILE}
+#./apksigner verify ${APK_SIGNED_FILE}
+./apksigner verify --verbose --print-certs ${APK_SIGNED_FILE}
+#./apksigner verify --verbose --print-certs /home/blavenie/git/sumaris/sumaris-app/scripts/sumaris-app-1.28.0-android.apk
 [[ $? -ne 0 ]] && exit 1
 echo "Verify APK signature [OK]"
 
