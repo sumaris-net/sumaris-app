@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {
   Alerts,
   AppFormUtils,
@@ -15,20 +15,20 @@ import {
   TranslateContextService,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { environment } from '@environments/environment';
-import { AlertController, IonContent, ModalController } from '@ionic/angular';
-import { BehaviorSubject, Subscription, TeardownLogic } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
-import { SampleForm } from './sample.form';
-import { Sample } from '../services/model/sample.model';
-import { IDataEntityModalOptions } from '@app/data/table/data-modal.class';
-import { debounceTime } from 'rxjs/operators';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { Moment } from 'moment';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-
-import { moment } from '@app/vendor';
+import {environment} from '@environments/environment';
+import {AlertController, IonContent, ModalController} from '@ionic/angular';
+import {BehaviorSubject, Subscription, TeardownLogic} from 'rxjs';
+import {TranslateService} from '@ngx-translate/core';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
+import {SampleForm} from './sample.form';
+import {Sample} from '../services/model/sample.model';
+import {IDataEntityModalOptions} from '@app/data/table/data-modal.class';
+import {debounceTime} from 'rxjs/operators';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import moment, {Moment} from 'moment';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {AppImageAttachmentGallery} from '@app/data/image/image-attachment-gallery.component';
+import {ImageAttachment} from '@app/data/image/image-attachment.model';
 
 export type SampleModalRole = 'VALIDATE'| 'DELETE';
 export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOptions<Sample> {
@@ -42,6 +42,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
   showTaxonName: boolean;
   showIndividualReleaseButton: boolean;
   showIndividualMonitoringButton: boolean;
+  showPictures: boolean;
 
   availableTaxonGroups?: TaxonGroupRef[];
   defaultSampleDate?: Moment;
@@ -69,6 +70,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
+  tagIdPmfm: IPmfm;
 
   @Input() mobile: boolean;
   @Input() isNew: boolean;
@@ -89,22 +91,23 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   @Input() showComment: boolean;
   @Input() showIndividualReleaseButton: boolean;
   @Input() showIndividualMonitoringButton: boolean;
+  @Input() showPictures: boolean;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
   @Input() defaultSampleDate: Moment;
-  tagIdPmfm: IPmfm;
 
   @Input() onReady: (modal: SampleModal) => Promise<void> | void;
   @Input() onSaveAndNew: (data: Sample) => Promise<Sample>;
-  @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
+  @Input() onDelete: (event: Event, data: Sample) => Promise<boolean>;
   @Input() openSubSampleModal: (parent: Sample, acquisitionLevel: AcquisitionLevelType) => Promise<Sample>;
 
   @ViewChild('form', {static: true}) form: SampleForm;
+  @ViewChild('gallery', {static: true}) gallery: AppImageAttachmentGallery;
   @ViewChild(IonContent) content: IonContent;
 
   get dirty(): boolean {
-    return this.form.dirty;
+    return this.form.dirty || this.gallery.dirty;
   }
 
   get invalid(): boolean {
@@ -129,7 +132,6 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     // Default value
     this.mobile = settings.mobile;
     this.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
-    this.showComment = !this.mobile;
 
     // TODO: for DEV only
     this.debug = !environment.production;
@@ -142,27 +144,27 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
+    this.showComment = !this.mobile || isNotNil(this.data.comments);
+    this.showPictures = toBoolean(this.showPictures, isNotEmptyArray(this.data?.images));
+    this.showIndividualMonitoringButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
+    this.showIndividualReleaseButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
 
     // Show/Hide individual release button
-    this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
-    if (this.tagIdPmfm) {
-      this.showIndividualMonitoringButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
-      this.showIndividualReleaseButton =  !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
+    if (this.showIndividualReleaseButton) {
+      this.tagIdPmfm = this.pmfms?.find(p => p.id === PmfmIds.TAG_ID);
+      if (this.tagIdPmfm) {
 
-      this.form.ready().then(() => {
-        this.registerSubscription(
-          this.form.form.get('measurementValues.' + this.tagIdPmfm.id)
-            .valueChanges
-            .subscribe(tagId => {
-              this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
-              this.markForCheck();
-            })
-        );
-      });
-    }
-    else {
-      this.showIndividualMonitoringButton = !!this.openSubSampleModal && toBoolean(this.showIndividualMonitoringButton, false);
-      this.showIndividualReleaseButton = !!this.openSubSampleModal && toBoolean(this.showIndividualReleaseButton, false);
+        this.form.ready().then(() => {
+          this.registerSubscription(
+            this.form.form.get('measurementValues.' + this.tagIdPmfm.id)
+              .valueChanges
+              .subscribe(tagId => {
+                this.showIndividualReleaseButton = isNotNilOrBlank(tagId);
+                this.markForCheck();
+              })
+          );
+        });
+      }
     }
 
     if (this.disabled) {
@@ -189,46 +191,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this._subscription.unsubscribe();
   }
 
-  private async setValue(data: Sample) {
-
-    console.debug('[sample-modal] Applying value to form...', data);
-    this.form.markAsReady();
-    this.resetError();
-
-    try {
-      // Set form value
-      this.data = data || new Sample();
-      const isNew = isNil(this.data.id);
-
-      if (isNew && !this.data.sampleDate) {
-        if (this.defaultSampleDate) {
-          this.data.sampleDate = this.defaultSampleDate.clone();
-        }
-        else if (this.isOnFieldMode) {
-          this.data.sampleDate = moment();
-        }
-      }
-
-      let promiseOrVoid = this.form.setValue(this.data);
-      if (promiseOrVoid) await promiseOrVoid;
-
-      // Call ready callback
-      if (this.onReady) {
-        promiseOrVoid = this.onReady(this);
-        if (promiseOrVoid) await promiseOrVoid;
-      }
-
-      await this.computeTitle();
-    }
-    finally {
-      if (!this.disabled) this.enable();
-      this.form.markAsUntouched();
-      this.form.markAsPristine();
-      this.markForCheck();
-    }
-  }
-
-  async close(event?: UIEvent) {
+  async close(event?: Event) {
     if (this.dirty) {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
@@ -250,7 +213,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   /**
    * Add and reset form
    */
-  async onSubmitAndNext(event?: UIEvent) {
+  async onSubmitAndNext(event?: Event) {
     if (this.loading) return undefined; // avoid many call
     // DEBUG
     //console.debug('[sample-modal] Calling onSubmitAndNext()');
@@ -285,7 +248,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
    * Validate and close
    * @param event
    */
-  async onSubmitIfDirty(event?: UIEvent) {
+  async onSubmitIfDirty(event?: Event) {
     if (!this.dirty) {
       await this.modalCtrl.dismiss();
     }
@@ -298,7 +261,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
    * Validate and close
    * @param event
    */
-  async onSubmit(event?: UIEvent) {
+  async onSubmit(event?: Event) {
     if (this.loading) return undefined; // avoid many call
 
     // No changes: leave
@@ -318,7 +281,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     }
   }
 
-  async delete(event?: UIEvent) {
+  async delete(event?: Event) {
     if (this.onDelete) {
       const deleted = await this.onDelete(event, this.data);
       if (isNil(deleted) || (event && event.defaultPrevented)) return; // User cancelled
@@ -337,12 +300,58 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     return this.doOpenSubSampleModal(AcquisitionLevelCodes.INDIVIDUAL_RELEASE)
   }
 
-  toggleComment() {
-    this.showComment = !this.showComment;
+  toggleImageGallery() {
+    this.showPictures = !this.showPictures;
     this.markForCheck();
   }
 
   /* -- protected methods -- */
+
+  private async setValue(data: Sample) {
+
+    console.debug('[sample-modal] Applying value to form...', data);
+    this.form.markAsReady();
+    this.gallery.markAsReady();
+    this.resetError();
+
+    try {
+      // Set form value
+      this.data = data || new Sample();
+      const isNew = isNil(this.data.id);
+
+      if (isNew && !this.data.sampleDate) {
+        if (this.defaultSampleDate) {
+          this.data.sampleDate = this.defaultSampleDate.clone();
+        }
+        else if (this.isOnFieldMode) {
+          this.data.sampleDate = moment();
+        }
+      }
+
+      // Set form value
+      await this.form.setValue(this.data);
+
+      // Set gallery's images
+      // this.gallery.value =
+      //   [
+      //     {id: 0, url: 'https://test.sumaris.net/assets/img/bg/ray-1.jpg', title: 'ray #1'},
+      //     {id: 1, url: 'https://test.sumaris.net/assets/img/bg/ray-2.jpg', title: 'ray #2'}
+      //   ].map(ImageAttachment.fromObject);
+      this.showPictures = this.showPictures || isNotEmptyArray(this.data.images);
+      this.gallery.value = this.showPictures && this.data.images || [];
+
+      // Call ready callback
+      if (this.onReady) await this.onReady(this);
+
+      await this.computeTitle();
+    }
+    finally {
+      if (!this.disabled) this.enable();
+      this.form.markAsUntouched();
+      this.form.markAsPristine();
+      this.markForCheck();
+    }
+  }
 
   protected async getDataToSave(opts?: {disable?: boolean;}): Promise<Sample> {
 
@@ -371,10 +380,21 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
     try {
       // Get form value
-      return this.form.value;
+      const data: Sample = this.form.value;
+
+      // Add images
+      if (this.showPictures) {
+        if (this.gallery.dirty) {
+          await this.gallery.save();
+        }
+        const images = this.gallery.value;
+        data.images = images && images.map(ImageAttachment.fromObject) || undefined;
+      }
+
+      return data;
     } finally {
       if (!opts || opts.disable !== false) {
-        this.disable();
+        //this.disable();
       }
     }
   }
@@ -455,12 +475,14 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     this.markForCheck();
   }
 
-  protected enable() {
-    this.form.enable();
+  protected enable(opts?: {emitEvent?: boolean}) {
+    this.form.enable(opts);
+    this.gallery.enable(opts);
   }
 
-  protected disable() {
-    this.form.disable();
+  protected disable(opts?: {emitEvent?: boolean}) {
+    this.form.disable(opts);
+    this.gallery.disable(opts);
   }
 
   protected setError(error: any) {

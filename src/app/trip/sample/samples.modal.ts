@@ -57,7 +57,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
   @Input() showLabel = false;
   @Input() title: string;
   @Input() onReady: (modal: SamplesModal) => Promise<void> | void;
-  @Input() onDelete: (event: UIEvent, data: Sample[]) => Promise<boolean>;
+  @Input() onDelete: (event: Event, data: Sample[]) => Promise<boolean>;
 
   @ViewChild('table', { static: true }) table: SamplesTable;
 
@@ -139,7 +139,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
     await this.table.ready();
   }
 
-  async onSubmit(event?: UIEvent) {
+  async onSubmit(event?: Event) {
     if (this.loading) return; // avoid many call
 
     await AppFormUtils.waitWhilePending(this.table);
@@ -166,7 +166,7 @@ export class SamplesModal implements OnInit, ISamplesModalOptions {
     this.cd.markForCheck();
   }
 
-  onNewFabButtonClick(event: UIEvent){
+  onNewFabButtonClick(event: Event){
     this.table.addRow(event);
   }
 

@@ -17,7 +17,7 @@ import {
 import { merge, Observable, of } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 
-import { ControlValueAccessor, FormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
 
 
@@ -68,7 +68,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   private _sortedQualitativeValues: IReferentialRef[];
 
   items: Observable<IReferentialRef[]>;
-  onShowDropdown = new EventEmitter<UIEvent>(true);
+  onShowDropdown = new EventEmitter<Event>(true);
   selectedIndex = -1;
   _tabindex: number;
   showAllButtons = false;
@@ -86,6 +86,8 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
 
   @Input() mobile: boolean;
   @Input() pmfm: IPmfm;
+  @Input() formControl: UntypedFormControl;
+  @Input() formControlName: string;
   @Input() placeholder: string;
   @Input() floatLabel: FloatLabelType = "auto";
   @Input() required: boolean;
@@ -99,8 +101,6 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() maxVisibleButtons: number;
   @Input() buttonsColCount: number;
   @Input() showButtonIcons: boolean;
-  @Input() formControlName: string;
-  @Input() formControl: FormControl;
 
   @Input() set tabindex(value: number) {
     this._tabindex = value;
@@ -118,7 +118,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Output('keyup.enter') onPressEnter = new EventEmitter<any>();
   @Output('focus') focused = new EventEmitter<FocusEvent>();
   @Output('blur') blurred = new EventEmitter<FocusEvent>();
-  @Output('click') clicked = new EventEmitter<UIEvent>();
+  @Output('click') clicked = new EventEmitter<Event>();
 
   @ViewChild('matInput') matInput: ElementRef;
   @ViewChildren('button') buttons: QueryList<IonButton>;
@@ -135,7 +135,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // Set defaults
     this.style = this.style || (this.mobile ? 'select' : 'autocomplete');
 
-    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as FormControl;
+    this.formControl = this.formControl || this.formControlName && this.formGroupDir && this.formGroupDir.form.get(this.formControlName) as UntypedFormControl;
     if (!this.formControl) throw new Error("Missing mandatory attribute 'formControl' or 'formControlName' in <app-pmfm-qv-field>.");
 
     if (!this.pmfm) throw new Error("Missing mandatory attribute 'pmfm' in <mat-qv-field>.");
@@ -225,7 +225,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     return this.formControl.value;
   }
 
-  writeValue(value: any, event?: UIEvent) {
+  writeValue(value: any, event?: Event) {
     if (value !== this.formControl.value) {
       this.formControl.patchValue(value, {emitEvent: false});
       this._onChangeCallback(value);

@@ -86,7 +86,9 @@
 
 </mat-menu>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container"
+     [class.has-toolbar]="showToolbar"
+     [class.has-paginator]="showPaginator">
 
   <table *ngIf="columnDefinitions|isNotEmptyArray"
     mat-table
@@ -205,3 +207,11 @@
     </ion-button>
   </span>
 </ng-template>
+
+<!-- Paginator  -->
+<ion-footer *ngIf="showPaginator">
+  <mat-paginator [length]="totalRowCount" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions"
+                 class="mat-paginator-footer"
+                 showFirstLastButtons>
+  </mat-paginator>
+</ion-footer>

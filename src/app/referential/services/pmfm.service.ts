@@ -173,8 +173,7 @@ export class PmfmService
     protected accountService: AccountService,
     protected referentialService: ReferentialService,
     protected referentialRefService: ReferentialRefService,
-    protected cache: CacheService,
-    protected cryptoService: CryptoService
+    protected cache: CacheService
   ) {
     super(graphql, environment);
   }
@@ -436,7 +435,7 @@ export class PmfmService
     if (!opts || opts.cache !== false) {
       const cacheKey = [
         PmfmCacheKeys.PMFM_IDS_BY_PARAMETER_LABEL,
-        this.cryptoService.sha256(JSON.stringify(parameterLabelsMap)).substring(0, 8) // Create a unique hash, from args
+        CryptoService.sha256(JSON.stringify(parameterLabelsMap)).substring(0, 8) // Create a unique hash, from args
       ].join('|');
       return this.cache.getOrSetItem<ObjectMap<number[]>>(cacheKey,
         () => this.loadIdsGroupByParameterLabels(parameterLabelsMap, {cache: false}),

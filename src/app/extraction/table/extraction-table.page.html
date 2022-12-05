@@ -47,8 +47,9 @@
 
     &nbsp;
 
-    <ion-button [matMenuTriggerFor]="selectTypeMenu"
-                *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+    <ion-button *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+                [matMenuTriggerFor]="selectTypeMenu"
+                [matMenuTriggerData]="{$implicit: ($categories|async)}"
                 color="accent" fill="solid">
       <ion-icon slot="start" name="server"></ion-icon>
       <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE'|translate"></ion-label>
@@ -64,31 +65,33 @@
 </app-toolbar>
 
 <!-- Types menu -->
-<mat-menu #selectTypeMenu="matMenu" xPosition="after" >
-  <!-- only one category -->
-  <ng-container *ngIf="typesByCategory$ | async | isArrayLength: {equals: 1}; let typesByCategory; else manyCategories">
-    <button mat-menu-item
-            *ngFor="let type of typesByCategory[0].value"
-            (click)="setType(type, {emitEvent: true})">
-      <ion-label class="ion-text-wrap">
-        <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
-        <span>{{type.name}}</span>
-      </ion-label>
-    </button>
-  </ng-container>
+<mat-menu #selectTypeMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent let-categories>
+    <!-- only one category -->
+    <ng-container *ngIf="categories | isArrayLength: {equals: 1}; else manyCategories">
+      <button mat-menu-item
+              *ngFor="let type of categories[0].types"
+              (click)="setType(type, {emitEvent: true})">
+        <ion-label class="ion-text-wrap">
+          <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
+          <span>{{type.name}}</span>
+        </ion-label>
+      </button>
+    </ng-container>
 
-  <!-- More than 1 categories -->
-  <ng-template #manyCategories>
-    <button mat-menu-item
-            *ngFor="let item of typesByCategory$ | async"
-            [matMenuTriggerFor]="typesMenu"
-            [matMenuTriggerData]="{types: item.value, title: 'EXTRACTION.TYPES_MENU.' + item.key + '_DIVIDER'}"
-    >{{ ('EXTRACTION.CATEGORY.' + item.key) | uppercase | translate }}</button>
+    <!-- More than 1 categories -->
+    <ng-template #manyCategories>
+      <button mat-menu-item
+              *ngFor="let item of categories"
+              [matMenuTriggerFor]="typesMenu"
+              [matMenuTriggerData]="{$implicit: item.types, title: 'EXTRACTION.TYPES_MENU.' + item.label + '_DIVIDER'}"
+      >{{ ('EXTRACTION.CATEGORY.' + item.label) | uppercase | translate }}</button>
+    </ng-template>
   </ng-template>
 </mat-menu>
 
 <mat-menu #typesMenu="matMenu" xPosition="after" class="mat-menu-size-400 ion-no-padding">
-  <ng-template matMenuContent let-types="types" let-title="title">
+  <ng-template matMenuContent let-types let-title="title">
     <!-- header-->
     <ion-row class="mat-menu-header ion-no-padding column" *ngIf="title">
       <ion-col>
@@ -323,8 +326,9 @@
           <ion-text color="primary100" class="text-italic" [innerHTML]="'EXTRACTION.TABLE.SELECT_TYPE_HELP'|translate"></ion-text>
         </p>
         <p class="ion-text-center">
-          <ion-button [matMenuTriggerFor]="selectTypeMenu"
-                      *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+          <ion-button *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+                      [matMenuTriggerFor]="selectTypeMenu"
+                      [matMenuTriggerData]="{$implicit: ($categories|async) }"
                       color="tertiary" fill="solid">
             <ion-icon slot="start" name="server"></ion-icon>
             <ion-label [innerHTML]="'EXTRACTION.TABLE.BTN_SELECT_TYPE'|translate"></ion-label>

@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import {ReferentialValidatorService} from "./referential.validator";
 import {Parameter} from "../model/parameter.model";
 import {Referential}  from "@sumaris-net/ngx-components";
@@ -8,12 +8,12 @@ import {Referential}  from "@sumaris-net/ngx-components";
 export class ParameterValidatorService extends ReferentialValidatorService<Parameter> {
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(formBuilder);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
@@ -28,7 +28,7 @@ export class ParameterValidatorService extends ReferentialValidatorService<Param
     } ;
   }
 
-  getQualitativeValuesFormGroup(data?: Referential): FormGroup {
+  getQualitativeValuesFormGroup(data?: Referential): UntypedFormGroup {
     return this.formBuilder.group(super.getFormGroupConfig(data as Parameter));
   }
 }

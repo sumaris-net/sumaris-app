@@ -1,11 +1,11 @@
 @import 'theme.globals';
 
 ion-label.status {
-  font-size: $app-card-status-font-size;
+  font-size: #{$app-card-status-font-size};
   display: flex;
   flex-direction: column;
   & > ion-text:last-child {
-    font-color: $app-card-status-font-color;
+    font-color: #{$app-card-status-font-color};
   }
 }
 

@@ -2,13 +2,14 @@ import { Injectable, Injector } from '@angular/core';
 import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
-  chainPromises, DateUtils,
+  chainPromises,
+  DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
-  EntityUtils, equalsOrNil,
+  EntityUtils,
   firstNotNilPromise,
   FormErrors,
   fromDateISOString,
@@ -23,7 +24,8 @@ import {
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   NetworkService,
-  Person, toDateISOString,
+  Person,
+  toDateISOString,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, EMPTY, Observable } from 'rxjs';
@@ -40,16 +42,16 @@ import { SortDirection } from '@angular/material/sort';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
 import { LandingFilter } from './filter/landing.filter';
-import { DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import { DataEntityAsObjectOptions, DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
 import { TripFragments, TripService } from '@app/trip/services/trip.service';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { ErrorCodes } from '@app/data/services/errors';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
-import { moment } from '@app/vendor';
 import { TripFilter } from '@app/trip/services/filter/trip.filter';
 import { Moment } from 'moment/moment';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
 
 
 export declare interface LandingSaveOptions extends EntitySaveOptions {
@@ -97,9 +99,6 @@ export const LandingFragments = {
     recorderPerson {
       ...LightPersonFragment
     }
-    observers {
-      ...LightPersonFragment
-    }
     measurementValues
     samplesCount
   }
@@ -107,8 +106,7 @@ export const LandingFragments = {
   ${DataCommonFragments.lightDepartment}
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${ReferentialFragments.referential}
-  `,
+  ${ReferentialFragments.referential}`,
 
   landing: gql`fragment LandingFragment on LandingVO {
     id
@@ -456,9 +454,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         // Load remotely
         const res = await this.graphql.query<{ data: any }>({
           query: this.queries.load,
-          variables: {
-            id: id
-          },
+          variables: { id },
           error: {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'},
           fetchPolicy: options && options.fetchPolicy || undefined
         });
@@ -841,7 +837,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
     const maxProgression = opts && opts.maxProgression || 100;
 
     filter = {
-      startDate: moment().startOf('day').add(-15, 'day'),
+      startDate: DateUtils.moment().startOf('day').add(-15, 'day'),
       ...filter
     };
 
@@ -937,8 +933,8 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       const tripFilter = TripFilter.fromObject(<TripFilter>{
         vesselId,
         program,
-        startDate: departureDateTime.clone().add(-1, "minute"),
-        endDate: departureDateTime.clone().add(1, "minute")
+        startDate: departureDateTime.clone().add(-1, 'minute'),
+        endDate: departureDateTime.clone().add(1, 'minute')
       });
 
       const { data: trips } = await this.tripService.loadAll(0, 999, 'departureDateTime', 'desc', tripFilter,
@@ -1095,7 +1091,30 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         if (target.children && target.children.length) {
           this.copyIdAndUpdateDateOnSamples(savedLanding, sources, target.children); // recursive call
         }
+
+        // Update images
+        if (target.images && source.images) {
+          this.copyIdAndUpdateDateOnImages(source, source.images, target.images); // recursive call
+        }
       });
+    }
+  }
+
+  /**
+   * Copy Id and update, on images
+   * @param sources
+   * @param targets
+   */
+  protected copyIdAndUpdateDateOnImages(savedSample: Sample, sources: (ImageAttachment | any)[], targets: ImageAttachment[]) {
+    if (sources && targets && sources.length === targets.length && sources.length > 0) {
+      sources.forEach((source, index) => {
+        // Find by index, as order should not be changed during saving
+        const target = targets[index];
+
+        EntityUtils.copyIdAndUpdateDate(source, target);
+        DataEntityUtils.copyControlDate(source, target);
+        DataEntityUtils.copyQualificationDateAndFlag(source, target);
+      })
     }
   }
 

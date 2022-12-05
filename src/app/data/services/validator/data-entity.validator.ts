@@ -1,8 +1,11 @@
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, FormBuilder, FormGroup } from '@angular/forms';
-import { LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { AppValidatorService, isNotNil, LocalSettingsService, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { DataEntity } from '../model/data-entity.model';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import { Sample } from '@app/trip/services/model/sample.model';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface DataEntityValidatorOptions {
   isOnFieldMode?: boolean;
@@ -12,19 +15,18 @@ export abstract class DataEntityValidatorService<
   T extends DataEntity<T>,
   O extends DataEntityValidatorOptions = DataEntityValidatorOptions
   >
+  extends BaseValidatorService<T, number, O>
   implements ValidatorService {
 
   protected constructor(
-    protected formBuilder: FormBuilder,
-    protected settings?: LocalSettingsService
+    protected formBuilder: UntypedFormBuilder,
+    protected translate: TranslateService,
+    protected settings: LocalSettingsService
     ) {
+    super(formBuilder, translate);
   }
 
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
-  }
-
-  getFormGroup(data?: T, opts?: O): FormGroup {
+  getFormGroup(data?: T, opts?: O): UntypedFormGroup {
 
     opts = this.fillDefaultOptions(opts);
 
@@ -54,7 +56,7 @@ export abstract class DataEntityValidatorService<
     return null;
   }
 
-  updateFormGroup(form: FormGroup, opts?: O) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
     // Must be override by subclasses
     console.warn(`${this.constructor.name}.updateFormGroup() not implemented yet!`);
   }
@@ -64,7 +66,7 @@ export abstract class DataEntityValidatorService<
   protected fillDefaultOptions(opts?: O): O {
     opts = opts || {} as O;
 
-    opts.isOnFieldMode = toBoolean(opts.isOnFieldMode, this.settings?.isOnFieldMode() || false);
+    opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : (this.settings?.isOnFieldMode() || false);
 
     return opts;
   }

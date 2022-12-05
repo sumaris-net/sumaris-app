@@ -44,6 +44,10 @@
 <!--        batchGroupsTable.availableParents: {{subBatchesTable.availableParents?.length||0}}<br/>-->
       </ion-col>
     </ion-row>
+    <ion-row>
+      <ion-button (click)="dumpDebugData('rowValidator')">Dump row</ion-button>
+      <pre>{{debugObject|json}}</pre>
+    </ion-row>
   </ion-grid>
 </app-debug>
 

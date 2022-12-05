@@ -1,11 +1,12 @@
 import {Injectable} from "@angular/core";
 import {ValidatorService} from "@e-is/ngx-material-table";
-import { AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, FormGroup, Validators } from '@angular/forms';
 import {SharedValidators} from "@sumaris-net/ngx-components";
 import {Sample} from "../model/sample.model";
 import {toNumber} from "@sumaris-net/ngx-components";
 import { SampleValidatorOptions, SampleValidatorService } from '@app/trip/services/validator/sample.validator';
 import { TranslateService } from '@ngx-translate/core';
+import {ImageAttachmentValidator} from '@app/data/image/image-attachment.validator';
 
 export interface SubSampleValidatorOptions extends SampleValidatorOptions{
   withParent?: boolean;
@@ -16,9 +17,11 @@ export interface SubSampleValidatorOptions extends SampleValidatorOptions{
 export class SubSampleValidatorService extends SampleValidatorService<SubSampleValidatorOptions> {
 
   constructor(
-    protected formBuilder: FormBuilder,
-    protected translate: TranslateService) {
-    super(formBuilder, translate);
+    protected formBuilder: UntypedFormBuilder,
+    protected translate: TranslateService,
+    protected imageAttachmentValidator: ImageAttachmentValidator
+  ) {
+    super(formBuilder, translate, imageAttachmentValidator);
   }
 
   getFormGroupConfig(data?: any, opts?: SubSampleValidatorOptions): { [p: string]: any } {

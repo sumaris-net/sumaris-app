@@ -1,29 +1,31 @@
-import {DataEntityAsObjectOptions} from './model/data-entity.model';
-import {Directive, Injector} from '@angular/core';
+import { DataEntityAsObjectOptions } from './model/data-entity.model';
+import { Directive, Injector } from '@angular/core';
 import {
-  AccountService, AppErrorWithDetails,
+  AccountService,
+  AppErrorWithDetails,
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
   BaseEntityService,
   BaseEntityServiceOptions,
-  Department, EntitiesServiceWatchOptions, EntityServiceLoadOptions,
+  Department,
+  EntitiesServiceWatchOptions,
+  EntityServiceLoadOptions,
   EntityUtils,
   FormErrors,
   GraphqlService,
   isNil,
   isNotNil,
   Person,
-  PlatformService,
-  ReferentialUtils
+  PlatformService
 } from '@sumaris-net/ngx-components';
-import {IDataEntityQualityService} from './data-quality-service.class';
-import {DataRootEntityUtils, RootDataEntity} from './model/root-data-entity.model';
-import {ErrorCodes} from './errors';
-import {IWithRecorderDepartmentEntity} from './model/model.utils';
-import {RootDataEntityFilter} from './model/root-data-filter.model';
+import { IDataEntityQualityService } from './data-quality-service.class';
+import { DataRootEntityUtils, RootDataEntity } from './model/root-data-entity.model';
+import { ErrorCodes } from './errors';
+import { IWithRecorderDepartmentEntity } from './model/model.utils';
+import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
@@ -75,7 +77,7 @@ export abstract class BaseRootDataService<
       );
   }
 
-  abstract control(entity: T, opts?: any): Promise<AppErrorWithDetails>;
+  abstract control(entity: T, opts?: any): Promise<AppErrorWithDetails|FormErrors>;
 
   async terminate(entity: T): Promise<T> {
     if (!this.mutations.terminate) throw Error('Not implemented');

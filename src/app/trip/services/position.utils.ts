@@ -1,6 +1,6 @@
 import { IPosition } from '@app/trip/services/model/position.model';
-import { isNil } from '@sumaris-net/ngx-components';
-import { Geolocation, GeolocationOptions, Geoposition } from '@ionic-native/geolocation/ngx';
+import { isNil, PlatformService } from '@sumaris-net/ngx-components';
+import { Geolocation, Position, PositionOptions } from '@capacitor/geolocation';
 import { BBox } from 'geojson';
 import { Geometries } from '@app/shared/geometries.utils';
 
@@ -50,27 +50,20 @@ export abstract class PositionUtils {
   /**
    * Get the position by geo loc sensor
    */
-  static async getCurrentPosition(geolocation?: Geolocation, options?: GeolocationOptions): Promise<IPosition> {
-    options = {
-      maximumAge: 30000/*30s*/,
-      timeout: 10000/*10s*/,
-      enableHighAccuracy: true,
-      ...options
-    };
+  static async getCurrentPosition(platform?: PlatformService, options?: PositionOptions): Promise<IPosition> {
 
-    // Use ionic-native plugin
-    if (geolocation) {
-      console.info('[position-utils] Get current geo position, using cordova plugin...')
-      try {
-        const pos: Geoposition = await geolocation.getCurrentPosition(options);
-        return <IPosition>{
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude
-        };
-      } catch (err) {
-        console.error('[position-utils] Cannot get current geo position, using cordova plugin:', err);
-        throw err;
-      }
+    // Use Capacitor plugin
+    try {
+      console.info(`[position-utils] Get current geo position, using Capacitor...(timeout: ${options?.timeout})`);
+      const pos: Position = await Geolocation.getCurrentPosition(options);
+      return <IPosition>{
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude
+      };
+    } catch (err) {
+      console.error('[position-utils] Cannot get current geo position, using Capacitor:', err);
+      // Stop if capacitor (cannot use browser geolocation, because of browser security limitation)
+      if (platform.is('capacitor')) throw err;
     }
 
     // Or fallback to navigator
@@ -83,7 +76,9 @@ export abstract class PositionUtils {
           });
         },
         (err) => {
-          console.error('[position-utils] Cannot get current geo position, using browser:', err);
+          let message = err?.message || err;
+          message = typeof message === 'string' ? message : JSON.stringify(message);
+          console.error('[position-utils] Cannot get current geo position, using browser:' + message);
           reject(err);
         },
         options

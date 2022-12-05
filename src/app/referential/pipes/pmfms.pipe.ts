@@ -1,9 +1,10 @@
 import { Injectable, Pipe, PipeTransform } from '@angular/core';
-import { PmfmValueUtils } from '../services/model/pmfm-value.model';
+import { PmfmValue, PmfmValueUtils } from '../services/model/pmfm-value.model';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { DateFormatPipe, formatLatitude, formatLongitude, isNotNil, isNotNilOrBlank, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
+import { ColorName, DateFormatService, formatLatitude, formatLongitude, isNotNil, isNotNilOrBlank, LocalSettingsService, TranslateContextService } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 @Pipe({
   name: 'pmfmIdString'
@@ -71,6 +72,7 @@ interface PmfmValueOptions {
   showLabelForPmfmIds?: number[];
   applyDisplayConversion?: boolean;
 }
+
 @Pipe({
   name: 'pmfmValue'
 })
@@ -78,7 +80,7 @@ interface PmfmValueOptions {
 export class PmfmValuePipe implements PipeTransform {
 
   constructor(
-    private dateFormatPipe: DateFormatPipe,
+    private dateFormat: DateFormatService,
     private settings: LocalSettingsService
   ) {
   }
@@ -87,9 +89,9 @@ export class PmfmValuePipe implements PipeTransform {
     const type = PmfmUtils.getExtendedType(opts?.pmfm);
     switch (type) {
       case 'date':
-        return this.dateFormatPipe.transform(value, {time: false});
+        return this.dateFormat.transform(value, {time: false});
       case 'dateTime':
-        return this.dateFormatPipe.transform(value, {time: true});
+        return this.dateFormat.transform(value, {time: true});
       case 'duration':
         return value || null;
       case 'latitude':
@@ -125,9 +127,8 @@ export class IsDatePmfmPipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class IsComputedPmfmPipe implements PipeTransform {
 
-  transform(pmfm: IPmfm): any {
-
-    return pmfm && pmfm.isComputed;
+  transform(pmfm: IPmfm): boolean {
+    return pmfm?.isComputed || false;
   }
 }
 
@@ -138,8 +139,8 @@ export class IsComputedPmfmPipe implements PipeTransform {
 @Injectable({providedIn: 'root'})
 export class IsMultiplePmfmPipe implements PipeTransform {
 
-  transform(pmfm: IPmfm): any {
-    return pmfm && pmfm.isMultiple;
+  transform(pmfm: IPmfm): boolean {
+    return pmfm?.isMultiple || false;
   }
 }
 
@@ -160,5 +161,35 @@ export class PmfmFieldStylePipe implements PipeTransform {
       pmfm.type === 'boolean'
       || (pmfm.isQualitative && pmfm.qualitativeValues?.length <= (maxItemCountForButtons || ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS.defaultValue || 4))
     ) ? 'button' : undefined /*default*/;
+  }
+}
+
+
+export type PmfmValueColorFn = (value: PmfmValue, pmfm: IPmfm) => ColorName;
+export interface PmfmValueColorOptions {
+  pmfm: IPmfm;
+  mapWith?: PmfmValueColorFn;
+  css?: boolean; // true by default. If false, will return a ColorName
+}
+
+@Pipe({
+  name: 'pmfmValueColor'
+})
+export class PmfmValueColorPipe implements PipeTransform {
+
+  transform(pmfmValue: any, opts: IPmfm|PmfmValueColorOptions): string | undefined {
+    const pmfm = opts['pmfm'] || <IPmfm>opts;
+    const mapWithFn = typeof opts['mapWith'] === 'function' ? opts['mapWith'] : undefined;
+    if (!pmfm || !mapWithFn) return undefined;
+
+    // Get the color
+    const color = mapWithFn(pmfmValue, pmfm);
+
+    // Transform to CSS color (by default)
+    if (opts['css'] !== false) {
+      return color ? `var(--ion-color-${color})` : undefined;
+    }
+
+    return color;
   }
 }

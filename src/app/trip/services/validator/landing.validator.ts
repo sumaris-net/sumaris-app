@@ -1,5 +1,5 @@
 import {Injectable, Optional} from '@angular/core';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import {LocalSettingsService, SharedValidators, toBoolean, toNumber} from '@sumaris-net/ngx-components';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {MeasurementsValidatorService} from './measurement.validator';
@@ -9,6 +9,7 @@ import {DataRootVesselEntityValidatorService} from '@app/data/services/validator
 import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
 import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
 import {Strategy} from '@app/referential/services/model/strategy.model';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface LandingValidatorOptions extends DataRootEntityValidatorOptions {
   withMeasurements?: boolean;
@@ -21,20 +22,21 @@ export class LandingValidatorService<O extends LandingValidatorOptions = Landing
   extends DataRootVesselEntityValidatorService<Landing, O> {
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
+    settings: LocalSettingsService,
     protected measurementsValidatorService: MeasurementsValidatorService,
-    @Optional() settings?: LocalSettingsService
   ) {
-    super(formBuilder, settings);
+    super(formBuilder,translate, settings);
   }
 
-  getFormGroup(data?: Landing, opts?: O): FormGroup {
+  getFormGroup(data?: Landing, opts?: O): UntypedFormGroup {
 
     const form = super.getFormGroup(data, opts);
 
     // Add measurement form
     if (opts && opts.withMeasurements) {
-      const measForm = form.get('measurementValues') as FormGroup;
+      const measForm = form.get('measurementValues') as UntypedFormGroup;
       const pmfms = (opts.strategy && opts.strategy.denormalizedPmfms)
         || (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms)
         || [];

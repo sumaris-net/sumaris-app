@@ -77,7 +77,7 @@ import { BBox } from 'geojson';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -1689,10 +1689,9 @@ export class TripService
   }): Observable<number>[] {
 
     filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
+    filter = this.asFilter(filter);
 
-    filter = this.asFilter(filter)
     const programLabel = filter && filter.program?.label;
-
     if (programLabel) {
 
       return [

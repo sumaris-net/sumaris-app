@@ -5,7 +5,7 @@ import { Operation } from '@app/trip/services/model/trip.model';
 import { OperationService } from '@app/trip/services/operation.service';
 import { TripService } from '@app/trip/services/trip.service';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 @Component({
   selector: 'app-operation-report',
@@ -48,17 +48,17 @@ export class OperationReport extends AppRootDataReport<Operation> {
     console.debug(`[${this.constructor.name}.computeTitle]`, arguments);
     const titlePrefix = (!opts || opts.withPrefix) && (await this.translate.get('TRIP.OPERATION.TITLE_PREFIX', {
       vessel: data.trip && data.trip.vesselSnapshot && (data.trip.vesselSnapshot.exteriorMarking || data.trip.vesselSnapshot.name),
-      departureDateTime: data.trip && data.trip.departureDateTime && this.dateFormatPipe.transform(data.trip.departureDateTime),
+      departureDateTime: data.trip && data.trip.departureDateTime && this.dateFormat.transform(data.trip.departureDateTime),
     }).toPromise());
     let title: string;
     if (this.settings.mobile) {
       const startDateTime = moment().isSame(data.startDateTime, 'day')
-        ? this.dateFormatPipe.transform(data.startDateTime, { pattern: 'HH:mm' })
-        : this.dateFormatPipe.transform(data.startDateTime, { time: true });
+        ? this.dateFormat.transform(data.startDateTime, { pattern: 'HH:mm' })
+        : this.dateFormat.transform(data.startDateTime, { time: true });
       title = await this.translate.get('TRIP.OPERATION.REPORT.TITLE_NO_RANK', { startDateTime }).toPromise();
     } else {
       const rankOrder = await this.operationService.computeRankOrder(data, { fetchPolicy: 'cache-first' });
-      const startDateTime = this.dateFormatPipe.transform(data.startDateTime, { time: true });
+      const startDateTime = this.dateFormat.transform(data.startDateTime, { time: true });
       title = await this.translate.get('TRIP.OPERATION.REPORT.TITLE', { startDateTime, rankOrder }).toPromise();
     }
     return titlePrefix + title;

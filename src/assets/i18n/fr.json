@@ -140,6 +140,11 @@
       "BTN_COPY_LOCALLY": "Copier en local",
       "BTN_AUTO_FILL": "Remplissage auto"
     },
+    "SHARE": {
+      "BTN_SHARE": "Partager",
+      "BTN_SHARE_DOTS": "Partager...",
+      "DIALOG_TITLE": "Partager"
+    },
     "HELP": {
       "TITLE": "Aide en ligne"
     }
@@ -181,7 +186,7 @@
       "SAMPLE_UNIQUE_TAG": "Persistance > Sample : Vérifier l'unicité du code de prélèvement",
       "SAMPLE_HASH_OPTIMIZATION": "Persistance > Sample : Optimiser la sauvegarde (hash)",
       "BATCH_HASH_OPTIMIZATION": "Persistance > Batch : Optimiser la sauvegarde (hash)",
-      "PHYSICAL_GEAR_OPTIMIZATION": "Persistance > Physical Gear : Optimiser la sauvegarde (hash)",
+      "PHYSICAL_GEAR_HASH_OPTIMIZATION": "Persistance > Physical Gear : Optimiser la sauvegarde (hash)",
       "APP_MIN_VERSION": "App > Version minimale compatible (x.y.z)",
       "HELP_URL": "App > Adresse du manuel utilisateur (URL)",
       "FORUM_URL": "App > Adresse du forum (URL)",
@@ -208,6 +213,9 @@
         "USER": "Libellé du profil Utilisateur",
         "SUPERVISOR": "Libellé du profil Superviseur",
         "GUEST": "Libellé du profil Invité"
+      },
+      "SOCIAL": {
+        "ENABLE_NOTIFICATION_ICONS": "Menu > Afficher les icônes de notifications"
       },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
@@ -277,6 +285,7 @@
       "DATA_SHOW_RECORDER": "Saisie > Afficher le saisisseur ?",
       "DATA_SHOW_OBSERVERS": "Saisie > Afficher les observateurs ?",
       "DATA_IMPORT_DEFAULT_PERIOD": "Saisie hors-ligne > Période à importer (par défaut)",
+      "DATA_IMAGES_ENABLE": "Saisie > Activer la gestion des images",
       "LANDING": {
         "FILTER_PROGRAM": "Sorties > Afficher le filtre sur le programme ?",
         "FILTER_LOCATION": "Sorties > Afficher le filtre sur les lieux ?",
@@ -777,6 +786,9 @@
         "START_DATE" : "Début de période",
         "QUALITY": "État"
       },
+      "SETTINGS": {
+        "GEOLOCATION_TIMEOUT": "Capteur GPS > Délai d'acquisition maximale (secondes)"
+      },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Avant le départ de la marée",
         "FIELD_DATE_AFTER_TRIP": "Après le retour de la marée",
@@ -954,6 +966,7 @@
         "SAMPLE_DATE_PLACEHOLDER": "Date de la mesure",
         "TAXON_GROUP_PLACEHOLDER": "Espèce commerciale (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Espèce scientifique (FAO)",
+        "IMAGES": "Photos",
         "AUCTION_CONTROL": {
           "TITLE": "Lot n°{{label}}",
           "LABEL_PLACEHOLDER": "Numéro du lot"
@@ -978,6 +991,7 @@
         "PARENT": "Prélèvement parent",
         "COMMENTS": "Commentaires",
         "COMMENTS_PLACEHOLDER": "Commentaires",
+        "IMAGES": "Photos",
         "BTN_AUTO_FILL": "Remplir automatiquement",
         "BTN_ADD_PMFM": "Ajouter un PSFM...",
         "WEIGHT": "Poids",
@@ -990,10 +1004,12 @@
         "TAG_COUNT": "<b>{{tagCount}}</b> prélèvement(s)",
         "BTN_INDIVIDUAL_MONITORING": "Saisir le sous-prélèvement",
         "BTN_INDIVIDUAL_RELEASE": "Saisir le relâché",
+        "BTN_IMAGES": "Ajouter des photos",
         "AUCTION_CONTROL": {
           "LABEL": "N° Lot",
           "LABEL_PLACEHOLDER": "N° Lot",
-          "COMMENTS": "Commentaires"
+          "COMMENTS": "Commentaires",
+          "IMAGES": "Photos"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Mesures individuelles",
@@ -1044,7 +1060,6 @@
         "WEIGHT_OR_LENGTH_REQUIRED": "Poids ou taille obligatoire"
       },
       "SETTINGS": {
-        "BURST_MODE_ENABLE": "Échantillons : Activer le mode rafale ?",
         "SAMPLE_WEIGHT_UNIT": "Échantillons : Unite de poids"
       }
     },
@@ -1137,7 +1152,8 @@
       "FISHING_AREA_PLACEHOLDER": "Zone de pêche #",
       "FISHING_AREAS": "Zones de pêche :",
       "AUCTION_CONTROL": {
-        "TITLE": "{{location}} - Contrôle du {{dateTime}}"
+        "TITLE": "{{location}} - Contrôle du {{dateTime}}",
+        "TAB_LANDINGS": "Navires contrôlés"
       },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
@@ -1162,6 +1178,7 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les sorties <b>non envoyées</b>)",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
+        "STRATEGY": "Stratégie",
         "LOCATION": "Lieu de la sortie",
         "START_DATE": "Début de période",
         "END_DATE": "Fin de période"
@@ -1189,20 +1206,22 @@
       "OBSERVATIONS_HAS_SAMPLE": "Les sorties sélectionnées sont liées à des échantillonnages.<br/><br/><b>Êtes-vous sûr</b> de vouloir les supprimer ?"
     },
     "REPORT": {
-      "TITLE": "Raport de sortie - {{ location }} - {{ dateTime }}",
-      "TITLE_SHORT": "Raport de sortie",
+      "TITLE": "Rapport de sortie - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Rapport de sortie",
       "LOCATION": "Lieu :",
       "DATE_TIME": "Date/heure :",
       "OBSERVERS": "Observateur(s) :",
       "VESSEL_COUNT": "Nombre de navire :",
       "SUMMARY_TITLE": "Synthèse globale",
+      "EXPORT_JSON_FILENAME": "Rapport_de_sortie-{{ location }}-{{ dateTime }}.json",
       "SAMPLING": {
         "SUMMARY_TITLE": "Synthèse des échantillonnages"
       },
       "AUCTION_CONTROL": {
-        "TITLE": "Synthèse du suivi des contrôles sous criées : {{ location }} - {{ dateTime }}",
-        "TITLE_SHORT": "Synthèse du suivi des contrôles sous criées",
-        "VESSEL_COUNT": "Nombre de navire contrôlés :"
+        "TITLE": "Synthèse des contrôles : {{ location }} - {{ dateTime }}",
+        "TITLE_SHORT": "Synthèse des contrôles",
+        "VESSEL_COUNT": "Nombre de navires contrôlés :",
+        "EXPORT_JSON_FILENAME": "Rapport_de_contrôle-{{ location }}-{{ dateTime }}.json"
       }
     }
   },
@@ -1267,10 +1286,15 @@
       "DATE_TIME": "Date/Heure :",
       "VESSEL": "Navire :",
       "RECORDER_PERSON": "Saisisseur : ",
+      "EXPORT_JSON_FILENAME": "Rapport-de-débarquement-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
-        "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}} (rapport)",
+        "TITLE": "Ligne de plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Rapport d'échantillonnage",
         "SAMPLES_TITLE": "Mesures individuelles"
+      },
+      "AUCTION_CONTROL": {
+        "EMBEDDED_TITLE": "Contrôle <b>{{species}}</b>",
+        "EXPORT_JSON_FILENAME": "Rapport-de-contrôle.json"
       }
     },
     "SELECT_MODAL": {
@@ -1461,7 +1485,8 @@
       "REPLACE": "Remplacer ce navire temporaire...",
       "REPLACE_CONFIRMATION": "Etes-vous sûr de vouloir remplacer ce navires temporaire avec '{{vessel}}' ?",
       "REPLACE_MANY": "Remplacer les navires temporaires sélectionnés...",
-      "REPLACE_MANY_CONFIRMATION": "Etes-vous sûr de vouloir remplacer les navires temporaires sélectionnés avec '{{vessel}}' ?"
+      "REPLACE_MANY_CONFIRMATION": "Etes-vous sûr de vouloir remplacer les navires temporaires sélectionnés avec '{{vessel}}' ?",
+      "IMPORT_FROM_FILE": "Importer depuis un fichier..."
     },
     "SELECT_MODAL": {
       "TITLE": "Selection du navire",
@@ -1485,7 +1510,8 @@
     },
     "ERROR": {
       "LOAD_ERROR": "Erreur de chargement des navires.",
-      "REPLACE_ERROR": "Erreur de remplacement de navire temporaire.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
+      "REPLACE_ERROR": "Erreur de remplacement de navire temporaire.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>",
+      "SIOP_IMPORT_ERROR": "Erreur lors de l'importation du fichier SIOP.<small><br/>Si le problème persiste, veuillez contacter votre administrateur.</small>"
     }
   },
   "REFERENTIAL": {
@@ -1670,8 +1696,9 @@
       "SOFTWARE": "Logiciels"
     },
     "OPTIONS": {
-      "VESSELS_ENABLE": "Référentiel > Navires: Activer ?",
-      "VESSELS_REPLACEMENT_ENABLE": "Référentiel > Navires > Remplacement: Activer ?"
+      "VESSELS_ENABLE": "Référentiels > Navires: Activer ?",
+      "VESSELS_IMPORT_ENABLE": "Référentiels > Navires: Activer l'importation fichier ?",
+      "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires > Remplacement: Activer ?"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
@@ -2311,6 +2338,7 @@
       "OFFLINE": "Nœud injoignable",
       "SELECT_MODAL": {
         "TITLE": "Nœuds réseau",
+        "BTN_SET_MANUALLY": "Saisir manuellement",
         "HELP": "Veuillez choisir un nœud réseau auquel vous connecter :",
         "NOT_COMPATIBLE_HELP": "Version requise : v{{version}} ou +"
       }
@@ -2359,15 +2387,25 @@
         "COPIED_LOCALLY": "Copier localement avec succès"
       },
       "TYPE_ENUM": {
-        "DEBUG_DATA": "Un problème a été remonté: <b>{{message}}</b><br/>par <a>{{issuer}}</a>",
-        "INBOX_MESSAGE": "Vous avez <b>reçu un message</b><br/>de <a>{{issuer}}</a>",
-        "FEED": "Actualité"
+        "DEBUG_DATA": "Problème remonté par <a>{{issuer}}</a> : <b>{{message}}</b>",
+        "INBOX_MESSAGE": "Vous avez <b>reçu un message</b> de <a>{{issuer}}</a>",
+        "FEED": "Actualité",
+        "JOB": "{{name}}<br/><b>{{status}}</b>"
       }
     },
     "JOB": {
       "PROGRESSION": {
         "TITLE": "Liste des tâches en cours",
         "EMPTY": "Aucune tâche en cours"
+      },
+      "STATUS_ENUM": {
+        "PENDING": "En attente",
+        "RUNNING": "En cours",
+        "SUCCESS": "Terminé avec succès",
+        "WARNING": "Terminé avec avertissements",
+        "ERROR": "Erreur",
+        "FATAL": "Erreur fatale",
+        "CANCELLED": "Annulé"
       }
     },
     "MESSAGE": {
@@ -2392,17 +2430,26 @@
     },
     "ERROR": {
       "LOAD_USER_EVENTS_ERROR": "Erreur de chargement des notifications",
+      "COUNT_USER_EVENT_ERROR": "Erreur de comptage des notifications",
       "SAVE_USER_EVENT_ERROR": "Erreur de sauvegarde de la notification",
-      "SEND_MESSAGE_ERROR": "Erreur lors de l'envoi du message"
+      "SUBSCRIBE_USER_EVENTS_ERROR": "Erreur lors de l'abonnement aux notifications",
+      "SEND_MESSAGE_ERROR": "Erreur lors de l'envoi du message",
+      "LOAD_JOB_PROGRESSIONS_ERROR": "Erreur lors du chargement des tâches",
+      "SUBSCRIBE_JOB_PROGRESSION_ERROR": "Erreur lors de l'abonnement à une tâche"
     },
     "INFO": {
-      "MESSAGE_SENT": "Message <b>envoyé</b> !"
+      "MESSAGE_SENT": "Message <b>envoyé</b>"
     }
   },
   "FILE": {
+    "JSON": {
+      "ENCODING": "UTF-8",
+      "BTN_DOWNLOAD_HELP": "Télécharger les données (JSON)"
+    },
     "CSV": {
       "SEPARATOR": ";",
       "ENCODING": "UTF-8",
+      "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
       "ERROR": {
         "EMPTY_FILE": "Fichier vide, ou ligne d'entête manquante",
         "NO_HEADER_OR_INVALID_SEPARATOR": "Ligne d'entête invalide. vérifier que le séparateur '{{separator}}' est utilisé.",
@@ -2418,7 +2465,12 @@
   },
   "IMAGE": {
     "BTN_CAMERA_SOURCE": "Prendre une photo",
-    "BTN_GALLERY_SOURCE": "Ouvrir la galerie"
+    "BTN_GALLERY_SOURCE": "Ouvrir la galerie",
+    "GALLERY": {
+      "BTN_EDIT_TITLE": "Éditer le titre",
+      "BTN_ADD_TITLE": "Ajouter un titre",
+      "TITLE": "Titre"
+    }
   },
   "ERROR": {
     "ALERT_HEADER": "Erreur",
@@ -2508,7 +2560,8 @@
     "SUBSCRIBE_ERROR": "Echec de l'abonnement distant aux modifications",
     "FIELD_NOT_EXISTS": "Cette valeur n'existe pas",
     "FIREFOX_NO_STORAGE": "L'application ne peut pas fonctionner sur Firefox en mode 'navigation privée' ou si la conservation de l'historique est désactivée",
-    "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>"
+    "FEATURE_NOT_IMPLEMENTED": "Fonctionnalité non implémentée ! <small><br/>Veuillez contacter votre administrateur.</small>",
+    "GEOLOCATION_ERROR": "Erreur de récupération de la position. <small><br/>{{message}}</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

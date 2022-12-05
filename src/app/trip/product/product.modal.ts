@@ -40,7 +40,7 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
   @Input() pmfms: IPmfm[];
   @Input() usageMode: UsageMode;
 
-  @Input() onDelete: (event: UIEvent, data: Product) => Promise<boolean>;
+  @Input() onDelete: (event: Event, data: Product) => Promise<boolean>;
 
   @ViewChild('form', { static: true }) form: ProductForm;
 
@@ -142,7 +142,7 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
     }
   }
 
-  async cancel(event: UIEvent) {
+  async cancel(event: Event) {
     await this.saveIfDirtyAndConfirm(event);
 
     // Continue (if event not cancelled)
@@ -151,7 +151,7 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
     }
   }
 
-  async save(event?: UIEvent, role?: string): Promise<boolean> {
+  async save(event?: Event, role?: string): Promise<boolean> {
     if (!this.form.valid || this.loading) return false;
     this.loading = true;
 
@@ -175,7 +175,7 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
     }
   }
 
-  async delete(event?: UIEvent) {
+  async delete(event?: Event) {
     if (!this.onDelete) return; // Skip
     const result = await this.onDelete(event, this.data);
     if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
@@ -186,7 +186,7 @@ export class ProductModal implements OnInit, OnDestroy, IProductModalOptions {
   }
 
   /* -- protected methods -- */
-  protected async saveIfDirtyAndConfirm(event: UIEvent): Promise<void> {
+  protected async saveIfDirtyAndConfirm(event: Event): Promise<void> {
     if (!this.form.dirty) return; // skip, if nothing to save
 
     const confirmation = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);

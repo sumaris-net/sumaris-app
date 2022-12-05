@@ -38,7 +38,7 @@ export class Batch<
 
   static fromObjectArrayAsTree(sources: any[]): Batch {
     if (!sources) return null;
-    const batches = (sources || []).map(json => Batch.fromObject(json));
+    const batches = (sources || []).map(json => this.fromObject(json));
     const catchBatch = batches.find(b => isNil(b.parentId) && (isNilOrBlank(b.label) || b.label === AcquisitionLevelCodes.CATCH_BATCH)) || undefined;
     if (!catchBatch) return undefined;
     batches.forEach(s => {

@@ -11,7 +11,7 @@ import {
   StatusById,
   StatusList
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { ReferentialFilter } from '../services/filter/referential.filter';
@@ -31,7 +31,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
   readonly statusList = StatusList;
   readonly statusById = StatusById;
 
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
   i18nLevelName: string;
 
@@ -52,7 +52,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
 
   constructor(
     injector: Injector,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService,
     protected cd: ChangeDetectorRef,
   ) {
@@ -121,7 +121,7 @@ export class ReferentialRefTable<T extends Entity<T>, F extends ReferentialFilte
     await this.loadLevels(this.entityName);
   }
 
-  clearControlValue(event: UIEvent, formControl: AbstractControl): boolean {
+  clearControlValue(event: Event, formControl: AbstractControl): boolean {
     if (event) event.stopPropagation(); // Avoid to enter input the field
     formControl.setValue(null);
     return false;

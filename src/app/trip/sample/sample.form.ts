@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppFormUtils, FormArrayHelper, IReferentialRef, isNil, isNilOrBlank, isNotEmptyArray, LoadResult, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { SampleValidatorService } from '../services/validator/sample.validator';
@@ -41,7 +41,7 @@ export class SampleForm extends MeasurementValuesForm<Sample>
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: SampleValidatorService,
     protected subValidatorService: SubSampleValidatorService
@@ -105,6 +105,11 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     this.form.patchValue({children}, opts);
   }
 
+  toggleComment() {
+    this.showComment = !this.showComment;
+    this.markForCheck();
+  }
+
   /* -- protected methods -- */
 
   protected onApplyingEntity(data: Sample, opts?: { [p: string]: any }) {
@@ -141,8 +146,8 @@ export class SampleForm extends MeasurementValuesForm<Sample>
     this.cd.markForCheck();
   }
 
-  protected getChildrenFormHelper(form: FormGroup): FormArrayHelper<Sample> {
-    let arrayControl = form.get('children') as FormArray;
+  protected getChildrenFormHelper(form: UntypedFormGroup): FormArrayHelper<Sample> {
+    let arrayControl = form.get('children') as UntypedFormArray;
     if (!arrayControl) {
       arrayControl = this.formBuilder.array([]);
       form.addControl('children', arrayControl);

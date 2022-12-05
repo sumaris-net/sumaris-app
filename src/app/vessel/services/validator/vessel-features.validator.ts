@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {ValidatorService} from '@e-is/ngx-material-table';
-import {AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
+import {AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {QualityFlagIds} from '../../../referential/services/model/model.enum';
 import {VesselFeatures} from '../model/vessel.model';
 import {fromDateISOString, isNotNil, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
@@ -12,16 +12,16 @@ import {TranslateService} from '@ngx-translate/core';
 @Injectable({providedIn: 'root'})
 export class VesselFeaturesValidatorService<O extends VesselValidatorOptions = VesselValidatorOptions> implements ValidatorService {
 
-  constructor(private formBuilder: FormBuilder,
+  constructor(private formBuilder: UntypedFormBuilder,
               protected dateAdapter: DateAdapter<Moment>,
               protected translate: TranslateService) {
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: VesselFeatures, opts?: O): FormGroup {
+  getFormGroup(data?: VesselFeatures, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     return this.formBuilder.group({
@@ -43,7 +43,7 @@ export class VesselFeaturesValidatorService<O extends VesselValidatorOptions = V
     });
   }
 
-  updateFormGroup(form: FormGroup, opts?: O) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
     const nameControl = form.get('name');
     const startDateControl = form.get('startDate');

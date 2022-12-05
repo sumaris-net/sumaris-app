@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { isObservable, Observable, Subscription } from 'rxjs';
 import { TableElement } from '@e-is/ngx-material-table';
-import { FormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
   AppFormUtils,
   EntityFilter,
@@ -20,7 +20,7 @@ import {
   toBoolean,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements-table.class';
 import { Batch } from '../common/batch.model';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import { SubBatchForm } from './sub-batch.form';
@@ -79,7 +79,12 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFilter>
+export class SubBatchesTable
+  extends BaseMeasurementsTable<SubBatch,
+    SubBatchFilter,
+    InMemoryEntitiesService<SubBatch, SubBatchFilter>,
+    SubBatchValidatorService
+    >
   implements OnInit, OnDestroy {
 
   private _qvPmfm: IPmfm;
@@ -202,8 +207,8 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
   @ViewChild('form', { static: true }) form: SubBatchForm;
 
   constructor(
-    protected injector: Injector,
-    protected validatorService: SubBatchValidatorService,
+    injector: Injector,
+    validatorService: SubBatchValidatorService,
     @Inject(SUB_BATCHES_TABLE_OPTIONS) options: BaseMeasurementsTableConfig<Batch>
   ) {
     super(injector,
@@ -264,7 +269,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
           .subscribe((value) => {
             if (!this.editedRow) return; // Should never occur
             const row = this.editedRow;
-            const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+            const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
             if (ReferentialUtils.isNotEmpty(value) && value.label === QualitativeLabels.DISCARD_OR_LANDING.DISCARD) {
               if (controls[PmfmIds.DISCARD_REASON]) {
                 if (row.validator.enabled) {
@@ -293,7 +298,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
             const row = this.editedRow;
 
             const formEnabled = row.validator.enabled;
-            const controls = (row.validator.controls['measurementValues'] as FormGroup).controls;
+            const controls = (row.validator.controls['measurementValues'] as UntypedFormGroup).controls;
 
             (this.pmfms || []).forEach(pmfm => {
               const enable = !pmfm.isComputed &&
@@ -321,14 +326,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     }
   }
 
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
-    this.memoryDataService.stop();
-    this.memoryDataService = null;
-  }
-
-  async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
+  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>) {
     // Skip if loading,
     // or if previous edited row not confirmed
     if (this.loading) return;
@@ -615,7 +613,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit(row);
       return true;
     }
 
@@ -724,7 +722,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     }
 
     if (!opts || opts.emitEvent !== false) {
-      this.refreshPmfms();
+      await this.refreshPmfms();
       this.markForCheck();
     }
   }
@@ -832,11 +830,12 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     return data;
   }
 
-  protected refreshPmfms() {
+  protected async refreshPmfms() {
     const pmfms = this._initialPmfms;
     if (!pmfms) return; // Not loaded
 
-    this.measurementsDataService.pmfms = this._initialPmfms;
+    this._dataService.pmfms = this._initialPmfms;
+    await this._dataService.waitIdle({stop: this.destroySubject});
 
     this.updateColumns();
   }
@@ -847,7 +846,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     this.cd.markForCheck();
   }
 
-  private async onPrepareRowForm(form: FormGroup) {
+  private async onPrepareRowForm(form: UntypedFormGroup) {
     if (!form) return; // Skip
     console.debug('[sub-batches-table] Initializing row validator');
 
@@ -859,7 +858,7 @@ export class SubBatchesTable extends BaseMeasurementsTable<SubBatch, SubBatchFil
     // Add length -> weight conversion
     this._rowValidatorSubscription?.unsubscribe();
     if (this.enableWeightConversion) {
-      const subscription = await this.validatorService.enableWeightLengthConversion(form, {
+      const subscription = await this.validatorService.delegate.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
         onError: (err) => this.setError(err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),

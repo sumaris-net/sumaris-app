@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from 
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { AcquisitionLevelCodes, SaleTypeIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService, DateUtils,
   EntitiesStorage,
@@ -48,8 +48,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 import { LandingService } from '@app/trip/services/landing.service';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { LandedTripService } from '@app/trip/services/landed-trip.service';
-
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 @Component({
   selector: 'app-landed-trip-page',
@@ -60,6 +59,14 @@ import { moment } from '@app/vendor';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LandedTripPage extends AppRootDataEditor<Trip, TripService> implements OnInit {
+
+  private static TABS = {
+    GENERAL: 0,
+    OPERATION_GROUP: 1,
+    CATCH: 2,
+    SALE: 3,
+    EXPENSE: 4
+  }
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   observedLocationId: number;
@@ -76,7 +83,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   // List of trip's operation groups, use to populate product filter
   $operationGroups = new BehaviorSubject<OperationGroup[]>(null);
-  catchFilterForm: FormGroup;
+  catchFilterForm: UntypedFormGroup;
   $productFilter = new BehaviorSubject<ProductFilter>(undefined);
   $packetFilter = new BehaviorSubject<PacketFilter>(undefined);
 
@@ -104,7 +111,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     protected landingService: LandingService,
     protected accountService: AccountService,
     public network: NetworkService, // Used for DEV (to debug OFFLINE mode)
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
   ) {
     super(injector,
       Trip,
@@ -193,10 +200,20 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   onTabChange(event: MatTabChangeEvent, queryParamName?: string): boolean {
     const changed = super.onTabChange(event, queryParamName);
-    // Force sub-tabgroup realign
     if (changed) {
-      if (this.catchTabGroup && this.selectedTabIndex === 2) this.catchTabGroup.realignInkBar();
-      if (this.expenseForm && this.selectedTabIndex === 4) this.expenseForm.realignInkBar();
+      // Force sub-tabgroup realign
+      switch (this.selectedTabIndex) {
+        case LandedTripPage.TABS.CATCH:
+          this.catchTabGroup?.realignInkBar();
+          break;
+        case LandedTripPage.TABS.EXPENSE:
+          this.expenseForm?.realignInkBar();
+          break;
+      }
+
+      // - Force row confirmation, and force sub-tabgroup realign
+      if (this.operationGroupTable?.dirty) this.operationGroupTable.save();
+
       this.markForCheck();
     }
     return changed;
@@ -474,12 +491,12 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
   }
 
   // todo attention à cette action
-  async onOpenOperationGroup(event: {id?: number, row: TableElement<Trip>}) {
+  async onOpenOperationGroup(row: TableElement<Trip>) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       this.markAsLoading();
       try {
-        await this.router.navigate(['trips', this.data.id, 'operation', event.id],
+        await this.router.navigate(['trips', this.data.id, 'operation', row.currentData.id],
           {
             queryParams: {}
           });
@@ -548,7 +565,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
   /* -- protected methods -- */
 
-  protected get form(): FormGroup {
+  protected get form(): UntypedFormGroup {
     return this.tripForm.form;
   }
 
@@ -699,10 +716,10 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
 
     // todo same for other tables
 
-    return await super.save(event, {...options, ...saveOptions});
+    return super.save(event, {...options, ...saveOptions});
   }
 
-  onNewFabButtonClick(event: UIEvent) {
+  onNewFabButtonClick(event: Event) {
     if (this.showOperationGroupTab && this.selectedTabIndex === 1) {
       this.operationGroupTable.addRow(event);
     }

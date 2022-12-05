@@ -28,11 +28,15 @@
 
 <!-- Row actions menu -->
 <mat-menu #rowActionsMenu="matMenu" xPosition="before">
-  <button mat-menu-item (click)="editRow($event, this.editedRow)">
+  <button mat-menu-item
+          [disabled]="disabled"
+          (click)="editRow($event, this.editedRow)">
     <mat-icon>edit</mat-icon>
     <ion-label translate>COMMON.BTN_EDIT</ion-label>
   </button>
-  <button mat-menu-item (click)="deleteSelection($event)">
+  <button mat-menu-item
+          [disabled]="disabled"
+          (click)="deleteSelection($event)">
     <mat-icon>delete_outline</mat-icon>
     <ion-label translate>COMMON.BTN_DELETE</ion-label>
   </button>
@@ -67,8 +71,8 @@
                             [displayParentPmfm]="displayParentPmfm"
                             [weightDisplayedUnit]="weightDisplayedUnit"
                             [onNewParentClick]="onNewParentClick"
-                            (onSubmit)="doSubmitForm($event, editedRow)"
-                            [isNew]="!editedRow"
+                            (onSubmit)="doSubmitForm($event, selectedRow)"
+                            [isNew]="!selectedRow"
                             [tabindex]="1"
                             [maxVisibleButtons]="maxVisibleButtons"
                             [maxItemCountForButtons]="maxItemCountForButtons"
@@ -175,14 +179,6 @@
             </th>
 
             <td mat-cell *matCellDef="let row">
-              <!-- Show options -->
-              <button mat-icon-button  [title]="'COMMON.BTN_OPTIONS'|translate"
-                      tabindex="-1"
-                      [matMenuTriggerFor]="rowActionsMenu"
-                      (click)="clickRow($event, row)">
-                <mat-icon></mat-icon>
-              </button>
-
             </td>
           </ng-container>
 
@@ -192,6 +188,7 @@
                    [class.mat-row-dirty]="isNewRow(row)"
                    [class.mat-row-selected]="selection.isSelected(row)"
                    [matMenuTriggerFor]="rowActionsMenu"
+                   [matMenuTriggerRestoreFocus]="false"
                    (click)="selectRow($event, row)"
           ></tr>
         </table>

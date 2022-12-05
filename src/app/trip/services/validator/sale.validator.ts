@@ -1,6 +1,6 @@
 import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
-import { fromDateISOString, SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
+import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
+import { fromDateISOString, isNotNil, SharedFormGroupValidators, SharedValidators } from '@sumaris-net/ngx-components';
 import {toBoolean} from "@sumaris-net/ngx-components";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
 import {Sale} from "../model/sale.model";
@@ -23,25 +23,12 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
   extends DataRootEntityValidatorService<Sale, SaleValidatorOptions> {
 
   constructor(
-    protected formBuilder: FormBuilder,
-    protected dateAdapter: DateAdapter<Moment>,
-    protected translate: TranslateService,
-    protected settings: LocalSettingsService) {
-    super(formBuilder, settings);
+    formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
+    settings: LocalSettingsService,
+    protected dateAdapter: DateAdapter<Moment>,) {
+    super(formBuilder, translate, settings);
   }
-
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
-  }
-
-  getFormGroup(data?: Sale, opts?: O): FormGroup {
-    opts = this.fillDefaultOptions(opts);
-    return this.formBuilder.group(
-      this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data, opts)
-    );
-  }
-
 
   getFormGroupConfig(data?: Sale, opts?: O): { [key: string]: any } {
 
@@ -70,7 +57,7 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
     };
   }
 
-  updateFormGroup(form: FormGroup, opts?: O): FormGroup {
+  updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     if (opts.required === true) {
@@ -98,7 +85,7 @@ export class SaleValidatorService<O extends SaleValidatorOptions = SaleValidator
   protected fillDefaultOptions(opts?: O): O {
     opts = opts || {} as O;
 
-    opts.isOnFieldMode = toBoolean(opts.isOnFieldMode, this.settings.isUsageMode('FIELD'));
+    opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : (this.settings?.isOnFieldMode() || false);
 
     opts.required = toBoolean(opts.required, true);
 

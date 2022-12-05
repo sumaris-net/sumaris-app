@@ -93,6 +93,7 @@ export function getMaxRankOrder(values: { rankOrder: number }[]): number {
 }
 
 export function fillRankOrder(values: { rankOrder: number }[]) {
+  if (!values) return; // Skip
   // Compute rankOrder
   let maxRankOrder = getMaxRankOrder(values);
   (values || []).forEach(m => {

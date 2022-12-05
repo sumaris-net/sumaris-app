@@ -79,7 +79,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() i18nSuffix: string;
 
   @Input() openSubBatchesModal: (batchGroup: BatchGroup) => Promise<BatchGroup>;
-  @Input() onDelete: (event: UIEvent, data: Batch) => Promise<boolean>;
+  @Input() onDelete: (event: Event, data: Batch) => Promise<boolean>;
 
   @ViewChild('form', { static: true }) form: BatchGroupForm;
 
@@ -139,9 +139,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.disabled = toBoolean(this.disabled, false);
 
-    if (this.disabled) {
-      this.disable();
-    }
+    if (this.disabled) this.disable();
 
     // Update title, when form change
     this._subscription.add(
@@ -190,14 +188,14 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       console.error('[batch-group-modal] Error while load data: ' + (err && err.message || err), err);
     }
     finally {
-      this.enable();
+      if (!this.disabled) this.enable();
       this.form.markAsUntouched();
       this.form.markAsPristine();
       this.markForCheck();
     }
   }
 
-  async cancel(event?: UIEvent) {
+  async cancel(event?: Event) {
     if (this.dirty) {
       let saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
       if (isNil(saveBeforeLeave) || event && event.defaultPrevented) return; // User cancelled
@@ -267,7 +265,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     }
   }
 
-  async close(event?: UIEvent, opts?: {allowInvalid?: boolean; }): Promise<BatchGroup | undefined> {
+  async close(event?: Event, opts?: {allowInvalid?: boolean; }): Promise<BatchGroup | undefined> {
 
     const savedBatch = await this.save({allowInvalid: true, ...opts});
     if (!savedBatch) return;
@@ -276,7 +274,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     return savedBatch;
   }
 
-  async delete(event?: UIEvent) {
+  async delete(event?: Event) {
     if (!this.onDelete) return; // Skip
     const result = await this.onDelete(event, this.data);
     if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
@@ -286,7 +284,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     }
   }
 
-  async onShowSubBatchesButtonClick(event?: UIEvent) {
+  async onShowSubBatchesButtonClick(event?: Event) {
     if (!this.openSubBatchesModal) return; // Skip
 
     // Save

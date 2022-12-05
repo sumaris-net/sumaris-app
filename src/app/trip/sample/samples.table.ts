@@ -1,11 +1,11 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { SampleValidatorService } from '../services/validator/sample.validator';
+import { SampleValidatorOptions, SampleValidatorService } from '../services/validator/sample.validator';
 import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
 import {
   AppFormUtils,
   AppValidatorService,
-  ColorName,
+  DateUtils,
   firstNotNilPromise,
   InMemoryEntitiesService,
   IReferentialRef,
@@ -16,9 +16,9 @@ import {
   isNotNil,
   isNotNilOrBlank,
   isNotNilOrNaN,
-  LoadResult, LocalSettingsService,
+  LoadResult,
+  LocalSettingsService,
   ObjectMap,
-  PlatformService,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   suggestFromArray,
@@ -27,7 +27,7 @@ import {
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../measurement/measurements-table.class';
 import { ISampleModalOptions, SampleModal } from './sample.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Sample, SampleUtils } from '../services/model/sample.model';
@@ -49,9 +49,10 @@ import { ISubSampleModalOptions, SubSampleModal } from '@app/trip/sample/sub-sam
 import { OverlayEventDetail } from '@ionic/core';
 import { IPmfmForm } from '@app/trip/services/validator/operation.validator';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-
-import { moment } from '@app/vendor';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { AppImageAttachmentsModal, IImageModalOptions } from '@app/data/image/image-attachment.modal';
+import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
+import { PmfmValueColorFn } from '@app/referential/pipes/pmfms.pipe';
 
 declare interface GroupColumnDefinition {
   key: string;
@@ -62,7 +63,7 @@ declare interface GroupColumnDefinition {
 }
 
 export const SAMPLE_RESERVED_START_COLUMNS: string[] = ['label', 'taxonGroup', 'taxonName', 'sampleDate'];
-export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments'];
+export const SAMPLE_RESERVED_END_COLUMNS: string[] = ['comments', 'images'];
 export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
 
 
@@ -81,7 +82,13 @@ export const SAMPLE_TABLE_DEFAULT_I18N_PREFIX = 'TRIP.SAMPLE.TABLE.';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
+export class SamplesTable
+  extends BaseMeasurementsTable<Sample,
+    SampleFilter,
+    InMemoryEntitiesService<Sample, SampleFilter>,
+    SampleValidatorService,
+    BaseMeasurementsTableConfig<Sample>,
+    SampleValidatorOptions> {
 
   private _footerRowsSubscription: Subscription;
 
@@ -98,7 +105,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   showFooter: boolean;
   showTagCount: boolean;
   tagCount$ = new BehaviorSubject<number>(0);
-  pmfmsToCopyOnNewEntity: IPmfm[];
+  existingPmfmIdsToCopy: number[];
 
   @Input() tagIdPmfm: IPmfm;
   @Input() showGroupHeader = false;
@@ -128,6 +135,9 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() allowSubSamples = false;
   @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
+  @Input() computedPmfmGroups: string[];
+  @Input() pmfmIdsToCopy: number[];
+  @Input() pmfmValueColorWith: PmfmValueColorFn = null;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {
@@ -177,6 +187,15 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return this.getShowColumn('taxonName');
   }
 
+  @Input()
+  set showImagesColumn(value: boolean) {
+    this.setShowColumn('images', value);
+  }
+
+  get showImagesColumn(): boolean {
+    return this.getShowColumn('images');
+  }
+
   @Input() availableTaxonGroups: TaxonGroupRef[] = null;
 
   getRowError(row, opts): string {
@@ -204,7 +223,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     super(injector,
       Sample, SampleFilter,
       memoryDataService,
-      injector.get(LocalSettingsService).mobile ? null : injector.get(AppValidatorService),
+      injector.get(LocalSettingsService).mobile ? null : injector.get(SampleValidatorService),
       {
         reservedStartColumns: SAMPLE_RESERVED_START_COLUMNS,
         reservedEndColumns: SAMPLE_RESERVED_END_COLUMNS,
@@ -230,6 +249,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
     // Set default value
     this._acquisitionLevel = null; // Avoid load to early. Need sub classes to set it
+    this.excludesColumns = ['images']; // Hide images by default
 
     //this.debug = false;
     this.debug = !environment.production;
@@ -241,9 +261,6 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     this.allowRowDetail = !this.inlineEdition;
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
-
-    // in DEBUG only: force validator = null
-    if (this.debug && this.mobile) this.setValidatorService(null);
 
     super.ngOnInit();
 
@@ -284,6 +301,12 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     this.pmfmGroupColumns$.complete();
     this.pmfmGroupColumns$.unsubscribe();
     this.memoryDataService.stop();
+  }
+
+  protected configureValidator(opts: MeasurementsTableValidatorOptions) {
+    super.configureValidator(opts);
+
+    this.validatorService.delegateOptions = {withImages: this.showImagesColumn};
   }
 
   /**
@@ -330,6 +353,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       showTaxonName: this.showTaxonNameColumn,
       showIndividualMonitoringButton: this.allowSubSamples && this.showIndividualMonitoringButton || false,
       showIndividualReleaseButton: this.allowSubSamples && this.showIndividualReleaseButton || false,
+      showPictures: this.showImagesColumn,
       onReady: (modal) => {
         this.onPrepareRowForm.emit({
           form: modal.form.form,
@@ -381,16 +405,16 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return {data: (data instanceof Sample ? data : undefined), role};
   }
 
-  async onIndividualMonitoringClick(event: UIEvent, row: TableElement<Sample>) {
+  async onIndividualMonitoringClick(event: Event, row: TableElement<Sample>) {
     return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_MONITORING);
 
   }
 
-  async onIndividualReleaseClick(event: UIEvent, row: TableElement<Sample>) {
+  async onIndividualReleaseClick(event: Event, row: TableElement<Sample>) {
     return this.onSubSampleButtonClick(event, row, AcquisitionLevelCodes.INDIVIDUAL_RELEASE);
   }
 
-  async onSubSampleButtonClick(event: UIEvent,
+  async onSubSampleButtonClick(event: Event,
                                row: TableElement<Sample>,
                                acquisitionLevel: AcquisitionLevelType) {
     if (event) event.preventDefault();
@@ -536,7 +560,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     }
   }
 
-  async openAddPmfmsModal(event?: UIEvent) {
+  async openAddPmfmsModal(event?: Event) {
 
     // If pending rows, save first
     if (this.dirty) {
@@ -562,7 +586,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
    * Not used yet. Implementation must manage stored samples values and different pmfms types (number, string, qualitative values...)
    * @param event
    */
-  async openChangePmfmsModal(event?: UIEvent) {
+  async openChangePmfmsModal(event?: Event) {
     const existingPmfmIds = (this.pmfms || []).map(p => p.id).filter(isNotNil);
 
     const pmfmIds = await this.openSelectPmfmsModal(event, {
@@ -573,6 +597,37 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     if (!pmfmIds) return; // USer cancelled
 
   }
+
+  async openImagesModal(event: Event, row: TableElement<Sample>){
+    event.stopPropagation();
+
+    const modal = await this.modalCtrl.create({
+      component: AppImageAttachmentsModal,
+      componentProps: <IImageModalOptions>{
+        data: row.currentData.images
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+    await modal.present();
+    const {data, role} = await modal.onDidDismiss();
+
+    // User cancel
+    if (isNil(data) || this.disabled) return;
+
+    if (this.inlineEdition && row.validator) {
+      const formArray = row.validator.get('images');
+      formArray.patchValue(data);
+      row.validator.markAsDirty();
+      this.confirmEditCreate();
+      this.markAsDirty();
+    }
+    else {
+      row.currentData.images = data;
+      this.markAsDirty();
+    }
+  }
+
 
   /* -- protected methods -- */
 
@@ -612,7 +667,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
 
     // generate label
     if (!this.showLabelColumn && this.requiredLabel) {
-      data.label = `${this.acquisitionLevel}#${data.rankOrder}`;
+      data.label = `${this.acquisitionLevel||''}#${data.rankOrder}`;
     }
 
     // Default date
@@ -620,7 +675,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
       data.sampleDate = this.defaultSampleDate;
     } else {
       if (this.settings.isOnFieldMode(this.usageMode)) {
-        data.sampleDate = moment();
+        data.sampleDate = DateUtils.moment();
       }
     }
 
@@ -648,14 +703,13 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     }
 
     // Copy some value from previous sample
-    if (previousSample && isNotEmptyArray(this.pmfmsToCopyOnNewEntity)) {
-      this.pmfmsToCopyOnNewEntity
-        .map(pmfm => pmfm.id)
+    if (previousSample && isNotEmptyArray(this.existingPmfmIdsToCopy)) {
+      this.existingPmfmIdsToCopy
         .forEach(pmfmId => {
           if (isNilOrBlank(data.measurementValues[pmfmId])) {
             data.measurementValues[pmfmId] = previousSample.measurementValues[pmfmId];
           }
-        })
+        });
     }
 
     // Reset __typename, to force normalization of all values
@@ -702,7 +756,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit(row);
       return true;
     }
 
@@ -754,7 +808,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     ];
   }
 
-  protected async openSelectPmfmsModal(event?: UIEvent, filter?: Partial<PmfmFilter>,
+  protected async openSelectPmfmsModal(event?: Event, filter?: Partial<PmfmFilter>,
                                        opts?: {
                                          allowMultiple?: boolean;
                                        }): Promise<number[]> {
@@ -767,6 +821,7 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         allowMultiple: opts?.allowMultiple
       },
       keyboardClose: true,
+      backdropDismiss: false,
       cssClass: 'modal-large'
     });
 
@@ -792,8 +847,10 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     // Compute tag id
     this.tagIdPmfm = this.tagIdPmfm || pmfms && pmfms.find(pmfm => pmfm.id === PmfmIds.TAG_ID);
 
-    // Compute pmfms to copy (need by SIH-OBSBIO)
-    this.pmfmsToCopyOnNewEntity = pmfms.filter(pmfm => !pmfm.defaultValue && !pmfm.hidden && pmfm.id === PmfmIds.DRESSING);
+    // Compute pmfms to copy (e.g. need by SIH-OBSBIO)
+    this.existingPmfmIdsToCopy = this.pmfmIdsToCopy
+      && pmfms.filter(pmfm => !pmfm.defaultValue && !pmfm.hidden && this.pmfmIdsToCopy.includes(pmfm.id))
+              .map(pmfm => pmfm.id);
 
     if (this.showGroupHeader) {
       console.debug('[samples-table] Computing Pmfm group header...');
@@ -824,8 +881,15 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
         }
         const cssClass = groupIndex % 2 === 0 ? 'even' : 'odd';
 
+        const computedGroup = this.computedPmfmGroups?.includes(group) || false;
+
         groupPmfms.forEach(pmfm => {
           pmfm = pmfm.clone(); // Clone, to leave original PMFM unchanged
+
+          // Force as computed
+          if (computedGroup && !pmfm.isComputed) {
+            pmfm.isComputed = true;
+          }
 
           // Use rankOrder as a group index (will be used in template, to computed column class)
           if (PmfmUtils.isDenormalizedPmfm(pmfm)) {
@@ -886,22 +950,8 @@ export class SamplesTable extends BaseMeasurementsTable<Sample, SampleFilter> {
     return pmfms;
   }
 
-  openSelectColumnsModal(event?: UIEvent): Promise<any> {
+  openSelectColumnsModal(event?: Event): Promise<any> {
     return super.openSelectColumnsModal(event);
-  }
-
-  getPmfmValueColor(pmfmValue: any, pmfm: IPmfm): string {
-    let color: ColorName;
-    switch (pmfm.id) {
-      case PmfmIds.OUT_OF_SIZE_PCT:
-        if (pmfmValue && pmfmValue > 50) {
-          color = 'danger';
-        } else {
-          color = 'success';
-        }
-        break;
-    }
-    return color ? `var(--ion-color-${color})` : undefined;
   }
 
   protected addFooterListener(pmfms: IPmfm[]) {

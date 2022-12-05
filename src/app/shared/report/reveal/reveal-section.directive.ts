@@ -20,7 +20,9 @@ export class RevealSectionDirective implements OnInit, OnDestroy{
   }
 
   ngOnInit() {
-    console.debug(`[${this.constructor.name}.ngOnInit]`, arguments);
+    // DEBUG
+    //console.debug(`[${this.constructor.name}.ngOnInit]`, arguments);
+
     if (this._reveal) {
       this.startWorkflow(this._reveal);
     }
@@ -40,9 +42,9 @@ export class RevealSectionDirective implements OnInit, OnDestroy{
     else {
       reveal.onSlideChanged
         .pipe(
-          takeUntil(this._destroySubject),
           filter(event => event.currentSlide === this._elementRef.nativeElement),
-          first()
+          first(),
+          takeUntil(this._destroySubject)
         )
         .subscribe(event =>  this.onEntered.emit(event));
     }

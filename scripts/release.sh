@@ -58,9 +58,9 @@ fi
 echo "Current version: $current"
 
 ### Get current version for Android
-currentAndroid=`grep -oP "android-versionCode=\"[0-9]+\"" config.xml | grep -oP "\d+"`
+currentAndroid=`grep -oP "versionCode [0-9]+" android/app/build.gradle | grep -oP "\d+"`
 if [[ "_$currentAndroid" == "_" ]]; then
-  echo ">> Unable to read the current Android version in 'config.xml'. Please check version format is an integer."
+  echo ">> Unable to read the current Android version in 'android/app/build.gradle'. Please check version format is an integer."
   exit 1;
 fi
 echo "Current Android version: $currentAndroid"
@@ -88,11 +88,15 @@ fi
 
 case "$task" in
 rel|pre)
-    # Change the version in files: 'package.json' and 'config.xml'
+    # Change the version in file: 'package.json'
     sed -i "s/version\": \"$current\"/version\": \"$version\"/g" package.json
-    currentConfigXmlVersion=`grep -oP "version=\"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" config.xml | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
-    sed -i "s/ version=\"$currentConfigXmlVersion\"/ version=\"$version\"/g" config.xml
-    sed -i "s/ android-versionCode=\"$currentAndroid\"/ android-versionCode=\"$androidVersion\"/g" config.xml
+
+    # Change versionCode in file: 'android/app/build.gradle'
+    sed -i "s/ versionCode $currentAndroid/ versionCode $androidVersion/g" android/app/build.gradle
+
+    # Change versionName in file: 'android/app/build.gradle'
+    $currentVersionName=`grep -oP "versionName \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" android/app/build.gradle | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
+    sed -i "s/ versionName \"$currentVersionName\"/ versionName \"$version\"/g" android/app/build.gradle
 
     # Change version in file: 'src/assets/manifest.json'
     currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
@@ -109,13 +113,13 @@ esac
 echo "-------------------------------------------"
 echo "- Refresh dependencies..."
 echo "-------------------------------------------"
-yarn
+npm i --no-save
 [[ $? -ne 0 ]] && exit 1
 
 echo "-------------------------------------------"
 echo "- Compiling sources..."
 echo "-------------------------------------------"
-yarn run build.prod
+npm run build.prod
 [[ $? -ne 0 ]] && exit 1
 
 echo "-------------------------------------------"
@@ -129,16 +133,19 @@ fi
 cd $PROJECT_DIR/www
 zip -q -r $ZIP_FILE .
 if [[ $? -ne 0 ]]; then
-  echo "Connot create the archive for the web artifact"
+  echo "Cannot create the archive for the web artifact"
   exit 1
 fi
+
+echo "- Creating web artifact [OK] at \'${ZIP_FILE}\'"
+echo ""
 
 echo "-------------------------------------------"
 echo "- Compiling sources for Android platform..."
 echo "-------------------------------------------"
 
 # Removing previous APK..."
-rm ${PROJECT_DIR}/platforms/android/app/build/outputs/apk/release/*.apk
+rm ${PROJECT_DIR}/android/app/build/outputs/apk/release/*.apk
 
 # Copy generated i18n files, to make sure Android release will use it
 cp ${PROJECT_DIR}/www/assets/i18n/*.json ${PROJECT_DIR}/src/assets/i18n/
@@ -154,6 +161,16 @@ if [[ "_$description" == "_" ]]; then
     description="Release $version"
 fi
 
+echo "**********************************"
+echo " /!\ You should now :"
+echo " - Open Android Studio and Build the release APK..."
+echo " - Then run: "
+echo ""
+echo "cd $PROJECT_DIR/scripts"
+echo "./release-android-sign.sh"
+echo "./release-finish.sh $version ''"$release_description"''"
+echo "./release-to-github.sh $task ''"$release_description"''"
+exit 1
 
 echo "**********************************"
 echo "* Finishing release"

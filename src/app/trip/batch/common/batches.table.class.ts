@@ -1,8 +1,8 @@
 import { ChangeDetectorRef, Directive, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
+import { TableElement } from '@e-is/ngx-material-table';
 import {
   firstArrayValue,
-  InMemoryEntitiesService,
+  IEntitiesService,
   IReferentialRef,
   isEmptyArray,
   isNil,
@@ -10,11 +10,12 @@ import {
   isNotEmptyArray,
   isNotNil,
   LoadResult,
-  ReferentialUtils, removeDuplicatesFromArray,
+  ReferentialUtils,
+  removeDuplicatesFromArray,
   splitByProperty,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
+import { BaseMeasurementsTable, BaseMeasurementsTableConfig } from '../../measurement/measurements-table.class';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { Batch } from './batch.model';
 import { Landing } from '../../services/model/landing.model';
@@ -28,16 +29,27 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { Sale } from '@app/trip/services/model/sale.model';
 import { OverlayEventDetail } from '@ionic/core';
+import { BatchValidatorOptions, BatchValidatorService } from '@app/trip/batch/common/batch.validator';
+import { IEntityWithMeasurement } from '@app/trip/services/model/measurement.model';
 
 export const BATCH_RESERVED_START_COLUMNS: string[] = ['taxonGroup', 'taxonName'];
 export const BATCH_RESERVED_END_COLUMNS: string[] = ['comments'];
 
+export interface AbstractBatchesTableConfig<T extends IEntityWithMeasurement<T>>
+  extends BaseMeasurementsTableConfig<T> {
+  mapPmfms?: undefined; // Avoid to override mapPmfms
+}
+
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AbstractBatchesTable<
-  T extends Batch<any> = Batch<any>,
-  F extends BatchFilter = BatchFilter
-  > extends BaseMeasurementsTable<T, F>
+  T extends Batch<T> = Batch<any>,
+  F extends BatchFilter = BatchFilter,
+  S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
+  V extends BatchValidatorService<T, VO> = BatchValidatorService<T, any>,
+  O extends AbstractBatchesTableConfig<T> = AbstractBatchesTableConfig<T>,
+  VO extends BatchValidatorOptions = BatchValidatorOptions
+  > extends BaseMeasurementsTable<T, F, S, V, O, VO>
   implements OnInit, OnDestroy {
 
   protected _initialPmfms: IPmfm[];
@@ -87,23 +99,21 @@ export abstract class AbstractBatchesTable<
     injector: Injector,
     dataType: new() => T,
     filterType: new() => F,
-    protected memoryDataService: InMemoryEntitiesService<T, F>,
-    validatorService: ValidatorService,
-    options?: BaseMeasurementsTableConfig<T>
+    dataService: S,
+    validatorService: V,
+    options?: O
   ) {
     super(injector,
-      dataType || ((Batch as any) as (new() => T)),
-      filterType || ((BatchFilter as any) as (new() => F)),
-      memoryDataService,
+      dataType,
+      filterType,
+      dataService,
       validatorService,
       {
         reservedStartColumns: BATCH_RESERVED_START_COLUMNS,
         reservedEndColumns: BATCH_RESERVED_END_COLUMNS,
         i18nColumnPrefix: 'TRIP.BATCH.TABLE.',
         i18nPmfmPrefix: 'TRIP.BATCH.PMFM.',
-
         ...options,
-
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
       }
     );
@@ -164,7 +174,7 @@ export abstract class AbstractBatchesTable<
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit(row);
       return true;
     }
 

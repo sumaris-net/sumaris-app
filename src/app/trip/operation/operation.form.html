@@ -461,6 +461,11 @@
 
     <ng-content></ng-content>
 
+    <ion-item lines="none" class="ion-no-padding" *ngIf="mobile" (click)="toggleComment()" tappable>
+      <ion-toggle [checked]="showComment" [disabled]="disabled"></ion-toggle>
+      <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
+    </ion-item>
+
     <!-- Comments -->
     <ion-row *ngIf="showComment">
       <ion-col>
@@ -470,7 +475,7 @@
                     matTextareaAutosize="true" matAutosizeMinRows="4" maxlength="2000"
                     [placeholder]="'TRIP.OPERATION.LIST.COMMENTS'|translate"
                     [tabindex]="tabindex+100"
-                    [required]="isCommentRequired">
+                    [required]="requiredComment">
           </textarea>
           <mat-hint align="end">{{comments.value.length}} / 2000</mat-hint>
           <mat-error *ngIf="form.controls.comments.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>

@@ -28,7 +28,7 @@ import {
   suggestFromArray,
 } from '@sumaris-net/ngx-components';
 import { AppBaseTable, BASE_TABLE_SETTINGS_ENUM, BaseTableConfig } from '@app/shared/table/base.table';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { IonInfiniteScroll, PopoverController } from '@ionic/angular';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
@@ -54,13 +54,14 @@ export const IGNORED_ENTITY_COLUMNS = ['__typename', 'id', 'updateDate'];
 
 @Directive()
 export abstract class BaseReferentialTable<
-  E extends Entity<E, ID>,
-  F extends EntityFilter<any, E, any>,
-  V extends BaseValidatorService<E, ID> = any,
+  T extends Entity<T, ID>,
+  F extends EntityFilter<any, T, any>,
+  S extends IEntitiesService<T, F> = IEntitiesService<T, F>,
+  V extends BaseValidatorService<T, ID> = any,
   ID = number,
-  O extends BaseReferentialTableOptions<E, ID> = BaseReferentialTableOptions<E, ID>
+  O extends BaseReferentialTableOptions<T, ID> = BaseReferentialTableOptions<T, ID>
   >
-  extends AppBaseTable<E, F, V, ID, O>
+  extends AppBaseTable<T, F, S, V, ID, O>
   implements OnInit, AfterViewInit {
 
   /**
@@ -68,7 +69,8 @@ export abstract class BaseReferentialTable<
    * @param dataType
    * @param validatorService
    */
-  static getEntityDisplayProperties<T>(dataType: new () => T, validatorService?: ValidatorService): string[] {
+  static getEntityDisplayProperties<T>(dataType: new () => T,
+                                       validatorService?: ValidatorService): string[] {
     return Object.keys(validatorService && validatorService.getRowValidator().controls || new dataType())
       .filter(key => !IGNORED_ENTITY_COLUMNS.includes(key));
   }
@@ -89,16 +91,15 @@ export abstract class BaseReferentialTable<
   protected popoverController: PopoverController;
   protected propertyFormatPipe: PropertyFormatPipe;
   protected referentialRefService: ReferentialRefService;
-  protected cryptoService: CryptoService;
 
   protected $status = new BehaviorSubject<IStatus[]>(null);
   private readonly withStatusId: boolean
 
   protected constructor(
     injector: Injector,
-    dataType: new () => E,
+    dataType: new () => T,
     filterType: new () => F,
-    entityService: IEntitiesService<E, F>,
+    entityService: S,
     validatorService?: V,
     options?: O
   ) {
@@ -115,14 +116,13 @@ export abstract class BaseReferentialTable<
     this.referentialRefService = injector.get(ReferentialRefService);
     this.propertyFormatPipe = injector.get(PropertyFormatPipe);
     this.popoverController = injector.get(PopoverController);
-    this.cryptoService = injector.get(CryptoService);
     this.title = this.i18nColumnPrefix && (this.i18nColumnPrefix + 'TITLE') || '';
     this.logPrefix = '[base-referential-table] ';
     this.canUpload = options?.canUpload || false;
     this.withStatusId = this.columns.includes('statusId');
 
     const filterFormConfig = this.getFilterFormConfig();
-    this.filterForm = filterFormConfig && injector.get(FormBuilder).group(filterFormConfig);
+    this.filterForm = filterFormConfig && injector.get(UntypedFormBuilder).group(filterFormConfig);
   }
 
   ngOnInit() {
@@ -185,14 +185,14 @@ export abstract class BaseReferentialTable<
   }
 
   async ready(): Promise<void> {
-    await (this.entityService instanceof StartableService
-      ? this.entityService.ready()
+    await (this._dataService instanceof StartableService
+      ? this._dataService.ready()
       : this.settings.ready());
 
     return super.ready();
   }
 
-  async exportToCsv(event: UIEvent) {
+  async exportToCsv(event: Event) {
     const filename = this.getExportFileName();
     const separator = this.getExportSeparator();
     const encoding = this.getExportEncoding();
@@ -204,7 +204,7 @@ export abstract class BaseReferentialTable<
     CsvUtils.exportToFile(rows, {filename, headers, separator, encoding});
   }
 
-  async importFromCsv(event?: UIEvent) {
+  async importFromCsv(event?: Event) {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
         uniqueFile: true,
         fileExtension: '.csv',
@@ -298,7 +298,7 @@ export abstract class BaseReferentialTable<
     return 'UTF-8'; // Default encoding
   }
 
-  protected uploadFile(file: File): Observable<FileEvent<E[]>> {
+  protected uploadFile(file: File): Observable<FileEvent<T[]>> {
     console.info(this.logPrefix + `Importing CSV file ${file.name}...`);
 
     const separator = this.getExportSeparator();
@@ -316,17 +316,17 @@ export abstract class BaseReferentialTable<
           }
           // Unknown event: skip
           else {
-            return of<FileEvent<E[]>>();
+            return of<FileEvent<T[]>>();
           }
         }),
         filter(isNotNil)
       );
   }
 
-  protected uploadCsvRows(rows: string[][]): Observable<FileEvent<E[]>> {
+  protected uploadCsvRows(rows: string[][]): Observable<FileEvent<T[]>> {
     if (!rows || rows.length <= 1) throw {message: 'FILE.CSV.ERROR.EMPTY_FILE'};
 
-    const $progress = new Subject<FileEvent<E[]>>();
+    const $progress = new Subject<FileEvent<T[]>>();
 
     const headerNames = rows.splice(0, 1)[0];
     const total = rows.length;
@@ -365,7 +365,7 @@ export abstract class BaseReferentialTable<
     return $progress.asObservable();
   }
 
-  protected async parseCsvRowsToEntities(headers: FormFieldDefinition[], rows: string[][]): Promise<E[]> {
+  protected async parseCsvRowsToEntities(headers: FormFieldDefinition[], rows: string[][]): Promise<T[]> {
     const defaultValue = this.defaultNewRowValue();
     return rows
       .filter(cells => cells?.length === headers.length)
@@ -405,7 +405,7 @@ export abstract class BaseReferentialTable<
     });
   }
 
-  protected async resolveEntitiesFields(headers: FormFieldDefinition[], entities: E[]): Promise<E[]> {
+  protected async resolveEntitiesFields(headers: FormFieldDefinition[], entities: T[]): Promise<T[]> {
 
     const autocompleteFields = headers.filter(def => def.autocomplete && (!!def.autocomplete.suggestFn || def.autocomplete.items));
     if (isEmptyArray(autocompleteFields)) return entities;
@@ -424,7 +424,7 @@ export abstract class BaseReferentialTable<
         || ((value, opts) => suggestFromArray(autocomplete.items as any[], value, opts));
     });
 
-    const result: E[] = [];
+    const result: T[] = [];
 
     // For each entities
     for (let entity of entities) {
@@ -467,13 +467,13 @@ export abstract class BaseReferentialTable<
 
     // Convert to entity
     return result.map(source => {
-      const target: E = new this.dataType();
+      const target: T = new this.dataType();
       target.fromObject(source);
       return target
     });
   }
 
-  protected async fillEntitiesId(entities: E[]): Promise<E[]> {
+  protected async fillEntitiesId(entities: T[]): Promise<T[]> {
     // TODO: manage pagination - using JobUtils.fetchAllPages() ?
     const existingEntities = (await this.dataSource.getData());
 

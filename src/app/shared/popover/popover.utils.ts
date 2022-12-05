@@ -5,10 +5,10 @@ import { OverlayEventDetail } from '@ionic/core';
 export class Popovers {
 
   static async showText(popoverController: PopoverController,
-                        event: UIEvent,
+                        event: Event,
                         opts: TextPopoverOptions,
                         popoverOpts?: PopoverOptions) : Promise<OverlayEventDetail> {
-    const modal = await popoverController.create({
+    const popover = await popoverController.create({
       component: TextPopover,
       componentProps: opts,
       backdropDismiss: false,
@@ -19,7 +19,7 @@ export class Popovers {
       ...popoverOpts
     });
 
-    await modal.present();
-    return await modal.onDidDismiss();
+    await popover.present();
+    return popover.onDidDismiss();
   }
 }

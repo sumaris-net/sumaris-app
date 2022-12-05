@@ -1,3 +1,9 @@
+:host {
+  .mat-tab-group {
+    --mat-tab-body-content-height: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 1px);
+  }
+}
+
 .partner-logo {
   position: relative;
   display: inline-block;

@@ -1,4 +1,5 @@
-import { AppEnvironment } from '@environments/environment.class';
+import {AppEnvironment} from '@environments/environment.class';
+import {StorageDrivers} from '@sumaris-net/ngx-components';
 
 const pkg = require('../../package.json')
 
@@ -13,7 +14,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   apolloFetchPolicy: "cache-first",
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '1.29.0',
+  peerMinVersion: '1.32.0',
 
   // Check Web new app version
   checkAppVersionIntervalInSeconds: 5 * 60, // every 5min
@@ -64,7 +65,7 @@ export const environment = Object.freeze(<AppEnvironment>{
 
   // Storage
   storage: {
-    driverOrder: ['sqlite', 'indexeddb', 'websql', 'localstorage']
+    driverOrder: [StorageDrivers.SQLLite, StorageDrivers.IndexedDB, StorageDrivers.WebSQL, StorageDrivers.LocalStorage]
   },
 
   account: {

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
 import { OperationGroupValidatorService } from '../services/validator/operation-group.validator';
 import { Observable } from 'rxjs';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
@@ -21,7 +21,6 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
   templateUrl: 'operation-groups.table.html',
   styleUrls: ['operation-groups.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: OperationGroupValidatorService},
     {
       provide: InMemoryEntitiesService,
       useFactory: () => new InMemoryEntitiesService<OperationGroup, OperationGroupFilter>(OperationGroup, OperationGroupFilter,  {
@@ -32,7 +31,11 @@ export const OPERATION_GROUP_RESERVED_END_COLUMNS: string[] = ['comments'];
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, OperationGroupFilter> implements OnInit, OnDestroy {
+export class OperationGroupTable
+  extends BaseMeasurementsTable<OperationGroup, OperationGroupFilter,
+    InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
+    OperationGroupValidatorService>
+  implements OnInit, OnDestroy {
 
   @Input() metiers: Observable<ReferentialRef[]> | ReferentialRef[];
 
@@ -55,15 +58,15 @@ export class OperationGroupTable extends BaseMeasurementsTable<OperationGroup, O
 
   constructor(
     injector: Injector,
-    protected settings: LocalSettingsService,
-    protected validatorService: ValidatorService,
-    protected memoryDataService: InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
+    settings: LocalSettingsService,
+    dataService: InMemoryEntitiesService<OperationGroup, OperationGroupFilter>,
+    validatorService: OperationGroupValidatorService,
     protected metierService: MetierService,
     protected cd: ChangeDetectorRef,
   ) {
     super(injector,
       OperationGroup, OperationGroupFilter,
-      memoryDataService,
+      dataService,
       validatorService,
       {
         reservedStartColumns: settings.mobile ? OPERATION_GROUP_RESERVED_START_COLUMNS : OPERATION_GROUP_RESERVED_START_COLUMNS.concat(OPERATION_GROUP_RESERVED_START_COLUMNS_NOT_MOBILE),

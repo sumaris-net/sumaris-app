@@ -422,7 +422,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.$acquisitionLevels.next(res?.data || []);
   }
 
-  async resetRow(event: UIEvent, row: TableElement<PmfmStrategy>): Promise<boolean> {
+  async resetRow(event: Event, row: TableElement<PmfmStrategy>): Promise<boolean> {
 
     if (event?.defaultPrevented) return false;
 

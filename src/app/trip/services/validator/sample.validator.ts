@@ -1,34 +1,32 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Optional } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { AppValidatorService, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
+import { AbstractControlOptions, UntypedFormBuilder, Validators } from '@angular/forms';
+import { AppFormArray, isNotEmptyArray, SharedFormGroupValidators, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { Sample } from '../model/sample.model';
 import { TranslateService } from '@ngx-translate/core';
+import { ImageAttachmentValidator } from '@app/data/image/image-attachment.validator';
+
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
+import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 
 export interface SampleValidatorOptions {
   requiredLabel?: boolean;
   withChildren?: boolean;
   measurementValuesAsGroup?: boolean;
+  withImages?: boolean;
 }
 
 @Injectable({providedIn: 'root'})
-export class SampleValidatorService<O extends SampleValidatorOptions = SampleValidatorOptions> extends AppValidatorService implements ValidatorService {
+export class SampleValidatorService<O extends SampleValidatorOptions = SampleValidatorOptions>
+  extends BaseValidatorService<Sample, number, O>
+  implements ValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder,
-    protected translate: TranslateService) {
+    protected formBuilder: UntypedFormBuilder,
+    protected translate: TranslateService,
+    @Optional() protected imageAttachmentValidator?: ImageAttachmentValidator
+  ) {
     super(formBuilder, translate);
-  }
-
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
-  }
-
-  getFormGroup(data?: Sample, opts?: O): FormGroup {
-    return this.formBuilder.group(
-      this.getFormGroupConfig(data, opts),
-      this.getFormGroupOptions(data, opts)
-    );
   }
 
   getFormGroupConfig(data?: any, opts?: O): { [p: string]: any } {
@@ -51,11 +49,11 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       children: this.formBuilder.array([]),
       parent: [data && data.parent || null, SharedValidators.entity],
       // Quality properties
+      validationDate: [data && data.validationDate || null],
       controlDate: [data && data.controlDate || null],
       qualificationDate: [data && data.qualificationDate || null],
       qualificationComments: [data && data.qualificationComments || null],
       qualityFlagId: [toNumber(data && data.qualityFlagId, 0)],
-      // TODO: add operationId, saleId, parentId
     }
 
     // Add children form array
@@ -71,6 +69,10 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       config['measurementValues'] = this.formBuilder.control(data?.measurementValues || null);
     }
 
+    // Add image attachments
+    if (this.imageAttachmentValidator && (opts?.withImages === true)) {
+      config['images'] = this.getImagesFormArray(data?.images);
+    }
 
     return config;
   }
@@ -89,6 +91,17 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
     return super.getI18nError(errorKey, errorContent);
   }
 
+  protected getImagesFormArray(data?: ImageAttachment[], opts?: O) {
+    const formArray = new AppFormArray(
+      (image) => this.imageAttachmentValidator.getFormGroup(image),
+      ImageAttachment.equals,
+      ImageAttachment.isEmpty);
+    if (isNotEmptyArray(data)) {
+      formArray.patchValue(data);
+    }
+
+    return formArray;
+  }
 }
 
 

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { AppValidatorService, SharedValidators } from '@sumaris-net/ngx-components';
 import { RoundWeightConversion } from '@app/referential/round-weight-conversion/round-weight-conversion.model';
 
@@ -7,12 +7,12 @@ import { RoundWeightConversion } from '@app/referential/round-weight-conversion/
 export class RoundWeightConversionValidatorService extends AppValidatorService<RoundWeightConversion> {
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
     super(formBuilder);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 

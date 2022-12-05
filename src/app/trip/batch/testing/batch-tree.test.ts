@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { Batch } from '../common/batch.model';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
@@ -44,9 +44,9 @@ export class BatchTreeTestPage implements OnInit {
   $programLabel = new BehaviorSubject<string>(undefined);
   $program = new BehaviorSubject<Program>(null);
   $gearId = new BehaviorSubject<number>(undefined);
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
-  selectedTabIndex = 0; // TODO 0 = mobile
+  selectedTabIndex = 1; // 0 = mobile, 1 = desktop
 
   outputs: {
     [key: string]: string;
@@ -64,7 +64,7 @@ export class BatchTreeTestPage implements OnInit {
   }
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     private entities: EntitiesStorage,
@@ -165,12 +165,13 @@ export class BatchTreeTestPage implements OnInit {
 
     this.filterForm.patchValue({
       //program: {id: 1, label: 'SUMARiS' },
-      //program: {id: 10, label: 'ADAP-MER' },
-      program: {id: 70, label: 'APASE' },
-      //gear: {id: 6, label: 'OTB'},
-      gear: {id: 7, label: 'OTT'},
+      program: {id: 10, label: 'ADAP-MER' },
+      gear: {id: 6, label: 'OTB'},
+      //program: {id: 70, label: 'APASE' },
+      //gear: {id: 7, label: 'OTT'},
       fishingArea: {id: 110, label: '65F1'},
-      example: {id: 1, label: 'default'}
+      //example: {id: 1, label: 'default'}
+      example: {id: 3, label: 'empty'}
     });
 
     this.applyExample();
@@ -218,7 +219,7 @@ export class BatchTreeTestPage implements OnInit {
     this.batchTree.markAsLoaded();
   }
 
-  doSubmit(event?: UIEvent) {
+  doSubmit(event?: Event) {
     // Nothing to do
   }
 
@@ -346,7 +347,7 @@ export class BatchTreeTestPage implements OnInit {
     }
   }
 
-  async save(event: UIEvent, batchTree: BatchTreeComponent, outputName: string) {
+  async save(event: Event, batchTree: BatchTreeComponent, outputName: string) {
     await this.dumpBatchTree(batchTree, outputName, true);
   }
 

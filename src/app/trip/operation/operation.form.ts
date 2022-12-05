@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, Optional, Output } from '@angular/core';
 import { OperationValidatorOptions, OperationValidatorService } from '../services/validator/operation.validator';
-import { Moment } from 'moment';
+import moment, { Moment } from 'moment';
 import {
   AccountService,
   Alerts,
   AppForm,
-  DateFormatPipe,
+  DateFormatService,
   DateUtils,
   EntityUtils,
   firstNotNilPromise,
@@ -29,16 +29,16 @@ import {
   selectInputContent,
   StatusIds,
   suggestFromArray,
-  toBoolean, toNumber,
+  toBoolean,
+  toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Operation, Trip } from '../services/model/trip.model';
 import { BehaviorSubject, combineLatest, merge, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter, map, startWith } from 'rxjs/operators';
 import { METIER_DEFAULT_FILTER } from '@app/referential/services/metier.service';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
 import { OperationService } from '@app/trip/services/operation.service';
 import { AlertController, ModalController } from '@ionic/angular';
 import { ISelectOperationModalOptions, SelectOperationModal } from '@app/trip/operation/select-operation.modal';
@@ -47,7 +47,7 @@ import { Router } from '@angular/router';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
-import { LocationLevelIds, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { LocationLevelGroups, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
@@ -56,8 +56,6 @@ import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-
 import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-
-import { moment } from '@app/vendor';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -93,6 +91,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   private _requiredComment = false;
   private _positionSubscription: Subscription;
   private _usageMode: UsageMode;
+  private _showGeolocationSpinner = true;
 
   startProgram: Date | Moment;
   enableGeolocation: boolean;
@@ -102,7 +101,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   distance: number;
   distanceWarning: boolean;
 
-  isParentOperationControl: FormControl;
+  isParentOperationControl: UntypedFormControl;
   canEditType: boolean;
   $parentOperationLabel = new BehaviorSubject<string>('');
   fishingAreasHelper: FormArrayHelper<FishingArea>;
@@ -121,7 +120,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   @Input() defaultLatitudeSign: '+' | '-';
   @Input() defaultLongitudeSign: '+' | '-';
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
-  @Input() fishingAreaLocationLevelIds: number[] = LocationLevelIds.LOCATIONS_AREA;
+  @Input() fishingAreaLocationLevelIds: number[] = LocationLevelGroups.FISHING_AREA;
   @Input() metierTaxonGroupTypeIds: number[] = [TaxonGroupTypeIds.METIER_DCF_5];
   @Input() maxDistanceWarning: number;
   @Input() maxDistanceError: number;
@@ -208,10 +207,15 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         commentControl.clearValidators();
       }
       commentControl.updateValueAndValidity({emitEvent: !this.loading, onlySelf: true});
+
+      if (this._requiredComment && !this.showComment) {
+        this.showComment = true;
+        this.markForCheck();
+      }
     }
   }
 
-  get isCommentRequired(): boolean {
+  get requiredComment(): boolean {
     return this._requiredComment;
   }
 
@@ -223,24 +227,24 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this.setTrip(value);
   }
 
-  get parentControl(): FormControl {
-    return this.form?.controls.parentOperation as FormControl;
+  get parentControl(): UntypedFormControl {
+    return this.form?.controls.parentOperation as UntypedFormControl;
   }
 
-  get childControl(): FormControl {
-    return this.form?.controls.childOperation as FormControl;
+  get childControl(): UntypedFormControl {
+    return this.form?.controls.childOperation as UntypedFormControl;
   }
 
-  get fishingAreasForm(): FormArray {
-    return this.form?.controls.fishingAreas as FormArray;
+  get fishingAreasForm(): UntypedFormArray {
+    return this.form?.controls.fishingAreas as UntypedFormArray;
   }
 
-  get qualityFlagControl(): FormControl {
-    return this.form?.controls.qualityFlagId as FormControl;
+  get qualityFlagControl(): UntypedFormControl {
+    return this.form?.controls.qualityFlagId as UntypedFormControl;
   }
 
-  get physicalGearControl(): FormControl {
-    return this.form?.controls.physicalGear as FormControl;
+  get physicalGearControl(): UntypedFormControl {
+    return this.form?.controls.physicalGear as UntypedFormControl;
   }
 
   get isParentOperation(): boolean {
@@ -309,7 +313,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   constructor(
     injector: Injector,
     protected router: Router,
-    protected dateFormat: DateFormatPipe,
+    protected dateFormat: DateFormatService,
     protected validatorService: OperationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected modalCtrl: ModalController,
@@ -318,7 +322,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     protected operationService: OperationService,
     protected physicalGearService: PhysicalGearService,
     protected pmfmService: PmfmService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected cd: ChangeDetectorRef,
     @Optional() protected geolocation: Geolocation
@@ -328,7 +332,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this.i18nFieldPrefix = 'TRIP.OPERATION.EDIT.';
 
     // A boolean control, to store if parent is a parent or child operation
-    this.isParentOperationControl = new FormControl(true, Validators.required);
+    this.isParentOperationControl = new UntypedFormControl(true, Validators.required);
   }
 
   ngOnInit() {
@@ -570,16 +574,38 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
    * Get the position by GPS sensor
    * @param fieldName
    */
-  async onFillPositionClick(event: UIEvent, fieldName: string) {
+  async onFillPositionClick(event: Event, fieldName: string) {
 
     if (event) {
       event.preventDefault();
       event.stopPropagation(); // Avoid focus into the longitude field
     }
     const positionGroup = this.form.controls[fieldName];
-    if (positionGroup && positionGroup instanceof FormGroup) {
-      const coords = await this.operationService.getCurrentPosition();
-      positionGroup.patchValue(coords, {emitEvent: false, onlySelf: true});
+    if (positionGroup && positionGroup instanceof UntypedFormGroup) {
+      try {
+        // Show loading spinner, when first time
+        if (this._showGeolocationSpinner) this.markAsLoading();
+
+        // Get position
+        const coords = await this.operationService.getCurrentPosition();
+        positionGroup.patchValue(coords, {emitEvent: false, onlySelf: true});
+
+        // OK, next time not need to show a spinner
+        this._showGeolocationSpinner = false;
+      }
+      catch(err) {
+        this._showGeolocationSpinner = true;
+
+        // Display error to user
+        let message = err?.message || err;
+        if (typeof message === 'object') message = JSON.stringify(message);
+        this.setError(this.translate.instant('ERROR.GEOLOCATION_ERROR', {message: this.translate.instant(message)}));
+        return; // Stop here
+      }
+      finally {
+        // Hide loading spinner
+        if (this.loading) this.markAsLoaded();
+      }
     }
     // Set also the end date time
     if (fieldName === 'endPosition') {
@@ -595,7 +621,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     this.markForCheck();
   }
 
-  copyPosition(event: UIEvent, source: PositionField, target?: PositionField) {
+  copyPosition(event: Event, source: PositionField, target?: PositionField) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -799,7 +825,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
   }
 
-  async toggleMetierFilter(event: UIEvent, field?: MatAutocompleteField) {
+  async toggleMetierFilter(event: Event, field?: MatAutocompleteField) {
     if (event) event.preventDefault();
 
     this.toggleFilter('metier');
@@ -1181,7 +1207,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
   }
 
-  protected initFishingAreas(form: FormGroup) {
+  protected initFishingAreas(form: UntypedFormGroup) {
     this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
       FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),
       (fishingArea) => this.fishingAreaValidatorService.getFormGroup(fishingArea, {required: true}),

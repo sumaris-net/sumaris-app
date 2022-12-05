@@ -13,6 +13,7 @@ export class ProgramFilter extends BaseReferentialFilter<ProgramFilter, Program>
   withProperty?: string;
   minUpdateDate?: Moment;
   acquisitionLevelLabels?: string[];
+  strategyIds: number[];
 
   constructor() {
     super();
@@ -41,6 +42,8 @@ export class ProgramFilter extends BaseReferentialFilter<ProgramFilter, Program>
       }
       // In all case, delete this attributes (not exists in the pod)
       delete target.searchAttributes;
+
+      delete target.strategyIds;
     }
     return target;
   }

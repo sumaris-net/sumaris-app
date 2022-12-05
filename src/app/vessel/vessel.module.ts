@@ -14,10 +14,14 @@ import { VesselRegistrationHistoryComponent } from './page/vessel-registration-h
 import { AppReferentialModule } from '../referential/referential.module';
 import { AppCoreModule } from '@app/core/core.module';
 import { SelectVesselsModal } from '@app/vessel/modal/select-vessel.modal';
+import { SharedModule } from '@sumaris-net/ngx-components';
+import { IonicModule } from '@ionic/angular';
 
 @NgModule({
   imports: [
+    SharedModule,
     CommonModule,
+    IonicModule,
     TextMaskModule,
     TranslateModule.forChild(),
 
@@ -40,6 +44,7 @@ import { SelectVesselsModal } from '@app/vessel/modal/select-vessel.modal';
     ToRegistrationCodeDirective
   ],
   exports: [
+    SharedModule,
     TranslateModule,
 
     // Components

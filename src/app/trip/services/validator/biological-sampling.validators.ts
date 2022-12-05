@@ -1,14 +1,15 @@
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { DenormalizedPmfmStrategy } from '../../../referential/services/model/pmfm-strategy.model';
 import { Subscription } from 'rxjs';
-import { isNotNil, isNotNilOrBlank, ObjectMap } from '@sumaris-net/ngx-components';
+import { AppFormUtils, isNotNil, isNotNilOrBlank, ObjectMap } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../../referential/services/model/model.enum';
 import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
 
 export class BiologicalSamplingValidators {
 
 
-  static addSampleValidators(form: FormGroup, pmfms: DenormalizedPmfmStrategy[],
+  static addSampleValidators(form: UntypedFormGroup,
+                             pmfms: DenormalizedPmfmStrategy[],
                              pmfmGroups: ObjectMap<number[]>,
                              opts?: { markForCheck: () => void }): Subscription {
     if (!form) {
@@ -19,6 +20,18 @@ export class BiologicalSamplingValidators {
       console.warn("Argument 'pmfmGroups' required");
       return null;
     }
+
+    pmfms.filter(p => (pmfmGroups.AGE||[]).includes(p.id))
+      .filter(p => !p.isComputed)
+      .forEach(p => {
+        p.isComputed = true;
+      })
+
+    // Disable computed pmfms
+    AppFormUtils.disableControls(form,
+      pmfms
+        .filter(p => p.isComputed)
+        .map(p => `measurementValues.${p.id}`), {onlySelf: true, emitEvent: false});
 
     // DEBUG
     //console.debug('Calling BiologicalSamplingValidators.addSampleValidators()')

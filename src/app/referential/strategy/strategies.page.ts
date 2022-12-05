@@ -100,11 +100,11 @@ export class StrategiesPage implements OnInit {
     }
   }
 
-  async onOpenRow({ id, row }: { id?: number; row: TableElement<any>; }) {
+  async onOpenRow<T extends Strategy<any>>(row: TableElement<T>) {
 
     this.markAsLoading();
     setTimeout(async () => {
-      await this.router.navigate(['referential', 'programs', this.data.id, 'strategy', this.strategyEditor, id], {
+      await this.router.navigate(['referential', 'programs', this.data.id, 'strategy', this.strategyEditor, row.currentData.id], {
         queryParams: {}
       });
       this.markAsLoaded();
@@ -143,11 +143,11 @@ export class StrategiesPage implements OnInit {
     this.table?.doRefresh(event)
   }
 
-  resetFilter(event?: UIEvent) {
+  resetFilter(event?: Event) {
     this.samplingTable?.resetFilter(event);
   }
 
-  async openStrategyDuplicateModal(event: UIEvent) {
+  async openStrategyDuplicateModal(event: Event) {
     await this.samplingTable?.openStrategyDuplicateYearSelectionModal(event, this.samplingTable.selection.selected);
   }
 

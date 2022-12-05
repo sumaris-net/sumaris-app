@@ -1,8 +1,8 @@
 <app-toolbar [title]="$title | async" color="primary"
-             [hasValidate]="!loading && dirty"
+             [hasValidate]="!loading && (dirty || saving)"
+             [hasClose]="!loading && (!dirty && !saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
-             [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
              [backHref]="defaultBackHref"
              [canGoBack]="true">
@@ -26,11 +26,12 @@
       </button>
     </ng-container>
 
-    <ion-button *ngIf="enabled && !isNewData || debug"
-                [matMenuTriggerFor]="optionsMenu"
-                [title]=" 'COMMON.BTN_OPTIONS'|translate">
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
+    <button slot="end" mat-icon-button
+            *ngIf="enabled && !isNewData || debug"
+            [matMenuTriggerFor]="optionsMenu"
+            [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon>more_vert</mat-icon>
+    </button>
   </ion-buttons>
 </app-toolbar>
 
@@ -151,7 +152,7 @@
                          (maxDateChanges)="saleForm.minDate = $event">
                 <!-- sale -->
                 <form-sale #saleForm
-                           [class.cdk-visually-hidden]="!(measurementsForm.readySubject|async) && !showSaleForm"
+                           [class.cdk-visually-hidden]="!(showSaleForm && measurementsForm.readySubject|async)"
                            [showVessel]="false"
                            [showError]="false"
                            [showComment]="false"

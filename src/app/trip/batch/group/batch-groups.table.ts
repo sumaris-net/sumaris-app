@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { FormGroup, Validators } from '@angular/forms';
-import { BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
+import { UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractBatchesTableConfig, BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
   ColumnItem,
@@ -16,7 +16,8 @@ import {
   isNotNilOrNaN,
   LoadResult,
   LocalSettingsService,
-  ReferentialRef, ReferentialUtils,
+  ReferentialRef,
+  ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SETTINGS_DISPLAY_COLUMNS,
@@ -33,7 +34,7 @@ import { Observable, Subject, Subscription } from 'rxjs';
 import { map, takeUntil, tap } from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { BatchGroupValidatorService } from './batch-group.validator';
+import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -45,6 +46,7 @@ import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class';
 import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
+import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -93,7 +95,14 @@ declare interface GroupColumnDefinition {
   styleUrls: ['batch-groups.table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
+export class BatchGroupsTable extends AbstractBatchesTable<
+  BatchGroup,
+  BatchFilter,
+  InMemoryEntitiesService<BatchGroup, BatchFilter>,
+  BatchGroupValidatorService,
+  AbstractBatchesTableConfig<BatchGroup>,
+  BatchGroupValidatorOptions
+  > {
 
   static BASE_DYNAMIC_COLUMNS: Partial<BatchGroupColumnDefinition>[] = [
     // Column on total (weight, nb indiv)
@@ -148,7 +157,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       computed: (batch) => batch?.children[0]?.weight?.computed || false
     },
     {
-      type: 'string',
+      type: 'double',
       key: 'samplingIndividualCount',
       path: 'children.0.individualCount',
       label: 'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT',
@@ -165,7 +174,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
   private _speciesPmfms: IPmfm[]; // Pmfms at species level (when has QV pmfm)
   private _childrenPmfms: IPmfm[]; // Pmfms ar children levels (if has QV pmfms) or species levels (if no QV Pmfm)
 
-  weightMethodForm: FormGroup;
+  weightMethodForm: UntypedFormGroup;
   estimatedWeightPmfm: IPmfm;
   dynamicColumns: BatchGroupColumnDefinition[];
 
@@ -220,10 +229,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     if (this._showSamplingBatchColumns !== value) {
       this._showSamplingBatchColumns = value;
 
-      if (this.batchGroupValidator && this.inlineEdition) {
-        this.batchGroupValidator.enableSamplingBatch = value;
+      if (this.validatorService) {
+        this.configureValidator(this.validatorService.measurementsOptions);
       }
+
       this.setModalOption('showSamplingBatch', value);
+
       // updateColumns only if pmfms are ready
       if (!this.loading && this._initialPmfms) {
         this.computeDynamicColumns(this.qvPmfm, {cache: false /* no cache, to force computed */ });
@@ -271,7 +282,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
   constructor(
     injector: Injector,
-    protected batchGroupValidator: BatchGroupValidatorService,
+    validatorService: BatchGroupValidatorService,
     protected context: TripContextService,
     protected pmfmNamePipe: PmfmNamePipe
   ) {
@@ -286,12 +297,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
         }
       }),
       // Force no validator (readonly mode, if mobile)
-      injector.get(LocalSettingsService).mobile ? null : batchGroupValidator,
+      injector.get(LocalSettingsService).mobile ? null : validatorService,
       {
         // Need to set additional validator here
         // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
         //       e.g. When we add some validator (see operation page), so new row should always be INVALID with those additional validators
-        onRowCreated: (row) => this.onPrepareRowForm(row.validator)
+        onPrepareRowForm: (form) => this.onPrepareRowForm(form)
       }
     );
 
@@ -318,7 +329,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     this.showIndividualCountColumns = toBoolean(this.showIndividualCountColumns, !this.mobile);
 
     // in DEBUG only: force validator = null
-    if (this.debug && this.mobile) this.setValidatorService(null);
+    //if (this.debug && this.mobile) this.setValidatorService(null);
 
     super.ngOnInit();
 
@@ -330,17 +341,25 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    this.memoryDataService.stop();
-    this.memoryDataService = null;
   }
 
-  protected applyPmfms(pmfms: IPmfm[]) {
-    this.markAsLoading();
-    // if (this.measurementsDataService.started) {
-    //   this.measurementsDataService.restart();
-    // }
-    this.measurementsDataService.pmfms = pmfms;
+  protected configureValidator(opts?: MeasurementsTableValidatorOptions) {
+    this.validatorService.measurementsOptions = null; // disable
+    this.validatorService.delegateOptions = {
+      qvPmfm: this.qvPmfm,
+      withMeasurements: false,
+      pmfms: this._speciesPmfms,
+      childrenPmfms: this._childrenPmfms,
+      enableSamplingBatch: this.showSamplingBatchColumns
+    };
   }
+
+  // getRowValidator(data?: BatchGroup, opts?: any): UntypedFormGroup {
+  //   return super.getRowValidator(data, {
+  //     qvPmfm: this.qvPmfm,
+  //     ...opts
+  //   });
+  // }
 
   translateControlPath(path: string): string {
     if (path.startsWith('.measurementValues.')) {
@@ -680,7 +699,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return batch;
   }
 
-  async onSubBatchesClick(event: UIEvent,
+  async onSubBatchesClick(event: Event,
                           row: TableElement<BatchGroup>,
                           opts?: { showParent?: boolean; emitLoaded?: boolean; }) {
     if (event) event.preventDefault();
@@ -727,14 +746,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     else {
       this._speciesPmfms = this._initialPmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
       this._childrenPmfms = [];
-    }
-
-    // Configure row validator
-    if (this.inlineEdition && this.batchGroupValidator) {
-      this.batchGroupValidator.qvPmfm = this.qvPmfm;
-      this.batchGroupValidator.pmfms = this._speciesPmfms;
-      this.batchGroupValidator.childrenPmfms = this._childrenPmfms;
-      this.batchGroupValidator.enableSamplingBatch = this.showSamplingBatchColumns;
     }
 
     // Init dynamic columns
@@ -958,7 +969,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     if (!this.loading) this.markForCheck();
   }
 
-  deleteSelection(event: UIEvent): Promise<number> {
+  deleteSelection(event: Event): Promise<number> {
     return super.deleteSelection(event);
   }
 
@@ -1142,7 +1153,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     return {data: data instanceof BatchGroup ? data : undefined, role};
   }
 
-  async openSelectColumnsModal(event?: UIEvent) {
+  async openSelectColumnsModal(event?: Event) {
 
     let userColumns = this.getUserColumns();
     const hiddenColumns = DEFAULT_USER_COLUMNS.slice(0)
@@ -1279,7 +1290,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     // generate label (override default)
     data.label = this.labelPrefix
       ? `${this.labelPrefix}${data.rankOrder}`
-      : `${this.acquisitionLevel}#${data.rankOrder}`;
+      : `${this.acquisitionLevel||''}#${data.rankOrder}`;
 
     // Default taxon name
     if (isNotNil(this.defaultTaxonName)) {
@@ -1345,14 +1356,14 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
     }
   }
 
-  private onPrepareRowForm(form?: FormGroup) {
+  private onPrepareRowForm(form?: UntypedFormGroup) {
     if (!form) return; // Skip
     console.debug('[batch-group-table] Init row validator');
 
     // Add computation and validation
     this._rowValidatorSubscription?.unsubscribe();
     const requiredSampleWeight = (form && form.value?.observedIndividualCount || 0) > 0;
-    const subscription = this.batchGroupValidator.enableSamplingRatioAndWeight(form, {
+    const subscription = this.validatorService.delegate.enableSamplingRatioAndWeight(form, {
       qvPmfm: this.qvPmfm,
       samplingRatioFormat: this.samplingRatioFormat,
       requiredSampleWeight,
@@ -1381,5 +1392,15 @@ export class BatchGroupsTable extends AbstractBatchesTable<BatchGroup> {
       this._rowValidatorSubscription?.unsubscribe();
     }
     return confirmed;
+  }
+
+
+  getDebugData(type:'rowValidator'): any {
+    switch (type) {
+      case 'rowValidator':
+        const form = this.validatorService.getRowValidator();
+        form.disable();
+        return form;
+    }
   }
 }

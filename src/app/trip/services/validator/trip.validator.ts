@@ -1,14 +1,15 @@
-import {Injectable} from '@angular/core';
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from '@angular/forms';
-import { isNotNil, LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
-import {SaleValidatorService} from './sale.validator';
-import {MeasurementsValidatorService} from './measurement.validator';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {Trip} from '../model/trip.model';
-import {DataRootEntityValidatorOptions} from '@app/data/services/validator/root-data-entity.validator';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {DataRootVesselEntityValidatorService} from '@app/data/services/validator/root-vessel-entity.validator';
-import {FishingAreaValidatorService} from '@app/trip/services/validator/fishing-area.validator';
+import { Injectable } from '@angular/core';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { SaleValidatorService } from './sale.validator';
+import { MeasurementsValidatorService } from './measurement.validator';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { Trip } from '../model/trip.model';
+import { DataRootEntityValidatorOptions } from '@app/data/services/validator/root-data-entity.validator';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { DataRootVesselEntityValidatorService } from '@app/data/services/validator/root-vessel-entity.validator';
+import { FishingAreaValidatorService } from '@app/trip/services/validator/fishing-area.validator';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface TripValidatorOptions extends DataRootEntityValidatorOptions {
   withSale?: boolean;
@@ -30,16 +31,17 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   static readonly DEFAULT_MAX_DURATION_HOURS = 100 * 24; // 100 days
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService,
     protected saleValidator: SaleValidatorService,
     protected fishingAreaValidator: FishingAreaValidatorService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
-  getFormGroup(data?: Trip, opts?: O): FormGroup {
+  getFormGroup(data?: Trip, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
@@ -108,7 +110,7 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     };
   }
 
-  updateFormGroup(form: FormGroup, opts?: O): FormGroup {
+  updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     form.get('returnLocation').setValidators(!opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);

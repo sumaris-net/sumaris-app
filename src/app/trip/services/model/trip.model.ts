@@ -1,7 +1,7 @@
-import { isMoment, Moment } from 'moment';
-import { DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '@app/data/services/model/data-entity.model';
-import { Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
-import { Sale } from './sale.model';
+import {isMoment, Moment} from 'moment';
+import {DataEntity, DataEntityAsObjectOptions, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '@app/data/services/model/data-entity.model';
+import {Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from './measurement.model';
+import {Sale} from './sale.model';
 import {
   DateUtils,
   EntityClass,
@@ -14,28 +14,27 @@ import {
   Person,
   ReferentialAsObjectOptions,
   ReferentialRef,
-  toBoolean,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
-import { FishingArea } from '@app/data/services/model/fishing-area.model';
-import { DataRootVesselEntity } from '@app/data/services/model/root-vessel-entity.model';
-import { IWithObserversEntity } from '@app/data/services/model/model.utils';
-import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
-import { Landing } from './landing.model';
-import { Sample } from './sample.model';
-import { Batch } from '../../batch/common/batch.model';
-import { IWithProductsEntity, Product } from './product.model';
-import { IWithPacketsEntity, Packet } from './packet.model';
-import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
-import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { Metier } from '@app/referential/services/model/metier.model';
-import { SortDirection } from '@angular/material/sort';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { VesselPosition } from '@app/data/services/model/vessel-position.model';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { OperationPasteFlags } from '@app/referential/services/config/program.config';
-import { hasFlag } from '@app/shared/flags.utils';
-import { PositionUtils } from '@app/trip/services/position.utils';
+import {FishingArea} from '@app/data/services/model/fishing-area.model';
+import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
+import {IWithObserversEntity} from '@app/data/services/model/model.utils';
+import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
+import {Landing} from './landing.model';
+import {Sample} from './sample.model';
+import {Batch} from '../../batch/common/batch.model';
+import {IWithProductsEntity, Product} from './product.model';
+import {IWithPacketsEntity, Packet} from './packet.model';
+import {ExpectedSale} from '@app/trip/services/model/expected-sale.model';
+import {VesselSnapshot} from '@app/referential/services/model/vessel-snapshot.model';
+import {Metier} from '@app/referential/services/model/metier.model';
+import {SortDirection} from '@angular/material/sort';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
+import {VesselPosition} from '@app/data/services/model/vessel-position.model';
+import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
+import {OperationPasteFlags} from '@app/referential/services/config/program.config';
+import {hasFlag} from '@app/shared/flags.utils';
+import {PositionUtils} from '@app/trip/services/position.utils';
 
 /* -- Helper function -- */
 
@@ -64,6 +63,7 @@ export const MINIFY_OPERATION_FOR_LOCAL_STORAGE = Object.freeze(<OperationAsObje
 
 export const FISHING_AREAS_LOCATION_REGEXP = /^fishingAreas\.[0-9]+\.location$/;
 export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndPosition|endPosition$/
+
 
 @EntityClass({typename: 'OperationVO'})
 export class Operation
@@ -592,6 +592,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
 
     // Operation groups
     target.operationGroups = this.operationGroups && this.operationGroups.filter(isNotNil).map(o => o.asObject(opts)) || undefined;
+    // FIXME: remove in the future, to allow sampling landing page to force as empty (=[]) and avoid a refetch after saving, on pod
     if (isEmptyArray(target.operationGroups)) delete target.operationGroups; // Clean if empty, for compat with previous version
 
     // Fishing areas

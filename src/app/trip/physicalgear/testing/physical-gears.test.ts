@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import {
@@ -39,7 +39,7 @@ import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter'
 export class PhysicalGearsTestPage implements OnInit {
 
   $programLabel = new BehaviorSubject<string>(undefined);
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
 
   outputs: {
@@ -54,7 +54,7 @@ export class PhysicalGearsTestPage implements OnInit {
   }
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
     private entities: EntitiesStorage,
@@ -149,7 +149,7 @@ export class PhysicalGearsTestPage implements OnInit {
     this.table.markAsLoaded();
   }
 
-  doSubmit(event?: UIEvent) {
+  doSubmit(event?: Event) {
     // Nothing to do
   }
 
@@ -266,7 +266,7 @@ export class PhysicalGearsTestPage implements OnInit {
     }
   }
 
-  async save(event: UIEvent, table: PhysicalGearTable, outputName: string) {
+  async save(event: Event, table: PhysicalGearTable, outputName: string) {
     await this.dumpTable(table, outputName);
   }
 

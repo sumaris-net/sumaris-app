@@ -1,22 +1,18 @@
-<app-toolbar [title]="$title | async"
-             color="primary"
-             [hasValidate]="!loading && dirty"
+<app-toolbar [title]="$title | async" color="primary"
+             [hasValidate]="!loading && (dirty || saving)"
+             [hasClose]="!loading && (!dirty && !saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
-             [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
 
-  <ion-buttons slot="end">
-    <ion-spinner *ngIf="loading"></ion-spinner>
-
-    <ion-button *ngIf="enabled && !isNewData || debug"
-                [matMenuTriggerFor]="optionsMenu"
-                [title]=" 'COMMON.BTN_OPTIONS'|translate">
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
-  </ion-buttons>
+  <button slot="end" mat-icon-button
+          *ngIf="enabled && !isNewData || debug"
+          [matMenuTriggerFor]="optionsMenu"
+          [title]=" 'COMMON.BTN_OPTIONS'|translate">
+    <mat-icon>more_vert</mat-icon>
+  </button>
 </app-toolbar>
 
 <!-- Type = options menu -->

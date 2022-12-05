@@ -1,10 +1,11 @@
 import { LocalSettingsService, Person, SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
-import { FormBuilder, FormControl, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, Validators } from '@angular/forms';
 import { RootDataEntity } from '../model/root-data-entity.model';
 import { IWithObserversEntity } from '../model/model.utils';
 import { Program } from '../../../referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from './data-entity.validator';
 import {OperationValidators} from '@app/trip/services/validator/operation.validator';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface DataRootEntityValidatorOptions extends DataEntityValidatorOptions {
   withObservers?: boolean;
@@ -15,10 +16,11 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
   extends DataEntityValidatorService<T, O> {
 
   protected constructor(
-    formBuilder: FormBuilder,
-    settings?: LocalSettingsService
+    formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
+    settings: LocalSettingsService
     ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
   getFormGroupConfig(data?: T, opts?: O): {
@@ -43,7 +45,7 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
     );
   }
 
-  getObserverControl(observer?: Person): FormControl {
+  getObserverControl(observer?: Person): UntypedFormControl {
     return this.formBuilder.control(observer || null, [Validators.required, SharedValidators.entity]);
   }
 }

@@ -8,8 +8,9 @@ describe('SelectivityReport', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SelectivityReport ]
-    })
+    declarations: [SelectivityReport],
+    teardown: { destroyAfterEach: false }
+})
     .compileComponents();
   });
 

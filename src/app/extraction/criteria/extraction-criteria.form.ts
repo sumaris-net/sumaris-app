@@ -5,7 +5,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import {
   AccountService,
   AppForm,
-  AppFormUtils, arrayDistinct,
+  AppFormUtils,
+  arrayDistinct,
   firstNotNilPromise,
   FormFieldDefinition,
   FormFieldType,
@@ -13,13 +14,14 @@ import {
   isNotEmptyArray,
   isNotNil,
   LocalSettingsService,
-  sleep,
-  toBoolean
+  toBoolean,
+  waitFor,
+  WaitForOptions
 } from '@sumaris-net/ngx-components';
-import { CRITERION_OPERATOR_LIST, CriterionOperator, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
+import { CRITERION_OPERATOR_LIST, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { ExtractionService } from '../common/extraction.service';
-import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
-import { filter, map } from 'rxjs/operators';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { filter, map, switchMap } from 'rxjs/operators';
 import { ExtractionCriteriaValidatorService } from './extraction-criterion.validator';
 
 export const DEFAULT_EXTRACTION_COLUMNS: Partial<ExtractionColumn>[] = [
@@ -78,15 +80,15 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     }
   }
 
-  get sheetCriteriaForm(): FormArray {
-    return this._sheetName && (this.form.get(this._sheetName) as FormArray) || undefined;
+  get sheetCriteriaForm(): UntypedFormArray {
+    return this._sheetName && (this.form.get(this._sheetName) as UntypedFormArray) || undefined;
   }
 
   get criteriaCount(): number {
     return Object.values(this.form.controls)
-      .map(sheetForm => (sheetForm as FormArray))
+      .map(sheetForm => (sheetForm as UntypedFormArray))
       .map(sheetForm => sheetForm.controls
-        .map(criterionForm => (criterionForm as FormGroup).value)
+        .map(criterionForm => (criterionForm as UntypedFormGroup).value)
         .filter(ExtractionFilterCriterion.isNotEmpty)
         .length
       )
@@ -95,7 +97,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
   constructor(
     injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected route: ActivatedRoute,
     protected router: Router,
     protected translate: TranslateService,
@@ -145,7 +147,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     // Skip if same, or loading
     if (isNil(sheetName) || this._sheetName === sheetName) return;
 
-    let sheetCriteriaForm = this.form.get(sheetName) as FormArray;
+    let sheetCriteriaForm = this.form.get(sheetName) as UntypedFormArray;
 
     // No criterion array found, for this sheet: create a new
     if (!sheetCriteriaForm) {
@@ -169,7 +171,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     let index = -1;
 
     const sheetName = criterion && criterion.sheetName || this.sheetName;
-    let arrayControl = this.form.get(sheetName) as FormArray;
+    let arrayControl = this.form.get(sheetName) as UntypedFormArray;
     if (!arrayControl) {
       arrayControl = this.formBuilder.array([]);
       this.form.addControl(sheetName, arrayControl);
@@ -191,7 +193,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     // Replace the existing criterion value
     if (index >= 0) {
       if (criterion && criterion.name) {
-        const criterionForm = arrayControl.at(index) as FormGroup;
+        const criterionForm = arrayControl.at(index) as UntypedFormGroup;
         const existingCriterion = criterionForm.value as ExtractionFilterCriterion;
         opts.appendValue = opts.appendValue && isNotNil(criterion.value) && isNotNil(existingCriterion.value)
           && (existingCriterion.operator === '=' || existingCriterion.operator === '!=');
@@ -236,7 +238,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
   hasFilterCriteria(sheetName?: string): boolean {
     sheetName = sheetName || this.sheetName;
-    const sheetCriteriaForm = sheetName && (this.form.get(sheetName) as FormArray);
+    const sheetCriteriaForm = sheetName && (this.form.get(sheetName) as UntypedFormArray);
     return sheetCriteriaForm && sheetCriteriaForm.controls
       .map(c => c.value)
       .findIndex(ExtractionFilterCriterion.isNotEmpty) !== -1;
@@ -296,6 +298,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   getCriterionValueDefinition(index: number): Observable<FormFieldDefinition> {
+
     return this.$columnValueDefinitionsByIndex[index] || this.updateCriterionValueDefinition(index);
   }
 
@@ -303,12 +306,26 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     const arrayControl = this.sheetCriteriaForm;
     if (!arrayControl) return;
 
-    const criterionForm = arrayControl.at(index) as FormGroup;
+    // Make sure to wait $columnValueDefinitions has been loaded
+    if (!this.$columnValueDefinitions.value) {
+      return this.$columnValueDefinitions
+        .pipe(
+          switchMap(_ => this.updateCriterionValueDefinition(index, columnName, resetValue))
+        );
+    }
+
+    const criterionForm = arrayControl.at(index) as UntypedFormGroup;
     columnName = columnName || (criterionForm && criterionForm.controls.name.value);
     const operator = criterionForm && criterionForm.controls.operator.value || '=';
-    const definition = (operator === 'NULL' || operator === 'NOT NULL')
+    let definition = (operator === 'NULL' || operator === 'NOT NULL')
       ? undefined
       : columnName && (this.$columnValueDefinitions.value || []).find(d => d.key === columnName) || null;
+
+    // Workaround : use a default string definition, when column cannot be found
+    if (definition == null) {
+      console.warn('[extraction-form] Cannot find column definition for ' + columnName);
+      definition = <FormFieldDefinition>{key: columnName, type: 'string'};
+    }
 
     // Reset the criterion value, is ask by caller
     if (resetValue) criterionForm.patchValue({value: null});
@@ -324,12 +341,11 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     return subject;
   }
 
-  async waitIdle(): Promise<any> {
-    if (!this.type) {
-      await sleep(200);
-      return this.waitIdle();
-    }
-    return firstNotNilPromise(this.$columnValueDefinitions);
+  async waitIdle(opts?: WaitForOptions): Promise<any> {
+    await Promise.all([
+      waitFor(() => !!this.type, {stop: this.destroySubject, ...opts}),
+      firstNotNilPromise(this.$columnValueDefinitions, {stop: this.destroySubject, ...opts})
+    ]);
   }
 
   protected toFieldDefinition(column: ExtractionColumn): FormFieldDefinition {
@@ -366,6 +382,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   async setValue(data: ExtractionFilterCriterion[], opts?: {emitEvent?: boolean; onlySelf?: boolean }): Promise<void>{
 
     await this.ready();
+    await this.waitIdle();
 
     // Create a map (using sheetname as key)
     const json = (data || [])
@@ -389,7 +406,6 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
     // Convert object to json, then apply it to form (e.g. convert 'undefined' into 'null')
     AppFormUtils.copyEntity2Form(json, this.form, {emitEvent: false, onlySelf: true, ...opts});
-
 
     // Add missing criteria
     Object.keys(json).forEach(sheet => {

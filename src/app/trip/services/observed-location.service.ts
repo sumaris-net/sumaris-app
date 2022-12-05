@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
 import {
-  AccountService,
+  AccountService, AppErrorWithDetails,
   AppFormUtils,
   arrayDistinct,
   chainPromises,
@@ -21,7 +21,7 @@ import {
   JobUtils,
   LoadResult,
   NetworkService,
-  toNumber,
+  toNumber
 } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
 
@@ -52,7 +52,8 @@ import { VesselService } from '@app/vessel/services/vessel-service';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { AggregatedLanding } from '@app/trip/services/model/aggregated-landing.model';
 import { AggregatedLandingService } from '@app/trip/services/aggregated-landing.service';
-import { moment } from '@app/vendor';
+import moment from 'moment';
+import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -664,7 +665,7 @@ export class ObservedLocationService
 
       // Get form errors
       if (form.invalid) {
-        const errors = AppFormUtils.getFormErrors(form);
+        const errors: FormErrors = AppFormUtils.getFormErrors(form);
 
         if (this._debug) console.debug(`[observed-location-service] Control {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
 
@@ -825,13 +826,25 @@ export class ObservedLocationService
    */
   protected getImportJobs(filter: Partial<ObservedLocationFilter>, opts: {
     maxProgression: undefined;
+    program?: Program;
+    acquisitionLevels?: string[];
   }): Observable<number>[] {
 
     filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter;
+    filter = this.asFilter(filter);
 
-    if (filter) {
-      const landingFilter = ObservedLocationFilter.toLandingFilter(filter);
+    const programLabel = filter && filter.program?.label;
+    const landingFilter = ObservedLocationFilter.toLandingFilter(filter);
+
+    if (programLabel) {
       return [
+        // Store program to opts, for other services (e.g. used by OperationService)
+        JobUtils.defer(o => this.programRefService.loadByLabel(programLabel, {fetchPolicy: 'network-only'})
+          .then(program => {
+            opts.program = program;
+            opts.acquisitionLevels = ProgramUtils.getAcquisitionLevels(program);
+          })),
+
         ...super.getImportJobs(filter, opts),
 
         // Landing (historical data)

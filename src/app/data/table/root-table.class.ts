@@ -1,5 +1,5 @@
 import { Directive, Injector, Input, ViewChild } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
@@ -24,7 +24,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
 import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
-import { moment } from '@app/vendor';
 import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
 import { MatExpansionPanel } from '@angular/material/expansion';
@@ -33,21 +32,30 @@ import { PopoverController } from '@ionic/angular';
 import { AppBaseTable, BaseTableConfig } from '@app/shared/table/base.table';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
 import { UserEventService } from '@app/social/user-event/user-event.service';
-
+import moment from 'moment';
 
 export const AppRootTableSettingsEnum = {
   FILTER_KEY: "filter"
 };
+
+export interface IRootDataEntitiesService<
+  T extends RootDataEntity<T, ID>,
+  F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+  ID = number
+  > extends IEntitiesService<T, F>, IDataSynchroService<T, F, ID> {
+
+}
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AppRootDataTable<
   T extends RootDataEntity<T, ID>,
   F extends RootDataEntityFilter<F, T, ID> = RootDataEntityFilter<any, T, any>,
+  S extends IRootDataEntitiesService<T, F, ID> = IRootDataEntitiesService<T, F, any>,
   V extends BaseValidatorService<T, ID> = any,
   ID = number
   >
-  extends AppBaseTable<T, F, V, ID> {
+  extends AppBaseTable<T, F, S, V, ID> {
 
 
   protected readonly network: NetworkService;
@@ -57,7 +65,7 @@ export abstract class AppRootDataTable<
 
   canDelete: boolean;
   isAdmin: boolean;
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
   showUpdateOfflineFeature = false;
@@ -94,14 +102,15 @@ export abstract class AppRootDataTable<
     protected dataType: new () => T,
     protected filterType: new () => F,
     columnNames: string[],
-    protected dataService: IDataSynchroService<T, F, ID> & IEntitiesService<T, F>,
-    protected validatorService: V,
+    dataService: S,
+    validatorService: V,
     options?: BaseTableConfig<T, ID>
   ) {
     super(injector,
       dataType, filterType,
       columnNames,
-      dataService, validatorService,
+      dataService,
+      validatorService,
       options);
     this.network = injector.get(NetworkService);
     this.accountService = injector.get(AccountService);
@@ -189,7 +198,7 @@ export abstract class AppRootDataTable<
     }
   }
 
-  toggleOfflineMode(event?: UIEvent) {
+  toggleOfflineMode(event?: Event) {
     if (this.network.offline) {
       this.network.setForceOffline(false);
     }
@@ -202,7 +211,7 @@ export abstract class AppRootDataTable<
     this.onRefresh.emit();
   }
 
-  async prepareOfflineMode(event?: UIEvent, opts?: {
+  async prepareOfflineMode(event?: Event, opts?: {
     toggleToOfflineMode?: boolean; // Switch to offline mode ?
     showToast?: boolean; // Display success toast ?
   }): Promise<undefined | boolean> {
@@ -230,7 +239,7 @@ export abstract class AppRootDataTable<
 
       await new Promise<void>((resolve, reject) => {
         // Run the import
-        this.dataService.executeImport(null, {maxProgression})
+        this._dataService.executeImport(null, {maxProgression})
           .pipe(
             filter(value => value > 0),
             map((progress) => {
@@ -319,7 +328,7 @@ export abstract class AppRootDataTable<
     this.markForCheck();
   }
 
-  async addRowToSyncStatus(event: UIEvent, value: SynchronizationStatus) {
+  async addRowToSyncStatus(event: Event, value: SynchronizationStatus) {
     if (!value || !this.mobile || this.importing) return; // Skip
 
     // If 'DIRTY' but offline not init : init this mode
@@ -362,7 +371,7 @@ export abstract class AppRootDataTable<
   }
 
 
-  clickRow(event: UIEvent|undefined, row: TableElement<T>): boolean {
+  clickRow(event: Event|undefined, row: TableElement<T>): boolean {
     if (this.importing) return; // Skip
     return super.clickRow(event, row);
   }
@@ -462,7 +471,7 @@ export abstract class AppRootDataTable<
     this.error = null;
 
     try {
-      await chainPromises(ids.map(id => () => this.dataService.terminateById(id)));
+      await chainPromises(ids.map(id => () => this._dataService.terminateById(id)));
 
       // Update rows, when no refresh will be emitted
       if (opts?.emitEvent === false) {
@@ -483,7 +492,7 @@ export abstract class AppRootDataTable<
     } catch (error) {
       this.userEventService.showToastErrorWithContext({
         error,
-        context: () => chainPromises(ids.map(id => () => this.dataService.load(id, {withOperation: true, toEntity: false})))
+        context: () => chainPromises(ids.map(id => () => this._dataService.load(id, {withOperation: true, toEntity: false})))
       });
       throw error;
     }
@@ -533,7 +542,7 @@ export abstract class AppRootDataTable<
     this.error = null;
 
     try {
-      await chainPromises(ids.map(id => () => this.dataService.synchronizeById(id)));
+      await chainPromises(ids.map(id => () => this._dataService.synchronizeById(id)));
       this.selection.clear();
 
       // Success message
@@ -552,7 +561,7 @@ export abstract class AppRootDataTable<
     } catch (error) {
       this.userEventService.showToastErrorWithContext({
         error,
-        context: () => chainPromises(ids.map(id => () => this.dataService.load(id, {withOperation: true, toEntity: false})))
+        context: () => chainPromises(ids.map(id => () => this._dataService.load(id, {withOperation: true, toEntity: false})))
       });
       throw error;
     }
@@ -567,7 +576,7 @@ export abstract class AppRootDataTable<
     }
   }
 
-  async importFromFile(event?: UIEvent): Promise<any[]> {
+  async importFromFile(event?: Event): Promise<any[]> {
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
       uniqueFile: true,
       fileExtension: '.json',
@@ -583,7 +592,6 @@ export abstract class AppRootDataTable<
   }
 
   referentialToString = referentialToString;
-  qualityFlagToColor = qualityFlagToColor;
 
   /* -- protected methods -- */
 
@@ -605,7 +613,7 @@ export abstract class AppRootDataTable<
 
     const json = this.settings.getPageSettings(this.settingsId, AppRootTableSettingsEnum.FILTER_KEY) || {};
 
-    this.hasOfflineMode = (json.synchronizationStatus && json.synchronizationStatus !== 'SYNC') || (await this.dataService.hasOfflineData());
+    this.hasOfflineMode = (json.synchronizationStatus && json.synchronizationStatus !== 'SYNC') || (await this._dataService.hasOfflineData());
 
     // Force offline, if no network AND has offline feature
     if (this.network.offline && this.hasOfflineMode) {
@@ -647,7 +655,7 @@ export abstract class AppRootDataTable<
       if (lastSynchronizationDate && lastSynchronizationDate.isBefore(moment().add(-10, 'minute'))) {
 
         // Get peer last update date, then compare
-        const remoteUpdateDate = await this.dataService.lastUpdateDate();
+        const remoteUpdateDate = await this._dataService.lastUpdateDate();
         if (isNotNil(remoteUpdateDate)) {
           // Compare dates, to known if an update if need
           needUpdate = lastSynchronizationDate.isBefore(remoteUpdateDate);

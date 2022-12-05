@@ -9,7 +9,7 @@ import { PhysicalGearTable } from '../physicalgear/physical-gears.table';
 
 import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormGroup, Validators } from '@angular/forms';
+import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
   Alerts,
   DateUtils,
@@ -50,7 +50,7 @@ import { Sale } from '@app/trip/services/model/sale.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -415,7 +415,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this.showOperationTable = this.showOperationTable || (this.showGearTable && isNotEmptyArray(data.gears));
   }
 
-  async openReport(event?: UIEvent) {
+  async openReport(event?: Event) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
@@ -462,7 +462,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
   }
 
-  async onOpenOperation({id, row}: { id?: number; row: TableElement<any>; }) {
+  async onOpenOperation(row: TableElement<Operation>) {
 
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
@@ -485,7 +485,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
       setTimeout(async () => {
         const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
-        await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, id], {queryParams: {} /*reset query params*/ });
+        await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, row.currentData.id], {queryParams: {} /*reset query params*/ });
 
         this.markAsLoaded();
       });
@@ -645,7 +645,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   /* -- protected methods -- */
 
-  protected get form(): FormGroup {
+  protected get form(): UntypedFormGroup {
     return this.tripForm.form;
   }
 
@@ -724,7 +724,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this._measurementSubscription?.unsubscribe();
     this._measurementSubscription = new Subscription();
 
-    const formGroup = this.measurementsForm.form as FormGroup;
+    const formGroup = this.measurementsForm.form as UntypedFormGroup;
 
     // If PMFM "Use of a GPS ?" exists, then use to enable/disable positions or fishing area
     const isGPSUsed = formGroup?.controls[PmfmIds.GPS_USED];

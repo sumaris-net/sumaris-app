@@ -5,23 +5,23 @@ import {
   EntityFilter,
   FilterFn,
   fromDateISOString,
-  IJob,
-  isNotEmptyArray,
-  JobStatus,
-  toDateISOString,
+  isNotEmptyArray, isNotNil,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 
 export type JobTypeEnum = 'IMPORT_ORDER_ITEM_SHAPE' | 'IMPORT_MONITORING_LOCATION_SHAPE';
+export type JobStatusEnum = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'WARNING' | 'ERROR' | 'FATAL' | 'CANCELLED';
+
 
 @EntityClass({ typename: 'JobVO' })
-export class Job extends Entity<Job> implements IJob {
+export class Job extends Entity<Job> {
   static fromObject: (source: any, opts?: any) => Job;
 
   name: string;
   type: JobTypeEnum;
-  status: JobStatus;
-  userId: number;
+  status: JobStatusEnum;
+  issuer: string;
   startDate: Moment;
   endDate: Moment;
 
@@ -75,14 +75,14 @@ export class Job extends Entity<Job> implements IJob {
 export class JobFilter extends EntityFilter<JobFilter, Job> {
   static fromObject: (source: any, opts?: any) => JobFilter;
 
-  userId: number;
+  issuer: string;
   types: JobTypeEnum[];
-  status: JobStatus[];
+  status: JobStatusEnum[];
   lastUpdateDate: Moment;
 
   fromObject(source: any) {
     super.fromObject(source);
-    this.userId = source.userId;
+    this.issuer = source.issuer;
     this.types = source.types || [];
     this.status = source.status || [];
     this.lastUpdateDate = source.lastUpdateDate;
@@ -91,8 +91,8 @@ export class JobFilter extends EntityFilter<JobFilter, Job> {
   protected buildFilter(): FilterFn<Job>[] {
     const filterFns = super.buildFilter();
 
-    if (this.userId) {
-      filterFns.push((data) => data.userId === this.userId);
+    if (this.issuer) {
+      filterFns.push((data) => data.issuer === this.issuer);
     }
     if (isNotEmptyArray(this.types)) {
       filterFns.push((data) => this.types.includes(data.type));

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
 import { AppForm, AppFormUtils, SharedValidators, slideUpDownAnimation, StatusIds } from '@sumaris-net/ngx-components';
 
 import { Moment } from 'moment';
@@ -13,7 +13,7 @@ import { DATA_IMPORT_PERIODS } from '@app/data/services/config/data.config';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 export interface  TripOfflineModalOptions {
   value?: TripSynchroImportFilter
@@ -55,7 +55,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     injector: Injector,
     protected viewCtrl: ModalController,
     protected translate: TranslateService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
     protected vesselSnapshotService: VesselSnapshotService,
@@ -179,7 +179,7 @@ export class TripOfflineModal extends AppForm<TripSynchroImportFilter> implement
     await this.viewCtrl.dismiss(null, 'CANCEL');
   }
 
-  async validate(event?: UIEvent) {
+  async validate(event?: Event) {
 
     this.errorSubject.next(null);
 

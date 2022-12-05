@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { ReferentialRefService } from '../../referential/services/referential-ref.service';
-import { FormArray, FormBuilder, FormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { Alerts, ConfigService, HammerSwipeEvent, isNotEmptyArray, isNotNil, PersonService, PersonUtils, ReferentialRef, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
 import { ObservedLocationService } from '../services/observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
@@ -45,21 +45,21 @@ export class ObservedLocationsPage extends
   @Input() showRecorder = true;
   @Input() showObservers = true;
 
-  get filterObserversForm(): FormArray {
-    return this.filterForm.controls.observers as FormArray;
+  get filterObserversForm(): UntypedFormArray {
+    return this.filterForm.controls.observers as UntypedFormArray;
   }
 
-  get filterDataQualityControl(): FormControl {
-    return this.filterForm.controls.dataQualityStatus as FormControl;
+  get filterDataQualityControl(): UntypedFormControl {
+    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
   constructor(
     injector: Injector,
-    protected dataService: ObservedLocationService,
+    protected _dataService: ObservedLocationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected configService: ConfigService,
     protected context: ContextService,
     protected cd: ChangeDetectorRef
@@ -73,7 +73,7 @@ export class ObservedLocationsPage extends
       'observers',
       'recorderPerson',
       'comments'],
-      dataService,
+      _dataService,
       null
     );
     this.inlineEdition = false;
@@ -211,7 +211,7 @@ export class ObservedLocationsPage extends
     return true;
   }
 
-  async openTrashModal(event?: UIEvent) {
+  async openTrashModal(event?: Event) {
     console.debug('[observed-locations] Opening trash modal...');
     // TODO BLA
     /*const modal = await this.modalCtrl.create({
@@ -231,7 +231,7 @@ export class ObservedLocationsPage extends
     if (!res) return; // CANCELLED*/
   }
 
-  async prepareOfflineMode(event?: UIEvent, opts?: {
+  async prepareOfflineMode(event?: Event, opts?: {
     toggleToOfflineMode?: boolean;
     showToast?: boolean;
     filter?: any;
@@ -239,8 +239,8 @@ export class ObservedLocationsPage extends
     if (this.importing) return; // Skip
 
     if (event) {
-      const feature = this.settings.getOfflineFeature(this.dataService.featureName) || {
-        name: this.dataService.featureName
+      const feature = this.settings.getOfflineFeature(this._dataService.featureName) || {
+        name: this._dataService.featureName
       };
       const value = <ObservedLocationOfflineFilter>{
         ...this.filter,
@@ -271,7 +271,7 @@ export class ObservedLocationsPage extends
     return super.prepareOfflineMode(event, opts);
   }
 
-  async deleteSelection(event: UIEvent): Promise<number> {
+  async deleteSelection(event: Event): Promise<number> {
     let oldConfirmBeforeDelete = this.confirmBeforeDelete;
     const rowsToDelete = this.selection.selected;
 
@@ -282,7 +282,7 @@ export class ObservedLocationsPage extends
 
     // ask confirmation if one observation has samples
     if (isNotEmptyArray(observations)) {
-      const samplesCount = await this.dataService.countSamples(observations);
+      const samplesCount = await this._dataService.countSamples(observations);
       if (samplesCount > 0) {
         const messageKey = observations.length === 1
           ? 'OBSERVED_LOCATION.CONFIRM.OBSERVATION_HAS_SAMPLE'

@@ -5,6 +5,8 @@ import { VesselsTable } from '@app/vessel/list/vessels.table';
 import { isEmptyArray, isNotNil, toBoolean } from '@sumaris-net/ngx-components';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Subscription } from 'rxjs';
+import {TableElement} from '@e-is/ngx-material-table';
+import {Vessel} from '@app/vessel/services/model/vessel.model';
 
 export interface SelectVesselsModalOptions {
   titleI18n: string;
@@ -63,7 +65,7 @@ export class SelectVesselsModal implements SelectVesselsModalOptions, OnInit, Af
     this.subscription.unsubscribe();
   }
 
-  async selectRow({id, row}) {
+  async selectRow(row: TableElement<Vessel>) {
     if (row && this.vesselsTable) {
       this.vesselsTable.selection.clear();
       this.vesselsTable.selection.select(row);

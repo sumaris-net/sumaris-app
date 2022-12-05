@@ -1,12 +1,13 @@
 import {Injectable} from '@angular/core';
 import {ValidatorService} from '@e-is/ngx-material-table';
-import { AbstractControl, AbstractControlOptions, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
 import {LocalSettingsService, SharedFormArrayValidators, toBoolean} from '@sumaris-net/ngx-components';
 import { Measurement, MeasurementFormValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from '../model/measurement.model';
 import {PmfmValidators} from '@app/referential/services/validator/pmfm.validators';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -21,15 +22,17 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   implements ValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder,
-    protected settings: LocalSettingsService) {
+    protected formBuilder: UntypedFormBuilder,
+    protected translate: TranslateService,
+    protected settings: LocalSettingsService
+    ) {
   }
 
-  getRowValidator(opts?: O): FormGroup {
+  getRowValidator(opts?: O): UntypedFormGroup {
     return this.getFormGroup(null, opts);
   }
 
-  getFormGroup(data: T[] | MeasurementFormValues, opts?: O): FormGroup {
+  getFormGroup(data: T[] | MeasurementFormValues, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     return this.formBuilder.group(
@@ -73,7 +76,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     return null;
   }
 
-  updateFormGroup(form: FormGroup, opts?: O) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
 
     const controlNamesToRemove = Object.getOwnPropertyNames(form.controls)

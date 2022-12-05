@@ -2,7 +2,8 @@ import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity,
 import {MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol} from './model.enum';
 import {Parameter, ParameterType} from './parameter.model';
 import {PmfmValue} from './pmfm-value.model';
-import {Moment} from 'moment';import { FullReferential } from '@app/referential/services/model/referential.model';
+import {Moment} from 'moment';
+import { FullReferential } from '@app/referential/services/model/referential.model';
 
 export declare type PmfmType = ParameterType | 'integer';
 
@@ -429,7 +430,7 @@ export abstract class PmfmUtils {
     const conversionCoefficient = WeightKgConversion[actualWeightUnit] / WeightKgConversion[expectedWeightSymbol];
 
     // Clone to keep existing pmfm unchanged
-    const target = opts.clone ? source.clone() as P : source;
+    const target = (!opts || opts.clone !== false) ? source.clone() as P : source;
 
     target.displayConversion =  UnitConversion.fromObject({conversionCoefficient});
 
@@ -454,6 +455,7 @@ export abstract class PmfmUtils {
     }
     return target;
   }
+
 }
 
 

@@ -33,36 +33,43 @@
           <mat-icon>filter_list_alt</mat-icon>
         </ng-template>
       </button>
-
     </ng-container>
     <ng-template #hasSelection>
       <button mat-icon-button *ngIf="canDelete" [title]="'COMMON.BTN_DELETE'|translate" (click)="table.deleteSelection($event)"
               class="hidden-xs hidden-sm">
         <mat-icon>delete</mat-icon>
       </button>
-
-      <ion-button
-        *ngIf='replacementEnabled'
-        [matMenuTriggerFor]="optionsMenu"
-        [title]=" 'COMMON.BTN_OPTIONS'|translate">
-        <mat-icon slot="icon-only">more_vert</mat-icon>
-      </ion-button>
-
-      <mat-menu #optionsMenu="matMenu" xPosition="after">
-
-        <!-- replace -->
-        <button mat-menu-item class="ion-color-danger"
-                [disabled]='replacementDisabled'
-                (click)="replace($event)">
-          <ion-label>
-            <span translate>VESSEL.ACTION.REPLACE_MANY</span>
-          </ion-label>
-        </button>
-      </mat-menu>
-
     </ng-template>
+
+    <ion-button
+      *ngIf='enableReplacement || enableFileImport'
+      [matMenuTriggerFor]="optionsMenu"
+      [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
+
   </ion-buttons>
 </app-toolbar>
+
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <!-- replace -->
+  <button mat-menu-item class="ion-color-danger"
+          *ngIf="enableReplacement"
+          [disabled]="replacementDisabled"
+          (click)="replace($event)">
+    <mat-label translate>VESSEL.ACTION.REPLACE_MANY</mat-label>
+  </button>
+
+  <!-- import from file -->
+  <button mat-menu-item class="ion-color-danger"
+          *ngIf="enableFileImport"
+          [disabled]="!canImportFile"
+          (click)="importFromCsv($event)">
+    <mat-icon>description</mat-icon>
+    <mat-label translate>VESSEL.ACTION.IMPORT_FROM_FILE</mat-label>
+  </button>
+</mat-menu>
 
 <ion-content class="ion-no-padding" scroll-y="false">
 

@@ -26,7 +26,7 @@ import { LandingForm } from './landing.form';
 import { SAMPLE_TABLE_DEFAULT_I18N_PREFIX, SamplesTable } from '../sample/samples.table';
 import { LandingService } from '../services/landing.service';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { ObservedLocationService } from '../services/observed-location.service';
 import { TripService } from '../services/trip.service';
 import { debounceTime, filter, tap, throttleTime } from 'rxjs/operators';
@@ -47,8 +47,8 @@ import { PmfmIds } from '@app/referential/services/model/model.enum';
 import { ContextService } from '@app/shared/context.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
-import { moment } from '@app/vendor';
-import { BaseMeasurementsTable } from '@app/trip/measurement/measurements.table.class';
+import moment from 'moment';
+import { BaseMeasurementsTable } from '@app/trip/measurement/measurements-table.class';
 import { SampleFilter } from '@app/trip/services/filter/sample.filter';
 import { Sample } from '@app/trip/services/model/sample.model';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';
@@ -89,7 +89,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   showSamplesTable = false;
   enableReport = false
 
-  get form(): FormGroup {
+  get form(): UntypedFormGroup {
     return this.landingForm.form;
   }
 
@@ -217,7 +217,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     }
   }
 
-  async openReport(event?: UIEvent) {
+  async openReport(event?: Event) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
@@ -363,12 +363,14 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     // Customize the UI, using program options
     const requiredStrategy = program.getPropertyAsBoolean(ProgramProperties.LANDING_STRATEGY_ENABLE);
     this.landingForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS);
+
     this.landingForm.allowAddNewVessel = program.getPropertyAsBoolean(ProgramProperties.OBSERVED_LOCATION_CREATE_VESSEL_ENABLE);
     this.landingForm.requiredStrategy = requiredStrategy;
     this.landingForm.showStrategy = requiredStrategy;
     this.landingForm.showObservers = program.getPropertyAsBoolean(ProgramProperties.LANDING_OBSERVERS_ENABLE);
     this.landingForm.showDateTime = program.getPropertyAsBoolean(ProgramProperties.LANDING_DATE_TIME_ENABLE);
     this.landingForm.showLocation = program.getPropertyAsBoolean(ProgramProperties.LANDING_LOCATION_ENABLE);
+    this.landingForm.fishingAreaLocationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS);
 
     // Compute i18n prefix
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
@@ -589,7 +591,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     return this.landingForm.value.asObject();
   }
 
-  protected registerSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
+  protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: IPmfm[]): Subscription {
     // Can be override by subclasses (e.g auction control, biological sampling samples table)
     console.warn('[landing-page] No row validator override');
     return null;

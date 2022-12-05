@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryList, ViewChildren } from '@angular/core';
-import { Batch } from '../common/batch.model';
-import { FormBuilder, FormControl } from '@angular/forms';
+import { Batch} from '../common/batch.model';
+import { AbstractControl, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { AppFormUtils, InputElement, isNil, isNotNil, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
@@ -29,7 +29,7 @@ import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   $childrenPmfmsByQvId = new BehaviorSubject<{[key: number]: IPmfm[]}>(undefined);
-  hasSubBatchesControl: FormControl;
+  hasSubBatchesControl: UntypedFormControl;
 
   @Input() qvPmfm: IPmfm;
   @Input() childrenPmfms: IPmfm[];
@@ -102,10 +102,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   }) {
     super.disable(opts);
     (this.childrenList || []).forEach(child => child.disable(opts));
-    if (this._enable || (opts && opts.emitEvent)) {
-      this._enable = false;
-      this.markForCheck();
-    }
     this.hasSubBatchesControl.disable(opts);
   }
 
@@ -115,10 +111,6 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   }) {
     super.enable(opts);
     (this.childrenList || []).forEach(child => child.enable(opts));
-    if (!this._enable || (opts && opts.emitEvent)) {
-      this._enable = true;
-      this.markForCheck();
-    }
   }
 
   get hasSubBatches(): boolean {
@@ -142,7 +134,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
     protected validatorService: BatchGroupValidatorService,
@@ -157,7 +149,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
-    this.hasSubBatchesControl = new FormControl(false);
+    this.hasSubBatchesControl = new UntypedFormControl(false);
     this.showSamplingBatch = false;
     this._logPrefix = '[batch-group-form]';
 

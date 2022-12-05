@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { Product } from '../services/model/product.model';
-import { AbstractControl, FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { AppForm, AppFormUtils, FormArrayHelper, isNil, isNotEmptyArray, isNotNil, LocalSettingsService, UsageMode } from '@sumaris-net/ngx-components';
 import { Injector } from '@angular/core';
 import { Moment } from 'moment';
@@ -27,8 +27,8 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   salesEditedIndex: number;
   hasIndividualCount: boolean;
 
-  get saleFormArray(): FormArray {
-    return this.form.controls.saleProducts as FormArray;
+  get saleFormArray(): UntypedFormArray {
+    return this.form.controls.saleProducts as UntypedFormArray;
   }
 
   get value(): any {
@@ -49,7 +49,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     injector: Injector,
     protected validatorService: ProductValidatorService,
     protected cd: ChangeDetectorRef,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected referentialRefService: ReferentialRefService
   ) {
     super(injector, validatorService.getFormGroup(undefined, {withSaleProducts: true}));
@@ -112,7 +112,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
     this._saleSubscription = new Subscription();
 
     // add subscription on each sale form
-    for (const saleForm of this.saleFormArray.controls as FormGroup[] || []) {
+    for (const saleForm of this.saleFormArray.controls as UntypedFormGroup[] || []) {
       this._saleSubscription.add(saleForm.valueChanges.subscribe(() => {
         const dirty = saleForm.dirty;
         this.computePrices(saleForm.controls);
@@ -125,7 +125,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
   }
 
   private computeAllPrices() {
-    for (const saleForm of this.saleFormArray.controls as FormGroup[] || []) {
+    for (const saleForm of this.saleFormArray.controls as UntypedFormGroup[] || []) {
       this.computePrices(saleForm.controls);
     }
   }
@@ -182,7 +182,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
 
   }
 
-  asFormGroup(control): FormGroup {
+  asFormGroup(control): UntypedFormGroup {
     return control;
   }
 

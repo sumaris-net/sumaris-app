@@ -1,17 +1,19 @@
-import {FormBuilder, Validators} from "@angular/forms";
+import {UntypedFormBuilder, Validators} from "@angular/forms";
 import {LocalSettingsService, SharedValidators} from '@sumaris-net/ngx-components';
 
 import {DataRootEntityValidatorOptions, DataRootEntityValidatorService} from "./root-data-entity.validator";
 import {DataRootVesselEntity} from "../model/root-vessel-entity.model";
 import {Optional} from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
 
 export abstract class DataRootVesselEntityValidatorService<T extends DataRootVesselEntity<T>, O extends DataRootEntityValidatorOptions = DataRootEntityValidatorOptions>
   extends DataRootEntityValidatorService<T, O> {
 
   protected constructor(
-    formBuilder: FormBuilder,
-    settings?: LocalSettingsService) {
-    super(formBuilder, settings);
+    formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
+    settings: LocalSettingsService) {
+    super(formBuilder, translate, settings);
   }
 
   getFormGroupConfig(data?: T, opts?: O): {

@@ -30,9 +30,11 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
+  LocalSettingsService,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   MutableWatchQueriesUpdatePolicy,
   NetworkService,
+  PlatformService,
   ProgressBarService,
   QueryVariables,
   toBoolean,
@@ -58,8 +60,7 @@ import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential
 import { environment } from '@environments/environment';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
-import { Geolocation } from '@ionic-native/geolocation/ngx';
-import { GeolocationOptions } from '@ionic-native/geolocation';
+//import { Geolocation } from '@awesome-cordova-plugins/geolocation/ngx';
 import moment from 'moment';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { MetierFilter } from '@app/referential/services/filter/metier.filter';
@@ -83,6 +84,8 @@ import { Program } from '@app/referential/services/model/program.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { Geometries } from '@app/shared/geometries.utils';
 import { BatchService } from '@app/trip/batch/common/batch.service';
+import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';
+import { PositionOptions } from '@capacitor/geolocation';
 
 
 export const OperationFragments = {
@@ -388,7 +391,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   constructor(
     protected graphql: GraphqlService,
     protected network: NetworkService,
+    protected platform: PlatformService,
     protected accountService: AccountService,
+    protected settings: LocalSettingsService,
     protected metierService: MetierService,
     protected entities: EntitiesStorage,
     protected validatorService: OperationValidatorService,
@@ -627,17 +632,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Control batches
     if (entity.catchBatch && opts?.program) {
-      console.warn('[operation-service] TODO: enable/test batch control() !!')
-      // TODO enable batch control
-      // - make sure to translate all errors
-      // - add sub batches validation
-      // - Optimize validator form creation
-
-      /*const errors = await this.batchService.control(entity.catchBatch, {program: opts.program, controlName: 'catch'});
+      const errors = await this.batchService.control(entity.catchBatch, {program: opts.program, controlName: 'catch'});
       if (errors) {
         console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
         return errors;
-      }*/
+      }
     }
 
     console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
@@ -1133,13 +1132,18 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   /**
    * Get the position by geo loc sensor
    */
-  async getCurrentPosition(options?: GeolocationOptions): Promise<IPosition> {
-    return PositionUtils.getCurrentPosition(this.geolocation, {
-      maximumAge: 30000/*30s*/,
-      timeout: 10000/*10s*/,
-      enableHighAccuracy: true,
-      ...options
-    });
+  async getCurrentPosition(options?: PositionOptions): Promise<IPosition> {
+    const timeout = options?.timeout
+      || this.settings.getPropertyAsInt(TRIP_LOCAL_SETTINGS_OPTIONS.OPERATION_GEOLOCATION_TIMEOUT) * 1000;
+    const maximumAge = options?.maximumAge || timeout * 2;
+
+    return PositionUtils.getCurrentPosition(this.platform,
+      {
+        maximumAge,
+        timeout,
+        enableHighAccuracy: false, // Not need at sea
+        ...options
+      });
   }
 
   async executeImport(filter: Partial<OperationFilter>,

@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
 import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, PlatformService, SharedValidators, toDateISOString } from '@sumaris-net/ngx-components';
@@ -8,7 +8,7 @@ import { ProgramRefService } from '../../../referential/services/program-ref.ser
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { Moment } from 'moment';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 
 function getMeasValues(opts?: {
   totalLength?: number;
@@ -106,7 +106,7 @@ export class SampleTreeTestPage implements OnInit {
 
 
   $programLabel = new BehaviorSubject<string>(undefined);
-  form: FormGroup;
+  form: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
   defaultSampleDate = moment();
 
@@ -118,7 +118,7 @@ export class SampleTreeTestPage implements OnInit {
   @ViewChild('desktopTree', { static: true }) desktopTree: SampleTreeComponent;
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected platform: PlatformService,
     protected referentialRefService: ReferentialRefService,
     protected programRefService: ProgramRefService,
@@ -205,7 +205,7 @@ export class SampleTreeTestPage implements OnInit {
     this.desktopTree.markAsLoaded();
   }
 
-  doSubmit(event?: UIEvent) {
+  doSubmit(event?: Event) {
     // Nothing to do
   }
 

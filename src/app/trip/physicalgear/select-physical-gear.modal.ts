@@ -79,19 +79,19 @@ export class SelectPhysicalGearModal implements OnInit, ISelectPhysicalGearModal
 
   }
 
-  async selectRow(event: { id?: number; row: TableElement<PhysicalGear> }) {
-    if (event.row && this.table) {
+  async selectRow(row: TableElement<PhysicalGear>) {
+    if (row && this.table) {
 
       // Select the clicked row, then close
       if (!this.allowMultiple) {
         this.table.selection.clear();
-        this.table.selection.select(event.row);
+        this.table.selection.select(row);
         await this.close();
       }
 
       // Add clicked row to selection
       else {
-        this.table.selection.select(event.row);
+        this.table.selection.select(row);
       }
     }
   }

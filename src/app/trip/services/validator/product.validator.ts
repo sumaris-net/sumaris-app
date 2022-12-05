@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { Program } from '@app/referential/services/model/program.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
@@ -8,6 +8,7 @@ import { MeasurementsValidatorService } from './measurement.validator';
 import { Product } from '../model/product.model';
 import { OperationGroup } from '../model/trip.model';
 import { DataValidators } from '@app/data/services/validator/data.validators';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface ProductValidatorOptions extends DataEntityValidatorOptions {
   program?: Program;
@@ -20,18 +21,19 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
   extends DataEntityValidatorService<Product, O> implements ValidatorService {
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService,
     protected measurementsValidatorService: MeasurementsValidatorService,
   ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Product, opts?: O): FormGroup {
+  getFormGroup(data?: Product, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
@@ -93,7 +95,7 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
     return opts;
   }
 
-  updateFormGroup(formGroup: FormGroup, opts?: O) {
+  updateFormGroup(formGroup: UntypedFormGroup, opts?: O) {
 
     if (opts.withSaleProducts) {
       const saleValidators = this.getDefaultSaleProductValidators();
@@ -111,7 +113,7 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
 
   /* -- protected methods -- */
 
-  private getSaleProductsFormArray(data: Product): FormArray {
+  private getSaleProductsFormArray(data: Product): UntypedFormArray {
     return this.formBuilder.array(
       (data && data.saleProducts || [null]).map(saleProduct => this.getSaleProductControl(saleProduct)),
       this.getDefaultSaleProductValidators(),
@@ -124,7 +126,7 @@ export class ProductValidatorService<O extends ProductValidatorOptions = Product
     ];
   }
 
-  getSaleProductControl(sale?: any): FormGroup {
+  getSaleProductControl(sale?: any): UntypedFormGroup {
     return this.formBuilder.group({
         id: [sale?.id || null],
         saleType: [sale?.saleType || null, Validators.compose([Validators.required, SharedValidators.entity])],

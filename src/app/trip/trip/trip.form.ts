@@ -30,7 +30,7 @@ import {
   UserProfileLabel
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { FormArray, FormBuilder } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 
 import { Vessel } from '@app/vessel/services/model/vessel.model';
 import { METIER_DEFAULT_FILTER, MetierService } from '@app/referential/services/metier.service';
@@ -152,12 +152,12 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this.setValue(json);
   }
 
-  get observersForm(): FormArray {
-    return this.form.controls.observers as FormArray;
+  get observersForm(): UntypedFormArray {
+    return this.form.controls.observers as UntypedFormArray;
   }
 
-  get metiersForm(): FormArray {
-    return this.form.controls.metiers as FormArray;
+  get metiersForm(): UntypedFormArray {
+    return this.form.controls.metiers as UntypedFormArray;
   }
 
   @Output() maxDateChanges = new EventEmitter<Moment>();
@@ -167,7 +167,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
 
   constructor(
     injector: Injector,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected validatorService: TripValidatorService,
     protected vesselSnapshotService: VesselSnapshotService,
     protected referentialRefService: ReferentialRefService,
@@ -319,10 +319,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     this._showMetiers = this._showMetiers || isNotEmptyArray(data?.metiers);
     if (this._showMetiers) {
       data.metiers = data.metiers && data.metiers.length ? data.metiers : [null];
-      this.metiersHelper.resize(Math.max(1, data.metiers.length));
+      this.metiersHelper.resize(Math.max(1, data.metiers.length), {emitEvent: false});
     } else {
       data.metiers = [];
-      this.metiersHelper?.resize(0);
+      this.metiersHelper?.resize(0, {emitEvent: false});
     }
 
     this.maxDateChanges.emit(DateUtils.max(data.departureDateTime, data.returnDateTime));
@@ -331,7 +331,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     super.setValue(data, opts);
   }
 
-  async addVesselModal(event?: UIEvent): Promise<any> {
+  async addVesselModal(event?: Event): Promise<any> {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -498,11 +498,11 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
     }
     if (this._showMetiers) {
       if (this.metiersHelper.size() === 0) {
-        this.metiersHelper.resize(1);
+        this.metiersHelper.resize(1, {emitEvent: false});
       }
     }
     else if (this.metiersHelper.size() > 0) {
-      this.metiersHelper.resize(0);
+      this.metiersHelper.resize(0, {emitEvent: false});
     }
   }
 

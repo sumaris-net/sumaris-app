@@ -6,7 +6,7 @@ import { VesselModal, VesselModalOptions } from '../modal/vessel-modal';
 import { Vessel } from '../services/model/vessel.model';
 import { AccountService, isNil, isNotNil, LocalSettingsService, ReferentialRef, referentialToString, SharedValidators, StatusById, StatusIds, StatusList } from '@sumaris-net/ngx-components';
 import { Observable } from 'rxjs';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { statusToColor, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -78,7 +78,7 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
 
   constructor(
     injector: Injector,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     protected accountService: AccountService,
     protected settings: LocalSettingsService,
     protected vesselService: VesselService,
@@ -136,7 +136,9 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
   }
 
   ngOnInit() {
-    this.settingsId = VesselsTableSettingsEnum.TABLE_ID + (this.disableStatusFilter ? '_statusFilterDisabled' : ''); // Fixed value, to be able to reuse it in vessel modal
+    // Use a fixed value, to be able to restore settings.
+    // Keep a special case when filter's status field is disable (to avoid a restoration the status column - e.g. in select vessel modal)
+    this.settingsId = VesselsTableSettingsEnum.TABLE_ID + (this.disableStatusFilter ? '_statusFilterDisabled' : '');
     this.featureId = VesselsTableSettingsEnum.FEATURE_ID;
 
     super.ngOnInit();
@@ -207,22 +209,19 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
     return true;
   }
 
-  resetFilter(event?: UIEvent) {
+  resetFilter(event?: Event) {
     super.resetFilter({
       statusId: this.disableStatusFilter ? this.filter.statusId : undefined
     })
   }
 
-  clearFilterStatus(event: UIEvent) {
+  clearFilterStatus(event: Event) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
     this.filterForm.patchValue({statusId: null});
   }
-
-  referentialToString = referentialToString;
-  statusToColor = statusToColor;
 
   /* -- protected methods -- */
 

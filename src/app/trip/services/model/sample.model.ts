@@ -1,26 +1,26 @@
 import {
   EntityClass,
   fromDateISOString,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
   ITreeItemEntity,
   ReferentialAsObjectOptions,
-  ReferentialRef,
   referentialToString,
   ReferentialUtils,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { IEntityWithMeasurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from './measurement.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
 import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
-import { sampleTime } from 'rxjs/operators';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { ImageAttachment } from '@app/data/image/image-attachment.model';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
 
 export interface SampleAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -41,7 +41,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   static fromObjectArrayAsTree(sources: any[], opts?: SampleFromObjectOptions): Sample[] {
     if (!sources) return null;
     // Convert to entities
-    const targets = (sources || []).map(json => Sample.fromObject(json, {...opts, withChildren: false}));
+    const targets = (sources || []).map(json => this.fromObject(json, {...opts, withChildren: false}));
 
     // Find roots
     const roots = targets.filter(g => isNil(g.parentId));
@@ -124,6 +124,8 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
   parent: Sample = null;
   children: Sample[] = null;
 
+  images: ImageAttachment[];
+
   constructor() {
     super(Sample.TYPENAME);
   }
@@ -139,6 +141,8 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
     target.landingId = this.landingId;
     target.operationId = this.operationId;
+
+    target.images = this.images && this.images.map(image => image.asObject(opts)) || undefined;
 
     if (opts && opts.minify) {
       // Parent not need, as the tree will be used by pod
@@ -166,6 +170,7 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     this.operationId = source.operationId;
     this.landingId = source.landingId;
     this.measurementValues = source.measurementValues && { ...source.measurementValues } || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.images = source.images && source.images.map(ImageAttachment.fromObject) || undefined;
 
     if (source.children && (!opts || opts.withChildren !== false)) {
       this.children = source.children.map(child => Sample.fromObject(child, opts));
@@ -366,6 +371,6 @@ export class SampleUtils {
         println: opts.println,
         indent: nextIndent + ' |- '
       });
-    })
+    });
   }
 }

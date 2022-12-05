@@ -8,8 +8,8 @@ import { AuctionControlValidators } from '../../services/validator/auction-contr
 import { ModalController } from '@ionic/angular';
 import {
   AppHelpModal,
-  AppHelpModalOptions,
-  EntityServiceLoadOptions,
+  AppHelpModalOptions, ColorName,
+  EntityServiceLoadOptions, EntityUtils,
   fadeInOutAnimation,
   filterNotNil,
   firstNotNilPromise,
@@ -21,11 +21,11 @@ import {
   LoadResult,
   LocalSettingsService,
   ReferentialUtils,
-  SharedValidators,
+  SharedValidators, toBoolean,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { ObservedLocation } from '../../services/model/observed-location.model';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
 import { Program } from '../../../referential/services/model/program.model';
 import { IPmfm } from '../../../referential/services/model/pmfm.model';
@@ -42,7 +42,7 @@ import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.compone
 export class AuctionControlPage extends LandingPage implements OnInit {
 
   $taxonGroupTypeId = new BehaviorSubject<number>(null);
-  taxonGroupControl: FormControl;
+  taxonGroupControl: UntypedFormControl;
   showOtherTaxonGroup = false;
   controlledSpeciesPmfmId: number;
 
@@ -56,7 +56,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   constructor(
     injector: Injector,
     protected settings: LocalSettingsService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected modalCtrl: ModalController
   ) {
     super(injector, {
@@ -175,6 +175,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       this.selectedTaxonGroup$
       .pipe(
         filter(isNotNil),
+        distinctUntilChanged((tg1, tg2) => EntityUtils.equals(tg1, tg2, 'id')),
         mergeMap(taxonGroup => this.programRefService.watchProgramPmfms(this.$programLabel.value, {
           acquisitionLevel: AcquisitionLevelCodes.SAMPLE,
           taxonGroupId: toNumber(taxonGroup && taxonGroup.id, undefined)
@@ -182,7 +183,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       )
       .subscribe(async (pmfms) => {
           // Save existing samples
-          if (this.samplesTable.dirty) {
+          if (this.samplesTable.dirty && !this.saving) {
             await this.samplesTable.save();
           }
 
@@ -269,7 +270,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return super.save(event, options);
   }
 
-  async openHelpModal(event?: UIEvent) {
+  async openHelpModal(event?: Event) {
 
     event?.preventDefault();
     event?.stopPropagation();
@@ -306,6 +307,29 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       });
   }
 
+  pmfmValueColor(pmfmValue: any, pmfm: IPmfm): ColorName {
+
+    let color: ColorName;
+
+    switch (pmfm.id) {
+      case PmfmIds.OUT_OF_SIZE_PCT:
+        if (isNotNil(pmfmValue) && +pmfmValue > 50) {
+          color = 'danger';
+        } else {
+          color = 'success';
+        }
+        break;
+      case PmfmIds.COMPLIANT_PRODUCT:
+        if (toBoolean(pmfmValue) === false) {
+          color = 'danger';
+        } else {
+          color = 'success';
+        }
+        break;
+    }
+    return color;
+  }
+
   /* -- protected method -- */
 
   protected async setValue(data: Landing): Promise<void> {
@@ -338,11 +362,16 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       // CLean invalid sample label
       (data.samples || []).forEach(sample => {
         if (sample.label?.startsWith('#') || isNil(sample.label)) sample.label = '';
-      })
+      });
     }
     // Reset samples, if no taxon group
     else {
       data.samples = [];
+    }
+
+    if (data.trip) {
+      // Force trip to be undefined (unused)
+      data.trip = undefined;
     }
 
     return data;
@@ -378,7 +407,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return `${parentUrl}/control/${id}`;
   }
 
-  protected registerSampleRowValidator(form: FormGroup, pmfms: IPmfm[]): Subscription {
+  protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: IPmfm[]): Subscription {
     // DEBUG
     // console.debug('[auction-control-page] Adding row validator');
     return AuctionControlValidators.addSampleValidators(form, pmfms, {markForCheck: () => this.markForCheck()});
@@ -388,5 +417,6 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     return this.landingForm.invalid && !this.landingForm.measurementValuesForm.invalid ? 0 : (
       (this.samplesTable.invalid || this.landingForm.measurementValuesForm.invalid) ? 1 : -1);
   }
+
 
 }

@@ -1,6 +1,6 @@
 .table-container {
   --table-toolbar-height: var(--mat-toolbar-height);
-  height: calc(100vh  - var(--table-container-offset, 0px) - var(--table-toolbar-height) - var(--table-container-bottom, 0px) - 1px);
+  height: calc(100%  - var(--table-container-offset, 0px) - var(--table-toolbar-height) - var(--table-container-bottom, 0px) - 1px);
 }
 
 .mat-column-pmfm {

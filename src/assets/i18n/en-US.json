@@ -140,6 +140,11 @@
       "BTN_COPY_LOCALLY": "Copy locally",
       "BTN_AUTO_FILL": "Auto fill data"
     },
+    "SHARE": {
+      "BTN_SHARE": "Share",
+      "BTN_SHARE_DOTS": "Share...",
+      "DIALOG_TITLE": "Share"
+    },
     "HELP": {
       "TITLE": "Online help"
     }
@@ -209,6 +214,9 @@
         "SUPERVISOR": "Label for Supervisor profile",
         "GUEST": "Label for Guest profile"
       },
+      "SOCIAL": {
+        "ENABLE_NOTIFICATION_ICONS": "Menu > Display notifications icons"
+      },
       "VESSEL": {
         "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel",
         "DEFAULT_FILTER_COUNTRY_ID": "Vessels: Default country (id)",
@@ -273,10 +281,11 @@
         "TOKEN": "Crypto",
         "BASIC_AND_TOKEN": "Basic and crypto"
       },
-      "DATA_QUALITY_PROCESS_ENABLE": "Enable quality process?",
-      "DATA_SHOW_RECORDER": "Show recorder person?",
-      "DATA_SHOW_OBSERVERS": "Show observers?",
+      "DATA_QUALITY_PROCESS_ENABLE": "Forms > Enable quality process?",
+      "DATA_SHOW_RECORDER": "Forms > Show recorder person?",
+      "DATA_SHOW_OBSERVERS": "Forms > Show observers?",
       "DATA_IMPORT_DEFAULT_PERIOD": "Offline mode > Period to import (by default)",
+      "DATA_IMAGES_ENABLE": "Forms > Allow images",
       "LANDING": {
         "FILTER_PROGRAM": "Landing > Show program filter?",
         "FILTER_LOCATION": "Landing > Show locations filter?",
@@ -771,6 +780,9 @@
         "START_DATE" : "Start date",
         "QUALITY": "State"
       },
+      "SETTINGS": {
+        "GEOLOCATION_TIMEOUT": "GPS Shipset > Acquisition timeout (seconds)"
+      },
       "ERROR": {
         "FIELD_DATE_BEFORE_TRIP": "Before trip's start",
         "FIELD_DATE_AFTER_TRIP": "After trip's end ",
@@ -948,6 +960,7 @@
         "SAMPLE_DATE_PLACEHOLDER": "Sample date",
         "TAXON_GROUP_PLACEHOLDER": "Commercial species (FAO)",
         "TAXON_NAME_PLACEHOLDER": "Scientific species (FAO)",
+        "IMAGES": "Pictures",
         "AUCTION_CONTROL": {
           "TITLE": "Batch {{label}}",
           "LABEL_PLACEHOLDER": "Batch number"
@@ -972,6 +985,7 @@
         "PARENT": "Parent sample",
         "COMMENTS": "Comments",
         "COMMENTS_PLACEHOLDER": "Comments",
+        "IMAGES": "Pictures",
         "BTN_AUTO_FILL": "Automatically fill",
         "BTN_ADD_PMFM": "Add a PMFM...",
         "WEIGHT": "Weight",
@@ -984,10 +998,12 @@
         "TAG_COUNT": "<b>{{tagCount}}</b> sample(s)",
         "BTN_INDIVIDUAL_MONITORING": "Fill sub-sample",
         "BTN_INDIVIDUAL_RELEASE": "Fill release",
+        "BTN_IMAGES": "Add pictures",
         "AUCTION_CONTROL": {
           "LABEL": "Batch",
           "LABEL_PLACEHOLDER": "Batch number",
-          "COMMENTS": "Comments"
+          "COMMENTS": "Comments",
+          "IMAGES": "Pictures"
         },
         "ACCIDENTAL_CATCH": {
           "TAB_SAMPLES": "Individual measures",
@@ -1131,7 +1147,8 @@
       "FISHING_AREA_PLACEHOLDER": "Fishing area #",
       "FISHING_AREAS": "Fishing areas:",
       "AUCTION_CONTROL": {
-        "TITLE": "{{location}} - Control of {{dateTime}}"
+        "TITLE": "{{location}} - Control of {{dateTime}}",
+        "TAB_LANDINGS": "Controlled vessels"
       },
       "SAMPLING": {
         "TITLE": "{{location}} - {{dateTime}}",
@@ -1156,6 +1173,7 @@
       "NO_LOCAL_RESULT": "No result (in occasions <b>NOT sent</b>)",
       "FILTER": {
         "PROGRAM": "Data collection program",
+        "STRATEGY": "Strategy",
         "LOCATION": "Location",
         "START_DATE": "Start period",
         "END_DATE": "End period"
@@ -1265,6 +1283,9 @@
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Report",
         "SAMPLES_TITLE": "Samples"
+      },
+      "AUCTION_CONTROL": {
+        "EMBEDDED_TITLE": "Control <b>{{species}}</b>"
       }
     },
     "SELECT_MODAL": {
@@ -1455,7 +1476,8 @@
       "REPLACE": "Replace this temporary vessel...",
       "REPLACE_CONFIRMATION": "Are you sure to replace this temporary vessel with '{{vessel}}' ?",
       "REPLACE_MANY": "Replace selected temporary vessels...",
-      "REPLACE_MANY_CONFIRMATION": "Are you sure to replace selected temporary vessels with '{{vessel}}' ?"
+      "REPLACE_MANY_CONFIRMATION": "Are you sure to replace selected temporary vessels with '{{vessel}}' ?",
+      "IMPORT_FROM_FILE": "Import from a file..."
     },
     "SELECT_MODAL": {
       "TITLE": "Vessel selection",
@@ -1479,7 +1501,8 @@
     },
     "ERROR": {
       "LOAD_ERROR": "Error while loading vessels.",
-      "REPLACE_ERROR": "Error while replacing temporary vessel.<small><br/>If the problem persists, please contact your administrator.</small>"
+      "REPLACE_ERROR": "Error while replacing temporary vessel.<small><br/>If the problem persists, please contact your administrator.</small>",
+      "SIOP_IMPORT_ERROR": "Error while importing SIOP vessel file.<small><br/>If the problem persists, please contact your administrator.</small>"
     }
   },
   "REFERENTIAL": {
@@ -1665,6 +1688,7 @@
     },
     "OPTIONS": {
       "VESSELS_ENABLE": "Referential > Vessels: Enable?",
+      "VESSELS_IMPORT_ENABLE": "Referential > Navires: Enable vessel file import?",
       "VESSELS_REPLACEMENT_ENABLE": "Referential > Vessels > Replacement: Enable?"
     },
     "ERROR": {
@@ -1771,9 +1795,9 @@
       "TRIP_APPLY_DATE_ON_NEW_OPERATION": "Trip > Operation: Initialize dates with trip's dates?",
       "TRIP_OPERATION_FISHING_AREA_LOCATION_LEVEL_IDS": "Trip > Operation: Fishing area: Location level(s)",
       "TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS": "Trip > Operation: Target species: Level(s)",
-      "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Trip > Operation : Fishing start date?",
-      "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Trip > Operation : Fishing end date?",
-      "TRIP_OPERATION_END_DATE_ENABLE": "Trip > Operation : End date?",
+      "TRIP_OPERATION_FISHING_START_DATE_ENABLE": "Trip > Operation: Fishing start date?",
+      "TRIP_OPERATION_FISHING_END_DATE_ENABLE": "Trip > Operation: Fishing end date?",
+      "TRIP_OPERATION_END_DATE_ENABLE": "Trip > Operation: End date?",
       "TRIP_OPERATION_PASTE_FLAGS": "Trip > Operation: Duplication",
       "TRIP_OPERATION_PASTE_FLAGS_ENUM": {
         "NONE": "Disable",
@@ -2227,10 +2251,10 @@
           "ST": "Strategies",
           "SM": "Strategy monitoring"
         }
-      },
-      "INFO": {
-        "PLEASE_WAIT_WHILE_RUNNING": "Extraction in progress. Please wait..."
       }
+    },
+    "INFO": {
+      "PLEASE_WAIT_WHILE_RUNNING": "Extraction in progress. Please wait..."
     },
     "ERROR": {
       "LOAD_TYPES_ERROR": "Error while load extraction types",
@@ -2252,6 +2276,7 @@
       "OFFLINE": "Unreachable node",
       "SELECT_MODAL": {
         "TITLE": "Network nodes",
+        "BTN_SET_MANUALLY": "Define manually",
         "HELP": "Please choose a network node to connect to:",
         "NOT_COMPATIBLE_HELP": "Required version: v{{version}} or +"
       }
@@ -2266,7 +2291,7 @@
       "IMPORTATION_SUCCEED": "Import successfully completed!<br/><b>Offline mode</b> is now available.",
       "OFFLINE": "No network connection.",
       "OFFLINE_OR_UNAUTHORIZED": "No network connection, or unauthorized access.",
-      "ONLINE": "Sucesfully connected to the network!",
+      "ONLINE": "Successfully connected to the network!",
       "OFFLINE_HELP": "The application works in <b>offline mode</b>.",
       "RETRY_TO_CONNECT": "<i>Retrying <b>to connect to the network...</b></i>",
       "UPDATE_OFFLINE_MODE": "<b>Offline mode</b> update available.",
@@ -2300,15 +2325,25 @@
         "COPIED_LOCALLY": "Successfully copied"
       },
       "TYPE_ENUM": {
-        "DEBUG_DATA": "Debug data",
-        "INBOX_MESSAGE": "Inbox message",
-        "FEED": "Feed"
+        "DEBUG_DATA": "Issue reported by <a>{{issuer}}</a>: <b>{{message}}</b>",
+        "INBOX_MESSAGE": "You have <b>received a message</b> from <a>{{issuer}}</a>",
+        "FEED": "Feed",
+        "JOB": "{{name}}<br/><b>{{status}}</b>"
       }
     },
     "JOB": {
       "PROGRESSION": {
         "TITLE": "Running tasks",
         "EMPTY": "No running task"
+      },
+      "STATUS_ENUM": {
+        "PENDING": "Pending",
+        "RUNNING": "Running",
+        "SUCCESS": "Completed successfully",
+        "WARNING": "Completed with warnings",
+        "ERROR": "Error",
+        "FATAL": "Fatal error",
+        "CANCELLED": "Cancelled"
       }
     },
     "MESSAGE": {
@@ -2333,11 +2368,15 @@
     },
     "ERROR": {
       "LOAD_USER_EVENTS_ERROR": "Error while loading notifications",
+      "COUNT_USER_EVENT_ERROR": "Error while counting notifications",
       "SAVE_USER_EVENT_ERROR": "Error while saving user notification",
-      "SEND_MESSAGE_ERROR": "Error while sending message"
+      "SUBSCRIBE_USER_EVENTS_ERROR": "Error while listening user events changes",
+      "SEND_MESSAGE_ERROR": "Error while sending message",
+      "LOAD_JOB_PROGRESSIONS_ERROR": "Error while loading job progressions",
+      "SUBSCRIBE_JOB_PROGRESSION_ERROR": "Error while listening job progression changes"
     },
     "INFO": {
-      "MESSAGE_SENT": "Message <b>sent</b>!"
+      "MESSAGE_SENT": "Message <b>sent</b>"
     }
   },
   "FILE": {
@@ -2351,15 +2390,20 @@
       }
     },
     "UPLOAD": {
-      "DRAG_AND_DROP": "Drag and drop a file{{ extension }} here<br/>ou",
+      "DRAG_AND_DROP": "Drag and drop a file{{ extension }} here<br/>or",
       "BROWSE": "Browse",
       "IMPORTING": "Import in progress",
-      "ERROR": "Error while sending file"
+      "ERROR": "Error while uploading file"
     }
   },
   "IMAGE": {
     "BTN_CAMERA_SOURCE": "Take a picture",
-    "BTN_GALLERY_SOURCE": "Open gallery"
+    "BTN_GALLERY_SOURCE": "Open gallery",
+    "GALLERY": {
+      "BTN_EDIT_TITLE": "Edit title",
+      "BTN_ADD_TITLE": "Add a title",
+      "TITLE": "Title"
+    }
   },
   "ERROR": {
     "ALERT_HEADER": "Error",
@@ -2436,7 +2480,7 @@
     "SAVE_ENTITY_ERROR": "Error while saving",
     "SAVE_ENTITIES_ERROR": "Error while saving the list",
     "DELETE_ENTITY_ERROR": "Error while deleting. <small><br/>If the problem persists, please contact your administrator.</small>",
-    "SUBSCRIBE_ENTITY_ERROR": "Error while subscribing to remte changes",
+    "SUBSCRIBE_ENTITY_ERROR": "Error while subscribing to remote changes",
     "CONTROL_ENTITY_ERROR": "Error while checking data validity",
     "TERMINATE_ENTITY_ERROR": "Cannot terminate entry. <small><br/>If the problem persists, please contact your administrator.</small>",
     "VALIDATE_ENTITY_ERROR": "Error when validating data",

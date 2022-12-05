@@ -16,36 +16,37 @@ KEYSTORE_PWD=
 . ${PROJECT_DIR}/scripts/env-android.sh
 [[ $? -ne 0 ]] && exit 1
 
-APK_SIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-signed.apk
-APK_UNSIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-unsigned.apk
 
 cd ${PROJECT_DIR}
 
+
+
+# Run the build
+echo "--- Building Capacitor App..."
+echo ""
+npm run android-build
+[[ $? -ne 0 ]] && exit 1
+
+echo "--- Building Capacitor App [OK]"
+
+
+echo "--- Cleaning previous Android APK ..."
 # Remove existing builds
+APK_SIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-signed.apk
+APK_UNSIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-unsigned.apk
 if [[ -f "${APK_SIGNED_FILE}" ]]; then
   rm -f ${APK_SIGNED_FILE}
 fi;
 if [[ -f "${APK_UNSIGNED_FILE}" ]]; then
   rm -f ${APK_UNSIGNED_FILE}
 fi;
+echo "--- Cleaning previous Android APK [OK]"
+echo ""
 
-# Run the build
-echo "Running cordova build..."
-ionic cordova build android --warning-mode=none --color --prod --release
-[[ $? -ne 0 ]] && exit 1
-
-if [[ ! -f "${APK_SIGNED_FILE}" ]]; then
-
-  if [[ ! -f "${APK_UNSIGNED_FILE}" ]]; then
-    echo "APK file not found at: ${APK_UNSIGNED_FILE}"
-    exit 1
-  fi
-
-  # Sign APK file
-  . ${PROJECT_DIR}/scripts/release-android-sign.sh
-  [[ $? -ne 0 ]] && exit 1
-else
-  echo "Successfully generated signed APK at: ${APK_SIGNED_FILE}"
-fi
-
-exit 0
+echo "**********************************"
+echo " /!\ You should now :"
+echo " - Open Android Studio and Build the release APK..."
+echo " - Then run: "
+echo ""
+echo "cd $PROJECT_DIR/scripts"
+echo "./release-android-sign.sh"

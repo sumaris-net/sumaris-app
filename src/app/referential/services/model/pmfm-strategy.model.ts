@@ -203,7 +203,7 @@ export class DenormalizedPmfmStrategy
 
     // Clone current (if not already clone)
     if (isNil(pmfm.children)) {
-      result = DenormalizedPmfmStrategy.fromObject(pmfm).asObject(); // Clone
+      result = this.fromObject(pmfm).asObject(); // Clone
       result.children = [pmfm, other];
     }
     else {
@@ -291,8 +291,9 @@ export class DenormalizedPmfmStrategy
 
   displayConversion?: UnitConversion;
 
-  constructor() {
+  constructor(init?: any) {
     super(DenormalizedPmfmStrategy.TYPENAME);
+    if (init) this.fromObject(init);
   }
 
   asObject(options?: EntityAsObjectOptions): any {
@@ -330,7 +331,7 @@ export class DenormalizedPmfmStrategy
     this.qualitativeValues = source.qualitativeValues && source.qualitativeValues.map(ReferentialRef.fromObject);
     this.strategyId = source.strategyId;
     this.displayConversion = source.displayConversion;
-    this.children = source.children && source.children.map(DenormalizedPmfmStrategy.fromObject) || undefined;
+    this.children = source.children && source.children.map(child => new DenormalizedPmfmStrategy(child)) || undefined;
   }
 
   get required(): boolean {

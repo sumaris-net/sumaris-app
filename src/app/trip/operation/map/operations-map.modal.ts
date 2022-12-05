@@ -5,7 +5,7 @@ import { LayerGroup, MapOptions, PathOptions } from 'leaflet';
 import {
   AppEditor,
   DateDiffDurationPipe,
-  DateFormatPipe,
+  DateFormatService,
   EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,

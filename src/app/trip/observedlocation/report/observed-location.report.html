@@ -82,7 +82,7 @@
       </section>
 
       <!-- landing reports -->
-      <section *ngFor="let landing of data?.landings; index as index" [ngSwitch]="landingEditor">
+      <section *ngFor="let landing of data?.landings|arrayFilter: hasSamples; index as index" [ngSwitch]="landingEditor">
         <!-- auction control -->
         <app-auction-control-report #landingReport
                                     *ngSwitchCase="'control'"

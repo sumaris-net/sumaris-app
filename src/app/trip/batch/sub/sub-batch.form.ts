@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, Injector, Input, OnDest
 import { Batch } from '../common/batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { AbstractControl, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { SubBatchValidatorService } from './sub-batch.validator';
 import {
@@ -57,9 +57,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected _disableByDefaultControls: AbstractControl[] = [];
   protected _weightConversionSubscription: Subscription;
 
-  enableIndividualCountControl: FormControl;
-  freezeTaxonNameControl: FormControl;
-  freezeQvPmfmControl: FormControl;
+  enableIndividualCountControl: UntypedFormControl;
+  freezeTaxonNameControl: UntypedFormControl;
+  freezeQvPmfmControl: UntypedFormControl;
   $taxonNames = new BehaviorSubject<TaxonNameRef[]>(undefined);
   selectedTaxonNameIndex = -1;
   warning: string;
@@ -169,7 +169,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -379,7 +379,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.ngInitExtension();
   }
 
-  async doNewParentClick(event: UIEvent) {
+  async doNewParentClick(event: Event) {
     if (!this.onNewParentClick) return; // No callback: skip
     const res = await this.onNewParentClick();
 
@@ -442,7 +442,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this._disableByDefaultControls.forEach(c => c.disable(opts));
   }
 
-  onTaxonNameButtonClick(event: UIEvent | undefined, taxonName: TaxonNameRef, minTabindex: number) {
+  onTaxonNameButtonClick(event: Event | undefined, taxonName: TaxonNameRef, minTabindex: number) {
     this.form.patchValue({taxonName});
     if (event) {
       event.preventDefault();
@@ -451,7 +451,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.focusNextInput(null, {minTabindex});
   }
 
-  focusFirstEmptyInput(event?: UIEvent): boolean {
+  focusFirstEmptyInput(event?: Event): boolean {
     return focusNextInput(event, this.inputFields, {
       excludeEmptyInput: true,
       minTabindex: -1,
@@ -461,21 +461,21 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     });
   }
 
-  focusNextInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {
+  focusNextInput(event: Event, opts?: Partial<GetFocusableInputOptions>): boolean {
     // DEBUG
     //return focusNextInput(event, this.inputFields, opts{debug: this.debug, ...opts});
 
     return focusNextInput(event, this.inputFields, opts);
   }
 
-  focusPreviousInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {
+  focusPreviousInput(event: Event, opts?: Partial<GetFocusableInputOptions>): boolean {
     // DEBUG
     // return focusPreviousInput(event, this.inputFields, {debug: this.debug, ...opts});
 
     return focusPreviousInput(event, this.inputFields, opts);
   }
 
-  focusNextInputOrSubmit(event: UIEvent, isLastPmfm: boolean) {
+  focusNextInputOrSubmit(event: Event, isLastPmfm: boolean) {
 
     if (isLastPmfm) {
       if (this.enableIndividualCount) {
@@ -631,11 +631,11 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     return pmfms;
   }
 
-  protected async onUpdateControls(form: FormGroup): Promise<void> {
+  protected async onUpdateControls(form: UntypedFormGroup): Promise<void> {
 
     // If QV: must be required
     if (this._qvPmfm) {
-      const measFormGroup = form.get('measurementValues') as FormGroup;
+      const measFormGroup = form.get('measurementValues') as UntypedFormGroup;
       const qvControl = measFormGroup.get(this._qvPmfm.id.toString());
 
       if (qvControl) {

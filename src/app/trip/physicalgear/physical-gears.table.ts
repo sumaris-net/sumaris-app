@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
 
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
 import { createPromiseEventEmitter, IEntitiesService, isNotNil, LoadResult, ReferentialRef, SharedValidators, toBoolean } from '@sumaris-net/ngx-components';
 import { IPhysicalGearModalOptions, PhysicalGearModal } from './physical-gear.modal';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from './physicalgear.service';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PhysicalGearFilter } from './physical-gear.filter';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
@@ -28,12 +28,12 @@ export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed',
 export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, PhysicalGearFilter> implements OnInit, OnDestroy {
 
   touchedSubject = new BehaviorSubject<boolean>(false);
-  filterForm: FormGroup;
+  filterForm: UntypedFormGroup;
   modalOptions: Partial<IPhysicalGearModalOptions>;
 
   @Input() canDelete = true;
   @Input() canSelect = true;
-  @Input() copyPreviousGears: (event: UIEvent) => Promise<PhysicalGear>;
+  @Input() copyPreviousGears: (event: Event) => Promise<PhysicalGear>;
   @Input() showToolbar = true;
   @Input() useSticky = false;
   @Input() title: string = null;
@@ -111,7 +111,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
 
   constructor(
     injector: Injector,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
     super(injector,
@@ -143,7 +143,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     // Excluded columns, by default
     this.excludesColumns.push('lastUsed');
     this.excludesColumns.push('subGearsCount');
-    this.excludesColumns.push('actions'); // not need, because PMFM columns order change is not supportted
+    this.excludesColumns.push('actions'); // not need, because PMFM columns order change is not supported
 
     // FOR DEV ONLY ----
     this.logPrefix = '[physical-gears-table] ';
@@ -261,7 +261,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     if (!this.allowRowDetail) return false;
 
     if (this.onOpenRow.observers.length) {
-      this.onOpenRow.emit({id, row});
+      this.onOpenRow.emit(row);
       return true;
     }
 
@@ -337,7 +337,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
     return {data: (data instanceof PhysicalGear) ? data : undefined, role};
   }
 
-  async deleteEntity(event: UIEvent, data: PhysicalGear): Promise<boolean> {
+  async deleteEntity(event: Event, data: PhysicalGear): Promise<boolean> {
     const row = await this.findRowByEntity(data);
 
     // Row not exists: OK

@@ -325,6 +325,51 @@ type IExtractionType_PersonVO_DepartmentVO {
   version: String
 }
 
+type ImageAttachmentVO {
+  comments: String
+  content: String
+  contentType: String
+  controlDate: Date
+  creationDate: Date
+  dataUrl: String
+  dateTime: Date
+  id: Int
+  objectId: Int
+  objectTypeId: Int
+  path: String
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  recorderDepartment: DepartmentVO
+  recorderPerson: PersonVO
+  updateDate: Date
+  "Get image url"
+  url: String
+  validationDate: Date
+}
+
+type JobProgressionVO {
+  current: Long!
+  id: Int
+  message: String
+  name: String
+  total: Long!
+}
+
+type JobVO {
+  configuration: String
+  endDate: Date
+  id: Int
+  issuer: String
+  log: String
+  name: String
+  report: String
+  startDate: Date
+  status: JobStatusEnum
+  type: String
+  updateDate: Date
+}
+
 type LandingVO {
   comments: String
   controlDate: Date
@@ -508,6 +553,8 @@ type Mutation {
   deleteVessels(ids: [Int]!): Boolean!
   "Delete many weight length conversions"
   deleteWeightLengthConversions(ids: [Int]): Boolean!
+  "Mark as read user events"
+  markAsReadUserEvents(ids: [Int]): Boolean!
   "Qualify an observed location"
   qualifyObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
   "Qualify a trip"
@@ -997,11 +1044,11 @@ type Query {
   "Find aggregated landings by filter"
   aggregatedLandings(filter: AggregatedLandingFilterVOInput): [AggregatedLandingVO]
   "Execute an aggregation and return as GeoJson"
-  aggregationGeoJson(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput): ObjectScalar
+  aggregationGeoJson(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ObjectScalar
   "Execute an aggregation and return as GeoJson"
-  aggregationTech(filter: ExtractionFilterVOInput, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput): AggregationTechResultVO
+  aggregationTech(filter: ExtractionFilterVOInput, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): AggregationTechResultVO
   "Execute an aggregation and return as GeoJson"
-  aggregationTechMinMax(filter: ExtractionFilterVOInput, strata: AggregationStrataVOInput, type: ExtractionTypeVOInput): MinMaxVO
+  aggregationTechMinMax(filter: ExtractionFilterVOInput, strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): MinMaxVO
   "Search in analytic references"
   analyticReferences(filter: ReferentialFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "label", sortDirection: String = "asc"): [ReferentialVO]
   "Get analytic references count"
@@ -1034,8 +1081,16 @@ type Query {
   extractionRows(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ExtractionResultVO
   "Get all available extraction types"
   extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason: "Use liveExtractionTypes and aggregationTypes")
+  "Search filter"
+  images(filter: ImageAttachmentFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "desc"): [ImageAttachmentVO]
+  "Import vessels from a SIOP file"
+  importSiopVessels(fileName: String): JobVO
   "Check if email exists (from a md5 hash)"
   isEmailExists(email: String, hash: String): Boolean!
+  "Get a job"
+  job(id: Int!): JobVO
+  "Search in jobs"
+  jobs(filter: JobFilterVOInput): [JobVO]
   "Get a landing, by id"
   landing(id: Int!): LandingVO
   "Search in landings"
@@ -1155,6 +1210,8 @@ type Query {
   tripsCount(filter: TripFilterVOInput, trash: Boolean = false): Long!
   "Search in user events"
   userEvents(filter: UserEventFilterVOInput, page: PageInput): [UserEventVO]
+  "Count user events"
+  userEventsCount(filter: UserEventFilterVOInput): Long
   "Get a vessel"
   vessel(
     id: Int,
@@ -1268,6 +1325,8 @@ type SampleVO {
   creationDate: Date
   flags: Int!
   id: Int
+  "Get sample's images"
+  images: [ImageAttachmentVO]
   individualCount: Int
   label: String
   landing: LandingVO
@@ -1363,6 +1422,10 @@ type Subscription {
     "Minimum interval to find changes, in seconds."
     interval: Int = 30
   ): AccountVO
+  "Subscribe to changes on job progression"
+  updateJobProgression(id: Int!, interval: Int): JobProgressionVO
+  "Subscribe to changes on jobs"
+  updateJobs(filter: JobFilterVOInput, interval: Int): [JobVO]
   "Subscribe to changes on an landing"
   updateLanding(
     id: Int!,
@@ -1406,6 +1469,18 @@ type Subscription {
     "Minimum interval to find changes, in seconds."
     interval: Int = 30
   ): TripVO
+  "Subscribe to changes on user events"
+  updateUserEvents(
+    filter: UserEventFilterVOInput,
+    "Minimum interval to find changes, in seconds."
+    interval: Int = 10
+  ): [UserEventVO]
+  "Subscribe to changes on user events count"
+  updateUserEventsCount(
+    filter: UserEventFilterVOInput,
+    "Minimum interval to find changes, in seconds."
+    interval: Int = 10
+  ): Long
 }
 
 type TaxonGroupStrategyVO {
@@ -1538,9 +1613,13 @@ type UserEventVO {
   hash: String
   id: Int
   issuer: String
+  level: EventLevelEnum
+  readDate: Date
   readSignature: String
   recipient: String
   signature: String
+  source: String
+  type: EventTypeEnum
   updateDate: Date
 }
 
@@ -1567,8 +1646,10 @@ type VesselActivityVO {
 
 type VesselFeaturesVO {
   administrativePower: Int
+  auxiliaryPower: Int
   basePortLocation: LocationVO
   comments: String
+  constructionYear: Int
   controlDate: Date
   creationDate: Date
   endDate: Date
@@ -1576,6 +1657,7 @@ type VesselFeaturesVO {
   grossTonnageGrt: Float
   grossTonnageGt: Float
   id: Int
+  ircs: String
   lengthOverAll: Float
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVO]
@@ -1708,9 +1790,34 @@ enum DataQualityStatusEnum {
   VALIDATED
 }
 
+enum EventLevelEnum {
+  DEBUG
+  ERROR
+  INFO
+  WARNING
+}
+
+enum EventTypeEnum {
+  DEBUG_DATA
+  EMAIL
+  FEED
+  INBOX_MESSAGE
+  JOB
+}
+
 enum ExtractionCategoryEnum {
   LIVE
   PRODUCT
+}
+
+enum JobStatusEnum {
+  CANCELLED
+  ERROR
+  FATAL
+  PENDING
+  RUNNING
+  SUCCESS
+  WARNING
 }
 
 enum LocationClassificationEnum {
@@ -2104,6 +2211,47 @@ input FishingAreaVOInput {
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
+}
+
+input ImageAttachmentFilterVOInput {
+  dataQualityStatus: [DataQualityStatusEnum]
+  objectId: Int
+  objectTypeId: Int
+  qualityFlagIds: [Int]
+  recorderDepartmentId: Int
+  recorderPersonId: Int
+}
+
+input ImageAttachmentVOInput {
+  comments: String
+  content: String
+  contentType: String
+  controlDate: Date
+  creationDate: Date
+  dataUrl: String
+  dateTime: Date
+  id: Int
+  objectId: Int
+  objectTypeId: Int
+  path: String
+  qualificationComments: String
+  qualificationDate: Date
+  qualityFlagId: Int
+  recorderDepartment: DepartmentVOInput
+  recorderPerson: PersonVOInput
+  updateDate: Date
+  url: String
+  validationDate: Date
+}
+
+input JobFilterVOInput {
+  id: Int
+  issuer: String
+  issuerEmail: String
+  lastUpdateDate: Date
+  startedBefore: Date
+  status: [JobStatusEnum]
+  types: [String]
 }
 
 input LandingFilterVOInput {
@@ -2834,6 +2982,7 @@ input SampleVOInput {
   controlDate: Date
   creationDate: Date
   id: Int
+  images: [ImageAttachmentVOInput]
   individualCount: Int
   label: String
   landing: LandingVOInput
@@ -3083,8 +3232,16 @@ input TripVOInput {
 }
 
 input UserEventFilterVOInput {
+  excludeRead: Boolean!
+  includedIds: [Int]
   issuer: String
+  issuers: [String]
+  levels: [String]
   recipient: String
+  recipients: [String]
+  source: String
+  startDate: Date
+  types: [String]
 }
 
 input UserEventVOInput {
@@ -3094,9 +3251,13 @@ input UserEventVOInput {
   hash: String
   id: Int
   issuer: String
+  level: EventLevelEnum
+  readDate: Date
   readSignature: String
   recipient: String
   signature: String
+  source: String
+  type: EventTypeEnum
   updateDate: Date
 }
 
@@ -3127,8 +3288,10 @@ input VesselFeaturesFilterVOInput {
 
 input VesselFeaturesVOInput {
   administrativePower: Int
+  auxiliaryPower: Int
   basePortLocation: LocationVOInput
   comments: String
+  constructionYear: Int
   controlDate: Date
   creationDate: Date
   endDate: Date
@@ -3136,6 +3299,7 @@ input VesselFeaturesVOInput {
   grossTonnageGrt: Float
   grossTonnageGt: Float
   id: Int
+  ircs: String
   lengthOverAll: Float
   measurementValues: Map_Integer_StringScalar
   measurements: [MeasurementVOInput]

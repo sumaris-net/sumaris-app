@@ -20,15 +20,24 @@ import {
   TableSelectColumnsComponent
 } from '@sumaris-net/ngx-components';
 import { TableDataSource } from '@e-is/ngx-material-table';
-import { ExtractionCategories, ExtractionColumn, ExtractionFilterCriterion, ExtractionResult, ExtractionRow, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
+import {
+  ExtractionCategories,
+  ExtractionColumn,
+  ExtractionFilterCriterion,
+  ExtractionResult,
+  ExtractionRow,
+  ExtractionType,
+  ExtractionTypeCategory,
+  ExtractionTypeUtils
+} from '../type/extraction-type.model';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { Location } from '@angular/common';
-import { debounceTime, filter, first, map, tap, throttleTime } from 'rxjs/operators';
+import { combineAll, concatAll, debounceTime, filter, first, map, tap, throttleTime } from 'rxjs/operators';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { ExtractionService } from '../common/extraction.service';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { MatTable } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -41,6 +50,7 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { Program } from '@app/referential/services/model/program.model';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+
 
 
 @Component({
@@ -67,12 +77,12 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   canCreateProduct = false;
   isAdmin = false;
 
-  typesByCategory$: Observable<{key: string, value: ExtractionType[]}[]>;
   filterCriteriaCount$: Observable<number>;
   filterPanelFloating = true;
   stickyEnd = true;
   $programs = new BehaviorSubject<Program[]>(null);
   $selectedProgram = new BehaviorSubject<Program>(null);
+  $categories = new BehaviorSubject<ExtractionTypeCategory[]>(null);
 
   @ViewChild(MatTable, {static: true}) table: MatSort;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -88,7 +98,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     accountService: AccountService,
     service: ExtractionService,
     settings: LocalSettingsService,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
@@ -108,16 +118,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   ngOnInit() {
 
     super.ngOnInit();
-
-    // Create a types map by category (use for type sub menu)
-    this.typesByCategory$ = this.$types
-      .pipe(
-        map(types => arrayGroupBy(types, 'category')),
-        filter(isNotNil),
-        map(map => Object.getOwnPropertyNames(map)
-            .map(key => ({key, value: map[key]}))
-        )
-      );
 
     // If the user changes the sort order, reset back to the first page.
     if (this.sort && this.paginator) {
@@ -165,6 +165,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       })
       .subscribe(({data}) => this.$programs.next(data))
     )
+
+    this.registerSubscription(this.$types
+      .pipe(
+        filter(isNotNil),
+        map(ExtractionTypeCategory.fromTypes)
+      )
+      .subscribe(categories => this.$categories.next(categories))
+    );
   }
 
   ngOnDestroy() {
@@ -256,7 +264,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
     // Apply filter
     if (this.criteriaForm.sheetName && isNotNilOrBlank(program.label)) {
-      this.criteriaForm.setValue([
+      await this.criteriaForm.setValue([
         ExtractionFilterCriterion.fromObject({
           sheetName: this.criteriaForm.sheetName,
           name: 'project',
@@ -268,7 +276,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     this.$selectedProgram.next(program);
 
     // Refresh data
-    if (opts.emitEvent === true) {
+    if (opts.emitEvent !== false) {
       this.onRefresh.emit();
     }
   }
@@ -350,7 +358,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }
   }
 
-  async aggregateAndSave(event?: UIEvent) {
+  async aggregateAndSave(event?: Event) {
     if (!this.type || !this.canCreateProduct) return; // Skip
 
     this.markAsLoading();
@@ -400,7 +408,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }
   }
 
-  async save(event?: UIEvent) {
+  async save(event?: Event) {
     if (!this.type) return; // Skip
 
     this.markAsLoading();
@@ -448,7 +456,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }
   }
 
-  async delete(event?: UIEvent) {
+  async delete(event?: Event) {
     if (!this.type || isNil(this.type.id)) return;
 
     if (this.type.category !== ExtractionCategories.PRODUCT) {
@@ -490,7 +498,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   }
 
-  async openMap(event?: UIEvent) {
+  async openMap(event?: Event) {
     if (this.type?.isSpatial !== true) return; // Skip
 
     if (event) {
@@ -511,7 +519,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }, 200); // Add a delay need by matTooltip to be hide
   }
 
-  openProduct(type?: ExtractionType, event?: UIEvent) {
+  openProduct(type?: ExtractionType, event?: Event) {
     type = type || this.type;
 
     if (event) {
@@ -530,23 +538,32 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }, 100);
   }
 
-  applyFilterAndClosePanel(event?: UIEvent) {
+  applyFilterAndClosePanel(event?: Event) {
     this.onRefresh.emit(event);
     this.filterExpansionPanel.close();
   }
 
-  resetFilter(event?: UIEvent) {
-    this.criteriaForm.reset();
+  async resetFilter(event?: Event) {
+
+    if (this.$selectedProgram.value) {
+      await this.setTypeAndProgram(this.type, this.$selectedProgram.value, {emitEvent: false})
+    }
+
+    else {
+      this.criteriaForm.reset();
+    }
     this.applyFilterAndClosePanel(event);
+
   }
 
   /* -- protected method -- */
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {
     return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', <ExtractionTypeFilter>{
-      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-      isSpatial: false
-    });
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+        // Exclude spatial because we cannot load columns yet
+        isSpatial: false
+      });
   }
 
   protected async loadData() {
@@ -621,7 +638,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     return ExtractionType.equals(t1, t2);
   }
 
-  protected askDeleteConfirmation(event?: UIEvent): Promise<boolean> {
+  protected askDeleteConfirmation(event?: Event): Promise<boolean> {
     return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
   }
 

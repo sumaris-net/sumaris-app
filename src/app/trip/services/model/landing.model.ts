@@ -3,7 +3,7 @@ import {Moment} from 'moment';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils } from './measurement.model';
 import {Sample} from './sample.model';
 import {DataRootVesselEntity} from '@app/data/services/model/root-vessel-entity.model';
-import {IWithObserversEntity} from '@app/data/services/model/model.utils';
+import {fillRankOrder, IWithObserversEntity} from '@app/data/services/model/model.utils';
 import {
   EntityClass,
   EntityClasses,
@@ -88,6 +88,10 @@ export class Landing extends DataRootVesselEntity<Landing> implements IWithObser
     // Samples
     this.samples = source.samples && source.samples.map(Sample.fromObject) || undefined;
     this.samplesCount = toNumber(source.samplesCount, this.samples?.filter(s => s.measurementValues && isNotNilOrBlank(s.measurementValues[PmfmIds.TAG_ID])).length);
+
+    // Fill rankOrder (workaround - fix an issue in IMAGINE)
+    // FIXME: remove when SAMPLE.RANK_ORDER will always be filled by IMAGINE
+    fillRankOrder(this.samples);
   }
 
   equals(other: Landing): boolean {

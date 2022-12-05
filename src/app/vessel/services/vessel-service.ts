@@ -1,8 +1,9 @@
-import { Injectable, Injector } from '@angular/core';
-import { gql } from '@apollo/client/core';
+import { Inject, Injectable, Injector, Optional } from '@angular/core';
+import { FetchPolicy, gql } from '@apollo/client/core';
 import { combineLatest, Observable } from 'rxjs';
 import { QualityFlagIds } from '../../referential/services/model/model.enum';
 import {
+  APP_JOB_PROGRESSION_SERVICE,
   BaseEntityGraphqlQueries,
   EntitiesServiceWatchOptions,
   Entity,
@@ -13,14 +14,16 @@ import {
   FormErrors,
   IEntitiesService,
   IEntityService,
+  IJobProgressionService,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  LoadResult,
+  JobProgression,
+  LoadResult, mergeLoadResult,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   Person,
-  StatusIds,
+  StatusIds
 } from '@sumaris-net/ngx-components';
 import { map } from 'rxjs/operators';
 import { ReferentialFragments } from '../../referential/services/referential.fragments';
@@ -42,8 +45,10 @@ import { LandingService } from '@app/trip/services/landing.service';
 import { TripService } from '@app/trip/services/trip.service';
 import { OperationService } from '@app/trip/services/operation.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
-import { mergeLoadResult } from '@app/shared/functions';
-import { FetchPolicy } from '@apollo/client';
+import { VesselErrorCodes } from '@app/vessel/services/errors';
+import { JobFragments } from '@app/social/job/job.service';
+import { Job } from '@app/social/job/job.model';
+import { TranslateService } from '@ngx-translate/core';
 
 
 export const VesselFragments = {
@@ -112,7 +117,7 @@ export const VesselFragments = {
 };
 
 
-const VesselQueries: BaseEntityGraphqlQueries = {
+const VesselQueries: BaseEntityGraphqlQueries & {importSiopFile: any} = {
   load: gql`query Vessel($id: Int!) {
         data: vessel(id: $id) {
             ...VesselFragment
@@ -151,11 +156,18 @@ const VesselQueries: BaseEntityGraphqlQueries = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`
+    ${ReferentialFragments.referential}`,
+
+  importSiopFile:  gql`query ImportVesselSiopFile($fileName: String) {
+      data: importSiopVessels(fileName: $fileName) {
+        ...LightJobFragment
+      }
+    }
+    ${JobFragments.light}`
 };
 
 
-const VesselMutations: BaseRootEntityGraphqlMutations = {
+const VesselMutations: BaseRootEntityGraphqlMutations & {replaceAll: any} = {
   saveAll: gql`mutation SaveVessels($data:[VesselVOInput]!){
         data: saveVessels(vessels: $data){
             ...VesselFragment
@@ -171,12 +183,12 @@ const VesselMutations: BaseRootEntityGraphqlMutations = {
 
   deleteAll: gql`mutation DeleteVessels($ids:[Int]!){
         deleteVessels(ids: $ids)
-    }`
-};
+    }`,
 
-const replaceVesselMutation = gql`mutation ReplaceVessel($temporaryVesselIds: [Int]!, $validVesselId: Int!) {
-  replaceVessels(temporaryVesselIds: $temporaryVesselIds, validVesselId: $validVesselId)
-}`;
+  replaceAll: gql`mutation ReplaceVessels($temporaryVesselIds: [Int]!, $validVesselId: Int!) {
+    replaceVessels(temporaryVesselIds: $temporaryVesselIds, validVesselId: $validVesselId)
+  }`
+};
 
 export interface VesselSaveOptions extends EntitySaveOptions {
   previousVessel?: Vessel;
@@ -198,6 +210,8 @@ export class VesselService
     private landingService: LandingService,
     private tripService: TripService,
     private operationService: OperationService,
+    private translate: TranslateService,
+    @Optional() @Inject(APP_JOB_PROGRESSION_SERVICE) protected jobProgressionService: IJobProgressionService,
   ) {
     super(injector, Vessel, VesselFilter, {
       queries: VesselQueries,
@@ -462,14 +476,14 @@ export class VesselService
     }
     const now = new Date();
     await this.graphql.mutate({
-      mutation: replaceVesselMutation,
+      mutation: VesselMutations.replaceAll,
       refetchQueries: this.getRefetchQueriesForMutation(opts),
       awaitRefetchQueries: opts && opts.awaitRefetchQueries,
       variables: {
         temporaryVesselIds,
         validVesselId
       },
-      error: {code: ErrorCodes.REPLACE_VESSEL_ERROR, message: 'VESSEL.ERROR.REPLACE_ERROR'},
+      error: {code: VesselErrorCodes.REPLACE_VESSEL_ERROR, message: 'VESSEL.ERROR.REPLACE_ERROR'},
       update: (proxy, res) => {
 
         // Remove from cache
@@ -488,6 +502,40 @@ export class VesselService
       }
 
     })
+  }
+
+  async importFile(fileName: string, format = 'siop'): Promise<Job> {
+
+    if (this._debug) console.debug(this._logPrefix + `Importing vessels from SIOP file '${fileName}' ...`);
+
+    let query: any;
+    let variables: any;
+    switch (format) {
+      case 'siop':
+        query = VesselQueries.importSiopFile;
+        variables = {fileName};
+        break;
+      default:
+        throw new Error('Unknown vessel file format: ' + format);
+    }
+
+    const {data} = await this.graphql.query<{ data: any }>({
+      query,
+      variables,
+      error: {code: VesselErrorCodes.SIOP_IMPORT_ERROR, message: 'VESSEL.ERROR.SIOP_IMPORT_ERROR'}
+    });
+
+    const job = Job.fromObject(data);
+    const message = this.translate.instant('SOCIAL.JOB.STATUS_ENUM.' + (job.status || 'PENDING'));
+    const progression = JobProgression.fromObject({
+      ...job,
+      message
+    })
+
+    // Start to listen job
+    this.jobProgressionService.addJob(job.id, progression);
+
+    return job;
   }
 
   protected async deleteAllLocally(entities: Vessel[], opts?: { trash?: boolean }): Promise<any> {

@@ -4,7 +4,7 @@ import { Batch } from '../common/batch.model';
 import { Alerts, AppFormUtils, AudioProvider, firstNotNilPromise, isEmptyArray, isNil, isNotNil, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { SubBatchForm } from './sub-batch.form';
 import { SUB_BATCH_RESERVED_END_COLUMNS, SUB_BATCHES_TABLE_OPTIONS, SubBatchesTable } from './sub-batches.table';
-import { BaseMeasurementsTableConfig } from '../../measurement/measurements.table.class';
+import { BaseMeasurementsTableConfig } from '../../measurement/measurements-table.class';
 import { IonContent, ModalController } from '@ionic/angular';
 import { isObservable, Observable, Subject } from 'rxjs';
 import { createAnimation } from '@ionic/core';
@@ -16,6 +16,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { environment } from '@environments/environment';
 import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { SelectionModel } from '@angular/cdk/collections';
 
 export interface ISubBatchesModalOptions {
 
@@ -74,6 +75,15 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   $title = new Subject<string>();
 
+  get selectedRow(): TableElement<SubBatch> {
+    return this.selection.selected[0] || this.editedRow;
+  }
+  set selectedRow(row: TableElement<SubBatch>) {
+    this.selection.clear();
+    if (row) this.selection.select(row);
+    this.markForCheck();
+  }
+
   get dirty(): boolean {
     return super.dirty || (this.form && this.form.dirty);
   }
@@ -102,17 +112,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return this.i18nColumnSuffix;
   }
 
-  @Input() set disabled(value: boolean) {
-    if (value) {
-      this.disable();
-      this.showForm = false;
-    }
-    else {
-      this.enable();
-      this.showForm = true;
-    }
-  }
-
   @ViewChild('form', { static: true }) form: SubBatchForm;
   @ViewChild('content') content: IonContent;
 
@@ -132,10 +131,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     this.allowRowDetail = false; // Disable click on a row
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'desc';
+    this.selection = new SelectionModel<TableElement<SubBatch>>(false);
 
     // default values
     this.showCommentsColumn = false;
     this.showParentColumn = false;
+
 
     // TODO: for DEV only ---
     this.debug = !environment.production;
@@ -144,6 +145,11 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   ngOnInit() {
 
     console.debug('[sub-batches-modal] Init modal...');
+
+    if (this.disabled) {
+      this.showForm = false;
+      this.disable();
+    }
 
     super.ngOnInit();
 
@@ -230,9 +236,13 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     super.setValue(data, opts);
   }
 
-  async doSubmitForm(event?: UIEvent, row?: TableElement<SubBatch>) {
+  async doSubmitForm(event?: Event, row?: TableElement<SubBatch>) {
     await this.scrollToTop();
-    return super.doSubmitForm(event, row);
+    await super.doSubmitForm(event, row);
+
+    // Forget the edited row
+    this.selectedRow = null;
+    this.markForCheck();
   }
 
   protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
@@ -247,7 +257,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
       || pmfm.taxonGroupIds.includes(parentTaxonGroupId));
   }
 
-  async cancel(event?: UIEvent) {
+  async cancel(event?: Event) {
 
     if (this.dirty) {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
@@ -302,17 +312,18 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     if (!row) throw new Error ("Missing row argument, or a row selection.");
 
     // Confirm last edited row
-    if (this.editedRow) {
-      this.confirmEditCreate();
-    }
+    const confirmed = this.confirmEditCreate();
+    if (!confirmed) return false;
 
     // Copy the row into the form
     this.form.setValue(this.toEntity(row), {emitEvent: true});
-    this.markForCheck();
 
     // Then remove the row
     row.startEdit();
-    this.editedRow = row;
+
+    // Mark the row as edited
+    this.selectedRow = row;
+
     return true;
   }
 
@@ -321,7 +332,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     if (event) event.preventDefault();
 
     this.selection.clear();
-    this.selection.toggle(row);
+    this.selection.select(row);
   }
 
   /* -- protected methods -- */
@@ -408,9 +419,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
     // Highlight the row, few seconds
     if (row) this.onRowChanged(row);
-
-    // Clean editedRow
-    this.editedRow = null;
 
     return row;
   }

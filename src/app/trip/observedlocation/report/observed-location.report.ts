@@ -12,7 +12,7 @@ import { TranslateService } from '@ngx-translate/core';
 import {
   AppErrorWithDetails,
   arrayDistinct,
-  DateFormatPipe,
+  DateFormatService,
   firstFalsePromise,
   isNil,
   isNilOrBlank,
@@ -41,7 +41,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   private readonly route: ActivatedRoute;
   private readonly platform: PlatformService;
-  private readonly dateFormatPipe: DateFormatPipe;
+  private readonly dateFormat: DateFormatService;
   private readonly cd: ChangeDetectorRef;
   private readonly translate: TranslateService;
   private readonly observedLocationService: ObservedLocationService;
@@ -94,7 +94,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   constructor(injector: Injector) {
     this.route = injector.get(ActivatedRoute);
     this.cd = injector.get(ChangeDetectorRef);
-    this.dateFormatPipe = injector.get(DateFormatPipe);
+    this.dateFormat = injector.get(DateFormatService);
 
     this.platform = injector.get(PlatformService);
     this.translate = injector.get(TranslateService);
@@ -252,7 +252,7 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
   protected async computeTitle(data: ObservedLocation) {
     const title = await this.translate.get('OBSERVED_LOCATION.REPORT.TITLE', {
       location: data.location.name,
-      dateTime: this.dateFormatPipe.transform(data.startDateTime, {time: true}),
+      dateTime: this.dateFormat.transform(data.startDateTime, {time: true}),
     }).toPromise();
     this.$title.next(title)
   }
@@ -302,5 +302,9 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   isNotQualitativePmfm(pmfm: IPmfm) {
     return !pmfm.isQualitative || !pmfm.qualitativeValues?.length || (pmfm.qualitativeValues.length > 3);
+  }
+
+  hasSamples(landing: Landing): boolean {
+    return isNotEmptyArray(landing?.samples);
   }
 }

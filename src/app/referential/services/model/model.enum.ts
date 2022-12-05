@@ -12,16 +12,25 @@ export const LocationLevelIds = {
   ICES_RECTANGLE: 4,
   GFCM_RECTANGLE: 5,
   ICES_SUB_AREA: 110,
-  ICES_DIVISION: 111,
-
-  LOCATIONS_AREA: [4, 5, 111],
-  WEIGHT_LENGTH_CONVERSION_AREA: [110, 111]
+  ICES_DIVISION: 111
 };
 
+
 export class LocationLevels {
+  static getFishingAreaLevelIds() {
+    return [LocationLevelIds.ICES_RECTANGLE, LocationLevelIds.GFCM_RECTANGLE, LocationLevelIds.ICES_DIVISION];
+  }
+  static getWeightLengthConversionAreaLevelIds() {
+    return [LocationLevelIds.ICES_SUB_AREA, LocationLevelIds.ICES_DIVISION];
+  }
   static getStatisticalRectangleLevelIds() {
     return [LocationLevelIds.ICES_RECTANGLE, LocationLevelIds.GFCM_RECTANGLE];
   }
+}
+export const LocationLevelGroups = {
+  FISHING_AREA: LocationLevels.getFishingAreaLevelIds(),
+  WEIGHT_LENGTH_CONVERSION_AREA: LocationLevels.getWeightLengthConversionAreaLevelIds(),
+  STATISTICAL_RECTANGLE: LocationLevels.getStatisticalRectangleLevelIds()
 }
 
 export const GearLevelIds = {
@@ -74,6 +83,7 @@ export const PmfmIds = {
   OUT_OF_SIZE_WEIGHT: 142,
   OUT_OF_SIZE_PCT: 143,
   OUT_OF_SIZE_INDIV_COUNT: 152,
+  COMPLIANT_PRODUCT: 148,
   PARASITIZED_INDIV_COUNT: 155,
   PARASITIZED_INDIV_PCT: 156,
   DIRTY_INDIV_COUNT: 157,
@@ -337,5 +347,8 @@ export const ProgramPrivilegeIds = {
 export class ModelEnumUtils {
   static refreshDefaultValues() {
     MethodIdGroups.CALCULATED = Methods.getCalculatedIds();
+    LocationLevelGroups.FISHING_AREA = LocationLevels.getFishingAreaLevelIds();
+    LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA = LocationLevels.getWeightLengthConversionAreaLevelIds();
+    LocationLevelGroups.STATISTICAL_RECTANGLE = LocationLevels.getStatisticalRectangleLevelIds();
   }
 }

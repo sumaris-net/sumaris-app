@@ -3,7 +3,7 @@ import { TableElement } from '@e-is/ngx-material-table';
 
 import { AccountService, AppValidatorService, isNil, isNotNil } from '@sumaris-net/ngx-components';
 import { LandingService } from '../services/landing.service';
-import { BaseMeasurementsTable } from '../measurement/measurements.table.class';
+import { BaseMeasurementsTable } from '../measurement/measurements-table.class';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Moment } from 'moment';
@@ -48,7 +48,8 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
   locationAttributes: string[];
   vesselSnapshotAttributes: string[];
 
-  @Output() onNewTrip = new EventEmitter<{ id?: number; row: TableElement<Landing> }>();
+  @Output() onOpenTrip = new EventEmitter<TableElement<Landing>>();
+  @Output() onNewTrip = new EventEmitter<TableElement<Landing>>();
 
   @Input() canDelete = true;
   @Input() showFabButton = false;
@@ -215,6 +216,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
     // Set default acquisition level
     this.acquisitionLevel = AcquisitionLevelCodes.LANDING;
+    this.showObserversColumn = false;
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
@@ -247,6 +249,7 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
 
   ngOnDestroy() {
     super.ngOnDestroy();
+    this.onOpenTrip.unsubscribe();
     this.onNewTrip.unsubscribe();
   }
 
@@ -309,12 +312,12 @@ export class LandingsTable extends BaseMeasurementsTable<Landing, LandingFilter>
       return false;
     }
 
-    if (row.currentData.tripId) {
+    if (isNotNil(row.currentData.tripId)) {
       // Edit trip
-      this.onOpenRow.emit({id: row.currentData.tripId, row: row});
+      this.onOpenTrip.emit(row);
     } else {
       // New trip
-      this.onNewTrip.emit({id: null, row: row});
+      this.onNewTrip.emit(row);
     }
   }
 

@@ -70,6 +70,9 @@ export class UserEventsTable
   canDelete: boolean;
   isAdmin: boolean;
 
+  @Input() mobile: boolean;
+  @Input() showToolbar: boolean;
+  @Input() showPaginator = true;
   @Input() recipient: string;
   @Input() withContent: boolean;
   @Input() defaultSortBy: string;
@@ -88,7 +91,6 @@ export class UserEventsTable
         .concat([
           'creationDate',
           'icon',
-          'type',
           'message'
         ])
         .concat(RESERVED_END_COLUMNS),
@@ -102,6 +104,8 @@ export class UserEventsTable
     this.defaultSortBy = 'creationDate';
     this.defaultSortDirection = 'desc';
 
+    this.mobile = this.settings.mobile;
+
   }
 
   ngOnInit() {
@@ -110,6 +114,7 @@ export class UserEventsTable
     // Load date/time pattern
     this.dateTimePattern = this.translate.instant('COMMON.DATE_TIME_PATTERN');
     this.withContent = toBoolean(this.withContent, false);
+    this.showToolbar = toBoolean(this.showToolbar, !this.mobile);
 
     const account = this.accountService.account;
     const pubkey = account && account.pubkey;

@@ -4,7 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import {
   focusNextInput,
   getFocusableInputElements,
@@ -58,7 +58,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: PhysicalGearValidatorService,
     protected operationService: OperationService,
@@ -135,7 +135,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
     if (inputElements.length) inputElements[0].focus();
   }
 
-  focusNextInput(event: UIEvent, opts?: Partial<GetFocusableInputOptions>): boolean {
+  focusNextInput(event: Event, opts?: Partial<GetFocusableInputOptions>): boolean {
 
     // DEBUG
     //return focusNextInput(event, this.inputFields, opts{debug: this.debug, ...opts});

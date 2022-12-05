@@ -61,12 +61,12 @@ export class SelectOperationModal implements OnInit, ISelectOperationModalOption
     }, 200);
   }
 
-  async selectRow(event: { id?: number; row: TableElement<Operation> }) {
-    if (event.row && this.table) {
+  async selectRow(row: TableElement<Operation>) {
+    if (row && this.table) {
 
-    // Select the clicked row, then close
+      // Select the clicked row, then close
       this.table.selection.clear();
-      this.table.selection.select(event.row);
+      this.table.selection.select(row);
       await this.close();
     }
   }

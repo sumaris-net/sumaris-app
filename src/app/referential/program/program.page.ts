@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
-import { FormBuilder, FormGroup, ValidationErrors } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { Program } from '../services/model/program.model';
 import { ProgramService } from '../services/program.service';
 import { ReferentialForm } from '../form/referential.form';
@@ -18,7 +18,7 @@ import {
   fadeInOutAnimation,
   FormFieldDefinition,
   FormFieldDefinitionMap,
-  HistoryPageReference,
+  HistoryPageReference, IEntity,
   isNil, isNotEmptyArray,
   isNotNil, isNotNilOrBlank,
   ReferentialRef,
@@ -60,7 +60,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
   readonly mobile: boolean;
   propertyDefinitions: FormFieldDefinition[];
   fieldDefinitions: FormFieldDefinitionMap = {};
-  form: FormGroup;
+  form: UntypedFormGroup;
   i18nFieldPrefix = 'PROGRAM.';
   strategyEditor: StrategyEditor = 'legacy';
   i18nTabStrategiesSuffix = '';
@@ -81,7 +81,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
   constructor(
     protected injector: Injector,
     protected programService: ProgramService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected accountService: AccountService,
     protected validatorService: ProgramValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -402,12 +402,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this.markForCheck();
   }
 
-  async onOpenStrategy({id, row}: { id?: number; row: TableElement<any>; }) {
+  async  onOpenStrategy<T extends IEntity<any>>(row: TableElement<T>) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
     if (savedOrContinue) {
       this.markAsLoading();
       setTimeout(async () => {
-        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, id], {
+        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, row.currentData.id], {
           queryParams: {}
         });
         this.markAsLoaded();

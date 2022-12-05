@@ -1,6 +1,6 @@
 import { MeasurementModelValues } from '@app/trip/services/model/measurement.model';
 import { PmfmIds } from '@app/referential/services/model/model.enum';
-import { ReferentialRef } from '@sumaris-net/ngx-components';
+import { isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export class PhysicalGearTestUtils {
@@ -39,7 +39,7 @@ export class PhysicalGearTestUtils {
   static getMeasurementValues(values: { label?: string, meshSize: number; selectiveDevice?: 'T90'|'MACAR' }): MeasurementModelValues {
     const result: MeasurementModelValues = {};
     result[PmfmIds.GEAR_LABEL] = values?.label || null;
-    result['3'] = values?.meshSize || null;
+    result['3'] = isNotNil(values?.meshSize) ? '' + values?.meshSize : null;
     if (values.selectiveDevice) {
       switch (values.selectiveDevice) {
         case 'T90':

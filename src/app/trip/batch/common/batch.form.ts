@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnD
 import { Batch, BatchWeight } from './batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { AbstractControl, FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
   AppFormUtils, changeCaseToUnderscore,
@@ -91,6 +91,10 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return this._showWeight;
   }
 
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+  }
+
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
 
@@ -106,17 +110,17 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     this._disableByDefaultControls.forEach(c => c.disable(opts));
   }
 
-  get children(): FormArray {
-    return this.form.get('children') as FormArray;
+  get children(): UntypedFormArray {
+    return this.form.get('children') as UntypedFormArray;
   }
 
-  get samplingBatchForm(): FormGroup {
-    return this.children?.at(0) as FormGroup;
+  get samplingBatchForm(): UntypedFormGroup {
+    return this.children?.at(0) as UntypedFormGroup;
   }
 
 
-  get weightForm(): FormGroup {
-    return this.form.get('weight') as FormGroup;
+  get weightForm(): UntypedFormGroup {
+    return this.form.get('weight') as UntypedFormGroup;
   }
 
   @Input()
@@ -166,7 +170,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: BatchValidatorService,
     protected referentialRefService: ReferentialRefService
@@ -349,7 +353,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     if (this.showSamplingBatch) {
 
       this.childrenFormHelper.resize(1);
-      const samplingFormGroup = this.childrenFormHelper.at(0) as FormGroup;
+      const samplingFormGroup = this.childrenFormHelper.at(0) as UntypedFormGroup;
 
       const samplingBatch = BatchUtils.getOrCreateSamplingChild(data);
       this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingBatch));
@@ -474,7 +478,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     }
   }
 
-  copyChildrenWeight(event: UIEvent, samplingBatchForm: AbstractControl) {
+  copyChildrenWeight(event: Event, samplingBatchForm: AbstractControl) {
 
     const source = samplingBatchForm.get('childrenWeight')?.value as BatchWeight;
     if (isNil(source?.value)) return; // Nothing to copy
@@ -548,7 +552,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return pmfms.filter(p => !this.weightPmfms.includes(p) && !p.hidden);
   }
 
-  protected async onUpdateFormGroup(form?: FormGroup): Promise<void> {
+  protected async onUpdateFormGroup(form?: UntypedFormGroup): Promise<void> {
     form = form || this.form;
 
     try {
@@ -556,7 +560,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       await this.waitViewInit();
 
       // Add pmfms to form
-      const measFormGroup = form.get('measurementValues') as FormGroup;
+      const measFormGroup = form.get('measurementValues') as UntypedFormGroup;
       if (measFormGroup) {
         this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
       }
@@ -568,12 +572,12 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       if (this.showSamplingBatch) {
 
         childrenFormHelper.resize(1);
-        const samplingForm = childrenFormHelper.at(0) as FormGroup;
+        const samplingForm = childrenFormHelper.at(0) as UntypedFormGroup;
 
         // Reset measurementValues (if exists)
         const samplingMeasFormGroup = samplingForm.get('measurementValues');
         if (samplingMeasFormGroup) {
-          this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as FormGroup, {pmfms: []});
+          this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as UntypedFormGroup, {pmfms: []});
         }
 
         // Adapt exists sampling child, if any
@@ -635,8 +639,8 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
 
   selectInputContent = AppFormUtils.selectInputContent;
 
-  protected getChildrenFormHelper(form: FormGroup): FormArrayHelper<Batch> {
-    let arrayControl = form.get('children') as FormArray;
+  protected getChildrenFormHelper(form: UntypedFormGroup): FormArrayHelper<Batch> {
+    let arrayControl = form.get('children') as UntypedFormArray;
     if (!arrayControl) {
       arrayControl = this.formBuilder.array([]);
       form.addControl('children', arrayControl);

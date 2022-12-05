@@ -1,13 +1,13 @@
 <app-toolbar [title]="$title | async" color="primary"
-             [hasValidate]="!loading && dirty"
+             [hasValidate]="!loading && (dirty || saving)"
+             [hasClose]="!loading && (!dirty && !saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
-             [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
 
-  <button slot="end" mat-icon-button *ngIf="enabled && !isNewData || debug"
+  <button slot="end" mat-icon-button
+          *ngIf="enabled && !isNewData || debug"
           [matMenuTriggerFor]="optionsMenu"
           [title]=" 'COMMON.BTN_OPTIONS'|translate">
     <mat-icon>more_vert</mat-icon>

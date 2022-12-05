@@ -1,17 +1,19 @@
 import {MeasurementsValidatorOptions, MeasurementsValidatorService} from "./measurement.validator";
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormGroup} from "@angular/forms";
+import {UntypedFormBuilder, UntypedFormGroup} from "@angular/forms";
 import {Measurement} from "../model/measurement.model";
 import {LocalSettingsService}  from "@sumaris-net/ngx-components";
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({providedIn: 'root'})
 export class ExpenseValidatorService extends MeasurementsValidatorService {
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService
   ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
   getFormGroupConfig(data: Measurement[], opts?: MeasurementsValidatorOptions): { [p: string]: any } {
@@ -37,7 +39,7 @@ export class ExpenseValidatorService extends MeasurementsValidatorService {
     return this.formBuilder.array([this.getBaitControl()]);
   }
 
-  getBaitControl(data?: number): FormGroup {
+  getBaitControl(data?: number): UntypedFormGroup {
     return this.formBuilder.group({
       rankOrder: [data || 1]
     });

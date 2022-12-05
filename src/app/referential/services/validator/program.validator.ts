@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
+import {UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators} from "@angular/forms";
 import {Program} from "../model/program.model";
 
 import {ValidatorService} from "@e-is/ngx-material-table";
@@ -10,15 +10,15 @@ import {EntityUtils}  from "@sumaris-net/ngx-components";
 export class ProgramValidatorService implements ValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: Program): FormGroup {
+  getFormGroup(data?: Program): UntypedFormGroup {
     return this.formBuilder.group({
       id: [data && data.id || null],
       updateDate: [data && data.updateDate || null],
@@ -43,7 +43,7 @@ export class ProgramValidatorService implements ValidatorService {
     );
   }
 
-  getPropertyFormGroup(data?: {key: string; value?: string;}): FormGroup {
+  getPropertyFormGroup(data?: {key: string; value?: string;}): UntypedFormGroup {
     return this.formBuilder.group({
       key: [data && data.key || null, Validators.compose([Validators.required, Validators.max(50)])],
       value: [data && data.value || null, Validators.compose([Validators.required, Validators.max(100)])]
@@ -57,7 +57,7 @@ export class ProgramValidatorService implements ValidatorService {
     );
   }
 
-  getLocationClassificationControl(locationClassification?: any): FormControl {
+  getLocationClassificationControl(locationClassification?: any): UntypedFormControl {
     return this.formBuilder.control(locationClassification || null, [Validators.required, SharedValidators.entity]);
   }
 }

@@ -5,7 +5,7 @@ import { SortDirection } from '@angular/material/sort';
 
 import {
   BaseEntityService,
-  BaseEntityServiceOptions,
+  BaseEntityServiceOptions, EntitiesServiceLoadOptions,
   EntityServiceLoadOptions,
   GraphqlService,
   IReferentialRef,
@@ -60,7 +60,7 @@ export abstract class BaseReferentialService<
                 sortBy?: string | keyof T,
                 sortDirection?: SortDirection,
                 filter?: Partial<F>,
-                opts?: { [p: string]: any; query?: any; fetchPolicy?: FetchPolicy; debug?: boolean; withTotal?: boolean; toEntity?: boolean }): Promise<LoadResult<T>> {
+                opts?: EntitiesServiceLoadOptions & { debug?: boolean }): Promise<LoadResult<T>> {
     // Use search attribute as default sort, is set
     sortBy = sortBy || filter?.searchAttribute;
 
@@ -68,7 +68,7 @@ export abstract class BaseReferentialService<
     return super.loadAll(offset, size, sortBy as string, sortDirection, filter, opts);
   }
 
-  async load(id: ID, opts?: EntityServiceLoadOptions & { query?: any; toEntity?: boolean }): Promise<T> {
+  async load(id: ID, opts?: EntityServiceLoadOptions): Promise<T> {
     const query = opts && opts.query || this.queries.load;
     if (!query) {
       if (!this.queries.loadAll) throw new Error('Not implemented');

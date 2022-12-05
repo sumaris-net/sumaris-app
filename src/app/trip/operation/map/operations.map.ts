@@ -5,7 +5,7 @@ import { LayerGroup, MapOptions, PathOptions } from 'leaflet';
 import {
   ConfigService,
   DateDiffDurationPipe,
-  DateFormatPipe,
+  DateFormatService,
   EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise, isEmptyArray,
@@ -34,8 +34,7 @@ import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot
 
 import { MapGraticule } from '@app/shared/map/map.graticule';
 import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
-import uuid from 'uuid';
-import { uuidv4 } from '@app/vendor';
+import {v4 as uuidv4} from 'uuid';
 
 const maxZoom = 10;
 
@@ -116,7 +115,7 @@ export class OperationsMap implements OnInit, OnDestroy {
     protected translate: TranslateService,
     protected platform: PlatformService,
     protected viewCtrl: ModalController,
-    protected dateFormatPipe: DateFormatPipe,
+    protected dateFormat: DateFormatService,
     protected dateDiffDurationPipe: DateDiffDurationPipe,
     protected settings: LocalSettingsService,
     protected configService: ConfigService,
@@ -257,7 +256,7 @@ export class OperationsMap implements OnInit, OnDestroy {
         const tripTitle = trip
           && this.translate.instant('TRIP.OPERATION.MAP.TRIP_LAYER_WITH_DETAILS', {
             vessel: joinPropertiesPath(trip.vesselSnapshot, this.vesselSnapshotAttributes),
-            departureDateTime: this.dateFormatPipe.transform(trip.departureDateTime, { time: false })
+            departureDateTime: this.dateFormat.transform(trip.departureDateTime, { time: false })
           });
 
         const operations = Array.isArray(tripContent) ? tripContent : trip.operations;
@@ -414,8 +413,8 @@ export class OperationsMap implements OnInit, OnDestroy {
         first: index === 0,
         ...ope,
         // Replace date with a formatted date
-        startDateTime: this.dateFormatPipe.transform(ope.startDateTime || ope.fishingStartDateTime, { time: true }),
-        endDateTime: this.dateFormatPipe.transform(ope.endDateTime || ope.fishingEndDateTime, { time: true }),
+        startDateTime: this.dateFormat.transform(ope.startDateTime || ope.fishingStartDateTime, { time: true }),
+        endDateTime: this.dateFormat.transform(ope.endDateTime || ope.fishingEndDateTime, { time: true }),
         duration: this.dateDiffDurationPipe.transform({ startValue: ope.startDateTime|| ope.fishingStartDateTime, endValue: ope.endDateTime || ope.fishingEndDateTime}),
         // Add index
         index

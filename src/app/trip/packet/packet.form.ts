@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import { AppForm, AppFormUtils, FormArrayHelper, ReferentialUtils, IReferentialRef, isNotEmptyArray, isNotNilOrNaN, LoadResult, round, toNumber, UsageMode } from '@sumaris-net/ngx-components';
 import { IWithPacketsEntity, Packet, PacketComposition, PacketIndexes, PacketUtils } from '../services/model/packet.model';
 import { PacketValidatorService } from '../services/validator/packet.validator';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BehaviorSubject } from 'rxjs';
 import { startWith } from 'rxjs/operators';
@@ -42,8 +42,8 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     return this._program;
   }
 
-  get compositionsFormArray(): FormArray {
-    return this.form.controls.composition as FormArray;
+  get compositionsFormArray(): UntypedFormArray {
+    return this.form.controls.composition as UntypedFormArray;
   }
 
   get packetCount() {
@@ -74,7 +74,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
   constructor(
     injector: Injector,
     protected validatorService: PacketValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected cd: ChangeDetectorRef
   ) {
@@ -185,7 +185,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
     try {
       this.computing = true;
       const totalWeight = this.form.controls.weight.value || 0;
-      const compositions: FormGroup[] = this.compositionsFormArray.controls as FormGroup[] || [];
+      const compositions: UntypedFormGroup[] = this.compositionsFormArray.controls as UntypedFormGroup[] || [];
 
       for (const composition of compositions) {
         const ratios: number[] = [];

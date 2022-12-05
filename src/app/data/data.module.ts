@@ -6,17 +6,21 @@ import { QualityFlagToColorPipe } from './services/pipes/quality-flag-to-color.p
 import { StrategySummaryCardComponent } from './strategy/strategy-summary-card.component';
 import { EntityQualityIconComponent } from '@app/data/quality/entity-quality-icon.component';
 import { IsMeasurementModelValuesPipe, IsMeasurementFormValuesPipe, MeasurementValueGetPipe } from '@app/data/services/pipes/measurements.pipe';
+import {AppImageAttachmentModule} from '@app/data/image/image-attachment.module';
+import { StatusToColorPipe } from '@app/data/services/pipes/status-to-color.pipe';
 
 @NgModule({
   imports: [
     CoreModule,
-    AppReferentialModule
+    AppReferentialModule,
 
     // Sub modules
+    AppImageAttachmentModule
   ],
   declarations: [
     // Pipes
     QualityFlagToColorPipe,
+    StatusToColorPipe,
     IsMeasurementFormValuesPipe,
     IsMeasurementModelValuesPipe,
     MeasurementValueGetPipe,
@@ -28,9 +32,12 @@ import { IsMeasurementModelValuesPipe, IsMeasurementFormValuesPipe, MeasurementV
 
   ],
   exports: [
+    // Sub modules
+    AppImageAttachmentModule,
 
     // Pipes
     QualityFlagToColorPipe,
+    StatusToColorPipe,
     IsMeasurementFormValuesPipe,
     IsMeasurementModelValuesPipe,
     MeasurementValueGetPipe,

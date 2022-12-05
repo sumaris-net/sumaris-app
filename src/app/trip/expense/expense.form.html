@@ -130,7 +130,7 @@
     <mat-tab label="{{'EXPENSE.TAB_BAIT'|translate}}"
              [disabled]="!baitsFormArray?.length">
       <ion-grid class="form-container">
-        <ion-row *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; odd as odd"
+        <ion-row *ngFor="let baitForm of baitsFormArray?.controls; index as i; first as first; last as last; odd as odd"
                  class="typed-expense-row"
                  [class.odd]="odd">
           <ion-col class="ion-padding-top">
@@ -149,8 +149,10 @@
             </div>
           </ion-col>
           <!-- buttons -->
-          <ion-col size="1" class="ion-align-self-center">
-            <button type="button" mat-icon-button [tabindex]="tabindex+4+i*3+1" [disabled]="disabled"
+          <ion-col size="1" class="ion-align-self-center ion-text-end ion-no-padding">
+            <button type="button" mat-icon-button
+                    *ngIf="last"
+                    [tabindex]="tabindex+4+i*3+1" [disabled]="disabled"
                     [title]="'COMMON.BTN_ADD'|translate"
                     (click)="addBait()">
               <mat-icon>add</mat-icon>
@@ -158,7 +160,7 @@
             <button type="button" mat-icon-button [tabindex]="tabindex+4+i*3+2" [disabled]="disabled"
                     [title]="'COMMON.BTN_DELETE'|translate"
                     (click)="removeBait(i)">
-              <mat-icon>close</mat-icon>
+              <mat-icon>delete_outline</mat-icon>
             </button>
           </ion-col>
         </ion-row>

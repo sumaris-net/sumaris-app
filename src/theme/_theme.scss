@@ -5,7 +5,7 @@
 // --------------------------------------------------
 // Import ngx-components theme
 // --------------------------------------------------
-@import "~@sumaris-net/ngx-components/src/theme/theme";
+@import "@sumaris-net/ngx-components/src/theme/theme";
 // --------------------------------------------------
 // Import print style
 // --------------------------------------------------
@@ -165,7 +165,7 @@ form.form-container {
   }
 }
 
-.form-container ion-grid ion-col {
+.form-container ion-grid ion-col:has(ion-label) {
   align-self: end;
 }
 
@@ -226,5 +226,25 @@ mat-sampling-ratio-field {
   .mat-menu-item.activated {
     background-color: var(--ion-color-secondary100);
     color: var(--ion-color-secondary100-contrast);
+  }
+}
+
+/* -- image gallery -- */
+
+.gallery-container {
+  .image-card {
+    &.zoom-hover:hover {
+      --img-scale: 0.8 !important;
+    }
+    .card-thumbnail {
+      background-color: var(--ion-color-light);
+    }
+  }
+
+  &.list {
+    --img-max-height: 50vh;
+  }
+  &.mosaic {
+    --img-max-height: 30vh;
   }
 }

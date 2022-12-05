@@ -46,9 +46,9 @@ export class SelectLandingsModal implements OnInit {
   }
 
 
-  selectRow(event: { id?: number; row: TableElement<Landing>; }) {
-    if (event.row) {
-      this.table.selection.select(event.row);
+  selectRow(row: TableElement<Landing>) {
+    if (row) {
+      this.table.selection.select(row);
       //this.close();
     }
   }

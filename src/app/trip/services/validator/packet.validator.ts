@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { FormArray, FormBuilder, FormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { LocalSettingsService, SharedFormArrayValidators, SharedValidators } from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { Packet, PacketComposition, PacketIndexes } from '../model/packet.model';
 import { PacketCompositionValidatorService } from './packet-composition.validator';
 import { DataValidators } from '@app/data/services/validator/data.validators';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface PacketValidatorOptions extends DataEntityValidatorOptions {
   withComposition?: boolean;
@@ -17,11 +18,12 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
   extends DataEntityValidatorService<Packet, O> implements ValidatorService {
 
   constructor(
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
+    translate: TranslateService,
     settings: LocalSettingsService,
     protected packetCompositionValidatorService: PacketCompositionValidatorService
   ) {
-    super(formBuilder, settings);
+    super(formBuilder, translate, settings);
   }
 
   getFormGroupConfig(data?: Packet, opts?: O): { [key: string]: any } {
@@ -62,7 +64,7 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
     return formConfig;
   }
 
-  updateFormGroup(formGroup: FormGroup, opts?: O) {
+  updateFormGroup(formGroup: UntypedFormGroup, opts?: O) {
 
     if (opts.withSaleProducts) {
       const saleValidators = [];
@@ -90,17 +92,17 @@ export class PacketValidatorService<O extends PacketValidatorOptions = PacketVal
     ];
   }
 
-  getCompositionControl(composition: PacketComposition): FormGroup {
+  getCompositionControl(composition: PacketComposition): UntypedFormGroup {
     return this.packetCompositionValidatorService.getFormGroup(composition);
   }
 
-  private getSaleProductsFormArray(data: Packet): FormArray {
+  private getSaleProductsFormArray(data: Packet): UntypedFormArray {
     return this.formBuilder.array(
       (data && data.saleProducts || [null]).map(saleProduct => this.getSaleProductControl(saleProduct))
     );
   }
 
-  getSaleProductControl(sale?: any): FormGroup {
+  getSaleProductControl(sale?: any): UntypedFormGroup {
     return this.formBuilder.group({
         saleType: [sale && sale.saleType || null, Validators.compose([Validators.required, SharedValidators.entity])],
         rankOrder: [sale && sale.rankOrder || null],

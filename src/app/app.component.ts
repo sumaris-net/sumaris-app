@@ -3,6 +3,7 @@ import {
   AccountService,
   ConfigService,
   Configuration,
+  CORE_CONFIG_OPTIONS,
   FormFieldDefinition,
   getColorContrast,
   getColorShade,
@@ -20,6 +21,7 @@ import { throttleTime } from 'rxjs/operators';
 import { ReferentialRefService } from './referential/services/referential-ref.service';
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
+import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 
 @Component({
   selector: 'app-root',
@@ -28,11 +30,12 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class AppComponent {
 
-  logo: String;
-  appName: String;
+  protected logo: string;
+  protected appName: string;
+  protected enabledNotificationIcons = false;
 
   constructor(
-    @Inject(DOCUMENT) private _document: HTMLDocument,
+    @Inject(DOCUMENT) private _document: Document,
     private platform: PlatformService,
     private accountService: AccountService,
     private referentialRefService: ReferentialRefService,
@@ -65,7 +68,7 @@ export class AppComponent {
     // Make sure to scroll on top before changing state
     // See https://stackoverflow.com/questions/48048299/angular-5-scroll-to-top-on-every-route-click
     const scrollToTop = window.setInterval(() => {
-      const pos = window.pageYOffset;
+      const pos = window.scrollY;
       if (pos > 0) {
         window.scrollTo(0, pos - 20); // how far to scroll on each step
       } else {
@@ -80,16 +83,21 @@ export class AppComponent {
     this.appName = config.label;
 
     // Set document title
-    const title = isNotNil(config.name) ? `${config.label} - ${config.name}` : config.label;
-    this._document.getElementById('appTitle').textContent = title;
-
-    // Set document favicon
-    const favicon = config.properties && config.properties['sumaris.favicon'];
-    if (isNotNil(favicon)) {
-      this._document.getElementById('appFavicon').setAttribute('href', favicon);
-    }
+    const title = isNotNil(config.name) ? `${config.label} - ${config.name}` : this.appName;
+    this._document.getElementById('appTitle').textContent = title || '';
 
     if (config.properties) {
+
+      // Set document favicon
+      const favicon = config.getProperty(CORE_CONFIG_OPTIONS.FAVICON);
+      if (isNotNil(favicon)) {
+        this._document.getElementById('appFavicon').setAttribute('href', favicon);
+      }
+
+      // Enable user event and notification icons
+      this.enabledNotificationIcons = config.getPropertyAsBoolean(APP_SOCIAL_CONFIG_OPTIONS.ENABLE_NOTIFICATION_ICONS)
+
+      // Set theme colors
       this.updateTheme({
         colors: {
           primary: config.properties['sumaris.color.primary'],
@@ -111,7 +119,7 @@ export class AppComponent {
     if (options.colors) {
       console.info('[app] Changing theme colors ', options);
 
-      const style =   document.documentElement.style;
+      const style = document.documentElement.style;
 
       // Add 100 & 900 color for primary and secondary color
       ['primary', 'secondary'].forEach(colorName => {
@@ -202,10 +210,10 @@ export class AppComponent {
 
       // PIFIL
       'dolphin-damage'
-    ]
-      .forEach(filename => this.matIconRegistry.addSvgIcon(filename,
-        this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
-        ));
+    ].forEach(filename => this.matIconRegistry.addSvgIcon(filename,
+      this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
+      )
+    );
   }
 }
 

@@ -3,19 +3,17 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { LocalSettingsService, SharedValidators } from '@sumaris-net/ngx-components';
 import { ExpectedSale } from '@app/trip/services/model/expected-sale.model';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+import { TranslateService } from '@ngx-translate/core';
 
 @Injectable({providedIn: 'root'})
 export class ExpectedSaleValidatorService
   extends DataEntityValidatorService<ExpectedSale> {
 
   constructor(
-    protected formBuilder: FormBuilder,
-    protected settings: LocalSettingsService) {
-    super(formBuilder, settings);
-  }
-
-  getRowValidator(): FormGroup {
-    return this.getFormGroup();
+    formBuilder: FormBuilder,
+    translate: TranslateService,
+    settings: LocalSettingsService) {
+    super(formBuilder, translate, settings);
   }
 
   getFormGroup(data?: ExpectedSale, opts?: DataEntityValidatorOptions): FormGroup {
@@ -25,7 +23,6 @@ export class ExpectedSaleValidatorService
       this.getFormGroupOptions(data, opts)
     );
   }
-
 
   getFormGroupConfig(data?: ExpectedSale, opts?: DataEntityValidatorOptions): { [key: string]: any } {
 

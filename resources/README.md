@@ -1,8 +1,7 @@
-These are Cordova resources. You can replace icon.png and splash.png and run
-`ionic cordova resources` to generate custom icons and splash screens for your
-app. See `ionic cordova resources --help` for details.
+## How-to generate App Icon and Splash Screen Images
 
-Cordova reference documentation:
+- Create 1024x1024px icon at resources/icon.png
+- Create 2732x2732px splash at resources/splash.png
+- Run `npm run resources`
 
-- Icons: https://cordova.apache.org/docs/en/latest/config_ref/images.html
-- Splash Screens: https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-splashscreen/
+> see https://dalezak.medium.com/generate-app-icon-and-splash-screen-images-for-ionic-framework-using-capacitor-e1f8c6ef0fd4

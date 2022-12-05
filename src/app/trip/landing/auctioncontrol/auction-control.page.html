@@ -1,22 +1,18 @@
-<app-toolbar [title]="$title | async"
-             color="primary"
-             [hasValidate]="!loading && dirty"
+<app-toolbar [title]="$title | async" color="primary"
+             [hasValidate]="!loading && (dirty || saving)"
+             [hasClose]="!loading && (!dirty && !saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
-             [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
 
-  <ion-buttons slot="end">
-    <ion-spinner *ngIf="loading"></ion-spinner>
-
-    <ion-button *ngIf="enabled && !isNewData || debug"
-                [matMenuTriggerFor]="optionsMenu"
-                [title]=" 'COMMON.BTN_OPTIONS'|translate">
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
-  </ion-buttons>
+  <button slot="end" mat-icon-button
+          *ngIf="enabled && !isNewData || debug"
+          [matMenuTriggerFor]="optionsMenu"
+          [title]=" 'COMMON.BTN_OPTIONS'|translate">
+    <mat-icon>more_vert</mat-icon>
+  </button>
 </app-toolbar>
 
 <!-- Type = options menu -->
@@ -131,6 +127,10 @@
           <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
         </ion-item>
 
+        <ng-container *ngIf="debug">
+          <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
+        </ng-container>
+
         <form *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
               [formGroup]="landingForm.measurementValuesForm"
               class="form-container ion-padding ion-no-padding-bottom">
@@ -180,12 +180,14 @@
                            [showSampleDateColumn]="false"
                            [showTaxonNameColumn]="false"
                            [showTaxonGroupColumn]="false"
+                           [showImagesColumn]="true"
                            [showToolbar]="!mobile"
                            [showGroupHeader]="false"
                            [tabIndex]="61"
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
                            (onPrepareRowForm)="onPrepareSampleForm($event)"
+                           [pmfmValueColorWith]="pmfmValueColor"
                            [compactFields]="true"
                            [i18nColumnSuffix]="i18nContext.suffix"
                            [debug]="debug">
@@ -248,4 +250,35 @@
         <ion-skeleton-text animated style="width: 60%"></ion-skeleton-text>
       </mat-form-field>
     </ion-col>
+</ng-template>
+
+
+<!-- DEBUG -->
+<ng-template #debugPanel>
+  <app-debug>
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          editor.loading: {{loading}}<br/>
+          editor.ready: {{readySubject|async}}<br/>
+          editor.dirty: {{dirty}}<br/>
+          editor.saving: {{savingSubject|async}}<br/>
+        </ion-col>
+        <ion-col>
+          landingForm.loading: {{landingForm.loading}}<br/>
+          landingForm.ready: {{landingForm.readySubject|async}}<br/>
+          landingForm.dirty: {{landingForm.dirty}}<br/>
+        </ion-col>
+        <ion-col>
+          samplesTable.loading: {{samplesTable.loadingSubject|async}}<br/>
+          samplesTable.ready: {{samplesTable.readySubject|async}}<br/>
+          samplesTable.dirty: {{samplesTable.dirty}}<br/>
+          samplesTable.dirtySubject: {{samplesTable.dirtySubject|async}}<br/>
+          samplesTable.showIndividualMonitoringButton: {{samplesTable.showIndividualMonitoringButton}}<br/>
+          samplesTable.showIndividualReleaseButton: {{samplesTable.showIndividualReleaseButton}}<br/>
+          samplesTable.showImagesButton: {{samplesTable.showImagesColumn}}<br/>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
 </ng-template>

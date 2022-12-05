@@ -67,9 +67,9 @@ export class ExtractionUtils {
     if (isNotEmptyArray(filter.criteria)) {
       queryParams.q = filter.criteria.reduce((res, criterion) => {
         if (criterion.endValue) {
-          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}:${criterion.endValue}`);
+          return res.concat(`${criterion.sheetName}:${criterion.name}${criterion.operator}${criterion.value}:${criterion.endValue}`);
         } else {
-          return res.concat(`${criterion.name}${criterion.operator}${criterion.value}`);
+          return res.concat(`${criterion.sheetName}:${criterion.name}${criterion.operator}${criterion.value}`);
         }
       }, []).join(";");
     }
@@ -87,18 +87,20 @@ export class ExtractionUtils {
         const matches = operationRegexp.exec(criterion);
         const operator = matches && matches[0];
         if (!operator) return;
-        const name = criterion.substring(0, matches.index);
+        const fieldNameParts = criterion.substring(0, matches.index).split(':', 2);
+        const sheetName = fieldNameParts.length > 1 ? fieldNameParts[0] : sheet;
+        const name = fieldNameParts.length > 1 ? fieldNameParts[1] : fieldNameParts[0];
         const value = criterion.substring(matches.index + operator.length);
         let values = value.split(':', 2);
         if (values.length === 2) {
-          return {sheetName: sheet, name, operator, value: values[0], endValue: values[1]};
+          return {sheetName, name, operator, value: values[0], endValue: values[1]};
         }
         else {
           values = value.split(',');
           if (values.length > 1) {
-            return {sheetName: sheet, name, operator, values};
+            return {sheetName, name, operator, values};
           }
-          return {sheetName: sheet, name, operator, value};
+          return {sheetName, name, operator, value};
         }
       })
       .filter(isNotNilOrBlank)

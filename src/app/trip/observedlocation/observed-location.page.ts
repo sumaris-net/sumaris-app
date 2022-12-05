@@ -3,7 +3,7 @@ import { ObservedLocationForm } from './observed-location.form';
 import { ObservedLocationService } from '../services/observed-location.service';
 import { LandingsTable } from '../landing/landings.table';
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   Alerts,
@@ -23,7 +23,7 @@ import {
   StatusIds,
   toBoolean,
   TranslateContextService,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
 import { ModalController } from '@ionic/angular';
 import { SelectVesselsForDataModal, SelectVesselsForDataModalOptions } from './vessels/select-vessel-for-data.modal';
@@ -42,7 +42,8 @@ import { LandingFilter } from '../services/filter/landing.filter';
 import { ContextService } from '@app/shared/context.service';
 import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { moment } from '@app/vendor';
+import moment from 'moment';
+import { TableElement } from '@e-is/ngx-material-table';
 
 
 const ObservedLocationPageTabs = {
@@ -135,6 +136,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       && this.dataService.canUserWrite(data, opts);
   }
 
+  updateView(data: ObservedLocation | null, opts?: { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean }): Promise<void> {
+    //return super.updateView(Object.freeze(data), opts);
+    return super.updateView(data, opts);
+  }
+
   updateViewState(data: ObservedLocation, opts?: {onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data);
 
@@ -158,10 +164,10 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  async onOpenLanding({id, row}) {
+  async onOpenLanding(row) {
     const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${id}`);
+    if (row && savedOrContinue) {
+      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${row.currentData.id}`);
     }
   }
 
@@ -219,7 +225,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  async onNewTrip({id, row}) {
+  async onNewTrip<T extends Landing>(row: TableElement<T>) {
     const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
       ? this.save(undefined)
@@ -231,7 +237,28 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
       this.markAsLoading();
 
       try {
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${row.currentData.vesselSnapshot.id}&landing=${row.currentData.id}`);
+        const landing = row.currentData;
+        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselSnapshot.id}&landing=${landing.id}`);
+      } finally {
+        this.markAsLoaded();
+      }
+    }
+  }
+
+  async onOpenTrip<T extends Landing>(row: TableElement<T>) {
+    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? this.save(undefined)
+      // If desktop mode: ask before save
+      : this.saveIfDirtyAndConfirm();
+
+    const savedOrContinue = await savePromise;
+    if (savedOrContinue) {
+      this.markAsLoading();
+
+      try {
+        const landing = row.currentData;
+        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${landing.tripId}`);
       } finally {
         this.markAsLoaded();
       }
@@ -338,7 +365,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return false;
   }
 
-  async openReport(event?: UIEvent) {
+  async openReport(event?: Event) {
     if (this.dirty) {
       const data = await this.saveAndGetDataIfValid();
       if (!data) return; // Cancel
@@ -523,7 +550,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  protected get form(): FormGroup {
+  protected async getValue(): Promise<ObservedLocation> {
+    const data = await super.getValue();
+    return data;
+  }
+
+  protected get form(): UntypedFormGroup {
     return this.observedLocationForm.form;
   }
 

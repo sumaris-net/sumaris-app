@@ -1,11 +1,11 @@
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { filterNotNil, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, remove, removeAll } from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from '../services/validator/typed-expense.validator';
 import { BehaviorSubject } from 'rxjs';
 import { Measurement } from '../services/model/measurement.model';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, filter, mergeMap } from 'rxjs/operators';
 import { ProgramRefService } from '../../referential/services/program-ref.service';
 import { IPmfm } from '../../referential/services/model/pmfm.model';
 
@@ -40,7 +40,7 @@ export class TypedExpenseForm extends MeasurementsForm {
   constructor(
     injector: Injector,
     protected validatorService: TypedExpenseValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService
   ) {
     super(injector, validatorService, formBuilder, programRefService);
@@ -59,15 +59,11 @@ export class TypedExpenseForm extends MeasurementsForm {
       maximumNumberDecimals: 2
     };
 
-
-    this.registerSubscription(
-      this.$pmfms.subscribe(async (pmfms) => {
-        // Wait form is ready
-        await this.ready();
-        // dispatch pmfms
-        this.parsePmfms(pmfms);
-      })
-    );
+    this.registerSubscription(filterNotNil(this.$pmfms)
+        // Wait form controls ready
+        .pipe(mergeMap((pmfms) => this.ready().then(_ => pmfms)))
+        .subscribe(pmfms => this.parsePmfms(pmfms))
+      );
 
     this.registerSubscription(filterNotNil(this.$totalPmfm)
       .subscribe(totalPmfm => {

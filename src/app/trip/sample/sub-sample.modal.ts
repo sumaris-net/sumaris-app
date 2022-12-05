@@ -63,7 +63,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
   @Input() defaultLongitudeSign: '+' | '-';
 
   @Input() onReady: (modal: SubSampleModal) => Promise<void> | void;
-  @Input() onDelete: (event: UIEvent, data: Sample) => Promise<boolean>;
+  @Input() onDelete: (event: Event, data: Sample) => Promise<boolean>;
 
   @ViewChild('form', { static: true }) form: SubSampleForm;
   @ViewChild(IonContent) content: IonContent;
@@ -161,7 +161,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     }
   }
 
-  async close(event?: UIEvent) {
+  async close(event?: Event) {
     if (this.dirty) {
       const saveBeforeLeave = await Alerts.askSaveBeforeLeave(this.alertCtrl, this.translate, event);
 
@@ -184,7 +184,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
    * Validate and close
    * @param event
    */
-  async onSubmit(event?: UIEvent) {
+  async onSubmit(event?: Event) {
     if (this.loading) return undefined; // avoid many call
 
     // Leave without saving
@@ -202,7 +202,7 @@ export class SubSampleModal implements OnInit, OnDestroy, ISubSampleModalOptions
     }
   }
 
-  async delete(event?: UIEvent) {
+  async delete(event?: Event) {
     let canDelete = true;
     if (this.onDelete) {
       canDelete = await this.onDelete(event, this.data);

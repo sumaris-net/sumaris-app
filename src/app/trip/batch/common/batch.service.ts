@@ -1,19 +1,19 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
+import { UntypedFormBuilder } from '@angular/forms';
 import { AppFormUtils, FormErrors, isNotEmptyArray, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { BatchValidatorOptions, BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { BatchGroupValidators, BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
-import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { TranslateService } from '@ngx-translate/core';
 
 
 export interface BatchControlOptions extends BatchValidatorOptions {
@@ -26,10 +26,12 @@ export interface BatchControlOptions extends BatchValidatorOptions {
 export class BatchService implements IDataEntityQualityService<Batch<any, any>, BatchControlOptions>{
 
   protected constructor(
-    protected formBuilder: FormBuilder,
-    protected measurementsValidatorService: MeasurementsValidatorService,
+    protected formBuilder: UntypedFormBuilder,
+    protected translate: TranslateService,
     protected settings: LocalSettingsService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected programRefService: ProgramRefService,
+    protected batchGroupValidatorService: BatchGroupValidatorService
     //protected subBatchValidatorService: SubBatchValidatorService
   ) {
   }
@@ -48,7 +50,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     // Control catch batch
     {
       const pmfms = await this.programRefService.loadProgramPmfms(opts.program.label, {acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH})
-      const validator = new BatchValidatorService(this.formBuilder, this.measurementsValidatorService, this.settings);
+      const validator = new BatchValidatorService(this.formBuilder, this.translate, this.settings, this.measurementsValidatorService);
       const form = validator.getFormGroup(entity, {pmfms: pmfms, withChildren: false});
 
       if (!form.valid) {
@@ -82,10 +84,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       const weightMaxDecimals = pmfms.filter(PmfmUtils.isWeight).reduce((res, pmfm) => Math.max(res, pmfm.maximumNumberDecimals || 0), 0);
 
       // Create validator service
-      const validator = new BatchGroupValidatorService(this.formBuilder, this.measurementsValidatorService, this.settings);
-      validator.qvPmfm = qvPmfm;
-      validator.pmfms = speciesPmfms;
-      validator.childrenPmfms = childrenPmfms;
+      const validator = this.batchGroupValidatorService;
 
       // TODO
       // - make sure to translate all errors
@@ -95,10 +94,21 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       const errors: FormErrors = (await Promise.all(
         // For each child
         entity.children.map( async (source, index) => {
+          // Avoid error on label and rankOrder
+          if (!source.label || !source.rankOrder) {
+            console.log("Missing label or rankOrder in batch:", source);
+          }
           const target = BatchGroup.fromBatch(source);
 
           // Create a form, with data
-          const form = validator.getFormGroup(target, {withChildrenWeight: true, withMeasurements: true, withMeasurementTypename: false});
+          const form = validator.getFormGroup(target, {
+            qvPmfm: qvPmfm,
+            pmfms: speciesPmfms,
+            childrenPmfms: childrenPmfms,
+            // TODO check this
+            //withChildrenWeight: true, withMeasurements: true, withMeasurementTypename: false,
+            rankOrderRequired: false, labelRequired: false
+          });
 
           // Add complex validator
           if (form.valid) {

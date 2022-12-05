@@ -47,7 +47,7 @@
     .mat-column-actions {
       text-align: end;
       padding-inline-start: 0 !important;
-      width: 82px !important;
+      min-width: 82px !important;
       max-width: 120px !important;
     }
   }

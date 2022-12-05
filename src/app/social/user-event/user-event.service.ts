@@ -24,7 +24,7 @@ import { TranslateService } from '@ngx-translate/core';
 import gql from 'graphql-tag';
 import { Observable } from 'rxjs';
 import { FetchPolicy } from '@apollo/client/core';
-import { UserEvent, UserEventFilter, UserEventTypes } from '@app/social/user-event/user-event.model';
+import { UserEvent, UserEventFilter, UserEventTypeEnum } from '@app/social/user-event/user-event.model';
 import { environment } from '@environments/environment';
 import { ToastController } from '@ionic/angular';
 import { OverlayEventDetail } from '@ionic/core';
@@ -33,6 +33,7 @@ import { UserEventFragments } from './user-event.fragments';
 import { Router } from '@angular/router';
 import { filter, map } from 'rxjs/operators';
 import { CacheService } from 'ionic-cache';
+import { Job } from '@app/social/job/job.model';
 
 const queries: IUserEventQueries = {
   loadAll: gql`query UserEvents($filter: UserEventFilterVOInput, $page: PageInput) {
@@ -136,8 +137,8 @@ export class UserEventService extends
     }
     return super.watchPage({ ...page, sortBy: 'creationDate', sortDirection: 'desc' }, filter, {
       ...options,
-      fetchPolicy: 'network-only',
-      withContent: true,
+      fetchPolicy: 'no-cache',
+      withContent: true
     });
   }
 
@@ -145,7 +146,7 @@ export class UserEventService extends
     filter: Partial<UserEventFilter>,
     options?: UserEventWatchOptions & { interval?: number; fetchPolicy?: FetchPolicy }
   ): Observable<UserEvent[]> {
-    return super.listenAllChanges(filter, { ...options, /*fetchPolicy: 'network-only',*/ withContent: true });
+    return super.listenAllChanges(filter, { ...options, withContent: true });
   }
 
   listenCountChanges(
@@ -166,7 +167,7 @@ export class UserEventService extends
   }
 
   canUserWrite(data: UserEvent, opts?: any): boolean {
-    return false;// Cannot write a existing UserEvent
+    return false;// Cannot write an existing UserEvent
   }
 
   listenChanges(id: number, opts?: any): Observable<UserEvent> {
@@ -187,7 +188,7 @@ export class UserEventService extends
     return UserEvent.fromObject(source);
   }
 
-  async add(entity: UserEvent) {
+  async add(entity: UserEvent): Promise<UserEvent> {
     throw new Error(`Don't use add for the moment`);
   }
 
@@ -215,7 +216,7 @@ export class UserEventService extends
 
     // Clean details parts
     if (message && message.indexOf('<small>') !== -1) {
-      message = message.substr(0, message.indexOf('<small>') - 1);
+      message = message.substring(0, message.indexOf('<small>') - 1);
     }
 
     const res = await this.showToast({
@@ -263,7 +264,7 @@ export class UserEventService extends
 
   sendDataForDebug(data: any): Promise<UserEvent> {
     const userEvent = new UserEvent();
-    userEvent.type = UserEventTypes.DEBUG_DATA;
+    userEvent.type = UserEventTypeEnum.DEBUG_DATA;
     userEvent.content = this.convertObjectToString(data);
     return this.save(userEvent);
   }
@@ -286,6 +287,9 @@ export class UserEventService extends
   }
 
   protected async onReceived(source: UserEvent): Promise<UserEvent> {
+    // DEBUG
+    //console.debug('Converting user event', source);
+
     // Choose default avatarIcon
     switch (source.level) {
       case 'ERROR':
@@ -311,10 +315,17 @@ export class UserEventService extends
     switch (source.type) {
 
       // Debug data
-      case UserEventTypes.DEBUG_DATA:
+      case UserEventTypeEnum.FEED:
+        source.avatarIcon = {matIcon: 'rss_feed'};
+        source.icon = { matIcon: 'information-circle-outline', color: 'success'};
+
+        break;
+      // Debug data
+      case UserEventTypeEnum.DEBUG_DATA:
         issuer = await this.getPersonByPubkey(source.issuer);
         source.icon = { matIcon: 'bug_report', color: 'danger'};
         source.message = this.translate.instant('SOCIAL.USER_EVENT.TYPE_ENUM.DEBUG_DATA', {
+          ...source,
           message: source.content.message || '',
           issuer: this.personToString(issuer, {withDepartment: true})
         } );
@@ -324,7 +335,7 @@ export class UserEventService extends
         break;
 
       // Inbox messages:
-      case UserEventTypes.INBOX_MESSAGE:
+      case UserEventTypeEnum.INBOX_MESSAGE:
         issuer = await this.getPersonByPubkey(source.issuer);
         if (isNotNil(issuer?.avatar)) {
           source.avatar = issuer?.avatar;
@@ -346,7 +357,35 @@ export class UserEventService extends
         });
         break;
 
-      // TODO: any other type of event
+      // Inbox messages:
+      case UserEventTypeEnum.JOB:
+        const job = Job.fromObject(source.content || {});
+        const status = job.status
+          || (source.level === 'INFO' && 'SUCCESS')
+          || (source.level === 'ERROR' && 'ERROR')
+          || 'PENDING';
+        const color = (status === 'PENDING' && 'secondary')
+          || (status === 'RUNNING' && 'tertiary')
+          || (status === 'SUCCESS' && 'success')
+          || 'danger';
+        const matIcon = (status === 'PENDING' && 'schedule')
+          || (status === 'RUNNING' && 'pending')
+          || (status === 'SUCCESS' && 'check_circle')
+          || (status === 'WARNING' && 'warning')
+          || (status === 'CANCELLED' && 'cancel')
+          || 'error';
+        source.icon = { matIcon, color};
+        //source.avatarIcon = { matIcon: 'inbox', color: 'success'};
+        job.status = this.translate.instant('SOCIAL.JOB.STATUS_ENUM.' + job.status);
+        source.message = this.translate.instant('SOCIAL.USER_EVENT.TYPE_ENUM.JOB', job );
+        source.addDefaultAction({
+          executeAction: (e) => this.router.navigate(['vessels'])
+        });
+        break;
+
+      default:
+        if (this._debug) console.debug(this._logPrefix + `[user-event-service] Unknown event type '${source.type}': `, source);
+        break;
     }
 
     return source;

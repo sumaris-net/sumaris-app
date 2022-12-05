@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Directive, Injector, OnInit, ViewChild} from '@angular/core';
-import {AbstractControl, FormGroup} from '@angular/forms';
+import {AbstractControl, UntypedFormGroup} from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
@@ -32,7 +32,7 @@ export abstract class AbstractSoftwarePage<
   protected referentialRefService: ReferentialRefService;
 
   propertyDefinitions: FormFieldDefinition[];
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   @ViewChild('referentialForm', { static: true }) referentialForm: ReferentialForm;
 
@@ -60,7 +60,9 @@ export abstract class AbstractSoftwarePage<
       .map(def => {
         if (def.type === 'entity') {
           def = Object.assign({}, def); // Copy
-          def.autocomplete = def.autocomplete || {};
+          def.autocomplete = def.autocomplete || {
+            attributes: ['label', 'name']
+          };
           def.autocomplete.suggestFn = (value, filter) => this.referentialRefService.suggest(value, filter);
         }
         return def;

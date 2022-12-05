@@ -37,6 +37,7 @@
         <ion-col>
           showIndividualMonitoringButton: {{showIndividualMonitoringButton}}<br/>
           showIndividualReleaseButton: {{showIndividualReleaseButton}}<br/>
+          showImages: {{showPictures}}<br/>
         </ion-col>
       </ion-row>
     </ion-grid>
@@ -59,14 +60,25 @@
                    [showComment]="showComment"
                    [maxVisibleButtons]="maxVisibleButtons"
                    (onSubmit)="onSubmitAndNext($event)">
-    <ion-row beforeComment *ngIf="mobile && !disabled">
+
+
+    <ion-row beforeComment [class.cdk-visually-hidden]="!showPictures">
       <ion-col size="12">
-        <ion-item lines="none" class="ion-no-padding" (click)="toggleComment()" tappable="">
-          <ion-toggle [checked]="showComment"></ion-toggle>
-          <ion-label color="dark" translate>COMMON.BTN_ADD_COMMENT</ion-label>
-        </ion-item>
+        <ion-label color="medium">{{'TRIP.SAMPLE.EDIT.IMAGES'|translateContext: i18nSuffix}}</ion-label>
+      </ion-col>
+      <ion-col size="12">
+        <app-image-attachment-gallery #gallery
+                                      mode="list"
+                                      color="light"
+                                      [disabled]="disabled"
+                                      [showToolbar]="false"
+                                      [showFabButton]="false"
+                                      [showAddCardButton]="true">
+        </app-image-attachment-gallery>
       </ion-col>
     </ion-row>
+
+
 
     <ion-grid afterComment *ngIf="mobile && !disabled" class="ion-no-padding">
       <ion-row class="ion-no-padding ion-row-buttons">

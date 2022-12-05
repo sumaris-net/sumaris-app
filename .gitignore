@@ -1,3 +1,4 @@
+/.angular/cache
 # Specifies intentionally untracked files to ignore when using Git
 # http://git-scm.com/docs/gitignore
 
@@ -38,3 +39,6 @@ Thumbs.db
 UserInterfaceState.xcuserstate
 yarn.lock
 resources/android/build/local
+resources/android/icon/
+resources/android/splash/
+resources/ios/

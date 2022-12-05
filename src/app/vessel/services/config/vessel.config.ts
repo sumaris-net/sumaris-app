@@ -44,7 +44,7 @@ export const VESSEL_CONFIG_OPTIONS = {
     key: 'sumaris.vessel.field.showBasePortLocation',
     label: 'CONFIGURATION.OPTIONS.VESSEL.BASE_PORT_LOCATION_VISIBLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: false
   },
   VESSEL_NAME_REQUIRED: <FormFieldDefinition>{
     key: 'sumaris.persistence.vessel.name.required',
@@ -56,13 +56,19 @@ export const VESSEL_CONFIG_OPTIONS = {
     key: 'sumaris.referential.vessel.enable',
     label: 'REFERENTIAL.OPTIONS.VESSELS_ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: false
+  },
+  REFERENTIAL_VESSEL_IMPORT_ENABLE: <FormFieldDefinition>{
+    key: 'sumaris.referential.vessel.import.enable',
+    label: 'REFERENTIAL.OPTIONS.VESSELS_IMPORT_ENABLE',
+    type: 'boolean',
+    defaultValue: false
   },
   TEMPORARY_VESSEL_REPLACEMENT_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.referential.vessel.replacement.enable',
     label: 'REFERENTIAL.OPTIONS.VESSELS_REPLACEMENT_ENABLE',
     type: 'boolean',
-    defaultValue: 'false'
+    defaultValue: false
   },
 };
 

@@ -20,7 +20,7 @@ WORKDIR $CACHE_DIR
 # Caching npm depedencies
 COPY --from=prepare $CACHE_DIR/package.json .
 # Install global dependencies
-RUN npm install -g @ionic/cli @angular/cli
+RUN npm install -g npm @ionic/cli @angular/cli
 # Install project dependencies
 RUN npm install --unsafe-perm
 

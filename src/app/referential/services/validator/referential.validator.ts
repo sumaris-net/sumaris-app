@@ -1,5 +1,5 @@
 import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormBuilder, FormGroup, Validators} from "@angular/forms";
+import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
 import { Referential, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import {AppValidatorService}  from "@sumaris-net/ngx-components";
 import { FullReferential } from '@app/referential/services/model/referential.model';
@@ -8,18 +8,18 @@ import { FullReferential } from '@app/referential/services/model/referential.mod
 export class ReferentialValidatorService<T extends Referential = Referential>
   extends AppValidatorService<T> {
 
-  constructor(protected formBuilder: FormBuilder) {
+  constructor(protected formBuilder: UntypedFormBuilder) {
     super(formBuilder);
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
   getFormGroup(data?: T, opts?: {
     withDescription?: boolean;
     withComments?: boolean;
-  }): FormGroup {
+  }): UntypedFormGroup {
     return this.formBuilder.group(
       this.getFormGroupConfig(data, opts),
       this.getFormGroupOptions(data, opts)

@@ -1,7 +1,9 @@
 import { NgModule } from '@angular/core';
 import { ExtraOptions, RouterModule, Routes } from '@angular/router';
-import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
+import {AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule} from '@sumaris-net/ngx-components';
 import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
+import { environment } from '@environments/environment';
+import {DataTestingModule} from '@app/data/data.testing.module';
 
 const routes: Routes = [
   // Core path
@@ -101,36 +103,57 @@ const routes: Routes = [
         path: '',
         pathMatch: 'full',
         redirectTo: 'shared',
+        data: {
+          preload: false
+        }
       },
       // Shared module
       {
         path: 'shared',
-        loadChildren: () => import('./shared/shared.testing.module').then(m => m.AppSharedTestingModule)
+        loadChildren: () => import('./shared/shared.testing.module').then(m => m.AppSharedTestingModule),
+        data: {
+          preload: false
+        }
       },
       // Core module
       {
         path: 'core',
-        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.CoreTestingModule)
+        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.CoreTestingModule),
+        data: {
+          preload: false
+        }
       },
       // Social module
       {
         path: 'social',
-        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SocialTestingModule)
+        loadChildren: () => import('@sumaris-net/ngx-components').then(m => m.SocialTestingModule),
+        data: {
+          preload: false
+        }
+      },
+      // Data module
+      {
+        path: 'data',
+        loadChildren: () => import('./data/data.testing.module').then(m => m.DataTestingModule),
+        data: {
+          preload: false
+        }
       },
       // Trip module
       {
         path: 'trip',
-        loadChildren: () => import('./trip/trip.testing.module').then(m => m.TripTestingModule)
+        loadChildren: () => import('./trip/trip.testing.module').then(m => m.TripTestingModule),
+        data: {
+          preload: false
+        }
       },
       // Referential module
       {
         path: 'referential',
-        loadChildren: () => import('./referential/referential.testing.module').then(m => m.ReferentialTestingModule)
-      },
-      // Image module
-      {
-        path: 'image',
-        loadChildren: () => import('./image/image.testing.module').then(m => m.ImageTestingModule)
+        loadChildren: () => import('./referential/referential.testing.module').then(m => m.ReferentialTestingModule),
+        data: {
+          preload: false
+        }
       }
     ]
   },
@@ -142,23 +165,24 @@ const routes: Routes = [
   }
 ];
 
-export const ROUTE_OPTIONS: ExtraOptions = {
-  enableTracing: false,
-  //enableTracing: !environment.production,
-  useHash: false,
-  onSameUrlNavigation: 'reload',
-  preloadingStrategy: QuicklinkStrategy
-};
-
 @NgModule({
   imports: [
     QuicklinkModule,
     SharedRoutingModule,
-    RouterModule.forRoot(routes, ROUTE_OPTIONS)
+    RouterModule.forRoot(routes, <ExtraOptions>{
+      enableTracing: false,
+      //enableTracing: !environment.production,
+      useHash: false,
+      onSameUrlNavigation: 'reload',
+      preloadingStrategy: QuicklinkStrategy
+    })
   ],
   exports: [
     RouterModule,
     SharedRoutingModule
+  ],
+  providers: [
+    {provide: ComponentDirtyGuard, useClass: ComponentDirtyGuard}
   ]
 })
 export class AppRoutingModule {

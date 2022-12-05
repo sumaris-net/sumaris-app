@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
 import { ExtractionCategories, ExtractionColumn } from '../type/extraction-type.model';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, isEmptyArray, isNil, LocalSettingsService } from '@sumaris-net/ngx-components';
@@ -24,13 +24,13 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
 
   @ViewChild('productForm', {static: true}) productForm: ProductForm;
 
-  get form(): FormGroup {
+  get form(): UntypedFormGroup {
     return this.productForm.form;
   }
 
   constructor(protected injector: Injector,
               protected router: Router,
-              protected formBuilder: FormBuilder,
+              protected formBuilder: UntypedFormBuilder,
               protected productService: ProductService,
               protected accountService: AccountService,
               protected validatorService: ExtractionProductValidatorService,
@@ -60,7 +60,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
     }
   }
 
-  async openMap(event?: UIEvent) {
+  async openMap(event?: Event) {
     if (this.dirty) {
       // Ask user confirmation
       const { confirmed, save } = await Alerts.askSaveBeforeAction(this.alertCtrl, this.translate);
@@ -84,7 +84,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
     }, 200); // Add a delay need by matTooltip to be hide
   }
 
-  async updateProduct(event?: UIEvent) {
+  async updateProduct(event?: Event) {
     if (this.dirty) {
       // Ask user confirmation
       const {confirmed, save} = await Alerts.askSaveBeforeAction(this.alertCtrl, this.translate, {valid: this.valid});

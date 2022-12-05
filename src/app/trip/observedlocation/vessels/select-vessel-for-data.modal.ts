@@ -163,7 +163,7 @@ export class SelectVesselsForDataModal implements SelectVesselsForDataModalOptio
     this.subscription.unsubscribe();
   }
 
-  async selectRow({id, row}) {
+  async selectRow(row) {
     const table = this.table;
     if (row && table) {
       if (!this.allowMultiple) {

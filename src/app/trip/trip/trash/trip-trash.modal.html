@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar color="secondary">
     <ion-buttons slot="start">
-      <ion-button (click)="cancel()"
+      <ion-button (click)="close()"
                   visible-xs visible-sm visible-mobile>
         <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
       </ion-button>
@@ -209,7 +209,7 @@
       <mat-row *matRowDef="let row; columns: displayedColumns;"
                class="mat-row-disabled"
                [class.mat-row-selected]="selection.isSelected(row)"
-               (click)="clickRow($event, row)">
+               (click)="toggleRow($event, row)">
       </mat-row>
     </mat-table>
 
@@ -255,7 +255,7 @@
         </ion-button>
 
         <ion-button fill="clear" color="dark"
-                    (click)="cancel()">
+                    (click)="close()">
           <ion-label translate>COMMON.BTN_CLOSE</ion-label>
         </ion-button>
       </ion-col>

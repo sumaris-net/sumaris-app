@@ -3,7 +3,13 @@ import { Landing } from '@app/trip/services/model/landing.model';
 import { ObservedLocation } from '@app/trip/services/model/observed-location.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { environment } from '@environments/environment';
-import { LandingReport } from '../../report/landing.report';
+import { LandingReport, LandingStats } from '../../report/landing.report';
+import { isNotEmptyArray } from '@sumaris-net/ngx-components';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+
+export interface AuctionControlStats extends LandingStats {
+  taxonGroup: TaxonGroupRef;
+}
 
 @Component({
   selector: 'app-auction-control-report',
@@ -11,11 +17,11 @@ import { LandingReport } from '../../report/landing.report';
   templateUrl: './auction-control.report.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AuctionControlReport extends LandingReport {
+export class AuctionControlReport extends LandingReport<Landing, AuctionControlStats> {
 
 
   constructor(
-    private injector: Injector
+    injector: Injector
   ) {
     super(injector, {
       pathParentIdAttribute: 'observedLocationId',
@@ -27,20 +33,18 @@ export class AuctionControlReport extends LandingReport {
 
   protected async onDataLoaded(data: Landing, pmfms: IPmfm[]): Promise<Landing> {
     data = await super.onDataLoaded(data, pmfms);
-    // Remove invalid sample label
-    (data.samples || []).forEach(sample => {
-      if (sample.label?.startsWith('#')) sample.label = null;
-    });
+
+    // Compute controlled species
     this.stats.taxonGroup = (data.samples || []).find(s => !!s.taxonGroup?.name)?.taxonGroup;
+
     return data;
   }
 
-  protected async computeTitle(data: Landing, parent?: ObservedLocation): Promise<string> {
-    const title = await this.translate.get('AUCTION_CONTROL.REPORT.TITLE', {
+  protected computeTitle(data: Landing, parent?: ObservedLocation): Promise<string> {
+    return this.translate.get('AUCTION_CONTROL.REPORT.TITLE', {
       vessel: data.vesselSnapshot.name,
-      date: this.dateFormatPipe.transform(data.dateTime),
+      date: this.dateFormat.transform(data.dateTime),
     }).toPromise();
-    return title;
   }
 
   protected async computeDefaultBackHref(data: Landing, parent?: ObservedLocation): Promise<string> {
@@ -54,4 +58,6 @@ export class AuctionControlReport extends LandingReport {
 
     data.samples.forEach((s, index) => s.label = `${index+1}`);
   }
+
+  isNotEmptyArray = isNotEmptyArray;
 }

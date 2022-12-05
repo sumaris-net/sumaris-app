@@ -1,18 +1,8 @@
-import './vendor';
-
 import { APP_BASE_HREF } from '@angular/common';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext } from '@angular/core';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
-import { MomentDateAdapter } from '@angular/material-moment-adapter';
-
-// Ionic plugins
-import { SplashScreen } from '@ionic-native/splash-screen/ngx';
-import { StatusBar } from '@ionic-native/status-bar/ngx';
-import { Keyboard } from '@ionic-native/keyboard/ngx';
-import { NativeAudio } from '@ionic-native/native-audio/ngx';
-import { Vibration } from '@ionic-native/vibration/ngx';
-
+import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
 
 // App modules
 import { AppComponent } from './app.component';
@@ -24,13 +14,16 @@ import {
   APP_FORM_ERROR_I18N_KEYS,
   APP_GRAPHQL_TYPE_POLICIES,
   APP_HOME_BUTTONS,
+  APP_JOB_PROGRESSION_SERVICE,
   APP_LOCAL_SETTINGS,
   APP_LOCAL_SETTINGS_OPTIONS,
   APP_LOCAL_STORAGE_TYPE_POLICIES,
   APP_LOCALES,
   APP_MENU_ITEMS,
   APP_MENU_OPTIONS,
+  APP_STORAGE,
   APP_TESTING_PAGES,
+  APP_USER_EVENT_SERVICE,
   AppGestureConfig,
   CORE_CONFIG_OPTIONS,
   CORE_TESTING_PAGES,
@@ -38,23 +31,22 @@ import {
   Department,
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
+  JobModule,
   LocalSettings,
   MenuItem,
   MenuOptions,
   SOCIAL_TESTING_PAGES,
-  SocialModule,
+  StorageService,
   TestingPage,
-  APP_USER_EVENT_SERVICE
+  UserEventModule
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Camera } from '@ionic-native/camera/ngx';
-import { Network } from '@ionic-native/network/ngx';
+import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TRIP_CONFIG_OPTIONS, TRIP_GRAPHQL_TYPE_POLICIES, TRIP_LOCAL_SETTINGS_OPTIONS, TRIP_STORAGE_TYPE_POLICIES } from './trip/services/config/trip.config';
-import { IonicStorageModule } from '@ionic/storage';
-import { InAppBrowser } from '@ionic-native/in-app-browser/ngx';
+import { IonicStorageModule } from '@ionic/storage-angular';
 import { IonicModule } from '@ionic/angular';
 import { CacheModule } from 'ionic-cache';
 import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
@@ -74,10 +66,12 @@ import { AppCoreModule } from '@app/core/core.module';
 import { SAMPLE_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/sample.validator';
 import { Downloader } from '@ionic-native/downloader/ngx';
 import { OPERATION_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/services/validator/operation.validator';
-import { IMAGE_TESTING_PAGES } from '@app/image/image.testing.module';
-import { AppImageModule } from '@app/image/image.module';
 import { APP_SHARED_TESTING_PAGES } from '@app/shared/shared.testing.module';
 import { UserEventService } from '@app/social/user-event/user-event.service';
+import { ApolloModule } from 'apollo-angular';
+import { DATA_TESTING_PAGES } from '@app/data/data.testing.module';
+import { JobProgressionService } from '@app/social/job/job-progression.service';
+import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 
 @NgModule({
   declarations: [
@@ -87,8 +81,12 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
+    ApolloModule,
     IonicModule.forRoot(), // FIXME: After Ionic v6 upgrade, override platform detection (see issue #323)
-    CacheModule.forRoot(),
+    CacheModule.forRoot({
+      keyPrefix: '', // For compatibility
+      ...environment.cache
+    }),
     IonicStorageModule.forRoot({
       name: 'sumaris', // default
       ...environment.storage
@@ -120,30 +118,25 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
         },
       }
     }),
+
     // Need for tap event, in app-toolbar
     HammerModule,
 
     // functional modules
     AppSharedModule.forRoot(environment),
     AppCoreModule.forRoot(),
-    SocialModule,
-    AppImageModule.forRoot(),
-    AppRoutingModule
+    AppRoutingModule,
+    UserEventModule,
+    JobModule
   ],
   providers: [
-    StatusBar,
-    SplashScreen,
-    Keyboard,
-    Camera,
+    // Cordova plugins
     Network,
-    NativeAudio,
-    Vibration,
-    InAppBrowser,
     AudioManagement,
     Downloader,
+    //Geolocation,
 
-
-    {provide: APP_BASE_HREF, useFactory: function () {
+    {provide: APP_BASE_HREF, useFactory: () => {
         try {
           return document.getElementsByTagName('base')[0].href;
         }
@@ -154,7 +147,11 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
       }
     },
 
-    {provide: APP_LOCALES, useValue:
+    {provide: APP_STORAGE, useExisting: StorageService},
+    //{ provide: ErrorHandler, useClass: IonicErrorHandler },
+
+    {
+      provide: APP_LOCALES, useValue:
         [
           {
             key: 'fr',
@@ -188,12 +185,20 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
         }
       }
     },
-    {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE]},
+    {
+      provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS,
+      useValue: { strict: false }
+    },
+    {provide: MomentDateAdapter, useClass: MomentDateAdapter, deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
     {provide: DateAdapter, useExisting: MomentDateAdapter},
 
     // User event
     {provide: UserEventService, useClass: UserEventService},
     {provide: APP_USER_EVENT_SERVICE, useExisting: UserEventService},
+
+    // Job
+    {provide: JobProgressionService, useClass: JobProgressionService},
+    {provide: APP_JOB_PROGRESSION_SERVICE, useExisting: JobProgressionService},
 
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
@@ -202,7 +207,7 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
     }},
 
     // Configure hammer gesture
-    // FIXME: not working well on tab
+    // FIXME: not working well on tablet
     {provide: HAMMER_GESTURE_CONFIG, useClass: AppGestureConfig},
 
     // Settings default values
@@ -223,6 +228,7 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
     { provide: APP_CONFIG_OPTIONS, useValue: <FormFieldDefinitionMap>{
       ...CORE_CONFIG_OPTIONS,
       ...APP_CORE_CONFIG_OPTIONS,
+      ...APP_SOCIAL_CONFIG_OPTIONS,
       ...REFERENTIAL_CONFIG_OPTIONS,
       ...VESSEL_CONFIG_OPTIONS,
       ...DATA_CONFIG_OPTIONS,
@@ -365,7 +371,7 @@ import { UserEventService } from '@app/social/user-event/user-event.service';
         ...REFERENTIAL_TESTING_PAGES,
         ...CORE_TESTING_PAGES,
         ...SOCIAL_TESTING_PAGES,
-        ...IMAGE_TESTING_PAGES,
+        ...DATA_TESTING_PAGES,
         ...TRIP_TESTING_PAGES
       ]},
 

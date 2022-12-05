@@ -1,6 +1,6 @@
 import {MeasurementsValidatorOptions, MeasurementsValidatorService} from "./measurement.validator";
 import {Injectable} from "@angular/core";
-import {AbstractControlOptions, FormGroup, ValidatorFn, Validators} from "@angular/forms";
+import {AbstractControlOptions, UntypedFormGroup, ValidatorFn, Validators} from "@angular/forms";
 import {Measurement} from "../model/measurement.model";
 import {SharedFormGroupValidators, SharedValidators} from "@sumaris-net/ngx-components";
 import {IPmfm} from "../../../referential/services/model/pmfm.model";
@@ -36,7 +36,7 @@ export class TypedExpenseValidatorService extends MeasurementsValidatorService<M
     ];
   }
 
-  updateFormGroup(form: FormGroup, opts?: TypedExpenseValidatorOptions) {
+  updateFormGroup(form: UntypedFormGroup, opts?: TypedExpenseValidatorOptions) {
     super.updateFormGroup(form, opts);
 
     // add formGroup validator for type requirement

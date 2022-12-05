@@ -1,29 +1,19 @@
-import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { FormGroup, ValidationErrors } from '@angular/forms';
-import { Subscription } from 'rxjs';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups } from '@app/referential/services/model/model.enum';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import {
-  AccountService,
-  EntityServiceLoadOptions,
-  fadeInOutAnimation,
-  firstNotNilPromise,
-  HistoryPageReference,
-  isNil,
-  isNotNil,
-  isNotNilOrBlank,
-  SharedValidators
-} from '@sumaris-net/ngx-components';
-import { BiologicalSamplingValidators } from '../../services/validator/biological-sampling.validators';
-import { LandingPage } from '../landing.page';
-import { Landing } from '../../services/model/landing.model';
-import { ObservedLocation } from '../../services/model/observed-location.model';
-import { SamplingStrategyService } from '@app/referential/services/sampling-strategy.service';
-import { Strategy } from '@app/referential/services/model/strategy.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { LandingService } from '@app/trip/services/landing.service';
-import { Trip } from '@app/trip/services/model/trip.model';
+import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
+import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
+import {Subscription} from 'rxjs';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {AcquisitionLevelCodes, PmfmIds, SampleParameterLabelsGroups} from '@app/referential/services/model/model.enum';
+import {PmfmService} from '@app/referential/services/pmfm.service';
+import {AccountService, EntityServiceLoadOptions, fadeInOutAnimation, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, isNotNilOrBlank, SharedValidators} from '@sumaris-net/ngx-components';
+import {BiologicalSamplingValidators} from '../../services/validator/biological-sampling.validators';
+import {LandingPage} from '../landing.page';
+import {Landing} from '../../services/model/landing.model';
+import {ObservedLocation} from '../../services/model/observed-location.model';
+import {SamplingStrategyService} from '@app/referential/services/sampling-strategy.service';
+import {Strategy} from '@app/referential/services/model/strategy.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {LandingService} from '@app/trip/services/landing.service';
+import {Trip} from '@app/trip/services/model/trip.model';
 
 
 @Component({
@@ -70,7 +60,11 @@ export class SamplingLandingPage extends LandingPage {
 
     // Load Pmfm IDs
     this.pmfmService.loadIdsGroupByParameterLabels(SampleParameterLabelsGroups)
-      .then(pmfmGroups => this.samplesTable.pmfmGroups = pmfmGroups);
+      .then(pmfmGroups => {
+        this.samplesTable.computedPmfmGroups = ['AGE'];
+        this.samplesTable.pmfmIdsToCopy = [PmfmIds.DRESSING];
+        this.samplesTable.pmfmGroups = pmfmGroups;
+      });
   }
 
   /* -- protected functions -- */
@@ -139,7 +133,7 @@ export class SamplingLandingPage extends LandingPage {
         const strategyEffort = await this.samplingStrategyService.loadStrategyEffortByDate(program.label, strategy.label, this.data.dateTime);
 
         // DEBUG
-        console.debug("[sampling-landing-page] Strategy effort loaded: ", strategyEffort);
+        console.debug('[sampling-landing-page] Strategy effort loaded: ', strategyEffort);
 
         // No effort defined
         if (!strategyEffort) {
@@ -215,6 +209,15 @@ export class SamplingLandingPage extends LandingPage {
       });
     }
 
+    if (data.trip) {
+      const trip = data.trip as Trip;
+
+      // Force trip.operations and trip.operationGroup as empty array (instead of undefined)
+      // This is useful to avoid a unused fetch in the pod, after saving a landing
+      if (!trip.operations) trip.operations = [];
+      if (!trip.operationGroups) trip.operationGroups = [];
+    }
+
     if (isNil(data.id) && isNotNil(data.observedLocationId)) {
       // Workaround (see issue IMAGINE-639 - Saisie de plusieurs espèces sur un même navire)
       await this.landingService.fixLandingTripDate(data);
@@ -245,7 +248,7 @@ export class SamplingLandingPage extends LandingPage {
         const tagId = sample.measurementValues?.[PmfmIds.TAG_ID];
         if (tagId?.startsWith(samplePrefix)) {
           sample.measurementValues[PmfmIds.TAG_ID] = tagId.substring(samplePrefix.length);
-          prefixCount++
+          prefixCount++;
         }
       });
       // Check if replacements has been done on every sample. If not, log a warning
@@ -271,7 +274,7 @@ export class SamplingLandingPage extends LandingPage {
     return `${parentUrl}/sampling/${id}`;
   }
 
-  protected registerSampleRowValidator(form: FormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
+  protected registerSampleRowValidator(form: UntypedFormGroup, pmfms: DenormalizedPmfmStrategy[]): Subscription {
     console.debug('[sampling-landing-page] Adding row validator');
 
     return BiologicalSamplingValidators.addSampleValidators(form, pmfms, this.samplesTable.pmfmGroups || {}, {

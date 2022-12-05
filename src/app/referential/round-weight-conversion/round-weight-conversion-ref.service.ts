@@ -58,7 +58,6 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
     protected platform: PlatformService,
     protected cache: CacheService,
     protected network: NetworkService,
-    protected cryptoService: CryptoService,
     protected entities: EntitiesStorage
   ) {
     super(graphql, platform,
@@ -99,7 +98,7 @@ export class RoundWeightConversionRefService extends BaseEntityService<RoundWeig
       // Create a unique hash, from args
       const cacheKey = [
         CacheKeys.LOAD,
-        this.cryptoService.sha256(JSON.stringify(filter.asObject())).substring(0, 8)
+        CryptoService.sha256(JSON.stringify(filter.asObject())).substring(0, 8)
       ].join('|');
       return this.cache.getOrSetItem(
         cacheKey,

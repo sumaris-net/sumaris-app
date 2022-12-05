@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
-import { moment } from '@app/vendor';
+import moment from 'moment';
 import { L } from '@app/shared/map/leaflet';
 import {
   AccountService,
@@ -28,7 +28,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ExtractionService } from '../common/extraction.service';
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { Location } from '@angular/common';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
@@ -47,7 +47,7 @@ import { UnitLabel, UnitLabelPatterns } from '@app/referential/services/model/mo
 import { MapGraticule } from '@app/shared/map/map.graticule';
 
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
-import { FetchPolicy } from '@apollo/client';
+import { FetchPolicy } from '@apollo/client/core';
 import { EXTRACTION_CONFIG_OPTIONS } from '@app/extraction/common/extraction.config';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
 import { ProductService } from '@app/extraction/product/product.service';
@@ -163,7 +163,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
   // -- Legend card --
   showLegend = false;
-  legendForm: FormGroup;
+  legendForm: UntypedFormGroup;
   showLegendForm = false;
   customLegendOptions: Partial<LegendOptions> = undefined;
   legendStyle = {};
@@ -272,8 +272,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return this.form.dirty || this.criteriaForm.dirty;
   }
 
-  get strataForm(): FormGroup {
-    return this.form.controls.strata as FormGroup;
+  get strataForm(): UntypedFormGroup {
+    return this.form.controls.strata as UntypedFormGroup;
   }
 
   get techChartAxisType(): string {
@@ -317,7 +317,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     accountService: AccountService,
     service: ExtractionService,
     settings: LocalSettingsService,
-    formBuilder: FormBuilder,
+    formBuilder: UntypedFormBuilder,
     platform: PlatformService,
     modalCtrl: ModalController,
     protected location: Location,
@@ -1141,7 +1141,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return changed;
   }
 
-  onRefreshClick(event?: UIEvent) {
+  onRefreshClick(event?: Event) {
     this.stopAnimation();
     this.onRefresh.emit(event);
   }
@@ -1171,7 +1171,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     if (matches) {
       title = matches[1];
       let unit = matches[2];
-      unit = unit || (strata.aggColumnName.endsWith('_weight') ? UnitLabel.KG : undefined);
+      unit = unit || (strata.aggColumnName?.endsWith('_weight') ? UnitLabel.KG : undefined);
       if (unit) {
         // Append unit to value
         if (value) value += ` ${unit}`;
@@ -1207,11 +1207,11 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return setTimeout(() => this.closeFeatureDetails(feature, true), 4000);
   }
 
-  openLegendForm(event: UIEvent) {
+  openLegendForm(event: Event) {
     this.showLegendForm = true;
   }
 
-  cancelLegendForm(event: UIEvent) {
+  cancelLegendForm(event: Event) {
     this.showLegendForm = false;
 
     // Reset legend color
@@ -1219,13 +1219,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     //this.legendStartColor = this.scale.endColor;
   }
 
-  applyLegendForm(event: UIEvent) {
+  applyLegendForm(event: Event) {
     this.showLegendForm = false;
     this.customLegendOptions = this.legendForm.value;
     this.onRefresh.emit();
   }
 
-  async openSelectTypeModal(event?: UIEvent) {
+  async openSelectTypeModal(event?: Event) {
     if (event) {
       event.preventDefault();
     }
@@ -1264,7 +1264,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     }
   }
 
-  toggleAnimation(event?: UIEvent) {
+  toggleAnimation(event?: Event) {
     if (event && event.defaultPrevented) return;
     // Avoid to expand the filter section
     if (event) {

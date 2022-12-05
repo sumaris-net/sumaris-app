@@ -1,6 +1,7 @@
 /* -- Extraction -- */
 
 import {
+  arrayGroupBy,
   BaseReferential,
   capitalizeFirstLetter,
   Department,
@@ -17,6 +18,7 @@ import {
 import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { filter, map } from 'rxjs/operators';
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
@@ -259,4 +261,16 @@ export class ExtractionTypeUtils {
   static isProduct(type: ExtractionType): boolean {
     return isNotNil(type.id) && type.id >= 0;
   }
+}
+
+export class ExtractionTypeCategory {
+
+  static fromTypes(types: ExtractionType[]): ExtractionTypeCategory[] {
+    const typesByCategory = arrayGroupBy(types, 'category');
+    return Object.getOwnPropertyNames(typesByCategory)
+      .map(category => ({label: category, types: typesByCategory[category]}));
+  }
+
+  label: string;
+  types: ExtractionType[];
 }

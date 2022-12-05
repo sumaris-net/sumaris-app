@@ -71,15 +71,19 @@
   background-color: rgba(0,0,0,0.5);
 }
 
-.reveal {
-  .loader {
-    height: 100%;
-    width: 100%;
-    text-align: center;
-    vertical-align: middle;
-    padding-top: calc(50vh - var(--app-toolbar-height));
-  }
+.reveal .loader {
+  height: 100%;
+  width: 100%;
+  text-align: center;
+  vertical-align: middle;
+  padding-top: calc(50vh - var(--app-toolbar-height));
+}
 
+.reveal p {
+  --r-main-font-size: 0.9em;
+  --r-main-color: var(--ion-color-dark);
+  color: var(--r-main-color) !important;
+  font-size: var(--r-main-font-size) !important;
 }
 
 /*********************************************
@@ -110,6 +114,23 @@
   }
   tr.even {
     background-color: whitesmoke;
+  }
+}
+/*********************************************
+ * TABLE image gallery
+ *********************************************/
+
+@media print {
+  .reveal table.gallery {
+    --r-table-width: calc(90vw);
+
+    td {
+      min-width: calc(var(--r-table-width) / var(--col-count, 3));
+    }
+
+    img {
+      max-height: calc(45vh);
+    }
   }
 }
 

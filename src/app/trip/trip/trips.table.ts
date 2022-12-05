@@ -3,7 +3,7 @@ import { ValidatorService } from '@e-is/ngx-material-table';
 import { TripValidatorService } from '../services/validator/trip.validator';
 import { TripComparators, TripService } from '../services/trip.service';
 import { TripFilter, TripSynchroImportFilter } from '../services/filter/trip.filter';
-import { FormArray, FormBuilder, FormControl } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   chainPromises,
@@ -70,17 +70,17 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   @Input() canUpload = false;
   @Input() canOpenMap = false;
 
-  get filterObserversForm(): FormArray {
-    return this.filterForm.controls.observers as FormArray;
+  get filterObserversForm(): UntypedFormArray {
+    return this.filterForm.controls.observers as UntypedFormArray;
   }
 
-  get filterDataQualityControl(): FormControl {
-    return this.filterForm.controls.dataQualityStatus as FormControl;
+  get filterDataQualityControl(): UntypedFormControl {
+    return this.filterForm.controls.dataQualityStatus as UntypedFormControl;
   }
 
   constructor(
     injector: Injector,
-    protected dataService: TripService,
+    protected _dataService: TripService,
     protected operationService: OperationService,
     protected personService: PersonService,
     protected referentialRefService: ReferentialRefService,
@@ -89,7 +89,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     protected configService: ConfigService,
     protected context: ContextService,
     protected tripContext: TripContextService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -104,7 +104,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       'observers',
       'recorderPerson',
       'comments'],
-        dataService,
+        _dataService,
       null
     );
     this.i18nColumnPrefix = 'TRIP.TABLE.';
@@ -243,7 +243,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return true;
   }
 
-  async openTrashModal(event?: UIEvent) {
+  async openTrashModal(event?: Event) {
     console.debug('[trips] Opening trash modal...');
     const modalOptions: TripTrashModalOptions = {
       synchronizationStatus: this.filter && this.filter.synchronizationStatus || 'SYNC'
@@ -263,7 +263,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     if (!res) return; // CANCELLED
   }
 
-  async prepareOfflineMode(event?: UIEvent, opts?: {
+  async prepareOfflineMode(event?: Event, opts?: {
     toggleToOfflineMode?: boolean;
     showToast?: boolean;
     filter?: any;
@@ -271,8 +271,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     if (this.importing) return; // Skip
 
     if (event) {
-      const feature = this.settings.getOfflineFeature(this.dataService.featureName) || {
-        name: this.dataService.featureName
+      const feature = this.settings.getOfflineFeature(this._dataService.featureName) || {
+        name: this._dataService.featureName
       };
       const filter = this.asFilter(this.filterForm.value);
       const value = <TripSynchroImportFilter>{
@@ -305,7 +305,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return super.prepareOfflineMode(event, opts);
   }
 
-  async importFromFile(event: UIEvent): Promise<Trip[]> {
+  async importFromFile(event: Event): Promise<Trip[]> {
     const data = await super.importFromFile(event);
     if (isEmptyArray(data)) return; // Skip
 
@@ -314,7 +314,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     for (let json of data) {
       try {
         const entity = Trip.fromObject(json);
-        const savedEntity = await this.dataService.copyLocally(entity);
+        const savedEntity = await this._dataService.copyLocally(entity);
         entities.push(savedEntity);
       } catch (err) {
         const message = err && err.message || err;
@@ -344,13 +344,13 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return entities;
   }
 
-  async downloadSelectionAsJson(event?: UIEvent) {
+  async downloadSelectionAsJson(event?: Event) {
     const ids = (this.selection.selected || [])
       .map(row => row.currentData?.id);
     return this.downloadAsJson(ids);
   }
 
-  async openDownloadPage(event?: UIEvent) {
+  async openDownloadPage(event?: Event) {
     const trips = (this.selection.selected || [])
       .map(row => row.currentData).filter(isNotNil)
       .sort(TripComparators.sortByDepartureDateFn);
@@ -368,7 +368,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
 
   }
 
-  async openSelectionMap(event?: UIEvent) {
+  async openSelectionMap(event?: Event) {
     const trips = (this.selection.selected || [])
       .map(row => row.currentData).filter(isNotNil)
       .sort(TripComparators.sortByDepartureDateFn);
@@ -417,7 +417,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     }
   }
 
-  clearFilterValue(key: keyof TripFilter, event?: UIEvent) {
+  clearFilterValue(key: keyof TripFilter, event?: Event) {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -441,7 +441,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     if (isEmptyArray(ids)) return; // Skip if empty
 
     // Create file content
-    const entities = (await Promise.all(ids.map(id => this.dataService.load(id, {fullLoad: true, withOperation: true}))))
+    const entities = (await Promise.all(ids.map(id => this._dataService.load(id, {fullLoad: true, withOperation: true}))))
       .map(entity => entity.asObject(MINIFY_ENTITY_FOR_LOCAL_STORAGE));
     const content = JSON.stringify(entities);
 

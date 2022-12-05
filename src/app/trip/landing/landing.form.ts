@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelGroups, LocationLevelIds, PmfmIds } from '@app/referential/services/model/model.enum';
 import { LandingValidatorService } from '../services/validator/landing.validator';
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ModalController } from '@ionic/angular';
 import {
   ConfigService,
@@ -68,7 +68,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   metierFocusIndex = -1;
   fishingAreaFocusIndex = -1;
   mobile: boolean;
-  strategyControl: FormControl;
+  strategyControl: UntypedFormControl;
 
   autocompleteFilters = {
     fishingArea: false
@@ -123,20 +123,20 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.strategyControl.markAsPristine(opts);
   }
 
-  get observersForm(): FormArray {
-    return this.form.controls.observers as FormArray;
+  get observersForm(): UntypedFormArray {
+    return this.form.controls.observers as UntypedFormArray;
   }
 
-  get tripForm(): FormGroup {
-    return this.form.controls.trip as FormGroup;
+  get tripForm(): UntypedFormGroup {
+    return this.form.controls.trip as UntypedFormGroup;
   }
 
-  get metiersForm(): FormArray {
-    return this.tripForm?.controls.metiers as FormArray;
+  get metiersForm(): UntypedFormArray {
+    return this.tripForm?.controls.metiers as UntypedFormArray;
   }
 
-  get fishingAreasForm(): FormArray {
-    return this.tripForm?.controls.fishingAreas as FormArray;
+  get fishingAreasForm(): UntypedFormArray {
+    return this.tripForm?.controls.fishingAreas as UntypedFormArray;
   }
 
   @ViewChildren('fishingAreaField') fishingAreaFields: QueryList<MatAutocompleteField>;
@@ -163,7 +163,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   @Input() allowAddNewVessel: boolean;
   @Input() allowManyMetiers: boolean = null;
   @Input() filteredFishingAreaLocations: ReferentialRef[] = null;
-  @Input() fishingAreaLocationLevelIds: number[] = LocationLevelIds.LOCATIONS_AREA;
+  @Input() fishingAreaLocationLevelIds: number[] = LocationLevelGroups.FISHING_AREA;
 
   @Input() set enableFishingAreaFilter(value: boolean) {
     this.setFieldFilterEnable('fishingArea', value);
@@ -203,7 +203,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   constructor(
     injector: Injector,
     protected measurementValidatorService: MeasurementsValidatorService,
-    protected formBuilder: FormBuilder,
+    protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: LandingValidatorService,
     protected referentialRefService: ReferentialRefService,
@@ -353,7 +353,8 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.registerSubscription(
       this.$strategyLabel
         .pipe(
-          mergeMap(value => this.waitIdle().then(() => value))
+          mergeMap(value => this.waitIdle({stop: this.destroySubject})
+            .then(() => value))
         )
         .subscribe(strategyLabel => {
 
@@ -670,7 +671,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
 
-  protected initTripForm(): FormGroup {
+  protected initTripForm(): UntypedFormGroup {
     let tripForm = this.tripForm;
     if (!tripForm) {
       // DEBUG
@@ -701,7 +702,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     return tripForm;
   }
 
-  protected initMetiersHelper(form: FormGroup) {
+  protected initMetiersHelper(form: UntypedFormGroup) {
 
     if (!this.metiersHelper) {
       this.metiersHelper = new FormArrayHelper<FishingArea>(
@@ -725,7 +726,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
 
-  protected initFishingAreas(form: FormGroup) {
+  protected initFishingAreas(form: UntypedFormGroup) {
     if (!this.fishingAreasHelper) {
       this.fishingAreasHelper = new FormArrayHelper<FishingArea>(
         FormArrayHelper.getOrCreateArray(this.formBuilder, form, 'fishingAreas'),

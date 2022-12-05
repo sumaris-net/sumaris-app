@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { SharedValidators } from '@sumaris-net/ngx-components';
@@ -9,15 +9,15 @@ import { ProgramPerson } from '@app/referential/services/model/program.model';
 export class ProgramPersonValidatorService implements ValidatorService {
 
   constructor(
-    protected formBuilder: FormBuilder
+    protected formBuilder: UntypedFormBuilder
   ) {
   }
 
-  getRowValidator(): FormGroup {
+  getRowValidator(): UntypedFormGroup {
     return this.getFormGroup();
   }
 
-  getFormGroup(data?: ProgramPerson): FormGroup {
+  getFormGroup(data?: ProgramPerson): UntypedFormGroup {
     return this.formBuilder.group({
       id: [data && data.id || null],
       updateDate: [data && data.updateDate || null],
