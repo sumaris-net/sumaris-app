@@ -12,7 +12,6 @@
   },
   "android": {
     "buildOptions": {
-      "keystorePath": ".local/android/Sumaris.keystore",
       "releaseType": "APK"
     }
   }
