@@ -28,6 +28,7 @@
 
     <button slot="end" mat-icon-button
             *ngIf="enabled && !isNewData || debug"
+            [disabled]="saving"
             [matMenuTriggerFor]="optionsMenu"
             [title]=" 'COMMON.BTN_OPTIONS'|translate">
       <mat-icon>more_vert</mat-icon>

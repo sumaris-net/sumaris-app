@@ -16,7 +16,7 @@
     <!-- last operation (history) -->
     <ion-button *ngIf="showLastOperations"
                 hidden-xxs
-                [disabled]="loading"
+                [disabled]="loading || saving"
                 [title]="'TRIP.OPERATION.LAST_OPERATIONS'|translate"
                 [matMenuTriggerFor]="lastOperationsMenu">
       <mat-icon slot="icon-only">history</mat-icon>
@@ -41,6 +41,7 @@
     <!-- option menu -->
     <button slot="end" mat-icon-button
             *ngIf="enabled && !isNewData || debug"
+            [disabled]="saving"
             [matMenuTriggerFor]="optionsMenu"
             [title]=" 'COMMON.BTN_OPTIONS'|translate">
       <mat-icon>more_vert</mat-icon>
