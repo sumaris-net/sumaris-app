@@ -35,15 +35,13 @@ fi
 # Remove previous version
 if [[ -f "${APK_SIGNED_FILE}" ]]; then
   echo "Delete previous signed APK file: ${APK_SIGNED_FILE}"
-  rm -f ${APK_SIGNED_FILE}
-  rm -f ${APK_SIGNED_FILE}.align
+  rm -f ${APK_SIGNED_FILE}.*
 fi
 if [[ -f "${APK_UNSIGNED_FILE}.align" ]]; then
   rm -f ${APK_UNSIGNED_FILE}.align
 fi
 
 cd ${ANDROID_BUILD_TOOLS_ROOT}
-echo ${ANDROID_BUILD_TOOLS_ROOT}
 [[ $? -ne 0 ]] && exit 1
 
 echo "Executing zipalign..."
@@ -52,7 +50,9 @@ echo "Executing zipalign..."
 echo "Executing zipalign [OK]"
 
 echo "Executing apksigner..."
-./apksigner sign --ks ${KEYSTORE_FILE} --ks-pass "pass:${KEYSTORE_PWD}" --ks-key-alias ${KEY_ALIAS} --out ${APK_SIGNED_FILE} ${APK_UNSIGNED_FILE}.align
+./apksigner sign --ks ${KEYSTORE_FILE} --ks-pass "pass:${KEYSTORE_PWD}" --ks-key-alias ${KEY_ALIAS} \
+  --v1-signing-enabled true --min-sdk-version ${ANDROID_OUTPUT_MIN_SDK_VERSION} \
+  --out ${APK_SIGNED_FILE} ${APK_UNSIGNED_FILE}.align
 [[ $? -ne 0 ]] && exit 1
 echo "Executing apksigner [OK]"
 
