@@ -13,7 +13,7 @@ KEY_ALIAS=Sumaris
 KEYSTORE_PWD=
 
 # Preparing Android environment
-source ${PROJECT_DIR}/scripts/env-android.sh
+. ${PROJECT_DIR}/scripts/env-android.sh
 [[ $? -ne 0 ]] && exit 1
 
 APK_SIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-signed.apk
@@ -36,20 +36,25 @@ fi
 if [[ -f "${APK_SIGNED_FILE}" ]]; then
   echo "Delete previous signed APK file: ${APK_SIGNED_FILE}"
   rm -f ${APK_SIGNED_FILE}
+  rm -f ${APK_SIGNED_FILE}.align
+fi
+if [[ -f "${APK_UNSIGNED_FILE}.align" ]]; then
+  rm -f ${APK_UNSIGNED_FILE}.align
 fi
 
-echo "Executing jarsigner..."
-jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -storepass ${KEYSTORE_PWD} -keystore ${KEYSTORE_FILE} ${APK_UNSIGNED_FILE} ${KEY_ALIAS}
-[[ $? -ne 0 ]] && exit 1
-echo "Executing jarsigner [OK]"
-
 cd ${ANDROID_BUILD_TOOLS_ROOT}
+echo ${ANDROID_BUILD_TOOLS_ROOT}
 [[ $? -ne 0 ]] && exit 1
 
 echo "Executing zipalign..."
-./zipalign -v 4 ${APK_UNSIGNED_FILE} ${APK_SIGNED_FILE}
+./zipalign -v 4 ${APK_UNSIGNED_FILE} ${APK_UNSIGNED_FILE}.align
 [[ $? -ne 0 ]] && exit 1
 echo "Executing zipalign [OK]"
+
+echo "Executing apksigner..."
+./apksigner sign --ks ${KEYSTORE_FILE} --ks-pass "pass:${KEYSTORE_PWD}" --ks-key-alias ${KEY_ALIAS} --out ${APK_SIGNED_FILE} ${APK_UNSIGNED_FILE}.align
+[[ $? -ne 0 ]] && exit 1
+echo "Executing apksigner [OK]"
 
 echo "Verify APK signature..."
 ./apksigner verify ${APK_SIGNED_FILE}

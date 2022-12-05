@@ -76,10 +76,11 @@ else
 fi
 
   echo
-echo "--- Synchronizing..."
+
 cd "${PROJECT_DIR}"
-npx jetifier && npx cap sync android
-[[ $? -ne 0 ]] && exit 1
+#echo "--- Synchronizing..."
+#npx jetifier && npx cap sync android
+#[[ $? -ne 0 ]] && exit 1
 
 echo "--- Android environment is ready!"
 
