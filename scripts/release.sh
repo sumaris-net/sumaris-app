@@ -133,16 +133,19 @@ fi
 cd $PROJECT_DIR/www
 zip -q -r $ZIP_FILE .
 if [[ $? -ne 0 ]]; then
-  echo "Connot create the archive for the web artifact"
+  echo "Cannot create the archive for the web artifact"
   exit 1
 fi
+
+echo "- Creating web artifact [OK] at \'${ZIP_FILE}\'"
+echo ""
 
 echo "-------------------------------------------"
 echo "- Compiling sources for Android platform..."
 echo "-------------------------------------------"
 
 # Removing previous APK..."
-rm ${PROJECT_DIR}/platforms/android/app/build/outputs/apk/release/*.apk
+rm ${PROJECT_DIR}/android/app/build/outputs/apk/release/*.apk
 
 # Copy generated i18n files, to make sure Android release will use it
 cp ${PROJECT_DIR}/www/assets/i18n/*.json ${PROJECT_DIR}/src/assets/i18n/
@@ -157,6 +160,17 @@ description="$release_description"
 if [[ "_$description" == "_" ]]; then
     description="Release $version"
 fi
+
+echo "**********************************"
+echo " /!\ You should now :"
+echo " - Open Android Studio and Build the release APK..."
+echo " - Then run: "
+echo ""
+echo "cd $PROJECT_DIR/scripts"
+echo "./release-android-sign.sh"
+echo "./release-finish.sh $version ''"$release_description"''"
+echo "./release-to-github.sh $task ''"$release_description"''"
+exit 1
 
 echo "**********************************"
 echo "* Finishing release"
