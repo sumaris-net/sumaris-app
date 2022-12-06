@@ -200,6 +200,7 @@ export const ParameterLabelGroups = {
   DRESSING: ['DRESSING'],
   PRESERVATION: ['PRESERVATION']
 };
+
 // Remove duplication in label
 export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups).reduce((res, key) => {
   const labels = ParameterLabelGroups[key]
