@@ -35,29 +35,34 @@ fi
 # Remove previous version
 if [[ -f "${APK_SIGNED_FILE}" ]]; then
   echo "Delete previous signed APK file: ${APK_SIGNED_FILE}"
-  rm -f ${APK_SIGNED_FILE}.*
+  rm -f ${APK_SIGNED_FILE}*
 fi
-if [[ -f "${APK_UNSIGNED_FILE}.align" ]]; then
-  rm -f ${APK_UNSIGNED_FILE}.align
-fi
+
+#echo "Executing jarsigner..."
+#jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -storepass ${KEYSTORE_PWD} -keystore ${KEYSTORE_FILE} ${APK_UNSIGNED_FILE} ${KEY_ALIAS}
+#[[ $? -ne 0 ]] && exit 1
+#echo "Executing jarsigner [OK]"
 
 cd ${ANDROID_BUILD_TOOLS_ROOT}
 [[ $? -ne 0 ]] && exit 1
 
 echo "Executing zipalign..."
-./zipalign -v 4 ${APK_UNSIGNED_FILE} ${APK_UNSIGNED_FILE}.align
+./zipalign -v 4 ${APK_UNSIGNED_FILE} ${APK_SIGNED_FILE}
 [[ $? -ne 0 ]] && exit 1
 echo "Executing zipalign [OK]"
 
 echo "Executing apksigner..."
 ./apksigner sign --ks ${KEYSTORE_FILE} --ks-pass "pass:${KEYSTORE_PWD}" --ks-key-alias ${KEY_ALIAS} \
-  --v1-signing-enabled true --min-sdk-version ${ANDROID_OUTPUT_MIN_SDK_VERSION} \
-  --out ${APK_SIGNED_FILE} ${APK_UNSIGNED_FILE}.align
+  --min-sdk-version ${ANDROID_OUTPUT_MIN_SDK_VERSION} \
+  --max-sdk-version ${ANDROID_OUTPUT_MAX_SDK_VERSION} \
+  ${APK_SIGNED_FILE}
+
 [[ $? -ne 0 ]] && exit 1
 echo "Executing apksigner [OK]"
 
 echo "Verify APK signature..."
-./apksigner verify ${APK_SIGNED_FILE}
+#./apksigner verify --verbose --print-certs /home/blavenie/sumaris-app-1.28.0-android.apk
+./apksigner verify --verbose --print-certs ${APK_SIGNED_FILE}
 [[ $? -ne 0 ]] && exit 1
 echo "Verify APK signature [OK]"
 
