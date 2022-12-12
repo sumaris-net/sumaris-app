@@ -306,7 +306,7 @@ export class SamplesTable
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
     super.configureValidator(opts);
 
-    this.validatorService.delegateOptions = {withImages: this.showImagesColumn};
+    this.validatorService.delegateOptions = {withImages: this.showImagesColumn, requiredLabel: this.requiredLabel};
   }
 
   /**
@@ -666,7 +666,7 @@ export class SamplesTable
     data.measurementValues = data.measurementValues || {};
 
     // generate label
-    if (!this.showLabelColumn) {
+    if (!this.showLabelColumn && this.requiredLabel) {
       data.label = `${this.acquisitionLevel||''}#${data.rankOrder}`;
     }
 
