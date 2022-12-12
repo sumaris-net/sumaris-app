@@ -1021,6 +1021,9 @@
           "TAB_SUB_SAMPLES": "Suivi individuel",
           "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
           "TAG_COUNT": "<b>{{tagCount}}</b> Tag-ID"
+        },
+        "SAMPLING": {
+          "LABEL": "Libellé du Lot"
         }
       },
       "PMFM_GROUP": {

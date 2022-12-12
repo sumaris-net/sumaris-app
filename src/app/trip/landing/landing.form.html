@@ -275,7 +275,7 @@
   <ion-col size="12" size-md="10" size-lg="9" class="ion-no-padding">
     <mat-form-field class="mat-form-field-disabled">
       <input matInput hidden>
-      <ion-skeleton-text animated style="width: 80%"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="strategyLabel|isNotNilOrBlank" style="width: 80%"></ion-skeleton-text>
     </mat-form-field>
   </ion-col>
 </ng-template>

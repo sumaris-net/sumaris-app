@@ -798,23 +798,37 @@ export class ObservedLocationService
     return entity;
   }
 
-  async countSamples(observedLocationIds: number[]): Promise<number> {
-    if (this._debug) console.debug(`[observed-location-service] Count samples...`);
+  async hasSampleWithTagId(observedLocationIds: number[]): Promise<boolean> {
 
-    const filter: Partial<SampleFilter> = {
-      observedLocationIds: observedLocationIds
-    };
+    // Check locally
+    const localIds = (observedLocationIds || []).filter(EntityUtils.isLocalId);
+    if (isNotEmptyArray(localIds)) {
+      const hasSampleFn = async (observedLocationId) => {
+        const {data: landings} = await this.landingService.loadAllByObservedLocation({observedLocationId}, {fullLoad: false, toEntity: false, computeRankOrder: false, withTotal: false});
+        return (landings || []).some(l => l.samplesCount > 0);
+      };
+      const hasLocalSamples = (await chainPromises(localIds.map(observedLocationId => () => hasSampleFn(observedLocationId))))
+        .some(has => has === true);
+      if (hasLocalSamples) return true;
+    }
 
-    const res = await this.graphql.query<{ samplesCount: number }>({
-      query: CountSamples,
-      variables: {
-        filter
-      },
-      error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'OBSERVED_LOCATION.ERROR.COUNT_SAMPLES_ERROR'},
-      fetchPolicy: 'network-only'
-    });
+    // Check remotely
+    const remoteIds = (observedLocationIds || []).filter(EntityUtils.isRemoteId);
+    if (isNotEmptyArray(remoteIds)) {
+      const sampleFilter = SampleFilter.fromObject({withTagId: true, observedLocationIds: remoteIds});
+      const res = await this.graphql.query<{ samplesCount: number }>({
+        query: CountSamples,
+        variables: {
+          filter: sampleFilter.asPodObject()
+        },
+        error: {code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'OBSERVED_LOCATION.ERROR.COUNT_SAMPLES_ERROR'},
+        fetchPolicy: 'network-only'
+      });
 
-    return res && res.samplesCount;
+      return (res?.samplesCount || 0) > 0;
+    }
+
+    return false;
   }
 
   /* -- protected methods -- */

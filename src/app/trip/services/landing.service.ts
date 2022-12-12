@@ -916,7 +916,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
       || EntityUtils.isLocalId(tripId)
       || false;
 
-    let departureDateTimes: Moment[];
+    let otherDepartureDateTimes: Moment[];
     if (offline) {
 
       const {data: landings} = (await this.loadAllByObservedLocation(
@@ -924,20 +924,21 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
         {computeRankOrder: false, fetchPolicy: 'no-cache', toEntity: false, withTotal: false}));
 
       // Workaround to avoid integrity constraints on TRIP.DEPARTURE_DATE_TIME: we add a 1s delay, if another trip exists on same date
-      departureDateTimes = (landings || [])
+      otherDepartureDateTimes = (landings || [])
           .filter(l => l.id !== entity.id && l.trip && l.trip.id !== entity.trip.id)
-          .map(l => (l.trip as Trip).departureDateTime);
+          .map(l => (l.trip as Trip).departureDateTime)
+          .map(fromDateISOString);
     }
     else {
 
       const tripFilter = TripFilter.fromObject(<TripFilter>{
-        vesselId,
         program,
-        startDate: departureDateTime.clone().add(-1, 'minute'),
-        endDate: departureDateTime.clone().add(1, 'minute')
+        observedLocationId,
+        vesselId,
+        excludedIds: isNotNil(tripId) ? [tripId] : undefined
       });
 
-      const { data: trips } = await this.tripService.loadAll(0, 999, 'departureDateTime', 'desc', tripFilter,
+      const { data: trips } = await this.tripService.loadAll(0, 999, 'id', 'asc', tripFilter,
         {
           query: LandingQueries.loadNearbyTripDates,
           // CLT - We need to use 'no-cache' fetch policy in order to transform mutable watch query into ordinary query since mutable queries doesn't manage correctly updates and cache.
@@ -945,16 +946,17 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
           fetchPolicy: 'no-cache',
           withTotal: false
         });
-      departureDateTimes = (trips || [])
+      otherDepartureDateTimes = (trips || [])
         .filter(t => t.id !== entity.trip.id)
-        .map(t => t.departureDateTime);
+        .map(t => t.departureDateTime)
+        .map(fromDateISOString);
     }
 
-    const maxDatetime = departureDateTimes
-      .map(fromDateISOString)
-      .reduce(DateUtils.max, null);
-    if (DateUtils.isSame(maxDatetime, departureDateTime)) {
-      // Apply 1s to the max existing date
+    const hasDuplicate = otherDepartureDateTimes.some(d => DateUtils.isSame(d, departureDateTime));
+    if (hasDuplicate) {
+      // Compute max(existing date)
+      const maxDatetime = otherDepartureDateTimes.reduce(DateUtils.max, null);
+      // Apply 1s to the max(existing date)
       trip.departureDateTime = maxDatetime.add(1, 'seconds');
       console.info('[landing-service] Trip\'s departureDateTime has been changed, to avoid integrity constraint error. New date is: ' + toDateISOString(trip.departureDateTime));
     }

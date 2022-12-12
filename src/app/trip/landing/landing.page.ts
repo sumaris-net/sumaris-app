@@ -129,7 +129,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     firstTruePromise(this.samplesTable.$hasPmfms)
       .then(() => {
         this.showSamplesTable = true;
-        this.markForCheck()
+        this.markForCheck();
       });
 
     // Use landing date as default dateTime for samples
@@ -389,7 +389,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
       // Apply sample table pmfms
       // If strategy is required, pmfms will be set by setStrategy()
       if (!requiredStrategy) {
-        await this.setTablePmfms(this.samplesTable, program.label)
+        await this.setTablePmfms(this.samplesTable, program.label);
       }
     }
 
