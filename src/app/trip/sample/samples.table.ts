@@ -666,7 +666,7 @@ export class SamplesTable
     data.measurementValues = data.measurementValues || {};
 
     // generate label
-    if (!this.showLabelColumn && this.requiredLabel) {
+    if (!this.showLabelColumn) {
       data.label = `${this.acquisitionLevel||''}#${data.rankOrder}`;
     }
 
