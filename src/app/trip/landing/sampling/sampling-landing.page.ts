@@ -74,6 +74,7 @@ export class SamplingLandingPage extends LandingPage implements AfterViewInit {
   }
 
   /* -- protected functions -- */
+
   protected async setProgram(program: Program): Promise<void> {
     return super.setProgram(program);
   }
