@@ -1,5 +1,5 @@
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {Entity, EntityClass, IconRef, isEmptyArray, isNil, isNotEmptyArray, ITreeItemEntity, waitWhilePending} from '@sumaris-net/ngx-components';
+import {Entity, EntityClass, IconRef, isEmptyArray, isNil, isNotEmptyArray, isNotNil, ITreeItemEntity, waitWhilePending} from '@sumaris-net/ngx-components';
 import {Batch} from '@app/trip/batch/common/batch.model';
 import {BatchUtils} from '@app/trip/batch/common/batch.utils';
 import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
@@ -122,6 +122,18 @@ export class BatchModel
     return model;
   }
 
+  static equals(b1: BatchModel, b2: BatchModel): boolean {
+    return b1 && b2 && ((isNotNil(b1.id) && b1.id === b2.id)
+      // Or by functional attributes
+      // Same path
+      || (b1.path === b2.path));
+  }
+
+  static isEmpty(b1: BatchModel): boolean {
+    return !b1 || (!b1.originalData && !b1.validator);
+  }
+
+
   private _valid = false;
 
   name: string;
@@ -220,21 +232,21 @@ export class BatchModel
   async isValid(): Promise<boolean> {
 
     // Enable temporarily the validator to get the valid status
-    const disabled = this.validator.disabled;
+    const disabled = this.validator?.disabled;
     if (disabled) {
       this.validator.enable({emitEvent: false, onlySelf: true});
     }
 
     try {
-      if (!this.validator.valid) {
+      if (!this.validator?.valid) {
 
         // Wait end of async validation
-        if (this.validator.pending) {
+        if (this.validator?.pending) {
           await waitWhilePending(this.validator);
         }
 
         // Quit if really invalid
-        if (this.validator.invalid) {
+        if (this.validator?.invalid) {
           return false;
         }
       }

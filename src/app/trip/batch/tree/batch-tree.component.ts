@@ -728,8 +728,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   markForCheck() {
     this.cd.markForCheck();
   }
-  dumpDebugData(type:'rowValidator'): any {
+  dumpDebugData(type:'rowValidator'|'catchForm'): any {
     switch (type) {
+      case 'catchForm':
+        this.debugObject = AppSharedFormUtils.dumpForm(this.catchBatchForm.form);
+        break;
       case 'rowValidator':
         this.debugObject = AppSharedFormUtils.dumpForm(this.batchGroupsTable.getDebugData(type));
         break;

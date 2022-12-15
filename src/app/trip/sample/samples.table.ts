@@ -211,7 +211,7 @@ export class SamplesTable
     return this.modalOptions[key];
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<IPmfmForm>();
+  @Output('prepareRowForm') onPrepareRowForm = new EventEmitter<IPmfmForm>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 

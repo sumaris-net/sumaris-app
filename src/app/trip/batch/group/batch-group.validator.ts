@@ -87,7 +87,7 @@ export class BatchGroupValidatorService extends
         };
         opts.childrenOptions.withChildren = opts.enableSamplingBatch;
         if (opts.childrenOptions.withChildren) {
-          opts.childrenOptions.childrenCount = 1;
+          opts.childrenOptions.childrenCount = 1; // One sampling batch
           opts.childrenOptions.childrenOptions = {
             root: false,
             withWeight: true,
@@ -99,8 +99,8 @@ export class BatchGroupValidatorService extends
         opts.withWeight = true;
         opts.withChildren = opts.enableSamplingBatch;
         if (opts.withChildren) {
-          opts.childrenOptions.childrenCount = 1;
           opts.childrenOptions = {
+            childrenCount: 1,
             root: false,
             withWeight: true,
             pmfms: null,

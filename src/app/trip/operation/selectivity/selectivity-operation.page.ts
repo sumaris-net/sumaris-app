@@ -10,6 +10,7 @@ import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment';
 import { environment } from '@environments/environment';
+import {PrepareModelEvent} from '@app/trip/batch/tree/batch-tree-container.component';
 
 
 @Component({
@@ -108,4 +109,15 @@ export class SelectivityOperationPage extends OperationPage {
     return parentUrl && `${parentUrl}/operation/selectivity/${id}`;
   }
 
+  protected onPrepareModel(event: PrepareModelEvent) {
+    try {
+      const model = event.detail.model;
+      if (!model) throw new Error('Missing model in \'event.detail\'');
+      console.debug('[selectivity-operation] Preparing model', model);
+      event.detail.success(model);
+    }
+    catch (err) {
+      event.detail.error(err);
+    }
+  }
 }

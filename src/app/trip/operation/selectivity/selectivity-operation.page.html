@@ -226,7 +226,7 @@
                                              [acquisitionLevel]="$acquisitionLevel|async"
                                              [forceOptional]="forceMeasurementAsOptional"
                                              [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
-                                             (mapPmfms)="mapPmfms($event)"
+                                             (onMapPmfms)="mapPmfms($event)"
                                              [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
                                              [i18nSuffix]="i18nContext.suffix"
                                              [tabindex]="30"
@@ -261,14 +261,15 @@
 
       <!-- batch tree container -->
       <app-batch-tree-container #batchTree
-                      queryTabIndexParamName="subtab"
-                      [showBatchTables]="showBatchTables"
-                      [selectedTabIndex]="selectedSubTabIndex"
-                      [usageMode]="usageMode"
-                      [useSticky]="mobile"
-                      [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
-                      [mobile]="mobile"
-                      [debug]="debug">
+                                queryTabIndexParamName="subtab"
+                                [showBatchTables]="showBatchTables"
+                                [selectedTabIndex]="selectedSubTabIndex"
+                                [usageMode]="usageMode"
+                                [useSticky]="mobile"
+                                [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
+                                (prepareModel)="onPrepareModel($event)"
+                                [mobile]="mobile"
+                                [debug]="debug">
       </app-batch-tree-container>
     </mat-tab>
 

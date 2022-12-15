@@ -46,17 +46,21 @@ export class BatchModelValidatorService<
   getFormGroup(data?: T, opts?: O): UntypedFormGroup {
     return super.getFormGroup(data, {
       ...opts,
-      withChildren: false, // Skip inherited children logic: avoid to create an unused sampling batch. See bellow
-      withMeasurements: false, // Skip inherited measurement logic, to use 'opts.pmfms' (instead of 'opts.childrenPmfms')
       qvPmfm: null
     });
   }
 
   getFormGroupConfig(data?: T, opts?: O): { [key: string]: any } {
 
-    const config = super.getFormGroupConfig(data, opts);
+    const config = super.getFormGroupConfig(data, {
+      ...opts,
+      withChildren: false, // Skip inherited children logic: avoid to create an unused sampling batch. See bellow
+      withMeasurements: false, // Skip inherited measurement logic, to use 'opts.pmfms' (instead of 'opts.childrenPmfms')
+    });
 
     delete config.parent;
+    delete config.children;
+    delete config.measurementValues;
 
     // Children array:
     if (opts?.withChildren) {
@@ -91,6 +95,11 @@ export class BatchModelValidatorService<
     }
 
     return config;
+  }
+
+  protected fillDefaultOptions(opts?: O): O {
+    opts = super.fillDefaultOptions(opts);
+    return opts;
   }
 
 }

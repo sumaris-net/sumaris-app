@@ -61,7 +61,6 @@ export class BatchValidatorService<
 
   protected fillDefaultOptions(opts?: O): O {
     opts = super.fillDefaultOptions(opts);
-
     return opts;
   }
 

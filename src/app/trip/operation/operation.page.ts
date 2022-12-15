@@ -892,7 +892,7 @@ export class OperationPage
       });
     if (saved) {
       // FIXME: this optimization not working well, because the page is still reloading after saving (because id changed).
-      if (this.isNewData) {
+      if (this.mobile) {
         const tripId = this.data?.tripId || this.trip?.id;
         return this.load(undefined, {
           tripId,
@@ -900,7 +900,7 @@ export class OperationPage
           openTabIndex: OperationPage.TABS.GENERAL
         });
       } else {
-        return this.router.navigate(['../new'], {
+        return this.router.navigate(['..', 'new'], {
           relativeTo: this.route,
           replaceUrl: true,
           queryParams: {tab: OperationPage.TABS.GENERAL}

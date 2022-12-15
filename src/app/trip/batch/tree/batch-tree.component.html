@@ -45,8 +45,17 @@
       </ion-col>
     </ion-row>
     <ion-row>
-      <ion-button (click)="dumpDebugData('rowValidator')">Dump row</ion-button>
-      <pre>{{debugObject|json}}</pre>
+      <ion-col>
+        <ion-button (click)="dumpDebugData('catchForm')">Dump catch form</ion-button>
+      </ion-col>
+      <ion-col>
+        <ion-button (click)="dumpDebugData('rowValidator')">Dump table row</ion-button>
+      </ion-col>
+    </ion-row>
+    <ion-row *ngIf="debugObject">
+      <ion-col size="12">
+        <pre>{{debugObject|json}}</pre>
+      </ion-col>
     </ion-row>
   </ion-grid>
 </app-debug>

@@ -921,17 +921,17 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     try {
       // Find operations to delete
-      const res = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
+      const {data} = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
         filter: dataFilter.asFilterFn()
       }, { fullLoad: false });
 
-      const parentOperationIds = (res && res.data || []).filter(o => o.parentOperation || o.parentOperationId)
+      const parentOperationIds = (data || []).filter(o => o.parentOperation || o.parentOperationId)
         .map(o => o.parentOperation && o.parentOperation.id || o.parentOperationId);
       if (parentOperationIds && parentOperationIds.length > 0) {
         await this.removeChildOperationLocally(parentOperationIds);
       }
 
-      const ids = (res && res.data || []).map(o => o.id);
+      const ids = (data || []).map(o => o.id);
       if (isEmptyArray(ids)) return undefined; // Skip
 
       // Apply deletion
@@ -1739,18 +1739,22 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }
 
   protected async removeChildOperationLocally(parentOperationIds: number[]) {
-    const res = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
+    const {data} = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
       filter: (this.asFilter({
         includedIds: parentOperationIds
       }).asFilterFn())
     }, {fullLoad: true});
 
-    const operations = new Array<Operation>();
-    (res && res.data || []).forEach(operation => {
-      operation.childOperationId = null;
-      operation.childOperation = null;
-      operations.push(Operation.fromObject(operation));
-    });
+    if (isEmptyArray(data)) return; // no operation to update
+
+    const operations = (data || []).map(json =>
+      // Convert to entity (required because entities use readonly objects)
+      Operation.fromObject({
+        ...json,
+        // Clean link to child
+        childOperationId: null,
+        childOperation: null
+      }));
 
     return this.saveAllLocally(operations, {});
   }

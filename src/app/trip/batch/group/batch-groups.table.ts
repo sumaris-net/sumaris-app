@@ -347,7 +347,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.validatorService.measurementsOptions = null; // disable
     this.validatorService.delegateOptions = {
       qvPmfm: this.qvPmfm,
-      withMeasurements: false,
+      withMeasurements: !this.qvPmfm && isNotEmptyArray(this._speciesPmfms),
       pmfms: this._speciesPmfms,
       childrenPmfms: this._childrenPmfms,
       enableSamplingBatch: this.showSamplingBatchColumns
