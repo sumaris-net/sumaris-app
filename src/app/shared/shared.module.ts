@@ -9,11 +9,18 @@ import { SplitArrayInChunksPipe } from '@app/shared/pipes/arrays.pipe';
 import { PaginationToStringPipe } from '@app/shared/pipes/pagination.pipe';
 import { MatFormFieldsSkeletonModule } from '@app/shared/material/skeleton/form-fields-skeleton.module';
 import { SharedDebugModule } from '@sumaris-net/ngx-components';
+import {ForModule, LetModule, PushModule} from '@rx-angular/template';
+import {UnpatchModule} from '@rx-angular/template/unpatch';
+import {IfModule} from '@rx-angular/template/experimental/if';
 
 @NgModule({
   imports: [
     SharedModule,
     SharedDebugModule,
+
+    // Rx angular
+    IfModule, ForModule, LetModule, PushModule, UnpatchModule,
+
     // Sub modules
     MatFormFieldsSkeletonModule
   ],
@@ -29,6 +36,9 @@ import { SharedDebugModule } from '@sumaris-net/ngx-components';
     SharedDebugModule,
     RouterModule,
     TranslateModule,
+
+    // Rx angular
+    IfModule, ForModule, LetModule, PushModule, UnpatchModule,
 
     // Pipes
     DisplayWithPipe,

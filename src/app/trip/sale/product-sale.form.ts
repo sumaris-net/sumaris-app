@@ -220,6 +220,7 @@ export class ProductSaleForm extends AppForm<Product> implements OnInit, OnDestr
       this.salesFocusIndex = index;
       setTimeout(() => {
         this.salesFocusIndex = undefined;
+        this.markForCheck();
       }, 500);
     }
   }

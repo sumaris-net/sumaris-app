@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
-import { ValidatorService } from '@e-is/ngx-material-table';
-import { TripValidatorService } from '../services/validator/trip.validator';
-import { TripComparators, TripService } from '../services/trip.service';
-import { TripFilter, TripSynchroImportFilter } from '../services/filter/trip.filter';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {TripValidatorService} from '../services/validator/trip.validator';
+import {TripComparators, TripService} from '../services/trip.service';
+import {TripFilter, TripSynchroImportFilter} from '../services/filter/trip.filter';
+import {UntypedFormArray, UntypedFormBuilder, UntypedFormControl} from '@angular/forms';
 import {
   arrayDistinct,
   chainPromises,
@@ -21,25 +21,25 @@ import {
   slideUpDownAnimation,
   StatusIds
 } from '@sumaris-net/ngx-components';
-import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
-import { Operation, Trip } from '../services/model/trip.model';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
-import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
-import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.config';
-import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
-import { environment } from '@environments/environment';
-import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
-import { filter, tap } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs';
-import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
-import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
-import { ContextService } from '@app/shared/context.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { OperationService } from '@app/trip/services/operation.service';
-import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operation/map/operations-map.modal';
+import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
+import {Operation, Trip} from '../services/model/trip.model';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
+import {TripTrashModal, TripTrashModalOptions} from './trash/trip-trash.modal';
+import {TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME} from '../services/config/trip.config';
+import {AppRootDataTable, AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
+import {environment} from '@environments/environment';
+import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
+import {filter, tap} from 'rxjs/operators';
+import {BehaviorSubject} from 'rxjs';
+import {TripOfflineModal, TripOfflineModalOptions} from '@app/trip/trip/offline/trip-offline.modal';
+import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
+import {ContextService} from '@app/shared/context.service';
+import {TripContextService} from '@app/trip/services/trip-context.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
+import {OperationService} from '@app/trip/services/operation.service';
+import {OperationsMapModal, OperationsMapModalOptions} from '@app/trip/operation/map/operations-map.modal';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",

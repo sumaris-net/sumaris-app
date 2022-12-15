@@ -1,6 +1,6 @@
 import { Directive, Injector, Input, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, filter, map, tap, throttleTime } from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, map, mapTo, mergeMap, startWith, tap, throttleTime} from 'rxjs/operators';
 import {
   AccountService,
   AppFormUtils,
@@ -20,7 +20,7 @@ import {
   toDateISOString,
   UsageMode,
 } from '@sumaris-net/ngx-components';
-import { BehaviorSubject, Observable } from 'rxjs';
+import {BehaviorSubject, merge, Observable} from 'rxjs';
 import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
 import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
@@ -62,6 +62,7 @@ export abstract class AppRootDataTable<
   protected readonly userEventService: UserEventService;
   protected readonly accountService: AccountService;
   protected readonly popoverController: PopoverController;
+  protected synchronizationStatus$: Observable<SynchronizationStatus>;
 
   canDelete: boolean;
   isAdmin: boolean;
@@ -123,6 +124,8 @@ export abstract class AppRootDataTable<
     this.saveBeforeSort = false;
     this.saveBeforeFilter = false;
     this.saveBeforeDelete = false;
+
+
   }
 
   ngOnInit() {
@@ -135,6 +138,13 @@ export abstract class AppRootDataTable<
 
     if (!this.filterForm) throw new Error(`Missing 'filterForm' in ${this.constructor.name}`);
     if (!this.featureId) throw new Error(`Missing 'featureId' in ${this.constructor.name}`);
+
+    // Listen synchronizationStatus
+    this.synchronizationStatus$ = this.onRefresh
+      .pipe(
+        startWith(this.synchronizationStatus),
+        map(() => this.synchronizationStatus)
+      );
 
     // Listen network
     this.offline = this.network.offline;
@@ -204,8 +214,8 @@ export abstract class AppRootDataTable<
     }
     else {
       this.network.setForceOffline(true, {showToast: true});
-      this.filterForm.patchValue({synchronizationStatus: 'DIRTY'}, {emitEvent: false/*avoid refresh*/});
       this.hasOfflineMode = true;
+      this.filterForm.patchValue({synchronizationStatus: 'DIRTY'}, {emitEvent: false /*avoid refresh*/});
     }
     // Refresh table
     this.onRefresh.emit();

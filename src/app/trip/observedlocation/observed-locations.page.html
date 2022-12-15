@@ -137,7 +137,7 @@
   <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
                                 (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
                                 [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
-                                [progressionValue]="$progression | async">
+                                [progressionValue]="$progression | push: 'low'">
   </app-update-offline-mode-card>
 
   <!-- error -->
@@ -300,21 +300,23 @@
 
 
   <!-- Tab nav - synchro status-->
-  <nav mat-tab-nav-bar
-       *ngIf="hasOfflineMode">
-    <a mat-tab-link
-       [active]="synchronizationStatus==='DIRTY'"
-       (click)="setSynchronizationStatus('DIRTY')">
-      <mat-icon>cloud_off</mat-icon>&nbsp;
-      <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
-    </a>
-    <a mat-tab-link [active]="synchronizationStatus==='SYNC'"
-       [disabled]="offline"
-       (click)="setSynchronizationStatus('SYNC')">
-      <mat-icon>cloud_done</mat-icon>&nbsp;
-      <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
-    </a>
-  </nav>
+  <ng-container *ngIf="hasOfflineMode">
+    <nav mat-tab-nav-bar
+         *rxLet="synchronizationStatus$; let synchroStatus">
+      <a mat-tab-link
+         [active]="synchroStatus==='DIRTY'"
+         (click)="setSynchronizationStatus('DIRTY')">
+        <mat-icon>cloud_off</mat-icon>&nbsp;
+        <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
+      </a>
+      <a mat-tab-link [active]="synchroStatus==='SYNC'"
+         [disabled]="offline"
+         (click)="setSynchronizationStatus('SYNC')">
+        <mat-icon>cloud_done</mat-icon>&nbsp;
+        <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
+      </a>
+    </nav>
+  </ng-container>
 
   <!-- table -->
   <div #tableContainer class="table-container"

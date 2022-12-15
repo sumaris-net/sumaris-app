@@ -1,14 +1,15 @@
-import { Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { Property } from '@sumaris-net/ngx-components';
-import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { FloatLabelType } from '@angular/material/form-field';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from '@angular/core';
+import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {Property} from '@sumaris-net/ngx-components';
+import {SamplingRatioFormat} from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import {FloatLabelType} from '@angular/material/form-field';
 
 
 @Component({
   selector: 'app-sampling-ratio-test',
-  templateUrl: './sampling-ratio.test.html'
+  templateUrl: './sampling-ratio.test.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppSamplingRatioTestPage implements OnInit {
 
@@ -21,7 +22,8 @@ export class AppSamplingRatioTestPage implements OnInit {
 
 
   constructor(
-    protected formBuilder: UntypedFormBuilder
+    protected formBuilder: UntypedFormBuilder,
+    protected cd: ChangeDetectorRef
   ) {
     this.form = formBuilder.group({
       empty: [null, Validators.required],
@@ -62,6 +64,7 @@ export class AppSamplingRatioTestPage implements OnInit {
     this.reload = false;
     setTimeout(() => {
       this.reload = true;
+      this.cd.markForCheck();
     }, 100);
   }
 

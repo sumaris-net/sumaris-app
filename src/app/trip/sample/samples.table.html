@@ -90,7 +90,8 @@
      [class.has-toolbar]="showToolbar"
      [class.has-group-header]="showGroupHeader"
      [class.has-pmfm-header-details]="showPmfmDetails"
-     *ngIf="$pmfms | async; let pmfms" [style.--pmfm-count]="pmfms?.length">
+     *ngIf="$pmfms | async; let pmfms"
+     [style.--pmfm-count]="pmfms?.length">
 
   <!-- ********************************************************** -->
   <!-- ***********  Writable table (e.g. for desktop) *********** -->
