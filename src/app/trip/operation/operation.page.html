@@ -307,7 +307,7 @@
                        [selectedTabIndex]="selectedSubTabIndex"
                        [defaultSampleDate]="$lastEndDate|async"
                        [usageMode]="usageMode"
-                       (onPrepareRowForm)="onPrepareSampleForm($event)"
+                       (prepareRowForm)="onPrepareSampleForm($event)"
                        [useSticky]="mobile"
                        [mobile]="mobile"
                        [debug]="debug">

@@ -26,7 +26,7 @@
                        [useSticky]="useSticky"
                        [showLabelColumn]="showLabelColumn"
                        [defaultSampleDate]="defaultSampleDate"
-                       (onPrepareRowForm)="onPrepareRowForm.emit($event)"
+                       (prepareRowForm)="onPrepareRowForm.emit($event)"
                        [weightDisplayedUnit]="weightDisplayedUnit"
                        [mobile]="mobile">
     </app-samples-table>
