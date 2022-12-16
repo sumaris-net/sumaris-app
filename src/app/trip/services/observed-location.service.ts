@@ -370,11 +370,12 @@ export class ObservedLocationService
         if (!data) throw {code: ErrorCodes.LOAD_ENTITY_ERROR, message: 'ERROR.LOAD_ENTITY_ERROR'};
 
         if (opts && opts.withLanding) {
-          data.landings = await this.entities.loadAll<Landing>(Landing.TYPENAME, {
-            filter: LandingFilter.fromObject({observedLocationId: id}).asFilterFn()
-          }, {
-            fullLoad: true
-          });
+           const {data: landings} = await this.entities.loadAll<Landing>(Landing.TYPENAME,
+             {filter: LandingFilter.fromObject({observedLocationId: id}).asFilterFn()});
+          data = {
+            ...data,
+            landings
+          };
         }
       } else {
         const res = await this.graphql.query<{ data: ObservedLocation }>({

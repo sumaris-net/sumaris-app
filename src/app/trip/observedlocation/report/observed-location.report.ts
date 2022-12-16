@@ -15,11 +15,11 @@ import {
   DateFormatService,
   firstFalsePromise,
   isNil,
-  isNilOrBlank,
+  isNilOrBlank, isNilOrNaN,
   isNotEmptyArray,
   isNotNilOrBlank,
   LocalSettingsService,
-  PlatformService,
+  PlatformService, toNumber,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
@@ -161,10 +161,8 @@ export class ObservedLocationReport<T extends ObservedLocation = ObservedLocatio
 
   protected async loadFromRoute() {
     const route = this.route.snapshot;
-    let id: number = route.params[this._pathIdAttribute];
-    if (isNil(id)) {
-      throw new Error(`[loadFromRoute] id for param ${this._pathIdAttribute} is nil`);
-    }
+    let id = toNumber(route?.params[this._pathIdAttribute]);
+    if (isNilOrNaN(id)) throw new Error(`[loadFromRoute] id for param ${this._pathIdAttribute} is nil`);
 
     await this.load(id);
 
