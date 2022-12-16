@@ -285,16 +285,34 @@
         </mat-icon>
       </ng-template>
 
-      <app-operations-table #operationsTable
-                            (onOpenRow)="onOpenOperation($event)"
-                            (onNewRow)="onNewOperation($event)"
-                            (onDuplicateRow)="onDuplicateOperation($event)"
-                            [canDuplicate]="operationPasteFlags!==0"
-                            [programLabel]="$programLabel|async"
-                            [showToolbar]="!mobile"
-                            [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
-                            [defaultSortDirection]="mobile ?'desc': 'asc'">
-      </app-operations-table>
+      <div class="ion-no-padding">
+        <!-- debug -->
+        <app-debug *ngIf="debug" [title]="'Operations table'">
+          <ion-grid class="ion-no-padding">
+            <ion-row>
+              <ion-col>
+                ready: {{operationsTable.readySubject|async}}<br/>
+                loading: {{operationsTable.loading}}<br/>
+                enabled: {{operationsTable.enabled}}<br/>
+                dirty: {{operationsTable.dirtySubject|async}}<br/>
+              </ion-col>
+              <ion-col>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </app-debug>
+
+        <app-operations-table #operationsTable
+                              (onOpenRow)="onOpenOperation($event)"
+                              (onNewRow)="onNewOperation($event)"
+                              (onDuplicateRow)="onDuplicateOperation($event)"
+                              [canDuplicate]="operationPasteFlags!==0"
+                              [programLabel]="$programLabel|async"
+                              [showToolbar]="!mobile"
+                              [defaultSortBy]="mobile ? 'startDateTime': 'endDateTime'"
+                              [defaultSortDirection]="mobile ?'desc': 'asc'">
+        </app-operations-table>
+      </div>
     </mat-tab>
   </mat-tab-group>
 
