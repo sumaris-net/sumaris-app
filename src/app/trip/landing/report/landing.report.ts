@@ -20,13 +20,14 @@ import {
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil,
   isNotNilOrBlank,
+  isNotNilOrNaN,
   LocalSettingsService,
   NetworkService,
   Person,
   PlatformService,
   toDateISOString,
+  toNumber,
   TranslateContextService,
   WaitForOptions,
   waitForTrue
@@ -227,11 +228,12 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   async load(id?: number, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
 
     try {
-      let parentId = opts && opts[this._pathParentIdAttribute] || undefined;
+      let parentId = toNumber(opts?.[this._pathParentIdAttribute], undefined);
 
       let [data, parent] = await Promise.all([
         this.landingService.load(id),
-        isNotNil(parentId) ? this.observedLocationService.load(parentId) : Promise.resolve(null)
+        Promise.resolve(null),
+        isNotNilOrNaN(parentId) ? this.observedLocationService.load(parentId) : Promise.resolve(null)
       ]);
 
       // Make sure to load the parent
@@ -279,6 +281,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
     }
     catch (err) {
       console.error(err);
+      throw err;
     }
   }
 
@@ -319,7 +322,6 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   }
 
   markAsReady() {
-    console.log('markAsReady');
     this.readySubject.next(true);
   }
 
