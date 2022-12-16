@@ -82,6 +82,7 @@ export class BatchGroupValidatorService extends
         opts.childrenOptions = {
           root: false,
           withWeight: true,
+          weightRequired: opts.isOnFieldMode === false,
           pmfms: opts.childrenPmfms,
           withMeasurements: isNotEmptyArray(opts.childrenPmfms)
         };

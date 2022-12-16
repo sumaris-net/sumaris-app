@@ -682,6 +682,7 @@
         "BTN_SELECT_PARENT" : "Sélectionner le filage...",
         "BTN_SAVE_AND_NEW" : "Sauvegarder et nouveau",
         "COMMENTS": "Commentaires",
+        "CATCH": "Capture",
         "TAB_GENERAL": "Détails",
         "TAB_PHYSICAL_GEAR": "Mise en oeuvre de l'engin",
         "TAB_CATCH": "Capture",
@@ -802,7 +803,8 @@
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
         "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtrage non disponible",
-        "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Aucun métier pratiqué trouvé dans les données disponibles."
+        "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Aucun métier pratiqué trouvé dans les données disponibles.",
+        "CATCH_ERROR": "Erreur dans la saisie de la capture"
       },
       "REPORT": {
         "TITLE": "Rapport OP #{{rankOrder}} <small>du {{startDateTime}}</small>",
@@ -2508,6 +2510,7 @@
     "FIELD_NOT_UNIQUE": "Valeur déjà utilisée",
     "SPACE_NOT_ALLOW": "Espaces ou caractères spéciaux non autorisés",
     "SCRYPT_ERROR": "Erreur de generation des clefs d'ouverture du compte",
+    "INVALID_OR_INCOMPLETE_FILL": "Saisie incomplète ou invalide",
     "UNKNOWN_ACCOUNT_EMAIL": "Aucun compte ne correspond à cet email.",
     "BAD_PASSWORD": "Mot de passe incorrect.",
     "EMAIL_ALREADY_REGISTERED": "Email déjà enregistrée",

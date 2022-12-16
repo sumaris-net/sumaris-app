@@ -566,7 +566,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
           // translate, then save normally
           const message = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
-          entity.controlDate = undefined;
+          entity.controlDate = null;
           entity.qualificationComments = message;
 
           // Save entity
@@ -632,10 +632,20 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Control batches
     if (entity.catchBatch && opts?.program) {
-      const errors = await this.batchService.control(entity.catchBatch, {program: opts.program, controlName: 'catch'});
+      const errors = await this.batchService.control(entity.catchBatch, {
+        program: opts.program,
+        controlName: 'catch',
+        isOnFieldMode: opts.isOnFieldMode
+      });
       if (errors) {
         console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
-        return errors;
+
+        // Save batch with errors
+        await this.save(entity);
+
+        // Keep only a simple error message
+        // Detail error should have been saved into batch
+        return { catch: {invalidOrIncomplete: true} };
       }
     }
 

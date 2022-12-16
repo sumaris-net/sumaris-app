@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { AppFormUtils, FormErrors, isNotEmptyArray, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { AppFormUtils, FormErrors, FormErrorTranslator, isNilOrBlank, isNotEmptyArray, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
@@ -14,6 +14,8 @@ import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.m
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { TranslateService } from '@ngx-translate/core';
+import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
+import { countSubString } from '@app/shared/functions';
 
 
 export interface BatchControlOptions extends BatchValidatorOptions {
@@ -31,7 +33,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     protected settings: LocalSettingsService,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected programRefService: ProgramRefService,
-    protected batchGroupValidatorService: BatchGroupValidatorService
+    protected batchGroupValidatorService: BatchGroupValidatorService,
+    protected formErrorTranslator: FormErrorTranslator,
     //protected subBatchValidatorService: SubBatchValidatorService
   ) {
   }
@@ -57,7 +60,20 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         await AppFormUtils.waitWhilePending(form);
         if (form.invalid) {
           const errors = AppFormUtils.getFormErrors(form, {controlName: opts?.controlName});
-          console.info(`[batch-service] Control catch batch {${entity.id}} [INVALID]`, errors);
+          const message = this.formErrorTranslator.translateErrors(errors, {
+            controlPathTranslator: {
+              translateControlPath: (path) => this.translateControlPath(path, { pmfms,
+                i18nPrefix: 'TRIP.CATCH.FORM.'
+              })
+            }
+          });
+          entity.controlDate = null;
+          entity.qualificationComments = message;
+          entity.qualityFlagId = QualityFlagIds.BAD;
+
+          //console.info(`[batch-service] Control catch batch {${entity.id}} [INVALID]`, errors);
+          console.info(`[batch-service] Control catch batch {${entity.id}} [INVALID]`, message);
+
           return errors;
         }
       }
@@ -102,12 +118,14 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
           // Create a form, with data
           const form = validator.getFormGroup(target, {
-            qvPmfm: qvPmfm,
+            isOnFieldMode: opts.isOnFieldMode,
+            qvPmfm,
             pmfms: speciesPmfms,
             childrenPmfms: childrenPmfms,
             // TODO check this
             //withChildrenWeight: true, withMeasurements: true, withMeasurementTypename: false,
-            rankOrderRequired: false, labelRequired: false
+            rankOrderRequired: false,
+            labelRequired: false
           });
 
           // Add complex validator
@@ -120,7 +138,18 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           if (!form.valid) {
             await AppFormUtils.waitWhilePending(form);
             if (form.invalid) {
-              return AppFormUtils.getFormErrors(form, { controlName: `${controlNamePrefix}children.${index}` });
+              const errors = AppFormUtils.getFormErrors(form, { controlName: `${controlNamePrefix}children.${index}` });
+              const message = this.formErrorTranslator.translateErrors(errors, {
+                controlPathTranslator: {
+                  translateControlPath: (path) => this.translateControlPath(path, { pmfms, qvPmfm })
+                }
+              });
+              source.controlDate = null;
+              source.qualificationComments = message;
+              // TODO
+              //source.qualityFlagId = QualityFlagIds.BAD;
+
+              return errors;
             }
           }
         })))
@@ -128,16 +157,59 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         .reduce((res, err) => ({...res, ...err}));
 
       if (errors && Object.keys(errors).length) {
+
+        // Flag catch batch as invalid
+        // TODO
+        //entity.qualityFlagId = QualityFlagIds.BAD;
+
         console.info(`[batch-service] Control children of catch batch {${entity.id}} [INVALID]`, errors);
         return errors;
       }
     }
-
 
     return null;
   }
 
   qualify(data: Batch, qualityFlagId: number): Promise<Batch> {
     throw new Error('No implemented');
+  }
+
+  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[], qvPmfm?: IPmfm}): string {
+    opts = opts || {};
+    if (isNilOrBlank(opts.i18nPrefix)) opts.i18nPrefix = 'TRIP.BATCH.EDIT.';
+    // Translate PMFM field
+    if (MEASUREMENT_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+      const pmfmId = parseInt(path.split('.').pop());
+      const pmfm = opts.pmfms.find(p => p.id === pmfmId);
+      return PmfmUtils.getPmfmName(pmfm);
+    }
+    // Translate weight
+    if (path.endsWith('.weight.value')) {
+      const cleanPath = path.substring('catch.children.'.length + 2);
+      const depth = countSubString(cleanPath, 'children.');
+      if (opts.qvPmfm) {
+        const qvIndex = parseInt(cleanPath.split('.')[1]);
+        const qvName = opts.qvPmfm.qualitativeValues?.[qvIndex]?.name;
+        const fieldName = depth === 1
+          ? this.translate.instant(opts.i18nPrefix + 'TOTAL_WEIGHT')
+          : this.translate.instant(opts.i18nPrefix + 'SAMPLING_WEIGHT');
+        return `${qvName} ${fieldName}`;
+      }
+      return depth === 0
+        ? this.translate.instant(opts.i18nPrefix + 'TOTAL_WEIGHT')
+        : this.translate.instant(opts.i18nPrefix + 'SAMPLING_WEIGHT');
+    }
+    // Translate location, inside any fishing areas
+    // if (FISHING_AREAS_LOCATION_REGEXP.test(path)) {
+    //   return this.translate.instant(opts.i18nPrefix + 'FISHING_AREAS');
+    // }
+    //
+    // // Translate location, inside any fishing areas
+    // if (POSITIONS_REGEXP.test(path)) {
+    //   return this.translate.instant(opts.i18nPrefix + 'POSITIONS');
+    // }
+
+    // Default translation
+    return this.formErrorTranslator.translateControlPath(path, opts);
   }
 }
