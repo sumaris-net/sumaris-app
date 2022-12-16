@@ -50,121 +50,131 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       throw new Error('Missing opts.program');
     }
 
-    // Control catch batch
-    {
-      const pmfms = await this.programRefService.loadProgramPmfms(opts.program.label, {acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH})
-      const validator = new BatchValidatorService(this.formBuilder, this.translate, this.settings, this.measurementsValidatorService);
-      const form = validator.getFormGroup(entity, {pmfms: pmfms, withChildren: false});
+    const editor = opts.program.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR);
+    if (editor === 'legacy') {
 
-      if (!form.valid) {
-        await AppFormUtils.waitWhilePending(form);
-        if (form.invalid) {
-          const errors = AppFormUtils.getFormErrors(form, {controlName: opts?.controlName});
-          const message = this.formErrorTranslator.translateErrors(errors, {
-            controlPathTranslator: {
-              translateControlPath: (path) => this.translateControlPath(path, { pmfms,
-                i18nPrefix: 'TRIP.CATCH.FORM.'
-              })
+      // Control catch batch
+      {
+        const pmfms = await this.programRefService.loadProgramPmfms(opts.program.label, { acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH })
+        const validator = new BatchValidatorService(this.formBuilder, this.translate, this.settings, this.measurementsValidatorService);
+        const form = validator.getFormGroup(entity, { pmfms: pmfms, withChildren: false });
+
+        if (!form.valid) {
+          await AppFormUtils.waitWhilePending(form);
+          if (form.invalid) {
+            const errors = AppFormUtils.getFormErrors(form, { controlName: opts?.controlName });
+            const message = this.formErrorTranslator.translateErrors(errors, {
+              controlPathTranslator: {
+                translateControlPath: (path) => this.translateControlPath(path, {
+                  pmfms,
+                  i18nPrefix: 'TRIP.CATCH.FORM.'
+                })
+              }
+            });
+            entity.controlDate = null;
+            entity.qualificationComments = message;
+            entity.qualityFlagId = QualityFlagIds.BAD;
+
+            //console.info(`[batch-service] Control catch batch {${entity.id}} [INVALID]`, errors);
+            console.info(`[batch-service] Control catch batch {${entity.id}} [INVALID]`, message);
+
+            return errors;
+          }
+        }
+      }
+
+      // Control batch groups
+      if (isNotEmptyArray(entity.children)) {
+        const pmfms = await this.programRefService.loadProgramPmfms(opts.program.label, { acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH });
+        const qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
+
+        // Compute species pmfms (at species batch level)
+        let speciesPmfms: IPmfm[], childrenPmfms: IPmfm[];
+        if (!qvPmfm) {
+          // TODO: manage batch model !
+          speciesPmfms = pmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
+          childrenPmfms = [];
+        } else {
+          const qvPmfmIndex = pmfms.findIndex(pmfm => pmfm.id === qvPmfm.id);
+          speciesPmfms = pmfms.filter((pmfm, index) => index < qvPmfmIndex);
+          childrenPmfms = pmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
+        }
+
+        const samplingRatioFormat: SamplingRatioFormat = opts.program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);
+        const weightMaxDecimals = pmfms.filter(PmfmUtils.isWeight).reduce((res, pmfm) => Math.max(res, pmfm.maximumNumberDecimals || 0), 0);
+
+        // Create validator service
+        const validator = this.batchGroupValidatorService;
+
+        // TODO
+        // - make sure to translate all errors
+        // - add sub batches validation
+
+        const controlNamePrefix = opts?.controlName ? `${opts.controlName}.` : '';
+        const errors: FormErrors = (await Promise.all(
+          // For each child
+          entity.children.map(async (source, index) => {
+            // Avoid error on label and rankOrder
+            if (!source.label || !source.rankOrder) {
+              console.log("Missing label or rankOrder in batch:", source);
             }
-          });
-          entity.controlDate = null;
-          entity.qualificationComments = message;
-          entity.qualityFlagId = QualityFlagIds.BAD;
+            const target = BatchGroup.fromBatch(source);
 
-          //console.info(`[batch-service] Control catch batch {${entity.id}} [INVALID]`, errors);
-          console.info(`[batch-service] Control catch batch {${entity.id}} [INVALID]`, message);
+            // Create a form, with data
+            const form = validator.getFormGroup(target, {
+              isOnFieldMode: opts.isOnFieldMode,
+              qvPmfm,
+              pmfms: speciesPmfms,
+              childrenPmfms: childrenPmfms,
+              // TODO check this
+              //withChildrenWeight: true, withMeasurements: true, withMeasurementTypename: false,
+              rankOrderRequired: false,
+              labelRequired: false
+            });
 
+            // Add complex validator
+            if (form.valid) {
+              form.setValidators(BatchGroupValidators.samplingRatioAndWeight({ qvPmfm, requiredSampleWeight: true, samplingRatioFormat, weightMaxDecimals }));
+              form.updateValueAndValidity();
+            }
+
+            // Get form errors
+            if (!form.valid) {
+              await AppFormUtils.waitWhilePending(form);
+              if (form.invalid) {
+                const errors = AppFormUtils.getFormErrors(form, { controlName: `${controlNamePrefix}children.${index}` });
+                const message = this.formErrorTranslator.translateErrors(errors, {
+                  controlPathTranslator: {
+                    translateControlPath: (path) => this.translateControlPath(path, { pmfms, qvPmfm })
+                  }
+                });
+                source.controlDate = null;
+                source.qualificationComments = message;
+                // TODO
+                //source.qualityFlagId = QualityFlagIds.BAD;
+
+                return errors;
+              }
+            }
+          })))
+          // Concat all errors
+          .reduce((res, err) => ({ ...res, ...err }));
+
+        if (errors && Object.keys(errors).length) {
+
+          // Flag catch batch as invalid
+          // TODO
+          //entity.qualityFlagId = QualityFlagIds.BAD;
+
+          console.info(`[batch-service] Control children of catch batch {${entity.id}} [INVALID]`, errors);
           return errors;
         }
       }
     }
 
-    // Control batch groups
-    if (isNotEmptyArray(entity.children)) {
-      const pmfms = await this.programRefService.loadProgramPmfms(opts.program.label, {acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH});
-      const qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
-
-      // Compute species pmfms (at species batch level)
-      let speciesPmfms: IPmfm[], childrenPmfms: IPmfm[];
-      if (!qvPmfm) {
-        speciesPmfms = [];
-        childrenPmfms = pmfms.filter(pmfm => !PmfmUtils.isWeight(pmfm));
-      }
-      else {
-        const qvPmfmIndex = pmfms.findIndex(pmfm => pmfm.id === qvPmfm.id);
-        speciesPmfms = pmfms.filter((pmfm, index) => index < qvPmfmIndex);
-        childrenPmfms = pmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
-      }
-
-      const samplingRatioFormat: SamplingRatioFormat = opts.program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);
-      const weightMaxDecimals = pmfms.filter(PmfmUtils.isWeight).reduce((res, pmfm) => Math.max(res, pmfm.maximumNumberDecimals || 0), 0);
-
-      // Create validator service
-      const validator = this.batchGroupValidatorService;
-
+    else if (editor === 'selectivity'){
+      console.warn('TODO: add validation using BatchModel');
       // TODO
-      // - make sure to translate all errors
-      // - add sub batches validation
-
-      const controlNamePrefix = opts?.controlName ? `${opts.controlName}.` : '';
-      const errors: FormErrors = (await Promise.all(
-        // For each child
-        entity.children.map( async (source, index) => {
-          // Avoid error on label and rankOrder
-          if (!source.label || !source.rankOrder) {
-            console.log("Missing label or rankOrder in batch:", source);
-          }
-          const target = BatchGroup.fromBatch(source);
-
-          // Create a form, with data
-          const form = validator.getFormGroup(target, {
-            isOnFieldMode: opts.isOnFieldMode,
-            qvPmfm,
-            pmfms: speciesPmfms,
-            childrenPmfms: childrenPmfms,
-            // TODO check this
-            //withChildrenWeight: true, withMeasurements: true, withMeasurementTypename: false,
-            rankOrderRequired: false,
-            labelRequired: false
-          });
-
-          // Add complex validator
-          if (form.valid) {
-            form.setValidators(BatchGroupValidators.samplingRatioAndWeight({qvPmfm, requiredSampleWeight: true, samplingRatioFormat, weightMaxDecimals}));
-            form.updateValueAndValidity();
-          }
-
-          // Get form errors
-          if (!form.valid) {
-            await AppFormUtils.waitWhilePending(form);
-            if (form.invalid) {
-              const errors = AppFormUtils.getFormErrors(form, { controlName: `${controlNamePrefix}children.${index}` });
-              const message = this.formErrorTranslator.translateErrors(errors, {
-                controlPathTranslator: {
-                  translateControlPath: (path) => this.translateControlPath(path, { pmfms, qvPmfm })
-                }
-              });
-              source.controlDate = null;
-              source.qualificationComments = message;
-              // TODO
-              //source.qualityFlagId = QualityFlagIds.BAD;
-
-              return errors;
-            }
-          }
-        })))
-        // Concat all errors
-        .reduce((res, err) => ({...res, ...err}));
-
-      if (errors && Object.keys(errors).length) {
-
-        // Flag catch batch as invalid
-        // TODO
-        //entity.qualityFlagId = QualityFlagIds.BAD;
-
-        console.info(`[batch-service] Control children of catch batch {${entity.id}} [INVALID]`, errors);
-        return errors;
-      }
     }
 
     return null;
