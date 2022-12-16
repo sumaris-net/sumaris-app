@@ -30,12 +30,15 @@
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
 
-<div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
+<div #tableContainer class="table-container"
+     [class.has-toolbar]="showToolbar"
+     >
 
   <table mat-table [dataSource]="dataSource"
          [matSortActive]="defaultSortBy"
          [matSortDirection]="defaultSortDirection"
          class="table-products"
+         [class.mobile]="mobile"
          matSort
          matSortDisableClear
          [trackBy]="trackByFn">
@@ -174,65 +177,34 @@
 
     </ng-container>
 
-
-    <!-- Comments column -->
-    <!--  <ng-container matColumnDef="comments">-->
-    <!--    <th mat-header-cell *matHeaderCellDef>-->
-    <!--    </th>-->
-    <!--    <td mat-cell *matCellDef="let row">-->
-    <!--      <ion-icon color="medium" name="chatbox" *ngIf="row.currentData.comments" slot="icon-only" [title]="row.currentData.comments"></ion-icon>-->
-    <!--    </td>-->
-    <!--  </ng-container>-->
-
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
-      <th mat-header-cell *matHeaderCellDef>
-        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">
-          <mat-icon>more_vert</mat-icon>
-        </button>
-      </th>
-      <td mat-cell *matCellDef="let row">
+    <app-actions-column [stickyEnd]="useSticky && showActionButtons"
+                        (confirmAndAddClick)="confirmAndAdd($event.event, $event.row)"
+                        (cancelOrDeleteClick)="cancelOrDelete($event.event, $event.row)"
+                        (backward)="confirmAndBackward($event.event, $event.row)"
+                        (forward)="confirmAndForward($event.event, $event.row)"
+                        [canCancel]="false"
+                        [cellTemplate]="cellTemplate"
+                        (optionsClick)="openSelectColumnsModal($event)">
 
-        <!-- undo or delete  -->
-        <button mat-icon-button color="light" *ngIf="row.validator.invalid"
-                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-                (click)="cancelOrDelete($event, row)"
-                [hidden]="!inlineEdition">
-          <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-        </button>
-        <!-- validate -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"
-                [title]="'COMMON.BTN_VALIDATE'|translate"
-                (click)="confirmEditCreate($event, row)"
-                [hidden]="!inlineEdition">
-          <mat-icon>check</mat-icon>
-        </button>
-        <!-- add -->
-        <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"
-                [title]="'COMMON.BTN_ADD'|translate"
-                (click)="confirmAndAdd($event, row)"
-                [hidden]="!inlineEdition">
-          <mat-icon>add</mat-icon>
-        </button>
-
+      <ng-template #cellTemplate let-row>
         <!-- sampling -->
-        <button mat-icon-button *ngIf="!row.editing && row.id !== -1 && row.validator.controls.individualCount.value > 0"
+        <button mat-icon-button *ngIf="showActionButtons && (row.validator|formGetValue:'individualCount') > 0"
                 [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING'|translate"
                 (click)="openSampling($event, row)"
                 [color]="(row.currentData.samples | isNotEmptyArray) ? 'primary' : undefined"
                 [hidden]="readOnly">
           <mat-icon
-                    [matBadge]="row.currentData.samples?.length"
-                    [matBadgeHidden]="row.currentData.samples | isEmptyArray"
-                    matBadgeColor="accent"
-                    matBadgeSize="small"
-                    matBadgePosition="above after">assessment
+            [matBadge]="row.currentData.samples?.length"
+            [matBadgeHidden]="row.currentData.samples | isEmptyArray"
+            matBadgeColor="accent"
+            matBadgeSize="small"
+            matBadgePosition="above after">assessment
           </mat-icon>
         </button>
 
         <!-- product sale -->
-        <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"
+        <button mat-icon-button color="light" *ngIf="showActionButtons"
                 [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"
                 (click)="openProductSale($event, row)"
                 [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined">
@@ -243,9 +215,73 @@
                     matBadgePosition="above after">local_offer
           </mat-icon>
         </button>
+      </ng-template>
+    </app-actions-column>
 
-      </td>
-    </ng-container>
+    <!-- Actions buttons column -->
+<!--    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">-->
+<!--      <th mat-header-cell *matHeaderCellDef>-->
+<!--        <button mat-icon-button [title]="'COMMON.DISPLAYED_COLUMNS'|translate" (click)="openSelectColumnsModal($event)">-->
+<!--          <mat-icon>more_vert</mat-icon>-->
+<!--        </button>-->
+<!--      </th>-->
+<!--      <td mat-cell *matCellDef="let row">-->
+
+<!--        <ng-container *ngIf="showActionButtons">-->
+<!--          &lt;!&ndash; undo or delete  &ndash;&gt;-->
+<!--          <button mat-icon-button color="light" *ngIf="row.validator.invalid"-->
+<!--                  [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"-->
+<!--                  (click)="cancelOrDelete($event, row)"-->
+<!--                  [hidden]="!inlineEdition">-->
+<!--            <mat-icon *ngIf="row.id !== -1">undo</mat-icon>-->
+<!--            <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>-->
+<!--          </button>-->
+<!--          &lt;!&ndash; validate &ndash;&gt;-->
+<!--          <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id !== -1"-->
+<!--                  [title]="'COMMON.BTN_VALIDATE'|translate"-->
+<!--                  (click)="confirmEditCreate($event, row)"-->
+<!--                  [hidden]="!inlineEdition">-->
+<!--            <mat-icon>check</mat-icon>-->
+<!--          </button>-->
+<!--          &lt;!&ndash; add &ndash;&gt;-->
+<!--          <button mat-icon-button color="light" *ngIf="row.validator.valid && row.id === -1"-->
+<!--                  [title]="'COMMON.BTN_ADD'|translate"-->
+<!--                  (click)="confirmAndAdd($event, row)"-->
+<!--                  [hidden]="!inlineEdition">-->
+<!--            <mat-icon>add</mat-icon>-->
+<!--          </button>-->
+
+<!--          &lt;!&ndash; sampling &ndash;&gt;-->
+<!--          <button mat-icon-button *ngIf="!row.editing && row.id !== -1 && row.validator.controls.individualCount.value > 0"-->
+<!--                  [title]="'TRIP.PRODUCT.LIST.INDIVIDUAL_SAMPLING'|translate"-->
+<!--                  (click)="openSampling($event, row)"-->
+<!--                  [color]="(row.currentData.samples | isNotEmptyArray) ? 'primary' : undefined"-->
+<!--                  [hidden]="readOnly">-->
+<!--            <mat-icon-->
+<!--                      [matBadge]="row.currentData.samples?.length"-->
+<!--                      [matBadgeHidden]="row.currentData.samples | isEmptyArray"-->
+<!--                      matBadgeColor="accent"-->
+<!--                      matBadgeSize="small"-->
+<!--                      matBadgePosition="above after">assessment-->
+<!--            </mat-icon>-->
+<!--          </button>-->
+
+<!--          &lt;!&ndash; product sale &ndash;&gt;-->
+<!--          <button mat-icon-button color="light" *ngIf="!row.editing && row.id !== -1"-->
+<!--                  [title]="'TRIP.PRODUCT.LIST.PRODUCT_SALE'|translate"-->
+<!--                  (click)="openProductSale($event, row)"-->
+<!--                  [color]="(row.currentData.saleProducts | isNotEmptyArray) ? 'primary' : undefined">-->
+<!--            <mat-icon [matBadge]="row.currentData.saleProducts?.length"-->
+<!--                      [matBadgeHidden]="row.currentData.saleProducts | isEmptyArray"-->
+<!--                      matBadgeColor="accent"-->
+<!--                      matBadgeSize="small"-->
+<!--                      matBadgePosition="above after">local_offer-->
+<!--            </mat-icon>-->
+<!--          </button>-->
+
+<!--        </ng-container>-->
+<!--      </td>-->
+<!--    </ng-container>-->
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"

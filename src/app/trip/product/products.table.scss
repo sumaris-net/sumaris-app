@@ -11,9 +11,13 @@
   min-width: 100%;
   --mat-cell-vertical-padding: 0;
   --mat-row-max-height: 56px;
+  --mat-column-actions-min-width: 122px;
+  --mat-column-actions-max-width: 122px;
 
   &.mobile {
     --mat-cell-vertical-padding: 4px;
+    --mat-column-actions-min-width: 82px;
+    --mat-column-actions-max-width: 82px;
   }
 
   .mat-header-row,
@@ -42,13 +46,6 @@
     .mat-column-taxonGroup {
       min-width: 180px;
       max-width: 250px;
-    }
-
-    .mat-column-actions {
-      text-align: end;
-      padding-inline-start: 0 !important;
-      min-width: 82px !important;
-      max-width: 120px !important;
     }
   }
 
