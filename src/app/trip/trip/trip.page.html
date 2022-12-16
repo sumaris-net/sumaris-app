@@ -130,12 +130,21 @@
                 editor.loading: {{loading}}<br/>
                 editor.enabled: {{enabled}}<br/>
                 editor.dirty: {{dirty}}<br/>
+                editor.valid: {{valid}}<br/>
+              </ion-col>
+              <ion-col>
+                tripForm.ready: {{tripForm.readySubject|async}}<br/>
+                tripForm.loading: {{tripForm.loading}}<br/>
+                tripForm.enabled: {{tripForm.enabled}}<br/>
+                tripForm.dirty: {{tripForm.dirty}}<br/>
+                tripForm.valid: {{tripForm.valid}}<br/>
               </ion-col>
               <ion-col>
                 measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
                 measurementsForm.loading: {{measurementsForm.loading}}<br/>
                 measurementsForm.enabled: {{measurementsForm.enabled}}<br/>
                 measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+                measurementsForm.valid: {{measurementsForm.valid}}<br/>
               </ion-col>
             </ion-row>
           </ion-grid>

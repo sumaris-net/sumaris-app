@@ -313,9 +313,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     }
 
     // If new data, enable gears tab
-    if (this.isNewData) {
-      this.showGearTable = true;
-    }
+    if (this.isNewData) this.showGearTable = true;
+
+    // If new data: update trip form (need to update validator, with min/maxDurationInHours)
+    if (this.isNewData) this.tripForm.updateFormGroup();
 
     // Disabled operations tab, while no gear
     // But enable anyway, when parent operation allowed
@@ -446,7 +447,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
       // Set physical gears
       this.physicalGearsTable.tripId = data.id;
       this.physicalGearService.value = data && data.gears || [];
-      jobs.push(this.physicalGearsTable.waitIdle({ timeout: 2000 }));
+      if (!isNewData) jobs.push(this.physicalGearsTable.waitIdle({ timeout: 2000 }));
 
       // Operations table
       if (!isNewData && this.operationsTable) this.operationsTable.setTripId(data.id);
