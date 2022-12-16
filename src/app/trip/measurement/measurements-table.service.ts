@@ -140,6 +140,10 @@ export class MeasurementsTableEntitiesService<
     return this.loadingSubject.value;
   }
 
+  get stopped(): boolean {
+    return super.stopped || this._$pmfms?.closed || false;
+  }
+
   constructor(
     injector: Injector,
     protected dataType: new() => T,
@@ -172,12 +176,16 @@ export class MeasurementsTableEntitiesService<
   }
 
   protected async ngOnStart(): Promise<IPmfm[]> {
+    if (this.stopped) throw Error('MeasurementService is not restartable!');
     if (!this.loading) this._onRefreshPmfms.emit('start');
     try {
       return await firstNotNil(this._$pmfms).toPromise();
     }
     catch(err) {
-      if (!this.stopped) {
+      if (this.stopped) {
+        // Service stopped: silent
+      }
+      else {
         console.error(err);
       }
     }
