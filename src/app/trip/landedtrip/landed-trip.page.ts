@@ -490,41 +490,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     await formPromise;
   }
 
-  // todo attention à cette action
-  async onOpenOperationGroup(row: TableElement<Trip>) {
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      this.markAsLoading();
-      try {
-        await this.router.navigate(['trips', this.data.id, 'operation', row.currentData.id],
-          {
-            queryParams: {}
-          });
-      } finally {
-        this.markAsLoaded();
-      }
-    }
-  }
-
-  // todo attention à cette action
-  async onNewOperationGroup(event?: any) {
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
-      // If on field mode: try to save silently
-      ? this.save(event)
-      // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
-
-    const savedOrContinue = await savePromise;
-    if (savedOrContinue) {
-      this.markAsLoading();
-      try {
-        await this.router.navigateByUrl(`/trips/${this.data.id}/operation/new`);
-      } finally {
-        this.markAsLoaded();
-      }
-    }
-  }
-
   protected async onEntitySaved(data: Trip): Promise<void> {
     if (data.landing && data.id < 0){
       await this.landingService.save(data.landing);

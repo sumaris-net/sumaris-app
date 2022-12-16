@@ -229,6 +229,13 @@ export class OperationPage
   }*/
 
   async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {
+    const saved = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? await this.save(null)
+      // If desktop mode: ask before save
+      : await this.saveIfDirtyAndConfirm();
+    if (!saved) return; // Cancelled
+
     const errors = await this.service.control(data, {
       ...opts,
       trip: this.trip

@@ -465,60 +465,61 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   async onOpenOperation(row: TableElement<Operation>) {
 
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      this.markAsLoading();
+    const saved = this.isOnFieldMode && this.dirty
+      ? await this.save(undefined)
+      : await this.saveIfDirtyAndConfirm();
+    if (!saved) return; // Cannot saved
 
-      // Store the trip in context
-      this.tripContext?.setValue('trip', this.data.clone());
+    this.markAsLoading();
 
-      // Propagate the usage mode (e.g. when try to 'terminate' the trip)
-      this.tripContext?.setValue('usageMode', this.usageMode);
+    // Store the trip in context
+    this.tripContext?.setValue('trip', this.data.clone());
 
-      // Store the selected operation (e.g. useful to avoid rankOrder computation, in the operation page)
-      this.tripContext?.setValue('operation', row.currentData);
+    // Propagate the usage mode (e.g. when try to 'terminate' the trip)
+    this.tripContext?.setValue('usageMode', this.usageMode);
 
-      // Propagate the past flags to clipboard
-      this.tripContext?.setValue('clipboard', {
-        data: new Operation(),
-        pasteFlags: this.operationPasteFlags
-      });
+    // Store the selected operation (e.g. useful to avoid rankOrder computation, in the operation page)
+    this.tripContext?.setValue('operation', row.currentData);
 
-      setTimeout(async () => {
-        const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
-        await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, row.currentData.id], {queryParams: {} /*reset query params*/ });
+    // Propagate the past flags to clipboard
+    this.tripContext?.setValue('clipboard', {
+      data: new Operation(),
+      pasteFlags: this.operationPasteFlags
+    });
 
-        this.markAsLoaded();
-      });
-    }
+    setTimeout(async () => {
+      const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+      await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, row.currentData.id], {queryParams: {} /*reset query params*/ });
+
+      this.markAsLoaded();
+    });
   }
 
   async onNewOperation(event?: any) {
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+    const saved = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
-      ? this.save(event)
+      ? await this.save(event)
       // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
+      : await this.saveIfDirtyAndConfirm();
 
-    const savedOrContinue = await savePromise;
-    if (savedOrContinue) {
-      this.markAsLoading();
+    if (!saved) return; // Cannot save
 
-      // Store the trip in context
-      this.tripContext?.setValue('trip', this.data.clone());
+    this.markAsLoading();
 
-      // Propagate the usage mode (e.g. when try to 'terminate' the trip)
-      this.tripContext?.setValue('usageMode', this.usageMode);
+    // Store the trip in context
+    this.tripContext?.setValue('trip', this.data.clone());
 
-      // OPen the operation editor
-      setTimeout(async () => {
-        const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
-        await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
-          queryParams: {}
-        });
-        this.markAsLoaded();
+    // Propagate the usage mode (e.g. when try to 'terminate' the trip)
+    this.tripContext?.setValue('usageMode', this.usageMode);
+
+    // OPen the operation editor
+    setTimeout(async () => {
+      const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+      await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
+        queryParams: {}
       });
-    }
+      this.markAsLoaded();
+    });
   }
 
   async onDuplicateOperation(event?: { data: Operation }) {

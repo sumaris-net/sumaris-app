@@ -75,7 +75,7 @@
     "@ngx-translate/http-loader": "~7.0.0",
     "@polkadot/util-crypto": "~10.1.11",
     "@sgratzl/chartjs-chart-boxplot": "~2.3.3",
-    "@sumaris-net/ngx-components": "2.3.4",
+    "@sumaris-net/ngx-components": "2.3.6",
     "angular-split": "^14.1.0",
     "angular2-text-mask": "~9.0.0",
     "apollo-angular": "~4.1.1",
