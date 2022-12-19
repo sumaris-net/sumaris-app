@@ -1,17 +1,21 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, Output, ViewChild } from '@angular/core';
 import {
-  AppEditor, AppFormArray,
+  AppEditor,
+  AppFormArray,
   arrayDistinct,
-  changeCaseToUnderscore, createPromiseEventEmitter, emitPromiseEvent,
+  changeCaseToUnderscore,
+  createPromiseEventEmitter,
+  emitPromiseEvent,
   equals,
   firstNotNil,
-  FormArrayHelper,
   FormErrorTranslatorOptions,
-  getPropertyByPath, isEmptyArray,
+  getPropertyByPath,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNilOrBlank,
-  LocalSettingsService, PromiseEvent,
+  LocalSettingsService,
+  PromiseEvent,
   ReferentialRef,
   sleep,
   toBoolean,
@@ -44,9 +48,7 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
-import {BatchUtils} from '@app/trip/batch/common/batch.utils';
-import {BatchGroup, BatchGroupUtils} from '@app/trip/batch/group/batch-group.model';
-import {UpdateFormGroupEvent} from '@app/trip/measurement/measurements.form.component';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 
 export declare type PrepareModelEvent = PromiseEvent<BatchModel, {model: BatchModel}>;
 
@@ -149,7 +151,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   get valid(): boolean {
-    return (!this._model || this._model.valid);
+    return this.isOnFieldMode || (!this._model || this._model.valid);
   }
 
   get loading(): boolean {
@@ -208,6 +210,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return this.batchTree?.showBatchTables
       ? this.batchTree.batchGroupsTable.visibleRowCount
       : 0;
+  }
+
+  get isOnFieldMode() {
+    return this.usageMode === 'FIELD';
   }
 
   constructor(injector: Injector,
