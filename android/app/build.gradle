@@ -6,7 +6,7 @@ android {
         applicationId "net.sumaris.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 13202
+        versionCode 13300
         versionName "1.32.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -15,10 +15,18 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+      release {
+        storeFile "Sumaris.keystore"
+        keyAlias "Sumaris"
+
+      }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
@@ -50,4 +58,17 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+if (project.hasProperty('keyAlias')) {
+  android.signingConfigs.release.keyAlias = keyAlias
+}
+if (project.hasProperty('storeFile')) {
+  android.signingConfigs.release.storeFile = storeFile
+}
+if (project.hasProperty('storePassword')) {
+  android.signingConfigs.release.storePassword = storePassword
+}
+if (project.hasProperty('keyPassword')) {
+  android.signingConfigs.release.keyPassword = keyPassword
 }

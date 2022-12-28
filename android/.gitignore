@@ -102,4 +102,4 @@ app/src/main/res/xml/config.xml
 
 # Signing stuff
 *.keystore
-release-signing.properties
+app/release-signing.properties
