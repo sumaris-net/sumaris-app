@@ -1,10 +1,10 @@
 
 <!-- Top toolbar -->
 <app-toolbar color="primary"
-             [hasValidate]="!loading && dirty"
+             [hasValidate]="!loading && (dirty || saving)"
+             [hasClose]="!loading && (!dirty && !saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
-             [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
@@ -16,7 +16,7 @@
     <!-- last operation (history) -->
     <ion-button *ngIf="showLastOperations"
                 hidden-xxs
-                [disabled]="loading"
+                [disabled]="loading || saving"
                 [title]="'TRIP.OPERATION.LAST_OPERATIONS'|translate"
                 [matMenuTriggerFor]="lastOperationsMenu">
       <mat-icon slot="icon-only">history</mat-icon>
@@ -31,11 +31,13 @@
     </ion-button>-->
 
     <!-- option menu -->
-    <ion-button
-      [matMenuTriggerFor]="optionsMenu"
-      [title]=" 'COMMON.BTN_OPTIONS'|translate">
-      <mat-icon slot="icon-only">more_vert</mat-icon>
-    </ion-button>
+    <button slot="end" mat-icon-button
+            *ngIf="enabled && !isNewData || debug"
+            [disabled]="saving"
+            [matMenuTriggerFor]="optionsMenu"
+            [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon>more_vert</mat-icon>
+    </button>
   </ion-buttons>
 </app-toolbar>
 
