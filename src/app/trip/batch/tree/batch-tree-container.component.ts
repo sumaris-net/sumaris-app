@@ -312,6 +312,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.allowSubBatches = hasBatchMeasure;
     this.showTaxonGroup = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.showTaxonName = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+    this.markForCheck();
   }
 
   translateControlPath(path: string): string {
@@ -464,10 +465,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.editingBatch.editing = true;
       this.markForCheck();
 
-      if (!this.batchTree.loading) {
-        console.warn(this.logPrefix + 'Unload batch tree...');
-        //await this.batchTree.unload();
-      }
+      // if (!this.batchTree.loading) {
+      //   console.warn(this.logPrefix + 'Unload batch tree...');
+      //   await this.batchTree.unload();
+      // }
 
       // Configure batch tree
       this.batchTree.gearId = this.gearId;
@@ -482,6 +483,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
       // Pass PMFMS to batch tree sub-components (to avoid a pmfm reloading)
       await this.batchTree.setProgram(this.program, { emitEvent: false /*avoid pmfms reload*/ });
+
+      this.batchTree.allowSamplingBatches = this.allowSamplingBatches;
+      this.batchTree.allowSubBatches = this.allowSubBatches;
       this.batchTree.rootAcquisitionLevel = !source.parent ? AcquisitionLevelCodes.CATCH_BATCH : AcquisitionLevelCodes.SORTING_BATCH;
       this.batchTree.catchBatchForm.acquisitionLevel = this.batchTree.rootAcquisitionLevel;
       this.batchTree.catchBatchForm.pmfms = source.pmfms;

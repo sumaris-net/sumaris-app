@@ -284,30 +284,30 @@ export abstract class BaseMeasurementsTable<
 
     this.registerSubscription(
       filterNotNil(this.$pmfms)
-      .subscribe(pmfms => {
-        console.debug(this.logPrefix + "Received PMFMs to applied: ", pmfms);
+        .subscribe(pmfms => {
+           console.debug(this.logPrefix + "Received PMFMs to applied: ", pmfms);
 
-        if (this.validatorService) {
-          this.configureValidator({pmfms});
-          this.validatorService.markAsReady();
-        }
+          if (this.validatorService) {
+            this.configureValidator({pmfms});
+            this.validatorService.markAsReady();
+          }
 
-        // Update the settings id, as program could have changed
-        this.settingsId = this.generateTableId();
+          // Update the settings id, as program could have changed
+          this.settingsId = this.generateTableId();
 
-        // Add pmfm columns
-        this.updateColumns();
+          // Add pmfm columns
+          this.updateColumns();
 
-        // Load (if autoLoad was enabled)
-        if (this._autoLoadAfterPmfm) {
-          this.onRefresh.emit();
-          this._autoLoadAfterPmfm = false; // Avoid new execution
-        }
-        // Or reload, only if pristine (to avoid to lost not saved data)
-        else if (this.dataSource.loaded && !this.dirty){
-          this.onRefresh.emit();
-        }
-      }));
+          // Load (if autoLoad was enabled)
+          if (this._autoLoadAfterPmfm) {
+            this.onRefresh.emit();
+            this._autoLoadAfterPmfm = false; // Avoid new execution
+          }
+          // Or reload, only if pristine (to avoid to lost not saved data)
+          else if (this.dataSource.loaded && !this.dirty){
+            this.onRefresh.emit();
+          }
+        }));
 
     // Listen row edition
     if (this.inlineEdition) {

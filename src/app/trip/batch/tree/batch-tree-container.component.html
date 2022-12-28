@@ -60,12 +60,12 @@
             [disabled]="!node.parent"
             [matMenuTriggerFor]="childrenMenu"
             [matMenuTriggerData]="{node: node.parent}">
-      <span [matBadge]="node.valid ? (visibleRowCount || '') : '!'"
-            [matBadgeHidden]="node.valid && !node.isLeaf"
-            [matBadgeColor]="node.valid ? 'primary' : 'accent'"
-            matBadgeOverlap="false"
-            matBadgeSize="small"
-            matBadgePosition="above after">{{node.name}}</span>
+      <mat-label  [matBadge]="node.valid ? (visibleRowCount || '') : '!'"
+                  [matBadgeHidden]="!node.isLeaf && node.valid"
+                  [matBadgeColor]="node.valid ? 'primary' : 'accent'"
+                  matBadgeOverlap="false"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">{{node.name}}</mat-label>
 
       <span *ngIf="!node.isLeaf" class="breadcrumb-separator">/</span>
     </button>
