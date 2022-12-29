@@ -44,6 +44,10 @@ export const environment = Object.freeze(<Environment>{
     {
       host: 'localhost',
       port: 8081
+    },
+    {
+      host: 'server.e-is.pro',
+      port: 8080
     }
   ],
 

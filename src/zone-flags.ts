@@ -2,13 +2,22 @@
  * Prevents Angular change detection from
  * running with certain Web Component callbacks
  */
-import {zoneConfig} from '@rx-angular/cdk/zone-configurations';
+import {zoneConfig} from "@rx-angular/cdk/zone-configurations";
 
-//(window as any).__Zone_disable_customElements = true;
 zoneConfig.global.disable.customElements();
+zoneConfig.global.disable.requestAnimationFrame();
+zoneConfig.global.disable.geolocation();
+zoneConfig.global.disable.canvas();
+zoneConfig.global.disable.XHR();
 
-// FIXME progress bar freeze
+// FIXME: need to patch progression toolbar, to call markForCheck()
+// Otherwise, the trip editor still show the loading bar
 //zoneConfig.global.disable.timers();
 
-// TODO
-//zoneConfig.events.disable.UNPATCHED_EVENTS(['moueover', 'mousemove']);
+// FIXME disable zone in .then() functions
+//zoneConfig.global.disable.ZoneAwarePromise();
+
+// FIXME: check if can disabled this events
+zoneConfig.events.disable.UNPATCHED_EVENTS(['mousemove', 'mouseover']);
+
+

@@ -1,12 +1,26 @@
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {Entity, EntityClass, IconRef, isEmptyArray, isNil, isNotEmptyArray, isNotNil, ITreeItemEntity, waitWhilePending} from '@sumaris-net/ngx-components';
+import {
+  Entity, EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter, FilterFn,
+  getPropertyByPath,
+  IconRef,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  ITreeItemEntity, toNumber,
+  waitWhilePending
+} from '@sumaris-net/ngx-components';
 import {Batch} from '@app/trip/batch/common/batch.model';
 import {BatchUtils} from '@app/trip/batch/common/batch.utils';
 import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 import {UntypedFormGroup} from '@angular/forms';
-import {MeasurementValuesTypes} from '@app/trip/services/model/measurement.model';
+import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
 import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import {BatchFilter} from '@app/trip/batch/common/batch.filter';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -36,7 +50,6 @@ export class BatchModel
     if (isCatchBatch && !batch) {
       batch = Batch.fromObject({ label: AcquisitionLevelCodes.CATCH_BATCH, rankOrder: 1});
     }
-
     const model = new BatchModel({
       parent,
       path,
@@ -320,5 +333,65 @@ export class BatchModel
     if (!result && !current.parent && current.hidden) return current.previous;
 
     return result || current;
+  }
+
+  get(path: string): BatchModel {
+    if (isNilOrBlank(path)) return this;
+    const model = getPropertyByPath(this, path);
+    return model;
+  }
+}
+
+@EntityClass({typename: 'BatchModelFilterVO'})
+export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel> {
+  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
+
+  static fromObject: (source: any, opts?: any) => BatchModelFilter;
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    const target = super.asObject(opts);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
+    return target;
+  }
+
+  protected buildFilter(): FilterFn<BatchModel>[] {
+    const filterFns = super.buildFilter();
+
+    if (isNotNil(this.measurementValues)) {
+      Object.keys(this.measurementValues).forEach(pmfmId => {
+        const pmfmValue = this.measurementValues[pmfmId];
+        if (isNotNil(pmfmValue)) {
+          filterFns.push(b => {
+            const measurementValues = b.currentData.measurementValues;
+            return measurementValues && isNotNil(measurementValues[pmfmId]) && PmfmValueUtils.equals(measurementValues[pmfmId], pmfmValue);
+          });
+        }
+      })
+    }
+
+    return filterFns;
+  }
+}
+
+export class BatchModelUtils {
+
+  static findInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
+    const filterFn = filter && BatchModelFilter.fromObject(filter).asFilterFn();
+    if (!filterFn) throw new Error('Missing or empty filter argument');
+
+    return this.filterRecursively(model, filterFn);
+  }
+
+  private static filterRecursively(model: BatchModel, filterFn: (b: BatchModel) => boolean): BatchModel[] {
+    return (model.children || []).reduce((res, child) => {
+        return res.concat(this.filterRecursively(child, filterFn));
+      },
+      // Init result
+      filterFn(model) ? [model] : []);
   }
 }

@@ -131,9 +131,9 @@
         </ng-template>
       </ng-template>
 
-      <app-physical-gears-table #tableElement
+      <app-physical-gears-table #childrenTable
                                 *ngIf="allowChildrenGears"
-                                (ngInit)="initChildrenTable(tableElement)"
+                                (ngInit)="initChildrenTable(childrenTable)"
                                 (openSelectPreviousGearModal)="openSearchChildrenModal($event)"
                                 [acquisitionLevel]="childAcquisitionLevel"
                                 [programLabel]="programLabel"

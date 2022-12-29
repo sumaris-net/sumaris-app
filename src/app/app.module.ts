@@ -41,7 +41,7 @@ import {
   UserEventModule
 } from '@sumaris-net/ngx-components';
 import { environment } from '@environments/environment';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
+import {HTTP_INTERCEPTORS, HttpClient, HttpClientModule} from '@angular/common/http';
 import { Network } from '@awesome-cordova-plugins/network/ngx';
 import { AudioManagement } from '@ionic-native/audio-management/ngx';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -72,6 +72,8 @@ import { ApolloModule } from 'apollo-angular';
 import { DATA_TESTING_PAGES } from '@app/data/data.testing.module';
 import { JobProgressionService } from '@app/social/job/job-progression.service';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
+import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '../../ngx-sumaris-components/src/app/shared/services/progress-bar.service';
+import {ProgressInterceptor} from '../../ngx-sumaris-components/src/app/shared/interceptors/progess.interceptor';
 
 @NgModule({
   declarations: [
@@ -149,6 +151,8 @@ import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 
     {provide: APP_STORAGE, useExisting: StorageService},
     //{ provide: ErrorHandler, useClass: IonicErrorHandler },
+    { provide: APP_PROGRESS_BAR_SERVICE, useClass: ProgressBarService },
+    { provide: HTTP_INTERCEPTORS, useClass: ProgressInterceptor, multi: true, deps: [APP_PROGRESS_BAR_SERVICE] },
 
     {
       provide: APP_LOCALES, useValue:

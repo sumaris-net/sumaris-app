@@ -272,10 +272,10 @@ export class PhysicalGearModal
     table.setModalOption('maxVisibleButtons', this.maxVisibleButtons);
     table.setModalOption('maxItemCountForButtons', this.maxItemCountForButtons);
 
-    this._state.set('childrenTable', (_) => table);
+    // Update state
+    this.childrenTable = table;
 
     this.updateChildrenTableState();
-
   }
 
   updateViewState(data: PhysicalGear, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {

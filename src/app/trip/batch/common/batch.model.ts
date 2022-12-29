@@ -1,10 +1,10 @@
-import { AcquisitionLevelCodes } from '../../../referential/services/model/model.enum';
-import { DataEntity, DataEntityAsObjectOptions } from '../../../data/services/model/data-entity.model';
-import { IEntityWithMeasurement, IMeasurementValue, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { EntityClass, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, ITreeItemEntity, ReferentialAsObjectOptions, ReferentialUtils } from '@sumaris-net/ngx-components';
-import { TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import {AcquisitionLevelCodes} from '../../../referential/services/model/model.enum';
+import {DataEntity, DataEntityAsObjectOptions} from '../../../data/services/model/data-entity.model';
+import {IEntityWithMeasurement, IMeasurementValue, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '../../services/model/measurement.model';
+import {EntityClass, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, ITreeItemEntity, ReferentialAsObjectOptions, ReferentialUtils} from '@sumaris-net/ngx-components';
+import {TaxonGroupRef} from '../../../referential/services/model/taxon-group.model';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import {NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
 
 export declare interface BatchWeight extends IMeasurementValue {
   unit?: 'kg';

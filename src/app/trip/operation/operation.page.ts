@@ -41,7 +41,7 @@ import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels,
 import {IBatchTreeComponent} from '../batch/tree/batch-tree.component';
 import {environment} from '@environments/environment';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BehaviorSubject, from, merge, Subscription, timer} from 'rxjs';
+import {BehaviorSubject, from, merge, of, Subscription, timer} from 'rxjs';
 import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
 import {IonRouterOutlet, ModalController} from '@ionic/angular';
 import {SampleTreeComponent} from '@app/trip/sample/sample-tree.component';
@@ -54,6 +54,11 @@ import {Geometries} from '@app/shared/geometries.utils';
 import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
 import {flagsToString, removeFlag} from '@app/shared/flags.utils';
 import {PositionUtils} from '@app/trip/services/position.utils';
+import {RxState} from '@rx-angular/state';
+
+export interface OperationState {
+  hasIndividualMeasures?: boolean;
+}
 
 @Component({
   selector: 'app-operation-page',
@@ -71,10 +76,11 @@ import {PositionUtils} from '@app/trip/services/position.utils';
         nativeEl: '',
       },
     },
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class OperationPage
+export class OperationPage<S extends OperationState = OperationState>
   extends AppEntityEditor<Operation, OperationService>
   implements IDataEntityQualityService<Operation> {
 
@@ -127,6 +133,8 @@ export class OperationPage
   isDuplicatedData = false;
   operationPasteFlags: number;
   readonly forceOptionalExcludedPmfmIds: number[];
+
+  protected readonly _state: RxState<S>;
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -181,6 +189,7 @@ export class OperationPage
       ...options
     });
 
+    this._state = injector.get(RxState);
     this.tripService = injector.get(TripService);
     this.tripContext = injector.get(TripContextService);
     this.programRefService = injector.get(ProgramRefService);
@@ -536,17 +545,17 @@ export class OperationPage
       this._measurementSubscription.add(
         hasIndividualMeasuresControl.valueChanges
           .pipe(
-            debounceTime(400),
             startWith<any, any>(hasIndividualMeasuresControl.value),
             filter(isNotNil),
+            tap(value => this._state.set('hasIndividualMeasures', (_) => value)),
             distinctUntilChanged()
           )
-          .subscribe(hasIndividualMeasures => {
-            this.batchTree.allowSamplingBatches = hasIndividualMeasures;
-            this.batchTree.defaultHasSubBatches = hasIndividualMeasures;
-            this.batchTree.allowSubBatches = hasIndividualMeasures;
+          .subscribe(value => {
+            this.batchTree.allowSamplingBatches = value;
+            this.batchTree.defaultHasSubBatches = value;
+            this.batchTree.allowSubBatches = value;
             // Hide button to toggle hasSubBatches (yes/no) when value if forced
-            this.batchTree.setModalOption("showHasSubBatchesButton", !hasIndividualMeasures)
+            this.batchTree.setModalOption("showHasSubBatchesButton", !value)
             if (!this.allowParentOperation) {
               this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
               this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
@@ -1202,7 +1211,8 @@ export class OperationPage
 
     // Batches
     if (this.showCatchTab && this.batchTree) {
-      await this.batchTree.save();
+      // Do not need to save here, because editor should do it
+      //await this.batchTree.save();
 
       // Get batch tree,rom the batch tree component
       data.catchBatch = this.batchTree.value;

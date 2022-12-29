@@ -8,7 +8,7 @@
           (click)="filterExpansionPanel.toggle()">
     <mat-icon class="mat-icon-rtl-mirror"
               matBadge="!"
-              [matBadgeHidden]="valid || !rootNode?.hidden"
+              [matBadgeHidden]="valid || !model?.hidden"
               matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"
