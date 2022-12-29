@@ -29,6 +29,7 @@ export class PhysicalGearValidatorService
       rankOrder: [toNumber(data?.rankOrder, null), Validators.compose([Validators.required, SharedValidators.integer, Validators.min(1)])],
       gear: [data?.gear || null, Validators.compose([Validators.required, SharedValidators.entity])],
       measurementValues: this.formBuilder.group({}),
+      tripId: [toNumber(data?.tripId, null)]
     };
 
     // Change program is optional

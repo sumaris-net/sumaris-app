@@ -232,36 +232,13 @@
           <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
         </ion-item>
 
-        <!-- debug -->
-        <app-debug *ngIf="debug" [title]="'Physical gears table'">
-          <ion-grid class="ion-no-padding">
-            <ion-row>
-              <ion-col>
-                ready: {{physicalGearsTable.readySubject|async}}<br/>
-                loading: {{physicalGearsTable.loading}}<br/>
-                enabled: {{physicalGearsTable.enabled}}<br/>
-                dirty: {{physicalGearsTable.dirtySubject|async}}<br/>
-              </ion-col>
-              <ion-col>
-                service.starting: {{physicalGearService.starting}}<br/>
-                service.started: {{physicalGearService.started}}<br/>
-                service.dirty: {{physicalGearService.dirtySubject|async}}<br/>
-                service.value: {{!!physicalGearService.value}}<br/>
-              </ion-col>
-              <ion-col>
-                service.count: {{physicalGearService.count}}<br/>
-                service.hiddenCount: {{physicalGearService.hiddenCount}}<br/>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </app-debug>
-
         <app-physical-gears-table #physicalGearsTable
-                                 [programLabel]="$programLabel|async"
-                                 [showToolbar]="!mobile"
-                                 (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
-                                 [useSticky]="!mobile"
-                                 [debug]="debug">
+                                  [programLabel]="$programLabel|async"
+                                  [showToolbar]="!mobile"
+                                  [showError]="false"
+                                  (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
+                                  [useSticky]="!mobile"
+                                  [debug]="debug">
         </app-physical-gears-table>
 
       </div>

@@ -76,30 +76,19 @@
           <ion-grid class="ion-no-padding">
             <ion-row>
               <ion-col>
-                loading: {{loading}}<br/>
-                ready: {{readySubject|async}}<br/>
-                dirty: {{dirty}}<br/>
-                valid: {{valid}}<br/>
-                i18nSuffix: {{i18nSuffix}}<br/>
-                allowChildrenGears: {{allowChildrenGears}}<br/>
-                showChildrenTable: {{showChildrenTable$|push:'immediate'}}
+                modal.loading: {{loading}}<br/>
+                modal.ready: {{readySubject|async}}<br/>
+                modal.dirty: {{dirty}}<br/>
+                modal.valid: {{valid}}<br/>
+                modal.i18nSuffix: {{i18nSuffix}}<br/>
+                modal.allowChildrenGears: {{allowChildrenGears}}<br/>
+                modal.showChildrenTable: {{showChildrenTable$|push:'immediate'}}
               </ion-col>
               <ion-col>
-                physicalGearForm.loading: {{physicalGearForm.loading}}<br/>
-                physicalGearForm.ready: {{physicalGearForm.readySubject|async}}<br/>
-                physicalGearForm.dirty: {{physicalGearForm.dirty}}<br/>
-                physicalGearForm.valid: {{physicalGearForm.valid}}<br/>
-              </ion-col>
-              <ion-col *rxIf="showChildrenTable$">
-                <span *rxIf="childrenTable$; let table">
-                  table.gearId: {{table.gearId}}<br/>
-                  table.ready: {{table.readySubject|async}}<br/>
-                  table.loading: {{table.loadingSubject|async}}<br/>
-                  table.dirty: {{table.dirtySubject|async}}<br/>
-                  table.valid: {{table.valid}}<br/>
-                  table.visibleRowCount: {{table.visibleRowCount}}<br/>
-                  table.totalRowCount: {{table.totalRowCount}}<br/>
-                </span>
+                form.loading: {{physicalGearForm.loading}}<br/>
+                form.ready: {{physicalGearForm.readySubject|async}}<br/>
+                form.dirty: {{physicalGearForm.dirty}}<br/>
+                form.valid: {{physicalGearForm.valid}}<br/>
               </ion-col>
             </ion-row>
           </ion-grid>
@@ -150,7 +139,7 @@
                                 [programLabel]="programLabel"
                                 [tripId]="tripId"
                                 [showGearColumn]="false"
-                                [defaultGear]="gear$|push:'userBlocking'"
+                                [defaultGear]="gear$|push:'immediate'"
                                 [canEditGear]="false"
                                 [gearId]="gearId$|push:'immediate'"
                                 [allowChildrenGears]="false"
@@ -159,7 +148,8 @@
                                 [showToolbar]="!mobile"
                                 [disabled]="disabled"
                                 [i18nColumnSuffix]="'CHILD'"
-                                [mobile]="mobile">
+                                [mobile]="mobile"
+                                [debug]="debug">
       </app-physical-gears-table>
     </mat-tab>
   </mat-tab-group>

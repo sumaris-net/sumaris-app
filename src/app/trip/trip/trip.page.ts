@@ -573,7 +573,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     if (!this.data) return;
 
     // Copy the trip
-    await this.dataService.copyLocallyById(this.data.id, { withOperations: true });
+    await this.dataService.copyLocallyById(this.data.id, {withOperations: true, displaySuccessToast: true});
 
   }
 

@@ -26,6 +26,7 @@ import {filter, switchMap} from 'rxjs/operators';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import {slideDownAnimation} from '@app/shared/material/material.animation';
 import {RxState} from '@rx-angular/state';
+import {environment} from '@environments/environment';
 
 export interface IPhysicalGearModalOptions
   extends IEntityEditorModalOptions<PhysicalGear> {
@@ -142,7 +143,7 @@ export class PhysicalGearModal
     this.tabGroupAnimationDuration = this.mobile ? this.tabGroupAnimationDuration : '0s';
 
     // TODO: for DEV only
-    this.debug = false;//!environment.production;
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -150,7 +151,7 @@ export class PhysicalGearModal
 
     super.ngOnInit();
 
-    if (this.enabled && this.isNewData) {
+    if (this.enabled && this.isNew) {
       this.markAsLoaded();
     }
   }

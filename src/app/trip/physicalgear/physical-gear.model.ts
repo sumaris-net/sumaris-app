@@ -1,4 +1,4 @@
-import {EntityClass, isEmptyArray, isNil, isNotEmptyArray, isNotNil, ITreeItemEntity, ReferentialRef} from '@sumaris-net/ngx-components';
+import {EntityClass, EntityUtils, isEmptyArray, isNil, isNotEmptyArray, isNotNil, ITreeItemEntity, ReferentialRef} from '@sumaris-net/ngx-components';
 import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
 import {IEntityWithMeasurement, Measurement, MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
 import {SortDirection} from '@angular/material/sort';
@@ -18,6 +18,7 @@ export class PhysicalGear
   extends RootDataEntity<PhysicalGear, number, PhysicalGearAsObjectOptions, PhysicalGearFromObjectOptions>
   implements IEntityWithMeasurement<PhysicalGear>, ITreeItemEntity<PhysicalGear> {
 
+  static rankOrderComparator = EntityUtils.sortComparator('rankOrder');
   static fromObject: (source: any, opts?: any) => PhysicalGear;
 
   static equals(s1: PhysicalGear, s2: PhysicalGear, opts = {withRankOrder: true, withMeasurementValues: false}) {
@@ -141,7 +142,7 @@ export class PhysicalGear
 
     // Parent / children
     this.parentId = source.parentId;
-    this.parent = source.parent && this.fromObject(source.parent);
+    this.parent = source.parent && PhysicalGear.fromObject(source.parent);
     if (source.children && (!opts || opts.withChildren !== false)) {
       this.children = source.children.map(child => PhysicalGear.fromObject(child, opts));
     }
@@ -180,7 +181,12 @@ export class PhysicalGear
       // Parent not need, as the tree will be used by pod
       delete target.parent;
       delete target.parentId;
+      // Trip not need by pod
+      delete target.trip;
     }
+
+    if (opts && opts.keepRemoteId === false && target.tripId >= 0) delete target.tripId;
+    if (opts && opts.keepLocalId === false && target.tripId < 0) delete target.tripId;
 
     return target;
   }

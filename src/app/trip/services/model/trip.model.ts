@@ -604,7 +604,7 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     return target;
   }
 
-  fromObject(source: any, opts?: { withBatchTree?: boolean; withGearTree }): Trip {
+  fromObject(source: any, opts?: any): Trip {
     super.fromObject(source);
     this.departureDateTime = fromDateISOString(source.departureDateTime);
     this.returnDateTime = fromDateISOString(source.returnDateTime);
@@ -617,22 +617,17 @@ export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEn
     this.metiers = source.metiers && source.metiers.map(ReferentialRef.fromObject) || [];
 
     // Physical gears
-    if (!opts || opts.withGearTree !== false) {
-      // Convert list to tree (useful when fetching from a pod)
-      this.gears = source.gears && (source.id < 0
-          // Local entity: should be already as a tree
-          ? source.gears.map(g => PhysicalGear.fromObject(g, {withChildren: true}))
-          // Convert array to tree (when fetching from pod)
-          : PhysicalGear.fromObjectArrayAsTree(source.gears)
-            .sort(EntityUtils.sortComparator('rankOrder'))
-      ) || undefined;
-    }
-    else {
-      this.gears = source.gears && source.gears.filter(isNotNil)
-        .map(PhysicalGear.fromObject)
-        // Sort by rankOrder (useful for gears combo, in the operation form)
-        .sort(EntityUtils.sortComparator('rankOrder')) || undefined;
-    }
+    // - Convert array to tree (when fetching from pod)
+    // - Already converted as tree (when fetching locally)
+    const convertGearsAsTree = source.gears && source.gears.some(g => isNotNil(g.parentId))
+      && source.gears.every(g => isEmptyArray(g.children))
+      && source.gears.every(g => isNil(g.parent))|| false;
+    const gears = convertGearsAsTree
+      ? PhysicalGear.fromObjectArrayAsTree(source.gears)
+      : source.gears?.filter(isNotNil).map(PhysicalGear.fromObject);
+    // Sort by rankOrder (useful for gears combo, in the operation form)
+    this.gears = gears && gears.sort(PhysicalGear.rankOrderComparator) || undefined;
+
     // Set gears tripId (e. Old local DB may miss it)
     (this.gears || []).forEach(g => g.tripId = this.id);
 

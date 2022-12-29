@@ -1334,7 +1334,7 @@ export class TripService
     return chainPromises(entities.map(source => () => this.copyLocally(source, opts)));
   }
 
-  async copyLocallyById(id: number, opts?: TripLoadOptions): Promise<Trip> {
+  async copyLocallyById(id: number, opts?: TripLoadOptions & {displaySuccessToast?: boolean}): Promise<Trip> {
     const isLocalTrip = id < 0;
 
     // Load existing data

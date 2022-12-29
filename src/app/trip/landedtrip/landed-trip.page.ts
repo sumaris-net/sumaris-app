@@ -518,7 +518,7 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     if (!this.data) return;
 
     // Copy the trip
-    await this.dataService.copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true});
+    await this.dataService.copyLocallyById(this.data.id, {isLandedTrip: true, withOperationGroup: true, displaySuccessToast: true});
 
   }
 

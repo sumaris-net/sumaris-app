@@ -1,3 +1,34 @@
+
+<!-- DEBUG -->
+<app-debug *ngIf="debug">
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col>
+        ready: {{readySubject|async}}<br/>
+        loading: {{loadingSubject|async}}<br/>
+        enabled: {{enabled}}<br/>
+        dirty: {{dirtySubject|async}}<br/>
+        valid: {{valid}}<br/>
+      </ion-col>
+      <ion-col>
+        gearId: {{gearId}}<br/>
+        visibleRowCount: {{visibleRowCount}}<br/>
+        totalRowCount: {{totalRowCount}}<br/>
+      </ion-col>
+      <ion-col *ngIf="memoryDataService">
+        service.starting: {{memoryDataService.starting}}<br/>
+        service.started: {{memoryDataService.started}}<br/>
+        service.dirty: {{memoryDataService.dirtySubject|async}}<br/>
+        service.value: {{!!memoryDataService.value}}<br/>
+      </ion-col>
+      <ion-col *ngIf="memoryDataService">
+        service.count: {{memoryDataService.count}}<br/>
+        service.hiddenCount: {{memoryDataService.hiddenCount}}<br/>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</app-debug>
+
 <mat-toolbar *ngIf="showToolbar">
 
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -25,11 +56,10 @@
     </button>
   </ng-template>
 
-  <ion-item *ngIf="!mobile && error; let error" lines="none">
+  <ion-item *ngIf="showError && !mobile && (errorSubject|push); let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
-
 
   <!-- separator -->
   <ion-text class="toolbar-spacer ion-text-center">
@@ -52,7 +82,7 @@
 </mat-menu>
 
 <!-- error -->
-<ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+<ion-item *ngIf="showError && mobile && (errorSubject|push); let error" lines="none">
   <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
   <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
 </ion-item>
@@ -82,6 +112,7 @@
     </ion-row>
   </ion-grid>
 </form>
+
 
 <div #tableContainer class="table-container" [class.has-toolbar]="showToolbar">
 
