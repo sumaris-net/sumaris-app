@@ -1,8 +1,10 @@
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import {
-  Entity, EntityAsObjectOptions,
+  Entity,
+  EntityAsObjectOptions,
   EntityClass,
-  EntityFilter, FilterFn,
+  EntityFilter,
+  FilterFn,
   getPropertyByPath,
   IconRef,
   isEmptyArray,
@@ -10,17 +12,17 @@ import {
   isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
-  ITreeItemEntity, toNumber,
+  ITreeItemEntity,
   waitWhilePending
 } from '@sumaris-net/ngx-components';
-import {Batch} from '@app/trip/batch/common/batch.model';
-import {BatchUtils} from '@app/trip/batch/common/batch.utils';
-import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
-import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
-import {UntypedFormGroup} from '@angular/forms';
-import {MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
-import {BatchFilter} from '@app/trip/batch/common/batch.filter';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { UntypedFormGroup } from '@angular/forms';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -279,60 +281,6 @@ export class BatchModel
 
   get currentData(): Batch {
     return this.validator.getRawValue();
-  }
-
-  get next(): BatchModel|undefined {
-    // get first child, if any
-    if (isNotEmptyArray(this.children)) return this.children[0];
-
-    // No parent: end
-    if (!this.parent) return undefined; // Nothing next
-
-    // Try to get next brother
-    let current: BatchModel = this;
-    let parent: BatchModel = this.parent;
-    let result: BatchModel;
-    while (!result && parent) {
-      const currentIndex = (parent.children || []).indexOf(current);
-      result = (parent.children || []).find((b, i) => i > currentIndex && !b.hidden);
-      current = parent;
-      parent = parent.parent;
-    }
-
-    // If root batch AND hidden, goto to first visible root's child
-    if (!result && !current.parent && current.hidden) return current.next;
-
-    return result || current;
-  }
-
-  get previous(): BatchModel|undefined {
-
-    let result: BatchModel;
-    let parent: BatchModel = this.parent;
-
-    // If root is hidden: go to very last leaf
-    if (!parent) {
-      // Try to get next brother
-      result = this;
-      while (isNotEmptyArray(result.children)) {
-        result = result.children[this.children.length-1];
-      }
-      return result;
-    }
-
-    // Try to get next brother
-    let current: BatchModel = this;
-    while (!result && parent) {
-      const currentIndex = (parent.children || []).indexOf(current);
-      result = (parent.children || []).find((b, i) => i < currentIndex && !b.hidden);
-      current = parent;
-      parent = parent.parent;
-    }
-
-    // If root is hidden: go next
-    if (!result && !current.parent && current.hidden) return current.previous;
-
-    return result || current;
   }
 
   get(path: string): BatchModel {

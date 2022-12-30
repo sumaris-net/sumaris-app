@@ -49,6 +49,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 
 export declare type PrepareModelEvent = PromiseEvent<BatchModel, {model: BatchModel}>;
 
@@ -961,9 +962,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     model = model || this.editingBatch;
     if (!model) return;
 
-    const next = model.next;
-    if (next) {
-      this.startEditBatch(null, next);
+    const nextVisible = TreeItemEntityUtils.forward(model, c => !c.hidden);
+    if (nextVisible) {
+      this.startEditBatch(null, nextVisible);
     }
   }
 
@@ -974,9 +975,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     model = model || this.editingBatch;
     if (!model) return;
 
-    const previous = model.previous;
-    if (previous) {
-      this.startEditBatch(null, previous);
+    const previousVisible = TreeItemEntityUtils.backward(model, c => !c.hidden);
+    if (previousVisible) {
+      this.startEditBatch(null, previousVisible);
     }
   }
 
