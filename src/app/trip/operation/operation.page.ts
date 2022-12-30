@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, Component, Injector, Optional, ViewChild} from '@angular/core';
-import {OperationSaveOptions, OperationService} from '../services/operation.service';
-import {OperationForm} from './operation.form';
-import {TripService} from '../services/trip.service';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
+import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
+import { OperationSaveOptions, OperationService } from '../services/operation.service';
+import { OperationForm } from './operation.form';
+import { TripService } from '../services/trip.service';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
   AppEditorOptions,
   AppEntityEditor,
@@ -30,31 +30,31 @@ import {
   UsageMode,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import {MatTabChangeEvent} from '@angular/material/tabs';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
-import {UntypedFormGroup, Validators} from '@angular/forms';
-import {Moment} from 'moment';
-import {Program} from '@app/referential/services/model/program.model';
-import {Operation, OperationUtils, Trip} from '../services/model/trip.model';
-import {OperationPasteFlags, ProgramProperties} from '@app/referential/services/config/program.config';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {IBatchTreeComponent} from '../batch/tree/batch-tree.component';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BehaviorSubject, from, merge, of, Subscription, timer} from 'rxjs';
-import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
-import {IonRouterOutlet, ModalController} from '@ionic/angular';
-import {SampleTreeComponent} from '@app/trip/sample/sample-tree.component';
-import {IPmfmForm, OperationValidators} from '@app/trip/services/validator/operation.validator';
-import {TripContextService} from '@app/trip/services/trip-context.service';
-import {APP_ENTITY_EDITOR} from '@app/data/quality/entity-quality-form.component';
-import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
-import {ContextService} from '@app/shared/context.service';
-import {Geometries} from '@app/shared/geometries.utils';
-import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
-import {flagsToString, removeFlag} from '@app/shared/flags.utils';
-import {PositionUtils} from '@app/trip/services/position.utils';
-import {RxState} from '@rx-angular/state';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
+import { UntypedFormGroup, Validators } from '@angular/forms';
+import { Moment } from 'moment';
+import { Program } from '@app/referential/services/model/program.model';
+import { Operation, OperationUtils, Trip } from '../services/model/trip.model';
+import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BehaviorSubject, from, merge, Subscription, timer } from 'rxjs';
+import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
+import { IonRouterOutlet, ModalController } from '@ionic/angular';
+import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
+import { IPmfmForm, OperationValidators } from '@app/trip/services/validator/operation.validator';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { ContextService } from '@app/shared/context.service';
+import { Geometries } from '@app/shared/geometries.utils';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { flagsToString, removeFlag } from '@app/shared/flags.utils';
+import { PositionUtils } from '@app/trip/services/position.utils';
+import { RxState } from '@rx-angular/state';
 
 export interface OperationState {
   hasIndividualMeasures?: boolean;
@@ -95,6 +95,8 @@ export class OperationPage<S extends OperationState = OperationState>
   private _sampleRowSubscription: Subscription;
   private _forceMeasurementAsOptionalOnFieldMode = false;
 
+  protected readonly _state: RxState<S> = this.injector.get(RxState);
+  protected readonly hasIndividualMeasures$ = this._state.select('hasIndividualMeasures');
   protected tripService: TripService;
   protected tripContext: TripContextService;
   protected programRefService: ProgramRefService;
@@ -134,7 +136,6 @@ export class OperationPage<S extends OperationState = OperationState>
   operationPasteFlags: number;
   readonly forceOptionalExcludedPmfmIds: number[];
 
-  protected readonly _state: RxState<S>;
 
   @ViewChild('opeForm', { static: true }) opeForm: OperationForm;
   @ViewChild('measurementsForm', { static: true }) measurementsForm: MeasurementsForm;
@@ -177,7 +178,7 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   constructor(
-    injector: Injector,
+    private injector: Injector,
     dataService: OperationService,
     @Optional() options?: AppEditorOptions
   ) {
@@ -189,7 +190,6 @@ export class OperationPage<S extends OperationState = OperationState>
       ...options
     });
 
-    this._state = injector.get(RxState);
     this.tripService = injector.get(TripService);
     this.tripContext = injector.get(TripContextService);
     this.programRefService = injector.get(ProgramRefService);
@@ -577,7 +577,9 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // Auto fill batches (if new data)
       if (this.showBatchTables && this.autoFillBatch && this.batchTree && this.isNewData) {
-        this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
+        this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true })
+          // Make sure to keep data, on the first editor save()
+          .then(() => this.batchTree.markAsDirty());
       }
     }
 

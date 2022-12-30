@@ -16,7 +16,7 @@
       >{{filterExpansionPanel.expanded ? 'expand_more' : 'chevron_right'}}</mat-icon>
   </button>
 
-  <div *ngIf="editingBatch; let node"
+  <div *rxIf="editingBatch$; let node"
        [class.cdk-visually-hidden]="filterExpansionPanel.expanded">
 
     <!-- Parent button -->
@@ -149,7 +149,7 @@
     </ion-row>
     <ion-row>
       <ion-col size="12">
-        <ion-text color="danger" [innerHTML]="_form | translateFormError: errorTranslatorOptions"></ion-text>
+        <ion-text color="danger" [innerHTML]="form$| push | translateFormError: errorTranslatorOptions"></ion-text>
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -348,16 +348,14 @@
 
   <app-batch-tree #batchTree
                   (ngInit)="addChildForm(batchTree)"
-                  [class.cdk-visually-hidden]="!editingBatch"
+                  [class.cdk-visually-hidden]="!(editingBatch$|push)"
                   [queryTabIndexParamName]="queryTabIndexParamName"
-                  [showBatchTables]="_showBatchTables"
-                  [allowSamplingBatches]="allowSamplingBatches"
-                  [allowSubBatches]="allowSubBatches"
+                  [allowSamplingBatches]="allowSamplingBatches$|push"
+                  [allowSubBatches]="allowSubBatches$|push"
                   [defaultHasSubBatches]="defaultHasSubBatches"
                   [availableTaxonGroups]="availableTaxonGroups"
                   [usageMode]="usageMode"
                   [modalOptions]="modalOptions"
-                  [physicalGear]="$physicalGear|async"
                   [useSticky]="useSticky"
                   [i18nPmfmPrefix]="i18nPmfmPrefix"
                   [mobile]="mobile"

@@ -1,28 +1,30 @@
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import {
+  arrayDistinct,
   Entity,
   EntityAsObjectOptions,
   EntityClass,
   EntityFilter,
-  FilterFn,
+  FilterFn, firstNotNil,
   getPropertyByPath,
   IconRef,
   isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   ITreeItemEntity,
   waitWhilePending
 } from '@sumaris-net/ngx-components';
 import { Batch } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { UntypedFormGroup } from '@angular/forms';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -37,7 +39,7 @@ export class BatchModel
   implements ITreeItemEntity<BatchModel> {
 
   static fromObject: (source: any, opts?: { withChildren?: boolean; }) => BatchModel;
-  static fromBatch(batch: Batch,
+  static fromBatch(batch: Batch|undefined,
                    pmfms: IPmfm[],
                    // Internal arguments (used by recursive call)
                    maxTreeDepth = 3,
@@ -280,7 +282,7 @@ export class BatchModel
   }
 
   get currentData(): Batch {
-    return this.validator.getRawValue();
+    return this.validator?.getRawValue();
   }
 
   get(path: string): BatchModel {
@@ -292,7 +294,7 @@ export class BatchModel
 
 @EntityClass({typename: 'BatchModelFilterVO'})
 export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel> {
-  measurementValues: MeasurementModelValues | MeasurementFormValues = {};
+  measurementValues: MeasurementModelValues | MeasurementFormValues = null;
 
   static fromObject: (source: any, opts?: any) => BatchModelFilter;
 
@@ -315,7 +317,7 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
         const pmfmValue = this.measurementValues[pmfmId];
         if (isNotNil(pmfmValue)) {
           filterFns.push(b => {
-            const measurementValues = b.currentData.measurementValues;
+            const measurementValues = (b.currentData || b.originalData).measurementValues;
             return measurementValues && isNotNil(measurementValues[pmfmId]) && PmfmValueUtils.equals(measurementValues[pmfmId], pmfmValue);
           });
         }
@@ -328,18 +330,93 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
 
 export class BatchModelUtils {
 
-  static findInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
-    const filterFn = filter && BatchModelFilter.fromObject(filter).asFilterFn();
-    if (!filterFn) throw new Error('Missing or empty filter argument');
+  static createModel(data: Batch|undefined, opts: {
+    catchPmfms: IPmfm[];
+    sortingPmfms: IPmfm[];
+    allowDiscard?: boolean
+  }): BatchModel {
+    if (isEmptyArray(opts?.sortingPmfms)) throw new Error('Missing required argument \'opts.sortingPmfms\'');
 
-    return this.filterRecursively(model, filterFn);
+    // Create a batch model
+    const model = BatchModel.fromBatch(data, opts.sortingPmfms);
+    if (!model) return;
+
+    // Add catch batches pmfms
+    model.pmfms = arrayDistinct([
+      ...opts.catchPmfms,
+      ...(model.pmfms || [])
+    ], 'id');
+
+    // Special case for discard batches
+    {
+      const discardFilter = <Partial<BatchModelFilter>>{
+        measurementValues: {
+          [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD.toString()
+        }
+      };
+
+      // Discard allowed (e.g. when `hasInividualMeasures` is true, in the parent trip)
+      // This is need to remove PMFM such as category
+      if (opts.allowDiscard !== false) {
+        this.findByFilterInTree(model, discardFilter)
+          .forEach(discard => {
+            // Hide species pmfms (keep only weight PMFMS) - (e.g remove sorting category pmfm)
+            // TODO: refactor this: set hidden=true, and apply default value ? Like in ADAP-MER
+            discard.childrenPmfms = discard.childrenPmfms.filter(PmfmUtils.isWeight);
+          });
+      }
+      else {
+        // Remove all discard batches
+        this.deleteByFilterInTree(model, discardFilter);
+      }
+    }
+
+    // Set default catch batch name
+    if (!model.parent && !model.name)  {
+      model.name = 'TRIP.BATCH.EDIT.CATCH_BATCH';
+    }
+
+    return model;
   }
 
-  private static filterRecursively(model: BatchModel, filterFn: (b: BatchModel) => boolean): BatchModel[] {
-    return (model.children || []).reduce((res, child) => {
-        return res.concat(this.filterRecursively(child, filterFn));
-      },
-      // Init result
-      filterFn(model) ? [model] : []);
+  /**
+   * Find matches batches (recursively)
+   * @param batch
+   * @param filter
+   */
+  static findByFilterInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
+    return TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(filter));
   }
+
+  /**
+   * Delete matches batches (recursively)
+   * @param batch
+   * @param filter
+   */
+  static deleteByFilterInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
+    return TreeItemEntityUtils.deleteByFilter(model, BatchModelFilter.fromObject(filter));
+  }
+
+  static logTree(model: BatchModel, treeDepth = 0, treeIndent = '', result: string[] = []) {
+    const isCatchBatch = treeDepth === 0;
+    // Append current batch to result array
+    let name = isCatchBatch ? 'Catch' : (model.name || model.originalData.label)
+    const pmfmLabelsStr = (model.pmfms || []).map(p => p.label).join(', ');
+    if (isNotNilOrBlank(pmfmLabelsStr)) name += `: ${pmfmLabelsStr}`;
+    if (model.hidden) name += ' (hidden)';
+    result.push(`${treeIndent} - ${name}`);
+
+    // Recursive call, for each children
+    if (isNotEmptyArray(model.children)) {
+      treeDepth++;
+      treeIndent = `${treeIndent}\t`;
+      model.children.forEach(child => this.logTree(child as BatchModel, treeDepth, treeIndent, result));
+    }
+
+    // Display result, if root
+    if (isCatchBatch && isNotEmptyArray(result)) {
+      console.debug(`[batch-tree-container] Batch model:\n${result.join('\n')}`);
+    }
+  }
+
 }

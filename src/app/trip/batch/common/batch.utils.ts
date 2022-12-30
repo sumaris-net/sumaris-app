@@ -20,6 +20,7 @@ import { Batch, BatchWeight } from '@app/trip/batch/common/batch.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 
 export class BatchUtils {
 
@@ -81,15 +82,15 @@ export class BatchUtils {
     return `#${parent.rankOrder}`;
   }
 
-  static isSampleBatch(batch: Batch) {
+  static isSamplingBatch(batch: Batch) {
     return batch && isNotNilOrBlank(batch.label) && batch.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX);
   }
 
-  static isSampleNotEmpty(sampleBatch: Batch): boolean {
-    return isNotNil(sampleBatch.individualCount)
-      || isNotNil(sampleBatch.samplingRatio)
-      || Object.getOwnPropertyNames(sampleBatch.measurementValues || {})
-        .filter(key => isNotNil(sampleBatch.measurementValues[key]))
+  static isSamplingNotEmpty(samplingBatch: Batch): boolean {
+    return isNotNil(samplingBatch.individualCount)
+      || isNotNil(samplingBatch.samplingRatio)
+      || Object.getOwnPropertyNames(samplingBatch.measurementValues || {})
+        .filter(key => isNotNil(samplingBatch.measurementValues[key]))
         .length > 0;
   }
 
@@ -236,7 +237,7 @@ export class BatchUtils {
     });
 
     // Parent batch is a sampling batch: update individual count
-    if (BatchUtils.isSampleBatch(source)) {
+    if (BatchUtils.isSamplingBatch(source)) {
       source.individualCount = sumChildrenIndividualCount || null;
     }
 
@@ -399,7 +400,7 @@ export class BatchUtils {
     }
     // Weight not computed and greater than the sum
     else {
-      const samplingBatch = this.isSampleBatch(source) ? source : this.getOrCreateSamplingChild(source);
+      const samplingBatch = this.isSamplingBatch(source) ? source : this.getOrCreateSamplingChild(source);
       samplingBatch.weight = samplingBatch.weight || this.getWeight(samplingBatch, weightPmfms);
 
       // Set the sampling weight
@@ -474,6 +475,7 @@ export class BatchUtils {
     return isEmptyArray(source.children)
       && this.isEmpty(source, { ignoreChildren: true /* already check */, ignoreTaxonGroup: true, ignoreTaxonName: true });
   }
+
 
   static logTree(batch: Batch, opts?: {
     println?: (message: string) => void;
@@ -554,7 +556,7 @@ export class BatchUtils {
         if (isNotNil(computedWeight)) {
           message += ' weight:~' + computedWeight + 'kg';
         }
-        if (BatchUtils.isSampleBatch(batch)) {
+        if (BatchUtils.isSamplingBatch(batch)) {
           const samplingRatio = batch.samplingRatio;
           const samplingRatioText = batch.samplingRatio;
           if (isNotNil(samplingRatio)) {
@@ -585,5 +587,62 @@ export class BatchUtils {
     }
   }
 
+  /**
+   * Get all batches that matches the given filter
+   * @param batch
+   * @param filter
+   */
+  static findByFilterInTree(batch: Batch, filter: Partial<BatchFilter>): Batch[] {
+    const filterFn = filter && BatchFilter.fromObject(filter).asFilterFn();
+    if (!filterFn) throw new Error('Missing or empty filter argument');
 
+    return this.filterRecursively(batch, filterFn);
+  }
+
+  /**
+   * Get all batches that matches the given filter
+   * @param batch
+   * @param filter
+   */
+  static deleteByFilterInTree(batch: Batch, filter: Partial<BatchFilter>): Batch[] {
+    const filterFn = filter && BatchFilter.fromObject(filter).asFilterFn();
+    if (!filterFn) throw new Error('Missing or empty filter argument');
+
+    return this.deleteRecursively(batch, filterFn);
+  }
+
+  /* -- internal functions -- */
+
+  /**
+   * Internal function
+   * @param batch
+   * @param filterFn
+   * @private
+   */
+  private static filterRecursively(batch: Batch, filterFn: (b: Batch) => boolean): Batch[] {
+    return (batch.children || []).reduce((res, child) => {
+        return res.concat(this.filterRecursively(child, filterFn));
+      },
+      // Init result
+      filterFn(batch) ? [batch] : []);
+  }
+
+  /**
+   * Internal function
+   * @param batch
+   * @param filterFn
+   * @private
+   */
+  private static deleteRecursively(batch: Batch, filterFn: (b: Batch) => boolean, result: Batch[] = []): Batch[] {
+    if (isEmptyArray(batch.children)) return result; // Skip
+
+    // Delete children
+    const deletedBatches = batch.children.filter(filterFn);
+    batch.children = batch.children.filter(c => !deletedBatches.includes(c));
+
+    // Recursive call, in still existing children
+    return batch.children.reduce((res, c) => {
+      return res.concat(this.deleteRecursively(c, filterFn))
+    }, deletedBatches);
+  }
 }

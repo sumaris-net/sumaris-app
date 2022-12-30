@@ -1,25 +1,17 @@
-import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
-import {DateUtils, fadeInOutAnimation, isEmptyArray, isNil} from '@sumaris-net/ngx-components';
-import {APP_ENTITY_EDITOR} from '@app/data/quality/entity-quality-form.component';
-import {ContextService} from '@app/shared/context.service';
-import {TripContextService} from '@app/trip/services/trip-context.service';
-import {IonRouterOutlet} from '@ionic/angular';
-import {OperationPage, OperationState} from '@app/trip/operation/operation.page';
-import {OperationService} from '@app/trip/services/operation.service';
-import {Program} from '@app/referential/services/model/program.model';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
+import { DateUtils, fadeInOutAnimation } from '@sumaris-net/ngx-components';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { IonRouterOutlet } from '@ionic/angular';
+import { OperationPage } from '@app/trip/operation/operation.page';
+import { OperationService } from '@app/trip/services/operation.service';
+import { Program } from '@app/referential/services/model/program.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment';
-import {environment} from '@environments/environment';
-import {BatchTreeContainerComponent, PrepareModelEvent} from '@app/trip/batch/tree/batch-tree-container.component';
-import {BatchModel, BatchModelUtils} from '@app/trip/batch/tree/batch-tree.model';
-import {filter} from 'rxjs/operators';
-import {PmfmIds, QualitativeValueIds} from '@app/referential/services/model/model.enum';
-import {RxState} from '@rx-angular/state';
-import {MapPmfmEvent, UpdateFormGroupEvent} from '@app/trip/measurement/measurements.form.component';
-
-export interface SelectivityOperationState extends OperationState {
-  batchModel: BatchModel;
-}
+import { environment } from '@environments/environment';
+import { RxState } from '@rx-angular/state';
+import { MapPmfmEvent, UpdateFormGroupEvent } from '@app/trip/measurement/measurements.form.component';
 
 @Component({
   selector: 'app-selectivity-operation-page',
@@ -41,7 +33,8 @@ export interface SelectivityOperationState extends OperationState {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SelectivityOperationPage extends OperationPage<SelectivityOperationState> {
+export class SelectivityOperationPage extends OperationPage {
+
 
   constructor(injector: Injector,
               dataService: OperationService) {
@@ -51,36 +44,6 @@ export class SelectivityOperationPage extends OperationPage<SelectivityOperation
 
     // FOR DEV ONLY ----
     this.debug = !environment.production;
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-
-    this._state.hold(
-      this._state.select(['hasIndividualMeasures', 'batchModel'], ({hasIndividualMeasures, batchModel}) => {
-        if (isNil(hasIndividualMeasures) || !batchModel) {
-          console.debug('[selectivity-operation] Missing required argument. Skipping', {hasIndividualMeasures, batchModel});
-          return undefined;
-        }
-
-        // Configure batch model
-        const discardBatchModels = BatchModelUtils.findInTree(batchModel, {
-          measurementValues: {
-            [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD.toString()
-          }});
-
-        if (isEmptyArray(discardBatchModels)) return false;
-
-        discardBatchModels.forEach(discardNode => {
-          discardNode.hidden = !hasIndividualMeasures;
-        })
-        return true;
-      })
-      .pipe(filter(value => value === true)),
-      async (_) => {
-        await (this.batchTree as BatchTreeContainerComponent).refresh();
-      }
-    );
   }
 
   protected registerForms() {
@@ -93,7 +56,6 @@ export class SelectivityOperationPage extends OperationPage<SelectivityOperation
   }
 
   protected async mapPmfms(event: MapPmfmEvent) {
-    console.log('TODO mapPmfms');
     if (!event || !event.detail.success) return; // Skip (missing callback)
     let pmfms: IPmfm[] = event.detail.pmfms;
 
@@ -152,21 +114,4 @@ export class SelectivityOperationPage extends OperationPage<SelectivityOperation
     const parentUrl = this.getParentPageUrl();
     return parentUrl && `${parentUrl}/operation/selectivity/${id}`;
   }
-
-  protected async onPrepareModel(event: PrepareModelEvent) {
-    try {
-      const model = event.detail.model;
-      if (!model) throw new Error('Missing model in \'event.detail\'');
-
-      this._state.set('batchModel', (_) => model);
-
-      // Promise success
-      event.detail.success(model);
-    }
-    catch (err) {
-      event.detail.error(err);
-    }
-  }
-
-
 }

@@ -130,7 +130,7 @@ export class SubBatchUtils {
           });
 
           // If has sampling batch, use it as parent
-          if (parent.children && parent.children.length === 1 && BatchUtils.isSampleBatch(parent.children[0])) {
+          if (parent.children && parent.children.length === 1 && BatchUtils.isSamplingBatch(parent.children[0])) {
             parent = parent.children[0];
           }
 
@@ -150,7 +150,7 @@ export class SubBatchUtils {
         const children = subBatches.filter(sb => sb.parentGroup && Batch.equals(parent, sb.parentGroup));
 
         // If has sampling batch, use it as parent
-        if (parent.children && parent.children.length === 1 && BatchUtils.isSampleBatch(parent.children[0])) {
+        if (parent.children && parent.children.length === 1 && BatchUtils.isSamplingBatch(parent.children[0])) {
           parent = parent.children[0] as BatchGroup;
         }
 

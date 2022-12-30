@@ -356,7 +356,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       const samplingFormGroup = this.childrenFormHelper.at(0) as UntypedFormGroup;
 
       const samplingBatch = BatchUtils.getOrCreateSamplingChild(data);
-      this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingBatch));
+      this.setIsSampling(this.isSampling || BatchUtils.isSamplingNotEmpty(samplingBatch));
 
       // Read child weight (use the first one)
       if (this.defaultWeightPmfm) {
@@ -584,7 +584,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         if (this.data) {
           const samplingChildBatch = BatchUtils.getOrCreateSamplingChild(this.data);
 
-          this.setIsSampling(this.isSampling || BatchUtils.isSampleNotEmpty(samplingChildBatch));
+          this.setIsSampling(this.isSampling || BatchUtils.isSamplingNotEmpty(samplingChildBatch));
 
         } else {
           // No data: disable sampling

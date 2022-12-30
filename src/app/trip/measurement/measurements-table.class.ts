@@ -323,6 +323,10 @@ export abstract class BaseMeasurementsTable<
   }
 
   protected configureValidator(opts?: MeasurementsTableValidatorOptions) {
+    // make sure to confirm editing row, before to change validator
+    this.confirmEditCreate();
+
+    // Update validator config
     if (opts) {
       this.validatorService.measurementsOptions = opts;
     }

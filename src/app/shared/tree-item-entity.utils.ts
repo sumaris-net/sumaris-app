@@ -1,4 +1,4 @@
-import { FilterFn, isNotNil, ITreeItemEntity } from '@sumaris-net/ngx-components';
+import { EntityFilter, FilterFn, IEntity, isEmptyArray, isNotNil, ITreeItemEntity } from '@sumaris-net/ngx-components';
 
 export class TreeItemEntityUtils {
   static forward<T extends ITreeItemEntity<any>, ID = number>(node: T, filterFn?: FilterFn<T>, loopCount?: number): T {
@@ -105,4 +105,46 @@ export class TreeItemEntityUtils {
     return (!filterFn || filterFn(node)) ? node : undefined;
   }
 
+
+  static findByFilter<T extends ITreeItemEntity<T> & IEntity<T>>(node: T, filter: EntityFilter<any, T>): T[] {
+    const filterFn = filter?.asFilterFn();
+    if (!filterFn) throw new Error('Missing or empty filter argument');
+
+    return this.filterRecursively(node, filterFn);
+  }
+
+  /**
+   * Delete matches batches
+   * @param node
+   * @param filter
+   */
+  static deleteByFilter<T extends ITreeItemEntity<T> & IEntity<T>>(node: T, filter: EntityFilter<any, T>): T[] {
+    const filterFn = filter?.asFilterFn();
+    if (!filterFn) throw new Error('Missing or empty filter argument');
+
+    return this.deleteRecursively(node, filterFn);
+  }
+
+  private static filterRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
+    return (node.children || []).reduce((res, child) => {
+        return res.concat(this.filterRecursively(child, filterFn));
+      },
+      // Init result
+      filterFn(node) ? [node] : []
+    );
+  }
+
+  // Internal function
+  private static deleteRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
+    if (isEmptyArray(node.children)) return []; // Skip
+
+    // Delete children
+    const deletedBatches = node.children.filter(filterFn);
+    node.children = node.children.filter(c => !deletedBatches.includes(c));
+
+    // Recursive call, in still existing children
+    return node.children.reduce((res, c) => {
+      return res.concat(...this.deleteRecursively(c, filterFn))
+    }, deletedBatches);
+  }
 }

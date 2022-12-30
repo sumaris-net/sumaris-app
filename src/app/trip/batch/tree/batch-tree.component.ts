@@ -42,6 +42,7 @@ import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal
 import { AppSharedFormUtils, FormControlStatus } from '@app/shared/forms.utils';
 import { ISubBatchesModalOptions } from '@app/trip/batch/sub/sub-batches.modal';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { RxState } from '@rx-angular/state';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
@@ -89,7 +90,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   implements OnInit, AfterViewInit, IBatchTreeComponent {
 
   private _gearId: number = null;
+  private _programAllowMeasure = true;
   private _allowSubBatches: boolean;
+  private _allowSamplingBatches: boolean;
   private _subBatchesService: InMemoryEntitiesService<SubBatch, SubBatchFilter>;
 
   data: Batch;
@@ -128,18 +131,22 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     return this.form?.touched;
   }
 
-  @Input() set allowSamplingBatches(allow: boolean) {
-    this.batchGroupsTable.showSamplingBatchColumns = allow;
+  @Input() set allowSamplingBatches(value: boolean) {
+    if (this._allowSamplingBatches !== value) {
+      this._allowSamplingBatches = value;
+      this.batchGroupsTable.showSamplingBatchColumns = value && this._programAllowMeasure;
+      if (!this.loading) this.markForCheck();
+    }
   }
 
   get allowSamplingBatches(): boolean {
-    return this.batchGroupsTable.showSamplingBatchColumns;
+    return this._allowSamplingBatches && this._programAllowMeasure;
   }
 
   @Input() set allowSubBatches(value: boolean) {
     if (this._allowSubBatches !== value) {
       this._allowSubBatches = value;
-      this.showSubBatchesTable = value;
+      this.showSubBatchesTable = value && this._programAllowMeasure;
       // If disabled
       if (!value) {
         // Reset existing sub batches
@@ -152,7 +159,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   }
 
   get allowSubBatches(): boolean {
-    return this._allowSubBatches;
+    return this._allowSubBatches && this._programAllowMeasure;
   }
 
   get isNewData(): boolean {
@@ -546,9 +553,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
-    const hasBatchMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
-    this.allowSamplingBatches = hasBatchMeasure;
-    this.allowSubBatches = hasBatchMeasure;
+    this._programAllowMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
+    this.allowSamplingBatches = this.allowSamplingBatches; // Force recompute
+    this.allowSubBatches = this.allowSubBatches; // Force recompute
     this.enableWeightLengthConversion = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
 
     this.batchGroupsTable.showWeightColumns = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_WEIGHT_ENABLE);
