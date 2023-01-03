@@ -91,3 +91,11 @@ export function arrayPluck<T>(array: T[], key: keyof T, omitNil?: boolean): T[ty
     (array || []).map(value => value && value[key]).filter(isNotNil);
 }
 
+/**
+ * Count how many times a search string occur
+ * @param value
+ * @param searchString
+ */
+export function countSubString(value: string, searchString: string) {
+  return value.split(searchString).length -1;
+}

@@ -65,7 +65,8 @@ export class TripReport extends AppRootDataReport<Trip> {
   }
 
   onSlideChanged(event: RevealSlideChangedEvent) {
-    console.debug(`[${this.constructor.name}.onSlideChanged]`, event);
+    // DEBUG
+    //console.debug(`[${this.constructor.name}.onSlideChanged]`, event);
   }
 
   async updateView() {

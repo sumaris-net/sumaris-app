@@ -56,6 +56,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
   includedIds: number[];
   excludedIds: number[];
   boundingBox?: BBox;
+  observedLocationId: number;
 
   constructor() {
     super();
@@ -73,6 +74,7 @@ export class TripFilter extends RootDataEntityFilter<TripFilter, Trip> {
     this.includedIds = source.includedIds;
     this.excludedIds = source.excludedIds;
     this.boundingBox = source.boundingBox;
+    this.observedLocationId = source.observedLocationId;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {

@@ -566,7 +566,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
           // translate, then save normally
           const message = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
-          entity.controlDate = undefined;
+          entity.controlDate = null;
           entity.qualificationComments = message;
 
           // Save entity
@@ -632,10 +632,20 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Control batches
     if (entity.catchBatch && opts?.program) {
-      const errors = await this.batchService.control(entity.catchBatch, {program: opts.program, controlName: 'catch'});
+      const errors = await this.batchService.control(entity.catchBatch, {
+        program: opts.program,
+        controlName: 'catch',
+        isOnFieldMode: opts.isOnFieldMode
+      });
       if (errors) {
         console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
-        return errors;
+
+        // Save batch with errors
+        await this.save(entity);
+
+        // Keep only a simple error message
+        // Detail error should have been saved into batch
+        return { catch: {invalidOrIncomplete: true} };
       }
     }
 
@@ -921,17 +931,17 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     try {
       // Find operations to delete
-      const res = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
+      const {data} = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
         filter: dataFilter.asFilterFn()
       }, { fullLoad: false });
 
-      const parentOperationIds = (res && res.data || []).filter(o => o.parentOperation || o.parentOperationId)
+      const parentOperationIds = (data || []).filter(o => o.parentOperation || o.parentOperationId)
         .map(o => o.parentOperation && o.parentOperation.id || o.parentOperationId);
       if (parentOperationIds && parentOperationIds.length > 0) {
         await this.removeChildOperationLocally(parentOperationIds);
       }
 
-      const ids = (res && res.data || []).map(o => o.id);
+      const ids = (data || []).map(o => o.id);
       if (isEmptyArray(ids)) return undefined; // Skip
 
       // Apply deletion
@@ -1739,18 +1749,22 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }
 
   protected async removeChildOperationLocally(parentOperationIds: number[]) {
-    const res = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
+    const {data} = await this.entities.loadAll<Operation>(Operation.TYPENAME, {
       filter: (this.asFilter({
         includedIds: parentOperationIds
       }).asFilterFn())
     }, {fullLoad: true});
 
-    const operations = new Array<Operation>();
-    (res && res.data || []).forEach(operation => {
-      operation.childOperationId = null;
-      operation.childOperation = null;
-      operations.push(Operation.fromObject(operation));
-    });
+    if (isEmptyArray(data)) return; // no operation to update
+
+    const operations = (data || []).map(json =>
+      // Convert to entity (required because entities use readonly objects)
+      Operation.fromObject({
+        ...json,
+        // Clean link to child
+        childOperationId: null,
+        childOperation: null
+      }));
 
     return this.saveAllLocally(operations, {});
   }

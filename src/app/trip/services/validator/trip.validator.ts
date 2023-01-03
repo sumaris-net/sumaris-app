@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { LocalSettingsService, SharedFormArrayValidators, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { SaleValidatorService } from './sale.validator';
 import { MeasurementsValidatorService } from './measurement.validator';
@@ -74,12 +74,8 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
         __typename: [Trip.TYPENAME],
         departureDateTime: [data && data.departureDateTime || null, !opts.departureDateTimeRequired ? null : Validators.required],
         departureLocation: [data && data.departureLocation || null, Validators.compose([Validators.required, SharedValidators.entity])],
-        returnDateTime: [data && data.returnDateTime || null, Validators.compose([
-          opts.returnFieldsRequired ? Validators.required : null,
-          SharedValidators.dateRangeEnd('departureDateTime'),
-          SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
-        ])],
-        returnLocation: [data && data.returnLocation || null, !opts.returnFieldsRequired ? SharedValidators.entity : Validators.compose([Validators.required, SharedValidators.entity])]
+        returnDateTime: [data && data.returnDateTime || null, this.getReturnDateTimeValidator(opts)],
+        returnLocation: [data && data.returnLocation || null, this.getReturnLocationValidator(opts)]
       });
 
     // Add observers
@@ -113,14 +109,35 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
   updateFormGroup(form: UntypedFormGroup, opts?: O): UntypedFormGroup {
     opts = this.fillDefaultOptions(opts);
 
-    form.get('returnLocation').setValidators(!opts.returnFieldsRequired ? SharedValidators.entity : [Validators.required, SharedValidators.entity]);
-    form.get('returnDateTime').setValidators(!opts.returnFieldsRequired ? null : Validators.required);
+    form.get('returnDateTime').setValidators(this.getReturnDateTimeValidator(opts));
+    form.get('returnLocation').setValidators(this.getReturnLocationValidator(opts));
 
     // Update form group validators
     const formValidators = this.getFormGroupOptions(null, opts)?.validators;
     form.setValidators(formValidators);
 
     return form;
+  }
+
+
+  getMetiersArray(data?: Trip, opts?: {required?: boolean}) {
+    return this.formBuilder.array(
+      (data && data.metiers || []).map(metier => this.getMetierControl(metier, opts)),
+      SharedFormArrayValidators.requiredArrayMinLength(1)
+    );
+  }
+
+  getMetierControl(value: any, opts?: {required?: boolean}) {
+    const required = !opts || opts.required !== false;
+    return this.formBuilder.control(value || null, required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
+  }
+
+  getFishingAreasArray(data?: Trip, opts?: {required?: boolean}) {
+    const required = !opts || opts.required !== false;
+    return this.formBuilder.array(
+      (data && data.fishingAreas || []).map(fa => this.fishingAreaValidator.getFormGroup(fa)),
+      required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
+    );
   }
 
   /* -- protected methods -- */
@@ -143,24 +160,17 @@ export class TripValidatorService<O extends TripValidatorOptions = TripValidator
     return opts;
   }
 
-  getMetiersArray(data?: Trip, opts?: {required?: boolean}) {
-    return this.formBuilder.array(
-      (data && data.metiers || []).map(metier => this.getMetierControl(metier, opts)),
-      SharedFormArrayValidators.requiredArrayMinLength(1)
-    );
+
+  protected getReturnDateTimeValidator(opts: TripValidatorOptions): ValidatorFn {
+    return Validators.compose([
+      opts.returnFieldsRequired ? Validators.required : Validators.nullValidator,
+      SharedValidators.dateRangeEnd('departureDateTime'),
+      SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration', 'dateMinDuration'])
+    ]);
   }
 
-  getMetierControl(value: any, opts?: {required?: boolean}) {
-    const required = !opts || opts.required !== false;
-    return this.formBuilder.control(value || null, required ? [Validators.required, SharedValidators.entity] : SharedValidators.entity);
-  }
-
-  getFishingAreasArray(data?: Trip, opts?: {required?: boolean}) {
-    const required = !opts || opts.required !== false;
-    return this.formBuilder.array(
-      (data && data.fishingAreas || []).map(fa => this.fishingAreaValidator.getFormGroup(fa)),
-      required ? SharedFormArrayValidators.requiredArrayMinLength(1) : undefined
-    );
+  protected getReturnLocationValidator(opts: TripValidatorOptions): ValidatorFn {
+    return opts.returnFieldsRequired ? Validators.compose([Validators.required, SharedValidators.entity]) : SharedValidators.entity;
   }
 }
 

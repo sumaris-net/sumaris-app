@@ -41,8 +41,7 @@ import { VesselModule } from '@app/vessel/vessel.module';
   ],
   exports: [
     // Components
-    ObservedLocationsPage,
-    ObservedLocationOfflineModal
+    ObservedLocationsPage
   ]
 })
 export class AppObservedLocationModule {

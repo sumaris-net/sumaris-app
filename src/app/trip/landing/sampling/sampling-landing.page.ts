@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, Component, Injector} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Injector, OnInit} from '@angular/core';
 import {UntypedFormGroup, ValidationErrors} from '@angular/forms';
 import {Subscription} from 'rxjs';
 import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
@@ -14,6 +14,7 @@ import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ProgramProperties} from '@app/referential/services/config/program.config';
 import {LandingService} from '@app/trip/services/landing.service';
 import {Trip} from '@app/trip/services/model/trip.model';
+import {Program} from '@app/referential/services/model/program.model';
 
 
 @Component({
@@ -23,7 +24,7 @@ import {Trip} from '@app/trip/services/model/trip.model';
   animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SamplingLandingPage extends LandingPage {
+export class SamplingLandingPage extends LandingPage implements AfterViewInit {
 
 
   zeroEffortWarning = false;
@@ -42,13 +43,14 @@ export class SamplingLandingPage extends LandingPage {
       autoOpenNextTab: true,
       enableListenChanges: false
     });
+    this.i18nContext.suffix = 'SAMPLING.';
   }
 
   ngOnInit() {
     super.ngOnInit();
 
     // Configure sample table
-    this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
+    this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString(); // Change change if referential ref is not ready (see ngAfterViewInit() )
     this.samplesTable.defaultSortDirection = 'asc';
   }
 
@@ -58,9 +60,13 @@ export class SamplingLandingPage extends LandingPage {
     // Set sample table acquisition level
     this.samplesTable.acquisitionLevel = AcquisitionLevelCodes.SAMPLE;
 
-    // Load Pmfm IDs
-    this.pmfmService.loadIdsGroupByParameterLabels(SampleParameterLabelsGroups)
+    // Wait referential ready (before reading enumerations)
+    this.referentialRefService.ready()
+      // Load Pmfm groups
+      .then(() => this.pmfmService.loadIdsGroupByParameterLabels(SampleParameterLabelsGroups))
       .then(pmfmGroups => {
+        // Configure sample table
+        this.samplesTable.defaultSortBy = PmfmIds.TAG_ID.toString();
         this.samplesTable.computedPmfmGroups = ['AGE'];
         this.samplesTable.pmfmIdsToCopy = [PmfmIds.DRESSING];
         this.samplesTable.pmfmGroups = pmfmGroups;
@@ -68,6 +74,11 @@ export class SamplingLandingPage extends LandingPage {
   }
 
   /* -- protected functions -- */
+
+  protected async setProgram(program: Program): Promise<void> {
+    return super.setProgram(program);
+  }
+
   updateViewState(data: Landing, opts?: {onlySelf?: boolean; emitEvent?: boolean}) {
     super.updateViewState(data);
 

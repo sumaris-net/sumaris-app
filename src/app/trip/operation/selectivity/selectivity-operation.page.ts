@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
-import { DateUtils, fadeInOutAnimation, PromiseEvent } from '@sumaris-net/ngx-components';
+import { DateUtils, fadeInOutAnimation } from '@sumaris-net/ngx-components';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -10,7 +10,8 @@ import { Program } from '@app/referential/services/model/program.model';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import moment from 'moment';
 import { environment } from '@environments/environment';
-
+import { RxState } from '@rx-angular/state';
+import { MapPmfmEvent, UpdateFormGroupEvent } from '@app/trip/measurement/measurements.form.component';
 
 @Component({
   selector: 'app-selectivity-operation-page',
@@ -28,10 +29,12 @@ import { environment } from '@environments/environment';
         nativeEl: '',
       },
     },
+    RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SelectivityOperationPage extends OperationPage {
+
 
   constructor(injector: Injector,
               dataService: OperationService) {
@@ -52,7 +55,7 @@ export class SelectivityOperationPage extends OperationPage {
     ]);
   }
 
-  async mapPmfms(event: PromiseEvent<IPmfm[], {pmfms: IPmfm[]}>) {
+  protected async mapPmfms(event: MapPmfmEvent) {
     if (!event || !event.detail.success) return; // Skip (missing callback)
     let pmfms: IPmfm[] = event.detail.pmfms;
 
@@ -68,6 +71,10 @@ export class SelectivityOperationPage extends OperationPage {
     }
 
     event.detail.success(pmfms);
+  }
+
+  protected updateFormGroup(event: UpdateFormGroupEvent) {
+    event.detail.success();
   }
 
   onNewFabButtonClick(event: Event) {
@@ -107,5 +114,4 @@ export class SelectivityOperationPage extends OperationPage {
     const parentUrl = this.getParentPageUrl();
     return parentUrl && `${parentUrl}/operation/selectivity/${id}`;
   }
-
 }

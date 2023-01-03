@@ -279,7 +279,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
-
   constructor(
     injector: Injector,
     validatorService: BatchGroupValidatorService,
@@ -344,10 +343,13 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   }
 
   protected configureValidator(opts?: MeasurementsTableValidatorOptions) {
+    // make sure to confirm editing row, before to change validator
+    this.confirmEditCreate();
+
     this.validatorService.measurementsOptions = null; // disable
     this.validatorService.delegateOptions = {
       qvPmfm: this.qvPmfm,
-      withMeasurements: false,
+      withMeasurements: !this.qvPmfm && isNotEmptyArray(this._speciesPmfms),
       pmfms: this._speciesPmfms,
       childrenPmfms: this._childrenPmfms,
       enableSamplingBatch: this.showSamplingBatchColumns
@@ -895,10 +897,19 @@ export class BatchGroupsTable extends AbstractBatchesTable<
           || (hideSamplingRatioColumns && hasFlag(def.flags, BatchGroupColumnFlags.IS_SAMPLING_RATIO));
         const label = isSamplingRatio && this.samplingRatioFormat === '1/w' ? 'TRIP.BATCH.TABLE.SAMPLING_COEFFICIENT' : def.label;
         const unitLabel = isSamplingRatio && this.samplingRatioFormat === '1/w' ? null : def.unitLabel;
-        const computed = (def.key === 'totalIndividualCount')
-          ? (batch, parent) => ReferentialUtils.isEmpty(parent?.taxonGroup || batch.taxonGroup)
-              || !(this.taxonGroupsNoWeight || []).includes((parent?.taxonGroup || batch.taxonGroup).label)
-          : def.computed;
+        let computed = def.computed;
+
+        // Detect computed column, when taxonGroupsNoWeight is used
+        if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
+          if (def.key === 'totalIndividualCount') {
+            computed = (batch, parent) =>
+              ReferentialUtils.isEmpty(parent?.taxonGroup || batch.taxonGroup) || !(this.taxonGroupsNoWeight || []).includes((parent?.taxonGroup || batch.taxonGroup).label);
+          }
+          else if (def.key === 'totalWeight') {
+            computed = (batch, parent) =>
+              ReferentialUtils.isEmpty(parent?.taxonGroup || batch.taxonGroup) || (this.taxonGroupsNoWeight || []).includes((parent?.taxonGroup || batch.taxonGroup).label);
+          }
+        }
         return <BatchGroupColumnDefinition>{
           ...(def.isWeight && this.defaultWeightPmfm || {}),
           ...def,
@@ -1303,7 +1314,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
     // Default measurements
     const filter = this.filter;
-    const filteredSpeciesPmfmIds = filter && Object.keys(filter.measurementValues).filter(key => key !== '__typename');
+    const filteredSpeciesPmfmIds = filter?.measurementValues && Object.keys(filter.measurementValues).filter(key => key !== '__typename');
     if (isNotEmptyArray(filteredSpeciesPmfmIds)) {
       data.measurementValues = data.measurementValues || {};
       filteredSpeciesPmfmIds.forEach(pmfmId => {

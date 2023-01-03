@@ -7,6 +7,7 @@ import {
   AppForm,
   DateUtils,
   EntityUtils,
+  equals,
   FormArrayHelper,
   fromDateISOString,
   isEmptyArray,
@@ -61,7 +62,7 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   private _showMetiers: boolean;
   private _returnFieldsRequired: boolean;
   private _locationSuggestLengthThreshold: number;
-  private _lastValidatorOptsStr: any;
+  private _lastValidatorOpts: any;
 
   readonly mobile = this.settings.mobile;
   //readonly appearance = this.mobile ? 'outline' : 'legacy';
@@ -124,8 +125,10 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
   @Input() set returnFieldsRequired(value: boolean){
-    this._returnFieldsRequired = value;
-    if (!this.loading) this.updateFormGroup();
+    if (this._returnFieldsRequired !== value) {
+      this._returnFieldsRequired = value;
+      if (!this.loading) this.updateFormGroup();
+    }
   };
 
   get returnFieldsRequired(): boolean {
@@ -507,23 +510,33 @@ export class TripForm extends AppForm<Trip> implements OnInit, OnReady {
   }
 
 
-  protected updateFormGroup() {
-    console.info('[trip-form] Updating form group...');
+  updateFormGroup() {
     const validatorOpts: TripValidatorOptions = {
       returnFieldsRequired: this._returnFieldsRequired,
       minDurationInHours: this.minDurationInHours,
       maxDurationInHours: this.maxDurationInHours
     };
-    const validatorOptsStr = JSON.stringify(validatorOpts);
 
-    if (this._lastValidatorOptsStr && validatorOptsStr == this._lastValidatorOptsStr) return; // Skip if same
+    if (!equals(validatorOpts, this._lastValidatorOpts)) {
 
-    this.validatorService.updateFormGroup(this.form, validatorOpts);
+      console.info('[trip-form] Updating form group, using opts', validatorOpts);
 
-    // Remember, for next call
-    this._lastValidatorOptsStr = validatorOptsStr;
+      this.validatorService.updateFormGroup(this.form, validatorOpts);
 
-    this.markForCheck(); // Need to toggle return date time to required
+      // Need to refresh the form state  (otherwise the returnLocation is still invalid)
+      if (!this.loading) {
+        this.updateValueAndValidity();
+        // Not need to markForCheck (should be done inside updateValueAndValidity())
+        //this.markForCheck();
+      }
+      else {
+        // Need to toggle return date time to required
+        this.markForCheck();
+      }
+
+      // Remember used opts, for next call
+      this._lastValidatorOpts = validatorOpts;
+    }
   }
 
   protected markForCheck() {

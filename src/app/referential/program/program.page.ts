@@ -402,17 +402,18 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
     this.markForCheck();
   }
 
-  async  onOpenStrategy<T extends IEntity<any>>(row: TableElement<T>) {
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (savedOrContinue) {
-      this.markAsLoading();
-      setTimeout(async () => {
-        await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, row.currentData.id], {
-          queryParams: {}
-        });
-        this.markAsLoaded();
+  async onOpenStrategy<T extends IEntity<any>>(row: TableElement<T>) {
+    const saved = await this.saveIfDirtyAndConfirm();
+    if (!saved) return; // Cannot save
+
+    this.markAsLoading();
+
+    setTimeout(async () => {
+      await this.router.navigate(['referential', 'programs',  this.data.id, 'strategy', this.strategyEditor, row.currentData.id], {
+        queryParams: {}
       });
-    }
+      this.markAsLoaded();
+    });
   }
 
   async onNewStrategy(event?: any) {

@@ -1,16 +1,20 @@
-import {DataEntityFilter} from "../../../data/services/model/data-filter.model";
-import {Sample} from "../model/sample.model";
-import {FilterFn} from "@sumaris-net/ngx-components";
-import {isNil} from "@sumaris-net/ngx-components";
-import {EntityAsObjectOptions}  from "@sumaris-net/ngx-components";
+import {DataEntityFilter} from '../../../data/services/model/data-filter.model';
+import {Sample} from '../model/sample.model';
+import {EntityAsObjectOptions, EntityClass, FilterFn, isNotNil, isNotNilOrBlank} from '@sumaris-net/ngx-components';
+import {PmfmIds} from '@app/referential/services/model/model.enum';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
 
-
+@EntityClass({ typename: 'SampleFilterVO' })
 export class SampleFilter extends DataEntityFilter<SampleFilter, Sample> {
+  static fromObject: (source: any, opts?: any) => SampleFilter;
+
   operationId?: number;
   landingId?: number;
   observedLocationId?: number;
   observedLocationIds?: number[];
   parent?: Sample;
+  tagId?: string;
+  withTagId?: boolean;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
@@ -19,6 +23,8 @@ export class SampleFilter extends DataEntityFilter<SampleFilter, Sample> {
     this.observedLocationId = source.observedLocationId;
     this.observedLocationIds = source.observedLocationIds;
     this.parent = source.parent;
+    this.tagId = source.tagId;
+    this.withTagId = source.withTagId;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -33,30 +39,35 @@ export class SampleFilter extends DataEntityFilter<SampleFilter, Sample> {
     return target;
   }
 
-  asFilterFn<E extends Sample>(): FilterFn<E> {
-    const filterFns: FilterFn<E>[] = [];
-
-    const inheritedFn = super.asFilterFn();
-    if (inheritedFn) filterFns.push(inheritedFn);
+  buildFilter(): FilterFn<Sample>[] {
+    const filterFns = super.buildFilter();
 
     // Landing
-    if (isNil(this.landingId)) {
+    if (isNotNil(this.landingId)) {
       filterFns.push(t => (t.landingId === this.landingId));
     }
 
     // Operation
-    if (isNil(this.operationId)) {
+    if (isNotNil(this.operationId)) {
       filterFns.push(t => (t.operationId === this.operationId));
     }
 
     // Parent
-    if (isNil(this.parent)) {
+    if (isNotNil(this.parent)) {
       filterFns.push(t => (t.parentId === this.parent.id || this.parent.equals(t.parent)));
     }
 
-    if (!filterFns.length) return undefined;
+    // Having a tag ID
+    if (isNotNilOrBlank(this.tagId)) {
+      filterFns.push(t =>  t.measurementValues && this.tagId === t.measurementValues[PmfmIds.TAG_ID]);
+    }
 
-    return (entity) => !filterFns.find(fn => !fn(entity));
+    // With tag ID
+    if (isNotNil(this.withTagId)) {
+      filterFns.push(t =>  t.measurementValues && this.withTagId === isNotNilOrBlank(t.measurementValues[PmfmIds.TAG_ID]));
+    }
+
+    return filterFns;
   }
 }
 

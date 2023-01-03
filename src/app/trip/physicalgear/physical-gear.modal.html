@@ -40,7 +40,7 @@
 
   <mat-tab-group #tabGroup
                  class="mat-tab-disabled-hidden mat-tab-fixed-content mat-tab-group-root"
-                 [class.mat-tab-group-header-hidden]="!showChildrenTable"
+                 [class.mat-tab-group-header-hidden]="!(showChildrenTable$|push)"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
@@ -58,7 +58,7 @@
 
       <div>
         <!-- help message (only in leaf modal) -->
-        <ion-item *ngIf="enabled && helpMessage && showChildrenTable === false"
+        <ion-item *ngIf="enabled && helpMessage && (showChildrenTable$|push) === false"
                   color="accent" lines="none"
                   @slideDownAnimation>
           <ion-icon slot="start" name="information-circle-outline"></ion-icon>
@@ -76,28 +76,19 @@
           <ion-grid class="ion-no-padding">
             <ion-row>
               <ion-col>
-                loading: {{loading}}<br/>
-                ready: {{readySubject|async}}<br/>
-                dirty: {{dirty}}<br/>
-                valid: {{valid}}<br/>
-                allowChildrenGears: {{allowChildrenGears}}<br/>
-                i18nSuffix: {{i18nSuffix}}
+                modal.loading: {{loading}}<br/>
+                modal.ready: {{readySubject|async}}<br/>
+                modal.dirty: {{dirty}}<br/>
+                modal.valid: {{valid}}<br/>
+                modal.i18nSuffix: {{i18nSuffix}}<br/>
+                modal.allowChildrenGears: {{allowChildrenGears}}<br/>
+                modal.showChildrenTable: {{showChildrenTable$|push:'immediate'}}
               </ion-col>
               <ion-col>
-                physicalGearForm.loading: {{physicalGearForm.loading}}<br/>
-                physicalGearForm.ready: {{physicalGearForm.readySubject|async}}<br/>
-                physicalGearForm.dirty: {{physicalGearForm.dirty}}<br/>
-                physicalGearForm.valid: {{physicalGearForm.valid}}<br/>
-              </ion-col>
-              <ion-col *ngIf="showChildrenTable">
-                <span *ngIf="childrenTable; let table">
-                  table.gearId: {{table.gearId}}<br/>
-                  table.ready: {{table.readySubject|async}}<br/>
-                  table.loading: {{table.loadingSubject|async}}<br/>
-                  table.dirty: {{table.dirtySubject|async}}<br/>
-                  table.visibleRowCount: {{table.visibleRowCount}}<br/>
-                  table.totalRowCount: {{table.totalRowCount}}<br/>
-                </span>
+                form.loading: {{physicalGearForm.loading}}<br/>
+                form.ready: {{physicalGearForm.readySubject|async}}<br/>
+                form.dirty: {{physicalGearForm.dirty}}<br/>
+                form.valid: {{physicalGearForm.valid}}<br/>
               </ion-col>
             </ion-row>
           </ion-grid>
@@ -122,38 +113,43 @@
 
     <!-- TAB: sub-gears -->
     <mat-tab label="{{'TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS'|translate}}"
-             *ngVar="childrenTable; let table"
-             [disabled]="!showChildrenTable">
+             [disabled]="!(showChildrenTable$|push)">
       <ng-template mat-tab-label>
         <mat-icon>settings</mat-icon>
         <mat-icon class="icon-secondary" style="left: 12px; top: 7px; font-size: 16px">settings</mat-icon>
-        <ion-label [matBadge]="table?.totalRowCount"
-                   [matBadgeHidden]="!table || table.invalid"
-                   matBadgeColor="primary"
-                   matBadgeOverlap="false"
-                   matBadgeSize="small"
-          translate>TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="table?.invalid"></ion-icon>
+        <ng-container *rxIf="childrenTable$; let table; suspense: suspense">
+          <ion-label [matBadge]="table?.totalRowCount"
+                     [matBadgeHidden]="!table || table.invalid"
+                     matBadgeColor="primary"
+                     matBadgeOverlap="false"
+                     matBadgeSize="small"
+            translate>TRIP.PHYSICAL_GEAR.EDIT.TAB_SUB_GEARS</ion-label>
+          <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="table?.invalid"></ion-icon>
+        </ng-container>
+        <ng-template #suspense>
+          <ion-label><ion-skeleton-text style="min-width: 100px"></ion-skeleton-text></ion-label>
+        </ng-template>
       </ng-template>
 
-      <app-physical-gears-table #table
+      <app-physical-gears-table #childrenTable
                                 *ngIf="allowChildrenGears"
-                                (ngInit)="$childrenTable.next(table)"
+                                (ngInit)="initChildrenTable(childrenTable)"
                                 (openSelectPreviousGearModal)="openSearchChildrenModal($event)"
                                 [acquisitionLevel]="childAcquisitionLevel"
                                 [programLabel]="programLabel"
                                 [tripId]="tripId"
                                 [showGearColumn]="false"
-                                [defaultGear]="$gear|async"
+                                [defaultGear]="gear$|push:'immediate'"
                                 [canEditGear]="false"
-                                [gearId]="$gearId|async"
+                                [gearId]="gearId$|push:'immediate'"
                                 [allowChildrenGears]="false"
                                 [minRowCount]="minChildrenCount"
                                 [requiredGear]="true"
                                 [showToolbar]="!mobile"
                                 [disabled]="disabled"
                                 [i18nColumnSuffix]="'CHILD'"
-                                [mobile]="mobile">
+                                [mobile]="mobile"
+                                [debug]="debug">
       </app-physical-gears-table>
     </mat-tab>
   </mat-tab-group>
@@ -164,7 +160,7 @@
 <ion-fab vertical="bottom" horizontal="end"
          *ngIf="enabled && mobile && selectedTabIndex === 1"
          visible-xs visible-sm visible-mobile>
-  <ion-fab-button color="tertiary" (click)="childrenTable.addRow()">
+  <ion-fab-button color="tertiary" (click)="childrenTable?.addRow()">
     <ion-icon name="add"></ion-icon>
   </ion-fab-button>
 </ion-fab>

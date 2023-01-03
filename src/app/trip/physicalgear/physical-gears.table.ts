@@ -39,6 +39,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   @Input() title: string = null;
   @Input() defaultGear: ReferentialRef = null;
   @Input() canEditGear = true;
+  @Input() showError = true;
   @Input() showFilter = false;
   @Input() showPmfmDetails = false;
   @Input() compactFields = true;

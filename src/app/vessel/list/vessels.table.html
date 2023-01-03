@@ -249,13 +249,11 @@
         <ion-label translate>REFERENTIAL.STATUS</ion-label>
       </th>
       <td mat-cell *matCellDef="let row">
-        <ng-container *ngIf="statusById[row.currentData.statusId]; let status">
-          <ion-icon matPrefix *ngIf="status"
-                    [color]="status.id|statusToColor"
-                    [name]="status.icon"
-                    [title]="status.label | translate"
-          ></ion-icon>
-        </ng-container>
+        <ion-icon *ngIf="statusById[row.currentData.statusId]; let status"
+                  [color]="status.id|statusToColor"
+                  [name]="status.icon"
+                  [title]="status.label | translate"
+        ></ion-icon>
       </td>
     </ng-container>
 

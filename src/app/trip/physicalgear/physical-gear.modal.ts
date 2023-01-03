@@ -1,34 +1,32 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild, ViewEncapsulation} from '@angular/core';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild} from '@angular/core';
 import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
 import {PhysicalGearForm} from './physical-gear.form';
 import {
   AppEntityEditorModal,
   createPromiseEventEmitter,
   emitPromiseEvent,
-  firstNotNil,
+  firstNotNilPromise,
   IEntityEditorModalOptions,
   InMemoryEntitiesService,
-  isNil,
   isNotEmptyArray,
   isNotNil,
   PromiseEvent,
   ReferentialRef,
   toBoolean,
   toNumber,
-  TranslateContextService,
-  waitFor
+  TranslateContextService
 } from '@sumaris-net/ngx-components';
 import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
 import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
-import {environment} from '@environments/environment';
 import {UntypedFormGroup} from '@angular/forms';
 import {PhysicalGearFilter} from '@app/trip/physicalgear/physical-gear.filter';
-import {BehaviorSubject} from 'rxjs';
 import {PHYSICAL_GEAR_DATA_SERVICE_TOKEN} from '@app/trip/physicalgear/physicalgear.service';
 import {PhysicalGearTable} from '@app/trip/physicalgear/physical-gears.table';
-import {switchMap, tap} from 'rxjs/operators';
-import {PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import { slideDownAnimation } from '@app/shared/material/material.animation';
+import {filter, switchMap} from 'rxjs/operators';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {slideDownAnimation} from '@app/shared/material/material.animation';
+import {RxState} from '@rx-angular/state';
+import {environment} from '@environments/environment';
 
 export interface IPhysicalGearModalOptions
   extends IEntityEditorModalOptions<PhysicalGear> {
@@ -52,6 +50,14 @@ export interface IPhysicalGearModalOptions
 
 const INVALID_GEAR_ID = -999;
 
+interface ComponentState {
+  gear: ReferentialRef;
+  gearId: number;
+  showChildrenTable: boolean;
+  childrenTable: PhysicalGearTable;
+  childrenPmfms: IPmfm[];
+}
+
 @Component({
   selector: 'app-physical-gear-modal',
   templateUrl: './physical-gear.modal.html',
@@ -63,22 +69,22 @@ const INVALID_GEAR_ID = -999;
         equals: PhysicalGear.equals,
         sortByReplacement: {'id': 'rankOrder'}
       })
-    }
+    },
+    RxState
   ],
   animations: [
     slideDownAnimation
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PhysicalGearModal
   extends AppEntityEditorModal<PhysicalGear>
   implements OnInit, OnDestroy, AfterViewInit, IPhysicalGearModalOptions {
 
-  showChildrenTable: boolean = null; // Important: set to null, to the helpMessage ngIf animation
-  $gear = new BehaviorSubject<ReferentialRef>(null);
-  $gearId = new BehaviorSubject<number>(INVALID_GEAR_ID);
-  $childrenTable = new BehaviorSubject<PhysicalGearTable>(undefined);
+  gear$ = this._state.select('gear');
+  gearId$ = this._state.select('gearId');
+  childrenTable$ = this._state.select('childrenTable');
+  showChildrenTable$ = this._state.select('showChildrenTable');
 
   @Input() helpMessage: string;
   @Input() acquisitionLevel: string;
@@ -103,16 +109,26 @@ export class PhysicalGearModal
   }
 
   get childrenTable(): PhysicalGearTable {
-    return this.$childrenTable.value;
+    return this._state.get('childrenTable');
   }
 
-  get gearId(): number {
-    return this.$gear.value?.id;
+  set childrenTable(table: PhysicalGearTable) {
+    this._state.set('childrenTable', () => table);
   }
+
+  get showChildrenTable(): boolean {
+    return this._state.get('showChildrenTable');
+  }
+
+  set showChildrenTable(value: boolean) {
+    this._state.set('showChildrenTable', _ => value);
+  }
+
 
   constructor(injector: Injector,
               protected translateContext: TranslateContextService,
               @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) protected childrenGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>,
+              protected _state: RxState<ComponentState>,
               protected cd: ChangeDetectorRef
   ) {
     super(injector, PhysicalGear, {
@@ -135,7 +151,7 @@ export class PhysicalGearModal
 
     super.ngOnInit();
 
-    if (this.enabled && this.isNewData) {
+    if (this.enabled && this.isNew) {
       this.markAsLoaded();
     }
   }
@@ -157,64 +173,45 @@ export class PhysicalGearModal
   async ngAfterViewInit() {
     await super.ngAfterViewInit();
 
-    this.registerSubscription(
-      this.physicalGearForm.form.get('gear')
-        .valueChanges
-        .subscribe(gear =>{
-          this.$gear.next(gear);
-
-          // Always put a not nil id
-          this.$gearId.next(toNumber(gear?.id, INVALID_GEAR_ID));
-
-          // Auto-hide children table, if new gear is null
-          if (isNil(this.showChildrenTable) && isNil(this.gearId)) {
-            this.showChildrenTable = false;
-            this.updateChildrenTableState();
-            this.markForCheck();
-          }
-        })
-    )
+    this._state.connect('gear',  this.physicalGearForm.form.get('gear').valueChanges);
+    this._state.connect('gearId',  this._state.select('gear'),
+      (_, gear) => toNumber(gear?.id, INVALID_GEAR_ID));
 
     if (this.allowChildrenGears) {
 
-      this.registerSubscription(
-        firstNotNil(this.$childrenTable)
-          .pipe(
-            // Add children table to the editor
-            tap(table => {
-              this.addChildForm(table);
-              table.setModalOption('helpMessage', this.helpMessage);
-              table.setModalOption('maxVisibleButtons', this.maxVisibleButtons);
-              table.setModalOption('maxItemCountForButtons', this.maxItemCountForButtons);
-              this.updateChildrenTableState();
-            }),
-            // Listen pmfm changed
-            switchMap(table => table.$pmfms),
-            tap(pmfms => {
-              // Check if table has something to display (some PMFM in the strategy)
-              const childrenHasSomePmfms = (pmfms||[]).some(p =>
-                // Exclude label PMFM
-                p.id !== PmfmIds.GEAR_LABEL
-                // Exclude Pmfm on all gears (e.g. GEAR_LABEL)
-                && (!PmfmUtils.isDenormalizedPmfm(p) || isNotEmptyArray(p.gearIds)));
+      this._state.connect('childrenPmfms', this._state.select('childrenTable')
+        .pipe(
+          filter(isNotNil),
+          switchMap((table) => table.$pmfms)
+        ), (_, pmfms) => {
+        console.debug('[physical-gear-modal] Receiving new pmfms', pmfms);
+        return pmfms;
+      });
 
-              if (this.showChildrenTable !== childrenHasSomePmfms && isNotNil(this.gearId)) {
-                this.showChildrenTable = childrenHasSomePmfms;
-                this.updateChildrenTableState();
-                this.markForCheck();
-              }
-            })
-          )
-          .subscribe()
+      this._state.connect('showChildrenTable',
+        this._state.select(['childrenPmfms', 'gearId'], ({childrenPmfms, gearId}) => {
+            // DEBUG
+            console.debug('[physical-gear-modal] Should show children table ?', childrenPmfms, gearId);
+
+            // Check if table has something to display (some PMFM in the strategy)
+            const childrenHasSomePmfms = (childrenPmfms||[]).some(p =>
+              // Exclude Pmfm on all gears (e.g. GEAR_LABEL)
+              (!PmfmUtils.isDenormalizedPmfm(p) || isNotEmptyArray(p.gearIds)));
+
+            return (childrenPmfms && isNotNil(gearId) && gearId !== INVALID_GEAR_ID)
+              ? childrenHasSomePmfms
+              : null;
+          })
       );
+
+      this._state.hold(this.showChildrenTable$, () => this.updateChildrenTableState());
     }
     else {
       this.showChildrenTable = false;
-      this.markForCheck();
     }
 
     // Focus on the first field, is not in mobile
-    if (this.isNewData && !this.mobile && this.enabled) {
+    if (this.isNew && !this.mobile && this.enabled) {
        setTimeout(() => this.physicalGearForm.focusFirstInput(), 400);
     }
   }
@@ -263,6 +260,24 @@ export class PhysicalGearModal
 
   /* -- protected functions -- */
 
+  initChildrenTable(table: PhysicalGearTable) {
+    // DEBUG
+    console.debug('[physical-gear-modal] Init children table', table);
+
+    // Add children table to the editor
+    this.addChildForm(table);
+
+    // Configure table
+    table.setModalOption('helpMessage', this.helpMessage);
+    table.setModalOption('maxVisibleButtons', this.maxVisibleButtons);
+    table.setModalOption('maxItemCountForButtons', this.maxItemCountForButtons);
+
+    // Update state
+    this.childrenTable = table;
+
+    this.updateChildrenTableState();
+  }
+
   updateViewState(data: PhysicalGear, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data, opts);
     this.updateChildrenTableState(opts);
@@ -272,11 +287,13 @@ export class PhysicalGearModal
     const table = this.childrenTable;
     if (!table) return; // Skip
 
-    const enabled = this.enabled && this.showChildrenTable;
+    const enabled = this.enabled && this.showChildrenTable === true;
     if (enabled && !table.enabled) {
+      console.debug('[physical-gear-modal] Enable children table');
       table.enable();
     }
     else if (!enabled && table.enabled) {
+      console.debug('[physical-gear-modal] Disable children table');
       table.disable();
     }
   }
@@ -292,13 +309,12 @@ export class PhysicalGearModal
       await this.physicalGearForm.setValue(data);
 
       if (this.allowChildrenGears) {
-        await waitFor(() => !!this.childrenTable);
+        const childrenTable = await firstNotNilPromise(this.childrenTable$, {stop: this.destroySubject, stopError: false});
 
-        this.$gear.next(data.gear);
-        this.childrenTable.gearId = data.gear?.id;
-        this.childrenTable.markAsReady();
+        childrenTable.gearId = data.gear?.id;
+        childrenTable.markAsReady();
         this.childrenGearService.value = children || [];
-        await this.childrenTable.waitIdle({timeout: 2000, stop: this.destroySubject, stopError: false});
+        await childrenTable.waitIdle({timeout: 2000, stop: this.destroySubject, stopError: false});
 
         // Restore children
         data.children = children;

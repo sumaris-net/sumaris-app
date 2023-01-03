@@ -131,8 +131,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
         }
       }));
 
-    this.parameterGroupLabels = Object.keys(ParameterLabelGroups)
-      .filter(label => label !== 'TAG_ID');
+    this.parameterGroupLabels = ['LENGTH', 'WEIGHT', 'SEX', 'MATURITY', 'AGE'];
 
     this.filterForm = formBuilder.group({
       searchText: [null],

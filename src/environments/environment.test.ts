@@ -28,7 +28,7 @@ export const environment = Object.freeze(<Environment>{
   // FIXME: enable cache
   persistCache: false,
 
-  peerMinVersion: '1.29.0',
+  peerMinVersion: '1.32.0',
 
   checkAppVersionIntervalInSeconds: 0, // Not need for DEV
 
@@ -44,6 +44,10 @@ export const environment = Object.freeze(<Environment>{
     {
       host: 'localhost',
       port: 8081
+    },
+    {
+      host: 'server.e-is.pro',
+      port: 8080
     }
   ],
 

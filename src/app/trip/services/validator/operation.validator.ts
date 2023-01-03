@@ -459,7 +459,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
         ];
         endDateTimeControl.setValidators(opts?.isOnFieldMode
-          ? endDateTimeValidators
+          ? Validators.compose(endDateTimeValidators)
           : Validators.compose([Validators.required, ...endDateTimeValidators]));
         endDateTimeControl.enable();
 
@@ -679,5 +679,6 @@ export class OperationValidators {
 
 
 export const OPERATION_VALIDATOR_I18N_ERROR_KEYS = {
-  maxDistance: 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE'
+  maxDistance: 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE',
+  invalidOrIncomplete: 'ERROR.INVALID_OR_INCOMPLETE_FILL'
 };

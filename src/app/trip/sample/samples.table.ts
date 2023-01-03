@@ -211,7 +211,7 @@ export class SamplesTable
     return this.modalOptions[key];
   }
 
-  @Output() onPrepareRowForm = new EventEmitter<IPmfmForm>();
+  @Output('prepareRowForm') onPrepareRowForm = new EventEmitter<IPmfmForm>();
 
   @ViewChild('optionsMenu') optionMenu: MatMenu;
 
@@ -306,7 +306,7 @@ export class SamplesTable
   protected configureValidator(opts: MeasurementsTableValidatorOptions) {
     super.configureValidator(opts);
 
-    this.validatorService.delegateOptions = {withImages: this.showImagesColumn};
+    this.validatorService.delegateOptions = {withImages: this.showImagesColumn, requiredLabel: this.requiredLabel};
   }
 
   /**

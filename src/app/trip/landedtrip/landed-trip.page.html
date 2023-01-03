@@ -143,9 +143,7 @@
                                  [programLabel]="$programLabel | async"
                                  acquisitionLevel="OPERATION"
                                  [metiers]="$metiers.asObservable()"
-                                 [showToolbar]="!mobile"
-                                 (onOpenRow)="onOpenOperationGroup($event)"
-                                 (onNewRow)="onNewOperationGroup($event)">
+                                 [showToolbar]="!mobile">
       </app-operation-group-table>
     </mat-tab>
 

@@ -1,3 +1,6 @@
+
+
+
 <!-- main toolbar -->
 <mat-toolbar [class.expanded]="filterExpansionPanel.expanded">
   <button mat-icon-button
@@ -5,7 +8,7 @@
           (click)="filterExpansionPanel.toggle()">
     <mat-icon class="mat-icon-rtl-mirror"
               matBadge="!"
-              [matBadgeHidden]="valid || !rootNode?.hidden"
+              [matBadgeHidden]="valid || !model?.hidden"
               matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"
@@ -13,7 +16,7 @@
       >{{filterExpansionPanel.expanded ? 'expand_more' : 'chevron_right'}}</mat-icon>
   </button>
 
-  <div *ngIf="editingBatch; let node"
+  <div *rxIf="editingBatch$; let node"
        [class.cdk-visually-hidden]="filterExpansionPanel.expanded">
 
     <!-- Parent button -->
@@ -57,12 +60,12 @@
             [disabled]="!node.parent"
             [matMenuTriggerFor]="childrenMenu"
             [matMenuTriggerData]="{node: node.parent}">
-      <span [matBadge]="node.valid ? (visibleRowCount || '') : '!'"
-            [matBadgeHidden]="node.valid && !node.isLeaf"
-            [matBadgeColor]="node.valid ? 'primary' : 'accent'"
-            matBadgeOverlap="false"
-            matBadgeSize="small"
-            matBadgePosition="above after">{{node.name}}</span>
+      <mat-label  [matBadge]="node.valid ? (visibleRowCount || '') : '!'"
+                  [matBadgeHidden]="!node.isLeaf && node.valid"
+                  [matBadgeColor]="node.valid ? 'primary' : 'accent'"
+                  matBadgeOverlap="false"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">{{node.name}}</mat-label>
 
       <span *ngIf="!node.isLeaf" class="breadcrumb-separator">/</span>
     </button>
@@ -115,6 +118,43 @@
               matBadgePosition="above after">filter_list_alt</mat-icon>
   </button>
 </mat-toolbar>
+
+
+
+<app-debug *ngIf="debug" title="Batch tree container">
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      <ion-col>
+        loading: {{loading}}<br/>
+        ready: {{readySubject|async}}<br/>
+        dirty: {{dirty}}<br/>
+        value: {{!!data}}<br/>
+        valid: {{valid}}<br/>
+        invalid: {{invalid}}<br/>
+      </ion-col>
+      <ion-col *ngIf="form">
+        form.dirty: {{form.dirty}}<br/>
+        form.valid: {{form.valid}}<br/>
+        form.invalid: {{form.invalid}}<br/>
+        form.value: <br/>
+        <!--        <pre><p>{{form.getRawValue()|json}}</p></pre>-->
+      </ion-col>
+      <ion-col>
+        batchTree.loading: {{batchTree.loading}}<br/>
+        batchTree.ready: {{batchTree.readySubject|async}}<br/>
+        batchTree.dirty: {{batchTree.dirty}}<br/>
+        batchTree.value: {{!!batchTree.data}}<br/>
+        batchTree.valid: {{batchTree.valid}}<br/>
+      </ion-col>
+    </ion-row>
+    <ion-row>
+      <ion-col size="12">
+        <ion-text color="danger" [innerHTML]="form$| push: 'userBlocking' | translateFormError: errorTranslatorOptions"></ion-text>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</app-debug>
+
 
 <!-- Children batches menu -->
 <mat-menu #childrenMenu="matMenu" xPosition="after">
@@ -308,22 +348,20 @@
 
   <app-batch-tree #batchTree
                   (ngInit)="addChildForm(batchTree)"
-                  [class.cdk-visually-hidden]="!editingBatch"
+                  [class.cdk-visually-hidden]="!(editingBatch$|push:'userBlocking')"
                   [queryTabIndexParamName]="queryTabIndexParamName"
-                  [showBatchTables]="_showBatchTables"
-                  [allowSamplingBatches]="allowSamplingBatches"
-                  [allowSubBatches]="allowSubBatches"
+                  [allowSamplingBatches]="allowSamplingBatches$|push:'userBlocking'"
+                  [allowSubBatches]="allowSubBatches$|push:'userBlocking'"
                   [defaultHasSubBatches]="defaultHasSubBatches"
                   [availableTaxonGroups]="availableTaxonGroups"
                   [usageMode]="usageMode"
                   [modalOptions]="modalOptions"
-                  [physicalGear]="$physicalGear|async"
                   [useSticky]="useSticky"
                   [i18nPmfmPrefix]="i18nPmfmPrefix"
                   [mobile]="mobile"
                   [disabled]="disabled"
                   [filter]="filter"
-                  [debug]="false">
+                  [debug]="debug">
   </app-batch-tree>
 
   <!-- Forward button -->
@@ -337,40 +375,3 @@
 
   </ion-fab>
 </div>
-
-
-<ng-template #debug>
-  <app-debug title="Batch tree container">
-    <ion-grid class="ion-no-padding">
-      <ion-row>
-        <ion-col>
-          loading: {{loading}}<br/>
-          ready: {{readySubject|async}}<br/>
-          dirty: {{dirty}}<br/>
-          value: {{!!data}}<br/>
-          valid: {{valid}}<br/>
-          invalid: {{invalid}}<br/>
-        </ion-col>
-        <ion-col *ngIf="form">
-          form.dirty: {{form.dirty}}<br/>
-          form.valid: {{form.valid}}<br/>
-          form.invalid: {{form.invalid}}<br/>
-          form.value: <br/>
-          <!--        <pre><p>{{form.getRawValue()|json}}</p></pre>-->
-        </ion-col>
-        <ion-col>
-          batchTree.loading: {{batchTree.loading}}<br/>
-          batchTree.ready: {{batchTree.readySubject|async}}<br/>
-          batchTree.dirty: {{batchTree.dirty}}<br/>
-          batchTree.value: {{!!batchTree.data}}<br/>
-          batchTree.valid: {{batchTree.valid}}<br/>
-        </ion-col>
-      </ion-row>
-      <ion-row>
-        <ion-col size="12">
-          <ion-text color="danger" [innerHTML]="_form | translateFormError: errorTranslatorOptions"></ion-text>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </app-debug>
-</ng-template>

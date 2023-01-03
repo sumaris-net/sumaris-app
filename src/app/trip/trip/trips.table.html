@@ -179,7 +179,7 @@
   <app-update-offline-mode-card *ngIf="showUpdateOfflineFeature||importing"
                                 (onUpdateClick)="prepareOfflineMode($event, {toggleToOfflineMode: false, showToast: false})"
                                 [progressionMessage]="progressionMessage|translate: {pct: $progression | async}"
-                                [progressionValue]="$progression | async">
+                                [progressionValue]="$progression | push: 'low'">
   </app-update-offline-mode-card>
 
   <!-- error -->
@@ -360,27 +360,29 @@
     </mat-action-row>
   </mat-expansion-panel>
 
-
   <!-- Tab nav - synchro status-->
-  <nav mat-tab-nav-bar
-       *ngIf="hasOfflineMode && synchronizationStatus as syncStatus">
-    <a mat-tab-link
-       [active]="syncStatus==='DIRTY'"
-       (click)="setSynchronizationStatus('DIRTY')">
-      <mat-icon>cloud_off</mat-icon>&nbsp;
-      <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
-    </a>
-    <a mat-tab-link [active]="syncStatus==='SYNC'"
-       [disabled]="offline"
-       (click)="setSynchronizationStatus('SYNC')">
-      <mat-icon>cloud_done</mat-icon>&nbsp;
-      <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
-    </a>
-  </nav>
+  <ng-container *ngIf="hasOfflineMode">
+    <nav mat-tab-nav-bar
+         *rxLet="synchronizationStatus$; let syncStatus">
+      <a mat-tab-link
+         [active]="syncStatus==='DIRTY'"
+         (click)="setSynchronizationStatus('DIRTY')">
+        <mat-icon>cloud_off</mat-icon>&nbsp;
+        <mat-label translate>NETWORK.SYNCHRONIZATION_STATUS.DIRTY</mat-label>
+      </a>
+      <a mat-tab-link [active]="syncStatus==='SYNC'"
+         [disabled]="offline"
+         (click)="setSynchronizationStatus('SYNC')">
+        <mat-icon>cloud_done</mat-icon>&nbsp;
+        <ion-text translate>NETWORK.SYNCHRONIZATION_STATUS.SYNC</ion-text>
+      </a>
+    </nav>
+  </ng-container>
 
   <!-- table -->
   <div #tableContainer class="table-container"
        [class.has-offline-nav]="hasOfflineMode">
+
     <table mat-table [dataSource]="dataSource"
                matSort
                matSortDisableClear
@@ -412,7 +414,8 @@
 
       <!-- Quality Column -->
       <ng-container matColumnDef="quality">
-        <th mat-header-cell *matHeaderCellDef><!-- FIXME pas triable pour l'instant -->
+        <!-- FIXME pas triable pour l'instant -->
+        <th mat-header-cell *matHeaderCellDef>
           <ion-label translate>TRIP.TABLE.QUALITY</ion-label>
         </th>
         <td mat-cell *matCellDef="let row">

@@ -1,12 +1,30 @@
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {Entity, EntityClass, IconRef, isEmptyArray, isNil, isNotEmptyArray, ITreeItemEntity, waitWhilePending} from '@sumaris-net/ngx-components';
-import {Batch} from '@app/trip/batch/common/batch.model';
-import {BatchUtils} from '@app/trip/batch/common/batch.utils';
-import {AcquisitionLevelCodes, PmfmIds} from '@app/referential/services/model/model.enum';
-import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
-import {UntypedFormGroup} from '@angular/forms';
-import {MeasurementValuesTypes} from '@app/trip/services/model/measurement.model';
-import {DataEntityAsObjectOptions} from '@app/data/services/model/data-entity.model';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import {
+  arrayDistinct,
+  Entity,
+  EntityAsObjectOptions,
+  EntityClass,
+  EntityFilter,
+  FilterFn, firstNotNil,
+  getPropertyByPath,
+  IconRef,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil, isNotNilOrBlank,
+  ITreeItemEntity,
+  waitWhilePending
+} from '@sumaris-net/ngx-components';
+import { Batch } from '@app/trip/batch/common/batch.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
+import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
+import { UntypedFormGroup } from '@angular/forms';
+import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
+import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -21,7 +39,7 @@ export class BatchModel
   implements ITreeItemEntity<BatchModel> {
 
   static fromObject: (source: any, opts?: { withChildren?: boolean; }) => BatchModel;
-  static fromBatch(batch: Batch,
+  static fromBatch(batch: Batch|undefined,
                    pmfms: IPmfm[],
                    // Internal arguments (used by recursive call)
                    maxTreeDepth = 3,
@@ -36,7 +54,6 @@ export class BatchModel
     if (isCatchBatch && !batch) {
       batch = Batch.fromObject({ label: AcquisitionLevelCodes.CATCH_BATCH, rankOrder: 1});
     }
-
     const model = new BatchModel({
       parent,
       path,
@@ -121,6 +138,18 @@ export class BatchModel
 
     return model;
   }
+
+  static equals(b1: BatchModel, b2: BatchModel): boolean {
+    return b1 && b2 && ((isNotNil(b1.id) && b1.id === b2.id)
+      // Or by functional attributes
+      // Same path
+      || (b1.path === b2.path));
+  }
+
+  static isEmpty(b1: BatchModel): boolean {
+    return !b1 || (!b1.originalData && !b1.validator);
+  }
+
 
   private _valid = false;
 
@@ -220,21 +249,21 @@ export class BatchModel
   async isValid(): Promise<boolean> {
 
     // Enable temporarily the validator to get the valid status
-    const disabled = this.validator.disabled;
+    const disabled = this.validator?.disabled;
     if (disabled) {
       this.validator.enable({emitEvent: false, onlySelf: true});
     }
 
     try {
-      if (!this.validator.valid) {
+      if (!this.validator?.valid) {
 
         // Wait end of async validation
-        if (this.validator.pending) {
+        if (this.validator?.pending) {
           await waitWhilePending(this.validator);
         }
 
         // Quit if really invalid
-        if (this.validator.invalid) {
+        if (this.validator?.invalid) {
           return false;
         }
       }
@@ -253,60 +282,141 @@ export class BatchModel
   }
 
   get currentData(): Batch {
-    return this.validator.getRawValue();
+    return this.validator?.getRawValue();
   }
 
-  get next(): BatchModel|undefined {
-    // get first child, if any
-    if (isNotEmptyArray(this.children)) return this.children[0];
+  get(path: string): BatchModel {
+    if (isNilOrBlank(path)) return this;
+    const model = getPropertyByPath(this, path);
+    return model;
+  }
+}
 
-    // No parent: end
-    if (!this.parent) return undefined; // Nothing next
+@EntityClass({typename: 'BatchModelFilterVO'})
+export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel> {
+  measurementValues: MeasurementModelValues | MeasurementFormValues = null;
 
-    // Try to get next brother
-    let current: BatchModel = this;
-    let parent: BatchModel = this.parent;
-    let result: BatchModel;
-    while (!result && parent) {
-      const currentIndex = (parent.children || []).indexOf(current);
-      result = (parent.children || []).find((b, i) => i > currentIndex && !b.hidden);
-      current = parent;
-      parent = parent.parent;
+  static fromObject: (source: any, opts?: any) => BatchModelFilter;
+
+  fromObject(source: any, opts?: any) {
+    super.fromObject(source, opts);
+    this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
+  }
+
+  asObject(opts?: EntityAsObjectOptions): any {
+    const target = super.asObject(opts);
+    target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
+    return target;
+  }
+
+  protected buildFilter(): FilterFn<BatchModel>[] {
+    const filterFns = super.buildFilter();
+
+    if (isNotNil(this.measurementValues)) {
+      Object.keys(this.measurementValues).forEach(pmfmId => {
+        const pmfmValue = this.measurementValues[pmfmId];
+        if (isNotNil(pmfmValue)) {
+          filterFns.push(b => {
+            const measurementValues = (b.currentData || b.originalData).measurementValues;
+            return measurementValues && isNotNil(measurementValues[pmfmId]) && PmfmValueUtils.equals(measurementValues[pmfmId], pmfmValue);
+          });
+        }
+      })
     }
 
-    // If root batch AND hidden, goto to first visible root's child
-    if (!result && !current.parent && current.hidden) return current.next;
-
-    return result || current;
+    return filterFns;
   }
+}
 
-  get previous(): BatchModel|undefined {
+export class BatchModelUtils {
 
-    let result: BatchModel;
-    let parent: BatchModel = this.parent;
+  static createModel(data: Batch|undefined, opts: {
+    catchPmfms: IPmfm[];
+    sortingPmfms: IPmfm[];
+    allowDiscard?: boolean
+  }): BatchModel {
+    if (isEmptyArray(opts?.sortingPmfms)) throw new Error('Missing required argument \'opts.sortingPmfms\'');
 
-    // If root is hidden: go to very last leaf
-    if (!parent) {
-      // Try to get next brother
-      result = this;
-      while (isNotEmptyArray(result.children)) {
-        result = result.children[this.children.length-1];
+    // Create a batch model
+    const model = BatchModel.fromBatch(data, opts.sortingPmfms);
+    if (!model) return;
+
+    // Add catch batches pmfms
+    model.pmfms = arrayDistinct([
+      ...opts.catchPmfms,
+      ...(model.pmfms || [])
+    ], 'id');
+
+    // Special case for discard batches
+    {
+      const discardFilter = <Partial<BatchModelFilter>>{
+        measurementValues: {
+          [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD.toString()
+        }
+      };
+
+      // Discard allowed (e.g. when `hasInividualMeasures` is true, in the parent trip)
+      // This is need to remove PMFM such as category
+      if (opts.allowDiscard !== false) {
+        this.findByFilterInTree(model, discardFilter)
+          .forEach(discard => {
+            // Hide species pmfms (keep only weight PMFMS) - (e.g remove sorting category pmfm)
+            // TODO: refactor this: set hidden=true, and apply default value ? Like in ADAP-MER
+            discard.childrenPmfms = discard.childrenPmfms.filter(PmfmUtils.isWeight);
+          });
       }
-      return result;
+      else {
+        // Remove all discard batches
+        this.deleteByFilterInTree(model, discardFilter);
+      }
     }
 
-    // Try to get next brother
-    let current: BatchModel = this;
-    while (!result && parent) {
-      const currentIndex = (parent.children || []).indexOf(current);
-      result = (parent.children || []).find((b, i) => i < currentIndex && !b.hidden);
-      current = parent;
-      parent = parent.parent;
+    // Set default catch batch name
+    if (!model.parent && !model.name)  {
+      model.name = 'TRIP.BATCH.EDIT.CATCH_BATCH';
     }
 
-    // If root is hidden: go next
-    if (!result && !current.parent && current.hidden) return current.previous;
-
-    return result || current;
+    return model;
   }
+
+  /**
+   * Find matches batches (recursively)
+   * @param batch
+   * @param filter
+   */
+  static findByFilterInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
+    return TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(filter));
+  }
+
+  /**
+   * Delete matches batches (recursively)
+   * @param batch
+   * @param filter
+   */
+  static deleteByFilterInTree(model: BatchModel, filter: Partial<BatchModelFilter>): BatchModel[] {
+    return TreeItemEntityUtils.deleteByFilter(model, BatchModelFilter.fromObject(filter));
+  }
+
+  static logTree(model: BatchModel, treeDepth = 0, treeIndent = '', result: string[] = []) {
+    const isCatchBatch = treeDepth === 0;
+    // Append current batch to result array
+    let name = isCatchBatch ? 'Catch' : (model.name || model.originalData.label)
+    const pmfmLabelsStr = (model.pmfms || []).map(p => p.label).join(', ');
+    if (isNotNilOrBlank(pmfmLabelsStr)) name += `: ${pmfmLabelsStr}`;
+    if (model.hidden) name += ' (hidden)';
+    result.push(`${treeIndent} - ${name}`);
+
+    // Recursive call, for each children
+    if (isNotEmptyArray(model.children)) {
+      treeDepth++;
+      treeIndent = `${treeIndent}\t`;
+      model.children.forEach(child => this.logTree(child as BatchModel, treeDepth, treeIndent, result));
+    }
+
+    // Display result, if root
+    if (isCatchBatch && isNotEmptyArray(result)) {
+      console.debug(`[batch-tree-container] Batch model:\n${result.join('\n')}`);
+    }
+  }
+
 }

@@ -44,6 +44,7 @@ import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
+import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 
 const ObservedLocationPageTabs = {
@@ -165,103 +166,112 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   }
 
   async onOpenLanding(row) {
-    const savedOrContinue = await this.saveIfDirtyAndConfirm();
-    if (row && savedOrContinue) {
+    if (!row) return;
+
+    const saved = this.isOnFieldMode && this.dirty
+      // If on field mode: try to save silently
+      ? await this.save(undefined)
+      // If desktop mode: ask before save
+      : await this.saveIfDirtyAndConfirm();
+
+    if (!saved) return; // Cannot save
+
+    this.markAsLoading();
+
+    try {
       await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${row.currentData.id}`);
+    }
+    finally {
+      this.markAsLoaded();
     }
   }
 
   async onNewLanding(event?: any) {
 
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+    const saved = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
-      ? this.save(event)
+      ? await this.save(event)
       // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
+      : await this.saveIfDirtyAndConfirm();
 
-    const savedOrContinue = await savePromise;
-    if (savedOrContinue) {
-      this.markAsLoading();
+    if (!saved) return; // Cannot save
 
-      try {
-        // Add landing using vessels modal
-        if (this.addLandingUsingHistoryModal) {
-          const vessel = await this.openSelectVesselModal();
-          if (vessel && this.landingsTable) {
-            const rankOrder = (await this.landingsTable.getMaxRankOrderOnVessel(vessel) || 0) + 1;
-            await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
-          }
+    this.markAsLoading();
+
+    try {
+      // Add landing using vessels modal
+      if (this.addLandingUsingHistoryModal) {
+        const vessel = await this.openSelectVesselModal();
+        if (vessel && this.landingsTable) {
+          const rankOrder = (await this.landingsTable.getMaxRankOrderOnVessel(vessel) || 0) + 1;
+          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${vessel.id}&rankOrder=${rankOrder}`);
         }
-        // Create landing without vessel selection
-        else {
-          const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
-          await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?rankOrder=${rankOrder}`);
-        }
-      } finally {
-        this.markAsLoaded();
       }
+      // Create landing without vessel selection
+      else {
+        const rankOrder = (await this.landingsTable.getMaxRankOrder() || 0) + 1;
+        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?rankOrder=${rankOrder}`);
+      }
+    } finally {
+      this.markAsLoaded();
     }
   }
 
   async onNewAggregatedLanding(event?: any) {
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+    const saved = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
-      ? this.save(event)
+      ? await this.save(event)
       // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
+      : await this.saveIfDirtyAndConfirm();
 
-    const savedOrContinue = await savePromise;
-    if (savedOrContinue) {
-      this.markAsLoading();
+    if (!saved) return; // Cannot save
 
-      try {
-        const vessel = await this.openSelectVesselModal(true);
-        if (vessel && this.aggregatedLandingsTable) {
-          await this.aggregatedLandingsTable.addAggregatedRow(vessel);
-        }
-      } finally {
-        this.markAsLoaded();
+    this.markAsLoading();
+
+    try {
+      const vessel = await this.openSelectVesselModal(true);
+      if (vessel && this.aggregatedLandingsTable) {
+        await this.aggregatedLandingsTable.addAggregatedRow(vessel);
       }
+    } finally {
+      this.markAsLoaded();
     }
   }
 
   async onNewTrip<T extends Landing>(row: TableElement<T>) {
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+    const saved = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
-      ? this.save(undefined)
+      ? await this.save(undefined)
       // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
+      : await this.saveIfDirtyAndConfirm();
 
-    const savedOrContinue = await savePromise;
-    if (savedOrContinue) {
-      this.markAsLoading();
+    if (!saved) return; // Cannot save
 
-      try {
-        const landing = row.currentData;
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselSnapshot.id}&landing=${landing.id}`);
-      } finally {
-        this.markAsLoaded();
-      }
+    this.markAsLoading();
+
+    try {
+      const landing = row.currentData;
+      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/new?vessel=${landing.vesselSnapshot.id}&landing=${landing.id}`);
+    } finally {
+      this.markAsLoaded();
     }
   }
 
   async onOpenTrip<T extends Landing>(row: TableElement<T>) {
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty
+    const saved = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
-      ? this.save(undefined)
+      ? await this.save(undefined)
       // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm();
+      : await this.saveIfDirtyAndConfirm();
 
-    const savedOrContinue = await savePromise;
-    if (savedOrContinue) {
-      this.markAsLoading();
+    if (!saved) return; // Cannot save
 
-      try {
-        const landing = row.currentData;
-        await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${landing.tripId}`);
-      } finally {
-        this.markAsLoaded();
-      }
+    this.markAsLoading();
+
+    try {
+      await this.router.navigateByUrl(`/observations/${this.data.id}/${this.landingEditor}/${row.currentData.tripId}`);
+    } finally {
+      this.markAsLoaded();
     }
   }
 
@@ -331,11 +341,11 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     }
   }
 
-  addRow($event: MouseEvent) {
+  addRow(event: MouseEvent) {
     if (this.landingsTable) {
-      this.landingsTable.addRow($event);
+      this.landingsTable.addRow(event);
     } else if (this.aggregatedLandingsTable) {
-      this.aggregatedLandingsTable.addRow($event);
+      this.aggregatedLandingsTable.addRow(event);
     }
   }
 

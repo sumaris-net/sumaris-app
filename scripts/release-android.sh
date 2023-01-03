@@ -19,8 +19,6 @@ KEYSTORE_PWD=
 
 cd ${PROJECT_DIR}
 
-
-
 # Run the build
 echo "--- Building Capacitor App..."
 echo ""

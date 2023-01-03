@@ -60,7 +60,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
   private _showObservers: boolean; // Disable by default
   private _canEditStrategy: boolean;
 
-  readonly networkService: NetworkService;
   observersHelper: FormArrayHelper<Person>;
   fishingAreasHelper: FormArrayHelper<FishingArea>;
   metiersHelper: FormArrayHelper<FishingArea>;
@@ -213,13 +212,13 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected translate: TranslateService,
     protected modalCtrl: ModalController,
     protected tripValidatorService: TripValidatorService,
-    protected fishingAreaValidatorService: FishingAreaValidatorService
+    protected fishingAreaValidatorService: FishingAreaValidatorService,
+    protected networkService: NetworkService
   ) {
     super(injector, measurementValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
 
-    this.networkService = injector.get(NetworkService);
     this._enable = false;
     this.mobile = this.settings.mobile;
 
@@ -263,7 +262,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
       },
       attributes: ['label'],
       columnSizes: [12],
-      showAllOnFocus: true,
+      showAllOnFocus: true, // Show all value, when focus
       mobile: this.mobile
     });
 
@@ -564,17 +563,21 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     }
   }
 
-  protected suggestStrategy(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+  protected async suggestStrategy(value: any, filter?: any): Promise<LoadResult<ReferentialRef>> {
+    // Avoid to reload, when value is already a valid strategy
+    if (ReferentialUtils.isNotEmpty(value)) return {data: [value]};
+
     filter = {
       ...filter,
       levelLabel: this.$programLabel.value
-    }
+    };
     if (isNilOrBlank(filter.levelLabel)) return undefined; // Program no loaded yet
 
-    // Force to show all
-    value = (typeof value === 'object') ? '*' : value;
+    // Force network, if possible - fix IMAGINE 302
+    const fetchPolicy = this.networkService.online && 'network-only' || undefined /*default*/;
+
     return this.referentialRefService.suggest(value, filter, undefined, undefined,
-      { fetchPolicy: 'network-only' } // Force network - fix IMAGINE 302
+      { fetchPolicy }
     );
   }
 

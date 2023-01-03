@@ -118,7 +118,7 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
   @Input() forceOptionalExcludedPmfmIds: number[]; // Pmfm that should NOT be forced as optional
 
   @Output() valueChanges = new EventEmitter<any>();
-  @Output('mapPmfms') mapPmfms: EventEmitter<MapPmfmEvent> = createPromiseEventEmitter<IPmfm[], {pmfms: IPmfm[]}>();
+  @Output('mapPmfms') onMapPmfms: EventEmitter<MapPmfmEvent> = createPromiseEventEmitter<IPmfm[], {pmfms: IPmfm[]}>();
   @Output('updateFormGroup') onUpdateFormGroup: EventEmitter<UpdateFormGroupEvent> = createPromiseEventEmitter<void, {form: UntypedFormGroup}>();
 
   get starting(): boolean {
@@ -480,8 +480,8 @@ export class MeasurementsForm extends AppForm<Measurement[]> implements OnInit, 
       }
 
       // Call the map function
-      if (this.mapPmfms.observers.length) {
-        const res = await emitPromiseEvent(this.mapPmfms, 'pmfms', {detail: {pmfms}});
+      if (this.onMapPmfms.observers.length) {
+        const res = await emitPromiseEvent(this.onMapPmfms, 'pmfms', {detail: {pmfms}});
         pmfms = Array.isArray(res) ? res : pmfms;
       }
 

@@ -36,8 +36,9 @@
   .mat-header-row,
   .mat-row {
     .mat-column-quality {
-      min-width: 40px;
-      padding-left: 0;
+      min-width: calc(1.2em + 8px);
+      padding-inline-start: 4px;
+      padding-inline-end: 4px;
 
       mat-icon,
       ion-icon {

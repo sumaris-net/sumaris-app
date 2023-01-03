@@ -1,10 +1,10 @@
 
 <!-- Top toolbar -->
 <app-toolbar color="primary"
-             [hasValidate]="!loading && dirty"
+             [hasValidate]="!loading && (dirty || saving)"
+             [hasClose]="!loading && (!dirty && !saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
-             [hasClose]="!loading && !dirty"
              (onClose)="close($event)"
              [defaultBackHref]="defaultBackHref"
              [canGoBack]="true">
@@ -16,7 +16,7 @@
     <!-- last operation (history) -->
     <ion-button *ngIf="showLastOperations"
                 hidden-xxs
-                [disabled]="loading"
+                [disabled]="loading || saving"
                 [title]="'TRIP.OPERATION.LAST_OPERATIONS'|translate"
                 [matMenuTriggerFor]="lastOperationsMenu">
       <mat-icon slot="icon-only">history</mat-icon>
@@ -30,12 +30,22 @@
       <mat-icon slot="icon-only">add_circle_outline</mat-icon>
     </ion-button>-->
 
-    <!-- option menu -->
-    <ion-button
-      [matMenuTriggerFor]="optionsMenu"
-      [title]=" 'COMMON.BTN_OPTIONS'|translate">
-      <mat-icon slot="icon-only">more_vert</mat-icon>
+    <!-- duplicate (if desktop) -->
+    <ion-button *ngIf="!mobile && canDuplicate"
+                [disabled]="disabled || invalid || saving"
+                [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE'|translate"
+                (click)="duplicate($event)">
+      <mat-icon slot="icon-only">content_copy</mat-icon>
     </ion-button>
+
+    <!-- option menu -->
+    <button slot="end" mat-icon-button
+            *ngIf="enabled && !isNewData || debug"
+            [disabled]="saving"
+            [matMenuTriggerFor]="optionsMenu"
+            [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon>more_vert</mat-icon>
+    </button>
   </ion-buttons>
 </app-toolbar>
 
@@ -124,15 +134,14 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
-  <!-- report
-  <button mat-menu-item
-          [disabled]="isNewData || disabled"
-          (click)="openReport($event)">
+  <!-- duplicate (if mobile) -->
+  <button mat-menu-item class="ion-color-danger" *ngIf="mobile && enabled && canDuplicate"
+          (click)="duplicate($event)">
     <ion-label>
-      <mat-icon>description</mat-icon>&nbsp;
-      <span translate>AUCTION_CONTROL.EDIT.BTN_REPORT</span>
+      <mat-icon>content_copy</mat-icon>&nbsp;
+      <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
     </ion-label>
-  </button>-->
+  </button>
 
   <!-- online help -->
   <!-- TODO: enable this -->
@@ -256,19 +265,20 @@
         <mat-icon>line_style</mat-icon>
         <!-- TODO add species batch count -->
         <ion-label>{{catchTab.textLabel}}</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="(!isNewData || submitted) && batchTree.hasError"></ion-icon>
       </ng-template>
 
       <!-- batch tree container -->
       <app-batch-tree-container #batchTree
-                      queryTabIndexParamName="subtab"
-                      [showBatchTables]="showBatchTables"
-                      [selectedTabIndex]="selectedSubTabIndex"
-                      [usageMode]="usageMode"
-                      [useSticky]="mobile"
-                      [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
-                      [mobile]="mobile"
-                      [debug]="debug">
+                                queryTabIndexParamName="subtab"
+                                [showBatchTables]="showBatchTables"
+                                [selectedTabIndex]="selectedSubTabIndex"
+                                [allowDiscard]="hasIndividualMeasures$|push:'userBlocking'"
+                                [usageMode]="usageMode"
+                                [useSticky]="mobile"
+                                [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
+                                [mobile]="mobile"
+                                [debug]="debug">
       </app-batch-tree-container>
     </mat-tab>
 

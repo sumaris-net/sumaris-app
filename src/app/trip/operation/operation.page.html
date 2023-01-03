@@ -134,16 +134,6 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
-  <!-- reset -->
-  <button mat-menu-item
-          [disabled]="!dirty"
-          (click)="cancel($event)">
-    <ion-label>
-      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
-      <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
-  </button>
-
   <!-- duplicate (if mobile) -->
   <button mat-menu-item class="ion-color-danger" *ngIf="mobile && enabled && canDuplicate"
           (click)="duplicate($event)">
@@ -164,8 +154,17 @@
     </ion-label>
   </button>
 
-
   <mat-divider></mat-divider>
+
+  <!-- reset -->
+  <button mat-menu-item
+          [disabled]="!dirty"
+          (click)="cancel($event)">
+    <ion-label>
+      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
+      <span translate>COMMON.BTN_RESET</span>
+    </ion-label>
+  </button>
 
   <!-- delete -->
   <button mat-menu-item class="ion-color-danger"
@@ -307,7 +306,7 @@
                        [selectedTabIndex]="selectedSubTabIndex"
                        [defaultSampleDate]="$lastEndDate|async"
                        [usageMode]="usageMode"
-                       (onPrepareRowForm)="onPrepareSampleForm($event)"
+                       (prepareRowForm)="onPrepareSampleForm($event)"
                        [useSticky]="mobile"
                        [mobile]="mobile"
                        [debug]="debug">

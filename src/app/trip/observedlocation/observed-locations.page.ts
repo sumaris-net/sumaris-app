@@ -271,31 +271,28 @@ export class ObservedLocationsPage extends
     return super.prepareOfflineMode(event, opts);
   }
 
-  async deleteSelection(event: Event): Promise<number> {
-    let oldConfirmBeforeDelete = this.confirmBeforeDelete;
+  async deleteSelection(event: Event, opts?: {interactive?: boolean}): Promise<number> {
     const rowsToDelete = this.selection.selected;
 
-    const observations = (rowsToDelete || [])
+    const observedLocationIds = (rowsToDelete || [])
       .map(row => row.currentData as ObservedLocation)
       .map(ObservedLocation.fromObject)
       .map(o => o.id);
 
-    // ask confirmation if one observation has samples
-    if (isNotEmptyArray(observations)) {
-      const samplesCount = await this._dataService.countSamples(observations);
-      if (samplesCount > 0) {
-        const messageKey = observations.length === 1
+    // ask confirmation if one observation has samples (with tagId)
+    if (isNotEmptyArray(observedLocationIds) && (!opts || opts.interactive !== false)) {
+      const hasSample = await this._dataService.hasSampleWithTagId(observedLocationIds);
+      if (hasSample) {
+        const messageKey = observedLocationIds.length === 1
           ? 'OBSERVED_LOCATION.CONFIRM.OBSERVATION_HAS_SAMPLE'
           : 'OBSERVED_LOCATION.CONFIRM.OBSERVATIONS_HAS_SAMPLE';
-        let confirm = await Alerts.askConfirmation(messageKey, this.alertCtrl, this.translate, event);
-        if (!confirm) return; // skip
-        this.confirmBeforeDelete = false;
+        const confirmed = await Alerts.askConfirmation(messageKey, this.alertCtrl, this.translate, event);
+        if (!confirmed) return; // skip
       }
     }
 
     // delete if observation have no sample
-    await super.deleteSelection(event);
-    this.confirmBeforeDelete = oldConfirmBeforeDelete;
+    return super.deleteSelection(event, {interactive: false /*already confirmed*/});
   }
 
   get canUserCancelOrDelete(): boolean {

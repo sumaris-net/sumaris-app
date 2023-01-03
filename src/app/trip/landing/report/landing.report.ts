@@ -18,15 +18,16 @@ import {
   Image,
   isInt,
   isNil,
-  isNilOrBlank,
+  isNilOrBlank, isNilOrNaN,
   isNotEmptyArray,
-  isNotNil,
   isNotNilOrBlank,
+  isNotNilOrNaN,
   LocalSettingsService,
   NetworkService,
   Person,
   PlatformService,
   toDateISOString,
+  toNumber,
   TranslateContextService,
   WaitForOptions,
   waitForTrue
@@ -227,11 +228,11 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   async load(id?: number, opts?: EntityServiceLoadOptions & { [key: string]: string }) {
 
     try {
-      let parentId = opts && opts[this._pathParentIdAttribute] || undefined;
-
+      const parentId = toNumber(opts?.[this._pathParentIdAttribute], undefined);
       let [data, parent] = await Promise.all([
         this.landingService.load(id),
-        isNotNil(parentId) ? this.observedLocationService.load(parentId) : Promise.resolve(null)
+        Promise.resolve(null),
+        isNotNilOrNaN(parentId) ? this.observedLocationService.load(parentId) : Promise.resolve(null)
       ]);
 
       // Make sure to load the parent
@@ -239,9 +240,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
         parent = await this.observedLocationService.load(data.observedLocationId);
       }
 
-      if (!data || !parent) {
-        throw new Error('ERROR.LOAD_ENTITY_ERROR');
-      }
+      if (!data || !parent) throw new Error('ERROR.LOAD_ENTITY_ERROR');
 
       const program = await this.programRefService.loadByLabel(parent.program.label);
       this.weightDisplayedUnit = program.getProperty(ProgramProperties.LANDING_WEIGHT_DISPLAYED_UNIT) as WeightUnitSymbol;
@@ -279,6 +278,7 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
     }
     catch (err) {
       console.error(err);
+      throw err;
     }
   }
 
@@ -319,7 +319,6 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
   }
 
   markAsReady() {
-    console.log('markAsReady');
     this.readySubject.next(true);
   }
 
@@ -369,19 +368,10 @@ export class LandingReport<T extends Landing = Landing, S extends LandingStats =
 
   protected loadFromRoute(): Promise<void> {
     const route = this.route.snapshot;
-    if (!route || isNilOrBlank(this._pathIdAttribute)) {
-      throw new Error('Unable to load from route: missing \'route\' or \'options.pathIdAttribute\'.');
-    }
-    let id = route.params[this._pathIdAttribute];
-    if (isNil(id) || id === 'new') {
-      return this.load(undefined, route.params);
-    } else {
-      // Convert as number, if need
-      if (isInt(id)) {
-        id = parseInt(id);
-      }
-      return this.load(id, route.params);
-    }
+    let id = toNumber(route?.params[this._pathIdAttribute]);
+    if (isNilOrNaN(id)) throw new Error(`[loadFromRoute] id for param ${this._pathIdAttribute} is nil`);
+    // Convert as number, if need
+    return this.load(+id, route.params);
   }
 
   protected async loadFromInput() {

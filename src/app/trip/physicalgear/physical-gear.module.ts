@@ -40,8 +40,6 @@ import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 
     // Components
     PhysicalGearTable,
-    PhysicalGearForm,
-    PhysicalGearModal,
     SelectPhysicalGearModal
   ]
 })

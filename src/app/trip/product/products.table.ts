@@ -45,6 +45,7 @@ export class ProductsTable
 
   @Input() showToolbar = true;
   @Input() showIdColumn = true;
+  @Input() showActionButtons = true;
   @Input() useSticky = false;
 
   @Input()
@@ -186,6 +187,11 @@ export class ProductsTable
 
   async openSampling(event: MouseEvent, row: TableElement<Product>) {
     if (event) event.stopPropagation();
+
+    if (row.editing) {
+      const confirmed = await this.confirmEditCreate(event, row);
+      if (!confirmed) return; // skip
+    }
 
     const samples = row.currentData.samples || [];
     const taxonGroup = row.currentData.taxonGroup;

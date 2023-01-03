@@ -113,7 +113,7 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
   @ViewChild('individualMonitoringTable', {static: false}) individualMonitoringTable: IndividualMonitoringTable;
   @ViewChild('individualReleaseTable', {static: false}) individualReleasesTable: IndividualReleasesTable;
 
-  @Output() onPrepareRowForm = new EventEmitter<IPmfmForm>();
+  @Output('prepareRowForm') onPrepareRowForm = new EventEmitter<IPmfmForm>();
 
   constructor(
     protected route: ActivatedRoute,

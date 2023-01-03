@@ -274,6 +274,7 @@ export class PacketForm extends AppForm<Packet> implements OnInit, OnDestroy {
       this.compositionFocusIndex = index;
       setTimeout(() => {
         this.compositionFocusIndex = undefined;
+        this.markForCheck();
       }, 500);
     }
   }

@@ -200,6 +200,7 @@ export const ParameterLabelGroups = {
   DRESSING: ['DRESSING'],
   PRESERVATION: ['PRESERVATION']
 };
+
 // Remove duplication in label
 export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups).reduce((res, key) => {
   const labels = ParameterLabelGroups[key]
@@ -208,7 +209,7 @@ export const SampleParameterLabelsGroups = Object.keys(ParameterLabelGroups).red
   // Add to result, only if not empty
   if (labels.length) res[key] = labels;
   return res;
-}, {})
+}, {});
 
 export const FractionIdGroups = {
   CALCIFIED_STRUCTURE: [10, 11, 12, 13]
