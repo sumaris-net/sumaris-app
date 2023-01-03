@@ -41,7 +41,7 @@ fi
 
 cd $PROJECT_DIR
 rm src/assets/i18n/*-${version}.json
-git add package.json src/assets/manifest.json android/app/build.gradle install.sh
+git add package.json src/assets/manifest.json android/app/build.gradle android/app/src/main/AndroidManifest.xml install.sh
 git commit -m ''"$description"''
 # finishing release with:
 # -F: fetch master & develop before
