@@ -445,7 +445,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       }
 
       // Load pmfms for batches
-      const [catchPmfms, sortingPmfms] = await Promise.all([
+      let [catchPmfms, sortingPmfms] = await Promise.all([
         this.programRefService.loadProgramPmfms(program.label, {
           acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
           gearId
@@ -482,12 +482,18 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         sortingPmfms[childGearPmfmIndex].qualitativeValues = items;
       }
 
-      // TODO: check if need ?
-      /* Remove discard weight
+      // Change discard weight to optional
       if (this.allowDiscard === false) {
-        sortingPmfms = sortingPmfms.filter(p => !PmfmUtils.isWeight(p) || p.label !== 'DISCARD_WEIGHT');
-      }*/
+        sortingPmfms = sortingPmfms.map(p => {
+          if (PmfmUtils.isWeight(p) && p.label === 'DISCARD_WEIGHT') {
+            p = p.clone();
+            p.required = false;
+          }
+          return p;
+        });
+      }
 
+      // Update the state
       this.state.set((state) => {
         return {...state, catchPmfms, sortingPmfms};
       });
