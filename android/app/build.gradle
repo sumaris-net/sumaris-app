@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
+    namespace 'net.sumaris.app'
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "net.sumaris.app"
@@ -16,11 +17,7 @@ android {
         }
     }
     signingConfigs {
-      release {
-        storeFile "Sumaris.keystore"
-        keyAlias "Sumaris"
-
-      }
+      release
     }
     buildTypes {
         release {
@@ -60,15 +57,16 @@ try {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
 }
 
-if (project.hasProperty('keyAlias')) {
-  android.signingConfigs.release.keyAlias = keyAlias
+try {
+  def signFile = file('release-signing.properties');
+  if (!signFile.exists()) throw new Error("'release-signing.properties' file not found")
+  Properties p = new Properties()
+  p.load(new FileInputStream(signFile))
+  android.signingConfigs.release.storeFile = file(p.storeFile)
+  android.signingConfigs.release.storePassword = p.storePassword
+  android.signingConfigs.release.keyAlias = p.keyAlias
+  android.signingConfigs.release.keyPassword = p.keyPassword
 }
-if (project.hasProperty('storeFile')) {
-  android.signingConfigs.release.storeFile = storeFile
-}
-if (project.hasProperty('storePassword')) {
-  android.signingConfigs.release.storePassword = storePassword
-}
-if (project.hasProperty('keyPassword')) {
-  android.signingConfigs.release.keyPassword = keyPassword
+catch (Exception e) {
+  logger.info("Cannot sign artifacts: " + e.getMessage());
 }

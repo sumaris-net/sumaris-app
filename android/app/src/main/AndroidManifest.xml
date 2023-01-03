@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   android:versionCode="13200"
-  android:versionName="1.32.0"
-    package="net.sumaris.app">
+  android:versionName="1.32.0">
 
     <application
         android:allowBackup="true"
