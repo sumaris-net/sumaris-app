@@ -91,12 +91,14 @@ rel|pre)
     # Change the version in file: 'package.json'
     sed -i "s/version\": \"$current\"/version\": \"$version\"/g" package.json
 
-    # Change versionCode in file: 'android/app/build.gradle'
+    # Change versionCode and versionName in file: 'android/app/build.gradle'
     sed -i "s/ versionCode $currentAndroid/ versionCode $androidVersion/g" android/app/build.gradle
-
-    # Change versionName in file: 'android/app/build.gradle'
     $currentVersionName=`grep -oP "versionName \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" android/app/build.gradle | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
     sed -i "s/ versionName \"$currentVersionName\"/ versionName \"$version\"/g" android/app/build.gradle
+
+    # Change versionCode in file: 'android/app/src/main/AndroidManifest.xml'
+    sed -i "s/versionCode=\"\d+\"/versionCode=\"$androidVersion\"/g" android/app/src/main/AndroidManifest.xml
+    sed -i "s/versionName=\"\d+\.\d+\.\d+(-(alpha|beta|rc)[0-9]+)?\"/versionName=\"$version\"/g" android/app/src/main/AndroidManifest.xml
 
     # Change version in file: 'src/assets/manifest.json'
     currentManifestJsonVersion=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?\"" src/assets/manifest.json | grep -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
