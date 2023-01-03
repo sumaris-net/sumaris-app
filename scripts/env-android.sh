@@ -67,9 +67,9 @@ if [[ ! -d "${PROJECT_DIR}/android" ]]; then
 fi
 
 # Copy local files
-if [[ -d "${PROJECT_DIR}/.local/android" ]]; then
-  echo "Copying files from directory '${PROJECT_DIR}/.local/android' into '${PROJECT_DIR}/android'..."
-  cp -rf ${PROJECT_DIR}/.local/android/* ${PROJECT_DIR}/android
+if [[ -d "${PROJECT_DIR}/.local/android" ]] && [[ -f "${PROJECT_DIR}/.local/android/release-signing.properties" ]]; then
+  echo "Copying files from directory '${PROJECT_DIR}/.local/android' into '${PROJECT_DIR}/android/app'..."
+  cp -rf ${PROJECT_DIR}/.local/android/* ${PROJECT_DIR}/android/app
   [[ $? -ne 0 ]] && exit 1
 else
   echo "No directory '${PROJECT_DIR}/.local/android' found. Please create it, with a file 'release-signing.properties' for release signing"

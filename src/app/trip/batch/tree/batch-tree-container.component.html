@@ -149,7 +149,7 @@
     </ion-row>
     <ion-row>
       <ion-col size="12">
-        <ion-text color="danger" [innerHTML]="form$| push | translateFormError: errorTranslatorOptions"></ion-text>
+        <ion-text color="danger" [innerHTML]="form$| push: 'userBlocking' | translateFormError: errorTranslatorOptions"></ion-text>
       </ion-col>
     </ion-row>
   </ion-grid>
@@ -348,10 +348,10 @@
 
   <app-batch-tree #batchTree
                   (ngInit)="addChildForm(batchTree)"
-                  [class.cdk-visually-hidden]="!(editingBatch$|push)"
+                  [class.cdk-visually-hidden]="!(editingBatch$|push:'userBlocking')"
                   [queryTabIndexParamName]="queryTabIndexParamName"
-                  [allowSamplingBatches]="allowSamplingBatches$|push"
-                  [allowSubBatches]="allowSubBatches$|push"
+                  [allowSamplingBatches]="allowSamplingBatches$|push:'userBlocking'"
+                  [allowSubBatches]="allowSubBatches$|push:'userBlocking'"
                   [defaultHasSubBatches]="defaultHasSubBatches"
                   [availableTaxonGroups]="availableTaxonGroups"
                   [usageMode]="usageMode"
