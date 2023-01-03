@@ -18,21 +18,27 @@ KEYSTORE_PWD=
 
 APK_SIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-signed.apk
 APK_UNSIGNED_FILE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release-unsigned.apk
+APK_FILE_ALTERNATIVE=${ANDROID_OUTPUT_APK_RELEASE}/${ANDROID_OUTPUT_APK_PREFIX}-release.apk
 
 cd ${PROJECT_DIR}
 
 # Sign files
-echo "Signing APK file..."
-if [[ ! -f "${APK_UNSIGNED_FILE}" ]]; then
-  echo "APK file not found: ${APK_UNSIGNED_FILE}"
-  exit 1
-fi
+echo "Checking keystore file..."
 if [[ ! -f "${KEYSTORE_FILE}" ]]; then
   echo "Keystore file not found: ${KEYSTORE_FILE}"
   exit 1
 fi
 
-# Remove previous version
+echo "Checking APK file..."
+if [[ ! -f "${APK_UNSIGNED_FILE}" ]]; then
+  # Check in an alternative path (e.g. Android default signed file)
+  if [[ ! -f "${APK_FILE_ALTERNATIVE}" ]]; then
+    echo "APK file not found: ${APK_UNSIGNED_FILE}"
+  fi
+  APK_UNSIGNED_FILE=APK_FILE_ALTERNATIVE
+fi
+
+# Remove previous version (only if unsigned exists)
 if [[ -f "${APK_SIGNED_FILE}" ]]; then
   echo "Delete previous signed APK file: ${APK_SIGNED_FILE}"
   rm -f ${APK_SIGNED_FILE}*
