@@ -345,7 +345,11 @@
           <ion-label>#</ion-label>
         </th>
         <td mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
-          <ion-label>{{ row.currentData.rankOrder }}</ion-label>
+          <ion-label>{{ row.currentData.rankOrder }}
+            <ion-icon *rxIf="row.currentData.qualityFlagId; let qualityFlagId"
+                      [name]="qualityFlagId|qualityFlagToIcon"
+                      [color]="qualityFlagId|qualityFlagToColor"></ion-icon>
+          </ion-label>
         </td>
       </ng-container>
 
@@ -491,6 +495,7 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"
           class="mat-row-disabled"
           [class.mat-row-dirty]="!row.currentData.id"
+          [class.mat-row-error]="row.currentData.qualityFlagId===4"
           (click)="clickRow($event, row)">
       </tr>
     </table>

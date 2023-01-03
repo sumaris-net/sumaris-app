@@ -16,10 +16,11 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 import { TranslateService } from '@ngx-translate/core';
 import { MEASUREMENT_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
 import { countSubString } from '@app/shared/functions';
+import {BatchUtils} from '@app/trip/batch/common/batch.utils';
 
 
 export interface BatchControlOptions extends BatchValidatorOptions {
-  program?: Program;
+  program: Program;
 
   controlName?: string;
 }
@@ -43,19 +44,16 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     return true;
   }
 
-  async control(entity: Batch, opts?: BatchControlOptions): Promise<FormErrors> {
+  async control(entity: Batch, opts: BatchControlOptions): Promise<FormErrors> {
+    const program = opts?.program;
+    if (!program || !program.label) throw new Error('Missing opts.program');
 
-    opts = opts || {};
-    if (!opts.program || !opts.program.label) {
-      throw new Error('Missing opts.program');
-    }
-
-    const editor = opts.program.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR);
+    const editor = program.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR);
     if (editor === 'legacy') {
 
       // Control catch batch
       {
-        const pmfms = await this.programRefService.loadProgramPmfms(opts.program.label, { acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH })
+        const pmfms = await this.programRefService.loadProgramPmfms(program.label, { acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH })
         const validator = new BatchValidatorService(this.formBuilder, this.translate, this.settings, this.measurementsValidatorService);
         const form = validator.getFormGroup(entity, { pmfms: pmfms, withChildren: false });
 
@@ -83,11 +81,12 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         }
       }
 
-      // Control batch groups
+      // Control catch's child (= batch group)
       if (isNotEmptyArray(entity.children)) {
-        const pmfms = await this.programRefService.loadProgramPmfms(opts.program.label, { acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH });
+        const pmfms = await this.programRefService.loadProgramPmfms(program.label, { acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH });
         const qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
 
+        const weightPmfms = pmfms.filter(PmfmUtils.isWeight);
         // Compute species pmfms (at species batch level)
         let speciesPmfms: IPmfm[], childrenPmfms: IPmfm[];
         if (!qvPmfm) {
@@ -100,7 +99,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           childrenPmfms = pmfms.filter((pmfm, index) => index > qvPmfmIndex && !PmfmUtils.isWeight(pmfm));
         }
 
-        const samplingRatioFormat: SamplingRatioFormat = opts.program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);
+        const samplingRatioFormat: SamplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);
         const weightMaxDecimals = pmfms.filter(PmfmUtils.isWeight).reduce((res, pmfm) => Math.max(res, pmfm.maximumNumberDecimals || 0), 0);
 
         // Create validator service
@@ -112,13 +111,19 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
         const controlNamePrefix = opts?.controlName ? `${opts.controlName}.` : '';
         const errors: FormErrors = (await Promise.all(
-          // For each child
+          // For each catch's child
           entity.children.map(async (source, index) => {
             // Avoid error on label and rankOrder
             if (!source.label || !source.rankOrder) {
-              console.log("Missing label or rankOrder in batch:", source);
+              console.warn("[batch-service] Missing label or rankOrder in batch:", source);
             }
             const target = BatchGroup.fromBatch(source);
+
+            // Compute weight
+            target.weight = BatchUtils.getWeight(target, weightPmfms);
+            (target.children || []).forEach(c => {
+              c.weight = BatchUtils.getWeight(c, weightPmfms);
+            });
 
             // Create a form, with data
             const form = validator.getFormGroup(target, {
@@ -126,8 +131,9 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
               qvPmfm,
               pmfms: speciesPmfms,
               childrenPmfms: childrenPmfms,
+              //withChildrenWeight: true,
               // TODO check this
-              //withChildrenWeight: true, withMeasurements: true, withMeasurementTypename: false,
+              //withMeasurements: true, withMeasurementTypename: false,
               rankOrderRequired: false,
               labelRequired: false
             });
@@ -150,8 +156,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
                 });
                 source.controlDate = null;
                 source.qualificationComments = message;
-                // TODO
-                //source.qualityFlagId = QualityFlagIds.BAD;
+                source.qualityFlagId = QualityFlagIds.BAD;
 
                 return errors;
               }
@@ -163,7 +168,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         if (errors && Object.keys(errors).length) {
 
           // Flag catch batch as invalid
-          // TODO
+          entity.controlDate = null;
+          entity.qualificationComments = this.translate.instant('ERROR.INVALID_OR_INCOMPLETE_FILL');
           //entity.qualityFlagId = QualityFlagIds.BAD;
 
           console.info(`[batch-service] Control children of catch batch {${entity.id}} [INVALID]`, errors);

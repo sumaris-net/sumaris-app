@@ -8,6 +8,7 @@ import { EntityQualityIconComponent } from '@app/data/quality/entity-quality-ico
 import { IsMeasurementModelValuesPipe, IsMeasurementFormValuesPipe, MeasurementValueGetPipe } from '@app/data/services/pipes/measurements.pipe';
 import {AppImageAttachmentModule} from '@app/data/image/image-attachment.module';
 import { StatusToColorPipe } from '@app/data/services/pipes/status-to-color.pipe';
+import {QualityFlagToIconPipe} from '@app/data/services/pipes/quality-flag-to-icon.pipe';
 
 @NgModule({
   imports: [
@@ -20,6 +21,7 @@ import { StatusToColorPipe } from '@app/data/services/pipes/status-to-color.pipe
   declarations: [
     // Pipes
     QualityFlagToColorPipe,
+    QualityFlagToIconPipe,
     StatusToColorPipe,
     IsMeasurementFormValuesPipe,
     IsMeasurementModelValuesPipe,
@@ -37,6 +39,7 @@ import { StatusToColorPipe } from '@app/data/services/pipes/status-to-color.pipe
 
     // Pipes
     QualityFlagToColorPipe,
+    QualityFlagToIconPipe,
     StatusToColorPipe,
     IsMeasurementFormValuesPipe,
     IsMeasurementModelValuesPipe,

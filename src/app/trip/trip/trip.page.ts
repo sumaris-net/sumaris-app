@@ -11,7 +11,7 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
-  Alerts,
+  Alerts, AppErrorWithDetails,
   DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
@@ -205,10 +205,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this._measurementSubscription?.unsubscribe();
   }
 
-  setError(error: any, opts?: { emitEvent?: boolean; }) {
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string; }) {
 
     // If errors in operations
-    if (error?.details?.errors?.operations) {
+    if (typeof error !== 'string' && error?.details?.errors?.operations) {
       // Show error in operation table
       this.operationsTable.setError('TRIP.ERROR.INVALID_OPERATIONS', {
         showOnlyInvalidRows: true
@@ -216,16 +216,18 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
       // Open the operation tab
       this.tabGroup.selectedIndex = TripPageTabs.OPERATIONS;
-    } else {
 
-      super.setError(error);
+      // Reset other errors
+      super.setError(undefined, opts);
+    } else {
+      super.setError(error, opts);
 
       // Reset operation filter and error
       this.operationsTable.resetError(opts);
     }
   }
 
-  // change visibility
+  // change visibility to public
   resetError(opts?:  {emitEvent?: boolean}) {
     this.setError(undefined, opts);
   }

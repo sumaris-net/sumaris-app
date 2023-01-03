@@ -132,6 +132,9 @@ export const DataFragments = {
       ...TaxonNameFragment
     }
     measurementValues
+    controlDate
+    qualificationDate
+    qualificationComments
     qualityFlagId
     __typename
   }

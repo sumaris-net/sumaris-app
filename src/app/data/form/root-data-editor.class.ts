@@ -30,6 +30,7 @@ import { ProgramRefService } from '../../referential/services/program-ref.servic
 import { UntypedFormControl } from '@angular/forms';
 import { equals } from '@app/shared/functions';
 import moment from 'moment';
+import {AppErrorWithDetails} from '@sumaris-net/ngx-components';
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
@@ -225,11 +226,11 @@ export abstract class AppRootDataEditor<
     if (strategy && this.debug) console.debug(`[root-data-editor] Strategy ${strategy.label} loaded`, strategy);
   }
 
-  setError(error: any) {
+  setError(error: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
 
-    if (error) {
+    if (typeof error !== 'string' && error?.details?.errors) {
       // Create a details message, from errors in forms (e.g. returned by control())
-      const formErrors = error && error.details && error.details.errors;
+      const formErrors = error.details.errors;
       if (formErrors) {
         const i18FormError = this.errorTranslator.translateErrors(formErrors, {
           separator: ', ',
@@ -239,10 +240,9 @@ export abstract class AppRootDataEditor<
           error.details.message = i18FormError;
         }
       }
-
     }
 
-    super.setError(error);
+    super.setError(error, opts);
   }
 
   /* -- protected methods -- */

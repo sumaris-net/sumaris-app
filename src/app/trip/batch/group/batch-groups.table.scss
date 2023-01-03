@@ -32,11 +32,11 @@
 
         &.mat-column-qv-group {
           text-align: center;
-          background-color: var(--ion-color-light-shade, lightgray);
+          background-color: rgba(var(--ion-color-light-rgb), 0.8) !important;
           border-top: 8px solid var(--mat-toolbar-background-color);
 
           &.even {
-            background-color: var(--ion-color-medium) !important;
+            background-color: rgba(var(--ion-color-medium-rgb), 0.8) !important;
           }
 
           ion-label,
@@ -60,11 +60,11 @@
 
 
       .mat-header-cell.total {
-        background-color: var(--ion-color-light-tint, lightgray) !important;
+        background-color: rgba(var(--ion-color-light-rgb), 0.6) !important;
       }
 
       .mat-cell.total {
-        background-color: var(--ion-color-light-tint, lightgray);
+        background-color: rgba(var(--ion-color-light-rgb), 0.6);
       }
 
       &.mat-row-selected {

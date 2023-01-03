@@ -1029,14 +1029,20 @@ export class OperationPage<S extends OperationState = OperationState>
     super.updateViewState(data, opts);
 
     // Display form error, if  has errors from context, applies it on form.
-    const error = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) && data.qualificationComments;
-    if (error) {
+    const errorMessage = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) && data.qualificationComments;
+    if (errorMessage) {
       this.form.get('qualificationComments').reset();
       setTimeout(() => {
-        console.info('[operation-page] Operation errors: ', error);
+        console.info('[operation-page] Operation errors: ', errorMessage);
         this.markAllAsTouched();
         this.form.updateValueAndValidity();
-        this.setError({message: 'COMMON.FORM.HAS_ERROR', details: {message: error}}, {detailsCssClass: 'error-details'});
+
+        const error: AppErrorWithDetails = {details: {message: errorMessage}};
+        if (isNil(data.catchBatch?.controlDate) && data.catchBatch?.qualificationComments) {
+          error.details.errors = {catch: {invalidOrIncomplete: true}};
+        }
+
+        this.setError({message: 'COMMON.FORM.HAS_ERROR', ...error}, {detailsCssClass: 'error-details'});
       });
     }
   }
@@ -1126,6 +1132,34 @@ export class OperationPage<S extends OperationState = OperationState>
   markAsLoaded(opts?: { emitEvent?: boolean }) {
     super.markAsLoaded(opts);
     this.children?.forEach(c => c.markAsLoaded(opts));
+  }
+
+  setError(error: string | AppErrorWithDetails, opts?: {emitEvent?: boolean; detailsCssClass?: string;}) {
+
+    // If errors in operations
+    if (typeof error === 'object' && error?.details?.errors?.catch) {
+      // Show error in batch tree
+      this.batchTree.setError('ERROR.INVALID_OR_INCOMPLETE_FILL', {
+         //showOnlyInvalidRows: true
+      });
+
+      // Open the operation tab
+      this.tabGroup.selectedIndex = OperationPage.TABS.CATCH;
+
+      // Reset other errors
+      super.setError(undefined, opts);
+    } else {
+
+      super.setError(error, opts);
+
+      // Reset batch tree error
+      this.batchTree.resetError(opts);
+    }
+  }
+
+  // change visibility to public
+  resetError(opts?:  {emitEvent?: boolean}) {
+    this.setError(undefined, opts);
   }
 
   /* -- protected method -- */

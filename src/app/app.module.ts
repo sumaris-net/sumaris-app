@@ -72,8 +72,8 @@ import { ApolloModule } from 'apollo-angular';
 import { DATA_TESTING_PAGES } from '@app/data/data.testing.module';
 import { JobProgressionService } from '@app/social/job/job-progression.service';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
-import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '../../ngx-sumaris-components/src/app/shared/services/progress-bar.service';
-import {ProgressInterceptor} from '../../ngx-sumaris-components/src/app/shared/interceptors/progess.interceptor';
+import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '@sumaris-net/ngx-components';
+import {ProgressInterceptor} from '@sumaris-net/ngx-components';
 
 @NgModule({
   declarations: [
