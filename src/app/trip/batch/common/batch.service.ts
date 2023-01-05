@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { AppFormUtils, DateUtils, FormErrors, FormErrorTranslator, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { AppFormUtils, FormErrors, FormErrorTranslator, isEmptyArray, isNil, isNilOrBlank, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
-import { AcquisitionLevelCodes, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
@@ -14,15 +14,11 @@ import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.m
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { TranslateService } from '@ngx-translate/core';
-import { MEASUREMENT_PMFM_ID_REGEXP, MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
+import { MEASUREMENT_VALUES_PMFM_ID_REGEXP } from '@app/trip/services/model/measurement.model';
 import { countSubString } from '@app/shared/functions';
-import {BatchUtils} from '@app/trip/batch/common/batch.utils';
-import { Moment } from 'moment';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
-import { environment } from '@environments/environment';
-import { BatchModelUtils } from '@app/trip/batch/tree/batch-tree.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { trophy } from 'ionicons/icons';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
 
 
@@ -114,6 +110,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     return this.formErrorTranslator.translateControlPath(path, opts);
   }
 
+  /* -- private functions -- */
+
   private async controlLegacy(entity: Batch, program: Program, opts: BatchControlOptions): Promise<FormErrors> {
     // Control catch batch
     const catchErrors = await this.controlCatchBatch(entity, program, opts);
@@ -126,7 +124,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
       // Mark catch batch as invalid (if not already done)
       if (!entity.qualificationComments) {
-        this.markAsInvalid(entity, this.translate.instant('ERROR.INVALID_OR_INCOMPLETE_FILL'));
+        BatchUtils.markAsInvalid(entity, this.translate.instant('ERROR.INVALID_OR_INCOMPLETE_FILL'));
       }
     }
 
@@ -174,7 +172,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         console.info(`[batch-service] Control catch batch {${entity.id}} [INVALID]`, message);
 
         // Mark as invalid (=not controlled)
-        this.markAsInvalid(entity, message);
+        BatchUtils.markAsInvalid(entity, message);
         return errors;
       }
     }
@@ -182,7 +180,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     console.debug(`[batch-service] Control catch batch {${entity.id}} [VALID]`);
 
     // Mark as controlled (e.g. reset quality flag)
-    this.markAsControlled(entity, { withChildren: false /*will be mark later*/ })
+    BatchUtils.markAsControlled(entity, { withChildren: false /*will be mark later*/ })
+
     return null; // no errors
   }
 
@@ -270,14 +269,14 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
             });
 
             // Mark current batch as invalid
-            this.markAsInvalid(source, message);
+            BatchUtils.markAsInvalid(source, message);
 
             return errors;
           }
         }
 
         // Mark as controlled
-        this.markAsControlled(source);
+        BatchUtils.markAsControlled(source);
 
       })))
       // Concat all errors
@@ -329,50 +328,13 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           }
         });
 
-        this.markAsInvalid(entity, message);
+        BatchUtils.markAsInvalid(entity, message);
+
         return errors;
       }
     }
 
     return null;
-  }
-  /**
-   * Set controlDat, and reset quality fLag and comment
-   * @param entity
-   * @param opts
-   * @private
-   */
-  private markAsControlled(entity: Batch, opts?: {withChildren?: boolean; controlDate?: Moment}) {
-    // Mark as controlled
-    entity.controlDate = opts?.controlDate || DateUtils.moment();
-    // Clean quality flag
-    entity.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
-    // Clean qualification data
-    entity.qualificationComments = null;
-    entity.qualificationDate = null;
-
-    // Recursive call to children
-    if (!opts || opts.withChildren !== false) {
-      (entity.children || []).forEach(c => this.markAsControlled(c, opts));
-    }
-  }
-
-  /**
-   * Set controlDat, and reset quality fLag and comment
-   * @param entity
-   * @param opts
-   * @private
-   */
-  private markAsInvalid(entity: Batch, errorMessage: string) {
-    // Clean date
-    entity.controlDate = null;
-    entity.qualificationDate = null;
-
-    // Register error message, into qualificationComments
-    entity.qualificationComments = errorMessage;
-
-    // Clean quality flag
-    entity.qualityFlagId = QualityFlagIds.BAD;
   }
 
 }

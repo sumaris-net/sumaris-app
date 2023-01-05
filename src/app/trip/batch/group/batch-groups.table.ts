@@ -1399,9 +1399,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this._rowValidatorSubscription?.unsubscribe();
 
     // Clean quality flag
-    const qualityFlagId = form.controls['qualityFlagId'].value;
-    if (qualityFlagId !== 0) {
-      form.patchValue(<Partial<Batch>>{qualificationComments: null, qualityFlagId: QualityFlagIds.NOT_QUALIFIED, controlDate: null, qualificationDate: null}, {emitEvent: false});
+    const qualityFlagId = form.get('qualityFlagId').value;
+    if (qualityFlagId !== QualityFlagIds.NOT_QUALIFIED) {
+      form.patchValue(<Partial<Batch>>{controlDate: null, qualificationDate: null, qualificationComments: null, qualityFlagId: QualityFlagIds.NOT_QUALIFIED}, {emitEvent: false});
       form.markAsDirty();
       this.markAsDirty({emitEvent: false});
     }

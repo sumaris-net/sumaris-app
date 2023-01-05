@@ -46,19 +46,22 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
 
   get invalid(): boolean {
-    return this.form.invalid || this.hasSubBatchesControl.invalid ||
-      ((this.childrenList || []).find(child => child.invalid) && true) || false;
+    return this.form.invalid
+      || this.hasSubBatchesControl.invalid
+      || ((this.childrenList || []).find(child => child.invalid) && true) || false;
   }
 
   get valid(): boolean {
     // Important: Should be not invalid AND not pending, so use '!valid' (and NOT 'invalid')
-    return this.form.valid && this.hasSubBatchesControl.valid &&
-      (!this.childrenList || !this.childrenList.find(child => !child.valid)) || false;
+    return this.form.valid
+      && (this.hasSubBatchesControl.disabled /*ignore when disabled*/ || this.hasSubBatchesControl.valid)
+      && (!this.childrenList || !this.childrenList.find(child => child.enabled && !child.valid)) || false;
   }
 
   get pending(): boolean {
-    return this.form.pending || this.hasSubBatchesControl.pending ||
-      (this.childrenList && this.childrenList.find(child => child.pending) && true) || false;
+    return this.form.pending
+      || this.hasSubBatchesControl.pending
+      || (this.childrenList && this.childrenList.find(child => child.pending) && true) || false;
   }
 
   get loading(): boolean {
