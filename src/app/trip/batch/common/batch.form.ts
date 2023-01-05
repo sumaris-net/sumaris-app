@@ -1,20 +1,20 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { Batch, BatchWeight } from './batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
-  AppFormUtils, changeCaseToUnderscore,
+  AppFormUtils,
+  changeCaseToUnderscore,
   EntityUtils,
   firstArrayValue,
   firstTruePromise,
-  FormArrayHelper, FormErrorTranslatorOptions, IAppForm,
+  FormArrayHelper,
   IReferentialRef,
   isNil,
   isNotNil,
   ReferentialUtils,
-  SharedFormGroupValidators,
   splitByProperty,
   toBoolean,
   UsageMode,
@@ -186,14 +186,13 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
       });
     this._pmfmNamePipe = injector.get(PmfmNamePipe);
-
-    // Set default acquisition level
-    this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this._enable = true;
-    this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
-
     this.childrenFormHelper = this.getChildrenFormHelper(this.form);
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
+
+    // Set defaults
+    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+    this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
 
     // for DEV only
     //this.debug = !environment.production;
@@ -255,7 +254,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     if (path.includes('measurementValues.')) {
       const parts = path.split('.');
       const pmfmId = parseInt(parts[parts.length-1]);
-      const pmfm = (this.$pmfms.value || []).find(p => p.id === pmfmId);
+      const pmfm = (this.pmfms || []).find(p => p.id === pmfmId);
       if (pmfm) {
         return this._pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix});
       }

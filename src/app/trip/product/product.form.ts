@@ -42,7 +42,7 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
     );
 
     // Set default acquisition level
-    this._acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
+    this.acquisitionLevel = AcquisitionLevelCodes.PRODUCT;
 
     this.mobile = this.settings.mobile;
     this.debug = !environment.production;

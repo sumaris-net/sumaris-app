@@ -143,7 +143,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         .subscribe());
 
     this.registerSubscription(
-      this.landingForm.$strategyLabel
+      this.landingForm.strategyLabel$
         .pipe(
           filter(value => this.$strategyLabel.value !== value),
           tap(strategyLabel => console.debug("[landing-page] Received strategy label: ", strategyLabel)),

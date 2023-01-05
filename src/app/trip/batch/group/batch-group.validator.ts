@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { BatchValidatorOptions, BatchValidators, BatchValidatorService } from '../common/batch.validator';
 import { BatchGroup } from './batch-group.model';
-import { AppFormUtils, isNotEmptyArray, isNotNil, LocalSettingsService, SharedAsyncValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { AppFormUtils, FormErrors, isNotEmptyArray, isNotNil, LocalSettingsService, SharedAsyncValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { environment } from '@environments/environment';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
@@ -55,12 +55,12 @@ export class BatchGroupValidatorService extends
       return null;
     }
 
-    const compute = BatchValidators.samplingRatioAndWeight(opts);
+    const computeFn = BatchValidators.samplingRatioAndWeight(opts);
 
     return form.valueChanges
       .pipe(debounceTime(opts?.debounceTime || 0))
       .subscribe(value =>{
-        const errors = compute(form);
+        const errors = computeFn(form);
         if (errors) form.setErrors(errors);
         if (opts?.markForCheck) opts.markForCheck();
       });
@@ -142,18 +142,11 @@ export class BatchGroupValidators {
 
     return Validators.compose((opts.qvPmfm.qualitativeValues || [])
       .map((qv, qvIndex) => {
-        const qvSuffix = `children.${qvIndex}.`;
-        const qvOpts = {
-          ...opts,
-          weightPath: qvSuffix + 'weight',
-          samplingWeightPath: qvSuffix + 'children.0.weight',
-          samplingRatioPath: qvSuffix + 'children.0.samplingRatio',
-          qvIndex
-        };
+        const qvFormPath = `children.${qvIndex}`;
         return (control) => {
           const form = control as UntypedFormGroup;
-          const individualCount = form.get(qvSuffix + 'individualCount');
-          const samplingIndividualCount = form.get(qvSuffix + 'children.0.individualCount');
+          const individualCount = form.get(qvFormPath + '.individualCount');
+          const samplingIndividualCount = form.get(qvFormPath + '.children.0.individualCount');
 
           if (!samplingIndividualCount) return; // Nothing to compute
 
@@ -162,7 +155,7 @@ export class BatchGroupValidators {
           if (samplingIndividualCount?.disabled) samplingIndividualCount.enable();
 
           // Start computation
-          return BatchValidators.computeSamplingRatioAndWeight(form, {...qvOpts, emitEvent: false, onlySelf: false});
+          return BatchValidators.computeSamplingRatioAndWeight(control.get(qvFormPath), {...opts, emitEvent: false, onlySelf: false});
         }
       }));
   }

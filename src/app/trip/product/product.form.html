@@ -67,7 +67,7 @@
 
     <ng-content></ng-content>
 
-    <ion-row [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
+    <ion-row [formGroup]="measurementValuesForm" *ngIf="pmfms$ | async; let pmfms; else measurementsSkeleton;">
 
       <!-- Measurements -->
       <ion-col *ngFor="let pmfm of pmfms; index as i;"

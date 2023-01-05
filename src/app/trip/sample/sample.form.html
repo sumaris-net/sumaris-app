@@ -70,7 +70,7 @@
     </ion-row>
 
     <!-- Measurements -->
-    <ion-row *ngIf="$pmfms | async | arrayFilter: isNotHiddenPmfm; let pmfms"
+    <ion-row *ngIf="pmfms$ | async | arrayFilter: isNotHiddenPmfm; let pmfms"
              class="ion-no-padding"
              [formGroup]="measurementValuesForm">
       <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">

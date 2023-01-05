@@ -211,7 +211,7 @@
     <!-- Measurements -->
     <ng-container *ngIf="showMeasurements">
       <!-- If pmfms NOT loaded, display skeleton -->
-      <ion-row *ngIf="$pmfms | async | arrayFilter: notHiddenPmfm; let pmfms; else measurementsSkeleton;"
+      <ion-row *ngIf="pmfms$ | async | arrayFilter: notHiddenPmfm; let pmfms; else measurementsSkeleton;"
                [class.cdk-visually-hidden]="pmfms | isEmptyArray">
 
         <!-- measurement label (only on the first Pmfm) -->

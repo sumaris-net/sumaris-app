@@ -47,7 +47,7 @@
 
     <ng-content></ng-content>
 
-    <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
+    <form [formGroup]="measurementValuesForm" *ngIf="pmfms$ | async; let pmfms; else measurementsSkeleton;">
 
       <!-- Measurements -->
       <app-pmfm-field *ngFor="let pmfm of pmfms; index as i;"

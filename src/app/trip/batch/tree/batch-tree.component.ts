@@ -4,7 +4,7 @@ import {
   AppFormUtils,
   AppTabEditor,
   AppTable,
-  Entity,
+  Entity, filterNotNil,
   firstTrue,
   IAppTabEditor,
   InMemoryEntitiesService,
@@ -318,10 +318,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     super.ngOnInit();
 
     this.registerSubscription(
-      this.catchBatchForm.$pmfms
-        .pipe(
-          filter(isNotNil)
-        )
+      this.catchBatchForm.pmfms$
         .subscribe(pmfms => {
           const hasPmfms = pmfms.length > 0;
           this.showCatchForm = this.showCatchForm && hasPmfms;

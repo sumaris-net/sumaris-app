@@ -250,7 +250,8 @@ export class OperationPage<S extends OperationState = OperationState>
       trip: this.trip
     });
     if (!errors) return;
-    const pmfms = await firstNotNilPromise(this.measurementsForm.$pmfms, {stop: this.destroySubject});
+
+    const pmfms = await firstNotNilPromise(this.measurementsForm.pmfms$, {stop: this.destroySubject});
     const errorMessage = this.errorTranslator.translateErrors(errors, {
       controlPathTranslator: {
         translateControlPath: (path) => this.service.translateControlPath(path, {
@@ -373,7 +374,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     if (this.measurementsForm) {
       this.registerSubscription(
-        this.measurementsForm.$pmfms
+        this.measurementsForm.pmfms$
           .pipe(
             filter(isNotNil),
             mergeMap(_ => this.measurementsForm.ready())

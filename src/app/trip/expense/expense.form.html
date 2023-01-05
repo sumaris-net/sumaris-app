@@ -111,7 +111,7 @@
 
     <!-- SUB-TAB: ice -->
     <mat-tab label="{{'EXPENSE.TAB_ICE'|translate}}"
-             [disabled]="iceExpenseForm.$pmfms|async|isEmptyArray">
+             [disabled]="iceExpenseForm.pmfms$|async|isEmptyArray">
       <div class="ion-padding">
         <app-typed-expense-form #iceExpenseForm
                                 expenseType="ice"

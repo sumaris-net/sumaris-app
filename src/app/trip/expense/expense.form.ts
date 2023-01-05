@@ -118,7 +118,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
     this.initBaitHelper();
 
     this.registerSubscription(
-      filterNotNil(this.$pmfms)
+      this.pmfms$
         // Wait form controls ready
         .pipe(mergeMap((pmfms) => this.ready().then(_ => pmfms)))
         .subscribe(pmfms => {
@@ -269,11 +269,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   async setIceValue(data: Measurement[]) {
 
     try {
-      let icePmfms = this.iceForm.$pmfms.getValue();
-      if (!icePmfms) {
-        if (this.debug) console.debug('[expense-form] waiting for ice pmfms');
-        icePmfms = await firstNotNilPromise(this.iceForm.$pmfms, {stop: this.destroySubject, timeout: 10000});
-      }
+      const icePmfms = await firstNotNilPromise(this.iceForm.pmfms$, {stop: this.destroySubject, timeout: 10000});
 
       // filter data before set to ice form
       this.iceForm.value = MeasurementUtils.filter(data, icePmfms);
@@ -288,11 +284,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   async setBaitValue(data: Measurement[]) {
 
     try {
-      let baitPmfms = this.baitForms.first.$pmfms.getValue();
-      if (!baitPmfms) {
-        if (this.debug) console.debug('[expense-form] Waiting for bait pmfms');
-        baitPmfms = await firstNotNilPromise(this.baitForms.first.$pmfms, {stop: this.destroySubject, timeout: 10000});
-      }
+      const baitPmfms = await firstNotNilPromise(this.baitForms.first.pmfms$, {stop: this.destroySubject, timeout: 10000});
 
       // filter data before set to each bait form
       this.baitMeasurements = MeasurementUtils.filter(data, baitPmfms);

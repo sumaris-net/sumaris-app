@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
 import {
-  AppEditor, AppErrorWithDetails,
+  AppEditor,
+  AppErrorWithDetails,
   changeCaseToUnderscore,
   equals,
   filterFalse,
@@ -13,9 +14,6 @@ import {
   isNotEmptyArray,
   isNotNilOrBlank,
   LocalSettingsService,
-  PromiseEvent,
-  ReferentialRef,
-  sleep,
   toBoolean,
   UsageMode,
   WaitForOptions
@@ -29,11 +27,11 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, switchMap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, mergeMap, switchMap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
@@ -73,7 +71,6 @@ interface ComponentState {
   templateUrl: './batch-tree-container.component.html',
   styleUrls: ['./batch-tree-container.component.scss'],
   providers: [
-    { provide: BatchModelValidatorService, useClass: BatchModelValidatorService},
     RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -87,17 +84,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   protected _programAllowMeasure: boolean;
   protected _listenProgramChanges = true;
 
-  protected readonly allowDiscard$ = this.state.select('allowDiscard');
   protected readonly allowSamplingBatches$ = this.state.select('allowSamplingBatches');
   protected readonly allowSubBatches$ = this.state.select('allowSubBatches');
-  protected readonly gearId$ = this.state.select('gearId');
-  protected readonly physicalGear$ = this.state.select('physicalGear');
   protected readonly programLabel$ = this.state.select('programLabel');
   protected readonly program$ = this.state.select('program');
-  protected readonly sortingPmfms$ = this.state.select('sortingPmfms');
-  protected readonly catchPmfms$ = this.state.select('catchPmfms');
-  protected readonly showBatchTables$ = this.state.select('showBatchTables');
-  protected readonly model$ = this.state.select('model');
   protected readonly form$ = this.state.select('form');
   protected readonly editingBatch$ = this.state.select('editingBatch');
 
@@ -330,26 +320,36 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     this.state.hold(filterTrue(this.readySubject)
       .pipe(
-        switchMap(() => this.state.select(['program', 'gearId', 'physicalGear'], res => res)),
+        switchMap(() => this.state.select(['program', 'gearId'], s => s)),
         debounceTime(100),
         distinctUntilChanged(equals)
       ),
-      async ({program, gearId, physicalGear, allowDiscard}) => {
+      async ({program, gearId}) => {
         await this.setProgram(program);
-        await this.loadPmfms(program, gearId, physicalGear);
-
+        await this.loadPmfms(program, gearId);
       });
 
     this.state.connect('model',
-      this.state.select(['data', 'allowDiscard', 'catchPmfms', 'sortingPmfms'],
-        ({ data, allowDiscard, sortingPmfms, catchPmfms }) =>
-          this.batchModelValidatorService.createModel(data, {allowDiscard, sortingPmfms, catchPmfms}))
+      this.state.select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], s => s)
+        .pipe(
+          mergeMap(async ({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => {
+
+            // Load physical gear's children (if not already done)
+            if (physicalGear && isEmptyArray(physicalGear.children)) {
+              const tripId = this.tripContext.trip?.id;
+              physicalGear.children = await this.physicalGearService.loadAllByParentId({tripId, parentGearId: physicalGear.id});
+            }
+
+            // Create the model
+            return this.batchModelValidatorService.createModel(data, {allowDiscard, sortingPmfms, catchPmfms, physicalGear})
+          })
+        )
     );
 
     this.state.connect('form',
       this.state.select(['model', 'allowSamplingBatches'],
         ({model, allowSamplingBatches}) => {
-          const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSamplingBatches: allowSamplingBatches});
+          const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSamplingBatches});
           form.disable();
           return form;
         })
@@ -621,8 +621,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
 
-  protected async loadPmfms(program: Program, gearId: number, physicalGear: PhysicalGear) {
-    if (!program || isNil(gearId) || isNil(physicalGear)) return; // Skip
+  protected async loadPmfms(program: Program, gearId: number) {
+    if (!program || isNil(gearId)) return; // Skip
 
     console.info(this.logPrefix + 'Loading pmfms...');
 
@@ -645,7 +645,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       }
 
       // Load pmfms for batches
-      let [catchPmfms, sortingPmfms] = await Promise.all([
+      const [catchPmfms, sortingPmfms] = await Promise.all([
         this.programRefService.loadProgramPmfms(program.label, {
           acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
           gearId
@@ -655,43 +655,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
           gearId
         })
       ]);
-
-      // Fill CHILD_GEAR pmfms
-      const childGearPmfmIndex = sortingPmfms
-        .findIndex(p => p.id === PmfmIds.CHILD_GEAR);
-      if (childGearPmfmIndex !== -1) {
-
-        // Load physical gear's children
-        let subGears = physicalGear.children;
-        if (isEmptyArray(subGears)) {
-          const tripId = this.tripContext.trip?.id;
-          subGears = await this.physicalGearService.loadAllByParentId({tripId, parentGearId: physicalGear.id});
-        }
-
-        // Convert to referential item
-        const items = (subGears || []).map(pg => ReferentialRef.fromObject({
-          id: pg.rankOrder,
-          label: pg.rankOrder,
-          name: pg.measurementValues[PmfmIds.GEAR_LABEL] || pg.gear.name
-        }));
-
-        // DEBUG
-        console.debug(`[batch-tree-container] Fill CHILD_GEAR PMFM, with items:`, items);
-
-        sortingPmfms[childGearPmfmIndex] = sortingPmfms[childGearPmfmIndex].clone();
-        sortingPmfms[childGearPmfmIndex].qualitativeValues = items;
-      }
-
-      // Change discard weight to optional
-      if (this.allowDiscard === false) {
-        sortingPmfms = sortingPmfms.map(p => {
-          if (PmfmUtils.isWeight(p) && p.label === 'DISCARD_WEIGHT') {
-            p = p.clone();
-            p.required = false;
-          }
-          return p;
-        });
-      }
 
       // Update the state
       this.state.set((state) => {

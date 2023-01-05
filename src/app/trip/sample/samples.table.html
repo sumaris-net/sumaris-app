@@ -90,7 +90,7 @@
      [class.has-toolbar]="showToolbar"
      [class.has-group-header]="showGroupHeader"
      [class.has-pmfm-header-details]="showPmfmDetails"
-     *ngIf="$pmfms | async; let pmfms"
+     *rxIf="$pmfms; let pmfms"
      [style.--pmfm-count]="pmfms?.length">
 
   <!-- ********************************************************** -->
@@ -166,14 +166,14 @@
         <ion-label>#</ion-label>
       </th>
       <ng-container *matCellDef="let row">
-        <td mat-cell *ngVar="row.editing && row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions) as error"
-            [title]="error||''">
+        <td mat-cell *rxLet="row.validator.enabled && row.validator | translateFormError: errorTranslatorOptions; let rowError"
+            [title]="rowError||''">
           <ion-label matBadge="!"
-                    [matBadgeHidden]="!error"
+                    [matBadgeHidden]="!rowError"
                     matBadgeOverlap="false"
                     matBadgeColor="accent"
                     matBadgeSize="small">
-            <ng-container *ngIf="showIdColumn">{{ row.currentData?.rankOrder }}</ng-container>
+            {{ row.currentData?.rankOrder }}
           </ion-label>
         </td>
       </ng-container>
@@ -182,7 +182,7 @@
       <th mat-header-cell *matHeaderCellDef>
       </th>
       <ng-container *matCellDef="let row">
-        <td mat-cell *ngVar="row.editing && row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions) as error"
+        <td mat-cell *ngVar="row.validator.enabled && (row.validator | translateFormError: errorTranslatorOptions) as error"
             [title]="error||''">
           <ion-icon *ngIf="error" color="danger" slot="start" name="alert-circle">
           </ion-icon>

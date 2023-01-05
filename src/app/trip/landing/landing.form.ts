@@ -349,30 +349,33 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         .subscribe(strategyLabel => this.strategyLabel = strategyLabel)
     );
 
-    this.registerSubscription(
-      this.$strategyLabel
-        .pipe(
-          mergeMap(value => this.waitIdle({stop: this.destroySubject})
-            .then(() => value))
-        )
-        .subscribe(strategyLabel => {
+    // Update the strategy filter (if autocomplete field exists. If not, program will set later in ngOnInit())
+    this._state.hold(this.programLabel$, programLabel => {
+      if (this.autocompleteFields.strategy) {
+        this.autocompleteFields.strategy.filter.levelLabel = programLabel;
+      }
+    });
 
-          const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
-          if (measControl && measControl.value !== strategyLabel) {
-            // DEBUG
-            console.debug(`[landing-form] Setting measurementValues.${PmfmIds.STRATEGY_LABEL}=${strategyLabel}`);
+    this._state.hold(this.strategyLabel$, async (strategyLabel) => {
+      // Wait loaded
+      await this.waitIdle({stop: this.destroySubject});
 
-            measControl.setValue(strategyLabel);
-          }
-          if (this.strategyControl.value?.label !== strategyLabel) {
-            this.strategyControl.setValue({label: strategyLabel}, {emitEvent: false});
-            this.markForCheck();
-          }
+      // Get control to store strategy label, in measurements form
+      const measControl = this.form.get('measurementValues.' + PmfmIds.STRATEGY_LABEL);
+      if (measControl && measControl.value !== strategyLabel) {
+        // DEBUG
+        console.debug(`[landing-form] Setting measurementValues.${PmfmIds.STRATEGY_LABEL}=${strategyLabel}`);
 
-          // Refresh fishing areas autocomplete
-          this.fishingAreaFields?.forEach(fishingArea => fishingArea.reloadItems());
-        })
-      );
+        measControl.setValue(strategyLabel);
+      }
+      if (this.strategyControl.value?.label !== strategyLabel) {
+        this.strategyControl.setValue({label: strategyLabel}, {emitEvent: false});
+        this.markForCheck();
+      }
+
+      // Refresh fishing areas autocomplete
+      this.fishingAreaFields?.forEach(fishingArea => fishingArea.reloadItems());
+    });
 
     // Init trip form (if enable)
     if (this.showTrip) {
@@ -569,7 +572,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
     filter = {
       ...filter,
-      levelLabel: this.$programLabel.value
+      levelLabel: this.programLabel
     };
     if (isNilOrBlank(filter.levelLabel)) return undefined; // Program no loaded yet
 
@@ -632,15 +635,6 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
         ...filter,
         excludedIds
       });
-    }
-  }
-
-  protected setProgramLabel(programLabel: string) {
-    super.setProgramLabel(programLabel);
-
-    // Update the strategy filter (if autocomplete field exists. If not, program will set later in ngOnInit())
-    if (this.autocompleteFields.strategy) {
-      this.autocompleteFields.strategy.filter.levelLabel = programLabel;
     }
   }
 

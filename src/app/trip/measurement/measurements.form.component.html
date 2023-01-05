@@ -4,15 +4,34 @@
 
 <form class="form-container" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
+  <!-- debug -->
+  <app-debug *ngIf="debug" title="Measurements Form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          ready: {{readySubject|push}}<br/>
+          loading: {{loadingSubject|push}}<br/>
+          enabled: {{enabled}}<br/>
+          dirty: {{dirty}}<br/>
+        </ion-col>
+        <ion-col>
+          programLabel: {{programLabel}}<br/>
+          strategyLabel: {{strategyLabel}}<br/>
+          pmfms count: {{(pmfms$|push)?.length||0}}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
+
   <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+  <ion-item *rxIf="showError && (errorSubject|push); let error" visible-xs visible-sm visible-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>>
   </ion-item>
 
   <!-- pmfms -->
-  <ng-container *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton">
-    <app-pmfm-field *ngFor="let pmfm of pmfms; trackBy: trackPmfmFn"
+  <ng-container *rxLet="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'immediate'; parent: false">
+    <app-pmfm-field *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBLocking'; parent: false"
                     [pmfm]="pmfm"
                     [compact]="compact"
                     [placeholder]="pmfm|pmfmName: {i18nPrefix: i18nPmfmPrefix, i18nContext: i18nSuffix}"

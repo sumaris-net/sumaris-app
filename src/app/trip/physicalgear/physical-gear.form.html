@@ -14,7 +14,7 @@
                           [config]="autocompleteFields.gear"
                           [tabindex]="tabindex"
                           [required]="true"
-                          [showSearchBar]="$gears|async|isArrayLength:{greaterThan: 5}"
+                          [showSearchBar]="gears$|async|isArrayLength:{greaterThan: 5}"
                           (click)="selectInputContent($event)"
                           (keydown.tab)="focusNextInput($event)"
                           (keydown.enter)="focusNextInput($event)"
@@ -49,12 +49,13 @@
 
   <ng-content></ng-content>
 
-  <form [formGroup]="measurementValuesForm" *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;">
+  <form *rxIf="pmfms$; let pmfms; suspense: measurementsSkeleton; strategy: 'userBlocking'"
+        [formGroup]="measurementValuesForm">
     <ion-grid class="ion-no-padding">
       <ion-row>
 
         <!-- Measurements -->
-        <ng-container *ngFor="let pmfm of pmfms; index as i; last as last">
+        <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; strategy: 'userBlocking'; index as i; last as last">
           <ion-col class="ion-padding-end"
                    *ngVar="pmfm|pmfmFieldStyle:maxItemCountForButtons as style"
                    size="12"

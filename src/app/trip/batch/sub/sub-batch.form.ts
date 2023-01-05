@@ -108,7 +108,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this._qvPmfm = value;
     // If already loaded, re apply pmfms, to be able to execute mapPmfms
     if (value && !this.loading) {
-      this.setPmfms(this.$pmfms);
+      this.setPmfms(this.pmfms);
     }
   }
 
@@ -191,7 +191,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this._enable = false;
 
     // Set default values
-    this._acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
+    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
 
     // Control for indiv. count enable
@@ -651,7 +651,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
       try {
         const subscription = await this.validatorService.enableWeightLengthConversion(form, {
-          pmfms: this.$pmfms.value,
+          pmfms: this.pmfms,
           qvPmfm: this._qvPmfm,
           parentGroup: !this.showParentGroup ? this.parentGroup : undefined /*will use parent control*/,
           onError: (err) => {
@@ -692,10 +692,10 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
     // Adapt measurement values for entity
     if (measurementValuesForm) {
-      const pmfms = this.$pmfms.value;
+      const pmfms = this.pmfms || [];
       json.measurementValues = Object.assign({},
         this.data.measurementValues || {}, // Keep additional PMFM values
-        MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, pmfms || []));
+        MeasurementValuesUtils.normalizeValuesToModel(measurementValuesForm.value, pmfms));
     } else {
       json.measurementValues = {};
     }

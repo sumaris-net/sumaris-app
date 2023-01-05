@@ -176,7 +176,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     if (this.measurementsForm) {
       this.registerSubscription(
-        this.measurementsForm.$pmfms
+        this.measurementsForm.pmfms$
           .pipe(
             //debounceTime(400),
             filter(isNotNil),
