@@ -91,7 +91,7 @@ export const environment = Object.freeze(<AppEnvironment>{
     },
     {
       host: 'visi-common-docker1.ifremer.fr',
-      port: 8080
+      port: 8181
     },
     {
       host: 'imagine-pod.isival.ifremer.fr',
@@ -116,7 +116,8 @@ export const environment = Object.freeze(<AppEnvironment>{
     // username: 'admq2', password: 'q22006'
 
     // Token auth (using Person.pubkey)
-    username: 'admin@sumaris.net', password: 'admin',
+    //username: 'admin@sumaris.net', password: 'admin',
+    username: 'tstq2', password: 'hudugalabo',
   },
 
   account: {
