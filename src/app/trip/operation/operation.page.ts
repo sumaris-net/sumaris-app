@@ -211,7 +211,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Get paste flags from clipboard, if related to Operation
     const clipboard = this.tripContext?.clipboard;
-    this.operationPasteFlags = OperationUtils.isOperation(clipboard?.data) && clipboard.pasteFlags || 0;
+    this.operationPasteFlags = toNumber(clipboard?.pasteFlags, 0);
 
     // Add shortcut
     if (!this.mobile) {
@@ -732,7 +732,10 @@ export class OperationPage<S extends OperationState = OperationState>
       }
 
       // Reset clipboard
-      this.tripContext?.setValue('clipboard', null);
+      this.tripContext?.setValue('clipboard', {
+        data: null, // Reset data
+        pasteFlags: this.operationPasteFlags // Keep flags
+      });
 
       this.isDuplicatedData = true;
     }
@@ -909,23 +912,14 @@ export class OperationPage<S extends OperationState = OperationState>
       : await this.saveIfDirtyAndConfirm(null, {
         emitEvent: false /*do not update view*/
       });
-    if (saved) {
-      // FIXME: this optimization not working well, because the page is still reloading after saving (because id changed).
-      if (this.mobile) {
-        const tripId = this.data?.tripId || this.trip?.id;
-        return this.load(undefined, {
-          tripId,
-          updateRoute: false,
-          openTabIndex: OperationPage.TABS.GENERAL
-        });
-      } else {
-        return this.router.navigate(['..', 'new'], {
-          relativeTo: this.route,
-          replaceUrl: true,
-          queryParams: {tab: OperationPage.TABS.GENERAL}
-        });
-      }
-    }
+    if (!saved) return; // not saved
+
+    // Redirect to /new
+    return this.router.navigate(['..', 'new'], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {tab: OperationPage.TABS.GENERAL}
+    });
   }
 
   async duplicate(event: Event): Promise<any> {

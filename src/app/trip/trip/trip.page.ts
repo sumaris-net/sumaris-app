@@ -488,8 +488,8 @@ export class TripPage
 
     // Propagate the past flags to clipboard
     this.tripContext?.setValue('clipboard', {
-      data: new Operation(),
-      pasteFlags: this.operationPasteFlags
+      data: null, // Reset data
+      pasteFlags: this.operationPasteFlags // Keep flags
     });
 
     setTimeout(async () => {
