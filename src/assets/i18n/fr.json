@@ -546,7 +546,7 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
-      "BTN_DOWNLOAD_DOTS": "Assistant de téléchargement...",
+      "BTN_DOWNLOAD_DOTS": "Téléchargement...",
       "BTN_DOWNLOAD_JSON": "Télécharger (JSON)",
       "DOWNLOAD_JSON_FILENAME": "Marées.json",
       "FILTER": {
