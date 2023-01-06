@@ -1,7 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnInit } from '@angular/core';
 import { ReferentialRefService } from '../../referential/services/referential-ref.service';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
-import { Alerts, ConfigService, HammerSwipeEvent, isNotEmptyArray, isNotNil, PersonService, PersonUtils, ReferentialRef, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
+import {
+  Alerts,
+  ConfigService,
+  HammerSwipeEvent,
+  isNotEmptyArray,
+  isNotNil,
+  PersonService,
+  PersonUtils,
+  ReferentialRef,
+  SharedValidators,
+  slideUpDownAnimation,
+  StatusIds
+} from '@sumaris-net/ngx-components';
 import { ObservedLocationService } from '../services/observed-location.service';
 import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
 import { ObservedLocation } from '../services/model/observed-location.model';
@@ -29,6 +41,7 @@ export const ObservedLocationsPageSettingsEnum = {
   selector: 'app-observed-locations-page',
   templateUrl: 'observed-locations.page.html',
   styleUrls: ['observed-locations.page.scss'],
+  animations: [slideUpDownAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ObservedLocationsPage extends
