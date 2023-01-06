@@ -1,4 +1,4 @@
-import { FormFieldDefinition, FormFieldType, isNilOrBlank, isNotNilOrNaN, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
+import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
 import { LocationLevelGroups, LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';

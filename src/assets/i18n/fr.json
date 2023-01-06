@@ -1841,6 +1841,7 @@
       "LANDING_DATE_TIME_ENABLE": "Sortie > Débarquement : Saisir la date ?",
       "LANDING_OBSERVERS_ENABLE": "Sortie > Débarquement : Saisir les observateurs ?",
       "LANDING_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port ?",
+      "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Sortie > Débarquements : Zone de pêche: Niveau(x) de lieu",
       "LANDING_SAMPLES_COUNT_ENABLE": "Sortie > Débarquements : Afficher le nombre d'échantillonnages ?",
       "LANDING_SAMPLES_WEIGHT_UNIT": "Sortie > Débarquements : Unité du poids",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Marée observée au débarquement > Zone de pêche: Niveau(x) de lieu",
