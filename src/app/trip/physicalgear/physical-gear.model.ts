@@ -143,8 +143,9 @@ export class PhysicalGear
     // Parent / children
     this.parentId = source.parentId;
     this.parent = source.parent && PhysicalGear.fromObject(source.parent);
-    if (source.children && (!opts || opts.withChildren !== false)) {
-      this.children = source.children.map(child => PhysicalGear.fromObject(child, opts));
+
+    if (!opts || opts.withChildren !== false) {
+      this.children = source.children && source.children.map(child => PhysicalGear.fromObject(child, opts)) || undefined;
     }
 
     // Trip

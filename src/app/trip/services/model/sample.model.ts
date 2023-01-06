@@ -172,8 +172,8 @@ export class Sample extends RootDataEntity<Sample, number, SampleAsObjectOptions
     this.measurementValues = source.measurementValues && { ...source.measurementValues } || MeasurementUtils.toMeasurementValues(source.measurements);
     this.images = source.images && source.images.map(ImageAttachment.fromObject) || undefined;
 
-    if (source.children && (!opts || opts.withChildren !== false)) {
-      this.children = source.children.map(child => Sample.fromObject(child, opts));
+    if (!opts || opts.withChildren !== false) {
+      this.children = source.children && source.children.map(child => Sample.fromObject(child, opts)) || undefined;
     }
 
     return this;
