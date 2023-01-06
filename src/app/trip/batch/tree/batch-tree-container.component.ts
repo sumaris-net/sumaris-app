@@ -487,13 +487,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     this.data = data;
 
-    if (!opts || opts.emitEvent !== false) {
-      // Mark as loading
-      this.markAsLoading();
-
-      // Stop editing batch
-      await this.stopEditBatch();
-    }
+    // Mark as loading
+    if (!opts || opts.emitEvent !== false) this.markAsLoading();
 
     try {
       await this.ready();
@@ -729,12 +724,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.batchTree.batchGroupsTable.pmfms = source.childrenPmfms || [];
 
       this.batchTree.markAsReady();
-      const jobs = [this.batchTree.catchBatchForm.ready(), this.batchTree.batchGroupsTable.ready()];
+      const jobs: Promise<void>[] = [this.batchTree.catchBatchForm.ready(), this.batchTree.batchGroupsTable.ready()];
 
       if (this.batchTree.subBatchesTable) {
         // TODO: pass sub pmfms
         this.batchTree.subBatchesTable.programLabel = this.programLabel;
-        //await this.batchTree.subBatchesTable.ready();
         jobs.push(this.batchTree.subBatchesTable.ready())
       }
 
