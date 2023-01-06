@@ -90,7 +90,7 @@
      [class.has-toolbar]="showToolbar"
      [class.has-group-header]="showGroupHeader"
      [class.has-pmfm-header-details]="showPmfmDetails"
-     *rxIf="$pmfms; let pmfms"
+     *ngIf="$pmfms|async; let pmfms"
      [style.--pmfm-count]="pmfms?.length">
 
   <!-- ********************************************************** -->
