@@ -11,13 +11,14 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
-  Alerts, AppErrorWithDetails, AppForm,
+  Alerts,
+  AppErrorWithDetails,
   DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
-  HistoryPageReference, IAppForm, IAppFormGetter,
+  HistoryPageReference,
   InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
@@ -36,12 +37,12 @@ import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { combineAll, debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { combineLatest, merge, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -51,9 +52,8 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
 import moment from 'moment';
-import { RxState } from '@rx-angular/state';
 
-const TripPageTabs = {
+export const TripPageTabs = {
   GENERAL: 0,
   PHYSICAL_GEARS: 1,
   OPERATIONS: 2
@@ -251,8 +251,12 @@ export class TripPage
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip load Trip
-
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
+
+    // Update the context
+    if (this.tripContext.program !== program) {
+      this.tripContext.setValue('program', program);
+    }
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -477,11 +481,12 @@ export class TripPage
 
     this.markAsLoading();
 
-    // Store the trip in context
-    this.tripContext?.setValue('trip', this.data.clone());
 
     // Propagate the usage mode (e.g. when try to 'terminate' the trip)
     this.tripContext?.setValue('usageMode', this.usageMode);
+
+    // Store the trip in context
+    this.tripContext?.setValue('trip', this.data.clone());
 
     // Store the selected operation (e.g. useful to avoid rankOrder computation, in the operation page)
     this.tripContext?.setValue('operation', row.currentData);
@@ -516,6 +521,9 @@ export class TripPage
 
     // Propagate the usage mode (e.g. when try to 'terminate' the trip)
     this.tripContext?.setValue('usageMode', this.usageMode);
+
+    // Reset operation
+    this.tripContext?.resetValue('operation');
 
     // OPen the operation editor
     setTimeout(async () => {

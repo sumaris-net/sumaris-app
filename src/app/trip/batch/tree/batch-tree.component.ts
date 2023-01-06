@@ -4,7 +4,7 @@ import {
   AppFormUtils,
   AppTabEditor,
   AppTable,
-  Entity, filterNotNil,
+  Entity,
   firstTrue,
   IAppTabEditor,
   InMemoryEntitiesService,
@@ -43,7 +43,6 @@ import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal
 import { AppSharedFormUtils, FormControlStatus } from '@app/shared/forms.utils';
 import { ISubBatchesModalOptions } from '@app/trip/batch/sub/sub-batches.modal';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { RxState } from '@rx-angular/state';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
