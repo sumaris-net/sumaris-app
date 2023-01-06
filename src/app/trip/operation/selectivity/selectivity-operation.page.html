@@ -63,7 +63,7 @@
 
       <ion-item *ngFor="let item of items"
                 tappable class="text-1x"
-                [color]="isCurrentData(item) ? 'secondary100' : undefined"
+                [color]="data?.id === item.id ? 'secondary100' : undefined"
                 (click)="onLastOperationClick($event, item.id)">
         <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
         <ion-grid>
@@ -246,9 +246,11 @@
                 </ion-grid>
               </app-form-operation>
             </ion-col>
-            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile">
+
+            <!-- quality metadata (+ control button) only if 'on desk' mode -->
+            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="usageMode|isNotOnField">
               <app-entity-metadata [value]="data"
-                                   [showRecorder]="data && !!data.updateDate">
+                                   [showRecorder]="data?.updateDate|isNotNil">
                 <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>

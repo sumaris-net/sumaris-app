@@ -884,18 +884,28 @@ export class OperationPage<S extends OperationState = OperationState>
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty && this.valid
+    const saved = this.isOnFieldMode && (!this.dirty || this.valid)
       // If on field mode: try to save silently
-      ? this.save(event)
+      ? await this.save(event)
       // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm(null, {
+      : await this.saveIfDirtyAndConfirm(null, {
         emitEvent: false /*do not update view*/
       });
-    const canContinue = await savePromise;
 
-    if (canContinue) {
-      return this.load(+id, {tripId: this.data.tripId, updateTabAndRoute: true});
+    if (!saved) return; // Skip
+
+    // Reopen another page
+    if (this.isNewData) {
+      return this.router.navigate(['..', id], {
+        relativeTo: this.route,
+        replaceUrl: true,
+        preserveFragment: false,
+        queryParams: {tab: OperationPage.TABS.GENERAL, [this.pathIdAttribute]: id}
+      });
     }
+
+    // Reload
+    return this.load(+id, {tripId: this.data.tripId, updateRoute: true, openTabIndex: OperationPage.TABS.GENERAL});
   }
 
   async saveAndNew(event: Event): Promise<any> {
@@ -905,7 +915,7 @@ export class OperationPage<S extends OperationState = OperationState>
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = (this.isOnFieldMode && this.dirty && this.valid)
+    const saved = this.isOnFieldMode && (!this.dirty || this.valid)
       // If on field mode AND valid: save silently
       ? await this.save(event)
       // Else If desktop mode: ask before save
@@ -914,11 +924,16 @@ export class OperationPage<S extends OperationState = OperationState>
       });
     if (!saved) return; // not saved
 
+    // Reload
+    if (this.isNewData) {
+      return this.load(undefined, {tripId: this.trip?.id, updateRoute: true, openTabIndex: OperationPage.TABS.GENERAL})
+    }
+
     // Redirect to /new
     return this.router.navigate(['..', 'new'], {
       relativeTo: this.route,
-      replaceUrl: true,
-      queryParams: {tab: OperationPage.TABS.GENERAL}
+      //replaceUrl: true,
+      queryParams: {tab: OperationPage.TABS.GENERAL, [this.pathIdAttribute]: 'new'}
     });
   }
 
@@ -1048,6 +1063,15 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
+    if (this.loading || this.saving) {
+      console.debug('[data-editor] Skip save: editor is busy (loading or saving)');
+      return false;
+    }
+    if (!this.dirty) {
+      console.debug('[data-editor] Skip save: editor not dirty');
+      return true;
+    }
+
     // Save new gear to the trip
     const gearSaved = await this.saveNewPhysicalGear();
     if (!gearSaved) return false; // Stop if failed
