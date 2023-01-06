@@ -31,6 +31,13 @@ if [[ "_$version" == "_" ]]; then
   echo " - Check version format is: x.y.z (x and y should be an integer)"
   exit 1
 fi
+
+# Compute description, if missing
+description=`echo $release_description` # force quote interpretation
+if [[ "_${description}" == "_" ]]; then
+    description="Release $version"
+fi
+
 echo "Sending v$version extension to Github..."
 
 ###  get auth token
@@ -66,11 +73,6 @@ case "$task" in
       prerelease="true"
     else
       prerelease="false"
-    fi
-
-    description=`echo $release_description`
-    if [[ "_$description" = "_" ]]; then
-        description="Release $version"
     fi
 
     result=`curl -s -H ''"$GITHUT_AUTH"'' "$REPO_API_URL/releases/tags/$version"`
