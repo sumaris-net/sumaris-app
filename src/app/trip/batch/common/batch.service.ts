@@ -218,7 +218,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     // - add sub batches validation
 
     const controlNamePrefix = opts?.controlName ? `${opts.controlName}.` : '';
-    const errors: FormErrors = (await Promise.all(
+    const errors: FormErrors[] = await Promise.all(
       // For each catch's child
       entity.children.map(async (source, index) => {
         // Avoid error on label and rankOrder
@@ -278,13 +278,14 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         // Mark as controlled
         BatchUtils.markAsControlled(source);
 
-      })))
-      // Concat all errors
-      .reduce((res, err) => ({ ...res, ...err }));
+      }));
 
-    if (Object.keys(errors).length) return errors;
+    // Concat all errors
+    if (errors.length) {
+      return errors.reduce((res, err) => ({ ...res, ...err }));
+    }
 
-    return null; // No error
+    return null; // no errors
   }
 
 
@@ -295,7 +296,6 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     const allowSamplingBatches = (opts?.allowSamplingBatches || BatchUtils.sumObservedIndividualCount(entity.children) > 0);
     const allowDiscard = allowSamplingBatches;
     const allowChildrenGears = program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN);
-
 
     const [catchPmfms, sortingPmfms] = await Promise.all([
       this.programRefService.loadProgramPmfms(program.label, { acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH, gearId: opts?.gearId }),
