@@ -1,9 +1,9 @@
 import { Operation, Trip } from '@app/trip/services/model/trip.model';
 import { Injectable } from '@angular/core';
-import { DataContextService } from '@app/data/services/model/data-context.model';
+import { DataContext, DataContextService } from '@app/data/services/model/data-context.model';
 import { BatchContext } from '@app/trip/batch/sub/sub-batch.validator';
 
-export interface TripContext extends BatchContext {
+export interface TripContext extends DataContext, BatchContext {
   trip?: Trip;
   operation?: Operation;
 }

@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, Injector } from '@angular/core';
 import { DateUtils, fadeInOutAnimation } from '@sumaris-net/ngx-components';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
 import { IonRouterOutlet } from '@ionic/angular';
 import { OperationPage } from '@app/trip/operation/operation.page';
@@ -12,6 +11,7 @@ import moment from 'moment';
 import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
 import { MapPmfmEvent, UpdateFormGroupEvent } from '@app/trip/measurement/measurements.form.component';
+import { ContextService } from '@app/shared/context.service';
 
 @Component({
   selector: 'app-selectivity-operation-page',

@@ -3,12 +3,11 @@ import { VesselPosition } from './vessel-position.model';
 import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { Moment } from 'moment';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
-import { ContextService } from '@app/shared/context.service';
-import { Directive, Injectable } from '@angular/core';
+import { CONTEXT_DEFAULT_STATE, ContextService } from '@app/shared/context.service';
+import { Inject, Injectable, Optional } from '@angular/core';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import { Operation, Trip } from '@app/trip/services/model/trip.model';
-import { TripContext } from '@app/trip/services/trip-context.service';
+
 export interface DataClipboard {
   data?: DataEntity<any>;
   pasteFlags?: number;
@@ -25,12 +24,11 @@ export interface DataContext {
   vesselPositions?: VesselPosition[];
 }
 
-@Directive()
-// tslint:disable-next-line:directive-class-suffix
+@Injectable()
 export abstract class DataContextService<S extends DataContext = DataContext> extends ContextService<S> {
 
-  protected constructor(defaultState: S) {
-    super(defaultState);
+  protected constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) defaultState: S) {
+    super(defaultState || <S>{});
   }
 
   get clipboard(): DataClipboard|undefined {

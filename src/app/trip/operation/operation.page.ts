@@ -69,7 +69,6 @@ export interface OperationState {
   providers: [
     { provide: APP_ENTITY_EDITOR, useExisting: OperationPage },
     { provide: ContextService, useExisting: TripContextService},
-    { provide: TripContextService, useExisting: TripContextService},
     {
       provide: IonRouterOutlet,
       useValue: {

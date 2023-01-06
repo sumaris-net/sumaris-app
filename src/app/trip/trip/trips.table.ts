@@ -357,15 +357,32 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     if (isEmptyArray(trips)) return // Skip if empty
 
     const programs = arrayDistinct(trips.map(t => t.program), 'label');
-    if (programs.length == 1) {
+    if (programs.length !== 1) {
       this.showToast({
         type: 'warning',
         message: 'TRIP.TABLE.WARNING.NEED_ONE_PROGRAM'
       });
       return; // Skip if no program
     }
-    const programLabel = programs[0].label;
 
+
+    const programLabel = programs[0].label;
+    const ids = trips.map(t => t.id);
+    const queryString = `TR:project=${programLabel};TR:trip_code=${ids.join(',')}`;
+
+    // Clear selection
+    this.selection.clear();
+    this.markForCheck();
+
+    // Open extraction
+    await this.router.navigate(['extraction', 'data'], {
+      queryParams: {
+        category: 'LIVE',
+        label: 'PMFM_TRIP',
+        sheet: 'TR',
+        q: queryString
+      }
+    });
   }
 
   async openSelectionMap(event?: Event) {
@@ -375,7 +392,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     if (isEmptyArray(trips)) return // Skip if empty
 
     const programs = arrayDistinct(trips.map(t => t.program), 'label');
-    if (programs.length > 1) {
+    if (programs.length !== 1) {
       this.showToast({
         type: 'warning',
         message: 'TRIP.TABLE.WARNING.NEED_ONE_PROGRAM'
@@ -383,7 +400,6 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       return; // Skip if no program
     }
     const programLabel = programs[0].label;
-
 
     const operations = await chainPromises(trips.map(
       trip => () =>
@@ -410,10 +426,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     if (data instanceof Operation) {
       console.info('[trips-table] User select an operation from the map:', data);
 
+      this.selection.clear();
+      this.markForCheck();
+
       // Open the operation
-      return this.router.navigate([data.tripId, 'operation', data.id], {
-        relativeTo: this.route
-      });
+      await this.router.navigate(['trips', data.tripId, 'operation', data.id]);
+      return;
     }
   }
 

@@ -546,7 +546,7 @@
       "NO_LOCAL_RESULT": "No result (in trips NOT sent)",
       "BTN_NEW_OFFLINE": "Field input mode (offline)",
       "BTN_NEW_ONLINE": "Desktop input mode (online)",
-      "BTN_DOWNLOAD_DOTS": "Download wizard...",
+      "BTN_DOWNLOAD_DOTS": "Download...",
       "BTN_DOWNLOAD_JSON": "Download (JSON)",
       "DOWNLOAD_JSON_FILENAME": "Trips.json",
       "FILTER": {
