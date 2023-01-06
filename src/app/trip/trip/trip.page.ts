@@ -11,13 +11,13 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
-  Alerts, AppErrorWithDetails,
+  Alerts, AppErrorWithDetails, AppForm,
   DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
   EntityUtils,
   fadeInOutAnimation,
-  HistoryPageReference,
+  HistoryPageReference, IAppForm, IAppFormGetter,
   InMemoryEntitiesService,
   isNil,
   isNotEmptyArray,
@@ -36,12 +36,12 @@ import { ModalController } from '@ionic/angular';
 import { PhysicalGearFilter } from '../physicalgear/physical-gear.filter';
 import { OperationEditor, ProgramProperties } from '@app/referential/services/config/program.config';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
-import { debounceTime, distinctUntilChanged, filter, first, mergeMap, startWith, tap } from 'rxjs/operators';
+import { combineAll, debounceTime, distinctUntilChanged, filter, first, map, mergeMap, startWith, tap } from 'rxjs/operators';
 import { TableElement } from '@e-is/ngx-material-table';
 import { Program } from '@app/referential/services/model/program.model';
 import { environment } from '@environments/environment';
 import { TRIP_FEATURE_NAME } from '@app/trip/services/config/trip.config';
-import { Subscription } from 'rxjs';
+import { combineLatest, merge, Subscription } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { ContextService } from '@app/shared/context.service';
 import { TripContextService } from '@app/trip/services/trip-context.service';
@@ -51,6 +51,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
 import moment from 'moment';
+import { RxState } from '@rx-angular/state';
 
 const TripPageTabs = {
   GENERAL: 0,
@@ -79,7 +80,12 @@ export const TripPageSettingsEnum = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripPage extends AppRootDataEditor<Trip, TripService> implements OnDestroy {
+export class TripPage
+  extends AppRootDataEditor<Trip, TripService> implements OnDestroy {
+
+
+  private _forceMeasurementAsOptionalOnFieldMode = false;
+  private _measurementSubscription: Subscription;
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
@@ -91,9 +97,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   enableReport: boolean;
   operationEditor: OperationEditor;
   operationPasteFlags: number;
-
-  private _forceMeasurementAsOptionalOnFieldMode = false;
-  private _measurementSubscription: Subscription;
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('saleForm', {static: true}) saleForm: SaleForm;
@@ -645,6 +648,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   canUserWrite(data: Trip, opts?: any): boolean {
     return isNil(data.validationDate) && this.dataService.canUserWrite(data, opts);
+  }
+
+  async save(event?: Event, opts?: any): Promise<boolean> {
+    event?.preventDefault();
+    return super.save(event, opts);
   }
 
   /* -- protected methods -- */
