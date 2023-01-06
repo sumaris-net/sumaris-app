@@ -34,8 +34,9 @@ if [[ ! -f "${APK_UNSIGNED_FILE}" ]]; then
   # Check in an alternative path (e.g. Android default signed file)
   if [[ ! -f "${APK_FILE_ALTERNATIVE}" ]]; then
     echo "APK file not found: ${APK_UNSIGNED_FILE}"
+    exit 1
   fi
-  APK_UNSIGNED_FILE=APK_FILE_ALTERNATIVE
+  APK_UNSIGNED_FILE=${APK_FILE_ALTERNATIVE}
 fi
 
 # Remove previous version (only if unsigned exists)
