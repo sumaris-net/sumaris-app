@@ -1,9 +1,10 @@
 import { BehaviorSubject, interval } from 'rxjs';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { isMoment, Moment } from 'moment';
-import { fromDateISOString } from '@sumaris-net/ngx-components';
+import { fromDateISOString, IEntitiesService } from '@sumaris-net/ngx-components';
+import { ImageAttachment, ImageAttachmentFilter } from '@app/data/image/image-attachment.model';
 
 export type Context = {
   program?: Program;
@@ -18,12 +19,15 @@ export type ObservableValues<T> = {
   [key in keyof T]: BehaviorSubject<T[keyof T]>;
 }
 
+export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('ContextDefaultState');
+
+
 @Injectable()
 export class ContextService<S extends Record<string, any> = Context> {
 
   protected observableState: ObservableValues<S>;
 
-  constructor(protected defaultState: S) {
+  constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: S) {
     this.reset();
   }
 
