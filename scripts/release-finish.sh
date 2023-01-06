@@ -7,12 +7,22 @@ if [[ "_" == "_${PROJECT_DIR}" ]]; then
 fi;
 
 cd ${PROJECT_DIR}
+PROJECT_DIR=`pwd`
 
-# Read parameters
+# Read arguments
 version=$1
 release_description=$2
 
-PROJECT_DIR=`pwd`
+# Get the version, if missing
+if [[ "_${version}" == "_" ]]; then
+  version=`grep -oP "version\": \"\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?" package.json | grep -m 1 -oP "\d+.\d+.\d+(-(alpha|beta|rc)[0-9]+)?"`
+fi
+
+# Compute description, if missing
+description=`echo $release_description` # force quote interpretation
+if [[ "_${description}" == "_" ]]; then
+    description="Release $version"
+fi
 
 # Check version format
 if [[ ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]*)?$ ]]; then
@@ -25,7 +35,6 @@ if [[ ! $version =~ ^[0-9]+.[0-9]+.[0-9]+(-(alpha|beta|rc)[0-9]*)?$ ]]; then
   exit 1
 fi
 
-
 ### Control that the script is run on `release` branch
 branch=`git rev-parse --abbrev-ref HEAD`
 if [[ ! "$branch" = "release/$version" ]]
@@ -34,10 +43,6 @@ then
   exit 1
 fi
 
-description="echo $release_description"
-if [[ "_$description" == "_" ]]; then
-    description="Release $version"
-fi
 
 cd $PROJECT_DIR
 rm src/assets/i18n/*-${version}.json

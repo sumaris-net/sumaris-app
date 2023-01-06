@@ -433,6 +433,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   }
 
   protected resetContext() {
+    // Consume all context data, to avoid reusing it somewhere
+    // We should do that at each menu entry point
     this.context.reset();
     this.tripContext.reset();
   }

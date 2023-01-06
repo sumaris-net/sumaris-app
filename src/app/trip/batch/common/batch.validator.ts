@@ -267,7 +267,7 @@ export class BatchValidators {
     return (control) => BatchValidators.computeRoundWeightConversion(control as UntypedFormGroup, {...opts, emitEvent: false, onlySelf: false})
   }
 
-  static computeSamplingRatioAndWeight(rootForm: UntypedFormGroup, opts?: {
+  static computeSamplingRatioAndWeight(form: UntypedFormGroup, opts?: {
     // Event propagation
     emitEvent?: boolean;
     onlySelf?: boolean;
@@ -275,20 +275,14 @@ export class BatchValidators {
     samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
     weightMaxDecimals: number;
-    qvIndex?: number;
     // UI function
     //markForCheck?: () => void
   }): ValidationErrors | null {
     if (!opts.samplingRatioFormat) throw Error('[batch-validator] Missing sampling ratio format. Skip computation');
 
-    const basePath = opts && isNotNilOrNaN(opts.qvIndex) ? 'children.' + opts.qvIndex.toString() : '';
-    const basePrefix = isNotNilOrBlank(basePath) ? `${basePath}.` : '';
-    const form = isNotNilOrBlank(basePath) ? rootForm.get(basePath) : rootForm;
-
     const samplingFormPath = 'children.0';
     const samplingForm = form.get(samplingFormPath);
     if (!samplingForm) return; // No sample batch: skip
-
 
     const totalWeightControl = form.get('weight');
     const totalWeightValueControl = totalWeightControl.get('value');
@@ -306,7 +300,7 @@ export class BatchValidators {
     if (samplingRatioControl.disabled) samplingRatioControl.enable(opts);
     if (samplingWeightForm.disabled) samplingWeightForm.enable(opts);
 
-    const batch = isNotNilOrBlank(basePath) ? form.get(basePath).value : form.value;
+    const batch = form.value;
     if (!batch.weight) {
       batch.weight = {
         value: totalWeight || 0,

@@ -59,7 +59,8 @@ export class TypedExpenseForm extends MeasurementsForm {
       maximumNumberDecimals: 2
     };
 
-    this.registerSubscription(filterNotNil(this.$pmfms)
+    this.registerSubscription(
+      this.pmfms$
         // Wait form controls ready
         .pipe(mergeMap((pmfms) => this.ready().then(_ => pmfms)))
         .subscribe(pmfms => this.parsePmfms(pmfms))

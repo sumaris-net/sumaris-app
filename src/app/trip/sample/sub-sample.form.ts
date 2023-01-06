@@ -84,14 +84,14 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
     super.ngOnInit();
 
     // Set defaults
-    this._acquisitionLevel = this._acquisitionLevel || AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
+    this.acquisitionLevel = this.acquisitionLevel || AcquisitionLevelCodes.INDIVIDUAL_MONITORING;
     this.tabindex = toNumber(this.tabindex, 1);
     this.maxVisibleButtons = toNumber(this.maxVisibleButtons, 4);
     this.focusFieldName = !this.mobile && (this.showLabel ? 'label' :
       (this.showParent ? 'parent' : null));
     this.i18nFieldPrefix = this.i18nFieldPrefix || `TRIP.SUB_SAMPLE.`;
     this.i18nSuffix = this.i18nSuffix || '';
-    this.i18nFullSuffix = `${this._acquisitionLevel}.${this.i18nSuffix}`;
+    this.i18nFullSuffix = `${this.acquisitionLevel}.${this.i18nSuffix}`;
 
     // Parent combo
     this.registerAutocompleteField('parent', {
@@ -102,8 +102,8 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
 
     this.registerSubscription(
       merge(
-        this.onParentChanges.pipe(mergeMap(() => this.$pmfms)),
-        this.$pmfms.pipe(distinctUntilChanged())
+        this.onParentChanges.pipe(mergeMap(() => this.pmfms$)),
+        this.pmfms$
       )
         .pipe(
           filter(isNotEmptyArray),

@@ -86,6 +86,7 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { BatchService } from '@app/trip/batch/common/batch.service';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';
 import { PositionOptions } from '@capacitor/geolocation';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 
 export const OperationFragments = {
@@ -632,8 +633,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Control batches
     if (entity.catchBatch && opts?.program) {
+      const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES)
+      const physicalGear = entity.physicalGear?.clone();
+
       const errors = await this.batchService.control(entity.catchBatch, {
         program: opts.program,
+        allowSamplingBatches: hasIndividualMeasures,
+        physicalGear,
+        gearId: physicalGear?.gear?.id,
         controlName: 'catch',
         isOnFieldMode: opts.isOnFieldMode
       });

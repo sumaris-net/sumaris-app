@@ -31,7 +31,8 @@ import {
 } from '@sumaris-net/ngx-components';
 import { ReferentialService } from './referential.service';
 import {
-  FractionIdGroups, LocationLevelGroups,
+  FractionIdGroups,
+  LocationLevelGroups,
   LocationLevelIds,
   MatrixIds,
   MethodIds,
@@ -668,8 +669,6 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     LocationLevelIds.AUCTION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_AUCTION_ID);
     LocationLevelIds.ICES_RECTANGLE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_RECTANGLE_ID);
     LocationLevelIds.ICES_DIVISION = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_ICES_DIVISION_ID);
-    LocationLevelGroups.FISHING_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_LOCATIONS_AREA_IDS);
-    LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS);
 
     // Taxonomic Levels
     TaxonomicLevelIds.FAMILY = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXONOMIC_LEVEL_FAMILY_ID);
@@ -747,5 +746,13 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     ModelEnumUtils.refreshDefaultValues();
     ProgramPropertiesUtils.refreshDefaultValues();
 
+    // Location level groups
+    //  /!\ should be call AFTER ModelEnumUtils.refreshDefaultValues()
+    if (config.hasProperty(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_LOCATIONS_AREA_IDS)) {
+      LocationLevelGroups.FISHING_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.LOCATION_LEVEL_LOCATIONS_AREA_IDS);
+    }
+    if (config.hasProperty(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS)) {
+      LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS);
+    }
   }
 }

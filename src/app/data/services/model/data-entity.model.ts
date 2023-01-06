@@ -1,6 +1,7 @@
 import { Moment } from 'moment';
-import { Department, Entity, EntityAsObjectOptions, fromDateISOString, IEntity, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
+import { DateUtils, Department, Entity, EntityAsObjectOptions, fromDateISOString, IEntity, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
 import { IWithRecorderDepartmentEntity } from './model.utils';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
@@ -109,5 +110,54 @@ export abstract class DataEntityUtils {
     target.qualificationDate = fromDateISOString(source.qualificationDate);
     target.qualificationComments = source.qualificationComments;
     target.qualityFlagId = source.qualityFlagId;
+  }
+
+  /**
+   * Reset controlDate, and reset quality fLag and comment
+   * @param entity
+   * @param opts
+   */
+  static markAsNotControlled(entity: DataEntity<any, any>|undefined) {
+    // Mark as controlled
+    entity.controlDate = null;
+    // Clean quality flag
+    entity.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    // Clean qualification data
+    entity.qualificationComments = null;
+    entity.qualificationDate = null;
+  }
+
+  /**
+   * Set controlDat, and reset quality fLag and comment
+   * @param entity
+   * @param opts
+   */
+  static markAsControlled(entity: DataEntity<any, any>|undefined, opts?: {controlDate?: Moment}) {
+    if (!entity) return; // skip
+    // Mark as controlled
+    entity.controlDate = opts?.controlDate || DateUtils.moment();
+    // Clean quality flag
+    entity.qualityFlagId = QualityFlagIds.NOT_QUALIFIED;
+    // Clean qualification data
+    entity.qualificationComments = null;
+    entity.qualificationDate = null;
+  }
+
+  /**
+   * Mark as invalid, using qualityFlag
+   * @param entity
+   * @param errorMessage
+   */
+  static markAsInvalid(entity: DataEntity<any, any>|undefined, errorMessage: string) {
+    if (!entity) return; // skip
+    // Clean date
+    entity.controlDate = null;
+    entity.qualificationDate = null;
+
+    // Register error message, into qualificationComments
+    entity.qualificationComments = errorMessage;
+
+    // Clean quality flag
+    entity.qualityFlagId = QualityFlagIds.BAD;
   }
 }

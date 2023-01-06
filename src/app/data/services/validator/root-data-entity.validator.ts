@@ -32,6 +32,7 @@ export abstract class DataRootEntityValidatorService<T extends RootDataEntity<T>
       {
         program: [data && data.program || null, Validators.compose([Validators.required, SharedValidators.entity])],
         creationDate: [data && data.creationDate || null],
+        validationDate: [data && data.validationDate || null],
         recorderPerson: [data && data.recorderPerson || null, SharedValidators.entity],
         comments: [data && data.comments || null, Validators.maxLength(2000)],
         synchronizationStatus: [data && data.synchronizationStatus || null]

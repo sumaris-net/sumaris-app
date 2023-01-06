@@ -182,8 +182,8 @@ export class Batch<
       this.measurementValues = MeasurementUtils.toMeasurementValues(measurements);
     }
 
-    if (source.children && (!opts || opts.withChildren !== false)) {
-      this.children = source.children.map(child => Batch.fromObject(child, opts));
+    if (!opts || opts.withChildren !== false) {
+      this.children = source.children && source.children.map(child => Batch.fromObject(child, opts)) || undefined;
     }
   }
 

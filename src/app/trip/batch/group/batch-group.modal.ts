@@ -255,7 +255,15 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
       // Save table content
       this.data = this.form.value;
-      //this.data.qualityFlagId = invalid ? QualityFlagIds.BAD : undefined;
+
+      // Mark as invalid
+      if (invalid) {
+        BatchUtils.markAsInvalid(this.data, this.translate.instant('ERROR.INVALID_OR_INCOMPLETE_FILL'));
+      }
+      // Reset control (and old invalid quality flag)
+      else {
+        BatchUtils.markAsNotControlled(this.data);
+      }
 
       return this.data;
     }

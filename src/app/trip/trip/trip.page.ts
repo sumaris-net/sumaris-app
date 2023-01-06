@@ -12,6 +12,7 @@ import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
   Alerts,
+  AppErrorWithDetails,
   DateUtils,
   EntitiesStorage,
   EntityServiceLoadOptions,
@@ -52,7 +53,7 @@ import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physica
 
 import moment from 'moment';
 
-const TripPageTabs = {
+export const TripPageTabs = {
   GENERAL: 0,
   PHYSICAL_GEARS: 1,
   OPERATIONS: 2
@@ -79,7 +80,12 @@ export const TripPageSettingsEnum = {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TripPage extends AppRootDataEditor<Trip, TripService> implements OnDestroy {
+export class TripPage
+  extends AppRootDataEditor<Trip, TripService> implements OnDestroy {
+
+
+  private _forceMeasurementAsOptionalOnFieldMode = false;
+  private _measurementSubscription: Subscription;
 
   readonly acquisitionLevel = AcquisitionLevelCodes.TRIP;
   showSaleForm = false;
@@ -91,9 +97,6 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
   enableReport: boolean;
   operationEditor: OperationEditor;
   operationPasteFlags: number;
-
-  private _forceMeasurementAsOptionalOnFieldMode = false;
-  private _measurementSubscription: Subscription;
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('saleForm', {static: true}) saleForm: SaleForm;
@@ -176,7 +179,7 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     if (this.measurementsForm) {
       this.registerSubscription(
-        this.measurementsForm.$pmfms
+        this.measurementsForm.pmfms$
           .pipe(
             //debounceTime(400),
             filter(isNotNil),
@@ -205,10 +208,10 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
     this._measurementSubscription?.unsubscribe();
   }
 
-  setError(error: any, opts?: { emitEvent?: boolean; }) {
+  setError(error: string | AppErrorWithDetails, opts?: { emitEvent?: boolean; detailsCssClass?: string; }) {
 
     // If errors in operations
-    if (error?.details?.errors?.operations) {
+    if (typeof error !== 'string' && error?.details?.errors?.operations) {
       // Show error in operation table
       this.operationsTable.setError('TRIP.ERROR.INVALID_OPERATIONS', {
         showOnlyInvalidRows: true
@@ -216,16 +219,18 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
       // Open the operation tab
       this.tabGroup.selectedIndex = TripPageTabs.OPERATIONS;
-    } else {
 
-      super.setError(error);
+      // Reset other errors
+      super.setError(undefined, opts);
+    } else {
+      super.setError(error, opts);
 
       // Reset operation filter and error
       this.operationsTable.resetError(opts);
     }
   }
 
-  // change visibility
+  // change visibility to public
   resetError(opts?:  {emitEvent?: boolean}) {
     this.setError(undefined, opts);
   }
@@ -246,8 +251,12 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip load Trip
-
     if (this.debug) console.debug(`[trip] Program ${program.label} loaded, with properties: `, program.properties);
+
+    // Update the context
+    if (this.tripContext.program !== program) {
+      this.tripContext.setValue('program', program);
+    }
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -472,19 +481,20 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     this.markAsLoading();
 
-    // Store the trip in context
-    this.tripContext?.setValue('trip', this.data.clone());
 
     // Propagate the usage mode (e.g. when try to 'terminate' the trip)
     this.tripContext?.setValue('usageMode', this.usageMode);
+
+    // Store the trip in context
+    this.tripContext?.setValue('trip', this.data.clone());
 
     // Store the selected operation (e.g. useful to avoid rankOrder computation, in the operation page)
     this.tripContext?.setValue('operation', row.currentData);
 
     // Propagate the past flags to clipboard
     this.tripContext?.setValue('clipboard', {
-      data: new Operation(),
-      pasteFlags: this.operationPasteFlags
+      data: null, // Reset data
+      pasteFlags: this.operationPasteFlags // Keep flags
     });
 
     setTimeout(async () => {
@@ -511,6 +521,9 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
     // Propagate the usage mode (e.g. when try to 'terminate' the trip)
     this.tripContext?.setValue('usageMode', this.usageMode);
+
+    // Reset operation
+    this.tripContext?.resetValue('operation');
 
     // OPen the operation editor
     setTimeout(async () => {
@@ -643,6 +656,11 @@ export class TripPage extends AppRootDataEditor<Trip, TripService> implements On
 
   canUserWrite(data: Trip, opts?: any): boolean {
     return isNil(data.validationDate) && this.dataService.canUserWrite(data, opts);
+  }
+
+  async save(event?: Event, opts?: any): Promise<boolean> {
+    event?.preventDefault();
+    return super.save(event, opts);
   }
 
   /* -- protected methods -- */

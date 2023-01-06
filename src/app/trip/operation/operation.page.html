@@ -41,7 +41,7 @@
     <!-- option menu -->
     <button slot="end" mat-icon-button
             *ngIf="enabled && !isNewData || debug"
-            [disabled]="saving"
+            [disabled]="loading || saving"
             [matMenuTriggerFor]="optionsMenu"
             [title]=" 'COMMON.BTN_OPTIONS'|translate">
       <mat-icon>more_vert</mat-icon>
@@ -63,7 +63,7 @@
 
       <ion-item *ngFor="let item of items"
                 tappable class="text-1x"
-                [color]="isCurrentData(item) ? 'secondary100' : undefined"
+                [color]="data?.id === item.id ? 'secondary100' : undefined"
                 (click)="onLastOperationClick($event, item.id)">
         <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
         <ion-grid>
@@ -224,7 +224,7 @@
 
                 <!-- Other features (Measurements) -->
                 <ion-grid class="ion-no-padding ion-padding-top"
-                          [class.cdk-visually-hidden]="measurementsForm.$pmfms|async|isEmptyArray">
+                          [class.cdk-visually-hidden]="measurementsForm.pmfms$|async|isEmptyArray">
                   <ion-row>
                     <ion-col size="12" size-md="3" size-lg="3">
                       <ion-label class="ion-float-end" translate>TRIP.OPERATION.EDIT.OTHER_FEATURES</ion-label>
@@ -245,9 +245,11 @@
                 </ion-grid>
               </app-form-operation>
             </ion-col>
-            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="!mobile">
+
+            <!-- quality metadata (+ control button) only if 'on desk' mode -->
+            <ion-col class="ion-no-padding" size="12" size-xl="3" *ngIf="usageMode|isNotOnField">
               <app-entity-metadata [value]="data"
-                                   [showRecorder]="data && !!data.updateDate">
+                                   [showRecorder]="data?.updateDate|isNotNil">
                 <app-entity-quality-form [service]="entityQualityService"></app-entity-quality-form>
               </app-entity-metadata>
             </ion-col>
@@ -264,13 +266,13 @@
         <mat-icon>line_style</mat-icon>
         <ion-label *ngVar="batchTree.batchGroupsTable.totalRowCount as count"
                    [matBadge]="count"
-                   [matBadgeHidden]="batchTree.invalid || !count"
+                   [matBadgeHidden]="(batchTree.errorSubject|push) || batchTree.invalid || !count"
                    matBadgeOverlap="false"
                    matBadgeColor="primary"
                    matBadgeSize="small"
                    matBadgePosition="above after">{{catchTab.textLabel}}
         </ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && batchTree.invalid || (batchTree.errorSubject|push)"></ion-icon>
       </ng-template>
 
       <!-- batch tree -->

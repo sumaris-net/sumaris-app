@@ -21,6 +21,8 @@ import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-s
 import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { Moment } from 'moment/moment';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
 
 export class BatchUtils {
 
@@ -644,5 +646,44 @@ export class BatchUtils {
     return batch.children.reduce((res, c) => {
       return res.concat(this.deleteRecursively(c, filterFn))
     }, deletedBatches);
+  }
+
+  /**
+   * Reset controlDate and quality fLag and comment
+   * @param entity
+   * @param opts
+   * @private
+   */
+  static markAsNotControlled(entity: Batch, opts?: {withChildren?: boolean}) {
+    DataEntityUtils.markAsNotControlled(entity);
+
+    // Recursive call to children
+    if (!opts || opts.withChildren !== false) {
+      (entity.children || []).forEach(c => this.markAsControlled(c, opts));
+    }
+  }
+
+  /**
+   * Set controlDate, and reset quality fLag and comment
+   * @param entity
+   * @param opts
+   * @private
+   */
+  static markAsControlled(entity: Batch, opts?: {withChildren?: boolean; controlDate?: Moment}) {
+    DataEntityUtils.markAsControlled(entity, opts);
+
+    // Recursive call to children
+    if (!opts || opts.withChildren !== false) {
+      (entity.children || []).forEach(c => this.markAsControlled(c, opts));
+    }
+  }
+
+  /**
+   * Mark as invalid, using qualityFlag
+   * @param entity
+   * @param errorMessage
+   */
+  static markAsInvalid(entity: Batch, errorMessage: string) {
+    DataEntityUtils.markAsInvalid(entity, errorMessage);
   }
 }

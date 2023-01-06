@@ -8,6 +8,7 @@ import { ImageAttachmentValidator } from '@app/data/image/image-attachment.valid
 
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 import { BaseValidatorService } from '@app/shared/service/base.validator.service';
+import { QualityFlagIds } from '@app/referential/services/model/model.enum';
 
 export interface SampleValidatorOptions {
   requiredLabel?: boolean;
@@ -49,11 +50,11 @@ export class SampleValidatorService<O extends SampleValidatorOptions = SampleVal
       children: this.formBuilder.array([]),
       parent: [data && data.parent || null, SharedValidators.entity],
       // Quality properties
-      validationDate: [data && data.validationDate || null],
       controlDate: [data && data.controlDate || null],
+      validationDate: [data && data.validationDate || null],
       qualificationDate: [data && data.qualificationDate || null],
       qualificationComments: [data && data.qualificationComments || null],
-      qualityFlagId: [toNumber(data && data.qualityFlagId, 0)],
+      qualityFlagId: [toNumber(data && data.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)],
     }
 
     // Add children form array

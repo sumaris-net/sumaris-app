@@ -51,7 +51,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   @Input() set pmfmFilter(value: Partial<DenormalizedPmfmFilter>) {
     if (!equals(value, this._pmfmFilter)) {
       this._pmfmFilter = value;
-      if (!this.loading) this.dispatchPmfms();
+      if (!this.loading) this.dispatchPmfms(this.pmfms);
     }
   }
 
@@ -74,8 +74,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
     // Dispatch pmfms by type
     this.registerSubscription(
-      this.$pmfms
-        .pipe(filter(isNotNil))
+      this.pmfms$
         .subscribe(pmfms => this.dispatchPmfms(pmfms))
     );
   }
@@ -95,7 +94,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     if (!data) return; // Skip
 
     // Init default
-    data.label = data.label || this._acquisitionLevel;
+    data.label = data.label || this.acquisitionLevel;
     data.rankOrder = toNumber(data.rankOrder, 0);
   }
 
@@ -115,13 +114,13 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
    * @param pmfm
    */
   trackPmfmFn(index: number, pmfm: IPmfm): any {
-    return `${pmfm.id}-${pmfm.hidden}`;
+    return `${pmfm.id}-${pmfm.hidden}-${pmfm.required}`;
   }
 
   markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     // Start loading pmfms
     if (this.starting) {
-      this.setInitStep(PmfmFormReadySteps.LOADING_PMFMS);
+      this.setReadyStep(PmfmFormReadySteps.LOADING_PMFMS);
       this.loadPmfms();
     }
 
@@ -149,8 +148,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   }
 
   // @ts-ignore
-  protected async dispatchPmfms(pmfms?: IPmfm[]) {
-    pmfms = pmfms || this.$pmfms.value;
+  protected async dispatchPmfms(pmfms: IPmfm[]) {
     if (!pmfms) return; // Skip
 
     // DEBUG

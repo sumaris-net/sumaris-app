@@ -89,6 +89,7 @@
                 form.ready: {{physicalGearForm.readySubject|async}}<br/>
                 form.dirty: {{physicalGearForm.dirty}}<br/>
                 form.valid: {{physicalGearForm.valid}}<br/>
+                form.pmfms: {{(physicalGearForm.pmfms$|async)?.length}}<br/>
               </ion-col>
             </ion-row>
           </ion-grid>

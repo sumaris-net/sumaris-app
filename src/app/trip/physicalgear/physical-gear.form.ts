@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, Output, QueryList, ViewChildren } from '@angular/core';
 import { PhysicalGearValidatorService } from './physicalgear.validator';
-import { BehaviorSubject } from 'rxjs';
-import { distinctUntilChanged, filter, mergeMap } from 'rxjs/operators';
-import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
+import { filter, mergeMap } from 'rxjs/operators';
+import { MeasurementValuesForm, MeasurementValuesState } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
@@ -25,15 +24,19 @@ import { ProgramRefService } from '@app/referential/services/program-ref.service
 import { OperationService } from '@app/trip/services/operation.service';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
+interface PhysicalGearFormState extends MeasurementValuesState {
+  gears: ReferentialRef[];
+}
+
 @Component({
   selector: 'app-physical-gear-form',
   templateUrl: './physical-gear.form.html',
   styleUrls: ['./physical-gear.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implements OnInit {
+export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, PhysicalGearFormState> implements OnInit {
 
-  $gears = new BehaviorSubject<ReferentialRef[]>(undefined);
+  gears$ = this._state.select('gears');
 
   @Input() tabindex: number;
   @Input() canEditRankOrder = false;
@@ -46,9 +49,11 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   @Input() i18nSuffix: string = null;
   @Input() mobile: boolean;
 
-  @Input()
-  set gears(value: ReferentialRef[]) {
-    this.$gears.next(value);
+  @Input() set gears(value: ReferentialRef[]) {
+    this._state.set('gears', (_) => value);
+  }
+  get gears(): ReferentialRef[] {
+    return this._state.get('gears');
   }
 
   @Output() onSubmit = new EventEmitter<any>();
@@ -66,22 +71,17 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
   ) {
     super(injector, measurementValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
     this._enable = true;
-    this.requiredGear = true;
 
     // Set defaults
-    this._acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
+    this.acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
+    this.requiredGear = true;
     this.i18nPmfmPrefix = 'TRIP.PHYSICAL_GEAR.PMFM.';
 
     // Load gears from program
-    this.registerSubscription(
-      this.$programLabel
-        .pipe(
-          filter(isNotNil),
-          distinctUntilChanged(),
-          mergeMap(program => this.programRefService.loadGears(program))
-        )
-        .subscribe(gears => this.$gears.next(gears))
-    );
+    this._state.connect('gears', this.programLabel$
+      .pipe(
+        mergeMap(programLabel => this.programRefService.loadGears(programLabel))
+      ));
 
     this.debug = !environment.production;
   }
@@ -94,7 +94,7 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear> implem
 
     // Combo: gears
     this.registerAutocompleteField('gear', {
-      items: this.$gears,
+      items: this.gears$,
       mobile: this.mobile,
       showAllOnFocus: true
     });

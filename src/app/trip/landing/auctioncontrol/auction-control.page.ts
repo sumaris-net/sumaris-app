@@ -46,7 +46,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   showOtherTaxonGroup = false;
   controlledSpeciesPmfmId: number;
 
-  $pmfms: Observable<IPmfm[]>;
+  pmfms$: Observable<IPmfm[]>;
   $taxonGroupPmfm = new BehaviorSubject<IPmfm>(null);
   $taxonGroups = new BehaviorSubject<TaxonGroupRef[]>(null);
   selectedTaxonGroup$: Observable<TaxonGroupRef>;
@@ -102,9 +102,9 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         })
     );
 
-    this.$pmfms = filterNotNil(this.$taxonGroups)
+    this.pmfms$ = filterNotNil(this.$taxonGroups)
         .pipe(
-          mergeMap(() => filterNotNil(this.landingForm.$pmfms)),
+          mergeMap(() => filterNotNil(this.landingForm.pmfms$)),
           map(pmfms => pmfms.map(pmfm => {
             // Controlled species PMFM
             if (pmfm.id === PmfmIds.CONTROLLED_SPECIES || pmfm.label === 'TAXON_GROUP') {

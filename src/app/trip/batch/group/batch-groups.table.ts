@@ -11,13 +11,13 @@ import {
   InMemoryEntitiesService,
   isEmptyArray,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
   LoadResult,
   LocalSettingsService,
   ReferentialRef,
-  ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SETTINGS_DISPLAY_COLUMNS,
@@ -51,6 +51,32 @@ import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measure
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
 declare type BatchGroupColumnKey = 'totalWeight' | 'totalIndividualCount' | 'samplingRatio' | 'samplingWeight' | 'samplingIndividualCount' | string;
+declare type BatchComputedFn<T extends Batch = Batch> = (batch: T, parent: T|undefined, samplingRatioFormat: SamplingRatioFormat) => boolean;
+
+/**
+ * Compose many computed functions to one function.<br/>
+ * return true (=computed) when one function return true (= OR operand between functions).
+ * Nil value are ignored
+ * @param values
+ */
+export function composeBatchComputed(values: (boolean | BatchComputedFn)[]): BatchComputedFn|boolean {
+  // Remove nil value
+  values = values?.filter(isNotNil);
+  if (isEmptyArray(values)) return false; // Empty
+
+  // Only one value: use it
+  if (values.length === 1) return values[0];
+
+  // Convert boolean values to functions
+  const fns: BatchComputedFn[] = values
+    .map(value => {
+      if (typeof value !== 'function') return () => value;
+      return value // already a function
+    });
+
+  // Compose functions: return true (=computed) when one function return true (= OR operand between functions)
+  return (batch, parent, samplingRatioFormat) => fns.some(fn => fn(batch, parent, samplingRatioFormat));
+}
 
 export const BatchGroupColumnFlags = Object.freeze({
   IS_WEIGHT: 0x0001,
@@ -63,7 +89,7 @@ declare type BatchGroupColumnType = FormFieldType | 'samplingRatio' | 'pmfm';
 
 declare interface BatchGroupColumnDefinition extends FormFieldDefinition<BatchGroupColumnKey, BatchGroupColumnType> {
 
-  computed: boolean | ((batch: Batch, parent: Batch|undefined, samplingRatioFormat: SamplingRatioFormat) => boolean);
+  computed: boolean | BatchComputedFn;
   hidden: boolean;
   unitLabel?: string;
   rankOrder: number;
@@ -363,21 +389,21 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   //   });
   // }
 
-  translateControlPath(path: string): string {
-    if (path.startsWith('.measurementValues.')) {
-      const parts = path.split('.');
+  translateControlPath(controlPath: string): string {
+    if (controlPath.startsWith('.measurementValues.')) {
+      const parts = controlPath.split('.');
       const pmfmId = parseInt(parts[parts.length-1]);
       const pmfm = (this._speciesPmfms || []).find(p => p.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
-    else if (path.includes('.measurementValues.')) {
-      const parts = path.split('.');
+    else if (controlPath.includes('.measurementValues.')) {
+      const parts = controlPath.split('.');
       const pmfmId = parseInt(parts[parts.length-1]);
       const pmfm = (this._childrenPmfms || []).find(p => p.id === pmfmId);
       if (pmfm) return PmfmUtils.getPmfmName(pmfm);
     }
-    else if (path.startsWith('children.')){
-      const parts = path.split('.');
+    else if (controlPath.startsWith('children.')){
+      const parts = controlPath.split('.');
       if (this.qvPmfm) {
         const qvIndex = parseInt(parts[1]);
         const qv = this.qvPmfm.qualitativeValues[qvIndex];
@@ -386,11 +412,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         if (qv && col) return `${qv.name} - ${this.translate.instant(col.label)}`;
       }
       else {
-        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === path);
+        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === controlPath);
         if (col) return this.translate.instant(col.label);
       }
     }
-    return super.translateControlPath(path);
+    return super.translateControlPath(controlPath);
   }
 
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {
@@ -902,12 +928,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         // Detect computed column, when taxonGroupsNoWeight is used
         if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
           if (def.key === 'totalIndividualCount') {
-            computed = (batch, parent) =>
-              ReferentialUtils.isEmpty(parent?.taxonGroup || batch.taxonGroup) || !(this.taxonGroupsNoWeight || []).includes((parent?.taxonGroup || batch.taxonGroup).label);
+            computed = composeBatchComputed([computed, (batch, parent) => !this.isTaxonGroupNoWeight(batch, parent)]);
           }
           else if (def.key === 'totalWeight') {
-            computed = (batch, parent) =>
-              ReferentialUtils.isEmpty(parent?.taxonGroup || batch.taxonGroup) || (this.taxonGroupsNoWeight || []).includes((parent?.taxonGroup || batch.taxonGroup).label);
+            computed = composeBatchComputed([computed, (batch, parent) => this.isTaxonGroupNoWeight(batch, parent)]);
           }
         }
         return <BatchGroupColumnDefinition>{
@@ -1371,9 +1395,19 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     if (!form) return; // Skip
     console.debug('[batch-group-table] Init row validator');
 
-    // Add computation and validation
+    // Remove previous subscription
     this._rowValidatorSubscription?.unsubscribe();
-    const requiredSampleWeight = (form && form.value?.observedIndividualCount || 0) > 0;
+
+    // Clean quality flag
+    const qualityFlagId = form.get('qualityFlagId').value;
+    if (qualityFlagId !== QualityFlagIds.NOT_QUALIFIED) {
+      form.patchValue(<Partial<Batch>>{controlDate: null, qualificationDate: null, qualificationComments: null, qualityFlagId: QualityFlagIds.NOT_QUALIFIED}, {emitEvent: false});
+      form.markAsDirty();
+      this.markAsDirty({emitEvent: false});
+    }
+
+    // Add computation and validation
+    const requiredSampleWeight = (form.controls['observedIndividualCount']?.value || 0) > 0;
     const subscription = this.validatorService.delegate.enableSamplingRatioAndWeight(form, {
       qvPmfm: this.qvPmfm,
       samplingRatioFormat: this.samplingRatioFormat,
@@ -1394,6 +1428,13 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       });
     }
   }
+
+  protected isTaxonGroupNoWeight(batch: Batch, parent: Batch): boolean {
+    if (isEmptyArray(this.taxonGroupsNoWeight)) return false;
+    const taxonGroup = parent?.taxonGroup || batch.taxonGroup;
+    if (isNilOrBlank(taxonGroup?.label)) return false;
+    return this.taxonGroupsNoWeight.includes(taxonGroup.label);
+  };
 
   confirmEditCreate(event?: Event, row?: TableElement<BatchGroup>): boolean {
     const confirmed = super.confirmEditCreate(event, row);

@@ -38,8 +38,8 @@ export class ObservedLocationValidatorService
       (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
         .filter(p => p.acquisitionLevel === AcquisitionLevelCodes.OBSERVED_LOCATION)
         .forEach(p => {
-          const key = p.pmfmId.toString();
-          const value = data && data.measurementValues && data.measurementValues[key];
+          const key = p.id.toString();
+          const value = data?.measurementValues?.[key];
           measForm.addControl(key, this.formBuilder.control(value, PmfmValidators.create(p)));
         });
     }
@@ -55,9 +55,7 @@ export class ObservedLocationValidatorService
       startDateTime: [data && data.startDateTime || null, this.createStartDateValidator(opts)],
       endDateTime: [data && data.endDateTime || null],
       measurementValues: this.formBuilder.group({}),
-      observers: this.getObserversFormArray(data),
-      recorderDepartment: [data && data.recorderDepartment || null, SharedValidators.entity],
-      recorderPerson: [data && data.recorderPerson || null, SharedValidators.entity]
+      observers: this.getObserversFormArray(data)
     };
 
   }

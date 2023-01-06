@@ -1,5 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnInit, ViewChild } from '@angular/core';
 import {
+  AppErrorWithDetails,
   AppFormUtils,
   AppTabEditor,
   AppTable,
@@ -42,7 +43,6 @@ import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal
 import { AppSharedFormUtils, FormControlStatus } from '@app/shared/forms.utils';
 import { ISubBatchesModalOptions } from '@app/trip/batch/sub/sub-batches.modal';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { RxState } from '@rx-angular/state';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
@@ -75,6 +75,10 @@ export interface IBatchTreeComponent extends IAppTabEditor {
   autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean}): Promise<void>;
   addRow(event: Event);
   getFirstInvalidTabIndex(): number;
+
+  setError(error: string, opts?: { emitEvent?: boolean; })
+
+  resetError(opts?: { emitEvent?: boolean; })
 }
 
 @Component({
@@ -313,10 +317,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     super.ngOnInit();
 
     this.registerSubscription(
-      this.catchBatchForm.$pmfms
-        .pipe(
-          filter(isNotNil)
-        )
+      this.catchBatchForm.pmfms$
         .subscribe(pmfms => {
           const hasPmfms = pmfms.length > 0;
           this.showCatchForm = this.showCatchForm && hasPmfms;
@@ -399,6 +400,21 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
     this.$programLabel.complete();
     this.$program.complete();
+  }
+
+  // Change visibility to public
+  setError(error: string|AppErrorWithDetails, opts?: { emitEvent?: boolean;  }) {
+    if (!error || typeof error === 'string') {
+      super.setError(error as string, opts);
+    }
+    else {
+      console.log('TODO: apply error to rows ?', error)
+    }
+  }
+
+  // Change visibility to public
+  resetError(opts?: { emitEvent?: boolean }) {
+    super.resetError(opts);
   }
 
   setModalOption(key: keyof IBatchGroupModalOptions, value: IBatchGroupModalOptions[typeof key]) {

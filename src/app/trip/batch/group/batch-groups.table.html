@@ -34,7 +34,7 @@
     <ng-container matColumnDef="top-start" [sticky]="useSticky">
       <th mat-header-cell *matHeaderCellDef [attr.colspan]="groupColumnStartColSpan">
         <button mat-icon-button class="ion-float-start"
-                *ngIf="!mobile && !selection.hasValue()"
+                *ngIf="!selection.hasValue()"
                 [disabled]="disabled"
                 [title]="'COMMON.BTN_ADD_ROW'|translate"
                 (click)="addRow()">
@@ -96,15 +96,15 @@
       </th>
     </ng-container>
 
-    <ng-container matColumnDef="select" [sticky]="useSticky && !mobile">
-      <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="mobile">
+    <ng-container matColumnDef="select" [sticky]="useSticky">
+      <th mat-header-cell *matHeaderCellDef>
         <mat-checkbox (change)="$event ? masterToggle() : null"
                       [checked]="selection.hasValue() && isAllSelected()"
                       [indeterminate]="selection.hasValue() && !isAllSelected()"
                       [tabIndex]="-1">
         </mat-checkbox>
       </th>
-      <td mat-cell *matCellDef="let row" [class.cdk-visually-hidden]="mobile">
+      <td mat-cell *matCellDef="let row">
         <mat-checkbox (click)="$event.stopPropagation()"
                       (change)="$event ? selection.toggle(row) : null"
                       [checked]="selection.isSelected(row)"
@@ -114,21 +114,21 @@
     </ng-container>
 
     <!-- rankOrder Column = id -->
-    <ng-container matColumnDef="id" [sticky]="useSticky && !mobile">
-      <th mat-header-cell *matHeaderCellDef mat-sort-header [class.ion-padding-start]="mobile">
+    <ng-container matColumnDef="id" [sticky]="useSticky">
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>
         <ion-label>#</ion-label>
       </th>
       <ng-container *matCellDef="let row">
-        <td mat-cell [class.ion-padding-start]="mobile"
-            *ngVar="(row.validator | translateFormError: errorTranslatorOptions) as errorMsg"
-            [title]="errorMsg||''">
-          <ion-text matBadge="!"
-                    [matBadgeHidden]="!errorMsg"
-                    matBadgeOverlap="false"
-                    matBadgeColor="accent"
-                    matBadgeSize="small">
+        <td mat-cell
+            *rxLet="row.currentData.qualificationComments || (row.validator.invalid && (row.validator | translateFormError: errorTranslatorOptions)); let rowError"
+            [title]="rowError||''">
+          <ion-label matBadge="!"
+                     [matBadgeHidden]="!rowError"
+                     matBadgeOverlap="false"
+                     matBadgeColor="accent"
+                     matBadgeSize="small">
             {{ row.currentData.rankOrder }}
-          </ion-text>
+          </ion-label>
         </td>
       </ng-container>
     </ng-container>
@@ -141,7 +141,7 @@
 
       <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonGroup'">
         <mat-autocomplete-field floatLabel="never" [class.min-width-medium]='qvPmfm'
-                                [autofocus]="row.editing && focusColumn === 'taxonGroup'"
+                                [autofocus]="row.validator.enabled && focusColumn === 'taxonGroup'"
                                 [formControl]="row.validator.controls.taxonGroup"
                                 [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
                                 [required]="showTaxonGroupColumn"
@@ -157,7 +157,7 @@
       </th>
       <td mat-cell *matCellDef="let row" (click)="focusColumn='taxonName'">
         <mat-autocomplete-field floatLabel="never" class="min-width-medium"
-                                [autofocus]="row.editing && focusColumn === 'taxonName'"
+                                [autofocus]="row.validator.enabled && focusColumn === 'taxonName'"
                                 [formControl]="row.validator.controls.taxonName"
                                 [placeholder]="'TRIP.BATCH.TABLE.TAXON_GROUP_PLACEHOLDER'|translate"
                                 [required]="showTaxonNameColumn"
@@ -345,7 +345,13 @@
           <ion-label>#</ion-label>
         </th>
         <td mat-cell *matCellDef="let row" [class.ion-padding-start]="mobile">
-          <ion-label>{{ row.currentData.rankOrder }}</ion-label>
+          <ion-text
+            matBadge="!"
+            [matBadgeHidden]="row.currentData.qualityFlagId === 0"
+            matBadgeOverlap="false"
+            matBadgeColor="accent"
+            matBadgeSize="small">{{ row.currentData.rankOrder }}
+          </ion-text>
         </td>
       </ng-container>
 
@@ -491,6 +497,7 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"
           class="mat-row-disabled"
           [class.mat-row-dirty]="!row.currentData.id"
+          [class.mat-row-error]="row.currentData.qualityFlagId===4"
           (click)="clickRow($event, row)">
       </tr>
     </table>

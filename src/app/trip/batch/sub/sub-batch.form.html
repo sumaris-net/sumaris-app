@@ -148,8 +148,8 @@
   </div>
 
   <!-- pmfms -->
-  <ng-container *ngIf="$pmfms | async as pmfms; else measurementsSkeleton">
-    <app-pmfm-field *ngFor="let pmfm of pmfms; index as i; last as last"
+  <ng-container *rxIf="pmfms$; let pmfms; strategy: 'userBlocking'; else measurementsSkeleton">
+    <app-pmfm-field *rxFor="let pmfm of pmfms; strategy: 'userBlocking'; index as i; last as last"
                     #inputField
                     [control]="form|formGetControl: ['measurementValues', pmfm.id]"
                     [pmfm]="pmfm"

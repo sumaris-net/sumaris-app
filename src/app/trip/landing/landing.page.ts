@@ -85,7 +85,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
   mobile: boolean;
   showEntityMetadata = false;
   showQualityForm = false;
-  contextService: ContextService;
+  context: ContextService;
   showSamplesTable = false;
   enableReport = false
 
@@ -114,7 +114,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.tripService = injector.get(TripService);
     this.referentialRefService = injector.get(ReferentialRefService);
     this.vesselService = injector.get(VesselSnapshotService);
-    this.contextService = injector.get(ContextService);
+    this.context = injector.get(ContextService);
     this.network = injector.get(NetworkService);
 
     this.mobile = this.settings.mobile;
@@ -143,7 +143,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
         .subscribe());
 
     this.registerSubscription(
-      this.landingForm.$strategyLabel
+      this.landingForm.strategyLabel$
         .pipe(
           filter(value => this.$strategyLabel.value !== value),
           tap(strategyLabel => console.debug("[landing-page] Received strategy label: ", strategyLabel)),
@@ -296,7 +296,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     this.showQualityForm = false;
 
     // Set contextual strategy
-    const contextualStrategy = this.contextService.getValue('strategy') as Strategy;
+    const contextualStrategy = this.context.getValue('strategy') as Strategy;
     const strategyLabel = contextualStrategy?.label;
     if (strategyLabel) {
       data.measurementValues = data.measurementValues || {};

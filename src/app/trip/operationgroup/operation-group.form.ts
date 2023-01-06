@@ -52,19 +52,19 @@ export class OperationGroupForm extends MeasurementValuesForm<OperationGroup> im
       })
     );
 
-    // Set default acquisition level
-    this._acquisitionLevel = AcquisitionLevelCodes.OPERATION;
+    // Set defaults
+    this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
 
     this.debug = !environment.production;
   };
 
   ngOnInit() {
-    console.debug('[operation-group.form] init form operation group form');
     super.ngOnInit();
 
     // Default values
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
+    // From data
     this.gear = this.data.metier?.gear;
     this.metier = this.data.metier;
 

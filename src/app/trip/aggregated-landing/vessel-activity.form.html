@@ -16,7 +16,7 @@
       <ion-col [formGroup]="measurementValuesForm">
 
         <!-- pmfms -->
-        <app-pmfm-field *ngFor="let pmfm of $pmfms | async; trackBy: trackPmfmFn; index as i;"
+        <app-pmfm-field *rxFor="let pmfm of pmfms$; trackBy: trackPmfmFn; index as i;"
                         [pmfm]="pmfm"
                         [style]="pmfm|pmfmFieldStyle:maxVisibleButtons"
                         [compact]="compact"

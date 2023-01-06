@@ -202,11 +202,16 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
 
     this.registerAutocompleteField<ReferentialRef, ReferentialRefFilter>('location', {
       showAllOnFocus: false,
-      service: this.referentialRefService,
+      suggestFn: async (value, filter) => {
+        // Note: wait enumeration override, before using LocationLevelGroups.FISHING_AREA
+        await this.referentialRefService.ready();
+        return this.referentialRefService.suggest(value, {
+          ...filter,
+          levelIds: LocationLevelGroups.FISHING_AREA
+        });
+      },
       filter: {
         entityName: 'Location',
-        // TODO BLA: rendre ceci paramètrable par program properties
-        levelIds: LocationLevelGroups.FISHING_AREA,
         statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
       },
       mobile: this.mobile

@@ -131,14 +131,14 @@
           <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
         </ng-container>
 
-        <form *ngIf="$pmfms | async; let pmfms; else measurementsSkeleton;"
+        <form *rxIf="pmfms$; let pmfms; strategy: 'immediate'; else measurementsSkeleton;"
               [formGroup]="landingForm.measurementValuesForm"
               class="form-container ion-padding ion-no-padding-bottom">
 
           <ion-grid class="ion-no-padding">
             <ion-row class="ion-no-padding" >
               <!-- pmfms -->
-              <ng-container *ngFor="let pmfm of pmfms; index as i;">
+              <ng-container *rxFor="let pmfm of pmfms; strategy: 'immediate'; index as i;">
 
                 <ion-col size="11" size-md="5" >
                   <app-pmfm-field [pmfm]="pmfm"

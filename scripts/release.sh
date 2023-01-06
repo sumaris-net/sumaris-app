@@ -171,9 +171,7 @@ echo " - Open Android Studio and Build the release APK..."
 echo " - Then run: "
 echo ""
 echo "cd $PROJECT_DIR/scripts"
-echo "./release-android-sign.sh"
-echo "./release-finish.sh $version ''"$release_description"''"
-echo "./release-to-github.sh $task ''"$release_description"''"
+echo "./release-android-sign.sh && ./release-finish.sh && ./release-to-github.sh $task"
 exit 1
 
 echo "**********************************"

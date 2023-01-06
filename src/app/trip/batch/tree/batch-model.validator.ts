@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { AppFormArray, isNotEmptyArray, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { AppFormArray, isEmptyArray, isNotEmptyArray, LocalSettingsService, ReferentialRef } from '@sumaris-net/ngx-components';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
@@ -10,6 +10,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { BatchModel, BatchModelUtils } from '@app/trip/batch/tree/batch-tree.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { environment } from '@environments/environment';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 
 export interface BatchModelValidatorOptions extends DataEntityValidatorOptions {
   withWeight?: boolean;
@@ -29,7 +31,7 @@ export interface BatchModelValidatorOptions extends DataEntityValidatorOptions {
 }
 
 
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class BatchModelValidatorService<
   T extends Batch<T> = Batch,
   O extends BatchModelValidatorOptions = BatchModelValidatorOptions,
@@ -49,7 +51,39 @@ export class BatchModelValidatorService<
     this.debug = !environment.production;
   }
 
-  createModel(data: Batch|undefined, opts: {allowDiscard: boolean, sortingPmfms: IPmfm[], catchPmfms: IPmfm[]}): BatchModel {
+  createModel(data: Batch|undefined, opts: {allowDiscard: boolean; sortingPmfms: IPmfm[]; catchPmfms: IPmfm[]; physicalGear: PhysicalGear}): BatchModel {
+
+    if (isNotEmptyArray(opts.sortingPmfms)) {
+      // Map sorting pmfms
+      opts.sortingPmfms = opts.sortingPmfms.map(p => {
+
+        // Change discard weight to optional (need by APASE)
+        if (opts?.allowDiscard === false && PmfmUtils.isWeight(p) && p.label === 'DISCARD_WEIGHT') {
+          p = p.clone(); // Leave original pmfm unchanged
+          p.required = false;
+        }
+
+        // Fill CHILD_GEAR (need by APASE)
+        if (opts?.physicalGear?.children && p.id === PmfmIds.CHILD_GEAR) {
+          // Convert to referential item
+          p = p.clone();
+          p.qualitativeValues = (opts.physicalGear.children || []).map(pg => ReferentialRef.fromObject({
+            id: pg.rankOrder,
+            label: pg.rankOrder,
+            name: pg.measurementValues[PmfmIds.GEAR_LABEL] || pg.gear.name
+          }));
+          if (isEmptyArray(p.qualitativeValues)) {
+            console.warn(`[batch-model-validator] Unable to fill items for Pmfm#${p.id} (${p.label})`);
+          }
+          else {
+            // DEBUG
+            console.debug(`[batch-tree-container] Fill CHILD_GEAR PMFM, with:`, p.qualitativeValues);
+          }
+        }
+
+        return p;
+      });
+    }
 
     // Create a batch model
     const model = BatchModelUtils.createModel(data, opts);
