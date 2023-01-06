@@ -4,7 +4,7 @@ import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { Moment } from 'moment';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { ContextService } from '@app/shared/context.service';
-import { Injectable } from '@angular/core';
+import { Directive, Injectable } from '@angular/core';
 import { Program } from '@app/referential/services/model/program.model';
 import { Strategy } from '@app/referential/services/model/strategy.model';
 import { Operation, Trip } from '@app/trip/services/model/trip.model';
@@ -25,7 +25,8 @@ export interface DataContext {
   vesselPositions?: VesselPosition[];
 }
 
-@Injectable()
+@Directive()
+// tslint:disable-next-line:directive-class-suffix
 export abstract class DataContextService<S extends DataContext = DataContext> extends ContextService<S> {
 
   protected constructor(defaultState: S) {
