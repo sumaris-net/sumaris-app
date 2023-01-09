@@ -2,7 +2,7 @@ import {Injectable} from "@angular/core";
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import {ValidatorService} from "@e-is/ngx-material-table";
 import {ExtractionFilterCriterion, ExtractionType} from "../type/extraction-type.model";
-import { AppFormArray, arrayDistinct, isNilOrBlank, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
+import { AppFormArray, arrayDistinct, isNilOrBlank, isNotEmptyArray, isNotNil, toBoolean } from '@sumaris-net/ngx-components';
 import { DEFAULT_CRITERION_OPERATOR } from '@app/extraction/common/extraction.utils';
 
 @Injectable()
@@ -55,7 +55,8 @@ export class ExtractionCriteriaValidatorService implements ValidatorService {
       operator: [data && data.operator || DEFAULT_CRITERION_OPERATOR, Validators.required],
       value: [value],
       endValue: [data && data.endValue || null],
-      sheetName: [data && data.sheetName || sheetName]
+      sheetName: [data && data.sheetName || sheetName],
+      hidden: [toBoolean(data?.hidden, false)]
     });
   }
 
@@ -70,7 +71,8 @@ export class ExtractionCriteriaValidatorService implements ValidatorService {
       operator: data && data.operator || DEFAULT_CRITERION_OPERATOR,
       value: value,
       endValue: data && data.endValue || null,
-      sheetName: data && data.sheetName || sheetName || null
+      sheetName: data && data.sheetName || sheetName || null,
+      hidden: toBoolean(data?.hidden, false)
     });
   }
 }

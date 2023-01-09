@@ -13,12 +13,13 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  Person, toNumber, equals
+  Person, toNumber, equals, trimEmptyToNull
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { filter, map } from 'rxjs/operators';
+import { StoreObject } from '@apollo/client/core';
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
@@ -171,6 +172,18 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
     this.sheetName = source.sheetName;
     return this;
   }
+
+  asObject(opts?: EntityAsObjectOptions): StoreObject {
+    const target = super.asObject(opts) as any;
+
+    target.criteria = this.criteria && this.criteria
+      // Remove empty criterion
+      .filter(criterion => isNotNil(criterion.name) && ExtractionFilterCriterion.isNotEmpty(criterion))
+      // Serialize to object
+      .map(criterion => criterion.asObject && criterion.asObject(opts) || criterion) || undefined;
+
+    return target;
+  }
 }
 
 export declare type CriterionOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'BETWEEN' | 'NULL' | 'NOT NULL';
@@ -220,6 +233,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
   values?: string[];
   endValue?: string;
   sheetName?: string;
+  hidden: boolean = false;
 
   constructor() {
     super(ExtractionFilterCriterion.TYPENAME);
@@ -233,11 +247,55 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
     this.values = source.values;
     this.endValue = source.endValue;
     this.sheetName = source.sheetName;
+    this.hidden = source.hidden || false;
     return this;
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
-    return super.asObject(options);
+  asObject(opts?: EntityAsObjectOptions): StoreObject {
+    const target = super.asObject(opts) as any;
+
+    // Pod serialization
+    if (opts.minify) {
+      const isMulti = typeof target.value === 'string' && target.value.indexOf(',') !== -1;
+      switch (target.operator) {
+        case '=':
+          if (isMulti) {
+            target.operator = 'IN';
+            target.values = (target.value as string)
+              .split(',')
+              .map(trimEmptyToNull)
+              .filter(isNotNil);
+            delete target.value;
+          }
+          break;
+        case '!=':
+          if (isMulti) {
+            target.operator = 'NOT IN';
+            target.values = (target.value as string)
+              .split(',')
+              .map(trimEmptyToNull)
+              .filter(isNotNil);
+            delete target.value;
+          }
+          break;
+        case 'BETWEEN':
+          if (isNotNilOrBlank(target.endValue)) {
+            if (typeof target.value === 'string') {
+              target.values = [target.value.trim(), target.endValue.trim()];
+            }
+            else {
+              target.values = [target.value, target.endValue];
+            }
+          }
+          delete target.value;
+          break;
+      }
+
+      delete target.endValue;
+      delete target.hidden;
+    }
+
+    return target;
   }
 }
 

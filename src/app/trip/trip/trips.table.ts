@@ -377,10 +377,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     const tripIds = trips.map(t => t.id);
     const type = ExtractionType.fromLiveLabel('PMFM_TRIP');
     const filter = ExtractionUtils.createTripFilter(programLabel, tripIds);
-    const queryParams = {
-      ...ExtractionUtils.asQueryParams(type, filter),
-      program: programLabel
-    };
+    const queryParams = ExtractionUtils.asQueryParams(type, filter);
 
     // Open extraction
     await this.router.navigate(['extraction', 'data'], {queryParams});

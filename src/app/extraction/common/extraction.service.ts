@@ -179,48 +179,8 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
     const target = ExtractionFilter.fromObject(source);
 
     // Remove empty criterion
-    target.criteria = (source.criteria || [])
+    target.criteria = (target.criteria || [])
       .filter(criterion => isNotNil(criterion.name))
-      .map(criterion => {
-        const isMulti = typeof criterion.value === 'string' && criterion.value.indexOf(',') !== -1;
-        switch (criterion.operator) {
-          case '=':
-            if (isMulti) {
-              criterion.operator = 'IN';
-              criterion.values = (criterion.value as string)
-                .split(',')
-                .map(trimEmptyToNull)
-                .filter(isNotNil);
-              delete criterion.value;
-            }
-            break;
-          case '!=':
-            if (isMulti) {
-              criterion.operator = 'NOT IN';
-              criterion.values = (criterion.value as string)
-                .split(',')
-                .map(trimEmptyToNull)
-                .filter(isNotNil);
-              delete criterion.value;
-            }
-            break;
-          case 'BETWEEN':
-            if (isNotNilOrBlank(criterion.endValue)) {
-              if (typeof criterion.value === 'string') {
-                criterion.values = [criterion.value.trim(), criterion.endValue.trim()];
-              }
-              else {
-                criterion.values = [criterion.value, criterion.endValue];
-              }
-            }
-            delete criterion.value;
-            break;
-        }
-
-        delete criterion.endValue;
-
-        return criterion as ExtractionFilterCriterion;
-      })
       .filter(ExtractionFilterCriterion.isNotEmpty);
 
     return target;

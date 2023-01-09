@@ -14,7 +14,8 @@
       class="form-container">
   <ion-grid [formArrayName]="sheetName">
     <ng-container *ngFor="let criterionForm of criteriaForm.controls; index as i; odd as odd">
-      <ion-row [formGroupName]="i" class="strata-row" [class.odd]="odd">
+      <ion-row [formGroupName]="i" class="strata-row" [class.odd]="odd"
+               [class.cdk-visually-hidden]="criterionForm|formGetValue:'hidden'">
 
         <!-- column name -->
         <ion-col class="ion-no-padding">

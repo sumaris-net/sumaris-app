@@ -295,8 +295,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
           sheetName: this.criteriaForm.sheetName,
           name: 'project',
           operator: '=',
-          value: programLabel
-        })], {emitEvent: false});
+          value: programLabel,
+          hidden: true // Hide
+        }),
+        ExtractionFilterCriterion.fromObject({operator: '='})
+      ], {emitEvent: false});
     }
 
     // Apply program label
@@ -577,7 +580,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       await this.setTypeAndProgram(this.type, this.programLabel, {emitEvent: false})
     }
     else {
-      // Clea all filter
+      // Clear all filter
       this.criteriaForm.reset();
     }
 
@@ -678,13 +681,17 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   protected parseCriteriaFromString(queryString: string, sheet?: string): ExtractionFilterCriterion[] {
     const criteria = super.parseCriteriaFromString(queryString, sheet);
 
-    const programLabel = (criteria || []).find(criterion =>
+    const programIndex = (criteria || []).findIndex(criterion =>
       (!sheet || criterion.sheetName == sheet)
       && criterion.operator === '='
       && criterion.name === 'project'
-      && isNotNilOrBlank(criterion.value))?.value;
+      && isNotNilOrBlank(criterion.value));
+    if (programIndex !== -1) {
+      const programLabel = criteria[programIndex]?.value;
+      this.setProgramLabel(programLabel);
 
-    this.setProgramLabel(programLabel);
+      criteria[programIndex].hidden = true;
+    }
 
     return criteria;
   }
