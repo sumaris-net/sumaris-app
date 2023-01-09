@@ -25,27 +25,45 @@ import { AlertController, ModalController, ToastController } from '@ionic/angula
 import { ExtractionUtils } from './extraction.utils';
 import { ExtractionHelpModal, ExtractionHelpModalOptions } from '../help/help.modal';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+import { RxState } from '@rx-angular/state';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
+export interface ExtractionState<T extends ExtractionType> {
+  types: T[];
+  type: T;
+}
+
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
-export abstract class ExtractionAbstractPage<T extends ExtractionType> extends AppTabEditor<T> {
+export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends ExtractionState<T>> extends AppTabEditor<T> {
 
-  type: T;
+  protected readonly $types = this._state.select('types');
+  protected readonly $type = this._state.select('type');
+
   form: UntypedFormGroup;
   canEdit = false;
   mobile: boolean;
   startSubject = new BehaviorSubject<boolean>(false);
 
   onRefresh = new EventEmitter<any>();
-  $types = new BehaviorSubject<T[]>(undefined);
 
   @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
 
   get started(): boolean {
     return this.startSubject.value;
+  }
+
+  get types(): T[] {
+    return this._state.get('types');
+  }
+
+  get type(): T {
+    return this._state.get('type');
+  }
+  set type(value: T) {
+    this._state.set('type', (_) => value);
   }
 
   get sheetName(): string {
@@ -75,7 +93,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     protected settings: LocalSettingsService,
     protected formBuilder: UntypedFormBuilder,
     protected platform: PlatformService,
-    protected modalCtrl: ModalController
+    protected modalCtrl: ModalController,
+    protected _state: RxState<S>
   ) {
     super(route, router, alertCtrl, translate);
     this.mobile = settings.mobile;
@@ -91,22 +110,17 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     this.addChildForm(this.criteriaForm);
 
     // Load types
-    this.registerSubscription(
+    this._state.connect('types',
       this.watchAllTypes()
         .pipe(
           map(({data, total}) => {
             // Compute i18n name
-            data = data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
+            return data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
               // Then sort by name
               .sort(propertyComparator('name'));
+          })));
 
-            return { data, total };
-          }))
-        .subscribe(({data}) => {
-          this.$types.next(data);
-          this.markAsReady();
-        })
-    );
+    this._state.hold(this.$types, (_) => this.markAsReady());
 
     // Load type from route parameters
     this.loadFromRoute();
@@ -147,13 +161,13 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
     // Set the type
     const changed = await this.setType(selectedType, {
       sheetName: selectedSheetName,
-      emitEvent: false,
+      emitEvent: false, // Should not reload data now (will be done just after, after filter update)
       skipLocationChange: true // Here, we not need an update of the location
     });
 
-    // Apply filter
-    if (isNotNilOrBlank(sheet) && isNotNilOrBlank(q)) {
-      const criteria = ExtractionUtils.parseCriteriaFromString(sheet, q);
+    // Update filter form
+    if (isNotNilOrBlank(q)) {
+      const criteria = this.parseCriteriaFromString(q, sheet);
       await this.criteriaForm.setValue(criteria, {emitEvent: false});
     }
 
@@ -212,6 +226,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
 
   protected getFirstInvalidTabIndex(): number {
     return 0;
+  }
+
+  protected parseCriteriaFromString(queryString: string, sheet?: string): ExtractionFilterCriterion[] {
+    return ExtractionUtils.parseCriteriaFromString(queryString, sheet);
   }
 
   setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
@@ -281,7 +299,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
   }
 
   async load(id?: number, options?: any): Promise<any> {
-    const type = (this.$types.value || []).find(t => t.id === id);
+    const type = (this.types || []).find(t => t.id === id);
     const changed = type && await this.setType(type, {emitEvent: false});
     if (changed) {
       await this.loadData();
@@ -382,7 +400,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType> extends A
       || (this.accountService.isSupervisor() && this.accountService.canUserWriteDataForDepartment(type.recorderDepartment)));
   }
 
-  getI18nSheetName(sheetName?: string, type?: T, self?: ExtractionAbstractPage<any>): string {
+  getI18nSheetName(sheetName?: string, type?: T, self?: ExtractionAbstractPage<T, S>): string {
     self = self || this;
     type = type || self.type;
     sheetName = sheetName || this.sheetName;

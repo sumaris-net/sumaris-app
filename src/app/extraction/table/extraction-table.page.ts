@@ -33,7 +33,7 @@ import {
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { Location } from '@angular/common';
 import { combineAll, concatAll, debounceTime, filter, first, map, tap, throttleTime } from 'rxjs/operators';
-import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
+import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { ExtractionService } from '../common/extraction.service';
@@ -50,19 +50,30 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { ProgramFilter } from '@app/referential/services/filter/program.filter';
 import { Program } from '@app/referential/services/model/program.model';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+import { RxState } from '@rx-angular/state';
 
-
+export interface ExtractionTableState extends ExtractionState<ExtractionType>{
+  programs: Program[];
+  programLabel: string;
+  program: Program;
+  categories: ExtractionTypeCategory[];
+}
 
 @Component({
   selector: 'app-extraction-table-page',
   templateUrl: './extraction-table.page.html',
   styleUrls: ['./extraction-table.page.scss'],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> implements OnInit, OnDestroy {
-
+export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, ExtractionTableState> implements OnInit, OnDestroy {
 
   private $cancel = new Subject<boolean>();
+
+  protected readonly $programLabel = this._state.select('programLabel');
+  protected readonly $programs = this._state.select('programs');
+  protected readonly $program = this._state.select('program');
+  protected readonly $categories = this._state.select('categories');
 
   defaultPageSize = DEFAULT_PAGE_SIZE;
   defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
@@ -80,14 +91,25 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
   filterCriteriaCount$: Observable<number>;
   filterPanelFloating = true;
   stickyEnd = true;
-  $programs = new BehaviorSubject<Program[]>(null);
-  $selectedProgram = new BehaviorSubject<Program>(null);
-  $categories = new BehaviorSubject<ExtractionTypeCategory[]>(null);
 
   @ViewChild(MatTable, {static: true}) table: MatSort;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
   @ViewChild(MatSort, {static: true}) sort: MatSort;
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
+
+  protected set programLabel(value: string) {
+    this._state.set('programLabel', (_) => value);
+  }
+  protected get programLabel(): string {
+    return this._state.get('programLabel') || this.program?.label;
+  }
+
+  protected set program(value: Program) {
+    this._state.set('program', (_) => value);
+  }
+  protected get program(): Program {
+    return this._state.get('program');
+  }
 
   constructor(
     route: ActivatedRoute,
@@ -101,18 +123,20 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     formBuilder: UntypedFormBuilder,
     platform: PlatformService,
     modalCtrl: ModalController,
+    state: RxState<ExtractionTableState>,
     protected location: Location,
     protected productService: ProductService,
     protected programRefService: ProgramRefService,
     protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
+    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl, state);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
     this.isAdmin = this.accountService.isAdmin();
     this.stickyEnd = !this.mobile;
+
   }
 
   ngOnInit() {
@@ -158,21 +182,23 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
         map(_ => this.criteriaForm.criteriaCount)
       );
 
-    this.registerSubscription(
-      this.programRefService.watchAll(0, 100, 'label', 'asc', <ProgramFilter>{
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
-      })
-      .subscribe(({data}) => this.$programs.next(data))
-    )
+    this._state.connect('programs', this.programRefService.watchAll(0, 100, 'label', 'asc', <ProgramFilter>{
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      acquisitionLevelLabels: [AcquisitionLevelCodes.TRIP, AcquisitionLevelCodes.OPERATION, AcquisitionLevelCodes.CHILD_OPERATION]
+    }), (s, res) => res.data);
 
-    this.registerSubscription(this.$types
+    this._state.connect('program', this._state.select(['programLabel', 'programs'], res => res)
+      .pipe(
+        map(({programLabel, programs}) => {
+          return (programs || []).find(p => p.label === programLabel);
+        })
+      ));
+
+    this._state.connect('categories', this.$types
       .pipe(
         filter(isNotNil),
         map(ExtractionTypeCategory.fromTypes)
-      )
-      .subscribe(categories => this.$categories.next(categories))
-    );
+      ));
   }
 
   ngOnDestroy() {
@@ -187,7 +213,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       this.data = data;
 
       // Translate names
-      this.translateColumns(data.columns);
+      super.translateColumns(data.columns);
 
       // Sort columns, by rankOrder
       this.sortedColumns = data.columns.slice()
@@ -244,7 +270,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       }
 
       // Reset program
-      this.$selectedProgram.next(null);
+      this.resetProgram();
 
       this.markAsReady();
 
@@ -257,23 +283,24 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   }
 
-  async setTypeAndProgram(type: ExtractionType, program: Program, opts = {emitEvent: true}) {
+  async setTypeAndProgram(type: ExtractionType, programLabel: string, opts = {emitEvent: true}) {
 
     // Apply type
     await this.setType(type, {emitEvent: false});
 
     // Apply filter
-    if (this.criteriaForm.sheetName && isNotNilOrBlank(program.label)) {
+    if (this.criteriaForm.sheetName && isNotNilOrBlank(programLabel)) {
       await this.criteriaForm.setValue([
         ExtractionFilterCriterion.fromObject({
           sheetName: this.criteriaForm.sheetName,
           name: 'project',
           operator: '=',
-          value: program.label
+          value: programLabel
         })], {emitEvent: false});
     }
 
-    this.$selectedProgram.next(program);
+    // Apply program label
+    this.setProgramLabel(programLabel);
 
     // Refresh data
     if (opts.emitEvent !== false) {
@@ -373,7 +400,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
       const parentFormat = this.type.format.toUpperCase();
       const format = parentFormat.startsWith('AGG_') ? parentFormat : `AGG_${parentFormat}`;
       const [label, name] = await Promise.all([
-        this.productService.computeNextLabel(format, this.$types.value),
+        this.productService.computeNextLabel(format, this.types),
         this.computeNextProductName(format)
       ]);
 
@@ -422,7 +449,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
       // Compute label and name
       const [label, name] = await Promise.all([
-        this.productService.computeNextLabel(this.type.format, this.$types.value),
+        this.productService.computeNextLabel(this.type.format, this.types),
         this.computeNextProductName(this.type.format)
         ]);
       const entity = ExtractionProduct.fromObject({
@@ -545,18 +572,25 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
 
   async resetFilter(event?: Event) {
 
-    if (this.$selectedProgram.value) {
-      await this.setTypeAndProgram(this.type, this.$selectedProgram.value, {emitEvent: false})
+    if (this.programLabel) {
+      // Keep program (reapply type + program)
+      await this.setTypeAndProgram(this.type, this.programLabel, {emitEvent: false})
     }
-
     else {
+      // Clea all filter
       this.criteriaForm.reset();
     }
-    this.applyFilterAndClosePanel(event);
 
+    // Apply filter
+    this.applyFilterAndClosePanel(event);
   }
 
   /* -- protected method -- */
+
+  protected resetProgram() {
+    this._state.set('programLabel', (_) => null);
+    this._state.set('program', (_) => null);
+  }
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {
     return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', <ExtractionTypeFilter>{
@@ -605,7 +639,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
           filter
         );
 
-
       if (cancelled) return; // Stop if cancelled
 
       console.info(`[extraction-table] Loading ${typeLabel} (sheet: ${filter.sheetName}) [OK] in ${Date.now()-now}ms`);
@@ -642,13 +675,31 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     return Alerts.askActionConfirmation(this.alertCtrl, this.translate, true, event);
   }
 
+  protected parseCriteriaFromString(queryString: string, sheet?: string): ExtractionFilterCriterion[] {
+    const criteria = super.parseCriteriaFromString(queryString, sheet);
+
+    const programLabel = (criteria || []).find(criterion =>
+      (!sheet || criterion.sheetName == sheet)
+      && criterion.operator === '='
+      && criterion.name === 'project'
+      && isNotNilOrBlank(criterion.value))?.value;
+
+    this.setProgramLabel(programLabel);
+
+    return criteria;
+  }
+
+  protected setProgramLabel(value?: string) {
+    this.programLabel = value;
+  }
+
   /* -- private method -- */
 
   private async computeNextProductName(format: string): Promise<string> {
     if (!format) return null;
 
     // Use program as format, if any
-    const program = this.$selectedProgram.value;
+    const program = this.program;
     if (isNotNilOrBlank(program?.label)) {
       format = program.label;
     }
@@ -656,7 +707,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     const i18nPrefix = format?.startsWith('AGG_') ? 'EXTRACTION.AGGREGATION.NEW.' : 'EXTRACTION.PRODUCT.NEW.';
     const defaultName = await this.translate.get(i18nPrefix + 'DEFAULT_NAME', { format }).toPromise();
 
-    return this.productService.computeNextName(defaultName, this.$types.value);
+    return this.productService.computeNextName(defaultName, this.types);
   }
 
   private async updateTitle() {
@@ -673,7 +724,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType> 
     }
 
     // Try to get a title with the program
-    const program = this.$selectedProgram.value;
+    const program = this.program;
     if (isNotNilOrBlank(program?.label)) {
       const titleKey = `EXTRACTION.LIVE.${this.type.format.toUpperCase()}.TITLE_PROGRAM`;
       const title = await this.translate.get(titleKey, program).toPromise();

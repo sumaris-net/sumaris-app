@@ -1,9 +1,7 @@
 /* -- Extraction -- */
 
-import { arraySize, isNotEmptyArray, isNotNilOrBlank } from '@sumaris-net/ngx-components';
+import { arraySize, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import { CRITERION_OPERATOR_LIST, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
-import {ExtractionProduct} from "../product/product.model";
-import { DEFAULT_CRITERION_OPERATOR } from '@app/extraction/criteria/extraction-criteria.form';
 
 export const SPATIAL_COLUMNS: string[] = [
   //'area', FIXME no area geometries in Pod
@@ -13,6 +11,8 @@ export const SPATIAL_COLUMNS: string[] = [
 ];
 export const TIME_COLUMNS:   string[] = ['year', 'quarter', 'month'];
 export const IGNORED_COLUMNS:   string[] = ['record_type'];
+
+export const DEFAULT_CRITERION_OPERATOR = '=';
 
 export class ExtractionUtils {
 
@@ -66,17 +66,22 @@ export class ExtractionUtils {
     }
     if (isNotEmptyArray(filter.criteria)) {
       queryParams.q = filter.criteria.reduce((res, criterion) => {
-        if (criterion.endValue) {
-          return res.concat(`${criterion.sheetName}:${criterion.name}${criterion.operator}${criterion.value}:${criterion.endValue}`);
-        } else {
-          return res.concat(`${criterion.sheetName}:${criterion.name}${criterion.operator}${criterion.value}`);
+        if (isNilOrBlank(criterion.name)) return res; // Skip if no value or no name
+        let value = criterion.value || '';
+        let operator = criterion.operator || '=';
+        let sheetNamePrefix = criterion.sheetName ? `${criterion.sheetName}:` : '';
+        if (isNotNilOrBlank(criterion.endValue)) {
+          value += `:${criterion.endValue}`;
+        } else if (isNotEmptyArray(criterion.values)) {
+          value = criterion.values.join(',');
         }
+        return res.concat(`${sheetNamePrefix}${criterion.name}${operator}${value}`);
       }, []).join(";");
     }
     return queryParams;
   }
 
-  static parseCriteriaFromString(sheet: string, q: string): ExtractionFilterCriterion[] {
+  static parseCriteriaFromString(q: string, defaultSheetName?: string): ExtractionFilterCriterion[] {
     const criteria = (q||'').split(';');
     const operationRegexp = new RegExp('(' + CRITERION_OPERATOR_LIST.map(co => co.symbol)
       .map(symbol => symbol.replace(/\\!/, '\\\\!'))
@@ -88,7 +93,7 @@ export class ExtractionUtils {
         const operator = matches && matches[0];
         if (!operator) return;
         const fieldNameParts = criterion.substring(0, matches.index).split(':', 2);
-        const sheetName = fieldNameParts.length > 1 ? fieldNameParts[0] : sheet;
+        const sheetName = fieldNameParts.length > 1 ? fieldNameParts[0] : defaultSheetName;
         const name = fieldNameParts.length > 1 ? fieldNameParts[1] : fieldNameParts[0];
         const value = criterion.substring(matches.index + operator.length);
         let values = value.split(':', 2);
@@ -107,12 +112,47 @@ export class ExtractionUtils {
       .map(ExtractionFilterCriterion.fromObject);
   }
 
-  static filterWithValues(columns: ExtractionColumn[]) {
-    return this.filterValuesMinSize(columns, 1);
+  static filterWithValues(columns: ExtractionColumn[], opts?: {allowNullValuesOnNumeric?: boolean}) {
+    return this.filterMinValuesCount(columns, 1, opts);
   }
 
-  static filterValuesMinSize(columns: ExtractionColumn[], minSize: number) {
-    return (columns || []).filter(c => arraySize(c.values) >= minSize);
+  static filterMinValuesCount(columns: ExtractionColumn[], minSize: number, opts?: {allowNullValuesOnNumeric?: boolean}) {
+    const allowNullValuesOnNumeric = opts?.allowNullValuesOnNumeric === true;
+    return (columns || []).filter(c =>
+      // No values computed = numeric columns
+      (allowNullValuesOnNumeric === true && ExtractionColumn.isNumeric(c) && isNil(c.values))
+      // If values, check count
+      || arraySize(c.values) >= minSize);
+  }
+
+  static createTripFilter(programLabel: string, tripIds?: number[]): ExtractionFilter {
+    const filter = new ExtractionFilter();
+    filter.sheetName = 'TR';
+    const criteria: Partial<ExtractionFilterCriterion>[] = [
+      {
+        sheetName: 'TR',
+        name: 'project',
+        operator: '=',
+        value: programLabel
+      }
+    ];
+
+    const tripIdsStr = (tripIds || [])
+      .filter(isNotNil)
+      .map(id => id.toString());
+    if (isNotEmptyArray(tripIdsStr)) {
+      criteria.push({
+          sheetName: 'TR',
+          name: 'trip_code',
+          operator: '=',
+          value: tripIdsStr.length == 1 ? tripIdsStr[0] : undefined,
+          values: tripIdsStr.length > 1 ? tripIdsStr : undefined
+        });
+    }
+
+    filter.criteria = criteria.map(ExtractionFilterCriterion.fromObject);
+
+    return filter;
   }
 }
 

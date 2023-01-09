@@ -4,7 +4,7 @@ import { FetchPolicy, gql } from '@apollo/client/core';
 import { AccountService, BaseGraphqlService, EntityUtils, GraphqlService, isNil, isNotNil, isNotNilOrBlank, Person, trimEmptyToNull } from '@sumaris-net/ngx-components';
 import { ExtractionFilter, ExtractionFilterCriterion, ExtractionResult, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import { SortDirection } from '@angular/material/sort';
-import { DataEntityAsObjectOptions } from '../../data/services/model/data-entity.model';
+import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { ExtractionErrorCodes } from '@app/extraction/common/extraction.errors';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';

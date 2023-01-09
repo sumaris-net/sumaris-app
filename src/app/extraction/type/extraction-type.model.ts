@@ -13,7 +13,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  Person, toNumber
+  Person, toNumber, equals
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
@@ -37,6 +37,9 @@ export class ExtractionType<
   static fromObject: (source: any, opts?: any) => ExtractionType;
   static equals(o1: ExtractionType, o2: ExtractionType): boolean {
     return o1 && o2 ? o1.label === o2.label && o1.format === o2.format && o1.version === o2.version : o1 === o2;
+  }
+  static fromLiveLabel(label: string) {
+    return ExtractionType.fromObject({label, category: 'LIVE'});
   }
 
   format: string = null;
@@ -116,6 +119,10 @@ export class ExtractionResult {
 export class ExtractionColumn {
   static fromObject: (source: any) => ExtractionColumn;
 
+  static isNumeric(source: ExtractionColumn|any) {
+    return source && (source.type === 'integer' || source.type === 'double');
+  }
+
   id: number;
   creationDate: Moment;
   index?: number;
@@ -192,6 +199,20 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
       || criterion.operator === 'NULL'
       || criterion.operator === 'NOT NULL');
   }
+  static isEmpty(criterion: ExtractionFilterCriterion): boolean {
+    return !this.isNotEmpty(criterion);
+  }
+  static equals(c1: ExtractionFilterCriterion, c2: ExtractionFilterCriterion): boolean {
+    return (c1 === c2)
+      || (isNil(c1) && isNil(c2))
+      || (isNotNil(c1)
+        && c1.name === c2?.name
+        && c1.operator === c2?.operator
+        && c1.value === c2?.value
+        && equals(c1.values, c2?.values)
+        && c1.endValue === c2?.endValue
+        && c1.sheetName === c2?.sheetName);
+  }
 
   name: string;
   operator: CriterionOperator;
@@ -209,6 +230,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
     this.name = source.name;
     this.operator = source.operator;
     this.value = source.value;
+    this.values = source.values;
     this.endValue = source.endValue;
     this.sheetName = source.sheetName;
     return this;

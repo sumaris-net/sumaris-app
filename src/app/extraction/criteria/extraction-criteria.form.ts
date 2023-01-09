@@ -20,15 +20,15 @@ import {
 } from '@sumaris-net/ngx-components';
 import { CRITERION_OPERATOR_LIST, ExtractionColumn, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
 import { ExtractionService } from '../common/extraction.service';
-import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { filter, map, switchMap } from 'rxjs/operators';
 import { ExtractionCriteriaValidatorService } from './extraction-criterion.validator';
+import { DEFAULT_CRITERION_OPERATOR } from '@app/extraction/common/extraction.utils';
 
 export const DEFAULT_EXTRACTION_COLUMNS: Partial<ExtractionColumn>[] = [
   {columnName: 'project', name: 'EXTRACTION.COLUMNS.PROJECT', label: 'project', type: 'string'},
   {columnName: 'year', name: 'EXTRACTION.COLUMNS.YEAR', label: 'year', type: 'integer'},
 ]
-export const DEFAULT_CRITERION_OPERATOR = '=';
 
 @Component({
   selector: 'app-extraction-criteria-form',
@@ -151,7 +151,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
 
     // No criterion array found, for this sheet: create a new
     if (!sheetCriteriaForm) {
-      sheetCriteriaForm = this.formBuilder.array([]);
+      sheetCriteriaForm = this.validatorService.getCriterionFormArray([], sheetName);
       this.form.addControl(sheetName, sheetCriteriaForm);
     }
 
@@ -173,7 +173,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     const sheetName = criterion && criterion.sheetName || this.sheetName;
     let arrayControl = this.form.get(sheetName) as UntypedFormArray;
     if (!arrayControl) {
-      arrayControl = this.formBuilder.array([]);
+      arrayControl = this.validatorService.getCriterionFormArray([], sheetName);
       this.form.addControl(sheetName, arrayControl);
     } else {
 
@@ -201,12 +201,12 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
         // Append value to existing value
         if (opts.appendValue) {
           existingCriterion.value += ", " + criterion.value;
-          this.setCriterionValue(criterionForm, existingCriterion);
+          this.validatorService.setCriterionValue(criterionForm, existingCriterion);
         }
 
         // Replace existing criterion value
         else {
-          this.setCriterionValue(criterionForm, criterion);
+          this.validatorService.setCriterionValue(criterionForm, criterion);
         }
         hasChanged = true;
       }
@@ -271,7 +271,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     const needClear = (isNotNil(oldValue.name) || isNotNil(oldValue.value));
     if (!needClear) return false;
 
-    this.setCriterionValue(arrayControl.at(index), null);
+    this.validatorService.setCriterionValue(arrayControl.at(index), null);
 
     if (!$event.ctrlKey) {
       this.onSubmit.emit();
@@ -288,7 +288,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     // Add the default (empty), for each sheet
     (this._type && this._type.sheetNames || []).forEach(sheetName => this.addFilterCriterion({
       name: null,
-      operator: '=',
+      operator: DEFAULT_CRITERION_OPERATOR,
       sheetName: sheetName
     }));
 
@@ -388,31 +388,24 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     const json = (data || [])
       .reduce((res, criterion) => {
         criterion.sheetName = criterion.sheetName || this.sheetName;
-        criterion.operator = criterion.operator || DEFAULT_CRITERION_OPERATOR
+        criterion.operator = criterion.operator || DEFAULT_CRITERION_OPERATOR;
+        criterion.value = criterion.value || (criterion.values?.join(','));
         res[criterion.sheetName] = res[criterion.sheetName] || [];
         res[criterion.sheetName].push(criterion);
       return res;
     }, {});
 
+    const sheetNames = arrayDistinct(Object.keys(json));
 
-    // Create all sub form
-    arrayDistinct(Object.keys(json))
-      .forEach(sheet => {
-        const arrayControl = this.form.get(sheet);
-        if (!arrayControl) {
-          this.form.addControl(sheet, this.formBuilder.array([]));
-        }
-      });
-
-    // Convert object to json, then apply it to form (e.g. convert 'undefined' into 'null')
-    AppFormUtils.copyEntity2Form(json, this.form, {emitEvent: false, onlySelf: true, ...opts});
-
-    // Add missing criteria
-    Object.keys(json).forEach(sheet => {
-      (json[sheet] || [])
-        .filter((c, index) => index >= 1)
-        .forEach(criterion => this.addFilterCriterion(criterion))
+    // Create a sub form for each sheet
+    sheetNames.forEach(sheet => {
+      const formArray = this.form.get(sheet);
+      if (!formArray) {
+        this.form.addControl(sheet, this.validatorService.getCriterionFormArray(undefined, sheet));
+      }
     });
+
+    this.form.patchValue(json);
 
     if (!opts || opts.emitEvent !== true) {
       this.markForCheck();
@@ -432,16 +425,6 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   /* -- protected method -- */
-
-  protected setCriterionValue(control: AbstractControl, criterion?: ExtractionFilterCriterion) {
-    control.setValue({
-      name: criterion && criterion.name || null,
-      operator: criterion && criterion.operator || DEFAULT_CRITERION_OPERATOR,
-      value: criterion && criterion.value || null,
-      endValue: criterion && criterion.endValue || null,
-      sheetName: criterion && criterion.sheetName || this.sheetName || null
-    });
-  }
 
   protected resetColumnDefinitions() {
 
