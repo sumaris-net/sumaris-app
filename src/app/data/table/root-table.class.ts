@@ -181,7 +181,7 @@ export abstract class AppRootDataTable<
           // Save filter in settings (after a debounce time)
           debounceTime(500),
           filter(() => isNotNilOrBlank(this.settingsId)),
-          tap(json => this.settings.savePageSetting(this.settingsId, json, AppRootTableSettingsEnum.FILTER_KEY))
+          tap(json => this.settings.savePageSetting(this.settingsId, {...json}, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe());
   }
