@@ -41,7 +41,7 @@ import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels
 import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, from, merge, Subscription, timer } from 'rxjs';
+import { BehaviorSubject, from, merge, of, Subscription, timer } from 'rxjs';
 import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
 import { IonRouterOutlet, ModalController } from '@ionic/angular';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
@@ -55,6 +55,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { flagsToString, removeFlag } from '@app/shared/flags.utils';
 import { PositionUtils } from '@app/trip/services/position.utils';
 import { RxState } from '@rx-angular/state';
+import { TripPageTabs } from '@app/trip/trip/trip.page';
 
 export interface OperationState {
   hasIndividualMeasures?: boolean;
@@ -98,7 +99,7 @@ export class OperationPage<S extends OperationState = OperationState>
   protected readonly _state: RxState<S> = this.injector.get(RxState);
   protected readonly hasIndividualMeasures$ = this._state.select('hasIndividualMeasures');
   protected tripService: TripService;
-  protected tripContext: TripContextService;
+  protected context: TripContextService;
   protected programRefService: ProgramRefService;
   protected settings: LocalSettingsService;
   protected modalCtrl: ModalController;
@@ -134,6 +135,7 @@ export class OperationPage<S extends OperationState = OperationState>
   showSampleTablesByProgram = false;
   isDuplicatedData = false;
   operationPasteFlags: number;
+  newOperationUrl: string = null;
   readonly forceOptionalExcludedPmfmIds: number[];
 
 
@@ -191,7 +193,7 @@ export class OperationPage<S extends OperationState = OperationState>
     });
 
     this.tripService = injector.get(TripService);
-    this.tripContext = injector.get(TripContextService);
+    this.context = injector.get(TripContextService);
     this.programRefService = injector.get(ProgramRefService);
     this.settings = injector.get(LocalSettingsService);
     this.modalCtrl = injector.get(ModalController);
@@ -210,8 +212,8 @@ export class OperationPage<S extends OperationState = OperationState>
     ];
 
     // Get paste flags from clipboard, if related to Operation
-    const clipboard = this.tripContext?.clipboard;
-    this.operationPasteFlags = OperationUtils.isOperation(clipboard?.data) && clipboard.pasteFlags || 0;
+    const clipboard = this.context?.clipboard;
+    this.operationPasteFlags = toNumber(clipboard?.pasteFlags, 0);
 
     // Add shortcut
     if (!this.mobile) {
@@ -300,7 +302,13 @@ export class OperationPage<S extends OperationState = OperationState>
         .pipe(
           filter(isNotNilOrBlank),
           distinctUntilChanged(),
-          switchMap(programLabel => this.programRefService.watchByLabel(programLabel, {debug: this.debug}))
+          switchMap((programLabel) => {
+            const contextualProgram = this.context?.program;
+            if (contextualProgram?.label === programLabel) {
+              return of(contextualProgram);
+            }
+            return this.programRefService.watchByLabel(programLabel, {debug: this.debug})
+          })
         )
         .subscribe(program => this.setProgram(program)));
 
@@ -315,7 +323,7 @@ export class OperationPage<S extends OperationState = OperationState>
           tap(tripId => {
             this._lastOperationsTripId = tripId; // Remember new trip id
             // Update back href
-            const tripHref = `/trips/${tripId}?tab=2`;
+            const tripHref = `/trips/${tripId}?tab=${TripPageTabs.OPERATIONS}`;
             if (this.defaultBackHref !== tripHref) {
               this.defaultBackHref = tripHref;
               this.markForCheck();
@@ -626,6 +634,11 @@ export class OperationPage<S extends OperationState = OperationState>
     if (!program) return; // Skip
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
 
+    // Update the context (to avoid a reload, when opening the another operation)
+    if (this.context && this.context.program !== program) {
+      this.context.setValue('program', program);
+    }
+
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
@@ -720,7 +733,7 @@ export class OperationPage<S extends OperationState = OperationState>
     data.vesselId = trip.vesselSnapshot?.id;
 
     // Paste clipboard, if not already a duplicated operation
-    const clipboard = this.tripContext?.clipboard;
+    const clipboard = this.context?.clipboard;
     if (OperationUtils.isOperation(clipboard?.data)) {
 
       // Do NOT copy dates, when in the on field mode (will be filled later)
@@ -732,7 +745,10 @@ export class OperationPage<S extends OperationState = OperationState>
       }
 
       // Reset clipboard
-      this.tripContext?.setValue('clipboard', null);
+      this.context?.setValue('clipboard', {
+        data: null, // Reset data
+        pasteFlags: this.operationPasteFlags // Keep flags
+      });
 
       this.isDuplicatedData = true;
     }
@@ -818,7 +834,7 @@ export class OperationPage<S extends OperationState = OperationState>
     }
 
     // Get rankOrder from context, or compute it (if NOT mobile to avoid a long operation)
-    let rankOrder = this.tripContext?.operation?.rankOrderOnPeriod;
+    let rankOrder = this.context?.operation?.rankOrderOnPeriod;
     if (isNil(rankOrder) && !this.mobile) {
       const now = Date.now();
       console.info('[operation-page] Computing rankOrder...');
@@ -881,18 +897,24 @@ export class OperationPage<S extends OperationState = OperationState>
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const savePromise: Promise<boolean> = this.isOnFieldMode && this.dirty && this.valid
+    const saved = this.isOnFieldMode && (!this.dirty || this.valid)
       // If on field mode: try to save silently
-      ? this.save(event)
+      ? await this.save(event)
       // If desktop mode: ask before save
-      : this.saveIfDirtyAndConfirm(null, {
+      : await this.saveIfDirtyAndConfirm(null, {
         emitEvent: false /*do not update view*/
       });
-    const canContinue = await savePromise;
 
-    if (canContinue) {
-      return this.load(+id, {tripId: this.data.tripId, updateTabAndRoute: true});
+    if (!saved) return; // Skip
+
+    // Reopen another page
+    if (this.isNewData) {
+      return this.navigateTo(+id);
     }
+
+    // Reload
+    return this.load(+id, {
+      tripId: this.data.tripId, updateRoute: true, openTabIndex: OperationPage.TABS.GENERAL});
   }
 
   async saveAndNew(event: Event): Promise<any> {
@@ -902,34 +924,26 @@ export class OperationPage<S extends OperationState = OperationState>
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = (this.isOnFieldMode && this.dirty && this.valid)
+    const saved = this.isOnFieldMode && (!this.dirty || this.valid)
       // If on field mode AND valid: save silently
       ? await this.save(event)
       // Else If desktop mode: ask before save
       : await this.saveIfDirtyAndConfirm(null, {
         emitEvent: false /*do not update view*/
       });
-    if (saved) {
-      // FIXME: this optimization not working well, because the page is still reloading after saving (because id changed).
-      if (this.mobile) {
-        const tripId = this.data?.tripId || this.trip?.id;
-        return this.load(undefined, {
-          tripId,
-          updateRoute: false,
-          openTabIndex: OperationPage.TABS.GENERAL
-        });
-      } else {
-        return this.router.navigate(['..', 'new'], {
-          relativeTo: this.route,
-          replaceUrl: true,
-          queryParams: {tab: OperationPage.TABS.GENERAL}
-        });
-      }
+    if (!saved) return; // not saved
+
+    // Reload
+    if (this.isNewData) {
+      return this.load(undefined, {tripId: this.trip?.id, updateRoute: true, openTabIndex: OperationPage.TABS.GENERAL})
     }
+
+    // Redirect to /new
+    return this.navigateTo('new');
   }
 
   async duplicate(event: Event): Promise<any> {
-    if (event?.defaultPrevented || !this.tripContext) return Promise.resolve(); // Skip
+    if (event?.defaultPrevented || !this.context) return Promise.resolve(); // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
     // Avoid reloading while saving or still loading
@@ -946,17 +960,13 @@ export class OperationPage<S extends OperationState = OperationState>
     if (!saved) return; // User cancelled, or cannot saved => skip
 
     // Fill context's clipboard
-    this.tripContext.setValue('clipboard', {
+    this.context.setValue('clipboard', {
       data: this.data,
       pasteFlags: this.operationPasteFlags
     });
 
     // Open new operation
-    return this.router.navigate(['..', 'new'], {
-      relativeTo: this.route,
-      replaceUrl: true,
-      queryParams: {tab: OperationPage.TABS.GENERAL}
-    });
+    return this.navigateTo('new');
   }
 
   async setValue(data: Operation) {
@@ -1054,6 +1064,15 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
+    if (this.loading || this.saving) {
+      console.debug('[data-editor] Skip save: editor is busy (loading or saving)');
+      return false;
+    }
+    if (!this.dirty) {
+      console.debug('[data-editor] Skip save: editor not dirty');
+      return true;
+    }
+
     // Save new gear to the trip
     const gearSaved = await this.saveNewPhysicalGear();
     if (!gearSaved) return false; // Stop if failed
@@ -1174,13 +1193,13 @@ export class OperationPage<S extends OperationState = OperationState>
     // Update trip id (will cause last operations to be watched, if need)
     this.$tripId.next(+tripId);
 
-    let trip = this.tripContext.getValue('trip') as Trip;
+    let trip = this.context.getValue('trip') as Trip;
 
     // If not the expected trip: reload
     if (trip?.id !== tripId) {
       trip = await this.tripService.load(tripId, {fullLoad: true});
       // Update the context
-      this.tripContext.setValue('trip', trip);
+      this.context.setValue('trip', trip);
     }
     this.trip = trip;
     this.saveOptions.trip = trip;
@@ -1216,7 +1235,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   protected computeUsageMode(operation: Operation): UsageMode {
     // Allow to override the usageMode, by context (e.g. when control a trip)
-    const contextualUsageMode = this.tripContext?.getValue('usageMode') as UsageMode;
+    const contextualUsageMode = this.context?.getValue('usageMode') as UsageMode;
     if (contextualUsageMode) return contextualUsageMode;
 
     // Read the settings
@@ -1426,15 +1445,15 @@ export class OperationPage<S extends OperationState = OperationState>
     console.debug('[operation-page] Updating data context...');
     // Date
     const date = this.$lastEndDate.value || this.opeForm.lastStartDateTimeControl?.value;
-    this.tripContext.setValue('date', fromDateISOString(date));
+    this.context.setValue('date', fromDateISOString(date));
 
     // Fishing area
     if (this.opeForm.showFishingArea) {
 
       const fishingAreas = this.opeForm.fishingAreasHelper && this.opeForm.fishingAreasHelper.formArray?.value
         || this.data?.fishingAreas;
-      this.tripContext.setValue('fishingAreas', fishingAreas);
-      this.tripContext.resetValue('vesselPositions');
+      this.context.setValue('fishingAreas', fishingAreas);
+      this.context.resetValue('vesselPositions');
     }
 
     // Or vessel positions
@@ -1443,8 +1462,20 @@ export class OperationPage<S extends OperationState = OperationState>
         this.opeForm.firstActivePositionControl?.value,
         this.opeForm.lastActivePositionControl?.value
       ].filter(position => PositionUtils.isNotNilAndValid(position));
-      this.tripContext.setValue('vesselPositions', positions);
-      this.tripContext.resetValue('fishingAreas');
+      this.context.setValue('vesselPositions', positions);
+      this.context.resetValue('fishingAreas');
     }
+  }
+
+  /**
+   * Navigate to other operation
+   * @param id
+   * @protected
+   */
+  protected async navigateTo(id?: number|'new'): Promise<void> {
+    const program = this.context.program;
+    const editor = program?.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR) || ProgramProperties.TRIP_OPERATION_EDITOR.defaultValue;
+    const editorPath = editor !== 'legacy' ? [editor] : [];
+    await this.router.navigate(['trips', this.$tripId.value, 'operation', ...editorPath, id], {queryParams: {} /*reset query params*/ });
   }
 }

@@ -36,7 +36,7 @@ import { Feature } from 'geojson';
 import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime , map } from 'rxjs/operators';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
-import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage } from '../common/extraction-abstract.page';
+import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { MatExpansionPanel } from '@angular/material/expansion';
@@ -54,6 +54,7 @@ import { ProductService } from '@app/extraction/product/product.service';
 import { AggregationStrataValidatorService } from '@app/extraction/strata/strata.validator';
 import { AggregationStrata, IAggregationStrata } from '@app/extraction/strata/strata.model';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+import { RxState } from '@rx-angular/state';
 
 declare interface LegendOptions {
   min: number;
@@ -94,15 +95,20 @@ const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:sche
   '   </sld:NamedLayer>' +
   '</sld:StyledLayerDescriptor>';
 
+export interface ExtractionMapState extends ExtractionState<ExtractionProduct>{
+
+}
+
 @Component({
   selector: 'app-extraction-map-page',
   templateUrl: './extraction-map.page.html',
   styleUrls: ['./extraction-map.page.scss'],
   animations: [fadeInAnimation, fadeInOutAnimation],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None
 })
-export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct> {
+export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct, ExtractionMapState> {
 
   // -- Map Layers --
   osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -298,16 +304,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     AppFormUtils.markAsTouched(this.form);
   }
 
-  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.markAllAsTouched(opts);
-    AppFormUtils.markAllAsTouched(this.form, opts);
-  }
-
-  get sheetNames(): string[] {
-    if (!this.$sheetNames.value) this.updateSheetNames();
-    return this.$sheetNames.value;
-  }
-
   constructor(
     route: ActivatedRoute,
     router: Router,
@@ -320,6 +316,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     formBuilder: UntypedFormBuilder,
     platform: PlatformService,
     modalCtrl: ModalController,
+    state: RxState<ExtractionMapState>,
     protected location: Location,
     protected productService: ProductService,
     protected durationPipe: DurationPipe,
@@ -327,7 +324,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl);
+    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl, state);
 
     // Add controls to form
     this.form.addControl('strata', this.strataValidatorService.getFormGroup());
@@ -377,6 +374,16 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
         });
       })
     );
+  }
+
+  markAllAsTouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAllAsTouched(opts);
+    AppFormUtils.markAllAsTouched(this.form, opts);
+  }
+
+  get sheetNames(): string[] {
+    if (!this.$sheetNames.value) this.updateSheetNames();
+    return this.$sheetNames.value;
   }
 
   ngOnInit() {
@@ -497,7 +504,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   }
 
   async markAsReady(opts?: { emitEvent?: boolean }) {
-    if (!this.map || !this.$types.value) return; // Skip if missing types or map
+    if (!this.map || !this.types) return; // Skip if missing types or map
 
 
     // DEBUG
@@ -627,7 +634,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     this.markForCheck();
   }
 
-  getI18nSheetName(sheetName?: string, type?: ExtractionProduct, self?: ExtractionAbstractPage<any>): string {
+  getI18nSheetName(sheetName?: string, type?: ExtractionProduct, self?: ExtractionAbstractPage<ExtractionProduct, ExtractionMapState>): string {
     const str = super.getI18nSheetName(sheetName, type, self);
     return str.replace(/\([A-Z]+\)$/, '');
   }
@@ -638,6 +645,21 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
   }
 
   /* -- protected method -- */
+
+  protected parseCriteriaFromString(queryString: string, sheet?: string): ExtractionFilterCriterion[] {
+    let criteria = super.parseCriteriaFromString(queryString, sheet);
+
+    // Read year, and remove it from criteria
+    const yearIndex = (criteria || []).findIndex(c =>
+      (!sheet || sheet === c.sheetName)
+      && c.name === 'year' && c.operator === '=' && isNotNil(c.value));
+    if (yearIndex !== -1) {
+      const year = criteria.splice(yearIndex, 1)[0].value;
+      this.setYear(+year, {emitEvent: false, skipLocationChange: true /*already set*/});
+    }
+
+    return criteria;
+  }
 
   protected resetGeoData() {
     this.cleanMapLayers();
@@ -694,10 +716,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     console.debug("[extraction-map] dispatched columns: ", columnsMap);
 
     this.$aggColumns.next(columnsMap.aggColumns);
-    this.$techColumns.next(columnsMap.techColumns);
+    this.$techColumns.next(ExtractionUtils.filterWithValues(columnsMap.techColumns, {allowNullValuesOnNumeric: true}));
     this.$spatialColumns.next(columnsMap.spatialColumns);
-    this.$timeColumns.next(ExtractionUtils.filterWithValues(columnsMap.timeColumns));
-    this.$criteriaColumns.next(ExtractionUtils.filterValuesMinSize(columnsMap.criteriaColumns, 1));
+    this.$timeColumns.next(ExtractionUtils.filterWithValues(columnsMap.timeColumns, {allowNullValuesOnNumeric: false}));
+    this.$criteriaColumns.next(ExtractionUtils.filterWithValues(columnsMap.criteriaColumns, {allowNullValuesOnNumeric: true}));
 
     const yearColumn = (columns || []).find(c => c.columnName === 'year');
     const years = (yearColumn && yearColumn.values || []).map(s => parseInt(s));
@@ -758,8 +780,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
 
       if (isEmptyArray(type.sheetNames)) return; // No data
 
-      const startYear = moment().year();
-      const endYear = startYear - 20;
+      const filterYear = this.form.get('year').value;
+      const startYear = filterYear || moment().year();
+      const endYear = filterYear || (startYear - 20);
 
       const sheetName = this.sheetName || (type && type.sheetNames && type.sheetNames[0]) || null;
       const strata: any = this.getDefaultStrata(sheetName);
@@ -1117,7 +1140,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
     return this.animationOverrides;
   }
 
-  setYear(year: number, opts?: {emitEvent?: boolean; stopAnimation?: boolean; }): boolean {
+  setYear(year: number, opts?: {emitEvent?: boolean; stopAnimation?: boolean; skipLocationChange?: boolean}): boolean {
     const changed = this.year !== year;
 
     // If changed or force with opts.emitEvent=true
@@ -1135,6 +1158,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct>
       // Refresh
       if (!opts || opts.emitEvent !== false) {
         this.onRefresh.emit();
+      }
+
+      if (!opts || opts.skipLocationChange !== true) {
+        setTimeout(() => this.updateQueryParams(), 500);
       }
     }
 

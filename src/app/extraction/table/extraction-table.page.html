@@ -135,7 +135,7 @@
     <!-- programs -->
     <button mat-menu-item
             *ngFor="let program of $programs|async"
-            (click)="setTypeAndProgram(type, program)">
+            (click)="setTypeAndProgram(type, program?.label)">
       <ion-label class="ion-text-wrap">
         <span>{{program|referentialToString}}</span>
       </ion-label>
