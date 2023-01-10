@@ -15,7 +15,7 @@ import {
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { AcquisitionLevelCodes, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, QualitativeValueIds, QualityFlagIds, UnitLabel } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MatrixIds, MethodIds, ParameterLabelGroups, PmfmIds, QualitativeValueIds, QualityFlagIds, QualityFlags, UnitLabel } from '@app/referential/services/model/model.enum';
 import { Batch, BatchWeight } from '@app/trip/batch/common/batch.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { roundHalfUp } from '@app/shared/functions';
@@ -685,5 +685,13 @@ export class BatchUtils {
    */
   static markAsInvalid(entity: Batch, errorMessage: string) {
     DataEntityUtils.markAsInvalid(entity, errorMessage);
+  }
+
+  /**
+   * Check if an entity has been mark as invalid
+   * @param entity
+   */
+  static isInvalid(entity: Batch) {
+    return DataEntityUtils.isInvalid(entity);
   }
 }

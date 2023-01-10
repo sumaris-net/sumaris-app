@@ -40,7 +40,7 @@
 
     <!-- option menu -->
     <button slot="end" mat-icon-button
-            *ngIf="enabled && !isNewData || debug"
+            *ngIf="enabled && !isNewData || (debug && !saving)"
             [disabled]="loading || saving"
             [matMenuTriggerFor]="optionsMenu"
             [title]=" 'COMMON.BTN_OPTIONS'|translate">
@@ -355,6 +355,7 @@
           editor.loading: {{loading}}<br/>
           editor.ready: {{readySubject|async}}<br/>
           editor.dirty: {{dirty}}<br/>
+          editor.saving: {{saving}}<br/>
         </ion-col>
         <ion-col>
           opeForm.ready: {{opeForm.readySubject|async}}<br/>

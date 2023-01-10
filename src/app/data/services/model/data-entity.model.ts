@@ -1,7 +1,8 @@
 import { Moment } from 'moment';
-import { DateUtils, Department, Entity, EntityAsObjectOptions, fromDateISOString, IEntity, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
+import { DateUtils, Department, Entity, EntityAsObjectOptions, fromDateISOString, IEntity, isNil, isNotNil, ReferentialAsObjectOptions, toDateISOString } from '@sumaris-net/ngx-components';
 import { IWithRecorderDepartmentEntity } from './model.utils';
 import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { Batch } from '@app/trip/batch/common/batch.model';
 
 
 export interface DataEntityAsObjectOptions extends ReferentialAsObjectOptions {
@@ -159,5 +160,13 @@ export abstract class DataEntityUtils {
 
     // Clean quality flag
     entity.qualityFlagId = QualityFlagIds.BAD;
+  }
+
+  /**
+   * Check if an entity has been mark as invalid
+   * @param entity
+   */
+  static isInvalid(entity: Batch) {
+    return isNil(entity.controlDate) && isNil(entity.qualificationDate) && entity.qualityFlagId === QualityFlagIds.BAD;
   }
 }

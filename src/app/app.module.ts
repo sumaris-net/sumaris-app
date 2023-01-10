@@ -32,7 +32,7 @@ import {
   EntitiesStorageTypePolicies,
   FormFieldDefinitionMap,
   JobModule,
-  LocalSettings,
+  LocalSettings, LocalSettingsOptions,
   MenuItem,
   MenuOptions,
   SOCIAL_TESTING_PAGES,
@@ -221,10 +221,14 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
     },
 
     // Setting options definition
-    { provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <FormFieldDefinitionMap>{
-        ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
-        ...VESSEL_LOCAL_SETTINGS_OPTIONS,
-        ...TRIP_LOCAL_SETTINGS_OPTIONS
+    {
+      provide: APP_LOCAL_SETTINGS_OPTIONS, useValue: <LocalSettingsOptions>{
+        serializeAsString: true,
+        options: {
+          ...REFERENTIAL_LOCAL_SETTINGS_OPTIONS,
+          ...VESSEL_LOCAL_SETTINGS_OPTIONS,
+          ...TRIP_LOCAL_SETTINGS_OPTIONS
+        }
       }
     },
 

@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryList, ViewChildren } from '@angular/core';
-import { Batch} from '../common/batch.model';
-import { AbstractControl, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
+import { Batch } from '../common/batch.model';
+import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { AppFormUtils, InputElement, isNil, isNotNil, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
 import { BatchGroupValidatorService } from './batch-group.validator';
 import { BehaviorSubject } from 'rxjs';
@@ -226,11 +226,14 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
       const qvPmfmIndex = pmfms.findIndex(pmfm => pmfm.id === this.qvPmfm.id);
       const speciesPmfms = pmfms.filter((pmfm, index) => index < qvPmfmIndex);
-      const childrenPmfms = pmfms.filter((pmfm, index) => index >= qvPmfmIndex);
-      childrenPmfms[0] = this.qvPmfm; // Replace QV in the list, by current instance
+      const childrenPmfms = [
+        this.qvPmfm,
+        ...pmfms.filter((pmfm, index) => index > qvPmfmIndex)
+      ];
 
       const childrenPmfmsByQvId = this.qvPmfm.qualitativeValues.reduce((res, qv ) => {
-        res[qv.id] = BatchGroupUtils.computeChildrenPmfmsByQvPmfm(qv.id, childrenPmfms)
+        const isDiscard = qv.id === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD;
+        res[qv.id] = BatchGroupUtils.mapChildrenPmfms(childrenPmfms, {isDiscard})
         return res;
       }, {});
 

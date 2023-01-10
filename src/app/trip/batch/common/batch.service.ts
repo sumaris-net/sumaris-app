@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { AppFormUtils, FormErrors, FormErrorTranslator, isEmptyArray, isNil, isNilOrBlank, LocalSettingsService } from '@sumaris-net/ngx-components';
+import { AppFormUtils, FormErrors, FormErrorTranslator, isEmptyArray, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
@@ -128,9 +128,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       }
     }
 
-    if (catchErrors || childrenErrors) return {
-      ...catchErrors,
-      ...childrenErrors
+    if (catchErrors || childrenErrors) {
+      return { ...catchErrors, ...childrenErrors};
     }
 
     return null; // No error
@@ -193,6 +192,10 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
       gearId: opts?.gearId
     });
+    // Load taxon group no weight
+    const taxonGroupNoWeights = (program.getPropertyAsStrings(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT) || [])
+      .map(label => label.trim().toUpperCase())
+      .filter(isNotNilOrBlank);
     const weightPmfms = pmfms.filter(PmfmUtils.isWeight);
     const qvPmfm = BatchGroupUtils.getQvPmfm(pmfms);
 
@@ -218,7 +221,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     // - add sub batches validation
 
     const controlNamePrefix = opts?.controlName ? `${opts.controlName}.` : '';
-    const errors: FormErrors[] = await Promise.all(
+    const errors: FormErrors[] = (await Promise.all(
       // For each catch's child
       entity.children.map(async (source, index) => {
         // Avoid error on label and rankOrder
@@ -237,6 +240,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           });
         }
 
+        const taxonGroupNoWeight = target.taxonGroup && taxonGroupNoWeights.includes(target.taxonGroup.label);
         const enableSamplingBatch = (!opts || opts.allowSamplingBatches !== false) || target.observedIndividualCount > 0;
 
         // Create a form, with data
@@ -244,6 +248,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           isOnFieldMode: opts.isOnFieldMode,
           rankOrderRequired: false,
           labelRequired: false,
+          weightRequired: !taxonGroupNoWeight,
           qvPmfm,
           pmfms: speciesPmfms,
           childrenPmfms: childrenPmfms,
@@ -251,7 +256,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         });
 
         // Add complex validator
-        if (form.valid) {
+        if (form.valid && !taxonGroupNoWeight) {
           const requiredSampleWeight = (!opts || opts.allowSamplingBatches !== false) && target.observedIndividualCount > 0;
           form.setValidators(BatchGroupValidators.samplingRatioAndWeight({ qvPmfm, requiredSampleWeight, samplingRatioFormat, weightMaxDecimals }));
           form.updateValueAndValidity();
@@ -278,7 +283,9 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         // Mark as controlled
         BatchUtils.markAsControlled(source);
 
-      }));
+        return null; // No error
+      })))
+      .filter(isNotNil);
 
     // Concat all errors
     if (errors.length) {

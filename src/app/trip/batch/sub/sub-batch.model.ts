@@ -122,12 +122,7 @@ export class SubBatchUtils {
         // Get group's children (that should hold a QV pmfm's value)
         (batchGroup.children || []).forEach(parent => {
           // Find sub batches for this QV pmfm's value
-          const children = groupSubBatches.filter(sb => {
-            let qvValue = sb.measurementValues[qvPmfmId];
-            if (ReferentialUtils.isNotEmpty(qvValue)) qvValue = qvValue.id;
-            // WARN: use '==' and NOT '===', because measurementValues can use string, for values
-            return qvValue == parent.measurementValues[qvPmfmId];
-          });
+          const children = groupSubBatches.filter(sb => PmfmValueUtils.equals(sb.measurementValues[qvPmfmId], parent.measurementValues[qvPmfmId]));
 
           // If has sampling batch, use it as parent
           if (parent.children && parent.children.length === 1 && BatchUtils.isSamplingBatch(parent.children[0])) {

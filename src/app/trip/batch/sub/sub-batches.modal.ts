@@ -17,6 +17,7 @@ import { environment } from '@environments/environment';
 import { WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SelectionModel } from '@angular/cdk/collections';
+import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
 
 export interface ISubBatchesModalOptions {
 
@@ -51,7 +52,8 @@ export const SUB_BATCH_MODAL_RESERVED_END_COLUMNS: string[] = SUB_BATCH_RESERVED
   styleUrls: ['sub-batches.modal.scss'],
   templateUrl: 'sub-batches.modal.html',
   providers: [
-    { provide: ContextService, useExisting: TripContextService},
+    {provide: ContextService, useExisting: TripContextService},
+    {provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => {

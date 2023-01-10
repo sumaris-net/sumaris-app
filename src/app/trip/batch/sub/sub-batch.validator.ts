@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
+  DateUtils,
   isEmptyArray,
   isNil,
   isNilOrBlank,
@@ -26,9 +27,8 @@ import { FishingArea } from '@app/data/services/model/fishing-area.model';
 import { LocationUtils } from '@app/referential/location/location.utils';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import { Moment } from 'moment';
+import moment, { Moment } from 'moment';
 import { BatchErrorCodes } from '@app/trip/batch/batch.errors';
-import { environment } from '@environments/environment';
 import { RoundWeightConversionRefService } from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { isLengthUnitSymbol, isWeightUnitSymbol, WeightUtils } from '@app/referential/services/model/model.utils';
@@ -36,7 +36,6 @@ import { DataContext } from '@app/data/services/model/data-context.model';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
 import { ContextService } from '@app/shared/context.service';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import moment from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 
 export interface BatchContext extends DataContext {
@@ -50,7 +49,10 @@ export interface SubBatchValidatorValidatorOptions extends DataEntityValidatorOp
   pmfms?: IPmfm[];
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable(
+  // Canot be root, because we need to inject context dynamically
+  //{providedIn: 'root'}
+)
 export class SubBatchValidatorService extends DataEntityValidatorService<SubBatch, SubBatchValidatorValidatorOptions> {
 
   constructor(
@@ -63,7 +65,8 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     ) {
     super(formBuilder, translate, settings);
 
-    //console.debug(`[sub-batch-validator] Creating validator (context: ${this.context.constructor.name})`);
+    // DEBUG
+    //console.debug(`[sub-batch-validator] Creating validator (context: ${this.context?.constructor.name})`);
   }
 
   getFormGroupConfig(data?: SubBatch, opts?: SubBatchValidatorValidatorOptions): { [p: string]: any } {
@@ -165,14 +168,15 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     const parentGroup = opts.parentGroup
       || (opts?.parentGroupPath && form.get(opts.parentGroupPath))?.value
       || this.context?.getValue('parentGroup') as BatchGroup;
-    let rectangleLabel = opts?.rectangleLabel || this.getContextualStatisticalRectangle();
+    const rectangleLabel = opts?.rectangleLabel || this.getContextualStatisticalRectangle();
     const qvPmfm = opts?.qvPmfm;
 
     // DEBUG
-    if (!rectangleLabel && !environment.production) {
-      rectangleLabel = '65F1'
-      console.warn('[sub-batch-validator] TODO: force rectangle label (for DEV) to ' + rectangleLabel);
-    }
+    // if (!rectangleLabel && !environment.production) {
+    //   rectangleLabel = '65F1'
+    //   console.warn('[sub-batch-validator] TODO: force rectangle label (for DEV) to ' + rectangleLabel);
+    // }
+
     // Make sure to have a statistical rectangle
     if (!rectangleLabel) {
       console.warn('[sub-batch-validator] Cannot enable weight conversion. No statistical rectangle (in options or data context)');
@@ -332,8 +336,8 @@ export class SubBatchValidators {
     const parentPath = opts.parentGroupPath || 'parentGroup';
     const qvPath = isNotNil(opts.qvPmfm?.id) && `measurementValues.${opts.qvPmfm.id}` || undefined;
 
-    const date = opts.date || moment();
-    const month = date.month();
+    const date = opts.date || DateUtils.moment();
+    const month = date.month() + 1; // month() return 0 for januray
     const year = date.year();
 
     // Find the length Pmfm with a value
@@ -390,7 +394,11 @@ export class SubBatchValidators {
 
       // Find a Weight-Length conversion
       const wlConversion = await wlService.loadByFilter({
-        month, year, lengthPmfmId: lengthPmfm.id, referenceTaxonId, sexId: sex?.id, rectangleLabel: opts.rectangleLabel
+        month, year,
+        lengthPmfmId: lengthPmfm.id,
+        referenceTaxonId,
+        sexId: sex?.id,
+        rectangleLabel: opts.rectangleLabel
       });
 
       // Compute weight
@@ -454,6 +462,8 @@ export class SubBatchValidators {
             computed: true,
             estimated: false
           }, opts);
+        }
+        if (weightMeasurementControl && +weightMeasurementControl.value !== +valueStr) {
           weightMeasurementControl?.setValue(valueStr, opts);
         }
       }

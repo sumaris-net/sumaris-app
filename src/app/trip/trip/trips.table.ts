@@ -1,9 +1,9 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit} from '@angular/core';
-import {ValidatorService} from '@e-is/ngx-material-table';
-import {TripValidatorService} from '../services/validator/trip.validator';
-import {TripComparators, TripService} from '../services/trip.service';
-import {TripFilter, TripSynchroImportFilter} from '../services/filter/trip.filter';
-import {UntypedFormArray, UntypedFormBuilder, UntypedFormControl} from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { ValidatorService } from '@e-is/ngx-material-table';
+import { TripValidatorService } from '../services/validator/trip.validator';
+import { TripComparators, TripService } from '../services/trip.service';
+import { TripFilter, TripSynchroImportFilter } from '../services/filter/trip.filter';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import {
   arrayDistinct,
   chainPromises,
@@ -21,25 +21,28 @@ import {
   slideUpDownAnimation,
   StatusIds
 } from '@sumaris-net/ngx-components';
-import {VesselSnapshotService} from '@app/referential/services/vessel-snapshot.service';
-import {Operation, Trip} from '../services/model/trip.model';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {AcquisitionLevelCodes, LocationLevelIds} from '@app/referential/services/model/model.enum';
-import {TripTrashModal, TripTrashModalOptions} from './trash/trip-trash.modal';
-import {TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME} from '../services/config/trip.config';
-import {AppRootDataTable, AppRootTableSettingsEnum} from '@app/data/table/root-table.class';
-import {environment} from '@environments/environment';
-import {DATA_CONFIG_OPTIONS} from '@app/data/services/config/data.config';
-import {filter, tap} from 'rxjs/operators';
-import {BehaviorSubject} from 'rxjs';
-import {TripOfflineModal, TripOfflineModalOptions} from '@app/trip/trip/offline/trip-offline.modal';
-import {DataQualityStatusEnum, DataQualityStatusList} from '@app/data/services/model/model.utils';
-import {ContextService} from '@app/shared/context.service';
-import {TripContextService} from '@app/trip/services/trip-context.service';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
-import {OperationService} from '@app/trip/services/operation.service';
-import {OperationsMapModal, OperationsMapModalOptions} from '@app/trip/operation/map/operations-map.modal';
+import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
+import { Operation, Trip } from '../services/model/trip.model';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
+import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.config';
+import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
+import { environment } from '@environments/environment';
+import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
+import { filter, tap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
+import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
+import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
+import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
+import { OperationService } from '@app/trip/services/operation.service';
+import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operation/map/operations-map.modal';
+import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
+import { ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { ObservedLocationOfflineFilter } from '@app/trip/services/filter/observed-location.filter';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -275,7 +278,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
         name: this._dataService.featureName
       };
       const filter = this.asFilter(this.filterForm.value);
-      const value = <TripSynchroImportFilter>{
+      let synchroFilter = <TripSynchroImportFilter>{
         vesselId: filter.vesselId || filter.vesselSnapshot && filter.vesselSnapshot.id || undefined,
         programLabel: filter.program && filter.program.label || undefined,
         ...feature.filter
@@ -283,7 +286,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       const modal = await this.modalCtrl.create({
         component: TripOfflineModal,
         componentProps: <TripOfflineModalOptions>{
-          value
+          value: synchroFilter
         }, keyboardClose: true
       });
 
@@ -291,11 +294,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       modal.present();
 
       // Wait until closed
-      const res = await modal.onDidDismiss();
-      if (!res || !res.data) return; // User cancelled
+      const {data, role} = await modal.onDidDismiss();
+      if (!data) return; // User cancelled
 
       // Update feature filter, and save it into settings
-      feature.filter = res && res.data;
+      synchroFilter = TripSynchroImportFilter.fromObject(data);
+      feature.filter = synchroFilter.asObject();
       this.settings.saveOfflineFeature(feature);
 
       // DEBUG
@@ -366,23 +370,19 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     }
 
 
-    const programLabel = programs[0].label;
-    const ids = trips.map(t => t.id);
-    const queryString = `TR:project=${programLabel};TR:trip_code=${ids.join(',')}`;
-
     // Clear selection
     this.selection.clear();
     this.markForCheck();
 
+    // Create extraction type and filter
+    const programLabel = programs[0].label;
+    const tripIds = trips.map(t => t.id);
+    const type = ExtractionType.fromLiveLabel('PMFM_TRIP');
+    const filter = ExtractionUtils.createTripFilter(programLabel, tripIds);
+    const queryParams = ExtractionUtils.asQueryParams(type, filter);
+
     // Open extraction
-    await this.router.navigate(['extraction', 'data'], {
-      queryParams: {
-        category: 'LIVE',
-        label: 'PMFM_TRIP',
-        sheet: 'TR',
-        q: queryString
-      }
-    });
+    await this.router.navigate(['extraction', 'data'], {queryParams});
   }
 
   async openSelectionMap(event?: Event) {

@@ -13,12 +13,13 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  Person, toNumber
+  Person, toNumber, equals, trimEmptyToNull
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
 import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { filter, map } from 'rxjs/operators';
+import { StoreObject } from '@apollo/client/core';
 
 export declare type ExtractionCategoryType = 'PRODUCT' | 'LIVE';
 export const ExtractionCategories = {
@@ -37,6 +38,9 @@ export class ExtractionType<
   static fromObject: (source: any, opts?: any) => ExtractionType;
   static equals(o1: ExtractionType, o2: ExtractionType): boolean {
     return o1 && o2 ? o1.label === o2.label && o1.format === o2.format && o1.version === o2.version : o1 === o2;
+  }
+  static fromLiveLabel(label: string) {
+    return ExtractionType.fromObject({label, category: 'LIVE'});
   }
 
   format: string = null;
@@ -116,6 +120,10 @@ export class ExtractionResult {
 export class ExtractionColumn {
   static fromObject: (source: any) => ExtractionColumn;
 
+  static isNumeric(source: ExtractionColumn|any) {
+    return source && (source.type === 'integer' || source.type === 'double');
+  }
+
   id: number;
   creationDate: Moment;
   index?: number;
@@ -164,6 +172,18 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
     this.sheetName = source.sheetName;
     return this;
   }
+
+  asObject(opts?: EntityAsObjectOptions): StoreObject {
+    const target = super.asObject(opts) as any;
+
+    target.criteria = this.criteria && this.criteria
+      // Remove empty criterion
+      .filter(criterion => isNotNil(criterion.name) && ExtractionFilterCriterion.isNotEmpty(criterion))
+      // Serialize to object
+      .map(criterion => criterion.asObject && criterion.asObject(opts) || criterion) || undefined;
+
+    return target;
+  }
 }
 
 export declare type CriterionOperator = '=' | '!=' | '>' | '>=' | '<' | '<=' | 'BETWEEN' | 'NULL' | 'NOT NULL';
@@ -192,6 +212,20 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
       || criterion.operator === 'NULL'
       || criterion.operator === 'NOT NULL');
   }
+  static isEmpty(criterion: ExtractionFilterCriterion): boolean {
+    return !this.isNotEmpty(criterion);
+  }
+  static equals(c1: ExtractionFilterCriterion, c2: ExtractionFilterCriterion): boolean {
+    return (c1 === c2)
+      || (isNil(c1) && isNil(c2))
+      || (isNotNil(c1)
+        && c1.name === c2?.name
+        && c1.operator === c2?.operator
+        && c1.value === c2?.value
+        && equals(c1.values, c2?.values)
+        && c1.endValue === c2?.endValue
+        && c1.sheetName === c2?.sheetName);
+  }
 
   name: string;
   operator: CriterionOperator;
@@ -199,6 +233,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
   values?: string[];
   endValue?: string;
   sheetName?: string;
+  hidden: boolean = false;
 
   constructor() {
     super(ExtractionFilterCriterion.TYPENAME);
@@ -209,13 +244,58 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
     this.name = source.name;
     this.operator = source.operator;
     this.value = source.value;
+    this.values = source.values;
     this.endValue = source.endValue;
     this.sheetName = source.sheetName;
+    this.hidden = source.hidden || false;
     return this;
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
-    return super.asObject(options);
+  asObject(opts?: EntityAsObjectOptions): StoreObject {
+    const target = super.asObject(opts) as any;
+
+    // Pod serialization
+    if (opts.minify) {
+      const isMulti = typeof target.value === 'string' && target.value.indexOf(',') !== -1;
+      switch (target.operator) {
+        case '=':
+          if (isMulti) {
+            target.operator = 'IN';
+            target.values = (target.value as string)
+              .split(',')
+              .map(trimEmptyToNull)
+              .filter(isNotNil);
+            delete target.value;
+          }
+          break;
+        case '!=':
+          if (isMulti) {
+            target.operator = 'NOT IN';
+            target.values = (target.value as string)
+              .split(',')
+              .map(trimEmptyToNull)
+              .filter(isNotNil);
+            delete target.value;
+          }
+          break;
+        case 'BETWEEN':
+          if (isNotNilOrBlank(target.endValue)) {
+            if (typeof target.value === 'string') {
+              target.values = [target.value.trim(), target.endValue.trim()];
+            }
+            else {
+              target.values = [target.value, target.endValue];
+            }
+          }
+          delete target.value;
+          break;
+      }
+
+      delete target.endValue;
+      delete target.hidden;
+    }
+
+    return target;
   }
 }
 

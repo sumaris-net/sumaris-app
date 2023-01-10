@@ -1,8 +1,8 @@
-import { Entity, EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, toNumber} from '@sumaris-net/ngx-components';
-import {MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol} from './model.enum';
-import {Parameter, ParameterType} from './parameter.model';
-import {PmfmValue} from './pmfm-value.model';
-import {Moment} from 'moment';
+import { EntityAsObjectOptions, EntityClass, fromDateISOString, IEntity, isNotNil, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
+import { MethodIdGroups, PmfmIds, PmfmLabelPatterns, UnitLabel, UnitLabelGroups, UnitLabelPatterns, WeightKgConversion, WeightUnitSymbol } from './model.enum';
+import { Parameter, ParameterType } from './parameter.model';
+import { PmfmValue } from './pmfm-value.model';
+import { Moment } from 'moment';
 import { FullReferential } from '@app/referential/services/model/referential.model';
 
 export declare type PmfmType = ParameterType | 'integer';
@@ -304,9 +304,9 @@ export abstract class PmfmUtils {
    * @param pmfm
    */
   static isDressing(pmfm: IPmfm): boolean {
-  return pmfm.id === PmfmIds.DRESSING
-    || PmfmLabelPatterns.DRESSING.test(pmfm.label)
-    || (pmfm instanceof Pmfm && PmfmLabelPatterns.DRESSING.test(pmfm.parameter?.label));
+    return pmfm.id === PmfmIds.DRESSING
+      || PmfmLabelPatterns.DRESSING.test(pmfm.label)
+      || (pmfm instanceof Pmfm && PmfmLabelPatterns.DRESSING.test(pmfm.parameter?.label));
   }
 
   /**
