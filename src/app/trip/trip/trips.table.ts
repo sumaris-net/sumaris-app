@@ -42,6 +42,7 @@ import { OperationService } from '@app/trip/services/operation.service';
 import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operation/map/operations-map.modal';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { ObservedLocationOfflineFilter } from '@app/trip/services/filter/observed-location.filter';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -277,7 +278,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
         name: this._dataService.featureName
       };
       const filter = this.asFilter(this.filterForm.value);
-      const value = <TripSynchroImportFilter>{
+      let synchroFilter = <TripSynchroImportFilter>{
         vesselId: filter.vesselId || filter.vesselSnapshot && filter.vesselSnapshot.id || undefined,
         programLabel: filter.program && filter.program.label || undefined,
         ...feature.filter
@@ -285,7 +286,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       const modal = await this.modalCtrl.create({
         component: TripOfflineModal,
         componentProps: <TripOfflineModalOptions>{
-          value
+          value: synchroFilter
         }, keyboardClose: true
       });
 
@@ -293,11 +294,12 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       modal.present();
 
       // Wait until closed
-      const res = await modal.onDidDismiss();
-      if (!res || !res.data) return; // User cancelled
+      const {data, role} = await modal.onDidDismiss();
+      if (!data) return; // User cancelled
 
       // Update feature filter, and save it into settings
-      feature.filter = res && res.data;
+      synchroFilter = TripSynchroImportFilter.fromObject(data);
+      feature.filter = synchroFilter.asObject();
       this.settings.saveOfflineFeature(feature);
 
       // DEBUG

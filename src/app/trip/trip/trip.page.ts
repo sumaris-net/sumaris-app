@@ -153,7 +153,7 @@ export class TripPage
       this.onUpdateView
         .pipe(
           filter(_ => !this.loading),
-          debounceTime(200)
+          debounceTime(250)
         )
         .subscribe(() => this.operationsTable.onRefresh.emit()));
 

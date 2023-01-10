@@ -76,15 +76,16 @@ export class BatchGroupValidatorService extends
 
       opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : (this.settings?.isOnFieldMode() || false);
 
+      const weightRequired = opts.isOnFieldMode === false && (opts?.weightRequired !== false)
       if (opts.qvPmfm) {
         opts.withChildren = true;
         opts.childrenCount = opts.qvPmfm.qualitativeValues?.length || 1;
         opts.childrenOptions = {
           root: false,
           withWeight: true,
-          weightRequired: opts.isOnFieldMode === false,
-          pmfms: opts.childrenPmfms,
-          withMeasurements: isNotEmptyArray(opts.childrenPmfms)
+          weightRequired,
+          pmfms: [opts.qvPmfm, ...opts.childrenPmfms],
+          withMeasurements: true
         };
         opts.childrenOptions.withChildren = opts.enableSamplingBatch;
         if (opts.childrenOptions.withChildren) {
@@ -101,8 +102,8 @@ export class BatchGroupValidatorService extends
         opts.withChildren = opts.enableSamplingBatch;
         if (opts.withChildren) {
           opts.childrenOptions = {
-            childrenCount: 1,
             root: false,
+            childrenCount: 1,
             withWeight: true,
             pmfms: null,
             withMeasurements: false

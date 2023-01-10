@@ -9,7 +9,7 @@ import {
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   EntityServiceLoadOptions,
-  EntityUtils,
+  EntityUtils, fromDateISOString,
   isEmptyArray,
   isNil,
   isNilOrNaN,
@@ -17,7 +17,7 @@ import {
   JobUtils,
   LocalSettingsService,
   NetworkService,
-  PersonService
+  PersonService, toDateISOString
 } from '@sumaris-net/ngx-components';
 import { BaseRootDataService, BaseRootEntityGraphqlMutations } from './root-data-service.class';
 
@@ -35,9 +35,14 @@ import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils'
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 import moment from 'moment';
 
-
-
 export class DataSynchroImportFilter {
+
+  static fromObject(source: Partial<DataSynchroImportFilter>): DataSynchroImportFilter {
+    const target = new DataSynchroImportFilter();
+    target.fromObject(source);
+    return target;
+  }
+
   programLabel?: string;
   strategyIds?: number[];
   vesselId?: number;
@@ -45,6 +50,26 @@ export class DataSynchroImportFilter {
   endDate?: Date | Moment
   periodDuration?: number;
   periodDurationUnit?: DurationConstructor;
+
+  fromObject(source: any, opts?: {minify?: boolean}) {
+    this.programLabel = source.programLabel;
+    this.strategyIds = source.strategyIds;
+    this.vesselId = source.vesselId;
+    this.startDate = fromDateISOString(source.startDate);
+    this.endDate = fromDateISOString(source.endDate);
+    this.periodDuration = source.periodDuration;
+    this.periodDurationUnit = source.periodDurationUnit;
+  }
+
+  asObject(opts?: {minify?: boolean}) {
+    const target: any = Object.assign({}, this);
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
+    if (opts?.minify) {
+      delete target.periodDurationUnit;
+    }
+    return target;
+  }
 }
 
 export interface IDataSynchroService<

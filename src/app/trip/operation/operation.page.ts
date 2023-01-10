@@ -1074,7 +1074,7 @@ export class OperationPage<S extends OperationState = OperationState>
     }
 
     // Save new gear to the trip
-    const gearSaved = await this.saveNewPhysicalGear();
+    const gearSaved = await this.saveNewPhysicalGear({emitEvent: false});
     if (!gearSaved) return false; // Stop if failed
 
     // Force to pass specific saved options to dataService.save()
@@ -1114,7 +1114,7 @@ export class OperationPage<S extends OperationState = OperationState>
     return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
   }
 
-  async saveNewPhysicalGear(): Promise<boolean> {
+  async saveNewPhysicalGear(opts?: {emitEvent: boolean}): Promise<boolean> {
     if (this.loading || this.saving) return false;
     if (!this.dirty) return true; // Skip
 
@@ -1139,7 +1139,7 @@ export class OperationPage<S extends OperationState = OperationState>
       this.setError(err);
       return false;
     } finally {
-      this.markAsSaved({emitEvent: false});
+      this.markAsSaved(opts);
     }
   }
 

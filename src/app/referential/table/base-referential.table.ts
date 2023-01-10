@@ -373,31 +373,36 @@ export abstract class BaseReferentialTable<
 
         // Convert to object
         const source: any = headers.reduce((res, fieldDef, i) => {
-        const value = cells[i];
+          const value = cells[i];
 
-        // Parse sub-object
-        const attributes = fieldDef.autocomplete?.attributes;
-        if (attributes?.length) {
-          res[fieldDef.key] = value?.split(' - ', attributes.length)
-            .reduce((o, v, j) => {
-              o[attributes[j]] = v;
-              return o;
-            }, {});
-        }
-        // Parse simple field
-        else {
-          if (fieldDef.type === 'integer') {
-            res[fieldDef.key] = parseInt(value);
+          // Parse sub-object
+          const attributes = fieldDef.autocomplete?.attributes;
+          if (attributes?.length) {
+            res[fieldDef.key] = value?.split(' - ', attributes.length)
+              .reduce((o, v, j) => {
+                o[attributes[j]] = v;
+                return o;
+              }, {});
           }
-          else if (fieldDef.type === 'double') {
-            res[fieldDef.key] = parseFloat(value);
-          }
+          // Parse simple field
           else {
-            res[fieldDef.key] = isNotNilOrBlank(value) ? value : undefined;
+            if (fieldDef.type === 'integer') {
+              res[fieldDef.key] = parseInt(value);
+            }
+            else if (fieldDef.type === 'double') {
+              res[fieldDef.key] = parseFloat(value);
+            }
+            else {
+              res[fieldDef.key] = isNotNilOrBlank(value) ? value : undefined;
+            }
           }
-        }
-        return res;
-      }, {});
+
+          // Remove null value, to force keeping defaultValue
+          if (isNil(res[fieldDef.key])) {
+            delete res[fieldDef.key];
+          }
+          return res;
+        }, {});
       return {
         ...defaultValue,
         ...source

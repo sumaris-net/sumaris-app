@@ -12,6 +12,9 @@ import { IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
 import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
 import { debounceTime } from 'rxjs/operators';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { SubBatchValidatorService } from '@app/trip/batch/sub/sub-batch.validator';
+import { ContextService } from '@app/shared/context.service';
+import { TripContextService } from '@app/trip/services/trip-context.service';
 
 
 export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {
@@ -23,6 +26,10 @@ export interface ISubBatchModalOptions extends IBatchModalOptions<SubBatch> {
 @Component({
   selector: 'app-sub-batch-modal',
   templateUrl: 'sub-batch.modal.html',
+  providers: [
+    {provide: ContextService, useExisting: TripContextService},
+    {provide: SubBatchValidatorService, useClass: SubBatchValidatorService},
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SubBatchModal implements OnInit, OnDestroy {

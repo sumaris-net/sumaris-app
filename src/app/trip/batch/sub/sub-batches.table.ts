@@ -65,6 +65,7 @@ export class SubBatchFilter extends EntityFilter<SubBatchFilter, SubBatch>{
   styleUrls: ['sub-batches.table.scss'],
   providers: [
     {provide: ContextService, useExisting: TripContextService},
+    SubBatchValidatorService,
     {
       provide: SUB_BATCHES_TABLE_OPTIONS,
       useFactory: () => {

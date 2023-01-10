@@ -4,7 +4,7 @@ import { Component, Injector, Input } from '@angular/core';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { WeightLengthConversionService } from '@app/referential/weight-length-conversion/weight-length-conversion.service';
 import { Validators } from '@angular/forms';
-import { firstNotNilPromise, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
+import { DateUtils, firstNotNilPromise, FormFieldDefinition, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import { WeightLengthConversionValidatorService } from '@app/referential/weight-length-conversion/weight-length-conversion.validator';
 import moment from 'moment';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
@@ -92,7 +92,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
       }),
       filter: {
         entityName: 'Location',
-        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE, StatusIds.DISABLE /*CIEM division are disabled*/]
       },
       mobile: this.mobile
     });
@@ -107,7 +107,7 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
       }),
       filter: {
         entityName: 'QualitativeValue',
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY, StatusIds.DISABLE /*Non sexe*/]
       },
       attributes: ['name'],
       mobile: this.mobile
@@ -150,6 +150,19 @@ export class WeightLengthConversionTable extends BaseReferentialTable<WeightLeng
       endMonth: 12,
       creationDate
     };
+  }
+
+  protected async parseCsvRowsToEntities(headers: FormFieldDefinition[], rows: string[][]): Promise<WeightLengthConversion[]> {
+    const entities = await super.parseCsvRowsToEntities(headers, rows);
+
+    // Force referenceTaxonId
+    const creationDate = DateUtils.moment();
+    entities.forEach(e => {
+      e.referenceTaxonId = this.referenceTaxonId;
+      e.creationDate = creationDate;
+    });
+
+    return entities;
   }
 
   protected async loadLengthParameters() {

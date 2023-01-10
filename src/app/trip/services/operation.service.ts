@@ -636,6 +636,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES)
       const physicalGear = entity.physicalGear?.clone();
 
+      const wasInvalid = BatchUtils.isInvalid(entity.catchBatch);
       const errors = await this.batchService.control(entity.catchBatch, {
         program: opts.program,
         allowSamplingBatches: hasIndividualMeasures,
@@ -644,11 +645,13 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         controlName: 'catch',
         isOnFieldMode: opts.isOnFieldMode
       });
+      const dirty = errors || (wasInvalid !== BatchUtils.isInvalid(entity.catchBatch));
+
+      // Save if need
+      if (dirty)  await this.save(entity);
+
       if (errors) {
         console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
-
-        // Save batch with errors
-        await this.save(entity);
 
         // Keep only a simple error message
         // Detail error should have been saved into batch
