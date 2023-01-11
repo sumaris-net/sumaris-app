@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { AppFormArray, isEmptyArray, isNotEmptyArray, LocalSettingsService, ReferentialRef } from '@sumaris-net/ngx-components';
+import {AppFormArray, isEmptyArray, isNotEmptyArray, isNotNil, LocalSettingsService, ReferentialRef} from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
@@ -59,8 +59,13 @@ export class BatchModelValidatorService<
 
         // Change discard weight to optional (need by APASE)
         if (opts?.allowDiscard === false && PmfmUtils.isWeight(p) && p.label === 'DISCARD_WEIGHT') {
-          p = p.clone(); // Leave original pmfm unchanged
+          p = p.clone(); // Keep original pmfm unchanged
           p.required = false;
+        }
+
+        // Remove Vrac discard weight
+        if (opts?.allowDiscard === false && p.id === PmfmIds.BATCH_SORTING) {
+          return null; // Skip
         }
 
         // Fill CHILD_GEAR (need by APASE)
@@ -82,7 +87,8 @@ export class BatchModelValidatorService<
         }
 
         return p;
-      });
+      })
+        .filter(isNotNil);
     }
 
     // Create a batch model

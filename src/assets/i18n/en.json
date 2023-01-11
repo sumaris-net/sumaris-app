@@ -51,6 +51,7 @@
     "BTN_SEND": "Send",
     "BTN_OPTIONS": "Options",
     "BTN_UNDO": "Undo changes",
+    "BTN_UPDATE": "Update",
     "BTN_TABLE_EDIT": "Edit in the table",
     "BTN_TABLE_OPEN": "Edit in a form",
     "BTN_SHOW_HELP": "Show help",

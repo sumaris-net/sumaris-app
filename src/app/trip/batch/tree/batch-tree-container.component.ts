@@ -118,16 +118,12 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   protected get data(): Batch{
     return this.state.get('data');
   }
-
   errorTranslatorOptions: FormErrorTranslatorOptions;
-
   treeControl = new NestedTreeControl<BatchModel>(node => node.children);
   treeDataSource = new MatTreeNestedDataSource<BatchModel>();
   filterPanelFloating = true;
-
   @ViewChild('batchTree') batchTree!: BatchTreeComponent;
   @ViewChild('filterExpansionPanel') filterExpansionPanel!: MatExpansionPanel;
-
   @Input() queryTabIndexParamName: string;
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
   @Input() showCatchForm: boolean;

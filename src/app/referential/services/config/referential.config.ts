@@ -62,6 +62,14 @@ const LocationLevelAutocompleteConfig = <MatAutocompleteFieldConfig>{
     statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
   }
 };
+const PmfmAutocompleteConfig = <MatAutocompleteFieldConfig>{
+  attributes: ['id', 'label'],
+  filter: {
+    entityName: 'Pmfm',
+    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+  }
+};
+
 
 export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
   REFERENTIAL_VESSEL_ENABLE: <FormFieldDefinition>{
@@ -190,274 +198,155 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.enumeration.Pmfm.TRIP_PROGRESS.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRIP_PROGRESS',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.TRIP_PROGRESS
   },
   PMFM_STRATEGY_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.STRATEGY_LABEL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_STRATEGY_LABEL_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.STRATEGY_LABEL
   },
   PMFM_TAG_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TAG_ID.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TAG_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.TAG_ID
   },
   PMFM_DRESSING: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.DRESSING.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_DRESSING',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.DRESSING
   },
   PMFM_PRESERVATION: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.PRESERVATION.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PRESERVATION',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.PRESERVATION
   },
   PMFM_TRAWL_SIZE_CAT_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TRAWL_SIZE_CAT.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TRAWL_SIZE_CAT',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.TRAWL_SIZE_CAT
   },
   PMFM_AGE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AGE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AGE_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.AGE
   },
   PMFM_SEX_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SEX.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SEX_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SEX
   },
   PMFM_PACKAGING_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.PACKAGING.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_PACKAGING_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.PACKAGING
   },
   PMFM_SIZE_CATEGORY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SIZE_CATEGORY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SIZE_CATEGORY_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SIZE_CATEGORY
   },
   PMFM_SALE_RANK_ORDER_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SALE_RANK_ORDER.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_RANK_ORDER_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SALE_RANK_ORDER
   },
   PMFM_SALE_ESTIMATED_RATIO_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.SALE_ESTIMATED_RATIO.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SALE_ESTIMATED_RATIO_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.SALE_ESTIMATED_RATIO
   },
   PMFM_AVERAGE_WEIGHT_PRICE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AVERAGE_WEIGHT_PRICE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_WEIGHT_PRICE_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.AVERAGE_WEIGHT_PRICE
   },
   PMFM_AVERAGE_PACKAGING_PRICE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.AVERAGE_PACKAGING_PRICE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_AVERAGE_PACKAGING_PRICE_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.AVERAGE_PACKAGING_PRICE
   },
   PMFM_TOTAL_PRICE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.TOTAL_PRICE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_TOTAL_PRICE_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.TOTAL_PRICE
   },
   PMFM_REFUSED_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.REFUSED_SURVEY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_REFUSED_SURVEY_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.REFUSED_SURVEY
   },
   PMFM_GEAR_LABEL_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.GEAR_LABEL.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_GEAR_LABEL_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.GEAR_LABEL
   },
   PMFM_CHILD_GEAR_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.CHILD_GEAR.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_CHILD_GEAR_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.CHILD_GEAR
   },
   PMFM_HAS_ACCIDENTAL_CATCHES_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.HAS_ACCIDENTAL_CATCHES.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HAS_ACCIDENTAL_CATCHES_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.HAS_ACCIDENTAL_CATCHES
   },
   PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT_LENGTH.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH
   },
   PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.Pmfm.BATCH_CALCULATED_WEIGHT_LENGTH_SUM.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'label'],
-      filter: {
-        entityName: 'Pmfm',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.BATCH_CALCULATED_WEIGHT_LENGTH_SUM
+  },
+  PMFM_BATCH_SORTING_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.PMFM_BATCH_SORTING.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_BATCH_SORTING_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.BATCH_SORTING
   },
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',

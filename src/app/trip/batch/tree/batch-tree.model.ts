@@ -42,7 +42,7 @@ export class BatchModel
   static fromBatch(batch: Batch|undefined,
                    pmfms: IPmfm[],
                    // Internal arguments (used by recursive call)
-                   maxTreeDepth = 3,
+                   maxTreeDepth = 4,
                    treeDepth = 0,
                    parent: BatchModel = null,
                    path= ''
