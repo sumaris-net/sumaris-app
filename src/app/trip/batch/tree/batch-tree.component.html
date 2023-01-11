@@ -2,7 +2,7 @@
   <ion-grid class="ion-no-padding">
     <ion-row>
       <ion-col>
-        batchTree.loading: {{loading}}<br/>
+        batchTree.loading: {{loading}} (subject: {{loadingSubject|async}})<br/>
         batchTree.ready: {{readySubject|async}}<br/>
         batchTree.dirty: {{dirty}}<br/>
         batchTree.valid: {{valid}}<br/>
