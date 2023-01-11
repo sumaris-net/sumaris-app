@@ -232,14 +232,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return !this.valid;
   }
 
-  // Should be valid to be able to save
   get valid(): boolean {
-    // Force to valid in field mode (to allow saving an invalid batch tree)
-    return this.isOnFieldMode || (this.model?.valid || false);
-  }
-
-  get hasError(): boolean {
-    return this.model?.invalid || false;
+    return this.model?.valid || false;
   }
 
   get loading(): boolean {
@@ -507,14 +501,17 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       await this.ready();
 
       // Update the view
-      await this.updateView(data);
+      if (data === this.data) {
+        await this.updateView(data);
+
+        if (!opts || opts.emitEvent !== false) {
+          this.markAsLoaded();
+        }
+      }
     }
     catch (err) {
       console.error(err && err.message || err);
       throw err;
-    }
-    finally {
-      if (!opts || opts.emitEvent !== false) this.markAsLoaded();
     }
   }
 
@@ -665,8 +662,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   protected async updateView(data: Batch, opts?: {markAsPristine?: boolean}) {
-    const model = await firstNotNilPromise(this.model$, {stop: this.destroySubject});
-    if (!model || data !== this.data) return; // Skip if missing model, or if data changed
+    const model = this.model; // await firstNotNilPromise(this.model$, {stop: this.destroySubject});
+    if (!model) return; // Skip if missing model, or if data changed
 
     // Init tree datasource
     this.treeDataSource.data = [model];
