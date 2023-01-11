@@ -35,6 +35,13 @@ import { ContextService } from '@app/shared/context.service';
 })
 export class SelectivityOperationPage extends OperationPage {
 
+  get invalid(): boolean {
+    // Allow batchTree to be invalid, if on field mode
+    return this.opeForm?.invalid
+      || this.measurementsForm?.invalid
+      || (!this.isOnFieldMode && this.batchTree.invalid)
+      || false;
+  }
 
   constructor(injector: Injector,
               dataService: OperationService) {
