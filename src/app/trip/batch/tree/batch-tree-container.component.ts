@@ -1,9 +1,9 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from '@angular/core';
 import {
   AppEditor,
   AppErrorWithDetails,
   changeCaseToUnderscore,
-  equals,
+  equals, fadeInOutAnimation,
   filterFalse,
   filterTrue,
   firstNotNilPromise,
@@ -14,39 +14,41 @@ import {
   isNotEmptyArray,
   isNotNilOrBlank,
   LocalSettingsService,
-  toBoolean, toNumber,
+  toBoolean,
+  toNumber,
   UsageMode,
-  WaitForOptions, waitForTrue
+  WaitForOptions,
+  waitForTrue
 } from '@sumaris-net/ngx-components';
-import { AlertController } from '@ionic/angular';
-import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
-import { Batch } from '@app/trip/batch/common/batch.model';
-import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal';
-import { Program } from '@app/referential/services/model/program.model';
-import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
+import {AlertController, IonModal} from '@ionic/angular';
+import {BatchTreeComponent, IBatchTreeComponent} from '@app/trip/batch/tree/batch-tree.component';
+import {Batch} from '@app/trip/batch/common/batch.model';
+import {IBatchGroupModalOptions} from '@app/trip/batch/group/batch-group.modal';
+import {Program} from '@app/referential/services/model/program.model';
+import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
+import {ActivatedRoute, Router} from '@angular/router';
+import {TranslateService} from '@ngx-translate/core';
+import {Subscription} from 'rxjs';
 import {debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap} from 'rxjs/operators';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { NestedTreeControl } from '@angular/cdk/tree';
-import { MatTreeNestedDataSource } from '@angular/material/tree';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { BatchModel } from '@app/trip/batch/tree/batch-tree.model';
-import { MatExpansionPanel } from '@angular/material/expansion';
-import { UntypedFormGroup } from '@angular/forms';
-import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
-import { RxState } from '@rx-angular/state';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {BatchFilter} from '@app/trip/batch/common/batch.filter';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {BatchModel} from '@app/trip/batch/tree/batch-tree.model';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {UntypedFormGroup} from '@angular/forms';
+import {BatchModelValidatorService} from '@app/trip/batch/tree/batch-model.validator';
+import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
+import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
+import {PhysicalGearService} from '@app/trip/physicalgear/physicalgear.service';
+import {TripContextService} from '@app/trip/services/trip-context.service';
+import {BatchUtils} from '@app/trip/batch/common/batch.utils';
+import {TreeItemEntityUtils} from '@app/shared/tree-item-entity.utils';
+import {RxState} from '@rx-angular/state';
+import {BatchModelTreeComponent} from '@app/trip/batch/tree/batch-model-tree.component';
+import {MatSidenav} from '@angular/material/sidenav';
 
 interface ComponentState {
   showBatchTables: boolean;
@@ -72,6 +74,7 @@ interface ComponentState {
   providers: [
     RxState
   ],
+  animations: [fadeInOutAnimation],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchTreeContainerComponent extends AppEditor<Batch>
@@ -119,16 +122,22 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return this.state.get('data');
   }
   errorTranslatorOptions: FormErrorTranslatorOptions;
-  treeControl = new NestedTreeControl<BatchModel>(node => node.children);
-  treeDataSource = new MatTreeNestedDataSource<BatchModel>();
+
   filterPanelFloating = true;
-  @ViewChild('batchTree') batchTree!: BatchTreeComponent;
-  @ViewChild('filterExpansionPanel') filterExpansionPanel!: MatExpansionPanel;
+  @ViewChild('batchTree') batchTree: BatchTreeComponent;
+  @ViewChild('batchModelTree') batchModelTree!: BatchModelTreeComponent;
+  @ViewChild('filterExpansionPanel') filterExpansionPanel: MatExpansionPanel;
+  @ViewChild('sidenav') sidenav: MatSidenav;
+  @ViewChild('modal') modal!: IonModal;
+
   @Input() queryTabIndexParamName: string;
   @Input() modalOptions: Partial<IBatchGroupModalOptions>;
   @Input() showCatchForm: boolean;
   @Input() defaultHasSubBatches: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[];
+
+  // TODO review this code, and remove is unused
+  @Input() useModal = false;
 
   @Input() set allowSamplingBatches(value: boolean) {
     this.state.set('allowSamplingBatches', (_) => value);
@@ -449,15 +458,24 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // First, expand model tree
     if (!opts || opts.expandAll !== false) {
-      this.expandDescendants(this.model);
+      this.batchModelTree.expandAll();
     }
 
     this.filterExpansionPanel?.open();
+    this.sidenav?.open();
 
   }
 
   closeFilterPanel() {
     this.filterExpansionPanel?.close();
+    this.sidenav?.close();
+    this.filterPanelFloating = true;
+    this.markForCheck();
+  }
+
+  toggleFilterPanel() {
+    this.filterExpansionPanel?.toggle();
+    this.sidenav?.toggle();
     this.filterPanelFloating = true;
     this.markForCheck();
   }
@@ -660,8 +678,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     if (!model) return; // Skip if missing model, or if data changed
 
     // Init tree datasource
-    this.treeDataSource.data = [model];
-    this.expandDescendants(model);
+    this.batchModelTree.data = [model];
 
     // Keep the editing batch
     const editingBatch = this._lastEditingBatchPath && model.get(this._lastEditingBatchPath);
@@ -681,14 +698,17 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
   }
 
-  protected async startEditBatch(event: Event, source: BatchModel) {
+  protected async startEditBatch(event: Event|undefined, source: BatchModel) {
+    if (!source || !(source instanceof BatchModel)) throw new Error('Missing required \'source\' argument');
 
     event?.stopImmediatePropagation();
 
     if (this.editingBatch === source) {
       if (this.filterPanelFloating) this.closeFilterPanel();
+      this.modal?.present();
       return; // Skip
     }
+
 
     this._listenStatusChangesSubscription?.unsubscribe();
 
@@ -700,7 +720,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     try {
       // Save previous changes
       if (this.editingBatch?.editing) {
-        const confirmed = await this.confirmEditingBatch();
+        const confirmed = await this.confirmEditingBatch({keepEditingBatch: true});
         if (!confirmed) return; // Not confirmed = Cannot change
       }
 
@@ -709,7 +729,17 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       if (this.filterPanelFloating) this.closeFilterPanel();
       this.editingBatch = source;
       this.editingBatch.editing = true;
-      this.cd.detectChanges(); //markForCheck();
+
+      if (this.modal && !this.modal.isOpen) {
+        if (!this.batchTree) {
+          await this.modal.present();
+          this.cd.detectChanges(); //markForCheck();
+        }
+        else {
+          this.modal.present();
+        }
+      }
+
 
       // Remember last editing batch, to be able to restore it later (e.g. see setValue())
       this._lastEditingBatchPath = source.path;
@@ -787,8 +817,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     // Forget the last editing batch
     this._lastEditingBatchPath = null;
   }
-
-  hasChild = (_: number, model: BatchModel) => !model.isLeaf;
 
   private resetRootForm() {
     // Reset pmfms, form and model
@@ -873,6 +901,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     if (!opts || opts.keepEditingBatch !== true) {
       this.editingBatch = null;
       model.editing = false;
+
+      this.modal?.dismiss();
     }
 
     // Reset dirty state
@@ -888,25 +918,12 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.cd.markForCheck();
   }
 
-
-  protected expandDescendants(model?: BatchModel) {
-    model = model || this.model;
-    if (!model) return; // Skip
-    if (model instanceof BatchModel) {
-      this.treeControl.expand(model);
-      (model.children || [])
-        .filter(node => this.hasChildrenBatchModel(node))
-        .forEach(node => this.expandDescendants(node));
-    }
-  }
-
   protected hasChildrenBatchModel(node: BatchModel|Batch) {
     return node.children && node.children.some(c => c instanceof BatchModel);
   }
 
   protected getBatchModelByPath(path: string): BatchModel|undefined {
-    const catchBatch = this.treeDataSource.data?.[0];
-    return getPropertyByPath(catchBatch, path) as BatchModel|undefined;
+    return getPropertyByPath(this.model, path) as BatchModel|undefined;
   }
 
   forward(event?: Event, model?: BatchModel) {

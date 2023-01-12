@@ -248,3 +248,9 @@ mat-sampling-ratio-field {
     --img-max-height: 30vh;
   }
 }
+
+
+
+.mat-drawer-backdrop.mat-drawer-shown {
+  background-color: rgba(0,0,0,0.2);
+}
