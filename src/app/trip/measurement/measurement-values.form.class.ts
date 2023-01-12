@@ -121,7 +121,7 @@ export abstract class MeasurementValuesForm<
     return this.getValue();
   }
 
-  @Input() set pmfms(pmfms:IPmfm[]) {
+  @Input() set pmfms(pmfms: IPmfm[]) {
     this.setPmfms(pmfms);
   }
   get pmfms(): IPmfm[] {
@@ -131,7 +131,7 @@ export abstract class MeasurementValuesForm<
   @Input()
   set forceOptional(value: boolean) {
     this._state.set('forceOptional', (_) => value);
-    }
+  }
   get forceOptional(): boolean {
     return this._state.get('forceOptional');
   }
@@ -186,8 +186,8 @@ export abstract class MeasurementValuesForm<
           filter(_ => !this.starting)
         ),
         // /!\ DO NOT emit event if not loaded.
-        // (e.g. Required to avoid CatchBatchForm to revert to 'loading=true', when gearId is set)
-        (_) => this.loadPmfms({emitEvent: this.loaded})
+        // (e.g. Required to avoid CatchBatchForm to have 'loading=true', when gearId is set)
+        (_) => this.loadPmfms({emitEvent: false})
     );
 
     // Update form, when pmfms set
@@ -267,7 +267,7 @@ export abstract class MeasurementValuesForm<
     }
 
     // Wait form ready, before mark as ready
-    this._state.hold(firstTrue(this.ready$, {stop: this.destroySubject}),
+    this._state.hold(firstTrue(this.ready$),
       () => super.markAsReady(opts));
   }
 
@@ -288,7 +288,6 @@ export abstract class MeasurementValuesForm<
 
   /**
    * Wait form is ready, before setting the value to form
-   * /!\ should NOT be overwritten by subclasses.
    * @param data
    * @param opts
    */
@@ -481,9 +480,6 @@ export abstract class MeasurementValuesForm<
     // DEBUG
     //if (this.debug) console.debug(`${this.logPrefix} setPmfms()`);
 
-    // Remember previous state (to be able to restore state if nothing changed)
-    const previousLoadingStep = this.readyStep;
-
     // Mark as settings pmfms
     if (!opts || opts.emitEvent !== false) {
       this.setReadyStep(PmfmFormReadySteps.SETTING_PMFMS);
@@ -529,12 +525,6 @@ export abstract class MeasurementValuesForm<
 
         // Apply pmfms to state
         this._state.set('pmfms', (_) => <IPmfm[]>pmfms);
-      }
-      else {
-        // Nothing changes: restoring previous steps (if need)
-        if ((!opts || opts.emitEvent !== false) && previousLoadingStep > this.readyStep) {
-          this.setReadyStep(previousLoadingStep);
-        }
       }
 
       return pmfms;

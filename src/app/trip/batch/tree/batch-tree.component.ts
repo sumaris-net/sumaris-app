@@ -14,7 +14,7 @@ import {
   isNotNilOrBlank,
   LocalSettingsService,
   ReferentialRef,
-  toBoolean,
+  toBoolean, toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AlertController } from '@ionic/angular';
@@ -94,6 +94,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   implements OnInit, AfterViewInit, IBatchTreeComponent {
 
   private _gearId: number = null;
+  private _physicalGear: PhysicalGear = null;
   private _programAllowMeasure = true;
   private _allowSubBatches: boolean;
   private _allowSamplingBatches: boolean;
@@ -116,7 +117,16 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   @Input() enableWeightLengthConversion: boolean;
   @Input() i18nPmfmPrefix: string;
   @Input() debug: boolean;
-  @Input() physicalGear: PhysicalGear = null;
+  @Input() set physicalGear(value: PhysicalGear) {
+    if (this._physicalGear !== value) {
+      this._physicalGear = value;
+      this.gearId = toNumber(value?.gear?.id, null);
+    }
+  }
+
+  get physicalGear(): PhysicalGear {
+    return this._physicalGear;
+  }
 
   @Input() set disabled(value: boolean) {
     if (value && this._enabled) {
@@ -203,6 +213,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
       this.catchBatchForm.gearId = value;
       this.batchGroupsTable.gearId = value;
     }
+  }
+
+  get gearId(): number {
+    return this._gearId;
   }
 
   @Input() set availableTaxonGroups(value: TaxonGroupRef[]) {

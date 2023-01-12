@@ -166,8 +166,8 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
           filter(_ => !this.starting)
         ),
         // /!\ DO NOT emit event if not loaded.
-        // (e.g. Required to avoid CatchBatchForm to revert to 'loading=true', when gearId is set)
-        (_) => this.loadPmfms({emitEvent: this.loaded})
+        // (e.g. Required to avoid CatchBatchForm to have 'loading=true', when gearId is set)
+        (_) => this.loadPmfms({emitEvent: false})
     );
 
     // Update form, when pmfms set
@@ -229,7 +229,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
 
     // Wait form ready, before mark as ready
-    this._state.hold(firstTrue(this.ready$, {stop: this.destroySubject}),
+    this._state.hold(firstTrue(this.ready$),
       () => super.markAsReady(opts));
   }
 
@@ -237,7 +237,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     emitEvent?: boolean;
   }) {
     // Wait form loaded, before mark as loaded
-    this._state.hold(firstTrue(this.ready$, {stop: this.destroySubject}),
+    this._state.hold(firstTrue(this.ready$),
       () => super.markAsLoaded(opts));
   }
 
@@ -423,9 +423,6 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     // DEBUG
     //if (this.debug) console.debug(`${this.logPrefix} setPmfms()`);
 
-    // Remember previous state (to be able to restore state if nothing changed)
-    const previousLoadingStep = this.readyStep;
-
     // Mark as settings pmfms
     if (!opts || opts.emitEvent !== false) {
       this.setReadyStep(PmfmFormReadySteps.SETTING_PMFMS);
@@ -471,12 +468,6 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
         // Apply pmfms to state
         this._state.set('pmfms', (_) => <IPmfm[]>pmfms);
-      }
-      else {
-        // Nothing changes: restoring previous steps (if need)
-        if ((!opts || opts.emitEvent !== false) && previousLoadingStep > this.readyStep) {
-          this.setReadyStep(previousLoadingStep);
-        }
       }
 
       return pmfms;

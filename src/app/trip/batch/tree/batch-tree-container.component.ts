@@ -14,7 +14,7 @@ import {
   isNotEmptyArray,
   isNotNilOrBlank,
   LocalSettingsService,
-  toBoolean,
+  toBoolean, toNumber,
   UsageMode,
   WaitForOptions, waitForTrue
 } from '@sumaris-net/ngx-components';
@@ -27,7 +27,7 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, mergeMap, switchMap } from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap} from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
@@ -186,18 +186,15 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   @Input() set physicalGear(value: PhysicalGear) {
-    if (value && value?.id !== this.physicalGear?.id) {
+    if (this.physicalGear && value?.id !== this.physicalGear.id) {
       // Reset pmfms, to force a reload
-      this.state.set({
-        physicalGear: value,
-        gearId: value.gear?.id,
-        sortingPmfms: null,
-        catchPmfms: null,
-      });
+      this.resetRootForm();
     }
-    else {
-      this.state.set('physicalGear', (_) => value);
-    }
+    // Apply change
+    this.state.set({
+      physicalGear: value,
+      gearId: toNumber(value?.gear?.id, null)
+    });
   }
 
   get physicalGear(): PhysicalGear {
@@ -316,9 +313,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.state.connect('model',
       this.state.select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], s => s)
         .pipe(
+          filter(({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => data && sortingPmfms && catchPmfms && physicalGear && true),
           mergeMap(async ({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => {
-            if (!sortingPmfms || !catchPmfms) return; // Skip
-
             // Load physical gear's children (if not already done)
             if (physicalGear && isEmptyArray(physicalGear.children)) {
               const tripId = this.tripContext.trip?.id;
@@ -331,12 +327,15 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         )
     );
 
-    this.state.connect('form', this.state.select(['model', 'allowSamplingBatches'],
-        ({model, allowSamplingBatches}) => {
+    this.state.connect('form', this.state.select(['model', 'allowSamplingBatches'], s => s)
+      .pipe(
+        filter(({model, allowSamplingBatches}) => !!model),
+        map(({model, allowSamplingBatches}) => {
           const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSamplingBatches});
           form.disable();
           return form;
         })
+      )
     );
 
     // Reload data, when form (or model) changed
@@ -356,9 +355,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // If now allowed sampling batches: remove it from data
     this.state.hold(filterFalse(this.allowSamplingBatches$), () => this.resetSamplingBatches())
-
-    // Init State
-    //this.state.set({gearId: -999});
 
     // DEBUG
     this.debug = !environment.production;
@@ -474,7 +470,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   async unload(opts?: { emitEvent?: boolean; }): Promise<void> {
     this.resetRootForm();
-    console.error('Method not implemented.');
+    this.data = null;
+    this.markAsPristine();
+    this.markAsLoading();
   }
 
   getFirstInvalidTabIndex(): number {
@@ -793,9 +791,13 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   hasChild = (_: number, model: BatchModel) => !model.isLeaf;
 
   private resetRootForm() {
-    // Reset form and model
-    this.state.set('form', null);
-    this.state.set('model', null);
+    // Reset pmfms, form and model
+    this.state.set({
+      sortingPmfms: null,
+      catchPmfms: null,
+      form: null,
+      model: null
+    });
     this._lastEditingBatchPath = null;
   }
 
