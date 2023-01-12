@@ -5,7 +5,15 @@
 </ng-container>
 
 <mat-sidenav-container *ngIf="!useModal; else withModal">
-  <mat-sidenav #sidenav [mode]="filterPanelFloating ? 'over' : 'side'"  [opened]="true">
+  <mat-sidenav #sidenav [mode]="editingBatch ? 'push' : 'side'">
+    <!--<ion-item color="transparent"
+              class="help" lines="none"
+              (click)="toggleFilterPanel()"
+              tappable>
+      <ion-icon color="primary" name="help-circle-outline"></ion-icon>
+      <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
+    --></ion-item>
+
     <!-- model tree -->
     <app-batch-model-tree #batchModelTree
                           [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
@@ -16,7 +24,7 @@
     </app-batch-model-tree>
   </mat-sidenav>
 
-  <mat-sidenav-content>
+  <mat-sidenav-content >
 
     <!-- toolbar -->
     <mat-toolbar>
