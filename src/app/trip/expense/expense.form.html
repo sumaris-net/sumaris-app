@@ -114,7 +114,7 @@
              [disabled]="iceExpenseForm.pmfms$|async|isEmptyArray">
       <div class="ion-padding">
         <app-typed-expense-form #iceExpenseForm
-                                expenseType="ice"
+                                expenseType="ICE"
                                 entityName="VesselUseMeasurement"
                                 [programLabel]="programLabel"
                                 acquisitionLevel="ICE_EXPENSE"
@@ -136,7 +136,7 @@
           <ion-col class="ion-padding-top">
             <div class="ion-padding">
               <app-typed-expense-form #baitExpenseForm
-                                      expenseType="bait"
+                                      expenseType="BAIT"
                                       [rankOrder]="i + 1"
                                       entityName="VesselUseMeasurement"
                                       [programLabel]="programLabel"

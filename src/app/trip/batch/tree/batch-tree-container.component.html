@@ -5,15 +5,17 @@
 <mat-toolbar [class.expanded]="filterExpansionPanel.expanded">
   <button mat-icon-button
           [class.selected]="filterExpansionPanel.expanded"
+          *rxIf="model$; let model"
           (click)="filterExpansionPanel.toggle()">
     <mat-icon class="mat-icon-rtl-mirror"
               matBadge="!"
-              [matBadgeHidden]="valid || !model?.hidden"
+              [matBadgeHidden]="valid || !model.hidden"
               matBadgeOverlap="false"
               matBadgeColor="accent"
               matBadgeSize="small"
               matBadgePosition="above after"
       >{{filterExpansionPanel.expanded ? 'expand_more' : 'chevron_right'}}</mat-icon>
+    &nbsp;
   </button>
 
   <div *rxIf="editingBatch$; let node"

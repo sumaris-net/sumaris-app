@@ -51,7 +51,12 @@ export class BatchModelValidatorService<
     this.debug = !environment.production;
   }
 
-  createModel(data: Batch|undefined, opts: {allowDiscard: boolean; sortingPmfms: IPmfm[]; catchPmfms: IPmfm[]; physicalGear: PhysicalGear}): BatchModel {
+  createModel(data: Batch|undefined, opts: {
+    allowDiscard: boolean;
+    sortingPmfms: IPmfm[];
+    catchPmfms: IPmfm[];
+    physicalGear: PhysicalGear
+  }): BatchModel {
 
     if (isNotEmptyArray(opts.sortingPmfms)) {
       // Map sorting pmfms

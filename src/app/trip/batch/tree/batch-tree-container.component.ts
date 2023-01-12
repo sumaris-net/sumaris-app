@@ -16,7 +16,7 @@ import {
   LocalSettingsService,
   toBoolean,
   UsageMode,
-  WaitForOptions
+  WaitForOptions, waitForTrue
 } from '@sumaris-net/ngx-components';
 import { AlertController } from '@ionic/angular';
 import { BatchTreeComponent, IBatchTreeComponent } from '@app/trip/batch/tree/batch-tree.component';
@@ -49,7 +49,6 @@ import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { RxState } from '@rx-angular/state';
 
 interface ComponentState {
-  ready: boolean;
   showBatchTables: boolean;
   allowDiscard: boolean;
   allowSamplingBatches: boolean;
@@ -89,6 +88,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   protected readonly programLabel$ = this.state.select('programLabel');
   protected readonly program$ = this.state.select('program');
   protected readonly form$ = this.state.select('form');
+  protected readonly model$ = this.state.select('model');
   protected readonly editingBatch$ = this.state.select('editingBatch');
 
   protected get model(): BatchModel {
@@ -162,11 +162,14 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   get programLabel(): string {
-    return this.state.get('programLabel') || this.state.get('program')?.label;
+    return this.state.get('programLabel') || this.program?.label;
   }
 
   @Input()
   set program(value: Program) {
+    // Disable watchByLabel, when changing programLabel
+    // Avoid to watch program changes, when program is given by parent component
+    this._listenProgramChanges = false;
     this.state.set('program', (_) => value);
   }
 
@@ -183,7 +186,18 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   @Input() set physicalGear(value: PhysicalGear) {
-    this.state.set('physicalGear', (_) => value);
+    if (value && value?.id !== this.physicalGear?.id) {
+      // Reset pmfms, to force a reload
+      this.state.set({
+        physicalGear: value,
+        gearId: value.gear?.id,
+        sortingPmfms: null,
+        catchPmfms: null,
+      });
+    }
+    else {
+      this.state.set('physicalGear', (_) => value);
+    }
   }
 
   get physicalGear(): PhysicalGear {
@@ -214,18 +228,12 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return !this.valid;
   }
 
-  // Should be valid to be able to save
   get valid(): boolean {
-    // Force to valid in field mode (to allow saving an invalid batch tree)
-    return this.isOnFieldMode || (this.model?.valid || false);
-  }
-
-  get hasError(): boolean {
-    return this.model?.invalid || false;
+    return this.model?.valid || false;
   }
 
   get loading(): boolean {
-    // Should NOT use batchTree loading state, because it is loaded later
+    // Should NOT use batchTree loading state, because it is load later (when gearId is known)
     return this.loadingSubject.value;
   }
 
@@ -285,26 +293,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     };
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
 
-    // DEBUG
-    this.debug = !environment.production;
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-    this.showCatchForm = toBoolean(this.showCatchForm, true);
-    this.showBatchTables = toBoolean(this.state.get('showBatchTables'), true);
-    this._programAllowMeasure = toBoolean(this._programAllowMeasure, this.state.get('showBatchTables'));
-    this.allowSubBatches = toBoolean(this.allowSubBatches, this._programAllowMeasure);
-    this.allowSamplingBatches = toBoolean(this.allowSamplingBatches, this._programAllowMeasure);
-    this.allowDiscard = toBoolean(this.allowDiscard, true);
-
-    // Avoid to watch program changes, when program is given by parent component
-    this.state.hold(this.program$, (value) => {
-      this._listenProgramChanges = !!value;
-    });
-
-    this.state.connect('ready', this.readySubject);
-
     // Watch program, to configure tables from program properties
     this.state.connect('program', this.programLabel$
       .pipe(
@@ -315,11 +303,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       ));
 
     this.state.hold(filterTrue(this.readySubject)
-      .pipe(
-        switchMap(() => this.state.select(['program', 'gearId'], s => s)),
-        debounceTime(100),
-        distinctUntilChanged(equals)
-      ),
+        .pipe(
+          switchMap(() => this.state.select(['program', 'gearId'], s => s)),
+          debounceTime(100),
+          distinctUntilChanged(equals)
+        ),
       async ({program, gearId}) => {
         await this.setProgram(program);
         await this.loadPmfms(program, gearId);
@@ -329,6 +317,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.state.select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], s => s)
         .pipe(
           mergeMap(async ({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => {
+            if (!sortingPmfms || !catchPmfms) return; // Skip
 
             // Load physical gear's children (if not already done)
             if (physicalGear && isEmptyArray(physicalGear.children)) {
@@ -342,8 +331,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         )
     );
 
-    this.state.connect('form',
-      this.state.select(['model', 'allowSamplingBatches'],
+    this.state.connect('form', this.state.select(['model', 'allowSamplingBatches'],
         ({model, allowSamplingBatches}) => {
           const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSamplingBatches});
           form.disable();
@@ -352,22 +340,40 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     );
 
     // Reload data, when form (or model) changed
-    this.state.hold(this.form$.pipe(filter(() => !this.loading)), async (_) => {
-      const dirty = this.dirty
-      await this.setValue(this.data, {emitEvent: false});
-      if (dirty) this.markAsDirty();
-    });
+    this.state.hold(this.form$
+      .pipe(
+        filter(() => !this.loading)
+      ),
+      (_) => this.updateView(this.data, {markAsPristine: false /*keep dirty state*/}));
 
     this.state.hold(filterTrue(this.readySubject)
-      .pipe(
-        switchMap(() => this.batchTree.dirtySubject),
-        filter(dirty => dirty === true && this.enabled && this.loaded)
-      ),
+        .pipe(
+          switchMap(() => this.batchTree.dirtySubject),
+          filter(dirty => dirty === true && this.enabled && this.loaded)
+        ),
       () => this.markAsDirty()
     );
 
     // If now allowed sampling batches: remove it from data
     this.state.hold(filterFalse(this.allowSamplingBatches$), () => this.resetSamplingBatches())
+
+    // Init State
+    //this.state.set({gearId: -999});
+
+    // DEBUG
+    this.debug = !environment.production;
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+    this.showCatchForm = toBoolean(this.showCatchForm, true);
+    this.showBatchTables = toBoolean(this.state.get('showBatchTables'), true);
+    this._programAllowMeasure = toBoolean(this._programAllowMeasure, this.state.get('showBatchTables'));
+    this.allowSubBatches = toBoolean(this.allowSubBatches, this._programAllowMeasure);
+    this.allowSamplingBatches = toBoolean(this.allowSamplingBatches, this._programAllowMeasure);
+    this.allowDiscard = toBoolean(this.allowDiscard, true);
+
+
   }
 
   // Change visibility to public
@@ -487,37 +493,21 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     if (!opts || opts.emitEvent !== false) this.markAsLoading();
 
     try {
+      // Wait component is ready
       await this.ready();
 
-      // Data not changed (e.g. during ready())
+      // Update the view
       if (data === this.data) {
+        await this.updateView(data);
 
-        // Init tree datasource
-        this.treeDataSource.data = [this.model];
-        this.expandDescendants(this.model);
-
-        // Keep the editing batch
-        const editingBatch = this._lastEditingBatchPath && this.model.get(this._lastEditingBatchPath);
-        if (editingBatch) {
-          await this.startEditBatch(null, editingBatch);
+        if (!opts || opts.emitEvent !== false) {
+          this.markAsLoaded();
         }
-        else {
-          // Stop editing batch (not found)
-          await this.stopEditBatch();
-
-          // Open filter panel
-          this.openFilterPanel();
-        }
-
-        this.markAsPristine();
       }
     }
     catch (err) {
       console.error(err && err.message || err);
       throw err;
-    }
-    finally {
-      if (!opts || opts.emitEvent !== false) this.markAsLoaded();
     }
   }
 
@@ -574,13 +564,16 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     // DO NOT wait children ready()
     //await Promise.all(this.childTrees.map(c => c.ready()));
 
-    // Wait model and form
-    await Promise.all([
-      firstNotNilPromise(this.state.select('model')),
-      firstNotNilPromise(this.state.select('form')),
-    ]);
+    await super.ready(opts);
 
-    return super.ready(opts);
+    // Wait form
+    if (this.loading && this.gearId) {
+      await waitForTrue(this.state.select(['form', 'model'], _ => true), opts);
+    }
+    else {
+      await firstNotNilPromise(this.program$, opts);
+    }
+
   }
 
   // Unused
@@ -610,7 +603,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.showTaxonName = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
     this.markForCheck();
   }
-
 
   protected async loadPmfms(program: Program, gearId: number) {
     if (!program || isNil(gearId)) return; // Skip
@@ -665,6 +657,31 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
   }
 
+  protected async updateView(data: Batch, opts?: {markAsPristine?: boolean}) {
+    const model = this.model; // await firstNotNilPromise(this.model$, {stop: this.destroySubject});
+    if (!model) return; // Skip if missing model, or if data changed
+
+    // Init tree datasource
+    this.treeDataSource.data = [model];
+    this.expandDescendants(model);
+
+    // Keep the editing batch
+    const editingBatch = this._lastEditingBatchPath && model.get(this._lastEditingBatchPath);
+    if (editingBatch) {
+      await this.startEditBatch(null, editingBatch);
+    }
+    else {
+      // Stop editing batch (not found)
+      await this.stopEditBatch();
+
+      // Open filter panel
+      this.openFilterPanel();
+    }
+
+    if (!opts || opts.markAsPristine !== false) {
+      this.markAsPristine();
+    }
+  }
 
   protected async startEditBatch(event: Event, source: BatchModel) {
 
