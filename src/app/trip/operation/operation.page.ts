@@ -403,8 +403,6 @@ export class OperationPage<S extends OperationState = OperationState>
   ngOnInit() {
     super.ngOnInit();
 
-
-
     // Update the data context
     this.registerSubscription(
       merge(
