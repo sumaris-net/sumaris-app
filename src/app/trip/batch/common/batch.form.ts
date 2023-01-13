@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
 import { Batch, BatchWeight } from './batch.model';
 import { MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
@@ -10,10 +10,10 @@ import {
   EntityUtils,
   firstArrayValue,
   firstTruePromise,
-  FormArrayHelper,
+  FormArrayHelper, IAppForm,
   IReferentialRef,
   isNil,
-  isNotNil,
+  isNotNil, MatAutocompleteFieldConfig,
   ReferentialUtils,
   splitByProperty,
   toBoolean,
@@ -25,7 +25,7 @@ import { debounceTime, delay, filter } from 'rxjs/operators';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
 import { BehaviorSubject, Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { BatchValidatorService } from './batch.validator';
+import { BatchValidatorOptions, BatchValidatorService } from './batch.validator';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
@@ -33,7 +33,53 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { equals, roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 
+export interface IBatchForm<T extends Batch<any> = Batch<any>> extends IAppForm {
+  form: UntypedFormGroup;
+  pmfms: IPmfm[];
+  acquisitionLevel: string;
+
+  showError: boolean;
+  showTaxonGroup?: boolean;
+  showTaxonName?: boolean;
+  taxonNameFilter?: any;
+  showWeight?: boolean;
+  defaultWeightPmfm?: IPmfm;
+  requiredWeight?: boolean;
+  showEstimatedWeight?: boolean;
+  showIndividualCount?: boolean;
+  requiredIndividualCount?: boolean;
+  showSamplingBatch?: boolean;
+  requiredSampleWeight?: boolean;
+  showSampleIndividualCount?: boolean;
+  isSampling?: boolean;
+  samplingRatioFormat?: SamplingRatioFormat;
+
+  measurementValuesForm: UntypedFormGroup;
+  samplingBatchForm?: UntypedFormGroup;
+  filter: BatchFilter;
+
+  gearId: number;
+  pmfms$: Observable<IPmfm[]>;
+  weightPmfms?: IPmfm[];
+  weightPmfmsByMethod?: { [key: string]: IPmfm };
+
+  tabindex?: number;
+  maxItemCountForButtons?: number;
+  maxVisibleButtons?: number;
+
+  autocompleteFields: {
+    [key: string]: MatAutocompleteFieldConfig;
+  };
+
+  compact?: boolean;
+  mobile: boolean;
+  debug: boolean;
+
+  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}): Promise<void> | void;
+  setIsSampling(value: boolean);
+}
 
 @Component({
   selector: 'app-batch-form',
@@ -41,11 +87,13 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
   styleUrls: ['batch.form.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementValuesForm<T>
-  implements OnInit, OnDestroy, AfterViewInit {
+export class BatchForm<T extends Batch<any> = Batch<any>>
+  extends MeasurementValuesForm<T>
+  implements OnInit, OnDestroy, AfterViewInit, IBatchForm {
 
   private _formValidatorSubscription: Subscription;
   private _formValidatorOpts: any;
+  private _filter: BatchFilter;
 
   protected _$afterViewInit = new BehaviorSubject<boolean>(false);
   protected _requiredWeight = false;
@@ -167,16 +215,28 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
     return this.form?.touched;
   }
 
+  @Input() set filter(value: BatchFilter) {
+    this._filter = value;
+  }
+
+  get filter() {
+    return this._filter;
+  }
+
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: BatchValidatorService,
-    protected referentialRefService: ReferentialRefService
+    protected referentialRefService: ReferentialRefService,
+    @Optional() validatorOptions?: BatchValidatorOptions
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService,
-      validatorService.getFormGroup(null, {
+    super(injector,
+      measurementsValidatorService,
+      formBuilder,
+      programRefService,
+      validatorService.getFormGroup(null, validatorOptions || {
         withWeight: true,
         rankOrderRequired: false, // Allow to be set by parent component
         labelRequired: false // Allow to be set by parent component
@@ -561,7 +621,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
       // Add pmfms to form
       const measFormGroup = form.get('measurementValues') as UntypedFormGroup;
       if (measFormGroup) {
-        this.measurementValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
+        this.measurementsValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
       }
 
       const childrenFormHelper = this.getChildrenFormHelper(form);
@@ -576,7 +636,7 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
         // Reset measurementValues (if exists)
         const samplingMeasFormGroup = samplingForm.get('measurementValues');
         if (samplingMeasFormGroup) {
-          this.measurementValidatorService.updateFormGroup(samplingMeasFormGroup as UntypedFormGroup, {pmfms: []});
+          this.measurementsValidatorService.updateFormGroup(samplingMeasFormGroup as UntypedFormGroup, {pmfms: []});
         }
 
         // Adapt exists sampling child, if any
@@ -635,8 +695,6 @@ export class BatchForm<T extends Batch<any> = Batch<any>> extends MeasurementVal
   protected disableWeightFormGroup(opts?: { onlySelf?: boolean; emitEvent?: boolean; }) {
     this.form.get('weight')?.disable(opts);
   }
-
-  selectInputContent = AppFormUtils.selectInputContent;
 
   protected getChildrenFormHelper(form: UntypedFormGroup): FormArrayHelper<Batch> {
     let arrayControl = form.get('children') as UntypedFormArray;

@@ -62,14 +62,14 @@ export class PhysicalGearForm extends MeasurementValuesForm<PhysicalGear, Physic
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: PhysicalGearValidatorService,
     protected operationService: OperationService,
     protected referentialRefService: ReferentialRefService,
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
+    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup());
     this._enable = true;
 
     // Set defaults

@@ -161,7 +161,7 @@ export abstract class MeasurementValuesForm<
   }
 
   protected constructor(injector: Injector,
-                        protected measurementValidatorService: MeasurementsValidatorService,
+                        protected measurementsValidatorService: MeasurementsValidatorService,
                         protected formBuilder: UntypedFormBuilder,
                         protected programRefService: ProgramRefService,
                         form?: UntypedFormGroup,
@@ -570,14 +570,14 @@ export abstract class MeasurementValuesForm<
     if (!pmfms.length) {
       // Reset measurement form (if exists)
       if (this._measurementValuesForm) {
-        this.measurementValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms: []});
+        this.measurementsValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms: []});
         this._measurementValuesForm.reset({}, {onlySelf: true, emitEvent: false});
       }
     } else {
 
       // Create measurementValues form group
       if (!this._measurementValuesForm) {
-        this._measurementValuesForm = this.measurementValidatorService.getFormGroup(null, {pmfms});
+        this._measurementValuesForm = this.measurementsValidatorService.getFormGroup(null, {pmfms});
 
         form.addControl('measurementValues', this._measurementValuesForm);
         this._measurementValuesForm.disable({onlySelf: true, emitEvent: false});
@@ -585,7 +585,7 @@ export abstract class MeasurementValuesForm<
 
       // Or update if already exist
       else {
-        this.measurementValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms});
+        this.measurementsValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms});
       }
     }
 

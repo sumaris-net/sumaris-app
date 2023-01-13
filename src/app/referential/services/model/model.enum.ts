@@ -152,6 +152,10 @@ export const QualitativeValueIds = {
   BATCH_GEAR_POSITION: {
     PORT: 473, // Bâbord
     STARBOARD: 474 // Tribord
+  },
+  BATCH_SORTING: {
+    BULK: 390, // Vrac
+    NON_BULK: 391 // Hors Vrac
   }
 };
 

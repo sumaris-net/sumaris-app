@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, Optional } from '@angular/core';
-import { BatchForm } from '@app/trip/batch/common/batch.form';
+import { BatchForm, IBatchForm } from '@app/trip/batch/common/batch.form';
+import { AppFormUtils } from '@sumaris-net/ngx-components';
 
 @Component({
   selector: 'app-batch-form-content',
@@ -18,4 +19,6 @@ export class BatchFormContent {
   ) {
     this.delegate = delegate;
   }
+
+  selectInputContent = AppFormUtils.selectInputContent;
 }

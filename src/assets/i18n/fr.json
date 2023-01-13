@@ -267,6 +267,8 @@
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Référentiel > Valeur qualitative > Présentation de l'espèce / Entier",
         "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Référentiel > Valeur qualitative > État de l'espèce / Frais",
         "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Référentiel > Valeur qualitative > Catégorie de tri terrain / Sans",
+        "QUALITATIVE_VALUE_SORTING_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Vrac",
+        "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Hors-Vrac",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métier nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métier DCF niv 5"

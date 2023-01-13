@@ -14,7 +14,8 @@ import {
   isNotNilOrBlank,
   LocalSettingsService,
   ReferentialRef,
-  toBoolean, toNumber,
+  toBoolean,
+  toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { AlertController } from '@ionic/angular';
@@ -25,7 +26,6 @@ import { Batch } from '../common/batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { BatchGroupsTable } from '../group/batch-groups.table';
 import { SubBatchesTable, SubBatchFilter } from '../sub/sub-batches.table';
-import { CatchBatchForm } from '../catch/catch.form';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
@@ -43,6 +43,8 @@ import { IBatchGroupModalOptions } from '@app/trip/batch/group/batch-group.modal
 import { AppSharedFormUtils, FormControlStatus } from '@app/shared/forms.utils';
 import { ISubBatchesModalOptions } from '@app/trip/batch/sub/sub-batches.modal';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { IBatchForm } from '@app/trip/batch/common/batch.form';
+import { CatchBatchForm } from '@app/trip/batch/catch/catch.form';
 
 export interface IBatchTreeComponent extends IAppTabEditor {
   programLabel: string;
@@ -330,6 +332,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
     super.ngOnInit();
 
+    // Register forms
+    this.registerForms();
+
     this.registerSubscription(
       this.catchBatchForm.pmfms$
         .subscribe(pmfms => {
@@ -342,12 +347,10 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
           this.markForCheck();
         })
     );
-
-    // Register forms
-    this.registerForms();
   }
 
   ngAfterViewInit() {
+
 
     // Get available sub-batches only when subscribe (for performance reason)
     this.batchGroupsTable.availableSubBatches = defer(() => this.getSubBatches());
@@ -712,7 +715,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
   }
 
   setFilter(dataFilter: BatchFilter) {
-    this.catchBatchForm.setFilter(dataFilter);
+    this.catchBatchForm.filter = dataFilter;
     this.batchGroupsTable.setFilter(dataFilter);
   }
 

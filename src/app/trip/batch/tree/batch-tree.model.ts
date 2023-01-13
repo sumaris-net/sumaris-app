@@ -12,7 +12,7 @@ import {
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil, isNotNilOrBlank, isNotNilOrNaN,
   ITreeItemEntity,
   waitWhilePending
 } from '@sumaris-net/ngx-components';
@@ -25,6 +25,7 @@ import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, Measur
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { Rule, RuleUtils } from '@app/referential/services/model/rule.model';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -41,6 +42,7 @@ export class BatchModel
   static fromObject: (source: any, opts?: { withChildren?: boolean; }) => BatchModel;
   static fromBatch(batch: Batch|undefined,
                    pmfms: IPmfm[],
+                   rules: Rule[],
                    // Internal arguments (used by recursive call)
                    maxTreeDepth = 4,
                    treeDepth = 0,
@@ -60,12 +62,18 @@ export class BatchModel
       originalData: batch
     });
 
+    // Apply rule on childrenPmfms
+    if (rules?.length) {
+      pmfms = pmfms.filter(pmfm => RuleUtils.valid({model, childrenPmfm: pmfm}, rules));
+    }
+
     // Find the first QV pmfm
     const qvPmfm: IPmfm = PmfmUtils.getFirstQualitativePmfm(pmfms, {
       excludeHidden: true,
       minQvCount: 2,
       maxQvCount: 3,
-      excludePmfmIds: [PmfmIds.CHILD_GEAR] // Avoid child gear be a qvPmfm
+      excludePmfmIds: [PmfmIds.CHILD_GEAR], // Avoid child gear be a qvPmfm
+      filterFn: pmfm => RuleUtils.valid({model, qvPmfm: pmfm}, rules)
     });
     if (qvPmfm) {
       const qvPmfmIndex = pmfms.indexOf(qvPmfm);
@@ -75,8 +83,8 @@ export class BatchModel
 
       // Prepare next iteration
       pmfms = pmfms.slice(qvPmfmIndex+1);
-      treeDepth++;
 
+      treeDepth++;
       if (treeDepth < maxTreeDepth && isNotEmptyArray(pmfms)) {
 
         const childLabelPrefix = isCatchBatch ?
@@ -100,7 +108,7 @@ export class BatchModel
           childBatch.rankOrder = index+1;
 
           // Recursive call
-          const childModel = BatchModel.fromBatch(childBatch, pmfms, maxTreeDepth, treeDepth, model, `${childrenPath}.${index}`);
+          const childModel = BatchModel.fromBatch(childBatch, pmfms, rules, maxTreeDepth, treeDepth, model, `${childrenPath}.${index}`);
           childModel.pmfms = [
             childQvPmfm,
             ...(childModel.pmfms || [])
@@ -125,16 +133,26 @@ export class BatchModel
       model.childrenPmfms = pmfms;
     }
 
-    // Disabled root node, if no pmfms (e.g. when catch batch has no pmfm)
-    model.disabled = isEmptyArray(model.pmfms)
+    // Disabled root node, if no visible pmfms (e.g. when catch batch has no pmfm)
+    model.disabled = !(model.pmfms || []).some(p => !p.hidden)
       && !model.isLeaf
       && !model.parent;
-    // Hide is disabled and no parent
+
+    // if is disabled and no parent
     model.hidden = model.disabled && !model.parent;
     // Leaf = leaf in the batch model tree, NOT in the final batch tree
     model.isLeaf = isEmptyArray(model.children) || isNotEmptyArray(model.childrenPmfms);
     model.pmfms = model.pmfms || [];
     model.childrenPmfms = model.childrenPmfms || [];
+
+    if (rules) {
+      const errors = RuleUtils.control(model, rules);
+      if (errors) {
+        console.log('TODO errors: ' + model.name, errors);
+        // Skip this model
+
+      }
+    }
 
     return model;
   }
@@ -167,6 +185,7 @@ export class BatchModel
   parentId: number = null;
   parent: BatchModel = null;
   children: BatchModel[] = null;
+  showSamplingWeight: boolean = false;
 
   constructor(init?: { validator?: UntypedFormGroup; parent?: BatchModel; path?: string; originalData?: Batch}) {
     super();
@@ -181,6 +200,7 @@ export class BatchModel
     this.originalData = source.originalData;
     this.pmfms = source.pmfms || [];
     this.childrenPmfms = source.childrenPmfms || [];
+    this.showSamplingWeight = source.showSamplingWeight || false;
 
     this.disabled = source.disabled || false;
     this.hidden = source.hidden || false;
@@ -196,7 +216,6 @@ export class BatchModel
     return this.name;
   }
 
-
   get invalid(): boolean {
     return !this.valid;
   }
@@ -206,11 +225,20 @@ export class BatchModel
       this._valid = this.validator.valid;
     }
     if (!this._valid) return false;
-    return !this.children || !this.children.some(c => !c.valid);
+    return true;
+    //return !this.children || !this.children.some(c => !c.valid);
   }
 
   set valid(value: boolean) {
     this._valid = value;
+  }
+
+  get childrenValid(): boolean {
+    return !this.children || !this.children.some(c => !c.valid);
+  }
+
+  get childrenInvalid(): boolean {
+    return !this.childrenValid;
   }
 
   get dirty(): boolean {
@@ -295,17 +323,26 @@ export class BatchModel
 @EntityClass({typename: 'BatchModelFilterVO'})
 export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel> {
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
+  pmfmIds: number[]  = null;
+  isLeaf: boolean = null;
+  hidden: boolean = null;
 
   static fromObject: (source: any, opts?: any) => BatchModelFilter;
 
   fromObject(source: any, opts?: any) {
     super.fromObject(source, opts);
     this.measurementValues = source.measurementValues && {...source.measurementValues} || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.pmfmIds = source.pmfmIds;
+    this.isLeaf = source.isLeaf;
+    this.hidden = source.hidden;
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
+    target.pmfmIds = this.pmfmIds;
+    target.isLeaf = this.isLeaf;
+    target.hidden = this.hidden;
     return target;
   }
 
@@ -324,6 +361,27 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
       })
     }
 
+    // Check all expected pmfms has value
+    if (isNotEmptyArray(this.pmfmIds)) {
+      const pmfmIds = [...this.pmfmIds];
+      filterFns.push(b => {
+        const measurementValues = (b.currentData || b.originalData).measurementValues;
+        return pmfmIds.every(pmfmId => PmfmValueUtils.isNotEmpty(measurementValues[pmfmId]));
+      });
+    }
+
+    // Hidden
+    if (isNotNil(this.hidden)) {
+      const hidden = this.hidden;
+      filterFns.push(b => b.hidden === hidden);
+    }
+
+    // is leaf
+    if (isNotNil(this.isLeaf)) {
+      const isLeaf = this.isLeaf;
+      filterFns.push(b => b.isLeaf === isLeaf);
+    }
+
     return filterFns;
   }
 }
@@ -333,19 +391,24 @@ export class BatchModelUtils {
   static createModel(data: Batch|undefined, opts: {
     catchPmfms: IPmfm[];
     sortingPmfms: IPmfm[];
-    allowDiscard?: boolean
+    allowDiscard?: boolean;
+    rules?: Rule[];
   }): BatchModel {
     if (isEmptyArray(opts?.sortingPmfms)) throw new Error('Missing required argument \'opts.sortingPmfms\'');
 
     // Create a batch model
-    const model = BatchModel.fromBatch(data, opts.sortingPmfms);
+    const model = BatchModel.fromBatch(data, opts.sortingPmfms, opts.rules);
     if (!model) return;
 
     // Add catch batches pmfms
     model.pmfms = arrayDistinct([
-      ...opts.catchPmfms,
+      ...(opts.catchPmfms || []),
       ...(model.pmfms || [])
     ], 'id');
+    // Disabled root node, if no visible pmfms (e.g. when catch batch has no pmfm)
+    model.disabled = !(model.pmfms || []).some(p => !p.hidden)
+      && !model.isLeaf
+      && !model.parent;
 
     // Special case for discard batches
     {
@@ -355,8 +418,8 @@ export class BatchModelUtils {
         }
       };
 
-      // Discard allowed (e.g. when `hasInividualMeasures` is true, in the parent trip)
-      // This is need to remove PMFM such as category
+      // Discard allowed: remove some qualitative value (e.g. Sorting category, etc.)
+      // (e.g. occur when `hasIndividualMeasures=true`, in the parent trip)
       if (opts.allowDiscard !== false) {
         this.findByFilterInTree(model, discardFilter)
           .forEach(discard => {

@@ -30,12 +30,12 @@ export class ProductForm extends MeasurementValuesForm<Product> implements OnIni
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: ProductValidatorService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService,
+    super(injector, measurementsValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(null, {
         withMeasurements: false
       })

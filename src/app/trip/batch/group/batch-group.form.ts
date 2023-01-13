@@ -136,7 +136,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected platform: PlatformService,
@@ -144,7 +144,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
     protected referentialRefService: ReferentialRefService
   ) {
     super(injector,
-      measurementValidatorService,
+      measurementsValidatorService,
       formBuilder,
       programRefService,
       validatorService,

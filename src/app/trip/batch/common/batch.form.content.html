@@ -107,7 +107,7 @@
                  type="number"
                  step="1"
                  pattern="[0-9]*"
-                 (click)="delegate.selectInputContent($event)"
+                 (click)="selectInputContent($event)"
                  [placeholder]="'TRIP.BATCH.EDIT.TOTAL_INDIVIDUAL_COUNT'|translate"
                  [tabindex]="delegate.tabindex + 30"
                  [required]="delegate.requiredIndividualCount">
@@ -155,7 +155,7 @@
                        [formControl]="controls.childrenWeightValue"
                        [readonly]="true"
                        type="number"
-                       (click)="delegate.selectInputContent($event)"
+                       (click)="selectInputContent($event)"
                        [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.childrenWeightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
                        [tabindex]="-1">
 
@@ -213,7 +213,7 @@
                        type="number"
                        step="1"
                        pattern="[0-9]*"
-                       (click)="delegate.selectInputContent($event)"
+                       (click)="selectInputContent($event)"
                        [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_INDIVIDUAL_COUNT'|translate"
                        [tabindex]="delegate.tabindex + 34">
               </mat-form-field>

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { PmfmFormReadySteps, MeasurementValuesForm } from '../../measurement/measurement-values.form.class';
+import { PmfmFormReadySteps } from '../../measurement/measurement-values.form.class';
 import { BehaviorSubject } from 'rxjs';
 import { BatchValidatorService } from '../common/batch.validator';
 import { isNotNil, toNumber } from '@sumaris-net/ngx-components';
@@ -9,11 +9,13 @@ import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { filter } from 'rxjs/operators';
-import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { MatrixIds } from '@app/referential/services/model/model.enum';
 import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 import { equals } from '@app/shared/functions';
-import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
+import { BatchForm, IBatchForm } from '@app/trip/batch/common/batch.form';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 
 @Component({
   selector: 'form-catch-batch',
@@ -24,9 +26,9 @@ import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnInit {
+export class CatchBatchForm extends BatchForm<Batch>
+  implements OnInit, IBatchForm<Batch> {
 
-  private _filter: BatchFilter;
   private _pmfmFilter: Partial<DenormalizedPmfmFilter> = null;
 
   $gearPmfms = new BehaviorSubject<IPmfm[]>(undefined);
@@ -38,15 +40,14 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
   gridColCount = 12;
   hasPmfms: boolean;
 
+  @Input() mobile: boolean;
   @Input() showError = true;
 
-  @Input() set filter(value: BatchFilter) {
-    this.setFilter(value);
-  }
 
-  get filter() {
-    return this._filter;
-  }
+  @Input() showSampleWeight = false;
+  @Input() maxVisibleButtons: number;
+  @Input() maxItemCountForButtons: number;
+  @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
 
   @Input() set pmfmFilter(value: Partial<DenormalizedPmfmFilter>) {
     if (!equals(value, this._pmfmFilter)) {
@@ -57,16 +58,21 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
   constructor(
     injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
-    protected validatorService: BatchValidatorService
+    measurementsValidatorService: MeasurementsValidatorService,
+    formBuilder: UntypedFormBuilder,
+    programRefService: ProgramRefService,
+    validatorService: BatchValidatorService,
+    referentialRefService: ReferentialRefService
   ) {
-
-    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
-      mapPmfms: (pmfms) => this.mapPmfms(pmfms)
-    });
+    super(injector,
+      measurementsValidatorService,
+      formBuilder,
+      programRefService,
+      validatorService,
+      referentialRefService,
+      {}/*validator options*/);
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
+
   }
 
   ngOnInit() {
@@ -98,16 +104,6 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
     data.rankOrder = toNumber(data.rankOrder, 0);
   }
 
-
-  setFilter(dataFilter: BatchFilter) {
-
-    this._filter = dataFilter;
-    // DEBUG
-    if (this.debug) console.debug('[catch-form] Applying filter: ', dataFilter);
-
-    //this.pmfmFilter = {fractionIdByMatrixId};
-  }
-
   /**
    * Use in ngFor, for trackBy
    * @param index
@@ -136,7 +132,7 @@ export class CatchBatchForm extends MeasurementValuesForm<Batch> implements OnIn
 
   /* -- protected functions -- */
 
-  protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
+  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
 
     // Apply filter
     const pmfmFilterFn = DenormalizedPmfmFilter.fromObject(this._pmfmFilter)?.asFilterFn();

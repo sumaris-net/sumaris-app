@@ -125,7 +125,7 @@ export class TreeItemEntityUtils {
     return this.deleteRecursively(node, filterFn);
   }
 
-  private static filterRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
+  static filterRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
     return (node.children || []).reduce((res, child) => {
         return res.concat(this.filterRecursively(child, filterFn));
       },
@@ -134,8 +134,7 @@ export class TreeItemEntityUtils {
     );
   }
 
-  // Internal function
-  private static deleteRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
+  static deleteRecursively<T extends ITreeItemEntity<any>>(node: T, filterFn: (n: T) => boolean): T[] {
     if (isEmptyArray(node.children)) return []; // Skip
 
     // Delete children

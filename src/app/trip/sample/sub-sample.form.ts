@@ -59,14 +59,14 @@ export class SubSampleForm extends MeasurementValuesForm<Sample>
 
   constructor(
     protected injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected cd: ChangeDetectorRef,
     protected validatorService: SubSampleValidatorService,
     protected settings: LocalSettingsService,
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService,
+    super(injector, measurementsValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms)

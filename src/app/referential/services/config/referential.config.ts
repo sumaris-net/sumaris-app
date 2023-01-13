@@ -566,6 +566,32 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     },
     defaultValue: QualitativeValueIds.SIZE_UNLI_CAT.NONE
   },
+  QUALITATIVE_VALUE_SORTING_BULK_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.SORTING_BULK.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SORTING_BULK_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'QualitativeValue',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualitativeValueIds.BATCH_SORTING.BULK
+  },
+  QUALITATIVE_VALUE_SORTING_NON_BULK_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.SORTING_NON_BULK.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SORTING_NON_BULK_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'QualitativeValue',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualitativeValueIds.BATCH_SORTING.NON_BULK
+  },
 
   TAXON_GROUP_TYPE_FAO_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonGroupType.FAO.id',

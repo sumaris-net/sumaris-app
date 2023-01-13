@@ -12,7 +12,7 @@
               tappable>
       <ion-icon color="primary" name="help-circle-outline"></ion-icon>
       <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
-    --></ion-item>
+    </ion-item>-->
 
     <!-- model tree -->
     <app-batch-model-tree #batchModelTree
@@ -244,6 +244,10 @@
                   [disabled]="disabled"
                   [filter]="filter"
                   [debug]="debug && !mobile && false">
+
+    <app-batch-form catchForm>
+
+    </app-batch-form>
   </app-batch-tree>
 </ng-template>
 <!-- debug-->

@@ -12,7 +12,7 @@ export interface MetierFromObjectOptions {
 
 @EntityClass({ typename: "MetierVO" })
 export class Metier extends BaseReferential<Metier, number, ReferentialAsObjectOptions, MetierFromObjectOptions> {
-  static ENTITY_NAME = "Metier";
+  static ENTITY_NAME = 'Metier';
   static fromObject: (source: any, opts?: MetierFromObjectOptions) => Metier;
 
   gear: ReferentialRef = null;

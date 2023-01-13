@@ -92,4 +92,6 @@ export class BatchModelTreeComponent {
   }
 
   isWeightPmfm = PmfmUtils.isWeight;
+
+  isNotHiddenPmfm = PmfmUtils.isNotHidden;
 }

@@ -235,7 +235,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   get valid(): boolean {
-    return this.model?.valid || false;
+    return !this.model || this.model.valid;
   }
 
   get loading(): boolean {
@@ -322,7 +322,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.state.connect('model',
       this.state.select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], s => s)
         .pipe(
-          filter(({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => data && sortingPmfms && catchPmfms && physicalGear && true),
+          filter(({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => sortingPmfms && catchPmfms && physicalGear && true),
           mergeMap(async ({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => {
             // Load physical gear's children (if not already done)
             if (physicalGear && isEmptyArray(physicalGear.children)) {
@@ -453,7 +453,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.markForCheck();
   }
 
-  openFilterPanel(event?: Event, opts?: {expandAll?: boolean}) {
+  async openFilterPanel(event?: Event, opts?: {expandAll?: boolean}) {
     if (event?.defaultPrevented) return; // Cancelled
 
     // First, expand model tree
@@ -461,9 +461,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.batchModelTree.expandAll();
     }
 
-    this.filterExpansionPanel?.open();
-    this.sidenav?.open();
+    if (this.filterExpansionPanel) this.filterExpansionPanel.open();
+    if (this.sidenav) await this.sidenav.open();
 
+    this.markForCheck();
   }
 
   closeFilterPanel() {
@@ -690,7 +691,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       await this.stopEditBatch();
 
       // Open filter panel
-      this.openFilterPanel();
+      await this.openFilterPanel();
     }
 
     if (!opts || opts.markAsPristine !== false) {
@@ -951,6 +952,4 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.startEditBatch(null, previousVisible);
     }
   }
-
-  isWeightPmfm = PmfmUtils.isWeight;
 }
