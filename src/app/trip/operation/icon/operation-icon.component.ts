@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, ViewEncapsulation } from '@angular/core';
 import { isNil, isNotNil, MatBadgeFill } from '@sumaris-net/ngx-components';
 import { qualityFlagToColor, qualityFlagToIcon, QualityIonIcon } from '@app/data/services/model/model.utils';
-import { Operation } from '@app/trip/services/model/trip.model';
-import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { Operation, OperationUtils } from '@app/trip/services/model/trip.model';
+import { PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { AppColors } from '@app/shared/colors.utils';
 import { MatBadgeSize } from '@angular/material/badge';
 
@@ -13,8 +13,7 @@ export declare type OperationIonIcon = 'navigate';
   selector: 'app-operation-icon',
   templateUrl: 'operation-icon.component.html',
   styleUrls: ['./operation-icon.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  encapsulation: ViewEncapsulation.None
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class OperationIconComponent {
 
@@ -64,7 +63,7 @@ export class OperationIconComponent {
   constructor(private cd: ChangeDetectorRef) {
   }
 
-  setValue(value: Operation) {
+  protected setValue(value: Operation) {
     if (!value) {
       this.reset();
       return;
@@ -143,6 +142,16 @@ export class OperationIconComponent {
         this.badgeColor = qualityFlagToColor(value.qualityFlagId);
       }
     }
+
+    // Abnormal operation
+    if (value.abnormal) {
+      this.badgeIcon = 'warning';
+      this.badgeColor = 'tertiary';
+      this.badgeFill = 'clear';
+      this.badgeSize = 'small';
+      this.title = value.comments;
+    }
+
     this.color = this.color || 'primary';
     this.cd.markForCheck();
   }

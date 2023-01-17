@@ -199,13 +199,17 @@ export const OperationFragments = {
 
 export const OperationQueries = {
   // Load many operations (with total)
-  loadAllWithTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $pmfmIds: [Int]){
     data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightOperationFragment
+      measurements(pmfmIds: $pmfmIds) {
+        ...MeasurementFragment
+      }
     }
     total: operationsCount(filter: $filter)
   }
-  ${OperationFragments.lightOperation}`,
+  ${OperationFragments.lightOperation}
+  ${DataCommonFragments.measurement}`,
 
   loadAllWithTripAndTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -996,7 +1000,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: dataFilter.asPodObject()
+      filter: dataFilter.asPodObject(),
+      pmfmIds: [PmfmIds.TRIP_PROGRESS]
     };
 
     let now = this._debug && Date.now();
