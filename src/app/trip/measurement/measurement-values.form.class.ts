@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Directive, EventEmitter, Injector, Input, OnDestroy, OnInit, Optional, Output } from '@angular/core';
 import { FloatLabelType } from '@angular/material/form-field';
 import { isObservable, merge, Observable } from 'rxjs';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -164,8 +164,8 @@ export abstract class MeasurementValuesForm<
                         protected measurementsValidatorService: MeasurementsValidatorService,
                         protected formBuilder: UntypedFormBuilder,
                         protected programRefService: ProgramRefService,
-                        form?: UntypedFormGroup,
-                        options?: IMeasurementValuesFormOptions
+                        @Optional() form?: UntypedFormGroup,
+                        @Optional() options?: IMeasurementValuesFormOptions
   ) {
     super(injector, form);
     this.cd = injector.get(ChangeDetectorRef);
@@ -174,29 +174,6 @@ export abstract class MeasurementValuesForm<
       skipDisabledPmfmControl: true,
       ...options
     };
-
-    // Load pmfms; when input property set (skip if component is starting = waiting markAsready())
-    this._state.hold(merge(
-        this._state.select(['programLabel', 'acquisitionLevel', 'forceOptional'], res => res),
-        this._state.select(['requiredStrategy', 'strategyLabel'], res => res),
-        this._state.select(['requiredGear', 'gearId'], res => res),
-      )
-        .pipe(
-          // Only if markAsReady() called
-          filter(_ => !this.starting)
-        ),
-        // /!\ DO NOT emit event if not loaded.
-        // (e.g. Required to avoid CatchBatchForm to have 'loading=true', when gearId is set)
-        (_) => this.loadPmfms({emitEvent: false})
-    );
-
-    // Update form, when pmfms set
-    this._state.hold(this.pmfms$, (pmfms) => this.updateFormGroup(pmfms));
-
-    this._state.connect('ready', this._state.select('readyStep')
-      .pipe(
-        map(step => step >= PmfmFormReadySteps.FORM_GROUP_READY)
-      ));
 
     // Initial state
     this._state.set(<Partial<S>>{
@@ -220,6 +197,29 @@ export abstract class MeasurementValuesForm<
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Load pmfms; when input property set (skip if component is starting = waiting markAsReady())
+    this._state.hold(merge(
+        this._state.select(['programLabel', 'acquisitionLevel', 'forceOptional'], res => res),
+        this._state.select(['requiredStrategy', 'strategyLabel'], res => res),
+        this._state.select(['requiredGear', 'gearId'], res => res),
+      )
+        .pipe(
+          // Only if markAsReady() called
+          filter(_ => !this.starting)
+        ),
+      // /!\ DO NOT emit event if not loaded.
+      // (e.g. Required to avoid CatchBatchForm to have 'loading=true', when gearId is set)
+      (_) => this.loadPmfms({emitEvent: false})
+    );
+
+    // Update form, when pmfms set
+    this._state.hold(this.pmfms$, (pmfms) => this.updateFormGroup(pmfms));
+
+    this._state.connect('ready', this._state.select('readyStep')
+      .pipe(
+        map(step => step >= PmfmFormReadySteps.FORM_GROUP_READY)
+      ));
 
     // Listen form changes
     this.registerSubscription(

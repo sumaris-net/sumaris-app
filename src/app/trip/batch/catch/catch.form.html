@@ -9,10 +9,10 @@
 
   <ion-grid class="ion-no-padding"
             [style.--ion-grid-columns]="gridColCount"
-            *rxIf="$otherPmfms; let otherPmfms; suspense: loadingSkeleton">
+            *rxIf="otherPmfms$; let otherPmfms; suspense: loadingSkeleton">
 
     <!-- on deck  -->
-    <ng-container *rxIf="$gearPmfms; let pmfms">
+    <ng-container *rxIf="gearPmfms$; let pmfms">
       <ion-row *rxIf="pmfms|isNotEmptyArray">
         <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SUB_GEAR</ion-label>
@@ -30,7 +30,7 @@
     </ng-container>
 
     <!-- on deck  -->
-    <ng-container *rxIf="$onDeckPmfms; let pmfms">
+    <ng-container *rxIf="onDeckPmfms$; let pmfms">
       <ion-row *rxIf="pmfms|isNotEmptyArray">
         <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.ON_DECK</ion-label>
@@ -48,7 +48,7 @@
     </ng-container>
 
     <!-- Sorting -->
-    <ng-container *rxIf="$sortingPmfms; let pmfms">
+    <ng-container *rxIf="sortingPmfms$; let pmfms">
       <ion-row *rxIf="pmfms|isNotEmptyArray">
         <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SORTING</ion-label>
@@ -66,8 +66,8 @@
       </ion-row>
     </ng-container>
 
-    <!-- Weight pmfms -->
-    <ng-container *rxIf="$weightPmfms; let pmfms">
+    <!-- Catch weight pmfms -->
+    <ng-container *rxIf="catchPmfms$; let pmfms">
       <ion-row *rxIf="pmfms|isNotEmptyArray" class="ion-padding">
         <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
           <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
@@ -85,7 +85,7 @@
     </ng-container>
 
     <!-- Other features -->
-    <ion-row *rxIf="otherPmfms|isNotEmptyArray">
+    <ion-row *rxIf="otherPmfms|isNotEmptyArray; else defaultLayout">
       <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
       </ion-col>
       <ng-container *rxFor="let pmfm of otherPmfms; trackBy: trackPmfmFn; index as i;">
@@ -100,14 +100,16 @@
       </ng-container>
     </ion-row>
 
-    <!-- Sampling batch -->
-    <ion-row>
-      <ion-col>
-        <!-- root form content
-        <app-batch-form-content>
-        </app-batch-form-content>-->
-      </ion-col>
-    </ion-row>
+    <!-- Default layout -->
+    <ng-template #defaultLayout>
+      <ion-row>
+        <ion-col>
+          <!-- root form content -->
+          <app-batch-form-content [debug]="false">
+          </app-batch-form-content>
+        </ion-col>
+      </ion-row>
+    </ng-template>
   </ion-grid>
 </form>
 

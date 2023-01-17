@@ -1,180 +1,126 @@
-import { ChangeDetectionStrategy, Component, Injector, Input, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, OnInit } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { PmfmFormReadySteps } from '../../measurement/measurement-values.form.class';
-import { BehaviorSubject } from 'rxjs';
 import { BatchValidatorService } from '../common/batch.validator';
-import { isNotNil, toNumber } from '@sumaris-net/ngx-components';
+import { isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { filter } from 'rxjs/operators';
-import { MatrixIds } from '@app/referential/services/model/model.enum';
-import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-import { equals } from '@app/shared/functions';
-import { BatchForm, IBatchForm } from '@app/trip/batch/common/batch.form';
-import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, MatrixIds } from '@app/referential/services/model/model.enum';
+import { BatchForm, BatchFormState, IBatchForm } from '@app/trip/batch/common/batch.form';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { environment } from '@environments/environment';
+
+export interface CatchBatchFormState extends BatchFormState {
+  gearPmfms: IPmfm[];
+  onDeckPmfms: IPmfm[];
+  sortingPmfms: IPmfm[];
+  catchPmfms: IPmfm[];
+  otherPmfms: IPmfm[];
+}
 
 @Component({
   selector: 'form-catch-batch',
   templateUrl: './catch.form.html',
   styleUrls: ['./catch.form.scss'],
   providers: [
-    {provide: BatchValidatorService, useClass: BatchValidatorService}
+    { provide: BatchValidatorService, useClass: BatchValidatorService},
+    { provide: BatchForm, useExisting: forwardRef(() => CatchBatchForm)},
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class CatchBatchForm extends BatchForm<Batch>
+export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
   implements OnInit, IBatchForm<Batch> {
 
-  private _pmfmFilter: Partial<DenormalizedPmfmFilter> = null;
+  readonly gearPmfms$ = this._state.select('gearPmfms');
+  readonly onDeckPmfms$ = this._state.select('onDeckPmfms');
+  readonly sortingPmfms$ = this._state.select('sortingPmfms');
+  readonly catchPmfms$ = this._state.select('catchPmfms');
+  readonly otherPmfms$ = this._state.select('otherPmfms');
 
-  $gearPmfms = new BehaviorSubject<IPmfm[]>(undefined);
-  $onDeckPmfms = new BehaviorSubject<IPmfm[]>(undefined);
-  $sortingPmfms = new BehaviorSubject<IPmfm[]>(undefined);
-  $weightPmfms = new BehaviorSubject<IPmfm[]>(undefined);
-  $otherPmfms = new BehaviorSubject<IPmfm[]>(undefined);
   labelColSize = 1;
   gridColCount = 12;
-  hasPmfms: boolean;
-
-  @Input() mobile: boolean;
-  @Input() showError = true;
-
-
-  @Input() showSampleWeight = false;
-  @Input() maxVisibleButtons: number;
-  @Input() maxItemCountForButtons: number;
-  @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
-
-  @Input() set pmfmFilter(value: Partial<DenormalizedPmfmFilter>) {
-    if (!equals(value, this._pmfmFilter)) {
-      this._pmfmFilter = value;
-      if (!this.loading) this.dispatchPmfms(this.pmfms);
-    }
-  }
 
   constructor(
     injector: Injector,
     measurementsValidatorService: MeasurementsValidatorService,
     formBuilder: UntypedFormBuilder,
     programRefService: ProgramRefService,
-    validatorService: BatchValidatorService,
-    referentialRefService: ReferentialRefService
+    referentialRefService: ReferentialRefService,
+    validatorService: BatchValidatorService
   ) {
     super(injector,
       measurementsValidatorService,
       formBuilder,
       programRefService,
-      validatorService,
       referentialRefService,
-      {}/*validator options*/);
+      validatorService, {
+        // TODO
+      });
+    // Set defaults
+    this.acquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
+    this.showTaxonGroup = false;
+    this.showTaxonName = false;
+    this.showSamplingBatch = false;
 
-  }
-
-  ngOnInit() {
-    super.ngOnInit();
-
-    // Dispatch pmfms by type
-    this.registerSubscription(
-      this.pmfms$
-        .subscribe(pmfms => this.dispatchPmfms(pmfms))
-    );
-  }
-
-  ngOnDestroy() {
-    super.ngOnDestroy();
-    this.$gearPmfms.unsubscribe();
-    this.$onDeckPmfms.unsubscribe();
-    this.$sortingPmfms.unsubscribe();
-    this.$weightPmfms.unsubscribe();
-    this.$otherPmfms.unsubscribe();
-  }
-
-  onApplyingEntity(data: Batch, opts?: any) {
-     super.onApplyingEntity(data, opts);
-
-    if (!data) return; // Skip
-
-    // Init default
-    data.label = data.label || this.acquisitionLevel;
-    data.rankOrder = toNumber(data.rankOrder, 0);
-  }
-
-  /**
-   * Use in ngFor, for trackBy
-   * @param index
-   * @param pmfm
-   */
-  trackPmfmFn(index: number, pmfm: IPmfm): any {
-    return `${pmfm.id}-${pmfm.hidden}-${pmfm.required}`;
-  }
-
-  markAsReady(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    // Start loading pmfms
-    if (this.starting) {
-      this.setReadyStep(PmfmFormReadySteps.LOADING_PMFMS);
-      this.loadPmfms();
-    }
-
-    // Make sure pmfms have been dispatched before markAsReady()
-    {
-      const otherSubscription = this.$otherPmfms
-        .pipe(filter(isNotNil))
-        .subscribe(_ => super.markAsReady(opts));
-      otherSubscription.add(() => this.unregisterSubscription(otherSubscription))
-      this.registerSubscription(otherSubscription);
-    }
+    // DEBUG
+    this.debug = !environment.production;
+    this._logPrefix = '[catch-form] ';
   }
 
   /* -- protected functions -- */
 
-  protected mapPmfms(pmfms: IPmfm[]): IPmfm[] {
-
-    // Apply filter
-    const pmfmFilterFn = DenormalizedPmfmFilter.fromObject(this._pmfmFilter)?.asFilterFn();
-    if (pmfmFilterFn) {
-      pmfms = pmfms.filter(pmfmFilterFn);
-    }
-
-    return pmfms;
-  }
-
   // @ts-ignore
-  protected async dispatchPmfms(pmfms: IPmfm[]) {
+  protected async dispatchPmfms(pmfms: IPmfm[]): Promise<Partial<S>> {
+
     if (!pmfms) return; // Skip
 
-    // DEBUG
-    console.debug('[catch-form] Dispatching pmfms...');
+    if (this.acquisitionLevel !== AcquisitionLevelCodes.CATCH_BATCH) {
+      const state = await super.dispatchPmfms(pmfms);
+      return {
+        ...state,
+        showWeight: isNotEmptyArray(state.weightPmfms),
+        otherPmfms: []
+      };
+    }
 
-    this.$onDeckPmfms.next(pmfms.filter(p => p.label?.indexOf('ON_DECK_') === 0));
-    this.$sortingPmfms.next(pmfms.filter(p => p.label?.indexOf('SORTING_') === 0));
-    this.$weightPmfms.next(pmfms.filter(p => (PmfmUtils.isWeight(p) || p.label?.indexOf('_WEIGHT') !== -1)
-      && !this.$onDeckPmfms.value.includes(p)
-      && !this.$sortingPmfms.value.includes(p)));
+    const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod } = await super.dispatchPmfms(pmfms);
 
-    this.$gearPmfms.next(pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.label?.indexOf('CHILD_GEAR') === 0));
+    const onDeckPmfms = pmfms.filter(p => p.label?.indexOf('ON_DECK_') === 0);
+    const sortingPmfms = pmfms.filter(p => p.label?.indexOf('SORTING_') === 0);
+    const catchPmfms = pmfms.filter(p => (PmfmUtils.isWeight(p) || p.label?.indexOf('_WEIGHT') !== -1)
+      && !onDeckPmfms.includes(p)
+      && !sortingPmfms.includes(p));
+    const gearPmfms = pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.label?.indexOf('CHILD_GEAR') === 0);
 
     // Compute grid column count
     this.gridColCount = this.labelColSize /*label*/
       + Math.min(3, Math.max(
-        this.$onDeckPmfms.value.length,
-        this.$sortingPmfms.value.length,
-        this.$weightPmfms.value.length,
-        this.$gearPmfms.value.length
+        onDeckPmfms.length,
+        sortingPmfms.length,
+        catchPmfms.length,
+        gearPmfms.length
       ));
 
-    this.$otherPmfms.next(pmfms.filter(p => !this.$onDeckPmfms.value.includes(p)
-      && !this.$sortingPmfms.value.includes(p)
-      && !this.$weightPmfms.value.includes(p)
-      && !this.$gearPmfms.value.includes(p)));
+    const otherPmfms = pmfms.filter(p => !onDeckPmfms.includes(p)
+      && !sortingPmfms.includes(p)
+      && !catchPmfms.includes(p)
+      && !gearPmfms.includes(p));
 
-
-    this.hasPmfms = pmfms.length > 0;
-    this.markForCheck();
+    // Update state
+    return {
+      weightPmfms,
+      defaultWeightPmfm,
+      weightPmfmsByMethod,
+      onDeckPmfms,
+      sortingPmfms,
+      catchPmfms,
+      gearPmfms,
+      otherPmfms,
+      pmfms: [],
+      hasPmfms: pmfms.length > 0,
+    };
   }
 }
 

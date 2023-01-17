@@ -76,7 +76,7 @@
           <app-batch-form #childForm
                           [tabindex]="tabindex + 10 + 10*i"
                           [acquisitionLevel]="acquisitionLevel"
-                          [pmfms]="$childrenPmfmsByQvId | async | mapGet: qv.id"
+                          [pmfms]="childrenPmfmsByQvId$ | async | mapGet: qv.id"
                           [showError]="false"
                           [showTaxonName]="false"
                           [showTaxonGroup]="false"

@@ -336,9 +336,8 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     this.registerForms();
 
     this.registerSubscription(
-      this.catchBatchForm.pmfms$
-        .subscribe(pmfms => {
-          const hasPmfms = pmfms.length > 0;
+      this.catchBatchForm.hasPmfms$
+        .subscribe(hasPmfms => {
           this.showCatchForm = this.showCatchForm && hasPmfms;
           if (this._enabled) {
             if (hasPmfms) this.catchBatchForm.enable()
@@ -381,7 +380,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
       // Enable sub batches table, only when table pmfms ready
       this.registerSubscription(
-        firstTrue(this.subBatchesTable.$hasPmfms, {stop: this.destroySubject})
+        firstTrue(this.subBatchesTable.hasPmfms$, {stop: this.destroySubject})
           .subscribe(() => {
             this.showSubBatchesTable = true;
             this.markForCheck();

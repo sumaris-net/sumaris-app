@@ -6,7 +6,6 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   isNotNilOrNaN,
   LocalSettingsService,
   SharedAsyncValidators,
@@ -16,7 +15,7 @@ import {
   toNumber
 } from '@sumaris-net/ngx-components';
 import { Batch, BatchWeight } from './batch.model';
-import { MethodIds } from '@app/referential/services/model/model.enum';
+import { MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Subscription } from 'rxjs';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
@@ -65,28 +64,28 @@ export class BatchValidatorService<
   }
 
   getFormGroupConfig(data?: T, opts?: O): { [key: string]: any } {
-    const rankOrder = toNumber(data && data.rankOrder, null);
-    const label = data && data.label || null;
+    const rankOrder = toNumber(data?.rankOrder, null);
+    const label = data?.label || null;
     const samplingRatioComputed = data && (isNotNil(data.samplingRatioComputed) ? data.samplingRatioComputed : BatchUtils.isSamplingRatioComputed(data.samplingRatioText)) || false;
     const config = {
       __typename: [Batch.TYPENAME],
-      id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
+      id: [toNumber(data?.id, null)],
+      updateDate: [data?.updateDate || null],
       rankOrder: !opts || opts.rankOrderRequired !== false ? [rankOrder, Validators.required] : [rankOrder],
       label: !opts || opts.labelRequired !== false ? [label, Validators.required] : [label],
-      individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
-      samplingRatio: [toNumber(data && data.samplingRatio, null), SharedValidators.decimal()],
-      samplingRatioText: [data && data.samplingRatioText || null],
+      individualCount: [toNumber(data?.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
+      samplingRatio: [toNumber(data?.samplingRatio, null), SharedValidators.decimal()],
+      samplingRatioText: [data?.samplingRatioText || null],
       samplingRatioComputed: [samplingRatioComputed],
-      taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],
-      taxonName: [data && data.taxonName || null, SharedValidators.entity],
-      comments: [data && data.comments || null],
-      parent: [data && data.parent || null, SharedValidators.entity],
+      taxonGroup: [data?.taxonGroup || null, SharedValidators.entity],
+      taxonName: [data?.taxonName || null, SharedValidators.entity],
+      comments: [data?.comments || null],
+      parent: [data?.parent || null, SharedValidators.entity],
       // Quality properties
-      controlDate: [data && data.controlDate || null],
-      qualificationDate: [data && data.qualificationDate || null],
-      qualificationComments: [data && data.qualificationComments || null],
-      qualityFlagId: [toNumber(data && data.qualityFlagId, 0)],
+      controlDate: [data?.controlDate || null],
+      qualificationDate: [data?.qualificationDate || null],
+      qualificationComments: [data?.qualificationComments || null],
+      qualityFlagId: [toNumber(data?.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)],
       // Sub forms
       measurementValues: this.formBuilder.group({}),
       // TODO: add operationId, saleId, parentId

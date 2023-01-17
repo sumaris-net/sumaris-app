@@ -76,6 +76,11 @@ export abstract class BaseMeasurementsTable<
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
+  readonly hasPmfms$ = this.$pmfms.pipe(
+    filter(isNotNil),
+    map(isNotEmptyArray),
+    distinctUntilChanged()
+  );
 
   /**
    * Allow to override the rankOrder. See physical-gear, on ADAP program
@@ -177,13 +182,7 @@ export abstract class BaseMeasurementsTable<
     this._dataService.pmfms = pmfms;
   }
 
-  get $hasPmfms(): Observable<boolean> {
-    return this.$pmfms.pipe(
-      filter(isNotNil),
-      map(isNotEmptyArray),
-      distinctUntilChanged()
-    );
-  }
+
 
   get hasPmfms(): boolean {
     return isNotEmptyArray(this.pmfms);

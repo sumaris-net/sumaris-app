@@ -1,13 +1,13 @@
 <form class="form-container" [formGroup]="delegate.form" (ngSubmit)="delegate.doSubmit($event)" >
 
   <!-- error -->
-  <ion-item *ngIf="delegate.error && delegate.showError" lines="none">
+  <ion-item *ngIf="showError && delegate.error; let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="delegate.error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <!-- DEBUG -->
-  <ng-container *ngIf="delegate.debug">
+  <ng-container *ngIf="debug">
     <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
   </ng-container>
 
@@ -68,7 +68,7 @@
                         [control]="controls.weightValue"
                         [class.computed]="controls.weightComputed.value"
                         [readonly]="controls.weightComputed.value"
-                        [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
+
                         [compact]="delegate.compact"
                         [tabindex]="delegate.tabindex+28"
                         [listenStatusChanges]="true"
@@ -233,7 +233,10 @@
           <ion-col>
             loading: {{delegate.loadingSubject|async}}<br/>
             ready: {{delegate.readySubject|async}}<br/>
+            enabled: {{delegate.enabled}}<br/>
             disabled: {{delegate.disabled}}<br/>
+          </ion-col>
+          <ion-col>
             valid: {{delegate.valid}}<br/>
             dirty: {{delegate.dirty}}<br/>
             touched: {{delegate.touched}}<br/>

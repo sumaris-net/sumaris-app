@@ -243,11 +243,8 @@
                   [mobile]="mobile"
                   [disabled]="disabled"
                   [filter]="filter"
-                  [debug]="debug && !mobile && false">
+                  [debug]="debug">
 
-    <app-batch-form catchForm>
-
-    </app-batch-form>
   </app-batch-tree>
 </ng-template>
 <!-- debug-->
@@ -262,6 +259,7 @@
           value: {{!!data}}<br/>
           valid: {{valid}}<br/>
           invalid: {{invalid}}<br/>
+          disabled: {{disabled}}<br/>
         </ion-col>
         <ion-col *ngIf="form">
           form.dirty: {{form.dirty}}<br/>

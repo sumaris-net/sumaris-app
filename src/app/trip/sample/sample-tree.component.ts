@@ -178,8 +178,8 @@ export class SampleTreeComponent extends AppTabEditor<Sample[]> {
       // If sub tables exists (desktop mode), check if there have some pmfms
       this.registerSubscription(
         combineLatest([
-          this.individualMonitoringTable.$hasPmfms,
-          this.individualReleasesTable.$hasPmfms
+          this.individualMonitoringTable.hasPmfms$,
+          this.individualReleasesTable.hasPmfms$
         ])
           .subscribe(([hasMonitoringPmfms, hasReleasePmfms]) => {
             this.showIndividualMonitoringTable = hasMonitoringPmfms;

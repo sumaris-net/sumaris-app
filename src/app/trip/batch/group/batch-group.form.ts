@@ -1,37 +1,45 @@
 import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryList, ViewChildren } from '@angular/core';
 import { Batch } from '../common/batch.model';
 import { UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { AcquisitionLevelCodes, QualitativeValueIds } from '@app/referential/services/model/model.enum';
-import { AppFormUtils, InputElement, isNil, isNotNil, PlatformService, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
+import { AppFormUtils, InputElement, isNil, isNotNil, ReferentialUtils, toBoolean } from '@sumaris-net/ngx-components';
 import { BatchGroupValidatorService } from './batch-group.validator';
-import { BehaviorSubject } from 'rxjs';
-import { BatchForm } from '../common/batch.form';
+import { BatchForm, BatchFormState } from '../common/batch.form';
 import { filter } from 'rxjs/operators';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+
+export interface BatchGroupFormSTate extends BatchFormState {
+  childrenPmfmsByQvId: {[key: number]: IPmfm[]};
+  qvPmfm: IPmfm;
+}
 
 @Component({
   selector: 'app-batch-group-form',
   templateUrl: 'batch-group.form.html',
   styleUrls: ['batch-group.form.scss'],
   providers: [
-    { provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService},
-    { provide: BatchValidatorService, useClass: BatchValidatorService},
     { provide: BatchForm, useExisting: forwardRef(() => BatchGroupForm)},
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BatchGroupForm extends BatchForm<BatchGroup> {
+export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormSTate> {
 
-  $childrenPmfmsByQvId = new BehaviorSubject<{[key: number]: IPmfm[]}>(undefined);
+  readonly childrenPmfmsByQvId$ = this._state.select('childrenPmfmsByQvId');
+
   hasSubBatchesControl: UntypedFormControl;
 
-  @Input() qvPmfm: IPmfm;
+  @Input() set qvPmfm(value: IPmfm) {
+    this._state.set('qvPmfm', _ => value);
+  }
+  get qvPmfm(): IPmfm {
+    return this._state.get('qvPmfm');
+  }
+
   @Input() childrenPmfms: IPmfm[];
   @Input() taxonGroupsNoWeight: string[];
   @Input() showChildrenWeight = true;
@@ -136,19 +144,18 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
   constructor(
     injector: Injector,
-    protected measurementsValidatorService: MeasurementsValidatorService,
-    protected formBuilder: UntypedFormBuilder,
-    protected programRefService: ProgramRefService,
-    protected platform: PlatformService,
-    protected validatorService: BatchGroupValidatorService,
-    protected referentialRefService: ReferentialRefService
+    measurementsValidatorService: MeasurementsValidatorService,
+    formBuilder: UntypedFormBuilder,
+    programRefService: ProgramRefService,
+    referentialRefService: ReferentialRefService,
+    validatorService: BatchGroupValidatorService
   ) {
     super(injector,
       measurementsValidatorService,
       formBuilder,
       programRefService,
-      validatorService,
-      referentialRefService);
+      referentialRefService,
+      validatorService);
 
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -214,30 +221,30 @@ export class BatchGroupForm extends BatchForm<BatchGroup> {
 
     if (this.debug) console.debug('[batch-group-form] mapPmfm()...');
 
-    this.qvPmfm = this.qvPmfm || BatchGroupUtils.getQvPmfm(pmfms);
-    if (this.qvPmfm) {
+    let qvPmfm = this.qvPmfm || BatchGroupUtils.getQvPmfm(pmfms);
+    if (qvPmfm) {
 
       // Create a copy, to keep original pmfm unchanged
-      this.qvPmfm = this.qvPmfm.clone();
+      qvPmfm = this.qvPmfm.clone();
 
       // Hide for children form, and change it as required
-      this.qvPmfm.hidden = true;
-      this.qvPmfm.required = true;
+      qvPmfm.hidden = true;
+      qvPmfm.required = true;
 
-      const qvPmfmIndex = pmfms.findIndex(pmfm => pmfm.id === this.qvPmfm.id);
+      const qvPmfmIndex = pmfms.findIndex(pmfm => pmfm.id === qvPmfm.id);
       const speciesPmfms = pmfms.filter((pmfm, index) => index < qvPmfmIndex);
       const childrenPmfms = [
-        this.qvPmfm,
+        qvPmfm,
         ...pmfms.filter((pmfm, index) => index > qvPmfmIndex)
       ];
 
-      const childrenPmfmsByQvId = this.qvPmfm.qualitativeValues.reduce((res, qv ) => {
+      const childrenPmfmsByQvId = qvPmfm.qualitativeValues.reduce((res, qv ) => {
         const isDiscard = qv.id === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD;
         res[qv.id] = BatchGroupUtils.mapChildrenPmfms(childrenPmfms, {isDiscard})
         return res;
       }, {});
 
-      this.$childrenPmfmsByQvId.next(childrenPmfmsByQvId);
+      this._state.set({childrenPmfmsByQvId, qvPmfm});
 
       // Limit to species pmfms
       pmfms = speciesPmfms;

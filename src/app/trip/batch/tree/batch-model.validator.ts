@@ -67,6 +67,15 @@ export class BatchModelValidatorService<
 
     // Create rules
     let rules = (opts.rules || []);
+    const noLandingPmfms = [
+      Rule.fromObject(<Partial<Rule>>{
+        label: 'discard-pmfm',
+        controlledAttribute: `childrenPmfm.id`,
+        operator: '!=',
+        value: PmfmIds.SIZE_CATEGORY.toString(),
+        message: 'Landing pmfm not allowed'
+      })
+    ];
     const noDiscardPmfms = [
       Rule.fromObject(<Partial<Rule>>{
         label: 'discard-pmfm',
@@ -86,7 +95,7 @@ export class BatchModelValidatorService<
     if (allowDiscard) {
       rules = [
         ...rules,
-        // Precondition : landing node
+        // Precondition : landing batchs
         Rule.fromObject(<Partial<Rule>>{
           precondition: true,
           label: '',
@@ -98,7 +107,7 @@ export class BatchModelValidatorService<
           // Rules: Avoid discard pmfms
           children: noDiscardPmfms
         }),
-        // Precondition : landing node
+        // Precondition : landing batchs
         Rule.fromObject(<Partial<Rule>>{
           precondition: true,
           label: '',
@@ -109,6 +118,30 @@ export class BatchModelValidatorService<
 
           // Rules: Avoid discard pmfms
           children: noDiscardPmfms
+        }),
+
+        // Precondition : discard batchs
+        Rule.fromObject(<Partial<Rule>>{
+          precondition: true,
+          label: '',
+          description: 'No landing pmfm under discard batch',
+          controlledAttribute: `model.originalData.measurementValues.${PmfmIds.DISCARD_OR_LANDING}`,
+          operator: '!=',
+          value: QualitativeValueIds.DISCARD_OR_LANDING.LANDING.toString(),
+
+          // Rules: Avoid discard pmfms
+          children: noLandingPmfms
+        }),
+        Rule.fromObject(<Partial<Rule>>{
+          precondition: true,
+          label: '',
+          description: 'No discard pmfm under discard batch',
+          controlledAttribute: `model.originalData.measurementValues.${PmfmIds.DISCARD_OR_LANDING}.id`,
+          operator: '!=',
+          value: QualitativeValueIds.DISCARD_OR_LANDING.LANDING.toString(),
+
+          // Rules: Avoid discard pmfms
+          children: noLandingPmfms
         })
       ];
     }
