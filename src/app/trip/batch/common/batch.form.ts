@@ -306,7 +306,6 @@ export class BatchForm<
 
     // for DEV only
     //this.debug = !environment.production;
-    this._logPrefix = '[batch-form] ';
   }
 
   ngOnInit() {

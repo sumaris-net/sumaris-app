@@ -183,20 +183,21 @@ export abstract class MeasurementValuesForm<
       requiredGear: false,
     });
 
-    // DEBUG
-    this._logPrefix = '[measurements-values]';
-    this._state.hold(this._state.select('acquisitionLevel'), acquisitionLevel => {
-      this._logPrefix += `[measurements-values] (${acquisitionLevel})`;
-    });
-    //this.debug = !environment.production;
-
     if (!this.cd && !environment.production) {
       console.warn(this._logPrefix + 'No injected ChangeDetectorRef found! Please make sure your component has \'changeDetection: ChangeDetectionStrategy.OnPush\'')
     }
+
+    // DEBUG
+    this._logPrefix = '[measurements-values]';
+    //this.debug = !environment.production;
   }
 
   ngOnInit() {
     super.ngOnInit();
+
+    this._state.hold(this._state.select('acquisitionLevel'), acquisitionLevel => {
+      this._logPrefix = `[measurements-values] (${acquisitionLevel})`;
+    });
 
     // Load pmfms; when input property set (skip if component is starting = waiting markAsReady())
     this._state.hold(merge(

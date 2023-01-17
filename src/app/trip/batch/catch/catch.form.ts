@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, forwardRef, Injector, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, OnInit, Input } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { BatchValidatorService } from '../common/batch.validator';
@@ -17,6 +17,7 @@ export interface CatchBatchFormState extends BatchFormState {
   sortingPmfms: IPmfm[];
   catchPmfms: IPmfm[];
   otherPmfms: IPmfm[];
+  gridColCount: number;
 }
 
 @Component({
@@ -37,9 +38,9 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
   readonly sortingPmfms$ = this._state.select('sortingPmfms');
   readonly catchPmfms$ = this._state.select('catchPmfms');
   readonly otherPmfms$ = this._state.select('otherPmfms');
+  readonly gridColCount$ = this._state.select('gridColCount');
 
-  labelColSize = 1;
-  gridColCount = 12;
+  @Input() labelColSize = 1;
 
   constructor(
     injector: Injector,
@@ -66,7 +67,6 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
 
     // DEBUG
     this.debug = !environment.production;
-    this._logPrefix = '[catch-form] ';
   }
 
   /* -- protected functions -- */
@@ -81,7 +81,12 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
       return {
         ...state,
         showWeight: isNotEmptyArray(state.weightPmfms),
-        otherPmfms: []
+        onDeckPmfms: [],
+        sortingPmfms: [],
+        catchPmfms: [],
+        gearPmfms: [],
+        otherPmfms: [],
+        gridColCount: 12
       };
     }
 
@@ -95,7 +100,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
     const gearPmfms = pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.label?.indexOf('CHILD_GEAR') === 0);
 
     // Compute grid column count
-    this.gridColCount = this.labelColSize /*label*/
+    const gridColCount = this.labelColSize /*label*/
       + Math.min(3, Math.max(
         onDeckPmfms.length,
         sortingPmfms.length,
@@ -120,6 +125,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
       otherPmfms,
       pmfms: [],
       hasPmfms: pmfms.length > 0,
+      gridColCount
     };
   }
 }

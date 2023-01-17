@@ -1437,8 +1437,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
   protected isTaxonGroupNoWeight(batch: Batch, parent: Batch): boolean {
     if (isEmptyArray(this.taxonGroupsNoWeight)) return false;
-    const taxonGroup = parent?.taxonGroup || batch.taxonGroup;
-    if (isNilOrBlank(taxonGroup?.label)) return false;
+    const taxonGroup = parent?.taxonGroup || batch?.taxonGroup;
+    if (!taxonGroup?.label) return false;
     return this.taxonGroupsNoWeight.includes(taxonGroup.label);
   };
 
