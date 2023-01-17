@@ -129,9 +129,6 @@ export class RuleUtils {
 
   private static testRule<T>(entity: T, rule: Rule): boolean {
 
-    if (entity['parent']?.label?.indexOf('LAN') !== -1) {
-      console.log('LANDING node: ', entity);
-    }
     let value;
     try {
       value = getPropertyByPath(entity, rule.controlledAttribute);
