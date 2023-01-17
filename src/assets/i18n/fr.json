@@ -2248,7 +2248,7 @@
       "DOLPHIN_PRESENCE": "Dauphin autour navire?",
       "IS_ACOUSTIC_DEVICE": "Dispositif(s) de répulsif acoustique?",
       "HAS_ACCIDENTAL_CATCHES": "Captures accidentelles?",
-      "DISCARD_REASON": "Raison du débarquement",
+      "DISCARD_REASON": "Raison du rejet",
       "DRESSING_POL": "Présentation",
       "SPECIES_CODE": "Code espèce",
       "SPECIES_NAME": "Espèce",
@@ -2258,7 +2258,8 @@
       "IS_DEAD": "Mort?",
       "COMMENTS": "Commentaires",
       "MEASURE_TIME": "Date de la mesure",
-      "GPS_USED": "Utilisation d'un GPS?"
+      "GPS_USED": "Utilisation d'un GPS?",
+      "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids RTP"
     },
     "SHEET": {
       "TR": "Marées",
