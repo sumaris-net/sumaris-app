@@ -761,7 +761,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.batchTree.rootAcquisitionLevel = !source.parent ? AcquisitionLevelCodes.CATCH_BATCH : AcquisitionLevelCodes.SORTING_BATCH;
       this.batchTree.catchBatchForm.acquisitionLevel = this.batchTree.rootAcquisitionLevel;
       this.batchTree.catchBatchForm.pmfms = source.pmfms;
-      this.batchTree.catchBatchForm.showSamplingBatch = source.showSamplingBatch || true;
+      // TODO BLA
+      //this.batchTree.catchBatchForm.showSamplingBatch = source.showSamplingBatch || false;
+      //this.batchTree.catchBatchForm.requiredSampleWeight = source.showSamplingWeight || false;
       this.batchTree.batchGroupsTable.pmfms = source.childrenPmfms || [];
 
       this.batchTree.markAsReady();
