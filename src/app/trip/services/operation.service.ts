@@ -635,8 +635,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       }
     }
 
-    // Control batches
-    if (entity.catchBatch && opts?.program) {
+    // Control batches (skip if abnormal operation)
+    if (!entity.abnormal && entity.catchBatch && opts?.program) {
       const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES)
       const physicalGear = entity.physicalGear?.clone();
 
@@ -652,7 +652,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       const dirty = errors || (wasInvalid !== BatchUtils.isInvalid(entity.catchBatch));
 
       // Save if need
-      if (dirty)  await this.save(entity);
+      if (dirty) await this.save(entity);
 
       if (errors) {
         console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
