@@ -529,25 +529,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     return col.computed(row.currentData, null, this.samplingRatioFormat);
   }
 
-  isMissingValue(col: BatchGroupColumnDefinition, row: TableElement<BatchGroup>): boolean {
-    if (!hasFlag(col.flags, BatchGroupColumnFlags.IS_WEIGHT)
-      || !hasFlag(col.flags, BatchGroupColumnFlags.IS_SAMPLING)) return false;
-    const samplingBatch = (col.qvIndex >= 0
-      // With qv pmfm
-      ? row.currentData.children[col.qvIndex]
-      // With no qv pmfm
-      : row.currentData
-    )?.children[0]; // Get sampling batch
-
-    const missing = (isNil(samplingBatch?.weight?.value) || samplingBatch.weight.value < 0)
-      && isNotNil(samplingBatch?.individualCount);
-
-    // DEBUG
-    //console.debug('[batch-group-table] missing sample weight', col.path, missing);
-
-    return missing;
-  }
-
   /**
    * Use in ngFor, for trackBy
    *
@@ -934,10 +915,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         // Detect computed column, when taxonGroupsNoWeight is used
         if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
           if (def.key === 'totalIndividualCount') {
-            computed = composeBatchComputed([computed, (batch, parent) => !this.isTaxonGroupNoWeight(batch, parent)]);
+            computed = composeBatchComputed([computed, (batch, parent) => this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup) === false]);
           }
           else if (def.key === 'totalWeight') {
-            computed = composeBatchComputed([computed, (batch, parent) => this.isTaxonGroupNoWeight(batch, parent)]);
+            computed = composeBatchComputed([computed, (batch, parent) => !this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup)]);
           }
         }
         return <BatchGroupColumnDefinition>{
@@ -1435,10 +1416,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     }
   }
 
-  protected isTaxonGroupNoWeight(batch: Batch, parent: Batch): boolean {
-    if (isEmptyArray(this.taxonGroupsNoWeight)) return false;
-    const taxonGroup = parent?.taxonGroup || batch?.taxonGroup;
-    if (!taxonGroup?.label) return false;
+  protected isTaxonGroupNoWeight(taxonGroup: TaxonGroupRef): boolean {
+    if (!taxonGroup || !taxonGroup?.label || isEmptyArray(this.taxonGroupsNoWeight)) return false;
     return this.taxonGroupsNoWeight.includes(taxonGroup.label);
   };
 

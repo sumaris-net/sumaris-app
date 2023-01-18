@@ -809,6 +809,9 @@
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Aucun métier pratiqué trouvé dans les données disponibles.",
         "CATCH_ERROR": "Erreur dans la saisie de la capture"
       },
+      "WARNING": {
+        "ABNORMAL_PROGRESS": "Déroulement anormal : {{comments}}"
+      },
       "REPORT": {
         "TITLE": "Rapport OP #{{rankOrder}} <small>du {{startDateTime}}</small>",
         "TITLE_NO_RANK": "Rapport OP {{startDateTime}}",

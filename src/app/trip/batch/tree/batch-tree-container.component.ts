@@ -135,8 +135,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   @Input() showCatchForm: boolean;
   @Input() defaultHasSubBatches: boolean;
   @Input() availableTaxonGroups: TaxonGroupRef[];
-
-  // TODO review this code, and remove is unused
   @Input() useModal = false;
 
   @Input() set allowSamplingBatches(value: boolean) {

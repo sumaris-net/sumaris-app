@@ -413,7 +413,7 @@
                    [class.mat-cell-computed]="isComputed(col, row)"
                     *ngVar="row.currentData|propertyGet: col.path as colValue">
                 <!-- Disable value, if any -->
-                <ion-label *ngIf="colValue|isNotNil; else missingValue" [ngSwitch]="col.type">
+                <ion-label *ngIf="colValue|isNotNil; else individualCount" [ngSwitch]="col.type">
                   <ng-container *ngSwitchCase="'pmfm'">
                     {{colValue|pmfmValue: {pmfm: col.pmfm, propertyNames: ['label'] } }}
                   </ng-container>
@@ -425,14 +425,7 @@
                   </ng-container>
                 </ion-label>
 
-                <ng-template #missingValue>
-                  <!-- Warn if not sampling weight nor sampling ratio, BUT individual count -->
-                  <ion-label *ngIf="isMissingValue(col, row)"
-                             color="danger">
-                    <ion-icon color="danger" class="text-size" name="warning"></ion-icon>
-                    <ion-text translate>COMMON.MISSING</ion-text>
-                  </ion-label>
-
+                <ng-template #individualCount>
                   <!-- If only individual count filled, display it -->
                   <ion-label
                     *ngIf="col.isWeight && !col.isSampling && (row.currentData|propertyGet: 'children.' + col.qvIndex + '.individualCount') != null">

@@ -5,6 +5,7 @@ import { Operation, OperationUtils } from '@app/trip/services/model/trip.model';
 import { PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { AppColors } from '@app/shared/colors.utils';
 import { MatBadgeSize } from '@angular/material/badge';
+import { TranslateService } from '@ngx-translate/core';
 
 export declare type OperationMatSvgIcons = 'down-arrow' | 'rollback-arrow';
 export declare type OperationIonIcon = 'navigate';
@@ -60,7 +61,9 @@ export class OperationIconComponent {
   private _allowParentOperation: boolean;
   private _showError = false;
 
-  constructor(private cd: ChangeDetectorRef) {
+  constructor(
+    private translate: TranslateService,
+    private cd: ChangeDetectorRef) {
   }
 
   protected setValue(value: Operation) {
@@ -149,7 +152,7 @@ export class OperationIconComponent {
       this.badgeColor = 'tertiary';
       this.badgeFill = 'clear';
       this.badgeSize = 'small';
-      this.title = value.comments;
+      this.title = this.translate.instant('TRIP.OPERATION.WARNING.ABNORMAL_PROGRESS', {comments: value.comments});
     }
 
     this.color = this.color || 'primary';
