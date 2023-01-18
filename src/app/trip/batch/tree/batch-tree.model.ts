@@ -5,14 +5,15 @@ import {
   EntityAsObjectOptions,
   EntityClass,
   EntityFilter,
-  FilterFn, firstNotNil,
+  FilterFn,
   getPropertyByPath,
   IconRef,
   isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank, isNotNilOrNaN,
+  isNotNil,
+  isNotNilOrBlank,
   ITreeItemEntity,
   waitWhilePending
 } from '@sumaris-net/ngx-components';
@@ -24,7 +25,6 @@ import { UntypedFormGroup } from '@angular/forms';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
-import { BatchFilter } from '@app/trip/batch/common/batch.filter';
 import { Rule, RuleUtils } from '@app/referential/services/model/rule.model';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
@@ -42,7 +42,7 @@ export class BatchModel
   static fromObject: (source: any, opts?: { withChildren?: boolean; }) => BatchModel;
   static fromBatch(batch: Batch|undefined,
                    pmfms: IPmfm[],
-                   rules: Rule[],
+                   rules: Rule<{model: BatchModel, childrenPmfm: IPmfm}>[],
                    // Internal arguments (used by recursive call)
                    maxTreeDepth = 4,
                    treeDepth = 0,
@@ -64,6 +64,9 @@ export class BatchModel
 
     // Apply rule on childrenPmfms
     if (rules?.length) {
+      // Build rules
+      RuleUtils.build(rules, false /*keep previous compilation*/);
+
       pmfms = pmfms.filter(pmfm => RuleUtils.valid({model, childrenPmfm: pmfm}, rules));
     }
 
@@ -145,14 +148,14 @@ export class BatchModel
     model.pmfms = model.pmfms || [];
     model.childrenPmfms = model.childrenPmfms || [];
 
-    if (rules) {
-      const errors = RuleUtils.control(model, rules);
-      if (errors) {
-        console.log('TODO errors: ' + model.name, errors);
-        // Skip this model
-
-      }
-    }
+    // if (rules) {
+    //   // const errors = RuleUtils.control(model, rules);
+    //   // if (errors) {
+    //   //   console.log('TODO errors: ' + model.name, errors);
+    //   //   // Skip this model
+    //   //
+    //   // }
+    // }
 
     return model;
   }
@@ -180,6 +183,7 @@ export class BatchModel
   validator?: UntypedFormGroup;
   disabled?: boolean;
   hidden?: boolean;
+  showSamplingBatch?: boolean
 
   path: string;
   parentId: number = null;
@@ -409,30 +413,6 @@ export class BatchModelUtils {
     model.disabled = !(model.pmfms || []).some(p => !p.hidden)
       && !model.isLeaf
       && !model.parent;
-
-    // Special case for discard batches
-    {
-      const discardFilter = <Partial<BatchModelFilter>>{
-        measurementValues: {
-          [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD.toString()
-        }
-      };
-
-      // Discard allowed: remove some qualitative value (e.g. Sorting category, etc.)
-      // (e.g. occur when `hasIndividualMeasures=true`, in the parent trip)
-      if (opts.allowDiscard !== false) {
-        this.findByFilterInTree(model, discardFilter)
-          .forEach(discard => {
-            // Hide species pmfms (keep only weight PMFMS) - (e.g remove sorting category pmfm)
-            // TODO: refactor this: set hidden=true, and apply default value ? Like in ADAP-MER
-            discard.childrenPmfms = discard.childrenPmfms.filter(PmfmUtils.isWeight);
-          });
-      }
-      else {
-        // Remove all discard batches
-        this.deleteByFilterInTree(model, discardFilter);
-      }
-    }
 
     // Set default catch batch name
     if (!model.parent && !model.name)  {

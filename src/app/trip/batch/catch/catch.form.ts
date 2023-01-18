@@ -56,7 +56,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
       programRefService,
       referentialRefService,
       validatorService, {
-        // TODO
+
       });
     // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;

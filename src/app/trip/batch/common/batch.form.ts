@@ -315,12 +315,14 @@ export class BatchForm<
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
 
-    this._state.hold(this._state.select(['pmfmFilter', 'pmfms'], res => res)
+    // When pmfm filter change, re-apply initial pmfms
+    this._state.hold(this._state.select('pmfmFilter')
       .pipe(filter(_ => !this.loading)),
-      ({pmfms}) => this.dispatchPmfms(pmfms)
+      _ => this.setPmfms(this._initialPmfms)
     );
 
-    this._state.hold(this._state.select(['showWeight', 'requiredWeight', 'requiredSampleWeight', 'requiredIndividualCount'], res => res)
+    // Update form if need
+    this._state.hold(this._state.select(['showWeight', 'requiredWeight', 'requiredSampleWeight', 'requiredIndividualCount', 'showSamplingBatch'], res => res)
         .pipe(filter(_ => !this.starting)),
       (_) => this.onUpdateFormGroup()
     );
@@ -716,6 +718,8 @@ export class BatchForm<
   protected async onUpdateFormGroup(form?: UntypedFormGroup): Promise<void> {
     form = form || this.form;
 
+    console.debug(this._logPrefix + 'Updating form group...');
+
     try {
       // Wait ngAfterViewInit()
       await this.waitViewInit();
@@ -786,7 +790,7 @@ export class BatchForm<
       }
     }
     catch (err) {
-      console.error('[batch-form] Error while updating controls', err);
+      console.error(this._logPrefix + 'Error while updating controls', err);
     }
   }
 
