@@ -30,7 +30,6 @@
   <app-batch-group-form #form
                         [showTaxonGroup]="showTaxonGroup"
                         [showTaxonName]="showTaxonName"
-                        [showChildrenSamplingBatch]="showSamplingBatch"
                         [availableTaxonGroups]="availableTaxonGroups"
                         [taxonGroupsNoWeight]="taxonGroupsNoWeight"
                         [allowSubBatches]="allowSubBatches"
@@ -42,6 +41,7 @@
                         [i18nSuffix]="i18nSuffix"
                         (onSubmit)="close($event)"
                         [childrenPmfms]="childrenPmfms"
+                        [childrenState]="childrenState"
                         [qvPmfm]="qvPmfm"
                         [pmfms]="pmfms"
                         [mobile]="mobile"

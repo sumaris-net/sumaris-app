@@ -188,7 +188,7 @@ export abstract class MeasurementValuesForm<
     }
 
     // DEBUG
-    this._logPrefix = '[measurements-values]';
+    this._logPrefix = '[measurements-values] ';
     //this.debug = !environment.production;
   }
 
@@ -196,7 +196,7 @@ export abstract class MeasurementValuesForm<
     super.ngOnInit();
 
     this._state.hold(this._state.select('acquisitionLevel'), acquisitionLevel => {
-      this._logPrefix = `[measurements-values] (${acquisitionLevel})`;
+      this._logPrefix = `[measurements-values] (${acquisitionLevel}) `;
     });
 
     // Load pmfms; when input property set (skip if component is starting = waiting markAsReady())

@@ -88,12 +88,17 @@ export class BatchGroupValidatorService extends
 
       opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : (this.settings?.isOnFieldMode() || false);
 
-      const weightRequired = opts.isOnFieldMode === false && (opts?.weightRequired !== false);
-      const individualCountRequired = opts.isOnFieldMode === false && (opts?.individualCountRequired === true)
+      const weightRequired = opts.isOnFieldMode === false && (opts.weightRequired !== false);
+      const individualCountRequired = opts.isOnFieldMode === false && (opts.individualCountRequired === true)
+      const withChildrenWeight = opts.withChildrenWeight !== false;
       if (opts.qvPmfm) {
         // Disabled weight/individual required validator, on the root level
         opts.individualCountRequired = false;
         opts.weightRequired = false;
+
+        // Disable children (sum) weight here: should be visible in the sample batch, is any
+        opts.withChildrenWeight = false;
+
         // Configure children (on child by QV)
         opts.withChildren = true;
         opts.childrenCount = opts.qvPmfm.qualitativeValues?.length || 1;
@@ -111,7 +116,8 @@ export class BatchGroupValidatorService extends
           opts.childrenOptions.childrenOptions = {
             root: false,
             withWeight: true,
-            withMeasurements: false
+            withMeasurements: false,
+            withChildrenWeight : withChildrenWeight
           };
         }
       }

@@ -11,8 +11,9 @@
     <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
   </ng-container>
 
-  <ion-grid class="ion-no-padding">
-    <ion-row>
+  <ion-grid class="ion-no-padding" >
+    <!-- Taxon group and/or taxon name -->
+    <ion-row *ngIf="delegate.showTaxonGroup || delegate.showTaxonName">
 
       <!-- Taxon group -->
       <ion-col size="12" size-md="6" *ngIf="delegate.showTaxonGroup">
@@ -59,13 +60,18 @@
     </ion-row>
 
     <!-- Total weight -->
-    <ion-row *ngIf="delegate.defaultWeightPmfm && delegate.showWeight">
+    <ion-row *ngIf="delegate.showWeight && delegate.defaultWeightPmfm && delegate.weightForm; let weightForm">
       <ion-col class="ion-no-padding"
-               *ngVar="delegate.form|formGetControl: 'weight.computed'; let weightComputed">
+               *ngVar="{
+                weightValue: weightForm|formGetControl: 'value',
+                weightMethodId: weightForm|formGetControl: 'methodId',
+                weightComputed: weightForm|formGetControl: 'computed'
+               } as controls">
         <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
-                        [controlName]="'weight.value'"
-                        [class.computed]="weightComputed.value"
-                        [readonly]="weightComputed.value"
+                        [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.weightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
+                        [control]="controls.weightValue"
+                        [class.computed]="controls.weightComputed.value"
+                        [readonly]="controls.weightComputed.value"
                         [compact]="delegate.compact"
                         [tabindex]="delegate.tabindex+28"
                         [listenStatusChanges]="true"
@@ -121,7 +127,7 @@
     <!-- Sampling batch -->
     <div formArrayName="children" [class.cdk-visually-hidden]="!delegate.showSamplingBatch">
 
-      <ng-container *ngIf="delegate.samplingBatchForm as samplingForm" >
+      <ng-container *ngIf="delegate.samplingBatchForm as samplingForm">
         <ng-container *ngVar="{
                             samplingRatio: samplingForm|formGetControl:'samplingRatio',
                             samplingRatioText: samplingForm|formGetControl:'samplingRatioText',
@@ -129,10 +135,9 @@
                             weightValue: samplingForm|formGetControl: 'weight.value',
                             weightComputed: samplingForm|formGetControl: 'weight.computed',
                             childrenWeightValue: samplingForm|formGetControl: 'childrenWeight.value',
-                            childrenWeightComputed: samplingForm|formGetControl: 'childrenWeight.computed',
                             childrenWeightMethodId: samplingForm|formGetControl: 'childrenWeight.methodId'
                          } as controls">
-          <ion-row class="ion-no-padding" *ngIf="controls.childrenWeightValue?.value">
+          <ion-row class="ion-no-padding" *ngIf="delegate.showChildrenWeight && controls.childrenWeightValue?.value">
             <ion-col offset="4" class="ion-no-padding">
               <mat-form-field class="computed">
                 <input matInput
@@ -146,6 +151,7 @@
 
                 <!-- copy children weight -->
                 <button type="button" mat-icon-button matSuffix
+                        *ngIf="delegate.showSampleWeight"
                         (click)="delegate.copyChildrenWeight($event, delegate.samplingBatchForm)"
                         [title]="'TRIP.BATCH.EDIT.BTN_APPLY_CHILDREN_WEIGHT'|translate">
                   <mat-icon>arrow_downward</mat-icon>
@@ -191,16 +197,23 @@
 
             <!-- Sampling individual count -->
             <ion-col size="4" class="ion-no-padding" *ngIf="delegate.showSampleIndividualCount">
-              <mat-form-field>
+              <mat-form-field *ngVar="delegate.samplingBatchForm|formGetControl: 'individualCount'; let control">
                 <input matInput
                        autocomplete="off"
-                       [formControl]="delegate.samplingBatchForm|formGetControl: 'individualCount'"
+                       [formControl]="control"
                        type="number"
                        step="1"
                        pattern="[0-9]*"
                        (click)="selectInputContent($event)"
                        [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_INDIVIDUAL_COUNT'|translate"
-                       [tabindex]="delegate.tabindex + 34">
+                       [tabindex]="delegate.tabindex + 34"
+                       [required]="delegate.requiredSampleIndividualCount">
+                <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+                  <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+                  <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: control.errors.min }}</span>
+                  <span *ngSwitchCase="'integer'">{{'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}</span>
+                  <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
+                </mat-error>
               </mat-form-field>
             </ion-col>
           </ion-row>
@@ -242,7 +255,7 @@
                 samplingRatio: {{controls.samplingRatio.value|numberFormat: {fixedDecimals: 6} }} <br/>
                 samplingRatioText: {{controls.samplingRatioText.value}} (type: {{delegate.samplingRatioFormat||'null'}}{{ (controls.samplingRatioComputed.value) ? ', computed' : ''}})<br/>
                 sampling.weight: {{controls.weightValue.value }} {{controls.weightComputed.value?'(computed)':'' }}<br/>
-                sampling.children weight: {{controls.childrenWeightValue.value }} {{controls.childrenWeightComputed.value?'(computed)':'' }}<br/>
+                sampling.children weight: {{controls.childrenWeightValue?.value }} {{controls.childrenWeightComputed?.value?'(computed)':'' }}<br/>
                 <br/>
                 defaultWeightPmfm: {{delegate.defaultWeightPmfm?.label}} (maxDecimals: {{delegate.defaultWeightPmfm?.maximumNumberDecimals}})<br/>
                 <span *ngIf="delegate.weightPmfmsByMethod|mapGet:controls.childrenWeightMethodId?.value; let childrenWeightPmfm">

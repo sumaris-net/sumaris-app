@@ -170,7 +170,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       unitLabel: <SamplingRatioFormat>'%',
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_SAMPLING_RATIO,
       isSampling: true,
-      computed: (batch, parent, samplingRatioFormat) => batch && BatchUtils.isSamplingRatioComputed(batch.children[0]?.samplingRatioText, samplingRatioFormat) || false
+      computed: (batch, parent, samplingRatioFormat) => BatchUtils.isSamplingRatioComputed(batch?.children?.[0]?.samplingRatioText, samplingRatioFormat) || false
     },
     {
       type: 'double',
@@ -183,7 +183,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       isWeight: true,
       isSampling: true,
       flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_WEIGHT,
-      computed: (batch) => batch?.children[0]?.weight?.computed || false
+      computed: (batch) => batch?.children?.[0]?.weight?.computed || false
     },
     {
       type: 'double',
@@ -714,7 +714,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   async onSubBatchesClick(event: Event,
                           row: TableElement<BatchGroup>,
                           opts?: { showParent?: boolean; emitLoaded?: boolean; }) {
-    if (event) event.preventDefault();
+    event?.preventDefault();
+    event?.stopPropagation(); // Avoid to send event to clicRow()
 
     // Loading spinner
     this.markAsLoading();
@@ -1397,7 +1398,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // Clean quality flag
     const qualityFlagId = data.qualityFlagId;
     if (qualityFlagId !== QualityFlagIds.NOT_QUALIFIED) {
-      form.patchValue(<Partial<DataEntity<any>>>{controlDate: null, qualificationDate: null, qualificationComments: null, qualityFlagId: QualityFlagIds.NOT_QUALIFIED}, {emitEvent: false});
+      form.patchValue(<Partial<BatchGroup>>{controlDate: null, qualificationDate: null, qualificationComments: null, qualityFlagId: QualityFlagIds.NOT_QUALIFIED}, {emitEvent: false});
       form.markAsDirty();
       this.markAsDirty({emitEvent: false});
     }

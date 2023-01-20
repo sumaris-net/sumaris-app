@@ -172,6 +172,8 @@ export class BatchValidatorService<
 
     opts = this.fillDefaultOptions(opts);
 
+    const weightPmfms = opts.pmfms?.filter(PmfmUtils.isWeight);
+
     // Individual count
     {
       const individualCountControl = form.get('individualCount');
@@ -192,7 +194,7 @@ export class BatchValidatorService<
         if (weightForm) {
           weightForm.disable();
           weightForm.setValidators(null);
-          //form.removeControl('weight');
+          form.removeControl('weight');
         }
       }
       else {
@@ -209,6 +211,24 @@ export class BatchValidatorService<
           });
           if (weightForm.disabled) weightForm.enable();
         }
+      }
+    }
+
+    // Children weight (=sum of children weight)
+    {
+      let childrenWeightForm = form.get('childrenWeight');
+      if (opts.withChildrenWeight) {
+        // Create if need
+        if (!childrenWeightForm) {
+          form.addControl('childrenWeight', this.getWeightFormGroup(null, {
+            required: false,
+            pmfm: BatchUtils.getWeightPmfm(null, weightPmfms),
+            maxDecimals: false // Disable decimals validator
+          }));
+        }
+      }
+      else if (childrenWeightForm) {
+        form.removeControl('childrenWeight');
       }
     }
   }

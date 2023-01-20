@@ -71,12 +71,20 @@ export class BatchGroupUtils {
       && EntityUtils.equals(batchGroup1, batchGroup2, 'parentId');
   }
 
+  /**
+   * Map PMFM, for batch group's children.
+   * Depending of the qvId, some pmfms can be hidden (e.g. DRESSING and PRESERVATION are hidden, if qvId = DISCARD)
+   *
+   * @param pmfms
+   * @param opts
+   */
   static mapChildrenPmfms(pmfms: IPmfm[], opts: {
     qvPmfm?: IPmfm;
     qvId?: number,
     isDiscard?: boolean
   }) {
-    const isDiscard = opts.isDiscard || opts.qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD;
+    const isDiscard = opts.isDiscard
+      || (opts.qvId === QualitativeValueIds.DISCARD_OR_LANDING.DISCARD);
 
     const childrenPmfms = (pmfms || [])
       // Remove qvPmfm (will be add first)

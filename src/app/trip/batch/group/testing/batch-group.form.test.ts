@@ -155,7 +155,8 @@ export class BatchGroupFormTestPage implements OnInit {
     await firstNotNilPromise(this.$program);
 
     // DEBUG
-    //console.debug('[batch-group-form-test] Applying data:', data);
+    console.debug('[batch-group-form-test] Applying data:', data);
+
     this.markAsReady();
     this.form.value = data && data.clone() || new BatchGroup();
     this.form.enable();

@@ -15,6 +15,7 @@ import {TripContextService} from '@app/trip/services/trip-context.service';
 import {ContextService} from '@app/shared/context.service';
 import {BatchUtils} from '@app/trip/batch/common/batch.utils';
 import {SamplingRatioFormat} from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { BatchFormState } from '@app/trip/batch/common/batch.form';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
@@ -49,6 +50,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   debug = false;
   loading = false;
   $title = new BehaviorSubject<string>(undefined);
+  childrenState: Partial<BatchFormState>;
 
   @Input() data: BatchGroup;
   @Input() isNew: boolean;
@@ -155,6 +157,11 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       )
       .subscribe((data) => this.computeTitle(data))
     );
+
+    this.childrenState = {
+      showSamplingBatch: this.showSamplingBatch,
+      samplingBatchEnabled: this.data?.observedIndividualCount > 0 || this.defaultHasSubBatches
+    }
 
     this.load();
   }

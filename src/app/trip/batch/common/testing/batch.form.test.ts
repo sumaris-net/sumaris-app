@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { Batch } from '../../common/batch.model';
+import { Batch, BatchWeight } from '../../common/batch.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { filter, mergeMap } from 'rxjs/operators';
 import { EntitiesStorage, EntityUtils, firstNotNilPromise, isNotNilOrBlank, MatAutocompleteConfigHolder, Property, SharedValidators, toNumber, waitFor } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds } from '@app/referential/services/model/model.enum';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchGroupForm } from '@app/trip/batch/group/batch-group.form';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
@@ -36,16 +36,19 @@ export class BatchFormTestPage implements OnInit {
 
   showWeight = true;
   requiredWeight = true;
-  showIndividualCount = true;
-  showSamplingBatch = true;
+  showIndividualCount = false;
+  requiredIndividualCount = false;
 
+  showSamplingBatch = true;
+  samplingBatchEnabled = true;
   showSampleWeight = true;
   requiredSampleWeight = true;
-
-  showChildrenWeight = false;
+  showChildrenWeight = true;
   showSampleIndividualCount = false;
-  samplingRatioFormat: SamplingRatioFormat;
+  requiredSampleIndividualCount = false;
+
   taxonGroupsNoWeight: string[];
+  samplingRatioFormat: SamplingRatioFormat;
   samplingRatioFormats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.values as Property[];
 
   $program = new BehaviorSubject<Program>(null);
@@ -160,7 +163,8 @@ export class BatchFormTestPage implements OnInit {
     await firstNotNilPromise(this.$program);
 
     // DEBUG
-    //console.debug('[batch-group-form-test] Applying data:', data);
+    console.debug('[batch-form-test] Applying data:', data);
+
     this.markAsReady();
     this.form.value = data && data.clone() || new Batch();
     this.form.enable();
@@ -213,6 +217,13 @@ export class BatchFormTestPage implements OnInit {
     const parent = batchGroups[index || 0];
     const batch = parent?.children?.[0]?.clone();
     batch.taxonGroup = parent.taxonGroup || batch.taxonGroup;
+
+    const samplingBatch = BatchUtils.getSamplingChild(batch);
+
+    // Add a childrenWeight value, on the sampling batch
+    if (samplingBatch) {
+      samplingBatch.childrenWeight = <BatchWeight>{value: 0.2510, computed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM};
+    }
 
     return batch;
   }

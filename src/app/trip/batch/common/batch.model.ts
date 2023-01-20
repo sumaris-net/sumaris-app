@@ -170,8 +170,8 @@ export class Batch<
     this.saleId = source.saleId;
     this.parentId = source.parentId;
     this.parent = source.parent;
-    this.weight = source.weight || undefined;
-    this.childrenWeight = source.childrenWeight || undefined;
+    this.weight = source.weight && {...source.weight} || undefined;
+    this.childrenWeight = source.childrenWeight && {...source.childrenWeight} || undefined;
 
     if (source.measurementValues) {
       this.measurementValues = {...source.measurementValues};

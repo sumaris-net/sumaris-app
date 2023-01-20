@@ -336,11 +336,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     this.registerForms();
 
     this.registerSubscription(
-      this.catchBatchForm.hasPmfms$
-        .subscribe(hasPmfms => {
-          this.showCatchForm = this.showCatchForm && hasPmfms;
+      this.catchBatchForm.hasContent$
+        .subscribe(hasContent => {
+          this.showCatchForm = this.showCatchForm && hasContent;
           if (this._enabled) {
-            if (hasPmfms) this.catchBatchForm.enable()
+            if (hasContent) this.catchBatchForm.enable()
             else this.catchBatchForm.disable();
           }
           this.markForCheck();

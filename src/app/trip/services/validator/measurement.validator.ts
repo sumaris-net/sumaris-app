@@ -115,11 +115,17 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     controlNamesToRemove.forEach(controlName => form.removeControl(controlName));
 
     // Create control for '__typename' (required)
-    if (!form.get('__typename')) {
-      // DEBUG
-      //console.debug('[measurement-validator] Re add control \'__typename\' to measurement values form group');
-
-      form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required));
+    const typenameControl = form.get('__typename');
+    if (opts.withTypename !== false) {
+      if (!typenameControl) {
+        // DEBUG
+        //console.debug('[measurement-validator] Re add control \'__typename\' to measurement values form group');
+        form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required));
+      }
+    }
+    else if (typenameControl){
+      console.warn('[measurement-validator] Removing control \'__typename\' from measurement values form group. This is not recommended!');
+      form.removeControl('__typename');
     }
   }
 

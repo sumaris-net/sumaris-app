@@ -80,11 +80,22 @@
 
      <!-- Form options -->
      <ion-row >
-       <!-- showSamplingBatch -->
+
+       <!-- showWeight -->
        <ion-col class="ion-padding">
-         <mat-checkbox (change)="showSamplingBatch=!showSamplingBatch"
-                       [checked]="showSamplingBatch">
-           <mat-label>showSamplingBatch ?</mat-label>
+         <mat-checkbox (change)="showWeight=!showWeight"
+                       [checked]="showWeight">
+           <mat-label>showWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+
+       <!-- requiredWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="requiredWeight=!requiredWeight"
+                       [disabled]="!showWeight"
+                       [checked]="requiredWeight">
+           <mat-label>requiredWeight ?</mat-label>
          </mat-checkbox>
        </ion-col>
 
@@ -96,11 +107,12 @@
          </mat-checkbox>
        </ion-col>
 
-       <!-- showWeight -->
+       <!-- requiredIndividualCount -->
        <ion-col class="ion-padding">
-         <mat-checkbox (change)="showWeight=!showWeight"
-                       [checked]="showWeight">
-           <mat-label>showWeight ?</mat-label>
+         <mat-checkbox (change)="requiredIndividualCount=!requiredIndividualCount"
+                       [disabled]="!showIndividualCount"
+                       [checked]="requiredIndividualCount">
+           <mat-label>requiredIndividualCount ?</mat-label>
          </mat-checkbox>
        </ion-col>
 
@@ -109,6 +121,28 @@
          <mat-checkbox (change)="showChildrenWeight=!showChildrenWeight"
                        [checked]="showChildrenWeight">
            <mat-label>showChildrenWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+     </ion-row>
+
+     <!-- Sampling batch options -->
+     <ion-row>
+
+       <!-- showSamplingBatch -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showSamplingBatch=!showSamplingBatch"
+                       [checked]="showSamplingBatch">
+           <mat-label>showSamplingBatch ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- samplingBatchEnabled -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="samplingBatchEnabled=!samplingBatchEnabled"
+                       [disabled]="!showSamplingBatch"
+                       [checked]="samplingBatchEnabled">
+           <mat-label>samplingBatchEnabled ?</mat-label>
          </mat-checkbox>
        </ion-col>
 
@@ -123,6 +157,7 @@
        <!-- requiredSampleWeight -->
        <ion-col class="ion-padding">
          <mat-checkbox (change)="requiredSampleWeight=!requiredSampleWeight"
+                       [disabled]="!showSampleWeight"
                        [checked]="requiredSampleWeight">
            <mat-label>requiredSampleWeight ?</mat-label>
          </mat-checkbox>
@@ -133,6 +168,15 @@
          <mat-checkbox (change)="showSampleIndividualCount=!showSampleIndividualCount"
                        [checked]="showSampleIndividualCount">
            <mat-label>showSampleIndividualCount ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- requiredSampleIndividualCount -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="requiredSampleIndividualCount=!requiredSampleIndividualCount"
+                       [disabled]="!showSampleIndividualCount"
+                       [checked]="requiredSampleIndividualCount">
+           <mat-label>requiredSampleIndividualCount ?</mat-label>
          </mat-checkbox>
        </ion-col>
      </ion-row>
@@ -160,13 +204,16 @@
                           [showTaxonName]="false"
                           [showWeight]="showWeight"
                           [requiredWeight]="requiredWeight"
-                          [showSamplingBatch]="showSamplingBatch"
                           [showIndividualCount]="showIndividualCount"
+                          [requiredIndividualCount]="requiredIndividualCount"
                           [samplingRatioFormat]="samplingRatioFormat"
                           [showChildrenWeight]="showChildrenWeight"
+                          [showSamplingBatch]="showSamplingBatch"
+                          [samplingBatchEnabled]="isSampling"
                           [showSampleWeight]="showSampleWeight"
                           [requiredSampleWeight]="requiredSampleWeight"
                           [showSampleIndividualCount]="showSampleIndividualCount"
+                          [requiredSampleIndividualCount]="requiredSampleIndividualCount"
                           [gearId]="$gearId|async"
                           [usageMode]="'FIELD'"
                           [mobile]="true"
