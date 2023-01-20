@@ -5,7 +5,7 @@
       <ion-back-button></ion-back-button>
     </ion-buttons>
 
-    <ion-title>Batch group form test page</ion-title>
+    <ion-title>Batch form test page</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -58,65 +58,7 @@
          </mat-form-field>
        </ion-col>
 
-     </ion-row>
-
-     <!-- Form options -->
-     <ion-row >
-       <!-- Show sampling batch -->
-       <ion-col class="ion-padding">
-         <mat-checkbox (change)="showSamplingBatch=!showSamplingBatch"
-                       [checked]="showSamplingBatch">
-           <mat-label>showSamplingBatch ?</mat-label>
-         </mat-checkbox>
-       </ion-col>
-
-       <!-- allowSubBatches -->
-       <ion-col class="ion-padding">
-         <mat-checkbox (change)="allowSubBatches=!allowSubBatches"
-                       [checked]="allowSubBatches">
-           <mat-label>allowSubBatches ?</mat-label>
-         </mat-checkbox>
-       </ion-col>
-
-       <!-- Has individual measure -->
-       <ion-col class="ion-padding">
-         <mat-checkbox (change)="hasSubBatches=!hasSubBatches"
-                       [disabled]="!allowSubBatches"
-                       [checked]="hasSubBatches">
-           <mat-label>hasSubBatches ?</mat-label>
-         </mat-checkbox>
-       </ion-col>
-
-       <!-- Default has individual measure ? -->
-       <ion-col class="ion-padding">
-         <mat-checkbox (change)="defaultHasSubBatches=!defaultHasSubBatches"
-                       [disabled]="!allowSubBatches"
-                       [checked]="defaultHasSubBatches">
-           <mat-label>defaultHasSubBatches ?</mat-label>
-         </mat-checkbox>
-       </ion-col>
-
-       <!-- showHasSubBatchesButton -->
-       <ion-col class="ion-padding">
-         <mat-checkbox (change)="showHasSubBatchesButton=!showHasSubBatchesButton"
-                       [disabled]="!allowSubBatches"
-                       [checked]="showHasSubBatchesButton">
-           <mat-label>showHasSubBatchesButton ?</mat-label>
-         </mat-checkbox>
-       </ion-col>
-
-       <!-- showHasSubBatchesButton -->
-       <ion-col class="ion-padding">
-         <mat-checkbox (change)="showChildrenWeight=!showChildrenWeight"
-                       [checked]="showChildrenWeight">
-           <mat-label>showChildrenWeight ?</mat-label>
-         </mat-checkbox>
-       </ion-col>
-
-     </ion-row>
-
-     <!-- Action buttons -->
-     <ion-row>
+       <!-- Action buttons -->
        <ion-col size="4" size-md="2">
          <!-- show tree -->
          <ion-button (click)="dumpExample()" *ngIf="!outputs.example"
@@ -133,6 +75,65 @@
                      fill="outline">
            <ion-icon name="arrow-down" slot="icon-only"></ion-icon>
          </ion-button>
+       </ion-col>
+     </ion-row>
+
+     <!-- Form options -->
+     <ion-row >
+       <!-- showSamplingBatch -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showSamplingBatch=!showSamplingBatch"
+                       [checked]="showSamplingBatch">
+           <mat-label>showSamplingBatch ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showIndividualCount -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showIndividualCount=!showIndividualCount"
+                       [checked]="showIndividualCount">
+           <mat-label>showIndividualCount ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showWeight=!showWeight"
+                       [checked]="showWeight">
+           <mat-label>showWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showChildrenWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showChildrenWeight=!showChildrenWeight"
+                       [checked]="showChildrenWeight">
+           <mat-label>showChildrenWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showSampleWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showSampleWeight=!showSampleWeight"
+                       [checked]="showSampleWeight">
+           <mat-label>showSampleWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- requiredSampleWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="requiredSampleWeight=!requiredSampleWeight"
+                       [checked]="requiredSampleWeight">
+           <mat-label>requiredSampleWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
+       <!-- showSampleIndividualCount -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showSampleIndividualCount=!showSampleIndividualCount"
+                       [checked]="showSampleIndividualCount">
+           <mat-label>showSampleIndividualCount ?</mat-label>
+         </mat-checkbox>
        </ion-col>
      </ion-row>
 
@@ -154,35 +155,37 @@
       <ion-row>
         <ion-col size="12">
 
-          <app-batch-group-form #form
-                                [programLabel]="$programLabel | async"
-                                [showTaxonName]="false"
-                                [showChildrenSamplingBatch]="allowSubBatches && showSamplingBatch"
-                                [allowSubBatches]="allowSubBatches"
-                                [defaultHasSubBatches]="defaultHasSubBatches"
-                                [hasSubBatches]="hasSubBatches"
-                                [showHasSubBatchesButton]="showHasSubBatchesButton"
-                                [samplingRatioFormat]="samplingRatioFormat"
-                                [taxonGroupsNoWeight]="taxonGroupsNoWeight"
-                                [showChildrenWeight]="showChildrenWeight"
-                                [gearId]="$gearId|async"
-                                [usageMode]="'FIELD'"
-                                [mobile]="true"
-                                [debug]="true">
-          </app-batch-group-form>
+          <app-batch-form #form
+                          [programLabel]="$programLabel | async"
+                          [showTaxonName]="false"
+                          [showWeight]="showWeight"
+                          [requiredWeight]="requiredWeight"
+                          [showSamplingBatch]="showSamplingBatch"
+                          [showIndividualCount]="showIndividualCount"
+                          [samplingRatioFormat]="samplingRatioFormat"
+                          [showChildrenWeight]="showChildrenWeight"
+                          [showSampleWeight]="showSampleWeight"
+                          [requiredSampleWeight]="requiredSampleWeight"
+                          [showSampleIndividualCount]="showSampleIndividualCount"
+                          [gearId]="$gearId|async"
+                          [usageMode]="'FIELD'"
+                          [mobile]="true"
+                          [maxVisibleButtons]="6"
+                          [debug]="true">
+          </app-batch-form>
         </ion-col>
 
         <!-- buttons -->
         <ion-col size="2">
           <!-- log tree -->
-          <ion-button (click)="dumpBatchGroupForm(form, 'mobile')"
+          <ion-button (click)="dumpBatchForm(form, 'mobile')"
                       matTooltip="Output data to log"
                       fill="outline">
             <ion-label>Dump</ion-label>
           </ion-button>
 
           <!-- Reload from himself -->
-          <ion-button (click)="copyBatchGroup(form, form)"
+          <ion-button (click)="copyBatch(form, form)"
                       matTooltip="Reload from himself data"
                       fill="outline">
             <ion-label>Reload</ion-label>

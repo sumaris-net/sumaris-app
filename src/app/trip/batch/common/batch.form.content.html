@@ -48,6 +48,7 @@
                  size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >
           <app-pmfm-field #matInput
                           [pmfm]="pmfm"
+                          [formControlName]="pmfm|pmfmIdString"
                           [style]="style"
                           [compact]="delegate.compact"
                           [tabindex]="delegate.tabindex+2 + i*2"
@@ -60,15 +61,11 @@
     <!-- Total weight -->
     <ion-row *ngIf="delegate.defaultWeightPmfm && delegate.showWeight">
       <ion-col class="ion-no-padding"
-               *ngVar="{
-                      weightValue: delegate.form|formGetControl: 'weight.value',
-                      weightComputed: delegate.form|formGetControl: 'weight.computed'
-                    } as controls">
+               *ngVar="delegate.form|formGetControl: 'weight.computed'; let weightComputed">
         <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
-                        [control]="controls.weightValue"
-                        [class.computed]="controls.weightComputed.value"
-                        [readonly]="controls.weightComputed.value"
-
+                        [controlName]="'weight.value'"
+                        [class.computed]="weightComputed.value"
+                        [readonly]="weightComputed.value"
                         [compact]="delegate.compact"
                         [tabindex]="delegate.tabindex+28"
                         [listenStatusChanges]="true"
@@ -123,18 +120,6 @@
 
     <!-- Sampling batch -->
     <div formArrayName="children" [class.cdk-visually-hidden]="!delegate.showSamplingBatch">
-      <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="delegate.requiredSampleWeight">
-        <ion-col class="ion-no-padding">
-          <!-- checkbox, when compact -->
-          <mat-checkbox [checked]="delegate.isSampling"
-                        [disabled]="delegate.disabled"
-                        labelPosition="after"
-                        [tabIndex]="delegate.showSamplingBatch && !delegate.requiredSampleWeight ? delegate.tabindex+31 : -1"
-                        (change)="delegate.setIsSampling($event.checked)">
-            <ion-text>{{'TRIP.BATCH.EDIT.IS_SAMPLING'|translate}}</ion-text>
-          </mat-checkbox>
-        </ion-col>
-      </ion-row>
 
       <ng-container *ngIf="delegate.samplingBatchForm as samplingForm" >
         <ng-container *ngVar="{
@@ -241,6 +226,7 @@
             dirty: {{delegate.dirty}}<br/>
             touched: {{delegate.touched}}<br/>
             showError: {{delegate.showError}}<br/>
+            showSampleWeight: {{delegate.showSampleWeight}}<br/>
           </ion-col>
           <ion-col *ngIf="delegate.showSamplingBatch && delegate.samplingBatchForm as childForm">
             <ng-container *ngVar="{
@@ -266,6 +252,11 @@
           </ion-col>
         </ion-row>
 
+        <ion-row>
+          <ion-col size="12">
+            <ion-text color="danger" [innerHTML]="delegate.form | translateFormError: delegate.errorTranslatorOptions"></ion-text>
+          </ion-col>
+        </ion-row>
 
       </ion-grid>
     </app-debug>

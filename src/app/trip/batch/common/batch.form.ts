@@ -1,44 +1,41 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
-import { Batch, BatchWeight } from './batch.model';
-import { IMeasurementValuesFormOptions, MeasurementValuesForm, MeasurementValuesState } from '../../measurement/measurement-values.form.class';
-import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
-import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import {AfterViewInit, ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional} from '@angular/core';
+import {Batch, BatchWeight} from './batch.model';
+import {MeasurementValuesForm, MeasurementValuesState} from '../../measurement/measurement-values.form.class';
+import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
+import {AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
 import {
+  AppFormArray,
   changeCaseToUnderscore,
-  EntityUtils,
   firstArrayValue,
   firstTruePromise,
-  FormArrayHelper,
-  IAppForm, IEntitiesService,
+  IAppForm,
   IReferentialRef,
   isNil,
   isNotNil,
   MatAutocompleteFieldConfig,
   ReferentialUtils,
   splitByProperty,
-  toBoolean, toNumber,
+  toBoolean,
+  toNumber,
   UsageMode,
   waitFor
 } from '@sumaris-net/ngx-components';
 
-import { debounceTime, delay, filter } from 'rxjs/operators';
-import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
-import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { BatchValidatorOptions, BatchValidatorService } from './batch.validator';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { ProgramProperties } from '@app/referential/services/config/program.config';
-import { equals, roundHalfUp } from '@app/shared/functions';
-import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
-import { BatchFilter } from '@app/trip/batch/common/batch.filter';
-import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
-import { BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
+import {debounceTime, delay, filter, tap} from 'rxjs/operators';
+import {AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
+import {BehaviorSubject, Observable, Subscription} from 'rxjs';
+import {MeasurementValuesUtils} from '../../services/model/measurement.model';
+import {BatchValidatorOptions, BatchValidatorService} from './batch.validator';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {BatchUtils} from '@app/trip/batch/common/batch.utils';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {equals, roundHalfUp} from '@app/shared/functions';
+import {SamplingRatioFormat} from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
+import {BatchFilter} from '@app/trip/batch/common/batch.filter';
+import {DenormalizedPmfmFilter} from '@app/referential/services/filter/pmfm.filter';
 
 export interface IBatchForm<T extends Batch<any> = Batch<any>> extends IAppForm {
   form: UntypedFormGroup;
@@ -94,17 +91,19 @@ export interface BatchFormState extends MeasurementValuesState {
 
   showWeight: boolean;
   requiredWeight: boolean;
-  requiredSampleWeight: boolean;
   requiredIndividualCount: boolean;
   showSamplingBatch: boolean;
+  showChildrenWeight: boolean;
+
+  requiredSampleWeight: boolean;
+  showIndividualCount: boolean;
+  showSampleWeight: boolean;
+  showSampleIndividualCount: boolean;
 
   hasPmfms: boolean;
 }
 
-export interface IBatchFormOptions extends IMeasurementValuesFormOptions {
-
-}
-
+export const BATCH_VALIDATOR = new InjectionToken<BatchValidatorService>('batchValidatorService');
 export const BATCH_VALIDATOR_OPTIONS_TOKEN = new InjectionToken<BatchValidatorOptions>('batchValidatorOptions');
 
 
@@ -113,13 +112,16 @@ export const BATCH_VALIDATOR_OPTIONS_TOKEN = new InjectionToken<BatchValidatorOp
   templateUrl: './batch.form.html',
   styleUrls: ['batch.form.scss'],
   providers: [
+    {provide: BATCH_VALIDATOR, useExisting: BatchValidatorService},
     { provide: BATCH_VALIDATOR_OPTIONS_TOKEN, useValue: {}}
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchForm<
   T extends Batch<any> = Batch<any>,
-  S extends BatchFormState = BatchFormState
+  S extends BatchFormState = BatchFormState,
+  V extends BatchValidatorService = BatchValidatorService,
+  VO extends BatchValidatorOptions = BatchValidatorOptions
 >
   extends MeasurementValuesForm<T, S>
   implements OnInit, OnDestroy, AfterViewInit, IBatchForm<Batch> {
@@ -137,7 +139,6 @@ export class BatchForm<
   readonly hasPmfms$ = this._state.select('hasPmfms');
 
   isSampling = false;
-  childrenFormHelper: FormArrayHelper<Batch>;
   taxonNameFilter: any;
 
   @Input() mobile: boolean;
@@ -145,9 +146,7 @@ export class BatchForm<
   @Input() usageMode: UsageMode;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
-  @Input() showIndividualCount = false;
-  @Input() showSampleIndividualCount = false;
-  @Input() showSampleWeight = false;
+
   @Input() showEstimatedWeight = false;
   @Input() showError = true;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
@@ -198,6 +197,12 @@ export class BatchForm<
   get showSamplingBatch(): boolean {
     return this._state.get('showSamplingBatch');
   }
+  @Input() set showChildrenWeight(value: boolean) {
+    this._state.set('showChildrenWeight', _ => value);
+  }
+  get showChildrenWeight(): boolean {
+    return this._state.get('showChildrenWeight');
+  }
 
   get samplingBatchForm(): UntypedFormGroup {
     return this.children?.at(0) as UntypedFormGroup;
@@ -226,12 +231,38 @@ export class BatchForm<
   }
 
   @Input()
+  set showIndividualCount(value: boolean) {
+    this._state.set('showIndividualCount', _ =>value);
+  }
+
+  get showIndividualCount(): boolean {
+    return this._state.get('showIndividualCount');
+  }
+
+  @Input()
+  set showSampleIndividualCount(value: boolean) {
+    this._state.set('showSampleIndividualCount', _ =>value);
+  }
+
+  get showSampleIndividualCount(): boolean {
+    return this._state.get('showSampleIndividualCount');
+  }
+  @Input()
   set requiredIndividualCount(value: boolean) {
     this._state.set('requiredIndividualCount', _ =>value);
   }
 
   get requiredIndividualCount(): boolean {
     return this._state.get('requiredIndividualCount');
+  }
+
+  @Input()
+  set showSampleWeight(value: boolean) {
+    this._state.set('showSampleWeight', _ =>value);
+  }
+
+  get showSampleWeight(): boolean {
+    return this._state.get('showSampleWeight');
   }
 
   get hasAvailableTaxonGroups() {
@@ -271,14 +302,18 @@ export class BatchForm<
     this._state.set('weightPmfmsByMethod', _ => value);
   }
 
+  get childrenFormArray(): AppFormArray<Batch, UntypedFormGroup> {
+    return this.form.controls.children as AppFormArray<Batch, UntypedFormGroup>;
+  }
+
   constructor(
     injector: Injector,
     protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected referentialRefService: ReferentialRefService,
-    protected validatorService: BatchValidatorService,
-    @Inject(BATCH_VALIDATOR_OPTIONS_TOKEN) @Optional() validatorOptions?: BatchValidatorOptions
+    @Inject(BATCH_VALIDATOR) protected validatorService: V,
+    @Inject(BATCH_VALIDATOR_OPTIONS_TOKEN) @Optional() validatorOptions?: VO
   ) {
     super(injector,
       measurementsValidatorService,
@@ -288,7 +323,13 @@ export class BatchForm<
         withWeight: true,
         rankOrderRequired: false, // Allow to be set by parent component
         labelRequired: false, // Allow to be set by parent component
-        ...validatorOptions
+        withChildren: true, // Will create a AppFormArray for children
+        ...validatorOptions,
+        childrenOptions: {
+          rankOrderRequired: false,
+          labelRequired: false,
+          ...validatorOptions?.childrenOptions
+        }
       }),
       {
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
@@ -296,13 +337,19 @@ export class BatchForm<
       });
     this._pmfmNamePipe = injector.get(PmfmNamePipe);
     this._enable = true;
-    this.childrenFormHelper = this.getChildrenFormHelper(this.form);
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
 
     // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
     this.pmfmFilter = null;
+    this.showWeight = !!this.form.get('weight.value');
+
+    if (!(this.form.get('children') instanceof AppFormArray)) {
+      this.form.setControl('children', this.validatorService.getChildrenFormArray(null, {
+        ...validatorOptions?.childrenOptions
+      }));
+    }
 
     // for DEV only
     //this.debug = !environment.production;
@@ -314,6 +361,13 @@ export class BatchForm<
     // Default values
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.tabindex = isNotNil(this.tabindex) ? this.tabindex : 1;
+    this.showWeight = toBoolean(this.showWeight, true);
+    this.requiredWeight = toBoolean(this.requiredWeight, false);
+    this.requiredIndividualCount = toBoolean(this.requiredIndividualCount, false);
+    this.showIndividualCount = toBoolean(this.showIndividualCount, false);
+    this.showChildrenWeight = toBoolean(this.showChildrenWeight, false);
+    this.showSampleWeight = toBoolean(this.showSampleWeight, toBoolean(this.showWeight, true));
+    this.requiredSampleWeight = toBoolean(this.requiredSampleWeight, false);
 
     // When pmfm filter change, re-apply initial pmfms
     this._state.hold(this._state.select('pmfmFilter')
@@ -322,8 +376,15 @@ export class BatchForm<
     );
 
     // Update form if need
-    this._state.hold(this._state.select(['showWeight', 'requiredWeight', 'requiredSampleWeight', 'requiredIndividualCount', 'showSamplingBatch'], res => res)
-        .pipe(filter(_ => !this.starting)),
+    this._state.hold(this._state.select(['showWeight', 'requiredWeight',
+        'showSamplingBatch', 'requiredSampleWeight',
+        'requiredIndividualCount', 'showChildrenWeight'], res => res)
+        .pipe(
+          filter(_ => !this.loading), // Skip when loading
+          //debounceTime(450), // Avoid to many call, when many attributes changes
+          // DEBUG
+          tap(() => console.debug(this._logPrefix + "Some input changes: will update form..."))
+        ),
       (_) => this.onUpdateFormGroup()
     );
 
@@ -483,8 +544,8 @@ export class BatchForm<
 
     if (this.showSamplingBatch) {
 
-      this.childrenFormHelper.resize(1);
-      const samplingFormGroup = this.childrenFormHelper.at(0) as UntypedFormGroup;
+      this.childrenFormArray.resize(1);
+      const samplingFormGroup = this.childrenFormArray.at(0) as UntypedFormGroup;
 
       const samplingBatch = BatchUtils.getOrCreateSamplingChild(data);
       this.setIsSampling(this.isSampling || BatchUtils.isSamplingNotEmpty(samplingBatch));
@@ -504,8 +565,8 @@ export class BatchForm<
       }*/
 
     } else {
-      this.childrenFormHelper.resize((data.children || []).length);
-      this.childrenFormHelper.disable();
+      this.childrenFormArray.resize((data.children || []).length);
+      this.childrenFormArray.disable();
     }
 
 
@@ -730,14 +791,14 @@ export class BatchForm<
         this.measurementsValidatorService.updateFormGroup(measFormGroup, {pmfms: this._initialPmfms});
       }
 
-      const childrenFormHelper = this.getChildrenFormHelper(form);
-      const hasSamplingForm = childrenFormHelper.size() === 1 && this.defaultWeightPmfm && true;
+      const childrenFormArray = this.childrenFormArray;
+      const hasSamplingForm = childrenFormArray.length === 1 && this.defaultWeightPmfm && true;
 
       // If the sample batch exists
       if (this.showSamplingBatch) {
 
-        childrenFormHelper.resize(1);
-        const samplingForm = childrenFormHelper.at(0) as UntypedFormGroup;
+        childrenFormArray.resize(1);
+        const samplingForm = childrenFormArray.at(0) as UntypedFormGroup;
 
         // Reset measurementValues (if exists)
         const samplingMeasFormGroup = samplingForm.get('measurementValues');
@@ -766,18 +827,24 @@ export class BatchForm<
 
         // If sampling weight is required, make batch weight required also
         if (this.requiredIndividualCount) {
-          this.form.get('individualCount').setValidators(Validators.required);
+          //this.form.get('individualCount').setValidators(Validators.required);
+          //this._formValidatorSubscription?.unsubscribe();
         }
 
+        // Update form validators
+        this.validatorService.updateFormGroup(this.form, {
+          withWeight: this.showWeight,
+          weightRequired: this.requiredWeight,
+          individualCountRequired: this.requiredIndividualCount
+        })
+
         // Has sample batch, and weight is enable
-        if (this.showWeight) {
-          await this.enableSamplingWeightComputation();
-        }
+        await this.enableSamplingWeightComputation();
       }
 
       // Remove existing sample, if exists but showSample=false
       else if (hasSamplingForm) {
-        childrenFormHelper.resize(0);
+        childrenFormArray.resize(0);
 
         // Unregister to previous sampling weight validator
         this._formValidatorSubscription?.unsubscribe();
@@ -802,21 +869,6 @@ export class BatchForm<
     this.form.get('weight')?.disable(opts);
   }
 
-  protected getChildrenFormHelper(form: UntypedFormGroup): FormArrayHelper<Batch> {
-    let arrayControl = form.get('children') as UntypedFormArray;
-    if (!arrayControl) {
-      arrayControl = this.formBuilder.array([]);
-      form.addControl('children', arrayControl);
-    }
-    return new FormArrayHelper<Batch>(
-      arrayControl,
-      (value) => this.validatorService.getFormGroup(value, {withWeight: true, withChildrenWeight: true}),
-      (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
-      (value) => isNil(value),
-      {allowEmptyArray: true}
-    );
-  }
-
   protected async enableSamplingWeightComputation() {
 
     if (!this.showSamplingBatch || !this.showWeight) {
@@ -825,15 +877,21 @@ export class BatchForm<
       return;
     }
 
-    await waitFor(() => !!this.samplingRatioFormat && !!this.defaultWeightPmfm, {timeout: 2000});
-
+    // Make sure required attribute have been set
     if (!this.samplingRatioFormat || !this.defaultWeightPmfm) {
-      console.warn(this._logPrefix + 'Missing samplingRatioFormat or weight Pmfm. Skipping sampling ratio and weight computation');
-      return;
+      // Wait 2s
+      await waitFor(() => !!this.samplingRatioFormat && !!this.defaultWeightPmfm, {timeout: 2000});
+
+      // Stop if not found
+      if (!this.samplingRatioFormat || !this.defaultWeightPmfm) {
+        console.warn(this._logPrefix + 'Missing samplingRatioFormat or weight Pmfm. Skipping sampling ratio and weight computation');
+        return;
+      }
     }
 
     const opts = {
       requiredSampleWeight: this.requiredSampleWeight,
+      requiredIndividualCount: this.requiredIndividualCount,
       samplingRatioFormat: this.samplingRatioFormat,
       weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
       markForCheck: () => this.markForCheck(),
@@ -842,19 +900,17 @@ export class BatchForm<
 
     // Skip if unchanged
     if (equals(opts, this._formValidatorOpts)) return;
-    this._formValidatorOpts = opts;
 
     // Unregister to previous validator
     this._formValidatorSubscription?.unsubscribe();
+    this._formValidatorOpts = opts;
 
     // Create a sampling form validator
     const subscription = this.validatorService.enableSamplingRatioAndWeight(this.form, this._formValidatorOpts);
 
     // Register subscription
-    this.registerSubscription(subscription);
     this._formValidatorSubscription = subscription;
-
-    // Unregister if unsubscribe
+    this.registerSubscription(this._formValidatorSubscription);
     subscription.add(() => {
       this.unregisterSubscription(subscription);
       this._formValidatorSubscription = null;

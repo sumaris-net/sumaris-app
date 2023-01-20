@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { TableElement } from '@e-is/ngx-material-table';
-import { UntypedFormGroup, Validators } from '@angular/forms';
+import {FormGroup, UntypedFormGroup, Validators} from '@angular/forms';
 import { AbstractBatchesTableConfig, BATCH_RESERVED_END_COLUMNS, BATCH_RESERVED_START_COLUMNS } from '../common/batches.table.class';
 import {
   changeCaseToUnderscore,
@@ -17,7 +17,7 @@ import {
   isNotNilOrNaN,
   LoadResult,
   LocalSettingsService,
-  ReferentialRef,
+  ReferentialRef, ReferentialUtils,
   RESERVED_END_COLUMNS,
   RESERVED_START_COLUMNS,
   SETTINGS_DISPLAY_COLUMNS,
@@ -26,12 +26,12 @@ import {
 } from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes, MethodIds, QualitativeValueIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { Batch } from '../common/batch.model';
+import {Batch, BatchWeight} from '../common/batch.model';
 import { BatchGroupModal, IBatchGroupModalOptions } from './batch-group.modal';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { SubBatch } from '../sub/sub-batch.model';
-import { Observable, Subject, Subscription } from 'rxjs';
-import { map, takeUntil, tap } from 'rxjs/operators';
+import {noop, Observable, Subject, Subscription} from 'rxjs';
+import {debounceTime, distinctUntilChanged, distinctUntilKeyChanged, filter, first, map, skip, startWith, takeUntil, tap, throttleTime} from 'rxjs/operators';
 import { ISubBatchesModalOptions, SubBatchesModal } from '../sub/sub-batches.modal';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
@@ -47,6 +47,7 @@ import { AbstractBatchesTable } from '@app/trip/batch/common/batches.table.class
 import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
+import {DataEntity, DataEntityUtils} from '@app/data/services/model/data-entity.model';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -79,10 +80,12 @@ export function composeBatchComputed(values: (boolean | BatchComputedFn)[]): Bat
 }
 
 export const BatchGroupColumnFlags = Object.freeze({
-  IS_WEIGHT: 0x0001,
-  IS_INDIVIDUAL_COUNT: 0x0010,
-  IS_SAMPLING: 0x0100,
-  IS_SAMPLING_RATIO: 0x1000,
+  IS_WEIGHT: 0x000001,
+  IS_INDIVIDUAL_COUNT: 0x000010,
+  IS_SAMPLING: 0x000100,
+  IS_SAMPLING_RATIO: 0x001000,
+  IS_ALWAYS_COMPUTED: 0x010000,
+  IS_TOTAL: 0x100000
 });
 
 declare type BatchGroupColumnType = FormFieldType | 'samplingRatio' | 'pmfm';
@@ -141,7 +144,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       maxValue: 10000,
       maximumNumberDecimals: 3,
       isWeight: true,
-      flags: BatchGroupColumnFlags.IS_WEIGHT,
+      flags: BatchGroupColumnFlags.IS_WEIGHT | BatchGroupColumnFlags.IS_TOTAL,
       classList: 'total mat-column-weight',
       computed: (batch) => batch && batch.weight?.computed || false
     },
@@ -154,7 +157,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       maxValue: 10000,
       maximumNumberDecimals: 2,
       isIndividualCount: true,
-      flags: BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT,
+      flags: BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_TOTAL,
       classList: 'total'
     },
 
@@ -189,7 +192,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       label: 'TRIP.BATCH.TABLE.SAMPLING_INDIVIDUAL_COUNT',
       isIndividualCount: true,
       isSampling: true,
-      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT,
+      flags: BatchGroupColumnFlags.IS_SAMPLING | BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_ALWAYS_COMPUTED,
       computed: true
     }
   ];
@@ -325,7 +328,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       injector.get(LocalSettingsService).mobile ? null : validatorService,
       {
         // Need to set additional validator here
-        // WARN: we cannot used onStartEditingRow here, because it is called AFTER row.validator.patchValue()
+        // WARN: we cannot use onStartEditingRow here, because it is called AFTER row.validator.patchValue()
         //       e.g. When we add some validator (see operation page), so new row should always be INVALID with those additional validators
         onPrepareRowForm: (form) => this.onPrepareRowForm(form)
       }
@@ -402,7 +405,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         const qv = this.qvPmfm.qualitativeValues[qvIndex];
         const subPath = parts.slice(2).join('.');
         const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === subPath);
-        if (qv && col) return `${qv.name} - ${this.translate.instant(col.label)}`;
+        if (qv && col) return `${qv.name} > ${this.translate.instant(col.label)}`;
       }
       else {
         const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === controlPath);
@@ -915,10 +918,14 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         // Detect computed column, when taxonGroupsNoWeight is used
         if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
           if (def.key === 'totalIndividualCount') {
-            computed = composeBatchComputed([computed, (batch, parent) => this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup) === false]);
+            computed = composeBatchComputed([computed, (batch, parent) => {
+              return !this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup);
+            }]);
           }
-          else if (def.key === 'totalWeight') {
-            computed = composeBatchComputed([computed, (batch, parent) => !this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup)]);
+          else if (hasFlag(def.flags, BatchGroupColumnFlags.IS_WEIGHT)) {
+            computed = composeBatchComputed([computed, (batch, parent) => {
+              return this.isTaxonGroupNoWeight(parent?.taxonGroup || batch?.taxonGroup)
+            }]);
           }
         }
         return <BatchGroupColumnDefinition>{
@@ -1385,41 +1392,104 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // Remove previous subscription
     this._rowValidatorSubscription?.unsubscribe();
 
+    const data = form.value as BatchGroup;
+
     // Clean quality flag
-    const qualityFlagId = form.get('qualityFlagId').value;
+    const qualityFlagId = data.qualityFlagId;
     if (qualityFlagId !== QualityFlagIds.NOT_QUALIFIED) {
-      form.patchValue(<Partial<Batch>>{controlDate: null, qualificationDate: null, qualificationComments: null, qualityFlagId: QualityFlagIds.NOT_QUALIFIED}, {emitEvent: false});
+      form.patchValue(<Partial<DataEntity<any>>>{controlDate: null, qualificationDate: null, qualificationComments: null, qualityFlagId: QualityFlagIds.NOT_QUALIFIED}, {emitEvent: false});
       form.markAsDirty();
       this.markAsDirty({emitEvent: false});
     }
 
-    // Add computation and validation
-    const requiredSampleWeight = (form.controls['observedIndividualCount']?.value || 0) > 0;
-    const subscription = this.validatorService.delegate.enableSamplingRatioAndWeight(form, {
-      qvPmfm: this.qvPmfm,
-      samplingRatioFormat: this.samplingRatioFormat,
-      requiredSampleWeight,
-      weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
-      markForCheck: () => this.markForCheck()
+    const hasSubBatches = (data.observedIndividualCount || 0) > 0;
+    const taxonGroupNoWeight = this.isTaxonGroupNoWeight(data.taxonGroup);
+    const weightRequired = !taxonGroupNoWeight;
+    const individualCountRequired = taxonGroupNoWeight;
+    const requiredSampleWeight = weightRequired && hasSubBatches;
+
+    // Updating row form, with new options
+    this.validatorService.updateFormGroup(form, {
+      withWeight: weightRequired,
+      weightRequired,
+      individualCountRequired
     });
-    if (subscription) {
 
-      // Register subscription
-      this.registerSubscription(subscription);
-      this._rowValidatorSubscription = subscription;
-
-      // When unsubscribe, unregister
-      subscription.add(() => {
-        this.unregisterSubscription(subscription);
-        this._rowValidatorSubscription = undefined;
-      });
+    if (taxonGroupNoWeight) {
+      // Reset all weights, and the sampling ratio
+      this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_WEIGHT);
+      this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_SAMPLING_RATIO);
     }
+    // Default case (weight allow this on taxon group)
+    else {
+      // Reset totalIndividualCount
+      this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_TOTAL);
+    }
+
+    const subscription = new Subscription();
+
+    // Detect taxon group changes
+    // e.g. if a taxon group becomes 'RJB' (no weight), we should refresh the form
+    if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
+      subscription.add(
+        form.get('taxonGroup').valueChanges
+          .pipe(
+            filter(ReferentialUtils.isNotEmpty), // Skip if not item selected
+            map(taxonGroup => this.isTaxonGroupNoWeight(taxonGroup)),
+            filter(v => v !== taxonGroupNoWeight) // distinguish changes from initial call
+          )
+          .subscribe(_ => {
+            // DEBUG
+            //console.debug(this.logPrefix + 'Detecting taxon group changes: will update form...');
+
+            // Refresh form, because taxon group has changed
+            this.onPrepareRowForm(form);
+          })
+      );
+    }
+
+    // Enable computation of weights and sampling ratio
+    if (!taxonGroupNoWeight) {
+      subscription.add(this.validatorService.delegate.enableSamplingRatioAndWeight(form, {
+        qvPmfm: this.qvPmfm,
+        samplingRatioFormat: this.samplingRatioFormat,
+        requiredSampleWeight,
+        weightMaxDecimals: this.defaultWeightPmfm?.maximumNumberDecimals,
+        markForCheck: () => this.markForCheck()
+      }));
+    }
+
+    // Register row subscription
+    this._rowValidatorSubscription = subscription;
+    this.registerSubscription(this._rowValidatorSubscription);
+    subscription.add(() => {
+      this.unregisterSubscription(subscription);
+      this._rowValidatorSubscription = undefined;
+    });
   }
 
   protected isTaxonGroupNoWeight(taxonGroup: TaxonGroupRef): boolean {
     if (!taxonGroup || !taxonGroup?.label || isEmptyArray(this.taxonGroupsNoWeight)) return false;
     return this.taxonGroupsNoWeight.includes(taxonGroup.label);
   };
+
+  protected resetColumnValueByFlag(form: UntypedFormGroup, flag: number, opts? : {emitEvent?: boolean}) {
+    let dirty = false;
+    this.dynamicColumns.filter(column => hasFlag(column.flags, flag))
+      .forEach(column => {
+        const control = form.get(column.path);
+        if (isNotNil(control.value)) {
+          control.setValue(null);
+          dirty = true;
+        }
+      });
+
+    if (dirty && opts?.emitEvent !== false) {
+      form.markAsDirty();
+      this.markAsDirty({emitEvent: false});
+    }
+    return dirty;
+  }
 
   confirmEditCreate(event?: Event, row?: TableElement<BatchGroup>): boolean {
     const confirmed = super.confirmEditCreate(event, row);
