@@ -81,30 +81,25 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Translate weight
-    if (path.endsWith('.weight.value')) {
+    if (path.endsWith('.weight.value') || path.endsWith('.individualCount')) {
       const cleanPath = path.substring('catch.children.'.length + 2);
-      const depth = countSubString(cleanPath, 'children.');
+      let depth = countSubString(cleanPath, 'children.');
+      let prefix = '';
+      let isSampling: boolean;
       if (opts.qvPmfm) {
+        isSampling = depth === 2;
         const qvIndex = parseInt(cleanPath.split('.')[1]);
         const qvName = opts.qvPmfm.qualitativeValues?.[qvIndex]?.name;
-        const fieldName = depth === 1
-          ? this.translate.instant(opts.i18nPrefix + 'TOTAL_WEIGHT')
-          : this.translate.instant(opts.i18nPrefix + 'SAMPLING_WEIGHT');
-        return `${qvName} ${fieldName}`;
+        prefix = `${qvName} > `;
       }
-      return depth === 0
-        ? this.translate.instant(opts.i18nPrefix + 'TOTAL_WEIGHT')
-        : this.translate.instant(opts.i18nPrefix + 'SAMPLING_WEIGHT');
+      else {
+        isSampling = depth === 1;
+      }
+      const i18nKey = opts.i18nPrefix
+        + (isSampling ? 'SAMPLING_' : 'TOTAL_')
+        + (path.endsWith('.weight.value') ? 'WEIGHT' : 'INDIVIDUAL_COUNT');
+      return prefix + this.translate.instant(i18nKey);
     }
-    // Translate location, inside any fishing areas
-    // if (FISHING_AREAS_LOCATION_REGEXP.test(path)) {
-    //   return this.translate.instant(opts.i18nPrefix + 'FISHING_AREAS');
-    // }
-    //
-    // // Translate location, inside any fishing areas
-    // if (POSITIONS_REGEXP.test(path)) {
-    //   return this.translate.instant(opts.i18nPrefix + 'POSITIONS');
-    // }
 
     // Default translation
     return this.formErrorTranslator.translateControlPath(path, opts);
@@ -242,13 +237,16 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
         const taxonGroupNoWeight = target.taxonGroup && taxonGroupNoWeights.includes(target.taxonGroup.label);
         const enableSamplingBatch = (!opts || opts.allowSamplingBatches !== false) || target.observedIndividualCount > 0;
+        const weightRequired = !taxonGroupNoWeight;
+        const individualCountRequired = taxonGroupNoWeight;
 
         // Create a form, with data
         const form = validator.getFormGroup(target, {
           isOnFieldMode: opts.isOnFieldMode,
           rankOrderRequired: false,
           labelRequired: false,
-          weightRequired: !taxonGroupNoWeight,
+          weightRequired,
+          individualCountRequired,
           qvPmfm,
           pmfms: speciesPmfms,
           childrenPmfms: childrenPmfms,
@@ -270,7 +268,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
             const message = this.formErrorTranslator.translateErrors(errors, {
               controlPathTranslator: {
                 translateControlPath: (path) => this.translateControlPath(path, { pmfms, qvPmfm })
-              }
+              },
+              separator: '\n'
             });
 
             // Mark current batch as invalid
@@ -332,7 +331,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
               pmfms: [...catchPmfms, ...sortingPmfms],
               i18nPrefix: 'TRIP.BATCH.EDIT.'
             })
-          }
+          },
+          separator: '\n'
         });
 
         BatchUtils.markAsInvalid(entity, message);

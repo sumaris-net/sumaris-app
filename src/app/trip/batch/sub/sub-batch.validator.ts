@@ -137,7 +137,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     })
   }
 
-  async enableWeightLengthConversion(form: UntypedFormGroup, opts: {
+  enableWeightLengthConversion(form: UntypedFormGroup, opts: {
     pmfms: IPmfm[];
     qvPmfm?: IPmfm;
     // Context
@@ -157,7 +157,7 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     debug?: boolean;
     markForCheck?: () => void;
     onError?: (err) => void;
-  }): Promise<Subscription> {
+  }): Subscription {
 
     if (!this.context) {
       console.warn('[sub-batch-validator] Cannot enable weight conversion. Missing data context');

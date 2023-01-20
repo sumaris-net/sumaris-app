@@ -31,21 +31,21 @@
 <p>
 
   <!-- Control (only if local) -->
-  <ion-button mat-icon-button *ngIf="canControl && !canSynchronize && !canTerminate"
+  <ion-button *ngIf="canControl && !canSynchronize && !canTerminate"
               [disabled]="busy"
-              (click)="control($event)" expand="block" color="tertiary">
-    <ion-icon slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
-    <ion-text translate>QUALITY.BTN_CONTROL</ion-text>
+              (click)="control($event)"
+              expand="block" color="tertiary">
+    <ion-icon *ngIf="_mobile" slot="start" name="checkmark" class="ion-float-start"></ion-icon>
+    <ion-label translate>QUALITY.BTN_CONTROL</ion-label>
   </ion-button>
 
   <!-- Terminate -->
-  <ion-button mat-icon-button *ngIf="canTerminate"
+  <ion-button *ngIf="canTerminate"
               [disabled]="busy"
               (click)="terminate($event)"
-              expand="block" color="tertiary"
-              class="large-text">
-    <ion-icon slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
-    <ion-text class="ion-text-wrap" translate>QUALITY.BTN_TERMINATE</ion-text>
+              expand="block" color="tertiary">
+    <ion-icon *ngIf="_mobile" slot="start" name="checkmark" class="ion-float-start"></ion-icon>&nbsp;
+    <ion-label class="ion-text-wrap" translate>QUALITY.BTN_TERMINATE</ion-label>
   </ion-button>
 
   <!-- synchronize -->
@@ -54,8 +54,8 @@
               [disabled]="busy"
               [color]="network.offline ? 'danger100' : 'danger'"
               (click)="synchronize($event)" >
-    <ion-icon slot="start" name="cloud-upload" class="ion-float-start"></ion-icon>
-    <ion-text translate>QUALITY.BTN_SYNCHRONIZE</ion-text>
+    <ion-icon *ngIf="_mobile" slot="start" name="cloud-upload" class="ion-float-start"></ion-icon>
+    <ion-label translate>QUALITY.BTN_SYNCHRONIZE</ion-label>
   </ion-button>
 
 
@@ -63,8 +63,8 @@
               expand="block" color="success"
               [disabled]="busy"
               (click)="validate($event)">
-    <ion-icon slot="start" name="checkmark-circle" class="ion-float-start"></ion-icon>&nbsp;
-    <ion-text translate>QUALITY.BTN_VALIDATE</ion-text>
+    <ion-icon *ngIf="_mobile" slot="start" name="checkmark-circle" class="ion-float-start"></ion-icon>&nbsp;
+    <ion-label translate>QUALITY.BTN_VALIDATE</ion-label>
   </ion-button>
   <ion-button *ngIf="canUnvalidate"
               expand="block" color="light"

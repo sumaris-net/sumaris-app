@@ -659,10 +659,11 @@ export abstract class BaseMeasurementsTable<
     }
   }
 
-  private _onRowEditing(row: TableElement<T>) {
+  private async _onRowEditing(row: TableElement<T>) {
+    if (row.id === -1) return; // Skip new row, because already processed by onRowCreated()
+
     if (row.validator && this.options.onPrepareRowForm) {
-      // Skip new row, because already processed by onRowCreated()
-      if (row.id !== -1) this.options.onPrepareRowForm(row.validator);
+      await this.options.onPrepareRowForm(row.validator);
     }
   }
 }
