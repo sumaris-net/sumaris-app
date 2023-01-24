@@ -5,7 +5,7 @@
 
       <!-- Add -->
       <button mat-icon-button
-              *ngIf="canEdit && !mobile"
+              *ngIf="canEdit"
               [title]="'COMMON.BTN_ADD'|translate"
               (click)="table?.addRow()">
         <mat-icon>add</mat-icon>
@@ -43,7 +43,8 @@
       <!-- duplicate -->
       <button mat-icon-button class="hidden-xs hidden-sm"
               [title]="'COMMON.BTN_DUPLICATE'|translate"
-              (click)="openStrategyDuplicateModal($event)">
+              *ngIf="canEdit && this.samplingTable; let table"
+              (click)="table.openStrategyDuplicateYearSelectionModal($event, table.selection.selected)">
         <mat-icon>library_add</mat-icon>
       </button>
 

@@ -148,10 +148,6 @@ export class StrategiesPage implements OnInit {
     this.samplingTable?.resetFilter(event);
   }
 
-  async openStrategyDuplicateModal(event: Event) {
-    await this.samplingTable?.openStrategyDuplicateYearSelectionModal(event, this.samplingTable.selection.selected);
-  }
-
   protected canUserWrite(data: Program): boolean {
     return this.programService.canUserWrite(data);
   }
