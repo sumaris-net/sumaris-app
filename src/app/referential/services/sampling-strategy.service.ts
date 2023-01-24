@@ -367,7 +367,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       cacheDuration
     };
 
-    console.debug('[sampling-strategy-service] variables:', variables);
+    console.debug('[sampling-strategy-service] Fill efforts using variables:', variables);
 
     const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
       query: SamplingStrategyQueries.loadEffort,

@@ -43,6 +43,7 @@ import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.se
 import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
 
 import moment from 'moment';
+import {RxState} from '@rx-angular/state';
 
 
 export const SamplingStrategiesPageSettingsEnum = {
@@ -51,16 +52,24 @@ export const SamplingStrategiesPageSettingsEnum = {
   FEATURE_ID: SAMPLING_STRATEGIES_FEATURE_NAME
 };
 
+interface SamplingStrategiesTableState {
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
 @Component({
   selector: 'app-sampling-strategies-table',
   templateUrl: 'sampling-strategies.table.html',
   styleUrls: ['sampling-strategies.table.scss'],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> {
 
   private _program: Program;
 
+  readonly canEdit$ = this._state.select('canEdit');
+  readonly canDelete$ = this._state.select('canDelete');
   readonly quarters = Object.freeze([1, 2, 3, 4]);
   readonly parameterGroupLabels: string[];
 
@@ -76,8 +85,19 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   } = {}
 
   @Input() showToolbar = true;
-  @Input() canEdit = false;
-  @Input() canDelete = false;
+
+  @Input() set canEdit(value: boolean) {
+    this._state.set('canEdit', _ => value);
+  }
+  get canEdit(): boolean {
+    return this._state.get('canEdit');
+  }
+  @Input() set canDelete(value: boolean) {
+     this._state.set('canDelete', _ => value);
+  }
+  get canDelete(): boolean {
+    return this._state.get('canDelete');
+  }
   @Input() showError = true;
   @Input() showPaginator = true;
   @Input() filterPanelFloating = true;
@@ -104,6 +124,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected personService: PersonService,
     protected parameterService: ParameterService,
     protected formBuilder: UntypedFormBuilder,
+    protected _state: RxState<SamplingStrategiesTableState>,
     protected cd: ChangeDetectorRef
   ) {
     super(injector,
@@ -167,6 +188,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     // Will be override when getting program - see setProgram()
     this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#?';
 
+    this._state.set({
+      canEdit: false,
+      canDelete: false
+    });
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -177,8 +203,15 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     // By default, use floating filter if toolbar not shown
     this.filterPanelFloating = toBoolean(this.filterPanelFloating, !this.showToolbar)
 
-      // Remove error after changed selection
+    // Remove error after changed selection
     this.selection.changed.subscribe(() => this.resetError());
+
+    // Watch 'canEdit' and 'canDelete' to update 'readonly'
+    this._state.hold(this._state.select(['canEdit', 'canDelete'], res => res).pipe(debounceTime(250)),
+      ({canEdit, canDelete}) => {
+        this.readOnly = !canEdit && !canDelete;
+        this.markForCheck();
+      });
 
     // Analytic reference autocomplete
     this.registerAutocompleteField('analyticReference', {

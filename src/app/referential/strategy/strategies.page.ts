@@ -85,14 +85,15 @@ export class StrategiesPage implements OnInit {
       const program = await this.programService.load(id, { ...opts, fetchPolicy: "network-only" });
       this.data = program;
 
-      // Check user rights
-      this.canEdit = this.canUserWrite(program);
+      // Check user rights (always readonly if mobile)
+      this.canEdit = !this.mobile && this.canUserWrite(program);
       this.canDelete = this.canEdit;
 
       // Read program's properties
       this.strategyEditor = program.getProperty<StrategyEditor>(ProgramProperties.STRATEGY_EDITOR);
       this.i18nSuffix = program.getProperty<StrategyEditor>(ProgramProperties.I18N_SUFFIX);
       this.$title.next(program.label);
+      this.cd.markForCheck();
 
     } catch (err) {
       console.error(err);
