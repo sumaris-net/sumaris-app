@@ -35,6 +35,7 @@ import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
 import {Strategy} from '@app/referential/services/model/strategy.model';
 import {ExtractionCacheDurationType} from '@app/extraction/type/extraction-type.model';
 import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import {Program} from '@app/referential/services/model/program.model';
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -185,8 +186,8 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     }
   }
 
-  canUserWrite(data?: Strategy) {
-    return this.strategyService.canUserWrite(data)
+  canUserWrite(data?: Strategy, opts?: {program: Program}) {
+    return this.strategyService.canUserWrite(data, opts);
   }
 
   async save(entity: SamplingStrategy, opts?: EntitySaveOptions & {

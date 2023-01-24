@@ -38,6 +38,8 @@ import { StrategyRefService } from './strategy-ref.service';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import {ProgramService} from '@app/referential/services/program.service';
+import {Program} from '@app/referential/services/model/program.model';
 
 
 const FindStrategyNextLabel: any = gql`
@@ -174,6 +176,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected accountService: AccountService,
     protected cache: CacheService,
     protected entities: EntitiesStorage,
+    protected programService: ProgramService,
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
     protected referentialRefService: ReferentialRefService
@@ -331,12 +334,17 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     );
   }
 
-  canUserWrite(data?: Strategy): boolean {
+  canUserWrite(data?: Strategy, opts?: {program: Program}): boolean {
 
     // user is admin: ok
     if (this.accountService.isAdmin()) return true;
 
-    // TODO check if program managers
+    // Check if user is a program manager (if given)
+    if (ReferentialUtils.isNotEmpty(opts?.program)) {
+      // TODO check in strategy's managers
+      return this.programService.canUserWrite(opts.program);
+    }
+
     //const isNew = (!data || isNil(data.id);
     return this.accountService.isSupervisor();
   }

@@ -106,6 +106,13 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
     return super.load(id, {...opts, fetchPolicy: "network-only"});
   }
 
+  canUserWrite(data: Strategy, opts?: any): boolean {
+    return super.canUserWrite(data, {...opts,
+      // Important: sent the opts.program, to check if user is a program manager
+      program: this.$program.value
+    });
+  }
+
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
     super.enable(opts);
 
