@@ -1,7 +1,7 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from '@angular/core';
 import {
   AppEditor,
-  AppErrorWithDetails,
+  AppErrorWithDetails, AppFormUtils,
   changeCaseToUnderscore,
   equals, fadeInOutAnimation,
   filterFalse,
@@ -49,6 +49,7 @@ import {TreeItemEntityUtils} from '@app/shared/tree-item-entity.utils';
 import {RxState} from '@rx-angular/state';
 import {BatchModelTreeComponent} from '@app/trip/batch/tree/batch-model-tree.component';
 import {MatSidenav} from '@angular/material/sidenav';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 interface ComponentState {
   showBatchTables: boolean;
@@ -697,12 +698,12 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
   }
 
-  protected async startEditBatch(event: Event|undefined, source: BatchModel) {
-    if (!source || !(source instanceof BatchModel)) throw new Error('Missing required \'source\' argument');
+  protected async startEditBatch(event: Event|undefined, model: BatchModel) {
+    if (!model || !(model instanceof BatchModel)) throw new Error('Missing required \'model\' argument');
 
     event?.stopImmediatePropagation();
 
-    if (this.editingBatch === source) {
+    if (this.editingBatch === model) {
       if (this.filterPanelFloating) this.closeFilterPanel();
       this.modal?.present();
       return; // Skip
@@ -718,15 +719,13 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     try {
       // Save previous changes
-      if (this.editingBatch?.editing) {
-        const confirmed = await this.confirmEditingBatch({keepEditingBatch: true});
-        if (!confirmed) return; // Not confirmed = Cannot change
-      }
+      const confirmed = await this.confirmEditingBatch({keepEditingBatch: true});
+      if (!confirmed) return; // Not confirmed = Cannot change
 
-      console.info(this.logPrefix + `Start editing '${source?.name}'...`);
+      console.info(this.logPrefix + `Start editing '${model?.name}'...`);
 
       if (this.filterPanelFloating) this.closeFilterPanel();
-      this.editingBatch = source;
+      this.editingBatch = model;
       this.editingBatch.editing = true;
 
       if (this.modal && !this.modal.isOpen) {
@@ -739,17 +738,16 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         }
       }
 
-
       // Remember last editing batch, to be able to restore it later (e.g. see setValue())
-      this._lastEditingBatchPath = source.path;
+      this._lastEditingBatchPath = model.path;
 
       // Configure batch tree
       this.batchTree.gearId = this.gearId;
       this.batchTree.physicalGear = this.physicalGear;
       this.batchTree.i18nContext = this.i18nContext;
       this.batchTree.setSubBatchesModalOption('programLabel', this.programLabel);
-      this.batchTree.showCatchForm = this.showCatchForm && source.pmfms && isNotEmptyArray(PmfmUtils.filterPmfms(source.pmfms, { excludeHidden: true }));
-      this.batchTree.showBatchTables = this.showBatchTables && source.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(source.childrenPmfms, { excludeHidden: true }));
+      this.batchTree.showCatchForm = this.showCatchForm && model.pmfms && isNotEmptyArray(PmfmUtils.filterPmfms(model.pmfms, { excludeHidden: true }));
+      this.batchTree.showBatchTables = this.showBatchTables && model.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(model.childrenPmfms, { excludeHidden: true }));
       this.batchTree.allowSamplingBatches = this.allowSamplingBatches;
       this.batchTree.allowSubBatches = this.allowSubBatches;
       this.batchTree.batchGroupsTable.showTaxonGroupColumn = this.showTaxonGroup;
@@ -758,13 +756,18 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       // Pass PMFMS to batch tree sub-components (to avoid a pmfm reloading)
       await this.batchTree.setProgram(this.program, { emitEvent: false /*avoid pmfms reload*/ });
 
-      this.batchTree.rootAcquisitionLevel = !source.parent ? AcquisitionLevelCodes.CATCH_BATCH : AcquisitionLevelCodes.SORTING_BATCH;
-      this.batchTree.catchBatchForm.acquisitionLevel = this.batchTree.rootAcquisitionLevel;
-      this.batchTree.catchBatchForm.pmfms = source.pmfms;
-      // TODO BLA
-      this.batchTree.catchBatchForm.showSamplingBatch = source.showSamplingBatch || false;
-      this.batchTree.catchBatchForm.requiredSampleWeight = source.showSamplingWeight || false;
-      this.batchTree.batchGroupsTable.pmfms = source.childrenPmfms || [];
+      this.batchTree.rootAcquisitionLevel = !model.parent ? AcquisitionLevelCodes.CATCH_BATCH : AcquisitionLevelCodes.SORTING_BATCH;
+      // Configure catch form state
+      Object.assign(this.batchTree.catchBatchForm, {
+        acquisitionLevel: this.batchTree.rootAcquisitionLevel,
+        pmfms: model.pmfms,
+        // defaults
+        showSamplingBatch: false,
+        samplingBatchEnabled: false,
+        ...model.state
+      });
+
+      this.batchTree.batchGroupsTable.pmfms = model.childrenPmfms || [];
 
       this.batchTree.markAsReady();
       const jobs: Promise<void>[] = [this.batchTree.catchBatchForm.ready(), this.batchTree.batchGroupsTable.ready()];
@@ -779,15 +782,24 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       // const target = Batch.fromObject(source.originalData.asObject({ withChildren: true }));
       // target.parent = source.parent;
 
-      const batch = Batch.fromObject(source.currentData, {withChildren: source.isLeaf});
+      const source = model.currentData;
+      const samplingSource = model.state?.showSamplingBatch ? BatchUtils.getOrCreateSamplingChild(source) : undefined;
+      let target: Batch;
+      if (samplingSource) {
+        target = Batch.fromObject(source, {withChildren: false});
+        target.children = [Batch.fromObject(samplingSource, {withChildren: model.isLeaf})]
+      }
+      else {
+        target = Batch.fromObject(source, {withChildren: model.isLeaf});
+      }
 
       await Promise.all(jobs);
-      await this.batchTree.setValue(batch);
+      await this.batchTree.setValue(target);
 
       // Listen row status, when editing a row
       const subscription = this.batchTree.statusChanges
         .pipe(
-          filter(status => source === this.editingBatch && status !== 'PENDING')
+          filter(status => model === this.editingBatch && status !== 'PENDING')
         )
         .subscribe(status => {
           if (this.debug) console.debug(this.logPrefix + 'batchTree status changes: ', status);
@@ -864,7 +876,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
    */
   protected async confirmEditingBatch(opts?: {keepEditingBatch: boolean;}): Promise<boolean> {
     const model = this.editingBatch;
-    if (!model) return true; // Already saved
+    if (!model) return true; // No editing batch: ok (not need to save)
 
     // Save current state
     const dirty = this.dirty;
@@ -880,24 +892,31 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
 
     // Get saved data
-    const savedBatch = this.batchTree.value;
+    const batch = this.batchTree.value?.clone();
 
-    if (savedBatch.label !== model.originalData.label)
-      throw new Error(`Invalid saved batch label. Expected: ${model.originalData.label} Actual: ${savedBatch.label}`);
+    if (batch.label !== model.originalData.label)
+      throw new Error(`Invalid saved batch label. Expected: ${model.originalData.label} Actual: ${batch.label}`);
 
     // Stop listening editing row
     this._listenStatusChangesSubscription?.unsubscribe();
 
     // Update model value (batch first)
-    const json = savedBatch.asObject({
-      // If not leaf, avoid to override children, in the next patchValue()
-      withChildren: model.isLeaf
-    });
-
-    // Update model's data
+    const json = batch.asObject();
+    if (isNotEmptyArray(model.pmfms)) {
+      MeasurementValuesUtils.normalizeEntityToForm(json, model.pmfms, model.validator, {keepOtherExistingPmfms: true});
+    }
     model.validator.patchValue(json);
 
-    // Update the model state
+    // Wait validation finished
+    if (!model.validator.valid) {
+      await AppFormUtils.waitWhilePending(model.validator);
+      // Log invalid
+      if (this.debug && model.validator.invalid) {
+        AppFormUtils.logFormErrors(model.validator, '[batch-tree-container] ');
+      }
+    }
+
+    // Update model validity
     model.valid = model.validator.valid;
 
     if (!opts || opts.keepEditingBatch !== true) {

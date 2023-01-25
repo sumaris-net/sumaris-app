@@ -144,6 +144,7 @@ export class BatchModelValidatorService<
               showWeight: true,
               showSamplingBatch: true,
               showSampleWeight: true,
+              samplingBatchEnabled: true
             };
           });
       }
@@ -196,8 +197,16 @@ export class BatchModelValidatorService<
           allowEmptyArray: true
         }
       );
-      form.setControl('children', childrenFormArray, {emitEvent: false});
-      childrenFormArray.patchValue(model.children || []);
+      if (model.state?.showSamplingBatch) {
+        const samplingForm = super.getFormGroup(null);
+        samplingForm.setControl('children', childrenFormArray, {emitEvent: false});
+        form.setControl('children', this.formBuilder.array([samplingForm]), {emitEvent: false});
+        childrenFormArray.patchValue(model.children || []);
+      }
+      else {
+        form.setControl('children', childrenFormArray, {emitEvent: false});
+        childrenFormArray.patchValue(model.children || []);
+      }
     }
     else {
       const childrenFormArray = new AppFormArray<Batch, UntypedFormControl>(
