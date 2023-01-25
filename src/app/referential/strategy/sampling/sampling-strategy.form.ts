@@ -1546,7 +1546,10 @@ export class SamplingStrategyForm extends AppForm<Strategy> implements OnInit {
 
   protected async validatePmfmsForm(): Promise<ValidationErrors | null> {
     const pmfmsForm = this.pmfmsForm;
-    if (this.loading || pmfmsForm.disabled) return;
+    if (this.loading || pmfmsForm.disabled) {
+      if (pmfmsForm.errors) pmfmsForm.setErrors(null, {emitEvent: false});
+      return;
+    }
 
     // DEBUG
     //console.debug('DEV Call validatePmfmsForm()...');
