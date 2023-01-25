@@ -10,12 +10,11 @@ import {
   EntityAsObjectOptions,
   EntitySaveOptions,
   EntityUtils,
-  fromDateISOString,
   IReferentialRef,
   isEmptyArray,
   isNil,
   isNilOrBlank,
-  isNotEmptyArray,
+  isNilOrNaN,
   isNotNil,
   LoadResult,
   NetworkService,
@@ -38,8 +37,8 @@ import { StrategyRefService } from './strategy-ref.service';
 import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import {ProgramService} from '@app/referential/services/program.service';
-import {Program} from '@app/referential/services/model/program.model';
+import { ProgramService } from '@app/referential/services/program.service';
+import { Program } from '@app/referential/services/model/program.model';
 
 
 const FindStrategyNextLabel: any = gql`
@@ -414,9 +413,9 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     });
   }
 
-  async duplicateAllToYear(sources: Strategy[], year: string): Promise<Strategy[]> {
+  async duplicateAllToYear(sources: Strategy[], year: number): Promise<Strategy[]> {
     if (isEmptyArray(sources)) return [];
-    if (isNil(year) || typeof year !== "string" || year.length !== 2) throw Error('Missing or invalid year argument (should be YY format)');
+    if (isNilOrNaN(year) || typeof year !== "number" || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
 
     // CLear cache (only once)
     await this.clearCache();
@@ -435,12 +434,13 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     return savedEntities;
   }
 
-  async cloneToYear(source: Strategy, year: string): Promise<Strategy> {
-    if (!source || isNil(source.programId)) throw Error('Missing strategy or strategy.programId argument');
-    if (isNil(year) || typeof year !== "string" || year.length !== 2) throw Error('Missing or invalid year argument (should be YY format)');
+  async cloneToYear(source: Strategy, year: number, newLabel?: string): Promise<Strategy> {
+    if (!source || isNil(source.programId)) throw Error('Missing strategy or strategy.programId, or newLabel argument');
+    if (isNilOrNaN(year) || typeof year !== "number" || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
+    newLabel = newLabel || source.label && `${source.label} (bis)`;
+    if (isNilOrBlank(newLabel)) throw Error('Missing strategy.label or newLabel argument');
 
     const target = new Strategy();
-    const newLabel = await this.computeNextLabel(source.programId, year + source.label.substring(2, 9), 3);
 
     target.label = newLabel;
     target.name = newLabel;
@@ -448,26 +448,28 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     target.analyticReference = source.analyticReference;
     target.programId = source.programId;
 
-    target.appliedStrategies = (source.appliedStrategies || []).map(initialAppliedStrategy => {
-      const strategyToSaveAppliedStrategy = new AppliedStrategy();
-      strategyToSaveAppliedStrategy.id = undefined;
-      strategyToSaveAppliedStrategy.updateDate = undefined;
-      strategyToSaveAppliedStrategy.location = initialAppliedStrategy.location;
-      if (isNotEmptyArray(initialAppliedStrategy.appliedPeriods)) {
-        strategyToSaveAppliedStrategy.appliedPeriods = initialAppliedStrategy.appliedPeriods.map(initialAppliedStrategyPeriod => {
-          const startMonth = (initialAppliedStrategyPeriod.startDate?.month()) + 1;
-          const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`)?.utc();
-          const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
-          const appliedPeriod = AppliedPeriod.fromObject({acquisitionNumber: initialAppliedStrategyPeriod.acquisitionNumber});
-          appliedPeriod.startDate = startDate;
-          appliedPeriod.endDate = endDate;
-          appliedPeriod.appliedStrategyId = undefined;
-          return appliedPeriod;
-        });
-      } else {
-        strategyToSaveAppliedStrategy.appliedPeriods = [];
-      }
-      return strategyToSaveAppliedStrategy;
+    target.appliedStrategies = (source.appliedStrategies || []).map(sourceAppliedStrategy => {
+      const targetAppliedStrategy = new AppliedStrategy();
+      targetAppliedStrategy.id = undefined;
+      targetAppliedStrategy.updateDate = undefined;
+      targetAppliedStrategy.location = sourceAppliedStrategy.location;
+      targetAppliedStrategy.appliedPeriods = (sourceAppliedStrategy.appliedPeriods || []).map(sourceAppliedPeriod => {
+        return {
+          acquisitionNumber: sourceAppliedPeriod.acquisitionNumber,
+          startDate: sourceAppliedPeriod.startDate?.clone()
+            // Keep the local time, because the DB can use a local time - fix ObsBio-79
+            // TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
+            .local(true)
+            .year(year),
+          endDate: sourceAppliedPeriod.endDate.clone()
+            // Keep the local time, because the DB can use a local time - fix ObsBio-79
+            // TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
+            .local(true)
+            .year(year)
+        }
+      })
+      .map(AppliedPeriod.fromObject);
+      return targetAppliedStrategy;
     })
 
     target.pmfms = source.pmfms && source.pmfms.map(pmfmStrategy => {

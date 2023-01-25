@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import {
   Alerts,
   AppFormUtils,
-  AppTable,
+  AppTable, DateUtils,
   EntitiesTableDataSource,
   fromDateISOString,
   isEmptyArray,
@@ -413,9 +413,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     const filter = StrategyFilter.fromObject(source);
 
     // Start date: should be the first day of the year
-    filter.startDate = filter.startDate && filter.startDate.utc().startOf('year');
     // End date: should be the last day of the year
-    filter.endDate = filter.endDate && filter.endDate.endOf('year').utc().startOf('day');
+    // /!\ Need to use local time, because the DB can use a local time (e.g. SIH-ADAGIO use tz=Europe/Paris)
+    //     TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
+    filter.startDate = filter.startDate?.local(true).startOf('year');
+    filter.endDate = filter.endDate?.local(true).endOf('year').startOf('day');
 
     // Convert periods (from quarters)
     filter.periods = this.asFilterPeriods(source);
@@ -447,17 +449,19 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     if (isEmptyArray(selectedQuarters)) return undefined; // Skip if no quarters selected
 
     // Start year (<N - 10> by default)
-    const startYear = source.startDate && fromDateISOString(source.startDate).year() || (moment().year() - 10);
+    // /!\ Need to use local time, because the DB can use a local time (e.g. SIH-ADAGIO use tz=Europe/Paris)
+    //     TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
+    const startYear = fromDateISOString(source.startDate)?.clone().local(true).year() || (moment().year() - 10);
     // End year (N + 1 by default)
-    const endYear = source.endDate && fromDateISOString(source.endDate).year() || (moment().year() + 1);
+    const endYear = fromDateISOString(source.endDate)?.clone().local(true).year() || (moment().year() + 1);
 
     if (startYear > endYear) return undefined; // Invalid years
 
     const periods = [];
     for (let year = startYear; year <= endYear; year++) {
       selectedQuarters.forEach(quarter => {
-        const startMonth = (quarter - 1) * 3 + 1;
-        const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
+        const startMonth = (quarter - 1) * 3;
+        const startDate = DateUtils.moment().local(true).year(year).month(startMonth).startOf('month');
         const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
         periods.push({startDate, endDate});
       });
@@ -498,14 +502,17 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     const strategies = rows
       .map(row => row.currentData)
       .map(SamplingStrategy.fromObject);
-    const year = fromDateISOString(data).format('YY').toString();
+    const year = fromDateISOString(data)
+      // We need the local year, not the UTC year
+      .local(true)
+      .format('YYYY').toString();
 
 
-    await this.duplicateStrategies(strategies, year);
+    await this.duplicateStrategies(strategies, +year);
     this.selection.clear();
   }
 
-  async duplicateStrategies(sources: SamplingStrategy[], year: string) {
+  async duplicateStrategies(sources: SamplingStrategy[], year: number) {
 
     try {
       this.markAsLoading();
