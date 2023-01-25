@@ -26,6 +26,7 @@ import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, Measur
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { Rule, RuleUtils } from '@app/referential/services/model/rule.model';
+import { BatchFormState } from '@app/trip/batch/common/batch.form';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -183,13 +184,13 @@ export class BatchModel
   validator?: UntypedFormGroup;
   disabled?: boolean;
   hidden?: boolean;
-  showSamplingBatch?: boolean
+
+  state?: BatchFormState;
 
   path: string;
   parentId: number = null;
   parent: BatchModel = null;
   children: BatchModel[] = null;
-  showSamplingWeight: boolean = false;
 
   constructor(init?: { validator?: UntypedFormGroup; parent?: BatchModel; path?: string; originalData?: Batch}) {
     super();
@@ -203,8 +204,10 @@ export class BatchModel
     this.icon = source.icon;
     this.originalData = source.originalData;
     this.pmfms = source.pmfms || [];
+
+    this.state = source.state || undefined;
+
     this.childrenPmfms = source.childrenPmfms || [];
-    this.showSamplingWeight = source.showSamplingWeight || false;
 
     this.disabled = source.disabled || false;
     this.hidden = source.hidden || false;

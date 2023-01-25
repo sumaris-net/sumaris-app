@@ -91,32 +91,35 @@ export class BatchModelValidatorService<
     // Create rules
     const allowDiscard = opts.allowDiscard !== false;
     let rules = (opts.rules || []);
+
     if (allowDiscard) {
       rules = [
         ...rules,
+        // Landing rules
         Rule.fromObject(<Partial<Rule>>{
-          // Precondition = landing batch
           precondition: true,
           filter: ({model}) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.LANDING),
 
-          // Rules: Avoid discard pmfms
+          // Avoid discard pmfms
           children: this.batchRules.getNotDiscardPmfms('childrenPmfm.')
         }),
 
+        // Discard rules
         Rule.fromObject(<Partial<Rule>>{
-          // Precondition = discard batch
           precondition: true,
           filter: ({model}) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD)
-            || PmfmValueUtils.equals(model.parent?.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD)
-          ,
+            || PmfmValueUtils.equals(model.parent?.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD),
 
-          // Rules: Avoid landing pmfms
+          // Avoid landing pmfms
           children: this.batchRules.getNotLandingPmfms('childrenPmfm.')
         })
       ];
     }
     else {
-      rules = [...rules, ...this.batchRules.getNotDiscardPmfms('childrenPmfm.')];
+      rules = [...rules,
+        // No discard pmfms
+        ...this.batchRules.getNotDiscardPmfms('childrenPmfm.')
+      ];
     }
 
     // Create a batch model
@@ -136,7 +139,12 @@ export class BatchModelValidatorService<
         });
         TreeItemEntityUtils.findByFilter(model, discardFilter)
           .forEach(discardBatch => {
-            discardBatch.showSamplingBatch = true;
+            discardBatch.state = {
+              ...discardBatch.state,
+              showWeight: true,
+              showSamplingBatch: true,
+              showSampleWeight: true,
+            };
           });
       }
       else {
