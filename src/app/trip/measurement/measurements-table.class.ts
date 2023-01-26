@@ -241,14 +241,6 @@ export abstract class BaseMeasurementsTable<
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
 
-    // this.measurementsDataService = new EntitiesWithMeasurementService<T, F, ID>(injector, this.dataType, dataService, {
-    //   mapPmfms: this.options.mapPmfms || undefined,
-    //   requiredStrategy: this.options.requiredStrategy,
-    //   debug: this.options.debug || false
-    // });
-
-    //this.setValidatorService(validatorService);
-
     // For DEV only
     //this.debug = !environment.production;
     this.logPrefix = '[measurements-table] ';

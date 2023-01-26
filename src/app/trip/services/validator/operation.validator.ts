@@ -2,7 +2,19 @@ import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, AbstractControlOptions, AsyncValidatorFn, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { PositionValidatorService } from './position.validator';
-import { AppFormUtils, FormErrors, fromDateISOString, isNil, isNotNil, LocalSettingsService, SharedFormGroupValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AppFormUtils,
+  equals,
+  FormErrors,
+  fromDateISOString,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  SharedFormGroupValidators,
+  SharedValidators,
+  toBoolean,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Program } from '@app/referential/services/model/program.model';
@@ -20,6 +32,7 @@ import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { Geometries } from '@app/shared/geometries.utils';
 import { DataValidators } from '@app/data/services/validator/data.validators';
 import { TranslateService } from '@ngx-translate/core';
+import {getFormOptions, setFormOptions} from '@app/trip/batch/common/batch.validator';
 
 
 export interface IPmfmForm {
@@ -72,6 +85,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
+    setFormOptions(form, opts);
 
     // Add measurement form
     if (opts.withMeasurements) {
@@ -123,6 +137,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     if (opts.withChildOperation) {
       form.addControl('childOperation', this.createChildOperationControl(data?.childOperation));
     }
+
 
     return form;
   }
@@ -201,6 +216,16 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
    */
   updateFormGroup(form: UntypedFormGroup, opts?: O) {
     opts = this.fillDefaultOptions(opts);
+
+    const previousOptions = getFormOptions(form);
+
+    // Skip if same
+    if (equals(previousOptions, opts)) {
+      console.debug('[operation-validator] Skipping form update (same options)')
+      return;
+    }
+
+    setFormOptions(form, opts);
 
     // DEBUG
     console.debug(`[operation-validator] Updating form group validators`);

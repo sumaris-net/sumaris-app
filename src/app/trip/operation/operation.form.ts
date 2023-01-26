@@ -865,8 +865,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   /* -- protected methods -- */
 
-  private _optsCache = '';
-
   protected updateFormGroup(opts?: { emitEvent?: boolean }) {
 
     const validatorOpts = <OperationValidatorOptions>{

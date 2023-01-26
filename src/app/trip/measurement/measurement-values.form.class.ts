@@ -127,7 +127,6 @@ export abstract class MeasurementValuesForm<
   get pmfms(): IPmfm[] {
     return this._state.get('pmfms');
   }
-
   @Input()
   set forceOptional(value: boolean) {
     this._state.set('forceOptional', (_) => value);
@@ -289,6 +288,7 @@ export abstract class MeasurementValuesForm<
 
   /**
    * Wait form is ready, before setting the value to form
+   * /!\ should NOT be overwritten by subclasses.
    * @param data
    * @param opts
    */

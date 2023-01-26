@@ -82,7 +82,7 @@ export class BatchModel
     if (qvPmfm) {
       const qvPmfmIndex = pmfms.indexOf(qvPmfm);
       if (qvPmfmIndex > 0) {
-        model.pmfms = pmfms.slice(0, qvPmfmIndex);
+        model.state.pmfms = pmfms.slice(0, qvPmfmIndex);
       }
 
       // Prepare next iteration
@@ -149,15 +149,6 @@ export class BatchModel
     model.pmfms = model.pmfms || [];
     model.childrenPmfms = model.childrenPmfms || [];
 
-    // if (rules) {
-    //   // const errors = RuleUtils.control(model, rules);
-    //   // if (errors) {
-    //   //   console.log('TODO errors: ' + model.name, errors);
-    //   //   // Skip this model
-    //   //
-    //   // }
-    // }
-
     return model;
   }
 
@@ -179,13 +170,12 @@ export class BatchModel
   icon: IconRef;
   isLeaf: boolean;
   originalData?: Batch;
-  pmfms?: IPmfm[];
-  childrenPmfms?: IPmfm[];
   validator?: UntypedFormGroup;
   disabled?: boolean;
   hidden?: boolean;
 
-  state?: BatchFormState;
+  state?: Partial<BatchFormState>;
+  childrenState?: Partial<BatchFormState>;
 
   path: string;
   parentId: number = null;
@@ -196,6 +186,8 @@ export class BatchModel
     super();
     this.validator = init?.validator;
     if (init) Object.assign(this, init);
+    this.state = {};
+    this.childrenState = {};
   }
 
   fromObject(source: any, opts?: BatchModelFromObjectOptions) {
@@ -203,15 +195,16 @@ export class BatchModel
     this.name = source.name;
     this.icon = source.icon;
     this.originalData = source.originalData;
-    this.pmfms = source.pmfms || [];
-
-    this.state = source.state || undefined;
-
-    this.childrenPmfms = source.childrenPmfms || [];
+    this.state = source.rootState && {
+      pmfms: source.state.pmfms || []
+    } || {};
+    this.childrenState = source.childrenState && {
+      pmfms: source.childrenState.pmfms || []
+    } || {};
 
     this.disabled = source.disabled || false;
     this.hidden = source.hidden || false;
-    this.isLeaf = source.isLeaf || (this.childrenPmfms?.length > 0);
+    this.isLeaf = source.isLeaf || (this.childrenState?.pmfms?.length > 0);
 
     this.path = source.path || null;
     this.parent = source.parent || null;
@@ -329,6 +322,23 @@ export class BatchModel
     const model = getPropertyByPath(this, path);
     return model;
   }
+
+  get pmfms(): IPmfm[] {
+    return this.state?.pmfms;
+  }
+  set pmfms(pmfms: IPmfm[]) {
+    this.state = {
+      ...this.state, pmfms
+    };
+  }
+  get childrenPmfms(): IPmfm[] {
+    return this.childrenState?.pmfms;
+  }
+  set childrenPmfms(pmfms: IPmfm[]) {
+    this.childrenState = {
+      ...this.childrenState, pmfms
+    };
+  }
 }
 
 @EntityClass({typename: 'BatchModelFilterVO'})
@@ -338,6 +348,8 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
   isLeaf: boolean = null;
   hidden: boolean = null;
 
+  parentFilter: BatchModelFilter = null;
+
   static fromObject: (source: any, opts?: any) => BatchModelFilter;
 
   fromObject(source: any, opts?: any) {
@@ -346,6 +358,7 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
     this.pmfmIds = source.pmfmIds;
     this.isLeaf = source.isLeaf;
     this.hidden = source.hidden;
+    this.parentFilter = source.parentFilter && BatchModelFilter.fromObject(source.parentFilter);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
@@ -354,6 +367,7 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
     target.pmfmIds = this.pmfmIds;
     target.isLeaf = this.isLeaf;
     target.hidden = this.hidden;
+    target.parentFilter = this.parentFilter && this.parentFilter.asObject(opts);
     return target;
   }
 
@@ -393,6 +407,13 @@ export class BatchModelFilter extends EntityFilter<BatchModelFilter, BatchModel>
       filterFns.push(b => b.isLeaf === isLeaf);
     }
 
+    // Parent filter
+    const parentFilter = BatchModelFilter.fromObject(this.parentFilter);
+    if (parentFilter && !parentFilter.isEmpty()) {
+      const parentFilterFn = parentFilter.asFilterFn();
+      filterFns.push(b => b.parent && parentFilterFn(b.parent));
+    }
+
     return filterFns;
   }
 }
@@ -412,9 +433,9 @@ export class BatchModelUtils {
     if (!model) return;
 
     // Add catch batches pmfms
-    model.pmfms = arrayDistinct([
+    model.state.pmfms = arrayDistinct([
       ...(opts.catchPmfms || []),
-      ...(model.pmfms || [])
+      ...(model.state.pmfms || [])
     ], 'id');
     // Disabled root node, if no visible pmfms (e.g. when catch batch has no pmfm)
     model.disabled = !(model.pmfms || []).some(p => !p.hidden)

@@ -563,7 +563,8 @@ export class BatchUtils {
           message += ' length:' + length + 'cm';
         }
         const weight = batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT]
-          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT];
+          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT]
+          || batch.measurementValues[PmfmIds.DISCARD_WEIGHT];
         if (isNotNil(weight)) {
           message += ' weight:' + weight + 'kg';
         }

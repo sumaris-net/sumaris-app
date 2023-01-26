@@ -55,6 +55,7 @@ export const TaxonomicLevelIds = {
 export const PmfmIds = {
   TRIP_PROGRESS: 34,
   SURVIVAL_SAMPLING_TYPE: 35,
+  DISCARD_WEIGHT: 56,
   TAG_ID: 82,
   DISCARD_OR_LANDING: 90,
   IS_DEAD: 94,

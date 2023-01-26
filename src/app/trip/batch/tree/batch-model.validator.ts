@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { AppFormArray, isEmptyArray, isNotEmptyArray, isNotNil, LocalSettingsService, ReferentialRef } from '@sumaris-net/ngx-components';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import {AppFormArray, isEmptyArray, isNotEmptyArray, isNotNil, LocalSettingsService, ReferentialRef, removeDuplicatesFromArray} from '@sumaris-net/ngx-components';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
@@ -26,7 +26,7 @@ export interface BatchModelValidatorOptions extends DataEntityValidatorOptions {
   withMeasurements?: boolean;
   withMeasurementTypename?: boolean;
   pmfms?: IPmfm[];
-  allowSamplingBatches?: boolean;
+  allowSpeciesSampling?: boolean;
 
   // Children
   withChildren?: boolean;
@@ -128,19 +128,29 @@ export class BatchModelValidatorService<
 
     // Special case for discard batches
     {
-      // Enable sampling batch, on discard batch
+      // Enable sampling batch, on VRAC batches
       if (allowDiscard) {
-        const discardFilter = BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
-          hidden: false,
-          isLeaf: false,
+        const bulkFilter = BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+          // parent: {
+          //   measurementValues: {
+          //     [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
+          //   }
+          // },
+          hidden: false, // Exclude if no pmfms
+          //isLeaf: true,
           measurementValues: {
-            [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
+            [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK
           }
         });
-        TreeItemEntityUtils.findByFilter(model, discardFilter)
-          .forEach(discardBatch => {
-            discardBatch.state = {
-              ...discardBatch.state,
+        TreeItemEntityUtils.findByFilter(model, bulkFilter)
+          .forEach(bulkBatch => {
+            const pmfms = removeDuplicatesFromArray([
+              ...bulkBatch.pmfms,
+              ...(bulkBatch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone())
+            ], 'id');
+            bulkBatch.state = {
+              ...bulkBatch.state,
+              pmfms,
               showWeight: true,
               showSamplingBatch: true,
               showSampleWeight: true,
@@ -168,7 +178,7 @@ export class BatchModelValidatorService<
     return model;
   }
 
-  createFormGroupByModel(model: BatchModel, opts: {allowSamplingBatches: boolean}): UntypedFormGroup {
+  createFormGroupByModel(model: BatchModel, opts: {allowSpeciesSampling: boolean}): UntypedFormGroup {
     if (!model) throw new Error('Missing required argument \'model\'');
 
     // DEBUG
@@ -180,7 +190,7 @@ export class BatchModelValidatorService<
       withMeasurementTypename: true,
       withChildren: model.isLeaf,
       childrenPmfms: model.isLeaf && model.childrenPmfms,
-      allowSamplingBatches: opts.allowSamplingBatches
+      allowSpeciesSampling: opts.allowSpeciesSampling
     });
 
     // Update model valid marker (check this BEFORE to add the children form array)
@@ -255,7 +265,7 @@ export class BatchModelValidatorService<
         withMeasurements: true,
         ...opts,
         allowSamplingBatch: undefined,
-        withChildren: opts.allowSamplingBatches,
+        withChildren: opts.allowSpeciesSampling,
         withChildrenWeight: true,
         pmfms: opts.childrenPmfms || null,
         childrenPmfms: null

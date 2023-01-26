@@ -315,7 +315,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     }
 
     const model = await this.batchModelValidatorService.createModel(entity, {catchPmfms, sortingPmfms, allowDiscard, physicalGear});
-    const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSamplingBatches});
+    const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSpeciesSampling: allowSamplingBatches});
 
     if (!form.valid) {
       // Wait if pending

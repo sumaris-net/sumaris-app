@@ -1,9 +1,11 @@
 import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, ViewChild} from '@angular/core';
 import {
   AppEditor,
-  AppErrorWithDetails, AppFormUtils,
+  AppErrorWithDetails,
+  AppFormUtils,
   changeCaseToUnderscore,
-  equals, fadeInOutAnimation,
+  equals,
+  fadeInOutAnimation,
   filterFalse,
   filterTrue,
   firstNotNilPromise,
@@ -28,7 +30,7 @@ import {Program} from '@app/referential/services/model/program.model';
 import {TaxonGroupRef} from '@app/referential/services/model/taxon-group.model';
 import {ActivatedRoute, Router} from '@angular/router';
 import {TranslateService} from '@ngx-translate/core';
-import {Subscription} from 'rxjs';
+import {of, Subscription} from 'rxjs';
 import {debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap} from 'rxjs/operators';
 import {environment} from '@environments/environment';
 import {ProgramRefService} from '@app/referential/services/program-ref.service';
@@ -49,12 +51,14 @@ import {TreeItemEntityUtils} from '@app/shared/tree-item-entity.utils';
 import {RxState} from '@rx-angular/state';
 import {BatchModelTreeComponent} from '@app/trip/batch/tree/batch-model-tree.component';
 import {MatSidenav} from '@angular/material/sidenav';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import {ContextService} from '@app/shared/context.service';
 
 interface ComponentState {
+  programAllowMeasure: boolean;
   showBatchTables: boolean;
   allowDiscard: boolean;
-  allowSamplingBatches: boolean;
+  allowSpeciesSampling: boolean;
   allowSubBatches: boolean;
   gearId: number;
   physicalGear: PhysicalGear;
@@ -73,6 +77,7 @@ interface ComponentState {
   templateUrl: './batch-tree-container.component.html',
   styleUrls: ['./batch-tree-container.component.scss'],
   providers: [
+    { provide: ContextService, useExisting: TripContextService},
     RxState
   ],
   animations: [fadeInOutAnimation],
@@ -82,45 +87,43 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   implements IBatchTreeComponent {
 
   private _listenStatusChangesSubscription: Subscription;
-  protected logPrefix = '[batch-tree-container] ';
+  private _listenProgramChanges = true;
+  protected _logPrefix = '[batch-tree-container] ';
   protected _lastEditingBatchPath: string;
-  protected _programAllowMeasure: boolean;
-  protected _listenProgramChanges = true;
 
-  protected readonly allowSamplingBatches$ = this.state.select('allowSamplingBatches');
-  protected readonly allowSubBatches$ = this.state.select('allowSubBatches');
-  protected readonly programLabel$ = this.state.select('programLabel');
-  protected readonly program$ = this.state.select('program');
-  protected readonly form$ = this.state.select('form');
-  protected readonly model$ = this.state.select('model');
-  protected readonly editingBatch$ = this.state.select('editingBatch');
+  protected readonly allowSamplingBatches$ = this._state.select('allowSpeciesSampling');
+  protected readonly allowSubBatches$ = this._state.select('allowSubBatches');
+  protected readonly programLabel$ = this._state.select('programLabel');
+  protected readonly program$ = this._state.select('program');
+  protected readonly form$ = this._state.select('form');
+  protected readonly editingBatch$ = this._state.select('editingBatch');
 
   protected get model(): BatchModel {
-    return this.state.get('model');
+    return this._state.get('model');
   }
 
   protected set editingBatch(value: BatchModel) {
-    this.state.set('editingBatch', _ => value);
+    this._state.set('editingBatch', _ => value);
   }
 
   protected get editingBatch(): BatchModel {
-    return this.state.get('editingBatch');
+    return this._state.get('editingBatch');
   }
 
   protected get catchPmfms(): IPmfm[]{
-    return this.state.get('catchPmfms');
+    return this._state.get('catchPmfms');
   }
 
   protected get sortingPmfms(): IPmfm[]{
-    return this.state.get('sortingPmfms');
+    return this._state.get('sortingPmfms');
   }
 
   protected set data(value: Batch){
-    this.state.set('data', (_) => value);
+    this._state.set('data', (_) => value);
   }
 
   protected get data(): Batch{
-    return this.state.get('data');
+    return this._state.get('data');
   }
   errorTranslatorOptions: FormErrorTranslatorOptions;
 
@@ -138,18 +141,18 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   @Input() availableTaxonGroups: TaxonGroupRef[];
   @Input() useModal = false;
 
-  @Input() set allowSamplingBatches(value: boolean) {
-    this.state.set('allowSamplingBatches', (_) => value);
+  @Input() set allowSpeciesSampling(value: boolean) {
+    this._state.set('allowSpeciesSampling', (_) => value);
   }
-  get allowSamplingBatches(): boolean {
-    return this.state.get('allowSamplingBatches');
+  get allowSpeciesSampling(): boolean {
+    return this._state.get('allowSpeciesSampling') && this.programAllowMeasure;
   }
 
   @Input() set allowSubBatches(value: boolean) {
-    this.state.set('allowSubBatches', (_) => value);
+    this._state.set('allowSubBatches', (_) => value);
   }
   get allowSubBatches(): boolean {
-    return this.state.get('allowSubBatches');
+    return this._state.get('allowSubBatches') && this.programAllowMeasure;
   }
 
   @Input() showTaxonName: boolean;
@@ -166,11 +169,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   @Input()
   set programLabel(value: string) {
-    this.state.set('programLabel', (_) => value);
+    this._state.set('programLabel', (_) => value);
   }
 
   get programLabel(): string {
-    return this.state.get('programLabel') || this.program?.label;
+    return this._state.get('programLabel') || this.program?.label;
   }
 
   @Input()
@@ -178,19 +181,19 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     // Disable watchByLabel, when changing programLabel
     // Avoid to watch program changes, when program is given by parent component
     this._listenProgramChanges = false;
-    this.state.set('program', (_) => value);
+    this._state.set('program', (_) => value);
   }
 
   get program(): Program {
-    return this.state.get('program');
+    return this._state.get('program');
   }
 
   @Input() set gearId(value: number) {
-    this.state.set('gearId', (_) => value);
+    this._state.set('gearId', (_) => value);
   }
 
   get gearId(): number {
-    return this.state.get('gearId');
+    return this._state.get('gearId');
   }
 
   @Input() set physicalGear(value: PhysicalGear) {
@@ -199,30 +202,38 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.resetRootForm();
     }
     // Apply change
-    this.state.set({
+    this._state.set({
       physicalGear: value,
       gearId: toNumber(value?.gear?.id, null)
     });
   }
 
   get physicalGear(): PhysicalGear {
-    return this.state.get('physicalGear');
+    return this._state.get('physicalGear');
   }
 
   @Input() set showBatchTables(value: boolean) {
-    this.state.set('showBatchTables', (_) => value);
+    this._state.set('showBatchTables', (_) => value);
   }
 
   get showBatchTables(): boolean {
-    return this.state.get('showBatchTables') || false;
+    return this._state.get('showBatchTables') || false;
   }
 
   @Input() set allowDiscard(value: boolean) {
-    this.state.set('allowDiscard', _ => value);
+    this._state.set('allowDiscard', _ => value);
+  }
+
+  get programAllowMeasure(): boolean {
+    return this._state.get('programAllowMeasure');
+  }
+
+  set programAllowMeasure(value: boolean) {
+    this._state.set('programAllowMeasure', _ => value);
   }
 
   get allowDiscard(): boolean {
-    return this.state.get('allowDiscard');
+    return this._state.get('allowDiscard');
   }
 
   get touched(): boolean {
@@ -255,7 +266,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   get form(): UntypedFormGroup {
-    return this.state.get('form');
+    return this._state.get('form');
   }
 
   get highlightForwardButton(): boolean {
@@ -285,8 +296,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
               protected batchModelValidatorService: BatchModelValidatorService,
               protected pmfmNamePipe: PmfmNamePipe,
               protected physicalGearService: PhysicalGearService,
-              protected tripContext: TripContextService,
-              protected state: RxState<ComponentState>,
+              protected context: TripContextService,
+              protected _state: RxState<ComponentState>,
               protected cd: ChangeDetectorRef) {
     super(route, router, alertCtrl, translate);
 
@@ -299,7 +310,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
 
     // Watch program, to configure tables from program properties
-    this.state.connect('program', this.programLabel$
+    this._state.connect('program', this.programLabel$
       .pipe(
         filter(() => this._listenProgramChanges), // Avoid to watch program, if was already set
         filter(isNotNilOrBlank),
@@ -307,9 +318,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         switchMap(programLabel => this.programRefService.watchByLabel(programLabel))
       ));
 
-    this.state.hold(filterTrue(this.readySubject)
+    this._state.hold(filterTrue(this.readySubject)
         .pipe(
-          switchMap(() => this.state.select(['program', 'gearId'], s => s)),
+          switchMap(() => this._state.select(['program', 'gearId'], s => s)),
           debounceTime(100),
           distinctUntilChanged(equals)
         ),
@@ -318,14 +329,14 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         await this.loadPmfms(program, gearId);
       });
 
-    this.state.connect('model',
-      this.state.select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], s => s)
+    this._state.connect('model',
+      this._state.select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], s => s)
         .pipe(
           filter(({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => sortingPmfms && catchPmfms && physicalGear && true),
           mergeMap(async ({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => {
             // Load physical gear's children (if not already done)
             if (physicalGear && isEmptyArray(physicalGear.children)) {
-              const tripId = this.tripContext.trip?.id;
+              const tripId = this.context.trip?.id;
               physicalGear.children = await this.physicalGearService.loadAllByParentId({tripId, parentGearId: physicalGear.id});
             }
 
@@ -335,11 +346,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         )
     );
 
-    this.state.connect('form', this.state.select(['model', 'allowSamplingBatches'], s => s)
+    this._state.connect('form', this._state.select(['model', 'allowSpeciesSampling'], s => s)
       .pipe(
-        filter(({model, allowSamplingBatches}) => !!model),
-        map(({model, allowSamplingBatches}) => {
-          const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSamplingBatches});
+        filter(({model, allowSpeciesSampling}) => !!model),
+        map(({model, allowSpeciesSampling}) => {
+          const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSpeciesSampling});
           form.disable();
           return form;
         })
@@ -347,13 +358,13 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     );
 
     // Reload data, when form (or model) changed
-    this.state.hold(this.form$
+    this._state.hold(this.form$
       .pipe(
         filter(() => !this.loading)
       ),
       (_) => this.updateView(this.data, {markAsPristine: false /*keep dirty state*/}));
 
-    this.state.hold(filterTrue(this.readySubject)
+    this._state.hold(filterTrue(this.readySubject)
         .pipe(
           switchMap(() => this.batchTree.dirtySubject),
           filter(dirty => dirty === true && this.enabled && this.loaded)
@@ -362,7 +373,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     );
 
     // If now allowed sampling batches: remove it from data
-    this.state.hold(filterFalse(this.allowSamplingBatches$), () => this.resetSamplingBatches())
+    this._state.hold(filterFalse(this.allowSamplingBatches$), () => this.resetSamplingBatches())
 
     // DEBUG
     this.debug = !environment.production;
@@ -371,10 +382,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   ngOnInit() {
     super.ngOnInit();
     this.showCatchForm = toBoolean(this.showCatchForm, true);
-    this.showBatchTables = toBoolean(this.state.get('showBatchTables'), true);
-    this._programAllowMeasure = toBoolean(this._programAllowMeasure, this.state.get('showBatchTables'));
-    this.allowSubBatches = toBoolean(this.allowSubBatches, this._programAllowMeasure);
-    this.allowSamplingBatches = toBoolean(this.allowSamplingBatches, this._programAllowMeasure);
+    this.showBatchTables = toBoolean(this._state.get('showBatchTables'), true);
+    this.programAllowMeasure = toBoolean(this._state.get('programAllowMeasure'), this.showBatchTables);
+    this.allowSubBatches = toBoolean(this._state.get('allowSubBatches'), this.programAllowMeasure);
+    this.allowSpeciesSampling = toBoolean(this._state.get('allowSpeciesSampling'), this.programAllowMeasure);
     this.allowDiscard = toBoolean(this.allowDiscard, true);
 
 
@@ -444,7 +455,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   async autoFill(opts?: { skipIfDisabled: boolean; skipIfNotEmpty: boolean; }): Promise<void> {
     await this.ready();
 
-    console.warn(this.logPrefix + 'autoFill() not implemented yet!');
+    console.warn(this._logPrefix + 'autoFill() not implemented yet!');
   }
 
   toggleFilterPanelFloating() {
@@ -535,7 +546,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     try {
       const now = Date.now();
-      console.debug(this.logPrefix + `Saving tree...`);
+      console.debug(this._logPrefix + `Saving tree...`);
 
       if (this.dirty && this.loaded) {
         // Save editing batch
@@ -549,7 +560,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         this.data = this.data || new Batch();
         this.data.fromObject(json, {withChildren: true});
 
-        console.debug(this.logPrefix + `Saving tree [OK] in ${Date.now()-now}ms`, this.data);
+        console.debug(this._logPrefix + `Saving tree [OK] in ${Date.now()-now}ms`, this.data);
       }
 
       return true;
@@ -584,7 +595,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // Wait form
     if (this.loading && this.gearId) {
-      await waitForTrue(this.state.select(['form', 'model'], _ => true), opts);
+      await waitForTrue(this._state.select(['form', 'model'], _ => true), opts);
     }
     else {
       await firstNotNilPromise(this.program$, opts);
@@ -606,14 +617,14 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
 
   protected async setProgram(program: Program) {
-    if (this.debug) console.debug(this.logPrefix + `Program ${program.label} loaded, with properties: `, program.properties);
+    if (this.debug) console.debug(this._logPrefix + `Program ${program.label} loaded, with properties: `, program.properties);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
-    this._programAllowMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
-    this.allowSamplingBatches = this.allowSamplingBatches;
+    this.programAllowMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
+    this.allowSpeciesSampling = this.allowSpeciesSampling;
     this.allowSubBatches = this.allowSubBatches;
     this.showTaxonGroup = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.showTaxonName = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
@@ -623,7 +634,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   protected async loadPmfms(program: Program, gearId: number) {
     if (!program || isNil(gearId)) return; // Skip
 
-    console.info(this.logPrefix + 'Loading pmfms...');
+    console.info(this._logPrefix + 'Loading pmfms...');
 
     // Remember component state
     const enabled = this.enabled;
@@ -656,7 +667,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       ]);
 
       // Update the state
-      this.state.set((state) => {
+      this._state.set((state) => {
         return {...state, catchPmfms, sortingPmfms};
       });
 
@@ -722,7 +733,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       const confirmed = await this.confirmEditingBatch({keepEditingBatch: true});
       if (!confirmed) return; // Not confirmed = Cannot change
 
-      console.info(this.logPrefix + `Start editing '${model?.name}'...`);
+      console.info(this._logPrefix + `Start editing '${model?.name}'...`);
 
       if (this.filterPanelFloating) this.closeFilterPanel();
       this.editingBatch = model;
@@ -746,9 +757,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.batchTree.physicalGear = this.physicalGear;
       this.batchTree.i18nContext = this.i18nContext;
       this.batchTree.setSubBatchesModalOption('programLabel', this.programLabel);
-      this.batchTree.showCatchForm = this.showCatchForm && model.pmfms && isNotEmptyArray(PmfmUtils.filterPmfms(model.pmfms, { excludeHidden: true }));
+      //this.batchTree.showCatchForm = this.showCatchForm && model.pmfms && isNotEmptyArray(PmfmUtils.filterPmfms(model.pmfms, { excludeHidden: true }));
       this.batchTree.showBatchTables = this.showBatchTables && model.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(model.childrenPmfms, { excludeHidden: true }));
-      this.batchTree.allowSamplingBatches = this.allowSamplingBatches;
+      this.batchTree.allowSpeciesSampling = this.allowSpeciesSampling;
       this.batchTree.allowSubBatches = this.allowSubBatches;
       this.batchTree.batchGroupsTable.showTaxonGroupColumn = this.showTaxonGroup;
       this.batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
@@ -760,7 +771,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       // Configure catch form state
       Object.assign(this.batchTree.catchBatchForm, {
         acquisitionLevel: this.batchTree.rootAcquisitionLevel,
-        pmfms: model.pmfms,
         // defaults
         showSamplingBatch: false,
         samplingBatchEnabled: false,
@@ -802,7 +812,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
           filter(status => model === this.editingBatch && status !== 'PENDING')
         )
         .subscribe(status => {
-          if (this.debug) console.debug(this.logPrefix + 'batchTree status changes: ', status);
+          if (this.debug) console.debug(this._logPrefix + 'batchTree status changes: ', status);
           this.editingBatch.valid = (status === 'VALID');
           this.markForCheck();
         });
@@ -834,7 +844,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   private resetRootForm() {
     // Reset pmfms, form and model
-    this.state.set({
+    this._state.set({
       sortingPmfms: null,
       catchPmfms: null,
       form: null,
@@ -883,7 +893,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // Save if need
     if (this.batchTree.dirty) {
-      console.info(this.logPrefix + `Saving ${model.originalData.label} ...`);
+      console.info(this._logPrefix + `Saving ${model.originalData.label} ...`);
       const saved = await this.batchTree.save();
       if (!saved) {
         model.valid = this.batchTree.valid;
@@ -948,7 +958,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   forward(event?: Event, model?: BatchModel) {
-    console.debug(this.logPrefix + 'Go foward');
+    console.debug(this._logPrefix + 'Go foward');
     event?.stopImmediatePropagation();
 
     model = model || this.editingBatch;
@@ -961,7 +971,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   backward(event?: Event, model?: BatchModel) {
-    console.debug(this.logPrefix + 'Go backward');
+    console.debug(this._logPrefix + 'Go backward');
     event?.stopImmediatePropagation();
 
     model = model || this.editingBatch;

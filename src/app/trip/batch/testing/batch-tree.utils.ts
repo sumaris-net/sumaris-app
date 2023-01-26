@@ -174,23 +174,43 @@ export function getExampleTree(key: string, programLabel?: string): any {
                 measurementValues: getSortingMeasValues({ discardOrLanding: 'DIS' }),
                 children: [
                   {
-                    label: 'SORTING_BATCH#B.DIS.1',
+                    label: 'SORTING_BATCH#B.DIS.VRAC',
                     rankOrder: 1,
-                    taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
-                    measurementValues: getSortingMeasValues({ sizeCategory: 319 /*SANS*/ }),
+                    measurementValues: {
+                      [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK
+                    },
                     children: [
                       {
-                        label: 'SORTING_BATCH#B.DIS.1.%',
+                        label: 'SORTING_BATCH#B.DIS.VRAC.%',
                         rankOrder: 1,
-                        samplingRatio: 0.5,
-                        samplingRatioText: '50%',
+                        samplingRatio: 0.25,
+                        samplingRatioText: "1/4",
+                        measurementValues: {
+                          [PmfmIds.BATCH_MEASURED_WEIGHT]: 3
+                        },
                         children: [
                           {
-                            label: 'SORTING_BATCH_INDIVIDUAL#2',
-                            rankOrder: 2,
-                            taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
-                            measurementValues: getIndivMeasValues({ length: 22, weight: 0.162100 }),
-                            individualCount: 1
+                            label: 'SORTING_BATCH#B.DIS.1',
+                            rankOrder: 1,
+                            taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
+                            measurementValues: getSortingMeasValues({ sizeCategory: 319 /*SANS*/ }),
+                            children: [
+                              {
+                                label: 'SORTING_BATCH#B.DIS.1.%',
+                                rankOrder: 1,
+                                samplingRatio: 0.5,
+                                samplingRatioText: '50%',
+                                children: [
+                                  {
+                                    label: 'SORTING_BATCH_INDIVIDUAL#2',
+                                    rankOrder: 2,
+                                    taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
+                                    measurementValues: getIndivMeasValues({ length: 22, weight: 0.162100 }),
+                                    individualCount: 1
+                                  }
+                                ]
+                              }
+                            ]
                           }
                         ]
                       }

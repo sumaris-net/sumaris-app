@@ -397,7 +397,8 @@ export class BatchForm<
     this.requiredIndividualCount = toBoolean(this.requiredIndividualCount, false);
     this.showIndividualCount = toBoolean(this.showIndividualCount, false);
     this.showChildrenWeight = toBoolean(this.showChildrenWeight, false);
-    this.showSampleWeight = toBoolean(this.showSampleWeight, toBoolean(this.showWeight, true));
+    this.showSampleWeight = toBoolean(this.showSampleWeight, this.showWeight);
+    this.showSampleIndividualCount = toBoolean(this.showSampleIndividualCount, false);
     this.requiredSampleWeight = toBoolean(this.requiredSampleWeight, false);
 
     // When pmfm filter change, re-apply initial pmfms
@@ -420,17 +421,16 @@ export class BatchForm<
     );
 
     // Has content ?
-    this._state.connect('hasContent', this._state.select(['showWeight', 'weightPmfms', 'pmfms', 'showIndividualCount', 'showSamplingBatch', 'showSampleIndividualCount'], res => {
-        return {
-          showWeight: res.showWeight && isNotEmptyArray(res.weightPmfms) || isNotEmptyArray(res.pmfms),
-          showIndividualCount: res.showIndividualCount || res.showSampleIndividualCount,
-          showSamplingBatch: res.showSamplingBatch
-        };
-      }),
-      (s, res) => {
-          return res.showWeight || res.showIndividualCount || res.showSamplingBatch
-            || this.showTaxonName || this.showTaxonName;
-        });
+    this._state.connect('hasContent', this._state.select([
+      'showWeight', 'weightPmfms', 'pmfms',
+      'showIndividualCount', 'showSampleIndividualCount',
+      'showSamplingBatch',
+    ], res => {
+      return res.showWeight && isNotEmptyArray(res.weightPmfms)
+        || isNotEmptyArray(res.pmfms)
+        || res.showIndividualCount || res.showSampleIndividualCount
+        || res.showSamplingBatch || this.showTaxonName || this.showTaxonName;
+      }));
 
     this._state.hold(this._state.select('samplingBatchEnabled').pipe(map(enable => enable && this.enabled)),
       enabled => {
@@ -828,7 +828,7 @@ export class BatchForm<
     if (!pmfms) return; // Skip
 
     // DEBUG
-    console.debug(this._logPrefix + ' Dispatching pmfms...');
+    console.debug(this._logPrefix + ' Dispatching pmfms...', pmfms);
 
     // Read weight PMFMs
     let weightPmfms = pmfms.filter(p => PmfmUtils.isWeight(p));
@@ -861,8 +861,9 @@ export class BatchForm<
       showSamplingBatch,
       weightPmfms,
       defaultWeightPmfm,
+      showWeight: !!defaultWeightPmfm,
       weightPmfmsByMethod,
-      hasContent: pmfms.length > 0 || weightPmfms.length > 0,
+      //hasContent: pmfms.length > 0 || weightPmfms.length > 0,
       pmfms: visiblePmfms
     };
   }
@@ -958,7 +959,7 @@ export class BatchForm<
     // Make sure required attribute have been set
     if (!this.samplingRatioFormat || !this.defaultWeightPmfm) {
       // Wait 2s
-      await waitFor(() => !!this.samplingRatioFormat && !!this.defaultWeightPmfm, {timeout: 2000});
+      await waitFor(() => !!this.samplingRatioFormat && !!this.defaultWeightPmfm, {timeout: 2000, stopError: false});
 
       // Stop if not found
       if (!this.samplingRatioFormat || !this.defaultWeightPmfm) {
