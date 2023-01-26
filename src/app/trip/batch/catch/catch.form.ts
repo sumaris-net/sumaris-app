@@ -55,14 +55,13 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
       formBuilder,
       programRefService,
       referentialRefService,
-      validatorService, {
-
-      });
+      validatorService);
     // Set defaults
     this.acquisitionLevel = AcquisitionLevelCodes.CATCH_BATCH;
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
     this.showTaxonGroup = false;
     this.showTaxonName = false;
+    //this.samplingBatchEnabled = false;
 
     // DEBUG
     this.debug = !environment.production;
@@ -78,6 +77,11 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
     // When using inside a batch tree (.e.g need by APASE)
     if (this.acquisitionLevel !== AcquisitionLevelCodes.CATCH_BATCH) {
       const state = await super.dispatchPmfms(pmfms);
+
+      // Reset some attributes, to keep value from @Input()
+      delete state.samplingBatchEnabled;
+      delete state.showSamplingBatch;
+
       return {
         ...state,
         onDeckPmfms: [],
@@ -87,12 +91,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
         otherPmfms: [],
         gridColCount: 12,
 
-        showWeight: isNotEmptyArray(state.weightPmfms),
-        showIndividualCount: false,
-
-        // TODO configure this, by model ?
-        //showSamplingBatch: true,
-        //samplingBatchEnabled: true
+        showWeight: isNotEmptyArray(state.weightPmfms)
       };
     }
 

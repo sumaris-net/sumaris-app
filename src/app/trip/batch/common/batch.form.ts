@@ -138,7 +138,6 @@ export class BatchForm<
   protected _disableByDefaultControls: AbstractControl[] = [];
   protected _pmfmNamePipe: PmfmNamePipe;
 
-  readonly defaultWeightPmfm$ = this._state.select('defaultWeightPmfm');
   readonly hasContent$ = this._state.select('hasContent');
 
   taxonNameFilter: any;
@@ -373,7 +372,7 @@ export class BatchForm<
     this.pmfmFilter = null;
     this.showWeight = isNotNil(this.form.get('weight.value'));
     this.showChildrenWeight = isNotNil(this.form.get('childrenWeight'));
-    this.samplingBatchEnabled = true;
+    //this.samplingBatchEnabled = true;
 
     // Make sure to have a resizable array for children
     if (!(this.form.get('children') instanceof AppFormArray)) {
@@ -433,7 +432,7 @@ export class BatchForm<
             || this.showTaxonName || this.showTaxonName;
         });
 
-    this._state.hold(this._state.select('samplingBatchEnabled'),
+    this._state.hold(this._state.select('samplingBatchEnabled').pipe(map(enable => enable && this.enabled)),
       enabled => {
         if (enabled) this.enableSamplingBatch()
         else this.disableSamplingBatch()
@@ -605,7 +604,7 @@ export class BatchForm<
       const samplingBatch = BatchUtils.getOrCreateSamplingChild(data);
 
       // Force isSampling=true, if sampling batch it NOT empty
-      this.samplingBatchEnabled = this.samplingBatchEnabled || BatchUtils.isSamplingNotEmpty(samplingBatch);
+      this.samplingBatchEnabled = toBoolean(this.samplingBatchEnabled, BatchUtils.isSamplingNotEmpty(samplingBatch));
 
       // Read child weight (use the first one)
       if (this.defaultWeightPmfm) {
@@ -636,6 +635,8 @@ export class BatchForm<
   }
 
   protected getValue(): T {
+    const test = super.getValue();
+
     if (!this.data) return undefined;
     const json = this.form.value;
     const data = this.data;
@@ -735,9 +736,9 @@ export class BatchForm<
     }
 
     const array = this.childrenFormArray;
-    if (!array) return;
+    if (!array || array.disabled) return;
 
-    this.childrenFormArray.disable(opts);
+    array.disable(opts);
     this._formValidatorSubscription?.unsubscribe();
 
     // Mark form as dirty
@@ -899,26 +900,11 @@ export class BatchForm<
         // Adapt exists sampling child, if any
         if (this.data) {
           const samplingChildBatch = BatchUtils.getOrCreateSamplingChild(this.data);
-
-          this.samplingBatchEnabled = this.samplingBatchEnabled || BatchUtils.isSamplingNotEmpty(samplingChildBatch);
+          this.samplingBatchEnabled = toBoolean(this.samplingBatchEnabled, BatchUtils.isSamplingNotEmpty(samplingChildBatch));
 
         } else {
           // No data: disable sampling
-          this.samplingBatchEnabled = false;
-        }
-
-        // If sampling weight is required, make batch weight required also
-        if (this.requiredSampleWeight) {
-          // FIXME : issue with the  requiredIf validator (should test it again)
-          // this.weightForm.setValidators(
-          //   SharedFormGroupValidators.requiredIf('value', samplingForm.get('weight.value'))
-          // );
-        }
-
-        // If sampling weight is required, make batch weight required also
-        if (this.requiredIndividualCount) {
-          //this.form.get('individualCount').setValidators(Validators.required);
-          //this._formValidatorSubscription?.unsubscribe();
+          this.samplingBatchEnabled = toBoolean(this.samplingBatchEnabled, false);
         }
 
         // Update form validators

@@ -88,6 +88,10 @@ export class BatchUtils {
     return batch && isNotNilOrBlank(batch.label) && batch.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX);
   }
 
+  static isParentOfSamplingBatch(batch: Batch): boolean {
+    return batch.children?.length === 1 && this.isSamplingBatch(batch.children[0]);
+  }
+
   static isSamplingNotEmpty(samplingBatch: Batch): boolean {
     return isNotNil(samplingBatch.individualCount)
       || isNotNil(samplingBatch.samplingRatio)

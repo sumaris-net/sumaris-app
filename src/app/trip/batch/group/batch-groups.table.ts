@@ -1416,15 +1416,17 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       individualCountRequired
     });
 
-    if (taxonGroupNoWeight) {
-      // Reset all weights, and the sampling ratio
-      this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_WEIGHT);
-      this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_SAMPLING_RATIO);
-    }
-    // Default case (weight allow this on taxon group)
-    else {
-      // Reset totalIndividualCount
-      this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_TOTAL);
+    if (isNotEmptyArray(this.taxonGroupsNoWeight)) {
+      // If taxon group with NO weights: reset weight and sampling ratio
+      if (taxonGroupNoWeight) {
+        this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_WEIGHT);
+        this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_SAMPLING_RATIO);
+      }
+        // Default case (weight allowed)
+      // - Reset totalIndividualCount
+      else {
+        this.resetColumnValueByFlag(form, BatchGroupColumnFlags.IS_INDIVIDUAL_COUNT | BatchGroupColumnFlags.IS_TOTAL);
+      }
     }
 
     const subscription = new Subscription();

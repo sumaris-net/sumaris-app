@@ -21,11 +21,12 @@ import { Batch } from '@app/trip/batch/common/batch.model';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { AcquisitionLevelCodes, PmfmIds, QualitativeValueIds } from '@app/referential/services/model/model.enum';
 import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { UntypedFormGroup } from '@angular/forms';
+import { FormArray, UntypedFormGroup } from '@angular/forms';
 import { MeasurementFormValues, MeasurementModelValues, MeasurementUtils, MeasurementValuesTypes, MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { Rule, RuleUtils } from '@app/referential/services/model/rule.model';
+import { BatchFormState } from '@app/trip/batch/common/batch.form';
 
 export interface BatchModelAsObjectOptions extends DataEntityAsObjectOptions {
   withChildren?: boolean;
@@ -183,13 +184,13 @@ export class BatchModel
   validator?: UntypedFormGroup;
   disabled?: boolean;
   hidden?: boolean;
-  showSamplingBatch?: boolean
+
+  state?: BatchFormState;
 
   path: string;
   parentId: number = null;
   parent: BatchModel = null;
   children: BatchModel[] = null;
-  showSamplingWeight: boolean = false;
 
   constructor(init?: { validator?: UntypedFormGroup; parent?: BatchModel; path?: string; originalData?: Batch}) {
     super();
@@ -203,8 +204,10 @@ export class BatchModel
     this.icon = source.icon;
     this.originalData = source.originalData;
     this.pmfms = source.pmfms || [];
+
+    this.state = source.state || undefined;
+
     this.childrenPmfms = source.childrenPmfms || [];
-    this.showSamplingWeight = source.showSamplingWeight || false;
 
     this.disabled = source.disabled || false;
     this.hidden = source.hidden || false;
@@ -261,10 +264,14 @@ export class BatchModel
     return this.validator?.enabled || false;
   }
 
-  set editing(value: boolean) {
-    if (value) {
+  set editing(enable: boolean) {
+    if (enable) {
       this.validator.enable({onlySelf: true});
-      this.validator.get('children')?.disable({onlySelf: true});
+      let childrenForm = this.validator.get('children');
+      if (this.state?.showSamplingBatch && childrenForm instanceof FormArray) {
+        childrenForm = childrenForm.at(0)?.get('children');
+      }
+      childrenForm?.disable({onlySelf: true});
     } else {
       if (this.validator.enabled) {
         // Save the valid state
