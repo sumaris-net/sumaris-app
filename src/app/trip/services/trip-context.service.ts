@@ -15,12 +15,19 @@ export class TripContextService extends DataContextService<TripContext> {
     super(<TripContext>{});
   }
 
-  get trip(): Trip|undefined {
-    return this.getValue('trip') as Trip;
+  set trip(value: Trip) {
+    this.set('trip', () => value);
+  }
+
+  get trip(): Trip {
+    return this.get('trip');
   }
 
   get operation(): Operation|undefined {
-    return this.getValue('operation') as Operation;
+    return this.get('operation');
   }
 
+  set operation(value: Operation) {
+    this.set('operation', _ => value);
+  }
 }
