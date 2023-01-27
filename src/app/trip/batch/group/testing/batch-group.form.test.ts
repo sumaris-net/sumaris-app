@@ -32,6 +32,7 @@ export class BatchGroupFormTestPage implements OnInit {
   filterForm: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
   showSamplingBatch = true;
+  samplingBatchEnabled = true;
   allowSubBatches = true;
   defaultHasSubBatches = false;
   hasSubBatches = false;

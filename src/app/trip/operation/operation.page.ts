@@ -1291,6 +1291,10 @@ export class OperationPage<S extends OperationState = OperationState>
     return super.waitWhilePending();
   }
 
+  protected saveDirtyChildren(): Promise<boolean> {
+    return super.saveDirtyChildren();
+  }
+
   protected async getValue(): Promise<Operation> {
     const data = await super.getValue();
 

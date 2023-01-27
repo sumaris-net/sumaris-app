@@ -196,7 +196,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       console.error('[batch-group-modal] Error while load data: ' + (err && err.message || err), err);
     }
     finally {
-      if (!this.disabled) this.enable();
+      if (!this.disabled) this.enable({emitEvent: false});
       this.form.markAsUntouched();
       this.form.markAsPristine();
       this.markForCheck();

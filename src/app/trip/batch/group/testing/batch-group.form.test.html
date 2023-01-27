@@ -70,6 +70,15 @@
          </mat-checkbox>
        </ion-col>
 
+
+       <!-- Eanble sampling batch -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="samplingBatchEnabled=!samplingBatchEnabled"
+                       [checked]="samplingBatchEnabled">
+           <mat-label>samplingBatchEnabled ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
+
        <!-- allowSubBatches -->
        <ion-col class="ion-padding">
          <mat-checkbox (change)="allowSubBatches=!allowSubBatches"
@@ -157,7 +166,8 @@
           <app-batch-group-form #form
                                 [programLabel]="$programLabel | async"
                                 [showTaxonName]="false"
-                                [showChildrenSamplingBatch]="allowSubBatches && showSamplingBatch"
+                                [showSamplingBatch]="showSamplingBatch"
+                                [samplingBatchEnabled]="samplingBatchEnabled"
                                 [allowSubBatches]="allowSubBatches"
                                 [defaultHasSubBatches]="defaultHasSubBatches"
                                 [hasSubBatches]="hasSubBatches"

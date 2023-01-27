@@ -288,16 +288,16 @@ export class BatchForm<
 
     // Refresh sampling child form
     if (this.samplingBatchEnabled) {
-      this.enableSamplingBatch();
+      this.enableSamplingBatch(opts);
     }
     else {
-      this.disableSamplingBatch();
+      this.disableSamplingBatch(opts);
     }
 
     if (this.showWeight) {
-      this.enableWeightFormGroup();
+      this.enableWeightFormGroup(opts);
     } else {
-      this.disableWeightFormGroup();
+      this.disableWeightFormGroup(opts);
     }
 
     // Other field to disable by default (e.g. discard reason, in SUMARiS program)

@@ -550,8 +550,9 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     try {
 
       this.data = source;
-      let childrenLabelPrefix = this.rootAcquisitionLevel !== AcquisitionLevelCodes.CATCH_BATCH
-        ? source.label : AcquisitionLevelCodes.SORTING_BATCH;
+      let childrenLabelPrefix = this.rootAcquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH
+        ? AcquisitionLevelCodes.SORTING_BATCH + '#'
+        : `${source.label}.`;
 
       // Set catch batch
       const samplingSource = BatchUtils.getSamplingChild(source);
@@ -559,7 +560,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
         const target = source.clone({ withChildren: false });
         if (samplingSource) {
           target.children = [samplingSource.clone({ withChildren: false })];
-          childrenLabelPrefix = source.label;
+          childrenLabelPrefix = `${samplingSource.label}.`;
         }
 
         this.catchBatchForm.gearId = this.gearId;

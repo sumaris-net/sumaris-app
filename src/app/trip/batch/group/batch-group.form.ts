@@ -2,16 +2,17 @@ import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryL
 import { Batch } from '../common/batch.model';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { AcquisitionLevelCodes, QualitativeValueIds } from '@app/referential/services/model/model.enum';
-import { AppFormUtils, InputElement, isNil, isNotNil, ReferentialUtils, toBoolean, waitFor, WaitForOptions } from '@sumaris-net/ngx-components';
+import { AppFormUtils, equals, InputElement, isNil, isNotNil, ReferentialUtils, toBoolean, waitFor, WaitForOptions } from '@sumaris-net/ngx-components';
 import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
 import { BatchForm, BatchFormState } from '../common/batch.form';
-import { filter } from 'rxjs/operators';
+import { debounceTime, filter } from 'rxjs/operators';
 import { BatchGroup, BatchGroupUtils } from './batch-group.model';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { merge } from 'rxjs';
 
 export interface BatchGroupFormState extends BatchFormState {
   childrenPmfmsByQvId: {[key: number]: IPmfm[]};
@@ -201,18 +202,20 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
     });
 
     // Listen form changes
-    this._state.hold(this.form.valueChanges
-        .pipe(filter(() => !this.applyingValue && !this.loading)),
-      data => this.computeChildrenState(data)
-    );
-    this._state.hold(this.hasSubBatches$
-        .pipe(filter(() => !this.applyingValue && !this.loading)),
-      hasSubBatches => this.computeChildrenState(this.form.value, {hasSubBatches})
+    this._state.hold(merge(
+      this.form.valueChanges,
+      this.hasSubBatches$
+    ).pipe(
+      filter(() => !this.applyingValue && !this.loading),
+      debounceTime(450)
+    ),
+      _ => this.computeChildrenState(this.form.value)
     );
 
-    this._state.hold(this._state.select('childrenState'), async (childrenState) => {
+    this._state.hold(this._state.select('childrenState')
+        .pipe(debounceTime(100)), async (childrenState) => {
       if (this.qvPmfm) {
-        await this.waitForChildren({timeout: 2000});
+        if (!this.childrenList?.length) await this.waitForChildren({timeout: 2000});
         this.childrenList.forEach(c => this.updateChildFormState(c, childrenState));
       }
       else {
@@ -453,10 +456,10 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
     // Show/hide
     const showWeight = !taxonGroupNoWeight;
     const showIndividualCount = taxonGroupNoWeight;
-    const showSamplingBatch = showWeight;
-    const showSampleWeight = showWeight;
+    const showSamplingBatch = showWeight && this.allowSubBatches;
+    const samplingBatchEnabled = !taxonGroupNoWeight && hasSubBatches && this.allowSubBatches;
+    const showSampleWeight = showSamplingBatch && showWeight;
     const showChildrenWeight = !taxonGroupNoWeight;
-    const isSampling = !taxonGroupNoWeight && hasSubBatches;
 
     // Required ?
     const requiredWeight = showWeight && hasSubBatches;
@@ -464,7 +467,9 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
     const requiredIndividualCount = !showWeight && showIndividualCount && hasSubBatches;
 
     // Update children state
+    const oldChildrenState = this.childrenState;
     const childrenState: Partial<BatchFormState> = {
+      ...oldChildrenState,
       showWeight,
       requiredWeight,
       showIndividualCount,
@@ -473,13 +478,11 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
       showSampleWeight,
       requiredSampleWeight,
       showChildrenWeight,
-      samplingBatchEnabled: isSampling
+      samplingBatchEnabled
     }
-    this.childrenState = childrenState;
-    this._state.set('childrenState', (oldState) => <BatchFormState>{
-      ...oldState.childrenState,
-      childrenState
-    });
+    if (!equals(childrenState, oldChildrenState)) {
+      this.childrenState = childrenState;
+    }
 
     return childrenState;
     //if (!opts || opts.emitEvent !== false) this.markForCheck();
