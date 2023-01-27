@@ -394,16 +394,7 @@ export class BatchForm<
     );
 
     // Has content ?
-    this._state.connect('hasContent', this._state.select([
-      'showWeight', 'weightPmfms', 'pmfms',
-      'showIndividualCount', 'showSampleIndividualCount',
-      'showSamplingBatch',
-    ], res => {
-      return res.showWeight && isNotEmptyArray(res.weightPmfms)
-        || isNotEmptyArray(res.pmfms)
-        || res.showIndividualCount || res.showSampleIndividualCount
-        || res.showSamplingBatch || this.showTaxonName || this.showTaxonName;
-      }));
+    this._state.connect('hasContent', this.listenHasContent());
 
     this._state.hold(this._state.select('samplingBatchEnabled').pipe(map(enable => enable && this.enabled)),
       enabled => {
@@ -680,6 +671,18 @@ export class BatchForm<
 
     return data;
   }
+
+  protected listenHasContent(): Observable<boolean> {
+    return this._state.select([
+      'showWeight', 'weightPmfms', 'pmfms',
+      'showIndividualCount', 'showSampleIndividualCount',
+      'showSamplingBatch',
+    ], state => (state.showWeight && isNotEmptyArray(state.weightPmfms))
+          || isNotEmptyArray(state.pmfms)
+          || state.showIndividualCount || state.showSampleIndividualCount
+          || state.showSamplingBatch || this.showTaxonName || this.showTaxonName);
+  }
+
 
   protected enableSamplingBatch(opts?: { emitEvent?: boolean }) {
     if (!this.samplingBatchEnabled) {

@@ -10,6 +10,8 @@ import { AcquisitionLevelCodes, MatrixIds } from '@app/referential/services/mode
 import { BatchForm, BatchFormState } from '@app/trip/batch/common/batch.form';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
+import { combineLatest, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface CatchBatchFormState extends BatchFormState {
   gearPmfms: IPmfm[];
@@ -74,8 +76,56 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
 
     if (!pmfms) return; // Skip
 
+    // If a catch batch
+    if (this.acquisitionLevel === AcquisitionLevelCodes.CATCH_BATCH) {
+
+      const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod } = await super.dispatchPmfms(pmfms);
+
+      const onDeckPmfms = pmfms.filter(p => p.label?.indexOf('ON_DECK_') === 0);
+      const sortingPmfms = pmfms.filter(p => p.label?.indexOf('SORTING_') === 0);
+      const catchPmfms = pmfms.filter(p => (PmfmUtils.isWeight(p) || p.label?.indexOf('_WEIGHT') !== -1)
+        && !onDeckPmfms.includes(p)
+        && !sortingPmfms.includes(p));
+      const gearPmfms = pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.label?.indexOf('CHILD_GEAR') === 0);
+
+      // Compute grid column count
+      const gridColCount = this.labelColSize /*label*/
+        + Math.min(3, Math.max(
+          onDeckPmfms.length,
+          sortingPmfms.length,
+          catchPmfms.length,
+          gearPmfms.length
+        ));
+
+      const otherPmfms = pmfms.filter(p => !onDeckPmfms.includes(p)
+        && !sortingPmfms.includes(p)
+        && !catchPmfms.includes(p)
+        && !gearPmfms.includes(p));
+
+      // Update state
+      return {
+        weightPmfms,
+        defaultWeightPmfm,
+        weightPmfmsByMethod,
+        onDeckPmfms,
+        sortingPmfms,
+        catchPmfms,
+        gearPmfms,
+        otherPmfms,
+        pmfms: [],
+        hasContent: pmfms.length > 0,
+        gridColCount,
+        showWeight: false,
+        showIndividualCount: false,
+        showSamplingBatch: false,
+        samplingBatchEnabled: false,
+        showEstimatedWeight: false,
+        showExhaustiveInventory: false
+      };
+    }
+
     // When using inside a batch tree (.e.g need by APASE)
-    if (this.acquisitionLevel !== AcquisitionLevelCodes.CATCH_BATCH) {
+    else {
       const state = await super.dispatchPmfms(pmfms);
 
       // Reset some attributes, to keep value from @Input()
@@ -94,49 +144,16 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
       };
     }
 
-    const { weightPmfms, defaultWeightPmfm, weightPmfmsByMethod } = await super.dispatchPmfms(pmfms);
+  }
 
-    const onDeckPmfms = pmfms.filter(p => p.label?.indexOf('ON_DECK_') === 0);
-    const sortingPmfms = pmfms.filter(p => p.label?.indexOf('SORTING_') === 0);
-    const catchPmfms = pmfms.filter(p => (PmfmUtils.isWeight(p) || p.label?.indexOf('_WEIGHT') !== -1)
-      && !onDeckPmfms.includes(p)
-      && !sortingPmfms.includes(p));
-    const gearPmfms = pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.label?.indexOf('CHILD_GEAR') === 0);
-
-    // Compute grid column count
-    const gridColCount = this.labelColSize /*label*/
-      + Math.min(3, Math.max(
-        onDeckPmfms.length,
-        sortingPmfms.length,
-        catchPmfms.length,
-        gearPmfms.length
-      ));
-
-    const otherPmfms = pmfms.filter(p => !onDeckPmfms.includes(p)
-      && !sortingPmfms.includes(p)
-      && !catchPmfms.includes(p)
-      && !gearPmfms.includes(p));
-
-    // Update state
-    return {
-      weightPmfms,
-      defaultWeightPmfm,
-      weightPmfmsByMethod,
-      onDeckPmfms,
-      sortingPmfms,
-      catchPmfms,
-      gearPmfms,
-      otherPmfms,
-      pmfms: [],
-      hasContent: pmfms.length > 0,
-      gridColCount,
-      showWeight: false,
-      showIndividualCount: false,
-      showSamplingBatch: false,
-      samplingBatchEnabled: false,
-      showEstimatedWeight: false,
-      showExhaustiveInventory: false
-    };
+  protected listenHasContent(): Observable<boolean> {
+    return combineLatest([
+      super.listenHasContent(),
+      this._state.select(['onDeckPmfms', 'sortingPmfms', 'catchPmfms', 'gearPmfms', 'otherPmfms'],
+          pmfmsMap => Object.values(pmfmsMap).some(isNotEmptyArray)
+      )
+    ])
+    .pipe(map(values => values.some(v => v === true)));
   }
 }
 
