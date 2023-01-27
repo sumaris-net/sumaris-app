@@ -182,8 +182,6 @@ export abstract class BaseMeasurementsTable<
     this._dataService.pmfms = pmfms;
   }
 
-
-
   get hasPmfms(): boolean {
     return isNotEmptyArray(this.pmfms);
   }

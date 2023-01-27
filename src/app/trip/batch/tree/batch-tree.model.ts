@@ -170,7 +170,9 @@ export class BatchModel
   }
 
 
+  // Cached values (should be recomputed on changes)
   private _valid = false;
+  private _weightPmfms : IPmfm[];
 
   name: string;
   icon: IconRef;
@@ -345,8 +347,12 @@ export class BatchModel
       ...this.childrenState, pmfms
     };
   }
+
   get weightPmfms(): IPmfm[] {
-    return this.pmfms?.filter(PmfmUtils.isWeight);
+    if (isNil(this._weightPmfms)) {
+      this._weightPmfms = this.pmfms?.filter(PmfmUtils.isWeight) || [];
+    }
+    return this._weightPmfms;
   }
 }
 
