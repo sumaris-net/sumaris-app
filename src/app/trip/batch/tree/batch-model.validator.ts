@@ -145,7 +145,7 @@ export class BatchModelValidatorService<
           .forEach(batch => {
             const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone())
             if (isNotEmptyArray(weightPmfms)) {
-              // Add weights PMFM
+              // Add weights PMFM (if not found)
               const pmfms = removeDuplicatesFromArray([
                 ...batch.pmfms,
                 ...weightPmfms

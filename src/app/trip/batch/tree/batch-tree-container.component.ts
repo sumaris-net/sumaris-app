@@ -734,6 +734,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       console.info(this._logPrefix + `Start editing '${model?.name}'...`);
 
       if (this.filterPanelFloating) this.closeFilterPanel();
+
       this.editingBatch = model;
       model.editing = true;
 

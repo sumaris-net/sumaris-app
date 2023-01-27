@@ -327,8 +327,7 @@ export class BatchModel
 
   get(path: string): BatchModel {
     if (isNilOrBlank(path)) return this;
-    const model = getPropertyByPath(this, path);
-    return model;
+    return getPropertyByPath(this, path);
   }
 
   get pmfms(): IPmfm[] {
@@ -338,6 +337,7 @@ export class BatchModel
     this.state = {
       ...this.state, pmfms
     };
+    this._weightPmfms = null; // Reset cache
   }
   get childrenPmfms(): IPmfm[] {
     return this.childrenState?.pmfms;
