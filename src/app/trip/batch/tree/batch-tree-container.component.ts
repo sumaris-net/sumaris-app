@@ -788,15 +788,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         jobs.push(this.batchTree.subBatchesTable.ready())
       }
 
-      // Apply value (after clone(), to keep pmfms unchanged)
-      // const target = Batch.fromObject(source.originalData.asObject({ withChildren: true }));
-      // target.parent = source.parent;
-
       const source = model.currentData;
-      const samplingSource = model.state?.showSamplingBatch ? BatchUtils.getOrCreateSamplingChild(source) : undefined;
       let target: Batch;
-      if (samplingSource) {
+      if (model.state?.showSamplingBatch) {
         target = Batch.fromObject(source, {withChildren: false});
+        const samplingSource = BatchUtils.getOrCreateSamplingChild(source);
         target.children = [Batch.fromObject(samplingSource, {withChildren: model.isLeaf})]
       }
       else {

@@ -1,19 +1,18 @@
-import {AfterViewInit, ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional} from '@angular/core';
-import {Batch, BatchWeight} from './batch.model';
-import {MeasurementValuesForm, MeasurementValuesState} from '../../measurement/measurement-values.form.class';
-import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
-import {AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional } from '@angular/core';
+import { Batch, BatchWeight } from './batch.model';
+import { MeasurementValuesForm, MeasurementValuesState } from '../../measurement/measurement-values.form.class';
+import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import {
   AppFormArray,
   changeCaseToUnderscore,
   firstArrayValue,
   firstTruePromise,
-  IAppForm,
   IReferentialRef,
-  isNil, isNotEmptyArray,
+  isNil,
+  isNotEmptyArray,
   isNotNil,
-  MatAutocompleteFieldConfig,
   ReferentialUtils,
   splitByProperty,
   toBoolean,
@@ -23,64 +22,20 @@ import {
 } from '@sumaris-net/ngx-components';
 
 import { debounceTime, delay, filter, map, tap } from 'rxjs/operators';
-import {AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels} from '@app/referential/services/model/model.enum';
-import {BehaviorSubject, Observable, Subscription} from 'rxjs';
-import {MeasurementValuesUtils} from '../../services/model/measurement.model';
-import {BatchValidatorOptions, BatchValidatorService} from './batch.validator';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {BatchUtils} from '@app/trip/batch/common/batch.utils';
-import {ProgramProperties} from '@app/referential/services/config/program.config';
-import {equals, roundHalfUp} from '@app/shared/functions';
-import {SamplingRatioFormat} from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import {PmfmNamePipe} from '@app/referential/pipes/pmfms.pipe';
-import {BatchFilter} from '@app/trip/batch/common/batch.filter';
-import {DenormalizedPmfmFilter} from '@app/referential/services/filter/pmfm.filter';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { Observable, Subscription } from 'rxjs';
+import { MeasurementValuesUtils } from '../../services/model/measurement.model';
+import { BatchValidatorOptions, BatchValidatorService } from './batch.validator';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { equals, roundHalfUp } from '@app/shared/functions';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { BatchFilter } from '@app/trip/batch/common/batch.filter';
+import { DenormalizedPmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
-export interface IBatchForm<T extends Batch<any> = Batch<any>> extends IAppForm {
-  form: UntypedFormGroup;
-  pmfms: IPmfm[];
-  acquisitionLevel: string;
-
-  showError: boolean;
-  showTaxonGroup?: boolean;
-  showTaxonName?: boolean;
-  taxonNameFilter?: any;
-  showWeight?: boolean;
-  defaultWeightPmfm?: IPmfm;
-  requiredWeight?: boolean;
-  showEstimatedWeight?: boolean;
-  showIndividualCount?: boolean;
-  requiredIndividualCount?: boolean;
-  showSamplingBatch?: boolean;
-  requiredSampleWeight?: boolean;
-  showSampleIndividualCount?: boolean;
-  samplingBatchEnabled?: boolean;
-  samplingRatioFormat?: SamplingRatioFormat;
-
-  measurementValuesForm: UntypedFormGroup;
-  samplingBatchForm?: UntypedFormGroup;
-  filter: BatchFilter;
-
-  gearId: number;
-  pmfms$: Observable<IPmfm[]>;
-  weightPmfms?: IPmfm[];
-  weightPmfmsByMethod?: { [key: string]: IPmfm };
-
-  tabindex?: number;
-  maxItemCountForButtons?: number;
-  maxVisibleButtons?: number;
-
-  autocompleteFields: {
-    [key: string]: MatAutocompleteFieldConfig;
-  };
-
-  compact?: boolean;
-  mobile: boolean;
-  debug: boolean;
-
-  setValue(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean; [key: string]: any; waitIdle?: boolean;}): Promise<void> | void;
-}
 
 export interface BatchFormState extends MeasurementValuesState {
   defaultWeightPmfm: IPmfm;
@@ -88,7 +43,10 @@ export interface BatchFormState extends MeasurementValuesState {
   weightPmfmsByMethod: { [key: string]: IPmfm };
   pmfmFilter: Partial<DenormalizedPmfmFilter>|null;
 
+  showExhaustiveInventory: boolean;
+
   showWeight: boolean;
+  showEstimatedWeight: boolean;
   requiredWeight: boolean;
   requiredIndividualCount: boolean;
   showSamplingBatch: boolean;
@@ -99,8 +57,8 @@ export interface BatchFormState extends MeasurementValuesState {
   showSampleWeight: boolean;
   showSampleIndividualCount: boolean;
   requiredSampleIndividualCount: boolean;
-
   samplingBatchEnabled: boolean;
+
   hasContent: boolean; // Has some visible content (pmfms, weight, etc.)
   afterViewInitialized: boolean
 }
@@ -126,7 +84,7 @@ export class BatchForm<
   VO extends BatchValidatorOptions = BatchValidatorOptions
 >
   extends MeasurementValuesForm<T, S>
-  implements OnInit, OnDestroy, AfterViewInit, IBatchForm<Batch> {
+  implements OnInit, OnDestroy, AfterViewInit {
 
   private _formValidatorSubscription: Subscription;
   private _formValidatorOpts: any;
@@ -147,8 +105,6 @@ export class BatchForm<
   @Input() usageMode: UsageMode;
   @Input() showTaxonGroup = true;
   @Input() showTaxonName = true;
-
-  @Input() showEstimatedWeight = false;
   @Input() showError = true;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
   @Input() maxVisibleButtons: number;
@@ -166,6 +122,22 @@ export class BatchForm<
 
   get showWeight(): boolean {
     return this._state.get('showWeight');
+  }
+
+  @Input() set showEstimatedWeight(value: boolean) {
+    this._state.set('showEstimatedWeight', _ => value);
+  }
+
+  get showEstimatedWeight(): boolean {
+    return this._state.get('showEstimatedWeight');
+  }
+
+  @Input() set showExhaustiveInventory(value: boolean) {
+    this._state.set('showExhaustiveInventory', _ => value);
+  }
+
+  get showExhaustiveInventory(): boolean {
+    return this._state.get('showExhaustiveInventory');
   }
 
   @Input()
@@ -400,6 +372,7 @@ export class BatchForm<
     this.showSampleWeight = toBoolean(this.showSampleWeight, this.showWeight);
     this.showSampleIndividualCount = toBoolean(this.showSampleIndividualCount, false);
     this.requiredSampleWeight = toBoolean(this.requiredSampleWeight, false);
+    this.showExhaustiveInventory = toBoolean(this.showExhaustiveInventory, false);
 
     // When pmfm filter change, re-apply initial pmfms
     this._state.hold(this._state.select('pmfmFilter')
@@ -635,8 +608,6 @@ export class BatchForm<
   }
 
   protected getValue(): T {
-    const test = super.getValue();
-
     if (!this.data) return undefined;
     const json = this.form.value;
     const data = this.data;
@@ -686,7 +657,7 @@ export class BatchForm<
 
         // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
         if (!this.showWeight && isNotNil(childJson.individualCount) && isNotNil(json.individualCount)) {
-          console.debug('Computing samplingRatio, using individualCount (e.g. special case like RJB species)');
+          console.debug(this._logPrefix + 'Computing samplingRatio, using individualCount (e.g. special case for species without weight)');
           childJson.samplingRatio = childJson.individualCount / json.individualCount;
           childJson.samplingRatioText = `${childJson.individualCount}/${json.individualCount}`;
         }
@@ -862,6 +833,7 @@ export class BatchForm<
       weightPmfms,
       defaultWeightPmfm,
       showWeight: !!defaultWeightPmfm,
+      showEstimatedWeight: !!weightPmfmsByMethod[MethodIds.ESTIMATED_BY_OBSERVER],
       weightPmfmsByMethod,
       //hasContent: pmfms.length > 0 || weightPmfms.length > 0,
       pmfms: visiblePmfms

@@ -254,11 +254,11 @@ export class RuleUtils {
     });
   }
 
-  static valid<T>(entity: T, rules: Rule[], debug?: boolean): boolean {
+  static valid<T>(entity: T, rules: Rule<T>[], debug?: boolean): boolean {
     return this.control(entity, rules, debug) === undefined /*no error*/;
   }
 
-  static control<T>(source: T, rules: Rule[], debug ?: boolean): FormErrors|undefined {
+  static control<T>(source: T, rules: Rule<T>[], debug ?: boolean): FormErrors|undefined {
 
     const errors = (rules || []).map(r => Rule.control(source, r, {debug})).filter(isNotNil);
 

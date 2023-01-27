@@ -160,7 +160,9 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
     this.childrenState = {
       showSamplingBatch: this.showSamplingBatch,
-      samplingBatchEnabled: this.data?.observedIndividualCount > 0 || this.defaultHasSubBatches
+      samplingBatchEnabled: this.data?.observedIndividualCount > 0 || this.defaultHasSubBatches,
+      showExhaustiveInventory: false,
+      showEstimatedWeight: false
     }
 
     this.load();

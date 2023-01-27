@@ -43,7 +43,7 @@ export class BatchModel
   static fromObject: (source: any, opts?: { withChildren?: boolean; }) => BatchModel;
   static fromBatch(batch: Batch|undefined,
                    pmfms: IPmfm[],
-                   rules: Rule<{model: BatchModel, childrenPmfm: IPmfm}>[],
+                   rules: Rule<{model: BatchModel, pmfm: IPmfm}>[],
                    // Internal arguments (used by recursive call)
                    maxTreeDepth = 4,
                    treeDepth = 0,
@@ -68,7 +68,7 @@ export class BatchModel
       // Build rules
       RuleUtils.build(rules, false /*keep previous compilation*/);
 
-      pmfms = pmfms.filter(pmfm => RuleUtils.valid({model, childrenPmfm: pmfm}, rules));
+      pmfms = pmfms.filter(pmfm => RuleUtils.valid({model, pmfm}, rules));
     }
 
     // Find the first QV pmfm
@@ -77,7 +77,7 @@ export class BatchModel
       minQvCount: 2,
       maxQvCount: 3,
       excludePmfmIds: [PmfmIds.CHILD_GEAR], // Avoid child gear be a qvPmfm
-      filterFn: pmfm => RuleUtils.valid({model, qvPmfm: pmfm}, rules)
+      //filterFn: pmfm => RuleUtils.valid({model, pmfm: pmfm}, rules)
     });
     if (qvPmfm) {
       const qvPmfmIndex = pmfms.indexOf(qvPmfm);
@@ -91,16 +91,21 @@ export class BatchModel
       treeDepth++;
       if (treeDepth < maxTreeDepth && isNotEmptyArray(pmfms)) {
 
+        const samplingBatch = BatchUtils.getSamplingChild(batch);
         const childLabelPrefix = isCatchBatch ?
-          `${AcquisitionLevelCodes.SORTING_BATCH}#` : `${batch.label}.`;
-        const childrenPath = isCatchBatch ? 'children' : `${path}.children`;
+          `${AcquisitionLevelCodes.SORTING_BATCH}#` : `${samplingBatch?.label || batch.label}.`;
+        let childrenPath = isCatchBatch ? 'children' :
+          (samplingBatch
+             ? `${path}.children.0.children`
+             : `${path}.children`);
+
         // Create children batches
         model.children = qvPmfm.qualitativeValues.map((qv, index) => {
           const childQvPmfm = qvPmfm.clone();
           childQvPmfm.hidden = true;
           childQvPmfm.defaultValue = qv.id;
 
-          const childBatch = (batch.children || []).find(c => PmfmValueUtils.equals(c.measurementValues?.[childQvPmfm.id], qv))
+          const childBatch = (samplingBatch?.children || batch.children || []).find(c => PmfmValueUtils.equals(c.measurementValues?.[childQvPmfm.id], qv))
             || Batch.fromObject({
               measurementValues: {
                 __typename: MeasurementValuesTypes.MeasurementModelValues,
@@ -148,6 +153,7 @@ export class BatchModel
     model.isLeaf = isEmptyArray(model.children) || isNotEmptyArray(model.childrenPmfms);
     model.pmfms = model.pmfms || [];
     model.childrenPmfms = model.childrenPmfms || [];
+    model.state.showExhaustiveInventory = false;
 
     return model;
   }

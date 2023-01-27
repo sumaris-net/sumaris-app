@@ -894,6 +894,7 @@
         "SAMPLING_RATIO_PCT": "Taux éch. (%)",
         "SAMPLING_COEFFICIENT": "Coef. éch.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
+        "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhautif des espèces ?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
           "TITLE": "Mesures individuelles",
@@ -941,7 +942,12 @@
         "DISCARD_OR_LANDING": "Partie retenue ou rejetée ?",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
-        "CHILD_GEAR": "Sous-engin"
+        "CHILD_GEAR": "Sous-engin",
+        "TRAWL_SELECTIVITY": {
+          "BATCH_MEASURED_WEIGHT": "Poids du lot (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Poids du lot (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Poids du lot (kg)"
+        }
       }
     },
     "SUB_BATCH": {

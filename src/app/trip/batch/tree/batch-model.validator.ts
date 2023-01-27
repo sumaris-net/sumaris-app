@@ -101,7 +101,7 @@ export class BatchModelValidatorService<
           filter: ({model}) => PmfmValueUtils.equals(model.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.LANDING),
 
           // Avoid discard pmfms
-          children: this.batchRules.getNotDiscardPmfms('childrenPmfm.')
+          children: this.batchRules.getNotDiscardPmfms('pmfm.')
         }),
 
         // Discard rules
@@ -111,14 +111,14 @@ export class BatchModelValidatorService<
             || PmfmValueUtils.equals(model.parent?.originalData.measurementValues[PmfmIds.DISCARD_OR_LANDING], QualitativeValueIds.DISCARD_OR_LANDING.DISCARD),
 
           // Avoid landing pmfms
-          children: this.batchRules.getNotLandingPmfms('childrenPmfm.')
+          children: this.batchRules.getNotLandingPmfms('pmfm.')
         })
       ];
     }
     else {
       rules = [...rules,
         // No discard pmfms
-        ...this.batchRules.getNotDiscardPmfms('childrenPmfm.')
+        ...this.batchRules.getNotDiscardPmfms('pmfm.')
       ];
     }
 
@@ -128,26 +128,27 @@ export class BatchModelValidatorService<
 
     // Special case for discard batches
     {
-      // Enable sampling batch, on VRAC batches
       if (allowDiscard) {
-        const bulkFilter = BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
-          // parent: {
-          //   measurementValues: {
-          //     [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
-          //   }
-          // },
-          hidden: false, // Exclude if no pmfms
-          //isLeaf: true,
-          measurementValues: {
-            [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK
-          }
-        });
-        TreeItemEntityUtils.findByFilter(model, bulkFilter)
+
+        // Enable sampling batch, in VRAC batches
+        TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+            parent: {
+              measurementValues: {
+                [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
+              }
+            },
+            hidden: false, // Exclude if no pmfms
+            measurementValues: {
+              [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK
+            }
+          }))
           .forEach(bulkBatch => {
+            // Inject weights PMFM
             const pmfms = removeDuplicatesFromArray([
               ...bulkBatch.pmfms,
               ...(bulkBatch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone())
             ], 'id');
+            // Update the state
             bulkBatch.state = {
               ...bulkBatch.state,
               pmfms,
@@ -157,6 +158,18 @@ export class BatchModelValidatorService<
               samplingBatchEnabled: true
             };
           });
+
+        // TODO: activer le champ "Inventaire exhaustif e l'espèce ? sur les lot fils"
+        /*TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+          hidden: false, // Exclude if no pmfms
+          isLeaf: true
+        }))
+        .forEach(leafBatch => {
+          leafBatch.state = {
+            ...leafBatch.state,
+            showExhaustiveInventory: true
+          }
+        });*/
       }
       else {
         const discardFilter = BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{

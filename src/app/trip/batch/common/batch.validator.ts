@@ -95,6 +95,7 @@ export class BatchValidatorService<
       samplingRatioComputed: [samplingRatioComputed],
       taxonGroup: [data?.taxonGroup || null, SharedValidators.entity],
       taxonName: [data?.taxonName || null, SharedValidators.entity],
+      exhaustiveInventory: [toBoolean(data?.exhaustiveInventory, null)],
       comments: [data?.comments || null],
       parent: [data?.parent || null, SharedValidators.entity],
       // Quality properties

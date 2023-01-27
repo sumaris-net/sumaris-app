@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, forwardRef, Injector, OnInit, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, OnInit } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
 import { BatchValidatorService } from '../common/batch.validator';
@@ -7,7 +7,7 @@ import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes, MatrixIds } from '@app/referential/services/model/model.enum';
-import { BatchForm, BatchFormState, IBatchForm } from '@app/trip/batch/common/batch.form';
+import { BatchForm, BatchFormState } from '@app/trip/batch/common/batch.form';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 
@@ -31,7 +31,7 @@ export interface CatchBatchFormState extends BatchFormState {
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
-  implements OnInit, IBatchForm<Batch> {
+  implements OnInit {
 
   readonly gearPmfms$ = this._state.select('gearPmfms');
   readonly onDeckPmfms$ = this._state.select('onDeckPmfms');
@@ -90,7 +90,6 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
         gearPmfms: [],
         otherPmfms: [],
         gridColCount: 12,
-
         showWeight: isNotEmptyArray(state.weightPmfms)
       };
     }
@@ -134,7 +133,9 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
       showWeight: false,
       showIndividualCount: false,
       showSamplingBatch: false,
-      samplingBatchEnabled: false
+      samplingBatchEnabled: false,
+      showEstimatedWeight: false,
+      showExhaustiveInventory: false
     };
   }
 }

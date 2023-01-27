@@ -550,16 +550,16 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     try {
 
       this.data = source;
-      let childrenLabelprefix = this.rootAcquisitionLevel !== AcquisitionLevelCodes.CATCH_BATCH
+      let childrenLabelPrefix = this.rootAcquisitionLevel !== AcquisitionLevelCodes.CATCH_BATCH
         ? source.label : AcquisitionLevelCodes.SORTING_BATCH;
 
       // Set catch batch
+      const samplingSource = BatchUtils.getSamplingChild(source);
       {
-        const samplingSource = BatchUtils.getSamplingChild(source);
         const target = source.clone({ withChildren: false });
         if (samplingSource) {
           target.children = [samplingSource.clone({ withChildren: false })];
-          childrenLabelprefix = source.label;
+          childrenLabelPrefix = source.label;
         }
 
         this.catchBatchForm.gearId = this.gearId;
@@ -570,11 +570,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
       if (this.batchGroupsTable) {
         // Retrieve batch group (make sure label start with acquisition level)
         // Then convert into batch group entities
-        const batchGroups: BatchGroup[] = BatchGroupUtils.fromBatchTree(source);
+        const batchGroups: BatchGroup[] = BatchGroupUtils.fromBatchTree(samplingSource || source);
 
         // Apply to table
         this.batchGroupsTable.gearId = this.gearId;
-        this.batchGroupsTable.labelPrefix = childrenLabelprefix;
+        this.batchGroupsTable.labelPrefix = childrenLabelPrefix;
         this.batchGroupsTable.markAsReady();
         this.batchGroupsTable.value = batchGroups;
         await this.batchGroupsTable.ready(); // Wait loaded (need to be sure the QV pmfm is set)
