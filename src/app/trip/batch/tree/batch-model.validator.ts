@@ -142,21 +142,27 @@ export class BatchModelValidatorService<
               [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.BULK
             }
           }))
-          .forEach(bulkBatch => {
-            // Inject weights PMFM
-            const pmfms = removeDuplicatesFromArray([
-              ...bulkBatch.pmfms,
-              ...(bulkBatch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone())
-            ], 'id');
-            // Update the state
-            bulkBatch.state = {
-              ...bulkBatch.state,
-              pmfms,
-              showWeight: true,
-              showSamplingBatch: true,
-              showSampleWeight: true,
-              samplingBatchEnabled: true
-            };
+          .forEach(batch => {
+            const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone())
+            if (isNotEmptyArray(weightPmfms)) {
+              // Add weights PMFM
+              const pmfms = removeDuplicatesFromArray([
+                ...batch.pmfms,
+                ...weightPmfms
+              ], 'id');
+
+              // Update the state, to enable weight (and sampling weight)
+              batch.state = {
+                ...batch.state,
+                pmfms,
+                showWeight: true,
+                requiredWeight: true,
+                showSamplingBatch: true,
+                showSampleWeight: true,
+                requiredSampleWeight: true,
+                samplingBatchEnabled: true
+              };
+            }
           });
 
         // TODO: activer le champ "Inventaire exhaustif e l'espèce ? sur les lot fils"

@@ -345,6 +345,9 @@ export class BatchModel
       ...this.childrenState, pmfms
     };
   }
+  get weightPmfms(): IPmfm[] {
+    return this.pmfms?.filter(PmfmUtils.isWeight);
+  }
 }
 
 @EntityClass({typename: 'BatchModelFilterVO'})

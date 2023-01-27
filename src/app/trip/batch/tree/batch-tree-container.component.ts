@@ -911,6 +911,13 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     if (isNotEmptyArray(model.pmfms)) {
       MeasurementValuesUtils.normalizeEntityToForm(json, model.pmfms, model.validator, {keepOtherExistingPmfms: true});
     }
+    if (model.state.showWeight) {
+      json.weight = BatchUtils.getWeight(json, model.weightPmfms);
+    }
+    if (model.state.showSampleWeight) {
+      const samplingJson = BatchUtils.getSamplingChild(json);
+      samplingJson.weight = BatchUtils.getWeight(samplingJson, model.weightPmfms);
+    }
     model.validator.patchValue(json);
 
     // Wait validation finished

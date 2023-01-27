@@ -672,6 +672,10 @@ export class BatchForm<
     return data;
   }
 
+  /**
+   * Compute 'hasContent' value, from other inputs
+   * @protected
+   */
   protected listenHasContent(): Observable<boolean> {
     return this._state.select([
       'showWeight', 'weightPmfms', 'pmfms',
