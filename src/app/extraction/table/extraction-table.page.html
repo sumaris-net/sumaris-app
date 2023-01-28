@@ -159,7 +159,7 @@
 
   <button mat-menu-item
           *ngIf="mobile"
-          (click)="onRefresh.emit()">
+          (click)="doRefresh()">
     <mat-icon>refresh</mat-icon>
   </button>
 
@@ -198,6 +198,11 @@
 </mat-menu>
 
 <ion-content class="ion-no-padding" scroll-y="false">
+
+  <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)" >
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <ng-container *ngIf="type?.sheetNames as sheetNames">
     <nav mat-tab-nav-bar *ngIf="sheetNames | isArrayLength:{greaterThan: 1} ">
       <a mat-tab-link *ngFor="let item of sheetNames"
@@ -361,7 +366,9 @@
       </ion-col>
 
       <ion-col size="auto">
-        <ion-button fill="clear" color="dark" (click)="onRefresh.emit()" (keyup.enter)="onRefresh.emit()"
+        <ion-button fill="clear" color="dark"
+                    (click)="doRefresh()"
+                    (keyup.enter)="doRefresh()"
                     [disabled]="loading">
           <ion-icon slot="start" name="refresh"></ion-icon>
           <ion-label translate>COMMON.BTN_REFRESH</ion-label>
