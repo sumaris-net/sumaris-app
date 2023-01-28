@@ -24,6 +24,7 @@ export const ExtractionFragments = {
   }`
 };
 
+export declare type CacheDuration = 'none' |'short'; // TODO complete
 
 const Queries = {
 
@@ -105,7 +106,8 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
     sortDirection?: SortDirection,
     filter?: ExtractionFilter,
     opts?: {
-      fetchPolicy?: FetchPolicy
+      fetchPolicy?: FetchPolicy;
+      cacheDuration?: CacheDuration;
     }): Promise<ExtractionResult> {
 
     filter = ExtractionFilter.fromObject(filter);
@@ -118,6 +120,11 @@ export class ExtractionService extends BaseGraphqlService<ExtractionType, Extrac
       sortDirection: sortDirection || 'asc',
       filter: filter && filter.asPodObject()
     };
+
+    // Disable Pod Cache, if disabled
+    if (opts?.cacheDuration) {
+      variables.cacheDuration = opts.cacheDuration;
+    }
 
     const now = Date.now();
     if (this._debug) console.debug("[extraction-service] Loading rows... using options:", variables);
