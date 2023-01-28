@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input,
 import {
   Alerts,
   AppFormUtils,
-  AppTable,
+  AppTable, DateUtils,
   EntitiesTableDataSource,
   fromDateISOString,
   isEmptyArray,
@@ -43,6 +43,7 @@ import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.se
 import { TaxonNameRefFilter } from '@app/referential/services/filter/taxon-name-ref.filter';
 
 import moment from 'moment';
+import {RxState} from '@rx-angular/state';
 
 
 export const SamplingStrategiesPageSettingsEnum = {
@@ -51,16 +52,24 @@ export const SamplingStrategiesPageSettingsEnum = {
   FEATURE_ID: SAMPLING_STRATEGIES_FEATURE_NAME
 };
 
+interface SamplingStrategiesTableState {
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
 @Component({
   selector: 'app-sampling-strategies-table',
   templateUrl: 'sampling-strategies.table.html',
   styleUrls: ['sampling-strategies.table.scss'],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SamplingStrategiesTable extends AppTable<SamplingStrategy, StrategyFilter> {
 
   private _program: Program;
 
+  readonly canEdit$ = this._state.select('canEdit');
+  readonly canDelete$ = this._state.select('canDelete');
   readonly quarters = Object.freeze([1, 2, 3, 4]);
   readonly parameterGroupLabels: string[];
 
@@ -76,8 +85,19 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
   } = {}
 
   @Input() showToolbar = true;
-  @Input() canEdit = false;
-  @Input() canDelete = false;
+
+  @Input() set canEdit(value: boolean) {
+    this._state.set('canEdit', _ => value);
+  }
+  get canEdit(): boolean {
+    return this._state.get('canEdit');
+  }
+  @Input() set canDelete(value: boolean) {
+     this._state.set('canDelete', _ => value);
+  }
+  get canDelete(): boolean {
+    return this._state.get('canDelete');
+  }
   @Input() showError = true;
   @Input() showPaginator = true;
   @Input() filterPanelFloating = true;
@@ -104,6 +124,7 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     protected personService: PersonService,
     protected parameterService: ParameterService,
     protected formBuilder: UntypedFormBuilder,
+    protected _state: RxState<SamplingStrategiesTableState>,
     protected cd: ChangeDetectorRef
   ) {
     super(injector,
@@ -167,6 +188,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     // Will be override when getting program - see setProgram()
     this.settingsId = SamplingStrategiesPageSettingsEnum.PAGE_ID + '#?';
 
+    this._state.set({
+      canEdit: false,
+      canDelete: false
+    });
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -177,8 +203,15 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     // By default, use floating filter if toolbar not shown
     this.filterPanelFloating = toBoolean(this.filterPanelFloating, !this.showToolbar)
 
-      // Remove error after changed selection
+    // Remove error after changed selection
     this.selection.changed.subscribe(() => this.resetError());
+
+    // Watch 'canEdit' and 'canDelete' to update 'readonly'
+    this._state.hold(this._state.select(['canEdit', 'canDelete'], res => res).pipe(debounceTime(250)),
+      ({canEdit, canDelete}) => {
+        this.readOnly = !canEdit && !canDelete;
+        this.markForCheck();
+      });
 
     // Analytic reference autocomplete
     this.registerAutocompleteField('analyticReference', {
@@ -380,9 +413,11 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     const filter = StrategyFilter.fromObject(source);
 
     // Start date: should be the first day of the year
-    filter.startDate = filter.startDate && filter.startDate.utc().startOf('year');
     // End date: should be the last day of the year
-    filter.endDate = filter.endDate && filter.endDate.endOf('year').utc().startOf('day');
+    // /!\ Need to use local time, because the DB can use a local time (e.g. SIH-ADAGIO use tz=Europe/Paris)
+    //     TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
+    filter.startDate = filter.startDate?.local(true).startOf('year');
+    filter.endDate = filter.endDate?.local(true).endOf('year').startOf('day');
 
     // Convert periods (from quarters)
     filter.periods = this.asFilterPeriods(source);
@@ -414,17 +449,19 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     if (isEmptyArray(selectedQuarters)) return undefined; // Skip if no quarters selected
 
     // Start year (<N - 10> by default)
-    const startYear = source.startDate && fromDateISOString(source.startDate).year() || (moment().year() - 10);
+    // /!\ Need to use local time, because the DB can use a local time (e.g. SIH-ADAGIO use tz=Europe/Paris)
+    //     TODO: use DB Timezone, using the config CORE_CONFIG_OPTIONS.DB_TIMEZONE;
+    const startYear = fromDateISOString(source.startDate)?.clone().local(true).year() || (moment().year() - 10);
     // End year (N + 1 by default)
-    const endYear = source.endDate && fromDateISOString(source.endDate).year() || (moment().year() + 1);
+    const endYear = fromDateISOString(source.endDate)?.clone().local(true).year() || (moment().year() + 1);
 
     if (startYear > endYear) return undefined; // Invalid years
 
     const periods = [];
     for (let year = startYear; year <= endYear; year++) {
       selectedQuarters.forEach(quarter => {
-        const startMonth = (quarter - 1) * 3 + 1;
-        const startDate = fromDateISOString(`${year}-${startMonth.toString().padStart(2, '0')}-01T00:00:00.000Z`).utc();
+        const startMonth = (quarter - 1) * 3;
+        const startDate = DateUtils.moment().local(true).year(year).month(startMonth).startOf('month');
         const endDate = startDate.clone().add(2, 'month').endOf('month').startOf('day');
         periods.push({startDate, endDate});
       });
@@ -465,14 +502,17 @@ export class SamplingStrategiesTable extends AppTable<SamplingStrategy, Strategy
     const strategies = rows
       .map(row => row.currentData)
       .map(SamplingStrategy.fromObject);
-    const year = fromDateISOString(data).format('YY').toString();
+    const year = fromDateISOString(data)
+      // We need the local year, not the UTC year
+      .local(true)
+      .format('YYYY').toString();
 
 
-    await this.duplicateStrategies(strategies, year);
+    await this.duplicateStrategies(strategies, +year);
     this.selection.clear();
   }
 
-  async duplicateStrategies(sources: SamplingStrategy[], year: string) {
+  async duplicateStrategies(sources: SamplingStrategy[], year: number) {
 
     try {
       this.markAsLoading();

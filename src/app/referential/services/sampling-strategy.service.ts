@@ -1,6 +1,6 @@
 import { Injectable, Injector } from '@angular/core';
-import {FetchPolicy, gql} from '@apollo/client/core';
-import {ReferentialFragments} from './referential.fragments';
+import { FetchPolicy, gql } from '@apollo/client/core';
+import { ReferentialFragments } from './referential.fragments';
 import {
   AccountService,
   ConfigService,
@@ -9,32 +9,32 @@ import {
   EntitySaveOptions,
   EntityServiceLoadOptions,
   firstArrayValue,
-  GraphqlService,
   isEmptyArray,
   isNil,
   isNilOrBlank,
+  isNilOrNaN,
   isNotNil,
   LoadResult,
   NetworkService,
-  PlatformService,
   ReferentialRef
 } from '@sumaris-net/ngx-components';
-import {CacheService} from 'ionic-cache';
-import {SortDirection} from '@angular/material/sort';
-import {StrategyFragments} from './strategy.fragments';
-import {StrategyService} from './strategy.service';
-import {Observable, timer} from 'rxjs';
-import {map, mergeMap, startWith, switchMap} from 'rxjs/operators';
-import {ParameterLabelGroups} from './model/model.enum';
-import {PmfmService} from './pmfm.service';
-import {ReferentialRefService} from './referential-ref.service';
-import {SamplingStrategy, StrategyEffort} from './model/sampling-strategy.model';
-import {BaseReferentialService} from './base-referential-service.class';
-import {Moment} from 'moment';
-import {StrategyFilter} from '@app/referential/services/filter/strategy.filter';
-import {Strategy} from '@app/referential/services/model/strategy.model';
-import {ExtractionCacheDurationType} from '@app/extraction/type/extraction-type.model';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
+import { CacheService } from 'ionic-cache';
+import { SortDirection } from '@angular/material/sort';
+import { StrategyFragments } from './strategy.fragments';
+import { StrategyService } from './strategy.service';
+import { Observable, timer } from 'rxjs';
+import { map, mergeMap, startWith, switchMap } from 'rxjs/operators';
+import { ParameterLabelGroups } from './model/model.enum';
+import { PmfmService } from './pmfm.service';
+import { ReferentialRefService } from './referential-ref.service';
+import { SamplingStrategy, StrategyEffort } from './model/sampling-strategy.model';
+import { BaseReferentialService } from './base-referential-service.class';
+import { Moment } from 'moment';
+import { StrategyFilter } from '@app/referential/services/filter/strategy.filter';
+import { Strategy } from '@app/referential/services/model/strategy.model';
+import { ExtractionCacheDurationType } from '@app/extraction/type/extraction-type.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { Program } from '@app/referential/services/model/program.model';
 
 const SamplingStrategyQueries = {
   loadAll: gql`query DenormalizedStrategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -185,8 +185,8 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     }
   }
 
-  canUserWrite(data?: Strategy) {
-    return this.strategyService.canUserWrite(data)
+  canUserWrite(data?: Strategy, opts?: {program: Program}) {
+    return this.strategyService.canUserWrite(data, opts);
   }
 
   async save(entity: SamplingStrategy, opts?: EntitySaveOptions & {
@@ -223,10 +223,10 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
     return entity;
   }
 
-  async duplicateAllToYear(sources: SamplingStrategy[], year: string): Promise<Strategy[]> {
+  async duplicateAllToYear(sources: SamplingStrategy[], year: number): Promise<Strategy[]> {
 
     if (isEmptyArray(sources)) return [];
-    if (isNil(year) || typeof year !== "string" || year.length !== 2) throw Error('Missing or invalid year argument (should be YY format)');
+    if (isNilOrNaN(year) || typeof year !== "number" || year < 1970) throw Error('Missing or invalid year argument (should be YYYY format)');
 
     // CLear cache (only once)
     await this.strategyService.clearCache();
@@ -235,7 +235,10 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
 
     // WARN: do not use a Promise.all, because parallel execution not working (label computation need series execution)
     for (const source of sources) {
-      const target = await this.strategyService.cloneToYear(source, year);
+      const newLabelPrefix = year.toString().substring(2) + source.label.substring(2, 9);
+      const newLabel = await this.strategyService.computeNextLabel(source.programId, newLabelPrefix, 3);
+
+      const target = await this.strategyService.cloneToYear(source, year, newLabel);
 
       const targetAsSampling = SamplingStrategy.fromObject(target.asObject());
 
@@ -367,7 +370,7 @@ export class SamplingStrategyService extends BaseReferentialService<SamplingStra
       cacheDuration
     };
 
-    console.debug('[sampling-strategy-service] variables:', variables);
+    console.debug('[sampling-strategy-service] Fill efforts using variables:', variables);
 
     const {data} = await this.graphql.query<{data: { strategy: string; startDate: string; endDate: string; expectedEffort}[]}>({
       query: SamplingStrategyQueries.loadEffort,

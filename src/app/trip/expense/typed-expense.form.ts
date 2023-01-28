@@ -1,7 +1,7 @@
 import { MeasurementsForm } from '../measurement/measurements.form.component';
 import { ChangeDetectionStrategy, Component, EventEmitter, Injector, Input, Output } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { filterNotNil, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, remove, removeAll } from '@sumaris-net/ngx-components';
+import { filterNotNil, firstNotNilPromise, FormFieldDefinition, isNotEmptyArray, isNotNilOrNaN, remove, removeAll, WaitForOptions } from '@sumaris-net/ngx-components';
 import { TypedExpenseValidatorService } from '../services/validator/typed-expense.validator';
 import { BehaviorSubject } from 'rxjs';
 import { Measurement } from '../services/model/measurement.model';
@@ -26,10 +26,6 @@ export class TypedExpenseForm extends MeasurementsForm {
   @Input() rankOrder: number;
   @Input() expenseType = 'UNKNOWN';
 
-  @Input() set pmfms(pmfms: IPmfm[]) {
-    this.setPmfms(pmfms);
-  }
-
   @Output() totalValueChanges = new EventEmitter<any>();
 
   get total(): number {
@@ -53,7 +49,7 @@ export class TypedExpenseForm extends MeasurementsForm {
 
     this.amountDefinition = {
       key: 'amount',
-      label: `EXPENSE.${this.expenseType.toUpperCase()}.AMOUNT`,
+      label: `EXPENSE.${this.expenseType}.AMOUNT`,
       type: "double",
       minValue: 0,
       maximumNumberDecimals: 2
@@ -120,6 +116,7 @@ export class TypedExpenseForm extends MeasurementsForm {
     }
 
     await super.updateView(data, opts);
+    await this.readyPmfms();
 
     // set packaging and amount value
     const packaging = (this.$packagingPmfms.getValue() || [])
@@ -127,6 +124,14 @@ export class TypedExpenseForm extends MeasurementsForm {
     const amount = packaging && this.form.get(packaging.id.toString()).value || undefined;
     this.form.patchValue({amount, packaging});
 
+  }
+
+  async readyPmfms(): Promise<void> {
+     await Promise.all([
+       firstNotNilPromise(this.$typePmfm),
+       firstNotNilPromise(this.$totalPmfm),
+       firstNotNilPromise(this.$packagingPmfms),
+     ]);
   }
 
   parsePmfms(pmfms: IPmfm[]) {

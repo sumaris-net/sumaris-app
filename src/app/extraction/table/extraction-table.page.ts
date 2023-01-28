@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject, EMPTY, from, merge, Observable, Subject } from 'rxjs';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {
   AccountService,
   Alerts,
-  arrayGroupBy,
   DEFAULT_PAGE_SIZE,
-  DEFAULT_PAGE_SIZE_OPTIONS, firstFalsePromise,
+  DEFAULT_PAGE_SIZE_OPTIONS,
   firstNotNilPromise,
   isNil,
   isNilOrBlank,
@@ -19,7 +18,7 @@ import {
   StatusIds,
   TableSelectColumnsComponent
 } from '@sumaris-net/ngx-components';
-import { TableDataSource } from '@e-is/ngx-material-table';
+import {TableDataSource} from '@e-is/ngx-material-table';
 import {
   ExtractionCategories,
   ExtractionColumn,
@@ -30,27 +29,28 @@ import {
   ExtractionTypeCategory,
   ExtractionTypeUtils
 } from '../type/extraction-type.model';
-import { AlertController, ModalController, ToastController } from '@ionic/angular';
-import { Location } from '@angular/common';
-import { combineAll, concatAll, debounceTime, filter, first, map, tap, throttleTime } from 'rxjs/operators';
-import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
-import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { ExtractionService } from '../common/extraction.service';
-import { UntypedFormBuilder } from '@angular/forms';
-import { MatTable } from '@angular/material/table';
-import { MatPaginator } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatExpansionPanel } from '@angular/material/expansion';
-import { ProductService } from '@app/extraction/product/product.service';
-import { ExtractionProduct } from '@app/extraction/product/product.model';
-import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { ProgramFilter } from '@app/referential/services/filter/program.filter';
-import { Program } from '@app/referential/services/model/program.model';
-import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
-import { RxState } from '@rx-angular/state';
+import {AlertController, ModalController, ToastController} from '@ionic/angular';
+import {Location} from '@angular/common';
+import {debounceTime, filter, map, throttleTime} from 'rxjs/operators';
+import {DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState} from '../common/extraction-abstract.page';
+import {ActivatedRoute, Router} from '@angular/router';
+import {TranslateService} from '@ngx-translate/core';
+import {CacheDuration, ExtractionService} from '../common/extraction.service';
+import {UntypedFormBuilder} from '@angular/forms';
+import {MatTable} from '@angular/material/table';
+import {MatPaginator} from '@angular/material/paginator';
+import {MatSort} from '@angular/material/sort';
+import {MatExpansionPanel} from '@angular/material/expansion';
+import {ProductService} from '@app/extraction/product/product.service';
+import {ExtractionProduct} from '@app/extraction/product/product.model';
+import {ExtractionTypeService} from '@app/extraction/type/extraction-type.service';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {ProgramFilter} from '@app/referential/services/filter/program.filter';
+import {Program} from '@app/referential/services/model/program.model';
+import {ExtractionTypeFilter} from '@app/extraction/type/extraction-type.filter';
+import {RxState} from '@rx-angular/state';
+import {CompletableEvent} from '../../../../ngx-sumaris-components/src/app/shared/events';
 
 export interface ExtractionTableState extends ExtractionState<ExtractionType>{
   programs: Program[];
@@ -77,6 +77,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
   defaultPageSize = DEFAULT_PAGE_SIZE;
   defaultPageSizeOptions = DEFAULT_PAGE_SIZE_OPTIONS;
+  cacheDuration: CacheDuration = null; // = default
 
   data: ExtractionResult;
   $title = new BehaviorSubject<string>('EXTRACTION.TABLE.TITLE');
@@ -588,6 +589,24 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.applyFilterAndClosePanel(event);
   }
 
+  doRefresh(event?: CompletableEvent) {
+    this.cacheDuration = 'none';
+    this.onRefresh.emit(event);
+
+    // Wait end
+    setTimeout(async () => {
+      await this.waitIdle();
+
+      // complete (e.g. IonRefresher)
+      if (event?.target && event.target.complete) {
+        event.target.complete();
+      }
+
+      // Refresh cache duration
+      this.cacheDuration = null;
+    });
+  }
+
   /* -- protected method -- */
 
   protected resetProgram() {
@@ -635,12 +654,13 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
       // Load rows
       const data = await this.service.loadRows(this.type,
-          this.paginator ? this.paginator.pageIndex * this.paginator.pageSize : null,
-          this.paginator?.pageSize || DEFAULT_PAGE_SIZE,
-          this.sort?.active,
-          this.sort?.direction,
-          filter
-        );
+        this.paginator ? this.paginator.pageIndex * this.paginator.pageSize : null,
+        this.paginator?.pageSize || DEFAULT_PAGE_SIZE,
+        this.sort?.active,
+        this.sort?.direction,
+        filter,
+        { cacheDuration: this.cacheDuration }
+      );
 
       if (cancelled) return; // Stop if cancelled
 

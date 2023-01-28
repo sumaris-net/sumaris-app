@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
-import { OperationSaveOptions, OperationService } from '../services/operation.service';
-import { OperationForm } from './operation.form';
-import { TripService } from '../services/trip.service';
-import { MeasurementsForm } from '../measurement/measurements.form.component';
+import {ChangeDetectionStrategy, Component, Injector, Optional, ViewChild} from '@angular/core';
+import {OperationSaveOptions, OperationService} from '../services/operation.service';
+import {OperationForm} from './operation.form';
+import {TripService} from '../services/trip.service';
+import {MeasurementsForm} from '../measurement/measurements.form.component';
 import {
   AppEditorOptions,
   AppEntityEditor,
@@ -18,7 +18,6 @@ import {
   fromDateISOString,
   HistoryPageReference,
   Hotkeys,
-  IEntity,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -30,35 +29,43 @@ import {
   UsageMode,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import { MatTabChangeEvent } from '@angular/material/tabs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
-import { UntypedFormGroup, Validators } from '@angular/forms';
-import { Moment } from 'moment';
-import { Program } from '@app/referential/services/model/program.model';
-import { Operation, OperationUtils, Trip } from '../services/model/trip.model';
-import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
-import { environment } from '@environments/environment';
-import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { BehaviorSubject, from, merge, of, Subscription, timer } from 'rxjs';
-import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
-import { IonRouterOutlet, ModalController } from '@ionic/angular';
-import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
-import { IPmfmForm, OperationValidators } from '@app/trip/services/validator/operation.validator';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
-import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
-import { ContextService } from '@app/shared/context.service';
-import { Geometries } from '@app/shared/geometries.utils';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { flagsToString, removeFlag } from '@app/shared/flags.utils';
-import { PositionUtils } from '@app/trip/services/position.utils';
-import { RxState } from '@rx-angular/state';
-import { TripPageTabs } from '@app/trip/trip/trip.page';
+import {MatTabChangeEvent} from '@angular/material/tabs';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
+import {UntypedFormGroup, Validators} from '@angular/forms';
+import {Moment} from 'moment';
+import {Program} from '@app/referential/services/model/program.model';
+import {Operation, OperationUtils, Trip} from '../services/model/trip.model';
+import {OperationPasteFlags, ProgramProperties} from '@app/referential/services/config/program.config';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {IBatchTreeComponent} from '../batch/tree/batch-tree.component';
+import {environment} from '@environments/environment';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {from, merge, of, Subscription, timer} from 'rxjs';
+import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
+import {IonRouterOutlet, ModalController} from '@ionic/angular';
+import {SampleTreeComponent} from '@app/trip/sample/sample-tree.component';
+import {IPmfmForm, OperationValidators} from '@app/trip/services/validator/operation.validator';
+import {TripContextService} from '@app/trip/services/trip-context.service';
+import {APP_ENTITY_EDITOR} from '@app/data/quality/entity-quality-form.component';
+import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
+import {ContextService} from '@app/shared/context.service';
+import {Geometries} from '@app/shared/geometries.utils';
+import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
+import {flagsToString, removeFlag} from '@app/shared/flags.utils';
+import {PositionUtils} from '@app/trip/services/position.utils';
+import {RxState} from '@rx-angular/state';
+import {TripPageTabs} from '@app/trip/trip/trip.page';
 
 export interface OperationState {
   hasIndividualMeasures?: boolean;
+  physicalGear: PhysicalGear;
+  gearId: number;
+  acquisitionLevel: string;
+  programLabel: string;
+  program: Program;
+  tripId: number;
+  lastOperations: Operation[];
+  lastEndDate: Moment;
 }
 
 @Component({
@@ -98,6 +105,9 @@ export class OperationPage<S extends OperationState = OperationState>
 
   protected readonly _state: RxState<S> = this.injector.get(RxState);
   protected readonly hasIndividualMeasures$ = this._state.select('hasIndividualMeasures');
+  protected readonly physicalGear$ = this._state.select('physicalGear');
+  protected readonly gearId$ = this._state.select('gearId');
+
   protected tripService: TripService;
   protected context: TripContextService;
   protected programRefService: ProgramRefService;
@@ -108,11 +118,10 @@ export class OperationPage<S extends OperationState = OperationState>
   readonly dateTimePattern: string;
   readonly showLastOperations: boolean;
   readonly mobile: boolean;
-  readonly $acquisitionLevel = new BehaviorSubject<string>(null);
-  readonly $programLabel = new BehaviorSubject<string>(null);
-  readonly $tripId = new BehaviorSubject<number>(null);
-  readonly $lastOperations = new BehaviorSubject<Operation[]>(null);
-  readonly $lastEndDate = new BehaviorSubject<Moment>(null);
+  readonly acquisitionLevel$ = this._state.select('acquisitionLevel');
+  readonly programLabel$ = this._state.select( 'programLabel');
+  readonly lastOperations$ = this._state.select('lastOperations');
+  readonly lastEndDate$ = this._state.select('lastEndDate');
 
   trip: Trip;
   measurements: Measurement[];
@@ -179,6 +188,40 @@ export class OperationPage<S extends OperationState = OperationState>
     return this.operationPasteFlags !== 0;
   }
 
+  get acquisitionLevel(): string {
+    return this._state.get('acquisitionLevel');
+  }
+  set acquisitionLevel(value: string) {
+    this._state.set('acquisitionLevel', () => value);
+  }
+
+  get programLabel(): string {
+    return this._state.get('programLabel');
+  }
+  set programLabel(value: string) {
+    this._state.set('programLabel', () => value);
+  }
+
+  get physicalGear(): PhysicalGear {
+    return this._state.get('physicalGear');
+  }
+  set physicalGear(value: PhysicalGear) {
+    this._state.set('physicalGear', () => value);
+  }
+
+  get tripId(): number {
+    return this._state.get('tripId');
+  }
+  set tripId(value: number) {
+    this._state.set('tripId', () => value);
+  }
+  get lastEndDate(): Moment {
+    return this._state.get('lastEndDate');
+  }
+  set lastEndDate(value: Moment) {
+    this._state.set('lastEndDate', () => value);
+  }
+
   constructor(
     private injector: Injector,
     dataService: OperationService,
@@ -228,6 +271,67 @@ export class OperationPage<S extends OperationState = OperationState>
       );
     }
 
+    // Watch program, to configure tables from program properties
+    this._state.connect('program', this._state.select('programLabel')
+      .pipe(
+        filter(isNotNilOrBlank),
+        switchMap((programLabel: string) => {
+          // Try to load by context
+          const contextualProgram = this.context?.program;
+          if (contextualProgram?.label === programLabel) {
+            return of(contextualProgram);
+          }
+          // Load by service
+          return this.programRefService.watchByLabel(programLabel, {debug: this.debug})
+        })
+      )
+    );
+
+    // Apply program
+    this._state.hold(this._state.select('program'), program => {
+      // Update the context (to avoid a reload, when opening the another operation)
+      if (this.context && this.context.program !== program) {
+        this.context.setValue('program', program);
+      }
+
+      return this.setProgram(program);
+    });
+
+    // Watch trip
+    this._state.connect('lastOperations', this._state.select('tripId')
+      .pipe(
+        // Only if tripId changes
+        filter(tripId => isNotNil(tripId) && this._lastOperationsTripId !== tripId),
+
+        // Update default back Href
+        tap(tripId => {
+          this._lastOperationsTripId = tripId; // Remember new trip id
+          // Update back href
+          const tripHref = `/trips/${tripId}?tab=${TripPageTabs.OPERATIONS}`;
+          if (this.defaultBackHref !== tripHref) {
+            this.defaultBackHref = tripHref;
+            this.markForCheck();
+          }
+        }),
+
+        // Load last operations (if enabled)
+        //filter(_ => this.showLastOperations),
+        filter(isNotNil),
+        debounceTime(500),
+        switchMap(tripId => this.dataService.watchAll(
+          0, 5,
+          'startDateTime', 'desc',
+          {tripId}, {
+            withBatchTree: false,
+            withSamples: false,
+            computeRankOrder: false,
+            withTotal: true,
+            fetchPolicy: 'cache-and-network'
+          })),
+        map(res => res && res.data || [])
+      )
+    );
+
     // FOR DEV ONLY ----
     this.debug = !environment.production;
   }
@@ -240,12 +344,6 @@ export class OperationPage<S extends OperationState = OperationState>
   }*/
 
   async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {
-    const saved = this.isOnFieldMode && this.dirty
-      // If on field mode: try to save silently
-      ? await this.save(null)
-      // If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm();
-    if (!saved) return; // Cancelled
 
     const errors = await this.service.control(data, {
       ...opts,
@@ -296,60 +394,6 @@ export class OperationPage<S extends OperationState = OperationState>
   ngOnInit() {
     super.ngOnInit();
 
-    // Watch program, to configure tables from program properties
-    this.registerSubscription(
-      this.$programLabel
-        .pipe(
-          filter(isNotNilOrBlank),
-          distinctUntilChanged(),
-          switchMap((programLabel) => {
-            const contextualProgram = this.context?.program;
-            if (contextualProgram?.label === programLabel) {
-              return of(contextualProgram);
-            }
-            return this.programRefService.watchByLabel(programLabel, {debug: this.debug})
-          })
-        )
-        .subscribe(program => this.setProgram(program)));
-
-    // Watch trip
-    this.registerSubscription(
-      this.$tripId
-        .pipe(
-          // Only if tripId changes
-          filter(tripId => isNotNil(tripId) && this._lastOperationsTripId !== tripId),
-
-          // Update default back Href
-          tap(tripId => {
-            this._lastOperationsTripId = tripId; // Remember new trip id
-            // Update back href
-            const tripHref = `/trips/${tripId}?tab=${TripPageTabs.OPERATIONS}`;
-            if (this.defaultBackHref !== tripHref) {
-              this.defaultBackHref = tripHref;
-              this.markForCheck();
-            }
-          }),
-
-          // Load last operations (if enabled)
-          //filter(_ => this.showLastOperations),
-          filter(isNotNil),
-          debounceTime(500),
-          switchMap(tripId => this.dataService.watchAll(
-            0, 5,
-            'startDateTime', 'desc',
-            {tripId}, {
-              withBatchTree: false,
-              withSamples: false,
-              computeRankOrder: false,
-              withTotal: true,
-              fetchPolicy: 'cache-and-network'
-            })),
-          map(res => res && res.data || []),
-          tap(data => this.$lastOperations.next(data))
-        )
-        .subscribe()
-    );
-
     // Update the data context
     this.registerSubscription(
       merge(
@@ -365,20 +409,26 @@ export class OperationPage<S extends OperationState = OperationState>
         )
         .subscribe(_ => this.updateDataContext())
     )
+
+    // Get physical gear by form
+    this._state.connect('physicalGear', this.opeForm.physicalGearControl.valueChanges
+      .pipe(
+        // skip if loading (when opening an existing operation, physicalGear will be set inside onEntityLoaded() )
+        filter((_) => !this.loading)
+      )
+    )
+
+    this._state.connect('gearId', this.physicalGear$,
+      (_, physicalGear) => toNumber(physicalGear?.gear?.id, null));
+
+    this._state.hold(this.gearId$
+      .pipe(filter(gearId => isNotNil(gearId) && this.loaded), debounceTime(450)), () => this.markForCheck())
   }
 
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-    this.registerSubscription(
-      this.opeForm.physicalGearControl.valueChanges
-        .subscribe(physicalGear => {
-          // skip if loading (when opening an existing operation, setPhysicalGear() is called by onEntityLoaded())
-          if (!this.loading) {
-            this.setPhysicalGear(physicalGear)
-          }
-        })
-    );
+
 
     if (this.measurementsForm) {
       this.registerSubscription(
@@ -525,10 +575,8 @@ export class OperationPage<S extends OperationState = OperationState>
               acquisitionLevel = AcquisitionLevelCodes.OPERATION;
             }
 
-            // Change acquisition level, if need
-            if (this.$acquisitionLevel.value !== acquisitionLevel) {
-              this.$acquisitionLevel.next(acquisitionLevel);
-            }
+            // Propagate acquisition level
+            this.acquisitionLevel = acquisitionLevel;
 
             // Force first tab index
             if (this.selectedTabIndex == OperationPage.TABS.GENERAL) {
@@ -560,7 +608,7 @@ export class OperationPage<S extends OperationState = OperationState>
             distinctUntilChanged()
           )
           .subscribe(value => {
-            this.batchTree.allowSamplingBatches = value;
+            this.batchTree.allowSpeciesSampling = value;
             this.batchTree.defaultHasSubBatches = value;
             this.batchTree.allowSubBatches = value;
             // Hide button to toggle hasSubBatches (yes/no) when value if forced
@@ -624,20 +672,11 @@ export class OperationPage<S extends OperationState = OperationState>
     super.ngOnDestroy();
     this._measurementSubscription?.unsubscribe();
     this._sampleRowSubscription?.unsubscribe();
-    this.$acquisitionLevel.complete();
-    this.$programLabel.complete();
-    this.$lastOperations.complete();
-    this.$tripId.complete();
   }
 
   protected async setProgram(program: Program) {
     if (!program) return; // Skip
     if (this.debug) console.debug(`[operation] Program ${program.label} loaded, with properties: `, program.properties);
-
-    // Update the context (to avoid a reload, when opening the another operation)
-    if (this.context && this.context.program !== program) {
-      this.context.setValue('program', program);
-    }
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
@@ -689,7 +728,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
 
     if (!this.allowParentOperation) {
-      this.$acquisitionLevel.next(AcquisitionLevelCodes.OPERATION);
+      this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
     }
 
     if (this.batchTree) this.batchTree.program = program;
@@ -699,15 +738,6 @@ export class OperationPage<S extends OperationState = OperationState>
     await this.initAvailableTaxonGroups(program.label);
 
     this.markAsReady();
-  }
-
-  protected setPhysicalGear(physicalGear: PhysicalGear) {
-    const gearId = toNumber(physicalGear?.gear?.id, null);
-    this.measurementsForm.gearId = gearId;
-    if (this.batchTree) {
-      this.batchTree.gearId = gearId;
-      this.batchTree.physicalGear = physicalGear || null;
-    }
   }
 
   load(id?: number, opts?: EntityServiceLoadOptions & { emitEvent?: boolean; openTabIndex?: number; updateRoute?: boolean; [p: string]: any }): Promise<void> {
@@ -759,7 +789,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
       if (!this.isDuplicatedData) {
         // Wait last operations to be loaded
-        const previousOperations = await firstNotNilPromise(this.$lastOperations, {stop: this.destroySubject});
+        const previousOperations = await firstNotNilPromise(this.lastOperations$, {stop: this.destroySubject});
 
         // Copy from previous operation only if is not a duplicated operation
         const previousOperation = (previousOperations || [])
@@ -772,8 +802,11 @@ export class OperationPage<S extends OperationState = OperationState>
       }
     }
 
-    // Propage program
-    if (data.programLabel) this.$programLabel.next(data.programLabel);
+    // Propagate program
+    if (data.programLabel) this.programLabel = data.programLabel;
+
+    // Propagate physical gear
+    if (data.physicalGear) this.physicalGear = data.physicalGear;
 
     this.opeForm.showComment = !this.mobile;
   }
@@ -793,11 +826,11 @@ export class OperationPage<S extends OperationState = OperationState>
 
     await this.loadLinkedOperation(data);
 
-    // Propage program
-    if (data.programLabel) this.$programLabel.next(data.programLabel);
+    // Propagate program
+    if (data.programLabel) this.programLabel = data.programLabel;
 
-    // Propage physical gear
-    if (data.physicalGear) this.setPhysicalGear(data.physicalGear);
+    // Propagate physical gear
+    if (data.physicalGear) this.physicalGear = data.physicalGear;
 
     this.opeForm.showComment = !this.mobile || isNotNilOrBlank(data.comments);
   }
@@ -981,15 +1014,16 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // Set measurements form
       this.measurementsForm.gearId = gearId;
-      this.measurementsForm.programLabel = this.$programLabel.value;
+      this.measurementsForm.programLabel = this.programLabel;
       const isChildOperation = data.parentOperation || isNotNil(data.parentOperationId);
       const acquisitionLevel = isChildOperation ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
-      const acquisitionLevelChanged = this.$acquisitionLevel.value !== acquisitionLevel;
-      if (acquisitionLevelChanged) {
+
+      // Propagate acquisition level, if changed
+      if (this.acquisitionLevel !== acquisitionLevel) {
         this.measurementsForm.unload();
         this.measurementsForm.acquisitionLevel = acquisitionLevel;
         this.measurementsForm.markAsReady();
-        this.$acquisitionLevel.next(acquisitionLevel);
+        this.acquisitionLevel = acquisitionLevel;
       }
 
       jobs.push(this.measurementsForm.setValue(data && data.measurements || []));
@@ -1056,11 +1090,6 @@ export class OperationPage<S extends OperationState = OperationState>
         this.setError({message: 'COMMON.FORM.HAS_ERROR', ...error}, {detailsCssClass: 'error-details'});
       });
     }
-  }
-
-  isCurrentData(other: IEntity<any>): boolean {
-    return (this.isNewData && isNil(other.id))
-      || (this.data && this.data.id === other.id);
   }
 
   async save(event, opts?: OperationSaveOptions): Promise<boolean> {
@@ -1191,7 +1220,7 @@ export class OperationPage<S extends OperationState = OperationState>
   protected async loadTrip(tripId: number): Promise<Trip> {
 
     // Update trip id (will cause last operations to be watched, if need)
-    this.$tripId.next(+tripId);
+    this.tripId = +tripId;
 
     let trip = this.context.getValue('trip') as Trip;
 
@@ -1260,6 +1289,10 @@ export class OperationPage<S extends OperationState = OperationState>
   protected waitWhilePending(): Promise<void> {
     this.form.updateValueAndValidity();
     return super.waitWhilePending();
+  }
+
+  protected saveDirtyChildren(): Promise<boolean> {
+    return super.saveDirtyChildren();
   }
 
   protected async getValue(): Promise<Operation> {
@@ -1444,7 +1477,7 @@ export class OperationPage<S extends OperationState = OperationState>
   protected updateDataContext() {
     console.debug('[operation-page] Updating data context...');
     // Date
-    const date = this.$lastEndDate.value || this.opeForm.lastStartDateTimeControl?.value;
+    const date = this.lastEndDate || this.opeForm.lastStartDateTimeControl?.value;
     this.context.setValue('date', fromDateISOString(date));
 
     // Fishing area
@@ -1476,6 +1509,6 @@ export class OperationPage<S extends OperationState = OperationState>
     const program = this.context.program;
     const editor = program?.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR) || ProgramProperties.TRIP_OPERATION_EDITOR.defaultValue;
     const editorPath = editor !== 'legacy' ? [editor] : [];
-    await this.router.navigate(['trips', this.$tripId.value, 'operation', ...editorPath, id], {queryParams: {} /*reset query params*/ });
+    await this.router.navigate(['trips', this.tripId, 'operation', ...editorPath, id], {queryParams: {} /*reset query params*/ });
   }
 }

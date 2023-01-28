@@ -126,7 +126,7 @@ export class LandingPage extends AppRootDataEditor<Landing, LandingService> impl
     super.ngAfterViewInit();
 
     // Enable samples tab, when has pmfms
-    firstTruePromise(this.samplesTable.$hasPmfms)
+    firstTruePromise(this.samplesTable.hasPmfms$)
       .then(() => {
         this.showSamplesTable = true;
         this.markForCheck();

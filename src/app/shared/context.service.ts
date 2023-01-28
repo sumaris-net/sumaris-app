@@ -1,97 +1,53 @@
-import { BehaviorSubject, interval } from 'rxjs';
-import { Program } from '@app/referential/services/model/program.model';
-import { Strategy } from '@app/referential/services/model/strategy.model';
-import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
-import { isMoment, Moment } from 'moment';
-import { fromDateISOString, IEntitiesService } from '@sumaris-net/ngx-components';
-import { ImageAttachment, ImageAttachmentFilter } from '@app/data/image/image-attachment.model';
+import {BehaviorSubject, Observable} from 'rxjs';
+import {Program} from '@app/referential/services/model/program.model';
+import {Strategy} from '@app/referential/services/model/strategy.model';
+import {Inject, Injectable, InjectionToken, Optional} from '@angular/core';
+import {Moment} from 'moment';
+import {fromDateISOString} from '@sumaris-net/ngx-components';
+import {RxState} from '@rx-angular/state';
 
 export type Context = {
   program?: Program;
   strategy?: Strategy;
 }
 
-export type ContextOptions = {
-  ttl?: number,
-};
-
-export type ObservableValues<T> = {
-  [key in keyof T]: BehaviorSubject<T[keyof T]>;
-}
-
 export const CONTEXT_DEFAULT_STATE = new InjectionToken<Record<string, any>>('ContextDefaultState');
 
 
 @Injectable()
-export class ContextService<S extends Record<string, any> = Context> {
-
-  protected observableState: ObservableValues<S>;
+export class ContextService<S extends object = Context> extends RxState<S> {
 
   constructor(@Optional() @Inject(CONTEXT_DEFAULT_STATE) protected defaultState: S) {
+    super()
     this.reset();
   }
 
-  setValue(key: keyof S, value: S[typeof key], options: ContextOptions = {}): ObservableValues<S>[typeof key] {
-    const { ttl } = options;
+  setValue<K extends keyof S>(key: K, value: S[K],) {
 
     // DEBUG
     //console.debug(`[context-service] Set '${String(key)}'`, value);
 
-    const observableValue = this.toObservableValue(value);
-
-    if (ttl) {
-      const ttl$ = interval(ttl);
-      const ttlSub = ttl$.subscribe({
-        next: () => {
-          // DEBUG
-          //console.debug(`[context-service] Cleaning '${String(key)}'`);
-
-          if (observableValue.observers?.length > 0) return; // Skip if has observers
-          observableValue.complete();
-          observableValue.unsubscribe();
-          ttlSub.unsubscribe();
-        }
-      });
-    }
-
-    this.observableState[key] = observableValue;
-    return this.getValue(key);
+    this.set(key, _ => value);
   }
 
-  getObservable(key: keyof ObservableValues<S>): BehaviorSubject<S[typeof key]> {
-    return this.observableState[key];
+  getObservable<K extends keyof S>(key: K): Observable<S[K]> {
+    return this.select(key);
   }
 
-  getValue(key: keyof ObservableValues<S>): S[typeof key] {
-    return this.getObservable(key)?.closed ? undefined : this.getObservable(key)?.getValue();
+  getValue<K extends keyof S>(key: K): S[K] {
+    return this.get(key);
   }
 
-  resetValue(key, opts = {}) {
-    !!this.observableState?.[key] && this.observableState?.[key].complete();
-    this.setValue(key, this.defaultState[key], opts);
+  resetValue(key) {
+    this.set(key, () => this.defaultState[key]);
   }
 
   reset(): void {
-    this.observableState && Object.values(this.observableState).forEach(obs => obs.complete());
-    this.observableState = this.toObservableValues(this.defaultState);
+    this.set(this.defaultState);
   }
 
-  getValueAsDate(key: keyof ObservableValues<S>): Moment {
+  getValueAsDate<K extends keyof S>(key: K): Moment {
     return fromDateISOString(this.getValue(key));
   }
 
-  /* -- private functions -- */
-
-  private toObservableValue<T extends S[keyof S]>(value: T): BehaviorSubject<T> {
-    return new BehaviorSubject<T>(value);
-  }
-
-  private toObservableValues<T extends Partial<S>>(state: T): ObservableValues<T> {
-    return Object.entries(state).reduce((acc, [key, value]) => {
-      return {
-        ...acc,
-        [key]: this.toObservableValue(value)
-      };
-    }, {}) as ObservableValues<T>;
-  }
 }

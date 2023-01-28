@@ -1,21 +1,21 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Batch } from '../common/batch.model';
-import { Alerts, AppFormUtils, IReferentialRef, isNil, isNotNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean, UsageMode } from '@sumaris-net/ngx-components';
-import { AlertController, ModalController } from '@ionic/angular';
-import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { BatchGroupForm } from './batch-group.form';
-import { debounceTime, filter, map, startWith } from 'rxjs/operators';
-import { BatchGroup } from './batch-group.model';
-import { environment } from '@environments/environment';
-import { IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { TripContextService } from '@app/trip/services/trip-context.service';
-import { ContextService } from '@app/shared/context.service';
-import { BatchUtils } from '@app/trip/batch/common/batch.utils';
-import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {Batch} from '../common/batch.model';
+import {Alerts, AppFormUtils, IReferentialRef, isNil, isNotNil, LocalSettingsService, PlatformService, ReferentialUtils, toBoolean, UsageMode, waitFor} from '@sumaris-net/ngx-components';
+import {AlertController, ModalController} from '@ionic/angular';
+import {BehaviorSubject, merge, Observable, Subscription} from 'rxjs';
+import {TranslateService} from '@ngx-translate/core';
+import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import {BatchGroupForm} from './batch-group.form';
+import {debounceTime, filter, map, startWith} from 'rxjs/operators';
+import {BatchGroup} from './batch-group.model';
+import {environment} from '@environments/environment';
+import {IBatchModalOptions} from '@app/trip/batch/common/batch.modal';
+import {IPmfm} from '@app/referential/services/model/pmfm.model';
+import {TripContextService} from '@app/trip/services/trip-context.service';
+import {ContextService} from '@app/shared/context.service';
+import {BatchUtils} from '@app/trip/batch/common/batch.utils';
+import {SamplingRatioFormat} from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { BatchFormState } from '@app/trip/batch/common/batch.form';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
@@ -50,6 +50,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   debug = false;
   loading = false;
   $title = new BehaviorSubject<string>(undefined);
+  childrenState: Partial<BatchFormState>;
 
   @Input() data: BatchGroup;
   @Input() isNew: boolean;
@@ -157,6 +158,13 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       .subscribe((data) => this.computeTitle(data))
     );
 
+    this.childrenState = {
+      showSamplingBatch: this.showSamplingBatch,
+      samplingBatchEnabled: this.data?.observedIndividualCount > 0 || this.defaultHasSubBatches,
+      showExhaustiveInventory: false,
+      showEstimatedWeight: false
+    }
+
     this.load();
   }
 
@@ -188,7 +196,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       console.error('[batch-group-modal] Error while load data: ' + (err && err.message || err), err);
     }
     finally {
-      if (!this.disabled) this.enable();
+      if (!this.disabled) this.enable({emitEvent: false});
       this.form.markAsUntouched();
       this.form.markAsPristine();
       this.markForCheck();

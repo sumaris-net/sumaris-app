@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
-import { Batch } from '../../common/batch.model';
+import { Batch, BatchWeight } from '../../common/batch.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { filter, mergeMap } from 'rxjs/operators';
 import { EntitiesStorage, EntityUtils, firstNotNilPromise, isNotNilOrBlank, MatAutocompleteConfigHolder, Property, SharedValidators, toNumber, waitFor } from '@sumaris-net/ngx-components';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds } from '@app/referential/services/model/model.enum';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchGroupForm } from '@app/trip/batch/group/batch-group.form';
 import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
@@ -15,32 +15,40 @@ import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/bat
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import {BatchValidatorService} from '@app/trip/batch/common/batch.validator';
+import {BatchForm} from '@app/trip/batch/common/batch.form';
 
 
 @Component({
-  selector: 'app-batch-group-form-test',
-  templateUrl: './batch-group.form.test.html',
+  selector: 'app-batch-form-test',
+  templateUrl: './batch.form.test.html',
   providers: [
-    {provide: BatchGroupValidatorService, useClass: BatchGroupValidatorService}
+    {provide: BatchValidatorService, useClass: BatchValidatorService}
   ]
 })
-export class BatchGroupFormTestPage implements OnInit {
+export class BatchFormTestPage implements OnInit {
 
 
   $programLabel = new BehaviorSubject<string>(undefined);
   $gearId = new BehaviorSubject<number>(undefined);
   filterForm: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
+
+  showWeight = true;
+  requiredWeight = true;
+  showIndividualCount = false;
+  requiredIndividualCount = false;
+
   showSamplingBatch = true;
   samplingBatchEnabled = true;
-  allowSubBatches = true;
-  defaultHasSubBatches = false;
-  hasSubBatches = false;
-  showHasSubBatchesButton = true;
-
+  showSampleWeight = true;
+  requiredSampleWeight = true;
   showChildrenWeight = true;
-  samplingRatioFormat: SamplingRatioFormat;
+  showSampleIndividualCount = false;
+  requiredSampleIndividualCount = false;
+
   taxonGroupsNoWeight: string[];
+  samplingRatioFormat: SamplingRatioFormat;
   samplingRatioFormats = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.values as Property[];
 
   $program = new BehaviorSubject<Program>(null);
@@ -49,7 +57,7 @@ export class BatchGroupFormTestPage implements OnInit {
     [key: string]: string;
   } = {};
 
-  @ViewChild(BatchGroupForm, { static: true }) form: BatchGroupForm;
+  @ViewChild(BatchForm, { static: true }) form: BatchForm;
 
   constructor(
     formBuilder: UntypedFormBuilder,
@@ -119,8 +127,8 @@ export class BatchGroupFormTestPage implements OnInit {
       .pipe()
       .subscribe(example => {
         if (example && typeof example.label == 'string' && this.outputs.example) {
-          const json = this.getExampleBatchGroup(example.label);
-          this.dumpBatchGroup(BatchGroup.fromObject(json), 'example');
+          const json = this.getExampleBatch(example.label);
+          this.dumpBatch(Batch.fromObject(json), 'example');
         }
       });
 
@@ -140,7 +148,6 @@ export class BatchGroupFormTestPage implements OnInit {
     console.debug('[batch-group-form-test] Applying program:', program);
 
     const hasBatchMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
-    this.allowSubBatches = hasBatchMeasure;
     this.showSamplingBatch = hasBatchMeasure;
     this.samplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);
     this.taxonGroupsNoWeight = program.getPropertyAsStrings(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT);
@@ -149,17 +156,17 @@ export class BatchGroupFormTestPage implements OnInit {
   }
 
   // Load data into components
-  async updateView(data?: BatchGroup) {
+  async updateView(data?: Batch) {
 
     await waitFor(() => !!this.form);
 
     await firstNotNilPromise(this.$program);
 
     // DEBUG
-    console.debug('[batch-group-form-test] Applying data:', data);
+    console.debug('[batch-form-test] Applying data:', data);
 
     this.markAsReady();
-    this.form.value = data && data.clone() || new BatchGroup();
+    this.form.value = data && data.clone() || new Batch();
     this.form.enable();
 
   }
@@ -178,7 +185,7 @@ export class BatchGroupFormTestPage implements OnInit {
   }
 
 
-  async getExampleBatchGroup(key?: string, index?: number): Promise<BatchGroup> {
+  async getExampleBatch(key?: string, index?: number): Promise<Batch> {
 
     if (!key) {
       const example = this.filterForm.get('example').value;
@@ -207,7 +214,18 @@ export class BatchGroupFormTestPage implements OnInit {
 
     const batchGroups = BatchGroupUtils.fromBatchTree(catchBatch);
 
-    return batchGroups[index || 0];
+    const parent = batchGroups[index || 0];
+    const batch = parent?.children?.[0]?.clone();
+    batch.taxonGroup = parent.taxonGroup || batch.taxonGroup;
+
+    const samplingBatch = BatchUtils.getSamplingChild(batch);
+
+    // Add a childrenWeight value, on the sampling batch
+    if (samplingBatch) {
+      samplingBatch.childrenWeight = <BatchWeight>{value: 0.2510, computed: true, methodId: MethodIds.CALCULATED_WEIGHT_LENGTH_SUM};
+    }
+
+    return batch;
   }
 
   // Load data into components
@@ -216,26 +234,26 @@ export class BatchGroupFormTestPage implements OnInit {
     // Wait enumerations override
     await this.referentialRefService.ready();
 
-    const batchGroup = await this.getExampleBatchGroup(key);
-    await this.updateView(batchGroup);
+    const batch = await this.getExampleBatch(key);
+    await this.updateView(batch);
   }
 
   async dumpExample(key?: string) {
-    const batchGroup = await this.getExampleBatchGroup(key);
-    this.dumpBatchGroup(batchGroup, 'example');
+    const batch = await this.getExampleBatch(key);
+    this.dumpBatch(batch, 'example');
   }
 
-  async dumpBatchGroupForm(form: BatchGroupForm, outputName?: string) {
-    this.dumpBatchGroup(form.value, outputName);
+  async dumpBatchForm(form: BatchForm, outputName?: string) {
+    this.dumpBatch(form.value, outputName);
   }
 
 
-  dumpBatchGroup(batchGroup: BatchGroup, outputName?: string) {
+  dumpBatch(batch: Batch, outputName?: string) {
     let html = '';
-    if (batchGroup) {
+    if (batch) {
       const catchBatch = new Batch();
       catchBatch.label = AcquisitionLevelCodes.CATCH_BATCH;
-      catchBatch.children = [batchGroup];
+      catchBatch.children = [batch];
       BatchUtils.logTree(catchBatch, {
         showAll: false,
         println: (m) => {
@@ -252,7 +270,7 @@ export class BatchGroupFormTestPage implements OnInit {
     console.debug(html);
   }
 
-  async copyBatchGroup(source: BatchGroupForm, target: BatchGroupForm) {
+  async copyBatch(source: BatchForm, target: BatchForm) {
 
     source.disable();
     target.disable();

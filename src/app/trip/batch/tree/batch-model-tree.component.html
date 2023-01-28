@@ -1,0 +1,143 @@
+
+<!-- batch tree -->
+<ion-list class="ion-no-padding">
+  <mat-tree [dataSource]="treeDataSource"
+            [treeControl]="treeControl"
+            class="batch-tree">
+    <!-- Expandable nodes -->
+    <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild" >
+      <li *ngVar="treeControl.isExpanded(node) as expanded">
+        <ion-item (click)="click($event, node)"
+                  [class.activated]="selected===node"
+                  [disabled]="node.disabled"
+                  tappable>
+          <!--
+                  [class.cdk-visually-hidden]="node.hidden" -->
+          <button mat-icon-button slot="start" (click)="toggle($event, node)">
+            <mat-icon class="mat-icon-rtl-mirror">{{expanded ? 'expand_more' : 'chevron_right'}}</mat-icon>
+          </button>
+
+          <!-- name -->
+          <ion-label>
+            <h2>
+              <span matBadge="!"
+                    [matBadgeHidden]="node.valid"
+                    matBadgeOverlap="false"
+                    matBadgeColor="accent"
+                    matBadgeSize="small"
+                    matBadgePosition="above after">{{node.name}}</span>
+            </h2>
+<!--            <p [class.cdk-visually-hidden]="!node.touched || node.valid">-->
+<!--              <ion-text color="danger" [innerHTML]="node.validator | translateFormError: errorTranslatorOptions"></ion-text>-->
+<!--            </p>-->
+          </ion-label>
+
+          <!-- badges -->
+          <ion-buttons slot="end">
+            <ng-container *ngTemplateOutlet="batchBadges; context: {$implicit: node}"></ng-container>
+          </ion-buttons>
+<!--            &lt;!&ndash; has weight pmfms &ndash;&gt;-->
+<!--            <mat-icon class="small-icon" slot="end" *ngIf="node.pmfms|arrayFilter:isWeightPmfm|isNotEmptyArray">scale</mat-icon>-->
+<!--            &lt;!&ndash; has error pmfms &ndash;&gt;-->
+<!--            <ion-icon *ngIf="node === editingBatch && (batchTree.errorSubject | async) || node.error || node.invalid; let error"-->
+<!--                      class="small-icon" slot="end" name="alert-circle" color="danger"-->
+<!--                      [title]="error||''"></ion-icon>-->
+
+          <ion-icon name="chevron-forward-outline" slot="end" *ngIf="mobile && !node.disabled"></ion-icon>
+
+        </ion-item>
+        <ul [class.ion-no-padding]="node.hidden"
+
+        >
+          <!-- [class.cdk-visually-hidden]="!treeControl.isExpanded(node)" -->
+          <ng-container matTreeNodeOutlet></ng-container>
+        </ul>
+      </li>
+    </mat-nested-tree-node>
+
+    <!-- Leaf nodes -->
+    <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
+      <li>
+
+        <ion-item (click)="click($event, node)"
+                  [class.activated]="selected===node"
+                  tappable>
+          <!-- spacer for alignment -->
+          <app-icon slot="start" [ref]="node.icon||{}"></app-icon>
+
+          <!-- name + error -->
+          <ion-label>
+            <h2>
+              <span matBadge="!"
+                    [matBadgeHidden]="node.valid"
+                    matBadgeOverlap="false"
+                    matBadgeColor="accent"
+                    matBadgeSize="small"
+                    matBadgePosition="above after">{{node.name}}</span>
+            </h2>
+          </ion-label>
+          <ion-buttons slot="end">
+            <ng-container *ngTemplateOutlet="batchBadges; context: {$implicit: node}"></ng-container>
+          </ion-buttons>
+
+          <ion-icon name="chevron-forward-outline" slot="end" *ngIf="mobile"></ion-icon>
+        </ion-item>
+      </li>
+    </mat-tree-node>
+  </mat-tree>
+</ion-list>
+
+
+<!-- batch item -->
+<ng-template #batchBadges let-node>
+
+  <ng-container *ngIf="debug">
+    <!-- editing (=enabled) -->
+    <ion-badge *ngIf="node.editing"
+               color="success" class="visible-hover" slot="end">enabled</ion-badge>
+    <ion-badge *ngIf="!node.editing"
+               color="light" class="visible-hover" slot="end">disabled</ion-badge>
+    &nbsp;
+
+    <!-- pmfm count  -->
+    <ion-badge *ngIf="node.pmfms?.length; let count"
+               slot="end" class="visible-hover" color="secondary"
+               >{{count}} pmfms</ion-badge>
+    &nbsp;
+    <!-- table pmfm count  -->
+    <ion-badge *ngIf="node.childrenPmfms?.length; let count;"
+               color="secondary" slot="end" class="visible-hover"
+               [title]="node.childrenPmfms|arrayPluck:'label'">{{count}} col</ion-badge>
+    &nbsp;&nbsp;
+  </ng-container>
+
+  <!-- expanded node -->
+  <ng-container *ngIf="node.isExpanded; else leafBadges">
+    <!-- weight pmfms count -->
+    <ion-badge *ngIf="(node.pmfms|arrayFilter:isNotHiddenPmfm)?.length; let count"
+               [color]="node.valid ? 'success' : 'accent'"
+               slot="end">{{count}}
+    </ion-badge>
+  </ng-container>
+
+  <!-- for leaf node -->
+  <ng-template #leafBadges>
+    <!-- batches count -->
+    <ion-badge *ngIf="selected === node ? currentRowCount : node.currentData.children?.length; let count; else emptyLeaf"
+               [color]="count ? 'tertiary' : 'warning'"
+               slot="end">{{count }}
+    </ion-badge>
+    <!-- empty -->
+    <ng-template #emptyLeaf>
+      <ion-badge color="accent" slot="end">0</ion-badge>
+    </ng-template>
+
+    <!-- TODO measure count - need a cached value in model
+    &nbsp;
+    <ion-badge *ngIf="node===editingBatch ? batchTree.subBatchesCount : 0; let count"
+               [color]="count ? 'tertiary' : 'warning'"
+               slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.MEASUREMENT_COUNT' : 'TRIP.BATCH.TREE.MEASUREMENTS_COUNT') | translate:{count: count} }}
+    </ion-badge> -->
+  </ng-template>
+
+</ng-template>

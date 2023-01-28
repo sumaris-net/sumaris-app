@@ -2,11 +2,10 @@ import { Injectable } from '@angular/core';
 import { FormGroup, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppFormArray,
-  EntityUtils,
+  EntityUtils, equals,
   isNil,
   isNotEmptyArray,
   isNotNil,
-  isNotNilOrBlank,
   isNotNilOrNaN,
   LocalSettingsService,
   SharedAsyncValidators,
@@ -16,7 +15,7 @@ import {
   toNumber
 } from '@sumaris-net/ngx-components';
 import { Batch, BatchWeight } from './batch.model';
-import { MethodIds } from '@app/referential/services/model/model.enum';
+import { MethodIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Subscription } from 'rxjs';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
@@ -28,12 +27,20 @@ import { MeasurementFormValues, MeasurementModelValues, MeasurementValuesUtils }
 import { debounceTime } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
+export function getFormOptions<O>(form: UntypedFormGroup): O|undefined {
+  return form['__options'] as O;
+}
+export function setFormOptions<O>(form: UntypedFormGroup, opts?: O) {
+  form['__options'] = opts;
+}
+
 export interface BatchValidatorOptions<O extends BatchValidatorOptions<any> = BatchValidatorOptions<any>> extends DataEntityValidatorOptions {
   withWeight?: boolean;
   withChildrenWeight?: boolean;
   weightRequired?: boolean;
-  rankOrderRequired?: boolean;
-  labelRequired?: boolean;
+  individualCountRequired?: boolean; // false by default
+  rankOrderRequired?: boolean; // true by default
+  labelRequired?: boolean; // true by default
   withMeasurements?: boolean;
   withMeasurementTypename?: boolean;
   pmfms?: IPmfm[];
@@ -61,32 +68,41 @@ export class BatchValidatorService<
 
   protected fillDefaultOptions(opts?: O): O {
     opts = super.fillDefaultOptions(opts);
+
+    opts.withWeight = toBoolean(opts.withWeight, true);
+    opts.withChildrenWeight = toBoolean(opts.withChildrenWeight, false);
+
     return opts;
   }
 
   getFormGroupConfig(data?: T, opts?: O): { [key: string]: any } {
-    const rankOrder = toNumber(data && data.rankOrder, null);
-    const label = data && data.label || null;
+    const rankOrder = toNumber(data?.rankOrder, null);
+    const label = data?.label || null;
     const samplingRatioComputed = data && (isNotNil(data.samplingRatioComputed) ? data.samplingRatioComputed : BatchUtils.isSamplingRatioComputed(data.samplingRatioText)) || false;
     const config = {
       __typename: [Batch.TYPENAME],
-      id: [toNumber(data && data.id, null)],
-      updateDate: [data && data.updateDate || null],
-      rankOrder: !opts || opts.rankOrderRequired !== false ? [rankOrder, Validators.required] : [rankOrder],
-      label: !opts || opts.labelRequired !== false ? [label, Validators.required] : [label],
-      individualCount: [toNumber(data && data.individualCount, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
-      samplingRatio: [toNumber(data && data.samplingRatio, null), SharedValidators.decimal()],
-      samplingRatioText: [data && data.samplingRatioText || null],
+      id: [toNumber(data?.id, null)],
+      updateDate: [data?.updateDate || null],
+      rankOrder: opts?.rankOrderRequired !== false ? [rankOrder, Validators.required] : [rankOrder],
+      label: opts?.labelRequired !== false ? [label, Validators.required] : [label],
+      individualCount: [toNumber(data?.individualCount, null),
+        (opts?.individualCountRequired === true)
+          ? Validators.compose([Validators.required, Validators.min(0), SharedValidators.integer])
+          : Validators.compose([Validators.min(0), SharedValidators.integer])
+      ],
+      samplingRatio: [toNumber(data?.samplingRatio, null), SharedValidators.decimal()],
+      samplingRatioText: [data?.samplingRatioText || null],
       samplingRatioComputed: [samplingRatioComputed],
-      taxonGroup: [data && data.taxonGroup || null, SharedValidators.entity],
-      taxonName: [data && data.taxonName || null, SharedValidators.entity],
-      comments: [data && data.comments || null],
-      parent: [data && data.parent || null, SharedValidators.entity],
+      taxonGroup: [data?.taxonGroup || null, SharedValidators.entity],
+      taxonName: [data?.taxonName || null, SharedValidators.entity],
+      exhaustiveInventory: [toBoolean(data?.exhaustiveInventory, null)],
+      comments: [data?.comments || null],
+      parent: [data?.parent || null, SharedValidators.entity],
       // Quality properties
-      controlDate: [data && data.controlDate || null],
-      qualificationDate: [data && data.qualificationDate || null],
-      qualificationComments: [data && data.qualificationComments || null],
-      qualityFlagId: [toNumber(data && data.qualityFlagId, 0)],
+      controlDate: [data?.controlDate || null],
+      qualificationDate: [data?.qualificationDate || null],
+      qualificationComments: [data?.qualificationComments || null],
+      qualityFlagId: [toNumber(data?.qualityFlagId, QualityFlagIds.NOT_QUALIFIED)],
       // Sub forms
       measurementValues: this.formBuilder.group({}),
       // TODO: add operationId, saleId, parentId
@@ -120,7 +136,7 @@ export class BatchValidatorService<
         config['childrenWeight'] = this.getWeightFormGroup(data?.childrenWeight, {
           required: false,
           pmfm: BatchUtils.getWeightPmfm(data?.childrenWeight, weightPmfms),
-          noValidator: true
+          maxDecimals: false // Disable decimals validator
         });
       }
     }
@@ -137,21 +153,7 @@ export class BatchValidatorService<
     return config;
   }
 
-  protected getWeightFormGroup(data?: BatchWeight, opts?: {
-    required?: boolean;
-    maxDecimals?: number;
-    pmfm?: IPmfm;
-    noValidator?: boolean;
-  }): UntypedFormGroup {
-    return this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
-  }
-
-  protected getMeasurementValuesForm(data: undefined|MeasurementFormValues|MeasurementModelValues, opts: {pmfms: IPmfm[]; forceOptional?: boolean, withTypename?: boolean}) {
-    const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
-    return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
-  }
-
-  protected  getChildrenFormArray(data?: Batch[], opts?: BatchValidatorOptions): AppFormArray<T, FormGroup> {
+  getChildrenFormArray(data?: Batch[], opts?: BatchValidatorOptions): AppFormArray<T, FormGroup> {
     const formArray = new AppFormArray<T, UntypedFormGroup>(
       (value) => this.getFormGroup(value, <O>{withWeight: true, withMeasurements: true, ...opts}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
@@ -166,6 +168,72 @@ export class BatchValidatorService<
     return formArray;
   }
 
+
+  updateFormGroup(form: UntypedFormGroup, opts?: O) {
+
+    opts = this.fillDefaultOptions(opts);
+
+    const weightPmfms = opts.pmfms?.filter(PmfmUtils.isWeight);
+
+    // Individual count
+    {
+      const individualCountControl = form.get('individualCount');
+      if (opts.individualCountRequired === true) {
+        individualCountControl.setValidators(Validators.compose([Validators.required, Validators.min(0), SharedValidators.integer]))
+      }
+      else {
+        individualCountControl.setValidators(Validators.compose([Validators.min(0), SharedValidators.integer]));
+      }
+      individualCountControl.updateValueAndValidity();
+    }
+
+    // Weight
+    {
+      const weightForm = form.get('weight') as FormGroup;
+      // Remove if exists, and not need anymore
+      if (!opts.withWeight) {
+        if (weightForm) {
+          weightForm.disable();
+          weightForm.setValidators(null);
+          form.removeControl('weight');
+        }
+      }
+      else {
+        // Add if missing
+        if (!weightForm) {
+          form.addControl('weight', this.getWeightFormGroup(null, {
+            required: opts.weightRequired
+          }));
+        }
+        // Update if already exist
+        else {
+          this.updateWeightFormGroup(weightForm, {
+            required: opts.weightRequired
+          });
+          if (weightForm.disabled) weightForm.enable();
+        }
+      }
+    }
+
+    // Children weight (=sum of children weight)
+    {
+      let childrenWeightForm = form.get('childrenWeight');
+      if (opts.withChildrenWeight) {
+        // Create if need
+        if (!childrenWeightForm) {
+          form.addControl('childrenWeight', this.getWeightFormGroup(null, {
+            required: false,
+            pmfm: BatchUtils.getWeightPmfm(null, weightPmfms),
+            maxDecimals: false // Disable decimals validator
+          }));
+        }
+      }
+      else if (childrenWeightForm) {
+        form.removeControl('childrenWeight');
+      }
+    }
+  }
+
   enableSamplingRatioAndWeight(form: UntypedFormGroup, opts?: {
     samplingRatioFormat: SamplingRatioFormat;
     requiredSampleWeight: boolean;
@@ -173,10 +241,6 @@ export class BatchValidatorService<
     markForCheck?: () => void;
     debounceTime?: number;
   }): Subscription {
-    // return SharedAsyncValidators.registerAsyncValidator(form,
-    //   BatchValidators.samplingRatioAndWeight(opts),
-    //   {markForCheck: opts?.markForCheck, debounceTime: opts?.debounceTime}
-    // );
 
     const compute = BatchValidators.samplingRatioAndWeight(opts);
 
@@ -187,7 +251,6 @@ export class BatchValidatorService<
         if (errors) form.setErrors(errors);
         if (opts?.markForCheck) opts.markForCheck();
       });
-
   }
 
   enableRoundWeightConversion(form: UntypedFormGroup, opts?: {
@@ -200,6 +263,39 @@ export class BatchValidatorService<
       {markForCheck: opts?.markForCheck}
     );
   }
+
+  /* -- protected functions -- */
+
+  protected getWeightFormGroup(data?: BatchWeight, opts?: {
+    required?: boolean;
+    maxDecimals?: number|false;
+    pmfm?: IPmfm;
+  }): UntypedFormGroup {
+    const form = this.formBuilder.group(BatchWeightValidator.getFormGroupConfig(data, opts));
+    setFormOptions(form, opts);
+    return form;
+  }
+
+  protected updateWeightFormGroup(form: UntypedFormGroup, opts?: {
+    required?: boolean;
+    maxDecimals?: number|false;
+    pmfm?: IPmfm;
+  }) {
+    const previousOptions = getFormOptions(form);
+    opts = { ...getFormOptions(form), ...opts}
+    if (!equals(previousOptions, opts)) {
+      const control = form.get('value');
+      control.setValidators(BatchWeightValidator.getValueValidator(opts));
+      control.updateValueAndValidity();
+      setFormOptions(form, opts);
+    }
+  }
+
+  protected getMeasurementValuesForm(data: undefined|MeasurementFormValues|MeasurementModelValues, opts: {pmfms: IPmfm[]; forceOptional?: boolean, withTypename?: boolean}) {
+    const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
+    return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
+  }
+
 }
 
 export class BatchWeightValidator {
@@ -211,22 +307,36 @@ export class BatchWeightValidator {
    */
   static getFormGroupConfig(data?: BatchWeight, opts?: {
     required?: boolean;
-    maxDecimals?: number;
+    maxDecimals?: number|false;
     pmfm?: IPmfm;
-    noValidator?: boolean;
   }): {[key: string]: any} {
-    const maxDecimals = toNumber(opts?.pmfm && opts.pmfm?.maximumNumberDecimals, opts?.maxDecimals || 3);
-    const required = toBoolean(opts?.required, toBoolean(opts?.pmfm && opts.pmfm?.required, false));
-
-    const validator = opts?.noValidator === true ? null : (required
-      ? Validators.compose([Validators.required, SharedValidators.decimal({maxDecimals})])
-      : SharedValidators.decimal({maxDecimals}));
+    const validator = this.getValueValidator(opts);
     return {
       methodId: [toNumber(data?.methodId, null), SharedValidators.integer],
       estimated: [toBoolean(data?.estimated, null)],
       computed: [toBoolean(data?.computed, null)],
       value: [toNumber(data?.value, null), validator]
     };
+  }
+
+  /**
+   *
+   * @param data
+   * @param opts Use 'required' or 'maxDecimals'
+   */
+  static getValueValidator(opts?: {
+    required?: boolean;
+    maxDecimals?: number|false; // Set false to skip decimals validation
+    pmfm?: IPmfm;
+  }): ValidatorFn {
+    const maxDecimals = toNumber(opts?.pmfm && opts.pmfm?.maximumNumberDecimals, opts?.maxDecimals || 3 /* grams by default */);
+    const required = toBoolean(opts?.required, toBoolean(opts?.pmfm && opts.pmfm?.required, false));
+
+    return opts?.maxDecimals === false && !required
+      ? null
+      : (required
+        ? Validators.compose([Validators.required, SharedValidators.decimal({maxDecimals})])
+        : SharedValidators.decimal({maxDecimals}));
   }
 }
 
@@ -285,6 +395,7 @@ export class BatchValidators {
     if (!samplingForm) return; // No sample batch: skip
 
     const totalWeightControl = form.get('weight');
+    if (!totalWeightControl) return; // No weight: skip
     const totalWeightValueControl = totalWeightControl.get('value');
 
     //const samplingWeightPath = opts?.samplingWeightPath || `${samplingFormPath}.weight`;

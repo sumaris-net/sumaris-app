@@ -201,7 +201,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: LandingValidatorService,
@@ -215,7 +215,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     protected fishingAreaValidatorService: FishingAreaValidatorService,
     protected networkService: NetworkService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
+    super(injector, measurementsValidatorService, formBuilder, programRefService, validatorService.getFormGroup(), {
       mapPmfms: pmfms => this.mapPmfms(pmfms)
     });
 

@@ -46,6 +46,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
   protected cd: ChangeDetectorRef = null;
 
   readonly pmfms$ = this._state.select('pmfms');
+  readonly ready$ = this._state.select('ready');
 
   @Input() showError = false;
   @Input() compact = false;
@@ -161,10 +162,13 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
         this._state.select(['requiredGear', 'gearId'], res => res),
       )
         .pipe(
-          // Only if markAsReady
+          // Only if markAsReady() called
           filter(_ => !this.starting)
         ),
-      _ => this.loadPmfms());
+        // /!\ DO NOT emit event if not loaded.
+        // (e.g. Required to avoid CatchBatchForm to have 'loading=true', when gearId is set)
+        (_) => this.loadPmfms({emitEvent: false})
+    );
 
     // Update form, when pmfms set
     this._state.hold(this.pmfms$, (pmfms) => this.updateFormGroup(pmfms));
@@ -225,7 +229,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
 
     // Wait form ready, before mark as ready
-    this._state.hold(firstTrue(this._state.select('ready')),
+    this._state.hold(firstTrue(this.ready$),
       () => super.markAsReady(opts));
   }
 
@@ -233,7 +237,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     emitEvent?: boolean;
   }) {
     // Wait form loaded, before mark as loaded
-    this._state.hold(firstTrue(this._state.select('ready')),
+    this._state.hold(firstTrue(this.ready$),
       () => super.markAsLoaded(opts));
   }
 
@@ -306,7 +310,7 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
   protected async updateView(data: Measurement[], opts?: {emitEvent?: boolean; onlySelf?: boolean; }) {
     // Warn is form is NOT ready
-    if (this.readyStep < PmfmFormReadySteps.FORM_GROUP_READY) {
+    if (this.debug && this.readyStep < PmfmFormReadySteps.FORM_GROUP_READY) {
       console.warn(`${this._logPrefix} Trying to set value, but form not ready!`);
     }
 
@@ -379,13 +383,15 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     return true;
   }
 
-  protected async loadPmfms() {
+  protected async loadPmfms(opts?: {emitEvent: boolean}) {
     if (!this.canLoadPmfms()) return;
 
     // DEBUG
     //if (this.debug) console.debug(`${this.logPrefix} loadPmfms()`);
 
-    this.setReadyStep(PmfmFormReadySteps.LOADING_PMFMS);
+    if (!opts || opts.emitEvent !== false) {
+      this.setReadyStep(PmfmFormReadySteps.LOADING_PMFMS);
+    }
 
     let pmfms;
     try {
@@ -404,10 +410,10 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     }
 
     // Apply pmfms
-    await this.setPmfms(pmfms);
+    await this.setPmfms(pmfms, opts);
   }
 
-  async setPmfms(pmfms: IPmfm[] | Observable<IPmfm[]>): Promise<IPmfm[]> {
+  async setPmfms(pmfms: IPmfm[] | Observable<IPmfm[]>, opts?: {emitEvent?: boolean}): Promise<IPmfm[]> {
     // If undefined: reset pmfms
     if (!pmfms) {
       this.resetPmfms();
@@ -418,8 +424,9 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
     //if (this.debug) console.debug(`${this.logPrefix} setPmfms()`);
 
     // Mark as settings pmfms
-    const previousLoadingStep = this.readyStep;
-    this.setReadyStep(PmfmFormReadySteps.SETTING_PMFMS);
+    if (!opts || opts.emitEvent !== false) {
+      this.setReadyStep(PmfmFormReadySteps.SETTING_PMFMS);
+    }
 
     try {
 
@@ -461,10 +468,6 @@ export class MeasurementsForm<S extends MeasurementsFormState = MeasurementsForm
 
         // Apply pmfms to state
         this._state.set('pmfms', (_) => <IPmfm[]>pmfms);
-      }
-      else {
-        // Nothing changes: restoring previous steps
-        this.setReadyStep(previousLoadingStep);
       }
 
       return pmfms;

@@ -40,13 +40,13 @@ export class SampleForm extends MeasurementValuesForm<Sample>
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: SampleValidatorService,
     protected subValidatorService: SubSampleValidatorService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService,
+    super(injector, measurementsValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(),
       {
         skipDisabledPmfmControl: false,

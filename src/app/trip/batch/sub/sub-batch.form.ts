@@ -168,14 +168,14 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: SubBatchValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected translate: TranslateService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService,
+    super(injector, measurementsValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup(null, {
         rankOrderRequired: false, // Avoid to have form.invalid, in Burst mode
       }),

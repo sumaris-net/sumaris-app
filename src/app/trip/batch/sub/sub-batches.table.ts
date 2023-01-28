@@ -847,7 +847,7 @@ export class SubBatchesTable
     this.cd.markForCheck();
   }
 
-  private async onPrepareRowForm(form: UntypedFormGroup) {
+  private onPrepareRowForm(form: UntypedFormGroup) {
     if (!form) return; // Skip
     console.debug('[sub-batches-table] Initializing row validator');
 
@@ -859,7 +859,7 @@ export class SubBatchesTable
     // Add length -> weight conversion
     this._rowValidatorSubscription?.unsubscribe();
     if (this.enableWeightConversion) {
-      const subscription = await this.validatorService.delegate.enableWeightLengthConversion(form, {
+      const subscription = this.validatorService.delegate.enableWeightLengthConversion(form, {
         pmfms: this.pmfms,
         qvPmfm: this._qvPmfm,
         onError: (err) => this.setError(err && err.message || 'TRIP.SUB_BATCH.ERROR.WEIGHT_LENGTH_CONVERSION_FAILED'),

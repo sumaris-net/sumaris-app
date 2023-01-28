@@ -1,13 +1,22 @@
-.mat-badge-small.mat-badge-overlap.mat-badge-after .mat-badge-content {
-  right: -2px !important;
-}
-.mat-badge-small.mat-badge-overlap.mat-badge-above .mat-badge-content {
-  top: -2px !important;
-}
+:host {
+  ::ng-deep {
+    .mat-badge-small {
+      &.mat-badge-overlap.mat-badge-after .mat-badge-content {
+        right: -2px !important;
+      }
+      &.mat-badge-overlap.mat-badge-above .mat-badge-content {
+        top: -2px !important;
+      }
+    }
 
-.mat-badge-medium.mat-badge-after .mat-badge-content {
-  right: -11px !important;
-}
-.mat-badge-medium.mat-badge-above .mat-badge-content {
-  top: -7px !important;
+    .mat-badge-medium {
+      &.mat-badge-after .mat-badge-content {
+        right: -11px !important;
+      }
+      &.mat-badge-above .mat-badge-content {
+        top: -7px !important;
+      }
+    }
+  }
+
 }

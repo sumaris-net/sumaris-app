@@ -49,8 +49,8 @@ export class EntityQualityFormComponent<
   ID = number>
   implements OnInit, OnDestroy {
 
-  private _debug = false;
-  private _mobile: boolean;
+  protected readonly _debug: boolean;
+  protected readonly _mobile: boolean;
   private _subscription = new Subscription();
   private _isSynchroService: boolean;
   private _isRootDataQualityService: boolean;
@@ -156,8 +156,6 @@ export class EntityQualityFormComponent<
   async control(event?: Event, opts?: {emitEvent?: boolean}): Promise<boolean> {
 
     this.busy = true;
-    // Disable the editor
-    this.editor.disable();
 
     let valid = false;
 
@@ -167,6 +165,9 @@ export class EntityQualityFormComponent<
 
       // no data or invalid: skip
       if (!data) return false;
+
+      // Disable the editor (should be done AFTER save)
+      this.editor.disable();
 
       if (this._debug) console.debug(`[quality] Control ${data.constructor.name}...`);
       let errors: FormErrors|AppErrorWithDetails = await this.service.control(data);

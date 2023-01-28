@@ -17,8 +17,6 @@
   }
 
   .mat-header-row {
-    //background-color: var(--mat-header-background-color);
-    //text-align: center;
     ion-label {
       color: unset;
     }
@@ -70,7 +68,7 @@
     .mat-column-averagePackagingPrice,
     .mat-column-totalPrice,
     {
-      width: var(--mat-column-small-size, 150px);
+      max-width: var(--mat-column-small-size, 150px);
     }
 
     .mat-column-actions {

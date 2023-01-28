@@ -15,13 +15,15 @@ import { AppSampleModule } from '@app/trip/sample/sample.module';
 import { AppBatchModule } from '@app/trip/batch/batch.module';
 import { AppPhysicalGearModule } from '@app/trip/physicalgear/physical-gear.module';
 import { BatchTreeContainerTestPage } from '@app/trip/batch/testing/batch-tree-container.test';
+import {BatchFormTestPage} from '@app/trip/batch/common/testing/batch.form.test';
 
 export const TRIP_TESTING_PAGES: TestingPage[] = [
   {label: 'Trip module', divider: true},
   {label: 'Physical gears', page: '/testing/trip/physicalGears'},
+  {label: 'Batch form', page: '/testing/trip/batchForm'},
+  {label: 'Batch group form', page: '/testing/trip/batchGroupForm'},
   {label: 'Batch tree', page: '/testing/trip/batchTree'},
   {label: 'Batch tree container', page: '/testing/trip/batchTreeContainer'},
-  {label: 'Batch group form', page: '/testing/trip/batchGroupForm'},
   {label: 'Sample tree', page: '/testing/trip/sampleTree'}
 ];
 
@@ -40,6 +42,11 @@ const routes: Routes = [
     path: 'batchGroupForm',
     pathMatch: 'full',
     component: BatchGroupFormTestPage
+  },
+  {
+    path: 'batchForm',
+    pathMatch: 'full',
+    component: BatchFormTestPage
   },
   {
     path: 'sampleTree',
@@ -67,6 +74,7 @@ const routes: Routes = [
     MatCheckboxModule,
   ],
   declarations: [
+    BatchFormTestPage,
     BatchGroupFormTestPage,
     BatchTreeTestPage,
     BatchTreeContainerTestPage,
@@ -74,6 +82,7 @@ const routes: Routes = [
     SampleTreeTestPage,
   ],
   exports: [
+    BatchFormTestPage,
     BatchGroupFormTestPage,
     BatchTreeTestPage,
     BatchTreeContainerTestPage,

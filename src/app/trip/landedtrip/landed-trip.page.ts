@@ -255,11 +255,6 @@ export class LandedTripPage extends AppRootDataEditor<Trip, TripService> impleme
     this.fishingAreaForm.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS);
 
     this.markAsReady();
-
-    // TODO FIXME
-    // this.ready({timeout: 5000})
-    //   .then(() => console.info('TODO page is ready'))
-    //   .catch(() => console.error('TODO page ready timeout'));
   }
 
   async load(id?: number, options?: EntityServiceLoadOptions): Promise<void> {

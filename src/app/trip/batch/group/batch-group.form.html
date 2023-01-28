@@ -46,8 +46,9 @@
   </ion-row>
 
   <!-- QV children -->
-  <ion-row *ngIf="qvPmfm">
+  <ion-row *ngIf="qvPmfm; let qvPmfm">
     <ion-col *ngFor="let qv of qvPmfm.qualitativeValues; index as i;"
+             class="ion-padding-top"
              size="12" size-md="6">
 
       <ion-card class="qv ion-no-margin ion-no-padding"
@@ -76,7 +77,7 @@
           <app-batch-form #childForm
                           [tabindex]="tabindex + 10 + 10*i"
                           [acquisitionLevel]="acquisitionLevel"
-                          [pmfms]="$childrenPmfmsByQvId | async | mapGet: qv.id"
+                          [pmfms]="childrenPmfmsByQvId$ | async | mapGet: qv.id"
                           [showError]="false"
                           [showTaxonName]="false"
                           [showTaxonGroup]="false"

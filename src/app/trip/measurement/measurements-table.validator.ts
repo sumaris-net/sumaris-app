@@ -33,6 +33,10 @@ export class MeasurementsTableValidatorService<
     this._delegateOptions = value;
   }
 
+  get delegateOptions(): O {
+    return this._delegateOptions;
+  }
+
   set measurementsOptions(value: MeasurementsTableValidatorOptions) {
     this._measurementsOptions = value;
     this._measurementsConfigCache = null; // Reset the config cache
@@ -67,7 +71,10 @@ export class MeasurementsTableValidatorService<
   }
 
   updateFormGroup(form: FormGroup, opts?: O) {
-    this._delegate.updateFormGroup(form, opts);
+    this._delegate.updateFormGroup(form, {
+      ...(this._delegateOptions ||{}),
+      ...opts
+    });
 
     // TODO: update using measurement values ?
   }

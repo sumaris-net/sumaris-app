@@ -149,43 +149,7 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
   ngAfterViewInit() {
 
     // listen to bait forms children view changes
-    this.registerSubscription(this.baitForms.changes
-      .subscribe(() => {
-
-        // on applying bait measurements, set them after forms are ready
-        if (this.applyingBaitMeasurements) {
-          this.applyingBaitMeasurements = false;
-          this.applyBaitMeasurements();
-          // set all as enabled
-          this.baitForms.forEach(baitForm => {
-            baitForm.markAsReady();
-            if (this._enable) baitForm.enable();
-          });
-        }
-
-        // on adding a new bait, prepare the new form
-        if (this.addingNewBait) {
-          this.addingNewBait = false;
-          this.baitForms.last.value = [];
-          this.baitForms.last.markAsReady();
-          if (this._enable) this.baitForms.last.enable();
-        }
-
-        // on removing bait, total has to be recalculate
-        if (this.removingBait) {
-          this.removingBait = false;
-          this.calculateTotal();
-        }
-
-        // check all bait children forms having totalValueChange registered,
-        this.baitForms.forEach(baitForm => {
-          // add it if missing
-          if (baitForm.totalValueChanges.observers.length === 0) {
-            this.registerSubscription(baitForm.totalValueChanges.subscribe(() => this.calculateTotal()));
-          }
-        });
-
-    }));
+    this.registerSubscription(this.baitForms.changes.subscribe(() => this.refreshBaitForms()));
 
     // add totalValueChange subscription on iceForm
     this.registerSubscription(this.iceForm.totalValueChanges.subscribe(() => this.calculateTotal()));
@@ -297,14 +261,52 @@ export class ExpenseForm extends MeasurementsForm implements OnInit, AfterViewIn
       // resize 'baits' FormArray and patch main form to adjust number of bait children forms
       this.baitsHelper.resize(Math.max(1, nbBait));
       this.form.patchValue({baits});
-      // tell baitForms to call 'changes' event
-      this.baitForms.setDirty();
+      this.refreshBaitForms();
     }
     catch(err) {
       if (this.destroyed) return; // Skip if component destroyed
       console.error('[expense-form] Cannot load bait pmfms', err);
       throw new Error('Cannot load bait pmfms');
     }
+  }
+
+  refreshBaitForms() {
+
+    this.cd.detectChanges();
+
+    // on applying bait measurements, set them after forms are ready
+    if (this.applyingBaitMeasurements) {
+      this.applyingBaitMeasurements = false;
+      this.applyBaitMeasurements();
+      // set all as enabled
+      this.baitForms.forEach(baitForm => {
+        baitForm.markAsReady();
+        if (this._enable) baitForm.enable();
+      });
+    }
+
+    // on adding a new bait, prepare the new form
+    if (this.addingNewBait) {
+      this.addingNewBait = false;
+      this.baitForms.last.value = [];
+      this.baitForms.last.markAsReady();
+      if (this._enable) this.baitForms.last.enable();
+    }
+
+    // on removing bait, total has to be recalculate
+    if (this.removingBait) {
+      this.removingBait = false;
+      this.calculateTotal();
+    }
+
+    // check all bait children forms having totalValueChange registered,
+    this.baitForms.forEach(baitForm => {
+      // add it if missing
+      if (baitForm.totalValueChanges.observers.length === 0) {
+        this.registerSubscription(baitForm.totalValueChanges.subscribe(() => this.calculateTotal()));
+      }
+    });
+
   }
 
   applyBaitMeasurements() {

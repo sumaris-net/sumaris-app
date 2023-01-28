@@ -59,9 +59,9 @@
   </ion-row>
 
   <ion-list class="ion-no-padding">
-    <ng-container *ngIf="$lastOperations|async as items; else noLastOperation">
+    <ng-container *rxIf="lastOperations$; let items; else noLastOperation">
 
-      <ion-item *ngFor="let item of items"
+      <ion-item *rxFor="let item of items"
                 tappable class="text-1x"
                 [color]="data?.id === item.id ? 'secondary100' : undefined"
                 (click)="onLastOperationClick($event, item.id)">
@@ -154,7 +154,7 @@
     </ion-label>
   </button>
 
-  <mat-divider></mat-divider>
+  <mat-divider *ngIf="canDuplicate"></mat-divider>
 
   <!-- reset -->
   <button mat-menu-item
@@ -214,12 +214,12 @@
             <ion-col class="ion-padding">
               <!-- form -->
               <app-form-operation #opeForm
-                                  [programLabel]="$programLabel|async"
+                                  [programLabel]="programLabel$|async"
                                   [showError]="false"
                                   [usageMode]="usageMode"
                                   [tabindex]="1"
                                   (onSubmit)="save($event)"
-                                  (lastEndDateChanges)="$lastEndDate.next($event)"
+                                  (lastEndDateChanges)="lastEndDate=$event"
                                   [debug]="debug">
 
                 <!-- Other features (Measurements) -->
@@ -232,7 +232,8 @@
                     <ion-col>
                       <app-form-measurements #measurementsForm
                                              entityName="VesselUseMeasurement"
-                                             [acquisitionLevel]="$acquisitionLevel|async"
+                                             [acquisitionLevel]="acquisitionLevel$|push:'immediate'"
+                                             [gearId]="gearId$|push:'immediate'"
                                              [forceOptional]="forceMeasurementAsOptional"
                                              [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
                                              (mapPmfms)="mapPmfms($event)"
@@ -262,12 +263,11 @@
     <!-- TAB: Catch -->
     <mat-tab #catchTab
              [label]="'TRIP.OPERATION.EDIT.TAB_CATCH'|translateContext: i18nContext.suffix"
-             [disabled]="!showCatchTab">
+             [disabled]="!(physicalGear$|push)">
       <ng-template mat-tab-label>
         <mat-icon>line_style</mat-icon>
-        <!-- TODO add species batch count -->
         <ion-label>{{catchTab.textLabel}}</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="(!isNewData || submitted) && batchTree.hasError"></ion-icon>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="(!isNewData || submitted) && batchTree.invalid"></ion-icon>
       </ng-template>
 
       <!-- batch tree container -->
@@ -275,8 +275,12 @@
                                 queryTabIndexParamName="subtab"
                                 [showBatchTables]="showBatchTables"
                                 [selectedTabIndex]="selectedSubTabIndex"
-                                [allowDiscard]="hasIndividualMeasures$|push:'userBlocking'"
+                                [allowDiscard]="hasIndividualMeasures$|push"
+                                [allowSpeciesSampling]="hasIndividualMeasures$|push"
+                                [defaultHasSubBatches]="hasIndividualMeasures$|push"
+                                [allowSubBatches]="hasIndividualMeasures$|push"
                                 [usageMode]="usageMode"
+                                [physicalGear]="physicalGear$|push:'userBlocking'"
                                 [useSticky]="mobile"
                                 [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
                                 [mobile]="mobile"
@@ -304,16 +308,7 @@
   </app-form-buttons-bar>
 </ion-footer>
 
-<!-- FAB button -->
-<ion-fab vertical="bottom" horizontal="end" slot="fixed"
-         *ngIf="mobile && showFabButton" @fadeInOutAnimation
-         visible-xs visible-sm visible-mobile>
 
-  <ion-fab-button color="tertiary" (click)="onNewFabButtonClick($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
-
-</ion-fab>
 
 <!-- DEBUG -->
 <ng-template #debugPanel>
@@ -324,11 +319,13 @@
           editor.loading: {{loading}}<br/>
           editor.ready: {{readySubject|async}}<br/>
           editor.dirty: {{dirty}}<br/>
+          editor.valid: {{valid}}<br/>
         </ion-col>
         <ion-col>
           opeForm.loading: {{opeForm.loading}}<br/>
           opeForm.ready: {{opeForm.readySubject|async}}<br/>
           opeForm.dirty: {{opeForm.dirty}}<br/>
+          opeForm.valid: {{opeForm.valid}}<br/>
           <br/>
           opeForm.startDateTime: {{form|formGetValue:'startDateTime'|dateFormat: {time: true} }}<br/>
           opeForm.fishingStartDateTime: {{form.controls.fishingStartDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
@@ -340,6 +337,8 @@
           measurementsForm.ready: {{measurementsForm.readySubject|async}}<br/>
           measurementsForm.loaded: {{measurementsForm.loaded}}<br/>
           measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+          measurementsForm.valid: {{measurementsForm.valid}}<br/>
+          <br/>
           measurementsForm.i18nPmfmPrefix: {{measurementsForm.i18nPmfmPrefix}}<br/>
           measurementsForm.i18nSuffix: {{measurementsForm.i18nSuffix}}<br/>
         </ion-col>

@@ -30,7 +30,6 @@
   <app-batch-group-form #form
                         [showTaxonGroup]="showTaxonGroup"
                         [showTaxonName]="showTaxonName"
-                        [showChildrenSamplingBatch]="showSamplingBatch"
                         [availableTaxonGroups]="availableTaxonGroups"
                         [taxonGroupsNoWeight]="taxonGroupsNoWeight"
                         [allowSubBatches]="allowSubBatches"
@@ -41,8 +40,9 @@
                         [samplingRatioFormat]="samplingRatioFormat"
                         [i18nSuffix]="i18nSuffix"
                         (onSubmit)="close($event)"
-                        [qvPmfm]="qvPmfm"
                         [childrenPmfms]="childrenPmfms"
+                        [childrenState]="childrenState"
+                        [qvPmfm]="qvPmfm"
                         [pmfms]="pmfms"
                         [mobile]="mobile"
                         [debug]="debug">
@@ -51,7 +51,6 @@
     <!-- open individual modal -->
     <ion-col beforeChildren *ngIf="form.hasSubBatches && allowSubBatches"
              size="12" [sizeMd]="form.showHasSubBatchesButton ? 6 : 12"
-             class="ion-padding-bottom"
              [class.ion-padding-top]="form.showHasSubBatchesButton">
       <ion-button color="tertiary" fill="solid" expand="block" shape="round"
                   (click)="onShowSubBatchesButtonClick($event)">

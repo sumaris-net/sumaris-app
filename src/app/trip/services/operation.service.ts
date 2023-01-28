@@ -199,13 +199,17 @@ export const OperationFragments = {
 
 export const OperationQueries = {
   // Load many operations (with total)
-  loadAllWithTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
+  loadAllWithTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $pmfmIds: [Int]){
     data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
       ...LightOperationFragment
+      measurements(pmfmIds: $pmfmIds) {
+        ...MeasurementFragment
+      }
     }
     total: operationsCount(filter: $filter)
   }
-  ${OperationFragments.lightOperation}`,
+  ${OperationFragments.lightOperation}
+  ${DataCommonFragments.measurement}`,
 
   loadAllWithTripAndTotal: gql`query Operations($filter: OperationFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: operations(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
@@ -631,8 +635,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       }
     }
 
-    // Control batches
-    if (entity.catchBatch && opts?.program) {
+    // Control batches (skip if abnormal operation)
+    if (!entity.abnormal && entity.catchBatch && opts?.program) {
       const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES)
       const physicalGear = entity.physicalGear?.clone();
 
@@ -648,7 +652,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       const dirty = errors || (wasInvalid !== BatchUtils.isInvalid(entity.catchBatch));
 
       // Save if need
-      if (dirty)  await this.save(entity);
+      if (dirty) await this.save(entity);
 
       if (errors) {
         console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
@@ -996,7 +1000,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       sortBy: (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
       sortDirection: sortDirection || (opts && opts.trash ? 'desc' : 'asc'),
       trash: opts && opts.trash || false,
-      filter: dataFilter.asPodObject()
+      filter: dataFilter.asPodObject(),
+      pmfmIds: [PmfmIds.TRIP_PROGRESS]
     };
 
     let now = this._debug && Date.now();

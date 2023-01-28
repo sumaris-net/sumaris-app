@@ -1,4 +1,22 @@
 <form class="form-container" [formGroup]="form">
+  <!-- debug -->
+  <app-debug *ngIf="debug" title="Measurements Form">
+    <ion-grid class="ion-no-padding">
+      <ion-row>
+        <ion-col>
+          ready: {{readySubject|push}}<br/>
+          loading: {{loadingSubject|push}}<br/>
+          enabled: {{enabled}}<br/>
+          dirty: {{dirty}}<br/>
+        </ion-col>
+        <ion-col>
+          programLabel: {{programLabel}}<br/>
+          strategyLabel: {{strategyLabel}}<br/>
+          pmfms count: {{(pmfms$|push)?.length||0}}
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </app-debug>
 
   <ion-grid class="ion-no-padding ion-padding-top form-container">
     <ion-row *ngIf="$packagingPmfms | async">
@@ -21,7 +39,7 @@
       </ion-col>
       <ion-col>
         <mat-autocomplete-field [clearable]="false"
-                                placeholder="{{ ('EXPENSE.' + expenseType + '.PACKAGING') | uppercase | translate }}"
+                                placeholder="{{ ('EXPENSE.' + expenseType + '.PACKAGING') | translate }}"
                                 [config]="autocompleteFields.packaging"
                                 formControlName="packaging">
         </mat-autocomplete-field>

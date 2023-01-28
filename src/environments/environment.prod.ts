@@ -40,6 +40,11 @@ export const environment = Object.freeze(<AppEnvironment>{
       port: 443
     },
     {
+      host: 'imagine-pod.ifremer.fr',
+      port: 443,
+      useSsl: true
+    },
+    {
       host: 'sih.sfa.sc',
       port: 80,
       useSsl: false

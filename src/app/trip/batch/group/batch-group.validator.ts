@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {FormArray, FormGroup, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import { BatchValidatorOptions, BatchValidators, BatchValidatorService } from '../common/batch.validator';
 import { BatchGroup } from './batch-group.model';
 import { AppFormUtils, FormErrors, isNotEmptyArray, isNotNil, LocalSettingsService, SharedAsyncValidators, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
@@ -66,6 +66,18 @@ export class BatchGroupValidatorService extends
       });
   }
 
+  updateFormGroup(form: UntypedFormGroup, opts?: BatchGroupValidatorOptions) {
+    opts = this.fillDefaultOptions(opts);
+
+    if (opts.qvPmfm) {
+      const childrenArray = form.get('children') as FormArray;
+      childrenArray.controls.forEach(child => this.updateFormGroup(child as FormGroup, opts.childrenOptions))
+    }
+    else {
+      super.updateFormGroup(form, opts);
+    }
+  }
+
   /* -- protected method -- */
 
   protected fillDefaultOptions(opts?: BatchGroupValidatorOptions): BatchGroupValidatorOptions {
@@ -76,15 +88,26 @@ export class BatchGroupValidatorService extends
 
       opts.isOnFieldMode = isNotNil(opts.isOnFieldMode) ? opts.isOnFieldMode : (this.settings?.isOnFieldMode() || false);
 
-      const weightRequired = opts.isOnFieldMode === false && (opts?.weightRequired !== false)
+      const weightRequired = opts.isOnFieldMode === false && (opts.weightRequired !== false);
+      const individualCountRequired = opts.isOnFieldMode === false && (opts.individualCountRequired === true)
+      const withChildrenWeight = opts.withChildrenWeight !== false;
       if (opts.qvPmfm) {
+        // Disabled weight/individual required validator, on the root level
+        opts.individualCountRequired = false;
+        opts.weightRequired = false;
+
+        // Disable children (sum) weight here: should be visible in the sample batch, is any
+        opts.withChildrenWeight = false;
+
+        // Configure children (on child by QV)
         opts.withChildren = true;
         opts.childrenCount = opts.qvPmfm.qualitativeValues?.length || 1;
         opts.childrenOptions = {
           root: false,
           withWeight: true,
           weightRequired,
-          pmfms: [opts.qvPmfm, ...opts.childrenPmfms],
+          individualCountRequired,
+          pmfms: [opts.qvPmfm, ...(opts.childrenPmfms || [])],
           withMeasurements: true
         };
         opts.childrenOptions.withChildren = opts.enableSamplingBatch;
@@ -93,13 +116,16 @@ export class BatchGroupValidatorService extends
           opts.childrenOptions.childrenOptions = {
             root: false,
             withWeight: true,
-            withMeasurements: false
+            withMeasurements: false,
+            withChildrenWeight : withChildrenWeight
           };
         }
       }
       else {
         opts.withWeight = true;
         opts.withChildren = opts.enableSamplingBatch;
+        opts.weightRequired = weightRequired;
+        opts.individualCountRequired = individualCountRequired;
         if (opts.withChildren) {
           opts.childrenOptions = {
             root: false,

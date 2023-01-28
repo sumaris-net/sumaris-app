@@ -35,6 +35,7 @@ import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
 import {OperationPasteFlags} from '@app/referential/services/config/program.config';
 import {hasFlag} from '@app/shared/flags.utils';
 import {PositionUtils} from '@app/trip/services/position.utils';
+import { PmfmIds } from '@app/referential/services/model/model.enum';
 
 /* -- Helper function -- */
 
@@ -390,11 +391,18 @@ export class Operation
         && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
       );
   }
+
+  get abnormal() {
+    return this.measurements?.some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
+  }
 }
 
 export class OperationUtils {
   static isOperation(data: DataEntity<any>): data is Operation {
     return data?.__typename === Operation.TYPENAME;
+  }
+  static isAbnormal(data: Operation): boolean {
+    return data?.measurements?.some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
   }
 }
 

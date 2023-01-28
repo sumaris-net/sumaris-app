@@ -59,9 +59,9 @@
   </ion-row>
 
   <ion-list class="ion-no-padding">
-    <ng-container *ngIf="$lastOperations|async as items; else noLastOperation">
+    <ng-container *rxIf="lastOperations$; let items; else noLastOperation">
 
-      <ion-item *ngFor="let item of items"
+      <ion-item *rxFor="let item of items; strategy: 'userBlocking'"
                 tappable class="text-1x"
                 [color]="data?.id === item.id ? 'secondary100' : undefined"
                 (click)="onLastOperationClick($event, item.id)">
@@ -214,12 +214,12 @@
             <ion-col class="ion-padding">
               <!-- form -->
               <app-form-operation #opeForm
-                                  [programLabel]="$programLabel|async"
+                                  [programLabel]="programLabel$|async"
                                   [showError]="false"
                                   [usageMode]="usageMode"
                                   [tabindex]="1"
                                   (onSubmit)="save($event)"
-                                  (lastEndDateChanges)="$lastEndDate.next($event)"
+                                  (lastEndDateChanges)="lastEndDate=$event"
                                   [debug]="debug">
 
                 <!-- Other features (Measurements) -->
@@ -232,7 +232,8 @@
                     <ion-col>
                       <app-form-measurements #measurementsForm
                                              entityName="VesselUseMeasurement"
-                                             [acquisitionLevel]="$acquisitionLevel|async"
+                                             [acquisitionLevel]="acquisitionLevel$|push:'immediate'"
+                                             [gearId]="gearId$|push:'immediate'"
                                              [forceOptional]="forceMeasurementAsOptional"
                                              [forceOptionalExcludedPmfmIds]="forceOptionalExcludedPmfmIds"
                                              [i18nPmfmPrefix]="'TRIP.OPERATION.PMFM.'"
@@ -280,7 +281,12 @@
                       queryTabIndexParamName="subtab"
                       [showBatchTables]="showBatchTables"
                       [selectedTabIndex]="selectedSubTabIndex"
+                      [allowSpeciesSampling]="hasIndividualMeasures$|push"
+                      [defaultHasSubBatches]="hasIndividualMeasures$|push"
+                      [allowSubBatches]="hasIndividualMeasures$|push"
                       [usageMode]="usageMode"
+                      [gearId]="gearId$|push:'immediate'"
+                      [physicalGear]="physicalGear$|push:'immediate'"
                       [useSticky]="mobile"
                       [i18nPmfmPrefix]="'TRIP.BATCH.PMFM.'"
                       [mobile]="mobile"
@@ -306,7 +312,7 @@
 
       <app-sample-tree #sampleTree queryTabIndexParamName="subtab"
                        [selectedTabIndex]="selectedSubTabIndex"
-                       [defaultSampleDate]="$lastEndDate|async"
+                       [defaultSampleDate]="lastEndDate$|async"
                        [usageMode]="usageMode"
                        (prepareRowForm)="onPrepareSampleForm($event)"
                        [useSticky]="mobile"
@@ -352,8 +358,9 @@
     <ion-grid class="ion-no-padding">
       <ion-row>
         <ion-col>
-          editor.loading: {{loading}}<br/>
           editor.ready: {{readySubject|async}}<br/>
+          editor.loading: {{loading}}<br/>
+          editor.enabled: {{enabled}}<br/>
           editor.dirty: {{dirty}}<br/>
           editor.saving: {{saving}}<br/>
         </ion-col>
@@ -368,12 +375,12 @@
           opeForm.fishingEndDateTime: {{form.controls.fishingEndDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
           opeForm.endDateTime: {{form.controls.endDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
         </ion-col>
-        <ion-col>
-            <span *ngIf="allowParentOperation && opeForm.isChildOperation">
+        <ion-col *ngIf="allowParentOperation">
+            <span *ngIf="opeForm.isChildOperation">
               parentOperation.startDateTime: {{form.get('parentOperation.startDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
               parentOperation.fishingStartDateTime: {{form.get('parentOperation.fishingStartDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
             </span>
-            <span *ngIf="allowParentOperation && opeForm.isParentOperation">
+            <span *ngIf="opeForm.isParentOperation">
               childOperation.fishingEndDateTime: {{form.get('childOperation.fishingEndDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
               childOperation.endDateTime: {{form.get('childOperation.endDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
             </span>
@@ -383,6 +390,7 @@
           measurementsForm.loading: {{measurementsForm.loading}}<br/>
           measurementsForm.enabled: {{measurementsForm.enabled}}<br/>
           measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+          measurementsForm.gearId: {{measurementsForm.gearId}}<br/>
 
           <!-- Sample debug -->
           <span *ngIf="sampleTree">

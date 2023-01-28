@@ -1,19 +1,19 @@
-import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
-import { ValidatorService } from '@e-is/ngx-material-table';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Strategy } from '../services/model/strategy.model';
-import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, firstNotNilPromise, HistoryPageReference, isNil, isNotNil, ReferentialUtils } from '@sumaris-net/ngx-components';
-import { ReferentialRefService } from '../services/referential-ref.service';
-import { ModalController } from '@ionic/angular';
-import { StrategyForm } from './strategy.form';
-import { StrategyValidatorService } from '../services/validator/strategy.validator';
-import { StrategyService } from '../services/strategy.service';
-import { BehaviorSubject } from 'rxjs';
-import { Program } from '../services/model/program.model';
-import { ReferentialForm } from '../form/referential.form';
-import { debounceTime, filter, tap } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
-import { ProgramRefService } from '../services/program-ref.service';
+import {ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {UntypedFormBuilder, UntypedFormGroup} from '@angular/forms';
+import {Strategy} from '../services/model/strategy.model';
+import {AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, firstNotNilPromise, HistoryPageReference, isNil, isNotNil} from '@sumaris-net/ngx-components';
+import {ReferentialRefService} from '../services/referential-ref.service';
+import {ModalController} from '@ionic/angular';
+import {StrategyForm} from './strategy.form';
+import {StrategyValidatorService} from '../services/validator/strategy.validator';
+import {StrategyService} from '../services/strategy.service';
+import {BehaviorSubject} from 'rxjs';
+import {Program} from '../services/model/program.model';
+import {ReferentialForm} from '../form/referential.form';
+import {debounceTime, filter, tap} from 'rxjs/operators';
+import {environment} from '../../../environments/environment';
+import {ProgramRefService} from '../services/program-ref.service';
 
 export enum AnimationState {
   ENTER = 'enter',
@@ -104,6 +104,13 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   async load(id?: number, opts?: EntityServiceLoadOptions): Promise<void> {
     // Force the load from network
     return super.load(id, {...opts, fetchPolicy: "network-only"});
+  }
+
+  canUserWrite(data: Strategy, opts?: any): boolean {
+    return super.canUserWrite(data, {...opts,
+      // Important: sent the opts.program, to check if user is a program manager
+      program: this.$program.value
+    });
   }
 
   enable(opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {

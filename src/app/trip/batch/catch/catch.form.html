@@ -1,4 +1,6 @@
-<form class="form-container" [formGroup]="form|formGetGroup:'measurementValues'" (ngSubmit)="doSubmit($event)">
+<form class="form-container" [formGroup]="form|formGetGroup:'measurementValues'"
+
+      (ngSubmit)="doSubmit($event)">
 
   <!-- error -->
   <ion-item *ngIf="showError && (errorSubject|push); let error"
@@ -7,101 +9,114 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <ion-grid class="ion-no-padding"
-            [style.--ion-grid-columns]="gridColCount"
-            *rxIf="$otherPmfms; let otherPmfms; suspense: loadingSkeleton">
+  <ng-container *rxIf="gridColCount$; let gridColCount; suspense: loadingSkeleton">
 
-    <!-- on deck  -->
-    <ng-container *rxIf="$gearPmfms; let pmfms">
-      <ion-row *rxIf="pmfms|isNotEmptyArray">
-        <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
-          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SUB_GEAR</ion-label>
-        </ion-col>
-        <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
-          <ion-col *rxIf="!pmfm.hidden" [size]="gridColCount" size-md="1">
-            <app-pmfm-field [pmfm]="pmfm"
-                            [i18nPrefix]="i18nPmfmPrefix"
-                            [i18nSuffix]="i18nSuffix"
-                            [tabindex]="tabindex+10+i">
-            </app-pmfm-field>
+    <ion-grid class="ion-no-padding"
+              [style.--ion-grid-columns]="gridColCount">
+
+      <!-- on deck  -->
+      <ng-container *rxIf="gearPmfms$; let pmfms">
+        <ion-row *rxIf="pmfms|isNotEmptyArray">
+          <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
+            <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SUB_GEAR</ion-label>
           </ion-col>
-        </ng-container>
-      </ion-row>
-    </ng-container>
-
-    <!-- on deck  -->
-    <ng-container *rxIf="$onDeckPmfms; let pmfms">
-      <ion-row *rxIf="pmfms|isNotEmptyArray">
-        <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
-          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.ON_DECK</ion-label>
-        </ion-col>
-        <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
-          <ion-col *rxIf="!pmfm.hidden" [size]="gridColCount" size-md="1">
-            <app-pmfm-field [pmfm]="pmfm"
-                            [i18nPrefix]="i18nPmfmPrefix"
-                            [i18nSuffix]="i18nSuffix"
-                            [tabindex]="tabindex+10+i">
-            </app-pmfm-field>
-          </ion-col>
-        </ng-container>
-      </ion-row>
-    </ng-container>
-
-    <!-- Sorting -->
-    <ng-container *rxIf="$sortingPmfms; let pmfms">
-      <ion-row *rxIf="pmfms|isNotEmptyArray">
-        <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
-          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SORTING</ion-label>
-        </ion-col>
-        <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
-          <ion-col *rxIf="!pmfm.hidden" [size]="gridColCount" size-md="1">
-            <app-pmfm-field [pmfm]="pmfm"
-                            [i18nPrefix]="i18nPmfmPrefix"
-                            [i18nSuffix]="i18nSuffix"
-                            [tabindex]="tabindex+20+i">
-            </app-pmfm-field>
-          </ion-col>
-        </ng-container>
-
-      </ion-row>
-    </ng-container>
-
-    <!-- Weight pmfms -->
-    <ng-container *rxIf="$weightPmfms; let pmfms">
-      <ion-row *rxIf="pmfms|isNotEmptyArray" class="ion-padding">
-        <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
-          <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
-        </ion-col>
-        <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
-          <ion-col *rxIf="!pmfm.hidden" [size]="gridColCount" size-md="1">
-            <app-pmfm-field [pmfm]="pmfm"
-                            [i18nPrefix]="i18nPmfmPrefix"
-                            [i18nSuffix]="i18nSuffix"
-                            [tabindex]="tabindex+30+i">
-            </app-pmfm-field>
-          </ion-col>
-        </ng-container>
-      </ion-row>
-    </ng-container>
-
-    <!-- Other features -->
-    <ion-row *rxIf="otherPmfms|isNotEmptyArray">
-      <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
-      </ion-col>
-      <ng-container *rxFor="let pmfm of otherPmfms; trackBy: trackPmfmFn; index as i;">
-        <ion-col *rxIf="!pmfm.hidden"
-                 [size]="(pmfm|isMultiplePmfm) ? 3 : 1" >
-          <app-pmfm-field [pmfm]="pmfm"
-                          [i18nPrefix]="i18nPmfmPrefix"
-                          [i18nSuffix]="i18nSuffix"
-                          [tabindex]="tabindex+40+i*3">
-          </app-pmfm-field>
-        </ion-col>
+          <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
+            <ion-col *rxIf="!pmfm.hidden" [size]="gridColCount" size-md="1">
+              <app-pmfm-field [pmfm]="pmfm"
+                              [i18nPrefix]="i18nPmfmPrefix"
+                              [i18nSuffix]="i18nSuffix"
+                              [tabindex]="tabindex+10+i">
+              </app-pmfm-field>
+            </ion-col>
+          </ng-container>
+        </ion-row>
       </ng-container>
-    </ion-row>
 
+      <!-- on deck  -->
+      <ng-container *rxIf="onDeckPmfms$; let pmfms">
+        <ion-row *rxIf="pmfms|isNotEmptyArray">
+          <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
+            <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.ON_DECK</ion-label>
+          </ion-col>
+          <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
+            <ion-col *rxIf="!pmfm.hidden" [size]="gridColCount" size-md="1">
+              <app-pmfm-field [pmfm]="pmfm"
+                              [i18nPrefix]="i18nPmfmPrefix"
+                              [i18nSuffix]="i18nSuffix"
+                              [tabindex]="tabindex+10+i">
+              </app-pmfm-field>
+            </ion-col>
+          </ng-container>
+        </ion-row>
+      </ng-container>
 
-  </ion-grid>
+      <!-- Sorting -->
+      <ng-container *rxIf="sortingPmfms$; let pmfms">
+        <ion-row *rxIf="pmfms|isNotEmptyArray">
+          <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
+            <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SORTING</ion-label>
+          </ion-col>
+          <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
+            <ion-col *rxIf="!pmfm.hidden" [size]="gridColCount" size-md="1">
+              <app-pmfm-field [pmfm]="pmfm"
+                              [i18nPrefix]="i18nPmfmPrefix"
+                              [i18nSuffix]="i18nSuffix"
+                              [tabindex]="tabindex+20+i">
+              </app-pmfm-field>
+            </ion-col>
+          </ng-container>
+
+        </ion-row>
+      </ng-container>
+
+      <!-- Catch weight pmfms -->
+      <ng-container *rxIf="catchPmfms$; let pmfms">
+        <ion-row *rxIf="pmfms|isNotEmptyArray" class="ion-padding">
+          <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
+            <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
+          </ion-col>
+          <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
+            <ion-col *rxIf="!pmfm.hidden" [size]="gridColCount" size-md="1">
+              <app-pmfm-field [pmfm]="pmfm"
+                              [i18nPrefix]="i18nPmfmPrefix"
+                              [i18nSuffix]="i18nSuffix"
+                              [tabindex]="tabindex+30+i">
+              </app-pmfm-field>
+            </ion-col>
+          </ng-container>
+        </ion-row>
+      </ng-container>
+
+      <!-- Other features -->
+      <ng-container *rxIf="otherPmfms$; let pmfms">
+        <ion-row *rxIf="pmfms|isNotEmptyArray; else defaultLayout">
+          <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
+          </ion-col>
+          <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
+            <ion-col *rxIf="!pmfm.hidden"
+                     [size]="(pmfm|isMultiplePmfm) ? 3 : 1" >
+              <app-pmfm-field [pmfm]="pmfm"
+                              [i18nPrefix]="i18nPmfmPrefix"
+                              [i18nSuffix]="i18nSuffix"
+                              [tabindex]="tabindex+40+i*3">
+              </app-pmfm-field>
+            </ion-col>
+          </ng-container>
+        </ion-row>
+      </ng-container>
+
+      <!-- Default layout -->
+      <ng-template #defaultLayout>
+        <ion-row>
+          <ion-col>
+            <!-- root form content -->
+            <app-batch-form-content [debug]="false">
+            </app-batch-form-content>
+          </ion-col>
+        </ion-row>
+      </ng-template>
+    </ion-grid>
+  </ng-container>
 </form>
 
 

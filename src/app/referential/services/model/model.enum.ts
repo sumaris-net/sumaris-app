@@ -55,6 +55,7 @@ export const TaxonomicLevelIds = {
 export const PmfmIds = {
   TRIP_PROGRESS: 34,
   SURVIVAL_SAMPLING_TYPE: 35,
+  DISCARD_WEIGHT: 56,
   TAG_ID: 82,
   DISCARD_OR_LANDING: 90,
   IS_DEAD: 94,
@@ -117,7 +118,8 @@ export const PmfmIds = {
   /* APASE */
   CHILD_GEAR: 400,
   BATCH_GEAR_POSITION: 411,
-  TRAWL_SIZE_CAT: 418
+  TRAWL_SIZE_CAT: 418,
+  BATCH_SORTING: 176 // Vrac/Hors Vrac
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
@@ -151,6 +153,10 @@ export const QualitativeValueIds = {
   BATCH_GEAR_POSITION: {
     PORT: 473, // Bâbord
     STARBOARD: 474 // Tribord
+  },
+  BATCH_SORTING: {
+    BULK: 390, // Vrac
+    NON_BULK: 391 // Hors Vrac
   }
 };
 

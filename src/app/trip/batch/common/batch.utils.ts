@@ -88,6 +88,10 @@ export class BatchUtils {
     return batch && isNotNilOrBlank(batch.label) && batch.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX);
   }
 
+  static isParentOfSamplingBatch(batch: Batch): boolean {
+    return batch.children?.length === 1 && this.isSamplingBatch(batch.children[0]);
+  }
+
   static isSamplingNotEmpty(samplingBatch: Batch): boolean {
     return isNotNil(samplingBatch.individualCount)
       || isNotNil(samplingBatch.samplingRatio)
@@ -420,9 +424,17 @@ export class BatchUtils {
     }
   }
 
+  static isEmptyWeight(weight: BatchWeight): boolean {
+    return !weight || isNil(weight.value) && isNil(weight.computed) && isNil(weight.methodId) && isNil(weight.computed);
+  }
+
+  static isNotEmptyWeight(weight: BatchWeight): boolean {
+    return !this.isEmptyWeight(weight);
+  }
+
   static getWeight(source: Batch, weightPmfms?: IPmfm[]): BatchWeight | undefined {
     if (!source) return undefined;
-    if (source.weight) return source.weight;
+    if (this.isNotEmptyWeight(source.weight)) return source.weight;
 
     weightPmfms = weightPmfms || this.getDefaultSortedWeightPmfms();
 
@@ -432,19 +444,22 @@ export class BatchUtils {
         return isNotNilOrNaN(value) ? {
           value: +value,
           estimated: pmfm.methodId === MethodIds.ESTIMATED_BY_OBSERVER,
-          computed: pmfm.isComputed,
+          computed: pmfm.isComputed || pmfm.methodId === MethodIds.CALCULATED,
           methodId: pmfm.methodId
         }: undefined;
       })
       .filter(isNotNil)
       .sort((w1, w2) => {
-        const r1 = 10 * (!w1.computed ? 1 : 0)
-          + (!w1.estimated ? 1 : 0);
-        const r2 = 10 * (!w2.computed ? 1 : 0)
-          + (!w2.estimated ? 1 : 0);
-        return r1-r2;
+        const score1 = BatchUtils.getWeightScore(w1);
+        const score2 = BatchUtils.getWeightScore(w2);
+        return score1 - score2;
       })
       .find(isNotNil);
+  }
+
+  static getWeightScore(weight: BatchWeight): number {
+    return 10 * (!weight.computed ? 1 : 0)
+      + (!weight.estimated ? 1 : 0);
   }
 
   static getWeightPmfm(weight: BatchWeight, weightPmfms: IPmfm[], weightPmfmsByMethodId?: { [key: string]: IPmfm }): IPmfm {
@@ -548,7 +563,8 @@ export class BatchUtils {
           message += ' length:' + length + 'cm';
         }
         const weight = batch.measurementValues[PmfmIds.BATCH_MEASURED_WEIGHT]
-          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT];
+          || batch.measurementValues[PmfmIds.BATCH_ESTIMATED_WEIGHT]
+          || batch.measurementValues[PmfmIds.DISCARD_WEIGHT];
         if (isNotNil(weight)) {
           message += ' weight:' + weight + 'kg';
         }

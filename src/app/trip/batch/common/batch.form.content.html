@@ -1,18 +1,19 @@
 <form class="form-container" [formGroup]="delegate.form" (ngSubmit)="delegate.doSubmit($event)" >
 
   <!-- error -->
-  <ion-item *ngIf="delegate.error && delegate.showError" lines="none">
+  <ion-item *ngIf="showError && delegate.error; let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="delegate.error|translate"></ion-label>
+    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <!-- DEBUG -->
-  <ng-container *ngIf="delegate.debug">
+  <ng-container *ngIf="debug">
     <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
   </ng-container>
 
-  <ion-grid class="ion-no-padding">
-    <ion-row>
+  <ion-grid class="ion-no-padding" >
+    <!-- Taxon group and/or taxon name -->
+    <ion-row *ngIf="delegate.showTaxonGroup || delegate.showTaxonName">
 
       <!-- Taxon group -->
       <ion-col size="12" size-md="6" *ngIf="delegate.showTaxonGroup">
@@ -48,6 +49,7 @@
                  size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >
           <app-pmfm-field #matInput
                           [pmfm]="pmfm"
+                          [formControlName]="pmfm|pmfmIdString"
                           [style]="style"
                           [compact]="delegate.compact"
                           [tabindex]="delegate.tabindex+2 + i*2"
@@ -55,20 +57,22 @@
           </app-pmfm-field>
         </ion-col>
       </ng-container>
+
     </ion-row>
 
     <!-- Total weight -->
-    <ion-row *ngIf="delegate.defaultWeightPmfm && delegate.showWeight">
+    <ion-row *ngIf="delegate.showWeight && delegate.defaultWeightPmfm && delegate.weightForm; let weightForm">
       <ion-col class="ion-no-padding"
                *ngVar="{
-                      weightValue: delegate.form|formGetControl: 'weight.value',
-                      weightComputed: delegate.form|formGetControl: 'weight.computed'
-                    } as controls">
+                weightValue: weightForm|formGetControl: 'value',
+                weightMethodId: weightForm|formGetControl: 'methodId',
+                weightComputed: weightForm|formGetControl: 'computed'
+               } as controls">
         <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
+                        [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.weightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
                         [control]="controls.weightValue"
                         [class.computed]="controls.weightComputed.value"
                         [readonly]="controls.weightComputed.value"
-                        [placeholder]="'TRIP.BATCH.EDIT.TOTAL_WEIGHT'|translate"
                         [compact]="delegate.compact"
                         [tabindex]="delegate.tabindex+28"
                         [listenStatusChanges]="true"
@@ -107,7 +111,7 @@
                  type="number"
                  step="1"
                  pattern="[0-9]*"
-                 (click)="delegate.selectInputContent($event)"
+                 (click)="selectInputContent($event)"
                  [placeholder]="'TRIP.BATCH.EDIT.TOTAL_INDIVIDUAL_COUNT'|translate"
                  [tabindex]="delegate.tabindex + 30"
                  [required]="delegate.requiredIndividualCount">
@@ -122,21 +126,9 @@
     </ion-row>
 
     <!-- Sampling batch -->
-    <div formArrayName="children" [class.cdk-visually-hidden]="!delegate.showSamplingBatch">
-      <ion-row class="ion-no-padding" [class.cdk-visually-hidden]="delegate.requiredSampleWeight">
-        <ion-col class="ion-no-padding">
-          <!-- checkbox, when compact -->
-          <mat-checkbox [checked]="delegate.isSampling"
-                        [disabled]="delegate.disabled"
-                        labelPosition="after"
-                        [tabIndex]="delegate.showSamplingBatch && !delegate.requiredSampleWeight ? delegate.tabindex+31 : -1"
-                        (change)="delegate.setIsSampling($event.checked)">
-            <ion-text>{{'TRIP.BATCH.EDIT.IS_SAMPLING'|translate}}</ion-text>
-          </mat-checkbox>
-        </ion-col>
-      </ion-row>
+    <ion-row class="ion-no-padding ion-align-items-end" formArrayName="children" [class.cdk-visually-hidden]="!delegate.showSamplingBatch">
 
-      <ng-container *ngIf="delegate.samplingBatchForm as samplingForm" >
+      <ng-container *ngIf="delegate.samplingBatchForm as samplingForm">
         <ng-container *ngVar="{
                             samplingRatio: samplingForm|formGetControl:'samplingRatio',
                             samplingRatioText: samplingForm|formGetControl:'samplingRatioText',
@@ -144,84 +136,100 @@
                             weightValue: samplingForm|formGetControl: 'weight.value',
                             weightComputed: samplingForm|formGetControl: 'weight.computed',
                             childrenWeightValue: samplingForm|formGetControl: 'childrenWeight.value',
-                            childrenWeightComputed: samplingForm|formGetControl: 'childrenWeight.computed',
                             childrenWeightMethodId: samplingForm|formGetControl: 'childrenWeight.methodId'
                          } as controls">
-          <ion-row class="ion-no-padding" *ngIf="controls.childrenWeightValue?.value">
-            <ion-col offset="4" class="ion-no-padding">
-              <mat-form-field class="computed">
-                <input matInput
-                       autocomplete="off"
-                       [formControl]="controls.childrenWeightValue"
-                       [readonly]="true"
-                       type="number"
-                       (click)="delegate.selectInputContent($event)"
-                       [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.childrenWeightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
-                       [tabindex]="-1">
 
-                <!-- copy children weight -->
-                <button type="button" mat-icon-button matSuffix
-                        (click)="delegate.copyChildrenWeight($event, delegate.samplingBatchForm)"
-                        [title]="'TRIP.BATCH.EDIT.BTN_APPLY_CHILDREN_WEIGHT'|translate">
-                  <mat-icon>arrow_downward</mat-icon>
-                </button>
-                <mat-error *ngIf="controls.childrenWeightValue.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
-                  <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
-                  <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: controls.childrenWeightValue.errors.min }}</span>
-                  <span *ngSwitchCase="'maxDecimals'">
-                      {{ 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT'| translate:controls.childrenWeightValue.errors.maxDecimals }}</span>
-                  <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
-                </mat-error>
-              </mat-form-field>
-            </ion-col>
-          </ion-row>
+          <!-- is Exhaustive inventory ?-->
+          <ion-col size="4" class="ion-no-padding ion-margin-end" *ngIf="delegate.showExhaustiveInventory">
 
-          <ion-row class="ion-no-padding" >
+            <mat-boolean-field [formControl]="delegate.form|formGetControl:'exhaustiveInventory'"
+                               [placeholder]="'TRIP.BATCH.EDIT.IS_EXHAUSTIVE_INVENTORY'|translateContext: delegate.i18nSuffix"
+                               [style]="delegate.mobile?'button':'radio'"
+                               [required]="true">
 
-            <!-- Sampling ratio -->
-            <ion-col size="4" class="ion-no-padding">
-              <mat-sampling-ratio-field [class.computed]="controls.samplingRatioComputed.value"
-                                        [readonly]="controls.samplingRatioComputed.value"
-                                        [formControl]="controls.samplingRatio"
-                                        [format]="delegate.samplingRatioFormat"
-                                        [tabindex]="delegate.tabindex + 32">
-              </mat-sampling-ratio-field>
-            </ion-col>
+            </mat-boolean-field>
+          </ion-col>
 
-            <!-- Sampling weight -->
-            <ion-col class="ion-no-padding" *ngIf="delegate.defaultWeightPmfm && delegate.showSampleWeight">
+          <!-- SUM of children weight-->
+          <ion-col *ngIf="delegate.showChildrenWeight && controls.childrenWeightValue?.value"
+                   [offset]="delegate.showExhaustiveInventory ? 0 : 4" class="ion-no-padding">
+            <mat-form-field class="computed">
+              <input matInput
+                     autocomplete="off"
+                     [formControl]="controls.childrenWeightValue"
+                     [readonly]="true"
+                     type="number"
+                     (click)="selectInputContent($event)"
+                     [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.childrenWeightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
+                     [tabindex]="-1">
 
-              <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
-                              [formControl]="controls.weightValue"
-                              [readonly]="controls.weightComputed.value"
-                              [class.computed]="controls.weightComputed.value"
-                              [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
-                              [compact]="delegate.compact"
-                              [tabindex]="delegate.tabindex+33"
-                              [listenStatusChanges]="true"
-                              [required]="delegate.requiredSampleWeight">
-              </app-pmfm-field>
+              <!-- copy children weight -->
+              <button type="button" mat-icon-button matSuffix
+                      *ngIf="delegate.showSampleWeight"
+                      (click)="delegate.copyChildrenWeight($event, delegate.samplingBatchForm)"
+                      [title]="'TRIP.BATCH.EDIT.BTN_APPLY_CHILDREN_WEIGHT'|translate">
+                <mat-icon>arrow_downward</mat-icon>
+              </button>
+              <mat-error *ngIf="controls.childrenWeightValue.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+                <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+                <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: controls.childrenWeightValue.errors.min }}</span>
+                <span *ngSwitchCase="'maxDecimals'">
+                    {{ 'ERROR.FIELD_MAXIMUM_DECIMALS_COMPACT'| translate:controls.childrenWeightValue.errors.maxDecimals }}</span>
+                <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
+              </mat-error>
+            </mat-form-field>
+          </ion-col>
 
-            </ion-col>
+          <!-- Sampling ratio -->
+          <ion-col size="4" class="ion-no-padding ion-margin-end">
+            <mat-sampling-ratio-field [class.computed]="controls.samplingRatioComputed.value"
+                                      [readonly]="controls.samplingRatioComputed.value"
+                                      [formControl]="controls.samplingRatio"
+                                      [format]="delegate.samplingRatioFormat"
+                                      [tabindex]="delegate.tabindex + 32">
+            </mat-sampling-ratio-field>
+          </ion-col>
 
-            <!-- Sampling individual count -->
-            <ion-col size="4" class="ion-no-padding" *ngIf="delegate.showSampleIndividualCount">
-              <mat-form-field>
-                <input matInput
-                       autocomplete="off"
-                       [formControl]="delegate.samplingBatchForm|formGetControl: 'individualCount'"
-                       type="number"
-                       step="1"
-                       pattern="[0-9]*"
-                       (click)="delegate.selectInputContent($event)"
-                       [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_INDIVIDUAL_COUNT'|translate"
-                       [tabindex]="delegate.tabindex + 34">
-              </mat-form-field>
-            </ion-col>
-          </ion-row>
+          <!-- Sampling weight -->
+          <ion-col class="ion-no-padding" *ngIf="delegate.defaultWeightPmfm && delegate.showSampleWeight">
+
+            <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
+                            [formControl]="controls.weightValue"
+                            [readonly]="controls.weightComputed.value"
+                            [class.computed]="controls.weightComputed.value"
+                            [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_WEIGHT'|translate"
+                            [compact]="delegate.compact"
+                            [tabindex]="delegate.tabindex+33"
+                            [listenStatusChanges]="true"
+                            [required]="delegate.requiredSampleWeight">
+            </app-pmfm-field>
+
+          </ion-col>
+
+          <!-- Sampling individual count -->
+          <ion-col size="4" class="ion-no-padding" *ngIf="delegate.showSampleIndividualCount">
+            <mat-form-field *ngVar="delegate.samplingBatchForm|formGetControl: 'individualCount'; let control">
+              <input matInput
+                     autocomplete="off"
+                     [formControl]="control"
+                     type="number"
+                     step="1"
+                     pattern="[0-9]*"
+                     (click)="selectInputContent($event)"
+                     [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_INDIVIDUAL_COUNT'|translate"
+                     [tabindex]="delegate.tabindex + 34"
+                     [required]="delegate.requiredSampleIndividualCount">
+              <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
+                <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+                <span *ngSwitchCase="'min'">{{'ERROR.FIELD_MIN' | translate: control.errors.min }}</span>
+                <span *ngSwitchCase="'integer'">{{'ERROR.FIELD_NOT_VALID_INTEGER' | translate }}</span>
+                <span *ngSwitchDefault translate>ERROR.FIELD_INVALID</span>
+              </mat-error>
+            </mat-form-field>
+          </ion-col>
         </ng-container>
       </ng-container>
-    </div>
+    </ion-row>
 
   </ion-grid>
 
@@ -233,11 +241,15 @@
           <ion-col>
             loading: {{delegate.loadingSubject|async}}<br/>
             ready: {{delegate.readySubject|async}}<br/>
+            enabled: {{delegate.enabled}}<br/>
             disabled: {{delegate.disabled}}<br/>
+          </ion-col>
+          <ion-col>
             valid: {{delegate.valid}}<br/>
             dirty: {{delegate.dirty}}<br/>
             touched: {{delegate.touched}}<br/>
             showError: {{delegate.showError}}<br/>
+            showSampleWeight: {{delegate.showSampleWeight}}<br/>
           </ion-col>
           <ion-col *ngIf="delegate.showSamplingBatch && delegate.samplingBatchForm as childForm">
             <ng-container *ngVar="{
@@ -253,7 +265,7 @@
                 samplingRatio: {{controls.samplingRatio.value|numberFormat: {fixedDecimals: 6} }} <br/>
                 samplingRatioText: {{controls.samplingRatioText.value}} (type: {{delegate.samplingRatioFormat||'null'}}{{ (controls.samplingRatioComputed.value) ? ', computed' : ''}})<br/>
                 sampling.weight: {{controls.weightValue.value }} {{controls.weightComputed.value?'(computed)':'' }}<br/>
-                sampling.children weight: {{controls.childrenWeightValue.value }} {{controls.childrenWeightComputed.value?'(computed)':'' }}<br/>
+                sampling.children weight: {{controls.childrenWeightValue?.value }} {{controls.childrenWeightComputed?.value?'(computed)':'' }}<br/>
                 <br/>
                 defaultWeightPmfm: {{delegate.defaultWeightPmfm?.label}} (maxDecimals: {{delegate.defaultWeightPmfm?.maximumNumberDecimals}})<br/>
                 <span *ngIf="delegate.weightPmfmsByMethod|mapGet:controls.childrenWeightMethodId?.value; let childrenWeightPmfm">
@@ -263,6 +275,11 @@
           </ion-col>
         </ion-row>
 
+        <ion-row>
+          <ion-col size="12">
+            <ion-text color="danger" [innerHTML]="delegate.form | translateFormError: delegate.errorTranslatorOptions"></ion-text>
+          </ion-col>
+        </ion-row>
 
       </ion-grid>
     </app-debug>

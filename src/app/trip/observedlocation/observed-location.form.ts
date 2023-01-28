@@ -112,14 +112,14 @@ export class ObservedLocationForm extends MeasurementValuesForm<ObservedLocation
 
   constructor(
     injector: Injector,
-    protected measurementValidatorService: MeasurementsValidatorService,
+    protected measurementsValidatorService: MeasurementsValidatorService,
     protected formBuilder: UntypedFormBuilder,
     protected programRefService: ProgramRefService,
     protected validatorService: ObservedLocationValidatorService,
     protected referentialRefService: ReferentialRefService,
     protected personService: PersonService
   ) {
-    super(injector, measurementValidatorService, formBuilder, programRefService,
+    super(injector, measurementsValidatorService, formBuilder, programRefService,
       validatorService.getFormGroup());
     this._enable = false;
     this.mobile = this.settings.mobile;

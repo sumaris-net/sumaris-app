@@ -12,6 +12,8 @@ export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
   isSamplingBatch: boolean = null;
   measurementValues: MeasurementModelValues | MeasurementFormValues = null;
 
+  parentFilter: BatchFilter = null;
+
   static fromObject: (source: any, opts?: any) => BatchFilter;
 
   fromObject(source: any, opts?: any) {
@@ -21,11 +23,13 @@ export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
     this.parentId = source.parentId;
     this.isSamplingBatch = source.isSamplingBatch
     this.measurementValues = source.measurementValues && { ...source.measurementValues } || MeasurementUtils.toMeasurementValues(source.measurements);
+    this.parentFilter = source.parentFilter && BatchFilter.fromObject(source.parentFilter);
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.measurementValues = MeasurementValuesUtils.asObject(this.measurementValues, opts);
+    target.parentFilter = this.parentFilter && this.parentFilter.asObject(opts);
     return target;
   }
 
@@ -55,6 +59,13 @@ export class BatchFilter extends EntityFilter<BatchFilter, Batch> {
           filterFns.push(b => isNotNil(b.measurementValues[pmfmId]) && PmfmValueUtils.equals(b.measurementValues[pmfmId], pmfmValue));
         }
       });
+    }
+
+    // Parent filter
+    const parentFilter = this.parentFilter && BatchFilter.fromObject(this.parentFilter);
+    if (parentFilter && !parentFilter.isEmpty()) {
+      const parentFilterFn = parentFilter.asFilterFn();
+      filterFns.push(b => b.parent && parentFilterFn(b.parent));
     }
 
     return filterFns;

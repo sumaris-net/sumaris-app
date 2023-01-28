@@ -76,6 +76,11 @@ export abstract class BaseMeasurementsTable<
   i18nPmfmPrefix: string = null;
 
   readonly hasRankOrder: boolean;
+  readonly hasPmfms$ = this.$pmfms.pipe(
+    filter(isNotNil),
+    map(isNotEmptyArray),
+    distinctUntilChanged()
+  );
 
   /**
    * Allow to override the rankOrder. See physical-gear, on ADAP program
@@ -177,14 +182,6 @@ export abstract class BaseMeasurementsTable<
     this._dataService.pmfms = pmfms;
   }
 
-  get $hasPmfms(): Observable<boolean> {
-    return this.$pmfms.pipe(
-      filter(isNotNil),
-      map(isNotEmptyArray),
-      distinctUntilChanged()
-    );
-  }
-
   get hasPmfms(): boolean {
     return isNotEmptyArray(this.pmfms);
   }
@@ -241,14 +238,6 @@ export abstract class BaseMeasurementsTable<
     this.i18nPmfmPrefix = options?.i18nPmfmPrefix;
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
-
-    // this.measurementsDataService = new EntitiesWithMeasurementService<T, F, ID>(injector, this.dataType, dataService, {
-    //   mapPmfms: this.options.mapPmfms || undefined,
-    //   requiredStrategy: this.options.requiredStrategy,
-    //   debug: this.options.debug || false
-    // });
-
-    //this.setValidatorService(validatorService);
 
     // For DEV only
     //this.debug = !environment.production;
@@ -660,10 +649,11 @@ export abstract class BaseMeasurementsTable<
     }
   }
 
-  private _onRowEditing(row: TableElement<T>) {
+  private async _onRowEditing(row: TableElement<T>) {
+    if (row.id === -1) return; // Skip new row, because already processed by onRowCreated()
+
     if (row.validator && this.options.onPrepareRowForm) {
-      // Skip new row, because already processed by onRowCreated()
-      if (row.id !== -1) this.options.onPrepareRowForm(row.validator);
+      await this.options.onPrepareRowForm(row.validator);
     }
   }
 }

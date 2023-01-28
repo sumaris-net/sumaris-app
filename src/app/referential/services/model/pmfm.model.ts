@@ -45,6 +45,7 @@ export interface IPmfm<
   hidden?: boolean;
 
   displayConversion?: UnitConversion;
+
 }
 
 export interface IDenormalizedPmfm<

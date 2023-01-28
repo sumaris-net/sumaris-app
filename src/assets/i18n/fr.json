@@ -39,7 +39,7 @@
     "BTN_SAVE_WITH_SHORTCUT": "<u>S</u>auvegarder",
     "BTN_SAVE_WITH_SHORTCUT_HELP": "Sauvegarder (Ctrl+S)",
     "BTN_FILTER": "Filtrer",
-    "BTN_RELOAD": "Mettre à jour",
+    "BTN_RELOAD": "Recharger",
     "BTN_REFRESH": "Rafraichir",
     "BTN_RESET": "Réinitialiser",
     "BTN_SEARCH": "Rechercher",
@@ -51,6 +51,7 @@
     "BTN_SEND": "Envoyer",
     "BTN_OPTIONS": "Options",
     "BTN_UNDO": "Annuler les modifications",
+    "BTN_UPDATE": "Mettre à jour",
     "BTN_TABLE_EDIT": "Éditer dans le tableau",
     "BTN_TABLE_OPEN": "Éditer dans un formulaire",
     "BTN_SHOW_HELP": "Aide en ligne",
@@ -222,7 +223,7 @@
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
-        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Immatriculation : recherche par prefix ?",
+        "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Recherche d'immatriculation par préfixe (immat, nom) ?",
         "NAME_REQUIRED": "Navires: Nom obligatoire ?"
       },
       "ENUMERATION": {
@@ -266,6 +267,8 @@
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Référentiel > Valeur qualitative > Présentation de l'espèce / Entier",
         "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Référentiel > Valeur qualitative > État de l'espèce / Frais",
         "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Référentiel > Valeur qualitative > Catégorie de tri terrain / Sans",
+        "QUALITATIVE_VALUE_SORTING_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Vrac",
+        "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Hors-Vrac",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métier nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métier DCF niv 5"
@@ -806,6 +809,9 @@
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "Aucun métier pratiqué trouvé dans les données disponibles.",
         "CATCH_ERROR": "Erreur dans la saisie de la capture"
       },
+      "WARNING": {
+        "ABNORMAL_PROGRESS": "Déroulement anormal : {{comments}}"
+      },
       "REPORT": {
         "TITLE": "Rapport OP #{{rankOrder}} <small>du {{startDateTime}}</small>",
         "TITLE_NO_RANK": "Rapport OP {{startDateTime}}",
@@ -888,6 +894,7 @@
         "SAMPLING_RATIO_PCT": "Taux éch. (%)",
         "SAMPLING_COEFFICIENT": "Coef. éch.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
+        "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhautif des espèces ?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
           "TITLE": "Mesures individuelles",
@@ -935,7 +942,12 @@
         "DISCARD_OR_LANDING": "Partie retenue ou rejetée ?",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Poids calculé RTP (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
-        "CHILD_GEAR": "Sous-engin"
+        "CHILD_GEAR": "Sous-engin",
+        "TRAWL_SELECTIVITY": {
+          "BATCH_MEASURED_WEIGHT": "Poids du lot (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Poids du lot (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Poids du lot (kg)"
+        }
       }
     },
     "SUB_BATCH": {
@@ -2202,6 +2214,8 @@
       "SQUARE": "Carré 10'x10'",
       "SUB_POLYGON": "Sous-rectangle",
       "SPECIES": "Espèce",
+      "TAXON_CODE": "Code taxon",
+      "TAXON_NAME": "Libellé taxon",
       "OFFICIAL_LANDING_WEIGHT": "Poids débarqué officiel",
       "COMMERCIAL_SIZE_CATEGORY": "Catégorie commerciale",
       "COMMERCIAL_SIZE_CATEGORY_SCALE": "Type de catégorie commerciale",
@@ -2212,8 +2226,8 @@
       "CATCH_CATEGORY": "Débarquement/Rejet",
       "LANDING_CATEGORY": "Destination du débarquement",
       "NUMBER_AT_LENGTH": "Nombre d'individu",
-      "INDIVIDUAL_SEX": "Sex individu",
-      "SEX": "Sex",
+      "INDIVIDUAL_SEX": "Sexe individu",
+      "SEX": "Sexe",
       "WEIGHT": "Poids (g)",
       "SUBSAMPLING_WEIGHT": "Poids échantillonné (g)",
       "SUBSAMPLING_CATEGORY": "Catégorie de sous-échantillonnage",
@@ -2234,6 +2248,8 @@
       "NET_HEIGHT":"Hauteur du filet",
       "LENGTH_TOTAL_KM": "Longueur totale (km)",
       "LENGTH_TOTAL_CM": "Longueur totale (cm)",
+      "LENGTH_CARAPACE_CM": "Longueur céphalothoracique (cm)",
+      "SEGMENT_LENGTH": "Longueur deuxième segment (cm)",
       "HAS_BUOY": "Présence de flotteur?",
       "WIND_FORCE": "Force du vent",
       "SEA_STATE": "État de la mer",
@@ -2241,7 +2257,7 @@
       "DOLPHIN_PRESENCE": "Dauphin autour navire?",
       "IS_ACOUSTIC_DEVICE": "Dispositif(s) de répulsif acoustique?",
       "HAS_ACCIDENTAL_CATCHES": "Captures accidentelles?",
-      "DISCARD_REASON": "Raison du débarquement",
+      "DISCARD_REASON": "Raison du rejet",
       "DRESSING_POL": "Présentation",
       "SPECIES_CODE": "Code espèce",
       "SPECIES_NAME": "Espèce",
@@ -2251,7 +2267,8 @@
       "IS_DEAD": "Mort?",
       "COMMENTS": "Commentaires",
       "MEASURE_TIME": "Date de la mesure",
-      "GPS_USED": "Utilisation d'un GPS?"
+      "GPS_USED": "Utilisation d'un GPS?",
+      "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids RTP"
     },
     "SHEET": {
       "TR": "Marées",
