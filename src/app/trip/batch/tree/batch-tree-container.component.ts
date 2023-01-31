@@ -147,14 +147,14 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this._state.set('allowSpeciesSampling', (_) => value);
   }
   get allowSpeciesSampling(): boolean {
-    return this._state.get('allowSpeciesSampling') && this.programAllowMeasure;
+    return this._state.get('allowSpeciesSampling') ;
   }
 
   @Input() set allowSubBatches(value: boolean) {
     this._state.set('allowSubBatches', (_) => value);
   }
   get allowSubBatches(): boolean {
-    return this._state.get('allowSubBatches') && this.programAllowMeasure;
+    return this._state.get('allowSubBatches');
   }
 
   @Input() showTaxonName: boolean;
@@ -631,9 +631,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
-    this.programAllowMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
-    this.allowSpeciesSampling = this.allowSpeciesSampling;
-    this.allowSubBatches = this.allowSubBatches;
+    const programAllowMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
+    this.programAllowMeasure = programAllowMeasure;
+    this.allowSpeciesSampling = this.allowSpeciesSampling && programAllowMeasure;
+    this.allowSubBatches = this.allowSubBatches && programAllowMeasure;
     this.showTaxonGroup = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.showTaxonName = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
     this.samplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);

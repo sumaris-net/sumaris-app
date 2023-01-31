@@ -599,14 +599,15 @@ export class OperationPage<S extends OperationState = OperationState>
       if (!this.allowParentOperation) {
         defaultTableStates = true;
       }
-      this._state.connect('hasIndividualMeasures', hasIndividualMeasuresControl.valueChanges
-        .pipe(
-          startWith<any, any>(hasIndividualMeasuresControl.value),
-          filter(isNotNil)
-        ));
-
       this._measurementSubscription.add(
-        this.hasIndividualMeasures$
+        hasIndividualMeasuresControl.valueChanges
+          .pipe(
+            startWith<any, any>(hasIndividualMeasuresControl.value),
+            filter(isNotNil),
+            distinctUntilChanged(),
+            // Update the state
+            tap(value => this._state.set('hasIndividualMeasures', (_) => value)),
+          )
           .subscribe(value => {
             this.batchTree.allowSpeciesSampling = value;
             this.batchTree.defaultHasSubBatches = value;

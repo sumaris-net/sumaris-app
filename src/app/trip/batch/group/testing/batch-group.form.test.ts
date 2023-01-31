@@ -38,7 +38,6 @@ export class BatchGroupFormTestPage implements OnInit {
   defaultHasSubBatches = false;
   hasSubBatches = false;
   showHasSubBatchesButton = true;
-  showExhaustiveInventory = true;
   showEstimatedWeight = true;
 
   showChildrenWeight = true;
@@ -57,7 +56,6 @@ export class BatchGroupFormTestPage implements OnInit {
       showChildrenWeight: this.showChildrenWeight,
       showSamplingBatch: this.showSamplingBatch,
       samplingBatchEnabled: this.samplingBatchEnabled,
-      showExhaustiveInventory: this.showExhaustiveInventory,
       showEstimatedWeight: this.showEstimatedWeight,
     };
   }

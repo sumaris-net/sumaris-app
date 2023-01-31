@@ -122,7 +122,9 @@ export abstract class MeasurementValuesForm<
   }
 
   @Input() set pmfms(pmfms: IPmfm[]) {
-    this.setPmfms(pmfms);
+    // /!\ DO NOT emit event if not loaded.
+    // (e.g. Required to avoid form ready to be resetted, when pmfms not changed)
+    this.setPmfms(pmfms, {emitEvent: false});
   }
   get pmfms(): IPmfm[] {
     return this._state.get('pmfms');

@@ -294,6 +294,24 @@ export class BatchForm<
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }): void {
     super.enable(opts);
+
+    // Refresh sampling child form
+    if (this.samplingBatchEnabled) {
+      this.enableSamplingBatch(opts);
+    }
+    else {
+      this.disableSamplingBatch(opts);
+    }
+
+    // Refresh weight form
+    if (this.showWeight) {
+      this.enableWeightFormGroup(opts);
+    } else {
+      this.disableWeightFormGroup(opts);
+    }
+
+    // Other field to disable by default (e.g. discard reason, in SUMARiS program)
+    this._disableByDefaultControls.forEach(c => c.disable(opts));
   }
 
   constructor(
@@ -372,14 +390,14 @@ export class BatchForm<
 
     // When pmfm filter change, re-apply initial pmfms
     this._state.hold(this._state.select('pmfmFilter')
-      .pipe(filter(_ => !this.loading)),
+      .pipe(filter(_ => this.enabled && !this.loading)),
       _ => this.setPmfms(this._initialPmfms)
     );
 
     // Update form if need
     this._state.hold(this._state.select(['showWeight', 'requiredWeight',
         'showSamplingBatch', 'requiredSampleWeight',
-        'requiredIndividualCount', 'showChildrenWeight'], res => res, )
+        'requiredIndividualCount', 'showChildrenWeight'], res => res)
         .pipe(
           filter(_ => !this.loading), // Skip when loading
           //debounceTime(450), // Avoid to many call, when many attributes changes
@@ -392,11 +410,11 @@ export class BatchForm<
     // Has content ?
     this._state.connect('hasContent', this.listenHasContent());
 
+    // Listen samplingBatchEnabled, to enable/disable sampling form
     this._state.hold(this._state.select('samplingBatchEnabled')
         .pipe(
-          map(samplingBatchEnabled => samplingBatchEnabled && this.enabled),
-          distinctUntilChanged(),
-          filter(_ => this.enabled && !this.loading)
+          filter(_ => this.enabled && !this.loading),
+          distinctUntilChanged()
         ),
       samplingBatchEnabled => {
         if (samplingBatchEnabled) this.enableSamplingBatch()
@@ -447,7 +465,7 @@ export class BatchForm<
     super.ngOnDestroy();
   }
 
-  updateState(state: Partial<BatchFormState>) {
+  applyState(state: Partial<BatchFormState>) {
     this._state.set(oldState => ({
       ...oldState,
       ...state
@@ -609,24 +627,6 @@ export class BatchForm<
 
   protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
     super.updateViewState(opts);
-
-    // Refresh sampling child form
-    if (this._enable && this.samplingBatchEnabled) {
-      this.enableSamplingBatch(opts);
-    }
-    else {
-      this.disableSamplingBatch(opts);
-    }
-
-    // Refresh weight form
-    if (this._enable && this.showWeight) {
-      this.enableWeightFormGroup(opts);
-    } else {
-      this.disableWeightFormGroup(opts);
-    }
-
-    // Other field to disable by default (e.g. discard reason, in SUMARiS program)
-    this._disableByDefaultControls.forEach(c => c.disable(opts));
   }
 
   protected getValue(): T {
@@ -726,13 +726,14 @@ export class BatchForm<
     const array = this.childrenFormArray;
     if (!array) return; // Skip if absent or already enable
 
+    const changed = !array.enabled;
     array.enable(opts);
 
-    await this.enableSamplingWeightComputation();
+    await this.enableWeightsComputation();
 
     // Mark form as dirty
     if (!this.loading && (!opts || opts.emitEvent !== false)) {
-      this.markAsDirty(opts);
+      if (changed) this.markAsDirty(opts);
       this.markForCheck();
     }
   }
@@ -741,12 +742,14 @@ export class BatchForm<
     const array = this.childrenFormArray;
     if (!array) return;
 
+    const changed = !array.disabled;
     array.disable(opts);
+
     this.disableSamplingWeightComputation();
 
     // Mark form as dirty
     if (!this.loading && (!opts || opts.emitEvent !== false)) {
-      this.markAsDirty(opts);
+      if (changed) this.markAsDirty(opts);
       this.markForCheck();
     }
 
@@ -924,7 +927,7 @@ export class BatchForm<
         this.markForCheck();
 
         // Has sample batch, and weight is enable
-        await this.enableSamplingWeightComputation();
+        await this.enableWeightsComputation();
       }
 
       // Remove existing sample, if exists but showSample=false
@@ -962,7 +965,7 @@ export class BatchForm<
     this._formValidatorSubscription?.unsubscribe();
   }
 
-  protected async enableSamplingWeightComputation() {
+  protected async enableWeightsComputation() {
 
     if (!this.showWeight || !this.samplingBatchEnabled || !this.showSamplingBatch) {
       // Unregister to previous validator

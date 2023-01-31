@@ -83,47 +83,32 @@
 
     <!-- Total weight -->
     <ion-row *ngIf="delegate.showWeight && delegate.defaultWeightPmfm && delegate.weightForm; let weightForm">
-      <ng-container *ngVar="{
+      <ion-col class="ion-no-padding"
+               *ngVar="{
                 weightValue: weightForm|formGetControl: 'value',
                 weightMethodId: weightForm|formGetControl: 'methodId',
                 weightComputed: weightForm|formGetControl: 'computed',
                 weightEstimated: weightForm|formGetControl: 'estimated'
                } as controls">
-        <ion-col class="ion-no-padding">
-          <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
-                          [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.weightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
-                          [control]="controls.weightValue"
-                          [class.computed]="controls.weightComputed.value"
-                          [readonly]="controls.weightComputed.value"
-                          [compact]="delegate.compact"
-                          [tabindex]="delegate.tabindex+28"
-                          [listenStatusChanges]="true"
-                          [required]="delegate.requiredWeight">
-            <mat-icon matPrefix>weight</mat-icon>&nbsp;
-          </app-pmfm-field>
-        </ion-col>
+        <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
+                        [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.weightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
+                        [control]="controls.weightValue"
+                        [class.computed]="controls.weightComputed.value"
+                        [readonly]="controls.weightComputed.value"
+                        [compact]="delegate.compact"
+                        [tabindex]="delegate.tabindex+28"
+                        [listenStatusChanges]="true"
+                        [required]="delegate.requiredWeight">
 
-        <!-- is estimated weight ?-->
-        <ion-col size="4" *ngIf="delegate.showEstimatedWeight">
-
-          <mat-form-field floatLabel="never">
-            <!-- fake input -->
-            <input matInput hidden>
-
-            <ion-label>&nbsp;</ion-label>
-
-            <!-- checkbox, when compact -->
-            <mat-checkbox matPrefix
-                          [formControl]="controls.weightEstimated"
-                          [disabled]="controls.weightComputed.value"
-                          labelPosition="after"
-                          [tabindex]="delegate.tabindex+29">
-              <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
-            </mat-checkbox>
-          </mat-form-field>
-
-        </ion-col>
-      </ng-container>
+          <!-- is estimated weight ?-->
+          <mat-checkbox matSuffix *ngIf="delegate.showEstimatedWeight && !controls.weightComputed.value"
+                        [formControl]="controls.weightEstimated"
+                        labelPosition="after"
+                        [tabindex]="delegate.tabindex+29">
+            <ion-text translate>TRIP.BATCH.EDIT.IS_ESTIMATED</ion-text>
+          </mat-checkbox>
+        </app-pmfm-field>
+      </ion-col>
     </ion-row>
 
     <!-- Total NB individual  -->
@@ -206,7 +191,7 @@
           </ion-col>
 
           <!-- Sampling weight -->
-          <ion-col class="ion-no-padding" *ngIf="delegate.defaultWeightPmfm && delegate.showSampleWeight">
+          <ion-col size="8" class="ion-no-padding" *ngIf="delegate.defaultWeightPmfm && delegate.showSampleWeight">
 
             <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
                             [formControl]="controls.weightValue"
@@ -217,28 +202,16 @@
                             [tabindex]="delegate.tabindex+33"
                             [listenStatusChanges]="true"
                             [required]="delegate.requiredSampleWeight">
-            </app-pmfm-field>
 
-          </ion-col>
-
-          <!-- is estimated weight ?-->
-          <ion-col size="4" *ngIf="delegate.showEstimatedWeight">
-
-            <mat-form-field floatLabel="never">
-              <!-- fake input -->
-              <input matInput hidden>
-
-              <ion-label>&nbsp;</ion-label>
-
-              <!-- checkbox, when compact -->
-              <mat-checkbox matPrefix
+              <!-- is estimated weight ?-->
+              <mat-checkbox matSuffix *ngIf="delegate.showEstimatedWeight && !controls.weightComputed.value"
                             [formControl]="controls.weightEstimated"
-                            [disabled]="controls.weightComputed.value"
                             labelPosition="after"
                             [tabindex]="delegate.tabindex+34">
-                <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
+                <ion-text translate>TRIP.BATCH.EDIT.IS_ESTIMATED</ion-text>
               </mat-checkbox>
-            </mat-form-field>
+
+            </app-pmfm-field>
 
           </ion-col>
 

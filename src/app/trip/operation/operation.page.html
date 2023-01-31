@@ -135,47 +135,47 @@
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
   <ng-template matMenuContent>
-  <!-- duplicate (if mobile) -->
-  <button mat-menu-item class="ion-color-danger" *ngIf="mobile && enabled && canDuplicate"
-          (click)="duplicate($event)">
-    <ion-label>
-      <mat-icon>content_copy</mat-icon>&nbsp;
-      <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
-    </ion-label>
-  </button>
+    <!-- duplicate (if mobile) -->
+    <button mat-menu-item class="ion-color-danger" *ngIf="mobile && enabled && canDuplicate"
+            (click)="duplicate($event)">
+      <ion-label>
+        <mat-icon>content_copy</mat-icon>&nbsp;
+        <span translate>TRIP.OPERATION.EDIT.BTN_DUPLICATE</span>
+      </ion-label>
+    </button>
 
-  <!-- online help -->
-  <!-- TODO: enable this -->
-  <button mat-menu-item
-          *ngIf="!mobile && debug"
-          (click)="openHelpModal($event)">
-    <ion-label>
-      <mat-icon><ion-icon slot="icon-only" name="help-circle-outline"></ion-icon></mat-icon>&nbsp;
-      <span translate>COMMON.BTN_SHOW_HELP</span>
-    </ion-label>
-  </button>
+    <!-- online help -->
+    <!-- TODO: enable this -->
+    <button mat-menu-item
+            *ngIf="!mobile && debug"
+            (click)="openHelpModal($event)">
+      <ion-label>
+        <mat-icon><ion-icon slot="icon-only" name="help-circle-outline"></ion-icon></mat-icon>&nbsp;
+        <span translate>COMMON.BTN_SHOW_HELP</span>
+      </ion-label>
+    </button>
 
-  <mat-divider *ngIf="canDuplicate"></mat-divider>
+    <mat-divider *ngIf="canDuplicate"></mat-divider>
 
-  <!-- reset -->
-  <button mat-menu-item
-          [disabled]="!dirty"
-          (click)="cancel($event)">
-    <ion-label>
-      <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
-      <span translate>COMMON.BTN_RESET</span>
-    </ion-label>
-  </button>
+    <!-- reset -->
+    <button mat-menu-item
+            [disabled]="!dirty"
+            (click)="cancel($event)">
+      <ion-label>
+        <mat-icon><ion-icon slot="icon-only" name="refresh"></ion-icon></mat-icon>&nbsp;
+        <span translate>COMMON.BTN_RESET</span>
+      </ion-label>
+    </button>
 
-  <!-- delete -->
-  <button mat-menu-item class="ion-color-danger"
-          [disabled]="isNewData || disabled"
-          (click)="delete($event)">
-    <ion-label>
-      <mat-icon>delete</mat-icon>&nbsp;
-      <span translate>TRIP.OPERATION.EDIT.BTN_DELETE</span>
-    </ion-label>
-  </button>
+    <!-- delete -->
+    <button mat-menu-item class="ion-color-danger"
+            [disabled]="isNewData || disabled"
+            (click)="delete($event)">
+      <ion-label>
+        <mat-icon>delete</mat-icon>&nbsp;
+        <span translate>TRIP.OPERATION.EDIT.BTN_DELETE</span>
+      </ion-label>
+    </button>
   </ng-template>
 
 </mat-menu>
