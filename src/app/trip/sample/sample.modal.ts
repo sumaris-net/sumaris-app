@@ -66,7 +66,7 @@ export interface ISampleModalOptions<M = SampleModal> extends IDataEntityModalOp
 export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
   private readonly _subscription = new Subscription();
-  private isOnFieldMode: boolean;
+  private _isOnFieldMode: boolean;
   $title = new BehaviorSubject<string>(undefined);
   debug = false;
   loading = false;
@@ -141,7 +141,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     // Default values
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
-    this.isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
+    this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
     this.disabled = toBoolean(this.disabled, false);
     this.i18nSuffix = this.i18nSuffix || '';
     this.showComment = !this.mobile || isNotNil(this.data.comments);
@@ -226,7 +226,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     const data = await this.getDataToSave();
     // invalid
     if (!data) {
-      if (this.isOnFieldMode) this.audio.playBeepError();
+      if (this._isOnFieldMode) this.audio.playBeepError();
       return;
     }
 
@@ -236,7 +236,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
       const newData = await this.onSaveAndNew(data);
       await this.reset(newData);
       this.isNew = true;
-      if (this.isOnFieldMode) this.audio.playBeepConfirm();
+      if (this._isOnFieldMode) this.audio.playBeepConfirm();
 
       await this.scrollToTop();
     } finally {
@@ -323,7 +323,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
         if (this.defaultSampleDate) {
           this.data.sampleDate = this.defaultSampleDate.clone();
         }
-        else if (this.isOnFieldMode) {
+        else if (this._isOnFieldMode) {
           this.data.sampleDate = moment();
         }
       }
@@ -434,7 +434,7 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
     if (!this.openSubSampleModal) return; // Skip
 
     // Save
-    const savedSample = await this.getDataToSave({disable: false});
+    const savedSample = await this.getDataToSave();
     if (!savedSample) return;
 
     try {

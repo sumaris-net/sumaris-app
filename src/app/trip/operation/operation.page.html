@@ -16,7 +16,7 @@
     <!-- last operation (history) -->
     <ion-button *ngIf="showLastOperations"
                 hidden-xxs
-                [disabled]="loading || saving"
+                [disabled]="(loadingSubject|push) || (savingSubject|push)"
                 [title]="'TRIP.OPERATION.LAST_OPERATIONS'|translate"
                 [matMenuTriggerFor]="lastOperationsMenu">
       <mat-icon slot="icon-only">history</mat-icon>

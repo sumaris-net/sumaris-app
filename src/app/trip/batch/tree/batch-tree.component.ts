@@ -668,6 +668,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     this.batchGroupsTable.enableWeightLengthConversion = this.enableWeightLengthConversion;
     this.batchGroupsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     this.batchGroupsTable.setModalOption('maxItemCountForButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS));
+    this.batchGroupsTable.setModalOption('enableBulkMode', !program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_AUTO_FILL)); // Disable bulk mode when auto fill is on
     this.batchGroupsTable.i18nColumnSuffix = i18nSuffix;
 
     // Some specific taxon groups have no weight collected

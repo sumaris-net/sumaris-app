@@ -183,7 +183,7 @@ export abstract class AbstractBatchesTable<
     // Prepare entity measurement values
     this.prepareEntityToSave(dataToOpen);
 
-    const { data, role } = await this.openDetailModal(dataToOpen);
+    const { data, role } = await this.openDetailModal(dataToOpen, row);
     if (data && role !== 'delete') {
       await this.updateEntityToTable(data, row, {confirmEdit: false});
     } else {
@@ -267,7 +267,7 @@ export abstract class AbstractBatchesTable<
 
   /* -- protected methods -- */
 
-  protected abstract openDetailModal(dataToOpen?: T): Promise<OverlayEventDetail<T | undefined>>;
+  protected abstract openDetailModal(dataToOpen?: T, row?: TableElement<T>): Promise<OverlayEventDetail<T | undefined>>;
 
   protected async suggestTaxonGroups(value: any, options?: any): Promise<LoadResult<IReferentialRef>> {
     //if (isNilOrBlank(value)) return [];

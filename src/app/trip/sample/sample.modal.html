@@ -1,6 +1,6 @@
 <app-modal-toolbar color="secondary"
-                   (cancel)="close($event)"
                    [title]="$title | async"
+                   (cancel)="close($event)"
                    (validate)="onSubmitIfDirty($event)"
                    [canValidate]="!disabled"
                    [showSpinner]="loading">

@@ -1,11 +1,8 @@
 <!-- root form content -->
 <app-batch-form-content>
-</app-batch-form-content>
 
-<ion-grid class="ion-no-padding">
-
-  <!-- sub batches buttons -->
-  <ion-row>
+  <ng-container afterSpecies>
+    <!-- sub batches buttons -->
     <ion-col size="12" size-sm="6" *ngIf="allowSubBatches && showHasSubBatchesButton" class="form-container">
       <!-- Has individual measures ? -->
       <mat-form-field floatLabel="always" >
@@ -42,8 +39,13 @@
       </mat-form-field>
     </ion-col>
 
-    <ng-content select="[beforeChildren]"></ng-content>
-  </ion-row>
+    <ng-content select="[afterSpecies]"></ng-content>
+  </ng-container>
+</app-batch-form-content>
+
+<ion-grid class="ion-no-padding">
+
+  <ng-content select="[beforeChildren]"></ng-content>
 
   <!-- QV children -->
   <ion-row *ngIf="qvPmfm; let qvPmfm">
@@ -93,6 +95,8 @@
       </ion-card>
     </ion-col>
   </ion-row>
+
+  <ng-content select="[afterComment]"></ng-content>
 
 </ion-grid>
 

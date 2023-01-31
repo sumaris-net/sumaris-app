@@ -784,7 +784,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       if (program !== this.batchTree.program) {
         await this.batchTree.setProgram(program, { emitEvent: false /*avoid pmfms reload*/ });
       }
-      this.batchTree.setSubBatchesModalOption('programLabel', programLabel);
 
       // Configure batch tree
       this.batchTree.gearId = this.gearId;
@@ -797,9 +796,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
       this.batchTree.batchGroupsTable.samplingRatioFormat = this.samplingRatioFormat;
       this.batchTree.rootAcquisitionLevel = rootAcquisitionLevel;
+      this.batchTree.batchGroupsTable.pmfms = model.childrenPmfms || [];
+      this.batchTree.setSubBatchesModalOption('programLabel', programLabel);
 
       // Configure catch form state
-      Object.assign(this.batchTree.catchBatchForm, <BatchFormState>{
+      this.batchTree.catchBatchForm.applyState({
         acquisitionLevel: rootAcquisitionLevel,
         // defaults
         showSamplingBatch: false,
@@ -809,7 +810,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         ...model.state
       });
 
-      this.batchTree.batchGroupsTable.pmfms = model.childrenPmfms || [];
       this.batchTree.markAsReady();
 
       const jobs: Promise<void>[] = [this.batchTree.catchBatchForm.ready(), this.batchTree.batchGroupsTable.ready()];
