@@ -1511,6 +1511,16 @@ export class OperationPage<S extends OperationState = OperationState>
     const program = this.context.program;
     const editor = program?.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR) || ProgramProperties.TRIP_OPERATION_EDITOR.defaultValue;
     const editorPath = editor !== 'legacy' ? [editor] : [];
-    await this.router.navigate(['trips', this.tripId, 'operation', ...editorPath, id], {queryParams: {} /*reset query params*/ });
+;
+    // Workaround, when same URL: unload the page
+    if (this.route.snapshot.paramMap.get('operationId') == id) {
+      console.warn('[operation] Unload the page!')
+      await this.unload();
+    }
+
+    await this.router.navigateByUrl('/' + ['trips', this.tripId, 'operation', ...editorPath, id].join('/'), {
+      replaceUrl: true,
+      skipLocationChange: false
+    });
   }
 }
