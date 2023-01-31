@@ -165,8 +165,8 @@ export class BatchModelValidatorService<
             }
           });
 
-        // TODO: activer le champ "Inventaire exhaustif e l'espèce ? sur les lot fils"
-        /*TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+        // Activer le champ "Inventaire exhaustif e l'espèce ?"
+        TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
           hidden: false, // Exclude if no pmfms
           isLeaf: true
         }))
@@ -175,7 +175,7 @@ export class BatchModelValidatorService<
             ...leafBatch.state,
             showExhaustiveInventory: true
           }
-        });*/
+        });
       }
       else {
         const discardFilter = BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{

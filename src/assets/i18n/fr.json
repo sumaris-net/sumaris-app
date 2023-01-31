@@ -882,6 +882,7 @@
         "BTN_AUTO_INCREMENT": "Auto-incrément",
         "BTN_INDIVIDUAL_MEASURE": "Saisir les mesures",
         "BTN_APPLY_CHILDREN_WEIGHT": "Appliquer ce poids",
+        "IS_ESTIMATED": "Estimé ?",
         "ESTIMATED_WEIGHT": "Poids estimé ?",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
         "TOTAL_WEIGHT": "Poids total (kg)",

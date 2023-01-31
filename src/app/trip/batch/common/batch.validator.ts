@@ -242,12 +242,12 @@ export class BatchValidatorService<
     debounceTime?: number;
   }): Subscription {
 
-    const compute = BatchValidators.samplingRatioAndWeight(opts);
+    const computeFn = BatchValidators.samplingRatioAndWeight(opts);
 
     return form.valueChanges
       .pipe(debounceTime(opts?.debounceTime || 0))
       .subscribe(value => {
-        const errors = compute(form);
+        const errors = computeFn(form);
         if (errors) form.setErrors(errors);
         if (opts?.markForCheck) opts.markForCheck();
       });
@@ -546,7 +546,8 @@ export class BatchValidators {
         if (isSamplingRatioComputed) {
           samplingForm.patchValue({
             samplingRatio: null,
-            samplingRatioText: null
+            samplingRatioText: null,
+            samplingRatioComputed: false
           }, opts);
         }
         // Enable sampling ratio

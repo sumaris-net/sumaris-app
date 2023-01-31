@@ -604,8 +604,9 @@ export class OperationPage<S extends OperationState = OperationState>
           .pipe(
             startWith<any, any>(hasIndividualMeasuresControl.value),
             filter(isNotNil),
+            distinctUntilChanged(),
+            // Update the state
             tap(value => this._state.set('hasIndividualMeasures', (_) => value)),
-            distinctUntilChanged()
           )
           .subscribe(value => {
             this.batchTree.allowSpeciesSampling = value;
@@ -1030,6 +1031,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // Set batch tree
       if (this.batchTree) {
+        //this.batchTree.programLabel = this.programLabel;
         this.batchTree.physicalGear = data.physicalGear;
         this.batchTree.gearId = gearId;
         jobs.push(this.batchTree.setValue(data && data.catchBatch || null));

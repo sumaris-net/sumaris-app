@@ -149,11 +149,24 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
   protected listenHasContent(): Observable<boolean> {
     return combineLatest([
       super.listenHasContent(),
+      this._state.select('showExhaustiveInventory'),
       this._state.select(['onDeckPmfms', 'sortingPmfms', 'catchPmfms', 'gearPmfms', 'otherPmfms'],
           pmfmsMap => Object.values(pmfmsMap).some(isNotEmptyArray)
       )
     ])
     .pipe(map(values => values.some(v => v === true)));
+  }
+
+  markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsPristine(opts);
+  }
+
+  markAsUntouched(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsUntouched(opts);
+  }
+
+  markAsDirty(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.markAsDirty(opts);
   }
 }
 

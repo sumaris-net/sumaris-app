@@ -46,9 +46,7 @@
           <ion-icon name="chevron-forward-outline" slot="end" *ngIf="mobile && !node.disabled"></ion-icon>
 
         </ion-item>
-        <ul [class.ion-no-padding]="node.hidden"
-
-        >
+        <ul [class.ion-no-padding]="node.hidden">
           <!-- [class.cdk-visually-hidden]="!treeControl.isExpanded(node)" -->
           <ng-container matTreeNodeOutlet></ng-container>
         </ul>
@@ -115,7 +113,7 @@
   <ng-container *ngIf="node.isExpanded; else leafBadges">
     <!-- weight pmfms count -->
     <ion-badge *ngIf="(node.pmfms|arrayFilter:isNotHiddenPmfm)?.length; let count"
-               [color]="node.valid ? 'success' : 'accent'"
+               [color]="node.valid ? 'success' : 'danger'"
                slot="end">{{count}}
     </ion-badge>
   </ng-container>
@@ -124,12 +122,12 @@
   <ng-template #leafBadges>
     <!-- batches count -->
     <ion-badge *ngIf="selected === node ? currentRowCount : node.currentData.children?.length; let count; else emptyLeaf"
-               [color]="count ? 'tertiary' : 'warning'"
-               slot="end">{{count }}
+               color="success"
+               slot="end">{{count}}
     </ion-badge>
     <!-- empty -->
     <ng-template #emptyLeaf>
-      <ion-badge color="accent" slot="end">0</ion-badge>
+      <ion-badge color="medium" slot="end">0</ion-badge>
     </ng-template>
 
     <!-- TODO measure count - need a cached value in model

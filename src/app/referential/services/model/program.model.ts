@@ -1,5 +1,5 @@
 import {
-  BaseReferential,
+  BaseReferential, DateUtils,
   Entity,
   EntityClass,
   EntityUtils,
@@ -84,7 +84,7 @@ export class Program extends BaseReferential<Program> {
 
   equals(other: Program): boolean {
     return (super.equals(other) && isNotNil(this.id))
-      || this.label === other.label;
+      || (other && this.label === other.label );
   }
 
   getPropertyAsBoolean(definition: FormFieldDefinition): boolean {

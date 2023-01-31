@@ -1,6 +1,7 @@
 <!-- readonly -->
 <mat-form-field *ngIf="readonly; else writable"
                 [floatLabel]="floatLabel"
+                [appearance]="appearance"
                 [class]="classList"
                 class="mat-form-field-disabled">
 
@@ -27,6 +28,7 @@
     <!-- Percent -->
     <mat-form-field *ngSwitchCase="'%'"
                     [floatLabel]="floatLabel"
+                    [appearance]="appearance"
                     [class]="classList">
 
       <mat-label>{{placeholder|translate}}</mat-label>
@@ -66,6 +68,7 @@
     <!-- Sampling coefficient (1/w) -->
     <mat-form-field *ngSwitchCase="'1/w'"
                     [floatLabel]="floatLabel"
+                    [appearance]="appearance"
                     [class]="classList" class="with-prefix">
       <ion-text class="prefix-label">1/</ion-text>
 

@@ -15,6 +15,7 @@ import { BATCH_TREE_EXAMPLES, getExampleTree } from '@app/trip/batch/testing/bat
 import { Program } from '@app/referential/services/model/program.model';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { BatchFormState } from '@app/trip/batch/common/batch.form';
 
 
 @Component({
@@ -37,6 +38,7 @@ export class BatchGroupFormTestPage implements OnInit {
   defaultHasSubBatches = false;
   hasSubBatches = false;
   showHasSubBatchesButton = true;
+  showEstimatedWeight = true;
 
   showChildrenWeight = true;
   samplingRatioFormat: SamplingRatioFormat;
@@ -48,6 +50,15 @@ export class BatchGroupFormTestPage implements OnInit {
   outputs: {
     [key: string]: string;
   } = {};
+
+  get childrenState(): Partial<BatchFormState> {
+    return {
+      showChildrenWeight: this.showChildrenWeight,
+      showSamplingBatch: this.showSamplingBatch,
+      samplingBatchEnabled: this.samplingBatchEnabled,
+      showEstimatedWeight: this.showEstimatedWeight,
+    };
+  }
 
   @ViewChild(BatchGroupForm, { static: true }) form: BatchGroupForm;
 

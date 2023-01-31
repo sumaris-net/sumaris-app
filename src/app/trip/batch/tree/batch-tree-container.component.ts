@@ -54,6 +54,7 @@ import { MatSidenav } from '@angular/material/sidenav';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { ContextService } from '@app/shared/context.service';
 import { BatchFormState } from '@app/trip/batch/common/batch.form';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 interface ComponentState {
   programAllowMeasure: boolean;
@@ -146,18 +147,19 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this._state.set('allowSpeciesSampling', (_) => value);
   }
   get allowSpeciesSampling(): boolean {
-    return this._state.get('allowSpeciesSampling') && this.programAllowMeasure;
+    return this._state.get('allowSpeciesSampling') ;
   }
 
   @Input() set allowSubBatches(value: boolean) {
     this._state.set('allowSubBatches', (_) => value);
   }
   get allowSubBatches(): boolean {
-    return this._state.get('allowSubBatches') && this.programAllowMeasure;
+    return this._state.get('allowSubBatches');
   }
 
   @Input() showTaxonName: boolean;
   @Input() showTaxonGroup: boolean;
+  @Input() samplingRatioFormat: SamplingRatioFormat = ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT.defaultValue;
   @Input() selectedTabIndex: number;
   @Input() usageMode: UsageMode;
   @Input() i18nPmfmPrefix: string;
@@ -438,12 +440,19 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return path;
   }
 
-
-
-
-   markAllAsTouched(opts?: { emitEvent?: boolean }) {
+  markAllAsTouched(opts?: { emitEvent?: boolean; withChildren?: boolean; }) {
     this.form?.markAllAsTouched();
-    super.markAllAsTouched(opts);
+    // Mark children component as touched also
+    if (!opts || opts.withChildren !== false) {
+      super.markAllAsTouched(opts);
+    }
+    // Mark as touched the component itself, but NOT the child batch tree
+    else {
+      if (this.touchedSubject.value !== true) {
+        this.touchedSubject.next(true);
+      }
+      if (!this.loading && (!opts || opts.emitEvent !== false)) this.markForCheck();
+    }
   }
 
   markAsPristine(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -615,18 +624,33 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   /* -- protected function -- */
 
 
-  protected async setProgram(program: Program) {
+  protected async setProgram(program: Program, opts?: {emitEvent: boolean}) {
     if (this.debug) console.debug(this._logPrefix + `Program ${program.label} loaded, with properties: `, program.properties);
 
     let i18nSuffix = program.getProperty(ProgramProperties.I18N_SUFFIX);
     i18nSuffix = i18nSuffix !== 'legacy' ? i18nSuffix : '';
     this.i18nContext.suffix = i18nSuffix;
 
-    this.programAllowMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
-    this.allowSpeciesSampling = this.allowSpeciesSampling;
-    this.allowSubBatches = this.allowSubBatches;
+    const programAllowMeasure = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_ENABLE);
+    this.programAllowMeasure = programAllowMeasure;
+    this.allowSpeciesSampling = this.allowSpeciesSampling && programAllowMeasure;
+    this.allowSubBatches = this.allowSubBatches && programAllowMeasure;
     this.showTaxonGroup = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_GROUP_ENABLE);
     this.showTaxonName = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_TAXON_NAME_ENABLE);
+    this.samplingRatioFormat = program.getProperty(ProgramProperties.TRIP_BATCH_SAMPLING_RATIO_FORMAT);
+
+    // Propagate to children components, if need
+    if (!opts || opts.emitEvent !== false) {
+      // This should be need when program$ has been set by parent, and not from the programLabel$ observable
+      if (this.programLabel !== program.label) {
+        this.programLabel = program.label;
+      }
+    }
+
+    // Propagate to state, if need
+    if (this.program !== program) {
+      this.program = program;
+    }
     this.markForCheck();
   }
 
@@ -741,7 +765,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       if (this.modal && !this.modal.isOpen) {
         if (!this.batchTree) {
           await this.modal.present();
-          this.cd.detectChanges(); //markForCheck();
+          this.cd.detectChanges();
         }
         else {
           this.modal.present();
@@ -751,29 +775,36 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       // Remember last editing batch, to be able to restore it later (e.g. see setValue())
       this._lastEditingBatchPath = model.path;
 
+      const rootAcquisitionLevel = !model.parent ? AcquisitionLevelCodes.CATCH_BATCH : AcquisitionLevelCodes.SORTING_BATCH;
+      const program = this.program;
+      const programLabel = program?.label || this.programLabel;
+
+      // do NOT pass the programLabel here, to avoid a pmfms reload (pmfms will be pass using 'model.state' - see bellow)
+      //this.batchTree.programLabel = programLabel;
+      if (program !== this.batchTree.program) {
+        await this.batchTree.setProgram(program, { emitEvent: false /*avoid pmfms reload*/ });
+      }
+      this.batchTree.setSubBatchesModalOption('programLabel', programLabel);
+
       // Configure batch tree
       this.batchTree.gearId = this.gearId;
       this.batchTree.physicalGear = this.physicalGear;
       this.batchTree.i18nContext = this.i18nContext;
-      this.batchTree.setSubBatchesModalOption('programLabel', this.programLabel);
-      // do NOT pass the programLabel here, to avoid a pmfms reload (pmfms will be pass using 'model.state' - see bellow)
-      //this.batchTree.programLabel = this.programLabel;
       this.batchTree.showBatchTables = this.showBatchTables && model.childrenPmfms && isNotEmptyArray(PmfmUtils.filterPmfms(model.childrenPmfms, { excludeHidden: true }));
       this.batchTree.allowSpeciesSampling = this.allowSpeciesSampling;
       this.batchTree.allowSubBatches = this.allowSubBatches;
       this.batchTree.batchGroupsTable.showTaxonGroupColumn = this.showTaxonGroup;
       this.batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
-
-      await this.batchTree.setProgram(this.program, { emitEvent: false /*avoid pmfms reload*/ });
-
-      this.batchTree.rootAcquisitionLevel = !model.parent ? AcquisitionLevelCodes.CATCH_BATCH : AcquisitionLevelCodes.SORTING_BATCH;
+      this.batchTree.batchGroupsTable.samplingRatioFormat = this.samplingRatioFormat;
+      this.batchTree.rootAcquisitionLevel = rootAcquisitionLevel;
 
       // Configure catch form state
       Object.assign(this.batchTree.catchBatchForm, <BatchFormState>{
-        acquisitionLevel: this.batchTree.rootAcquisitionLevel,
+        acquisitionLevel: rootAcquisitionLevel,
         // defaults
         showSamplingBatch: false,
         samplingBatchEnabled: false,
+        samplingRatioFormat: this.samplingRatioFormat,
         // Pass inputs (e.g. pmfms, to avoid a pmfm reloading)
         ...model.state
       });
@@ -785,7 +816,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
       if (this.batchTree.subBatchesTable) {
         // TODO: pass sub batches pmfms. For now there are recomputed
-        this.batchTree.subBatchesTable.programLabel = this.programLabel;
+        this.batchTree.subBatchesTable.programLabel = programLabel;
         jobs.push(this.batchTree.subBatchesTable.ready());
       }
 
@@ -795,7 +826,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         const source = model.currentData;
         data = Batch.fromObject(source, {withChildren: false});
         const samplingSource = BatchUtils.getOrCreateSamplingChild(source);
-        data.children = [Batch.fromObject(samplingSource, {withChildren: model.isLeaf})]
+        data.children = [Batch.fromObject(samplingSource, {withChildren: model.isLeaf})];
       }
       else {
         data = Batch.fromObject(model.currentData, {withChildren: model.isLeaf});
@@ -829,7 +860,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     finally {
       // Restore previous state
       if (dirty) this.markAsDirty();
-      if (touched) this.markAllAsTouched();
+      if (touched) this.markAllAsTouched({withChildren: false});
     }
   }
 
@@ -967,7 +998,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   forward(event?: Event, model?: BatchModel) {
-    console.debug(this._logPrefix + 'Go foward');
+    console.debug(this._logPrefix + 'Go forward');
     event?.stopImmediatePropagation();
 
     model = model || this.editingBatch;
@@ -976,6 +1007,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     const nextVisible = TreeItemEntityUtils.forward(model, c => !c.hidden);
     if (nextVisible) {
       this.startEditBatch(null, nextVisible);
+      this.setSelectedTabIndex(0);
     }
   }
 

@@ -76,7 +76,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     return null;
   }
 
-  updateFormGroup(form: UntypedFormGroup, opts?: O) {
+  updateFormGroup(form: UntypedFormGroup, opts?: O & {emitEvent?: boolean}) {
     opts = this.fillDefaultOptions(opts);
 
     const controlNamesToRemove = Object.getOwnPropertyNames(form.controls)
@@ -92,7 +92,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
         // If new pmfm: add as control
         if (!formControl) {
           formControl = this.formBuilder.control(PmfmValueUtils.fromModelValue(pmfm.defaultValue, pmfm) || null, PmfmValidators.create(pmfm, null, opts));
-          form.addControl(controlName, formControl);
+          form.addControl(controlName, formControl, {emitEvent: opts?.emitEvent});
         }
       }
 
@@ -102,7 +102,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
           this.formBuilder.control(value || '', PmfmValidators.create(pmfm, null, opts));
         }), SharedFormArrayValidators.requiredArrayMinLength(pmfm.required ? 1 : 0));
 
-        form.addControl(controlName, formArray);
+        form.addControl(controlName, formArray, {emitEvent: opts?.emitEvent});
       }
 
       // Remove from the remove list
@@ -112,7 +112,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
 
 
     // Remove unused controls
-    controlNamesToRemove.forEach(controlName => form.removeControl(controlName));
+    controlNamesToRemove.forEach(controlName => form.removeControl(controlName, {emitEvent: opts?.emitEvent}));
 
     // Create control for '__typename' (required)
     const typenameControl = form.get('__typename');
@@ -120,12 +120,13 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       if (!typenameControl) {
         // DEBUG
         //console.debug('[measurement-validator] Re add control \'__typename\' to measurement values form group');
-        form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required));
+        form.addControl('__typename', this.formBuilder.control(MeasurementValuesTypes.MeasurementFormValue, Validators.required),
+          {emitEvent: opts?.emitEvent});
       }
     }
     else if (typenameControl){
       console.warn('[measurement-validator] Removing control \'__typename\' from measurement values form group. This is not recommended!');
-      form.removeControl('__typename');
+      form.removeControl('__typename', {emitEvent: opts?.emitEvent});
     }
   }
 
