@@ -34,8 +34,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
 
   readonly childrenPmfmsByQvId$ = this._state.select('childrenPmfmsByQvId');
   readonly hasSubBatches$ = this._state.select('hasSubBatches');
-
-  hasSubBatchesControl: UntypedFormControl;
+  readonly hasSubBatchesControl: UntypedFormControl;
 
   @Input() set qvPmfm(value: IPmfm) {
     this._state.set('qvPmfm', _ => value);
@@ -135,6 +134,17 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
     (this.childrenList || []).forEach(child => child.enable(opts));
   }
 
+  protected updateViewState(opts?: { emitEvent?: boolean; onlySelf?: boolean }) {
+    super.updateViewState(opts);
+    // if (this._enable) {
+    //   (this.childrenList || []).forEach(child => child.enable(opts));
+    // }
+    // else {
+    //   (this.childrenList || []).forEach(child => child.disable(opts));
+    //   this.hasSubBatchesControl.disable(opts);
+    // }
+  }
+
   get hasSubBatches(): boolean {
     return this._state.get('hasSubBatches');
   }
@@ -164,12 +174,14 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
       });
 
     // Default value
-    this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
+    this._state.set((state) => <BatchFormState>{
+      ...state,
+      showSamplingBatch: false,
+      showWeight: false
+    });
+
+    // Create control for hasSubBatches button
     this.hasSubBatchesControl = new UntypedFormControl(false);
-    this.showSamplingBatch = false;
-    this.showWeight = false;
-
-
 
     // DEBUG
     //this.debug = !environment.production;
@@ -212,16 +224,16 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
       _ => this.computeChildrenState(this.form.value)
     );
 
-    this._state.hold(this._state.select('childrenState')
-        .pipe(debounceTime(100)), async (childrenState) => {
-      if (this.qvPmfm) {
-        if (!this.childrenList?.length) await this.waitForChildren({timeout: 2000});
-        this.childrenList.forEach(c => this.updateChildFormState(c, childrenState));
-      }
-      else {
-        this.updateChildFormState(this, childrenState)
-      }
-    });
+    this._state.hold(this._state.select('childrenState').pipe(debounceTime(100)),
+      async (childrenState) => {
+        if (this.qvPmfm) {
+          await this.waitForChildren({timeout: 2000});
+          this.childrenList.forEach(childForm => this.updateChildFormState(childForm, childrenState));
+        }
+        else {
+          this.updateChildFormState(this, childrenState)
+        }
+      });
   }
 
   focusFirstInput() {
@@ -237,8 +249,12 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
     });
   }
 
-  async ready(): Promise<void> {
+  async ready(opts?: WaitForOptions): Promise<void> {
     await super.ready();
+    if (this.qvPmfm) {
+      await this.waitForChildren({stop: this.destroySubject, ...opts});
+      await Promise.all(this.childrenList.map(child => child.ready({stop: this.destroySubject, ...opts})));
+    }
   }
 
 
@@ -332,12 +348,9 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
       // Compute if should show total individual count, instead of weight (eg. ADAP program, for species "RJB_x - Pocheteaux")
       this.computeChildrenState(data, {hasSubBatches});
 
-      // Set value (batch group)
-      await super.updateView(data, opts);
-
       // Wait children forms
       this.cd.detectChanges();
-      await waitFor(() => this.childrenList.length > 0, {timeout: 2000});
+      await this.waitForChildren({timeout: 2000});
 
       // Set value of each child form
       await Promise.all(
@@ -347,6 +360,8 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
         })
       );
 
+      // Set value (batch group)
+      await super.updateView(data, {...opts, emitEvent: false});
     }
 
     // No QV pmfm
@@ -387,16 +402,16 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
     }
   }
 
-  protected updateChildFormState(childForm: BatchForm, childrenState: Partial<BatchFormState>, opts = {emitEvent: true}){
+  protected updateChildFormState(childForm: BatchForm, childrenState: Partial<BatchFormState>, opts?: {emitEvent?: boolean}){
     if (!childrenState) return; // Skip
 
-    Object.assign(childForm, childrenState);
+    childForm.updateState(childrenState);
 
     if (!opts || opts.emitEvent !== false) {
       if (this.enabled) {
-        childForm.enable();
+        childForm.enable({onlySelf: true, ...opts});
       } else {
-        childForm.disable();
+        childForm.disable({onlySelf: true, ...opts});
       }
       childForm.markAsReady();
     }

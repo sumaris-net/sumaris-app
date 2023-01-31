@@ -183,23 +183,47 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   async load() {
 
     console.debug('[sample-modal] Applying value to form...', this.data);
-
-    this.form.error = null;
+    this.resetError();
 
     try {
-      // Set form value
-      this.data = this.data || new BatchGroup();
-      await this.form.setValue(this.data);
+      const data = this.data || new BatchGroup();
+      await this.updateView(data);
     }
     catch(err) {
       this.form.error = (err && err.message || err);
       console.error('[batch-group-modal] Error while load data: ' + (err && err.message || err), err);
     }
-    finally {
-      if (!this.disabled) this.enable({emitEvent: false});
-      this.form.markAsUntouched();
-      this.form.markAsPristine();
-      this.markForCheck();
+  }
+
+  protected ready(): Promise<void> {
+    return this.form.ready();
+  }
+
+  protected async updateView(data: BatchGroup, opts?: {emitEvent?: boolean}) {
+
+    this.data = data;
+
+    await this.ready();
+    // Set form value
+    await this.form.setValue(data);
+
+    if (!opts || opts.emitEvent !== false) {
+      this.markAsPristine();
+      this.markAsUntouched();
+      this.updateViewState(data);
+    }
+  }
+
+  protected resetError() {
+    this.form.error = null;
+  }
+
+  protected updateViewState(data: BatchGroup, opts?: {emitEvent?: boolean}) {
+    if (!this.disabled) {
+      this.enable(opts);
+    }
+    else {
+      this.disable(opts);
     }
   }
 
@@ -329,6 +353,14 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       const label = BatchUtils.parentToString(data);
       this.$title.next(await this.translate.get('TRIP.BATCH.EDIT.TITLE', {label}).toPromise());
     }
+  }
+
+  protected markAsUntouched() {
+    this.form.markAsUntouched();
+  }
+
+  protected markAsPristine() {
+    this.form.markAsPristine();
   }
 
   protected markForCheck() {

@@ -152,7 +152,7 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       control.setValidators(PmfmValidators.create(this.pmfm));
 
       if (this.listenStatusChanges) {
-        control.statusChanges.subscribe((_) => this.cd.markForCheck());
+        control.statusChanges.subscribe((_) => this.markForCheck());
       }
       this.placeholder = this.placeholder || this.pmfmNamePipe.transform(this.pmfm, {
         withUnit: !this.compact,
@@ -224,12 +224,12 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   }
 
   setDisabledState(isDisabled: boolean): void {
-
+    this.markForCheck();
   }
 
   markAsTouched() {
     if (this.control?.touched) {
-      this.cd.markForCheck();
+      this.markForCheck();
       this._onTouchedCallback();
     }
   }
@@ -250,6 +250,10 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   }
 
   /* -- protected method -- */
+
+  protected markForCheck() {
+    this.cd.markForCheck();
+  }
 
   protected computeNumberInputStep(pmfm: IPmfm): string {
     return Math.pow(10, -1 * (pmfm.maximumNumberDecimals || 0))

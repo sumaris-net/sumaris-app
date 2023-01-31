@@ -12,32 +12,53 @@
   </ng-container>
 
   <ion-grid class="ion-no-padding" >
-    <!-- Taxon group and/or taxon name -->
-    <ion-row *ngIf="delegate.showTaxonGroup || delegate.showTaxonName">
+    <!-- Taxon group and/or taxon name and/or exhaustive inventory -->
+    <ion-row *ngIf="delegate.showTaxonGroup || delegate.showTaxonName || delegate.showExhaustiveInventory">
 
       <!-- Taxon group -->
       <ion-col size="12" size-md="6" *ngIf="delegate.showTaxonGroup">
         <mat-autocomplete-field formControlName="taxonGroup"
                                 [autofocus]="delegate.enabled && !delegate.mobile"
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_GROUP'|translate"
-                                [tabindex]="delegate.showTaxonGroup ? delegate.tabindex : -1"
-                                [required]="delegate.showTaxonGroup"
+                                [tabindex]="delegate.tabindex"
+                                [required]="true"
                                 [config]="delegate.autocompleteFields.taxonGroup"
                                 [showSearchBar]="!delegate.autocompleteFields.taxonGroup.items">
+          <ion-icon matPrefix *ngIf="delegate.mobile" name="fish"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
 
       <!-- Taxon name (scientific species) -->
       <ion-col size="12" size-md="6" *ngIf="delegate.showTaxonName">
         <mat-autocomplete-field formControlName="taxonName"
-                                [autofocus]="delegate.enabled && !delegate.mobile && !delegate.showTaxonGroup && delegate.showTaxonName"
+                                [autofocus]="delegate.enabled && !delegate.mobile && !delegate.showTaxonGroup"
                                 [placeholder]="'TRIP.BATCH.EDIT.TAXON_NAME'|translate"
                                 [tabindex]="delegate.tabindex+1"
-                                [required]="delegate.showTaxonName"
+                                [required]="true"
                                 [config]="delegate.autocompleteFields.taxonName"
                                 [filter]="delegate.taxonNameFilter">
         </mat-autocomplete-field>
       </ion-col>
+
+      <!-- is Exhaustive inventory ?-->
+      <ion-col size="12" size-md="6" *ngIf="delegate.showExhaustiveInventory">
+        <mat-form-field floatLabel="never">
+          <!-- fake input -->
+          <input matInput hidden>
+
+          <ion-label>&nbsp;</ion-label>
+
+          <!-- checkbox, when compact -->
+          <mat-checkbox matPrefix
+                        [formControl]="delegate.form|formGetControl:'exhaustiveInventory'"
+                        labelPosition="after"
+                        [tabindex]="delegate.tabindex+2">
+            <ion-text>{{'TRIP.BATCH.EDIT.IS_EXHAUSTIVE_INVENTORY'|translateContext: delegate.i18nSuffix}}</ion-text>
+          </mat-checkbox>
+        </mat-form-field>
+      </ion-col>
+
+
     </ion-row>
 
     <!-- Measurements -->
@@ -52,7 +73,7 @@
                           [formControlName]="pmfm|pmfmIdString"
                           [style]="style"
                           [compact]="delegate.compact"
-                          [tabindex]="delegate.tabindex+2 + i*2"
+                          [tabindex]="delegate.tabindex+3 + i*2"
                           [maxVisibleButtons]="delegate.maxVisibleButtons">
           </app-pmfm-field>
         </ion-col>
@@ -62,43 +83,47 @@
 
     <!-- Total weight -->
     <ion-row *ngIf="delegate.showWeight && delegate.defaultWeightPmfm && delegate.weightForm; let weightForm">
-      <ion-col class="ion-no-padding"
-               *ngVar="{
+      <ng-container *ngVar="{
                 weightValue: weightForm|formGetControl: 'value',
                 weightMethodId: weightForm|formGetControl: 'methodId',
-                weightComputed: weightForm|formGetControl: 'computed'
+                weightComputed: weightForm|formGetControl: 'computed',
+                weightEstimated: weightForm|formGetControl: 'estimated'
                } as controls">
-        <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
-                        [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.weightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
-                        [control]="controls.weightValue"
-                        [class.computed]="controls.weightComputed.value"
-                        [readonly]="controls.weightComputed.value"
-                        [compact]="delegate.compact"
-                        [tabindex]="delegate.tabindex+28"
-                        [listenStatusChanges]="true"
-                        [required]="delegate.requiredWeight">
-        </app-pmfm-field>
-      </ion-col>
+        <ion-col class="ion-no-padding">
+          <app-pmfm-field [pmfm]="delegate.defaultWeightPmfm"
+                          [placeholder]="delegate.weightPmfmsByMethod|mapGet:controls.weightMethodId.value|pmfmName:{i18nPrefix: delegate.i18nPmfmPrefix, i18nContext: delegate.i18nSuffix}"
+                          [control]="controls.weightValue"
+                          [class.computed]="controls.weightComputed.value"
+                          [readonly]="controls.weightComputed.value"
+                          [compact]="delegate.compact"
+                          [tabindex]="delegate.tabindex+28"
+                          [listenStatusChanges]="true"
+                          [required]="delegate.requiredWeight">
+            <mat-icon matPrefix>weight</mat-icon>&nbsp;
+          </app-pmfm-field>
+        </ion-col>
 
-      <!-- is estimated weight ?-->
-      <ion-col size="6" class="ion-no-padding" padding-left *ngIf="delegate.showEstimatedWeight">
+        <!-- is estimated weight ?-->
+        <ion-col size="4" *ngIf="delegate.showEstimatedWeight">
 
-        <mat-form-field floatLabel="never">
-          <!-- fake input -->
-          <input matInput hidden>
+          <mat-form-field floatLabel="never">
+            <!-- fake input -->
+            <input matInput hidden>
 
-          <ion-label>&nbsp;</ion-label>
+            <ion-label>&nbsp;</ion-label>
 
-          <!-- checkbox, when compact -->
-          <mat-checkbox matPrefix
-                        [formControl]="delegate.form|formGetControl:'weight.estimated'"
-                        labelPosition="after"
-                        [tabIndex]="delegate.tabindex+29">
-            <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
-          </mat-checkbox>
-        </mat-form-field>
+            <!-- checkbox, when compact -->
+            <mat-checkbox matPrefix
+                          [formControl]="controls.weightEstimated"
+                          [disabled]="controls.weightComputed.value"
+                          labelPosition="after"
+                          [tabindex]="delegate.tabindex+29">
+              <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
+            </mat-checkbox>
+          </mat-form-field>
 
-      </ion-col>
+        </ion-col>
+      </ng-container>
     </ion-row>
 
     <!-- Total NB individual  -->
@@ -135,20 +160,10 @@
                             samplingRatioComputed: samplingForm|formGetControl:'samplingRatioComputed',
                             weightValue: samplingForm|formGetControl: 'weight.value',
                             weightComputed: samplingForm|formGetControl: 'weight.computed',
+                            weightEstimated: samplingForm|formGetControl: 'weight.estimated',
                             childrenWeightValue: samplingForm|formGetControl: 'childrenWeight.value',
                             childrenWeightMethodId: samplingForm|formGetControl: 'childrenWeight.methodId'
                          } as controls">
-
-          <!-- is Exhaustive inventory ?-->
-          <ion-col size="4" class="ion-no-padding ion-margin-end" *ngIf="delegate.showExhaustiveInventory">
-
-            <mat-boolean-field [formControl]="delegate.form|formGetControl:'exhaustiveInventory'"
-                               [placeholder]="'TRIP.BATCH.EDIT.IS_EXHAUSTIVE_INVENTORY'|translateContext: delegate.i18nSuffix"
-                               [style]="delegate.mobile?'button':'radio'"
-                               [required]="true">
-
-            </mat-boolean-field>
-          </ion-col>
 
           <!-- SUM of children weight-->
           <ion-col *ngIf="delegate.showChildrenWeight && controls.childrenWeightValue?.value"
@@ -181,7 +196,7 @@
           </ion-col>
 
           <!-- Sampling ratio -->
-          <ion-col size="4" class="ion-no-padding ion-margin-end">
+          <ion-col size="4" class="ion-no-padding">
             <mat-sampling-ratio-field [class.computed]="controls.samplingRatioComputed.value"
                                       [readonly]="controls.samplingRatioComputed.value"
                                       [formControl]="controls.samplingRatio"
@@ -206,6 +221,27 @@
 
           </ion-col>
 
+          <!-- is estimated weight ?-->
+          <ion-col size="4" *ngIf="delegate.showEstimatedWeight">
+
+            <mat-form-field floatLabel="never">
+              <!-- fake input -->
+              <input matInput hidden>
+
+              <ion-label>&nbsp;</ion-label>
+
+              <!-- checkbox, when compact -->
+              <mat-checkbox matPrefix
+                            [formControl]="controls.weightEstimated"
+                            [disabled]="controls.weightComputed.value"
+                            labelPosition="after"
+                            [tabindex]="delegate.tabindex+34">
+                <ion-text translate>TRIP.BATCH.EDIT.ESTIMATED_WEIGHT</ion-text>
+              </mat-checkbox>
+            </mat-form-field>
+
+          </ion-col>
+
           <!-- Sampling individual count -->
           <ion-col size="4" class="ion-no-padding" *ngIf="delegate.showSampleIndividualCount">
             <mat-form-field *ngVar="delegate.samplingBatchForm|formGetControl: 'individualCount'; let control">
@@ -217,7 +253,7 @@
                      pattern="[0-9]*"
                      (click)="selectInputContent($event)"
                      [placeholder]="'TRIP.BATCH.EDIT.SAMPLING_INDIVIDUAL_COUNT'|translate"
-                     [tabindex]="delegate.tabindex + 34"
+                     [tabindex]="delegate.tabindex+35"
                      [required]="delegate.requiredSampleIndividualCount">
               <mat-error *ngIf="control.errors|mapKeys|arrayFirst; let errorKey" [ngSwitch]="errorKey">
                 <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
@@ -243,12 +279,15 @@
             ready: {{delegate.readySubject|async}}<br/>
             enabled: {{delegate.enabled}}<br/>
             disabled: {{delegate.disabled}}<br/>
-          </ion-col>
-          <ion-col>
             valid: {{delegate.valid}}<br/>
             dirty: {{delegate.dirty}}<br/>
             touched: {{delegate.touched}}<br/>
+          </ion-col>
+          <ion-col>
+            hasContent: {{delegate.hasContent$|push}}<br/>
             showError: {{delegate.showError}}<br/>
+            showSamplingBatch: {{delegate.showSamplingBatch}}<br/>
+            samplingBatchEnabled: {{delegate.samplingBatchEnabled}}<br/>
             showSampleWeight: {{delegate.showSampleWeight}}<br/>
           </ion-col>
           <ion-col *ngIf="delegate.showSamplingBatch && delegate.samplingBatchForm as childForm">

@@ -134,6 +134,7 @@
 <!-- Type = options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
 
+  <ng-template matMenuContent>
   <!-- duplicate (if mobile) -->
   <button mat-menu-item class="ion-color-danger" *ngIf="mobile && enabled && canDuplicate"
           (click)="duplicate($event)">
@@ -154,7 +155,7 @@
     </ion-label>
   </button>
 
-  <mat-divider></mat-divider>
+  <mat-divider *ngIf="canDuplicate"></mat-divider>
 
   <!-- reset -->
   <button mat-menu-item
@@ -175,6 +176,7 @@
       <span translate>TRIP.OPERATION.EDIT.BTN_DELETE</span>
     </ion-label>
   </button>
+  </ng-template>
 
 </mat-menu>
 
@@ -362,6 +364,7 @@
           editor.loading: {{loading}}<br/>
           editor.enabled: {{enabled}}<br/>
           editor.dirty: {{dirty}}<br/>
+          editor.valid: {{valid}}<br/>
           editor.saving: {{saving}}<br/>
         </ion-col>
         <ion-col>
@@ -369,6 +372,7 @@
           opeForm.loading: {{opeForm.loading}}<br/>
           opeForm.enabled: {{opeForm.enabled}}<br/>
           opeForm.dirty: {{opeForm.dirty}}<br/>
+          opeForm.valid: {{opeForm.valid}}<br/>
           <br/>
           opeForm.startDateTime: {{form|formGetValue:'startDateTime'|dateFormat: {time: true} }}<br/>
           opeForm.fishingStartDateTime: {{form.controls.fishingStartDateTime.valueChanges|async|dateFormat: {time: true} }}<br/>
@@ -390,8 +394,10 @@
           measurementsForm.loading: {{measurementsForm.loading}}<br/>
           measurementsForm.enabled: {{measurementsForm.enabled}}<br/>
           measurementsForm.dirty: {{measurementsForm.dirty}}<br/>
+          measurementsForm.valid: {{measurementsForm.valid}}<br/>
           measurementsForm.gearId: {{measurementsForm.gearId}}<br/>
-
+          measurementsForm.i18nPmfmPrefix: {{measurementsForm.i18nPmfmPrefix}}<br/>
+          measurementsForm.i18nSuffix: {{measurementsForm.i18nSuffix}}<br/>
           <!-- Sample debug -->
           <span *ngIf="sampleTree">
             <br/>

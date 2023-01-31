@@ -12,6 +12,7 @@
         <br/>
         showCatchForm: {{showCatchForm}}<br/>
         showBatchTables: {{showBatchTables}}<br/>
+        programAllowMeasure: {{programAllowMeasure}}<br/>
         allowSpeciesSampling: {{allowSpeciesSampling}}<br/>
         allowSubBatches: {{allowSubBatches}}<br/>
       </ion-col>
@@ -25,6 +26,7 @@
         catchBatchForm.i18nSuffix: {{catchBatchForm.i18nSuffix}}<br/>
         catchBatchForm.pmfms: {{catchBatchForm.pmfms?.length}}<br/>
         catchBatchForm.defaultWeightPmfm: {{catchBatchForm.defaultWeightPmfm?.label}}<br/>
+        catchBatchForm.samplingRatioFormat: {{catchBatchForm.samplingRatioFormat}}<br/>
         <br/>
         catchBatchForm.hasContent: {{catchBatchForm.hasContent$|push}}<br/>
         catchBatchForm.showWeight: {{catchBatchForm.showWeight}}<br/>
@@ -93,18 +95,6 @@
                     [i18nSuffix]="i18nContext.suffix"
                     [debug]="debug">
   </form-catch-batch>
-<!--  <app-batch-form #catchBatchForm-->
-<!--                  *ngSwitchDefault-->
-<!--                  [programLabel]="$programLabel|async"-->
-<!--                  [acquisitionLevel]="rootAcquisitionLevel"-->
-<!--                  (onSubmit)="save($event)"-->
-<!--                  [tabindex]="200"-->
-<!--                  [showError]="false"-->
-<!--                  [i18nPmfmPrefix]="i18nPmfmPrefix"-->
-<!--                  [i18nSuffix]="i18nContext.suffix"-->
-<!--                  [debug]="debug">-->
-
-<!--  </app-batch-form>-->
 </div>
 
 <mat-tab-group #tabGroup
@@ -134,8 +124,7 @@
                             [debug]="debug"
                             [mobile]="mobile"
                             [allowSubBatches]="allowSubBatches"
-                            [showTaxonGroupColumn]="true"
-                            [showTaxonNameColumn]="true"
+                            [showSamplingBatchColumns]="showSamplingBatchColumns$|async"
                             [showCommentsColumn]="false"
                             (onSubBatchesChanges)="onSubBatchesChanges($event)">
     </app-batch-groups-table>
@@ -144,7 +133,7 @@
 
   <!-- TAB: individual measure -->
   <mat-tab #measureTab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-           [disabled]="!allowSubBatches || !showSubBatchesTable"
+           [disabled]="!showSubBatchesTable"
            *ngIf="!mobile">
     <ng-template mat-tab-label>
       <mat-icon>assessment</mat-icon>

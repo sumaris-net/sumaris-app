@@ -599,14 +599,14 @@ export class OperationPage<S extends OperationState = OperationState>
       if (!this.allowParentOperation) {
         defaultTableStates = true;
       }
+      this._state.connect('hasIndividualMeasures', hasIndividualMeasuresControl.valueChanges
+        .pipe(
+          startWith<any, any>(hasIndividualMeasuresControl.value),
+          filter(isNotNil)
+        ));
+
       this._measurementSubscription.add(
-        hasIndividualMeasuresControl.valueChanges
-          .pipe(
-            startWith<any, any>(hasIndividualMeasuresControl.value),
-            filter(isNotNil),
-            tap(value => this._state.set('hasIndividualMeasures', (_) => value)),
-            distinctUntilChanged()
-          )
+        this.hasIndividualMeasures$
           .subscribe(value => {
             this.batchTree.allowSpeciesSampling = value;
             this.batchTree.defaultHasSubBatches = value;
@@ -1030,6 +1030,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // Set batch tree
       if (this.batchTree) {
+        //this.batchTree.programLabel = this.programLabel;
         this.batchTree.physicalGear = data.physicalGear;
         this.batchTree.gearId = gearId;
         jobs.push(this.batchTree.setValue(data && data.catchBatch || null));

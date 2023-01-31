@@ -551,7 +551,7 @@ export abstract class MeasurementValuesForm<
     this._state.set('pmfms', (_) => undefined);
   }
 
-  private async updateFormGroup(pmfms?: IPmfm[]) {
+  private async updateFormGroup(pmfms?: IPmfm[], opts?: {emitEvent?: boolean}) {
     pmfms = pmfms || this.pmfms;
     if (!pmfms) return; // Skip
 
@@ -571,7 +571,7 @@ export abstract class MeasurementValuesForm<
     if (!pmfms.length) {
       // Reset measurement form (if exists)
       if (this._measurementValuesForm) {
-        this.measurementsValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms: []});
+        this.measurementsValidatorService.updateFormGroup(this._measurementValuesForm, {pmfms: [], emitEvent: opts?.emitEvent});
         this._measurementValuesForm.reset({}, {onlySelf: true, emitEvent: false});
       }
     } else {
@@ -580,8 +580,8 @@ export abstract class MeasurementValuesForm<
       if (!this._measurementValuesForm) {
         this._measurementValuesForm = this.measurementsValidatorService.getFormGroup(null, {pmfms});
 
-        form.addControl('measurementValues', this._measurementValuesForm);
-        this._measurementValuesForm.disable({onlySelf: true, emitEvent: false});
+        form.addControl('measurementValues', this._measurementValuesForm, {emitEvent: opts?.emitEvent});
+        this._measurementValuesForm.disable({onlySelf: true, emitEvent: opts?.emitEvent});
       }
 
       // Or update if already exist
@@ -602,7 +602,7 @@ export abstract class MeasurementValuesForm<
     if (!this.applyingValue) {
       // Update data in view
       if (this.data) {
-        await this.updateView(this.data, {emitEvent: false});
+        await this.updateView(this.data, {onlySelf: true, emitEvent: false});
         this.markAsLoaded();
       }
       // No data defined yet
