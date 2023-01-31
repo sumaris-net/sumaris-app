@@ -18,7 +18,7 @@ import { getMaxRankOrder } from '@app/data/services/model/model.utils';
     {
       provide: APP_IMAGE_ATTACHMENT_SERVICE,
       useFactory: () => new InMemoryEntitiesService(ImageAttachment, ImageAttachmentFilter, {
-        equals: EntityUtils.equals
+        equals: ImageAttachment.equals,
       })
     }
   ],
