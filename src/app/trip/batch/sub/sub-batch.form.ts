@@ -25,9 +25,9 @@ import {
   toNumber,
   UsageMode
 } from '@sumaris-net/ngx-components';
-import { debounceTime, delay, distinctUntilChanged, filter, mergeMap, skip, startWith, tap } from 'rxjs/operators';
+import {debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, startWith, tap} from 'rxjs/operators';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
-import { BehaviorSubject, combineLatest, Subscription } from 'rxjs';
+import {BehaviorSubject, combineLatest, Observable, Subscription} from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { PmfmFormField } from '../../../referential/pmfm/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
@@ -57,6 +57,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
   protected _disableByDefaultControls: AbstractControl[] = [];
   protected _weightConversionSubscription: Subscription;
 
+  protected readonly pending$: Observable<boolean>;
   enableIndividualCountControl: UntypedFormControl;
   freezeTaxonNameControl: UntypedFormControl;
   freezeQvPmfmControl: UntypedFormControl;
@@ -86,7 +87,7 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
 
   @Input() set showTaxonName(show) {
     this._showTaxonName = show;
-    const taxonNameControl = this.form && this.form.get('taxonName');
+    const taxonNameControl = this.form?.get('taxonName');
     if (taxonNameControl) {
       if (show) {
         taxonNameControl.setValidators([SharedValidators.entity, Validators.required]);
@@ -187,10 +188,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.form.controls.label.setValidators(null);
     this.form.controls.rankOrder.setValidators(null);
 
+    // Set default values
     this.mobile = this.settings.mobile;
     this._enable = false;
-
-    // Set default values
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL;
     this.i18nPmfmPrefix = 'TRIP.BATCH.PMFM.';
 
@@ -203,6 +203,9 @@ export class SubBatchForm extends MeasurementValuesForm<SubBatch>
     this.freezeQvPmfmControl.setValue(true, {emitEvent: false});
 
     this.freezeTaxonNameControl = this.formBuilder.control(!this.mobile, Validators.required);
+
+    // Listen pending status
+    this.pending$ = this.form.statusChanges.pipe(map(status => status === 'PENDING'));
 
     // For DEV only
     this.debug = !environment.production;
