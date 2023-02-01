@@ -742,18 +742,17 @@ export class BatchForm<
 
   protected async enableSamplingBatch(opts?: { emitEvent?: boolean }) {
     const array = this.childrenFormArray;
-    if (!array || array.enabled) return; // Skip if absent
-
+    if (!array) return;
     array.enable(opts);
     await this.enableWeightsComputation();
   }
 
   protected disableSamplingBatch(opts?: { emitEvent?: boolean }) {
+    this.disableSamplingWeightComputation();
+
     const array = this.childrenFormArray;
     if (!array) return;
-
     array.disable(opts);
-    this.disableSamplingWeightComputation();
   }
 
   copyChildrenWeight(event: Event, samplingBatchForm: AbstractControl) {
