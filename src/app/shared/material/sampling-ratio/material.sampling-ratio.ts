@@ -31,8 +31,8 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
   private _subscription = new Subscription();
-  private _writing = true;
   private _disabling = false;
+  private _writing = true; // Will be changed to 'false' by ngOnInit()
 
   _readonly = false;
   _inputFormControl: UntypedFormControl;
@@ -138,19 +138,22 @@ export class MatSamplingRatioField implements OnInit, OnDestroy, ControlValueAcc
 
   writeValue(obj: any): void {
     if (this._writing) return; // Skip
-
-    const value = (typeof obj === 'string') ? parseFloat(obj.replace(/,/g, '.')) : obj;
     this._writing = true;
 
-    const formValue: number = this.toFormValue(value);
+    try {
+      const value = (typeof obj === 'string') ? parseFloat(obj.replace(/,/g, '.')) : obj;
 
-    // DEBUG
-    //console.debug("[mat-sampling-ratio] formValue: " + formValue);
+      const formValue: number = this.toFormValue(value);
 
-    this._inputFormControl.patchValue(formValue, {emitEvent: false});
+      // DEBUG
+      //console.debug("[mat-sampling-ratio] formValue: " + formValue);
 
-    this._writing = false;
-    this.markForCheck();
+      this._inputFormControl.patchValue(formValue, {emitEvent: false});
+    }
+    finally {
+      this._writing = false;
+      this.markForCheck();
+    }
   }
 
   registerOnChange(fn: any): void {

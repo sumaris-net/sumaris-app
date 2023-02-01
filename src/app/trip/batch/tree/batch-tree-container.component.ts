@@ -796,8 +796,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       this.batchTree.batchGroupsTable.showTaxonNameColumn = this.showTaxonName;
       this.batchTree.batchGroupsTable.samplingRatioFormat = this.samplingRatioFormat;
       this.batchTree.rootAcquisitionLevel = rootAcquisitionLevel;
-      this.batchTree.batchGroupsTable.pmfms = model.childrenPmfms || [];
       this.batchTree.setSubBatchesModalOption('programLabel', programLabel);
+      this.batchTree.batchGroupsTable.pmfms = model.childrenPmfms || [];
 
       // Configure catch form state
       this.batchTree.catchBatchForm.applyState({

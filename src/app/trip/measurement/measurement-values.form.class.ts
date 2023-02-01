@@ -481,7 +481,7 @@ export abstract class MeasurementValuesForm<
     }
 
     // DEBUG
-    //if (this.debug) console.debug(`${this.logPrefix} setPmfms()`);
+    //if (this.debug) console.debug(`${this._logPrefix} setPmfms()`);
 
     // Mark as settings pmfms
     if (!opts || opts.emitEvent !== false) {

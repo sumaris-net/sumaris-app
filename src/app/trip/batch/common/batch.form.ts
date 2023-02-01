@@ -390,7 +390,12 @@ export class BatchForm<
 
     // When pmfm filter change, re-apply initial pmfms
     this._state.hold(this._state.select('pmfmFilter')
-      .pipe(filter(_ => this.enabled && !this.loading)),
+      .pipe(
+        // DEBUG
+        //tap(pmfmFilter => console.debug(this._logPrefix + 'pmfmFilter changes', pmfmFilter)),
+
+        filter(_ => this.enabled && !this.loading)
+      ),
       _ => this.setPmfms(this._initialPmfms)
     );
 
@@ -418,7 +423,7 @@ export class BatchForm<
         ),
       samplingBatchEnabled => {
         if (samplingBatchEnabled) this.enableSamplingBatch()
-        else this.disableSamplingBatch()
+        else this.disableSamplingBatch();
       });
 
     // Taxon group combo
@@ -468,8 +473,16 @@ export class BatchForm<
   applyState(state: Partial<BatchFormState>) {
     this._state.set(oldState => ({
       ...oldState,
-      ...state
+      ...state,
+      // Keep some protected inputs
+      pmfms: oldState.pmfms
     }));
+
+    this.ready$
+    // Apply pmfms
+    if (state?.pmfms) {
+      this.setPmfms(state?.pmfms);
+    }
   }
 
   onApplyingEntity(data: T, opts?: any) {
@@ -556,11 +569,13 @@ export class BatchForm<
   }
 
   protected async updateView(data: T, opts?: { emitEvent?: boolean; onlySelf?: boolean; normalizeEntityToForm?: boolean }) {
+    const defaultWeightPmfm = this.defaultWeightPmfm;
+    const weightPmfms = this.weightPmfms;
+    const childrenFormArray = this.childrenFormArray;
 
     // Fill weight, if a weight PMFM exists
-    const defaultWeightPmfm = this.defaultWeightPmfm;
     if (defaultWeightPmfm && this.showWeight) {
-      data.weight = BatchUtils.getWeight(data, this.weightPmfms) || <BatchWeight>{
+      data.weight = BatchUtils.getWeight(data, weightPmfms) || <BatchWeight>{
         value: null,
         methodId: defaultWeightPmfm.methodId,
         computed: defaultWeightPmfm.isComputed,
@@ -568,7 +583,7 @@ export class BatchForm<
       };
 
       // Clean all weight values and control (to keep only the weight form group)
-      this.weightPmfms.forEach(p => {
+      weightPmfms?.forEach(p => {
         delete data.measurementValues[p.id.toString()];
         this.form.removeControl(p.id.toString());
       });
@@ -589,16 +604,16 @@ export class BatchForm<
 
     if (this.showSamplingBatch) {
 
-      this.childrenFormArray.resize(1, opts);
-      const samplingFormGroup = this.childrenFormArray.at(0) as UntypedFormGroup;
+      childrenFormArray.resize(1, opts);
+      const samplingFormGroup = childrenFormArray.at(0) as UntypedFormGroup;
       const samplingBatch = BatchUtils.getOrCreateSamplingChild(data);
 
       // Force isSampling=true, if sampling batch it NOT empty
       this.samplingBatchEnabled = toBoolean(this.samplingBatchEnabled, BatchUtils.isSamplingNotEmpty(samplingBatch));
 
       // Read child weight (use the first one)
-      if (this.defaultWeightPmfm) {
-        samplingBatch.weight = BatchUtils.getWeight(samplingBatch, this.weightPmfms);
+      if (defaultWeightPmfm) {
+        samplingBatch.weight = BatchUtils.getWeight(samplingBatch, weightPmfms);
 
         // Adapt measurement values to form
         MeasurementValuesUtils.normalizeEntityToForm(samplingBatch, [], samplingFormGroup);
@@ -614,8 +629,8 @@ export class BatchForm<
 
     // No sampling batch
     else {
-      this.childrenFormArray.resize((data.children || []).length, opts);
-      this.childrenFormArray.disable(opts);
+      childrenFormArray.resize((data.children || []).length, opts);
+      childrenFormArray.disable(opts);
     }
 
     // Call inherited function
@@ -633,17 +648,20 @@ export class BatchForm<
     if (!this.data) return undefined;
     const json = this.form.value;
     const data = this.data;
+    const weightPmfms = this.weightPmfms;
+    const weightPmfmsByMethod = this.weightPmfmsByMethod;
 
     // Get existing measurements
     const measurementValues = data.measurementValues || {};
 
+
     // Clean previous all weights
-    (this.weightPmfms || []).forEach(p => measurementValues[p.id.toString()] = undefined);
+    weightPmfms?.forEach(p => measurementValues[p.id.toString()] = undefined);
 
     // Convert weight into measurement
     const totalWeight = this.defaultWeightPmfm && json.weight?.value;
     if (isNotNil(totalWeight)) {
-      const totalWeightPmfm = BatchUtils.getWeightPmfm(json.weight, this.weightPmfms, this.weightPmfmsByMethod);
+      const totalWeightPmfm = BatchUtils.getWeightPmfm(json.weight, weightPmfms, weightPmfmsByMethod);
       json.measurementValues = {
         ...json.measurementValues,
         [totalWeightPmfm.id.toString()]: totalWeight
@@ -668,17 +686,17 @@ export class BatchForm<
         childJson.measurementValues = childJson.measurementValues || {};
 
         // Clean existing weights
-        this.weightPmfms.forEach(p => childJson.measurementValues[p.id.toString()] = undefined);
+        weightPmfms?.forEach(p => childJson.measurementValues[p.id.toString()] = undefined);
         // Convert weight into measurement
         if (isNotNil(childJson.weight?.value)) {
-          const childWeightPmfm = BatchUtils.getWeightPmfm(childJson.weight, this.weightPmfms, this.weightPmfmsByMethod);
+          const childWeightPmfm = BatchUtils.getWeightPmfm(childJson.weight, weightPmfms, weightPmfmsByMethod);
           childJson.measurementValues[childWeightPmfm.id.toString()] = childJson.weight.value;
         }
 
         // Convert measurements
         childJson.measurementValues = Object.assign({},
           child.measurementValues,  // Keep existing extra measurements
-          MeasurementValuesUtils.normalizeValuesToModel(childJson.measurementValues, this.weightPmfms));
+          MeasurementValuesUtils.normalizeValuesToModel(childJson.measurementValues, weightPmfms));
 
         // Special case: when sampling on individual count only (e.g. RJB - Pocheteau)
         if (!this.showWeight && isNotNil(childJson.individualCount) && isNotNil(json.individualCount)) {
@@ -724,35 +742,18 @@ export class BatchForm<
 
   protected async enableSamplingBatch(opts?: { emitEvent?: boolean }) {
     const array = this.childrenFormArray;
-    if (!array) return; // Skip if absent or already enable
+    if (!array || array.enabled) return; // Skip if absent
 
-    const changed = !array.enabled;
     array.enable(opts);
-
     await this.enableWeightsComputation();
-
-    // Mark form as dirty
-    if (!this.loading && (!opts || opts.emitEvent !== false)) {
-      if (changed) this.markAsDirty(opts);
-      this.markForCheck();
-    }
   }
 
   protected disableSamplingBatch(opts?: { emitEvent?: boolean }) {
     const array = this.childrenFormArray;
     if (!array) return;
 
-    const changed = !array.disabled;
     array.disable(opts);
-
     this.disableSamplingWeightComputation();
-
-    // Mark form as dirty
-    if (!this.loading && (!opts || opts.emitEvent !== false)) {
-      if (changed) this.markAsDirty(opts);
-      this.markForCheck();
-    }
-
   }
 
   copyChildrenWeight(event: Event, samplingBatchForm: AbstractControl) {

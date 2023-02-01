@@ -478,8 +478,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     this.batchGroupsTable.setSubBatchesModalOption(key, value);
   }
 
+  disable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
+    super.disable(opts);
+  }
+
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
-    super.enable({onlySelf: true, emitEvent: false, ...opts});
+    super.enable(opts);
   }
 
   async save(event?: Event, options?: any): Promise<any> {

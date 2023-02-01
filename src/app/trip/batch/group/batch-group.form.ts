@@ -4,7 +4,7 @@ import {UntypedFormBuilder, UntypedFormControl, UntypedFormGroup} from '@angular
 import {AppFormUtils, InputElement, isNil, isNotNil, ReferentialUtils, toBoolean, waitFor, WaitForOptions} from '@sumaris-net/ngx-components';
 import {BatchGroupValidatorOptions, BatchGroupValidatorService} from './batch-group.validator';
 import {BatchForm, BatchFormState} from '../common/batch.form';
-import {debounceTime, filter, map} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
 import {BatchGroup, BatchGroupUtils} from './batch-group.model';
 import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
@@ -184,12 +184,17 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
 
     // Set isSampling on each child forms, when has indiv. measure changed
     this._state.connect('hasSubBatches', this.hasSubBatchesControl.valueChanges
-      .pipe(filter(() => !this.applyingValue && !this.loading))
+      .pipe(
+        filter(() => !this.applyingValue && !this.loading),
+        distinctUntilChanged(),
+        tap(_ => this.markAsDirty())
+      )
     );
 
     this._state.hold(this.hasSubBatches$, (value) => {
       if (this.hasSubBatchesControl.value !== value) {
-        this.hasSubBatchesControl.setValue(value);
+        this.hasSubBatchesControl.setValue(value, {emitEvent: false});
+        this.markForCheck();
       }
       // Enable control if need
       if (!value && this.hasSubBatchesControl.disabled && this.enabled) {

@@ -67,7 +67,7 @@
       <ng-container *rxFor="let pmfm of delegate.pmfms$; trackBy: delegate.trackPmfmFn; index as i;">
         <ion-col *ngVar="pmfm|pmfmFieldStyle:delegate.maxItemCountForButtons as style"
                  class="ion-no-padding"
-                 [class.cdk-visually-hidden]="pmfm.hidden || matInput.disabled"
+                 [class.cdk-visually-hidden]="pmfm.hidden"
                  size="12" [sizeMd]="pmfm.isQualitative && style === 'button' ? 12 : 6" >
           <app-pmfm-field #matInput
                           [pmfm]="pmfm"

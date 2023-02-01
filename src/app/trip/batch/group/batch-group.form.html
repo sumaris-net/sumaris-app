@@ -1,43 +1,51 @@
 <!-- root form content -->
 <app-batch-form-content>
 
+  <!-- sub batches buttons -->
   <ng-container afterSpecies>
-    <!-- sub batches buttons -->
-    <ion-col size="12" size-sm="6" *ngIf="allowSubBatches && showHasSubBatchesButton" class="form-container">
-      <!-- Has individual measures ? -->
-      <mat-form-field floatLabel="always" >
-        <input matInput type="text" hidden
-               [formControl]="hasSubBatchesControl"
-               [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE'|translate"
-               required>
-        <ion-grid class="ion-no-padding" >
-          <ion-row class="ion-no-padding ion-row-buttons" *ngIf="!loading; else rowSkeleton">
-            <ion-col>
-              <ion-button class="mat-form-field-button"
-                          [disabled]="hasSubBatchesControl.disabled"
-                          [tabindex]="tabindex && tabindex + 8 || -1"
-                          (click)="hasSubBatchesControl.setValue(false)"
-                          (keyup.enter)="hasSubBatchesControl.setValue(false)"
-                          fill="solid" expand="full"
-                          [color]="hasSubBatches === undefined ? 'danger': (!hasSubBatches ? 'accent' : 'light')">
-                <ion-label translate>TRIP.BATCH.EDIT.WITHOUT_MEASURE</ion-label>
-              </ion-button>
-            </ion-col>
-            <ion-col>
-              <ion-button class="mat-form-field-button"
-                          [disabled]="hasSubBatchesControl.disabled"
-                          [tabindex]="tabindex && tabindex + 9 || -1"
-                          (click)="hasSubBatchesControl.setValue(true)"
-                          (keyup.enter)="hasSubBatchesControl.setValue(true)"
-                          fill="solid" expand="full"
-                          [color]="hasSubBatches === undefined ? 'danger': (hasSubBatches ? 'accent' : 'light')">
-                <ion-label translate>TRIP.BATCH.EDIT.WITH_MEASURE</ion-label>
-              </ion-button>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
-      </mat-form-field>
-    </ion-col>
+
+    <!-- Has individual measures ? -->
+    <ng-container *ngIf="allowSubBatches && showHasSubBatchesButton">
+
+      <!-- spacer -->
+      <ion-col size="0" size-sm="6" *ngIf="showTaxonGroup !== showTaxonName">
+      </ion-col>
+
+      <ion-col size="12" size-sm="6">
+        <mat-form-field floatLabel="always" >
+          <input matInput type="text" hidden
+                 [formControl]="hasSubBatchesControl"
+                 [placeholder]="'TRIP.BATCH.EDIT.INDIVIDUAL_MEASURE'|translate"
+                 required>
+          <ion-grid class="ion-no-padding" >
+            <ion-row class="ion-no-padding ion-row-buttons" *ngIf="!loading; else rowSkeleton">
+              <ion-col>
+                <ion-button class="mat-form-field-button"
+                            [disabled]="hasSubBatchesControl.disabled"
+                            [tabindex]="tabindex && tabindex + 8 || -1"
+                            (click)="hasSubBatchesControl.setValue(false)"
+                            (keyup.enter)="hasSubBatchesControl.setValue(false)"
+                            fill="solid" expand="full"
+                            [color]="hasSubBatches === undefined ? 'danger': (!hasSubBatches ? 'accent' : 'light')">
+                  <ion-label translate>TRIP.BATCH.EDIT.WITHOUT_MEASURE</ion-label>
+                </ion-button>
+              </ion-col>
+              <ion-col>
+                <ion-button class="mat-form-field-button"
+                            [disabled]="hasSubBatchesControl.disabled"
+                            [tabindex]="tabindex && tabindex + 9 || -1"
+                            (click)="hasSubBatchesControl.setValue(true)"
+                            (keyup.enter)="hasSubBatchesControl.setValue(true)"
+                            fill="solid" expand="full"
+                            [color]="hasSubBatches === undefined ? 'danger': (hasSubBatches ? 'accent' : 'light')">
+                  <ion-label translate>TRIP.BATCH.EDIT.WITH_MEASURE</ion-label>
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </mat-form-field>
+      </ion-col>
+    </ng-container>
 
     <ng-content select="[afterSpecies]"></ng-content>
   </ng-container>

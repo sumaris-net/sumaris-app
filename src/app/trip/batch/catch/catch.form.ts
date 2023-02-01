@@ -11,7 +11,7 @@ import { BatchForm, BatchFormState } from '@app/trip/batch/common/batch.form';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { combineLatest, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 
 export interface CatchBatchFormState extends BatchFormState {
   gearPmfms: IPmfm[];
@@ -153,6 +153,8 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
       this._state.select(['onDeckPmfms', 'sortingPmfms', 'catchPmfms', 'gearPmfms', 'otherPmfms'],
           pmfmsMap => Object.values(pmfmsMap).some(isNotEmptyArray)
       )
+      // DEBUG
+      //.pipe(tap(hasPmfms => console.debug(this._logPrefix + ' listenHasContent() - hasPmfms=' + hasPmfms)))
     ])
     .pipe(map(values => values.some(v => v === true)));
   }
