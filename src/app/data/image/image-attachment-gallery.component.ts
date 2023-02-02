@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output, Self } from '@angular/core';
 import { APP_IMAGE_ATTACHMENT_SERVICE } from './image-attachment.service';
-import { ImageAttachment, ImageAttachmentComparators, ImageAttachmentFilter } from './image-attachment.model';
+import { ImageAttachment, ImageAttachmentFilter } from './image-attachment.model';
 import { BehaviorSubject, of, Subscription } from 'rxjs';
 import { ModalController } from '@ionic/angular';
 import { EntitiesTableDataSource, EntityUtils, GalleryMode, Image, InMemoryEntitiesService, isNil, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
@@ -18,7 +18,8 @@ import { getMaxRankOrder } from '@app/data/services/model/model.utils';
     {
       provide: APP_IMAGE_ATTACHMENT_SERVICE,
       useFactory: () => new InMemoryEntitiesService(ImageAttachment, ImageAttachmentFilter, {
-        equals: EntityUtils.equals
+        equals: ImageAttachment.equals,
+        onSort: (data, sortBy= 'rankOrder', sortDirection) => EntityUtils.sort(data, sortBy, sortDirection),
       })
     }
   ],
@@ -152,7 +153,6 @@ export class AppImageAttachmentGallery implements OnInit, OnDestroy {
         row.currentData = data;
       }
     });
-
     await this.save();
 
     this.markAsDirty();

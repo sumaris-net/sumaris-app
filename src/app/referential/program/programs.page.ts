@@ -14,6 +14,7 @@ export const ProgramsPageSettingsEnum = {
 @Component({
   selector: 'app-program-page',
   templateUrl: './programs.page.html',
+  styleUrls: ['./programs.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ProgramsPage implements OnInit {

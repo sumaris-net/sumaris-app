@@ -4,6 +4,7 @@
 }
 .table-container {
   max-height: calc(100vh - var(--toolbar-min-height, 56px));
+  min-width: unset !important;
   overflow-x: hidden;
   overflow-y: auto;
 }

@@ -1,5 +1,9 @@
 :host {
-  ion-buttons[afterSpecies] {
+  ion-col[afterSpecies] {
     min-height: 30px;
+
+    &.ion-padding-top {
+      padding-top: var(--ion-padding, 16px) !important;
+    }
   }
 }

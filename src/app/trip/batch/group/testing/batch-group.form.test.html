@@ -71,7 +71,7 @@
        </ion-col>
 
 
-       <!-- Eanble sampling batch -->
+       <!-- Enable sampling batch -->
        <ion-col class="ion-padding">
          <mat-checkbox (change)="samplingBatchEnabled=!samplingBatchEnabled"
                        [checked]="samplingBatchEnabled">
@@ -122,6 +122,13 @@
          </mat-checkbox>
        </ion-col>
 
+       <!-- showEstimatedWeight -->
+       <ion-col class="ion-padding">
+         <mat-checkbox (change)="showEstimatedWeight=!showEstimatedWeight"
+                       [checked]="showEstimatedWeight">
+           <mat-label>showEstimatedWeight ?</mat-label>
+         </mat-checkbox>
+       </ion-col>
      </ion-row>
 
      <!-- Action buttons -->
@@ -166,15 +173,13 @@
           <app-batch-group-form #form
                                 [programLabel]="$programLabel | async"
                                 [showTaxonName]="false"
-                                [showSamplingBatch]="showSamplingBatch"
-                                [samplingBatchEnabled]="samplingBatchEnabled"
                                 [allowSubBatches]="allowSubBatches"
                                 [defaultHasSubBatches]="defaultHasSubBatches"
                                 [hasSubBatches]="hasSubBatches"
                                 [showHasSubBatchesButton]="showHasSubBatchesButton"
                                 [samplingRatioFormat]="samplingRatioFormat"
                                 [taxonGroupsNoWeight]="taxonGroupsNoWeight"
-                                [showChildrenWeight]="showChildrenWeight"
+                                [childrenState]="childrenState"
                                 [gearId]="$gearId|async"
                                 [usageMode]="'FIELD'"
                                 [mobile]="true"

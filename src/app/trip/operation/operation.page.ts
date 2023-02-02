@@ -604,8 +604,9 @@ export class OperationPage<S extends OperationState = OperationState>
           .pipe(
             startWith<any, any>(hasIndividualMeasuresControl.value),
             filter(isNotNil),
+            distinctUntilChanged(),
+            // Update the state
             tap(value => this._state.set('hasIndividualMeasures', (_) => value)),
-            distinctUntilChanged()
           )
           .subscribe(value => {
             this.batchTree.allowSpeciesSampling = value;
@@ -1030,6 +1031,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // Set batch tree
       if (this.batchTree) {
+        //this.batchTree.programLabel = this.programLabel;
         this.batchTree.physicalGear = data.physicalGear;
         this.batchTree.gearId = gearId;
         jobs.push(this.batchTree.setValue(data && data.catchBatch || null));
@@ -1509,6 +1511,16 @@ export class OperationPage<S extends OperationState = OperationState>
     const program = this.context.program;
     const editor = program?.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR) || ProgramProperties.TRIP_OPERATION_EDITOR.defaultValue;
     const editorPath = editor !== 'legacy' ? [editor] : [];
-    await this.router.navigate(['trips', this.tripId, 'operation', ...editorPath, id], {queryParams: {} /*reset query params*/ });
+;
+    // Workaround, when same URL: unload the page
+    if (this.route.snapshot.paramMap.get('operationId') == id) {
+      console.warn('[operation] Unload the page!')
+      await this.unload();
+    }
+
+    await this.router.navigateByUrl('/' + ['trips', this.tripId, 'operation', ...editorPath, id].join('/'), {
+      replaceUrl: true,
+      skipLocationChange: false
+    });
   }
 }

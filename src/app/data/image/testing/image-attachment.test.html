@@ -18,6 +18,7 @@
       <ng-template matTabContent>
         <app-image-attachment-gallery #mobileGallery
                         [mode]="'list'"
+                        [value]="[]"
                         [mobile]="true">
         </app-image-attachment-gallery>
       </ng-template>
@@ -26,6 +27,7 @@
     <mat-tab label="Desktop">
       <ng-template matTabContent>
         <app-image-attachment-gallery #desktopGallery
+                                      [value]="[]"
                                       [mobile]="false">
         </app-image-attachment-gallery>
       </ng-template>

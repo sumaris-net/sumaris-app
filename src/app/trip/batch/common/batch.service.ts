@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import { AppFormUtils, FormErrors, FormErrorTranslator, isEmptyArray, isNil, isNilOrBlank, isNotNil, isNotNilOrBlank, LocalSettingsService } from '@sumaris-net/ngx-components';
+import {AppFormUtils, FormErrors, FormErrorTranslator, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, LocalSettingsService} from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
-import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, MethodIds} from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
@@ -111,6 +111,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     // Control catch batch
     const catchErrors = await this.controlCatchBatch(entity, program, opts);
 
+    // Control sorting batches
     const childrenErrors = await this.controlBatchGroups(entity, program, opts);
 
     // Has some children errors
@@ -139,12 +140,12 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
    */
   private async controlCatchBatch(entity: Batch, program: Program, opts: BatchControlOptions): Promise<FormErrors> {
     // Load catch pmfms
-    const pmfms = await this.programRefService.loadProgramPmfms(program.label, {
+    const catchPmfms = await this.programRefService.loadProgramPmfms(program.label, {
       acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH,
       gearId: opts?.gearId
     })
     const validator = new BatchValidatorService(this.formBuilder, this.translate, this.settings, this.measurementsValidatorService);
-    const form = validator.getFormGroup(entity, { pmfms: pmfms, withChildren: false });
+    const form = validator.getFormGroup(entity, { pmfms: catchPmfms, withChildren: false });
 
     if (!form.valid) {
       // Wait if pending
@@ -157,7 +158,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         const message = this.formErrorTranslator.translateErrors(errors, {
           controlPathTranslator: {
             translateControlPath: (path) => this.translateControlPath(path, {
-              pmfms,
+              pmfms: catchPmfms,
               i18nPrefix: 'TRIP.CATCH.FORM.'
             })
           }
@@ -187,8 +188,11 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
       gearId: opts?.gearId
     });
-    // Load taxon group no weight
-    const taxonGroupNoWeights = (program.getPropertyAsStrings(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT) || [])
+    // Load taxon groups with no weight
+    const taxonGroupsNoWeight = (program.getPropertyAsStrings(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT) || [])
+      .map(label => label.trim().toUpperCase())
+      .filter(isNotNilOrBlank);
+    const taxonGroupsNoLanding = (program.getPropertyAsStrings(ProgramProperties.TRIP_BATCH_TAXON_GROUPS_NO_LANDING) || [])
       .map(label => label.trim().toUpperCase())
       .filter(isNotNilOrBlank);
     const weightPmfms = pmfms.filter(PmfmUtils.isWeight);
@@ -224,21 +228,29 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           console.warn("[batch-service] Missing label or rankOrder in batch:", source);
         }
         const target = BatchGroup.fromBatch(source);
+        const isTaxonGroupNoWeight = target.taxonGroup && taxonGroupsNoWeight.includes(target.taxonGroup.label);
+        const isTaxonGroupNoLanding = target.taxonGroup && taxonGroupsNoLanding.includes(target.taxonGroup.label);
+        const enableSamplingBatch = (!opts || opts.allowSamplingBatches !== false) || target.observedIndividualCount > 0;
+        const weightRequired = isNotEmptyArray(weightPmfms) && !isTaxonGroupNoWeight;
+        const individualCountRequired = isTaxonGroupNoWeight;
 
         // Compute weight
         if (!qvPmfm) {
           target.weight = BatchUtils.getWeight(target, weightPmfms);
+
+          // Set default values, when landings not legal on this species (e.g. RJB)
+          if (isTaxonGroupNoLanding) this.fillNoLandingDefault(target, {weightPmfms, weightRequired, individualCountRequired});
         }
         else {
           (target.children || []).forEach(c => {
             c.weight = BatchUtils.getWeight(c, weightPmfms);
+
+            // Set default values, when landings not legal on this species (e.g. RJB)
+            if (isTaxonGroupNoLanding) this.fillNoLandingDefault(c, {weightPmfms, weightRequired, individualCountRequired});
           });
         }
 
-        const taxonGroupNoWeight = target.taxonGroup && taxonGroupNoWeights.includes(target.taxonGroup.label);
-        const enableSamplingBatch = (!opts || opts.allowSamplingBatches !== false) || target.observedIndividualCount > 0;
-        const weightRequired = !taxonGroupNoWeight;
-        const individualCountRequired = taxonGroupNoWeight;
+
 
         // Create a form, with data
         const form = validator.getFormGroup(target, {
@@ -254,7 +266,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         });
 
         // Add complex validator
-        if (form.valid && !taxonGroupNoWeight) {
+        if (form.valid && !isTaxonGroupNoWeight) {
           const requiredSampleWeight = (!opts || opts.allowSamplingBatches !== false) && target.observedIndividualCount > 0;
           form.setValidators(BatchGroupValidators.samplingRatioAndWeight({ qvPmfm, requiredSampleWeight, samplingRatioFormat, weightMaxDecimals }));
           form.updateValueAndValidity();
@@ -294,6 +306,33 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     return null; // no errors
   }
 
+  private fillNoLandingDefault(batch: Batch, opts: {weightPmfms: IPmfm[]; individualCountRequired: boolean; weightRequired: boolean}) {
+    if (opts.individualCountRequired && isNil(batch.individualCount) && batch.isLanding) {
+      // Compute and fill individual count (if possible) in children
+      BatchUtils.computeIndividualCount(batch);
+      const sumIndividualCount = BatchUtils.getSamplingChild(batch)?.individualCount || 0;
+
+      // no individual measure: OK, set default
+      if (sumIndividualCount === 0) {
+        console.info(`[batch-service] Force individualCount to {0} on batch ${batch.label}, because landings are not legal for this species`);
+        batch.individualCount = 0;
+      }
+    }
+    if (opts.weightRequired && isNil(batch.weight?.value) && batch.isLanding) {
+      const defaultWeightPmfm = opts.weightPmfms?.[0];
+      const computedWeight = BatchUtils.computeWeight(batch)?.value || 0;
+      // no weight: OK, set default
+      if (computedWeight === 0) {
+        console.info(`[batch-service] Force weight to {0} on batch ${batch.label}, because landings are not legal for this species`);
+        batch.weight = {
+          value: 0,
+          methodId: defaultWeightPmfm?.methodId,
+          computed: defaultWeightPmfm?.isComputed || false,
+          estimated: defaultWeightPmfm?.methodId === MethodIds.ESTIMATED_BY_OBSERVER || false
+        };
+      }
+    }
+  }
 
   private async controlSelectivity(entity: Batch, program: Program, opts?: BatchControlOptions): Promise<FormErrors> {
     let physicalGear = opts?.physicalGear;

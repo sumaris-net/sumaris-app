@@ -1,5 +1,6 @@
 :host {
   width: 100%;
+  --toolbar-min-height: 140px;
 }
 
 .mat-header-row,
@@ -40,11 +41,13 @@
 }
 
 .table-container {
-  max-height: calc(100vh - var(--toolbar-min-height, 56px) * 2);
-  overflow-y: auto;
+  --table-toolbar-height: 0px;
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height));
+  min-width: 100%;
+  overflow: auto;
 
-  mat-table {
-    overflow-y: visible;
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
   }
 
   .visible-hover {

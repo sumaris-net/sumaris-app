@@ -46,6 +46,8 @@ export class BatchFormTestPage implements OnInit {
   showChildrenWeight = true;
   showSampleIndividualCount = false;
   requiredSampleIndividualCount = false;
+  showExhaustiveInventory = true;
+  showEstimatedWeight = true;
 
   taxonGroupsNoWeight: string[];
   samplingRatioFormat: SamplingRatioFormat;

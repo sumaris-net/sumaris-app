@@ -1,13 +1,14 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnInit, Optional, Output, ViewChild } from '@angular/core';
-import { ControlValueAccessor, UntypedFormArray, UntypedFormBuilder, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, EventEmitter, forwardRef, Input, OnDestroy, OnInit, Optional, Output, ViewChild } from '@angular/core';
+import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
-import { AppFormUtils, filterNumberInput, focusInput, FormArrayHelper, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean, toNumber } from '@sumaris-net/ngx-components';
+import { filterNumberInput, focusInput, FormArrayHelper, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
 import { PmfmValidators } from '../services/validator/pmfm.validators';
 import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../services/model/model.enum';
 import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/pmfm-qv.form-field.component';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+import { Subscription } from 'rxjs';
 
 const noop = () => {
 };
@@ -27,16 +28,24 @@ export declare type PmfmFormFieldStyle = PmfmQvFormFieldStyle | 'radio' | 'check
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement {
+export class PmfmFormField implements OnInit, OnDestroy, ControlValueAccessor, InputElement {
 
   private _onChangeCallback: (_: any) => void = noop;
   private _onTouchedCallback: () => void = noop;
+  private _subscription = new Subscription();
 
   type: string;
   numberInputStep: string;
   formArrayHelper: FormArrayHelper<PmfmValue>;
 
+  /**
+   * Same as `formControl`, but avoid to activate the Angular directive
+   */
   @Input() control: UntypedFormControl|UntypedFormArray;
+
+  /**
+   * Same as `formControlName`, but avoid to activate the Angular directive
+   */
   @Input() controlName: string;
 
   @Input() set formControl(value: UntypedFormControl) {
@@ -151,9 +160,14 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       this.acquisitionNumber = 1; // Force to 1
       control.setValidators(PmfmValidators.create(this.pmfm));
 
+      // Force a refresh, when control status changed (useful in some case - e.g. in BatchForm, weight pmfms can be updated with `opts={emitEvent: false}` )
       if (this.listenStatusChanges) {
-        control.statusChanges.subscribe((_) => this.cd.markForCheck());
+        this._subscription.add(
+          control.statusChanges
+            .subscribe((_) => this.markForCheck())
+          );
       }
+
       this.placeholder = this.placeholder || this.pmfmNamePipe.transform(this.pmfm, {
         withUnit: !this.compact,
         i18nPrefix: this.i18nPrefix,
@@ -194,6 +208,10 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
     }
   }
 
+  ngOnDestroy() {
+    this._subscription.unsubscribe();
+  }
+
   writeValue(value: any): void {
     if (this.type === 'array') {
       if (Array.isArray(value) && value !== this.control.value) {
@@ -224,12 +242,12 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
   }
 
   setDisabledState(isDisabled: boolean): void {
-
+    this.markForCheck();
   }
 
   markAsTouched() {
     if (this.control?.touched) {
-      this.cd.markForCheck();
+      this.markForCheck();
       this._onTouchedCallback();
     }
   }
@@ -263,5 +281,9 @@ export class PmfmFormField implements OnInit, ControlValueAccessor, InputElement
       setTabIndex(this.matInput, this.tabindex);
       this.cd.markForCheck();
     });
+  }
+
+  protected markForCheck() {
+    this.cd.markForCheck();
   }
 }

@@ -193,6 +193,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '',
     type: 'string'
   },
+  TRIP_BATCH_TAXON_GROUPS_NO_LANDING: <FormFieldDefinition>{
+    key: 'sumaris.trip.operation.batch.taxonGroups.noLanding',
+    label: 'PROGRAM.OPTIONS.TRIP_BATCH_TAXON_GROUPS_NO_LANDING',
+    defaultValue: '',
+    type: 'string'
+  },
   TRIP_BATCH_AUTO_FILL: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.autoFill',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_AUTO_FILL',

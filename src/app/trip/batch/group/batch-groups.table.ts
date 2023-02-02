@@ -48,6 +48,7 @@ import { hasFlag } from '@app/shared/flags.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
 import {DataEntity, DataEntityUtils} from '@app/data/services/model/data-entity.model';
+import {Sample} from '@app/trip/services/model/sample.model';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -1132,9 +1133,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     return data;
   }
 
-  protected async openDetailModal(dataToOpen?: BatchGroup): Promise<OverlayEventDetail<BatchGroup | undefined>> {
-    const isNew = !dataToOpen && true;
+  protected async openDetailModal(dataToOpen?: BatchGroup, row?: TableElement<BatchGroup>): Promise<OverlayEventDetail<BatchGroup | undefined>> {
+    console.debug('[batch-group-table] Opening detail modal...');
 
+    let isNew = !dataToOpen && true;
     if (isNew) {
       dataToOpen = new BatchGroup();
       await this.onNewEntity(dataToOpen);
@@ -1149,8 +1151,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         pmfms: this._initialPmfms,
         qvPmfm: this.qvPmfm,
         disabled: this.disabled,
-        data: dataToOpen,
-        isNew,
         showTaxonGroup: this.showTaxonGroupColumn,
         showTaxonName: this.showTaxonNameColumn,
         availableTaxonGroups: this.availableTaxonGroups,
@@ -1160,10 +1160,28 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         defaultHasSubBatches: this.defaultHasSubBatches,
         samplingRatioFormat: this.samplingRatioFormat,
         mobile: this.mobile,
+        usageMode: this.usageMode,
         openSubBatchesModal: (batchGroup) => this.openSubBatchesModalFromParentModal(batchGroup),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
+        onSaveAndNew: async (dataToSave) => {
+          if (isNew) {
+            await this.addEntityToTable(dataToSave, {editing: false});
+          } else {
+            await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
+            row = null; // Forget the row to update, for the next iteration (should never occur, because onSubmitAndNext always create a new entity)
+            isNew = true; // Next row should be new
+          }
+          // Prepare new entity
+          const newData = new BatchGroup();
+          await this.onNewEntity(newData);
+          return newData;
+        },
         // Override using given options
-        ...this.modalOptions
+        ...this.modalOptions,
+
+        // Data to open
+        isNew,
+        data: dataToOpen
       },
       cssClass: 'modal-large',
       backdropDismiss: false,

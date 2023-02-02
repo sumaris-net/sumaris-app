@@ -1291,7 +1291,7 @@
       "DATE_TIME": "Date/Time:",
       "VESSEL": "Vessel:",
       "RECORDER_PERSON": "Recorder:",
-      "EXPORT_JSON_FILENAME": "Landing_report-{{vessel}}-{{dateTime}}.json",
+      "EXPORT_JSON_FILENAME": "LandingReport-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Report",
@@ -1299,7 +1299,7 @@
       },
       "AUCTION_CONTROL": {
         "EMBEDDED_TITLE": "Control <b>{{species}}</b>",
-        "EXPORT_JSON_FILENAME": "Rapport_de_contrôle-{{vessel}}-{{dateTime}}.json"
+        "EXPORT_JSON_FILENAME": "ControlReport-{{vessel}}-{{dateTime}}.json"
       }
     },
     "SELECT_MODAL": {
@@ -1775,6 +1775,7 @@
       "TRIP_BATCH_AUTO_FILL": "Catch > Species batch: Auto-fill?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch: Commercial species?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Catch > Species batch: Commercial species without weight:",
+      "TRIP_BATCH_TAXON_GROUPS_NO_LANDING": "Catch > Species batch: Commercial species without landings:",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Catch > Species batch: Scientific species?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Catch > Species batch: Compute sampling nb indiv?",
       "TRIP_BATCH_ENABLE": "Catch > Species batch?",

@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {
   AccountService,
-  Alerts,
+  Alerts, CompletableEvent,
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_SIZE_OPTIONS,
   firstNotNilPromise,
@@ -50,7 +50,6 @@ import {ProgramFilter} from '@app/referential/services/filter/program.filter';
 import {Program} from '@app/referential/services/model/program.model';
 import {ExtractionTypeFilter} from '@app/extraction/type/extraction-type.filter';
 import {RxState} from '@rx-angular/state';
-import {CompletableEvent} from '../../../../ngx-sumaris-components/src/app/shared/events';
 
 export interface ExtractionTableState extends ExtractionState<ExtractionType>{
   programs: Program[];
@@ -604,7 +603,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
       // Refresh cache duration
       this.cacheDuration = null;
-    });
+    }, 650);
   }
 
   /* -- protected method -- */
@@ -648,7 +647,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.markForCheck();
 
     const now = Date.now();
-    console.info(`[extraction-table] Loading ${typeLabel} (sheet: ${filter.sheetName})...`);
+    console.info(`[extraction-table] Loading ${typeLabel} (sheet: ${filter.sheetName}, cacheDuration: ${this.cacheDuration})...`);
 
     try {
 

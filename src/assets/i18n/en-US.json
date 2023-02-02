@@ -187,7 +187,7 @@
       "SAMPLE_UNIQUE_TAG": "Persistence > Sample: Check if TAG_ID is unique",
       "SAMPLE_HASH_OPTIMIZATION": "Persistence > Sample: Optimize save (hash)",
       "BATCH_HASH_OPTIMIZATION": "Persistence > Batch: Optimize save (hash)",
-      "PHYSICAL_GEAR_OPTIMIZATION": "Persistence > Physical Gear: Optimize save (hash)",
+      "PHYSICAL_GEAR_HASH_OPTIMIZATION": "Persistence > Physical Gear: Optimize save (hash)",
       "APP_MIN_VERSION": "App > Minimal compatible version (x.y.z)",
       "HELP_URL": "App > User manual (URL)",
       "FORUM_URL": "App > Forum address (URL)",
@@ -267,6 +267,8 @@
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Referential > Qualitative value > Dressing / Whole",
         "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Referential > Qualitative value > Preservation / Fresh",
         "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Referential > Qualitative value > Sorting category / None",
+        "QUALITATIVE_VALUE_SORTING_BULK_ID": "Referential > Qualitative value > Sorting batch / Bulk",
+        "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Referential > Qualitative value > Sorting batch / Non Bulk",
         "TAXON_GROUP_TYPE_FAO_ID": "Referential > Taxon group type / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Taxon group type / National metier",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referential > Taxon group type / DCF metier lvl 5"
@@ -677,6 +679,7 @@
         "BTN_SELECT_PARENT" : "Select setting",
         "BTN_SAVE_AND_NEW" : "Save and new",
         "COMMENTS": "Comment",
+        "CATCH": "Catch",
         "TAB_GENERAL": "Details",
         "TAB_PHYSICAL_GEAR": "Use of gear",
         "TAB_CATCH": "Catch",
@@ -797,7 +800,11 @@
         "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
         "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtering not available",
-        "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "No practiced metiers found in the available data."
+        "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "No practiced metiers found in the available data.",
+        "CATCH_ERROR": "Error entering catch"
+      },
+      "WARNING": {
+        "ABNORMAL_PROGRESS": "Abnormal progress: {{comments}}"
       },
       "REPORT": {
         "TITLE": "Report OP #{{rankOrder}} <small>of {{startDateTime}}</small>",
@@ -1016,6 +1023,9 @@
           "TAB_SUB_SAMPLES": "Suivi individuel",
           "BTN_INDIVIDUAL_MONITORING": "Saisir le suivi individuel",
           "TAG_COUNT": "<b>{{tagCount}}</b> Tag-ID"
+        },
+        "SAMPLING": {
+          "LABEL": "Batch label"
         }
       },
       "PMFM_GROUP": {
@@ -1055,7 +1065,6 @@
         "WEIGHT_OR_LENGTH_REQUIRED": "Weight or length is required"
       },
       "SETTINGS": {
-        "BURST_MODE_ENABLE": "Sample: Enable burst mode?",
         "SAMPLE_WEIGHT_UNIT": "Sample: Weight unit"
       }
     },
@@ -1202,20 +1211,22 @@
       "OBSERVATIONS_HAS_SAMPLE": "Selected observations have sampling.<br/><br/><b>Are you sure</b> you want to delete them?"
     },
     "REPORT": {
-      "TITLE": "Observation report - {{ location }} - {{ dateTime }}",
-      "TITLE_SHORT": "Observation report",
+      "TITLE": "Occasion report - {{ location }} - {{ dateTime }}",
+      "TITLE_SHORT": "Occasion report",
       "LOCATION": "Location :",
       "DATE_TIME": "Date/time :",
       "OBSERVERS": "Observers(s) :",
       "VESSEL_COUNT": "Number of vessels :",
       "SUMMARY_TITLE": "Global summary",
+      "EXPORT_JSON_FILENAME": "Occasion-report-{{ location }}-{{ dateTime }}.json",
       "SAMPLING": {
-        "SUMMARY_TITLE": "Synthesis of samplings"
+        "SUMMARY_TITLE": "Synthesis of biological sampling"
       },
       "AUCTION_CONTROL": {
         "TITLE": "Summary of the monitoring of controls under auctions : {{ location }} - {{ dateTime }}",
-        "TITLE_SHORT": "Summary of the monitoring of controls under auctions",
-        "VESSEL_COUNT": "Number of vessels checked :"
+        "TITLE_SHORT": "Summary of controls",
+        "VESSEL_COUNT": "Number of controlled vessels :",
+        "EXPORT_JSON_FILENAME": "Control_report-{{ location }}-{{ dateTime }}.json"
       }
     }
   },
@@ -1243,7 +1254,7 @@
       "OTHER_FEATURES": "Other features:",
       "TAB_SAMPLES": "Samples",
       "SAMPLING": {
-        "TITLE": "Strategy {{strategyLabel}} - Vessel  {{vessel}}",
+        "TITLE": "<span class=\"hidden-xs hidden-sm\">Sampling plan </span>{{strategyLabel}} - <ion-icon name=\"boat\"></ion-icon> {{vessel}}",
         "STRATEGY": "Sample row:",
         "STRATEGY_PLACEHOLDER": "Sample row code",
         "STRATEGY_SUMMARY_TITLE": "Sampling scheme",
@@ -1280,13 +1291,15 @@
       "DATE_TIME": "Date/Time:",
       "VESSEL": "Vessel:",
       "RECORDER_PERSON": "Recorder:",
+      "EXPORT_JSON_FILENAME": "LandingReport-{{vessel}}-{{dateTime}}.json",
       "SAMPLING": {
         "TITLE": "Sampling plan {{strategyLabel}} - {{vessel}}",
         "TITLE_SHORT": "Report",
         "SAMPLES_TITLE": "Samples"
       },
       "AUCTION_CONTROL": {
-        "EMBEDDED_TITLE": "Control <b>{{species}}</b>"
+        "EMBEDDED_TITLE": "Control <b>{{species}}</b>",
+        "EXPORT_JSON_FILENAME": "ControlReport-{{vessel}}-{{dateTime}}.json"
       }
     },
     "SELECT_MODAL": {
@@ -1762,6 +1775,7 @@
       "TRIP_BATCH_AUTO_FILL": "Catch > Species batch: Auto-fill?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Catch > Species batch: Commercial species?",
       "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Catch > Species batch: Commercial species without weight:",
+      "TRIP_BATCH_TAXON_GROUPS_NO_LANDING": "Catch > Species batch: Commercial species without landings:",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Catch > Species batch: Scientific species?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Catch > Species batch: Compute sampling nb indiv?",
       "TRIP_BATCH_ENABLE": "Catch > Species batch?",
@@ -1828,6 +1842,7 @@
       "LANDING_DATE_TIME_ENABLE": "Observation > Landing: Enter date?",
       "LANDING_OBSERVERS_ENABLE": "Observation > Landing: Enter observers?",
       "LANDING_LOCATION_ENABLE": "Observation > Landings: Show harbour?",
+      "LANDING_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Landings : Fishing area: Location level(s)",
       "LANDING_SAMPLES_COUNT_ENABLE": "Observation > Landings: Show samples count?",
       "LANDING_SAMPLES_WEIGHT_UNIT": "Observation > Landings: Weight unit",
       "LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS": "Observation > Fishing area: Location level(s)",
@@ -2160,6 +2175,8 @@
       "SQUARE": "Square 10'x10'",
       "SUB_POLYGON": "Sub-polygon",
       "SPECIES": "Species",
+      "TAXON_CODE": "Code taxon",
+      "TAXON_NAME": "Libellé taxon",
       "OFFICIAL_LANDING_WEIGHT": "Officiel landing weight",
       "COMMERCIAL_SIZE_CATEGORY": "Commercial size category",
       "COMMERCIAL_SIZE_CATEGORY_SCALE": "Commercial size category scale",

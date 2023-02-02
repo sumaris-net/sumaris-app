@@ -4,70 +4,75 @@
   <ng-container *ngTemplateOutlet="debugPanel"></ng-container>
 </ng-container>
 
-<mat-sidenav-container *ngIf="!useModal; else withModal">
-  <mat-sidenav #sidenav [mode]="editingBatch ? 'push' : 'side'">
-    <!--<ion-item color="transparent"
-              class="help" lines="none"
-              (click)="toggleFilterPanel()"
-              tappable>
-      <ion-icon color="primary" name="help-circle-outline"></ion-icon>
-      <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
-    </ion-item>-->
+<ng-container *ngIf="!useModal; else withModal">
+  <mat-sidenav-container>
+    <mat-sidenav #sidenav [mode]="editingBatch ? 'push' : 'side'">
+      <!--<ion-item color="transparent"
+                class="help" lines="none"
+                (click)="toggleFilterPanel()"
+                tappable>
+        <ion-icon color="primary" name="help-circle-outline"></ion-icon>
+        <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
+      </ion-item>-->
 
-    <!-- model tree -->
-    <app-batch-model-tree #batchModelTree
-                          [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
-                          [selected]="editingBatch$|push"
-                          (click)="startEditBatch(null, $event)"
-                          [mobile]="mobile"
-                          [debug]="debug && false">
-    </app-batch-model-tree>
-  </mat-sidenav>
+      <!-- model tree -->
+      <app-batch-model-tree #batchModelTree
+                            [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
+                            [selected]="editingBatch$|push"
+                            (click)="startEditBatch(null, $event)"
+                            [mobile]="mobile"
+                            [debug]="debug && false">
+      </app-batch-model-tree>
+    </mat-sidenav>
 
-  <mat-sidenav-content >
+    <mat-sidenav-content >
 
-    <!-- toolbar -->
-    <mat-toolbar>
-      <button mat-icon-button
-              (click)="toggleFilterPanel()">
-        <mat-icon class="mat-icon-rtl-mirror"
-                  matBadge="!"
-                  [matBadgeHidden]="valid || !model?.hidden"
-                  matBadgeOverlap="false"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after"
-        >chevron_right</mat-icon>
-        &nbsp;
-      </button>
+      <!-- toolbar -->
+      <mat-toolbar>
+        <button mat-icon-button
+                (click)="toggleFilterPanel()">
+          <mat-icon class="mat-icon-rtl-mirror"
+                    matBadge="!"
+                    [matBadgeHidden]="valid || !model?.hidden"
+                    matBadgeOverlap="false"
+                    matBadgeColor="accent"
+                    matBadgeSize="small"
+                    matBadgePosition="above after"
+          >chevron_right</mat-icon>
+          &nbsp;
+        </button>
 
-      <div *ngIf="editingBatch$|async; let node; else helpMessage">
-        <ng-container *ngTemplateOutlet="breadcrumbButtons; context: {$implicit: node}"></ng-container>
-      </div>
+        <div *ngIf="editingBatch$|async; let node; else helpMessage">
+          <ng-container *ngTemplateOutlet="breadcrumbButtons; context: {$implicit: node}"></ng-container>
+        </div>
 
-      <!-- help message -->
-      <ng-template #helpMessage>
-        <ion-item color="transparent"
-                  class="help" lines="none"
-                  (click)="toggleFilterPanel()"
-                  tappable>
-          <ion-icon color="primary" name="help-circle-outline"></ion-icon>
-          <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
-        </ion-item>
-      </ng-template>
+        <!-- help message -->
+        <ng-template #helpMessage>
+          <ion-item color="transparent"
+                    class="help" lines="none"
+                    (click)="toggleFilterPanel()"
+                    tappable>
+            <ion-icon color="primary" name="help-circle-outline"></ion-icon>
+            <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
+          </ion-item>
+        </ng-template>
 
-      <div class="toolbar-spacer"></div>
+        <div class="toolbar-spacer"></div>
 
-      <!-- navigation buttons -->
-      <ng-container *rxIf="editingBatch$; let node">
-        <ng-container *ngTemplateOutlet="navigationButtons"></ng-container>
-      </ng-container>
+        <!-- navigation buttons -->
+        <ng-container *rxIf="editingBatch$; let node">
+          <ng-container *ngTemplateOutlet="navigationButtons"></ng-container>
+        </ng-container>
 
-    </mat-toolbar>
+      </mat-toolbar>
 
-    <ng-container *ngTemplateOutlet="batchTreePanel"></ng-container>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+      <ng-container *ngTemplateOutlet="batchTreePanel"></ng-container>
+    </mat-sidenav-content>
+
+  </mat-sidenav-container>
+
+  <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
+</ng-container>
 
 <ng-template #withModal>
     <!-- model tree -->
@@ -108,23 +113,8 @@
       <ng-container *ngTemplateOutlet="batchTreePanel"></ng-container>
     </ion-content>
 
-    <!-- Fab button -->
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-      <!-- Add button -->
-      <ion-fab-button color="tertiary"
-                      *ngIf="enabled && editingBatch?.isLeaf"
-                      (click)="addRow($event)"
-                      @fadeInOutAnimation>
-        <ion-icon name="add"></ion-icon>
-      </ion-fab-button>
-
-      <!-- Forward button -->
-      <ion-fab-button [color]="highlightForwardButton ? 'tertiary': 'light'"
-                      (click)="forward($event)" @fadeInOutAnimation>
-        <ion-icon name="chevron-forward"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
-
+    <!-- Fab buttons -->
+    <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
   </ng-template>
 </ion-modal>
 
@@ -255,6 +245,29 @@
 
   </app-batch-tree>
 </ng-template>
+
+<!-- Fab buttons -->
+<ng-template #fabButtons>
+  <!-- Fab button -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <!-- Add button -->
+    <ion-fab-button color="tertiary"
+                    *ngIf="enabled && editingBatch?.isLeaf"
+                    (click)="addRow($event)"
+                    @fadeInOutAnimation>
+
+      <ion-icon name="fish"></ion-icon>
+      <ion-icon name="add" class="icon-secondary" style="left: 29px;top: 4px;font-size: 23px;"></ion-icon>
+    </ion-fab-button>
+
+    <!-- Forward button -->
+    <ion-fab-button [color]="highlightForwardButton ? 'tertiary': 'light'"
+                    (click)="forward($event)" @fadeInOutAnimation>
+      <ion-icon name="chevron-forward"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ng-template>
+
 <!-- debug-->
 <ng-template #debugPanel>
   <app-debug title="Batch tree container">
