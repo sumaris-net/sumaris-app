@@ -1231,7 +1231,7 @@
       "OBSERVERS": "Observateur(s) :",
       "VESSEL_COUNT": "Nombre de navire :",
       "SUMMARY_TITLE": "Synthèse globale",
-      "EXPORT_JSON_FILENAME": "Rapport_de_sortie-{{ location }}-{{ dateTime }}.json",
+      "EXPORT_JSON_FILENAME": "RapportDeSortie-{{ location }}-{{ dateTime }}.json",
       "SAMPLING": {
         "SUMMARY_TITLE": "Synthèse des échantillonnages"
       },
@@ -1239,7 +1239,7 @@
         "TITLE": "Synthèse des contrôles : {{ location }} - {{ dateTime }}",
         "TITLE_SHORT": "Synthèse des contrôles",
         "VESSEL_COUNT": "Nombre de navires contrôlés :",
-        "EXPORT_JSON_FILENAME": "Rapport_de_contrôle-{{ location }}-{{ dateTime }}.json"
+        "EXPORT_JSON_FILENAME": "RapportDeControle-{{ location }}-{{ dateTime }}.json"
       }
     }
   },
@@ -1787,7 +1787,8 @@
       "TRIP_MAX_DURATION_HOURS": "Marée > Durée maximale (heures)",
       "TRIP_BATCH_AUTO_FILL": "Capture > Lot espèce: Auto-remplissage ?",
       "TRIP_BATCH_TAXON_GROUP_ENABLE": "Capture > Lot espèce: Espèces commerciales ?",
-      "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces commerciales sans poids :",
+      "TRIP_BATCH_TAXON_GROUPS_NO_WEIGHT": "Capture > Lot espèce: Espèces comm. sans poids :",
+      "TRIP_BATCH_TAXON_GROUPS_NO_LANDING": "Capture > Lot espèce: Espèces comm. non débarqués:",
       "TRIP_BATCH_TAXON_NAME_ENABLE": "Capture > Lot espèce: Espèces scientifiques ?",
       "TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE": "Capture > Lot espèce: Calcul auto nb indiv. échantillonné ?",
       "TRIP_BATCH_ENABLE": "Capture > Lot espèce: Activer ?",
