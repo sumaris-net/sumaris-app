@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
 import {
   AccountService,
   ConfigService,
@@ -26,7 +26,8 @@ import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppComponent {
 
@@ -42,7 +43,8 @@ export class AppComponent {
     private configService: ConfigService,
     private settings: LocalSettingsService,
     private matIconRegistry: MatIconRegistry,
-    private domSanitizer: DomSanitizer
+    private domSanitizer: DomSanitizer,
+    private cd: ChangeDetectorRef
   ) {
 
     this.start();
@@ -109,6 +111,8 @@ export class AppComponent {
           danger: config.properties['sumaris.color.danger']
         }
       });
+
+      this.cd.markForCheck();
     }
   }
 
@@ -206,12 +210,11 @@ export class AppComponent {
   }
 
   protected addCustomSVGIcons() {
-    ['fish', 'fish-oblique', 'fish-packet', 'down-arrow', 'rollback-arrow',
-
-      // PIFIL
-      'dolphin-damage'
-    ].forEach(filename => this.matIconRegistry.addSvgIcon(filename,
-      this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
+    ['fish', 'fish-oblique', 'fish-packet', 'down-arrow', 'rollback-arrow'
+      // ,'dolphin-damage' //PIFIL
+    ]
+    .forEach(filename => this.matIconRegistry.addSvgIcon(filename,
+        this.domSanitizer.bypassSecurityTrustResourceUrl(`../assets/icons/${filename}.svg`)
       )
     );
   }

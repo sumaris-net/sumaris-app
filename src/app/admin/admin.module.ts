@@ -1,11 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AppReferentialModule } from '../referential/referential.module';
-import { ConfigurationPage } from './config/configuration.page';
-import { AdminModule, UserEventModule } from '@sumaris-net/ngx-components';
-import { NgxJdenticonModule } from 'ngx-jdenticon';
-import { AppCoreModule } from '@app/core/core.module';
-import { AppSocialModule } from '@app/social/social.module';
+import { AdminModule } from '@sumaris-net/ngx-components';
 import { AppConfigurationModule } from '@app/admin/config/configuration.module';
 
 @NgModule({

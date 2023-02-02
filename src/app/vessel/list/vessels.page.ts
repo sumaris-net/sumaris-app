@@ -155,11 +155,6 @@ export class VesselsPage implements OnInit, OnDestroy {
     } else {
       console.debug('[observed-location] Vessel selection modal was cancelled');
     }
-
-  }
-
-  uploadAndImport(event?: Event) {
-
   }
 
   /* -- protected methods -- */

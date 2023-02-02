@@ -1,0 +1,60 @@
+
+<ion-header>
+  <ion-toolbar color="light">
+
+    <ion-title>
+      {{'SOCIAL.JOB.REPORT.TITLE'|translate}}
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="close()" visible-xs visible-sm visible-mobile>
+        {{'COMMON.BTN_CLOSE'|translate}}
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="ion-padding">
+
+  <h1>{{job.name}}</h1>
+
+  <ion-label>
+    <h4>{{job.status}}</h4>
+
+    <h4 *rxIf="job.startDate && job.endDate">
+      <span translate>COMMON.DURATION_DOTS</span>&nbsp;{{ {
+        startValue: job.startDate,
+        endValue: job.endDate
+      } | dateDiffDuration: {seconds: true} }}
+    </h4>
+  </ion-label>
+
+  <ion-text>
+    <ul *rxIf="items|isNotEmptyArray">
+      <li *ngFor="let item of items">{{item}}</li>
+    </ul>
+  </ion-text>
+
+  <ng-container *ngIf="message|isNotNilOrBlank">
+    <ion-button color="tertiary" (click)="showLog=!showLog"translate>SOCIAL.JOB.REPORT.BTN_SHOW_LOG</ion-button>
+
+    <ion-card  *ngIf="showLog" color="light">
+      <ion-card-content>
+        <pre>{{message}}</pre>
+      </ion-card-content>
+    </ion-card>
+
+  </ng-container>
+
+</ion-content>
+
+
+<ion-footer hidden-xs hidden-sm hidden-mobile>
+  <ion-toolbar>
+    <ion-row class="ion-no-padding" nowrap>
+      <ion-col></ion-col>
+      <ion-col size="auto">
+        <ion-button fill="solid" color="tertiary" (click)="close()">{{'COMMON.BTN_CLOSE'|translate}}</ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-toolbar>
+</ion-footer>

@@ -6,6 +6,8 @@ import { Observable } from 'rxjs';
 import { FetchPolicy, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { map } from 'rxjs/operators';
 import { Job, JobFilter } from '@app/social/job/job.model';
+import { ModalController } from '@ionic/angular';
+import { JobReportModal, JobReportModalOptions } from '@app/social/job/report/job.report.modal';
 
 export const JobFragments = {
   light: gql`fragment LightJobFragment on JobVO {
@@ -57,7 +59,11 @@ const JobSubscriptions = {
 
 @Injectable({providedIn: 'root'})
 export class JobService extends BaseGraphqlService<Job, JobFilter> {
-  constructor(protected graphql: GraphqlService, protected accountService: AccountService) {
+
+  constructor(protected graphql: GraphqlService,
+              protected accountService: AccountService,
+              protected modalCtrl: ModalController,
+              ) {
     super(graphql);
     this._logPrefix = '[job-service]';
   }
@@ -169,5 +175,25 @@ export class JobService extends BaseGraphqlService<Job, JobFilter> {
           return data?.map(Job.fromObject);
         })
       );
+  }
+
+  async openJobReport(job: Job) {
+    console.debug(`${this._logPrefix} Open report modal for job:`, job);
+
+    const modal = await this.modalCtrl.create({
+      component: JobReportModal,
+      componentProps: <Partial<JobReportModalOptions>>{
+        job
+      },
+      keyboardClose: true,
+      cssClass: 'modal-large'
+    });
+
+    // Open the modal
+    await modal.present();
+
+    // On dismiss
+    const res = await modal.onDidDismiss();
+
   }
 }

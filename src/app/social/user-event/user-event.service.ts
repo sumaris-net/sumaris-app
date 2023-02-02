@@ -34,6 +34,7 @@ import { Router } from '@angular/router';
 import { filter, map } from 'rxjs/operators';
 import { CacheService } from 'ionic-cache';
 import { Job } from '@app/social/job/job.model';
+import { JobService } from '@app/social/job/job.service';
 
 const queries: IUserEventQueries = {
   loadAll: gql`query UserEvents($filter: UserEventFilterVOInput, $page: PageInput) {
@@ -108,6 +109,7 @@ export class UserEventService extends
     protected toastController: ToastController,
     protected personService: PersonService,
     protected cache: CacheService,
+    protected jobService: JobService,
     protected router: Router
   ) {
     super(graphql, accountService, network, translate,
@@ -269,6 +271,21 @@ export class UserEventService extends
     return this.save(userEvent);
   }
 
+  async getPersonByPubkey(pubkey: string, opts?: {cache?: boolean, toEntity?: boolean}): Promise<Person> {
+
+    if (pubkey === 'SYSTEM') return null;
+
+    if (!opts || opts.cache !== false) {
+      const cacheKey = [CacheKeys.PERSON_BY_PUBKEY, pubkey].join('|');
+      return this.cache.getOrSetItem(cacheKey, () => this.getPersonByPubkey(pubkey, {cache: false, toEntity: false}), CacheKeys.CACHE_GROUP)
+        .then(data => (!opts || opts.toEntity !== false) ? Person.fromObject(data) : data);
+    }
+
+    const {data} = await this.personService.loadAll(0, 1, null,  null, {pubkey}, {withTotal: false, ...opts});
+    return data && data[0] as Person;
+  }
+
+
   /* -- protected methods -- */
 
   protected defaultFilter(): UserEventFilter {
@@ -276,7 +293,8 @@ export class UserEventService extends
 
     // If user is admin: add the SYSTEM recipient
     if (this.accountService.isAdmin() && (isEmptyArray(target.recipients) || !target.recipients.includes('SYSTEM'))) {
-      target.recipients = [...target.recipients, 'SYSTEM'];
+      // TODO: fixme: very slow if some DEBUG data are fetched (e.g in ADAP Pod)
+      //target.recipients = [...target.recipients, 'SYSTEM'];
     }
 
     return target;
@@ -288,7 +306,7 @@ export class UserEventService extends
 
   protected async onReceived(source: UserEvent): Promise<UserEvent> {
     // DEBUG
-    //console.debug('Converting user event', source);
+    console.debug('[user-event-service] Converting user event', source);
 
     // Choose default avatarIcon
     switch (source.level) {
@@ -326,12 +344,12 @@ export class UserEventService extends
         source.icon = { matIcon: 'bug_report', color: 'danger'};
         source.message = this.translate.instant('SOCIAL.USER_EVENT.TYPE_ENUM.DEBUG_DATA', {
           ...source,
-          message: source.content.message || '',
+          message: source.content?.message || '',
           issuer: this.personToString(issuer, {withDepartment: true})
         } );
         source.addDefaultAction({
-            executeAction: () => this.router.navigate(['admin', 'config'], {queryParams: {tab: '2'}})
-          });
+          executeAction: () => this.router.navigate(['admin', 'config'], {queryParams: {tab: '2'}})
+        });
         break;
 
       // Inbox messages:
@@ -357,7 +375,7 @@ export class UserEventService extends
         });
         break;
 
-      // Inbox messages:
+      // Job event:
       case UserEventTypeEnum.JOB:
         const job = Job.fromObject(source.content || {});
         const status = job.status
@@ -376,11 +394,11 @@ export class UserEventService extends
           || 'error';
         source.icon = { matIcon, color};
         //source.avatarIcon = { matIcon: 'inbox', color: 'success'};
-        job.status = this.translate.instant('SOCIAL.JOB.STATUS_ENUM.' + job.status);
+        job.name = job.name || this.translate.instant('SOCIAL.JOB.UNKNOWN_JOB');
+        job.status = this.translate.instant('SOCIAL.JOB.STATUS_ENUM.' + status);
         source.message = this.translate.instant('SOCIAL.USER_EVENT.TYPE_ENUM.JOB', job );
-        source.addDefaultAction({
-          executeAction: (e) => this.router.navigate(['vessels'])
-        });
+        this.decorateJobUserEvent(source, job);
+
         break;
 
       default:
@@ -410,25 +428,29 @@ export class UserEventService extends
     return await Toasts.show(this.toastController, this.translate, opts);
   }
 
-  async getPersonByPubkey(pubkey: string, opts?: {cache?: boolean, toEntity?: boolean}): Promise<Person> {
-
-    if (pubkey === 'SYSTEM') return null;
-
-    if (!opts || opts.cache !== false) {
-      const cacheKey = [CacheKeys.PERSON_BY_PUBKEY, pubkey].join('|');
-      return this.cache.getOrSetItem(cacheKey, () => this.getPersonByPubkey(pubkey, {cache: false, toEntity: false}), CacheKeys.CACHE_GROUP)
-        .then(data => (!opts || opts.toEntity !== false) ? Person.fromObject(data) : data);
-    }
-
-    const {data} = await this.personService.loadAll(0, 1, null,  null, {pubkey}, {withTotal: false, ...opts});
-    return data && data[0] as Person;
-  }
-
   protected personToString(obj: Person, opts?: {withDepartment: boolean}): string {
     if (!obj || !obj.id) return undefined;
     if (opts?.withDepartment && obj.department?.label) {
       return obj.firstName + ' ' + obj.lastName + ' (' + obj.department?.label + ')';
     }
     return obj && obj.id && (obj.firstName + ' ' + obj.lastName) || undefined;
+  }
+
+  protected decorateJobUserEvent(source: UserEvent, job: Job) {
+
+    console.debug('[user-event-service] Decorate user event on Job:', job);
+
+    source.addDefaultAction({
+      executeAction: (e) => this.router.navigate(['vessels'])
+    });
+
+    if (job.report) {
+      source.addAction({
+        name: 'SOCIAL.JOB.BTN_REPORT',
+        title: 'SOCIAL.JOB.BTN_REPORT_HELP',
+        iconRef: {icon: 'document-outline'},
+        executeAction: (e) => this.jobService.openJobReport(job)
+      });
+    }
   }
 }

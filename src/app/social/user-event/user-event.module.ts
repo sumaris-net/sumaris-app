@@ -1,24 +1,22 @@
 import { SocialModule, UserEventModule } from '@sumaris-net/ngx-components';
 import { AppCoreModule } from '@app/core/core.module';
 import { NgModule } from '@angular/core';
+import { UserEventsTable } from '@app/social/user-event/user-events.table';
 import { AppJobReportModule } from '@app/social/job/report/job-report.module';
-import { AppUserEventModule } from '@app/social/user-event/user-event.module';
 
 @NgModule({
   imports: [
     AppCoreModule,
     SocialModule,
-    UserEventModule,
-
-    // Sub modules
-    AppJobReportModule,
-    AppUserEventModule
+    UserEventModule
+  ],
+  declarations: [
+    UserEventsTable
   ],
   exports: [
-    // Sub modules
-    AppJobReportModule,
-    AppUserEventModule
+    // Components
+    UserEventsTable
   ]
 })
-export class AppSocialModule {
+export class AppUserEventModule {
 }

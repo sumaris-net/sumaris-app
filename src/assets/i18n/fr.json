@@ -112,7 +112,7 @@
     "YES": "Oui",
     "NO": "Non",
 
-    "DEBUG": "Debug",
+
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
@@ -138,6 +138,7 @@
       "FILTERED_PARENTHESIS": "(filtré)"
     },
     "DEBUG": {
+      "TITLE": "Debug",
       "BTN_COPY_LOCALLY": "Copier en local",
       "BTN_AUTO_FILL": "Remplissage auto"
     },
@@ -895,7 +896,7 @@
         "SAMPLING_RATIO_PCT": "Taux éch. (%)",
         "SAMPLING_COEFFICIENT": "Coef. éch.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
-        "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhautif des espèces ?",
+        "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhaustif des espèces ?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
           "TITLE": "Mesures individuelles",
@@ -1468,6 +1469,8 @@
     "COMMENTS": "Commentaires",
     "TAB_GENERAL": "Détails",
     "TAB_HISTORY": "Historique",
+    "VESSEL_REGISTRATION_DIVIDER": "Immatriculation",
+    "VESSEL_FEATURES_DIVIDER": "Caractéristiques",
     "VESSEL_FEATURES": {
       "START_DATE": "Début validité",
       "END_DATE": "Fin validité",
@@ -2419,6 +2422,9 @@
       }
     },
     "JOB": {
+      "UNKNOWN_JOB": "Traitement sans nom",
+      "BTN_REPORT": "Rapport",
+      "BTN_REPORT_HELP": "Voir le rapport d'exécution",
       "PROGRESSION": {
         "TITLE": "Liste des tâches en cours",
         "EMPTY": "Aucune tâche en cours"
@@ -2431,6 +2437,18 @@
         "ERROR": "Erreur",
         "FATAL": "Erreur fatale",
         "CANCELLED": "Annulé"
+      },
+      "REPORT": {
+        "TITLE": "Rapport d'exécution",
+        "BTN_SHOW_LOG": "Afficher le journal",
+        "STATS": {
+          "INSERTS": "Insertion(s) : {{inserts}}",
+          "UPDATES": "Mise(s) à jour : {{updates}}",
+          "DELETES": "Suppression(s) : {{deletes}}",
+          "DISABLES": "Désactivé(s) : {{disables}}",
+          "WARNINGS": "Avertissement(s) : {{warnings}}",
+          "ERRORS": "Erreur(s) : {{errors}}"
+        }
       }
     },
     "MESSAGE": {
