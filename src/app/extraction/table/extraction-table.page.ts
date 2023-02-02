@@ -603,7 +603,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
       // Refresh cache duration
       this.cacheDuration = null;
-    });
+    }, 650);
   }
 
   /* -- protected method -- */
@@ -647,7 +647,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.markForCheck();
 
     const now = Date.now();
-    console.info(`[extraction-table] Loading ${typeLabel} (sheet: ${filter.sheetName})...`);
+    console.info(`[extraction-table] Loading ${typeLabel} (sheet: ${filter.sheetName}, cacheDuration: ${this.cacheDuration})...`);
 
     try {
 
