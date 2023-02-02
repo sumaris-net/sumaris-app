@@ -152,7 +152,8 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.PORT
+        levelId: LocationLevelIds.PORT,
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       mobile: this.mobile
     });
@@ -163,7 +164,8 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       service: this.referentialRefService,
       filter: {
         entityName: 'Location',
-        levelId: LocationLevelIds.COUNTRY
+        levelId: LocationLevelIds.COUNTRY,
+        statusIds: [StatusIds.TEMPORARY, StatusIds.ENABLE]
       },
       mobile: this.mobile
     });

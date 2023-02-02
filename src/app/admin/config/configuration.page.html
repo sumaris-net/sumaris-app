@@ -140,9 +140,10 @@
         <ion-label translate>CONFIGURATION.TAB_NOTIFICATIONS</ion-label>
       </ng-template>
 
-      <app-user-events-table recipient="SYSTEM"
-                             [debug]="debug"
-                             withContent="true">
+      <app-user-events-table #userEventsTable
+                             [recipient]="'SYSTEM'"
+                             [withContent]="true"
+                             [debug]="debug">
       </app-user-events-table>
     </mat-tab>
 
