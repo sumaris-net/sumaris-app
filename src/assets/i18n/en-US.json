@@ -112,7 +112,6 @@
     "YES": "Yes",
     "NO": "No",
 
-    "DEBUG": "Debug",
     "UPDATED_ON": "Last modification on",
     "RECORDER": "Recorder",
     "RESULT_COUNT": "{{count}} results",
@@ -138,6 +137,7 @@
       "FILTERED_PARENTHESIS": "(filtered)"
     },
     "DEBUG": {
+      "TITLE": "Debug",
       "BTN_COPY_LOCALLY": "Copy locally",
       "BTN_AUTO_FILL": "Auto fill data"
     },
@@ -876,6 +876,7 @@
         "BTN_AUTO_INCREMENT": "Auto increment",
         "BTN_INDIVIDUAL_MEASURE": "Fill measurements",
         "BTN_APPLY_CHILDREN_WEIGHT": "Apply this weight",
+        "IS_ESTIMATED": "Estimated?",
         "ESTIMATED_WEIGHT": "Estimated weight",
         "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
         "TOTAL_WEIGHT": "Total weight (kg)",
@@ -888,6 +889,7 @@
         "SAMPLING_RATIO_PCT": "Sampling fraction (%)",
         "SAMPLING_COEFFICIENT": "Sampling coeff.",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
+        "IS_EXHAUSTIVE_INVENTORY": "Exhaustive inventory of species?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Batch {{label}}<br/></small>",
           "TITLE": "Individual measures",
@@ -1455,6 +1457,8 @@
     "COMMENTS": "Comments",
     "TAB_GENERAL": "General information",
     "TAB_HISTORY": "History",
+    "VESSEL_REGISTRATION_DIVIDER": "Registration",
+    "VESSEL_FEATURES_DIVIDER": "Features",
     "VESSEL_FEATURES": {
       "START_DATE": "Validity start date",
       "END_DATE": "Validity end date",
@@ -2350,6 +2354,9 @@
       }
     },
     "JOB": {
+      "UNKNOWN_JOB": "Job without name",
+      "BTN_REPORT": "Report",
+      "BTN_REPORT_HELP": "Show the execution report",
       "PROGRESSION": {
         "TITLE": "Running tasks",
         "EMPTY": "No running task"
@@ -2362,6 +2369,18 @@
         "ERROR": "Error",
         "FATAL": "Fatal error",
         "CANCELLED": "Cancelled"
+      },
+      "REPORT": {
+        "TITLE": "Execution report",
+        "BTN_SHOW_LOG": "Show log",
+        "STATS": {
+          "INSERTS": "Insert(s): {{inserts}}",
+          "UPDATES": "Update(s): {{updates}}",
+          "DELETES": "Deletion(s) : {{deletes}}",
+          "DISABLES": "Disabled : {{disables}}",
+          "WARNINGS": "Warning(s) : {{warnings}}",
+          "ERRORS": "Error(s) : {{errors}}"
+        }
       }
     },
     "MESSAGE": {
@@ -2398,9 +2417,14 @@
     }
   },
   "FILE": {
+    "JSON": {
+      "ENCODING": "UTF-8",
+      "BTN_DOWNLOAD_HELP": "Download data (JSON)"
+    },
     "CSV": {
       "SEPARATOR": ",",
       "ENCODING": "UTF-8",
+      "BTN_DOWNLOAD_HELP": "Download data (CSV)",
       "ERROR": {
         "EMPTY_FILE": "Empty file, or no header row",
         "NO_HEADER_OR_INVALID_SEPARATOR": "Invalid header row. Please check that the separator '{{separator}}' has been used.",
@@ -2456,6 +2480,7 @@
     "FIELD_NOT_UNIQUE": "Value already used",
     "SPACE_NOT_ALLOW": "Spaces or special characters not allowed",
     "SCRYPT_ERROR": "Unable to create account keys",
+    "INVALID_OR_INCOMPLETE_FILL": "Incomplete or invalid entry",
     "UNKNOWN_ACCOUNT_EMAIL": "No account matches this email.",
     "BAD_PASSWORD": "Incorrect password.",
     "EMAIL_ALREADY_REGISTERED": "Email already registered",
@@ -2511,7 +2536,8 @@
     "SUBSCRIBE_ERROR": "Error while subscribe to changes",
     "FIELD_NOT_EXISTS": "Value doesn't exist",
     "FIREFOX_NO_STORAGE": "The application cannot run with Firefox in 'private' mode or without keeping navigation history",
-    "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>"
+    "FEATURE_NOT_IMPLEMENTED": "Feature not implemented! <small><br/>Please contact your administrator.</small>",
+    "GEOLOCATION_ERROR": "Error while getting GPS position. <small><br/>{{message}}</small>"
   },
   "CONFIRM": {
     "ALERT_HEADER": "Confirmation",

@@ -112,7 +112,7 @@
     "YES": "Oui",
     "NO": "Non",
 
-    "DEBUG": "Debug",
+
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
@@ -138,6 +138,7 @@
       "FILTERED_PARENTHESIS": "(filtré)"
     },
     "DEBUG": {
+      "TITLE": "Debug",
       "BTN_COPY_LOCALLY": "Copier en local",
       "BTN_AUTO_FILL": "Remplissage auto"
     },
@@ -895,7 +896,7 @@
         "SAMPLING_RATIO_PCT": "Taux éch. (%)",
         "SAMPLING_COEFFICIENT": "Coef. éch.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
-        "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhautif des espèces ?",
+        "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhaustif des espèces ?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
           "TITLE": "Mesures individuelles",
