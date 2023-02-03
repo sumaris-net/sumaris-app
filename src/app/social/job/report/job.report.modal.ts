@@ -1,9 +1,8 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Job } from '@app/social/job/job.model';
-import { changeCaseToUnderscore, DateUtils, isNotNilOrBlank, LocalSettingsService, toBoolean, toDuration } from '@sumaris-net/ngx-components';
+import { capitalizeFirstLetter, changeCaseToUnderscore, isNotNilOrBlank, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { TranslateService } from '@ngx-translate/core';
-import { capitalize } from '@angular-devkit/core/src/utils/strings';
 
 export interface JobReportModalOptions {
   title: string;
@@ -41,7 +40,7 @@ export class JobReportModal implements OnInit{
         let message = this.translate.instant(i18nKey, this.job.report);
         // Missing i18n key
         if (message === i18nKey) {
-          message = `${capitalize(key)}: ${value}`;
+          message = `${capitalizeFirstLetter(key)}: ${value}`;
         }
         return message;
       });
