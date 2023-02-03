@@ -110,7 +110,10 @@ export class VesselsTable extends AppRootDataTable<Vessel, VesselFilter> impleme
       {
         prependNewElements: false,
         suppressErrors: environment.production,
-        saveOnlyDirtyRows: true
+        saveOnlyDirtyRows: true,
+        watchAllOptions: {
+          fetchPolicy: 'cache-and-network'
+        }
       }
     );
     this.i18nColumnPrefix = 'VESSEL.';
