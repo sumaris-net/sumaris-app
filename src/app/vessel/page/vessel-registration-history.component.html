@@ -1,12 +1,14 @@
-  <!-- error -->
-  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-  </ion-item>
+  <div class="ion-padding-start">
+    <!-- error -->
+    <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
 
-  <h3>
-    <ion-text translate>VESSEL.HISTORY.REGISTRATIONS</ion-text>
-  </h3>
+    <h3>
+      <ion-text translate>VESSEL.HISTORY.REGISTRATIONS</ion-text>
+    </h3>
+  </div>
 
   <mat-table #table [dataSource]="dataSource" matSort matSortActive="startDate" matSortDirection="desc"
              matSortDisableClear [trackBy]="trackByFn">
@@ -49,13 +51,24 @@
       </mat-cell>
     </ng-container>
 
+
+    <!-- Int Registration code column -->
+    <ng-container matColumnDef="intRegistrationCode">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.INT_REGISTRATION_CODE</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.intRegistrationCode}}</ion-text>
+      </mat-cell>
+    </ng-container>
+
     <!-- Registration location -->
     <ng-container matColumnDef="registrationLocation">
       <mat-header-cell *matHeaderCellDef>
         <span translate>VESSEL.VESSEL_REGISTRATION_PERIOD.REGISTRATION_LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{referentialToString(row.currentData.registrationLocation)}}
+        {{row.currentData.registrationLocation|referentialToString}}
       </mat-cell>
     </ng-container>
 

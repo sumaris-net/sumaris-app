@@ -49,9 +49,7 @@
           <input matInput [placeholder]="'VESSEL.VESSEL_REGISTRATION_PERIOD.INT_REGISTRATION_CODE'|translate"
                  formControlName="intRegistrationCode"
                  autocomplete="off"
-                 required
-                 toRegistrationCode
-          >
+                 toRegistrationCode>
           <mat-error *ngIf="registrationForm.controls.intRegistrationCode.hasError('required')" translate>ERROR.FIELD_REQUIRED</mat-error>
         </mat-form-field>
       </ion-col>
@@ -190,6 +188,35 @@
             {{ 'ERROR.FIELD_MIN'| translate:{min: 0} }}</mat-error>
         </mat-form-field>
       </ion-col>-->
+
+      <!-- Construction year -->
+      <ion-col size="12" size-md="4">
+        <mat-form-field>
+          <input type="number" step="1" min="1970" autocomplete="off" matInput [placeholder]="'VESSEL.VESSEL_FEATURES.CONSTRUCTION_YEAR'|translate"
+                 formControlName="constructionYear" (keypress)="filterNumberInput($event, true)">
+          <mat-error *ngIf="form.get('vesselFeatures.constructionYear').hasError('integer')" translate>ERROR.FIELD_NOT_VALID_INTEGER</mat-error>
+          <mat-error *ngIf="form.get('vesselFeatures.constructionYear').hasError('min')">
+            {{ 'ERROR.FIELD_MIN'| translate:{min: 1970} }}</mat-error>
+        </mat-form-field>
+      </ion-col>
+
+      <!-- IRCS -->
+      <ion-col size="12" size-md="4">
+        <mat-form-field>
+          <input type="text" autocomplete="off" matInput [placeholder]="'VESSEL.VESSEL_FEATURES.IRCS'|translate"
+                 formControlName="ircs"
+                 toRegistrationCode>
+        </mat-form-field>
+      </ion-col>
+
+      <!-- Hull material -->
+      <ion-col>
+        <mat-autocomplete-field
+          [placeholder]="'VESSEL.VESSEL_FEATURES.HULL_MATERIAL'|translate"
+          formControlName="hullMaterial"
+          [config]="autocompleteFields.hullMaterial">
+        </mat-autocomplete-field>
+      </ion-col>
     </ion-row>
 
 

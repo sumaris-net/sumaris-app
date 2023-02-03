@@ -10,40 +10,46 @@ import {isNotNil} from "@sumaris-net/ngx-components";
 
 export const VesselFeaturesFragments = {
     vesselFeatures: gql`fragment VesselFeaturesFragment on VesselFeaturesVO {
-        id
-        startDate
-        endDate
-        name
-        exteriorMarking
-        administrativePower
-        lengthOverAll
-        grossTonnageGt
-        grossTonnageGrt
-        creationDate
-        updateDate
-        comments
-        basePortLocation {
-            ...LocationFragment
-        }
-        recorderDepartment {
-            ...LightDepartmentFragment
-        }
-        recorderPerson {
-            ...LightPersonFragment
-        }
+      id
+      startDate
+      endDate
+      name
+      exteriorMarking
+      administrativePower
+      lengthOverAll
+      grossTonnageGt
+      grossTonnageGrt
+      constructionYear
+      ircs
+      hullMaterial {
+        ...ReferentialFragment
+      }
+      creationDate
+      updateDate
+      comments
+      basePortLocation {
+        ...LocationFragment
+      }
+      recorderDepartment {
+        ...LightDepartmentFragment
+      }
+      recorderPerson {
+        ...LightPersonFragment
+      }
     }`,
 };
 
 export const VesselFeatureQueries = {
   loadAll: gql`query VesselFeaturesHistory($filter: VesselFeaturesFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
-        data: vesselFeaturesHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-            ...VesselFeaturesFragment
-        }
+    data: vesselFeaturesHistory(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
+      ...VesselFeaturesFragment
     }
-    ${VesselFeaturesFragments.vesselFeatures}
-    ${ReferentialFragments.location}
-    ${ReferentialFragments.lightDepartment}
-    ${ReferentialFragments.lightPerson}`
+  }
+  ${VesselFeaturesFragments.vesselFeatures}
+  ${ReferentialFragments.location}
+  ${ReferentialFragments.lightDepartment}
+  ${ReferentialFragments.lightPerson}
+  ${ReferentialFragments.referential}`
 };
 
 @Injectable({providedIn: 'root'})

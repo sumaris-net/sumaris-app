@@ -3,7 +3,7 @@ import {ValidatorService} from '@e-is/ngx-material-table';
 import {AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {QualityFlagIds} from '../../../referential/services/model/model.enum';
 import {VesselFeatures} from '../model/vessel.model';
-import {fromDateISOString, isNotNil, SharedValidators, toBoolean} from '@sumaris-net/ngx-components';
+import { fromDateISOString, isNotNil, SharedValidators, toBoolean, toNumber } from '@sumaris-net/ngx-components';
 import {VesselValidatorOptions} from '@app/vessel/services/validator/vessel.validator';
 import {Moment, unitOfTime} from 'moment';
 import {DateAdapter} from '@angular/material/core';
@@ -26,19 +26,22 @@ export class VesselFeaturesValidatorService<O extends VesselValidatorOptions = V
 
     return this.formBuilder.group({
       __typename: [VesselFeatures.TYPENAME],
-      id: [null],
-      updateDate: [null],
-      creationDate: [null],
-      startDate: [null, Validators.required],
-      endDate: [null],
-      name: ['', opts.withNameRequired ? Validators.required : null],
-      exteriorMarking: ['', Validators.required],
-      administrativePower: ['', Validators.compose([Validators.min(0), SharedValidators.integer])],
-      lengthOverAll: ['', Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])],
-      grossTonnageGrt: ['', Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])],
-      grossTonnageGt: ['', Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])],
-      basePortLocation: ['', Validators.compose([Validators.required, SharedValidators.entity])],
-      comments: ['', Validators.maxLength(2000)],
+      id: [toNumber(data?.id, null)],
+      updateDate: [data?.updateDate || null],
+      creationDate: [data?.creationDate || null],
+      startDate: [data?.startDate || null, Validators.required],
+      endDate: [data?.endDate || null],
+      name: [data?.name || null, opts.withNameRequired ? Validators.required : null],
+      exteriorMarking: [data?.exteriorMarking || null, Validators.required],
+      administrativePower: [toNumber(data?.administrativePower, null), Validators.compose([Validators.min(0), SharedValidators.integer])],
+      lengthOverAll: [toNumber(data?.lengthOverAll, null), Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])],
+      grossTonnageGrt: [toNumber(data?.grossTonnageGrt, null), Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])],
+      grossTonnageGt: [toNumber(data?.grossTonnageGt, null), Validators.compose([Validators.min(0), SharedValidators.decimal({maxDecimals: 2})])],
+      constructionYear: [toNumber(data?.constructionYear, null), Validators.compose([Validators.min(1900), SharedValidators.integer])],
+      ircs: [data?.ircs || null],
+      hullMaterial: [data?.hullMaterial || null, SharedValidators.entity],
+      basePortLocation: [data?.basePortLocation || null, Validators.compose([Validators.required, SharedValidators.entity])],
+      comments: [data?.comments || null, Validators.maxLength(2000)],
       qualityFlagId: [data && data.qualityFlagId || QualityFlagIds.NOT_QUALIFIED]
     });
   }

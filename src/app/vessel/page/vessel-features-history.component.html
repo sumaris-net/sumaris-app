@@ -1,12 +1,14 @@
-  <!-- error -->
-  <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
-    <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
-  </ion-item>
+  <div class="ion-padding-start">
+    <!-- error -->
+    <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
 
-  <h3>
-    <ion-text translate>VESSEL.HISTORY.FEATURES</ion-text>
-  </h3>
+    <h3>
+      <ion-text translate>VESSEL.HISTORY.FEATURES</ion-text>
+    </h3>
+  </div>
 
   <mat-table #table [dataSource]="dataSource" matSort matSortActive="startDate" matSortDirection="desc"
              matSortDisableClear [trackBy]="trackByFn">
@@ -89,13 +91,43 @@
       </mat-cell>
     </ng-container>
 
+    <!-- construction year column -->
+    <ng-container matColumnDef="constructionYear">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.VESSEL_FEATURES.CONSTRUCTION_YEAR</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.constructionYear}}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- ircs column -->
+    <ng-container matColumnDef="ircs">
+      <mat-header-cell *matHeaderCellDef mat-sort-header>
+        <span translate>VESSEL.VESSEL_FEATURES.IRCS</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        <ion-text>{{row.currentData.ircs}}</ion-text>
+      </mat-cell>
+    </ng-container>
+
+    <!-- hull material -->
+    <ng-container matColumnDef="hullMaterial">
+      <mat-header-cell *matHeaderCellDef>
+        <span translate>VESSEL.VESSEL_FEATURES.HULL_MATERIAL</span>
+      </mat-header-cell>
+      <mat-cell *matCellDef="let row">
+        {{row.currentData.hullMaterial|referentialToString}}
+      </mat-cell>
+    </ng-container>
+
     <!-- base port location -->
     <ng-container matColumnDef="basePortLocation">
       <mat-header-cell *matHeaderCellDef>
         <span translate>VESSEL.VESSEL_FEATURES.BASE_PORT_LOCATION</span>
       </mat-header-cell>
       <mat-cell *matCellDef="let row">
-        {{referentialToString(row.currentData.basePortLocation)}}
+        {{row.currentData.basePortLocation|referentialToString}}
       </mat-cell>
     </ng-container>
 
