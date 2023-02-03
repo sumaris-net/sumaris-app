@@ -91,19 +91,21 @@
         <ion-label translate>VESSEL.TAB_HISTORY</ion-label>
       </ng-template>
 
-      <ion-row class="ion-no-padding">
-        <ion-col class="ion-padding">
-          <app-vessel-registration-history-table #registrationHistoryTable>
-          </app-vessel-registration-history-table>
-        </ion-col>
-      </ion-row>
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          <ion-col>
+            <app-vessel-registration-history-table #registrationHistoryTable>
+            </app-vessel-registration-history-table>
+          </ion-col>
+        </ion-row>
 
-      <ion-row class="ion-no-padding">
-        <ion-col class="ion-padding">
-          <app-vessel-features-history-table #featuresHistoryTable>
-          </app-vessel-features-history-table>
-        </ion-col>
-      </ion-row>
+        <ion-row>
+          <ion-col>
+            <app-vessel-features-history-table #featuresHistoryTable>
+            </app-vessel-features-history-table>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
 
     </mat-tab>
 

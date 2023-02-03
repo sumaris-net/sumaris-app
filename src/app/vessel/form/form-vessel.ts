@@ -158,6 +158,19 @@ export class VesselForm extends AppForm<Vessel> implements OnInit {
       mobile: this.mobile
     });
 
+    // Combo hull material
+    this.registerAutocompleteField('hullMaterial', {
+      // TODO use suggest function, and load Pmfm qualitative value, using PmfmIds.HULL_MATERIAL
+      service: this.referentialRefService,
+      attributes: ['name'],
+      filter: {
+        entityName: 'QualitativeValue',
+        levelLabel: 'HULL_MATERIAL',
+        statusId: StatusIds.ENABLE
+      },
+      mobile: this.mobile
+    });
+
     if (this._defaultStatus) {
       this.form.patchValue({
         statusId: this._defaultStatus

@@ -41,6 +41,8 @@ export class VesselFeaturesHistoryComponent extends AppTable<VesselFeatures, Ves
         'administrativePower',
         'lengthOverAll',
         'grossTonnageGt',
+        'constructionYear',
+        'ircs',
         'basePortLocation',
         'comments'],
       new EntitiesTableDataSource<VesselFeatures>(VesselFeatures, dataService, null, {

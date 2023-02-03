@@ -727,7 +727,7 @@ type OperationVO {
   "Get operation's measurements"
   measurementValues: Map_Integer_StringScalar
   "Get operation's measurements"
-  measurements: [MeasurementVO]
+  measurements(pmfmIds: [Int]): [MeasurementVO]
   "Get operation's metier"
   metier: MetierVO
   parentOperation: OperationVO
@@ -1351,6 +1351,7 @@ type SampleVO {
   sampleDate: Date
   size: Float
   sizeUnit: String
+  tagId: String
   taxonGroup: ReferentialVO
   taxonName: TaxonNameVO
   updateDate: Date
@@ -1656,6 +1657,7 @@ type VesselFeaturesVO {
   exteriorMarking: String
   grossTonnageGrt: Float
   grossTonnageGt: Float
+  hullMaterial: ReferentialVO
   id: Int
   ircs: String
   lengthOverAll: Float
@@ -1837,7 +1839,7 @@ enum SortDirection {
   DESC
 }
 
-"Built-in java.math.BigDecimal"
+"An arbitrary precision signed decimal"
 scalar BigDecimal
 
 "Built-in scalar representing an instant in time"
@@ -1846,7 +1848,7 @@ scalar Date
 "JSON object"
 scalar JsonObject
 
-"Long type"
+"A 64-bit signed integer"
 scalar Long
 
 "Built-in scalar for map-like structures"
@@ -1870,11 +1872,8 @@ scalar Map_String_StringScalar
 "Built-in scalar for dynamic values"
 scalar ObjectScalar
 
-"Built-in Short as Int"
+"A 16-bit signed integer"
 scalar Short
-
-"Use SPQR's SchemaPrinter to remove this from SDL"
-scalar UNREPRESENTABLE
 
 input AccountVOInput {
   avatar: String
@@ -2958,6 +2957,8 @@ input SaleVOInput {
 input SampleFilterVOInput {
   dataQualityStatus: [DataQualityStatusEnum]
   endDate: Date
+  excludedIds: [Int]
+  includedIds: [Int]
   landingId: Int
   locationId: Int
   observedLocationId: Int
@@ -3174,6 +3175,7 @@ input TripFilterVOInput {
   includedIds: [Int]
   locationId: Int
   locationIds: [Int]
+  observedLocationId: Int
   observerPersonIds: [Int]
   programIds: [Int]
   programLabel: String
@@ -3298,6 +3300,7 @@ input VesselFeaturesVOInput {
   exteriorMarking: String
   grossTonnageGrt: Float
   grossTonnageGt: Float
+  hullMaterial: ReferentialVOInput
   id: Int
   ircs: String
   lengthOverAll: Float

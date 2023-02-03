@@ -348,6 +348,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.BATCH_SORTING
   },
+  PMFM_HULL_MATERIAL_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.HULL_MATERIAL.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_HULL_MATERIAL_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.HULL_MATERIAL
+  },
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_SURVEY_ID',

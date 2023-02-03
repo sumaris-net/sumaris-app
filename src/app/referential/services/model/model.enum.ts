@@ -119,7 +119,9 @@ export const PmfmIds = {
   CHILD_GEAR: 400,
   BATCH_GEAR_POSITION: 411,
   TRAWL_SIZE_CAT: 418,
-  BATCH_SORTING: 176 // Vrac/Hors Vrac
+  BATCH_SORTING: 176, // Vrac/Hors Vrac
+
+  HULL_MATERIAL: 433
 };
 export const QualitativeLabels = {
   DISCARD_OR_LANDING: {
