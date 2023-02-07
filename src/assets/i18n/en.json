@@ -924,7 +924,7 @@
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Estim. wht?"
       },
       "TREE": {
-        "SELECT_PARENT_HELP": "Select a batch, in the tree below:",
+        "SELECT_PARENT_HELP": "Select a batch, in the tree",
         "EMPTY": "empty",
         "BATCH_COUNT": "{{count}} batch",
         "BATCHES_COUNT": "{{count}} batches",

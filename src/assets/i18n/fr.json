@@ -933,7 +933,7 @@
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
       },
       "TREE": {
-        "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-dessous :",
+        "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-contre",
         "EMPTY": "vide",
         "BATCH_COUNT": "{{count}} lot",
         "BATCHES_COUNT": "{{count}} lots",
