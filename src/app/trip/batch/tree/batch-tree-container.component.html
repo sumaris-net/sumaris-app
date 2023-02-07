@@ -30,15 +30,17 @@
       <!-- toolbar -->
       <mat-toolbar>
         <button mat-icon-button
-                (click)="toggleFilterPanel()">
+                (click)="toggleFilterPanel()"
+                [title]="(sidenav.opened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
           <mat-icon class="mat-icon-rtl-mirror"
                     matBadge="!"
-                    [matBadgeHidden]="valid || !model?.hidden"
+                    *ngIf="model; let model"
+                    [matBadgeHidden]="model.valid && model.childrenValid"
                     matBadgeOverlap="false"
                     matBadgeColor="accent"
                     matBadgeSize="small"
                     matBadgePosition="above after"
-          >chevron_right</mat-icon>
+          >{{sidenav.opened ? 'chevron_left' : 'chevron_right'}}</mat-icon>
           &nbsp;
         </button>
 

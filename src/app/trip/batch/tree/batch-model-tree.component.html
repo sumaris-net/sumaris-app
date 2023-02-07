@@ -10,9 +10,8 @@
         <ion-item (click)="click($event, node)"
                   [class.activated]="selected===node"
                   [disabled]="node.disabled"
+                  [class.cdk-visually-hidden]="node.hidden"
                   tappable>
-          <!--
-                  [class.cdk-visually-hidden]="node.hidden" -->
           <button mat-icon-button slot="start" (click)="toggle($event, node)">
             <mat-icon class="mat-icon-rtl-mirror">{{expanded ? 'expand_more' : 'chevron_right'}}</mat-icon>
           </button>
@@ -46,8 +45,8 @@
           <ion-icon name="chevron-forward-outline" slot="end" *ngIf="mobile && !node.disabled"></ion-icon>
 
         </ion-item>
-        <ul [class.ion-no-padding]="node.hidden">
-          <!-- [class.cdk-visually-hidden]="!treeControl.isExpanded(node)" -->
+        <ul [class.ion-no-padding]="node.hidden"
+            [class.cdk-visually-hidden]="!treeControl.isExpanded(node)">
           <ng-container matTreeNodeOutlet></ng-container>
         </ul>
       </li>
