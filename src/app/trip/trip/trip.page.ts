@@ -561,7 +561,9 @@ export class TripPage
       measurements: [
         { numericalValue: 1, pmfmId: 21}, // NB fisherman
         { numericalValue: 1, pmfmId: 188} // GPS_USED
-      ]
+      ],
+      // Keep existing synchronizationStatus
+      synchronizationStatus: this.data?.synchronizationStatus,
     });
 
     this.measurementsForm.value = trip.measurements;

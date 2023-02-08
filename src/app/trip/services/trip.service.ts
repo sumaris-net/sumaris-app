@@ -792,7 +792,7 @@ export class TripService
     const isNew = isNil(entity.id);
 
     // If is a local entity: force a local save
-    const isLocal = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
+    const isLocal = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC' || false) : EntityUtils.isLocalId(entity.id);
     if (isLocal) {
       return this.saveLocally(entity, opts);
     }
