@@ -6,7 +6,7 @@ import {
   APP_USER_EVENT_SERVICE, AppErrorWithDetails,
   AppFormUtils,
   BaseEntityGraphqlQueries,
-  chainPromises,
+  chainPromises, DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
@@ -41,7 +41,7 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE
 } from '@app/data/services/model/data-entity.model';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -78,6 +78,8 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 
 import moment from 'moment';
+import { RxState } from '@rx-angular/state';
+import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -714,44 +716,24 @@ export class TripService
     return res && res.total > 0;
   }
 
-  listenChanges(id: number, opts?: {
-    interval?: number;
-    fetchPolicy?: FetchPolicy
-  }): Observable<Trip> {
+  listenChanges(id: number, opts?: EntityServiceListenChangesOptions): Observable<Trip> {
     if (isNil(id)) throw new Error('Missing argument \'id\' ');
 
-
     if (EntityUtils.isLocalId(id)) {
-      // FIXME: this should be never called (because entity listen only on remote data).
-      console.warn(`[trip-service] TODO: check why this code is calling, because editor should never listening for local data changes.`);
+      if (this._debug) console.debug(this._logPrefix + `Listening for local changes on ${this._logTypeName} {${id}}...`);
       return this.entities.watchAll<Trip>(Trip.TYPENAME, {offset:0, size: 1, filter: (t) => t.id === id})
         .pipe(
           map(({data}) => {
-            const entity = isNotEmptyArray(data) && Trip.fromObject(data[0]);
-            if (entity && this._debug) console.debug(`[trip-service] Trip {${id}} updated on server !`, entity);
+            const json = isNotEmptyArray(data) && data[0];
+            const entity = (!opts || opts.toEntity !== false) ? this.fromObject(json) : json;
+            // Set an updateDate, to force update detection
+            if (entity && this._debug) console.debug(this._logPrefix + `${this._logTypeName} {${id}} updated locally !`, entity);
             return entity;
           })
         );
     }
 
-    if (this._debug) console.debug(`[trip-service] [WS] Listening changes for trip {${id}}...`);
-
-    return this.graphql.subscribe<{ data: any }, { id: number; interval: number }>({
-      query: this.subscriptions.listenChanges,
-      fetchPolicy: opts && opts.fetchPolicy || undefined,
-      variables: {id, interval: toNumber(opts && opts.interval, 10)},
-      error: {
-        code: ErrorCodes.SUBSCRIBE_ENTITY_ERROR,
-        message: 'ERROR.SUBSCRIBE_ENTITY_ERROR'
-      }
-    })
-      .pipe(
-        map(({data}) => {
-          const entity = data && Trip.fromObject(data);
-          if (entity && this._debug) console.debug(`[trip-service] Trip {${id}} updated on server!`, entity);
-          return entity;
-        })
-      );
+    return super.listenChanges(id, opts);
   }
 
   /**
@@ -794,6 +776,7 @@ export class TripService
     // If is a local entity: force a local save
     const isLocal = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC' || false) : EntityUtils.isLocalId(entity.id);
     if (isLocal) {
+      entity.updateDate = DateUtils.moment(); // Set a local time (need be EntityEditor.listenChanges())
       return this.saveLocally(entity, opts);
     }
 
@@ -1021,10 +1004,11 @@ export class TripService
         });
 
         // Clean gears, to keep only :
-        // - gears set manually, and not automatically by addGear() (marked as SYNC - see addGear())
-        // - used gears
+        // - gears set manually, and not automatically (e.g. getOrAddGear() will marked as TEMPORARY)
+        // - OR used gears
         entity.gears = (entity.gears || []).filter(physicalGear =>
-          physicalGear.synchronizationStatus !== SynchronizationStatusEnum.SYNC
+          physicalGear.synchronizationStatus !== SynchronizationStatusEnum.TEMPORARY
+          // IF temporary: check if used by an operation
           || data.some(o => o.physicalGear.id === physicalGear.id)
         );
       }
@@ -1546,15 +1530,12 @@ export class TripService
   async getOrAddGear(tripId: number, entity: PhysicalGear): Promise<PhysicalGear>{
 
     const now = Date.now();
-    console.info('[operation-service] Add physical gear to trip...');
+    console.info('[operation-service] Get or add physical gear...');
 
     try {
 
       // Make sure to get an entity
       entity = PhysicalGear.fromObject(entity);
-
-      // Mark gear as added automatically (useful to clear unused gears in save() )
-      entity.synchronizationStatus = SynchronizationStatusEnum.SYNC;
 
       // Load the trip
       const trip = await this.load(tripId);
@@ -1563,16 +1544,18 @@ export class TripService
       // Search if entity exists in the existing gears (e.g. if was copied just before)
       const existingGear = trip.gears?.find(gear => PhysicalGear.equals(gear, entity, {withMeasurementValues: true, withRankOrder: false}));
       if (existingGear) {
-
+        console.info('[operation-service] Find an existing physical gear. Will use it', existingGear);
         return existingGear;
       }
 
-      // Compute new rankOrder, according to existing trip's gear
-      // RankOrder was compute for original trip, it can be used on actual trip and needed to be re-computed
+      // Mark as temporary (to force to clear unused gears, in save() )
+      entity.synchronizationStatus = SynchronizationStatusEnum.TEMPORARY;
 
-      if (trip.gears?.some(gear => gear.rankOrder === entity.rankOrder)) {
-        const maxRankOrder = trip.gears.map(gear => gear.rankOrder)
-          .reduce((max, rankOrder) => Math.max(max, rankOrder), 0)
+      // Compute new rankOrder, according to existing gears
+      // RankOrder was compute for original trip, it can be used on actual trip and needed to be re-computed
+      const maxRankOrder = (trip.gears || []).map(gear => gear.rankOrder)
+        .reduce((max, rankOrder) => Math.max(max, rankOrder), 0);
+      if (isNil(entity.rankOrder) || trip.gears?.some(gear => gear.rankOrder === entity.rankOrder)) {
         entity.rankOrder = maxRankOrder + 1;
       }
 
@@ -1590,7 +1573,7 @@ export class TripService
 
       console.info(`[operation-service] Physical gear successfully added to trip, in ${Date.now()-now}ms`);
 
-      return savedEntity;
+      return savedEntity.clone();
     }
     catch (err) {
       console.error(`[trip⁻service] Error while adding physical gear to trip: ${err && err.message || err}`, err);
@@ -1662,6 +1645,8 @@ export class TripService
       await EntityUtils.fillLocalIds(gears, (_, count) => this.entities.nextValues(PhysicalGear.TYPENAME, count));
       gears.forEach(g => {
         g.tripId = entity.id;
+        // Keep existing, if already set (e.g. getOrAddGear() can set )
+        g.synchronizationStatus = g.synchronizationStatus || entity.synchronizationStatus;
       });
     }
 

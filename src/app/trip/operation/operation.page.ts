@@ -1458,10 +1458,10 @@ export class OperationPage<S extends OperationState = OperationState>
       (this.showSamplesTab ? OperationPage.TABS.SAMPLE : undefined);
   }
 
-  startListenRemoteChanges() {
+  startListenChanges() {
     if (EntityUtils.isLocal(this.data)) return; // Skip if local entity
 
-    super.startListenRemoteChanges();
+    super.startListenChanges();
   }
 
   /**

@@ -757,6 +757,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         physicalGear.trip = undefined;
         physicalGear.tripId = this.trip.id;
         physicalGear.rankOrder = null; // Will be computed when saving
+        physicalGear.synchronizationStatus = null;
+        physicalGear.updateDate = null;
 
         // Use gear label, if any
         const physicalGearLabel = getPropertyByPath(physicalGear, `measurementValues.${PmfmIds.GEAR_LABEL}`);

@@ -171,12 +171,6 @@ export abstract class AppRootDataEditor<
     );
   }
 
-  startListenRemoteChanges() {
-    if (EntityUtils.isLocal(this.data)) return; // Skip if local entity
-
-    super.startListenRemoteChanges();
-  }
-
   ngOnDestroy() {
     super.ngOnDestroy();
 

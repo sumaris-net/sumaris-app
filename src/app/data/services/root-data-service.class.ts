@@ -26,6 +26,8 @@ import { IWithRecorderDepartmentEntity } from './model/model.utils';
 import { RootDataEntityFilter } from './model/root-data-filter.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
+import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
+import { Observable, of } from 'rxjs';
 
 
 export interface BaseRootEntityGraphqlMutations extends BaseEntityGraphqlMutations {
@@ -75,6 +77,11 @@ export abstract class BaseRootDataService<
       || (this.programRefService.canUserWriteEntity(entity)
         && (isNil(entity.validationDate) || this.accountService.isSupervisor())
       );
+  }
+
+  listenChanges(id: ID, opts?: EntityServiceListenChangesOptions): Observable<T> {
+    if (EntityUtils.isLocalId(+id)) return of();
+    return super.listenChanges(id, opts);
   }
 
   abstract control(entity: T, opts?: any): Promise<AppErrorWithDetails|FormErrors>;
