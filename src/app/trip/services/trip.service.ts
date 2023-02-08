@@ -1543,7 +1543,7 @@ export class TripService
    * @param tripId
    * @param entity
    */
-  async addGear(tripId: number, entity: PhysicalGear): Promise<PhysicalGear>{
+  async getOrAddGear(tripId: number, entity: PhysicalGear): Promise<PhysicalGear>{
 
     const now = Date.now();
     console.info('[operation-service] Add physical gear to trip...');
@@ -1558,10 +1558,18 @@ export class TripService
 
       // Load the trip
       const trip = await this.load(tripId);
-      if (!trip) throw new Error(`Cannot find trip #{tripId}`); // Should never occur
+      if (!trip) throw new Error(`Cannot find trip #${tripId}`); // Should never occur
+
+      // Search if entity exists in the existing gears (e.g. if was copied just before)
+      const existingGear = trip.gears?.find(gear => PhysicalGear.equals(gear, entity, {withMeasurementValues: true, withRankOrder: false}));
+      if (existingGear) {
+
+        return existingGear;
+      }
 
       // Compute new rankOrder, according to existing trip's gear
       // RankOrder was compute for original trip, it can be used on actual trip and needed to be re-computed
+
       if (trip.gears?.some(gear => gear.rankOrder === entity.rankOrder)) {
         const maxRankOrder = trip.gears.map(gear => gear.rankOrder)
           .reduce((max, rankOrder) => Math.max(max, rankOrder), 0)

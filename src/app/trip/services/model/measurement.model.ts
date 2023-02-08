@@ -1,6 +1,6 @@
 import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { UntypedFormGroup } from '@angular/forms';
-import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
+import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, ReferentialRef, removeDuplicatesFromArray, toDateISOString } from '@sumaris-net/ngx-components';
 import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
@@ -241,8 +241,20 @@ export class MeasurementValuesUtils {
 
   static equals(m1: MeasurementFormValues | MeasurementModelValues, m2: MeasurementFormValues | MeasurementModelValues): boolean {
     return (isNil(m1) && isNil(m2))
-      || (m1 && !(Object.getOwnPropertyNames(m1).some(pmfmId => !this.valueEquals(m1[pmfmId], m2[pmfmId]))))
+      || (m1 && !(removeDuplicatesFromArray([...this.getPmfmIds(m1), ...this.getPmfmIds(m2)])
+          .some(pmfmId => {
+            const sameValue = this.valueEquals(m1[pmfmId], m2?.[pmfmId]);
+            if (!sameValue) console.debug('TODO not same value for pmfmId=' + pmfmId, m1[pmfmId], m2?.[pmfmId]);
+            return !sameValue;
+          })))
       || false;
+  }
+
+  static getPmfmIds(source: MeasurementFormValues | MeasurementModelValues): number[] {
+    return Object.getOwnPropertyNames(source || {})
+      .filter(key => key !== '__typename')
+      .map(key => parseInt(key))
+      .filter(pmfmId => pmfmId !== NaN)
   }
 
   static equalsPmfms(m1: { [pmfmId: number]: any },
@@ -328,12 +340,11 @@ export class MeasurementValuesUtils {
 
     // Normalize only given pmfms (reduce the pmfms list)
     if (opts?.onlyExistingPmfms) {
-      pmfms = Object.getOwnPropertyNames(source || {})
-        .filter(controlName => controlName !== '__typename')
+      pmfms = this.getPmfmIds(source)
         .reduce((res, pmfmId) => {
-        const pmfm = pmfms.find(p => p.id === +pmfmId);
-        return pmfm ? res.concat(pmfm) : res;
-      }, []);
+          const pmfm = pmfms.find(p => p.id === pmfmId);
+          return pmfm ? res.concat(pmfm) : res;
+        }, []);
     }
 
     // Create target, or copy existing (e.g. useful to keep extra pmfms)
@@ -415,9 +426,7 @@ export class MeasurementValuesUtils {
   static asObject(source: MeasurementModelValues | MeasurementFormValues, opts?: DataEntityAsObjectOptions): MeasurementModelValues | MeasurementFormValues {
     if (!opts || opts.minify !== true || !source) return source;
 
-    return Object.getOwnPropertyNames(source)
-      .filter(controlName => controlName !== '__typename') // Ignore __typename
-      .reduce((target, pmfmId) => {
+    return this.getPmfmIds(source).reduce((target, pmfmId) => {
         target[pmfmId] = PmfmValueUtils.asObject(source[pmfmId]);
         return target;
       }, {});

@@ -684,7 +684,7 @@
         "BTN_DELETE": "Supprimer cette opération",
         "BTN_DUPLICATE": "Dupliquer cette opération",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
-        "BTN_EDIT_PARENT" : "Modifier le filage...",
+        "BTN_OPEN_PARENT" : "Ouvrir le filage...",
         "BTN_SELECT_PARENT" : "Sélectionner le filage...",
         "BTN_SAVE_AND_NEW" : "Sauvegarder et nouveau",
         "COMMENTS": "Commentaires",

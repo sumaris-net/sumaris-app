@@ -309,6 +309,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   @Output() onParentChanges = new EventEmitter<Operation>();
   @Output() lastEndDateChanges = new EventEmitter<Moment>();
+  @Output() openParentOperation = new EventEmitter<Operation>();
 
   constructor(
     injector: Injector,
@@ -841,14 +842,6 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
 
   toggleFilter(fieldName: FilterableFieldName, field?: MatAutocompleteField) {
     this.setFieldFilterEnable(fieldName, !this.isFieldFilterEnable(fieldName), field);
-  }
-
-  async updateParentOperation() {
-    const parent = this.parentControl.value;
-
-    if (parent) {
-      await this.router.navigateByUrl(`/trips/${parent.tripId}/operation/${parent.id}`);
-    }
   }
 
   toggleComment() {

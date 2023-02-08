@@ -1,6 +1,6 @@
 
 <!-- Top toolbar -->
-<app-toolbar color="primary"
+<app-toolbar [color]="toolbarColor"
              [hasValidate]="!loading && (dirty || saving)"
              [hasClose]="!loading && (!dirty && !saving)"
              (onValidate)="save($event)"
@@ -52,83 +52,86 @@
 <!-- Last operations menu -->
 <mat-menu #lastOperationsMenu="matMenu" class="mat-menu-size-75vw ion-no-padding">
 
-  <ion-row class="mat-menu-header ion-no-padding column">
-    <ion-col>
-      <ion-label translate>TRIP.OPERATION.LAST_OPERATIONS</ion-label>
-    </ion-col>
-  </ion-row>
+  <ng-template matMenuContent>
 
-  <ion-list class="ion-no-padding">
-    <ng-container *rxIf="lastOperations$; let items; else noLastOperation">
+    <ion-row class="mat-menu-header ion-no-padding column">
+      <ion-col>
+        <ion-label translate>TRIP.OPERATION.LAST_OPERATIONS</ion-label>
+      </ion-col>
+    </ion-row>
 
-      <ion-item *rxFor="let item of items; strategy: 'userBlocking'"
-                tappable class="text-1x"
-                [color]="data?.id === item.id ? 'secondary100' : undefined"
-                (click)="onLastOperationClick($event, item.id)">
-        <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
-        <ion-grid>
-          <ion-row>
-            <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset
-            <ion-col size="3">
-              <span translate>TRIP.OPERATION.OPE_PREFIX</span> #{{ item.rankOrderOnPeriod}}
-            </ion-col>-->
-            <ion-col style="padding-top: 8px !important;">
-              <ion-label>{{ item.physicalGear | referentialToString: opeForm.autocompleteFields.physicalGear.attributes }}</ion-label>
-            </ion-col>
-            <ion-col size="auto">
-              <ion-text>{{ item.startDateTime | dateFormat: {pattern: dateTimePattern} }}
-                <ion-text color="primary"><br/><small>{{ item.startDateTime | dateFromNow }}</small></ion-text>
-              </ion-text>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
+    <ion-list class="ion-no-padding">
+      <ng-container *rxIf="lastOperations$; let items; else noLastOperation">
 
-      </ion-item>
+        <ion-item *rxFor="let item of items; strategy: 'userBlocking'"
+                  tappable class="text-1x"
+                  [color]="data?.id === item.id ? 'secondary100' : undefined"
+                  (click)="onLastOperationClick($event, item.id)">
+          <app-operation-icon [value]="item" [allowParentOperation]="allowParentOperation"></app-operation-icon>
+          <ion-grid>
+            <ion-row>
+              <!-- FIXME: rankOrder cannot be safely computed, when using a page's offset
+              <ion-col size="3">
+                <span translate>TRIP.OPERATION.OPE_PREFIX</span> #{{ item.rankOrderOnPeriod}}
+              </ion-col>-->
+              <ion-col style="padding-top: 8px !important;">
+                <ion-label>{{ item.physicalGear | referentialToString: opeForm.autocompleteFields.physicalGear.attributes }}</ion-label>
+              </ion-col>
+              <ion-col size="auto">
+                <ion-text>{{ item.startDateTime | dateFormat: {pattern: dateTimePattern} }}
+                  <ion-text color="primary"><br/><small>{{ item.startDateTime | dateFromNow }}</small></ion-text>
+                </ion-text>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
 
-      <!-- no result-->
-      <ng-container *ngIf="!items.length" [ngTemplateOutlet]="noLastOperation">
+        </ion-item>
+
+        <!-- no result-->
+        <ng-container *ngIf="!items.length" [ngTemplateOutlet]="noLastOperation">
+        </ng-container>
+
       </ng-container>
 
-    </ng-container>
+      <!-- No last operations -->
+      <ng-template #noLastOperation>
+        <ion-item>
+          <ion-text color="medium" class="text-italic">
+            <span translate>TRIP.OPERATION.NO_LAST_OPERATION</span>
+          </ion-text>
+        </ion-item>
+      </ng-template>
+    </ion-list>
 
-    <!-- No last operations -->
-    <ng-template #noLastOperation>
-      <ion-item>
-        <ion-text color="medium" class="text-italic">
-          <span translate>TRIP.OPERATION.NO_LAST_OPERATION</span>
-        </ion-text>
-      </ion-item>
-    </ng-template>
-  </ion-list>
+    <!-- final space (need by fab button)-->
+    <p visible-xs visible-sm visible-mobile>&nbsp;</p>
 
-  <!-- final space (need by fab button)-->
-  <p visible-xs visible-sm visible-mobile>&nbsp;</p>
+    <!-- new operation fab button (mobile) -->
+    <ion-fab-button color="tertiary"
+                    size="small"
+                    class="visible-xs visible-sm visible-mobile"
+                    [disabled]="loading"
+                    style="margin-left: calc(100% - 50px); margin-top: -46px;"
+                    (click)="saveAndNew($event)">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
 
-  <!-- new operation fab button (mobile) -->
-  <ion-fab-button color="tertiary"
-                  size="small"
-                  class="visible-xs visible-sm visible-mobile"
-                  [disabled]="loading"
-                  style="margin-left: calc(100% - 50px); margin-top: -46px;"
-                  (click)="saveAndNew($event)">
-    <ion-icon name="add"></ion-icon>
-  </ion-fab-button>
+    <ion-footer hidden-mobile hidden-xs hidden-sm>
+      <ion-toolbar>
+        <div slot="end" class="ion-padding-end">
+          <!-- Show all button -->
+          <ion-button fill="clear"
+                      (click)="toolbar.doBackClick($event)"
+                      routerDirection="back"
+                      translate>TRIP.OPERATION.BTN_SHOW_ALL</ion-button>
 
-  <ion-footer hidden-mobile hidden-xs hidden-sm>
-    <ion-toolbar>
-      <div slot="end" class="ion-padding-end">
-        <!-- Show all button -->
-        <ion-button fill="clear"
-                    (click)="toolbar.doBackClick($event)"
-                    routerDirection="back"
-                    translate>TRIP.OPERATION.BTN_SHOW_ALL</ion-button>
-
-        <!-- New operation button -->
-        <ion-button color="tertiary" fill="solid"
-                    (click)="saveAndNew($event)" translate>COMMON.BTN_ADD</ion-button>
-      </div>
-    </ion-toolbar>
-  </ion-footer>
+          <!-- New operation button -->
+          <ion-button color="tertiary" fill="solid"
+                      (click)="saveAndNew($event)" translate>COMMON.BTN_ADD</ion-button>
+        </div>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
 </mat-menu>
 
 <!-- Type = options menu -->
@@ -222,6 +225,7 @@
                                   [tabindex]="1"
                                   (onSubmit)="save($event)"
                                   (lastEndDateChanges)="lastEndDate=$event"
+                                  (openParentOperation)="openParentOperation($event)"
                                   [debug]="debug">
 
                 <!-- Other features (Measurements) -->
@@ -383,6 +387,9 @@
             <span *ngIf="opeForm.isChildOperation">
               parentOperation.startDateTime: {{form.get('parentOperation.startDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
               parentOperation.fishingStartDateTime: {{form.get('parentOperation.fishingStartDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>
+
+              batchTree.enabled: {{batchTree.enabled}}
+              batchTree.loading: {{batchTree.loading}}
             </span>
             <span *ngIf="opeForm.isParentOperation">
               childOperation.fishingEndDateTime: {{form.get('childOperation.fishingEndDateTime')?.valueChanges|async|dateFormat: {time: true} }}<br/>

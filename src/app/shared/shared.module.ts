@@ -1,7 +1,7 @@
-import { ModuleWithProviders, NgModule } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Injectable, ModuleWithProviders, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, DetachedRouteHandle, RouteReuseStrategy, RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { Environment, SharedModule } from '@sumaris-net/ngx-components';
+import { Environment, isNil, isNotNil, SharedModule } from '@sumaris-net/ngx-components';
 import { Context, ContextService } from './context.service';
 import { DisplayWithPipe } from '@app/shared/pipes/display-with.pipe';
 import { DelayPipe } from '@app/shared/pipes/delay.pipe';
@@ -14,6 +14,7 @@ import {IfModule} from '@rx-angular/template/if';
 import {ForModule} from '@rx-angular/template/for';
 import {LetModule} from '@rx-angular/template/let';
 import {PushModule} from '@rx-angular/template/push';
+import { IonicRouteStrategy } from '@ionic/angular';
 
 @NgModule({
   imports: [

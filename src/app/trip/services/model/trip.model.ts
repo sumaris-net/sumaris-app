@@ -404,6 +404,9 @@ export class OperationUtils {
   static isAbnormal(data: Operation): boolean {
     return data?.measurements?.some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
   }
+  static hasParentOperation(data: Operation): boolean {
+    return data && isNotNil(data.parentOperationId) || isNotNil(data.parentOperation?.id);
+  }
 }
 
 @EntityClass({typename: 'OperationGroupVO'})

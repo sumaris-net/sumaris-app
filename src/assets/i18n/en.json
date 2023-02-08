@@ -675,7 +675,7 @@
         "BTN_DELETE": "Delete this operation",
         "BTN_DUPLICATE": "Duplicate this operation",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
-        "BTN_EDIT_PARENT" : "Edit setting",
+        "BTN_OPEN_PARENT" : "Open setting",
         "BTN_SELECT_PARENT" : "Select setting",
         "BTN_SAVE_AND_NEW" : "Save and new",
         "COMMENTS": "Comment",

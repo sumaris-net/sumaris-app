@@ -1,8 +1,8 @@
-import {ChangeDetectionStrategy, Component, Injector, Optional, ViewChild} from '@angular/core';
-import {OperationSaveOptions, OperationService} from '../services/operation.service';
-import {OperationForm} from './operation.form';
-import {TripService} from '../services/trip.service';
-import {MeasurementsForm} from '../measurement/measurements.form.component';
+import { ChangeDetectionStrategy, Component, Injector, Optional, ViewChild } from '@angular/core';
+import { OperationSaveOptions, OperationService } from '../services/operation.service';
+import { OperationForm } from './operation.form';
+import { TripService } from '../services/trip.service';
+import { MeasurementsForm } from '../measurement/measurements.form.component';
 import {
   AppEditorOptions,
   AppEntityEditor,
@@ -24,37 +24,39 @@ import {
   isNotNilOrBlank,
   LocalSettingsService,
   ReferentialUtils,
+  sleep,
   toBoolean,
   toNumber,
   UsageMode,
   WaitForOptions
 } from '@sumaris-net/ngx-components';
-import {MatTabChangeEvent} from '@angular/material/tabs';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime} from 'rxjs/operators';
-import {UntypedFormGroup, Validators} from '@angular/forms';
-import {Moment} from 'moment';
-import {Program} from '@app/referential/services/model/program.model';
-import {Operation, OperationUtils, Trip} from '../services/model/trip.model';
-import {OperationPasteFlags, ProgramProperties} from '@app/referential/services/config/program.config';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds} from '@app/referential/services/model/model.enum';
-import {IBatchTreeComponent} from '../batch/tree/batch-tree.component';
-import {environment} from '@environments/environment';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {from, merge, of, Subscription, timer} from 'rxjs';
-import {Measurement, MeasurementUtils} from '@app/trip/services/model/measurement.model';
-import {IonRouterOutlet, ModalController} from '@ionic/angular';
-import {SampleTreeComponent} from '@app/trip/sample/sample-tree.component';
-import {IPmfmForm, OperationValidators} from '@app/trip/services/validator/operation.validator';
-import {TripContextService} from '@app/trip/services/trip-context.service';
-import {APP_ENTITY_EDITOR} from '@app/data/quality/entity-quality-form.component';
-import {IDataEntityQualityService} from '@app/data/services/data-quality-service.class';
-import {ContextService} from '@app/shared/context.service';
-import {Geometries} from '@app/shared/geometries.utils';
-import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
-import {flagsToString, removeFlag} from '@app/shared/flags.utils';
-import {PositionUtils} from '@app/trip/services/position.utils';
-import {RxState} from '@rx-angular/state';
-import {TripPageTabs} from '@app/trip/trip/trip.page';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { debounceTime, distinctUntilChanged, filter, map, mergeMap, startWith, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
+import { UntypedFormGroup, Validators } from '@angular/forms';
+import { Moment } from 'moment';
+import { Program } from '@app/referential/services/model/program.model';
+import { Operation, OperationUtils, Trip } from '../services/model/trip.model';
+import { OperationPasteFlags, ProgramProperties } from '@app/referential/services/config/program.config';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { IBatchTreeComponent } from '../batch/tree/batch-tree.component';
+import { environment } from '@environments/environment';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { from, merge, of, Subscription, timer } from 'rxjs';
+import { Measurement, MeasurementUtils } from '@app/trip/services/model/measurement.model';
+import { ModalController } from '@ionic/angular';
+import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
+import { IPmfmForm, OperationValidators } from '@app/trip/services/validator/operation.validator';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { ContextService } from '@app/shared/context.service';
+import { Geometries } from '@app/shared/geometries.utils';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { flagsToString, removeFlag } from '@app/shared/flags.utils';
+import { PositionUtils } from '@app/trip/services/position.utils';
+import { RxState } from '@rx-angular/state';
+import { TripPageTabs } from '@app/trip/trip/trip.page';
+import { PredefinedColors } from '@ionic/core';
 
 export interface OperationState {
   hasIndividualMeasures?: boolean;
@@ -76,14 +78,6 @@ export interface OperationState {
   providers: [
     { provide: APP_ENTITY_EDITOR, useExisting: OperationPage },
     { provide: ContextService, useExisting: TripContextService},
-    {
-      provide: IonRouterOutlet,
-      useValue: {
-        // Tweak the IonRouterOutlet if this component shown in a modal
-        canGoBack: () => false,
-        nativeEl: '',
-      },
-    },
     RxState
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -135,6 +129,7 @@ export class OperationPage<S extends OperationState = OperationState>
     gear?: string[];
     [key:string]: string[]
   } = {};
+  toolbarColor:PredefinedColors = 'primary';
 
   // All second tabs components are disabled, by default (waiting PMFM measurements to decide that to show)
   showCatchTab = false;
@@ -315,7 +310,7 @@ export class OperationPage<S extends OperationState = OperationState>
         }),
 
         // Load last operations (if enabled)
-        //filter(_ => this.showLastOperations),
+        filter(_ => this.showLastOperations),
         filter(isNotNil),
         debounceTime(500),
         switchMap(tripId => this.dataService.watchAll(
@@ -428,8 +423,6 @@ export class OperationPage<S extends OperationState = OperationState>
   ngAfterViewInit() {
     super.ngAfterViewInit();
 
-
-
     if (this.measurementsForm) {
       this.registerSubscription(
         this.measurementsForm.pmfms$
@@ -441,11 +434,15 @@ export class OperationPage<S extends OperationState = OperationState>
       );
     }
 
+    const queryParams = this.route.snapshot.queryParams;
     // Manage tab group
     {
-      const queryParams = this.route.snapshot.queryParams;
       const subTabIndex = queryParams['subtab'] && parseInt(queryParams['subtab']) || 0;
       this.selectedSubTabIndex = subTabIndex;
+    }
+    // Manage toolbar color
+    if (isNotNilOrBlank(queryParams['color'])) {
+      this.toolbarColor = queryParams['color'];
     }
   }
 
@@ -867,27 +864,32 @@ export class OperationPage<S extends OperationState = OperationState>
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.NEW.TITLE').toPromise());
     }
 
-    // Get rankOrder from context, or compute it (if NOT mobile to avoid a long operation)
+    // Select the date to use for title
+    let titleDateTime = data.startDateTime || data.fishingStartDateTime;
+    if (OperationUtils.hasParentOperation(data)) {
+      titleDateTime = DateUtils.min(fromDateISOString(data.endDateTime), fromDateISOString(data.fishingEndDateTime)) || titleDateTime;
+    }
+
+    // Format date:
+    // - if mobile: display time only if today
+    const startDateTime = titleDateTime && (
+        this.mobile && DateUtils.moment().isSame(titleDateTime, 'day')
+          ? this.dateFormat.transform(titleDateTime, {pattern: 'HH:mm'})
+          : this.dateFormat.transform(titleDateTime, {time: true})) as string;
+
+    // Get rankOrder from context, or compute it (if NOT mobile to avoid additional processing time)
     let rankOrder = this.context?.operation?.rankOrderOnPeriod;
     if (isNil(rankOrder) && !this.mobile) {
-      const now = Date.now();
-      console.info('[operation-page] Computing rankOrder...');
+      const now = this.debug && Date.now();
+      if (this.debug) console.debug('[operation-page] Computing rankOrder...');
       rankOrder = await this.service.computeRankOrder(data, { fetchPolicy: 'cache-first' });
-      console.info(`[operation-page] Computing rankOrder [OK] #${rankOrder} - in ${Date.now()-now}ms`);
+      if (this.debug) console.debug(`[operation-page] Computing rankOrder [OK] #${rankOrder} - in ${Date.now()-now}ms`);
     }
     if (rankOrder) {
-      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {
-        startDateTime: data.startDateTime && this.dateFormat.transform(data.startDateTime, {time: true}) as string,
-        rankOrder
-      }).toPromise()) as string;
+      return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {startDateTime,rankOrder}).toPromise()) as string;
     }
     // No rankOrder (e.g. if mobile)
     else {
-      // Display date+time, or time only if today
-      const startDateTime = data.startDateTime && (
-        DateUtils.moment().isSame(data.startDateTime, 'day')
-          ? this.dateFormat.transform(data.startDateTime, {pattern: 'HH:mm'})
-          : this.dateFormat.transform(data.startDateTime, {time: true})) as string;
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE_NO_RANK', {startDateTime}).toPromise()) as string;
     }
   }
@@ -933,26 +935,17 @@ export class OperationPage<S extends OperationState = OperationState>
 
     const saved = this.isOnFieldMode && (!this.dirty || this.valid)
       // If on field mode: try to save silently
-      ? await this.save(event)
+      ? await this.save(event, {openTabIndex: -1})
       // If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm(null, {
-        emitEvent: false /*do not update view*/
-      });
+      : await this.saveIfDirtyAndConfirm(null, {openTabIndex: -1});
 
     if (!saved) return; // Skip
 
-    // Reopen another page
-    if (this.isNewData) {
-      return this.navigateTo(+id);
-    }
-
-    // Reload
-    return this.load(+id, {
-      tripId: this.data.tripId, updateRoute: true, openTabIndex: OperationPage.TABS.GENERAL});
+    return this.navigateTo(+id);
   }
 
-  async saveAndNew(event: Event): Promise<any> {
-    if (event?.defaultPrevented) return Promise.resolve(); // Skip
+  async saveAndNew(event: Event): Promise<boolean> {
+    if (event?.defaultPrevented) return Promise.resolve(false); // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
     // Avoid reloading while saving or still loading
@@ -960,21 +953,15 @@ export class OperationPage<S extends OperationState = OperationState>
 
     const saved = this.isOnFieldMode && (!this.dirty || this.valid)
       // If on field mode AND valid: save silently
-      ? await this.save(event)
+      ? await this.save(event, {openTabIndex: -1})
       // Else If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm(null, {
-        emitEvent: false /*do not update view*/
-      });
+      : await this.saveIfDirtyAndConfirm(null, {openTabIndex: -1});
     if (!saved) return; // not saved
 
-    // Reload
-    if (this.isNewData) {
-      return this.load(undefined, {tripId: this.trip?.id, updateRoute: true, openTabIndex: OperationPage.TABS.GENERAL})
-    }
-
     // Redirect to /new
-    return this.navigateTo('new');
+    return await this.navigateTo('new');
   }
+
 
   async duplicate(event: Event): Promise<any> {
     if (event?.defaultPrevented || !this.context) return Promise.resolve(); // Skip
@@ -985,11 +972,9 @@ export class OperationPage<S extends OperationState = OperationState>
 
     const saved = (this.isOnFieldMode && this.dirty && this.valid)
       // If on field mode AND valid: save silently
-      ? await this.save(event)
+      ? await this.save(event, {openTabIndex: -1})
       // Else If desktop mode: ask before save
-      : await this.saveIfDirtyAndConfirm(null, {
-        emitEvent: false /*do not update view*/
-      });
+      : await this.saveIfDirtyAndConfirm(null, {openTabIndex: -1});
 
     if (!saved) return; // User cancelled, or cannot saved => skip
 
@@ -1094,7 +1079,7 @@ export class OperationPage<S extends OperationState = OperationState>
     }
   }
 
-  async save(event, opts?: OperationSaveOptions): Promise<boolean> {
+  async save(event, opts?: OperationSaveOptions & {emitEvent?: boolean; updateRoute?: boolean; openTabIndex?: number}): Promise<boolean> {
     if (this.loading || this.saving) {
       console.debug('[data-editor] Skip save: editor is busy (loading or saving)');
       return false;
@@ -1106,7 +1091,10 @@ export class OperationPage<S extends OperationState = OperationState>
 
     // Save new gear to the trip
     const gearSaved = await this.saveNewPhysicalGear({emitEvent: false});
-    if (!gearSaved) return false; // Stop if failed
+    if (!gearSaved) {
+      this.markForCheck();
+      return false; // Stop if failed
+    }
 
     // Force to pass specific saved options to dataService.save()
     const saved = await super.save(event, <OperationSaveOptions>{
@@ -1141,7 +1129,7 @@ export class OperationPage<S extends OperationState = OperationState>
     return saved;
   }
 
-  async saveIfDirtyAndConfirm(event?: Event, opts?: { emitEvent: boolean }): Promise<boolean> {
+  async saveIfDirtyAndConfirm(event?: Event, opts?: { emitEvent?: boolean; openTabIndex?: number }): Promise<boolean> {
     return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
   }
 
@@ -1153,17 +1141,21 @@ export class OperationPage<S extends OperationState = OperationState>
     if (!physicalGear || isNotNil(physicalGear.id)) return true; // Skip
 
     // DEBUG
-    console.debug('[operation] Saving new physical gear...');
+    console.debug('[operation-page] Saving new physical gear...');
 
     this.markAsSaving();
     this.resetError();
 
     try {
-      const savedPhysicalGear = await this.tripService.addGear(this.trip.id, physicalGear);
+      const savedPhysicalGear = await this.tripService.getOrAddGear(this.trip.id, physicalGear);
 
       // Update form with the new gear
       this.opeForm.physicalGearControl.patchValue(savedPhysicalGear, {emitEvent: false});
-      this.trip.gears.push(savedPhysicalGear);
+
+      // Update the current trip object
+      if (!this.trip.gears?.some(g => PhysicalGear.equals(g, savedPhysicalGear))) {
+        this.trip.gears.push(savedPhysicalGear);
+      }
 
       return true;
     } catch (err) {
@@ -1507,20 +1499,64 @@ export class OperationPage<S extends OperationState = OperationState>
    * @param id
    * @protected
    */
-  protected async navigateTo(id?: number|'new'): Promise<void> {
-    const program = this.context.program;
-    const editor = program?.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR) || ProgramProperties.TRIP_OPERATION_EDITOR.defaultValue;
-    const editorPath = editor !== 'legacy' ? [editor] : [];
-;
-    // Workaround, when same URL: unload the page
-    if (this.route.snapshot.paramMap.get('operationId') == id) {
-      console.warn('[operation] Unload the page!')
-      await this.unload();
-    }
+  protected async navigateTo(id: number|'new', opts?: {queryParams?: any; replaceUrl?: boolean; tripId?: number}): Promise<boolean> {
 
-    await this.router.navigateByUrl('/' + ['trips', this.tripId, 'operation', ...editorPath, id].join('/'), {
-      replaceUrl: true,
-      skipLocationChange: false
-    });
+    const path = this.computePageUrl(id);
+    const commands: any[] = (path && typeof path === 'string') ? path.split('/').slice(1) : path as any[];
+    if (isNotEmptyArray(commands)) {
+
+      // Change the trip id in path
+      if (isNotNil(opts?.tripId) && commands[0] == 'trips' && +commands[1] === this.tripId) {
+        commands[1] = opts.tripId;
+      }
+
+      // Should replace the current page in history ? (default: true)
+      let replaceUrl = !opts || opts.replaceUrl !== false;
+      let queryParams = opts?.queryParams || {};
+
+
+      // Workaround, to force angular to reload a new page
+      if (id === 'new') {
+        const ok = await this.goBack();
+        if (!ok) return;
+        await sleep(450);
+        replaceUrl = false; // No more need to replace the current page in history
+      }
+      else {
+        queryParams[this.pathIdAttribute] = ''+id;
+      }
+
+      return await this.router.navigate(commands, {
+        replaceUrl,
+        queryParams
+      });
+    }
+    return Promise.reject('Missing page URL');
+  }
+
+  async openParentOperation(parent: Operation): Promise<boolean> {
+
+    const saved = this.isOnFieldMode && (!this.dirty || this.valid)
+      // If on field mode: try to save silently
+      ? await this.save(null, {openTabIndex: -1})
+      // If desktop mode: ask before save
+      : await this.saveIfDirtyAndConfirm(null, {
+        openTabIndex: -1
+      });
+
+    if (!saved) return; // Skip
+
+    // Not same trips
+    if (this.tripId !== parent.tripId) {
+      return this.navigateTo(parent.id, {
+        replaceUrl: false, // IMPORTANT: back button will return to the curren OP
+        tripId: parent.tripId,
+        queryParams: {color: <PredefinedColors>'secondary'}
+      });
+    }
+    else {
+      // Open, and replace the current OP
+      return this.navigateTo(parent.id);
+    }
   }
 }

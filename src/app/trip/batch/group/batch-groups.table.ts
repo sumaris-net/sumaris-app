@@ -1351,7 +1351,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
     // Default measurements
     const filter = this.filter;
-    const filteredSpeciesPmfmIds = filter?.measurementValues && Object.keys(filter.measurementValues).filter(key => key !== '__typename');
+    const filteredSpeciesPmfmIds = MeasurementValuesUtils.getPmfmIds(filter?.measurementValues);
     if (isNotEmptyArray(filteredSpeciesPmfmIds)) {
       data.measurementValues = data.measurementValues || {};
       filteredSpeciesPmfmIds.forEach(pmfmId => {

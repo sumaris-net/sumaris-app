@@ -629,7 +629,7 @@ export class BatchForm<
 
     // No sampling batch
     else {
-      childrenFormArray.resize((data.children || []).length, opts);
+      childrenFormArray.resize((data?.children || []).length, opts);
       childrenFormArray.disable(opts);
     }
 
