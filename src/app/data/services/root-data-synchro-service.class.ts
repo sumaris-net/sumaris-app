@@ -1,6 +1,6 @@
 import { concat, defer, Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
-import { DataRootEntityUtils, RootDataEntity } from './model/root-data-entity.model';
+import { RootDataEntityUtils, RootDataEntity } from './model/root-data-entity.model';
 import {
   BaseEntityGraphqlQueries,
   BaseEntityGraphqlSubscriptions,
@@ -325,7 +325,7 @@ export abstract class RootDataSynchroService<
 
   async deleteAll(entities: T[], opts?: any): Promise<any> {
     // Delete local entities
-    const localEntities = entities && entities.filter(DataRootEntityUtils.isLocal);
+    const localEntities = entities && entities.filter(RootDataEntityUtils.isLocal);
     if (isNotEmptyArray(localEntities)) {
       return this.deleteAllLocally(localEntities, opts);
     }
@@ -384,7 +384,7 @@ export abstract class RootDataSynchroService<
 
     // Get local entity ids, then delete id
     const localEntities = entities && entities
-      .filter(DataRootEntityUtils.isLocal);
+      .filter(RootDataEntityUtils.isLocal);
 
     if (isEmptyArray(localEntities)) return; // Skip if empty
 

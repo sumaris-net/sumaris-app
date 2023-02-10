@@ -243,7 +243,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
       if (isEmptyArray(remoteIds)) return; // Skip if no remote ids
 
-      await this.trashRemoteService.deleteAll('Trip', remoteIds);
+      await this.trashRemoteService.deleteAll(Trip.ENTITY_NAME, remoteIds);
 
       // Unselect rows, then refresh
       this.selection.deselect(...rows);

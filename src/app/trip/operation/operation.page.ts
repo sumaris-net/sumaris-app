@@ -57,6 +57,8 @@ import { PositionUtils } from '@app/trip/services/position.utils';
 import { RxState } from '@rx-angular/state';
 import { TripPageTabs } from '@app/trip/trip/trip.page';
 import { PredefinedColors } from '@ionic/core';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { RootDataEntity, RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 
 export interface OperationState {
   hasIndividualMeasures?: boolean;
@@ -139,6 +141,7 @@ export class OperationPage<S extends OperationState = OperationState>
   showSampleTablesByProgram = false;
   isDuplicatedData = false;
   operationPasteFlags: number;
+  _defaultIsParentOperation: boolean = true;
   newOperationUrl: string = null;
   readonly forceOptionalExcludedPmfmIds: number[];
 
@@ -248,6 +251,7 @@ export class OperationPage<S extends OperationState = OperationState>
       // Let the user save OP, even if not set
       //PmfmIds.HAS_INDIVIDUAL_MEASURES
     ];
+    this._defaultIsParentOperation = this.route.snapshot.queryParams['type'] !== 'child';
 
     // Get paste flags from clipboard, if related to Operation
     const clipboard = this.context?.clipboard;
@@ -310,9 +314,10 @@ export class OperationPage<S extends OperationState = OperationState>
         }),
 
         // Load last operations (if enabled)
-        filter(_ => this.showLastOperations),
+        //filter(_ => this.showLastOperations),
+
         filter(isNotNil),
-        debounceTime(500),
+        //debounceTime(500),
         switchMap(tripId => this.dataService.watchAll(
           0, 5,
           'startDateTime', 'desc',
@@ -708,6 +713,7 @@ export class OperationPage<S extends OperationState = OperationState>
     this.opeForm.endDateTimeEnable = program.getPropertyAsBoolean(ProgramProperties.TRIP_OPERATION_END_DATE_ENABLE);
     this.opeForm.maxShootingDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_SHOOTING_DURATION_HOURS);
     this.opeForm.maxTotalDurationInHours = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_MAX_TOTAL_DURATION_HOURS);
+    this.opeForm.defaultIsParentOperation = this._defaultIsParentOperation;
     this.operationPasteFlags = program.getPropertyAsInt(ProgramProperties.TRIP_OPERATION_PASTE_FLAGS);
     if (this.debug && this.operationPasteFlags !== 0) {
       console.debug(`[operation-page] Enable duplication with paste flags: ${flagsToString(this.operationPasteFlags, OperationPasteFlags)}`);
@@ -722,12 +728,20 @@ export class OperationPage<S extends OperationState = OperationState>
     this.saveOptions.computeBatchIndividualCount = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_INDIVIDUAL_COUNT_COMPUTE);
     this.saveOptions.computeBatchWeight = !this.mobile && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_LENGTH_WEIGHT_CONVERSION_ENABLE);
 
+    // NOT need here, while 'updateLinkedOperation' is forced in save()
+    //this.saveOptions.updateLinkedOperation = this.allowParentOperation;
+
     this.showBatchTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_ENABLE);
     this.showSampleTablesByProgram = program.getPropertyAsBoolean(ProgramProperties.TRIP_SAMPLE_ENABLE);
 
     if (!this.allowParentOperation) {
       this.acquisitionLevel = AcquisitionLevelCodes.OPERATION;
     }
+    // When route ask for a child operation
+    else if (!this._defaultIsParentOperation) {
+      this.acquisitionLevel = AcquisitionLevelCodes.CHILD_OPERATION;
+    }
+
 
     if (this.batchTree) this.batchTree.program = program;
     if (this.sampleTree) this.sampleTree.program = program;
@@ -795,7 +809,7 @@ export class OperationPage<S extends OperationState = OperationState>
         if (previousOperation) {
           data.physicalGear = (trip.gears || []).find(g => EntityUtils.equals(g, previousOperation.physicalGear, 'id')) || data.physicalGear;
           data.metier = previousOperation.metier;
-          data.rankOrderOnPeriod = previousOperation.rankOrderOnPeriod + 1;
+          data.rankOrder = previousOperation.rankOrder + 1;
         }
       }
     }
@@ -878,7 +892,7 @@ export class OperationPage<S extends OperationState = OperationState>
           : this.dateFormat.transform(titleDateTime, {time: true})) as string;
 
     // Get rankOrder from context, or compute it (if NOT mobile to avoid additional processing time)
-    let rankOrder = this.context?.operation?.rankOrderOnPeriod;
+    let rankOrder = this.context?.operation?.rankOrder;
     if (isNil(rankOrder) && !this.mobile) {
       const now = this.debug && Date.now();
       if (this.debug) console.debug('[operation-page] Computing rankOrder...');
@@ -1001,7 +1015,7 @@ export class OperationPage<S extends OperationState = OperationState>
       // Set measurements form
       this.measurementsForm.gearId = gearId;
       this.measurementsForm.programLabel = this.programLabel;
-      const isChildOperation = data.parentOperation || isNotNil(data.parentOperationId);
+      const isChildOperation = data.parentOperation || isNotNil(data.parentOperationId) || !this._defaultIsParentOperation;
       const acquisitionLevel = isChildOperation ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
 
       // Propagate acquisition level, if changed
@@ -1090,8 +1104,8 @@ export class OperationPage<S extends OperationState = OperationState>
     }
 
     // Save new gear to the trip
-    const gearSaved = await this.saveNewPhysicalGear({emitEvent: false});
-    if (!gearSaved) {
+    const physicalGear = await this.getOrAddPhysicalGear({emitEvent: false});
+    if (!physicalGear) {
       this.markForCheck();
       return false; // Stop if failed
     }
@@ -1120,10 +1134,21 @@ export class OperationPage<S extends OperationState = OperationState>
       this.scrollToTop();
     }
 
-    else if (this.dirty) {
-      // Mark component has pristine
-      this.batchTree?.markAsPristine();
-      this.sampleTree?.markAsPristine();
+    else {
+      // Workaround, to make sure the editor is not dirty anymore
+      // => mark components as pristine
+      if (this.dirty) {
+        this.batchTree?.markAsPristine();
+        this.sampleTree?.markAsPristine();
+      }
+
+      // Mark trip as dirty
+      if (RootDataEntityUtils.isReadyToSync(this.trip)) {
+        RootDataEntityUtils.markAsDirty(this.trip);
+        this.trip = await this.tripService.save(this.trip);
+        // Update the context
+        this.context.setValue('trip', this.trip);
+      }
     }
 
     return saved;
@@ -1133,7 +1158,7 @@ export class OperationPage<S extends OperationState = OperationState>
     return super.saveIfDirtyAndConfirm(event, {...this.saveOptions, ...opts});
   }
 
-  async saveNewPhysicalGear(opts?: {emitEvent: boolean}): Promise<boolean> {
+  async getOrAddPhysicalGear(opts?: {emitEvent: boolean}): Promise<boolean> {
     if (this.loading || this.saving) return false;
     if (!this.dirty) return true; // Skip
 
@@ -1322,9 +1347,13 @@ export class OperationPage<S extends OperationState = OperationState>
   protected getJsonValueToSave(): Promise<any> {
     const json = this.opeForm.value;
 
+    // Mark as not controlled (remove control date, etc.)
+    DataEntityUtils.markAsNotControlled(json as Operation, {keepQualityFlag: true});
+
     // Make sure parent operation has quality flag
-    if (this.allowParentOperation && EntityUtils.isEmpty(json.parentOperation, 'id') && isNil(json.qualityFlagId)){
-      console.warn('[operation-page] Parent operation does not have quality flag id');
+    if (this.allowParentOperation && EntityUtils.isEmpty(json.parentOperation, 'id')
+      && DataEntityUtils.hasNoQualityFlag(json)){
+      console.warn('[operation-page] Parent operation does not have quality flag id. Changing to NOT_COMPLETED ');
       json.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
       this.opeForm.qualityFlagControl.patchValue(QualityFlagIds.NOT_COMPLETED, {emitEvent: false});
     }
@@ -1335,6 +1364,7 @@ export class OperationPage<S extends OperationState = OperationState>
     }
     json.measurements = this.measurementsForm.value;
     json.tripId = this.trip.id;
+
     return json;
   }
 
@@ -1425,11 +1455,22 @@ export class OperationPage<S extends OperationState = OperationState>
       // Load parent operation
       const parentOperationId = toNumber(data.parentOperationId, data.parentOperation?.id);
       if (isNotNil(parentOperationId)) {
+        let validParent = true;
         try {
           data.parentOperation = await this.dataService.load(parentOperationId, {fullLoad: false, fetchPolicy: 'cache-first'});
           data.parentOperationId = undefined;
+
+          // Check parent operation is not already associated to another remote child operation
+          if (data.parentOperation && EntityUtils.isRemoteId(data.parentOperation.childOperationId) && data.parentOperation.childOperationId !== data.id) {
+            console.error(`Parent operation exists, but already linked to another remote operation: #${data.parentOperation.childOperationId}: mark parent has missing, to force user to fix it`);
+            validParent = false;
+          }
+
         } catch (err) {
           console.error('Cannot load parent operation: keep existing, to force user to fix it', err);
+          validParent = false;
+        }
+        if (!validParent) {
           data.parentOperationId = undefined;
           data.parentOperation = Operation.fromObject({
             id: parentOperationId,

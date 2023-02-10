@@ -30,7 +30,7 @@ import { DataCommonFragments, DataFragments } from './trip.queries';
 import { filter, map } from 'rxjs/operators';
 import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS } from '../../data/services/model/data-entity.model';
 import { ObservedLocation } from './model/observed-location.model';
-import { DataRootEntityUtils } from '../../data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '../../data/services/model/root-data-entity.model';
 import { SortDirection } from '@angular/material/sort';
 import { IDataEntityQualityService } from '../../data/services/data-quality-service.class';
 import { LandingFragments, LandingService } from './landing.service';
@@ -564,7 +564,7 @@ export class ObservedLocationService
   }): Promise<any> {
 
     // Delete local entities
-    const localEntities = entities?.filter(DataRootEntityUtils.isLocal);
+    const localEntities = entities?.filter(RootDataEntityUtils.isLocal);
     if (isNotEmptyArray(localEntities)) {
       return this.deleteAllLocally(localEntities, opts);
     }
@@ -602,7 +602,7 @@ export class ObservedLocationService
 
     // Get local entity ids, then delete id
     const localEntities = entities && entities
-      .filter(DataRootEntityUtils.isLocal);
+      .filter(RootDataEntityUtils.isLocal);
 
     // Delete, one by one
     await chainPromises((localEntities || [])
@@ -760,7 +760,7 @@ export class ObservedLocationService
             landing.observedLocationId = entity.id;
             landing.location = entity.location;
             return this.landingService.synchronize(landing);
-          }),
+          })
         );
       }
 
@@ -795,6 +795,13 @@ export class ObservedLocationService
       console.error(`[observed-location-service] Failed to locally delete observedLocation {${entity.id}} and its landings`, err);
       // Continue
     }
+
+    // Clear page history
+    try {
+      // FIXME: find a way o clean only synchronized data ?
+      await this.settings.clearPageHistory();
+    }
+    catch(err) { /* Continue */}
 
     return entity;
   }

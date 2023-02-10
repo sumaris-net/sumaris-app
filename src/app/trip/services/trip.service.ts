@@ -12,7 +12,7 @@ import {
   Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
-  EntityUtils,
+  EntityUtils, equals,
   FormErrors,
   FormErrorTranslator,
   GraphqlService,
@@ -29,8 +29,8 @@ import {
   LocalSettingsService,
   NetworkService,
   PersonService,
-  ShowToastOptions,
-  Toasts,
+  ShowToastOptions, splitById, splitByProperty,
+  Toasts, toBoolean,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
@@ -41,14 +41,14 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE
 } from '@app/data/services/model/data-entity.model';
-import { Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable, of } from 'rxjs';
 import { IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
 import { Operation, OperationGroup, Trip } from './model/trip.model';
-import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, fillTreeRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
 import { OverlayEventDetail } from '@ionic/core';
@@ -80,6 +80,7 @@ import { UserEvent } from '@app/social/user-event/user-event.model';
 import moment from 'moment';
 import { RxState } from '@rx-angular/state';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -834,7 +835,7 @@ export class TripService
       update: async (cache, {data}) => {
         const savedEntity = data && data.data;
 
-        // Local entity: save it
+        // Local entity (optimistic response): save it
         if (savedEntity.id < 0) {
           if (this._debug) console.debug('[trip-service] [offline] Saving trip locally...', savedEntity);
 
@@ -853,7 +854,7 @@ export class TripService
             try {
               // Remove linked operations
               if (opts && opts.withOperation) {
-                await this.operationService.deleteLocally({tripId: entity.id});
+                await this.operationService.deleteAllLocallyByFilter({tripId: entity.id});
               }
             } catch (err) {
               console.error(`[trip-service] Failed to locally delete operations of trip {${entity.id}}`, err);
@@ -973,33 +974,28 @@ export class TripService
     entity.synchronizationStatus = 'SYNC';
     entity.id = undefined;
 
-    const childOperations = new Array<Operation>();
-    const parentOperations = new Array<Operation>();
-    const parentOperationsWithNoChild = new Array<Operation>();
-    const otherOperations = new Array<Operation>();
-    const operationToDeleteLocally = [];
-    const operationToSaveLocally = [];
+    const firstPassOperations: Operation[] = [];
+    const childOperationsWithLocalParent: Operation[] = [];
+    const parentOperationsWithLocalChild: Operation[] = [];
 
     if (opts.withOperation) {
 
       // Fill operations
-      const { data } = await this.operationService.loadAllByTrip({tripId: +localId},
+      const { data: operations } = await this.operationService.loadAllByTrip({tripId: +localId},
         {fullLoad: true, computeRankOrder: false});
 
       //sort operations to saving in good order
-      if (data) {
-        data.forEach(operation => {
+      if (isNotEmptyArray(operations)) {
+        operations.forEach(operation => {
           if (operation.parentOperationId && operation.parentOperationId < 0) {
-            childOperations.push(operation);
-          } else if (operation.childOperationId && operation.childOperationId < 0) {
-            parentOperations.push(operation);
-          } else if (!operation.childOperationId && !operation.parentOperationId && operation.qualityFlagId === QualityFlagIds.NOT_COMPLETED) {
-            parentOperationsWithNoChild.push(operation);
-          } else {
-            otherOperations.push(operation);
-            if (operation.parentOperation != null) {
-              operationToDeleteLocally.push(operation.parentOperationId);
-            }
+            childOperationsWithLocalParent.push(operation);
+          }
+          else if (operation.childOperationId && operation.childOperationId < 0) {
+            parentOperationsWithLocalChild.push(operation);
+          }
+          else {
+            // Can save this operation in the first pass (will be saved with the trip)
+            firstPassOperations.push(operation);
           }
         });
 
@@ -1009,15 +1005,17 @@ export class TripService
         entity.gears = (entity.gears || []).filter(physicalGear =>
           physicalGear.synchronizationStatus !== SynchronizationStatusEnum.TEMPORARY
           // IF temporary: check if used by an operation
-          || data.some(o => o.physicalGear.id === physicalGear.id)
+          || operations.some(o => o.physicalGear.id === physicalGear.id)
         );
       }
 
-      if (childOperations.filter(operation => !parentOperations.find(o => o.id === operation.parentOperationId)).length > 0) {
+      // Check no child operation without a local parent outside this trip
+      if (childOperationsWithLocalParent.some(child => !parentOperationsWithLocalChild.some(parent => parent.id === child.parentOperationId))) {
         throw new Error('ERROR.SYNCHRONIZE_CHILD_BEFORE_PARENT_ERROR');
       }
 
-      entity.operations = otherOperations;
+      // Excludes operations that cannot be saved in the first pass
+      entity.operations = firstPassOperations;
     }
 
     let packets;
@@ -1041,6 +1039,7 @@ export class TripService
 
     try {
 
+      // Save trip (and operations or operation groups)
       entity = await this.save(entity, opts);
 
       // Check return entity has a valid id
@@ -1056,32 +1055,57 @@ export class TripService
       };
     }
 
+    // Operations: second save to save parent then child
     if (opts.withOperation) {
 
-      for (const operation of parentOperations) {
-        const operationLocalId = operation.id;
-        operation.tripId = entity.id;
-        const savedOperation = await this.operationService.save(operation, opts);
-        childOperations
-          .filter(o => o.parentOperationId === operationLocalId)
-          .forEach(o => {
-            o.tripId = entity.id;
-            o.vesselId = entity.vesselSnapshot.id;
-            o.parentOperationId = savedOperation.id;
-        });
-      }
-      if (isNotEmptyArray(childOperations)) {
-        await this.operationService.saveAll(childOperations, opts);
+      const parentOperationsByLocalId = splitById(parentOperationsWithLocalChild);
+      const parentOperationsByChildLocalId = splitByProperty(parentOperationsWithLocalChild, 'childOperationId');
+
+      // Save parent operations with a local child
+      if (isNotEmptyArray(parentOperationsWithLocalChild)) {
+        parentOperationsWithLocalChild.forEach(o => o.tripId = entity.id);
+        await this.operationService.saveAll(parentOperationsWithLocalChild, {trip: entity});
       }
 
-      for (const operation of parentOperationsWithNoChild) {
-        operation.tripId = entity.id;
-        const savedOperation = await this.operationService.save(operation, opts);
-        operationToSaveLocally.push(savedOperation.id);
+      // Update child with the remote parent id, then save it
+      if (isNotEmptyArray(childOperationsWithLocalParent)) {
+        childOperationsWithLocalParent.forEach(child => {
+          child.tripId = entity.id;
+          const savedParent = parentOperationsByLocalId[child.parentOperationId];
+          child.parentOperationId = savedParent.id;
+          child.parentOperation = null;
+          // remove from the maps
+          delete parentOperationsByLocalId[child.parentOperationId];
+          delete parentOperationsByChildLocalId[child.id];
+        });
+        await this.operationService.saveAll(childOperationsWithLocalParent, {trip: entity});
+        // Add to entity operations
+        entity.operations = [
+          ...entity.operations,
+          ...childOperationsWithLocalParent
+        ]
+      }
+
+      // If still have some parent in the map, it means that their child are local, BUT in another trip
+      // => Update outdated link to parent (replace local id by the remote id)
+      const parentOperationLocalIdsWithoutChild = Object.keys(parentOperationsByLocalId).map(localId => +localId);
+      if (isNotEmptyArray(parentOperationLocalIdsWithoutChild)) {
+        const localChildOperations = await Promise.all(Object.keys(parentOperationsByChildLocalId).map(localId => +localId)
+          .map((childLocalId) => this.operationService.load(childLocalId, {fullLoad: true})));
+        const localChildOperationsToUpdate = localChildOperations
+          .map(child => {
+            const parent = parentOperationsByLocalId[child.parentOperationId];
+            if (!parent) return; // Skip if parent not found (e.g. changed without updating the parent operation)
+            child.parentOperationId = parent.id;
+            child.parentOperation = null; // Clean cache
+            return child;
+          })
+          .filter(isNotNil);
+        await this.operationService.saveAll(localChildOperationsToUpdate);
       }
     }
 
-    // Second save is only needed when expectedSale has some products
+    // OperationGroups: Second save is only needed when expectedSale has some products
     if (opts.withOperationGroup && expectedSaleProducts) {
       const savedPackets = entity.operationGroups.reduce((res, operationGroup) => {
         return res.concat(operationGroup.packets);
@@ -1108,36 +1132,49 @@ export class TripService
       }
     }
 
-
+    // Clean local trip
     try {
       if (this._debug) console.debug(`[trip-service] Deleting trip {${entity.id}} from local storage`);
 
+      // Delete trip's operations
       if (opts.withOperation) {
-        // Delete trip's operations
-        await this.operationService.deleteLocally({tripId: +localId});
-
-        // Delete parent from other trip which have child operation now
-        await this.operationService.deleteLocally({includedIds: operationToDeleteLocally});
-
-        // Saved locally new parent operation which wait child operation
-        if (operationToSaveLocally.length > 0) {
-          const { data } = await this.operationService.loadAll(0, 999, null, null,
-            {
-              includedIds: operationToSaveLocally,
-              programLabel: entity.program.label
-            });
-          await this.operationService.saveAllLocally(data);
-        }
+        await this.operationService.deleteAllLocallyByFilter({tripId: +localId});
       }
 
       // Delete trip
       await this.entities.deleteById(localId, {entityName: Trip.TYPENAME});
+
     } catch (err) {
       console.error(`[trip-service] Failed to locally delete trip {${entity.id}} and its operations`, err);
       // Continue
     }
 
-    // TODO: add to a synchro history (using class SynchronizationHistory) and store it in local settings ?
+    // Importing historical data (need to get parent operation in the local storage)
+    try {
+
+      let filter: Partial<TripFilter> = this.settings.getOfflineFeature(this.featureName)?.filter || {};
+
+      // Force the data program, because user can fill data on many programs (e.g. PIFIL and ACOST) but have configured only once for offline data importation
+      filter.program = entity.program;
+
+      // Make sure the program, in case filter is not on the same
+      filter.startDate = DateUtils.min(entity.departureDateTime, filter.startDate);
+      filter.endDate = null;
+
+      // Run importation
+      await this.importHistoricalData(filter, {});
+
+    } catch (err) {
+      console.error(`[trip-service] Failed to import historical data`, err);
+      // Continue
+    }
+
+    // Clear page history
+    try {
+      // FIXME: find a way o clean only synchronized data ?
+      await this.settings.clearPageHistory();
+    }
+    catch(err) { /* Continue */}
 
     return entity;
   }
@@ -1218,7 +1255,7 @@ export class TripService
   }): Promise<any> {
 
     // Delete local entities
-    const localEntities = entities?.filter(DataRootEntityUtils.isLocal);
+    const localEntities = entities?.filter(RootDataEntityUtils.isLocal);
     if (isNotEmptyArray(localEntities)) {
       return this.deleteAllLocally(localEntities, opts);
     }
@@ -1256,7 +1293,7 @@ export class TripService
   }): Promise<any> {
 
     // Get local entities
-    const localEntities = entities?.filter(DataRootEntityUtils.isLocal);
+    const localEntities = entities?.filter(RootDataEntityUtils.isLocal);
 
     // Delete, one by one
     await chainPromises((localEntities || [])
@@ -1358,7 +1395,7 @@ export class TripService
       withOperationGroup: true, // Change default value to 'true'
       ...opts
     };
-    const isLocal = DataRootEntityUtils.isLocal(source);
+    const isLocal = RootDataEntityUtils.isLocal(source);
 
     // Create a new entity (without id and updateDate)
     const json = this.asObject(source, {...COPY_LOCALLY_AS_OBJECT_OPTIONS, keepRemoteId: opts.keepRemoteId});
@@ -1372,7 +1409,7 @@ export class TripService
       if (isLocal) {
         await this.entities.deleteFromTrash(source, {entityName: Trip.TYPENAME});
       } else {
-        await this.trashRemoteService.delete('Trip', source.id);
+        await this.trashRemoteService.delete(Trip.ENTITY_NAME, source.id);
       }
     }
 
@@ -1398,7 +1435,7 @@ export class TripService
     // Update sale
     if (source.sale && target.sale) {
       EntityUtils.copyIdAndUpdateDate(source.sale, target.sale);
-      DataRootEntityUtils.copyControlAndValidationDate(source.sale, target.sale);
+      RootDataEntityUtils.copyControlAndValidationDate(source.sale, target.sale);
 
       // For a landedTrip with operationGroups, copy directly sale's product, a reload must be done after service call
       if (opts && opts.withLanding && source.sale.products) {
@@ -1502,7 +1539,7 @@ export class TripService
           const source = sources.splice(index, 1)[0];
 
           EntityUtils.copyIdAndUpdateDate(source, target);
-          DataRootEntityUtils.copyControlAndValidationDate(source, target);
+          RootDataEntityUtils.copyControlAndValidationDate(source, target);
 
           // Copy parent Id (need for link to parent)
           target.parentId = source.parentId;
@@ -1685,7 +1722,7 @@ export class TripService
     filter = this.asFilter(filter);
 
     const programLabel = filter && filter.program?.label;
-    if (programLabel) {
+    if (isNotNilOrBlank(programLabel)) {
 
       return [
         // Store program to opts, for other services (e.g. used by OperationService)
@@ -1708,23 +1745,25 @@ export class TripService
                   opts.countryIds = opts.countryIds || [];
                   if (!opts.countryIds.includes(countryId)) opts.countryIds.push(countryId);
                 }
-
               }
 
               // Limit locations (e.g. rectangle)
               opts.locationLevelIds = program.getPropertyAsNumbers(ProgramProperties.TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS);
               opts.boundingBox = Geometries.parseAsBBox(program.getProperty(ProgramProperties.TRIP_POSITION_BOUNDING_BOX));
+
+              // TODO limit vessels (e.g. for OBSBIO)
+
             })),
 
         ...super.getImportJobs(filter, opts),
 
-        // Import operations
+        // Import pending operations
         JobUtils.defer(o => {
           const operationFilter = TripFilter.toOperationFilter(filter);
           return this.operationService.executeImport(operationFilter, o);
         }, opts),
 
-        // Import historical physical gear
+        // Import physical gears
         JobUtils.defer(o => {
           const gearFilter = TripFilter.toPhysicalGearFilter(filter);
           return this.physicalGearService.executeImport(gearFilter, o);
@@ -1735,6 +1774,43 @@ export class TripService
     }
   }
 
+  /**
+   * Reimport historical gears, or pending operations (parent OP without child)
+   * @param filter
+   * @param opts
+   * @protected
+   */
+  protected async importHistoricalData(filter?: Partial<TripFilter>,
+                                       opts?: {
+                                         progression?: BehaviorSubject<number>
+                                         maxProgression?: number;
+                                       }): Promise<void> {
+
+    const maxProgression = opts && opts.maxProgression || 100;
+
+    filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
+    filter = this.asFilter(filter);
+
+    const programLabel = filter?.program?.label;
+
+    if (isNotNilOrBlank(programLabel)) {
+      console.info("[trip-service] Importing historical data, from filter: ", filter);
+
+      // Import pending operations
+      const operationFilter = TripFilter.toOperationFilter(filter);
+      await this.operationService.executeImport(operationFilter, {
+        ...opts, maxProgression: maxProgression / 2
+      });
+
+      // Import physical gears
+      const gearFilter = TripFilter.toPhysicalGearFilter(filter);
+      await this.physicalGearService.executeImport(gearFilter, {
+        ...opts, maxProgression: maxProgression / 2
+      });
+    }
+
+    if (opts?.progression) opts?.progression.next(maxProgression);
+  }
 
   /**
    * Copy Id and update, in sample tree (recursively)

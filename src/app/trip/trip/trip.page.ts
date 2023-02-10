@@ -505,7 +505,7 @@ export class TripPage
     });
   }
 
-  async onNewOperation(event?: any) {
+  async onNewOperation(event?: any, operationQueryParams?: any) {
     const saved = this.isOnFieldMode && this.dirty
       // If on field mode: try to save silently
       ? await this.save(event)
@@ -525,11 +525,11 @@ export class TripPage
     // Reset operation
     this.tripContext?.resetValue('operation');
 
-    // OPen the operation editor
+    // Open the operation editor
     setTimeout(async () => {
       const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
       await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
-        queryParams: {}
+        queryParams: operationQueryParams || {}
       });
       this.markAsLoaded();
     });
@@ -773,7 +773,6 @@ export class TripPage
           })
       );
     }
-
   }
 
   protected markForCheck() {

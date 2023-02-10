@@ -36,7 +36,7 @@ import { filter, map } from 'rxjs/operators';
 import { BaseRootDataService } from '@app/data/services/root-data-service.class';
 import { Sample } from './model/sample.model';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
-import { DataRootEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 
 import { SortDirection } from '@angular/material/sort';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -538,7 +538,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
     // If parent is a local entity: force to save locally
     // If is a local entity: force a local save
-    const offline = entity.observedLocationId < 0 || DataRootEntityUtils.isLocal(entity);
+    const offline = entity.observedLocationId < 0 || RootDataEntityUtils.isLocal(entity);
     if (offline) {
       return await this.saveLocally(entity, opts);
     }
@@ -1083,7 +1083,7 @@ export class LandingService extends BaseRootDataService<Landing, LandingFilter>
 
         const source = sources.find(source => target.equals(source));
         EntityUtils.copyIdAndUpdateDate(source, target);
-        DataRootEntityUtils.copyControlAndValidationDate(source, target);
+        RootDataEntityUtils.copyControlAndValidationDate(source, target);
 
         // Copy parent Id (need for link to parent)
         target.parentId = source?.parentId;

@@ -1,6 +1,6 @@
 import { DataEntity, DataEntityAsObjectOptions } from '@app/data/services/model/data-entity.model';
 import { UntypedFormGroup } from '@angular/forms';
-import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, ReferentialRef, removeDuplicatesFromArray, toDateISOString } from '@sumaris-net/ngx-components';
+import { AppFormUtils, arraySize, fromDateISOString, IEntity, isEmptyArray, isNil, isNotNil, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import { IPmfm, Pmfm } from '@app/referential/services/model/pmfm.model';
 import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
@@ -234,34 +234,39 @@ export class MeasurementUtils {
 
 export class MeasurementValuesUtils {
 
-  static valueEquals(v1: any,
-                     v2: any): boolean {
-    return (v1 === v2) || (v1 && v2 && isNotNil(v1.id) && v1.id === v2.id);
-  }
-
-  static equals(m1: MeasurementFormValues | MeasurementModelValues, m2: MeasurementFormValues | MeasurementModelValues): boolean {
-    return (isNil(m1) && isNil(m2))
-      || (m1 && !(removeDuplicatesFromArray([...this.getPmfmIds(m1), ...this.getPmfmIds(m2)])
-          .some(pmfmId => {
-            const sameValue = this.valueEquals(m1[pmfmId], m2?.[pmfmId]);
-            if (!sameValue) console.debug('TODO not same value for pmfmId=' + pmfmId, m1[pmfmId], m2?.[pmfmId]);
-            return !sameValue;
-          })))
-      || false;
-  }
-
+  /**
+   * Extract pmfm id, used in a measurementValues object
+   * @param m
+   */
   static getPmfmIds(source: MeasurementFormValues | MeasurementModelValues): number[] {
     return Object.getOwnPropertyNames(source || {})
       .filter(key => key !== '__typename')
       .map(key => parseInt(key))
-      .filter(pmfmId => pmfmId !== NaN)
+      .filter(pmfmId => !isNaN(pmfmId));
   }
 
-  static equalsPmfms(m1: { [pmfmId: number]: any },
-                     m2: { [pmfmId: number]: any },
+  static equals(m1: MeasurementFormValues | MeasurementModelValues, m2: MeasurementFormValues | MeasurementModelValues): boolean {
+    return (isNil(m1) && isNil(m2))
+      || (m1 && !this.getPmfmIds({...m1, ...m2}).some(pmfmId => {
+        const isSame = PmfmValueUtils.equals(m1[pmfmId], m2?.[pmfmId]);
+        // DEBUG
+        if (!isSame) {
+          console.debug('TODO Value not equals, on pmfmId ' + pmfmId);
+        }
+        return !isSame;
+      }))
+      || false;
+  }
+
+  static equalsPmfms(m1: MeasurementFormValues | MeasurementModelValues,
+                     m2: MeasurementFormValues | MeasurementModelValues,
                      pmfms: IPmfm[]): boolean {
     return (isNil(m1) && isNil(m2))
-      || !pmfms.find(pmfm => !this.valueEquals(m1[pmfm.id], m2[pmfm.id]));
+      || !pmfms.some(pmfm => !PmfmValueUtils.equals(m1[pmfm.id], m2[pmfm.id]));
+  }
+
+  static valueEquals(v1: any, v2: any): boolean {
+    return PmfmValueUtils.equals(v1, v2);
   }
 
   static valueToString(value: any, opts: { pmfm: IPmfm; propertyNames?: string[]; htmls?: boolean }): string | undefined {

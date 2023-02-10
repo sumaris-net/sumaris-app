@@ -324,12 +324,41 @@
   </ion-fab>
 
   <!-- FAB button: add operation -->
-  <ion-fab slot="fixed" vertical="bottom" horizontal="end"
-           *ngSwitchCase="2"
-           [class.cdk-visually-hidden]="operationsTable.disabled"
-           @fadeInOutAnimation>
-    <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+  <ng-container *ngSwitchCase="2">
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+             *ngIf="!operationsTable.allowParentOperation; else allowParentFabButton"
+             [class.cdk-visually-hidden]="operationsTable.disabled"
+             @fadeInOutAnimation>
+      <ion-fab-button color="tertiary" (click)="!saving && operationsTable.addRow($event)">
+        <ion-icon name="add"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+
+    <ng-template #allowParentFabButton>
+      <ion-fab slot="fixed" vertical="bottom" horizontal="end"
+               [class.cdk-visually-hidden]="operationsTable.disabled"
+               @fadeInOutAnimation>
+        <ion-fab-button color="tertiary" >
+          <ion-icon name="add"></ion-icon>
+        </ion-fab-button>
+
+        <ion-fab-list side="top">
+
+          <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.CHILD'|translate"
+                          (click)="onNewOperation($event, {type: 'child'})">
+            <mat-icon color="primary" svgIcon="rollback-arrow"></mat-icon>
+            <ion-icon class="icon-secondary" name="add"></ion-icon>
+          </ion-fab-button>
+
+          <ion-fab-button [title]="'TRIP.OPERATION.EDIT.TYPE.PARENT'|translate"
+                          (click)="onNewOperation($event, {type: 'parent'})">
+            <mat-icon color="primary" svgIcon="down-arrow"></mat-icon>
+            <ion-icon class="icon-secondary" name="add"></ion-icon>
+          </ion-fab-button>
+
+
+        </ion-fab-list>
+      </ion-fab>
+    </ng-template>
+  </ng-container>
 </ng-container>

@@ -56,6 +56,7 @@ import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-
 import { BBox } from 'geojson';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { isSameOrBefore } from 'ngx-material-timepicker/src/app/material-timepicker/utils/timepicker.utils';
 
 type FilterableFieldName = 'fishingArea' | 'metier';
 
@@ -160,6 +161,8 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
   get allowParentOperation(): boolean {
     return this._allowParentOperation;
   }
+
+  @Input() defaultIsParentOperation = true;
 
   @Input() set showPosition(value: boolean) {
     if (this._showPosition !== value) {
@@ -465,7 +468,7 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     }
 
     // If parent or child operation
-    const isChildOperation = data && isNotNil(data.parentOperation?.id);
+    const isChildOperation = data && isNotNil(data.parentOperation?.id) || !this.defaultIsParentOperation;
     const isParentOperation = !isChildOperation && (isNotNil(data.childOperation?.id) || this.allowParentOperation);
     if (isChildOperation || isParentOperation) {
       this._allowParentOperation = true; // do not use setter to not update form group
@@ -744,15 +747,18 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
     // Parent is not on the same trip
     else {
       // Load physical gear with measurements
-      let physicalGear = await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId);
+      let physicalGear = (await this.physicalGearService.load(parentOperation.physicalGear.id, parentOperation.tripId));
+
+      // Clean the local id, before searching (avoid false positive, because local ids are used many times, in different trips)
+      if (EntityUtils.isLocalId(physicalGear.id)) {
+        physicalGear.id = undefined;
+      }
 
       // Find trip's similar gears
-      const physicalGears = (await firstNotNilPromise(this._$physicalGears, {stop: this.destroySubject}))
+      const physicalGearMatches = (await firstNotNilPromise(this._$physicalGears, {stop: this.destroySubject}))
         .filter(pg => PhysicalGear.equals(physicalGear, pg, {withMeasurementValues: true, withRankOrder: false}));
 
-      if (isEmptyArray(physicalGears)) {
-        // Make a copy of parent operation physical gear's on current trip
-        physicalGear = physicalGear.clone();
+      if (isEmptyArray(physicalGearMatches)) {
         physicalGear.id = undefined;
         physicalGear.trip = undefined;
         physicalGear.tripId = this.trip.id;
@@ -767,19 +773,17 @@ export class OperationForm extends AppForm<Operation> implements OnInit, OnReady
         }
 
         // Append this gear to the list
-        this._$physicalGears.next([...physicalGears, physicalGear]);
+        this._$physicalGears.next([...physicalGearMatches, physicalGear]);
       }
       else {
-        if (physicalGears.length > 1) {
-          if (this.debug) {
-            console.warn('[operation-form] several matching physical gear on trip',
-              physicalGears,
-              physicalGears.map(g => PhysicalGear.computeSameAsScore(parentOperation.physicalGear, g)));
-          } else {
-            console.warn('[operation-form] several matching physical gear on trip', physicalGears);
-          }
+        // Sort by score (desc)
+        if (physicalGearMatches.length > 1) {
+          physicalGearMatches.sort(PhysicalGear.scoreComparator(physicalGear, 'desc', {withMeasurementValues: true, withRankOrder: true}));
+          if (this.debug) console.warn('[operation-form] Several matching physical gear on trip', physicalGearMatches);
         }
-        physicalGear = physicalGears[0];
+
+        // Keep the best match
+        physicalGear = physicalGearMatches[0];
       }
 
       physicalGearControl.setValue(physicalGear);

@@ -1,5 +1,5 @@
 // @dynamic
-import { UntypedFormGroup, ValidatorFn } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { AppFormUtils, isNotNil } from '@sumaris-net/ngx-components';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 
@@ -44,4 +44,14 @@ export class DataValidators {
     };
   }
 
+  static remoteEntity(msg?: any): ValidatorFn {
+    return  (control: UntypedFormControl) => {
+      const value = control.value;
+      if (value && (typeof value !== 'object' || value.id === undefined || value.id === null || value.id < 0)) {
+        if (msg) return { msg: msg };
+        return { remoteEntity: true };
+      }
+      return null;
+    }
+  }
 }

@@ -20,7 +20,7 @@ import {
   PlatformService
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService } from './data-quality-service.class';
-import { DataRootEntityUtils, RootDataEntity } from './model/root-data-entity.model';
+import { RootDataEntityUtils, RootDataEntity } from './model/root-data-entity.model';
 import { ErrorCodes } from './errors';
 import { IWithRecorderDepartmentEntity } from './model/model.utils';
 import { RootDataEntityFilter } from './model/root-data-filter.model';
@@ -224,7 +224,7 @@ export abstract class BaseRootDataService<
       update: (cache, {data}) => {
         const savedEntity = data && data.data;
         this.copyIdAndUpdateDate(savedEntity, entity);
-        DataRootEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
+        RootDataEntityUtils.copyQualificationDateAndFlag(savedEntity, entity);
 
         if (this._debug) console.debug(this._logPrefix + `Entity qualified in ${Date.now() - now}ms`, entity);
       }
@@ -239,7 +239,7 @@ export abstract class BaseRootDataService<
     EntityUtils.copyIdAndUpdateDate(source, target);
 
     // Copy control and validation date
-    DataRootEntityUtils.copyControlAndValidationDate(source, target);
+    RootDataEntityUtils.copyControlAndValidationDate(source, target);
 
   }
 
