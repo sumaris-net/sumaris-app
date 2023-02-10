@@ -624,6 +624,9 @@ export class OperationPage<S extends OperationState = OperationState>
         })
       );
     }
+    else {
+      this._state.set('hasIndividualMeasures', (_) => true);
+    }
 
     // Show default tables state
     if (defaultTableStates) {
