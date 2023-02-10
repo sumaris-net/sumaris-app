@@ -49,6 +49,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measurements-table.validator';
 import {DataEntity, DataEntityUtils} from '@app/data/services/model/data-entity.model';
 import {Sample} from '@app/trip/services/model/sample.model';
+import { RxState } from '@rx-angular/state';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -118,11 +119,16 @@ declare interface GroupColumnDefinition {
   qvIndex: number;
   colSpan?: number;
 }
+interface BatchGroupsTableState {
+  showSamplingBatchColumns: boolean;
+  individualCountColumns: boolean;
+}
 
 @Component({
   selector: 'app-batch-groups-table',
   templateUrl: 'batch-groups.table.html',
   styleUrls: ['batch-groups.table.scss'],
+  providers: [RxState],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BatchGroupsTable extends AbstractBatchesTable<
@@ -198,7 +204,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     }
   ];
 
-  private _showSamplingBatchColumns = true;
   private _showWeightColumns = true;
   private _rowValidatorSubscription: Subscription;
   private _speciesPmfms: IPmfm[]; // Pmfms at species level (when has QV pmfm)
@@ -255,26 +260,11 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   @Input() enableWeightLengthConversion: boolean;
   @Input() labelPrefix: string; // Prefix to use for BatchGroup.label. If empty, will use the acquisitionLevel
 
-  @Input() set showSamplingBatchColumns(value: boolean) {
-    if (this._showSamplingBatchColumns !== value) {
-      this._showSamplingBatchColumns = value;
-
-      if (this.validatorService) {
-        this.configureValidator(this.validatorService.measurementsOptions);
-      }
-
-      this.setModalOption('showSamplingBatch', value);
-
-      // updateColumns only if pmfms are ready
-      if (!this.loading && this._initialPmfms) {
-        this.computeDynamicColumns(this.qvPmfm, {cache: false /* no cache, to force computed */ });
-        this.updateColumns();
-      }
-    }
+  @Input() set showSamplingBatchColumns(value: boolean){
+    this._state.set('showSamplingBatchColumns', (_) => value);
   }
-
   get showSamplingBatchColumns(): boolean {
-    return this._showSamplingBatchColumns;
+    return this._state.get('showSamplingBatchColumns');
   }
 
   @Input() set showWeightColumns(value: boolean) {
@@ -301,11 +291,17 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.setShowColumn(pmfmId.toString(), show);
   }
 
-  @Input() showIndividualCountColumns: boolean;
   @Input() showError = true;
   @Input() allowSubBatches = true;
   @Input() defaultHasSubBatches = false;
   @Input() taxonGroupsNoWeight: string[] = [];
+
+  @Input() set showIndividualCountColumns(value: boolean){
+    this._state.set('individualCountColumns', (_) => value);
+  }
+  get showIndividualCountColumns(): boolean {
+    return this._state.get('individualCountColumns');
+  }
 
   @Output() onSubBatchesChanges = new EventEmitter<SubBatch[]>();
 
@@ -313,7 +309,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     injector: Injector,
     validatorService: BatchGroupValidatorService,
     protected context: TripContextService,
-    protected pmfmNamePipe: PmfmNamePipe
+    protected pmfmNamePipe: PmfmNamePipe,
+    protected _state: RxState<BatchGroupsTableState>
   ) {
     super(injector,
       BatchGroup, BatchFilter,
@@ -356,6 +353,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.inlineEdition = this.validatorService && !this.mobile;
     this.allowRowDetail = !this.inlineEdition;
     this.showIndividualCountColumns = toBoolean(this.showIndividualCountColumns, !this.mobile);
+    this.showSamplingBatchColumns = toBoolean(this.showSamplingBatchColumns, true);
 
     // in DEBUG only: force validator = null
     //if (this.debug && this.mobile) this.setValidatorService(null);
@@ -365,6 +363,22 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // Configure sortBy replacement
     this.memoryDataService.addSortByReplacement('taxonGroup', `taxonGroup.${firstArrayValue(this.autocompleteFields.taxonGroup.attributes)}`)
     this.memoryDataService.addSortByReplacement('taxonName', `taxonName.${firstArrayValue(this.autocompleteFields.taxonName.attributes)}`)
+
+    // Listen showSamplingBatchColumns
+    this._state.hold(this._state.select('showSamplingBatchColumns'),  async (value) => {
+      if (this.validatorService) {
+        this.configureValidator(this.validatorService.measurementsOptions);
+      }
+
+      this.setModalOption('showSamplingBatch', value);
+
+      // updateColumns only if pmfms are ready
+      if (this._initialPmfms) {
+        if (this.loading) await this.waitIdle({ timeout: 500 });
+        this.computeDynamicColumns(this.qvPmfm, { cache: false /* no cache, to force computed */ });
+        this.updateColumns();
+      }
+    });
 
   }
 
@@ -462,7 +476,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
             }
 
             // Should have sub batches, when sampling batch exists
-            const hasSubBatches = this._showSamplingBatchColumns || isNotNil(BatchUtils.getSamplingChild(child));
+            const hasSubBatches = this.showSamplingBatchColumns || isNotNil(BatchUtils.getSamplingChild(child));
 
             // Make sure to create a sampling batch, if has sub bacthes
             if (hasSubBatches) {
@@ -485,7 +499,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         }
 
         // Should have sub batches, when sampling batch exists
-        const hasSubBatches = this._showSamplingBatchColumns || isNotNil(BatchUtils.getSamplingChild(batch));
+        const hasSubBatches = this.showSamplingBatchColumns || isNotNil(BatchUtils.getSamplingChild(batch));
 
         // Make sure to create a sampling batch, if has sub bacthes
         if (hasSubBatches) {
@@ -875,7 +889,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
     const hideWeightColumns = !this._showWeightColumns;
     const hideIndividualCountColumns = !this.showIndividualCountColumns;
-    const hideSamplingColumns = !this._showSamplingBatchColumns;
+    const hideSamplingColumns = !this.showSamplingBatchColumns;
     const hideSamplingRatioColumns = hideSamplingColumns;
 
     // Add pmfm columns

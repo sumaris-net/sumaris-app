@@ -433,7 +433,8 @@ export class OperationPage<S extends OperationState = OperationState>
         this.measurementsForm.pmfms$
           .pipe(
             filter(isNotNil),
-            mergeMap(_ => this.measurementsForm.ready())
+            mergeMap(_ => this.measurementsForm.ready$),
+            filter(ready => ready === true)
           )
           .subscribe(_ => this.onMeasurementsFormReady())
       );
@@ -598,30 +599,29 @@ export class OperationPage<S extends OperationState = OperationState>
 
     const hasIndividualMeasuresControl = formGroup?.controls[PmfmIds.HAS_INDIVIDUAL_MEASURES];
     if (isNotNil(hasIndividualMeasuresControl) && this.batchTree) {
-      if (!this.allowParentOperation) {
-        defaultTableStates = true;
-      }
       this._measurementSubscription.add(
         hasIndividualMeasuresControl.valueChanges
           .pipe(
             startWith<any, any>(hasIndividualMeasuresControl.value),
-            filter(isNotNil),
-            distinctUntilChanged(),
-            // Update the state
-            tap(value => this._state.set('hasIndividualMeasures', (_) => value)),
+            filter(isNotNil)
           )
-          .subscribe(value => {
-            this.batchTree.allowSpeciesSampling = value;
-            this.batchTree.defaultHasSubBatches = value;
-            this.batchTree.allowSubBatches = value;
-            // Hide button to toggle hasSubBatches (yes/no) when value if forced
-            this.batchTree.setModalOption("showHasSubBatchesButton", !value)
-            if (!this.allowParentOperation) {
-              this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
-              this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
-            }
-            this.updateTablesState();
-          })
+          .subscribe(value => this._state.set('hasIndividualMeasures', (_) => value))
+      );
+      this._measurementSubscription.add(
+        this.hasIndividualMeasures$.subscribe(value => {
+          // Will be done by the template
+          this.batchTree.allowSpeciesSampling = value;
+          this.batchTree.defaultHasSubBatches = value;
+          this.batchTree.allowSubBatches = value;
+
+          // Hide button to toggle hasSubBatches (yes/no) when value if forced
+          this.batchTree.setModalOption("showHasSubBatchesButton", !value)
+          if (!this.allowParentOperation) {
+            this.showCatchTab = this.showBatchTables || this.batchTree.showCatchForm;
+            this.tabCount = 1 + (this.showCatchTab ? 1 : 0) + (this.showSamplesTab ? 1 : 0);
+          }
+          this.updateTablesState();
+        })
       );
     }
 
