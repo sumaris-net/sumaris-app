@@ -2136,7 +2136,8 @@
       "NOT_NULL": "non vide",
       "HELP": "Pour filtrer rapidement, cliquez dans la cellule. Maintenez la touche 'Ctrl' pour filtrer sur plusieurs valeurs.",
       "NO_FILTER_PARENTHESIS": "(non filtrés)",
-      "WITH_FILTER_PARENTHESIS": "(filtrés)"
+      "WITH_FILTER_PARENTHESIS": "(filtrés)",
+      "BTN_EXCLUDE_INVALID_DATA": "Exclure les données invalides"
     },
     "HELP": {
       "MODAL": {

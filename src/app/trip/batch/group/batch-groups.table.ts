@@ -1531,8 +1531,4 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         return form;
     }
   }
-
-  cancelOrDelete(event: Event, row: TableElement<BatchGroup>, opts?: { interactive?: boolean; keepEditing?: boolean }) {
-    super.cancelOrDelete(event, row, opts);
-  }
 }

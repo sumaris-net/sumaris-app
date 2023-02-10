@@ -163,13 +163,22 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
 
   searchText?: string;
   sheetName?: string;
+  preview?: boolean;
   criteria?: ExtractionFilterCriterion[];
+
+  // Additional for the pod
+  meta?: {
+    // Trip specific
+    excludeInvalidStation?: boolean;
+  }
 
   fromObject(source: any): ExtractionFilter {
     super.fromObject(source);
     this.searchText = source.searchText;
     this.criteria = source.criteria && source.criteria.map(ExtractionFilterCriterion.fromObject);
     this.sheetName = source.sheetName;
+    this.preview = source.preview;
+    this.meta = source.meta;
     return this;
   }
 

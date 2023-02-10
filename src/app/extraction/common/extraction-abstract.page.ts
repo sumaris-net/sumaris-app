@@ -8,15 +8,17 @@ import {
   isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
   PlatformService,
-  propertyComparator
+  propertyComparator,
+  toBoolean
 } from '@sumaris-net/ngx-components';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { first, map, mergeMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { ExtractionCriteriaForm } from '../criteria/extraction-criteria.form';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -82,6 +84,18 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return false;
   }
 
+  set excludeInvalidData(value: boolean) {
+    if (this.excludeInvalidData !== value) {
+      this.form.get('meta').setValue({
+        excludeInvalidData: value
+      });
+    }
+  }
+
+  get excludeInvalidData(): boolean {
+    return toBoolean(this.form.get('meta').value?.excludeInvalidData, true);
+  }
+
   protected constructor(
     protected route: ActivatedRoute,
     protected router: Router,
@@ -100,7 +114,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     this.mobile = settings.mobile;
     // Create the main form
     this.form = formBuilder.group({
-      sheetName: [null, Validators.required]
+      sheetName: [null, Validators.required],
+      meta: [null]
     });
   }
 
@@ -369,7 +384,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   protected getFilterValue(): ExtractionFilter {
     const res = {
       sheetName: this.sheetName,
-      criteria: this.criteriaForm.getValue()
+      criteria: this.criteriaForm.getValue(),
+      meta: this.form.get('meta').value
     };
 
     return this.service.asFilter(res);
