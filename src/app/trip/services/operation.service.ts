@@ -9,7 +9,7 @@ import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
   BaseGraphqlService,
-  chainPromises,
+  chainPromises, collectByProperty,
   DateUtils,
   Department,
   EntitiesServiceWatchOptions,
@@ -37,8 +37,8 @@ import {
   NetworkService,
   PlatformService,
   ProgressBarService,
-  QueryVariables,
-  toBoolean,
+  QueryVariables, splitByProperty,
+  toBoolean, toDateISOString,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from './model/measurement.model';
@@ -94,6 +94,7 @@ export const OperationFragments = {
     endDateTime
     fishingStartDateTime
     fishingEndDateTime
+    rankOrder
     rankOrderOnPeriod
     tripId
     comments
@@ -140,6 +141,7 @@ export const OperationFragments = {
     endDateTime
     fishingStartDateTime
     fishingEndDateTime
+    rankOrder
     rankOrderOnPeriod
     controlDate
     qualificationComments
@@ -1196,22 +1198,40 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     );
 
     // Collected ids
-    const importedIds = (res?.data ||[]).map(ope => +ope.id);
+    const importedOperations = res?.data || [];
+    const importedIds = importedOperations.map(ope => +ope.id);
 
     // Find data imported previously, that not exists in new imported data
     // Make sure to filter on the filter program (to keep other ope)
-    const previousRes = (await this.entities.loadAll<Operation>(Operation.TYPENAME, {
-      filter: (ope) => EntityUtils.isRemoteId(ope.id) && !importedIds.includes(+ope.id) && ope.programLabel === programLabel
-    }, { fullLoad: false }));
+    const unusedRemoteOperations = (await this.entities.loadAll<Operation>(Operation.TYPENAME, {
+      filter: (ope) => EntityUtils.isRemoteId(ope.id) && !importedIds.includes(+ope.id)
+        && (!ope.programLabel || ope.programLabel === programLabel) // /!\ keep other program
+    }, { fullLoad: false }))?.data;
 
     // Remove from the local storage
-    if (previousRes.data?.length) {
-      const ids = (previousRes.data || []).map(o => +o.id);
+    if (unusedRemoteOperations?.length) {
+      const ids = unusedRemoteOperations.map(o => +o.id);
       await this.entities.deleteMany<Operation>(ids, { entityName: Operation.TYPENAME, emitEvent: false });
     }
 
-    // Save result locally
     if (isNotEmptyArray(res?.data)) {
+      // Patch imported operations (add some attribute from the trip)
+      const operationsByTripId = collectByProperty(importedOperations, 'tripId');
+      await chainPromises(Object.keys(operationsByTripId).map(tripId => async () => {
+        const trip = await this._tripService.load(+tripId, {fullLoad: false, fetchPolicy: 'cache-first', toEntity: false});
+        operationsByTripId[tripId].forEach(o => {
+          o.vesselId = trip.vesselSnapshot?.id;
+          o.programLabel = trip.program.label;
+          o.trip = <Trip>{
+            id: trip.id,
+            departureDateTime: trip.departureDateTime,
+            returnDateTime: trip.returnDateTime,
+            vesselSnapshot: trip.vesselSnapshot
+          };
+        });
+      }));
+
+      // Save result locally
       await this.entities.saveAll(res.data, { entityName: Operation.TYPENAME, reset: false /* /!\ keep local operations */ });
 
       console.info(`[operation-service] Successfully import ${res.data.length} parent operations, from program '${programLabel}'`);

@@ -4,7 +4,7 @@ import { OperationValidatorService } from '../services/validator/operation.valid
 import { OperationSaveOptions, OperationService, OperationServiceWatchOptions } from '../services/operation.service';
 import {
   AccountService,
-  AppTable,
+  AppTable, collectByProperty,
   EntitiesTableDataSource,
   isEmptyArray,
   isNotEmptyArray,
@@ -292,7 +292,8 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
     }
 
     // Load trips (remote and local)
-    const tripIds = removeDuplicatesFromArray(data.map(ope => ope.tripId));
+    const operationByTripIds = collectByProperty(data, 'tripId');
+    const tripIds = Object.keys(operationByTripIds).map(tripId => +tripId);
     const localTripIds = tripIds.filter(id => id < 0);
     const remoteTripIds = tripIds.filter(id => id >= 0);
 
@@ -315,11 +316,15 @@ export class SelectOperationByTripTable extends AppTable<Operation, OperationFil
 
     // Insert a divider (between operations) for each trip
     data = tripIds.reduce((res, tripId) => {
+      const childrenOperations = operationByTripIds[tripId];
       const divider = new OperationDivider();
       divider.id = tripId;
       divider.tripId = tripId;
-      divider.trip = trips.find(t => t.id === tripId) || Trip.fromObject({id: tripId, tripId});
-      const childrenOperations = data.filter(o => o.tripId === tripId);
+      divider.trip = trips.find(t => t.id === tripId);
+      if (!divider.trip) {
+        divider.trip = childrenOperations.find(o => o.trip && o.trip.id === tripId)?.trip
+          || Trip.fromObject({id: tripId, tripId});
+      }
       return res.concat(divider).concat(...childrenOperations);
     }, []);
 
