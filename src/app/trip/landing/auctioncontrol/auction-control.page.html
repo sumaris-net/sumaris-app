@@ -187,7 +187,7 @@
                            [defaultSampleDate]="data?.dateTime"
                            [usageMode]="usageMode"
                            (prepareRowForm)="onPrepareSampleForm($event)"
-                           [pmfmValueColorWith]="pmfmValueColor"
+                           [pmfmValueColor]="getPmfmValueColor"
                            [compactFields]="true"
                            [i18nColumnSuffix]="i18nContext.suffix"
                            [debug]="debug">

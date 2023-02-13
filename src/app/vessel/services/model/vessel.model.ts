@@ -1,5 +1,6 @@
 import { Moment } from 'moment';
 import {
+  DateUtils,
   Department,
   Entity,
   EntityAsObjectOptions,
@@ -12,11 +13,10 @@ import {
   ReferentialAsObjectOptions,
   ReferentialRef,
   ReferentialUtils,
-  toDateISOString,
+  toDateISOString
 } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '../../../data/services/model/root-data-entity.model';
-import { NOT_MINIFY_OPTIONS } from "@app/core/services/model/referential.utils";
-import { markTime } from '@app/shared/functions';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 @EntityClass({typename: 'VesselVO'})
 export class Vessel extends RootDataEntity<Vessel> {
@@ -134,8 +134,8 @@ export class VesselFeatures extends Entity<VesselFeatures> {
     target.vesselId = this.vesselId;
     target.hullMaterial = this.hullMaterial && this.hullMaterial.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
     target.basePortLocation = this.basePortLocation && this.basePortLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.startDate = toDateISOString(markTime(this.startDate));
-    target.endDate = toDateISOString(markTime(this.endDate));
+    target.startDate = toDateISOString(DateUtils.markTime(this.startDate));
+    target.endDate = toDateISOString(DateUtils.markTime(this.endDate));
     target.creationDate = toDateISOString(this.creationDate);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(options) || undefined;
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(options) || undefined;
@@ -204,8 +204,8 @@ export class VesselRegistrationPeriod extends Entity<VesselRegistrationPeriod> {
     const target: any = super.asObject(options);
 
     target.registrationLocation = this.registrationLocation && this.registrationLocation.asObject({ ...options,  ...NOT_MINIFY_OPTIONS }) || undefined;
-    target.startDate = toDateISOString(markTime(this.startDate));
-    target.endDate = toDateISOString(markTime(this.endDate));
+    target.startDate = toDateISOString(DateUtils.markTime(this.startDate));
+    target.endDate = toDateISOString(DateUtils.markTime(this.endDate));
 
     return target;
   }

@@ -21,7 +21,7 @@ import {
   UsageMode,
 } from '@sumaris-net/ngx-components';
 import {BehaviorSubject, merge, Observable} from 'rxjs';
-import { DataRootEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
+import { RootDataEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
 import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
 import { TableElement } from '@e-is/ngx-material-table';
@@ -409,14 +409,14 @@ export abstract class AppRootDataTable<
     if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
     return this.selection.selected
       .map(row => row.currentData)
-      .findIndex(DataRootEntityUtils.isReadyToSync) !== -1;
+      .findIndex(RootDataEntityUtils.isReadyToSync) !== -1;
   }
 
   get hasDirtySelection(): boolean {
     if (!this._enabled || this.loading || this.selection.isEmpty()) return false;
     return this.selection.selected
       .map(row => row.currentData)
-      .findIndex(DataRootEntityUtils.isLocalAndDirty) !== -1;
+      .findIndex(RootDataEntityUtils.isLocalAndDirty) !== -1;
   }
 
   async terminateAndSynchronizeSelection() {
@@ -472,7 +472,7 @@ export abstract class AppRootDataTable<
 
     const ids = rows
       .map(row => row.currentData)
-      .filter(DataRootEntityUtils.isLocalAndDirty)
+      .filter(RootDataEntityUtils.isLocalAndDirty)
       .map(entity => entity.id);
 
     if (isEmptyArray(ids)) return; // Nothing to terminate
@@ -486,7 +486,7 @@ export abstract class AppRootDataTable<
       // Update rows, when no refresh will be emitted
       if (opts?.emitEvent === false) {
         rows.map(row => {
-            if (DataRootEntityUtils.isLocalAndDirty(row.currentData)) {
+            if (RootDataEntityUtils.isLocalAndDirty(row.currentData)) {
               row.currentData.synchronizationStatus = 'READY_TO_SYNC';
             }
           });
@@ -520,7 +520,6 @@ export abstract class AppRootDataTable<
 
   async synchronizeSelection(opts?: {
     showSuccessToast?: boolean;
-    cleanPageHistory?: boolean;
     emitEvent?: boolean;
     rows?: TableElement<T>[]
   }) {
@@ -543,7 +542,7 @@ export abstract class AppRootDataTable<
 
     const ids = rows
       .map(row => row.currentData)
-      .filter(DataRootEntityUtils.isReadyToSync)
+      .filter(RootDataEntityUtils.isReadyToSync)
       .map(entity => entity.id);
 
     if (isEmptyArray(ids)) return; // Nothing to sync
@@ -560,12 +559,6 @@ export abstract class AppRootDataTable<
         this.showToast({
           message: 'INFO.SYNCHRONIZATION_SUCCEED'
         });
-      }
-
-      // Clean history
-      if (!opts || opts.cleanPageHistory) {
-        // FIXME: find a way o clean only synchronized data ?
-        this.settings.clearPageHistory();
       }
 
     } catch (error) {

@@ -182,7 +182,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
           i18nColumnPrefix: 'TRIP.OPERATION.LIST.',
           prependNewElements: false,
           suppressErrors: environment.production,
-          readOnly: true,
+          readOnly: false,
           watchAllOptions: {
             withBatchTree: false,
             withSamples: false,
@@ -190,7 +190,6 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
           }
         }
     );
-    this.readOnly = false; // Allow deletion
     this.inlineEdition = false;
     this.confirmBeforeDelete = true;
     this.saveBeforeSort = false;

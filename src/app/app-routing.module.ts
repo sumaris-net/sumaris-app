@@ -168,7 +168,7 @@ const routes: Routes = [
   imports: [
     QuicklinkModule,
     SharedRoutingModule,
-    RouterModule.forRoot(routes, <ExtraOptions>{
+    RouterModule.forRoot(routes, {
 
       // DEBUG
       //enableTracing: !environment.production,
@@ -182,9 +182,6 @@ const routes: Routes = [
   exports: [
     RouterModule,
     SharedRoutingModule
-  ],
-  providers: [
-    {provide: ComponentDirtyGuard, useClass: ComponentDirtyGuard}
   ]
 })
 export class AppRoutingModule {

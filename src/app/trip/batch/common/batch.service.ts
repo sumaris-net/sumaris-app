@@ -240,6 +240,9 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
           // Set default values, when landings not legal on this species (e.g. RJB)
           if (isTaxonGroupNoLanding) this.fillNoLandingDefault(target, {weightPmfms, weightRequired, individualCountRequired});
+
+          // Set sampling batch default (eg. weight=0 if parent weight = 0);
+          if (enableSamplingBatch) this.fillSamplingBatchDefault(target, {weightPmfms, weightRequired});
         }
         else {
           (target.children || []).forEach(c => {
@@ -247,10 +250,11 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
             // Set default values, when landings not legal on this species (e.g. RJB)
             if (isTaxonGroupNoLanding) this.fillNoLandingDefault(c, {weightPmfms, weightRequired, individualCountRequired});
+
+            // Set sampling batch default (eg. weight=0 if parent weight = 0);
+            if (enableSamplingBatch) this.fillSamplingBatchDefault(c, {weightPmfms, weightRequired});
           });
         }
-
-
 
         // Create a form, with data
         const form = validator.getFormGroup(target, {
@@ -319,17 +323,38 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       }
     }
     if (opts.weightRequired && isNil(batch.weight?.value) && batch.isLanding) {
-      const defaultWeightPmfm = opts.weightPmfms?.[0];
       const computedWeight = BatchUtils.computeWeight(batch)?.value || 0;
       // no weight: OK, set default
       if (computedWeight === 0) {
         console.info(`[batch-service] Force weight to {0} on batch ${batch.label}, because landings are not legal for this species`);
+        const defaultWeightPmfm = opts.weightPmfms?.[0];
         batch.weight = {
           value: 0,
           methodId: defaultWeightPmfm?.methodId,
           computed: defaultWeightPmfm?.isComputed || false,
           estimated: defaultWeightPmfm?.methodId === MethodIds.ESTIMATED_BY_OBSERVER || false
         };
+      }
+    }
+  }
+
+  private fillSamplingBatchDefault(batch: Batch, opts: {weightPmfms: IPmfm[]; weightRequired: boolean}) {
+    if (opts.weightRequired && batch.weight?.value === 0) {
+      const samplingBatch = BatchUtils.getSamplingChild(batch);
+      const samplingWeight = BatchUtils.getWeight(samplingBatch);
+      if (samplingBatch && isNil(samplingWeight?.value)) {
+        const computedWeight = BatchUtils.computeWeight(batch)?.value || 0;
+        // no weight: OK, set default
+        if (computedWeight === 0) {
+          console.info(`[batch-service] Force weight to {0} on batch ${samplingBatch.label}, because parent weight = 0`);
+          const defaultWeightPmfm = opts.weightPmfms?.[0];
+          samplingBatch.weight = {
+            value: 0,
+            methodId: defaultWeightPmfm?.methodId,
+            computed: defaultWeightPmfm?.isComputed || false,
+            estimated: defaultWeightPmfm?.methodId === MethodIds.ESTIMATED_BY_OBSERVER || false
+          };
+        }
       }
     }
   }

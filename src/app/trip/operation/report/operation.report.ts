@@ -36,7 +36,7 @@ export class OperationReport extends AppRootDataReport<Operation> {
 
   protected computeDefaultBackHref(data: Operation): string {
     console.debug(`[${this.constructor.name}.computeDefaultBackHref]`, arguments);
-    return `/trips/${data.trip.id}/operation/${data.id}?tab=1`;
+    return `/trips/${data.trip.id}/operation/${data.id}`;
   }
 
   protected computePrintHref(data: Operation): string {

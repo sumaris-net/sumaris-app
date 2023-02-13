@@ -140,11 +140,12 @@
 <!-- Download menu -->
 <mat-menu #downloadMenu="matMenu" xPosition="after">
 
-  <!-- Download as JSON -->
+  <!-- Download ... -->
   <button mat-menu-item
           *ngIf="canDownload"
           [disabled]="offline"
-          (click)="openDownloadPage($event)">
+          [matMenuTriggerFor]="downloadTypesMenu"
+          [matMenuTriggerData]="{$implicit: extractionTypes$}">
     <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
     <ion-label translate>TRIP.TABLE.BTN_DOWNLOAD_DOTS</ion-label>
   </button>
@@ -158,6 +159,18 @@
     <ion-label translate>TRIP.TABLE.BTN_DOWNLOAD_JSON</ion-label>
   </button>
 
+</mat-menu>
+
+
+<!-- Extraction types menu -->
+<mat-menu #downloadTypesMenu="matMenu" xPosition="after">
+  <ng-template matMenuContent let-types>
+    <button mat-menu-item
+            *rxFor="let type of types"
+            (click)="openDownloadPage($event, type)">
+      <ion-label>{{type.name}}</ion-label>
+    </button>
+  </ng-template>
 </mat-menu>
 
 <!-- (swiperight)="onSwipeTab($event)" (swipeleft)="onSwipeTab($event)" -->

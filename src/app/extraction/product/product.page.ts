@@ -1,13 +1,36 @@
-import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
-import { ExtractionCategories, ExtractionColumn } from '../type/extraction-type.model';
+import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
+import { ExtractionCategories, ExtractionColumn, ExtractionFilter } from '../type/extraction-type.model';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, isEmptyArray, isNil, LocalSettingsService } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  Alerts,
+  AppEntityEditor,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  equals,
+  HistoryPageReference,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import { ProductForm } from './product.form';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
 import { ExtractionProductValidatorService } from '@app/extraction/product/product.validator';
 import { ProductService } from '@app/extraction/product/product.service';
+import { ExtractionTablePage } from '@app/extraction/table/extraction-table.page';
+import { debounceTime, filter } from 'rxjs/operators';
+import { MatTabChangeEvent } from '@angular/material/tabs';
+import { environment } from '@environments/environment';
+
+export const ProductPageTabs = {
+  GENERAL: 0,
+  DATASOURCE: 1,
+  RESULT: 2
+};
 
 @Component({
   selector: 'app-product-page',
@@ -18,11 +41,14 @@ import { ProductService } from '@app/extraction/product/product.service';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ProductPage extends AppEntityEditor<ExtractionProduct> {
+export class ProductPage extends AppEntityEditor<ExtractionProduct> implements OnInit{
 
   columns: ExtractionColumn[];
 
   @ViewChild('productForm', {static: true}) productForm: ProductForm;
+  @ViewChild('datasourceTable', {static: true}) datasourceTable: ExtractionTablePage;
+  @ViewChild('resultTable', {static: true}) resultTable: ExtractionTablePage;
+
 
   get form(): UntypedFormGroup {
     return this.productForm.form;
@@ -47,8 +73,31 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
       },
       // Editor options
       {
-        pathIdAttribute: 'productId'
+        pathIdAttribute: 'productId',
+        tabCount: 3
       });
+
+    this.debug = !environment.production;
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+
+    this.registerSubscription(
+      this.datasourceTable.filterChanges
+        .pipe(
+          filter(_ => this.loaded),
+          debounceTime(450)
+        )
+        .subscribe((filter) => {
+          const json = filter.asObject({minify: true});
+          const filterControl = this.form.get('filter');
+          if (!equals(json, filterControl.value)) {
+            this.form.patchValue({filter: json});
+            this.markAsDirty();
+          }
+        })
+    )
   }
 
   enable(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -105,6 +154,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
     finally {
       this.markAsLoaded();
     }
+
+    // Switch to result tab
+    this.selectedTabIndex = ProductPageTabs.RESULT;
   }
 
   /* -- protected -- */
@@ -112,6 +164,77 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
   protected async setValue(data: ExtractionProduct) {
     // Apply data to form
     await this.productForm.setValue(data.asObject());
+
+    await this.initDatasourceTable(data);
+
+    await this.initResultTable(data);
+  }
+
+  async initDatasourceTable(data: ExtractionProduct) {
+    // Apply to table
+    try {
+      let sourceTypeId: number;
+      if (isNotNil(data.parentId)) {
+        sourceTypeId = data.parentId;
+      }
+      else {
+        await this.datasourceTable.ready();
+        const types = this.datasourceTable.types;
+
+        // Resolve by format + version
+        sourceTypeId = types.find(t => t.format === data.format && t.version === data.version)?.id;
+
+        // Or resolve by format only, if not found
+        if (isNil(sourceTypeId)) {
+          sourceTypeId = types.find(t => t.format === data.format)?.id
+        }
+
+        if (isNil(sourceTypeId)) return; // Types not found: stop here
+      }
+
+      const filter = data.filter || (data.filterContent && JSON.parse(data.filterContent));
+
+      // Load data
+      await this.datasourceTable.load(sourceTypeId, {filter,
+        // Should load data, if current tab
+        emitEvent: this.selectedTabIndex === ProductPageTabs.DATASOURCE
+      });
+
+    }
+    catch (err) {
+      console.error(err);
+    }
+  }
+
+  async initResultTable(data: ExtractionProduct) {
+    this.resultTable.types = [data];
+    // Apply to table
+    try {
+      await this.resultTable.load(data.id, {
+        filter: {
+          sheetName: data.sheetNames?.[0]
+        },
+        // Should load data, if current tab
+        emitEvent: this.selectedTabIndex === ProductPageTabs.RESULT
+      });
+    }
+    catch (err) {
+      console.error(err);
+    }
+  }
+
+  onTabChange(event: MatTabChangeEvent, queryTabIndexParamName?: string): boolean {
+    // If changed to dataset tab, make sure table has been loaded
+    switch (event?.index) {
+      case ProductPageTabs.DATASOURCE:
+        this.datasourceTable.onRefresh.emit();
+        break;
+      case ProductPageTabs.RESULT:
+        this.resultTable.onRefresh.emit();
+        break;
+    }
+
+    return super.onTabChange(event, queryTabIndexParamName);
   }
 
   protected async getValue(): Promise<ExtractionProduct> {
@@ -132,6 +255,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
       data.stratum = null;
     }
 
+    // Update filter
+    data.filter = this.datasourceTable.getFilterValue();
+
     return data;
   }
 
@@ -145,12 +271,23 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> {
     return await this.translate.get('EXTRACTION.AGGREGATION.EDIT.TITLE', data).toPromise();
   }
 
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    if (this.debug) console.debug('[entity-editor] Computing page history, using url: ' + this.router.url);
+    return {
+      title,
+      subtitle: this.translate.instant('EXTRACTION.TYPES_MENU.PRODUCT_DIVIDER'),
+      icon: 'cloud-download-outline',
+      path: `/extraction/product/${this.data.id}`
+    };
+  }
+
   protected getFirstInvalidTabIndex(): number {
     return 0;
   }
 
   protected registerForms() {
     this.addChildForm(this.productForm);
+    this.addChildForm(this.datasourceTable);
   }
 
   protected async onNewEntity(data: ExtractionProduct, options?: EntityServiceLoadOptions): Promise<void> {

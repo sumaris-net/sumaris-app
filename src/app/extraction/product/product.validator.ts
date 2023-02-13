@@ -29,6 +29,7 @@ export class ExtractionProductValidatorService extends AppValidatorService<Extra
       comments: [data && data.comments || null, Validators.maxLength(2000)],
       updateDate: [data && data.updateDate || null],
       creationDate: [data && data.creationDate || null],
+      parentId: [toNumber(data?.parentId, null)],
       filter: [data && data.filter || null],
       filterContent: [data && data.filterContent || null, Validators.maxLength(10000)],
       documentation: [data && data.documentation || null, Validators.maxLength(10000)],

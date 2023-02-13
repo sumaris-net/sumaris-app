@@ -22,7 +22,14 @@ import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filte
 
 
 export const ExtractionTypeFragments = {
-
+  lightType : gql`fragment LightExtractionTypeFragment on ExtractionTypeVO {
+    id
+    label
+    name
+    format
+    version
+    updateDate
+  }`,
   type: gql`fragment ExtractionTypeFragment on ExtractionTypeVO {
     id
     label

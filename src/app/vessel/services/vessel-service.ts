@@ -33,7 +33,7 @@ import { VesselRegistrationFragments, VesselRegistrationService, VesselRegistrat
 import { Vessel } from './model/vessel.model';
 import { VesselSnapshot } from '../../referential/services/model/vessel-snapshot.model';
 import { SortDirection } from '@angular/material/sort';
-import { DataRootEntityUtils } from '../../data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '../../data/services/model/root-data-entity.model';
 import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
 import { BaseRootEntityGraphqlMutations } from '../../data/services/root-data-service.class';
 import { VESSEL_FEATURE_NAME } from './config/vessel.config';
@@ -544,7 +544,7 @@ export class VesselService
     await super.deleteAllLocally(entities, opts);
 
     // Delete the associated vessel snapshot
-    const snapshots = entities.filter(DataRootEntityUtils.isLocal).map(e => e.id);
+    const snapshots = entities.filter(RootDataEntityUtils.isLocal).map(e => e.id);
     if (isEmptyArray(snapshots)) return; // Skip
     await this.entities.deleteMany(snapshots, {entityName: VesselSnapshot.TYPENAME});
   }

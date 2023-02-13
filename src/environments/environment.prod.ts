@@ -14,7 +14,7 @@ export const environment = Object.freeze(<AppEnvironment>{
   apolloFetchPolicy: "cache-first",
 
   // Must be change manually. Can be override using Pod properties 'sumaris.app.min.version'
-  peerMinVersion: '1.32.0',
+  peerMinVersion: '1.36.0',
 
   // Check Web new app version
   checkAppVersionIntervalInSeconds: 5 * 60, // every 5min

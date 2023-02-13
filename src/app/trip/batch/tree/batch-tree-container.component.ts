@@ -333,7 +333,13 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       });
 
     this._state.connect('model',
-      this._state.select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], s => s)
+      this._state.select(['data', 'physicalGear', 'allowDiscard', 'catchPmfms', 'sortingPmfms'], s => s, {
+        data: (d1, d2) => d1 === d2,
+        physicalGear: PhysicalGear.equals,
+        allowDiscard: (a1, a2) => a1 === a2,
+        catchPmfms: equals,
+        sortingPmfms: equals
+      })
         .pipe(
           filter(({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => sortingPmfms && catchPmfms && physicalGear && true),
           mergeMap(async ({data, physicalGear, allowDiscard, sortingPmfms, catchPmfms}) => {
@@ -363,7 +369,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     // Reload data, when form (or model) changed
     this._state.hold(this.form$
       .pipe(
-        filter(() => !this.loading)
+        filter(form => !this.loading && !!form)
       ),
       (_) => this.updateView(this.data, {markAsPristine: false /*keep dirty state*/}));
 
@@ -522,7 +528,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       label: AcquisitionLevelCodes.CATCH_BATCH
     });
 
-    this.data = data;
+    const dataChanged = (this.data !== data);
+    if (dataChanged) this.data = data;
 
     // Mark as loading
     if (!opts || opts.emitEvent !== false) this.markAsLoading();
@@ -533,7 +540,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
       // Update the view
       if (data === this.data) {
-        await this.updateView(data);
+        await this.updateView(data, {dataChanged});
 
         if (!opts || opts.emitEvent !== false) {
           this.markAsLoaded();
@@ -707,16 +714,26 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
   }
 
-  protected async updateView(data: Batch, opts?: {markAsPristine?: boolean}) {
-    const model = this.model; // await firstNotNilPromise(this.model$, {stop: this.destroySubject});
+  protected async updateView(data: Batch, opts?: {markAsPristine?: boolean; dataChanged?: boolean}) {
+    const model = this.model;
     if (!model) return; // Skip if missing model, or if data changed
 
-    // Init tree datasource
-    this.batchModelTree.data = [model];
+    // Set the tree value - only once if data changed, to avoid a tree refresh (e.g. after a save())
+    if (!opts || opts.dataChanged !== false) {
+      this.batchModelTree.data = [model];
+    }
+    else {
+      // Update the form (e.g. after a save())
+      model.validator.reset(data.asObject(), {emitEvent: false});
+    }
 
     // Keep the editing batch
     const editingBatch = this._lastEditingBatchPath && model.get(this._lastEditingBatchPath);
     if (editingBatch) {
+
+      // Force a reload to update the batch id (e.g. after a save(), to force batch id to be applied)
+      if (this.editingBatch === editingBatch) await this.stopEditBatch();
+
       await this.startEditBatch(null, editingBatch);
     }
     else {
@@ -972,6 +989,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
     // Update model validity
     model.valid = model.validator.valid;
+
+    // Update rowCount
+    if (model.isLeaf) {
+      model.rowCount = this.batchTree.batchGroupsTable.visibleRowCount;
+    }
 
     if (!opts || opts.keepEditingBatch !== true) {
       this.editingBatch = null;

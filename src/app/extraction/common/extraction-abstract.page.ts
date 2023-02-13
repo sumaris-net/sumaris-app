@@ -1,22 +1,24 @@
-import { Directive, EventEmitter, ViewChild } from '@angular/core';
+import { Directive, EventEmitter, Input, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import {
   AccountService,
   AppTabEditor,
-  capitalizeFirstLetter,
-  firstNotNilPromise,
+  capitalizeFirstLetter, DateUtils, EntityServiceLoadOptions,
+  firstNotNilPromise, fromDateISOString,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   LoadResult,
   LocalSettingsService,
   PlatformService,
-  propertyComparator
+  propertyComparator,
+  toBoolean, toDateISOString
 } from '@sumaris-net/ngx-components';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { first, map, mergeMap } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { ExtractionCriteriaForm } from '../criteria/extraction-criteria.form';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,43 +28,54 @@ import { ExtractionUtils } from './extraction.utils';
 import { ExtractionHelpModal, ExtractionHelpModalOptions } from '../help/help.modal';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { RxState } from '@rx-angular/state';
+import { BASE_TABLE_SETTINGS_ENUM } from '@app/shared/table/base.table';
+import { Location } from '@angular/common';
 
 
 export const DEFAULT_CRITERION_OPERATOR = '=';
 
+export const EXTRACTION_SETTINGS_ENUM = {
+  filterKey: 'filter',
+  compactRowsKey: 'compactRows'
+};
+
+
 export interface ExtractionState<T extends ExtractionType> {
   types: T[];
   type: T;
+  started: boolean;
 }
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends ExtractionState<T>> extends AppTabEditor<T> {
 
-  protected readonly $types = this._state.select('types');
-  protected readonly $type = this._state.select('type');
+  protected readonly types$ = this._state.select('types');
 
   form: UntypedFormGroup;
-  canEdit = false;
   mobile: boolean;
-  startSubject = new BehaviorSubject<boolean>(false);
-
+  settingsId: string;
   onRefresh = new EventEmitter<any>();
 
-  @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
+  @Input() canEdit = false;
 
   get started(): boolean {
-    return this.startSubject.value;
+    return this._state.get('started');
   }
 
   get types(): T[] {
     return this._state.get('types');
   }
 
+  @Input() set types(value: T[]) {
+    this._state.set('types', _ => value);
+  }
+
   get type(): T {
     return this._state.get('type');
   }
-  set type(value: T) {
+
+  @Input() set type(value: T) {
     this._state.set('type', (_) => value);
   }
 
@@ -82,9 +95,16 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return false;
   }
 
+  get excludeInvalidData(): boolean {
+    return toBoolean(this.form.get('meta').value?.excludeInvalidData, true);
+  }
+
+  @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
+
   protected constructor(
     protected route: ActivatedRoute,
     protected router: Router,
+    protected location: Location,
     protected alertCtrl: AlertController,
     protected toastController: ToastController,
     protected translate: TranslateService,
@@ -98,10 +118,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   ) {
     super(route, router, alertCtrl, translate);
     this.mobile = settings.mobile;
-    // Create the main form
+    // Create the filter form
     this.form = formBuilder.group({
-      sheetName: [null, Validators.required]
+      sheetName: [null, Validators.required],
+      meta: [null]
     });
+    this.settingsId = this.generateTableId();
   }
 
   ngOnInit() {
@@ -109,30 +131,66 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
     this.addChildForm(this.criteriaForm);
 
-    // Load types
-    this._state.connect('types',
-      this.watchAllTypes()
-        .pipe(
-          map(({data, total}) => {
-            // Compute i18n name
-            return data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
-              // Then sort by name
-              .sort(propertyComparator('name'));
-          })));
+    // Load types (if not set by types
+    if (!this.types) {
+      this._state.connect('types',
+        this.watchAllTypes()
+          .pipe(
+            map(({ data, total }) => {
+              // Compute i18n name
+              return data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
+                // Then sort by name
+                .sort(propertyComparator('name'));
+            })));
+    }
 
-    this._state.hold(this.$types, (_) => this.markAsReady());
+    this._state.hold(this.types$, (_) => this.markAsReady());
 
-    // Load type from route parameters
-    this.loadFromRoute();
   }
 
-  protected async loadFromRoute(): Promise<void> {
+  protected async loadFromRouteOrSettings(): Promise<boolean> {
+
+    try {
+      // Read the route queryParams
+      {
+        const { category, label, sheet, q, meta } = this.route.snapshot.queryParams;
+        if (this.debug) console.debug('[extraction-abstract-page] Reading route queryParams...', this.route.snapshot.queryParams);
+        const found = await this.loadQueryParams({ category, label, sheet, q, meta }, {emitEvent: false});
+        if (found) return true; // found! stop here
+      }
+
+      // Read the settings
+      {
+        const json = this.settings.getPageSettings(this.settingsId, EXTRACTION_SETTINGS_ENUM.filterKey);
+        if (json) {
+          const updateDate = fromDateISOString(json.updateDate);
+          const settingsAgeInHours = updateDate?.diff(DateUtils.moment(), 'hour') || 0;
+          if (settingsAgeInHours <= 12 /* Apply filter, if age <= 12h */) {
+            if (this.debug) console.debug('[extraction-abstract-page] Restoring from settings...', json);
+            const { category, label, sheet, q, meta } = json;
+            await this.loadQueryParams({ category, label, sheet, q, meta }, {emitEvent: false});
+          }
+        }
+      }
+
+      return false; // not loaded
+    }
+    finally {
+      // Mark as started, with a delay, to avoid reload twice, because of listen on page/sort
+      setTimeout(() => this.markAsStarted(), 450);
+    }
+  }
+
+  /**
+   * Load type from a query params `{category, label, sheet, q}`
+   */
+  protected async loadQueryParams(queryParams: {category: string; label: string; sheet: string; q: string, meta: any},
+                                  opts?: {emitEvent?: boolean}): Promise<boolean> {
     // Convert query params into a valid type
-    const {category, label, sheet, q} = this.route.snapshot.queryParams;
-    if (this.debug) console.debug('[extraction-abstract-page] Reading queryParams...', this.route.snapshot.queryParams);
+    const {category, label, sheet, q, meta} = queryParams;
     const paramType = this.fromObject({category, label});
 
-    const types = await firstNotNilPromise(this.$types, {stop: this.destroySubject});
+    const types = await firstNotNilPromise(this.types$, {stop: this.destroySubject});
 
     //DEBUG
     //console.debug('[extraction-abstract-page] Extraction types found:', types);
@@ -144,8 +202,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     if (isNil(paramType.category) || isNil(paramType.label)) {
       console.debug('[extraction-abstract-page] No extraction type found, in route.');
       this.markAsLoaded();
-      this.markAsStarted();
-      return; // Stop here
+      return false; // Stop here
     }
 
     // Select the exact type object in the filter form
@@ -171,10 +228,17 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       await this.criteriaForm.setValue(criteria, {emitEvent: false});
     }
 
-    // Execute the first load
-    if (changed) await this.loadData();
+    // Update meta
+    if (meta) {
+      const metaValue = this.parseMetaFromString(meta)
+      this.form.get('meta').patchValue(metaValue, {emitEvent: false});
+    }
 
-    this.markAsStarted();
+    // Execute the first load
+    if (changed) {
+      await this.loadData();
+    }
+    return true;
   }
 
   async setType(type: T, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string; }): Promise<boolean> {
@@ -224,14 +288,6 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return changed;
   }
 
-  protected getFirstInvalidTabIndex(): number {
-    return 0;
-  }
-
-  protected parseCriteriaFromString(queryString: string, sheet?: string): ExtractionFilterCriterion[] {
-    return ExtractionUtils.parseCriteriaFromString(queryString, sheet);
-  }
-
   setSheetName(sheetName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; }) {
     if (sheetName === this.sheetName) return; //skip
 
@@ -254,13 +310,21 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     type = type || this.type;
     if (this.type !== type) return; // Skip
 
-    console.debug('[extraction-form] Updating query params', type);
+    const queryParams = ExtractionUtils.asQueryParams(type, this.getFilterValue());
+    console.debug('[extraction-form] Updating query params', queryParams);
 
+    // Update route query params
     await this.router.navigate(['.'], {
       relativeTo: this.route,
       skipLocationChange: opts.skipLocationChange,
-      queryParams: ExtractionUtils.asQueryParams(type, this.getFilterValue())
+      queryParams
     });
+
+    // Update settings
+    {
+      const json = {...queryParams, updateDate: toDateISOString(DateUtils.moment())};
+      await this.settings.savePageSetting(this.settingsId, json, EXTRACTION_SETTINGS_ENUM.filterKey);
+    }
   }
 
   async downloadAsFile(event?: Event) {
@@ -298,23 +362,43 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     }
   }
 
-  async load(id?: number, options?: any): Promise<any> {
-    const type = (this.types || []).find(t => t.id === id);
-    const changed = type && await this.setType(type, {emitEvent: false});
-    if (changed) {
+  async load(id?: number, opts?: { filter?: Partial<ExtractionFilter>, emitEvent?: boolean; } ): Promise<any> {
+
+    let types: T[] = this.types;
+    if (isNil(types)) await this.ready();
+
+    let type: T = (types || []).find(t => t.id === id);
+    // Not found in type (try without cache)
+    if (!type) {
+      type = await this.loadType(id, {fetchPolicy: 'no-cache'});
+    }
+
+    // Set type (need by the criteria form)
+    let changed = type && await this.setType(type, {emitEvent: false});
+
+    if (opts?.filter){
+      await this.setFilterValue(ExtractionFilter.fromObject(opts?.filter), { emitEvent: false });
+      changed = true;
+    }
+
+    // Load data
+    if (changed && (!opts || opts.emitEvent !== false)) {
       await this.loadData();
     }
+
+    // Mark as started (with a delay, because 'started' can be read in setType()
+    if (!this.started) {
+      setTimeout(() => this.markAsStarted(), 500);
+    }
+
     return undefined;
   }
-
 
   async save(event): Promise<any> {
     console.warn("Not allow to save extraction filter yet!");
 
     return undefined;
   }
-
-  protected abstract loadData(): Promise<void>;
 
   async reload(): Promise<any> {
     return this.load(this.type?.id);
@@ -344,7 +428,74 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   }
 
 
-  /* -- protected method -- */
+  /* -- abstract protected methods -- */
+
+  protected abstract loadData(): Promise<void>;
+
+  protected abstract watchAllTypes(): Observable<LoadResult<T>>;
+
+  protected abstract loadType(id: number, opts?: EntityServiceLoadOptions): Promise<T>;
+
+  protected abstract fromObject(type?: any): T;
+
+  protected abstract isEquals(t1: T, t2: T): boolean;
+
+
+  async setFilterValue(filter: ExtractionFilter, opts?: {emitEvent?: boolean}) {
+
+    filter = this.service.asFilter(filter);
+
+    // Patch the main form
+    this.form.patchValue(filter?.asObject(), {emitEvent: false});
+
+    // Patch criteria form
+    await this.criteriaForm.setValue([
+      // Input criteria
+      ...(filter.criteria || []).map(ExtractionFilterCriterion.fromObject),
+      // Add an empty criteria
+      ExtractionFilterCriterion.fromObject({operator: '='})
+    ], opts);
+
+    // Emit changes
+    if (!opts || opts?.emitEvent !== false) {
+      this.onRefresh.emit();
+    }
+  }
+
+  getFilterValue(): ExtractionFilter {
+    const res = {
+      sheetName: this.sheetName,
+      criteria: this.criteriaForm.getValue(),
+      meta: this.form.get('meta').value
+    };
+
+    return this.service.asFilter(res);
+  }
+
+  /* -- protected methods -- */
+
+  protected getFirstInvalidTabIndex(): number {
+    return 0;
+  }
+
+  protected parseCriteriaFromString(queryString: string, sheet?: string): ExtractionFilterCriterion[] {
+    return ExtractionUtils.parseCriteriaFromString(queryString, sheet);
+  }
+
+  protected parseMetaFromString(metaString: string): any {
+    return ExtractionUtils.parseMetaString(metaString);
+  }
+
+  private generateTableId() {
+    const id = this.location.path(true)
+        .replace(/[?].*$/g, '')
+        .replace(/\/[\d]+/g, '_id')
+      + '_'
+      // Get a component unique name - See https://stackoverflow.com/questions/60114682/how-to-access-components-unique-encapsulation-id-in-angular-9
+      + (this.constructor['ɵcmp']?.id || this.constructor.name);
+    //if (this.debug) console.debug("[table] id = " + id);
+    return id;
+  }
 
   protected resetError(opts = {emitEvent: true}) {
     this.error = null;
@@ -353,29 +504,15 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     }
   }
 
-  protected abstract watchAllTypes(): Observable<LoadResult<T>>;
 
-  protected abstract fromObject(type?: any): T;
-
-  protected abstract isEquals(t1: T, t2: T): boolean;
-
-  async findTypeByFilter(filter: Partial<ExtractionTypeFilter>) {
+  protected async findTypeByFilter(filter: Partial<ExtractionTypeFilter>) {
     if (!filter) throw new Error('Missing \'filter\'');
     filter = filter instanceof ExtractionTypeFilter ? filter : ExtractionTypeFilter.fromObject(filter);
-    const types = await firstNotNilPromise(this.$types);
+    const types = await firstNotNilPromise(this.types$);
     return (types || []).find(filter.asFilterFn());
   }
 
-  protected getFilterValue(): ExtractionFilter {
-    const res = {
-      sheetName: this.sheetName,
-      criteria: this.criteriaForm.getValue()
-    };
-
-    return this.service.asFilter(res);
-  }
-
-  getFilterAsQueryParams(): any {
+  protected getFilterAsQueryParams(): any {
     const filter = this.getFilterValue();
     const params = {sheet: undefined, q: undefined};
     if (filter.sheetName) {
@@ -400,7 +537,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       || (this.accountService.isSupervisor() && this.accountService.canUserWriteDataForDepartment(type.recorderDepartment)));
   }
 
-  getI18nSheetName(sheetName?: string, type?: T, self?: ExtractionAbstractPage<T, S>): string {
+  protected getI18nSheetName(sheetName?: string, type?: T, self?: ExtractionAbstractPage<T, S>): string {
     self = self || this;
     type = type || self.type;
     sheetName = sheetName || this.sheetName;
@@ -459,7 +596,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
   }
 
-  getI18nColumnName(columnName?: string) {
+  protected getI18nColumnName(columnName?: string) {
     if (!columnName) return '';
     let key = `EXTRACTION.TABLE.${this.type.format.toUpperCase()}.${columnName.toUpperCase()}`;
     let message = this.translate.instant(key);
@@ -485,14 +622,23 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return message;
   }
 
-  hasFilterCriteria(sheetName: string) {
+  protected hasFilterCriteria(sheetName: string) {
     return this.criteriaForm.hasFilterCriteria(sheetName);
   }
 
   protected markAsStarted(opts = {emitEvent: true}){
-    if (!this.startSubject.value) {
-      this.startSubject.next(true);
-      if (opts.emitEvent !== false) this.markForCheck();
+    this._state.set('started', (_) => true);
+    if (!opts || opts.emitEvent !== false) this.markForCheck();
+  }
+
+  protected toggleExcludeInvalidData(event?: Event, opts?: {emitEvent?: boolean}) {
+    const excludeInvalidData = this.excludeInvalidData;
+    this.form.get('meta').setValue({
+      excludeInvalidData: !excludeInvalidData
+    }, opts);
+    if (!opts || opts.emitEvent !== false) {
+      this.markForCheck();
+      this.onRefresh.emit();
     }
   }
 }

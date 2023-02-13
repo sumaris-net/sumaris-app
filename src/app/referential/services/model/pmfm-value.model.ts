@@ -49,6 +49,9 @@ export abstract class PmfmValueUtils {
       return DateUtils.equals(pv1 as any, pv2 as any);
     }
 
+    // Integer can be serialized as '1.0' or '1' (from javascript or java code)
+    if (!isNaN(+pv1) && +pv1 === +pv2) return true;
+
     // Serialize ReferentialRef to id
     const v1 = typeof pv1 === 'object' && isNotNil(pv1.id) ? pv1.id : pv1;
     const v2 = typeof pv2 === 'object' && isNotNil(pv2.id) ? pv2.id : pv2;

@@ -1,7 +1,7 @@
 {
   "name": "sumaris-app",
   "description": "SUMARiS app",
-  "version": "1.35.4",
+  "version": "1.36.0",
   "author": "contact@e-is.pro",
   "license": "AGPL-3.0",
   "readmeFilename": "README.md",
@@ -74,11 +74,11 @@
     "@ngx-translate/core": "~14.0.0",
     "@ngx-translate/http-loader": "~7.0.0",
     "@polkadot/util-crypto": "~10.1.11",
-    "@rx-angular/cdk": "^1.0.0-rc.4",
+    "@rx-angular/cdk": "^1.0.0",
     "@rx-angular/state": "^1.7.0",
-    "@rx-angular/template": "^1.0.0-rc.5",
+    "@rx-angular/template": "^1.0.0",
     "@sgratzl/chartjs-chart-boxplot": "~2.3.3",
-    "@sumaris-net/ngx-components": "2.4.22",
+    "@sumaris-net/ngx-components": "2.4.25",
     "angular-split": "^14.1.0",
     "angular2-text-mask": "~9.0.0",
     "apollo-angular": "~4.1.1",
@@ -177,7 +177,7 @@
     "tar": "^5.0.11",
     "ts-node": "~8.3.0",
     "typescript": "~4.7.4",
-    "webpack-dev-server": "~4.11.1"
+    "webpack": "~5.75.0"
   },
   "overrides": {
     "autoprefixer": "10.4.5"

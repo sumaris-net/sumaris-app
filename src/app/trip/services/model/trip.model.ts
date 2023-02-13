@@ -70,13 +70,35 @@ export const POSITIONS_REGEXP = /^startPosition|fishingStartPosition|fishingEndP
 export class Operation
   extends DataEntity<Operation, number, OperationAsObjectOptions, OperationFromObjectOptions> {
 
+  static ENTITY_NAME = 'Operation';
   static fromObject: (source: any, opts?: OperationFromObjectOptions) => Operation;
+
+  static rankOrderComparator(sortDirection: SortDirection = 'asc'): (n1: Operation, n2: Operation) => number {
+    return !sortDirection || sortDirection !== 'desc' ? Operation.sortByAscRankOrder : Operation.sortByDescRankOrder;
+  };
+
+  static sortByAscRankOrder(n1: Operation, n2: Operation): number {
+    return n1.rankOrder === n2.rankOrder ? 0 :
+      (n1.rankOrder > n2.rankOrder ? 1 : -1);
+  }
+
+  static sortByDescRankOrder(n1: Operation, n2: Operation): number {
+    return n1.rankOrder === n2.rankOrder ? 0 :
+      (n1.rankOrder > n2.rankOrder ? -1 : 1);
+  }
+
+  static sortByEndDateOrStartDate(n1: Operation, n2: Operation): number {
+    const d1 = n1.endDateTime || n1.startDateTime;
+    const d2 = n2.endDateTime || n2.startDateTime;
+    return d1.isSame(d2) ? 0 : (d1.isAfter(d2) ? 1 : -1);
+  };
 
   startDateTime: Moment = null;
   endDateTime: Moment = null;
   fishingStartDateTime: Moment = null;
   fishingEndDateTime: Moment = null;
   comments: string = null;
+  rankOrder: number = null; // This attribute is not stored in the DB, but used to retrieve an operation locally, after saving it
   rankOrderOnPeriod: number = null;
   hasCatch: boolean = null;
   positions: VesselPosition[] = null;
@@ -258,6 +280,7 @@ export class Operation
     this.endDateTime = fromDateISOString(source.endDateTime);
     this.fishingStartDateTime = fromDateISOString(source.fishingStartDateTime);
     this.fishingEndDateTime = fromDateISOString(source.fishingEndDateTime);
+    this.rankOrder = source.rankOrder;
     this.rankOrderOnPeriod = source.rankOrderOnPeriod;
     this.metier = source.metier && Metier.fromObject(source.metier, {useChildAttributes: 'TaxonGroup'}) || undefined;
     if (source.startPosition || source.endPosition || source.fishingStartPosition || source.fishingEndPosition) {
@@ -386,8 +409,13 @@ export class Operation
 
   equals(other: Operation): boolean {
     return (super.equals(other) && isNotNil(this.id))
-      || ((this.startDateTime === other.startDateTime
-          || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
+      // Functional test
+      || (
+        // Dates
+        (this.startDateTime === other.startDateTime || (!this.startDateTime && !other.startDateTime && this.fishingStartDateTime === other.fishingStartDateTime))
+        // RankOrder
+        && ((!this.rankOrder && !other.rankOrder) || (this.rankOrder === other.rankOrder))
+        // RankOrder on period
         && ((!this.rankOrderOnPeriod && !other.rankOrderOnPeriod) || (this.rankOrderOnPeriod === other.rankOrderOnPeriod))
       );
   }
@@ -403,6 +431,9 @@ export class OperationUtils {
   }
   static isAbnormal(data: Operation): boolean {
     return data?.measurements?.some(m => m.pmfmId === PmfmIds.TRIP_PROGRESS && m.numericalValue === 0) || false;
+  }
+  static hasParentOperation(data: Operation): boolean {
+    return data && isNotNil(data.parentOperationId) || isNotNil(data.parentOperation?.id);
   }
 }
 
@@ -548,6 +579,8 @@ export class OperationGroup extends DataEntity<OperationGroup>
 
 @EntityClass({typename: 'TripVO'})
 export class Trip extends DataRootVesselEntity<Trip> implements IWithObserversEntity<Trip> {
+
+  static ENTITY_NAME = 'Trip';
 
   static fromObject: (source: any, opts?: any) => Trip;
 

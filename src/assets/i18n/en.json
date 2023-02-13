@@ -250,6 +250,8 @@
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "PMFM_GEAR_LABEL_ID": "Referential > PMFM > Physical gear label",
         "PMFM_HAS_ACCIDENTAL_CATCHES_ID": "Referential > PMFM > Accidental catch",
+        "PMFM_BATCH_SORTING_ID": "Referential > PMFM > Bulk/Not Bulk",
+        "PARAMETER_HULL_MATERIAL_ID": "Referential > Parameter > Hull material",
         "PARAMETER_GROUP_SURVEY_ID": "Referential > Parameter group > Survey characteristics",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Referential > Method > Measured by observer",
         "METHOD_OBSERVED_BY_OBSERVER_ID": "Referential > Method > Observed by observer",
@@ -675,7 +677,7 @@
         "BTN_DELETE": "Delete this operation",
         "BTN_DUPLICATE": "Duplicate this operation",
         "BTN_DUPLICATE_POSITION": "Duplicate position at the end of fishing",
-        "BTN_EDIT_PARENT" : "Edit setting",
+        "BTN_OPEN_PARENT" : "Open setting",
         "BTN_SELECT_PARENT" : "Select setting",
         "BTN_SAVE_AND_NEW" : "Save and new",
         "COMMENTS": "Comment",
@@ -753,7 +755,11 @@
       },
       "PMFM": {
         "SORTING_START_DATE_TIME": "Start of sorting",
-        "SORTING_END_DATE_TIME": "End of sorting"
+        "SORTING_END_DATE_TIME": "End of sorting",
+        "TAG_OPERATION": "Label",
+        "TRAWL_SELECTIVITY": {
+          "TAG_OPERATION": "Match code"
+        }
       },
       "MAP": {
         "TITLE": "Positions map",
@@ -795,6 +801,7 @@
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
         "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
         "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
+        "LOCAL_PARENT_OPERATION": "Operation from an unsynchronized trip",
         "MISSING_PARENT_OPERATION": "Associée operation not found",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Before setting's end",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
@@ -924,7 +931,7 @@
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Estim. wht?"
       },
       "TREE": {
-        "SELECT_PARENT_HELP": "Select a batch, in the tree below:",
+        "SELECT_PARENT_HELP": "Select a batch, in the tree",
         "EMPTY": "empty",
         "BATCH_COUNT": "{{count}} batch",
         "BATCHES_COUNT": "{{count}} batches",
@@ -937,7 +944,12 @@
         "DISCARD_OR_LANDING": "Landing or discard?",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Computed weight LWR (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)",
-        "CHILD_GEAR": "Sub-gear"
+        "CHILD_GEAR": "Sub-gear",
+        "TRAWL_SELECTIVITY": {
+          "BATCH_MEASURED_WEIGHT": "Total batch weight (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Total batch weight (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Total batch weight (kg)"
+        }
       }
     },
     "SUB_BATCH": {
@@ -2044,8 +2056,8 @@
         "TITLE": "<small>Product <br/></small>{{name}}",
         "IS_SPATIAL": "Spatial aggregation?",
         "BTN_OPEN_MAP": "Show the map",
-        "BTN_UPDATE": "Execute now",
-        "BTN_UPDATE_HELP": "Execute",
+        "BTN_EXECUTE": "Execute now",
+        "BTN_EXECUTE_HELP": "Execute",
         "BTN_PREVIEW_DOC": "Preview doc",
         "FILTER_DOTS": "Filter on source dataset:",
         "STRATUM_DOTS": "Spatial layers:",
@@ -2054,6 +2066,9 @@
         "FORMAT_PLACEHOLDER": "Describe the output format...",
         "FORMAT_PREVIEW_DOTS": "Preview:",
         "PROCESSING_FREQUENCY": "Processing frequency",
+        "TAB_GENERAL": "General",
+        "TAB_DATASOURCE": "Filter",
+        "TAB_RESULT": "Result",
         "STRATA": {
           "SHEET_NAME": "Layer",
           "TIME_COLUMN": "Temporal",
@@ -2093,7 +2108,8 @@
       "NOT_NULL": "not null",
       "HELP": "To filter quickly, click in the cell. Hold 'Ctrl' to filter on multiple values.",
       "NO_FILTER_PARENTHESIS": "(no filter)",
-      "WITH_FILTER_PARENTHESIS": "(filtered)"
+      "WITH_FILTER_PARENTHESIS": "(filtered)",
+      "BTN_EXCLUDE_INVALID_DATA": "Exclude invalid data"
     },
     "HELP": {
       "MODAL": {

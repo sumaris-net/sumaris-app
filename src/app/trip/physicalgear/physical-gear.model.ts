@@ -35,20 +35,20 @@ export class PhysicalGear
       );
   }
 
-  static computeSameAsScore(reference: PhysicalGear, source?: PhysicalGear, opts?: {measurementValues?: boolean; rankOrder?: boolean; tripId?: boolean}): number {
+  static computeSameAsScore(reference: PhysicalGear, source?: PhysicalGear, opts?: {withMeasurementValues?: boolean; withRankOrder?: boolean; tripId?: boolean}): number {
     if (!source) return -1;
 
     return (reference.gear?.id === source.gear?.id ? 1 : 0) * 1000
-      + (opts?.measurementValues !== false && MeasurementValuesUtils.equals(reference.measurementValues, source.measurementValues) ? 1 : 0) * 100
-      + (opts?.rankOrder !== false && reference.rankOrder === source.rankOrder ? 1 : 0) * 10
+      + (opts?.withMeasurementValues !== false && MeasurementValuesUtils.equals(reference.measurementValues, source.measurementValues) ? 1 : 0) * 100
+      + (opts?.withRankOrder !== false && reference.rankOrder === source.rankOrder ? 1 : 0) * 10
       + (opts?.tripId !== false && reference.tripId === source.tripId ? 1 : 0) * 1;
   }
 
-  static scoreComparator(gear: PhysicalGear, sortDirection?: SortDirection): (g1: PhysicalGear, g2: PhysicalGear) => number {
+  static scoreComparator(gear: PhysicalGear, sortDirection?: SortDirection, opts?: {withMeasurementValues?: boolean; withRankOrder?: boolean; tripId?: boolean}): (g1: PhysicalGear, g2: PhysicalGear) => number {
     const direction = !sortDirection || sortDirection === 'desc' ? -1 : 1;
     return (g1, g2) => {
-      const score1 = this.computeSameAsScore(gear, g1);
-      const score2 = this.computeSameAsScore(gear, g2);
+      const score1 = this.computeSameAsScore(gear, g1, opts);
+      const score2 = this.computeSameAsScore(gear, g2, opts);
       return score1 === score2 ? 0 : (score1 > score2 ? direction : -direction);
     };
   }

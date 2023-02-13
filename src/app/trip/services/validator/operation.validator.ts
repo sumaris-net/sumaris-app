@@ -85,7 +85,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     opts = this.fillDefaultOptions(opts);
 
     const form = super.getFormGroup(data, opts);
-    setFormOptions(form, opts);
+
+    // Do not store options here - will be done in updateFormGroup()
+    //setFormOptions(form, opts);
 
     // Add measurement form
     if (opts.withMeasurements) {
@@ -138,6 +140,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
       form.addControl('childOperation', this.createChildOperationControl(data?.childOperation));
     }
 
+    // Execute once, to be sure validators are same
+    this.updateFormGroup(form, opts);
+
 
     return form;
   }
@@ -152,13 +157,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         fishingStartDateTime: [data && data.fishingStartDateTime || null],
         fishingEndDateTime: [data && data.fishingEndDateTime || null],
         endDateTime: [data && data.endDateTime || null, SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])],
-        rankOrderOnPeriod: [data && data.rankOrderOnPeriod || null],
+        rankOrder: [toNumber(data?.rankOrder, null)],
+        rankOrderOnPeriod: [toNumber(data?.rankOrderOnPeriod, null)],
         metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
         // Use object validator instead of entity because physical gear may have no id when it's adding from parent operation and doesn't exist yet on trip
         physicalGear: [data && data.physicalGear || null, Validators.compose([Validators.required, SharedValidators.object])],
         comments: [data && data.comments || null, Validators.maxLength(2000)],
 
-        parentOperation: [data && data.parentOperation || null], // Validators define later, int updateFormGroup
+        parentOperation: [data && data.parentOperation || null], // Validators define later, in updateFormGroup
         parentOperationId: [toNumber(data && data.parentOperationId, null)],
         childOperationId: [toNumber(data && data.childOperationId, null)]
       });
@@ -392,10 +398,11 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // Is a child
     else if (opts.isChild) {
       console.info('[operation-validator] Updating validator -> Child operation');
-      parentControl.setValidators(Validators.compose([Validators.required,
-        SharedValidators.entity,
+      const parentValidators = [Validators.required,
+        opts && !opts.isOnFieldMode ? DataValidators.remoteEntity('TRIP.OPERATION.ERROR.LOCAL_PARENT_OPERATION') : SharedValidators.entity,
         DataValidators.excludeQualityFlag(QualityFlagIds.MISSING, 'TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION')
-      ]));
+      ];
+      parentControl.setValidators(Validators.compose(parentValidators));
       parentControl.enable();
 
       if (childControl) {

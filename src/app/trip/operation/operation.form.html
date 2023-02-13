@@ -27,7 +27,7 @@
           </mat-boolean-field>
         </ion-col>
 
-        <ion-col size="12" size-sm="6" size-md="" size-lg="">
+        <ion-col size="12" size-sm="6" size-md="" size-lg="" class="ion-align-self-end">
           <mat-form-field [class.cdk-visually-hidden]="!isChildOperation"
                           [class.mat-form-field-invalid]="control.invalid"
                           *ngVar="parentControl as control">
@@ -53,33 +53,34 @@
                 <mat-icon >error</mat-icon>
               </button>
               <button matSuffix mat-icon-button type="button"
-                      *ngIf="control.valid"
-                      [matMenuTriggerFor]="optionsMenu"
+                      [matMenuTriggerFor]="parentFieldMenu"
                       tabindex="-1"
                       [title]=" 'COMMON.BTN_OPTIONS'|translate">
                 <mat-icon>more_vert</mat-icon>
               </button>
 
-              <!-- Type = options menu -->
-              <mat-menu #optionsMenu="matMenu" xPosition="after">
+              <!-- Parent = options menu -->
+              <mat-menu #parentFieldMenu="matMenu" xPosition="after">
+                <ng-template matMenuContent>
+                  <button mat-menu-item type="button"
+                          tabindex="-1"
+                          (click)="addParentOperation()">
+                    <ion-label>
+                      <mat-icon>list</mat-icon>
+                      <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
+                    </ion-label>
+                  </button>
+                  <button mat-menu-item type="button" *ngIf="openParentOperation.observers|isNotEmptyArray"
+                          [disabled]="control.value | isNilOrBlank"
+                          tabindex="-1"
+                          (click)="openParentOperation.emit(control.value)">
+                    <ion-label>
+                      <mat-icon>open_in_new</mat-icon>
+                      <span translate>TRIP.OPERATION.EDIT.BTN_OPEN_PARENT</span>
+                    </ion-label>
 
-                <button mat-menu-item type="button"
-                        tabindex="-1"
-                        (click)="addParentOperation()">
-                  <ion-label>
-                    <mat-icon>list</mat-icon>
-                    <span translate>TRIP.OPERATION.EDIT.BTN_SELECT_PARENT</span>
-                  </ion-label>
-                </button>
-                <button mat-menu-item type="button" [disabled]="control.value | isNilOrBlank"
-                        tabindex="-1"
-                        (click)="updateParentOperation()">
-                  <ion-label>
-                    <mat-icon>edit</mat-icon>
-                    <span translate>TRIP.OPERATION.EDIT.BTN_EDIT_PARENT</span>
-                  </ion-label>
-
-                </button>
+                  </button>
+                </ng-template>
               </mat-menu>
             </ng-template>
 

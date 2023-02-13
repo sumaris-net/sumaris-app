@@ -4,6 +4,7 @@
 import { isNil, isNotNil, LoadResult, } from '@sumaris-net/ngx-components';
 
 import { Moment } from 'moment';
+import { KeyValueType } from '../../../ngx-sumaris-components/src/app/shared/types';
 
 
 export function isNilOrNaN<T>(obj: T | null | undefined): boolean {
@@ -101,15 +102,4 @@ export function arrayPluck<T>(array: T[], key: keyof T, omitNil?: boolean): T[ty
  */
 export function countSubString(value: string, searchString: string) {
   return value.split(searchString).length -1;
-}
-
-/**
- * Remove the 'no time' marker, if present
- * @param value
- * @deprecated use ngx components DateUtils.markTime()
- */
-export function markTime(value: Moment) {
-  if (!value) return undefined;
-  delete value['_hasNoTime'];
-  return value;
 }

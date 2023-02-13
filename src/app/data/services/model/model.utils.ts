@@ -5,13 +5,14 @@ import { SynchronizationIonIcon } from '@app/data/quality/entity-quality-icon.co
 
 /* -- Enumerations -- */
 
-export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED';
+export type SynchronizationStatus = 'DIRTY' | 'READY_TO_SYNC' | 'SYNC' | 'DELETED' | 'TEMPORARY';
 
 export const SynchronizationStatusEnum = Object.freeze({
   DIRTY: <SynchronizationStatus>'DIRTY',
   READY_TO_SYNC: <SynchronizationStatus>'READY_TO_SYNC',
   SYNC: <SynchronizationStatus>'SYNC',
-  DELETED: <SynchronizationStatus>'DELETED'
+  DELETED: <SynchronizationStatus>'DELETED',
+  TEMPORARY: <SynchronizationStatus>'TEMPORARY'
 });
 
 export type DataQualityStatusIdType = 'MODIFIED' | 'CONTROLLED' | 'VALIDATED' | 'QUALIFIED';

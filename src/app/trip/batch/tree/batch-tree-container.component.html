@@ -30,15 +30,17 @@
       <!-- toolbar -->
       <mat-toolbar>
         <button mat-icon-button
-                (click)="toggleFilterPanel()">
+                (click)="toggleFilterPanel()"
+                [title]="(sidenav.opened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
           <mat-icon class="mat-icon-rtl-mirror"
                     matBadge="!"
-                    [matBadgeHidden]="valid || !model?.hidden"
+                    *ngIf="model; let model"
+                    [matBadgeHidden]="model.valid && model.childrenValid"
                     matBadgeOverlap="false"
                     matBadgeColor="accent"
                     matBadgeSize="small"
                     matBadgePosition="above after"
-          >chevron_right</mat-icon>
+          >{{sidenav.opened ? 'chevron_left' : 'chevron_right'}}</mat-icon>
           &nbsp;
         </button>
 
@@ -121,17 +123,36 @@
 <!-- Children batches menu -->
 <mat-menu #childrenMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-node="node" let-selected="selected">
-    <button *ngFor="let item of node?.children" mat-menu-item
-            [class.activated]="item===selected"
-            (click)="startEditBatch(null, item)">
-      <app-icon *ngIf="item.icon" [ref]="item.icon"></app-icon>
-      <span matBadge="!"
-            [matBadgeHidden]="item.valid"
-            matBadgeOverlap="false"
-            matBadgeColor="accent"
-            matBadgeSize="small"
-            matBadgePosition="above after">{{item.name}}</span>
-    </button>
+    <!-- if hidden, show parent children -->
+    <ng-container *ngIf="node.hidden && node?.parent; let parent">
+      <ng-container *ngFor="let item of parent.children">
+        <ng-container *ngTemplateOutlet="menuItemButton; context: {$implicit: item, selected: selected}"></ng-container>
+      </ng-container>
+    </ng-container>
+    <ng-container *ngFor="let item of node?.children">
+      <ng-container *ngIf="item.hidden">
+        <ng-container *ngFor="let subitem of item.children">
+          <ng-container *ngTemplateOutlet="menuItemButton; context: {$implicit: subitem, selected: selected}"></ng-container>
+        </ng-container>
+      </ng-container>
+      <ng-container *ngTemplateOutlet="menuItemButton; context: {$implicit: item, selected: selected}"></ng-container>
+    </ng-container>
+
+    <!-- display one menu item -->
+    <ng-template #menuItemButton let-item let-selected="selected">
+      <button  mat-menu-item
+               *ngIf="!item.hidden"
+               [class.activated]="item===selected"
+               (click)="startEditBatch(null, item)">
+        <app-icon *ngIf="item.icon" [ref]="item.icon"></app-icon>
+        <span matBadge="!"
+              [matBadgeHidden]="item.valid"
+              matBadgeOverlap="false"
+              matBadgeColor="accent"
+              matBadgeSize="small"
+              matBadgePosition="above after">{{item.name}}</span>
+      </button>
+    </ng-template>
   </ng-template>
 </mat-menu>
 

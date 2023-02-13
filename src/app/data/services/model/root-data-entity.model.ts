@@ -69,7 +69,7 @@ export class RootDataEntity<
   }
 }
 
-export abstract class DataRootEntityUtils {
+export abstract class RootDataEntityUtils {
 
   static copyControlAndValidationDate(source: RootDataEntity<any, any> | undefined, target: RootDataEntity<any, any>) {
     if (!source) return;
@@ -84,7 +84,7 @@ export abstract class DataRootEntityUtils {
   }
 
   static isRemote(entity: RootDataEntity<any, any>): boolean {
-    return entity && !DataRootEntityUtils.isLocal(entity);
+    return entity && !RootDataEntityUtils.isLocal(entity);
   }
 
   static isLocalAndDirty(entity: RootDataEntity<any, any>): boolean {
@@ -93,5 +93,17 @@ export abstract class DataRootEntityUtils {
 
   static isReadyToSync(entity: RootDataEntity<any, any>): boolean {
     return entity && entity.id < 0 && entity.synchronizationStatus === 'READY_TO_SYNC' || false;
+  }
+
+  static markAsDirty(entity: RootDataEntity<any, any>) {
+    if (!entity) return; // skip
+
+    // Remove control flags
+    DataEntityUtils.markAsNotControlled(entity);
+
+    // On local entity: change the synchronization statuc
+    if (entity.id < 0) {
+      entity.synchronizationStatus = 'DIRTY';
+    }
   }
 }

@@ -78,6 +78,13 @@ export class ExtractionUtils {
         return res.concat(`${sheetNamePrefix}${criterion.name}${operator}${value}`);
       }, []).join(";");
     }
+
+    const metaProperties = filter?.meta && Object.entries(filter.meta);
+    if (isNotEmptyArray(metaProperties)) {
+      queryParams.meta = metaProperties
+        .filter(([key, value]) => isNotNil(value))
+        .map(([key, value]) => `${key}:${value}`).join(';');
+    }
     return queryParams;
   }
 
@@ -110,6 +117,22 @@ export class ExtractionUtils {
       })
       .filter(isNotNilOrBlank)
       .map(ExtractionFilterCriterion.fromObject);
+  }
+
+  static parseMetaString(meta: string): any {
+    if (isNilOrBlank(meta)) return undefined;
+    return meta.split(';')
+      .reduce((res, prop) => {
+        const parts = prop.split(':');
+        const key = parts[0];
+        let value: any = parts[1];
+        if (value === 'true') value = true;
+        else if (value === 'false') value = false;
+        return {
+          ...res,
+          [key]: value
+        };
+      }, {});
   }
 
   static filterWithValues(columns: ExtractionColumn[], opts?: {allowNullValuesOnNumeric?: boolean}) {

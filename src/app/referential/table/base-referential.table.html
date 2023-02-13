@@ -48,7 +48,7 @@
           *ngIf="canDownload"
           (click)="exportToCsv($event)">
     <mat-icon>download</mat-icon>
-    <ion-label translate>COMMON.BTN_DOWNLOAD</ion-label>
+    <ion-label>{{'COMMON.BTN_DOWNLOAD'|translate|uppercase}}</ion-label>
   </button>
 
   <!-- upload button -->
@@ -56,7 +56,7 @@
           *ngIf="canUpload"
           (click)="importFromCsv($event)">
     <mat-icon>upload</mat-icon>
-    <ion-label translate>COMMON.BTN_IMPORT</ion-label>
+    <ion-label>{{'COMMON.BTN_IMPORT'|translate|uppercase}}</ion-label>
   </button>
 
 

@@ -24,8 +24,9 @@ export class BatchModelTreeComponent {
 
   @Input() set data(value: BatchModel[]) {
     this.treeDataSource.data = value;
-    this.markForCheck();
+    this.expandAll();
   }
+
   get data(): BatchModel[] {
     return this.treeDataSource.data;
   }

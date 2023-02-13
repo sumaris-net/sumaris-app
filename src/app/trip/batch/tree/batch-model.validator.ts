@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import {AppFormArray, isEmptyArray, isNotEmptyArray, isNotNil, LocalSettingsService, ReferentialRef, removeDuplicatesFromArray} from '@sumaris-net/ngx-components';
+import { AppFormArray, isEmptyArray, isNil, isNotEmptyArray, isNotNil, LocalSettingsService, ReferentialRef, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
@@ -130,6 +130,28 @@ export class BatchModelValidatorService<
     {
       if (allowDiscard) {
 
+        // Disable the discard batch, if not a leaf
+        TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+          measurementValues: {
+            [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
+          },
+          hidden: false, // Exclude if no pmfms
+          isLeaf: false
+        }))
+        .forEach(batch => {
+          batch.pmfms = [];
+          batch.state = {
+            ...batch.state,
+            requiredWeight: false
+          };
+          batch.hidden = true;
+
+          // Add 'discard' into the children name
+          batch.children?.forEach(child => {
+            child.name = [batch.name, child.name].join(', ')
+          });
+        });
+
         // Enable sampling batch, in VRAC batches
         TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
             parent: {
@@ -143,6 +165,7 @@ export class BatchModelValidatorService<
             }
           }))
           .forEach(batch => {
+
             const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone())
             if (isNotEmptyArray(weightPmfms)) {
               // Add weights PMFM (if not found)
@@ -165,15 +188,52 @@ export class BatchModelValidatorService<
             }
           });
 
-        // Activer le champ "Inventaire exhaustif e l'espèce ?"
+        // Enable weight in HORS-VRAC batches
+        TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
+          parent: {
+            measurementValues: {
+              [PmfmIds.DISCARD_OR_LANDING]: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
+            }
+          },
+          hidden: false, // Exclude if no pmfms
+          measurementValues: {
+            [PmfmIds.BATCH_SORTING]: QualitativeValueIds.BATCH_SORTING.NON_BULK
+          }
+        }))
+          .forEach(batch => {
+            const weightPmfms = (batch.childrenPmfms || []).filter(PmfmUtils.isWeight).map(p => p.clone())
+            if (isNotEmptyArray(weightPmfms)) {
+              // Add weights PMFM (if not found)
+              const pmfms = removeDuplicatesFromArray([
+                ...batch.pmfms,
+                ...weightPmfms
+              ], 'id');
+
+              // Update the state, to enable weight
+              batch.state = {
+                ...batch.state,
+                pmfms,
+                showWeight: true,
+                requiredWeight: true,
+                showSamplingBatch: false,
+                samplingBatchEnabled: false,
+                showExhaustiveInventory: false
+              };
+              batch.originalData.exhaustiveInventory = true;
+            }
+          });
+
+        // Activer le champ "Inventaire exhaustif des espèces ?"
         TreeItemEntityUtils.findByFilter(model, BatchModelFilter.fromObject(<Partial<BatchModelFilter>>{
           hidden: false, // Exclude if no pmfms
           isLeaf: true
         }))
         .forEach(leafBatch => {
-          leafBatch.state = {
-            ...leafBatch.state,
-            showExhaustiveInventory: true
+          if (isNil(leafBatch.state.showExhaustiveInventory)) {
+            leafBatch.state = {
+              ...leafBatch.state,
+              showExhaustiveInventory: true
+            }
           }
         });
       }

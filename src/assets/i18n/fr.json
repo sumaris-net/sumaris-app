@@ -112,7 +112,6 @@
     "YES": "Oui",
     "NO": "Non",
 
-
     "UPDATED_ON": "Mise à jour le",
     "RECORDER": "Saisisseur",
     "RESULT_COUNT": "{{count}} résultats",
@@ -552,7 +551,7 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
-      "BTN_DOWNLOAD_DOTS": "Téléchargement...",
+      "BTN_DOWNLOAD_DOTS": "Télécharger...",
       "BTN_DOWNLOAD_JSON": "Télécharger (JSON)",
       "DOWNLOAD_JSON_FILENAME": "Marées.json",
       "FILTER": {
@@ -684,7 +683,7 @@
         "BTN_DELETE": "Supprimer cette opération",
         "BTN_DUPLICATE": "Dupliquer cette opération",
         "BTN_DUPLICATE_POSITION": "Dupliquer la position en fin de pêche",
-        "BTN_EDIT_PARENT" : "Modifier le filage...",
+        "BTN_OPEN_PARENT" : "Ouvrir le filage...",
         "BTN_SELECT_PARENT" : "Sélectionner le filage...",
         "BTN_SAVE_AND_NEW" : "Sauvegarder et nouveau",
         "COMMENTS": "Commentaires",
@@ -762,7 +761,11 @@
       },
       "PMFM": {
         "SORTING_START_DATE_TIME": "Début de tri",
-        "SORTING_END_DATE_TIME": "Fin de tri"
+        "SORTING_END_DATE_TIME": "Fin de tri",
+        "TAG_OPERATION": "Étiquette",
+        "TRAWL_SELECTIVITY": {
+          "TAG_OPERATION": "Code de rapprochement"
+        }
       },
       "MAP": {
         "TITLE": "Carte des positions",
@@ -804,7 +807,8 @@
         "SAVE_OPERATION_ERROR": "Erreur lors de la sauvegarde de l'opération.",
         "SAVE_OPERATIONS_ERROR": "Erreur lors de la sauvegarde des opérations.",
         "SUBSCRIBE_OPERATION_ERROR": "Echec de l'abonnement distant aux modifications de l'opération.",
-        "MISSING_PARENT_OPERATION": "Opération associée inexistante",
+        "LOCAL_PARENT_OPERATION": "Opération provenant d'une marée non synchronisée",
+        "MISSING_PARENT_OPERATION": "Opération inexistante ou associée à un autre virage",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Avant la date de fin du filage",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "Après le début du virage",
         "TOO_LONG_DISTANCE" : "Distance trop grande ({{distance}} miles)",
@@ -933,7 +937,7 @@
         "ESTIMATED_WEIGHT_QUESTION_SHORT": "Pds estimé?"
       },
       "TREE": {
-        "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-dessous :",
+        "SELECT_PARENT_HELP": "Sélectionner un lot, dans l'arbre ci-contre",
         "EMPTY": "vide",
         "BATCH_COUNT": "{{count}} lot",
         "BATCHES_COUNT": "{{count}} lots",
@@ -948,9 +952,9 @@
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
         "CHILD_GEAR": "Sous-engin",
         "TRAWL_SELECTIVITY": {
-          "BATCH_MEASURED_WEIGHT": "Poids du lot (kg)",
-          "BATCH_ESTIMATED_WEIGHT": "Poids du lot (kg)",
-          "BATCH_CALCULATED_WEIGHT": "Poids du lot (kg)"
+          "BATCH_MEASURED_WEIGHT": "Poids total du lot (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Poids total du lot (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Poids total du lot (kg)"
         }
       }
     },
@@ -2086,8 +2090,8 @@
         "TITLE": "<small>Produit<br/></small>{{name}}",
         "IS_SPATIAL": "Aggregation spatiale ?",
         "BTN_OPEN_MAP": "Voir la carte",
-        "BTN_UPDATE": "Executer",
-        "BTN_UPDATE_HELP": "Executer maintenant",
+        "BTN_EXECUTE": "Exécuter",
+        "BTN_EXECUTE_HELP": "Exécuter maintenant",
         "BTN_PREVIEW_DOC": "Prévisualiser la doc",
         "FILTER_DOTS": "Filtrage sur la source des données :",
         "STRATUM_DOTS": "Couches géographiques :",
@@ -2096,6 +2100,9 @@
         "FORMAT_PLACEHOLDER": "Décrivez le format de sortie...",
         "FORMAT_PREVIEW_DOTS": "Prévisualisation :",
         "PROCESSING_FREQUENCY": "Fréquence de mise à jour",
+        "TAB_GENERAL": "Détails",
+        "TAB_DATASOURCE": "Filtre",
+        "TAB_RESULT": "Résultat",
         "STRATA": {
           "SHEET_NAME": "Couche",
           "TIME_COLUMN": "Temps",
@@ -2135,7 +2142,8 @@
       "NOT_NULL": "non vide",
       "HELP": "Pour filtrer rapidement, cliquez dans la cellule. Maintenez la touche 'Ctrl' pour filtrer sur plusieurs valeurs.",
       "NO_FILTER_PARENTHESIS": "(non filtrés)",
-      "WITH_FILTER_PARENTHESIS": "(filtrés)"
+      "WITH_FILTER_PARENTHESIS": "(filtrés)",
+      "BTN_EXCLUDE_INVALID_DATA": "Exclure les données invalides"
     },
     "HELP": {
       "MODAL": {

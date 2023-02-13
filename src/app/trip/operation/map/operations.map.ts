@@ -270,7 +270,7 @@ export class OperationsMap implements OnInit, OnDestroy {
 
         // Add each operation to layer
         (operations || [])
-          .sort(EntityUtils.sortComparator('rankOrderOnPeriod', 'asc'))
+          .sort(EntityUtils.sortComparator('rankOrder', 'asc'))
           .forEach((ope, index) => {
             const feature = this.getOperationFeature(ope, index);
             if (!feature) return; // Skip if empty

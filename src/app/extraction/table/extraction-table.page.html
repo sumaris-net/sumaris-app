@@ -1,16 +1,25 @@
-<app-toolbar color="primary">
+<app-toolbar color="primary" *ngIf="!embedded; else simpleToolbar">
 
   <ion-title>
     <span class="hidden-xs hidden-sm hidden-mobile"
           [innerHTML]="$title | async | translate"></span>
   </ion-title>
 
-  <ion-buttons slot="end" *ngIf="type">
+  <ion-buttons slot="end" *ngIf="type; let type">
+
+    <!-- edit product -->
+    <button mat-icon-button
+            *ngIf="!mobile && canEdit && type?.category === 'PRODUCT'"
+            [title]="'COMMON.BTN_EDIT'|translate"
+            (click)="openProduct(type)">
+      <mat-icon>edit</mat-icon>
+    </button>
+
     <!-- Help button -->
     <button mat-icon-button
-            *ngIf="type.description"
+            *ngIf="type.description || type.category === 'PRODUCT'"
             class="hidden-xs hidden-sm hidden-mobile"
-            [matTooltip]="'COMMON.BTN_SHOW_HELP'|translate"
+            [title]="'COMMON.BTN_SHOW_HELP'|translate"
             (click)="openHelpModal($event)">
       <mat-icon>help_outline</mat-icon>
     </button>
@@ -19,35 +28,37 @@
     <button mat-icon-button
             *ngIf="type.isSpatial"
             class="hidden-xs hidden-sm hidden-mobile"
-            [matTooltip]="'EXTRACTION.BTN_OPEN_MAP'|translate"
+            [title]="'EXTRACTION.BTN_OPEN_MAP'|translate"
             (click)="openMap($event)">
       <mat-icon>
         <ion-icon name="earth"></ion-icon>
       </mat-icon>
     </button>
 
-    <!-- reset filter -->
-    <button mat-icon-button (click)="resetFilter()"
-            *ngIf="filterCriteriaCount$|async">
-      <mat-icon color="accent">filter_list_alt</mat-icon>
-      <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
-    </button>
+    <ng-container *ngIf="showFilter">
+      <!-- reset filter -->
+      <button mat-icon-button (click)="resetFilter()"
+              *ngIf="filterCriteriaCount$|async">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button>
 
-    <!-- show filter -->
-    <button mat-icon-button (click)="filterExpansionPanel.toggle()">
-      <mat-icon *ngIf="filterCriteriaCount$|async; let criteriaCount; else noCriteriaIcon"
-                [matBadge]="criteriaCount"
-                matBadgeColor="accent"
-                matBadgeSize="small"
-                matBadgePosition="above after">filter_list_alt</mat-icon>
-      <ng-template #noCriteriaIcon>
-        <mat-icon>filter_list_alt</mat-icon>
-      </ng-template>
-    </button>
+      <!-- show filter -->
+      <button mat-icon-button (click)="filterExpansionPanel.toggle()">
+        <mat-icon *ngIf="filterCriteriaCount$|async; let criteriaCount; else noCriteriaIcon"
+                  [matBadge]="criteriaCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <ng-template #noCriteriaIcon>
+          <mat-icon>filter_list_alt</mat-icon>
+        </ng-template>
+      </button>
+    </ng-container>
 
     &nbsp;
 
-    <ion-button *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+    <ion-button *ngIf="types$ | async |isArrayLength: {greaterThan: 1}"
                 [matMenuTriggerFor]="selectTypeMenu"
                 [matMenuTriggerData]="{$implicit: ($categories|async)}"
                 color="accent" fill="solid">
@@ -57,12 +68,74 @@
     </ion-button>
     &nbsp;
     <!-- options menu -->
-    <ion-button *ngIf="canEdit"
-                [matMenuTriggerFor]="optionMenu">
+    <ion-button *ngIf="mobile || canEdit || canCreateProduct"
+                [matMenuTriggerFor]="optionsMenu"
+                [matMenuTriggerData]="{$implicit: type}">
       <mat-icon slot="icon-only">more_vert</mat-icon>
     </ion-button>
   </ion-buttons>
 </app-toolbar>
+
+<ng-template #simpleToolbar>
+  <mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
+
+    <!-- Refresh -->
+    <button mat-icon-button *ngIf="!mobile"
+            [title]="'COMMON.BTN_REFRESH'|translate"
+            (click)="onRefresh.emit()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+
+    <ion-item *ngIf="!mobile && error; let error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+    <div class="toolbar-spacer"></div>
+
+    <ng-content select="[toolbarButton]"></ng-content>
+
+    <button mat-button
+            *ngIf="showDownloadButton"
+            (click)="downloadAsFile($event)"
+            (keyup.enter)="downloadAsFile($event)"
+            download="true"
+            [disabled]="loading">
+      <mat-icon>get_app</mat-icon>
+      <ion-label [innerHTML]="'COMMON.BTN_DOWNLOAD'|translate|uppercase"
+                 [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_HELP'|translate"></ion-label>
+    </button>
+
+    <ng-container *ngIf="showFilter">
+      <!-- reset filter -->
+      <button mat-icon-button (click)="resetFilter()"
+              *ngIf="filterCriteriaCount$|async">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button>
+
+      <!-- show filter -->
+      <button mat-icon-button (click)="filterExpansionPanel.toggle()">
+        <mat-icon *ngIf="filterCriteriaCount$|async; let criteriaCount; else noCriteriaIcon"
+                  [matBadge]="criteriaCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <ng-template #noCriteriaIcon>
+          <mat-icon>filter_list_alt</mat-icon>
+        </ng-template>
+      </button>
+
+      <!-- options menu -->
+      <button mat-icon-button
+              [title]="'COMMON.BTN_OPTIONS'|translate"
+              [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </ng-container>
+
+  </mat-toolbar>
+</ng-template>
 
 <!-- Types menu -->
 <mat-menu #selectTypeMenu="matMenu" xPosition="after">
@@ -148,53 +221,71 @@
   <button mat-menu-item *ngIf="canCreateProduct && !type?.isSpatial" (click)="aggregateAndSave($event)">
     <ion-label translate>EXTRACTION.NEW_SPATIAL_AGGREGATION</ion-label>
   </button>
-  <button mat-menu-item *ngIf="canCreateProduct" (click)="save($event)">
+  <button mat-menu-item *ngIf="canCreateProduct && type?.category !== 'PRODUCT'" (click)="save($event)">
     <ion-label translate>EXTRACTION.NEW_PRODUCT</ion-label>
   </button>
 </mat-menu>
 
 
 <!-- options menu -->
-<mat-menu #optionMenu="matMenu">
+<mat-menu #optionsMenu="matMenu">
+  <ng-template matMenuContent let-type>
 
-  <button mat-menu-item
-          *ngIf="mobile"
-          (click)="doRefresh()">
-    <mat-icon>refresh</mat-icon>
-  </button>
+    <button mat-menu-item
+            *ngIf="mobile"
+            (click)="doRefresh()">
+      <mat-icon>refresh</mat-icon>
+    </button>
 
-  <!-- open map -->
-  <button mat-menu-item
-          class="visible-xs visible-sm visible-mobile"
-          *ngIf="type?.isSpatial"
-          (click)="openMap($event)">
-    <mat-icon>
-      <ion-icon name="earth"></ion-icon>
-    </mat-icon>
-  </button>
+    <!-- open map (if mobile)  -->
+    <button mat-menu-item
+            class="visible-xs visible-sm visible-mobile"
+            *ngIf="type?.isSpatial"
+            (click)="openMap($event)">
+      <mat-icon>
+        <ion-icon name="earth"></ion-icon>
+      </mat-icon>
+    </button>
 
-  <!-- help -->
-  <button mat-menu-item
-          *ngIf="type?.description"
-          class="visible-xs visible-sm visible-mobile"
-          (click)="openHelpModal($event)">
-    <mat-icon>help_outline</mat-icon>
-  </button>
+    <!-- help (if mobile) -->
+    <button mat-menu-item
+            *ngIf="type?.description || type?.category === 'PRODUCT'"
+            class="visible-xs visible-sm visible-mobile"
+            (click)="openHelpModal($event)">
+      <mat-icon>help_outline</mat-icon>
+    </button>
 
-  <button mat-menu-item
-          *ngIf="canEdit"
-          (click)="openProduct(type)">
-    <mat-icon>edit</mat-icon>
-    <ion-label translate>COMMON.BTN_EDIT</ion-label>
-  </button>
+    <!-- include invalid data ?-->
+    <button mat-menu-item
+            *ngIf="showFilter && type?.category !== 'PRODUCT'"
+            [disabled]="!canCreateProduct"
+            (click)="toggleExcludeInvalidData($event)">
+      <mat-icon>{{excludeInvalidData ? 'check_box': 'check_box_outline_blank'}}</mat-icon>
+      <ion-label translate>EXTRACTION.FILTER.BTN_EXCLUDE_INVALID_DATA</ion-label>
+    </button>
 
-  <button mat-menu-item *ngIf="canEdit || isAdmin"
-          (click)="delete($event)">
-    <mat-icon>delete</mat-icon>
-    <ion-label translate>COMMON.BTN_DELETE</ion-label>
-  </button>
+    <!-- edit product (if mobile) -->
+    <button mat-menu-item
+            *ngIf="mobile && canEdit && type?.category === 'PRODUCT'"
+            (click)="openProduct(type)">
+      <mat-icon>edit</mat-icon>
+      <ion-label translate>COMMON.BTN_EDIT</ion-label>
+    </button>
+
+    <!-- delete product -->
+    <ng-container *ngIf="(canEdit || isAdmin) && type?.category === 'PRODUCT'">
+
+      <mat-divider></mat-divider>
+
+      <button mat-menu-item
+              (click)="delete($event)">
+        <mat-icon>delete</mat-icon>
+        <ion-label translate>COMMON.BTN_DELETE</ion-label>
+      </button>
+    </ng-container>
 
 
+  </ng-template>
 </mat-menu>
 
 <ion-content class="ion-no-padding" scroll-y="false">
@@ -331,7 +422,7 @@
           <ion-text color="primary100" class="text-italic" [innerHTML]="'EXTRACTION.TABLE.SELECT_TYPE_HELP'|translate"></ion-text>
         </p>
         <p class="ion-text-center">
-          <ion-button *ngIf="$types | async |isArrayLength: {greaterThan: 1}"
+          <ion-button *ngIf="types$ | async |isArrayLength: {greaterThan: 1}"
                       [matMenuTriggerFor]="selectTypeMenu"
                       [matMenuTriggerData]="{$implicit: ($categories|async) }"
                       color="tertiary" fill="solid">
@@ -375,6 +466,7 @@
         </ion-button>
 
         <ion-button fill="solid" color="tertiary"
+                    *ngIf="showDownloadButton"
                     (click)="downloadAsFile($event)"
                     (keyup.enter)="downloadAsFile($event)"
                     download="true"

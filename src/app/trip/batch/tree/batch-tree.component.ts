@@ -197,7 +197,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
   @Input() set allowSpeciesSampling(value: boolean) {
     this._state.set('allowSpeciesSampling', _ => value);
-
   }
 
   get allowSpeciesSampling(): boolean {
@@ -389,11 +388,6 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
 
     this._state.connect('showSubBatchesTable', this._state.select(['allowSubBatches', 'programAllowMeasure'],
         ({allowSubBatches, programAllowMeasure}) => allowSubBatches && programAllowMeasure));
-
-    this._state.hold(this._state.select(['allowSpeciesSampling', 'programAllowMeasure'], res => res),
-      ({allowSpeciesSampling, programAllowMeasure}) => {
-        this.batchGroupsTable.showSamplingBatchColumns = allowSpeciesSampling && programAllowMeasure;
-      });
 
     this._state.hold(this._state.select('showSubBatchesTable'),(showSubBatchesTable) => {
         // If disabled
