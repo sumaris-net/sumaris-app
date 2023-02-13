@@ -9,7 +9,7 @@ import {
   ColorScale,
   ColorScaleLegendItem,
   ConfigService,
-  DurationPipe,
+  DurationPipe, EntityServiceLoadOptions,
   fadeInAnimation,
   fadeInOutAnimation,
   firstNotNilPromise,
@@ -523,6 +523,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionProduct>> {
     return this.productService.watchAll(this.productFilter);
+  }
+
+  protected loadType(id: number, opts?: EntityServiceLoadOptions): Promise<ExtractionProduct> {
+    return this.productService.load(id, opts);
   }
 
   protected fromObject(json: any): ExtractionProduct {

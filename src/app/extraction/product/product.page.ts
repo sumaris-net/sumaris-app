@@ -3,7 +3,20 @@ import { ExtractionCategories, ExtractionColumn, ExtractionFilter } from '../typ
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, EntityUtils, equals, isEmptyArray, isNil, isNotNil, LocalSettingsService, toNumber } from '@sumaris-net/ngx-components';
+import {
+  AccountService,
+  Alerts,
+  AppEntityEditor,
+  EntityServiceLoadOptions,
+  EntityUtils,
+  equals,
+  HistoryPageReference,
+  isEmptyArray,
+  isNil,
+  isNotNil,
+  LocalSettingsService,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import { ProductForm } from './product.form';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
 import { ExtractionProductValidatorService } from '@app/extraction/product/product.validator';
@@ -11,6 +24,7 @@ import { ProductService } from '@app/extraction/product/product.service';
 import { ExtractionTablePage } from '@app/extraction/table/extraction-table.page';
 import { debounceTime, filter } from 'rxjs/operators';
 import { MatTabChangeEvent } from '@angular/material/tabs';
+import { environment } from '@environments/environment';
 
 export const ProductPageTabs = {
   GENERAL: 0,
@@ -62,6 +76,8 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
         pathIdAttribute: 'productId',
         tabCount: 3
       });
+
+    this.debug = !environment.production;
   }
 
   ngOnInit() {
@@ -162,7 +178,6 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
         sourceTypeId = data.parentId;
       }
       else {
-        // Wait types
         await this.datasourceTable.ready();
         const types = this.datasourceTable.types;
 
@@ -192,9 +207,10 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
   }
 
   async initResultTable(data: ExtractionProduct) {
+    this.resultTable.types = [data];
     // Apply to table
     try {
-      await this.resultTable.load(data?.id, {
+      await this.resultTable.load(data.id, {
         filter: {
           sheetName: data.sheetNames?.[0]
         },
@@ -253,6 +269,16 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
     // Existing data
     return await this.translate.get('EXTRACTION.AGGREGATION.EDIT.TITLE', data).toPromise();
+  }
+
+  protected async computePageHistory(title: string): Promise<HistoryPageReference> {
+    if (this.debug) console.debug('[entity-editor] Computing page history, using url: ' + this.router.url);
+    return {
+      title,
+      subtitle: this.translate.instant('EXTRACTION.TYPES_MENU.PRODUCT_DIVIDER'),
+      icon: 'cloud-download-outline',
+      path: `/extraction/product/${this.data.id}`
+    };
   }
 
   protected getFirstInvalidTabIndex(): number {

@@ -21,7 +21,7 @@
 <ion-content>
 
   <mat-tab-group #tabGroup
-                 class="mat-tab-fixed-content"
+                 class="mat-tab-fixed-content mat-tab-disabled-hidden mat-tab-group-header-pagination-hidden"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
@@ -36,6 +36,31 @@
       </ng-template>
 
       <div class="ion-padding">
+
+        <app-debug *ngIf="debug">
+          <ion-grid>
+            <ion-row>
+              <ion-col>
+                ready: {{readySubject|async}}<br/>
+                loading: {{loading}}<br/>
+                enabled: {{enabled}}<br/>
+                dirty: {{dirty}}<br/>
+              </ion-col>
+              <ion-col>
+                productForm.ready: {{productForm.readySubject|async}}<br/>
+                productForm.loading: {{productForm.loading}}<br/>
+                productForm.enabled: {{productForm.enabled}}<br/>
+                productForm.dirty: {{productForm.dirty}}<br/>
+              </ion-col>
+              <ion-col>
+                datasourceTable.ready: {{datasourceTable.readySubject|async}}<br/>
+                datasourceTable.loading: {{datasourceTable.loading}}<br/>
+                datasourceTable.enabled: {{datasourceTable.enabled}}<br/>
+                datasourceTable.dirty: {{datasourceTable.dirty}}<br/>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </app-debug>
 
         <!-- error -->
         <ion-item *ngIf="error" visible-xs visible-sm visible-mobile lines="none">
@@ -108,7 +133,8 @@
     </mat-tab>
 
     <!-- TAB: result -->
-    <mat-tab label="{{'EXTRACTION.AGGREGATION.EDIT.TAB_RESULT'|translate}}">
+    <mat-tab label="{{'EXTRACTION.AGGREGATION.EDIT.TAB_RESULT'|translate}}"
+             [disabled]="productForm.isSpatial">
       <ng-template mat-tab-label>
         <mat-icon>dataset</mat-icon>
         <ion-label translate>EXTRACTION.AGGREGATION.EDIT.TAB_RESULT</ion-label>

@@ -3,7 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import {
   AccountService,
   AppTabEditor,
-  capitalizeFirstLetter, DateUtils,
+  capitalizeFirstLetter, DateUtils, EntityServiceLoadOptions,
   firstNotNilPromise, fromDateISOString,
   isEmptyArray,
   isNil,
@@ -67,7 +67,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return this._state.get('types');
   }
 
-  set types(value: T[]) {
+  @Input() set types(value: T[]) {
     this._state.set('types', _ => value);
   }
 
@@ -131,16 +131,18 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
     this.addChildForm(this.criteriaForm);
 
-    // Load types
-    this._state.connect('types',
-      this.watchAllTypes()
-        .pipe(
-          map(({data, total}) => {
-            // Compute i18n name
-            return data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
-              // Then sort by name
-              .sort(propertyComparator('name'));
-          })));
+    // Load types (if not set by types
+    if (!this.types) {
+      this._state.connect('types',
+        this.watchAllTypes()
+          .pipe(
+            map(({ data, total }) => {
+              // Compute i18n name
+              return data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
+                // Then sort by name
+                .sort(propertyComparator('name'));
+            })));
+    }
 
     this._state.hold(this.types$, (_) => this.markAsReady());
 
@@ -362,10 +364,14 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
   async load(id?: number, opts?: { filter?: Partial<ExtractionFilter>, emitEvent?: boolean; } ): Promise<any> {
 
-    let types = this.types;
+    let types: T[] = this.types;
     if (isNil(types)) await this.ready();
 
-    const type = (types || []).find(t => t.id === id);
+    let type: T = (types || []).find(t => t.id === id);
+    // Not found in type (try without cache)
+    if (!type) {
+      type = await this.loadType(id, {fetchPolicy: 'no-cache'});
+    }
 
     // Set type (need by the criteria form)
     let changed = type && await this.setType(type, {emitEvent: false});
@@ -427,6 +433,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   protected abstract loadData(): Promise<void>;
 
   protected abstract watchAllTypes(): Observable<LoadResult<T>>;
+
+  protected abstract loadType(id: number, opts?: EntityServiceLoadOptions): Promise<T>;
 
   protected abstract fromObject(type?: any): T;
 

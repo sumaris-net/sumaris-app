@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
+import { BehaviorSubject, EMPTY, merge, Observable, Subject } from 'rxjs';
 import {
   AccountService,
-  Alerts, CompletableEvent,
+  Alerts,
+  CompletableEvent,
   DEFAULT_PAGE_SIZE,
   DEFAULT_PAGE_SIZE_OPTIONS,
+  EntityServiceLoadOptions,
   firstNotNilPromise,
   isNil,
   isNilOrBlank,
@@ -18,10 +20,11 @@ import {
   StatusIds,
   TableSelectColumnsComponent
 } from '@sumaris-net/ngx-components';
-import {TableDataSource} from '@e-is/ngx-material-table';
+import { TableDataSource } from '@e-is/ngx-material-table';
 import {
   ExtractionCategories,
-  ExtractionColumn, ExtractionFilter,
+  ExtractionColumn,
+  ExtractionFilter,
   ExtractionFilterCriterion,
   ExtractionResult,
   ExtractionRow,
@@ -29,27 +32,27 @@ import {
   ExtractionTypeCategory,
   ExtractionTypeUtils
 } from '../type/extraction-type.model';
-import {AlertController, ModalController, ToastController} from '@ionic/angular';
-import {Location} from '@angular/common';
-import {debounceTime, filter, map, throttleTime} from 'rxjs/operators';
-import {DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState} from '../common/extraction-abstract.page';
-import {ActivatedRoute, Router} from '@angular/router';
-import {TranslateService} from '@ngx-translate/core';
-import {CacheDuration, ExtractionService} from '../common/extraction.service';
-import {UntypedFormBuilder} from '@angular/forms';
-import {MatTable} from '@angular/material/table';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
-import {MatExpansionPanel} from '@angular/material/expansion';
-import {ProductService} from '@app/extraction/product/product.service';
-import {ExtractionProduct} from '@app/extraction/product/product.model';
-import {ExtractionTypeService} from '@app/extraction/type/extraction-type.service';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
-import {ProgramFilter} from '@app/referential/services/filter/program.filter';
-import {Program} from '@app/referential/services/model/program.model';
-import {ExtractionTypeFilter} from '@app/extraction/type/extraction-type.filter';
-import {RxState} from '@rx-angular/state';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
+import { Location } from '@angular/common';
+import { debounceTime, filter, map, throttleTime } from 'rxjs/operators';
+import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
+import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
+import { CacheDuration, ExtractionService } from '../common/extraction.service';
+import { UntypedFormBuilder } from '@angular/forms';
+import { MatTable } from '@angular/material/table';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatSort } from '@angular/material/sort';
+import { MatExpansionPanel } from '@angular/material/expansion';
+import { ProductService } from '@app/extraction/product/product.service';
+import { ExtractionProduct } from '@app/extraction/product/product.model';
+import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { ProgramFilter } from '@app/referential/services/filter/program.filter';
+import { Program } from '@app/referential/services/model/program.model';
+import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+import { RxState } from '@rx-angular/state';
 
 export interface ExtractionTableState extends ExtractionState<ExtractionType>{
   programs: Program[];
@@ -662,6 +665,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
   /* -- protected method -- */
 
+
   async updateQueryParams(type?: ExtractionType, opts: { skipLocationChange: boolean } = { skipLocationChange: false }): Promise<void> {
     if (this.embedded) return; // Avoid to update route, if embedded
 
@@ -674,11 +678,18 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   }
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {
-    return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', <ExtractionTypeFilter>{
-        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
-        // Exclude spatial because we cannot load columns yet
-        isSpatial: false
-      });
+    const filter = <ExtractionTypeFilter>{
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+    };
+    // Exclude spatial because we cannot load columns yet
+    if (!this.embedded) {
+      filter.isSpatial = false;
+    }
+    return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', filter);
+  }
+
+  protected loadType(id: number, opts?: EntityServiceLoadOptions): Promise<ExtractionType> {
+    return this.extractionTypeService.load(id, opts);
   }
 
   protected async loadData() {

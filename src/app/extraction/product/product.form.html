@@ -20,7 +20,7 @@
           <input matInput hidden>
           <ion-label>&nbsp;</ion-label>
           <mat-checkbox matPrefix
-                        [formControl]="form.controls.isSpatial"
+                        [formControl]="form|formGetControl:'isSpatial'"
                         labelPosition="after">
             <ion-text translate>EXTRACTION.AGGREGATION.EDIT.IS_SPATIAL</ion-text>
           </mat-checkbox>
@@ -29,7 +29,7 @@
 
       <ion-col>
         <mat-form-field>
-          <mat-select [formControl]="form.controls.processingFrequencyId"
+          <mat-select [formControl]="form|formGetControl:'processingFrequencyId'"
                       [placeholder]="'EXTRACTION.AGGREGATION.EDIT.PROCESSING_FREQUENCY'|translate" required>
             <mat-select-trigger>
               <span *ngIf="form.controls.statusId.value &gt;= 0">
@@ -57,7 +57,7 @@
       </ion-col>
     </ion-row>
 
-    <h3 *ngIf="form.controls.isSpatial.value">
+    <h3 *ngIf="form|formGetValue:'isSpatial'">
       <ion-text translate>EXTRACTION.AGGREGATION.EDIT.STRATUM_DOTS</ion-text>
     </h3>
 
