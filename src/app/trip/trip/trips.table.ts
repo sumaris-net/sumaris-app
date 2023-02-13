@@ -15,7 +15,7 @@ import {
   isNotNil,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
-  PersonUtils,
+  PersonUtils, propertyComparator,
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
@@ -30,8 +30,8 @@ import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 import { environment } from '@environments/environment';
 import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
-import { filter, tap } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs';
+import { filter, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { TripOfflineModal, TripOfflineModalOptions } from '@app/trip/trip/offline/trip-offline.modal';
 import { DataQualityStatusEnum, DataQualityStatusList } from '@app/data/services/model/model.utils';
 import { ContextService } from '@app/shared/context.service';
@@ -41,8 +41,10 @@ import { ReferentialRefFilter } from '@app/referential/services/filter/referenti
 import { OperationService } from '@app/trip/services/operation.service';
 import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operation/map/operations-map.modal';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { ExtractionType } from '@app/extraction/type/extraction-type.model';
+import { ExtractionType, ExtractionTypeUtils } from '@app/extraction/type/extraction-type.model';
 import { ObservedLocationOfflineFilter } from '@app/trip/services/filter/observed-location.filter';
+import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
+import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -93,6 +95,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     protected context: ContextService,
     protected tripContext: TripContextService,
     protected formBuilder: UntypedFormBuilder,
+    protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
 
@@ -354,7 +357,22 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     return this.downloadAsJson(ids);
   }
 
-  async openDownloadPage(event?: Event) {
+  get extractionTypes$(): Observable<ExtractionType[]> {
+    return this.extractionTypeService.watchAll(0, 100, 'label', 'asc', <ExtractionTypeFilter>{
+      statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY],
+      isSpatial: false,
+      category: 'LIVE'
+    }).pipe(
+      map(({ data}) => {
+        // Compute i18n name
+        return data.map(t => ExtractionTypeUtils.computeI18nName(this.translate, t))
+          // Then sort by name
+          .sort(propertyComparator('name'));
+      })
+    );
+  }
+
+  async openDownloadPage(event?: Event, type?: ExtractionType) {
     const trips = (this.selection.selected || [])
       .map(row => row.currentData).filter(isNotNil)
       .sort(TripComparators.sortByDepartureDateFn);
@@ -375,9 +393,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     this.markForCheck();
 
     // Create extraction type and filter
+    type = type || ExtractionType.fromLiveLabel('PMFM_TRIP');
     const programLabel = programs[0].label;
     const tripIds = trips.map(t => t.id);
-    const type = ExtractionType.fromLiveLabel('PMFM_TRIP');
     const filter = ExtractionUtils.createTripFilter(programLabel, tripIds);
     const queryParams = ExtractionUtils.asQueryParams(type, filter);
 
