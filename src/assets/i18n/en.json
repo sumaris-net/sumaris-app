@@ -944,7 +944,12 @@
         "DISCARD_OR_LANDING": "Landing or discard?",
         "BATCH_CALCULATED_WEIGHT_LENGTH": "Computed weight LWR (kg)",
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)",
-        "CHILD_GEAR": "Sub-gear"
+        "CHILD_GEAR": "Sub-gear",
+        "TRAWL_SELECTIVITY": {
+          "BATCH_MEASURED_WEIGHT": "Total batch weight (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Total batch weight (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Total batch weight (kg)"
+        }
       }
     },
     "SUB_BATCH": {

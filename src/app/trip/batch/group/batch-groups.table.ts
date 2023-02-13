@@ -1173,10 +1173,10 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         allowSubBatches: this.allowSubBatches,
         defaultHasSubBatches: this.defaultHasSubBatches,
         samplingRatioFormat: this.samplingRatioFormat,
-        mobile: this.mobile,
-        usageMode: this.usageMode,
         openSubBatchesModal: async (batchGroup) => {
           const updatedParent = await this.openSubBatchesModalFromParentModal(batchGroup);
+          if (!updatedParent) return; // Cancelled
+
           isNew = false;
           return updatedParent;
         },
@@ -1194,6 +1194,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
           await this.onNewEntity(newData);
           return newData;
         },
+        i18nSuffix: this.i18nColumnSuffix,
+        mobile: this.mobile,
+        usageMode: this.usageMode,
         // Override using given options
         ...this.modalOptions,
 
