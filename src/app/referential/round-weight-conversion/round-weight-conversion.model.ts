@@ -54,7 +54,7 @@ export abstract class BaseRoundWeightConversion<T extends Entity<T>>
     const target = super.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
 
-    if (opts.minify) {
+    if (opts?.minify) {
       // Convert statusId object into integer
       target.statusId = (typeof this.statusId === 'object') ? this.statusId['id'] : this.statusId;
     }
@@ -118,8 +118,8 @@ export class RoundWeightConversion
     target.dressing = this.dressing?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
     target.preserving = this.preserving?.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
 
-    if (opts.minify) {
-
+    if (opts?.minify) {
+      //
     }
     return target;
   }

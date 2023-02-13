@@ -4,8 +4,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import {
   AccountService,
-  AppForm, AppFormArray,
-  AppFormUtils,
+  AppForm,
+  AppFormArray,
   arrayDistinct,
   firstNotNilPromise,
   FormFieldDefinition,
@@ -226,7 +226,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     }
 
     if (hasChanged && this._sheetName === criterion.sheetName && criterion?.name && index >= 0) {
-      this.updateCriterionValueDefinition(index, criterion.name, false);
+      this.updateDefinitionAt(index, criterion.name, false);
     }
 
     if (hasChanged && (!opts || opts.emitEvent !== false)) {
@@ -303,11 +303,14 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
   }
 
   getCriterionValueDefinition(index: number): Observable<FormFieldDefinition> {
-
-    return this.$columnValueDefinitionsByIndex[index] || this.updateCriterionValueDefinition(index);
+    let definition$ = this.$columnValueDefinitionsByIndex[index]?.asObservable();
+    if (!definition$) {
+      definition$ = this.updateDefinitionAt(index);
+    }
+    return definition$;
   }
 
-  updateCriterionValueDefinition(index: number, columnName?: string, resetValue?: boolean): Observable<FormFieldDefinition> {
+  updateDefinitionAt(index: number, columnName?: string, resetValue?: boolean): Observable<FormFieldDefinition> {
     const arrayControl = this.sheetCriteriaForm;
     if (!arrayControl) return;
 
@@ -315,7 +318,8 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     if (!this.$columnValueDefinitions.value) {
       return this.$columnValueDefinitions
         .pipe(
-          switchMap(_ => this.updateCriterionValueDefinition(index, columnName, resetValue))
+          filter(isNotNil),
+          switchMap(_ => this.updateDefinitionAt(index, columnName, resetValue))
         );
     }
 
@@ -326,14 +330,18 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
       ? undefined
       : columnName && (this.$columnValueDefinitions.value || []).find(d => d.key === columnName) || null;
 
-    // Workaround : use a default string definition, when column cannot be found
+    // Workaround: use a default string definition, when column cannot be found
     if (definition == null) {
       console.warn('[extraction-form] Cannot find column definition for ' + columnName);
       definition = <FormFieldDefinition>{key: columnName, type: 'string'};
     }
 
     // Reset the criterion value, is ask by caller
-    if (resetValue) criterionForm.patchValue({value: null});
+    if (resetValue) {
+      setTimeout(() => {
+        criterionForm.get('value').reset(null);
+      }, 250);
+    }
 
     let subject = this.$columnValueDefinitionsByIndex[index];
     if (!subject) {
@@ -343,7 +351,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
     else {
       subject.next(definition);
     }
-    return subject;
+    return subject.asObservable();
   }
 
   async waitIdle(opts?: WaitForOptions): Promise<any> {
@@ -363,7 +371,7 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
           items: column.values,
           attributes: [undefined],
           columnNames: [column.name/*'EXTRACTION.FILTER.CRITERION_VALUE'*/],
-          displayWith: (value) => '' + value
+          displayWith: (value) => isNil(value) ? '' : value
         }
       };
     }

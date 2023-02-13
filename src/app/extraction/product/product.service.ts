@@ -30,7 +30,7 @@ import { environment } from '@environments/environment';
 import { ErrorCodes } from '@app/data/services/errors';
 import { ExtractionErrorCodes } from '@app/extraction/common/extraction.errors';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
-import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
+import { ExtractionTypeFragments, ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
 import { TranslateService } from '@ngx-translate/core';
 
 
@@ -51,6 +51,7 @@ export const ExtractionProductFragments = {
     filterContent
     isSpatial
     statusId
+    parentId
     processingFrequencyId
     stratum {
       id

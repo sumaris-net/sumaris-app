@@ -307,6 +307,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   constructor(
     route: ActivatedRoute,
     router: Router,
+    location: Location,
     alertCtrl: AlertController,
     toastController: ToastController,
     translate: TranslateService,
@@ -317,14 +318,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     platform: PlatformService,
     modalCtrl: ModalController,
     state: RxState<ExtractionMapState>,
-    protected location: Location,
     protected productService: ProductService,
     protected durationPipe: DurationPipe,
     protected strataValidatorService: AggregationStrataValidatorService,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl, state);
+    super(route, router, location, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl, state);
 
     // Add controls to form
     this.form.addControl('strata', this.strataValidatorService.getFormGroup());
@@ -340,7 +340,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       isSpatial: true
     };
 
-    // TODO: restored from settings ?
     const legendStartColor = new Color([255, 255, 190], 1);
     const legendEndColor = new Color([150, 30, 30], 1);
     this.legendForm = formBuilder.group({
@@ -408,6 +407,15 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
     this.addCustomControls();
 
+    this.loadFromRouteOrSettings();
+  }
+
+  protected async loadFromRouteOrSettings(): Promise<boolean> {
+    const found = await super.loadFromRouteOrSettings();
+    if (found) return found;
+
+    // No map loaded, open the modal
+    setTimeout(() => this.openSelectTypeModal(), 450);
   }
 
   ngAfterViewInit() {
@@ -1370,6 +1378,37 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     }
   }
 
+
+  getFilterValue(strata?: IAggregationStrata): ExtractionFilter {
+
+    const filter = super.getFilterValue();
+
+    strata = strata || this.getStrataValue();
+    if (!strata) return filter;
+
+    const json = this.form.value;
+    const sheetName = this.sheetName;
+
+    // Time strata = year
+    if (strata.timeColumnName === 'year' && json.year > 0) {
+      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
+    }
+
+    // Time strata = quarter
+    else if (strata.timeColumnName === 'quarter' && json.year > 0 && json.quarter > 0) {
+      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
+      filter.criteria.push({name: 'quarter', operator: '=', value: json.quarter, sheetName: sheetName} as ExtractionFilterCriterion);
+    }
+
+    // Time strata = month
+    else if (strata.timeColumnName === 'month' && json.year > 0 && json.month > 0) {
+      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
+      filter.criteria.push({name: 'month', operator: '=', value: json.month, sheetName: sheetName} as ExtractionFilterCriterion);
+    }
+
+    return filter;
+  }
+
   /* -- protected methods -- */
 
   protected startAnimation() {
@@ -1475,35 +1514,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
   }
 
-  protected getFilterValue(strata?: IAggregationStrata): ExtractionFilter {
-
-    const filter = super.getFilterValue();
-
-    strata = strata || this.getStrataValue();
-    if (!strata) return filter;
-
-    const json = this.form.value;
-    const sheetName = this.sheetName;
-
-    // Time strata = year
-    if (strata.timeColumnName === 'year' && json.year > 0) {
-      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
-    }
-
-    // Time strata = quarter
-    else if (strata.timeColumnName === 'quarter' && json.year > 0 && json.quarter > 0) {
-      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
-      filter.criteria.push({name: 'quarter', operator: '=', value: json.quarter, sheetName: sheetName} as ExtractionFilterCriterion);
-    }
-
-    // Time strata = month
-    else if (strata.timeColumnName === 'month' && json.year > 0 && json.month > 0) {
-      filter.criteria.push({name: 'year', operator: '=', value: json.year, sheetName: sheetName} as ExtractionFilterCriterion);
-      filter.criteria.push({name: 'month', operator: '=', value: json.month, sheetName: sheetName} as ExtractionFilterCriterion);
-    }
-
-    return filter;
-  }
 
   protected isEquals(t1: ExtractionProduct, t2: ExtractionProduct): boolean {
     return ExtractionProduct.equals(t1, t2);

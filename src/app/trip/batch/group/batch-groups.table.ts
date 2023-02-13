@@ -1176,8 +1176,9 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         mobile: this.mobile,
         usageMode: this.usageMode,
         openSubBatchesModal: async (batchGroup) => {
+          const updatedParent = await this.openSubBatchesModalFromParentModal(batchGroup);
           isNew = false;
-          return this.openSubBatchesModalFromParentModal(batchGroup);
+          return updatedParent;
         },
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         onSaveAndNew: async (dataToSave) => {

@@ -1,10 +1,11 @@
 /* -- Extraction -- */
 
-import {EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, MINIFY_ENTITY_FOR_POD, toDateISOString} from '@sumaris-net/ngx-components';
+import { EntityAsObjectOptions, EntityClass, fromDateISOString, isNotEmptyArray, MINIFY_ENTITY_FOR_POD, toDateISOString, toNumber } from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
 import {IWithRecorderDepartmentEntity, IWithRecorderPersonEntity} from '../../data/services/model/model.utils';
 import {ExtractionColumn, ExtractionFilter, ExtractionType} from '../type/extraction-type.model';
 import {AggregationStrata} from '@app/extraction/strata/strata.model';
+import { NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 export type StrataAreaType = 'area' | 'statistical_rectangle' | 'sub_polygon' | 'square';
 export type StrataTimeType = 'year' | 'quarter' | 'month';
@@ -66,6 +67,9 @@ export class ExtractionProduct extends ExtractionType<ExtractionProduct>
 
   columns: ExtractionColumn[] = null;
 
+  parentId: number;
+  parent: ExtractionType;
+
   constructor() {
     super(ExtractionProduct.TYPENAME);
   }
@@ -76,21 +80,32 @@ export class ExtractionProduct extends ExtractionType<ExtractionProduct>
     this.creationDate = fromDateISOString(source.creationDate);
     this.stratum = isNotEmptyArray(source.stratum) && source.stratum.map(AggregationStrata.fromObject) || [];
     this.filter = source.filter || (typeof source.filterContent === 'string' && ExtractionFilter.fromObject(JSON.parse(source.filterContent)));
+    this.parentId = toNumber(source.parentId, source.parent?.id);
+    this.parent = source.parent && ExtractionType.fromObject(source.parent);
   }
 
-  asObject(options?: EntityAsObjectOptions): any {
-    const target = super.asObject(options);
+  asObject(opts?: EntityAsObjectOptions): any {
+    const target = super.asObject(opts);
 
     target.creationDate = toDateISOString(this.creationDate);
-    target.stratum = this.stratum && this.stratum.map(s => s.asObject(options)) || undefined;
+    target.stratum = this.stratum && this.stratum.map(s => s.asObject(opts)) || undefined;
     target.columns = this.columns && this.columns.map((c: any) => {
       const json = Object.assign({}, c);
       delete json.index;
       delete json.__typename;
       return json;
     }) || undefined;
-    target.filterContent = this.filter && JSON.stringify(this.filter.asObject(MINIFY_ENTITY_FOR_POD)) || this.filterContent;
-    delete target.filter;
+
+    target.parent = this.parent && this.parent.asObject({...opts, ...NOT_MINIFY_OPTIONS}) || undefined;
+
+    if (opts?.minify) {
+      target.filterContent = this.filter && JSON.stringify(this.filter.asObject(MINIFY_ENTITY_FOR_POD)) || this.filterContent;
+      delete target.filter;
+
+      target.parentId = toNumber(this.parent?.id, this.parentId);
+      delete target.parent;
+    }
+
     return target;
   }
 }

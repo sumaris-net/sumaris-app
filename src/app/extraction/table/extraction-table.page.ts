@@ -1,4 +1,4 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {BehaviorSubject, EMPTY, merge, Observable, Subject} from 'rxjs';
 import {
   AccountService,
@@ -21,7 +21,7 @@ import {
 import {TableDataSource} from '@e-is/ngx-material-table';
 import {
   ExtractionCategories,
-  ExtractionColumn,
+  ExtractionColumn, ExtractionFilter,
   ExtractionFilterCriterion,
   ExtractionResult,
   ExtractionRow,
@@ -84,13 +84,18 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   displayedColumns: string[];
   $columns = new BehaviorSubject<ExtractionColumn[]>(undefined);
   dataSource: TableDataSource<ExtractionRow>;
-  settingsId: string;
   canCreateProduct = false;
   isAdmin = false;
 
   filterCriteriaCount$: Observable<number>;
   filterPanelFloating = true;
   stickyEnd = true;
+
+  @Input() autoload = true;
+  @Input() embedded = false;
+  @Input() showToolbar = true;
+  @Input() showFilter = true;
+  @Input() showDownloadButton = true;
 
   @ViewChild(MatTable, {static: true}) table: MatSort;
   @ViewChild(MatPaginator, {static: true}) paginator: MatPaginator;
@@ -111,9 +116,18 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     return this._state.get('program');
   }
 
+  get filterChanges(): Observable<any> {
+    return this.criteriaForm.form.valueChanges
+      .pipe(
+        //debounceTime(450),
+        map(_ => this.getFilterValue())
+      )
+  }
+
   constructor(
     route: ActivatedRoute,
     router: Router,
+    location: Location,
     alertCtrl: AlertController,
     toastController: ToastController,
     translate: TranslateService,
@@ -124,13 +138,12 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     platform: PlatformService,
     modalCtrl: ModalController,
     state: RxState<ExtractionTableState>,
-    protected location: Location,
     protected productService: ProductService,
     protected programRefService: ProgramRefService,
     protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl, state);
+    super(route, router, location, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl, state);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
@@ -165,7 +178,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
         // If already loading: skip
         if (this.loading) {
           // Warn user that he should wait
-          if (this.started) this.showToast({type: 'warning', message: 'EXTRACTION.INFO.PLEASE_WAIT_WHILE_RUNNING'})
+          if (this.started && !this.embedded) this.showToast({type: 'warning', message: 'EXTRACTION.INFO.PLEASE_WAIT_WHILE_RUNNING'})
           return;
         }
 
@@ -174,7 +187,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
           this.paginator.pageIndex = 0;
         }
 
-        return this.loadData();
+        // Refresh
+        if (this.started && this.loaded) {
+          return this.loadData();
+        }
       }));
 
     this.filterCriteriaCount$ = this.criteriaForm.form.valueChanges
@@ -194,11 +210,18 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
         })
       ));
 
-    this._state.connect('categories', this.$types
+    this._state.connect('categories', this.types$
       .pipe(
         filter(isNotNil),
         map(ExtractionTypeCategory.fromTypes)
       ));
+
+    if (this.autoload && !this.embedded) {
+      this.loadFromRouteOrSettings();
+    }
+    else {
+      this.markAsLoaded();
+    }
   }
 
   ngOnDestroy() {
@@ -306,7 +329,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.setProgramLabel(programLabel);
 
     // Refresh data
-    if (opts.emitEvent !== false) {
+    if (!opts || opts.emitEvent !== false) {
       this.onRefresh.emit();
     }
   }
@@ -325,6 +348,34 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     if (resetPaginator) {
       this.resetPaginatorAndSort();
     }
+  }
+
+  async setFilterValue(filter: ExtractionFilter, opts?: { emitEvent?: boolean }): Promise<void> {
+
+    filter = this.service.asFilter(filter);
+
+    // Detect and hide the project (=program) criterion
+    let programLabel: string;
+    filter.criteria = (filter.criteria || []).map(criterion => {
+      // Detect project field
+      if (criterion.name === 'project' && criterion.operator === '=' && isNotNilOrBlank(criterion.value)) {
+        criterion = criterion.clone();
+        // Mark as hidden
+        criterion.hidden = true;
+
+        // Remember
+        programLabel = criterion.value;
+      }
+      return criterion;
+    });
+
+    // Apply program label
+    if (isNotNilOrBlank(programLabel)) {
+      this.setProgramLabel(programLabel);
+    }
+
+    // Set filter value
+    await super.setFilterValue(filter, opts);
   }
 
   resetPaginatorAndSort() {
@@ -364,6 +415,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   }
 
   onCellValueClick(event: MouseEvent, column: ExtractionColumn, value: string) {
+    if (!this.showFilter) return; // Skip if cannot filter
+
     const hasChanged = this.criteriaForm.addFilterCriterion({
       name: column.columnName,
       operator: DEFAULT_CRITERION_OPERATOR,
@@ -446,7 +499,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     const filter = this.getFilterValue();
     this.disable();
 
-    let newType: ExtractionType;
     try {
       console.info('[extraction-table] Saving as new product...');
 
@@ -469,9 +521,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       // Wait for types cache updates
       await sleep(1000);
 
-      // Change current type
-      newType = await this.findTypeByFilter(ExtractionTypeUtils.minify(savedEntity));
+      // Open the new aggregation (no wait)
+      await this.openProduct(savedEntity);
 
+      // Change current type
+      await this.setType(savedEntity, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
     } catch (err) {
       console.error(err);
       this.error = err && err.message || err;
@@ -481,9 +535,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       this.enable();
     }
 
-    if (newType) {
-      await this.setType(newType, {emitEvent: true, skipLocationChange: false, sheetName: undefined});
-    }
+
   }
 
   async delete(event?: Event) {
@@ -510,7 +562,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       await sleep(4000);
 
       // Change type, to the first one
-      const types = await firstNotNilPromise(this.$types);
+      const types = await firstNotNilPromise(this.types$);
       if (types && types.length) {
         await this.setType(types[0], {emitEvent: false, skipLocationChange: false, sheetName: undefined});
       }
@@ -606,7 +658,15 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     }, 650);
   }
 
+
+
   /* -- protected method -- */
+
+  async updateQueryParams(type?: ExtractionType, opts: { skipLocationChange: boolean } = { skipLocationChange: false }): Promise<void> {
+    if (this.embedded) return; // Avoid to update route, if embedded
+
+    return super.updateQueryParams(type, opts);
+  }
 
   protected resetProgram() {
     this._state.set('programLabel', (_) => null);
@@ -629,7 +689,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     if (this.$cancel.observers.length >= 1) throw new Error("Too many call of loadData()");
 
     const typeLabel = this.type.label;
-    this.settingsId = this.generateTableId();
     this.markAsLoading();
     this.resetError();
 
@@ -764,15 +823,9 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this.$title.next(titlePrefix + this.type.name);
   }
 
-  private generateTableId() {
-    const id = this.location.path(true).replace(/[?].*$/g, '').replace(/\/[\d]+/g, '_id') + "_" + this.constructor.name;
-    return id;
-  }
 
   protected markForCheck() {
     this.cd.markForCheck();
   }
-
-
 
 }

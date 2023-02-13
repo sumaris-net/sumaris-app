@@ -264,7 +264,7 @@ export class ExtractionFilterCriterion extends Entity<ExtractionFilterCriterion>
     const target = super.asObject(opts) as any;
 
     // Pod serialization
-    if (opts.minify) {
+    if (opts?.minify) {
       const isMulti = typeof target.value === 'string' && target.value.indexOf(',') !== -1;
       switch (target.operator) {
         case '=':
