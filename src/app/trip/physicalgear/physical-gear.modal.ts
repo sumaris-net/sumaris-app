@@ -1,6 +1,6 @@
-import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild} from '@angular/core';
-import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds} from '@app/referential/services/model/model.enum';
-import {PhysicalGearForm} from './physical-gear.form';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild } from '@angular/core';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
+import { PhysicalGearForm } from './physical-gear.form';
 import {
   AppEntityEditorModal,
   createPromiseEventEmitter,
@@ -8,6 +8,7 @@ import {
   firstNotNilPromise,
   IEntityEditorModalOptions,
   InMemoryEntitiesService,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   PromiseEvent,
@@ -16,17 +17,17 @@ import {
   toNumber,
   TranslateContextService
 } from '@sumaris-net/ngx-components';
-import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
-import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
-import {UntypedFormGroup} from '@angular/forms';
-import {PhysicalGearFilter} from '@app/trip/physicalgear/physical-gear.filter';
-import {PHYSICAL_GEAR_DATA_SERVICE_TOKEN} from '@app/trip/physicalgear/physicalgear.service';
-import {PhysicalGearTable} from '@app/trip/physicalgear/physical-gears.table';
-import {filter, switchMap} from 'rxjs/operators';
-import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {slideDownAnimation} from '@app/shared/material/material.animation';
-import {RxState} from '@rx-angular/state';
-import {environment} from '@environments/environment';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
+import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
+import { UntypedFormGroup } from '@angular/forms';
+import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
+import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
+import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
+import { filter, switchMap } from 'rxjs/operators';
+import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { slideDownAnimation } from '@app/shared/material/material.animation';
+import { RxState } from '@rx-angular/state';
+import { environment } from '@environments/environment';
 
 export interface IPhysicalGearModalOptions
   extends IEntityEditorModalOptions<PhysicalGear> {
@@ -196,7 +197,11 @@ export class PhysicalGearModal
             // Check if table has something to display (some PMFM in the strategy)
             const childrenHasSomePmfms = (childrenPmfms||[]).some(p =>
               // Exclude Pmfm on all gears (e.g. GEAR_LABEL)
-              (!PmfmUtils.isDenormalizedPmfm(p) || isNotEmptyArray(p.gearIds)));
+              PmfmUtils.isDenormalizedPmfm(p) && isNotEmptyArray(p.gearIds)
+              // Keep only if applied to the selected gear (if any)
+              // We need to filter by gearId, because sometimes the table pmfms are outdated (e.g. on a previous gearId)
+              && (isNil(gearId) || p.gearIds.includes(gearId))
+            );
 
             return (childrenPmfms && isNotNil(gearId) && gearId !== INVALID_GEAR_ID)
               ? childrenHasSomePmfms
