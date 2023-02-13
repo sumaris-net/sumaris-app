@@ -137,7 +137,7 @@ export class SamplesTable
   @Input() subSampleModalOptions: Partial<ISubSampleModalOptions>;
   @Input() computedPmfmGroups: string[];
   @Input() pmfmIdsToCopy: number[];
-  @Input() pmfmValueColorWith: PmfmValueColorFn = null;
+  @Input('pmfmValueColor') pmfmValueColorFn: PmfmValueColorFn = null;
 
   @Input() set pmfmGroups(value: ObjectMap<number[]>) {
     if (this.$pmfmGroups.value !== value) {

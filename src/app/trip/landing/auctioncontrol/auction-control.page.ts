@@ -307,7 +307,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
       });
   }
 
-  pmfmValueColor(pmfmValue: any, pmfm: IPmfm): ColorName {
+  getPmfmValueColor(pmfmValue: any, pmfm: IPmfm): ColorName {
 
     let color: ColorName;
 

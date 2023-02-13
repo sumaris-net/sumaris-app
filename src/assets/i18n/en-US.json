@@ -755,7 +755,11 @@
       },
       "PMFM": {
         "SORTING_START_DATE_TIME": "Start of sorting",
-        "SORTING_END_DATE_TIME": "End of sorting"
+        "SORTING_END_DATE_TIME": "End of sorting",
+        "TAG_OPERATION": "Label",
+        "TRAWL_SELECTIVITY": {
+          "TAG_OPERATION": "Match code"
+        }
       },
       "MAP": {
         "TITLE": "Positions map",

@@ -761,7 +761,11 @@
       },
       "PMFM": {
         "SORTING_START_DATE_TIME": "Début de tri",
-        "SORTING_END_DATE_TIME": "Fin de tri"
+        "SORTING_END_DATE_TIME": "Fin de tri",
+        "TAG_OPERATION": "Étiquette",
+        "TRAWL_SELECTIVITY": {
+          "TAG_OPERATION": "Code de rapprochement"
+        }
       },
       "MAP": {
         "TITLE": "Carte des positions",
