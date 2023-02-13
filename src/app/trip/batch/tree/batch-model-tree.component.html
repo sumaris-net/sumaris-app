@@ -26,21 +26,12 @@
                     matBadgeSize="small"
                     matBadgePosition="above after">{{node.name}}</span>
             </h2>
-<!--            <p [class.cdk-visually-hidden]="!node.touched || node.valid">-->
-<!--              <ion-text color="danger" [innerHTML]="node.validator | translateFormError: errorTranslatorOptions"></ion-text>-->
-<!--            </p>-->
           </ion-label>
 
           <!-- badges -->
           <ion-buttons slot="end">
-            <ng-container *ngTemplateOutlet="batchBadges; context: {$implicit: node}"></ng-container>
+            <ng-container *ngTemplateOutlet="expandableBadges; context: {$implicit: node}"></ng-container>
           </ion-buttons>
-<!--            &lt;!&ndash; has weight pmfms &ndash;&gt;-->
-<!--            <mat-icon class="small-icon" slot="end" *ngIf="node.pmfms|arrayFilter:isWeightPmfm|isNotEmptyArray">scale</mat-icon>-->
-<!--            &lt;!&ndash; has error pmfms &ndash;&gt;-->
-<!--            <ion-icon *ngIf="node === editingBatch && (batchTree.errorSubject | async) || node.error || node.invalid; let error"-->
-<!--                      class="small-icon" slot="end" name="alert-circle" color="danger"-->
-<!--                      [title]="error||''"></ion-icon>-->
 
           <ion-icon name="chevron-forward-outline" slot="end" *ngIf="mobile && !node.disabled"></ion-icon>
 
@@ -74,7 +65,7 @@
             </h2>
           </ion-label>
           <ion-buttons slot="end">
-            <ng-container *ngTemplateOutlet="batchBadges; context: {$implicit: node}"></ng-container>
+            <ng-container *ngTemplateOutlet="leafBadges; context: {$implicit: node}"></ng-container>
           </ion-buttons>
 
           <ion-icon name="chevron-forward-outline" slot="end" *ngIf="mobile"></ion-icon>
@@ -85,8 +76,8 @@
 </ion-list>
 
 
-<!-- batch item -->
-<ng-template #batchBadges let-node>
+<!-- expandable node badges -->
+<ng-template #expandableBadges let-node>
 
   <ng-container *ngIf="debug">
     <!-- editing (=enabled) -->
@@ -101,11 +92,6 @@
                slot="end" class="visible-hover" color="secondary"
                >{{count}} pmfms</ion-badge>
     &nbsp;
-    <!-- table pmfm count  -->
-    <ion-badge *ngIf="node.childrenPmfms?.length; let count;"
-               color="secondary" slot="end" class="visible-hover"
-               [title]="node.childrenPmfms|arrayPluck:'label'">{{count}} col</ion-badge>
-    &nbsp;&nbsp;
   </ng-container>
 
   <!-- expanded node -->
@@ -117,24 +103,33 @@
     </ion-badge>
   </ng-container>
 
-  <!-- for leaf node -->
-  <ng-template #leafBadges>
-    <!-- batches count -->
-    <ion-badge *ngIf="selected === node ? currentRowCount : node.currentData.children?.length; let count; else emptyLeaf"
-               color="success"
-               slot="end">{{count}}
-    </ion-badge>
-    <!-- empty -->
-    <ng-template #emptyLeaf>
-      <ion-badge color="medium" slot="end">0</ion-badge>
-    </ng-template>
+</ng-template>
 
-    <!-- TODO measure count - need a cached value in model
+<!-- leaf nodes badges -->
+<ng-template #leafBadges let-node>
+  <ng-container *ngIf="debug">
+    <!-- editing (=enabled) -->
+    <ion-badge *ngIf="node.editing"
+               color="success" class="visible-hover" slot="end">enabled</ion-badge>
+    <ion-badge *ngIf="!node.editing"
+               color="light" class="visible-hover" slot="end">disabled</ion-badge>
     &nbsp;
-    <ion-badge *ngIf="node===editingBatch ? batchTree.subBatchesCount : 0; let count"
-               [color]="count ? 'tertiary' : 'warning'"
-               slot="end">{{(count === 1 ? 'TRIP.BATCH.TREE.MEASUREMENT_COUNT' : 'TRIP.BATCH.TREE.MEASUREMENTS_COUNT') | translate:{count: count} }}
-    </ion-badge> -->
-  </ng-template>
 
+    <!-- table pmfm count  -->
+    <ion-badge *ngIf="node.childrenPmfms?.length; let count;"
+               color="secondary" slot="end" class="visible-hover"
+               [title]="node.childrenPmfms|arrayPluck:'label'">{{count}} col</ion-badge>
+    &nbsp;&nbsp;
+  </ng-container>
+
+  <!-- batches count -->
+  <ion-badge *ngIf="selected === node ? currentRowCount : node.rowCount; let count; else emptyLeaf"
+             color="success"
+             slot="end">{{count}}
+  </ion-badge>
+
+  <!-- empty -->
+  <ng-template #emptyLeaf>
+    <ion-badge color="medium" slot="end">0</ion-badge>
+  </ng-template>
 </ng-template>

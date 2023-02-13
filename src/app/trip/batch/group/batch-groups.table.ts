@@ -1175,10 +1175,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         samplingRatioFormat: this.samplingRatioFormat,
         openSubBatchesModal: async (batchGroup) => {
           const updatedParent = await this.openSubBatchesModalFromParentModal(batchGroup);
-          isNew = !(await this.findRowByEntity(updatedParent || batchGroup));
-          if (!isNew) {
-            row = this.editedRow;
-          }
+          row = await this.findRowByEntity(updatedParent || batchGroup);
+          isNew = !row;
           return updatedParent;
         },
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),

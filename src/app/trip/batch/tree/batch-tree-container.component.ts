@@ -973,6 +973,11 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     // Update model validity
     model.valid = model.validator.valid;
 
+    // Update rowCount
+    if (model.isLeaf) {
+      model.rowCount = this.batchTree.batchGroupsTable.visibleRowCount;
+    }
+
     if (!opts || opts.keepEditingBatch !== true) {
       this.editingBatch = null;
       model.editing = false;

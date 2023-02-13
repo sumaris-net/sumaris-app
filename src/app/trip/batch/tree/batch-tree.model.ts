@@ -171,7 +171,8 @@ export class BatchModel
 
 
   // Cached values (should be recomputed on changes)
-  private _valid = false;
+  private _valid: boolean;
+  private _rowCount: number;
   private _weightPmfms : IPmfm[];
 
   name: string;
@@ -189,6 +190,7 @@ export class BatchModel
   parentId: number = null;
   parent: BatchModel = null;
   children: BatchModel[] = null;
+
 
   constructor(init?: { validator?: UntypedFormGroup; parent?: BatchModel; path?: string; originalData?: Batch}) {
     super();
@@ -217,6 +219,7 @@ export class BatchModel
     this.path = source.path || null;
     this.parent = source.parent || null;
     this.children = source.children || source.children.map(BatchModel.fromObject) || null;
+    this.rowCount = source.rowCount;
   }
 
   get fullName(): string {
@@ -239,6 +242,19 @@ export class BatchModel
 
   set valid(value: boolean) {
     this._valid = value;
+  }
+
+  get rowCount(): number {
+    if (isNil(this._rowCount) && this.isLeaf) {
+      const data = this.validator.value;
+      const samplingBatch = BatchUtils.getSamplingChild(data) || data;
+      this._rowCount = samplingBatch?.children?.length || 0;
+    }
+    return this._rowCount || 0;
+  }
+
+  set rowCount(value: number) {
+    this._rowCount = value;
   }
 
   get childrenValid(): boolean {
