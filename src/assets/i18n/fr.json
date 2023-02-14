@@ -686,6 +686,8 @@
         "BTN_OPEN_PARENT" : "Ouvrir le filage...",
         "BTN_SELECT_PARENT" : "Sélectionner le filage...",
         "BTN_SAVE_AND_NEW" : "Sauvegarder et nouveau",
+        "BTN_NEW" : "OP",
+        "BTN_LOG": "Log",
         "COMMENTS": "Commentaires",
         "CATCH": "Capture",
         "TAB_GENERAL": "Détails",

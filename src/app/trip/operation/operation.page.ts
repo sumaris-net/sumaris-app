@@ -122,7 +122,6 @@ export class OperationPage<S extends OperationState = OperationState>
   trip: Trip;
   measurements: Measurement[];
   saveOptions: OperationSaveOptions = {};
-  rankOrder: number;
   selectedSubTabIndex = 0;
   allowParentOperation = false;
   autoFillBatch = false;
@@ -814,6 +813,9 @@ export class OperationPage<S extends OperationState = OperationState>
           data.metier = previousOperation.metier;
           data.rankOrder = previousOperation.rankOrder + 1;
         }
+        else {
+          data.rankOrder = 1;
+        }
       }
     }
 
@@ -895,7 +897,7 @@ export class OperationPage<S extends OperationState = OperationState>
           : this.dateFormat.transform(titleDateTime, {time: true})) as string;
 
     // Get rankOrder from context, or compute it (if NOT mobile to avoid additional processing time)
-    let rankOrder = this.context?.operation?.rankOrder;
+    let rankOrder = !this.mobile && this.context?.operation?.rankOrder;
     if (isNil(rankOrder) && !this.mobile) {
       // Compute the rankOrder
       const now = this.debug && Date.now();
