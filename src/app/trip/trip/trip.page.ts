@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Inject, Injector, OnDestroy, Self, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Inject, Injector, Input, OnDestroy, Self, ViewChild } from '@angular/core';
 
 import { TripService } from '../services/trip.service';
 import { TripForm } from './trip.form';
@@ -27,7 +27,7 @@ import {
   LocalSettingsService,
   NetworkService,
   PromiseEvent,
-  ReferentialRef,
+  ReferentialRef, sleep,
   UsageMode
 } from '@sumaris-net/ngx-components';
 import { TripsPageSettingsEnum } from './trips.table';
@@ -52,6 +52,7 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
 
 import moment from 'moment';
+import { PredefinedColors } from '@ionic/core';
 
 export const TripPageTabs = {
   GENERAL: 0,
@@ -97,6 +98,8 @@ export class TripPage
   enableReport: boolean;
   operationEditor: OperationEditor;
   operationPasteFlags: number;
+
+  @Input() toolbarColor: PredefinedColors = 'primary';
 
   @ViewChild('tripForm', {static: true}) tripForm: TripForm;
   @ViewChild('saleForm', {static: true}) saleForm: SaleForm;
@@ -661,7 +664,11 @@ export class TripPage
   }
 
   async save(event?: Event, opts?: any): Promise<boolean> {
-    event?.preventDefault();
+    if (this.saving || this.loading) return false;
+
+    // Workaround to avoid the option menu to be selected
+    await sleep(50);
+
     return super.save(event, opts);
   }
 

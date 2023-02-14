@@ -1111,6 +1111,8 @@ export class OperationPage<S extends OperationState = OperationState>
       return true;
     }
 
+    //await sleep(50);
+
     // Save new gear to the trip
     const physicalGear = await this.getOrAddPhysicalGear({emitEvent: false});
     if (!physicalGear) {
@@ -1125,41 +1127,51 @@ export class OperationPage<S extends OperationState = OperationState>
       ...opts
     });
 
-    // Display form error on top
-    if (!saved) {
-      // DEBUG
-      console.debug('[operation] Computing form error...');
+    // Continue to mark as saving, to avoid option menu to open
+    this.markAsSaving();
 
-      let error = '';
-      if (this.opeForm.invalid) {
-        error = this.opeForm.formError;
-      }
-      if (this.measurementsForm.invalid){
-        error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
+    try {
+      // Display form error on top
+      if (!saved) {
+        // DEBUG
+        console.debug('[operation] Computing form error...');
+
+        let error = '';
+        if (this.opeForm.invalid) {
+          error = this.opeForm.formError;
+        }
+        if (this.measurementsForm.invalid){
+          error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
+        }
+
+        this.setError(error);
+        this.scrollToTop();
       }
 
-      this.setError(error);
-      this.scrollToTop();
+      else {
+
+        // Workaround, to make sure the editor is not dirty anymore
+        // => mark components as pristine
+        if (this.dirty) {
+          console.warn('[operation] FIXME: manually mark children to pristine, but it should be done by editor save()!');
+          this.batchTree?.markAsPristine();
+          this.sampleTree?.markAsPristine();
+        }
+
+        // Mark trip as dirty
+        if (RootDataEntityUtils.isReadyToSync(this.trip)) {
+          RootDataEntityUtils.markAsDirty(this.trip);
+          this.trip = await this.tripService.save(this.trip);
+          // Update the context
+          this.context.setValue('trip', this.trip);
+        }
+      }
+
+      return saved;
     }
-
-    else {
-      // Workaround, to make sure the editor is not dirty anymore
-      // => mark components as pristine
-      if (this.dirty) {
-        this.batchTree?.markAsPristine();
-        this.sampleTree?.markAsPristine();
-      }
-
-      // Mark trip as dirty
-      if (RootDataEntityUtils.isReadyToSync(this.trip)) {
-        RootDataEntityUtils.markAsDirty(this.trip);
-        this.trip = await this.tripService.save(this.trip);
-        // Update the context
-        this.context.setValue('trip', this.trip);
-      }
+    finally {
+      this.markAsSaved();
     }
-
-    return saved;
   }
 
   async saveIfDirtyAndConfirm(event?: Event, opts?: { emitEvent?: boolean; openTabIndex?: number }): Promise<boolean> {

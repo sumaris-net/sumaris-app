@@ -180,58 +180,61 @@
         </mat-label>
       </th>
 
-      <td mat-cell *matCellDef="let row"
-          [class]="col.classList"
-          [class.mat-cell-computed]="isComputed(col, row)"
-          class="mat-cell-content-start-padding"
-          (click)="focusColumn=col.key"
-          [ngSwitch]="col.type">
+      <ng-container *matCellDef="let row">
+        <td mat-cell
+            *ngVar="isComputed(col, row) as computed"
+            [class]="col.classList"
+            [class.mat-cell-computed]="computed"
+            class="mat-cell-content-start-padding"
+            (click)="focusColumn=col.key"
+            [ngSwitch]="col.type">
 
-        <ng-container *ngSwitchCase="'pmfm'">
-          <ng-container *ngIf="row.validator|formGetControl: col.path; let control; else missingControl">
-            <app-pmfm-field
-                            floatLabel="never"
-                            [pmfm]="col.pmfm"
-                            [control]="control"
-                            [autofocus]="row.editing && focusColumn === col.key"
-                            [readonly]="!row.editing || computed"
-                            [tabindex]="computed && -1"
-                            [compact]="true">
-            </app-pmfm-field>
-          </ng-container>
-          <ng-template #missingControl>
-            Missing control {{col.path}}
-          </ng-template>
+          <ng-container *ngSwitchCase="'pmfm'">
+            <ng-container *ngIf="row.validator|formGetControl: col.path; let control; else missingControl">
+              <app-pmfm-field
+                              floatLabel="never"
+                              [pmfm]="col.pmfm"
+                              [control]="control"
+                              [autofocus]="row.editing && focusColumn === col.key"
+                              [readonly]="!row.editing || computed"
+                              [tabindex]="computed && -1"
+                              [compact]="true">
+              </app-pmfm-field>
+            </ng-container>
+            <ng-template #missingControl>
+              Missing control {{col.path}}
+            </ng-template>
 
-        </ng-container>
-
-        <ng-container *ngSwitchCase="'samplingRatio'">
-          <ng-container *ngIf="row.validator|formGetControl: col.path; let control; else missingControl">
-            <mat-sampling-ratio-field
-                                      floatLabel="never"
-                                      [formControl]="control"
-                                      [format]="samplingRatioFormat"
-                                      [readonly]="!row.editing || computed"
-                                      [autofocus]="row.editing && focusColumn === col.key"
-                                      [tabindex]="computed && -1">
-            </mat-sampling-ratio-field>
           </ng-container>
 
-          <ng-template #missingControl>
-            Missing control {{col.path}}
-          </ng-template>
-        </ng-container>
+          <ng-container *ngSwitchCase="'samplingRatio'">
+            <ng-container *ngIf="row.validator|formGetControl: col.path; let control; else missingControl">
+              <mat-sampling-ratio-field
+                                        floatLabel="never"
+                                        [formControl]="control"
+                                        [format]="samplingRatioFormat"
+                                        [readonly]="!row.editing || computed"
+                                        [autofocus]="row.editing && focusColumn === col.key"
+                                        [tabindex]="computed && -1">
+              </mat-sampling-ratio-field>
+            </ng-container>
 
-        <app-form-field *ngSwitchDefault
-                        floatLabel="never"
-                        [definition]="col"
-                        [readonly]="!row.editing || computed"
-                        [formControl]="row.validator|formGetControl: col.path"
-                        [autofocus]="row.editing && focusColumn === col.key"
-                        [tabindex]="computed && -1"
-                        [compact]="true">
-        </app-form-field>
-      </td>
+            <ng-template #missingControl>
+              Missing control {{col.path}}
+            </ng-template>
+          </ng-container>
+
+          <app-form-field *ngSwitchDefault
+                          floatLabel="never"
+                          [definition]="col"
+                          [readonly]="!row.editing || computed"
+                          [formControl]="row.validator|formGetControl: col.path"
+                          [autofocus]="row.editing && focusColumn === col.key"
+                          [tabindex]="computed && -1"
+                          [compact]="true">
+          </app-form-field>
+        </td>
+      </ng-container>
     </ng-container>
 
     <!-- Comment column -->
@@ -393,47 +396,46 @@
 
         <ng-container *matCellDef="let row">
           <td mat-cell *ngVar="isComputed(col, row) as computed"
-              [class]="col.classList"
-              [class.mat-cell-computed]="computed"
-              class="mat-cell-content-start-padding"
-              (click)="focusColumn=col.key">
+            [class]="col.classList"
+            [class.mat-cell-computed]="mobile && computed"
+            class="mat-cell-content-start-padding"
+            (click)="focusColumn=col.key">
 
-            <ng-container>
-              <ion-label *ngIf="!mobile; else mobileCellContent" [ngSwitch]="col.type">
-                <ng-container *ngSwitchCase="'pmfm'">
-                  {{row.currentData|propertyGet: col.path|pmfmValue: {pmfm: col.pmfm} }}
-                </ng-container>
-                <ng-container *ngSwitchDefault>{{row.currentData|propertyGet: col.path}}</ng-container>
-              </ion-label>
+            <ion-label *ngIf="!mobile; else mobileCellContent" [ngSwitch]="col.type">
+              <ng-container *ngSwitchCase="'pmfm'">
+                {{row.currentData|propertyGet: col.path|pmfmValue: {pmfm: col.pmfm} }}
+              </ng-container>
+              <ng-container *ngSwitchDefault>{{row.currentData|propertyGet: col.path}}</ng-container>
+            </ion-label>
 
-              <ng-template #mobileCellContent>
-                <div class="mat-form-field ion-text-center"
-                      *ngVar="row.currentData|propertyGet: col.path as colValue">
-                  <!-- Disable value, if any -->
-                  <ion-label *ngIf="colValue|isNotNil; else individualCount" [ngSwitch]="col.type">
-                    <ng-container *ngSwitchCase="'pmfm'">
-                      {{colValue|pmfmValue: {pmfm: col.pmfm, propertyNames: ['label'] } }}
-                    </ng-container>
-                    <ng-container *ngSwitchCase="'samplingRatio'">
-                      {{colValue|samplingRatioFormat: samplingRatioFormat }}
-                    </ng-container>
-                    <ng-container *ngSwitchDefault>
-                      {{colValue|numberFormat: {maximumFractionDigits: (col.pmfm?.maximumNumberDecimals || 3) } }}
-                    </ng-container>
+            <ng-template #mobileCellContent>
+              <div class="mat-form-field ion-text-center"
+                   [class.mat-cell-computed]="mobile && computed"
+                    *ngVar="row.currentData|propertyGet: col.path as colValue">
+                <!-- Disable value, if any -->
+                <ion-label *ngIf="colValue|isNotNil; else individualCount" [ngSwitch]="col.type">
+                  <ng-container *ngSwitchCase="'pmfm'">
+                    {{colValue|pmfmValue: {pmfm: col.pmfm, propertyNames: ['label'] } }}
+                  </ng-container>
+                  <ng-container *ngSwitchCase="'samplingRatio'">
+                    {{colValue|samplingRatioFormat: samplingRatioFormat }}
+                  </ng-container>
+                  <ng-container *ngSwitchDefault>
+                    {{colValue|numberFormat: {maximumFractionDigits: (col.pmfm?.maximumNumberDecimals || 3) } }}
+                  </ng-container>
+                </ion-label>
+
+                <ng-template #individualCount>
+                  <!-- If only individual count filled, display it -->
+                  <ion-label
+                    *ngIf="col.isWeight && !col.isSampling && (row.currentData|propertyGet: 'children.' + col.qvIndex + '.individualCount') != null">
+                    {{ (row.currentData|propertyGet: 'children.' + col.qvIndex + '.individualCount') | numberFormat }} {{'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT'|translate}}
                   </ion-label>
-
-                  <ng-template #individualCount>
-                    <!-- If only individual count filled, display it -->
-                    <ion-label
-                      *ngIf="col.isWeight && !col.isSampling && (row.currentData|propertyGet: 'children.' + col.qvIndex + '.individualCount') != null">
-                      {{ (row.currentData|propertyGet: 'children.' + col.qvIndex + '.individualCount') | numberFormat }} {{'TRIP.BATCH.TABLE.INDIVIDUAL_UNIT'|translate}}
-                    </ion-label>
-                  </ng-template>
-                </div>
-              </ng-template>
-            </ng-container>
-          </td>
-        </ng-container>
+                </ng-template>
+              </div>
+            </ng-template>
+        </td>
+      </ng-container>
       </ng-container>
 
       <!-- Comment column -->

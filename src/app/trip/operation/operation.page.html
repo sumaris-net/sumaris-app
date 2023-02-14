@@ -1,8 +1,9 @@
 
 <!-- Top toolbar -->
-<app-toolbar [color]="toolbarColor"
-             [hasValidate]="!loading && (dirty || saving)"
-             [hasClose]="!loading && (!dirty && !saving)"
+<app-toolbar *ngVar="{saving: (savingSubject|push), loading: (loadingSubject|push)} as vars"
+             [color]="toolbarColor"
+             [hasValidate]="!vars.loading && (dirty || vars.saving)"
+             [hasClose]="!vars.loading && !(dirty || vars.saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
              (onClose)="close($event)"
@@ -11,41 +12,40 @@
 
   <ion-title [innerHTML]="$title|async"></ion-title>
 
-  <ion-buttons slot="end">
+  <ion-buttons slot="end" >
 
     <!-- last operation (history) -->
     <ion-button *ngIf="showLastOperations"
                 hidden-xxs
-                [disabled]="(loadingSubject|push) || (savingSubject|push)"
+                [disabled]="vars.loading || vars.saving"
                 [title]="'TRIP.OPERATION.LAST_OPERATIONS'|translate"
                 [matMenuTriggerFor]="lastOperationsMenu">
       <mat-icon slot="icon-only">history</mat-icon>
     </ion-button>
 
-    <!-- New operation
+    <!-- New operation -->
     <ion-button hidden-xxs
-                [disabled]="loading"
+                [disabled]="vars.loading || vars.saving"
                 [title]="'TRIP.OPERATION.BTN_SAVE_AND_NEW'|translate"
                 (click)="saveAndNew($event)">
       <mat-icon slot="icon-only">add_circle_outline</mat-icon>
-    </ion-button>-->
+    </ion-button>
 
     <!-- duplicate (if desktop) -->
     <ion-button *ngIf="!mobile && canDuplicate"
-                [disabled]="disabled || invalid || saving"
+                [disabled]="disabled || invalid || vars.loading || vars.saving"
                 [title]="'TRIP.OPERATION.EDIT.BTN_DUPLICATE'|translate"
                 (click)="duplicate($event)">
       <mat-icon slot="icon-only">content_copy</mat-icon>
     </ion-button>
 
     <!-- option menu -->
-    <button slot="end" mat-icon-button
-            *ngIf="enabled && !isNewData || (debug && !saving)"
-            [disabled]="loading || saving"
+    <ion-button *ngIf="!isNewData || debug"
+            [disabled]="disabled || vars.loading || vars.saving"
             [matMenuTriggerFor]="optionsMenu"
             [title]=" 'COMMON.BTN_OPTIONS'|translate">
-      <mat-icon>more_vert</mat-icon>
-    </button>
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
   </ion-buttons>
 </app-toolbar>
 
