@@ -1111,7 +1111,8 @@ export class OperationPage<S extends OperationState = OperationState>
       return true;
     }
 
-    //await sleep(50);
+    // Workaround to avoid the option menu to be selected
+    if (this.mobile) await sleep(50);
 
     // Save new gear to the trip
     const physicalGear = await this.getOrAddPhysicalGear({emitEvent: false});

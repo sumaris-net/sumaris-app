@@ -667,7 +667,7 @@ export class TripPage
     if (this.saving || this.loading) return false;
 
     // Workaround to avoid the option menu to be selected
-    await sleep(50);
+    if (this.mobile) await sleep(50);
 
     return super.save(event, opts);
   }
