@@ -30,9 +30,9 @@ import { PositionUtils } from '@app/trip/services/position.utils';
 import { BBox } from 'geojson';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { Geometries } from '@app/shared/geometries.utils';
-import { DataValidators } from '@app/data/services/validator/data.validators';
 import { TranslateService } from '@ngx-translate/core';
-import {getFormOptions, setFormOptions} from '@app/trip/batch/common/batch.validator';
+import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
+import { DataEntity } from '@app/data/services/model/data-entity.model';
 
 
 export interface IPmfmForm {
@@ -157,6 +157,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
         fishingStartDateTime: [data && data.fishingStartDateTime || null],
         fishingEndDateTime: [data && data.fishingEndDateTime || null],
         endDateTime: [data && data.endDateTime || null, SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])],
+        tripId: [toNumber(data?.tripId, null)],
         rankOrder: [toNumber(data?.rankOrder, null)],
         rankOrderOnPeriod: [toNumber(data?.rankOrderOnPeriod, null)],
         metier: [data && data.metier || null, Validators.compose([Validators.required, SharedValidators.entity])],
@@ -398,9 +399,10 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     // Is a child
     else if (opts.isChild) {
       console.info('[operation-validator] Updating validator -> Child operation');
+      const tripIdControl = form.controls.tripId as UntypedFormGroup;
       const parentValidators = [Validators.required,
-        opts && !opts.isOnFieldMode ? DataValidators.remoteEntity('TRIP.OPERATION.ERROR.LOCAL_PARENT_OPERATION') : SharedValidators.entity,
-        DataValidators.excludeQualityFlag(QualityFlagIds.MISSING, 'TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION')
+        opts && !opts.isOnFieldMode ? OperationValidators.remoteParent(tripIdControl) : SharedValidators.entity,
+        OperationValidators.existsParent
       ];
       parentControl.setValidators(Validators.compose(parentValidators));
       parentControl.enable();
@@ -707,10 +709,38 @@ export class OperationValidators {
       return undefined;
     };
   }
+
+  static remoteParent(tripIdControl: UntypedFormGroup): ValidatorFn {
+    return (control): FormErrors => {
+      const parent = control.value;
+      const parentId = parent?.id;
+      // Error if the parent is a local operation, defined in another trip
+      // Same trip should be OK
+      if (isNotNil(parentId) && parentId < 0) {
+        const tripId = toNumber(tripIdControl.value);
+        const parentTripId = parent?.tripId;
+        if (isNotNil(parentTripId) && parentTripId !== tripId) {
+          return <ValidationErrors>{ remoteParent: true };
+        }
+      }
+      return null;
+    };
+  }
+
+  static existsParent(control): ValidationErrors|undefined {
+    const parent = control.value as DataEntity<any>;
+    const qualityFlagId = parent?.qualityFlagId;
+    if (qualityFlagId === QualityFlagIds.MISSING) {
+      return {existsParent: true}
+    }
+    return null;
+  }
 }
 
 
 export const OPERATION_VALIDATOR_I18N_ERROR_KEYS = {
   maxDistance: 'TRIP.OPERATION.ERROR.TOO_LONG_DISTANCE',
+  remoteParent: 'TRIP.OPERATION.ERROR.LOCAL_PARENT_OPERATION',
+  existsParent: 'TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION',
   invalidOrIncomplete: 'ERROR.INVALID_OR_INCOMPLETE_FILL'
 };

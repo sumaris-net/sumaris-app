@@ -1351,6 +1351,7 @@ export class OperationPage<S extends OperationState = OperationState>
     const json = this.opeForm.value;
 
     // Mark as not controlled (remove control date, etc.)
+    // BUT keep qualityFlag (e.g. need to keep it when = NOT_COMPLETED - see below)
     DataEntityUtils.markAsNotControlled(json as Operation, {keepQualityFlag: true});
 
     // Make sure parent operation has quality flag
@@ -1358,6 +1359,8 @@ export class OperationPage<S extends OperationState = OperationState>
       && DataEntityUtils.hasNoQualityFlag(json)){
       console.warn('[operation-page] Parent operation does not have quality flag id. Changing to NOT_COMPLETED ');
       json.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
+
+      // Propage this change to the form
       this.opeForm.qualityFlagControl.patchValue(QualityFlagIds.NOT_COMPLETED, {emitEvent: false});
     }
 
@@ -1475,6 +1478,8 @@ export class OperationPage<S extends OperationState = OperationState>
         }
         if (!validParent) {
           data.parentOperationId = undefined;
+          // We create a fake Operation, with a qualityFlag = MISSING
+          // This is required to detect error at validation time (see OperationValidators.existsParent)
           data.parentOperation = Operation.fromObject({
             id: parentOperationId,
             startDateTime: data.startDateTime,
