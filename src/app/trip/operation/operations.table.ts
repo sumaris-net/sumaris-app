@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { OperationValidatorService } from '../services/validator/operation.validator';
-import { OperationService } from '../services/operation.service';
+import { OperationService, OperationServiceWatchOptions } from '../services/operation.service';
 import { AccountService, AppFormUtils, isNotNil, LatLongPattern, LocalSettings, LocalSettingsService, toBoolean } from '@sumaris-net/ngx-components';
 import { OperationsMapModal, OperationsMapModalOptions } from './map/operations-map.modal';
 import { environment } from '@environments/environment';
@@ -25,7 +25,9 @@ import { OperationEditor } from '@app/referential/services/config/program.config
   ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class OperationsTable extends AppBaseTable<Operation, OperationFilter> implements OnInit, OnDestroy {
+export class OperationsTable
+  extends AppBaseTable<Operation, OperationFilter>
+  implements OnInit, OnDestroy {
 
   displayAttributes: {
     [key: string]: string[]
@@ -183,7 +185,7 @@ export class OperationsTable extends AppBaseTable<Operation, OperationFilter> im
           prependNewElements: false,
           suppressErrors: environment.production,
           readOnly: false,
-          watchAllOptions: {
+          watchAllOptions: <OperationServiceWatchOptions>{
             withBatchTree: false,
             withSamples: false,
             withTotal: true

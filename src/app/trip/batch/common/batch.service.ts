@@ -242,7 +242,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           if (isTaxonGroupNoLanding) this.fillNoLandingDefault(target, {weightPmfms, weightRequired, individualCountRequired});
 
           // Set sampling batch default (eg. weight=0 if parent weight = 0);
-          if (enableSamplingBatch) this.fillSamplingBatchDefault(target, {weightPmfms, weightRequired});
+          if (enableSamplingBatch) this.fillSamplingBatchDefault(target, {weightPmfms, weightRequired, samplingRatioFormat});
         }
         else {
           (target.children || []).forEach(c => {
@@ -252,7 +252,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
             if (isTaxonGroupNoLanding) this.fillNoLandingDefault(c, {weightPmfms, weightRequired, individualCountRequired});
 
             // Set sampling batch default (eg. weight=0 if parent weight = 0);
-            if (enableSamplingBatch) this.fillSamplingBatchDefault(c, {weightPmfms, weightRequired});
+            if (enableSamplingBatch) this.fillSamplingBatchDefault(c, {weightPmfms, weightRequired, samplingRatioFormat});
           });
         }
 
@@ -338,14 +338,17 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     }
   }
 
-  private fillSamplingBatchDefault(batch: Batch, opts: {weightPmfms: IPmfm[]; weightRequired: boolean}) {
-    if (opts.weightRequired && batch.weight?.value === 0) {
-      const samplingBatch = BatchUtils.getSamplingChild(batch);
+  private fillSamplingBatchDefault(batch: Batch, opts: {weightPmfms: IPmfm[]; weightRequired: boolean, samplingRatioFormat: SamplingRatioFormat}) {
+    const totalWeight = batch.weight?.value;
+
+    // If total weight = 0, fill sampling weight to zero (if weight is required)
+    if (opts.weightRequired && totalWeight === 0) {
+      const  samplingBatch = BatchUtils.getSamplingChild(batch);
       const samplingWeight = BatchUtils.getWeight(samplingBatch);
       if (samplingBatch && isNil(samplingWeight?.value)) {
         const computedWeight = BatchUtils.computeWeight(batch)?.value || 0;
         // no weight: OK, set default
-        if (computedWeight === 0) {
+        if (computedWeight === 0 && isNil(samplingBatch.samplingRatio)) {
           console.info(`[batch-service] Force weight to {0} on batch ${samplingBatch.label}, because parent weight = 0`);
           const defaultWeightPmfm = opts.weightPmfms?.[0];
           samplingBatch.weight = {
@@ -354,7 +357,24 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
             computed: defaultWeightPmfm?.isComputed || false,
             estimated: defaultWeightPmfm?.methodId === MethodIds.ESTIMATED_BY_OBSERVER || false
           };
+          // Set sampling ratio
+          samplingBatch.samplingRatio = 0;
+          samplingBatch.samplingRatioText = `0%`;
+          samplingBatch.samplingRatioComputed = true;
         }
+      }
+    }
+
+    // Set sampling ratio, if can be computed by weights
+    else if (opts.weightRequired && totalWeight > 0) {
+      const samplingBatch = BatchUtils.getSamplingChild(batch);
+      const samplingWeight = BatchUtils.getWeight(samplingBatch);
+      const computedSamplingRatio = (totalWeight === 0 || samplingWeight.value === 0) ? 0 : samplingWeight.value / totalWeight;
+      if (isNil(samplingBatch.samplingRatio)) {
+        // Set sampling ratio
+        samplingBatch.samplingRatio = computedSamplingRatio;
+        samplingBatch.samplingRatioText = `${samplingWeight.value}/${totalWeight}`;
+        samplingBatch.samplingRatioComputed = true;
       }
     }
   }

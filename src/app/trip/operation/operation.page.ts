@@ -897,10 +897,15 @@ export class OperationPage<S extends OperationState = OperationState>
     // Get rankOrder from context, or compute it (if NOT mobile to avoid additional processing time)
     let rankOrder = this.context?.operation?.rankOrder;
     if (isNil(rankOrder) && !this.mobile) {
+      // Compute the rankOrder
       const now = this.debug && Date.now();
       if (this.debug) console.debug('[operation-page] Computing rankOrder...');
       rankOrder = await this.service.computeRankOrder(data, { fetchPolicy: 'cache-first' });
       if (this.debug) console.debug(`[operation-page] Computing rankOrder [OK] #${rankOrder} - in ${Date.now()-now}ms`);
+
+      // Update data, and form
+      data.rankOrder = rankOrder;
+      this.opeForm?.form.patchValue({rankOrder}, {emitEvent: false});
     }
     if (rankOrder) {
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {startDateTime,rankOrder}).toPromise()) as string;
