@@ -680,6 +680,8 @@
         "BTN_OPEN_PARENT" : "Open setting",
         "BTN_SELECT_PARENT" : "Select setting",
         "BTN_SAVE_AND_NEW" : "Save and new",
+        "BTN_NEW" : "OP",
+        "BTN_LOG": "Log",
         "COMMENTS": "Comment",
         "CATCH": "Catch",
         "TAB_GENERAL": "Details",
@@ -801,10 +803,10 @@
         "SAVE_OPERATION_ERROR": "Error while saving the operation.",
         "SAVE_OPERATIONS_ERROR": "Error while saving operations.",
         "SUBSCRIBE_OPERATION_ERROR": "Error while listening operation's changes.",
-        "LOCAL_PARENT_OPERATION": "Operation from an unsynchronized trip",
-        "MISSING_PARENT_OPERATION": "Associée operation not found",
         "FIELD_DATE_BEFORE_PARENT_OPERATION": "Before setting's end",
         "FIELD_DATE_AFTER_CHILD_OPERATION": "After hauling's start",
+        "LOCAL_PARENT_OPERATION": "Operation from an unsynchronized trip",
+        "MISSING_PARENT_OPERATION": "Associée operation not found",
         "TOO_LONG_DISTANCE" : "Distance too long ({{distance}} miles)",
         "CANNOT_ENABLE_FILTER": "Filtering not available",
         "CANNOT_ENABLE_FILTER_METIER_NO_DATA": "No practiced metiers found in the available data.",
@@ -857,7 +859,7 @@
         "AVG_WEIGHT_PRICE": "Average weight price",
         "AVG_PACKAGING_PRICE": "Average packaging price",
         "TOTAL_PRICE": "Total price",
-        "TOTAL": "Total:"
+        "TOTAL_PRODUCT": "Total:"
       },
       "NEW": {
         "TITLE": "New batch"

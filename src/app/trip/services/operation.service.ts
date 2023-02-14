@@ -336,14 +336,14 @@ export declare interface OperationControlOptions extends OperationValidatorOptio
 
 
 export declare interface OperationServiceWatchOptions extends OperationFromObjectOptions, EntitiesServiceWatchOptions {
-
-  computeRankOrder?: boolean;
   fullLoad?: boolean;
   fetchPolicy?: WatchQueryFetchPolicy; // Avoid the use cache-and-network, that exists in WatchFetchPolicy
-  mapFn?: (operations: Operation[]) => Operation[] | Promise<Operation[]>;
-  sortByDistance?: boolean;
   mutable?: boolean; // should be a mutable query ? true by default
   withOffline?: boolean;
+
+  mapFn?: (operations: Operation[]) => Operation[] | Promise<Operation[]>;
+  computeRankOrder?: boolean;
+  sortByDistance?: boolean;
 }
 
 export declare interface OperationServiceLoadOptions extends EntityServiceLoadOptions {
@@ -445,13 +445,24 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const offline = forceOffline || opts?.withOffline || false;
     const online = !forceOffline;
 
-    //If we have both online and offline, watch all options has to be apply when all results are merged
-    const tempOpts: OperationServiceWatchOptions = { ...opts };
+    // When filtering in data quality status, avoid to compute rankOrder
+    if (isNotNil(dataFilter?.dataQualityStatus)) {
+      opts = {
+        ...opts,
+        computeRankOrder: false
+      };
+    }
+
+    // If we have both online and offline, watch all options has to be apply when all results are merged
+    let tempOpts: OperationServiceWatchOptions = opts;
     if (offline && online) {
-      tempOpts.mapFn = undefined;
-      tempOpts.sortByDistance = undefined;
-      tempOpts.toEntity = undefined;
-      tempOpts.computeRankOrder = undefined;
+      tempOpts = {
+        ...opts,
+        mapFn: undefined,
+        toEntity: false,
+        computeRankOrder: false,
+        sortByDistance: false
+      }
     }
 
     const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, tempOpts);
@@ -1484,24 +1495,6 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Default translation
     return this.formErrorTranslator.translateControlPath(path, opts);
-  }
-
-  /**
-   * Allow to update an existing operation (or skip, if project return nil)
-   * @param id
-   * @param project
-   */
-  async updateLocally(id: number, project: (data: Operation) => Operation|undefined) {
-    if (typeof project !== 'function') throw new Error('Missing required \'project\' argument');
-
-    let json: any = this.entities.load(id, Operation.TYPENAME, {fullLoad: true});
-    if (!json) throw new Error(`Operation #${id} not found in the local storage`);
-    const source = Operation.fromObject(json);
-    const target = project(source);
-    if (!target) return // Skip
-
-    json = this.asObject(target, MINIFY_OPERATION_FOR_LOCAL_STORAGE);
-    await this.entities.save(json, {entityName: Operation.TYPENAME});
   }
 
   /* -- protected methods -- */

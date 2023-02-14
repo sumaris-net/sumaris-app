@@ -86,6 +86,8 @@
 
             <mat-error [ngSwitch]="control.errors|mapKeys|arrayFirst">
               <span *ngSwitchCase="'required'" translate>ERROR.FIELD_REQUIRED</span>
+              <span *ngSwitchCase="'remoteParent'" translate>TRIP.OPERATION.ERROR.LOCAL_PARENT_OPERATION</span>
+              <span *ngSwitchCase="'existsParent'" translate>TRIP.OPERATION.ERROR.MISSING_PARENT_OPERATION</span>
               <span *ngSwitchCase="'msg'">{{(control.errors.msg?.key || control.errors.msg) | translate: control.errors.msg?.params}}</span>
             </mat-error>
           </mat-form-field>

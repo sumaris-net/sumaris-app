@@ -122,7 +122,6 @@ export class OperationPage<S extends OperationState = OperationState>
   trip: Trip;
   measurements: Measurement[];
   saveOptions: OperationSaveOptions = {};
-  rankOrder: number;
   selectedSubTabIndex = 0;
   allowParentOperation = false;
   autoFillBatch = false;
@@ -814,6 +813,9 @@ export class OperationPage<S extends OperationState = OperationState>
           data.metier = previousOperation.metier;
           data.rankOrder = previousOperation.rankOrder + 1;
         }
+        else {
+          data.rankOrder = 1;
+        }
       }
     }
 
@@ -895,12 +897,17 @@ export class OperationPage<S extends OperationState = OperationState>
           : this.dateFormat.transform(titleDateTime, {time: true})) as string;
 
     // Get rankOrder from context, or compute it (if NOT mobile to avoid additional processing time)
-    let rankOrder = this.context?.operation?.rankOrder;
+    let rankOrder = !this.mobile && this.context?.operation?.rankOrder;
     if (isNil(rankOrder) && !this.mobile) {
+      // Compute the rankOrder
       const now = this.debug && Date.now();
       if (this.debug) console.debug('[operation-page] Computing rankOrder...');
       rankOrder = await this.service.computeRankOrder(data, { fetchPolicy: 'cache-first' });
       if (this.debug) console.debug(`[operation-page] Computing rankOrder [OK] #${rankOrder} - in ${Date.now()-now}ms`);
+
+      // Update data, and form
+      data.rankOrder = rankOrder;
+      this.opeForm?.form.patchValue({rankOrder}, {emitEvent: false});
     }
     if (rankOrder) {
       return titlePrefix + (await this.translate.get('TRIP.OPERATION.EDIT.TITLE', {startDateTime,rankOrder}).toPromise()) as string;
@@ -1106,6 +1113,9 @@ export class OperationPage<S extends OperationState = OperationState>
       return true;
     }
 
+    // Workaround to avoid the option menu to be selected
+    if (this.mobile) await sleep(50);
+
     // Save new gear to the trip
     const physicalGear = await this.getOrAddPhysicalGear({emitEvent: false});
     if (!physicalGear) {
@@ -1120,41 +1130,51 @@ export class OperationPage<S extends OperationState = OperationState>
       ...opts
     });
 
-    // Display form error on top
-    if (!saved) {
-      // DEBUG
-      console.debug('[operation] Computing form error...');
+    // Continue to mark as saving, to avoid option menu to open
+    this.markAsSaving();
 
-      let error = '';
-      if (this.opeForm.invalid) {
-        error = this.opeForm.formError;
-      }
-      if (this.measurementsForm.invalid){
-        error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
+    try {
+      // Display form error on top
+      if (!saved) {
+        // DEBUG
+        console.debug('[operation] Computing form error...');
+
+        let error = '';
+        if (this.opeForm.invalid) {
+          error = this.opeForm.formError;
+        }
+        if (this.measurementsForm.invalid){
+          error += (isNotNilOrBlank(error) ? ',' : '') + this.measurementsForm.formError;
+        }
+
+        this.setError(error);
+        this.scrollToTop();
       }
 
-      this.setError(error);
-      this.scrollToTop();
+      else {
+
+        // Workaround, to make sure the editor is not dirty anymore
+        // => mark components as pristine
+        if (this.dirty) {
+          console.warn('[operation] FIXME: manually mark children to pristine, but it should be done by editor save()!');
+          this.batchTree?.markAsPristine();
+          this.sampleTree?.markAsPristine();
+        }
+
+        // Mark trip as dirty
+        if (RootDataEntityUtils.isReadyToSync(this.trip)) {
+          RootDataEntityUtils.markAsDirty(this.trip);
+          this.trip = await this.tripService.save(this.trip);
+          // Update the context
+          this.context.setValue('trip', this.trip);
+        }
+      }
+
+      return saved;
     }
-
-    else {
-      // Workaround, to make sure the editor is not dirty anymore
-      // => mark components as pristine
-      if (this.dirty) {
-        this.batchTree?.markAsPristine();
-        this.sampleTree?.markAsPristine();
-      }
-
-      // Mark trip as dirty
-      if (RootDataEntityUtils.isReadyToSync(this.trip)) {
-        RootDataEntityUtils.markAsDirty(this.trip);
-        this.trip = await this.tripService.save(this.trip);
-        // Update the context
-        this.context.setValue('trip', this.trip);
-      }
+    finally {
+      this.markAsSaved();
     }
-
-    return saved;
   }
 
   async saveIfDirtyAndConfirm(event?: Event, opts?: { emitEvent?: boolean; openTabIndex?: number }): Promise<boolean> {
@@ -1351,6 +1371,7 @@ export class OperationPage<S extends OperationState = OperationState>
     const json = this.opeForm.value;
 
     // Mark as not controlled (remove control date, etc.)
+    // BUT keep qualityFlag (e.g. need to keep it when = NOT_COMPLETED - see below)
     DataEntityUtils.markAsNotControlled(json as Operation, {keepQualityFlag: true});
 
     // Make sure parent operation has quality flag
@@ -1358,6 +1379,8 @@ export class OperationPage<S extends OperationState = OperationState>
       && DataEntityUtils.hasNoQualityFlag(json)){
       console.warn('[operation-page] Parent operation does not have quality flag id. Changing to NOT_COMPLETED ');
       json.qualityFlagId = QualityFlagIds.NOT_COMPLETED;
+
+      // Propage this change to the form
       this.opeForm.qualityFlagControl.patchValue(QualityFlagIds.NOT_COMPLETED, {emitEvent: false});
     }
 
@@ -1475,6 +1498,8 @@ export class OperationPage<S extends OperationState = OperationState>
         }
         if (!validParent) {
           data.parentOperationId = undefined;
+          // We create a fake Operation, with a qualityFlag = MISSING
+          // This is required to detect error at validation time (see OperationValidators.existsParent)
           data.parentOperation = Operation.fromObject({
             id: parentOperationId,
             startDateTime: data.startDateTime,

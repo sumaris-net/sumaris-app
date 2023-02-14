@@ -1,11 +1,17 @@
-<app-toolbar [title]="$title | async" color="primary"
-             [hasValidate]="!loading && (dirty || saving)"
-             [hasClose]="!loading && (!dirty && !saving)"
+
+<!-- Top toolbar -->
+<app-toolbar *ngVar="{saving: (savingSubject|push), loading: (loadingSubject|push)} as vars"
+             [color]="toolbarColor"
+             [hasValidate]="!vars.loading && (dirty || vars.saving)"
+             [hasClose]="!vars.loading && !(dirty || vars.saving)"
              (onValidate)="save($event)"
              (onValidateAndClose)="saveAndClose($event)"
              (onClose)="close($event)"
              [backHref]="defaultBackHref"
              [canGoBack]="true">
+
+  <ion-title [innerHTML]="$title|async"></ion-title>
+
   <ion-buttons slot="end">
 
     <ng-container *ngIf="mobile && selectedTabIndex === 2">
@@ -26,13 +32,13 @@
       </button>
     </ng-container>
 
-    <button slot="end" mat-icon-button
-            *ngIf="enabled && !isNewData || debug"
-            [disabled]="saving"
+    <!-- option menu -->
+    <ion-button *ngIf="!isNewData || debug"
+            [disabled]="disabled || vars.loading || vars.saving"
             [matMenuTriggerFor]="optionsMenu"
             [title]=" 'COMMON.BTN_OPTIONS'|translate">
-      <mat-icon>more_vert</mat-icon>
-    </button>
+      <mat-icon slot="icon-only">more_vert</mat-icon>
+    </ion-button>
   </ion-buttons>
 </app-toolbar>
 

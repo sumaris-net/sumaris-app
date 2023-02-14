@@ -250,14 +250,29 @@ export class Operation
     target.childOperationId = this.childOperationId || this.childOperation && this.childOperation.id;
 
     if (opts?.minify) {
-      delete target.parentOperation;
       delete target.childOperation;
+
+      // When store into local storage, keep tripId on parent local operation (if not same trip)
+      // This is need at validation time (see OperationValidators.remoteParent) to detect local parent outside the trip
+      if (opts.keepTrip
+        && target.parentOperationId < 0
+        && isNotNil(this.parentOperation?.tripId)
+        // Integrity check: make sure parentOperation reference same operation as 'target.parentOperationId'
+        && this.parentOperation.id === target.parentOperationId) {
+        target.parentOperation = {
+          id: this.parentOperation.id,
+          tripId: this.parentOperation.tripId
+        };
+      }
+      else {
+        delete target.parentOperation;
+      }
     } else {
       target.parentOperation = this.parentOperation && this.parentOperation.asObject(opts) || undefined;
       target.childOperation = this.childOperation && this.childOperation.asObject(opts) || undefined;
     }
 
-    // Clean properties copied from the parent trip
+    // Clean properties copied from the parent trip (need by filter)
     if (!opts || opts.keepTrip !== true) {
       delete target.programLabel;
       delete target.vesselId;
@@ -363,11 +378,15 @@ export class Operation
 
     //Parent Operation
     this.parentOperationId = source.parentOperationId;
-    this.parentOperation = (source.parentOperation || source.parentOperationId) ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId}) : undefined;
+    this.parentOperation = (source.parentOperation || isNotNil(source.parentOperationId))
+      ? Operation.fromObject(source.parentOperation || {id: source.parentOperationId})
+      : undefined;
 
     //Child Operation
     this.childOperationId = source.childOperationId;
-    this.childOperation = (source.childOperation || source.childOperationId) ? Operation.fromObject(source.childOperation || {id: source.childOperationId}) : undefined;
+    this.childOperation = (source.childOperation || isNotNil(source.childOperationId))
+      ? Operation.fromObject(source.childOperation || {id: source.childOperationId})
+      : undefined;
   }
 
   paste(source: Operation, flags = OperationPasteFlags.ALL ) {
