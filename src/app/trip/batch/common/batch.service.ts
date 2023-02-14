@@ -369,8 +369,9 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     else if (opts.weightRequired && totalWeight > 0) {
       const samplingBatch = BatchUtils.getSamplingChild(batch);
       const samplingWeight = BatchUtils.getWeight(samplingBatch);
-      const computedSamplingRatio = (totalWeight === 0 || samplingWeight.value === 0) ? 0 : samplingWeight.value / totalWeight;
-      if (isNil(samplingBatch.samplingRatio)) {
+
+      if (isNil(samplingBatch.samplingRatio) && samplingWeight?.value >= 0 && samplingWeight?.value <= totalWeight) {
+        const computedSamplingRatio = (totalWeight === 0 || samplingWeight.value === 0) ? 0 : samplingWeight.value / totalWeight;
         // Set sampling ratio
         samplingBatch.samplingRatio = computedSamplingRatio;
         samplingBatch.samplingRatioText = `${samplingWeight.value}/${totalWeight}`;
