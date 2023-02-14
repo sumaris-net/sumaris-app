@@ -680,6 +680,8 @@
         "BTN_OPEN_PARENT" : "Open setting",
         "BTN_SELECT_PARENT" : "Select setting",
         "BTN_SAVE_AND_NEW" : "Save and new",
+        "BTN_NEW" : "OP",
+        "BTN_LOG": "Log",
         "COMMENTS": "Comment",
         "CATCH": "Catch",
         "TAB_GENERAL": "Details",
