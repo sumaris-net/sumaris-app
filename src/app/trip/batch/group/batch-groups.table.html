@@ -397,7 +397,7 @@
         <ng-container *matCellDef="let row">
           <td mat-cell *ngVar="isComputed(col, row) as computed"
             [class]="col.classList"
-            [class.mat-cell-computed]="mobile && computed"
+            [class.mat-cell-computed]="computed"
             class="mat-cell-content-start-padding"
             (click)="focusColumn=col.key">
 
@@ -410,7 +410,7 @@
 
             <ng-template #mobileCellContent>
               <div class="mat-form-field ion-text-center"
-                   [class.mat-cell-computed]="mobile && computed"
+                   [class.computed]="computed"
                     *ngVar="row.currentData|propertyGet: col.path as colValue">
                 <!-- Disable value, if any -->
                 <ion-label *ngIf="colValue|isNotNil; else individualCount" [ngSwitch]="col.type">
