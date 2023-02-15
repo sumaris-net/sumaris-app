@@ -9,7 +9,8 @@ import {
   BaseEntityGraphqlMutations,
   BaseEntityGraphqlSubscriptions,
   BaseGraphqlService,
-  chainPromises, collectByProperty,
+  chainPromises,
+  collectByProperty,
   DateUtils,
   Department,
   EntitiesServiceWatchOptions,
@@ -37,8 +38,8 @@ import {
   NetworkService,
   PlatformService,
   ProgressBarService,
-  QueryVariables, splitByProperty,
-  toBoolean, toDateISOString,
+  QueryVariables,
+  toBoolean,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { Measurement, MEASUREMENT_PMFM_ID_REGEXP, MeasurementUtils } from './model/measurement.model';
@@ -85,6 +86,7 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { BatchService } from '@app/trip/batch/common/batch.service';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';
 import { PositionOptions } from '@capacitor/geolocation';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 
 export const OperationFragments = {
@@ -329,6 +331,8 @@ export declare interface OperationSaveOptions extends EntitySaveOptions {
 export declare interface OperationControlOptions extends OperationValidatorOptions {
   // Should save entity, after control ? (e.g. update 'controlDate', 'qualificationComments', etc.) - True by default
   terminate?: boolean;
+
+  initialPmfms?: DenormalizedPmfmStrategy[];
 
   // Translator options
   translatorOptions?: FormErrorTranslatorOptions;
@@ -595,8 +599,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[operation-service] Control {${entity.id}}...`, entity);
 
-    // Fill options (trip, program, etc. )
-    opts = await this.fillControlOptionsForTrip(entity.tripId, opts);
+    // Fill options (trip, program, pmfms, etc. )
+    opts = await this.fillControlOptionsForOperation(entity, opts);
 
     // Adapt options to the current operation
     if (opts.allowParentOperation) {
@@ -1828,6 +1832,47 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     return {data: entities, total};
   }
 
+  protected async fillControlOptionsForOperation(entity: Operation, opts?: OperationControlOptions): Promise<OperationControlOptions> {
+
+    opts = await this.fillControlOptionsForTrip(entity.tripId, opts);
+
+    // Filter pmfms for the operation's gear
+    const gearId = entity.physicalGear?.gear?.id;
+    if (isNotNil(gearId)) {
+      opts.pmfms = (opts.initialPmfms || [])
+        .filter(p => isEmptyArray(p.gearIds) || p.gearIds.includes(gearId));
+    }
+    else {
+      opts.pmfms = (opts.initialPmfms || []);
+    }
+
+    return opts;
+  }
+
+  protected async fillControlOptionsForTrip(tripId: number, opts?: OperationControlOptions): Promise<OperationControlOptions> {
+
+    // Fill options need by the operation validator
+    opts = await this.fillValidatorOptionsForTrip(tripId, opts);
+
+    // Prepare pmfms (the full list, not filtered by gearId)
+    if (!opts.initialPmfms) {
+      const programLabel = opts.program?.label;
+      const acquisitionLevel = opts.isChild ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
+      opts.initialPmfms = programLabel && (await this.programRefService.loadProgramPmfms(programLabel, {acquisitionLevel})) || [];
+    }
+
+    // Prepare error translator
+    if (!opts.translatorOptions) {
+      opts.translatorOptions = {
+        controlPathTranslator: {
+          translateControlPath: (path) => this.translateControlPath(path, { pmfms: opts.initialPmfms })
+        }
+      };
+    }
+
+    return opts;
+  }
+
   protected async fillValidatorOptionsForTrip(tripId: number, opts?: OperationValidatorOptions): Promise<OperationValidatorOptions> {
     opts = opts || {};
 
@@ -1864,24 +1909,5 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       isOnFieldMode: false, // Always disable 'on field mode'
       withMeasurements: true // Need by full validation
     };
-  }
-
-
-  protected async fillControlOptionsForTrip(tripId: number, opts?: OperationControlOptions): Promise<OperationControlOptions> {
-
-    opts = await this.fillValidatorOptionsForTrip(tripId, opts);
-
-    // Prepare error translator
-    if (!opts.translatorOptions) {
-      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
-        .filter(p => opts.isChild ? p.acquisitionLevel === AcquisitionLevelCodes.CHILD_OPERATION : p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
-      opts.translatorOptions = {
-        controlPathTranslator: {
-          translateControlPath: (path) => this.translateControlPath(path, { pmfms })
-        }
-      };
-    }
-
-    return opts;
   }
 }

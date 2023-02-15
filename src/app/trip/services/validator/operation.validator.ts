@@ -91,11 +91,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
     // Add measurement form
     if (opts.withMeasurements) {
-      const pmfms = (opts.program && opts.program.strategies[0] && opts.program.strategies[0].denormalizedPmfms || [])
-        .filter(p => opts.isChild ? p.acquisitionLevel === AcquisitionLevelCodes.CHILD_OPERATION : p.acquisitionLevel === AcquisitionLevelCodes.OPERATION);
+      if (!opts.pmfms) {
+        const acquisitionLevel = opts.isChild ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
+        opts.pmfms = (opts.program?.strategies?.[0] && opts.program.strategies[0].denormalizedPmfms || [])
+          .filter(p => p.acquisitionLevel === acquisitionLevel);
+      }
       form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
         forceOptional: opts.isOnFieldMode,
-        pmfms
+        pmfms: opts.pmfms
       }));
     }
 
