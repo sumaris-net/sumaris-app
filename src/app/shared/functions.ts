@@ -3,9 +3,6 @@
 
 import { isNil, isNotNil, LoadResult, } from '@sumaris-net/ngx-components';
 
-import { Moment } from 'moment';
-import { KeyValueType } from '../../../ngx-sumaris-components/src/app/shared/types';
-
 
 export function isNilOrNaN<T>(obj: T | null | undefined): boolean {
   return obj === undefined || obj === null || (typeof obj === 'number' && isNaN(obj));

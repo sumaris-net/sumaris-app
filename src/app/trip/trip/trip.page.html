@@ -163,7 +163,7 @@
               <!-- trip -->
               <form-trip #tripForm
                          [showError]="false"
-                         [returnFieldsRequired]="usageMode|isNotOnField"
+                         [returnFieldsRequired]="usageMode|isOnDesk"
                          (onSubmit)="save($event)"
                          (maxDateChanges)="saleForm.minDate = $event">
                 <!-- sale -->
