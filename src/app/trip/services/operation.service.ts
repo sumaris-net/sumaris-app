@@ -58,7 +58,7 @@ import { Batch } from '../batch/common/batch.model';
 import { Sample } from './model/sample.model';
 import { SortDirection } from '@angular/material/sort';
 import { ReferentialFragments } from '@app/referential/services/referential.fragments';
-import { AcquisitionLevelCodes, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { environment } from '@environments/environment';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
@@ -332,6 +332,7 @@ export declare interface OperationControlOptions extends OperationValidatorOptio
   // Should save entity, after control ? (e.g. update 'controlDate', 'qualificationComments', etc.) - True by default
   terminate?: boolean;
 
+  acquisitionLevel?: AcquisitionLevelType;
   initialPmfms?: DenormalizedPmfmStrategy[];
 
   // Translator options
@@ -554,7 +555,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         // Load full entity
         entity = await this.load(entity.id);
 
-        const errors = await this.control(entity, opts);
+        const errors = await this.control(entity, {...opts});
 
         // Control failed: save error
         if (errors) {
@@ -601,15 +602,6 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     // Fill options (trip, program, pmfms, etc. )
     opts = await this.fillControlOptionsForOperation(entity, opts);
-
-    // Adapt options to the current operation
-    if (opts.allowParentOperation) {
-      opts.isChild = isNotNil(entity.parentOperationId) || isNotNil(entity.parentOperation);
-      opts.isParent = !opts.isChild;
-    } else {
-      opts.isChild = false;
-      opts.isParent = false;
-    }
 
     // Create validator
     const form = this.validatorService.getFormGroup(entity, opts);
@@ -1833,8 +1825,22 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   }
 
   protected async fillControlOptionsForOperation(entity: Operation, opts?: OperationControlOptions): Promise<OperationControlOptions> {
+    opts = opts || {};
+
+    // Fill acquisition level, BEFORE lodaing pmfms
+    opts.isChild = opts.allowParentOperation !== false && (isNotNil(entity.parentOperationId) || isNotNil(entity.parentOperation?.id));
+    opts.acquisitionLevel = opts.isChild ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
+    opts.initialPmfms = null; // Force to reload pmfms, on the same acquisition level
 
     opts = await this.fillControlOptionsForTrip(entity.tripId, opts);
+
+    // Adapt options to the current operation
+    if (opts.allowParentOperation) {
+      opts.isParent = !opts.isChild;
+    } else {
+      opts.isChild = false;
+      opts.isParent = false;
+    }
 
     // Filter pmfms for the operation's gear
     const gearId = entity.physicalGear?.gear?.id;
@@ -1857,7 +1863,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     // Prepare pmfms (the full list, not filtered by gearId)
     if (!opts.initialPmfms) {
       const programLabel = opts.program?.label;
-      const acquisitionLevel = opts.isChild ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
+      const acquisitionLevel = opts.acquisitionLevel || (opts.isChild ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION);
       opts.initialPmfms = programLabel && (await this.programRefService.loadProgramPmfms(programLabel, {acquisitionLevel})) || [];
     }
 
