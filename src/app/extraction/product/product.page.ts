@@ -1,22 +1,9 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
-import { ExtractionCategories, ExtractionColumn, ExtractionFilter } from '../type/extraction-type.model';
+import { ExtractionCategories, ExtractionColumn } from '../type/extraction-type.model';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import {
-  AccountService,
-  Alerts,
-  AppEntityEditor,
-  EntityServiceLoadOptions,
-  EntityUtils,
-  equals,
-  HistoryPageReference,
-  isEmptyArray,
-  isNil,
-  isNotNil,
-  LocalSettingsService,
-  toNumber
-} from '@sumaris-net/ngx-components';
+import { AccountService, Alerts, AppEntityEditor, EntityServiceLoadOptions, equals, HistoryPageReference, isEmptyArray, isNil, isNotNil, LocalSettingsService } from '@sumaris-net/ngx-components';
 import { ProductForm } from './product.form';
 import { ExtractionProduct } from '@app/extraction/product/product.model';
 import { ExtractionProductValidatorService } from '@app/extraction/product/product.validator';
@@ -189,7 +176,12 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
           sourceTypeId = types.find(t => t.format === data.format)?.id
         }
 
-        if (isNil(sourceTypeId)) return; // Types not found: stop here
+        // Types not found: stop here
+        if (isNil(sourceTypeId)) {
+          console.warn(`[product] Unknown datasource type: unable to find the format '${data.format}' in types [${types.join(',')}]`);
+          this.datasourceTable.markAsLoaded();
+          return;
+        }
       }
 
       const filter = data.filter || (data.filterContent && JSON.parse(data.filterContent));
