@@ -24,7 +24,10 @@ const routes: Routes = [
         pathMatch: 'full',
         component: ObservedLocationPage,
         runGuardsAndResolvers: 'pathParamsChange',
-        canDeactivate: [ComponentDirtyGuard]
+        canDeactivate: [ComponentDirtyGuard],
+        data: {
+          pathIdParam: 'observedLocationId'
+        },
       },
       {
         path: 'landing',
@@ -41,6 +44,7 @@ const routes: Routes = [
       {
         path: 'trip/:tripId',
         data: {
+          profile: 'USER',
           pathIdParam: 'tripId'
         },
         pathMatch: 'full',

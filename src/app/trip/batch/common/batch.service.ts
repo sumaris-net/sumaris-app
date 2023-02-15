@@ -348,7 +348,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       if (samplingBatch && isNil(samplingWeight?.value)) {
         const computedWeight = BatchUtils.computeWeight(batch)?.value || 0;
         // no weight: OK, set default
-        if (computedWeight === 0 && isNil(samplingBatch.samplingRatio)) {
+        if (computedWeight === 0 && isNil(samplingBatch.samplingRatio) && (samplingBatch.individualCount || 0) === 0) {
           console.info(`[batch-service] Force weight to {0} on batch ${samplingBatch.label}, because parent weight = 0`);
           const defaultWeightPmfm = opts.weightPmfms?.[0];
           samplingBatch.weight = {

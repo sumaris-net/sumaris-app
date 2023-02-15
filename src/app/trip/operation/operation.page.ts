@@ -342,6 +342,45 @@ export class OperationPage<S extends OperationState = OperationState>
     console.debug('[menu] Screen size (px): ' + this._screenWidth);
   }*/
 
+  async saveAndControl(event?: Event, opts?: {emitEvent?: false}) {
+    if (event?.defaultPrevented) return false; // Skip
+    event?.preventDefault(); // Avoid propagation to <ion-item>
+
+    // Avoid reloading while saving or still loading
+    await this.waitIdle();
+
+    const saved = (this.mobile || this.isOnFieldMode) && this.dirty && this.valid
+      // If on field mode AND valid: save silently
+      ? await this.save(event, {openTabIndex: -1})
+      // Else If desktop mode: ask before save
+      : await this.saveIfDirtyAndConfirm(null, {openTabIndex: -1});
+    if (!saved) return; // not saved
+
+    // Control (using a clone)
+    const data = this.data.clone();
+    const errors: AppErrorWithDetails = await this.control(data);
+    const valid = isNil(errors);
+
+    if (!valid) {
+      this.usageMode = 'DESK';
+      errors.message = errors.message || 'QUALITY.ERROR.INVALID_FORM';
+
+      this.setError(errors, opts);
+      this.markAllAsTouched(opts);
+      this.scrollToTop();
+    } else {
+      // Clean previous error
+      this.resetError(opts);
+
+      await this.updateView(data);
+
+      // Show success toast
+      if (!opts || opts.emitEvent !== false) {
+        await this.showToast({ message: 'TRIP.OPERATION.INFO.CONTROL_SUCCEED', type: 'info' });
+      }
+    }
+  }
+
   async control(data: Operation, opts?: any): Promise<AppErrorWithDetails> {
 
     const errors = await this.service.control(data, {
@@ -957,7 +996,7 @@ export class OperationPage<S extends OperationState = OperationState>
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = this.isOnFieldMode && (!this.dirty || this.valid)
+    const saved = (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
       // If on field mode: try to save silently
       ? await this.save(event, {openTabIndex: -1})
       // If desktop mode: ask before save
@@ -969,13 +1008,13 @@ export class OperationPage<S extends OperationState = OperationState>
   }
 
   async saveAndNew(event: Event): Promise<boolean> {
-    if (event?.defaultPrevented) return Promise.resolve(false); // Skip
+    if (event?.defaultPrevented) return false; // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = this.isOnFieldMode && (!this.dirty || this.valid)
+    const saved = (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
       // If on field mode AND valid: save silently
       ? await this.save(event, {openTabIndex: -1})
       // Else If desktop mode: ask before save
@@ -988,13 +1027,13 @@ export class OperationPage<S extends OperationState = OperationState>
 
 
   async duplicate(event: Event): Promise<any> {
-    if (event?.defaultPrevented || !this.context) return Promise.resolve(); // Skip
+    if (event?.defaultPrevented || !this.context) return; // Skip
     event?.preventDefault(); // Avoid propagation to <ion-item>
 
     // Avoid reloading while saving or still loading
     await this.waitIdle();
 
-    const saved = (this.isOnFieldMode && this.dirty && this.valid)
+    const saved = ((this.mobile || this.isOnFieldMode) && this.dirty && this.valid)
       // If on field mode AND valid: save silently
       ? await this.save(event, {openTabIndex: -1})
       // Else If desktop mode: ask before save
@@ -1084,7 +1123,7 @@ export class OperationPage<S extends OperationState = OperationState>
   updateViewState(data: Operation, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data, opts);
 
-    // Display form error, if  has errors from context, applies it on form.
+    // Display form error, if has errors from context, applies it on form.
     const errorMessage = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) && data.qualificationComments;
     if (errorMessage) {
       this.form.get('qualificationComments').reset();
@@ -1605,7 +1644,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
   async openParentOperation(parent: Operation): Promise<boolean> {
 
-    const saved = this.isOnFieldMode && (!this.dirty || this.valid)
+    const saved = (this.mobile || this.isOnFieldMode) && (!this.dirty || this.valid)
       // If on field mode: try to save silently
       ? await this.save(null, {openTabIndex: -1})
       // If desktop mode: ask before save
