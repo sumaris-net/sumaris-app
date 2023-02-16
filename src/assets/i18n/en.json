@@ -2593,5 +2593,8 @@
     "UPDATE_APP_DOWNLOADED": "The update download is complete.<br/><b>Please install</b> from the downloaded files.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Please type at least {{minLength}} characters",
     "TEXT_PROGRESS": "{{current}} of {{max}}"
+  },
+  "WARNING": {
+    "SYNCHRONIZE_NO_HISTORICAL_DATA": "Historical data was not imported. <small>Please update the offline mode.</small>"
   }
 }

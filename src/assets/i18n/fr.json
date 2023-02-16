@@ -2655,5 +2655,8 @@
     "UPDATE_APP_DOWNLOADED": "Le téléchargement de la mise à jour est terminée.<br/><b>Veuillez l'installer</b> à partir des fichiers de l'appareil.",
     "PLEASE_TYPE_MORE_CHARACTERS": "Veuillez taper au moins {{minLength}} caractères",
     "TEXT_PROGRESS": "{{current}} sur {{max}}"
+  },
+  "WARNING": {
+    "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>"
   }
 }
