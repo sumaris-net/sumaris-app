@@ -55,7 +55,7 @@ import { OverlayEventDetail } from '@ionic/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ToastController } from '@ionic/angular';
 import { TRIP_FEATURE_NAME } from './config/trip.config';
-import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { DataSynchroImportFilter, IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { environment } from '@environments/environment';
 import { Sample } from './model/sample.model';
 import { ErrorCodes } from '@app/data/services/errors';
@@ -1152,13 +1152,28 @@ export class TripService
     // Importing historical data (need to get parent operation in the local storage)
     try {
 
-      let filter: Partial<TripFilter> = this.settings.getOfflineFeature(this.featureName)?.filter || {};
+      let filter: Partial<DataSynchroImportFilter & TripFilter> = this.settings.getOfflineFeature(this.featureName)?.filter || {};
 
       // Force the data program, because user can fill data on many programs (e.g. PIFIL and ACOST) but have configured only once for offline data importation
+      filter.programLabel = entity.program.label
       filter.program = entity.program;
 
-      // Make sure the program, in case filter is not on the same
-      filter.startDate = DateUtils.min(entity.departureDateTime, filter.startDate);
+      // Force the vessel
+      filter.vesselId = toNumber(entity.vesselSnapshot?.id, filter.vesselId);
+
+      // Prepare the start/end date
+      if (filter.periodDuration && filter.periodDurationUnit) {
+        filter.startDate = DateUtils.moment().utc(false)
+          .add(-1 * filter.periodDuration, filter.periodDurationUnit) // Substract the period, from now
+          .startOf('day') // Reset time
+      }
+      else {
+        filter.startDate = null;
+      }
+      // Make sure the period include the actual trip
+      filter.startDate = DateUtils.min(
+        entity.departureDateTime.clone().utc(false).startOf('day'),
+        filter.startDate);
       filter.endDate = null;
 
       // Run importation
@@ -1166,7 +1181,8 @@ export class TripService
 
     } catch (err) {
       console.error(`[trip-service] Failed to import historical data`, err);
-      // Continue
+      // Continue, after warn
+      this.showToast({message: 'WARNING.SYNCHRONIZE_NO_HISTORICAL_DATA', type: 'warning'});
     }
 
     // Clear page history
@@ -1787,6 +1803,11 @@ export class TripService
                                        }): Promise<void> {
 
     const maxProgression = opts && opts.maxProgression || 100;
+    opts = {
+      progression: new BehaviorSubject<number>(0),
+      maxProgression,
+      ...opts
+    }
 
     filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
     filter = this.asFilter(filter);
