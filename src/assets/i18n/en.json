@@ -1463,6 +1463,12 @@
       "NOT_COMPLETED": "Not complete",
       "MISSING": "Missing"
     },
+    "INFO": {
+      "CONTROL_DOTS": "Controlling...",
+      "TERMINATE_DOTS": "Terminate...",
+      "VALIDATE_DOTS": "Validate...",
+      "SYNCHRONIZE_DOTS": "Synchronize..."
+    },
     "ERROR": {
       "INVALID_FORM": "Check and correct your entry."
     }
@@ -2049,6 +2055,7 @@
     "TYPE": "Extraction type",
     "TYPES_MENU": {
       "PRODUCT_DIVIDER": "Products",
+      "SPATIAL_PRODUCT_DIVIDER": "Maps",
       "LIVE_DIVIDER": "Real time formats",
       "PROGRAM_DIVIDER": "Data collection programs"
     },
@@ -2185,6 +2192,7 @@
     },
     "CATEGORY": {
       "PRODUCT": "Products",
+      "SPATIAL_PRODUCT": "Cartes",
       "LIVE": "Real time"
     },
     "COLUMNS": {

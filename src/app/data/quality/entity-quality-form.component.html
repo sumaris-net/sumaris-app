@@ -28,8 +28,21 @@
   </ion-text>
 </ion-label>
 
-<p>
+<!-- Progress bar -->
+<ion-item *ngIf="_$progression|push; let progressionValue" lines="none" color="transparent" class="ion-no-padding">
+  <ion-text style="width: 100%">
+    <h4 class="computed" *ngIf="_progressionMessage">{{_progressionMessage|translate}} {{progressionValue.toFixed(0)}}%</h4>
+    <p>
+      <ion-progress-bar [value]="progressionValue / 100"></ion-progress-bar>
+    </p>
+  </ion-text>
 
+  <ion-button slot="end" fill="clear" (click)="cancel.emit(true)">
+    <ion-icon slot="icon-only" name="close"></ion-icon>
+  </ion-button>
+</ion-item>
+
+<p>
   <!-- Control (only if local) -->
   <ion-button *ngIf="canControl && !canSynchronize && !canTerminate"
               [disabled]="busy"
@@ -72,8 +85,8 @@
               (click)="unvalidate($event)">
     <ion-text color="danger" translate>QUALITY.BTN_UNVALIDATE</ion-text>
   </ion-button>
-
 </p>
+
 
 <ng-container *ngIf="qualityFlags as qualityFlags">
   <p *ngIf="qualityFlags.length && (canQualify || canUnqualify)" class="ion-padding-top">
@@ -117,5 +130,7 @@
         </ion-button>
       </ng-container>
   </p>
+
+
 
 </ng-container>

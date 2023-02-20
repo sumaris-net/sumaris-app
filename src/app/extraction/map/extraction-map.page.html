@@ -430,9 +430,9 @@
           </ion-card-header>
           <ion-card-content>
             <ion-grid class="ion-no-padding">
-              <ion-row *ngFor="let item of $legendItems | async">
+              <ion-row *rxFor="let item of $legendItems">
                 <ion-col class="ion-no-padding" style="max-width: 10px !important;"
-                         [ngStyle]="{'background-color': item.color}">
+                         [style.background-color]="item.color.rgba()">
                 </ion-col>
                 <ion-col size="auto" style="padding-left: 8px;">
                   <ion-label nowrap>{{item.label}}</ion-label>

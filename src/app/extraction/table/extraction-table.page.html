@@ -1,4 +1,4 @@
-<app-toolbar color="primary" *ngIf="!embedded; else simpleToolbar">
+<app-toolbar color="primary" *ngIf="!embedded">
 
   <ion-title>
     <span class="hidden-xs hidden-sm hidden-mobile"
@@ -58,7 +58,7 @@
 
     &nbsp;
 
-    <ion-button *ngIf="types$ | async |isArrayLength: {greaterThan: 1}"
+    <ion-button *ngIf="types$ | push |isArrayLength: {greaterThan: 1}"
                 [matMenuTriggerFor]="selectTypeMenu"
                 [matMenuTriggerData]="{$implicit: ($categories|async)}"
                 color="accent" fill="solid">
@@ -76,80 +76,31 @@
   </ion-buttons>
 </app-toolbar>
 
-<ng-template #simpleToolbar>
-  <mat-toolbar *ngIf="showToolbar" [class.expanded]="filterExpansionPanel.expanded">
-
-    <!-- Refresh -->
-    <button mat-icon-button *ngIf="!mobile"
-            [title]="'COMMON.BTN_REFRESH'|translate"
-            (click)="onRefresh.emit()">
-      <mat-icon>refresh</mat-icon>
-    </button>
-
-    <ion-item *ngIf="!mobile && error; let error" lines="none">
-      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
-    </ion-item>
-
-    <div class="toolbar-spacer"></div>
-
-    <ng-content select="[toolbarButton]"></ng-content>
-
-    <button mat-button
-            *ngIf="showDownloadButton"
-            (click)="downloadAsFile($event)"
-            (keyup.enter)="downloadAsFile($event)"
-            download="true"
-            [disabled]="loading">
-      <mat-icon>get_app</mat-icon>
-      <ion-label [innerHTML]="'COMMON.BTN_DOWNLOAD'|translate|uppercase"
-                 [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_HELP'|translate"></ion-label>
-    </button>
-
-    <ng-container *ngIf="showFilter">
-      <!-- reset filter -->
-      <button mat-icon-button (click)="resetFilter()"
-              *ngIf="filterCriteriaCount$|async">
-        <mat-icon color="accent">filter_list_alt</mat-icon>
-        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
-      </button>
-
-      <!-- show filter -->
-      <button mat-icon-button (click)="filterExpansionPanel.toggle()">
-        <mat-icon *ngIf="filterCriteriaCount$|async; let criteriaCount; else noCriteriaIcon"
-                  [matBadge]="criteriaCount"
-                  matBadgeColor="accent"
-                  matBadgeSize="small"
-                  matBadgePosition="above after">filter_list_alt</mat-icon>
-        <ng-template #noCriteriaIcon>
-          <mat-icon>filter_list_alt</mat-icon>
-        </ng-template>
-      </button>
-
-      <!-- options menu -->
-      <button mat-icon-button
-              [title]="'COMMON.BTN_OPTIONS'|translate"
-              [matMenuTriggerFor]="optionsMenu">
-        <mat-icon>more_vert</mat-icon>
-      </button>
-    </ng-container>
-
-  </mat-toolbar>
-</ng-template>
-
 <!-- Types menu -->
 <mat-menu #selectTypeMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-categories>
     <!-- only one category -->
     <ng-container *ngIf="categories | isArrayLength: {equals: 1}; else manyCategories">
-      <button mat-menu-item
-              *ngFor="let type of categories[0].types"
-              (click)="setType(type, {emitEvent: true})">
-        <ion-label class="ion-text-wrap">
-          <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
-          <span>{{type.name}}</span>
-        </ion-label>
-      </button>
+      <ng-container *ngFor="let type of categories[0].types">
+        <button mat-menu-item
+                *ngIf="type.category === 'PRODUCT'; else typeWithProgram"
+                (click)="setType(type)">
+          <ion-label class="ion-text-wrap">
+            <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
+            <span>{{type.name}}</span>
+          </ion-label>
+        </button>
+        <ng-template #typeWithProgram>
+          <button mat-menu-item
+                  [matMenuTriggerFor]="programMenu"
+                  [matMenuTriggerData]="{type: type}">
+            <ion-label class="ion-text-wrap">
+              <ion-icon name="eye-off" *ngIf="type.statusId===2"></ion-icon>&nbsp;
+              <span>{{type.name}} ...</span>
+            </ion-label>
+          </button>
+        </ng-template>
+      </ng-container>
     </ng-container>
 
     <!-- More than 1 categories -->
@@ -207,7 +158,7 @@
 
     <!-- programs -->
     <button mat-menu-item
-            *ngFor="let program of $programs|async"
+            *rxFor="let program of $programs"
             (click)="setTypeAndProgram(type, program?.label)">
       <ion-label class="ion-text-wrap">
         <span>{{program|referentialToString}}</span>
@@ -288,7 +239,70 @@
   </ng-template>
 </mat-menu>
 
-<ion-content class="ion-no-padding" scroll-y="false">
+<ion-content class="ion-no-padding"
+             [class.embedded]="embedded"
+             [class.has-paginator]="embedded"
+             scroll-y="false">
+
+
+  <mat-toolbar *ngIf="embedded && showToolbar"
+               [class.expanded]="filterExpansionPanel.expanded">
+
+    <!-- Refresh -->
+    <button mat-icon-button *ngIf="!mobile"
+            [title]="'COMMON.BTN_REFRESH'|translate"
+            (click)="onRefresh.emit()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+
+    <ion-item *ngIf="!mobile && error; let error" lines="none">
+      <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
+      <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
+    </ion-item>
+
+    <div class="toolbar-spacer"></div>
+
+    <ng-content select="[toolbarButton]"></ng-content>
+
+    <button mat-button
+            *ngIf="showDownloadButton"
+            (click)="downloadAsFile($event)"
+            (keyup.enter)="downloadAsFile($event)"
+            download="true"
+            [disabled]="loading">
+      <mat-icon>get_app</mat-icon>
+      <ion-label [innerHTML]="'COMMON.BTN_DOWNLOAD'|translate|uppercase"
+                 [matTooltip]="'EXTRACTION.BTN_DOWNLOAD_HELP'|translate"></ion-label>
+    </button>
+
+    <ng-container *ngIf="showFilter">
+      <!-- reset filter -->
+      <button mat-icon-button (click)="resetFilter()"
+              *ngIf="filterCriteriaCount$|async">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button>
+
+      <!-- show filter -->
+      <button mat-icon-button (click)="filterExpansionPanel.toggle()">
+        <mat-icon *ngIf="filterCriteriaCount$|async; let criteriaCount; else noCriteriaIcon"
+                  [matBadge]="criteriaCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <ng-template #noCriteriaIcon>
+          <mat-icon>filter_list_alt</mat-icon>
+        </ng-template>
+      </button>
+
+      <!-- options menu -->
+      <button mat-icon-button
+              [title]="'COMMON.BTN_OPTIONS'|translate"
+              [matMenuTriggerFor]="optionsMenu">
+        <mat-icon>more_vert</mat-icon>
+      </button>
+    </ng-container>
+  </mat-toolbar>
 
   <ion-refresher slot="fixed" *ngIf="mobile" (ionRefresh)="doRefresh($event)" >
     <ion-refresher-content></ion-refresher-content>
@@ -352,7 +366,8 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <div #tableContainer class="table-container">
+  <div #tableContainer class="table-container"
+       [class.has-toolbar]="embedded && showToolbar">
     <table mat-table
            [dataSource]="dataSource"
            [class.cdk-visually-hidden]="!data?.total || loading"
@@ -447,7 +462,8 @@
   </mat-paginator>
 
   <!-- Action buttons -->
-  <ion-toolbar class="hidden-xs hidden-sm hidden-mobile">
+  <ion-toolbar class="hidden-xs hidden-sm hidden-mobile"
+               *ngIf="!embedded">
     <ion-row class="ion-no-padding" nowrap>
       <ion-col>
         <ion-item *ngIf="error" lines="none">

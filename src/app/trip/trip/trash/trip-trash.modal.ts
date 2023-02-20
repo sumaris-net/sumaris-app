@@ -122,15 +122,17 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
 
   async closeAndRestore(event: Event, rows: TableElement<Trip>[]) {
 
-    const done = await this.restore(event, rows);
-    if (done) return this.close();
+    const data = await this.restore(event, rows);
+    if (isEmptyArray(data)) return; // User cancelled
+
+    return this.close(null, data);
   }
 
-  async restore(event: Event, rows: TableElement<Trip>[]): Promise<boolean> {
+  async restore(event: Event, rows: TableElement<Trip>[]): Promise<Trip[]|undefined> {
     if (this.loading) return; // Skip
 
     const confirm = await this.askRestoreConfirmation();
-    if (!confirm) return false;
+    if (!confirm) return;
 
     if (event) {
       event.stopPropagation();
@@ -150,7 +152,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
       }
 
       // Copy locally
-      await this.service.copyAllLocally(entities, {
+      entities = await this.service.copyAllLocally(entities, {
         deletedFromTrash: this.isOfflineMode, // Delete from trash, only if local trash
         displaySuccessToast: false
       });
@@ -167,12 +169,12 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
             'TRIP.TRASH.INFO.MANY_TRIPS_RESTORED' });
       }, 200);
 
-      return true;
+      return entities;
     }
     catch (err) {
       console.error(err && err.message || err, err);
       this.error = err && err.message || err;
-      return false;
+      return;
     }
     finally {
       this.markAsLoaded();
@@ -198,8 +200,12 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
     return true;
   }
 
-  async close(event?: any) {
-    await this.modalCtrl.dismiss();
+  async close(event?: any, data?: Trip[]) {
+    await this.modalCtrl.dismiss(data);
+  }
+
+  async cancel(event?: any) {
+    await this.modalCtrl.dismiss(null, 'CANCEL');
   }
 
   async cleanLocalTrash(event?: Event, confirm?: boolean) {

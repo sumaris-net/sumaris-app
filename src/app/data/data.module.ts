@@ -9,10 +9,12 @@ import { IsMeasurementModelValuesPipe, IsMeasurementFormValuesPipe, MeasurementV
 import {AppImageAttachmentModule} from '@app/data/image/image-attachment.module';
 import { StatusToColorPipe } from '@app/data/services/pipes/status-to-color.pipe';
 import {QualityFlagToIconPipe} from '@app/data/services/pipes/quality-flag-to-icon.pipe';
+import { AppSharedModule } from '@app/shared/shared.module';
 
 @NgModule({
   imports: [
     CoreModule,
+    AppSharedModule,
     AppReferentialModule,
 
     // Sub modules
