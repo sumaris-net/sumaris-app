@@ -301,7 +301,7 @@ export class EntityQualityFormComponent<
       emitEvent: false,
       maxProgression: progressionStep
     });
-    if (!controlled || event && event.defaultPrevented){
+    if (!controlled || event?.defaultPrevented || opts.cancelled?.value){
       progressionSubscription?.unsubscribe();
       return false;
     }
