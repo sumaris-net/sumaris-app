@@ -90,7 +90,9 @@ export class ProductForm extends AppForm<ExtractionProduct> implements OnInit {
     if (!this.isSpatial) {
       this.stratumFormArray.disable();
     }
-    this.form.get('isSpatial').disable();
+
+    // Keep enable, otherwise the form.getValue() will not return the isSpatial value, the product page - fix issue #382
+    // this.form.get('isSpatial').disable();
   }
 
   constructor(injector: Injector,
