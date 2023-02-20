@@ -2083,6 +2083,7 @@
     "TYPE": "Type d'extraction",
     "TYPES_MENU": {
       "PRODUCT_DIVIDER": "Produits",
+      "SPATIAL_PRODUCT_DIVIDER": "Cartes",
       "LIVE_DIVIDER": "Formats temps réel",
       "PROGRAM_DIVIDER": "Programmes de collecte"
     },
@@ -2219,6 +2220,7 @@
     },
     "CATEGORY": {
       "PRODUCT": "Produits",
+      "SPATIAL_PRODUCT": "Cartes",
       "LIVE": "Temps réel"
     },
     "COLUMNS": {

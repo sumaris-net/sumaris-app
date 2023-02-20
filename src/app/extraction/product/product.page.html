@@ -1,11 +1,11 @@
 <app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
-
-  <button mat-icon-button [matMenuTriggerFor]="optionsMenu"
-          [title]=" 'COMMON.BTN_OPTIONS'|translate">
-    <mat-icon>more_vert</mat-icon>
-  </button>
+  <ion-buttons slot="end">
+    <button mat-icon-button [matMenuTriggerFor]="optionsMenu"
+            [title]=" 'COMMON.BTN_OPTIONS'|translate">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+  </ion-buttons>
 </app-toolbar>
 
 <!-- Type = options menu -->
@@ -117,13 +117,15 @@
 
 
     <!-- TAB: datasource -->
-    <mat-tab label="{{'EXTRACTION.AGGREGATION.EDIT.TAB_DATASOURCE'|translate}}">
+    <mat-tab label="{{'EXTRACTION.AGGREGATION.EDIT.TAB_DATASOURCE'|translate}}"
+             [disabled]="loading">
       <ng-template mat-tab-label>
         <mat-icon>filter_alt</mat-icon>
         <ion-label translate>EXTRACTION.AGGREGATION.EDIT.TAB_DATASOURCE</ion-label>
       </ng-template>
 
       <app-extraction-table-page #datasourceTable
+                                 style="height: var(--mat-tab-body-content-height);"
                                  queryTabIndexParamName="subtab"
                                  [autoload]="false"
                                  [embedded]="true"

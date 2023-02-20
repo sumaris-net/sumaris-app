@@ -154,7 +154,9 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
     await this.initDatasourceTable(data);
 
-    await this.initResultTable(data);
+    if (!data.isSpatial) {
+      await this.initResultTable(data);
+    }
   }
 
   async initDatasourceTable(data: ExtractionProduct) {
@@ -169,11 +171,12 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
         const types = this.datasourceTable.types;
 
         // Resolve by format + version
-        sourceTypeId = types.find(t => t.format === data.format && t.version === data.version)?.id;
+        const format = data.format?.startsWith('AGG_') ? data.format.substring(4) : data.format
+        sourceTypeId = types.find(t => t.format === format && t.version === data.version)?.id;
 
         // Or resolve by format only, if not found
         if (isNil(sourceTypeId)) {
-          sourceTypeId = types.find(t => t.format === data.format)?.id
+          sourceTypeId = types.find(t => t.format === format)?.id
         }
 
         // Types not found: stop here
@@ -279,7 +282,7 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
 
   protected registerForms() {
     this.addChildForm(this.productForm);
-    this.addChildForm(this.datasourceTable);
+    //this.addChildForm(this.datasourceTable);
   }
 
   protected async onNewEntity(data: ExtractionProduct, options?: EntityServiceLoadOptions): Promise<void> {

@@ -2049,6 +2049,7 @@
     "TYPE": "Extraction type",
     "TYPES_MENU": {
       "PRODUCT_DIVIDER": "Products",
+      "SPATIAL_PRODUCT_DIVIDER": "Maps",
       "LIVE_DIVIDER": "Real time formats",
       "PROGRAM_DIVIDER": "Data collection programs"
     },
@@ -2185,6 +2186,7 @@
     },
     "CATEGORY": {
       "PRODUCT": "Products",
+      "SPATIAL_PRODUCT": "Cartes",
       "LIVE": "Real time"
     },
     "COLUMNS": {

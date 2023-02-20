@@ -681,9 +681,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     const filter = <ExtractionTypeFilter>{
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
     };
+
     // Exclude spatial because we cannot load columns yet
     if (!this.embedded) {
-      filter.isSpatial = false;
+      //filter.isSpatial = false;
     }
     return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', filter);
   }

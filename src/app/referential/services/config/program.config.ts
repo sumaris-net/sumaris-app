@@ -7,6 +7,7 @@ import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/materia
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 export type OperationEditor = 'legacy' | 'selectivity';
 export type StrategyEditor = 'legacy' | 'sampling';
+export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
 
 export const SAMPLING_STRATEGIES_FEATURE_NAME = 'samplingStrategies';
 
@@ -463,6 +464,23 @@ export const ProgramProperties = Object.freeze({
     defaultValue: '2400', // 100 days
     type: 'integer'
   },
+  TRIP_EXTRACTION_SAMPLING_METHOD: <FormFieldDefinition>{
+    key: 'sumaris.trip.extraction.sampling.method',
+    label: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_SAMPLING_METHOD',
+    type: 'enum',
+    values: [
+      {
+        key: <TripExtractionSamplingMethod>'Observer',
+        value: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_SAMPLING_METHODS.OBSERVER'
+      },
+      {
+        key: <TripExtractionSamplingMethod>'SelfSampling',
+        value: 'PROGRAM.OPTIONS.TRIP_EXTRACTION_SAMPLING_METHODS.SELF_SAMPLING'
+      }
+    ],
+    defaultValue: 'Observer' // See RDB/COST extraction specification
+  },
+
   // Observed location
   OBSERVED_LOCATION_END_DATE_TIME_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.observedLocation.endDateTime.enable',

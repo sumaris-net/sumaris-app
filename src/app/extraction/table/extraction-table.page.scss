@@ -1,3 +1,11 @@
+ion-content.embedded.has-paginator {
+  --table-paginator-height: 0px;
+  height: calc(100% - var(--table-paginator-height));
+
+  &.has-paginator {
+    --table-paginator-height: var(--app-paginator-height);
+  }
+}
 
 .mat-toolbar {
   form {
@@ -7,7 +15,6 @@
     }
   }
 }
-
 
 .mat-expansion-panel {
   --expansion-panel-padding: 0!important;
@@ -36,7 +43,13 @@
 }
 
 .table-container {
-  height: calc(100% - 50px);
+  --table-toolbar-height: 0px;
+
+  height: calc(100% - var(--table-container-offset, 0px) - var(--table-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - 1px);
+
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
 }
 
 .mat-table  {

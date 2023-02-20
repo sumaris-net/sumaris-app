@@ -13,7 +13,7 @@ import {
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
-  Person, toNumber, equals, trimEmptyToNull
+  Person, toNumber, equals, trimEmptyToNull, collectByProperty
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import { TranslateService } from '@ngx-translate/core';
@@ -355,7 +355,17 @@ export class ExtractionTypeUtils {
 export class ExtractionTypeCategory {
 
   static fromTypes(types: ExtractionType[]): ExtractionTypeCategory[] {
-    const typesByCategory = arrayGroupBy(types, 'category');
+    const typesByCategory = collectByProperty(types, 'category');
+
+    // Add a spatial product category
+    if (typesByCategory['PRODUCT']) {
+      const spatialProduct = typesByCategory['PRODUCT'].filter(t => t.isSpatial);
+      if (isNotEmptyArray(spatialProduct)) {
+        typesByCategory['PRODUCT'] = typesByCategory['PRODUCT'].filter(t => !t.isSpatial);
+        typesByCategory['SPATIAL_PRODUCT'] = spatialProduct;
+      }
+    }
+
     return Object.getOwnPropertyNames(typesByCategory)
       .map(category => ({label: category, types: typesByCategory[category]}));
   }
