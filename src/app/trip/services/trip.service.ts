@@ -14,7 +14,7 @@ import {
   EntityServiceLoadOptions,
   EntityUtils, equals,
   FormErrors,
-  FormErrorTranslator,
+  FormErrorTranslator, FormErrorTranslatorOptions,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -42,7 +42,7 @@ import {
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE
 } from '@app/data/services/model/data-entity.model';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { IProgressionOptions, IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
@@ -63,7 +63,7 @@ import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { TripFilter } from './filter/trip.filter';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
-import { QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelType, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Packet } from '@app/trip/services/model/packet.model';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { TripErrorCodes } from '@app/trip/services/trip.errors';
@@ -81,6 +81,8 @@ import moment from 'moment';
 import { RxState } from '@rx-angular/state';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { OperationValidatorOptions } from '@app/trip/services/validator/operation.validator';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -316,6 +318,12 @@ export interface TripServiceCopyOptions extends TripSaveOptions {
 
 export interface TripWatchOptions extends EntitiesServiceWatchOptions {
   query?: any;
+}
+
+export interface TripControlOptions extends TripValidatorOptions, IProgressionOptions {
+  // Progression
+  progression?: BehaviorSubject<number>;
+  maxProgression?: number;
 }
 
 const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
@@ -1201,9 +1209,18 @@ export class TripService
    * @param entity
    * @param opts
    */
-  async control(entity: Trip, opts?: TripValidatorOptions): Promise<AppErrorWithDetails> {
+  async control(entity: Trip, opts?: TripControlOptions): Promise<AppErrorWithDetails> {
 
     const now = this._debug && Date.now();
+
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    opts = {
+      ...opts,
+      maxProgression,
+      progression: opts?.progression || new BehaviorSubject<number>(0),
+      cancelled: opts?.cancelled || new BehaviorSubject<boolean>(false)
+    };
+    const progressionStep = maxProgression / 20;
     if (this._debug) console.debug(`[trip-service] Control {${entity.id}}...`, entity);
 
     const programLabel = entity.program && entity.program.label || null;
@@ -1235,9 +1252,16 @@ export class TripService
       }
     }
 
+    if (opts?.progression) opts.progression.next(progressionStep);
+
     // If trip is Valid, control operations
-    if (!opts || !opts.withOperationGroup){
-      const errors = await this.operationService.controlAllByTrip(entity, {program});
+    if (!opts || !opts.withOperationGroup) {
+      const errors = await this.operationService.controlAllByTrip(entity, {
+        program,
+        progression: opts?.progression,
+        maxProgression: maxProgression - progressionStep,
+        cancelled: opts?.cancelled
+      });
       if (errors) {
         return {
           message: 'TRIP.ERROR.INVALID_OPERATIONS',
@@ -1348,9 +1372,11 @@ export class TripService
       if (trash) {
         // Fill trip's operation, before moving it to trash
         entity.operations = operations;
-        entity.updateDate = trashUpdateDate;
 
         const json = entity.asObject({...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, keepLocalId: false});
+
+        // Force the updateDate
+        json.updateDate = trashUpdateDate;
 
         // Add to trash
         await this.entities.saveToTrash(json, {entityName: Trip.TYPENAME});
@@ -1804,10 +1830,10 @@ export class TripService
 
     const maxProgression = opts && opts.maxProgression || 100;
     opts = {
-      progression: new BehaviorSubject<number>(0),
       maxProgression,
       ...opts
-    }
+    };
+    opts.progression = opts.progression || new BehaviorSubject<number>(0);
 
     filter = filter || this.settings.getOfflineFeature(this.featureName)?.filter
     filter = this.asFilter(filter);

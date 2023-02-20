@@ -585,8 +585,8 @@
       "TITLE": "Corbeille",
       "DELETION_DATE": "Date de suppression",
       "INFO": {
-        "ONE_TRIP_RESTORED": "Marée restaurée avec succès !",
-        "MANY_TRIPS_RESTORED": "Marées restaurées avec succès !",
+        "ONE_TRIP_RESTORED": "Marée restaurée <b>avec succès</b>, dans vos marées <b>non envoyées</b> !",
+        "MANY_TRIPS_RESTORED": "Marées restaurées <b>avec succès</b>, dans vos marées <b>non envoyées</b> !",
         "LOCAL_TRASH_CLEANED": "La corbeille locale a été vidée"
       }
     },
@@ -1468,6 +1468,12 @@
       "FIXED": "Corrigée",
       "NOT_COMPLETED": "Incomplète",
       "MISSING": "Absente"
+    },
+    "INFO": {
+      "CONTROL_DOTS": "Contrôle...",
+      "TERMINATE_DOTS": "Terminaison de la saisie...",
+      "VALIDATE_DOTS": "Validation...",
+      "SYNCHRONIZE_DOTS": "Synchronisation..."
     },
     "ERROR": {
       "INVALID_FORM": "Vérifier et corriger votre saisie."

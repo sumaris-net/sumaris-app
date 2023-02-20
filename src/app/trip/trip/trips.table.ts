@@ -265,8 +265,19 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
     await modal.present();
 
     // On dismiss
-    const res = await modal.onDidDismiss();
-    if (!res) return; // CANCELLED
+    const { data, role } = await modal.onDidDismiss();
+    if (role === 'CANCEL' || isEmptyArray(data)) return; // CANCELLED
+
+    // Select the local trips tab
+    this.setSynchronizationStatus('DIRTY');
+
+    // If only one restored: open it
+    const trip = data?.length === 1 && data[0];
+    if (isNotNil(trip.id)) {
+      await this.router.navigate([trip.id], {
+        relativeTo: this.route
+      });
+    }
   }
 
   async prepareOfflineMode(event?: Event, opts?: {

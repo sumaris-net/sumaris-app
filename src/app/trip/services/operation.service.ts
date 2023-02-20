@@ -76,7 +76,7 @@ import { ProgramProperties } from '@app/referential/services/config/program.conf
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { TranslateService } from '@ngx-translate/core';
-import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { IProgressionOptions, IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { TripLoadOptions } from '@app/trip/services/trip.service';
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
@@ -328,7 +328,7 @@ export declare interface OperationSaveOptions extends EntitySaveOptions {
   updateLinkedOperation?: boolean;
 }
 
-export declare interface OperationControlOptions extends OperationValidatorOptions {
+export declare interface OperationControlOptions extends OperationValidatorOptions, IProgressionOptions {
   // Should save entity, after control ? (e.g. update 'controlDate', 'qualificationComments', etc.) - True by default
   terminate?: boolean;
 
@@ -533,6 +533,13 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
   async controlAllByTrip(trip: Trip, opts?: OperationControlOptions): Promise<FormErrors> {
 
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    opts = {
+      ...opts,
+      maxProgression,
+      progression: opts?.progression || new BehaviorSubject(0)
+    };
+    const endProgression = opts.progression.value + maxProgression;
     // Increment
     this.progressBarService.increase();
 
@@ -545,6 +552,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       const { data } = await this.loadAllByTrip({ tripId: trip.id },
         { computeRankOrder: false, fullLoad: false, toEntity: false });
 
+      const progressionStep = maxProgression / (data?.length || 1) / 2;
       if (isEmptyArray(data)) return undefined; // Skip if empty
 
       let errorsById: FormErrors = null;
@@ -555,7 +563,9 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         // Load full entity
         entity = await this.load(entity.id);
 
-        const errors = await this.control(entity, {...opts});
+        const errors = await this.control(entity, {...opts, maxProgression: progressionStep});
+
+        if (opts?.progression) opts.progression.next(Math.min(endProgression, opts.progression.value + progressionStep));
 
         // Control failed: save error
         if (errors) {
@@ -567,15 +577,22 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           entity.controlDate = null;
           entity.qualificationComments = message;
 
+          if (opts?.cancelled?.value) return; // Stop here
+
           // Save entity
           await this.save(entity);
 
         }
 
+
         // OK succeed: terminate
         else {
+          if (opts?.cancelled?.value) return; // Stop here
+
           await this.terminate(entity);
         }
+
+        if (opts?.progression) opts.progression.next(Math.min(endProgression, opts.progression.value + progressionStep));
       }
 
       return errorsById;
@@ -586,6 +603,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
     finally {
       this.progressBarService.decrease();
+      if (opts?.progression) opts.progression.next(endProgression);
     }
   }
 
@@ -597,57 +615,74 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
    */
   async control(entity: Operation, opts?: OperationControlOptions): Promise<FormErrors> {
 
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    opts = {
+      ...opts,
+      maxProgression,
+      progression: opts?.progression || new BehaviorSubject(0)
+    };
+    const endProgression = opts.progression.value + maxProgression;
+    const progressionStep = maxProgression / 3; // 3 steps = operation control, batches control, and save
     const now = this._debug && Date.now();
     if (this._debug) console.debug(`[operation-service] Control {${entity.id}}...`, entity);
 
     // Fill options (trip, program, pmfms, etc. )
     opts = await this.fillControlOptionsForOperation(entity, opts);
 
-    // Create validator
-    const form = this.validatorService.getFormGroup(entity, opts);
+    try {
+      // Create validator
+      const form = this.validatorService.getFormGroup(entity, opts);
 
-    if (!form.valid) {
-      // Wait end of validation (e.g. async validators)
-      await AppFormUtils.waitWhilePending(form);
+      if (!form.valid) {
+        // Wait end of validation (e.g. async validators)
+        await AppFormUtils.waitWhilePending(form);
 
-      // Get form errors
-      if (form.invalid) {
-        const errors = AppFormUtils.getFormErrors(form);
-        console.info(`[operation-service] Control operation {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
-        return errors;
+        // Get form errors
+        if (form.invalid) {
+          const errors = AppFormUtils.getFormErrors(form);
+          console.info(`[operation-service] Control operation {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+          return errors;
+        }
       }
-    }
 
-    // Control batches (skip if abnormal operation)
-    if (!entity.abnormal && entity.catchBatch && opts?.program) {
-      const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES)
-      const physicalGear = entity.physicalGear?.clone();
+      if (opts?.progression) opts.progression.next(Math.min(endProgression, opts.progression.value + progressionStep));
 
-      const wasInvalid = BatchUtils.isInvalid(entity.catchBatch);
-      const errors = await this.batchService.control(entity.catchBatch, {
-        program: opts.program,
-        allowSamplingBatches: hasIndividualMeasures,
-        physicalGear,
-        gearId: physicalGear?.gear?.id,
-        controlName: 'catch',
-        isOnFieldMode: opts.isOnFieldMode
-      });
-      const dirty = errors || (wasInvalid !== BatchUtils.isInvalid(entity.catchBatch));
+      // Control batches (skip if abnormal operation)
+      if (!entity.abnormal && entity.catchBatch && opts?.program) {
+        const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES)
+        const physicalGear = entity.physicalGear?.clone();
 
-      // Save if need
-      if (dirty) await this.save(entity);
+        const wasInvalid = BatchUtils.isInvalid(entity.catchBatch);
+        const errors = await this.batchService.control(entity.catchBatch, {
+          program: opts.program,
+          allowSamplingBatches: hasIndividualMeasures,
+          physicalGear,
+          gearId: physicalGear?.gear?.id,
+          controlName: 'catch',
+          isOnFieldMode: opts.isOnFieldMode,
+          progression: opts?.progression,
+          maxProgression: progressionStep
+        });
+        const dirty = errors || (wasInvalid !== BatchUtils.isInvalid(entity.catchBatch));
 
-      if (errors) {
-        console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
+        // Save if need
+        if (dirty) await this.save(entity);
 
-        // Keep only a simple error message
-        // Detail error should have been saved into batch
-        return { catch: {invalidOrIncomplete: true} };
+        if (errors) {
+          console.info(`[operation-service] Control operation {${entity.id}} catch batch  [INVALID] in ${Date.now() - now}ms`, errors);
+
+          // Keep only a simple error message
+          // Detail error should have been saved into batch
+          return { catch: { invalidOrIncomplete: true } };
+        }
       }
-    }
 
-    console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
-    return undefined;
+      console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
+      return undefined;
+    }
+    finally {
+      if (opts?.progression) opts.progression.next(endProgression);
+    }
   }
 
   async terminate(entity: Operation): Promise<Operation> {

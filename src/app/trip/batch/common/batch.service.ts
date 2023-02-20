@@ -1,11 +1,23 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
-import {AppFormUtils, FormErrors, FormErrorTranslator, isEmptyArray, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank, LocalSettingsService} from '@sumaris-net/ngx-components';
+import {
+  AppFormUtils,
+  FormErrors,
+  FormErrorTranslator,
+  isEmptyArray,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  LocalSettingsService,
+  toNumber
+} from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
 import {AcquisitionLevelCodes, MethodIds} from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
-import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { IProgressionOptions, IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { BatchValidatorOptions, BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { BatchGroupValidators, BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
 import { Program } from '@app/referential/services/model/program.model';
@@ -20,9 +32,10 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
+import { BehaviorSubject } from 'rxjs';
 
 
-export interface BatchControlOptions extends BatchValidatorOptions {
+export interface BatchControlOptions extends BatchValidatorOptions, IProgressionOptions {
   program: Program;
   controlName?: string;
   allowSamplingBatches?: boolean;
@@ -57,11 +70,24 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     const editor = program.getProperty(ProgramProperties.TRIP_OPERATION_EDITOR);
 
-    switch (editor) {
-      case 'selectivity':
-        return this.controlSelectivity(entity, program, opts);
-      case 'legacy':
-        return this.controlLegacy(entity, program, opts);
+    opts = {
+      maxProgression: 100,
+      ...opts,
+      progression: opts?.progression || new BehaviorSubject(0)
+    };
+    const endProgression = opts.progression.value + opts.maxProgression;
+
+    try {
+      switch (editor) {
+        case 'selectivity':
+          return this.controlSelectivity(entity, program, opts);
+        case 'legacy':
+        default:
+          return this.controlLegacy(entity, program, opts);
+      }
+    }
+    finally {
+      if (opts?.progression) opts.progression.next(endProgression);
     }
 
     return null;
@@ -108,11 +134,20 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
   /* -- private functions -- */
 
   private async controlLegacy(entity: Batch, program: Program, opts: BatchControlOptions): Promise<FormErrors> {
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    const progressionStep = maxProgression / (1 + (entity?.children?.length || 0));
+
     // Control catch batch
     const catchErrors = await this.controlCatchBatch(entity, program, opts);
+    if (opts.progression) opts.progression.next(opts.progression.value + progressionStep);
+
+    if (opts.cancelled?.value) return catchErrors; // Stop here
 
     // Control sorting batches
-    const childrenErrors = await this.controlBatchGroups(entity, program, opts);
+    const childrenErrors = await this.controlBatchGroups(entity, program, {
+      ...opts,
+      maxProgression: (maxProgression - progressionStep)
+    });
 
     // Has some children errors
     if (childrenErrors) {
@@ -183,6 +218,12 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
   private async controlBatchGroups(entity: Batch, program: Program, opts: BatchControlOptions): Promise<FormErrors> {
     if (isEmptyArray(entity.children)) return null; // No children: stop here
 
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    const progressionStep = maxProgression / entity.children.length;
+    const incrementProgression = () => {
+      if (opts?.progression) opts.progression.next(opts.progression.value + progressionStep);
+    };
+
     // Load sorting batch pmfms
     const pmfms = await this.programRefService.loadProgramPmfms(program.label, {
       acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH,
@@ -223,6 +264,9 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     const errors: FormErrors[] = (await Promise.all(
       // For each catch's child
       entity.children.map(async (source, index) => {
+
+        if (opts.cancelled?.value) return; // Stop here
+
         // Avoid error on label and rankOrder
         if (!source.label || !source.rankOrder) {
           console.warn("[batch-service] Missing label or rankOrder in batch:", source);
@@ -290,17 +334,23 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
             // Mark current batch as invalid
             BatchUtils.markAsInvalid(source, message);
-
+            // Increment progression
+            incrementProgression();
+            // Return errors
             return errors;
           }
         }
 
         // Mark as controlled
         BatchUtils.markAsControlled(source);
-
-        return null; // No error
+        // Increment progression
+        incrementProgression();
+        // No error (will be excluded by next filter)
+        return null;
       })))
       .filter(isNotNil);
+
+    if (opts.cancelled?.value) return; // Stop here
 
     // Concat all errors
     if (errors.length) {
@@ -309,6 +359,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     return null; // no errors
   }
+
 
   private fillNoLandingDefault(batch: Batch, opts: {weightPmfms: IPmfm[]; individualCountRequired: boolean; weightRequired: boolean}) {
     if (opts.individualCountRequired && isNil(batch.individualCount) && batch.isLanding) {
@@ -341,11 +392,12 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
   private fillSamplingBatchDefault(batch: Batch, opts: {weightPmfms: IPmfm[]; weightRequired: boolean, samplingRatioFormat: SamplingRatioFormat}) {
     const totalWeight = batch.weight?.value;
 
+    const samplingBatch = BatchUtils.getSamplingChild(batch);
+    if (samplingBatch) samplingBatch.weight = BatchUtils.getWeight(samplingBatch);
+
     // If total weight = 0, fill sampling weight to zero (if weight is required)
     if (opts.weightRequired && totalWeight === 0) {
-      const  samplingBatch = BatchUtils.getSamplingChild(batch);
-      const samplingWeight = BatchUtils.getWeight(samplingBatch);
-      if (samplingBatch && isNil(samplingWeight?.value)) {
+      if (samplingBatch && isNil(samplingBatch.weight?.value)) {
         const computedWeight = BatchUtils.computeWeight(batch)?.value || 0;
         // no weight: OK, set default
         if (computedWeight === 0 && isNil(samplingBatch.samplingRatio) && (samplingBatch.individualCount || 0) === 0) {
@@ -367,14 +419,13 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     // Set sampling ratio, if can be computed by weights
     else if (opts.weightRequired && totalWeight > 0) {
-      const samplingBatch = BatchUtils.getSamplingChild(batch);
-      const samplingWeight = BatchUtils.getWeight(samplingBatch);
+      const samplingWeight = samplingBatch?.weight?.value;
 
-      if (isNil(samplingBatch.samplingRatio) && samplingWeight?.value >= 0 && samplingWeight?.value <= totalWeight) {
-        const computedSamplingRatio = (totalWeight === 0 || samplingWeight.value === 0) ? 0 : samplingWeight.value / totalWeight;
+      if (isNil(samplingBatch.samplingRatio) && samplingWeight >= 0 && samplingWeight <= totalWeight) {
+        const computedSamplingRatio = (totalWeight === 0 || samplingWeight === 0) ? 0 : samplingWeight / totalWeight;
         // Set sampling ratio
         samplingBatch.samplingRatio = computedSamplingRatio;
-        samplingBatch.samplingRatioText = `${samplingWeight.value}/${totalWeight}`;
+        samplingBatch.samplingRatioText = `${samplingWeight}/${totalWeight}`;
         samplingBatch.samplingRatioComputed = true;
       }
     }
