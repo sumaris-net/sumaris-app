@@ -1,0 +1,22 @@
+
+<!-- Progress item -->
+<ion-item *rxIf="progression?.current$; let current; parent: false"
+          lines="none" color="transparent"
+          class="ion-no-padding">
+  <ion-label class="ion-text-wrap" *rxLet="progression.total$ as total">
+    <h4 class="computed" *rxIf="progression.message$; let message">
+      {{message|translate}}&nbsp;{{current.toFixed(0)}}{{total === 100 ? '%' : total}}
+    </h4>
+    <p>
+      <ion-progress-bar [value]="current / total"></ion-progress-bar>
+    </p>
+  </ion-label>
+
+  <ion-button slot="end" fill="clear" size="small" class="ion-no-margin"
+              *ngIf="cancellable"
+              [disabled]="progression.cancelled$|async"
+              [title]="'COMMON.BTN_CANCEL'|translate"
+              (click)="progression.cancel()">
+    <ion-icon slot="icon-only" name="close"></ion-icon>
+  </ion-button>
+</ion-item>

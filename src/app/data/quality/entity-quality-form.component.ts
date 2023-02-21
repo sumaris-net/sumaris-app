@@ -3,10 +3,13 @@ import { DataEntity, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE } from '../services/mo
 // import fade in animation
 import {
   AccountService,
+  APP_USER_EVENT_SERVICE,
   AppEntityEditor,
+  AppErrorWithDetails,
   ConfigService,
   EntityUtils,
   fadeInAnimation,
+  FormErrors,
   IEntityService,
   isNil,
   isNotNil,
@@ -15,12 +18,13 @@ import {
   ReferentialRef,
   ShowToastOptions,
   StatusIds,
-  Toasts, APP_USER_EVENT_SERVICE, FormErrors, AppErrorWithDetails, filterTrue, firstTrue, toNumber
+  Toasts,
+  toNumber
 } from '@sumaris-net/ngx-components';
-import { IProgressionOptions, IDataEntityQualityService, IRootDataEntityQualityService, isDataQualityService, isRootDataQualityService } from '../services/data-quality-service.class';
+import { IDataEntityQualityService, IProgressionOptions, IRootDataEntityQualityService, isDataQualityService, isRootDataQualityService } from '../services/data-quality-service.class';
 import { QualityFlags } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { BehaviorSubject, merge, Subject, Subscription } from 'rxjs';
+import { merge, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
@@ -32,6 +36,7 @@ import { isDataSynchroService, RootDataSynchroService } from '../services/root-d
 import { debounceTime } from 'rxjs/operators';
 import { DATA_CONFIG_OPTIONS } from '@app/data/services/config/data.config';
 import { UserEventService } from '@app/social/user-event/user-event.service';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
 
 
 export const APP_ENTITY_EDITOR = new InjectionToken<AppEntityEditor<any, any, any>>('AppEditor');
@@ -56,8 +61,7 @@ export class EntityQualityFormComponent<
 
   protected readonly _debug: boolean;
   protected readonly _mobile: boolean;
-  protected readonly _$progression = new BehaviorSubject(0);
-  protected _progressionMessage = '';
+  protected readonly _progression = new ProgressionModel({total: 100});
 
   data: T;
   loading = true;
@@ -229,7 +233,7 @@ export class EntityQualityFormComponent<
 
     opts = opts || {};
     const progressionSubscription = this.fillProgressionOptions(opts, 'QUALITY.INFO.TERMINATE_DOTS');
-    const endProgression = opts.progression.value + opts.maxProgression;
+    const endProgression = opts.progression.current + opts.maxProgression;
 
     // Control data
     const controlled = await this.control(event, {...opts,
@@ -255,7 +259,7 @@ export class EntityQualityFormComponent<
       console.debug("[quality] Terminate entity input...");
       const data = await this.serviceForRootEntity.terminate(this.editor.data);
 
-      if (opts?.progression) opts.progression.next(endProgression);
+      if (opts?.progression) opts.progression.current = endProgression;
 
       // Emit event (refresh editor -> will refresh component also)
       if (!opts || opts.emitEvent !== false) {
@@ -292,7 +296,6 @@ export class EntityQualityFormComponent<
 
     opts = opts || {};
     const progressionSubscription = this.fillProgressionOptions(opts, "QUALITY.INFO.SYNCHRONIZE_DOTS");
-    const endProgression = (opts.progression.value || 0) + opts.maxProgression;
     const progressionStep = opts.maxProgression / 3; // 3 steps : control, synchronize, and terminate
 
     // Control data
@@ -301,7 +304,7 @@ export class EntityQualityFormComponent<
       emitEvent: false,
       maxProgression: progressionStep
     });
-    if (!controlled || event?.defaultPrevented || opts.cancelled?.value){
+    if (!controlled || event?.defaultPrevented || opts.progression?.cancelled){
       progressionSubscription?.unsubscribe();
       return false;
     }
@@ -313,7 +316,8 @@ export class EntityQualityFormComponent<
     try {
       console.debug("[quality] Synchronizing entity...");
       const remoteData = await this.synchroService.synchronize(this.editor.data);
-      if (opts?.progression) opts.progression.next(Math.min(endProgression, opts.progression.value + progressionStep));
+
+      opts.progression.increment(progressionStep);  // Increment progression
 
       // Success message
       this.showToast({message: 'INFO.SYNCHRONIZATION_SUCCEED', type: 'info', showCloseButton: true});
@@ -325,7 +329,7 @@ export class EntityQualityFormComponent<
       console.debug("[quality] Terminate entity...");
       const data = await this.serviceForRootEntity.terminate(remoteData);
 
-      if (opts?.progression) opts.progression.next(Math.min(endProgression, opts.progression.value + progressionStep));
+      opts.progression.increment(progressionStep); // Increment progression
 
       // Update the editor (Will refresh the component)
       this.updateEditor(data, {updateRoute: true});
@@ -360,7 +364,7 @@ export class EntityQualityFormComponent<
       ...opts,
       emitEvent: false});
 
-    if (!controlled || event.defaultPrevented || opts.cancelled?.value) {
+    if (!controlled || event.defaultPrevented || opts.progression?.cancelled) {
       progressionSubscription?.unsubscribe();
       return;
     }
@@ -501,31 +505,21 @@ export class EntityQualityFormComponent<
   protected fillProgressionOptions(opts: IProgressionOptions, defaultProgressionMessage: string): Subscription|undefined {
     if (!opts) throw new Error('Argument \'opts\' is required')
 
-    let subscription: Subscription;
-
+    // Init max progression
     opts.maxProgression = toNumber(opts.maxProgression, 100);
 
+    // Init progression model
     if (!opts.progression) {
-      subscription = new Subscription();
-      this._progressionMessage = defaultProgressionMessage;
-      this._$progression.next(0);
-      opts.progression = this._$progression;
+      this._progression.reset();
+      this._progression.message = defaultProgressionMessage;
+      opts.progression = this._progression;
 
       // Reset progression, when finish
-      subscription.add(() => {
-        this._progressionMessage = '';
-        this._$progression.next(0);
+      return new Subscription(() => {
+        this._progression.reset();
       });
     }
 
-    if (!opts?.cancelled) {
-      opts.cancelled = new BehaviorSubject<boolean>(false);
-
-      // Mark as opts as cancelled
-      subscription = subscription || new Subscription();
-      subscription.add(filterTrue(this.cancel).subscribe(_ => opts.cancelled.next(true)));
-    }
-
-    return subscription;
+    return undefined;
   }
 }

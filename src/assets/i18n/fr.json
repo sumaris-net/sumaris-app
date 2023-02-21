@@ -898,6 +898,8 @@
         "ESTIMATED_WEIGHT": "Poids estimé ?",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
         "TOTAL_WEIGHT": "Poids total (kg)",
+        "TOTAL_RANK_ORDER": "Numéro Lot",
+        "TOTAL_LABEL": "Libellé Lot",
         "INDIVIDUAL_MEASURE": "Mesures individuelles ?",
         "WITH_MEASURE": "Avec mesure",
         "WITHOUT_MEASURE": "Sans mesure",
@@ -907,6 +909,8 @@
         "SAMPLING_RATIO_PCT": "Taux éch. (%)",
         "SAMPLING_COEFFICIENT": "Coef. éch.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
+        "SAMPLING_RANK_ORDER": "Numéro Lot échant.",
+        "SAMPLING_LABEL": "Libellé Lot échant.",
         "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhaustif des espèces ?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",

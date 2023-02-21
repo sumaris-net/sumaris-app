@@ -29,18 +29,9 @@
 </ion-label>
 
 <!-- Progress bar -->
-<ion-item *ngIf="_$progression|push; let progressionValue" lines="none" color="transparent" class="ion-no-padding">
-  <ion-text style="width: 100%">
-    <h4 class="computed" *ngIf="_progressionMessage">{{_progressionMessage|translate}} {{progressionValue.toFixed(0)}}%</h4>
-    <p>
-      <ion-progress-bar [value]="progressionValue / 100"></ion-progress-bar>
-    </p>
-  </ion-text>
-
-  <ion-button slot="end" fill="clear" (click)="cancel.emit(true)">
-    <ion-icon slot="icon-only" name="close"></ion-icon>
-  </ion-button>
-</ion-item>
+<app-progress-bar [progression]="_progression"
+                  [cancellable]="true">
+</app-progress-bar>
 
 <p>
   <!-- Control (only if local) -->

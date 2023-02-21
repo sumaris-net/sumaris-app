@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { UntypedFormBuilder } from '@angular/forms';
 import {
   AppFormUtils,
+  changeCaseToUnderscore,
   FormErrors,
   FormErrorTranslator,
   isEmptyArray,
@@ -14,10 +15,10 @@ import {
   toNumber
 } from '@sumaris-net/ngx-components';
 import { Batch } from './batch.model';
-import {AcquisitionLevelCodes, MethodIds} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds } from '@app/referential/services/model/model.enum';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
-import { IProgressionOptions, IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
+import { IDataEntityQualityService, IProgressionOptions } from '@app/data/services/data-quality-service.class';
 import { BatchValidatorOptions, BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { BatchGroupValidators, BatchGroupValidatorService } from '@app/trip/batch/group/batch-group.validator';
 import { Program } from '@app/referential/services/model/program.model';
@@ -32,7 +33,7 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { BatchModelValidatorService } from '@app/trip/batch/tree/batch-model.validator';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
-import { BehaviorSubject } from 'rxjs';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
 
 
 export interface BatchControlOptions extends BatchValidatorOptions, IProgressionOptions {
@@ -72,10 +73,10 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     opts = {
       maxProgression: 100,
-      ...opts,
-      progression: opts?.progression || new BehaviorSubject(0)
+      ...opts
     };
-    const endProgression = opts.progression.value + opts.maxProgression;
+    opts.progression = opts.progression || new ProgressionModel({total: opts.maxProgression});
+    const endProgression = opts.progression.current + opts.maxProgression;
 
     try {
       switch (editor) {
@@ -87,7 +88,9 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       }
     }
     finally {
-      if (opts?.progression) opts.progression.next(endProgression);
+      if (opts.progression.current < endProgression) {
+        opts.progression.current = endProgression;
+      }
     }
 
     return null;
@@ -107,7 +110,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       return PmfmUtils.getPmfmName(pmfm);
     }
     // Translate weight
-    if (path.endsWith('.weight.value') || path.endsWith('.individualCount')) {
+    if (path.endsWith('.weight.value') || path.endsWith('.individualCount')
+      || path.endsWith('.label') || path.endsWith('.rankOrder')) {
       const cleanPath = path.substring('catch.children.'.length + 2);
       let depth = countSubString(cleanPath, 'children.');
       let prefix = '';
@@ -121,9 +125,12 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       else {
         isSampling = depth === 1;
       }
+      const fieldName = path.endsWith('.weight.value')
+        ? 'weight'
+        : path.substring(path.lastIndexOf('.')+1);
       const i18nKey = opts.i18nPrefix
         + (isSampling ? 'SAMPLING_' : 'TOTAL_')
-        + (path.endsWith('.weight.value') ? 'WEIGHT' : 'INDIVIDUAL_COUNT');
+        + changeCaseToUnderscore(fieldName).toUpperCase();
       return prefix + this.translate.instant(i18nKey);
     }
 
@@ -139,9 +146,9 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     // Control catch batch
     const catchErrors = await this.controlCatchBatch(entity, program, opts);
-    if (opts.progression) opts.progression.next(opts.progression.value + progressionStep);
+    if (opts.progression) opts.progression.increment(progressionStep);
 
-    if (opts.cancelled?.value) return catchErrors; // Stop here
+    if (opts.progression?.cancelled) return catchErrors; // Stop here
 
     // Control sorting batches
     const childrenErrors = await this.controlBatchGroups(entity, program, {
@@ -220,9 +227,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     const maxProgression = toNumber(opts?.maxProgression, 100);
     const progressionStep = maxProgression / entity.children.length;
-    const incrementProgression = () => {
-      if (opts?.progression) opts.progression.next(opts.progression.value + progressionStep);
-    };
+    const incrementProgression = () => opts.progression?.increment(progressionStep);
 
     // Load sorting batch pmfms
     const pmfms = await this.programRefService.loadProgramPmfms(program.label, {
@@ -265,7 +270,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       // For each catch's child
       entity.children.map(async (source, index) => {
 
-        if (opts.cancelled?.value) return; // Stop here
+        if (opts.progression?.cancelled) return; // Stop here
 
         // Avoid error on label and rankOrder
         if (!source.label || !source.rankOrder) {
@@ -296,7 +301,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
             if (isTaxonGroupNoLanding) this.fillNoLandingDefault(c, {weightPmfms, weightRequired, individualCountRequired});
 
             // Set sampling batch default (eg. weight=0 if parent weight = 0);
-            if (enableSamplingBatch) this.fillSamplingBatchDefault(c, {weightPmfms, weightRequired, samplingRatioFormat});
+            if (enableSamplingBatch && isNotEmptyArray(c.children)) this.fillSamplingBatchDefault(c, {weightPmfms, weightRequired, samplingRatioFormat});
           });
         }
 
@@ -350,7 +355,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       })))
       .filter(isNotNil);
 
-    if (opts.cancelled?.value) return; // Stop here
+    if (opts.progression?.cancelled) return; // Stop here
 
     // Concat all errors
     if (errors.length) {
@@ -417,16 +422,31 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       }
     }
 
-    // Set sampling ratio, if can be computed by weights
+    // If total weight > 0
     else if (opts.weightRequired && totalWeight > 0) {
       const samplingWeight = samplingBatch?.weight?.value;
 
-      if (isNil(samplingBatch.samplingRatio) && samplingWeight >= 0 && samplingWeight <= totalWeight) {
-        const computedSamplingRatio = (totalWeight === 0 || samplingWeight === 0) ? 0 : samplingWeight / totalWeight;
+      // Set sampling ratio, if can be computed by weights
+      if (samplingBatch && isNil(samplingBatch.samplingRatio) && samplingWeight >= 0 && samplingWeight <= totalWeight) {
         // Set sampling ratio
-        samplingBatch.samplingRatio = computedSamplingRatio;
+        samplingBatch.samplingRatio = (totalWeight === 0 || samplingWeight === 0) ? 0 : samplingWeight / totalWeight;
         samplingBatch.samplingRatioText = `${samplingWeight}/${totalWeight}`;
         samplingBatch.samplingRatioComputed = true;
+      }
+      // Compute sampling weight, from total weight and sampling ratio (not computed)
+      else if (samplingBatch && isNil(samplingWeight)
+        && isNotNil(samplingBatch.samplingRatio)
+        && samplingBatch.samplingRatioComputed !== true
+        && samplingBatch.samplingRatio >= 0 && samplingBatch.samplingRatio <= 1) {
+
+        const computedWeightPmfm = opts.weightPmfms?.find(pmfm => pmfm.methodId === MethodIds.CALCULATED || pmfm.isComputed)
+        const defaultWeightPmfm = opts.weightPmfms?.[0];
+        samplingBatch.weight = {
+          value: totalWeight * samplingBatch.samplingRatio,
+          methodId: computedWeightPmfm?.methodId || defaultWeightPmfm?.methodId || MethodIds.CALCULATED,
+          computed: true,
+          estimated: false
+        };
       }
     }
   }
