@@ -6,7 +6,7 @@ import {
   AudioProvider,
   IReferentialRef,
   isNil,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   LocalSettingsService,
   PlatformService,
   ReferentialUtils,
@@ -17,7 +17,7 @@ import {
 import {AlertController, IonContent, ModalController} from '@ionic/angular';
 import {BehaviorSubject, merge, Observable, Subscription} from 'rxjs';
 import {TranslateService} from '@ngx-translate/core';
-import {AcquisitionLevelCodes} from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import {BatchGroupForm} from './batch-group.form';
 import {debounceTime, filter, map, startWith} from 'rxjs/operators';
 import {BatchGroup} from './batch-group.model';
@@ -61,7 +61,6 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
 export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptions {
 
   private _subscription = new Subscription();
-  private _isOnFieldMode: boolean;
 
   debug = false;
   loading = false;
@@ -72,6 +71,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   @Input() disabled: boolean;
   @Input() usageMode: UsageMode;
   @Input() mobile: boolean;
+  @Input() playSound: boolean;
 
   @Input() qvPmfm: IPmfm;
   @Input() pmfms: Observable<IPmfm[]> | IPmfm[];
@@ -157,7 +157,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
-    this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
+    this.playSound = toBoolean(this.playSound, this.mobile || this.settings.isOnFieldMode(this.usageMode));
     this.disabled = toBoolean(this.disabled, false);
     this.enableBulkMode = this.enableBulkMode && !this.disabled && (typeof this.onSaveAndNew === 'function') ;
 
@@ -212,6 +212,15 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       // Set form value
       await this.form.setValue(this.data);
 
+      // Show validation error (if not on field mode)
+      if (this.usageMode === 'DESK'
+        && this.data.qualityFlagId === QualityFlagIds.BAD
+        && isNotNilOrBlank(this.data.qualificationComments)) {
+
+        this.setError(this.data.qualificationComments);
+
+        if (this.enabled) this.markAllAsTouched();
+      }
     }
     catch(err) {
       this.form.error = (err && err.message || err);
@@ -349,7 +358,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     const data = await this.getDataToSave();
     // invalid
     if (!data) {
-      if (this._isOnFieldMode) this.audio.playBeepError();
+      if (this.playSound) this.audio.playBeepError();
       return;
     }
 
@@ -359,7 +368,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       const newData = await this.onSaveAndNew(data);
       await this.reset(newData);
       this.isNew = true;
-      if (this._isOnFieldMode) this.audio.playBeepConfirm();
+      if (this.playSound) this.audio.playBeepConfirm();
 
       await this.scrollToTop();
     } finally {
@@ -415,6 +424,11 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     }
   }
 
+  protected markAllAsTouched() {
+    this.form.markAllAsTouched();
+  }
+
+
   protected markAsUntouched() {
     this.form.markAsUntouched();
   }
@@ -443,5 +457,10 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
   protected resetError() {
     this.form.error = null;
+  }
+
+
+  protected setError(error: string) {
+    this.form.error = error;
   }
 }

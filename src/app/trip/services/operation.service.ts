@@ -1864,7 +1864,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
   protected async fillControlOptionsForOperation(entity: Operation, opts?: OperationControlOptions): Promise<OperationControlOptions> {
     opts = opts || {};
 
-    // Fill acquisition level, BEFORE lodaing pmfms
+    // Fill acquisition level, BEFORE loading pmfms
     opts.isChild = opts.allowParentOperation !== false && (isNotNil(entity.parentOperationId) || isNotNil(entity.parentOperation?.id));
     opts.acquisitionLevel = opts.isChild ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
     opts.initialPmfms = null; // Force to reload pmfms, on the same acquisition level

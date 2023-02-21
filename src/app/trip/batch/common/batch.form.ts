@@ -22,7 +22,7 @@ import {
 } from '@sumaris-net/ngx-components';
 
 import { debounceTime, delay, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { BatchValidatorOptions, BatchValidatorService } from './batch.validator';
@@ -513,6 +513,9 @@ export class BatchForm<
       case 'weight.value':
         fieldName = 'TOTAL_WEIGHT';
         break;
+      case 'children.0':
+        fieldName = 'SAMPLING_BATCH';
+        break;
       case 'children.0.weight.value':
         fieldName = 'SAMPLING_WEIGHT';
         break;
@@ -523,10 +526,10 @@ export class BatchForm<
         fieldName = this.samplingRatioFormat === '1/w' ? 'SAMPLING_COEFFICIENT' : 'SAMPLING_RATIO_PCT';
         break;
       default:
-        fieldName = path; // .indexOf('.') !== -1 ? path.substring(path.lastIndexOf('.')+1) : path;
+        fieldName = changeCaseToUnderscore(fieldName).toUpperCase(); // .indexOf('.') !== -1 ? path.substring(path.lastIndexOf('.')+1) : path;
         break;
     }
-    const i18nKey = (this.i18nFieldPrefix || 'TRIP.BATCH.EDIT.') + changeCaseToUnderscore(fieldName).toUpperCase();
+    const i18nKey = (this.i18nFieldPrefix || 'TRIP.BATCH.EDIT.') + fieldName;
     return this.translate.instant(i18nKey);
   }
 
@@ -922,7 +925,8 @@ export class BatchForm<
           withWeight: this.showWeight,
           weightRequired: this.requiredWeight,
           individualCountRequired: this.requiredIndividualCount,
-          withChildrenWeight: this.showChildrenWeight
+          withChildrenWeight: this.showChildrenWeight,
+          isOnFieldMode: this.settings.isOnFieldMode(this.usageMode)
         });
         this.markForCheck();
 

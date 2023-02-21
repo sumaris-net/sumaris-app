@@ -362,7 +362,12 @@ export class OperationPage<S extends OperationState = OperationState>
     const valid = isNil(errors);
 
     if (!valid) {
+      // Force the desktop mode (to enable strict validation)
       this.usageMode = 'DESK';
+
+      // Load data with error (e.g. quality flags)
+      await this.updateView(data, opts);
+
       errors.message = errors.message || 'QUALITY.ERROR.INVALID_FORM';
 
       this.setError(errors, opts);
@@ -373,11 +378,6 @@ export class OperationPage<S extends OperationState = OperationState>
       this.resetError(opts);
 
       await this.updateView(data);
-
-      // Show success toast
-      if (!opts || opts.emitEvent !== false) {
-        await this.showToast({ message: 'TRIP.OPERATION.INFO.CONTROL_SUCCEED', type: 'info' });
-      }
     }
   }
 
@@ -387,23 +387,31 @@ export class OperationPage<S extends OperationState = OperationState>
       ...opts,
       trip: this.trip
     });
-    if (!errors) return;
 
-    const pmfms = await firstNotNilPromise(this.measurementsForm.pmfms$, {stop: this.destroySubject});
-    const errorMessage = this.errorTranslator.translateErrors(errors, {
-      controlPathTranslator: {
-        translateControlPath: (path) => this.service.translateControlPath(path, {
-          i18nPrefix: this.i18nContext.prefix,
-          pmfms
-        })
-      }
-    });
-    return {
-      details: {
-        errors,
-        message: errorMessage
-      }
-    };
+    if (errors) {
+      const pmfms = await firstNotNilPromise(this.measurementsForm.pmfms$, {stop: this.destroySubject});
+      const errorMessage = this.errorTranslator.translateErrors(errors, {
+        controlPathTranslator: {
+          translateControlPath: (path) => this.service.translateControlPath(path, {
+            i18nPrefix: this.i18nContext.prefix,
+            pmfms
+          })
+        }
+      });
+      return {
+        details: {
+          errors,
+          message: errorMessage
+        }
+      };
+    }
+
+    // Show success toast
+    if (!opts || opts.emitEvent !== false) {
+      await this.showToast({ message: 'TRIP.OPERATION.INFO.CONTROL_SUCCEED', type: 'info' });
+    }
+
+    return; // No errors
   }
 
   canUserWrite(data: Operation, opts?: any): boolean {

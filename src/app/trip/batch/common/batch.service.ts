@@ -109,22 +109,27 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       const pmfm = opts.pmfms.find(p => p.id === pmfmId);
       return PmfmUtils.getPmfmName(pmfm);
     }
-    // Translate weight
-    if (path.endsWith('.weight.value') || path.endsWith('.individualCount')
-      || path.endsWith('.label') || path.endsWith('.rankOrder')) {
-      const cleanPath = path.substring('catch.children.'.length + 2);
-      let depth = countSubString(cleanPath, 'children.');
-      let prefix = '';
-      let isSampling: boolean;
-      if (opts.qvPmfm) {
-        isSampling = depth === 2;
-        const qvIndex = parseInt(cleanPath.split('.')[1]);
-        const qvName = opts.qvPmfm.qualitativeValues?.[qvIndex]?.name;
-        prefix = `${qvName} > `;
-      }
-      else {
-        isSampling = depth === 1;
-      }
+
+    // Translate known Batch property
+    const cleanPath = path.substring('catch.children.'.length + 2);
+    let depth = countSubString(cleanPath, 'children.');
+    let prefix = '';
+    let isSampling: boolean;
+    if (opts.qvPmfm) {
+      isSampling = depth === 2;
+      const qvIndex = parseInt(cleanPath.split('.')[1]);
+      const qvName = opts.qvPmfm.qualitativeValues?.[qvIndex]?.name;
+      prefix = qvName;
+    }
+    else {
+      isSampling = depth === 1;
+    }
+
+    if (path.endsWith('.weight.value')
+      || path.endsWith('.individualCount')
+      || path.endsWith('.label')
+      || path.endsWith('.rankOrder')) {
+      prefix = prefix.length ? `${prefix} > ` : prefix;
       const fieldName = path.endsWith('.weight.value')
         ? 'weight'
         : path.substring(path.lastIndexOf('.')+1);
@@ -132,6 +137,14 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         + (isSampling ? 'SAMPLING_' : 'TOTAL_')
         + changeCaseToUnderscore(fieldName).toUpperCase();
       return prefix + this.translate.instant(i18nKey);
+    }
+
+    // Example: error on a form group (e.g. the sampling batch form)
+    if (prefix.length) {
+      if (isSampling) {
+        prefix += ' > ' + this.translate.instant(opts.i18nPrefix + 'SAMPLING_BATCH');
+      }
+      return prefix;
     }
 
     // Default translation

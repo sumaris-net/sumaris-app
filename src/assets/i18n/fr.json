@@ -904,6 +904,7 @@
         "WITH_MEASURE": "Avec mesure",
         "WITHOUT_MEASURE": "Sans mesure",
         "IS_SAMPLING": "Saisir le poids échantillonné (si mesure) :",
+        "SAMPLING_BATCH": "Échantillon",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
         "SAMPLING_CHILDREN_WEIGHT": "Poids calculé par RTP",
         "SAMPLING_RATIO_PCT": "Taux éch. (%)",
@@ -965,6 +966,9 @@
           "BATCH_ESTIMATED_WEIGHT": "Poids total du lot (kg)",
           "BATCH_CALCULATED_WEIGHT": "Poids total du lot (kg)"
         }
+      },
+      "ERROR": {
+        "INVALID_WEIGHT_FOR_INDIVIDUAL_COUNT": "Poids incohérent pour {{individualCount}} indiv."
       }
     },
     "SUB_BATCH": {
