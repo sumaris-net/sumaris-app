@@ -401,7 +401,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   }
 
   translateControlPath(controlPath: string): string {
-    if (controlPath.startsWith('.measurementValues.')) {
+    if (controlPath.startsWith('measurementValues.')) {
       const parts = controlPath.split('.');
       const pmfmId = parseInt(parts[parts.length-1]);
       const pmfm = (this._speciesPmfms || []).find(p => p.id === pmfmId);

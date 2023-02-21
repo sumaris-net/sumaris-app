@@ -21,8 +21,8 @@ import {
   waitFor
 } from '@sumaris-net/ngx-components';
 
-import { debounceTime, delay, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
-import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, QualityFlagIds } from '@app/referential/services/model/model.enum';
+import { debounceTime, delay, distinctUntilChanged, filter } from 'rxjs/operators';
+import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
 import { Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
 import { BatchValidatorOptions, BatchValidatorService } from './batch.validator';

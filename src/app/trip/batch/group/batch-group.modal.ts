@@ -144,7 +144,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     protected settings: LocalSettingsService,
     protected translate: TranslateService,
     protected audio: AudioProvider,
-    protected cd: ChangeDetectorRef,
+    protected cd: ChangeDetectorRef
   ) {
     // Default value
     this.acquisitionLevel = AcquisitionLevelCodes.SORTING_BATCH;
@@ -212,15 +212,8 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       // Set form value
       await this.form.setValue(this.data);
 
-      // Show validation error (if not on field mode)
-      if (this.usageMode === 'DESK'
-        && this.data.qualityFlagId === QualityFlagIds.BAD
-        && isNotNilOrBlank(this.data.qualificationComments)) {
-
-        this.setError(this.data.qualificationComments);
-
-        if (this.enabled) this.markAllAsTouched();
-      }
+      // Restore validation error
+      this.restoreError(this.data);
     }
     catch(err) {
       this.form.error = (err && err.message || err);
@@ -236,6 +229,27 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
   protected ready(): Promise<void> {
     return this.form.ready();
+  }
+
+  /**
+   * Show validation error (if not on field mode)
+   * @param data
+   * @protected
+   */
+  protected restoreError(data?: BatchGroup) {
+
+    if (this.usageMode === 'DESK'
+      && data?.qualityFlagId === QualityFlagIds.BAD
+      && isNotNilOrBlank(data.qualificationComments)
+      // Skip if default (generic) message
+      && data.qualificationComments !== this.translate.instant('ERROR.INVALID_OR_INCOMPLETE_FILL')) {
+
+      const error = .qualificationComments
+        // Replace newline by a <br> tag
+        .replace(/(\n|\r|<br\/>)+/g, '<br/>');
+
+      this.setError(error);
+    }
   }
 
 

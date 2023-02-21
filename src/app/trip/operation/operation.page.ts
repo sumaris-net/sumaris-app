@@ -686,9 +686,7 @@ export class OperationPage<S extends OperationState = OperationState>
 
       // Auto fill batches (if new data)
       if (this.showBatchTables && this.autoFillBatch && this.batchTree && this.isNewData) {
-        this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true })
-          // Make sure to keep data, on the first editor save()
-          .then(() => this.batchTree.markAsDirty());
+        this.batchTree.autoFill({ skipIfDisabled: false, skipIfNotEmpty: true });
       }
     }
 
