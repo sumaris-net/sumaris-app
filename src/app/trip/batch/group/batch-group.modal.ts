@@ -240,11 +240,11 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
     if (this.usageMode === 'DESK'
       && data?.qualityFlagId === QualityFlagIds.BAD
-      && isNotNilOrBlank(data.qualificationComments)
-      // Skip if default (generic) message
+      && isNotNilOrBlank(data?.qualificationComments)
+      // Skip if default/generic error, because this one is not useful. It can have been set when closing the modal
       && data.qualificationComments !== this.translate.instant('ERROR.INVALID_OR_INCOMPLETE_FILL')) {
 
-      const error = .qualificationComments
+      const error = data.qualificationComments
         // Replace newline by a <br> tag
         .replace(/(\n|\r|<br\/>)+/g, '<br/>');
 
