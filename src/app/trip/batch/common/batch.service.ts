@@ -291,7 +291,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
           if (isTaxonGroupNoLanding) this.fillNoLandingDefault(target, {weightPmfms, weightRequired, individualCountRequired});
 
           // Set sampling batch default (eg. weight=0 if parent weight = 0);
-          if (enableSamplingBatch) this.fillSamplingBatchDefault(target, {weightPmfms, weightRequired, samplingRatioFormat});
+          if (enableSamplingBatch && isNotEmptyArray(target.children)) this.fillSamplingBatchDefault(target, {weightPmfms, weightRequired, samplingRatioFormat});
         }
         else {
           (target.children || []).forEach(c => {
