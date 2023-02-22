@@ -554,9 +554,9 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
    * @protected
    */
   protected equals(d1: T, d2: T): boolean {
-    return EntityUtils.isEntity(d1) ? d1.equals(d2)
-      : (EntityUtils.isEntity(d2) ? d2.equals(d1)
-        : super.equals(d1, d2));
+    if (d1) return this.asEntity(d1).equals(d2);
+    if (d2) return this.asEntity(d2).equals(d1);
+    return false;
   }
 
   protected markForCheck() {

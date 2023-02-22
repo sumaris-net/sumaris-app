@@ -95,6 +95,8 @@ export class Batch<
       || (b1.rankOrder === b2.rankOrder
         // same operation
         && ((!b1.operationId && !b2.operationId) || b1.operationId === b2.operationId)
+        // same sale
+        && ((!b1.saleId && !b2.saleId) || b1.saleId === b2.saleId)
         // same label
         && ((!b1.label && !b2.label) || b1.label === b2.label)
         // Warn: compare using the parent ID is too complicated

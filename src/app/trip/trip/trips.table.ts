@@ -266,7 +266,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
 
     // On dismiss
     const { data, role } = await modal.onDidDismiss();
-    if (role === 'CANCEL' || isEmptyArray(data)) return; // CANCELLED
+    if (role === 'cancel' || isEmptyArray(data)) return; // CANCELLED
 
     // Select the local trips tab
     this.setSynchronizationStatus('DIRTY');
@@ -309,7 +309,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
 
       // Wait until closed
       const {data, role} = await modal.onDidDismiss();
-      if (!data) return; // User cancelled
+
+      if (!data || role === 'cancel') return; // User cancelled
 
       // Update feature filter, and save it into settings
       synchroFilter = TripSynchroImportFilter.fromObject(data);
