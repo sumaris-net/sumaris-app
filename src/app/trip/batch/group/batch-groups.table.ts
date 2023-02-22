@@ -1257,14 +1257,15 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
     this.markAsLoaded();
 
-    // User cancelled: rollback changes
+    // User cancelled: try to rollback changes
     if (!data || role === 'cancel') {
+
       // new data: delete if exists
+      // /!\ it can be added when open the subbatches moda : that why we need to delete a new row !
       if (isNew) {
-        // /!\ it can be added when open the subbatches modal, so delete it !
-        row = await this.findRowByEntity(dataToOpen);
-        row?.delete();
+        await this.deleteEntity(null, dataToOpen);
       }
+      // Revert changes
       else if (originalData) {
         row = await this.findRowByEntity(dataToOpen);
         row.currentData = originalData;

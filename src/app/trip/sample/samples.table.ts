@@ -367,11 +367,12 @@ export class SamplesTable
         } else {
           await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
           row = null; // Forget the row to update, for the next iteration (should never occur, because onSubmitAndNext always create a new entity)
-          isNew = true; // Next row should be new
         }
         // Prepare new sample
         const newData = new Sample();
         await this.onNewEntity(newData);
+        isNew = true; // Next row should be new
+
         return newData;
       },
       openSubSampleModal: (parent, acquisitionLevel) => this.openSubSampleModalFromRootModal(parent, acquisitionLevel),
@@ -740,16 +741,15 @@ export class SamplesTable
     if (!this.allowRowDetail) return false;
 
     const {data, role} = await this.openDetailModal();
-    if (data) {
-      if (role === 'DELETE') {
-        // Nothing to DO, because is not created yet
-        return false;
-      }
-      else {
-        await this.addOrUpdateEntityToTable(data);
-      }
+    if (data && role !== 'delete') {
+      // Can be an update (is user use the 'save and new' modal's button),
+      await this.addOrUpdateEntityToTable(data);
+      return true;
     }
-    return true;
+    else {
+      this.editedRow = null;
+      return false;
+    }
   }
 
   protected async openRow(id: number, row: TableElement<Sample>): Promise<boolean> {
@@ -766,18 +766,14 @@ export class SamplesTable
     this.prepareEntityToSave(dataToOpen);
 
     const {data, role} = await this.openDetailModal(dataToOpen, row);
-    if (data) {
-      if (role === 'DELETE') {
-        await this.deleteEntity(null, data);
-        return false;
-      }
-      else {
-        await this.updateEntityToTable(data, row, {confirmEdit: false});
-      }
+    if (data && role !== 'delete') {
+      // Can be an update (is user use the 'save and new' modal's button),
+      await this.addOrUpdateEntityToTable(data);
+      return true;
     } else {
       this.editedRow = null;
+      return false;
     }
-    return true;
   }
 
   protected prepareEntityToSave(data: Sample) {

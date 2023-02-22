@@ -1,35 +1,33 @@
-import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {Batch} from '../common/batch.model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Batch } from '../common/batch.model';
 import {
   Alerts,
   AppFormUtils,
   AudioProvider,
   IReferentialRef,
   isNil,
-  isNotNil, isNotNilOrBlank,
+  isNotNil,
+  isNotNilOrBlank,
   LocalSettingsService,
   PlatformService,
   ReferentialUtils,
   toBoolean,
-  UsageMode,
-  waitFor
+  UsageMode
 } from '@sumaris-net/ngx-components';
-import {AlertController, IonContent, ModalController} from '@ionic/angular';
-import {BehaviorSubject, merge, Observable, Subscription} from 'rxjs';
-import {TranslateService} from '@ngx-translate/core';
+import { AlertController, IonContent, ModalController } from '@ionic/angular';
+import { BehaviorSubject, merge, Observable, Subscription } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 import { AcquisitionLevelCodes, QualityFlagIds } from '@app/referential/services/model/model.enum';
-import {BatchGroupForm} from './batch-group.form';
-import {debounceTime, filter, map, startWith} from 'rxjs/operators';
-import {BatchGroup} from './batch-group.model';
-import {environment} from '@environments/environment';
-import {IBatchModalOptions} from '@app/trip/batch/common/batch.modal';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {TripContextService} from '@app/trip/services/trip-context.service';
-import {ContextService} from '@app/shared/context.service';
-import {BatchUtils} from '@app/trip/batch/common/batch.utils';
-import {SamplingRatioFormat} from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import { BatchFormState } from '@app/trip/batch/common/batch.form';
-import {Sample} from '@app/trip/services/model/sample.model';
+import { BatchGroupForm } from './batch-group.form';
+import { debounceTime, filter, map, startWith } from 'rxjs/operators';
+import { BatchGroup } from './batch-group.model';
+import { environment } from '@environments/environment';
+import { IBatchModalOptions } from '@app/trip/batch/common/batch.modal';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { ContextService } from '@app/shared/context.service';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
@@ -61,10 +59,11 @@ export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> 
 export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptions {
 
   private _subscription = new Subscription();
+  private _isOnFieldMode: boolean;
 
-  debug = false;
-  loading = false;
-  $title = new BehaviorSubject<string>(undefined);
+  protected debug = false;
+  protected loading = false;
+  protected $title = new BehaviorSubject<string>(undefined);
 
   @Input() data: BatchGroup;
   @Input() isNew: boolean;
@@ -157,7 +156,8 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.mobile = isNotNil(this.mobile) ? this.mobile : this.settings.mobile;
     this.isNew = toBoolean(this.isNew, !this.data);
     this.usageMode = this.usageMode || this.settings.usageMode;
-    this.playSound = toBoolean(this.playSound, this.mobile || this.settings.isOnFieldMode(this.usageMode));
+    this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
+    this.playSound = toBoolean(this.playSound, this.mobile || this._isOnFieldMode);
     this.disabled = toBoolean(this.disabled, false);
     this.enableBulkMode = this.enableBulkMode && !this.disabled && (typeof this.onSaveAndNew === 'function') ;
 
@@ -232,14 +232,14 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   }
 
   /**
-   * Show validation error (if not on field mode)
+   * Show validation error (if NOT on field mode)
    * @param data
    * @protected
    */
   protected restoreError(data?: BatchGroup) {
+    if (this._isOnFieldMode) return; // Skip if on field mode
 
-    if (this.usageMode === 'DESK'
-      && data?.qualityFlagId === QualityFlagIds.BAD
+    if (data?.qualityFlagId === QualityFlagIds.BAD
       && isNotNilOrBlank(data?.qualificationComments)
       // Skip if default/generic error, because this one is not useful. It can have been set when closing the modal
       && data.qualificationComments !== this.translate.instant('ERROR.INVALID_OR_INCOMPLETE_FILL')) {
@@ -347,12 +347,16 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   }
 
   async delete(event?: Event) {
-    if (!this.onDelete) return; // Skip
-    const result = await this.onDelete(event, this.data);
-    if (isNil(result) || (event && event.defaultPrevented)) return; // User cancelled
 
-    if (result) {
-      await this.modalCtrl.dismiss();
+    // Apply deletion, if callback exists
+    if (this.onDelete) {
+      const deleted = await this.onDelete(event, this.data);
+      if (isNil(deleted) || (event && event.defaultPrevented)) return; // User cancelled
+      if (deleted) await this.modalCtrl.dismiss();
+    }
+    else {
+      // Ask caller the modal owner apply deletion
+      await this.modalCtrl.dismiss(this.data, 'delete');
     }
   }
 
@@ -372,7 +376,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     const data = await this.getDataToSave();
     // invalid
     if (!data) {
-      if (this.playSound) this.audio.playBeepError();
+      if (this.playSound) await this.audio.playBeepError();
       return;
     }
 
@@ -382,7 +386,16 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       const newData = await this.onSaveAndNew(data);
       await this.reset(newData);
       this.isNew = true;
-      if (this.playSound) this.audio.playBeepConfirm();
+      if (this.playSound) {
+        setTimeout(async() => {
+          try {
+            await this.audio.playBeepConfirm();
+          }
+          catch(err) {
+            console.error(err);
+          }
+        }, 50);
+      }
 
       await this.scrollToTop();
     } finally {

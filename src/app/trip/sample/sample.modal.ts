@@ -282,13 +282,15 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   }
 
   async delete(event?: Event) {
+    // Apply deletion, if callback exists
     if (this.onDelete) {
       const deleted = await this.onDelete(event, this.data);
       if (isNil(deleted) || (event && event.defaultPrevented)) return; // User cancelled
       if (deleted) await this.modalCtrl.dismiss();
     }
     else {
-      await this.modalCtrl.dismiss(this.data, 'DELETE');
+      // Ask caller the modal owner apply deletion
+      await this.modalCtrl.dismiss(this.data, 'delete');
     }
   }
 
