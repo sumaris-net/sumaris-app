@@ -35,6 +35,9 @@ export class TreeItemEntityUtils {
       indexInParent = current.parent ? (current.parent.children || []).indexOf(current) : -1;
     }
 
+    // Return parent
+    if (current !== node && (!filterFn || filterFn(current))) return current;
+
     return this.first(current, filterFn);
   }
 
