@@ -304,7 +304,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
         const taxonGroup = this.form.form.get('taxonGroup').value;
         const taxonName = this.form.form.get('taxonName').value;
         if (ReferentialUtils.isEmpty(taxonGroup) && ReferentialUtils.isEmpty(taxonName)) {
-          this.form.error = "COMMON.FORM.HAS_ERROR";
+          this.setError('COMMON.FORM.HAS_ERROR');
           allowInvalid = false;
         }
 
@@ -335,15 +335,29 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     }
   }
 
-  async onSubmit(event?: Event, opts?: {allowInvalid?: boolean; }): Promise<BatchGroup | undefined> {
+
+  /**
+   * Validate and close. If on bulk mode is enable, skip validation if form is pristine
+   * @param event
+   */
+  async onSubmitIfDirty(event?: Event) {
+    if (this.loading) return undefined; // avoid many call
+    if (this.enableBulkMode && !this.dirty) {
+      await this.modalCtrl.dismiss();
+    }
+    else {
+      return this.onSubmit(event);
+    }
+  }
+
+  async onSubmit(event?: Event, opts?: {allowInvalid?: boolean; }) {
     if (this.loading) return undefined; // avoid many call
 
     const data = await this.getDataToSave({allowInvalid: true, ...opts});
     if (!data) return;
 
+    this.markAsLoading();
     await this.modalCtrl.dismiss(data);
-
-    return data;
   }
 
   async delete(event?: Event) {
@@ -374,6 +388,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     }
 
     const data = await this.getDataToSave();
+
     // invalid
     if (!data) {
       if (this.playSound) await this.audio.playBeepError();
@@ -403,18 +418,6 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     }
   }
 
-  /**
-   * Validate and close
-   * @param event
-   */
-  async onSubmitIfDirty(event?: Event) {
-    if (!this.dirty) {
-      await this.modalCtrl.dismiss();
-    }
-    else {
-      return this.onSubmit(event);
-    }
-  }
 
   protected async reset(data?: BatchGroup) {
     await this.setValue(data || new BatchGroup());
@@ -482,12 +485,11 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.markForCheck();
   }
 
-  protected resetError() {
-    this.form.error = null;
+  protected setError(error: any) {
+    this.form.error = error;
   }
 
-
-  protected setError(error: string) {
-    this.form.error = error;
+  protected resetError() {
+    this.form.error = null;
   }
 }

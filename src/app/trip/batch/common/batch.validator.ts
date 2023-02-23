@@ -205,7 +205,7 @@ export class BatchValidatorService<
       // Remove if exists, and not need anymore
       if (!opts.withWeight) {
         if (weightForm) {
-          weightForm.disable();
+          weightForm.disable({onlySelf: true});
           weightForm.setValidators(null);
           form.removeControl('weight');
         }
@@ -222,7 +222,7 @@ export class BatchValidatorService<
           this.updateWeightFormGroup(weightForm, {
             required: opts.weightRequired
           });
-          if (weightForm.disabled) weightForm.enable();
+          if (weightForm.disabled) weightForm.enable({onlySelf: true});
         }
       }
     }

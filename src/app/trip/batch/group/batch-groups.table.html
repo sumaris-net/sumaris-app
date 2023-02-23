@@ -410,10 +410,10 @@
 
             <ng-template #mobileCellContent>
               <div class="mat-form-field ion-text-center"
-                   [class.computed]="computed"
                     *ngVar="row.currentData|propertyGet: col.path as colValue">
                 <!-- Disable value, if any -->
-                <ion-label *ngIf="colValue|isNotNil; else individualCount" [ngSwitch]="col.type">
+                <ion-label *ngIf="colValue|isNotNil; else individualCount" [ngSwitch]="col.type"
+                           [class.computed]="computed">
                   <ng-container *ngSwitchCase="'pmfm'">
                     {{colValue|pmfmValue: {pmfm: col.pmfm, propertyNames: ['label'] } }}
                   </ng-container>
@@ -458,8 +458,8 @@
 
           <!-- open individual measures -->
           <button mat-icon-button
-                  *ngIf="mobile && row.currentData.observedIndividualCount && !selection.isSelected(row)"
-                  color="primary"
+                  *ngIf="mobile && !selection.isSelected(row)"
+                  [color]="row.currentData.observedIndividualCount ? 'primary' : undefined"
                   [title]="'TRIP.BATCH.TABLE.BTN_INDIVIDUAL_MEASURE'|translate"
                   (click)="onSubBatchesClick($event, row, {showParent: false})">
             <mat-icon [matBadge]="row.currentData.observedIndividualCount"

@@ -363,11 +363,23 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
       if (this.invalid) {
         if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
-        const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
-          controlPathTranslator: this.form,
-          separator: '<br/>'
-        })
-        this.setError(error || 'COMMON.FORM.HAS_ERROR');
+        let message = 'COMMON.FORM.HAS_ERROR';
+
+        // If not many fields/pmfms: display a simple message,
+        // Otherwise (many fields/pmfms) show a detailed message
+        if (!this.pmfms || this.pmfms.length < 5) {
+          this.setError('COMMON.FORM.HAS_ERROR');
+        }
+        else {
+          const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
+            controlPathTranslator: this.form,
+            separator: '<br/>'
+          });
+          const errorMessage = isNotNilOrBlank(error)
+            ? `<small class="error-details">${error}</small>`
+            : 'COMMON.FORM.HAS_ERROR';
+          this.setError(errorMessage);
+        }
         this.form.markAllAsTouched();
         this.scrollToTop();
         return;

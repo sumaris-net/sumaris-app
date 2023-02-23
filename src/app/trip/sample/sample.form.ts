@@ -2,7 +2,19 @@ import { ChangeDetectionStrategy, Component, Injector, Input, OnDestroy, OnInit 
 import { MeasurementValuesForm } from '../measurement/measurement-values.form.class';
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { AppFormUtils, FormArrayHelper, IReferentialRef, isNil, isNilOrBlank, isNotEmptyArray, LoadResult, toNumber, UsageMode } from '@sumaris-net/ngx-components';
+import {
+  AppFormUtils,
+  changeCaseToUnderscore,
+  FormArrayHelper,
+  IFormControlPathTranslator,
+  IReferentialRef,
+  isNil,
+  isNilOrBlank,
+  isNotEmptyArray,
+  LoadResult,
+  toNumber,
+  UsageMode
+} from '@sumaris-net/ngx-components';
 import { AcquisitionLevelCodes } from '../../referential/services/model/model.enum';
 import { SampleValidatorService } from '../services/validator/sample.validator';
 import { Sample } from '../services/model/sample.model';
@@ -11,6 +23,7 @@ import { ProgramRefService } from '../../referential/services/program-ref.servic
 import { PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SubSampleValidatorService } from '@app/trip/services/validator/sub-sample.validator';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
 @Component({
   selector: 'app-sample-form',
@@ -19,7 +32,8 @@ import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SampleForm extends MeasurementValuesForm<Sample>
-  implements OnInit, OnDestroy {
+  implements OnInit, OnDestroy, IFormControlPathTranslator {
+
 
   childrenArrayHelper: FormArrayHelper<Sample>;
   focusFieldName: string;

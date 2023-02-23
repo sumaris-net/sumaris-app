@@ -32,8 +32,9 @@ export class BatchModelTreeComponent {
   }
 
   @Input() set selected(value: BatchModel) {
-    this.select(value);
+    this.setSelection(value);
   }
+
   get selected(): BatchModel {
     return this.selection.selected?.[0];
   }
@@ -44,7 +45,7 @@ export class BatchModelTreeComponent {
 
   @Input() currentRowCount: number = undefined;
 
-  @Output('click') onClick = new EventEmitter<BatchModel>();
+  @Output('itemClick') onItemClick = new EventEmitter<BatchModel>();
 
   constructor(protected cd: ChangeDetectorRef) {
   }
@@ -54,16 +55,16 @@ export class BatchModelTreeComponent {
     this.markForCheck();
   }
 
-  select(node: BatchModel) {
+  setSelection(node: BatchModel) {
     if (node && !this.selection.isSelected(node)) {
       this.selection.setSelection(node);
       this.markForCheck();
     }
   }
 
-  protected click(event: Event, node: BatchModel) {
+  protected itemClick(event: Event, node: BatchModel) {
     event?.stopImmediatePropagation();
-    this.onClick.emit(node);
+    this.onItemClick.emit(node);
   }
 
   protected toggle(event: Event, node: BatchModel) {
@@ -91,8 +92,6 @@ export class BatchModelTreeComponent {
   protected hasChildrenBatchModel(node: BatchModel|Batch) {
     return node.children && node.children.some(c => c instanceof BatchModel);
   }
-
-  isWeightPmfm = PmfmUtils.isWeight;
 
   isNotHiddenPmfm = PmfmUtils.isNotHidden;
 }

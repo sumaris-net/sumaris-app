@@ -291,7 +291,7 @@
           </ion-col>
         </ion-row>
 
-        <ion-row>
+        <ion-row *rxIf="delegate.form.invalid">
           <ion-col size="12">
             <ion-text color="danger" [innerHTML]="delegate.form | translateFormError: delegate.errorTranslatorOptions"></ion-text>
           </ion-col>

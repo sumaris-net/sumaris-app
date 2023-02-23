@@ -6,31 +6,39 @@
 
 <ng-container *ngIf="!useModal; else withModal">
   <mat-sidenav-container>
-    <mat-sidenav #sidenav [mode]="editingBatch ? 'push' : 'side'">
-      <!--<ion-item color="transparent"
-                class="help" lines="none"
-                (click)="toggleFilterPanel()"
-                tappable>
-        <ion-icon color="primary" name="help-circle-outline"></ion-icon>
-        <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
-      </ion-item>-->
+    <mat-sidenav #sidenav [mode]="treePanelMode$|async"
+                 [class.has-footer]="!mobile">
 
-      <!-- model tree -->
-      <app-batch-model-tree #batchModelTree
-                            [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
-                            [selected]="editingBatch$|push"
-                            (click)="startEditBatch(null, $event)"
-                            [mobile]="mobile"
-                            [debug]="debug && false">
-      </app-batch-model-tree>
+        <!-- model tree -->
+        <app-batch-model-tree #batchModelTree
+                              [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
+                              [selected]="editingBatch$|push"
+                              (itemClick)="startEditBatch(null, $event)"
+                              [mobile]="mobile"
+                              [debug]="debug && false">
+        </app-batch-model-tree>
+
+        <ion-footer *ngIf="!mobile">
+          <ion-toolbar>
+            <ion-buttons slot="end">
+              <button *rxLet="treePanelMode$ as mode"
+                mat-icon-button color="accent" (click)="toggleTreePanelFloating()"
+                      [title]="(mode === 'side' ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
+                <mat-icon><span>{{mode === 'side' ? '&#xab;' : '&#xbb;'}}</span></mat-icon>
+              </button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-footer>
     </mat-sidenav>
 
-    <mat-sidenav-content >
+    <mat-sidenav-content>
 
-      <!-- toolbar -->
+      <!-- Top toolbar -->
       <mat-toolbar>
-        <button mat-icon-button
-                (click)="toggleFilterPanel()"
+
+        <!-- Toggle tree panel -->
+        <button mat-icon-button *rxIf="treePanelFloating$"
+                (click)="toggleTreePanel()"
                 [title]="(sidenav.opened ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
           <mat-icon class="mat-icon-rtl-mirror"
                     matBadge="!"
@@ -52,7 +60,7 @@
         <ng-template #helpMessage>
           <ion-item color="transparent"
                     class="help" lines="none"
-                    (click)="toggleFilterPanel()"
+                    (click)="toggleTreePanel()"
                     tappable>
             <ion-icon color="primary" name="help-circle-outline"></ion-icon>
             <ion-label color="primary" class="text-italic" [innerHTML]="'TRIP.BATCH.TREE.SELECT_PARENT_HELP'|translate"></ion-label>
@@ -81,7 +89,7 @@
     <app-batch-model-tree #batchModelTree
                           [currentRowCount]="batchTree?.batchGroupsTable?.totalRowCount"
                           [selected]="editingBatch$|push"
-                          (click)="startEditBatch(null, $event)"
+                          (itemClick)="startEditBatch(null, $event)"
                           [mobile]="mobile"
                           [debug]="debug && false">
     </app-batch-model-tree>
@@ -206,13 +214,16 @@
           class="breadcrumb selected"
           [disabled]="!node.parent"
           [matMenuTriggerFor]="childrenMenu"
-          [matMenuTriggerData]="{node: node.parent, selected: node}">
-    <mat-label  [matBadge]="node.valid ? (visibleRowCount || '') : '!'"
-                [matBadgeHidden]="!node.isLeaf && node.valid"
-                [matBadgeColor]="node.valid ? 'primary' : 'accent'"
-                matBadgeOverlap="false"
-                matBadgeSize="small"
-                matBadgePosition="above after">{{node.name}}</mat-label>
+          [matMenuTriggerData]="{node: node.parent, selected: node}"
+          *rxLet="currentBadge$ as badgeContent"
+          >
+    <mat-label
+               [matBadge]="badgeContent?.text"
+               [matBadgeHidden]="badgeContent?.hidden"
+               [matBadgeColor]="badgeContent?.color"
+               matBadgeOverlap="false"
+               matBadgeSize="small"
+               matBadgePosition="above after">{{node.name}}</mat-label>
 
     <span *ngIf="!node.isLeaf" class="breadcrumb-separator">/</span>
   </button>
@@ -302,11 +313,13 @@
           valid: {{valid}}<br/>
           invalid: {{invalid}}<br/>
           disabled: {{disabled}}<br/>
+          enabled: {{enabled}}<br/>
         </ion-col>
         <ion-col *ngIf="form">
           form.dirty: {{form.dirty}}<br/>
           form.valid: {{form.valid}}<br/>
           form.invalid: {{form.invalid}}<br/>
+          form.enabled: {{form.enabled}}<br/>
           form.value: <br/>
           <!--        <pre><p>{{form.getRawValue()|json}}</p></pre>-->
         </ion-col>
@@ -316,6 +329,7 @@
           batchTree.dirty: {{batchTree?.dirty}}<br/>
           batchTree.value: {{!!batchTree?.data}}<br/>
           batchTree.valid: {{batchTree?.valid}}<br/>
+          batchTree.enabled: {{batchTree?.enabled}}<br/>
         </ion-col>
       </ion-row>
       <ion-row>

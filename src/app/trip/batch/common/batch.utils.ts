@@ -184,14 +184,14 @@ export class BatchUtils {
 
   static getChildrenByLevel(batch: Batch, acquisitionLevel: string): Batch[] {
     return (batch.children || []).reduce((res, child) => {
-      if (child.label && child.label.startsWith(acquisitionLevel + '#')) return res.concat(child);
+      if (child.label?.startsWith(acquisitionLevel + '#')) return res.concat(child);
       return res.concat(BatchUtils.getChildrenByLevel(child, acquisitionLevel)); // recursive call
     }, []);
   }
 
   static hasChildrenWithLevel(batch: Batch, acquisitionLevel: string): boolean {
     return batch && (batch.children || []).findIndex(child => {
-      return (child.label && child.label.startsWith(acquisitionLevel + '#')) ||
+      return (child.label?.startsWith(acquisitionLevel + '#')) ||
         // If children, recursive call
         (child.children && BatchUtils.hasChildrenWithLevel(child, acquisitionLevel));
     }) !== -1;
@@ -210,11 +210,11 @@ export class BatchUtils {
       b.rankOrder = index + 1;
 
       // Sampling batch
-      if (b.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX)) {
+      if (b.label?.endsWith(Batch.SAMPLING_BATCH_SUFFIX)) {
         b.label = source.label + Batch.SAMPLING_BATCH_SUFFIX;
       }
       // Individual measure batch
-      else if (b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+      else if (b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
         b.label = `${AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL}#${b.rankOrder}`;
       }
 
@@ -237,7 +237,7 @@ export class BatchUtils {
       this.computeIndividualCount(b); // Recursive call
 
       // Update sum of individual count
-      if (b.label && b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
+      if (b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)) {
         sumChildrenIndividualCount = toNumber(sumChildrenIndividualCount, 0) + toNumber(b.individualCount, 1);
       }
     });
@@ -248,7 +248,7 @@ export class BatchUtils {
     }
 
     // Parent is NOT a sampling batch
-    else if (isNotNil(sumChildrenIndividualCount) && source.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH)) {
+    else if (isNotNil(sumChildrenIndividualCount) && source.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH)) {
       if (isNotNil(source.individualCount) && source.individualCount < sumChildrenIndividualCount) {
         console.warn(`[batch-utils] Fix batch {${source.label}} individual count =${source.individualCount} but children individual count = ${sumChildrenIndividualCount}`);
         //source.individualCount = childrenIndividualCount;
@@ -275,10 +275,13 @@ export class BatchUtils {
         // Recursive call
         BatchUtils.sumObservedIndividualCount(b.children) :
         // Or get value from individual batches
-        b.label.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL) ? toNumber(b.individualCount, 1) :
+        (b.label?.startsWith(AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL)
+          ? toNumber(b.individualCount, 1)
           // Default value, if not an individual batches
           // Use '0' because we want only observed batches count
-          0)
+          : 0
+        )
+      )
       .reduce((sum, individualCount) => {
         return sum + individualCount;
       }, 0);
