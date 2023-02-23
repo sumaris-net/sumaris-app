@@ -102,7 +102,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
   translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[], qvPmfm?: IPmfm}): string {
     opts = opts || {};
-    if (isNilOrBlank(opts.i18nPrefix)) opts.i18nPrefix = 'TRIP.BATCH.EDIT.';
+    opts.i18nPrefix = opts.i18nPrefix || 'TRIP.BATCH.EDIT.';
     // Translate PMFM field
     if (opts.pmfms && MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path)) {
       const pmfmId = parseInt(path.split('.').pop());
@@ -111,32 +111,44 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     }
 
     // Translate known Batch property
-    const cleanPath = path.substring('catch.children.'.length + 2);
+    let cleanPath = path.indexOf('catch.children.') !== -1
+      ? path.split('.').slice(3).join('.')
+      : path;
+
+    // If path = the batch group form itself: return an empty string
+    if (cleanPath.length === 0) return this.translate.instant(opts.i18nPrefix + 'PARENT_GROUP');
+
     let depth = countSubString(cleanPath, 'children.');
     let prefix = '';
     let isSampling: boolean;
     if (opts.qvPmfm) {
       isSampling = depth === 2;
-      const qvIndex = parseInt(cleanPath.split('.')[1]);
+      const parts = cleanPath.split('.');
+      const qvIndex = parseInt(parts[1]);
       const qvName = opts.qvPmfm.qualitativeValues?.[qvIndex]?.name;
-      prefix = qvName;
+      prefix = qvName || '';
+      cleanPath = parts.slice(depth * 2).join('.'); // remove the qv part (remove 'children.<qvIndex>.')
     }
     else {
       isSampling = depth === 1;
     }
 
-    if (path.endsWith('.weight.value')
-      || path.endsWith('.individualCount')
-      || path.endsWith('.label')
-      || path.endsWith('.rankOrder')) {
-      prefix = prefix.length ? `${prefix} > ` : prefix;
-      const fieldName = path.endsWith('.weight.value')
-        ? 'weight'
-        : path.substring(path.lastIndexOf('.')+1);
+
+    if (cleanPath === '.weight.value'
+      || cleanPath === 'individualCount'
+      || cleanPath === 'label'
+      || cleanPath === 'rankOrder') {
+
+      // Transform 'weight.value' into 'weight'
+      cleanPath = (cleanPath === 'weight.value') ? 'weight' : cleanPath;
       const i18nKey = opts.i18nPrefix
+        // Add a sampling prefix
         + (isSampling ? 'SAMPLING_' : 'TOTAL_')
-        + changeCaseToUnderscore(fieldName).toUpperCase();
-      return prefix + this.translate.instant(i18nKey);
+        // Change fieldName into i18n suffix
+        + changeCaseToUnderscore(cleanPath).toUpperCase();
+
+      return (prefix.length ? `${prefix} > ` : prefix)
+        + this.translate.instant(i18nKey);
     }
 
     // Example: error on a form group (e.g. the sampling batch form)
@@ -148,7 +160,7 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     }
 
     // Default translation
-    return this.formErrorTranslator.translateControlPath(path, opts);
+    return this.formErrorTranslator.translateControlPath(cleanPath, opts);
   }
 
   /* -- private functions -- */

@@ -499,11 +499,11 @@ export class BatchValidators {
       // If samplingWeight < totalWeight => Error
       if (toNumber(samplingWeight.value) > toNumber(totalWeight)) {
         if (samplingWeightValueControl.errors?.max?.max !== totalWeight) {
-          samplingWeightValueControl.markAsPending({ onlySelf: true, emitEvent: true }); //{onlySelf: true, emitEvent: false});
+          samplingWeightValueControl.markAsPending({ onlySelf: true, emitEvent: true });
           samplingWeightValueControl.markAsTouched({ onlySelf: true });
           samplingWeightValueControl.setErrors({ ...samplingWeightValueControl.errors, max: { max: totalWeight } }, opts);
         }
-        return { max: { max: totalWeight } } as ValidationErrors;
+        return {max: { max: totalWeight } }; // Stop with an error
       } else {
         SharedValidators.clearError(samplingWeightValueControl, 'max');
       }

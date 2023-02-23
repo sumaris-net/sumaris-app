@@ -51,6 +51,7 @@ import {DataEntity, DataEntityUtils} from '@app/data/services/model/data-entity.
 import {Sample} from '@app/trip/services/model/sample.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
+import { countSubString } from '@app/shared/functions';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -416,16 +417,19 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     }
     else if (controlPath.startsWith('children.')){
       const parts = controlPath.split('.');
+      let prefix = '';
       if (this.qvPmfm) {
         const qvIndex = parseInt(parts[1]);
-        const qv = this.qvPmfm.qualitativeValues[qvIndex];
-        const subPath = parts.slice(2).join('.');
-        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === subPath);
-        if (qv && col) return `${qv.name} > ${this.translate.instant(col.label)}`;
+        prefix = this.qvPmfm.qualitativeValues[qvIndex]?.name;
+        controlPath = parts.slice(2).join('.');
       }
-      else {
-        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === controlPath);
-        if (col) return this.translate.instant(col.label);
+      const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === controlPath);
+      prefix = prefix.length ? `${prefix} > ` : prefix;
+      if (col) return `${prefix} > ${this.translate.instant(col.label)}`;
+
+      // Example: error on the sampling form group
+      if (controlPath === 'children.0') {
+        return prefix + this.translate.instant( 'TRIP.BATCH.EDIT.SAMPLING_BATCH');
       }
     }
     return super.translateControlPath(controlPath);
@@ -435,7 +439,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.modalOptions = this.modalOptions || {};
     this.modalOptions[key as any] = value;
   }
-
 
   setSubBatchesModalOption(key: keyof ISubBatchesModalOptions, value: ISubBatchesModalOptions[typeof key]) {
     this.subBatchesModalOptions = this.subBatchesModalOptions || {};
@@ -1604,6 +1607,25 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       this._rowValidatorSubscription?.unsubscribe();
     }
     return confirmed;
+  }
+
+  pressRow(row: TableElement<BatchGroup>) {
+    if (!this.mobile) return; // Skip if not mobile
+
+    // Toggle row selection
+    this.selection.toggle(row);
+    this.markForCheck();
+
+    // Unselect after 4s
+    if (this.selection.isSelected(row)) {
+      setTimeout(() => {
+        if (this.selection.isSelected(row)) {
+          this.selection.deselect(row);
+          this.markForCheck();
+        }
+      }, 4000);
+    }
+
   }
 
 
