@@ -1,17 +1,18 @@
-import {ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryList, ViewChildren} from '@angular/core';
-import {Batch} from '../common/batch.model';
-import {UntypedFormBuilder, UntypedFormControl, UntypedFormGroup} from '@angular/forms';
-import {AppFormUtils, InputElement, isNil, isNotNil, ReferentialUtils, toBoolean, waitFor, WaitForOptions} from '@sumaris-net/ngx-components';
-import {BatchGroupValidatorOptions, BatchGroupValidatorService} from './batch-group.validator';
-import {BatchForm, BatchFormState} from '../common/batch.form';
+import { ChangeDetectionStrategy, Component, forwardRef, Injector, Input, QueryList, ViewChildren } from '@angular/core';
+import { Batch } from '../common/batch.model';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { AppFormUtils, InputElement, isNil, isNotNil, ReferentialUtils, toBoolean, waitFor, WaitForOptions } from '@sumaris-net/ngx-components';
+import { BatchGroupValidatorOptions, BatchGroupValidatorService } from './batch-group.validator';
+import { BatchForm, BatchFormState } from '../common/batch.form';
 import { debounceTime, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
-import {BatchGroup, BatchGroupUtils} from './batch-group.model';
-import {MeasurementsValidatorService} from '../../services/validator/measurement.validator';
-import {IPmfm} from '@app/referential/services/model/pmfm.model';
-import {ProgramRefService} from '@app/referential/services/program-ref.service';
-import {BatchUtils} from '@app/trip/batch/common/batch.utils';
-import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
-import {merge} from 'rxjs';
+import { BatchGroup, BatchGroupUtils } from './batch-group.model';
+import { MeasurementsValidatorService } from '../../services/validator/measurement.validator';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { BatchUtils } from '@app/trip/batch/common/batch.utils';
+import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
+import { merge } from 'rxjs';
+import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 
 export interface BatchGroupFormState extends BatchFormState {
   childrenPmfmsByQvId: {[key: number]: IPmfm[]};
@@ -310,7 +311,7 @@ export class BatchGroupForm extends BatchForm<BatchGroup, BatchGroupFormState, B
 
         // Find existing child, or create a new one
         // tslint:disable-next-line:triple-equals
-        const child = (data.children || []).find(c => +(c.measurementValues[qvPmfm.id]) == qv.id)
+        const child = (data.children || []).find(c => MeasurementValuesUtils.hasPmfmValue(c.measurementValues, qvPmfm.id, qv))
           || new Batch();
 
         // Make sure label and rankOrder are correct

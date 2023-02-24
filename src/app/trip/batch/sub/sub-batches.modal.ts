@@ -73,9 +73,9 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   private _initialMaxRankOrder: number;
   private _previousMaxRankOrder: number;
   private _hiddenData: SubBatch[];
-  private isOnFieldMode: boolean;
+  private _isOnFieldMode: boolean;
 
-  $title = new Subject<string>();
+  protected $title = new Subject<string>();
 
   get selectedRow(): TableElement<SubBatch> {
     return this.selection.selected[0] || this.editedRow;
@@ -105,6 +105,7 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() mobile: boolean;
+  @Input() playSound: boolean;
 
   @Input() set i18nSuffix(value: string) {
     this.i18nColumnSuffix = value;
@@ -146,8 +147,6 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
 
   ngOnInit() {
 
-    console.debug('[sub-batches-modal] Init modal...');
-
     if (this.disabled) {
       this.showForm = false;
       this.disable();
@@ -156,9 +155,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     super.ngOnInit();
 
     // default values
-    this.isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
-    this.showIndividualCount = !this.isOnFieldMode; // Hide individual count on mobile device
+    this._isOnFieldMode = this.settings.isOnFieldMode(this.usageMode);
+    this.showIndividualCount = !this._isOnFieldMode; // Hide individual count on mobile device
     this.showParentGroup = toBoolean(this.showParentGroup, true);
+    this.playSound = toBoolean(this.playSound, this.mobile || this._isOnFieldMode);
 
     this.showForm = this.showForm && (this.form && !this.disabled);
 
@@ -434,12 +434,12 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
     return updatedRow;
   }
 
-  protected onInvalidForm() {
+  protected async onInvalidForm(): Promise<void> {
 
     // Play an error beep, if on field
-    if (this.isOnFieldMode) this.audio.playBeepError();
+    if (this.playSound) await this.audio.playBeepError();
 
-    super.onInvalidForm();
+    return super.onInvalidForm();
   }
 
   /**
@@ -447,10 +447,10 @@ export class SubBatchesModal extends SubBatchesTable implements OnInit, ISubBatc
    * @param row
    * @pram times duration of highlight
    */
-  protected onRowChanged(row: TableElement<SubBatch>) {
+  protected async onRowChanged(row: TableElement<SubBatch>) {
 
-    // Play a beep, if on field
-    if (this.isOnFieldMode) this.audio.playBeepConfirm();
+    // Play a beep
+    if (this.playSound) await this.audio.playBeepConfirm();
 
     // Unselect previous selected rows
     this.selection.clear();

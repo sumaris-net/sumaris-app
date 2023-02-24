@@ -117,7 +117,11 @@ export class BatchGroupValidatorService extends
             root: false,
             withWeight: true,
             withMeasurements: false,
-            withChildrenWeight : withChildrenWeight
+            pmfms: null,
+            withChildrenWeight,
+            // Need for v1 compatibility - sampling batch may not be created
+            labelRequired: false,
+            rankOrderRequired: false
           };
         }
       }
@@ -127,12 +131,16 @@ export class BatchGroupValidatorService extends
         opts.weightRequired = weightRequired;
         opts.individualCountRequired = individualCountRequired;
         if (opts.withChildren) {
+          opts.childrenCount = 1; // One sampling batch
           opts.childrenOptions = {
             root: false,
-            childrenCount: 1,
             withWeight: true,
+            withMeasurements: false,
             pmfms: null,
-            withMeasurements: false
+            withChildrenWeight,
+            // Need for v1 compatibility - sampling batch may not be created
+            labelRequired: false,
+            rankOrderRequired: false
           };
         }
       }

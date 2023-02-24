@@ -163,11 +163,14 @@ export abstract class AbstractBatchesTable<
 
     const {data, role} = await this.openDetailModal();
     if (data && role !== 'delete') {
-      // Can be an update, and not only a add,
-      // (e.g. the batch group modal can add row, before opening the sub batches modal)
+      // Can be an update (is user use the 'save and new' modal's button)
       await this.addOrUpdateEntityToTable(data);
+      return true;
     }
-    return true;
+    else {
+      this.editedRow = null;
+      return false;
+    }
   }
 
   protected async openRow(id: number, row: TableElement<T>): Promise<boolean> {
@@ -185,11 +188,13 @@ export abstract class AbstractBatchesTable<
 
     const { data, role } = await this.openDetailModal(dataToOpen, row);
     if (data && role !== 'delete') {
-      await this.updateEntityToTable(data, row, {confirmEdit: false});
+      // Can be an update (is user use the 'save and new' modal's button)
+      await this.addOrUpdateEntityToTable(data);
+      return true;
     } else {
       this.editedRow = null;
+      return false;
     }
-    return true;
   }
 
   /**

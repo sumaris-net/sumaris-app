@@ -336,7 +336,7 @@ export class SubBatchesTable
     await AppFormUtils.waitWhilePending(this.form);
 
     if (this.form.invalid) {
-      this.onInvalidForm();
+      await this.onInvalidForm();
       return;
     }
 
@@ -746,7 +746,7 @@ export class SubBatchesTable
     }
   }
 
-  protected onInvalidForm() {
+  protected async onInvalidForm(): Promise<void> {
     this.form.markAllAsTouched({emitEvent: true});
     if (this.debug) AppFormUtils.logFormErrors(this.form.form, "[sub-batch-table] ");
   }

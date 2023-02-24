@@ -74,6 +74,7 @@ import { JobProgressionService } from '@app/social/job/job-progression.service';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '@sumaris-net/ngx-components';
 import {ProgressInterceptor} from '@sumaris-net/ngx-components';
+import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
 
 @NgModule({
   declarations: [
@@ -207,6 +208,7 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
     // Form errors translations
     {provide: APP_FORM_ERROR_I18N_KEYS, useValue: {
       ...OPERATION_VALIDATOR_I18N_ERROR_KEYS,
+      ...BATCH_VALIDATOR_I18N_ERROR_KEYS,
       ...SAMPLE_VALIDATOR_I18N_ERROR_KEYS
     }},
 

@@ -13,12 +13,12 @@ import {
   getPropertyByPath,
   isEmptyArray,
   isNil,
-  isNotEmptyArray,
+  isNotEmptyArray, isNotNil,
   isNotNilOrBlank,
   LocalSettingsService,
   toBoolean,
   toNumber,
-  UsageMode,
+  UsageMode, waitFor,
   WaitForOptions,
   waitForTrue
 } from '@sumaris-net/ngx-components';
@@ -30,8 +30,8 @@ import { Program } from '@app/referential/services/model/program.model';
 import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, map, mergeMap, switchMap } from 'rxjs/operators';
+import { from, merge, Observable, of, Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, first, map, mergeMap, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { BatchFilter } from '@app/trip/batch/common/batch.filter';
@@ -50,11 +50,18 @@ import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { TreeItemEntityUtils } from '@app/shared/tree-item-entity.utils';
 import { RxState } from '@rx-angular/state';
 import { BatchModelTreeComponent } from '@app/trip/batch/tree/batch-model-tree.component';
-import { MatSidenav } from '@angular/material/sidenav';
+import { MatDrawerMode, MatSidenav } from '@angular/material/sidenav';
 import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
 import { ContextService } from '@app/shared/context.service';
 import { BatchFormState } from '@app/trip/batch/common/batch.form';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+
+
+interface BadgeState {
+  hidden: boolean;
+  text: string;
+  color: 'primary'|'accent';
+}
 
 interface ComponentState {
   programAllowMeasure: boolean;
@@ -72,6 +79,9 @@ interface ComponentState {
   form: UntypedFormGroup;
   data: Batch;
   editingBatch: BatchModel;
+  currentBadge: BadgeState;
+  treePanelMode: MatDrawerMode
+  treePanelFloating: boolean;
 }
 
 @Component({
@@ -99,6 +109,9 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   protected readonly program$ = this._state.select('program');
   protected readonly form$ = this._state.select('form');
   protected readonly editingBatch$ = this._state.select('editingBatch');
+  protected readonly currentBadge$ = this._state.select('currentBadge');
+  protected readonly treePanelFloating$ = this._state.select('treePanelFloating');
+  protected readonly treePanelMode$ = this._state.select('treePanelMode');
 
   protected get model(): BatchModel {
     return this._state.get('model');
@@ -129,10 +142,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
   errorTranslatorOptions: FormErrorTranslatorOptions;
 
-  filterPanelFloating = true;
   @ViewChild('batchTree') batchTree: BatchTreeComponent;
   @ViewChild('batchModelTree') batchModelTree!: BatchModelTreeComponent;
-  @ViewChild('filterExpansionPanel') filterExpansionPanel: MatExpansionPanel;
   @ViewChild('sidenav') sidenav: MatSidenav;
   @ViewChild('modal') modal!: IonModal;
 
@@ -253,7 +264,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
   get loading(): boolean {
     // Should NOT use batchTree loading state, because it is load later (when gearId is known)
-    return this.loadingSubject.value;
+    return this.model && this.loadingSubject.value;
   }
 
   get isNewData(): boolean {
@@ -289,6 +300,13 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     return this.usageMode === 'FIELD';
   }
 
+  set treePanelFloating(value: boolean) {
+    this._state.set('treePanelFloating', _ => value);
+  }
+
+  get treePanelFloating(): boolean {
+    return this._state.get('treePanelFloating');
+  }
 
   constructor(injector: Injector,
               route: ActivatedRoute,
@@ -311,6 +329,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       suffix: ''
     };
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
+    this._state.set({
+      treePanelFloating: true,
+      treePanelMode: 'push'
+    });
 
     // Watch program, to configure tables from program properties
     this._state.connect('program', this.programLabel$
@@ -384,6 +406,28 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     // If now allowed sampling batches: remove it from data
     this._state.hold(filterFalse(this.allowSamplingBatches$), () => this.resetSamplingBatches())
 
+    this._state.connect('currentBadge', this.watchBatchTreeState(), (state, batchTree) => {
+      const badge: BadgeState = {
+        text: '',
+        hidden: true,
+        color: 'primary'
+      };
+      if (!batchTree.valid) {
+        badge.text = '!';
+        badge.color = 'accent';
+        badge.hidden = false;
+      }
+      else if (batchTree.visibleRowCount) {
+        badge.text = batchTree.visibleRowCount.toString();
+        badge.hidden = false;
+      }
+      return badge;
+    });
+
+    // Comput tree panel mode, from 'treePanelFloating'
+    this._state.connect('treePanelMode', this.treePanelFloating$
+      .pipe(map(floating => floating ? 'push' : 'side')));
+
     // DEBUG
     this.debug = !environment.production;
   }
@@ -396,6 +440,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.allowSubBatches = toBoolean(this._state.get('allowSubBatches'), this.programAllowMeasure);
     this.allowSpeciesSampling = toBoolean(this._state.get('allowSpeciesSampling'), this.programAllowMeasure);
     this.allowDiscard = toBoolean(this.allowDiscard, true);
+    this.treePanelFloating = toBoolean(this.treePanelFloating, true);
   }
 
   // Change visibility to public
@@ -472,36 +517,45 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     console.warn(this._logPrefix + 'autoFill() not implemented yet!');
   }
 
-  toggleFilterPanelFloating() {
-    this.filterPanelFloating = !this.filterPanelFloating;
-    this.markForCheck();
+  toggleSideNavMode(event?: Event) {
+    this._state.set('treePanelMode', s => {
+      const newMode = s.treePanelMode === 'side' ? 'push' : 'side';
+      if (newMode === 'push') this.sidenav?.close();
+      return newMode;
+    });
   }
 
-  async openFilterPanel(event?: Event, opts?: {expandAll?: boolean}) {
-    if (event?.defaultPrevented) return; // Cancelled
+  toggleTreePanelFloating() {
+    const previousFloating = this.treePanelFloating;
+    this.treePanelFloating = !previousFloating;
+    if (!previousFloating) this.sidenav?.close();
+  }
+
+  async openTreePanel(event?: Event, opts?: {expandAll?: boolean}) {
+    if (event?.defaultPrevented || this.useModal) return; // Cancelled
 
     // First, expand model tree
     if (!opts || opts.expandAll !== false) {
       this.batchModelTree.expandAll();
     }
 
-    if (this.filterExpansionPanel) this.filterExpansionPanel.open();
-    if (this.sidenav) await this.sidenav.open();
+    if (!this.useModal) {
+      // Wait side nav to be carted
+      if (this.sidenav) await waitFor(() => !!this.sidenav, {stop: this.destroySubject});
+      // open it
+      await this.sidenav.open();
+    }
 
     this.markForCheck();
   }
 
-  closeFilterPanel() {
-    this.filterExpansionPanel?.close();
+  closeTreePanel() {
     this.sidenav?.close();
-    this.filterPanelFloating = true;
     this.markForCheck();
   }
 
-  toggleFilterPanel() {
-    this.filterExpansionPanel?.toggle();
+  toggleTreePanel() {
     this.sidenav?.toggle();
-    this.filterPanelFloating = true;
     this.markForCheck();
   }
 
@@ -529,7 +583,14 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     });
 
     const dataChanged = (this.data !== data);
-    if (dataChanged) this.data = data;
+    if (dataChanged) {
+      this.data = data;
+
+      // By default, select the root batch in tree
+      if (!this._lastEditingBatchPath && !this.useModal) {
+        this._lastEditingBatchPath = '';
+      }
+    }
 
     // Mark as loading
     if (!opts || opts.emitEvent !== false) this.markAsLoading();
@@ -545,6 +606,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
         if (!opts || opts.emitEvent !== false) {
           this.markAsLoaded();
         }
+
       }
     }
     catch (err) {
@@ -728,8 +790,8 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     }
 
     // Keep the editing batch
-    const editingBatch = this._lastEditingBatchPath && model.get(this._lastEditingBatchPath);
-    if (editingBatch) {
+    const editingBatch = isNotNil(this._lastEditingBatchPath) ? model.get(this._lastEditingBatchPath) : undefined;
+    if (!editingBatch?.hidden) {
 
       // Force a reload to update the batch id (e.g. after a save(), to force batch id to be applied)
       if (this.editingBatch === editingBatch) await this.stopEditBatch();
@@ -741,7 +803,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       await this.stopEditBatch();
 
       // Open filter panel
-      await this.openFilterPanel();
+      await this.openTreePanel();
     }
 
     if (!opts || opts.markAsPristine !== false) {
@@ -755,7 +817,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     event?.stopImmediatePropagation();
 
     if (this.editingBatch === model) {
-      if (this.filterPanelFloating) this.closeFilterPanel();
+      if (this.treePanelFloating) this.closeTreePanel();
       this.modal?.present();
       return; // Skip
     }
@@ -766,6 +828,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     await this.ready();
     const dirty = this.dirty;
     const touched = this.touched;
+    const enabled = this.enabled;
 
     try {
       // Save previous changes
@@ -774,7 +837,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
 
       console.info(this._logPrefix + `Start editing '${model?.name}'...`);
 
-      if (this.filterPanelFloating) this.closeFilterPanel();
+      if (this.treePanelFloating) this.closeTreePanel();
 
       this.editingBatch = model;
       model.editing = true;
@@ -878,6 +941,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       // Restore previous state
       if (dirty) this.markAsDirty();
       if (touched) this.markAllAsTouched({withChildren: false});
+      if (enabled && !this.batchTree.enabled) this.batchTree.enable();
     }
   }
 
@@ -1044,5 +1108,34 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     if (previousVisible) {
       this.startEditBatch(null, previousVisible);
     }
+  }
+
+  protected watchBatchTreeState(): Observable<{ valid: boolean; visibleRowCount: number|undefined}> {
+    const stop$ = new Subject();
+    return new Observable<{ valid: boolean; visibleRowCount: number|undefined}>((subscriber) => {
+      const subscription = new Subscription();
+      subscription.add(() => stop$.next());
+      waitFor(() => !!this.batchTree, {stop: stop$})
+        .then(() => {
+          subscription.add(
+            merge(
+              this.batchTree.statusChanges,
+              this.batchTree.batchGroupsTable.dataSource.rowsSubject
+            )
+              .pipe(
+                map(_ => {
+                  return {
+                    valid: !this.batchTree.invalid,
+                    visibleRowCount: this.batchTree.showBatchTables
+                      ? this.batchTree.batchGroupsTable.visibleRowCount
+                      : undefined
+                  };
+                })
+              )
+              .subscribe(state => subscriber.next(state))
+          );
+        })
+      return subscription;
+    });
   }
 }

@@ -3,8 +3,26 @@
 
   mat-sidenav {
     min-width: 300px;
+
+    --toolbar-height: 0;
+    &.has-footer {
+      --toolbar-height: var(--ion-toolbar-height);
+    }
+
+    app-batch-model-tree {
+      display: block;
+      height: calc(100% - var(--toolbar-height, 0px));
+      width: 100%;
+      overflow-y: auto;
+    }
+
+    ion-footer::before {
+      background-image: unset;
+      border: 0;
+    }
   }
-  .mat-drawer-container {
+
+  mat-sidenav-content {
     height: var(--mat-drawer-content-container-height);
 
     .mat-sidenav-content {
@@ -12,7 +30,6 @@
 
     }
   }
-
 }
 
 mat-toolbar {

@@ -402,13 +402,13 @@
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" class="second-header-row"></tr>
     <!-- data rows -->
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-        [class.mat-row-selected]="row.editing"
         [class.mat-row-error]="row.invalid"
         [class.mat-row-dirty]="row.validator.dirty"
         [class.mat-row-disabled]="!row.editing"
-        (click)="clickRow($event, row)"
+        [class.mat-row-selected]="row.editing"
         (keydown.escape)="escapeEditingRow($event)"
-        [cdkTrapFocus]="!row.validator.valid">
+        [cdkTrapFocus]="!row.validator.valid"
+        (click)="clickRow($event, row)">
     </tr>
     <!-- footer -->
     <ng-container *ngIf="showFooter">
@@ -576,7 +576,7 @@
       </ng-container>
 
       <!-- Actions buttons column -->
-      <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
+      <ng-container matColumnDef="actions" [stickyEnd]="useSticky || singleSelectedRow">
         <th mat-header-cell *matHeaderCellDef>
           <!-- Options menu -->
           <button mat-icon-button matHeader
@@ -587,23 +587,33 @@
         </th>
         <td mat-cell *matCellDef="let row">
 
-          <!-- open individual monitoring -->
-          <button mat-icon-button
-                  *ngIf="showIndividualMonitoringButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
-                  [color]="(row.currentData.children | arrayFilter: isIndividualMonitoring | isNotEmptyArray) ? 'primary': 'dark'"
-                  color="primary"
-                  (click)="onIndividualMonitoringClick($event, row)">
-            <mat-icon>center_focus_strong</mat-icon>
-          </button>
+          <ng-container *ngIf="!selection.hasValue(); else hasSelection">
+            <!-- open individual monitoring -->
+            <button mat-icon-button
+                    *ngIf="showIndividualMonitoringButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
+                    [color]="(row.currentData.children | arrayFilter: isIndividualMonitoring | isNotEmptyArray) ? 'primary': 'dark'"
+                    color="primary"
+                    (click)="onIndividualMonitoringClick($event, row)">
+              <mat-icon>center_focus_strong</mat-icon>
+            </button>
 
-          <!-- open individual release -->
-          <button mat-icon-button
-                  *ngIf="showIndividualReleaseButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
-                  [color]="(row.currentData.children | arrayFilter: isIndividualRelease | isNotEmptyArray) && 'primary'"
-                  (click)="onIndividualReleaseClick($event, row)">
-            <mat-icon>room</mat-icon>
-          </button>
+            <!-- open individual release -->
+            <button mat-icon-button
+                    *ngIf="showIndividualReleaseButton && (row.currentData.measurementValues | mapGet: tagIdPmfm?.id)"
+                    [color]="(row.currentData.children | arrayFilter: isIndividualRelease | isNotEmptyArray) && 'primary'"
+                    (click)="onIndividualReleaseClick($event, row)">
+              <mat-icon>room</mat-icon>
+            </button>
+          </ng-container>
 
+          <ng-template #hasSelection>
+            <!-- Delete row button -->
+            <button mat-icon-button *ngIf="enabled && singleSelectedRow === row"
+                    [title]="'COMMON.BTN_DELETE'|translate"
+                    (click)="cancelOrDelete($event, row)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </ng-template>
         </td>
       </ng-container>
 
@@ -613,9 +623,11 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true;"
           class="second-header-row"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-               class="mat-row-disabled"
-               [class.mat-row-dirty]="!row.currentData.id"
-               (click)="clickRow($event, row)"></tr>
+          class="mat-row-disabled"
+          [class.mat-row-dirty]="!row.currentData.id"
+          [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+          (click)="clickRow($event, row)"
+          (press)="pressRow($event, row)"></tr>
     </table>
   </ng-template>
 

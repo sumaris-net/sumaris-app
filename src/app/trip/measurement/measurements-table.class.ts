@@ -527,13 +527,8 @@ export abstract class BaseMeasurementsTable<
       // Adapt measurement values to row
       this.normalizeEntityToRow(data, row);
 
-      // Affect data to new row
-      if (row.validator) {
-        row.validator.patchValue(data);
-        row.validator.markAsDirty();
-      } else {
-        row.currentData = data;
-      }
+      // Set row's data
+      row.currentData = data;
 
       if (row.editing) {
         // Confirm the created row

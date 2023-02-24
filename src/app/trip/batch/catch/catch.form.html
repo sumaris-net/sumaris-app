@@ -50,7 +50,7 @@
       </ng-container>
 
       <!-- Sorting -->
-      <ng-container *rxIf="sortingPmfms$; let pmfms">
+      <ng-container *rxLet="sortingPmfms$; let pmfms">
         <ion-row *rxIf="pmfms|isNotEmptyArray">
           <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
             <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.SORTING</ion-label>
@@ -69,7 +69,7 @@
       </ng-container>
 
       <!-- Catch weight pmfms -->
-      <ng-container *rxIf="catchPmfms$; let pmfms">
+      <ng-container *rxLet="catchPmfms$ as pmfms; renderCallback: catchPmfmsRendered">
         <ion-row *rxIf="pmfms|isNotEmptyArray" class="ion-padding">
           <ion-col [size]="gridColCount" [sizeMd]="labelColSize">
             <ion-label class="ion-float-end" translate>TRIP.CATCH.FORM.TOTAL_CATCH</ion-label>
@@ -77,6 +77,7 @@
           <ng-container *rxFor="let pmfm of pmfms; trackBy: trackPmfmFn; index as i;">
             <ion-col *rxIf="!pmfm.hidden" [size]="gridColCount" size-md="1">
               <app-pmfm-field [pmfm]="pmfm"
+                              [control]="(catchPmfmsRendered|async) && (form|formGetControl:['measurementValues', pmfm.id])"
                               [i18nPrefix]="i18nPmfmPrefix"
                               [i18nSuffix]="i18nSuffix"
                               [tabindex]="tabindex+30+i">

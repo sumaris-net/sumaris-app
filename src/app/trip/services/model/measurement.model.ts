@@ -273,6 +273,10 @@ export class MeasurementValuesUtils {
     return PmfmValueUtils.valueToString(value, opts);
   }
 
+  static hasPmfmValue(source: MeasurementFormValues | MeasurementModelValues, pmfmId: number, value: any) {
+    return PmfmValueUtils.equals(source[pmfmId], value);
+  }
+
   static normalizeValueToModel(value: PmfmValue | PmfmValue[], pmfm: IPmfm): string {
     return PmfmValueUtils.toModelValue(value, pmfm);
   }

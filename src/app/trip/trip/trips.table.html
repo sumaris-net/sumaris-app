@@ -535,7 +535,7 @@
 
         </th>
         <td mat-cell *matCellDef="let row" >
-          <!-- delete (hover row) -->
+          <!-- Delete row button -->
           <!--<button mat-icon-button *ngIf="canDelete" class="visible-hover-row"
                   [title]="'COMMON.BTN_DELETE'|translate"
                   (click)="deleteRow($event, row)">
@@ -546,10 +546,11 @@
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-               class="mat-row-disabled"
-               [class.cdk-visually-hidden]="loadingSubject|async"
-               [class.mat-row-selected]="highlightedRowId === row.id"
-               (click)="clickRow($event, row)">
+          class="mat-row-disabled"
+          [class.cdk-visually-hidden]="loadingSubject|async"
+          [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+          (click)="clickRow($event, row)"
+          (press)="pressRow($event, row)">
       </tr>
     </table>
 

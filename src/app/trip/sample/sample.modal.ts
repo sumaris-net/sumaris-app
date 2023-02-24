@@ -282,13 +282,15 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
   }
 
   async delete(event?: Event) {
+    // Apply deletion, if callback exists
     if (this.onDelete) {
       const deleted = await this.onDelete(event, this.data);
       if (isNil(deleted) || (event && event.defaultPrevented)) return; // User cancelled
       if (deleted) await this.modalCtrl.dismiss();
     }
     else {
-      await this.modalCtrl.dismiss(this.data, 'DELETE');
+      // Ask caller the modal owner apply deletion
+      await this.modalCtrl.dismiss(this.data, 'delete');
     }
   }
 
@@ -361,11 +363,23 @@ export class SampleModal implements OnInit, OnDestroy, ISampleModalOptions {
 
       if (this.invalid) {
         if (this.debug) AppFormUtils.logFormErrors(this.form.form, '[sample-modal] ');
-        const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
-          controlPathTranslator: this.form,
-          separator: '<br/>'
-        })
-        this.setError(error || 'COMMON.FORM.HAS_ERROR');
+        let message = 'COMMON.FORM.HAS_ERROR';
+
+        // If not many fields/pmfms: display a simple message,
+        // Otherwise (many fields/pmfms) show a detailed message
+        if (!this.pmfms || this.pmfms.length < 5) {
+          this.setError('COMMON.FORM.HAS_ERROR');
+        }
+        else {
+          const error = this.formErrorTranslator.translateFormErrors(this.form.form, {
+            controlPathTranslator: this.form,
+            separator: '<br/>'
+          });
+          const errorMessage = isNotNilOrBlank(error)
+            ? `<small class="error-details">${error}</small>`
+            : 'COMMON.FORM.HAS_ERROR';
+          this.setError(errorMessage);
+        }
         this.form.markAllAsTouched();
         this.scrollToTop();
         return;

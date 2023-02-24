@@ -300,7 +300,7 @@ export class ObservedLocationOfflineModal extends AppForm<ObservedLocationOfflin
   }
 
   async cancel() {
-    await this.viewCtrl.dismiss(null, 'CANCEL');
+    await this.viewCtrl.dismiss(null, 'cancel');
   }
 
   async validate(event?: Event) {

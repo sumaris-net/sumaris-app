@@ -50,6 +50,8 @@ import { MeasurementsTableValidatorOptions } from '@app/trip/measurement/measure
 import {DataEntity, DataEntityUtils} from '@app/data/services/model/data-entity.model';
 import {Sample} from '@app/trip/services/model/sample.model';
 import { RxState } from '@rx-angular/state';
+import { environment } from '@environments/environment';
+import { countSubString } from '@app/shared/functions';
 
 const DEFAULT_USER_COLUMNS = ['weight', 'individualCount'];
 
@@ -401,7 +403,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   }
 
   translateControlPath(controlPath: string): string {
-    if (controlPath.startsWith('.measurementValues.')) {
+    if (controlPath.startsWith('measurementValues.')) {
       const parts = controlPath.split('.');
       const pmfmId = parseInt(parts[parts.length-1]);
       const pmfm = (this._speciesPmfms || []).find(p => p.id === pmfmId);
@@ -415,16 +417,19 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     }
     else if (controlPath.startsWith('children.')){
       const parts = controlPath.split('.');
+      let prefix = '';
       if (this.qvPmfm) {
         const qvIndex = parseInt(parts[1]);
-        const qv = this.qvPmfm.qualitativeValues[qvIndex];
-        const subPath = parts.slice(2).join('.');
-        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === subPath);
-        if (qv && col) return `${qv.name} > ${this.translate.instant(col.label)}`;
+        prefix = this.qvPmfm.qualitativeValues[qvIndex]?.name;
+        controlPath = parts.slice(2).join('.');
       }
-      else {
-        const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === controlPath);
-        if (col) return this.translate.instant(col.label);
+      const col = BatchGroupsTable.BASE_DYNAMIC_COLUMNS.find(col => col.path === controlPath);
+      prefix = prefix.length ? `${prefix} > ` : prefix;
+      if (col) return `${prefix} > ${this.translate.instant(col.label)}`;
+
+      // Example: error on the sampling form group
+      if (controlPath === 'children.0') {
+        return prefix + this.translate.instant( 'TRIP.BATCH.EDIT.SAMPLING_BATCH');
       }
     }
     return super.translateControlPath(controlPath);
@@ -434,7 +439,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.modalOptions = this.modalOptions || {};
     this.modalOptions[key as any] = value;
   }
-
 
   setSubBatchesModalOption(key: keyof ISubBatchesModalOptions, value: ISubBatchesModalOptions[typeof key]) {
     this.subBatchesModalOptions = this.subBatchesModalOptions || {};
@@ -845,7 +849,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
       const childrenColumns = this.computeDynamicColumnsByQv();
       this.dynamicColumns = speciesColumns.concat(childrenColumns);
-      this.showToolbar = !this.mobile;
+      this.showToolbar = !this.mobile || isNotEmptyArray(this.availableTaxonGroups) /* show auto fill button*/;
     }
     else {
       const groupColumns = [];
@@ -1051,24 +1055,57 @@ export class BatchGroupsTable extends AbstractBatchesTable<
       .filter(name => !this.excludesColumns.includes(name));
   }
 
-  protected async openSubBatchesModalFromParentModal(parent: BatchGroup): Promise<BatchGroup> {
+  /**
+   * Open the sub batches modal, from a parent batch group.
+   * Return the updated parent, or undefined if o changes (e.g. user cancelled)
+   * @param data
+   * @protected
+   */
+  protected async openSubBatchesModalFromParentModal(data: BatchGroup): Promise<BatchGroup|undefined> {
 
-    // Make sure the row exists
-    this.editedRow = (this.editedRow && BatchGroup.equals(this.editedRow.currentData, parent) && this.editedRow)
-      || (await this.findRowByEntity(parent))
-      // Or add it to table, if new
-      || (await this.addEntityToTable(parent, {confirmCreate: false}));
+    let changes = false;
 
-    const subBatches = await this.openSubBatchesModal(parent, {
+    // Search if row already exists
+    let row = await this.findRowByEntity(data);
+
+    // Row already exists: edit the row
+    if (row) {
+      if (row !== this.editedRow) {
+        const confirmed: boolean = this.confirmEditCreate();
+        if (!confirmed) throw new Error('Cannot confirmed the preview edited row !');
+      }
+
+      // Update row's data
+      row.currentData = data;
+
+      // Select the row (highlight)
+      this.editedRow = row;
+    }
+
+    // Add new row to table
+    else {
+      console.debug('[batch-group-table] Adding batch group, before opening sub batches modal...');
+      row = await this.addEntityToTable(data, {confirmCreate: false});
+      if (!row) throw new Error('Cannot add new row!');
+      changes = true;
+    }
+
+    const subBatches = await this.openSubBatchesModal(data, {
       showParent: false // action triggered from the parent batch modal, so the parent field can be hidden
     });
 
-    if (isNil(subBatches)) return; // User cancelled
+    // User cancelled from the subbatches modal
+    if (!subBatches) {
+      // If row was added, return changes made when adding the row
+      if (changes) return data;
+      // No changes
+      return;
+    }
 
-    const updatedParent = this.updateBatchGroupFromSubBatches(parent, subBatches);
+    // Update the parent
+    data = this.updateBatchGroupFromSubBatches(data, subBatches);
 
-    // Return the updated parent
-    return updatedParent;
+    return data;
   }
 
 
@@ -1079,7 +1116,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     // DEBUG
     if (this.debug) console.debug('[batches-table] Open individual measures modal...');
 
-    // FIXME: opts.showParent=true is not working well !!
+    // FIXME: opts.showParent=true not working
     const showParentGroup = !opts || opts.showParent !== false; // True by default
 
     const $dismiss = new Subject<any>();
@@ -1130,12 +1167,12 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     await modal.present();
 
     // Wait until closed
-    const {data} = await modal.onDidDismiss();
+    const {data, role} = await modal.onDidDismiss();
 
     $dismiss.next(); // disconnect datasource observables
 
     // User cancelled
-    if (isNil(data)) {
+    if (isNil(data) || role === 'cancel') {
       if (this.debug) console.debug('[batches-table] Sub-batches modal: user cancelled');
     } else {
       // DEBUG
@@ -1150,10 +1187,15 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   protected async openDetailModal(dataToOpen?: BatchGroup, row?: TableElement<BatchGroup>): Promise<OverlayEventDetail<BatchGroup | undefined>> {
     console.debug('[batch-group-table] Opening detail modal...');
 
+    let originalData: BatchGroup;
     let isNew = !dataToOpen && true;
     if (isNew) {
       dataToOpen = new BatchGroup();
       await this.onNewEntity(dataToOpen);
+    }
+    else {
+      // Clone data, to keep the original data (allow to cancel - see below)
+      originalData = this.asEntity(dataToOpen).clone();
     }
 
     this.markAsLoading();
@@ -1173,12 +1215,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         allowSubBatches: this.allowSubBatches,
         defaultHasSubBatches: this.defaultHasSubBatches,
         samplingRatioFormat: this.samplingRatioFormat,
-        openSubBatchesModal: async (batchGroup) => {
-          const updatedParent = await this.openSubBatchesModalFromParentModal(batchGroup);
-          row = await this.findRowByEntity(updatedParent || batchGroup);
-          isNew = !row;
-          return updatedParent;
-        },
+        openSubBatchesModal: (data) => this.openSubBatchesModalFromParentModal(data),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         onSaveAndNew: async (dataToSave) => {
           if (isNew) {
@@ -1186,12 +1223,16 @@ export class BatchGroupsTable extends AbstractBatchesTable<
           } else {
             await this.updateEntityToTable(dataToSave, row, {confirmEdit: true});
             row = null; // Forget the row to update, for the next iteration (should never occur, because onSubmitAndNext always create a new entity)
-            isNew = true; // Next row should be new
           }
+
           // Prepare new entity
-          const newData = new BatchGroup();
-          await this.onNewEntity(newData);
-          return newData;
+          dataToOpen = new BatchGroup();
+          await this.onNewEntity(dataToOpen);
+          isNew = true; // Next row should be new
+
+          originalData = null; // forget the orignal data
+
+          return dataToOpen;
         },
         i18nSuffix: this.i18nColumnSuffix,
         mobile: this.mobile,
@@ -1212,11 +1253,27 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     await modal.present();
 
     // Wait until closed
-    const {data, role} = await modal.onDidDismiss();
+    // /!\ we use 'onWillDismiss' (and NOT 'onDidDismiss') to make sure row is deleted if cancelled, BEFORE modal is really closed
+    const {data, role} = await modal.onWillDismiss();
 
     if (data && this.debug) console.debug('[batch-group-table] Batch group modal result: ', data, role);
 
     this.markAsLoaded();
+
+    // User cancelled: try to rollback changes
+    if (!data || role === 'cancel') {
+
+      // new data: delete if exists
+      // /!\ it can be added when open the subbatches moda : that why we need to delete a new row !
+      if (isNew) {
+        await this.deleteEntity(null, dataToOpen);
+      }
+      // Revert changes
+      else if (originalData) {
+        row = await this.findRowByEntity(dataToOpen);
+        row.currentData = originalData;
+      }
+    }
 
     return {data: data instanceof BatchGroup ? data : undefined, role};
   }
@@ -1262,8 +1319,18 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     this.updateColumns();
   }
 
-  protected async findRowByEntity(batchGroup: BatchGroup): Promise<TableElement<BatchGroup>> {
-    return batchGroup && this.dataSource.getRows().find(r => BatchGroup.equals(r.currentData, batchGroup));
+  protected async findRowByEntity(data: BatchGroup): Promise<TableElement<BatchGroup>> {
+    const result = await super.findRowByEntity(data);
+
+    // TODO: remove this code, after testing well the App
+    if (!environment.production) {
+      const result2 = data && this.dataSource.getRows().find(r => BatchGroup.equals(r.currentData, data));
+      if (result !== result2) {
+        console.warn('TODO: findRowByEntity(). Nos same result, using static BatchGroup.equals() !', result, result2);
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -1295,7 +1362,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
   protected updateBatchGroupFromSubBatches(parent: BatchGroup, subBatches: SubBatch[]): BatchGroup {
     if (!parent) return parent; // skip
 
-    const children = (subBatches || []).filter(b => Batch.equals(parent, b.parentGroup));
+    const children = (subBatches || []).filter(b => this.equals(parent, b.parentGroup));
 
     if (this.debug) console.debug('[batch-group-table] Updating batch group, from batches...', parent, children);
 
@@ -1541,6 +1608,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     }
     return confirmed;
   }
+
 
 
   getDebugData(type:'rowValidator'): any {

@@ -205,7 +205,7 @@ export class TripTrashModal extends AppTable<Trip, TripFilter> implements OnInit
   }
 
   async cancel(event?: any) {
-    await this.modalCtrl.dismiss(null, 'CANCEL');
+    await this.modalCtrl.dismiss(null, 'cancel');
   }
 
   async cleanLocalTrash(event?: Event, confirm?: boolean) {

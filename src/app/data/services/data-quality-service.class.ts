@@ -1,13 +1,13 @@
 import { DataEntity } from './model/data-entity.model';
 import { AppErrorWithDetails, FormErrors } from '@sumaris-net/ngx-components';
 import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
-import { BehaviorSubject } from 'rxjs';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
+
 
 export interface IProgressionOptions {
   // Progression
-  progression?: BehaviorSubject<number>;
+  progression?: ProgressionModel;
   maxProgression?: number;
-  cancelled?: BehaviorSubject<boolean>;
 }
 
 export interface IDataEntityQualityService<

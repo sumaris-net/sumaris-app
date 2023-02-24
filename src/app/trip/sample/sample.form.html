@@ -1,15 +1,17 @@
+
+
 <form class="form-container ion-no-padding" [formGroup]="form" (ngSubmit)="doSubmit($event)">
 
   <!--<ion-text *ngIf="debug">
-    I18n Pmfm  prefix: {{i18nPmfmPrefix}}<br/>
-    I18n Field prefix: {{i18nFieldPrefix}}<br/>
-    I18n Suffix: {{i18nSuffix}}<br/>
-  </ion-text>-->
+     I18n Pmfm  prefix: {{i18nPmfmPrefix}}<br/>
+     I18n Field prefix: {{i18nFieldPrefix}}<br/>
+     I18n Suffix: {{i18nSuffix}}<br/>
+   </ion-text>-->
 
   <!-- error -->
-  <ion-item *ngIf="error && showError" visible-xs visible-sm visible-mobile lines="none">
+  <ion-item *ngIf="showError && error; let error" lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-    <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
+    <ion-label color="danger" class="error ion-text-wrap" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
   <ion-grid class="ion-no-padding ion-padding-start">

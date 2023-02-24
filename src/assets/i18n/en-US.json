@@ -892,15 +892,20 @@
         "ESTIMATED_WEIGHT": "Estimated weight",
         "TOTAL_INDIVIDUAL_COUNT": "Total nb indiv.",
         "TOTAL_WEIGHT": "Total weight (kg)",
+        "TOTAL_RANK_ORDER": "Batch number",
+        "TOTAL_LABEL": "Batch label",
         "INDIVIDUAL_MEASURE": "Individual measures",
         "WITH_MEASURE": "With measurement",
         "WITHOUT_MEASURE": "No measurement",
         "IS_SAMPLING": "If measurement, enter the sampling weight:",
+        "SAMPLING_BATCH": "Sample",
         "SAMPLING_WEIGHT": "Sampling weight (kg)",
         "SAMPLING_CHILDREN_WEIGHT": "Calculated weight by LWR",
         "SAMPLING_RATIO_PCT": "Sampling fraction (%)",
         "SAMPLING_COEFFICIENT": "Sampling coeff.",
         "SAMPLING_INDIVIDUAL_COUNT": "Sampling nb indiv.",
+        "SAMPLING_RANK_ORDER": "Sampling batch number",
+        "SAMPLING_LABEL": "Sampling batch label",
         "IS_EXHAUSTIVE_INVENTORY": "Exhaustive inventory of species?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Batch {{label}}<br/></small>",
@@ -955,6 +960,9 @@
           "BATCH_ESTIMATED_WEIGHT": "Total batch weight (kg)",
           "BATCH_CALCULATED_WEIGHT": "Total batch weight (kg)"
         }
+      },
+      "ERROR": {
+        "INVALID_WEIGHT_FOR_INDIVIDUAL_COUNT": "Invalid weight for {{individualCount}} indiv."
       }
     },
     "SUB_BATCH": {
@@ -2235,7 +2243,7 @@
       "DATE": "Date",
       "TIME": "Time",
       "FISHING_DATE": "Date",
-      "FISHING_DURATION": "Fishing duration (dec. h)",
+      "FISHING_TIME": "Fishing duration (min)",
       "OFFICIAL_LANDINGS_VALUE": "Officiel landings value (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Officiel landings weight (kg)"
     },
@@ -2267,7 +2275,7 @@
         "TITLE": "ICES Data call (RDB v1.3)"
       }
     },
-    "LIVE": {
+    "FORMAT": {
       "RDB": {
         "TITLE": "Raw trips (RDB v1.3)"
       },
@@ -2275,7 +2283,9 @@
         "TITLE": "Raw trips (COST v1.4)"
       },
       "FREE": {
-        "TITLE": "Raw trips (FREE v{{version}})"
+        "TITLE": "Raw trips (FREE v{{version}})",
+        "FISHING_TIME": "Time",
+        "FISHING_DURATION": "Fishing duration (min)"
       },
       "FREE2": {
         "TITLE": "Raw data (FREE2 v{{version}})",
@@ -2305,6 +2315,10 @@
           "ST": "Strategies",
           "SM": "Strategy monitoring"
         }
+      },
+      "AGG_FREE": {
+        "FISHING_TIME": "Time",
+        "FISHING_DURATION": "Fishing duration (min)"
       }
     },
     "INFO": {

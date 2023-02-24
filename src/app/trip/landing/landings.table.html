@@ -228,7 +228,7 @@
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions" [stickyEnd]="useSticky">
+    <ng-container matColumnDef="actions" [stickyEnd]="useSticky || singleSelectedRow">
       <th mat-header-cell *matHeaderCellDef>
 
         <button mat-icon-button
@@ -241,28 +241,44 @@
         <ion-spinner *ngIf="row.validator?.pending" name="dots"
                      [ngClass]="{'center':true}"></ion-spinner>
 
-        <!-- undo or delete -->
-        <button mat-icon-button color="light" *ngIf="row.validator?.invalid && canUserCancelOrDelete"
-                [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
-                (click)="cancelOrDelete($event, row)">
-          <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
-          <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
-        </button>
-        <!-- validate -->
-        <button mat-icon-button color="light" *ngIf="row.validator?.valid && row.id !== -1"
-                [title]="'COMMON.BTN_VALIDATE'|translate"
-                (click)="confirmEditCreate($event, row)">
-          <mat-icon>check</mat-icon>
-        </button>
+        <ng-container *ngIf="row.editing; else notEditing">
+          <!-- undo or delete -->
+          <button mat-icon-button color="light"
+                  *ngIf="row.validator?.invalid && canUserCancelOrDelete"
+                  [title]="(row.id !== -1 ? 'COMMON.BTN_UNDO': 'COMMON.BTN_DELETE')|translate"
+                  (click)="cancelOrDelete($event, row)">
+            <mat-icon *ngIf="row.id !== -1">undo</mat-icon>
+            <mat-icon *ngIf="row.id === -1">delete_outline</mat-icon>
+          </button>
+          <!-- validate -->
+          <button mat-icon-button color="light"
+                  *ngIf="row.validator?.valid && row.id !== -1"
+                  [title]="'COMMON.BTN_VALIDATE'|translate"
+                  (click)="confirmEditCreate($event, row)">
+            <mat-icon>check</mat-icon>
+          </button>
+        </ng-container>
 
-        <!-- Edit trip button -->
-        <button mat-icon-button
-                *ngIf="!row.editing && row.id !== -1 && isTripDetailEditor"
-                [color]="row.currentData.tripId && 'primary'"
-                [title]="'COMMON.BTN_EDIT'|translate"
-                (click)="confirmAndEditTrip($event, row)">
-          <ion-icon name="boat" slot="icon-only" ></ion-icon>
-        </button>
+        <ng-template #notEditing>
+          <!-- Delete row button -->
+          <button mat-icon-button
+                  *ngIf="canUserCancelOrDelete && singleSelectedRow === row; else otherButtons"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="cancelOrDelete($event, row)">
+            <mat-icon>delete</mat-icon>
+          </button>
+
+          <!-- Edit trip button -->
+          <ng-template #otherButtons>
+            <button mat-icon-button
+                    *ngIf="row.id !== -1 && isTripDetailEditor"
+                    [color]="row.currentData.tripId && 'primary'"
+                    [title]="'COMMON.BTN_EDIT'|translate"
+                    (click)="confirmAndEditTrip($event, row)">
+              <ion-icon name="boat" slot="icon-only" ></ion-icon>
+            </button>
+          </ng-template>
+        </ng-template>
       </td>
     </ng-container>
 
@@ -271,8 +287,9 @@
              [class.mat-row-error]="row.validator?.invalid"
              [class.mat-row-dirty]="row.validator?.dirty"
              [class.mat-row-disabled]="!row.editing"
-             [class.mat-row-selected]="highlightedRowId === row.id"
-             (click)="clickRow($event, row)"></tr>
+             [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+             (click)="clickRow($event, row)"
+             (press)="pressRow($event, row)"></tr>
 
   </table>
 

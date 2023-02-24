@@ -83,7 +83,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       // Excluded protected attributes
       .filter(controlName => (!opts.protectedAttributes || !opts.protectedAttributes.includes(controlName)) && controlName !== '__typename');
 
-    opts.pmfms.forEach(pmfm => {
+    opts.pmfms?.forEach(pmfm => {
       const controlName = pmfm.id.toString();
 
       // Only one acquisition

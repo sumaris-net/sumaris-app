@@ -257,11 +257,12 @@ export class ObservedLocationsPage extends
       modal.present();
 
       // Wait until closed
-      const res = await modal.onDidDismiss();
-      if (!res || !res.data) return; // User cancelled
+      const { data, role } = await modal.onDidDismiss();
+
+      if (!data || role === 'cancel') return; // User cancelled
 
       // Update feature filter, and save it into settings
-      feature.filter = res && res.data;
+      feature.filter = data;
       this.settings.saveOfflineFeature(feature);
 
       // DEBUG

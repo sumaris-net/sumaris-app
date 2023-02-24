@@ -256,6 +256,7 @@ export declare type LengthUnitSymbol = 'km' | 'm' | 'dm' | 'cm' | 'mm';
 export const UnitLabel = {
   DECIMAL_HOURS: 'h dec.',
   DATE_TIME: 'Date & Time',
+  MINUTES: 'min',
   // Weight units
   TON: <WeightUnitSymbol>'t',
   KG: <WeightUnitSymbol>'kg',

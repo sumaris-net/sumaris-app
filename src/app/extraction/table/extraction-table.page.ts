@@ -18,7 +18,7 @@ import {
   SETTINGS_DISPLAY_COLUMNS,
   sleep,
   StatusIds,
-  TableSelectColumnsComponent
+  TableSelectColumnsComponent, TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { TableDataSource } from '@e-is/ngx-material-table';
 import {
@@ -134,6 +134,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     alertCtrl: AlertController,
     toastController: ToastController,
     translate: TranslateService,
+    translateContext: TranslateContextService,
     accountService: AccountService,
     service: ExtractionService,
     settings: LocalSettingsService,
@@ -146,7 +147,8 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     protected extractionTypeService: ExtractionTypeService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, location, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl, state);
+    super(route, router, location, alertCtrl, toastController, translate, translateContext,
+      accountService, service, settings, formBuilder, platform, modalCtrl, state);
 
     this.displayedColumns = [];
     this.dataSource = new TableDataSource<ExtractionRow>([], ExtractionRow);
@@ -524,7 +526,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       // Wait for types cache updates
       await sleep(1000);
 
-      // Open the new aggregation (no wait)
+      // Open the new aggregation
       await this.openProduct(savedEntity);
 
       // Change current type
@@ -682,10 +684,6 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
     };
 
-    // Exclude spatial because we cannot load columns yet
-    if (!this.embedded) {
-      //filter.isSpatial = false;
-    }
     return this.extractionTypeService.watchAll(0, 1000, 'label', 'asc', filter);
   }
 
@@ -823,7 +821,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     // Try to get a title with the program
     const program = this.program;
     if (isNotNilOrBlank(program?.label)) {
-      const titleKey = `EXTRACTION.LIVE.${this.type.format.toUpperCase()}.TITLE_PROGRAM`;
+      const titleKey = `EXTRACTION.FORMAT.${this.type.format.toUpperCase()}.TITLE_PROGRAM`;
       const title = await this.translate.get(titleKey, program).toPromise();
       if (title !== titleKey) {
         this.$title.next(titlePrefix + title);

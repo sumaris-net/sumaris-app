@@ -1,10 +1,14 @@
 import { Directive, EventEmitter, Input, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import {
   AccountService,
   AppTabEditor,
-  capitalizeFirstLetter, DateUtils, EntityServiceLoadOptions,
-  firstNotNilPromise, fromDateISOString,
+  capitalizeFirstLetter,
+  changeCaseToUnderscore,
+  DateUtils,
+  EntityServiceLoadOptions,
+  firstNotNilPromise,
+  fromDateISOString,
   isEmptyArray,
   isNil,
   isNotEmptyArray,
@@ -14,7 +18,9 @@ import {
   LocalSettingsService,
   PlatformService,
   propertyComparator,
-  toBoolean, toDateISOString
+  toBoolean,
+  toDateISOString,
+  TranslateContextService
 } from '@sumaris-net/ngx-components';
 import { ExtractionCategories, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType, ExtractionTypeUtils } from '../type/extraction-type.model';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -28,7 +34,6 @@ import { ExtractionUtils } from './extraction.utils';
 import { ExtractionHelpModal, ExtractionHelpModalOptions } from '../help/help.modal';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 import { RxState } from '@rx-angular/state';
-import { BASE_TABLE_SETTINGS_ENUM } from '@app/shared/table/base.table';
 import { Location } from '@angular/common';
 
 
@@ -108,6 +113,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     protected alertCtrl: AlertController,
     protected toastController: ToastController,
     protected translate: TranslateService,
+    protected translateContext: TranslateContextService,
     protected accountService: AccountService,
     protected service: ExtractionService,
     protected settings: LocalSettingsService,
@@ -560,16 +566,17 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     return sheetName.replace(/[_-]+/g, " ").toUpperCase();
   }
 
-  protected translateColumns(columns: ExtractionColumn[]) {
+  protected translateColumns(columns: ExtractionColumn[], context?: string) {
     if (isEmptyArray(columns)) return; // Skip, to avoid error when calling this.translate.instant([])
 
-    const i19nPrefix = `EXTRACTION.TABLE.${this.type.category.toUpperCase()}.`;
+    const i19nPrefix = `EXTRACTION.FORMAT.${changeCaseToUnderscore(this.type.format)}.`.toUpperCase();
     const names = columns.map(column => (column.name || column.columnName).toUpperCase());
 
     const i18nKeys = names.map(name => i19nPrefix + name)
       .concat(names.map(name => `EXTRACTION.COLUMNS.${name}`));
 
-    const i18nMap = this.translate.instant(i18nKeys);
+    const i18nMap = this.translateContext.instant(i18nKeys, context);
+
     columns.forEach((column, i) => {
 
       let key = i18nKeys[i];
@@ -578,7 +585,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       // No I18n translation
       if (column.name === key) {
 
-        // Try to get common translation
+        // Fallback to the common translation
         key = i18nKeys[names.length + i];
         column.name = i18nMap[key];
 

@@ -38,6 +38,7 @@ export class SelectivityOperationPage extends OperationPage {
               dataService: OperationService) {
     super(injector, dataService, {
       pathIdAttribute: 'selectivityOperationId',
+      tabCount: 2
     });
 
     // FOR DEV ONLY ----
@@ -105,5 +106,23 @@ export class SelectivityOperationPage extends OperationPage {
   protected computePageUrl(id: number | 'new', tripId?: number): string | any[] {
     const parentUrl = this.getParentPageUrl();
     return parentUrl && `${parentUrl}/operation/selectivity/${id}`;
+  }
+
+  protected getFirstInvalidTabIndex(): number {
+    // find invalids tabs (keep order)
+    const invalidTabs = [
+      this.opeForm.invalid || this.measurementsForm.invalid,
+      this.showCatchTab && this.batchTree?.invalid || false
+    ];
+
+    // Open the first invalid tab
+    const invalidTabIndex = invalidTabs.indexOf(true);
+
+    // If catch tab, open the invalid sub tab
+    if (invalidTabIndex === OperationPage.TABS.CATCH) {
+      this.selectedSubTabIndex = this.batchTree?.getFirstInvalidTabIndex();
+      this.updateTablesState();
+    }
+    return invalidTabIndex;
   }
 }

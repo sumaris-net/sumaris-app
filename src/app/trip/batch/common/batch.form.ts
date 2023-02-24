@@ -21,7 +21,7 @@ import {
   waitFor
 } from '@sumaris-net/ngx-components';
 
-import { debounceTime, delay, distinctUntilChanged, filter, map, tap } from 'rxjs/operators';
+import { debounceTime, delay, distinctUntilChanged, filter } from 'rxjs/operators';
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels } from '@app/referential/services/model/model.enum';
 import { Observable, Subscription } from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
@@ -95,7 +95,6 @@ export class BatchForm<
   protected _initialPmfms: IPmfm[];
   protected _formPmfms: IPmfm[];
   protected _disableByDefaultControls: AbstractControl[] = [];
-  protected _pmfmNamePipe: PmfmNamePipe;
 
   readonly hasContent$ = this._state.select('hasContent');
 
@@ -344,7 +343,6 @@ export class BatchForm<
         mapPmfms: (pmfms) => this.mapPmfms(pmfms),
         onUpdateFormGroup: (form) => this.onUpdateFormGroup(form)
       });
-    this._pmfmNamePipe = injector.get(PmfmNamePipe);
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
 
     // Set defaults
@@ -496,38 +494,36 @@ export class BatchForm<
   }
 
   translateControlPath(path: string): string {
-    if (path.includes('measurementValues.')) {
-      const parts = path.split('.');
-      const pmfmId = parseInt(parts[parts.length-1]);
-      const pmfm = (this._initialPmfms || []).find(p => p.id === pmfmId);
-      if (pmfm) {
-        return this._pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix});
-      }
-    }
-    let fieldName: string;
+    // Translate specific path
+    let i18nSuffix: string;
     switch (path) {
       case 'individualCount':
-        fieldName = 'TOTAL_INDIVIDUAL_COUNT';
+        i18nSuffix = 'TOTAL_INDIVIDUAL_COUNT';
         break;
       case 'weight':
       case 'weight.value':
-        fieldName = 'TOTAL_WEIGHT';
+        i18nSuffix = 'TOTAL_WEIGHT';
+        break;
+      case 'children.0':
+        i18nSuffix = 'SAMPLING_BATCH';
         break;
       case 'children.0.weight.value':
-        fieldName = 'SAMPLING_WEIGHT';
+        i18nSuffix = 'SAMPLING_WEIGHT';
         break;
       case 'children.0.individualCount':
-        fieldName = 'SAMPLING_INDIVIDUAL_COUNT';
+        i18nSuffix = 'SAMPLING_INDIVIDUAL_COUNT';
         break;
       case 'children.0.samplingRatio':
-        fieldName = this.samplingRatioFormat === '1/w' ? 'SAMPLING_COEFFICIENT' : 'SAMPLING_RATIO_PCT';
-        break;
-      default:
-        fieldName = path; // .indexOf('.') !== -1 ? path.substring(path.lastIndexOf('.')+1) : path;
+        i18nSuffix = this.samplingRatioFormat === '1/w' ? 'SAMPLING_COEFFICIENT' : 'SAMPLING_RATIO_PCT';
         break;
     }
-    const i18nKey = (this.i18nFieldPrefix || 'TRIP.BATCH.EDIT.') + changeCaseToUnderscore(fieldName).toUpperCase();
-    return this.translate.instant(i18nKey);
+    if (i18nSuffix) {
+      const i18nKey = (this.i18nFieldPrefix || 'TRIP.BATCH.EDIT.') + i18nSuffix;
+      return this.translate.instant(i18nKey);
+    }
+
+    // Default translation (pmfms)
+    return super.translateControlPath(path, this._initialPmfms /*give the full list*/);
   }
 
   /* -- protected method -- */
@@ -630,7 +626,7 @@ export class BatchForm<
     // No sampling batch
     else {
       childrenFormArray.resize((data?.children || []).length, opts);
-      childrenFormArray.disable(opts);
+      childrenFormArray.disable({...opts, onlySelf: true});
     }
 
     // Call inherited function
@@ -922,7 +918,8 @@ export class BatchForm<
           withWeight: this.showWeight,
           weightRequired: this.requiredWeight,
           individualCountRequired: this.requiredIndividualCount,
-          withChildrenWeight: this.showChildrenWeight
+          withChildrenWeight: this.showChildrenWeight,
+          isOnFieldMode: this.settings.isOnFieldMode(this.usageMode)
         });
         this.markForCheck();
 

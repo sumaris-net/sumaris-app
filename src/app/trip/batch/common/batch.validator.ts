@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { FormGroup, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, AbstractControlOptions, FormGroup, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import {
   AppFormArray,
-  EntityUtils, equals,
+  EntityUtils,
+  equals,
   isNil,
   isNotEmptyArray,
   isNotNil,
@@ -110,7 +111,7 @@ export class BatchValidatorService<
 
     // there is a second level of children only if there is qvPmfm and sampling batch columns
     if (opts?.withChildren) {
-      const childrenArray = this.getChildrenFormArray(data?.children, opts.childrenOptions);
+      const childrenArray = this.getChildrenFormArray(data?.children, {...opts.childrenOptions, isOnFieldMode: opts?.isOnFieldMode});
       if (opts?.childrenCount > 0) {
         childrenArray.resize(opts?.childrenCount);
       }
@@ -168,6 +169,17 @@ export class BatchValidatorService<
     return formArray;
   }
 
+  getFormGroupOptions(data?: T, opts?: O): AbstractControlOptions | null {
+    let validators: Validators|Validators[];
+
+    // Add a form group control, to make sure weight > 0 if individual
+    // (skip if no weight, or on field mode)
+    if (opts?.withWeight && opts?.isOnFieldMode === false) {
+      validators = BatchValidators.weightForIndividualCount;
+    }
+
+    return validators ? <AbstractControlOptions>{ validators } : null;
+  }
 
   updateFormGroup(form: UntypedFormGroup, opts?: O) {
 
@@ -193,7 +205,7 @@ export class BatchValidatorService<
       // Remove if exists, and not need anymore
       if (!opts.withWeight) {
         if (weightForm) {
-          weightForm.disable();
+          weightForm.disable({onlySelf: true});
           weightForm.setValidators(null);
           form.removeControl('weight');
         }
@@ -210,7 +222,7 @@ export class BatchValidatorService<
           this.updateWeightFormGroup(weightForm, {
             required: opts.weightRequired
           });
-          if (weightForm.disabled) weightForm.enable();
+          if (weightForm.disabled) weightForm.enable({onlySelf: true});
         }
       }
     }
@@ -231,6 +243,17 @@ export class BatchValidatorService<
       else if (childrenWeightForm) {
         form.removeControl('childrenWeight');
       }
+    }
+
+    // Update form validators (if need)
+    const validators = this.getFormGroupOptions(null, opts)?.validators;
+    if (validators) {
+      if (Array.isArray(validators) || !form.hasValidator(validators)) {
+        form.setValidators(validators);
+      }
+    }
+    else{
+      form.clearValidators();
     }
   }
 
@@ -341,6 +364,21 @@ export class BatchWeightValidator {
 }
 
 export class BatchValidators {
+
+  /**
+   * Check if weight > 0 when individualCount > 0
+   * @param control
+   */
+  static weightForIndividualCount(control: AbstractControl): ValidationErrors|null {
+    const individualCount = control.get('individualCount').value;
+    if (individualCount > 0) {
+      const weightForm = control.get('weight');
+      const weight = weightForm?.get('value')?.value;
+      if (isNotNil(weight) && weight <= 0) {
+        return {weightForIndividualCount: {individualCount} };
+      }
+    }
+  }
 
   /**
    * Computing weight, sampling weight and/or sampling ratio
@@ -461,11 +499,11 @@ export class BatchValidators {
       // If samplingWeight < totalWeight => Error
       if (toNumber(samplingWeight.value) > toNumber(totalWeight)) {
         if (samplingWeightValueControl.errors?.max?.max !== totalWeight) {
-          samplingWeightValueControl.markAsPending({ onlySelf: true, emitEvent: true }); //{onlySelf: true, emitEvent: false});
+          samplingWeightValueControl.markAsPending({ onlySelf: true, emitEvent: true });
           samplingWeightValueControl.markAsTouched({ onlySelf: true });
           samplingWeightValueControl.setErrors({ ...samplingWeightValueControl.errors, max: { max: totalWeight } }, opts);
         }
-        return { max: { max: totalWeight } } as ValidationErrors;
+        return {max: { max: totalWeight } }; // Stop with an error
       } else {
         SharedValidators.clearError(samplingWeightValueControl, 'max');
       }
@@ -619,3 +657,7 @@ export class BatchValidators {
     return null;
   }
 }
+
+export const BATCH_VALIDATOR_I18N_ERROR_KEYS = {
+  weightForIndividualCount: 'TRIP.BATCH.ERROR.INVALID_WEIGHT_FOR_INDIVIDUAL_COUNT'
+};

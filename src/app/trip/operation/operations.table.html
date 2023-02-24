@@ -349,7 +349,7 @@
     </ng-container>
 
     <!-- Actions buttons column -->
-    <ng-container matColumnDef="actions">
+    <ng-container matColumnDef="actions" [stickyEnd]="selection.hasValue()">
       <th mat-header-cell *matHeaderCellDef>
         <!-- options menu -->
         <button mat-icon-button matHeader
@@ -359,20 +359,32 @@
         </button>
       </th>
       <td mat-cell *matCellDef="let row">
-        <!-- Duplicate row -->
-        <button mat-icon-button *ngIf="canDuplicate" class="visible-hover-row"
-                [title]="'COMMON.BTN_DUPLICATE'|translate"
-                (click)="$event.preventDefault() || duplicateRow($event, row)">
-          <mat-icon>content_copy</mat-icon>
-        </button>
+        <ng-container *rxIf="enabled">
+          <!-- Duplicate row button -->
+          <button mat-icon-button *ngIf="canDuplicate && (!mobile || singleSelectedRow === row)"
+                  [class.visible-hover-row]="!mobile"
+                  [title]="'COMMON.BTN_DUPLICATE'|translate"
+                  (click)="$event.preventDefault() || duplicateRow($event, row)">
+            <mat-icon>content_copy</mat-icon>
+          </button>
+
+          <!-- Delete row button -->
+          <button mat-icon-button
+                  *ngIf="mobile && singleSelectedRow === row"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="cancelOrDelete($event, row)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </ng-container>
       </td>
     </ng-container>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns"
         class="mat-row-disabled"
-        [class.mat-row-selected]="highlightedRowId === row.id"
-        (click)="clickRow($event, row)">
+        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+        (click)="clickRow($event, row)"
+        (press)="pressRow($event, row)">
     </tr>
   </table>
 

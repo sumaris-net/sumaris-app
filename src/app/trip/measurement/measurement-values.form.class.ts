@@ -5,11 +5,12 @@ import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/
 import { MeasurementsValidatorService } from '../services/validator/measurement.validator';
 import { filter, map } from 'rxjs/operators';
 import { IEntityWithMeasurement, MeasurementValuesUtils } from '../services/model/measurement.model';
-import { AppForm, equals, firstNotNilPromise, firstTrue, isNil, toNumber } from '@sumaris-net/ngx-components';
+import { AppForm, changeCaseToUnderscore, equals, firstNotNilPromise, firstTrue, isNil, toNumber } from '@sumaris-net/ngx-components';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm } from '@app/referential/services/model/pmfm.model';
 import { RxState } from '@rx-angular/state';
 import { environment } from '@environments/environment';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 
 export interface IMeasurementValuesFormOptions {
   mapPmfms?: (pmfms: IPmfm[]) => IPmfm[] | Promise<IPmfm[]>;
@@ -48,6 +49,7 @@ export abstract class MeasurementValuesForm<
   implements OnInit, OnDestroy {
 
   protected readonly _state: RxState<S> = new RxState<S>();
+  protected readonly _pmfmNamePipe: PmfmNamePipe;
   protected _logPrefix: string;
   protected _onRefreshPmfms = new EventEmitter<any>();
   protected data: T;
@@ -170,6 +172,7 @@ export abstract class MeasurementValuesForm<
   ) {
     super(injector, form);
     this.cd = injector.get(ChangeDetectorRef);
+    this._pmfmNamePipe = injector.get(PmfmNamePipe);
     this.options = {
       skipComputedPmfmControl: true,
       skipDisabledPmfmControl: true,
@@ -551,6 +554,21 @@ export abstract class MeasurementValuesForm<
 
     // Update state
     this._state.set('pmfms', (_) => undefined);
+  }
+
+  translateControlPath(path: string, pmfms?: IPmfm[]): string {
+    if (path.includes('measurementValues.')) {
+      pmfms = pmfms || this.pmfms;
+      const parts = path.split('.');
+      const pmfmId = parseInt(parts[parts.length-1]);
+      const pmfm = pmfms?.find(p => p.id === pmfmId);
+      if (pmfm) {
+        return this._pmfmNamePipe.transform(pmfm, {i18nPrefix: this.i18nPmfmPrefix, i18nContext: this.i18nSuffix});
+      }
+    }
+    const fieldName = path.substring(path.lastIndexOf('.') + 1);
+    const i18nKey = (this.i18nFieldPrefix || '') + changeCaseToUnderscore(fieldName).toUpperCase();
+    return this.translate.instant(i18nKey);
   }
 
   private async updateFormGroup(pmfms?: IPmfm[], opts?: {emitEvent?: boolean}) {

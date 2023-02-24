@@ -10,8 +10,8 @@ import { AcquisitionLevelCodes, MatrixIds } from '@app/referential/services/mode
 import { BatchForm, BatchFormState } from '@app/trip/batch/common/batch.form';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
-import { combineLatest, Observable } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { combineLatest, Observable, Subject } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface CatchBatchFormState extends BatchFormState {
   gearPmfms: IPmfm[];
@@ -41,6 +41,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
   readonly catchPmfms$ = this._state.select('catchPmfms');
   readonly otherPmfms$ = this._state.select('otherPmfms');
   readonly gridColCount$ = this._state.select('gridColCount');
+  readonly catchPmfmsRendered = new Subject<IPmfm[]>();
 
   @Input() labelColSize = 1;
 

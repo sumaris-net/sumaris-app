@@ -1,20 +1,21 @@
 import { Inject, Injectable, Injector, Optional } from '@angular/core';
-import { FetchPolicy, gql } from '@apollo/client/core';
+import { gql } from '@apollo/client/core';
 import { filter, map } from 'rxjs/operators';
 
 import {
-  APP_USER_EVENT_SERVICE, AppErrorWithDetails,
+  APP_USER_EVENT_SERVICE,
+  AppErrorWithDetails,
   AppFormUtils,
   BaseEntityGraphqlQueries,
-  chainPromises, DateUtils,
+  chainPromises,
+  DateUtils,
   EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
   EntityServiceLoadOptions,
-  EntityUtils, equals,
-  FormErrors,
-  FormErrorTranslator, FormErrorTranslatorOptions,
+  EntityUtils,
+  FormErrorTranslator,
   GraphqlService,
   IEntitiesService,
   IEntityService,
@@ -29,8 +30,10 @@ import {
   LocalSettingsService,
   NetworkService,
   PersonService,
-  ShowToastOptions, splitById, splitByProperty,
-  Toasts, toBoolean,
+  ShowToastOptions,
+  splitById,
+  splitByProperty,
+  Toasts,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { DataCommonFragments, DataFragments, ExpectedSaleFragments, OperationGroupFragment, PhysicalGearFragments, SaleFragments } from './trip.queries';
@@ -41,7 +44,7 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE
 } from '@app/data/services/model/data-entity.model';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { IProgressionOptions, IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -63,7 +66,6 @@ import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { TripFilter } from './filter/trip.filter';
 import { TrashRemoteService } from '@app/core/services/trash-remote.service';
 import { PhysicalGearService } from '@app/trip/physicalgear/physicalgear.service';
-import { AcquisitionLevelType, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { Packet } from '@app/trip/services/model/packet.model';
 import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
 import { TripErrorCodes } from '@app/trip/services/trip.errors';
@@ -78,11 +80,8 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { UserEvent } from '@app/social/user-event/user-event.model';
 
 import moment from 'moment';
-import { RxState } from '@rx-angular/state';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
-import { OperationFilter } from '@app/trip/services/filter/operation.filter';
-import { OperationValidatorOptions } from '@app/trip/services/validator/operation.validator';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { ProgressionModel } from '@app/shared/progression/progression.model';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -321,9 +320,6 @@ export interface TripWatchOptions extends EntitiesServiceWatchOptions {
 }
 
 export interface TripControlOptions extends TripValidatorOptions, IProgressionOptions {
-  // Progression
-  progression?: BehaviorSubject<number>;
-  maxProgression?: number;
 }
 
 const TripQueries: BaseEntityGraphqlQueries & { loadLandedTrip: any } = {
@@ -1214,12 +1210,9 @@ export class TripService
     const now = this._debug && Date.now();
 
     const maxProgression = toNumber(opts?.maxProgression, 100);
-    opts = {
-      ...opts,
-      maxProgression,
-      progression: opts?.progression || new BehaviorSubject<number>(0),
-      cancelled: opts?.cancelled || new BehaviorSubject<boolean>(false)
-    };
+    opts = {...opts, maxProgression};
+    opts.progression = opts.progression || new ProgressionModel({total: maxProgression});
+
     const progressionStep = maxProgression / 20;
     if (this._debug) console.debug(`[trip-service] Control {${entity.id}}...`, entity);
 
@@ -1252,15 +1245,14 @@ export class TripService
       }
     }
 
-    if (opts?.progression) opts.progression.next(progressionStep);
+    if (opts?.progression) opts.progression.increment(progressionStep);
 
     // If trip is Valid, control operations
     if (!opts || !opts.withOperationGroup) {
       const errors = await this.operationService.controlAllByTrip(entity, {
         program,
         progression: opts?.progression,
-        maxProgression: maxProgression - progressionStep,
-        cancelled: opts?.cancelled
+        maxProgression: maxProgression - progressionStep
       });
       if (errors) {
         return {

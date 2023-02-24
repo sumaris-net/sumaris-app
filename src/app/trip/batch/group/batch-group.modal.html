@@ -1,7 +1,7 @@
 <app-modal-toolbar color="secondary"
                    [title]="$title|async"
                    (cancel)="close($event)"
-                   (validate)="onSubmit($event)"
+                   (validate)="onSubmitIfDirty($event)"
                    [canValidate]="!loading && !disabled"
                    [showSpinner]="loading">
 
@@ -41,6 +41,7 @@
                         [i18nSuffix]="i18nSuffix"
                         (onSubmit)="close($event)"
                         [childrenPmfms]="childrenPmfms"
+                        [usageMode]="usageMode"
                         [qvPmfm]="qvPmfm"
                         [pmfms]="pmfms"
                         [mobile]="mobile"

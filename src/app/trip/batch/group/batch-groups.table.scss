@@ -105,6 +105,12 @@
         padding-inline-end: 0;
         color: unset;
       }
+
+      /* reset computed*/
+      .not-computed {
+        color: var(--ion-color-dark);
+        font-style: normal;
+      }
     }
   }
 }

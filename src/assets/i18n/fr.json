@@ -898,15 +898,20 @@
         "ESTIMATED_WEIGHT": "Poids estimé ?",
         "TOTAL_INDIVIDUAL_COUNT": "Nombre d'individus total",
         "TOTAL_WEIGHT": "Poids total (kg)",
+        "TOTAL_RANK_ORDER": "Numéro Lot",
+        "TOTAL_LABEL": "Libellé Lot",
         "INDIVIDUAL_MEASURE": "Mesures individuelles ?",
         "WITH_MEASURE": "Avec mesure",
         "WITHOUT_MEASURE": "Sans mesure",
         "IS_SAMPLING": "Saisir le poids échantillonné (si mesure) :",
+        "SAMPLING_BATCH": "Échantillon",
         "SAMPLING_WEIGHT": "Poids échant. (kg)",
         "SAMPLING_CHILDREN_WEIGHT": "Poids calculé par RTP",
         "SAMPLING_RATIO_PCT": "Taux éch. (%)",
         "SAMPLING_COEFFICIENT": "Coef. éch.",
         "SAMPLING_INDIVIDUAL_COUNT": "Nb indiv. échant.",
+        "SAMPLING_RANK_ORDER": "Numéro Lot échant.",
+        "SAMPLING_LABEL": "Libellé Lot échant.",
         "IS_EXHAUSTIVE_INVENTORY": "Inventaire exhaustif des espèces ?",
         "INDIVIDUAL": {
           "TITLE_PREFIX": "<small>Lot {{label}}<br/></small>",
@@ -961,6 +966,9 @@
           "BATCH_ESTIMATED_WEIGHT": "Poids total du lot (kg)",
           "BATCH_CALCULATED_WEIGHT": "Poids total du lot (kg)"
         }
+      },
+      "ERROR": {
+        "INVALID_WEIGHT_FOR_INDIVIDUAL_COUNT": "Poids incohérent pour {{individualCount}} indiv."
       }
     },
     "SUB_BATCH": {
@@ -2269,7 +2277,7 @@
       "DATE": "Date",
       "TIME": "Heure",
       "FISHING_DATE": "Date",
-      "FISHING_DURATION": "Temps de pêche (h dec.)",
+      "FISHING_TIME": "Temps de pêche (min)",
       "OFFICIAL_LANDINGS_VALUE": "Valeur officielle débarquée (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Poids officiel débarqué (g)",
       "NB_FISHERMEN" : "Nombre d'homme à bord",
@@ -2329,7 +2337,7 @@
         "TITLE": "Appel à données CIEM (RDB v1.3)"
       }
     },
-    "LIVE": {
+    "FORMAT": {
       "RDB": {
         "TITLE": "Marées brutes (RDB v{{version}})"
       },
@@ -2337,7 +2345,9 @@
         "TITLE": "Marées brutes (COST v{{version}})"
       },
       "FREE": {
-        "TITLE": "Marées brutes (FREE v{{version}})"
+        "TITLE": "Marées brutes (FREE v{{version}})",
+        "FISHING_TIME": "Heure",
+        "FISHING_DURATION": "Temps de pêche (min)"
       },
       "FREE2": {
         "TITLE": "Marées brutes (FREE2 v{{version}})",
@@ -2358,7 +2368,7 @@
         "TITLE": "Marées Pocheteaux (RJB v{{version}})"
       },
       "PMFM_TRIP": {
-        "TITLE": "Marées brutes > Programme",
+        "TITLE": "Marées brutes > Générique",
         "TITLE_PROGRAM": "Marées brutes {{label}}"
       },
       "STRAT": {
@@ -2367,6 +2377,10 @@
           "ST": "Stratégies",
           "SM": "Suivi de stratégies"
         }
+      },
+      "AGG_FREE": {
+        "FISHING_TIME": "Heure",
+        "FISHING_DURATION": "Temps de pêche (min)"
       }
     },
     "INFO": {

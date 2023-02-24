@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Injector, OnInit, ViewChild } from '@angular/core';
-import { ExtractionCategories, ExtractionColumn } from '../type/extraction-type.model';
+import { ExtractionCategories, ExtractionColumn, ExtractionFilter } from '../type/extraction-type.model';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ValidatorService } from '@e-is/ngx-material-table';
@@ -73,13 +73,14 @@ export class ProductPage extends AppEntityEditor<ExtractionProduct> implements O
     this.registerSubscription(
       this.datasourceTable.filterChanges
         .pipe(
-          filter(_ => this.loaded),
+          filter(_ => !this.loading && !this.saving),
           debounceTime(450)
         )
         .subscribe((filter) => {
           const json = filter.asObject({minify: true});
           const filterControl = this.form.get('filter');
-          if (!equals(json, filterControl.value)) {
+          const previousJson = ExtractionFilter.fromObject(filterControl?.value)?.asObject({minify: true});
+          if (!equals(json, previousJson)) {
             this.form.patchValue({filter: json});
             this.markAsDirty();
           }
