@@ -90,7 +90,7 @@ export class ExtractionType<
   }
 
   get category(): ExtractionCategoryType {
-    return (isNil(this.id) || this.id < 0) ? 'LIVE' : 'PRODUCT';
+    return (isNil(this.id) || this.id < 0) && !this.isSpatial ? 'LIVE' : 'PRODUCT';
   }
 }
 
@@ -315,10 +315,12 @@ export class ExtractionTypeUtils {
     if (isNil(type)) return undefined;
     if (type.name) return type; // Skip if already has a name
 
-    // Get format, from label
-    const format = type.label && type.label.split('-')[0].toUpperCase();
+    // Get format
+    const format = type.format
+    // Parse label if not fetched
+      || type.label && type.label.split('-')[0].toUpperCase();
 
-    let key = `EXTRACTION.${type.category || 'LIVE'}.${format}.TITLE`.toUpperCase();
+    let key = `EXTRACTION.FORMAT.${format}.TITLE`.toUpperCase();
     let name = translate.instant(key, type);
 
     // No I18n translation
@@ -359,7 +361,7 @@ export class ExtractionTypeCategory {
 
     // Add a spatial product category
     if (typesByCategory['PRODUCT']) {
-      const spatialProduct = typesByCategory['PRODUCT'].filter(t => t.isSpatial);
+      const spatialProduct = typesByCategory['PRODUCT'].filter(t => t.isSpatial && t.id >= 0 /*exclude live agg*/);
       if (isNotEmptyArray(spatialProduct)) {
         typesByCategory['PRODUCT'] = typesByCategory['PRODUCT'].filter(t => !t.isSpatial);
         typesByCategory['SPATIAL_PRODUCT'] = spatialProduct;

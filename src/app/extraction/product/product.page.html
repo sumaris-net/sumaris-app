@@ -52,11 +52,17 @@
                 productForm.enabled: {{productForm.enabled}}<br/>
                 productForm.dirty: {{productForm.dirty}}<br/>
               </ion-col>
-              <ion-col>
+              <ion-col *ngIf="datasourceTable">
                 datasourceTable.ready: {{datasourceTable.readySubject|async}}<br/>
                 datasourceTable.loading: {{datasourceTable.loading}}<br/>
                 datasourceTable.enabled: {{datasourceTable.enabled}}<br/>
                 datasourceTable.dirty: {{datasourceTable.dirty}}<br/>
+              </ion-col>
+              <ion-col *ngIf="resultTable">
+                resultTable.ready: {{resultTable.readySubject|async}}<br/>
+                resultTable.loading: {{resultTable.loading}}<br/>
+                resultTable.enabled: {{resultTable.enabled}}<br/>
+                resultTable.dirty: {{resultTable.dirty}}<br/>
               </ion-col>
             </ion-row>
           </ion-grid>

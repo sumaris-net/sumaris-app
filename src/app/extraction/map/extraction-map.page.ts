@@ -9,7 +9,8 @@ import {
   ColorScale,
   ColorScaleLegendItem,
   ConfigService,
-  DurationPipe, EntityServiceLoadOptions,
+  DurationPipe,
+  EntityServiceLoadOptions,
   fadeInAnimation,
   fadeInOutAnimation,
   firstNotNilPromise,
@@ -24,7 +25,8 @@ import {
   LocalSettingsService,
   PlatformService,
   StatusIds,
-  waitFor, waitForTrue
+  TranslateContextService,
+  waitFor
 } from '@sumaris-net/ngx-components';
 import { ExtractionService } from '../common/extraction.service';
 import { BehaviorSubject, Observable, Subject, Subscription, timer } from 'rxjs';
@@ -33,7 +35,7 @@ import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, Extracti
 import { Location } from '@angular/common';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
-import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime , map } from 'rxjs/operators';
+import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
@@ -311,6 +313,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     alertCtrl: AlertController,
     toastController: ToastController,
     translate: TranslateService,
+    translateContext: TranslateContextService,
     accountService: AccountService,
     service: ExtractionService,
     settings: LocalSettingsService,
@@ -324,7 +327,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     protected configService: ConfigService,
     protected cd: ChangeDetectorRef
   ) {
-    super(route, router, location, alertCtrl, toastController, translate, accountService, service, settings, formBuilder, platform, modalCtrl, state);
+    super(route, router, location, alertCtrl, toastController, translate, translateContext,
+      accountService, service, settings, formBuilder, platform, modalCtrl, state);
 
     // Add controls to form
     this.form.addControl('strata', this.strataValidatorService.getFormGroup());
@@ -1216,13 +1220,17 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
         if (value) value += ` ${unit}`;
 
         // Try to compute other value, using unit
-
-        if (UnitLabelPatterns.DECIMAL_HOURS.test(unit)) {
-          otherValue = this.durationPipe.transform(parseFloat(aggValue), 'hours');
-        }
-        // Convert KG to ton
-        else if (unit === UnitLabel.KG) {
+        // - Convert KG to ton
+        if (unit === UnitLabel.KG) {
           otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' ' + UnitLabel.TON;
+        }
+        // - Convert minutes into human duration
+        else if (unit === UnitLabel.MINUTES) {
+          otherValue = this.durationPipe.transform(parseFloat(aggValue), 'minutes');
+        }
+        // - Convert hours into human duration
+        else if (UnitLabelPatterns.DECIMAL_HOURS.test(unit)) {
+          otherValue = this.durationPipe.transform(parseFloat(aggValue), 'hours');
         }
       }
     }

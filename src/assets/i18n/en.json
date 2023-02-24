@@ -2243,7 +2243,7 @@
       "DATE": "Date",
       "TIME": "Time",
       "FISHING_DATE": "Date",
-      "FISHING_DURATION": "Fishing duration (dec. h)",
+      "FISHING_TIME": "Fishing duration (min)",
       "OFFICIAL_LANDINGS_VALUE": "Officiel landings value (€)",
       "OFFICIAL_LANDINGS_WEIGHT": "Officiel landings weight (kg)"
     },
@@ -2275,7 +2275,7 @@
         "TITLE": "ICES Data call (RDB v1.3)"
       }
     },
-    "LIVE": {
+    "FORMAT": {
       "RDB": {
         "TITLE": "Raw trips (RDB v1.3)"
       },
@@ -2283,7 +2283,9 @@
         "TITLE": "Raw trips (COST v1.4)"
       },
       "FREE": {
-        "TITLE": "Raw trips (FREE v{{version}})"
+        "TITLE": "Raw trips (FREE v{{version}})",
+        "FISHING_TIME": "Time",
+        "FISHING_DURATION": "Fishing duration (min)"
       },
       "FREE2": {
         "TITLE": "Raw data (FREE2 v{{version}})",
@@ -2313,6 +2315,10 @@
           "ST": "Strategies",
           "SM": "Strategy monitoring"
         }
+      },
+      "AGG_FREE": {
+        "FISHING_TIME": "Time",
+        "FISHING_DURATION": "Fishing duration (min)"
       }
     },
     "INFO": {
