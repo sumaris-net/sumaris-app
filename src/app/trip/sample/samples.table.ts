@@ -262,6 +262,9 @@ export class SamplesTable
     this.usageMode = this.usageMode || this.settings.usageMode;
     this.showToolbar = toBoolean(this.showToolbar, !this.showGroupHeader);
 
+    // Always add a confirmation before deletion, if mobile
+    if (this.mobile) this.confirmBeforeDelete = true;
+
     super.ngOnInit();
 
     // Add footer listener

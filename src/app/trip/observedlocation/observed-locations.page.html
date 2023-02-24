@@ -445,9 +445,10 @@
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-               class="mat-row-disabled"
-               [class.mat-row-selected]="highlightedRowId === row.id"
-               (click)="clickRow($event, row)">
+          class="mat-row-disabled"
+          [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
+          (click)="clickRow($event, row)"
+          (press)="pressRow($event, row)">
       </tr>
     </table>
 

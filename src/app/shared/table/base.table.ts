@@ -25,6 +25,9 @@ import {filter, first, map, mergeMap, switchMap, takeUntil} from 'rxjs/operators
 import { PopoverController } from '@ionic/angular';
 import { SubBatch } from '@app/trip/batch/sub/sub-batch.model';
 import { Popovers } from '@app/shared/popover/popover.utils';
+import { BatchGroup } from '@app/trip/batch/group/batch-group.model';
+import { timer } from 'rxjs';
+import { subscribe } from 'graphql/execution';
 
 
 export const BASE_TABLE_SETTINGS_ENUM = {
@@ -72,6 +75,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   @Input() stickyEnd = false;
   @Input() compact = false;
   @Input() mobile = false;
+  @Input() pressHighlightDuration = 4000; // 4s
 
 
   @Input() set canEdit(value: boolean) {
@@ -257,6 +261,51 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
 
     //console.debug('[base-table] click row');
     return super.clickRow(event, row);
+  }
+
+  pressRow(event: Event|undefined, row: TableElement<T>): boolean {
+    if (!this.mobile) return; // Skip if inline edition, or not mobile
+
+    event?.preventDefault();
+
+    // Toggle row selection
+    this.selection.toggle(row);
+
+    // Unselect after 4s
+    if (this.pressHighlightDuration > 0) {
+      if (this.selection.isSelected(row)) {
+
+        // Hightlight the row (only for the first row selected)
+        if (this.singleSelectedRow === row) {
+          this.highlightedRowId = row.id;
+        }
+
+        timer(this.pressHighlightDuration)
+          .pipe(
+            //takeUntil(this.selection.changed),
+            takeUntil(this.destroySubject),
+            first()
+          )
+          .subscribe(() => {
+            // Row is still highlighted: remove highlight
+            if (this.highlightedRowId === row.id) {
+              this.highlightedRowId = null;
+            }
+            // Unselect, if only this row is selected
+            if (this.selection.isSelected(row) && this.selection.selected.length === 1) {
+              this.selection.deselect(row);
+            }
+            this.markForCheck();
+          });
+      } else {
+        // Remove highlight
+        if (this.highlightedRowId === row.id) {
+          this.highlightedRowId = null;
+        }
+      }
+    }
+
+    this.markForCheck();
   }
 
   async addOrUpdateEntityToTable(data: T, opts?: {confirmEditCreate?: boolean}){

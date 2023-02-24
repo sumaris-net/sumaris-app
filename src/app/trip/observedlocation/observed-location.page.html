@@ -168,7 +168,7 @@
                               [programLabel]="$programLabel|async"
                               [showObserversColumn]="false"
                               [showDateTimeColumn]="false"
-                              [showToolbar]="true"
+                              [showToolbar]="!mobile"
                               (onOpenRow)="onOpenLanding($event)"
                               (onNewRow)="onNewLanding($event)"
                               (onOpenTrip)="onOpenTrip($event)"

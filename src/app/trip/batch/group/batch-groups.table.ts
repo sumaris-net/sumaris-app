@@ -849,7 +849,7 @@ export class BatchGroupsTable extends AbstractBatchesTable<
 
       const childrenColumns = this.computeDynamicColumnsByQv();
       this.dynamicColumns = speciesColumns.concat(childrenColumns);
-      this.showToolbar = !this.mobile;
+      this.showToolbar = !this.mobile || isNotEmptyArray(this.availableTaxonGroups) /* show auto fill button*/;
     }
     else {
       const groupColumns = [];
@@ -1609,24 +1609,6 @@ export class BatchGroupsTable extends AbstractBatchesTable<
     return confirmed;
   }
 
-  pressRow(row: TableElement<BatchGroup>) {
-    if (!this.mobile) return; // Skip if not mobile
-
-    // Toggle row selection
-    this.selection.toggle(row);
-    this.markForCheck();
-
-    // Unselect after 4s
-    if (this.selection.isSelected(row)) {
-      setTimeout(() => {
-        if (this.selection.isSelected(row)) {
-          this.selection.deselect(row);
-          this.markForCheck();
-        }
-      }, 4000);
-    }
-
-  }
 
 
   getDebugData(type:'rowValidator'): any {

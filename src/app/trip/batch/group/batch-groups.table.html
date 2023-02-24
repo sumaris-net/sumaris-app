@@ -450,22 +450,20 @@
       </ng-container>
 
       <!-- Actions buttons column -->
-      <ng-container matColumnDef="actions">
+      <ng-container matColumnDef="actions" [stickyEnd]="selection.hasValue()">
         <th mat-header-cell *matHeaderCellDef>
         </th>
         <td mat-cell *matCellDef="let row">
 
           <ng-container *ngIf="mobile">
 
-            <!-- delete button -->
-            <ng-container *ngIf="enabled && selection.isSelected(row); else otherButtons">
-              <button mat-icon-button
-                      *ngIf="mobile && enabled"
-                      [title]="'COMMON.BTN_DELETE'|translate"
-                      (click)="cancelOrDelete($event, row)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </ng-container>
+            <!-- Delete row button -->
+            <button mat-icon-button
+                    *ngIf="enabled && singleSelectedRow === row; else otherButtons"
+                    [title]="'COMMON.BTN_DELETE'|translate"
+                    (click)="cancelOrDelete($event, row)">
+              <mat-icon>delete</mat-icon>
+            </button>
 
             <ng-template #otherButtons>
               <!-- open individual measures -->
@@ -497,9 +495,9 @@
           class="mat-row-disabled"
           [class.mat-row-dirty]="!row.currentData.id"
           [class.mat-row-error]="row.currentData.qualityFlagId===4"
-          [class.mat-row-selected]="selection.isSelected(row)"
+          [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
           (click)="clickRow($event, row)"
-          (press)="pressRow(row)">
+          (press)="pressRow($event, row)">
       </tr>
     </table>
 

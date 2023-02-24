@@ -229,6 +229,7 @@ export class LandingForm extends MeasurementValuesForm<Landing> implements OnIni
     this.strategyControl = formBuilder.control(null, Validators.required);
     //this.form.addControl('strategy', this.strategyControl);
 
+    this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
 
   }
 
