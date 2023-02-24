@@ -73,6 +73,7 @@ export const PmfmIds = {
   MEASURE_TIME: 103,
   RELEASE_LATITUDE: 110,
   RELEASE_LONGITUDE: 111,
+  SELECTIVITY_DEVICE: 4,
 
   /* ADAP pmfms */
   LENGTH_TOTAL_CM: 81, // Use for test only

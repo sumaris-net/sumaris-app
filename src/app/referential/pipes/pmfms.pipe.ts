@@ -85,7 +85,12 @@ export class PmfmValuePipe implements PipeTransform {
   ) {
   }
 
-  transform(value: any, opts: PmfmValueOptions): any {
+  transform(value: any, opts: PmfmValueOptions & {separator?: string}): any {
+    // Multiple values
+    if (Array.isArray(value)) {
+      return value.map(v => this.transform(v, opts)).join(opts?.separator || ', ');
+    }
+
     const type = PmfmUtils.getExtendedType(opts?.pmfm);
     switch (type) {
       case 'date':

@@ -18,7 +18,7 @@ import { merge, Observable, of } from 'rxjs';
 import { filter, map, takeUntil, tap } from 'rxjs/operators';
 
 import { ControlValueAccessor, UntypedFormControl, FormGroupDirective, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
-import { FloatLabelType } from '@angular/material/form-field';
+import { FloatLabelType, MatFormFieldAppearance } from '@angular/material/form-field';
 
 
 import {
@@ -67,10 +67,12 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   private _qualitativeValues: IReferentialRef[];
   private _sortedQualitativeValues: IReferentialRef[];
 
-  items: Observable<IReferentialRef[]>;
+  protected _displayValue = '';
+  protected _items$: Observable<IReferentialRef[]>;
+  protected _tabindex: number;
+
   onShowDropdown = new EventEmitter<Event>(true);
   selectedIndex = -1;
-  _tabindex: number;
   showAllButtons = false;
 
   get nativeElement(): any {
@@ -90,6 +92,7 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
   @Input() formControlName: string;
   @Input() placeholder: string;
   @Input() floatLabel: FloatLabelType = "auto";
+  @Input() appearance: MatFormFieldAppearance;
   @Input() required: boolean;
   @Input() readonly = false;
   @Input() compact = false;
@@ -173,9 +176,9 @@ export class PmfmQvFormField implements OnInit, OnDestroy, ControlValueAccessor,
     // On desktop, manage autocomplete
     if (!this.mobile) {
       if (!this._sortedQualitativeValues.length) {
-        this.items = of([]);
+        this._items$ = of([]);
       } else {
-        this.items = merge(
+        this._items$ = merge(
           this.onShowDropdown
             .pipe(
               filter(event => !event.defaultPrevented),

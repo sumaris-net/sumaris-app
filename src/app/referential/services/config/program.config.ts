@@ -1,5 +1,5 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, PmfmIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
@@ -92,6 +92,21 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS: <FormFieldDefinition>{
+    key: 'sumaris.trip.gears.columns.pmfmIds',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS',
+    defaultValue: null,
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'Pmfm',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['id', 'label', 'name'],
+      columnSizes: [2, 4, 6]
+    },
+  },
+
   TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.trip.gear.rankOrder.enable',
     label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE',
@@ -431,7 +446,14 @@ export const ProgramProperties = Object.freeze({
   TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.metier.taxonGroupType.ids',
     label: 'PROGRAM.OPTIONS.TRIP_OPERATION_METIER_TAXON_GROUP_TYPE_IDS',
-    type: 'string',
+    type: 'entities',
+    autocomplete: {
+      filter: {
+        entityName: 'TaxonGroupType',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
     defaultValue: TaxonGroupTypeIds.METIER_DCF_5.toString()
   },
   TRIP_OPERATION_FISHING_START_DATE_ENABLE: <FormFieldDefinition>{

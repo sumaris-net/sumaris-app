@@ -619,9 +619,11 @@ export class TripPage
       excludeChildGear: (acquisitionLevel === AcquisitionLevelCodes.PHYSICAL_GEAR),
       excludeParentGear: (acquisitionLevel === AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR)
     };
+    const showGearColumn = (acquisitionLevel === AcquisitionLevelCodes.PHYSICAL_GEAR);
+    const includedPmfmIds = this.tripContext.program?.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS)
     const distinctBy = ['gear.id', 'rankOrder',
       ...(this.physicalGearsTable.pmfms||[])
-        .filter(p => p.required && !p.hidden)
+        .filter(p => (p.required && !p.hidden) || includedPmfmIds?.includes(p.id))
         .map(p => `measurementValues.${p.id}`)
     ];
 
@@ -634,7 +636,8 @@ export class TripPage
         acquisitionLevel,
         filter,
         distinctBy,
-        withOffline
+        withOffline,
+        showGearColumn
       },
       backdropDismiss: false,
       keyboardClose: true,
