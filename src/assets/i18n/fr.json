@@ -1867,6 +1867,11 @@
         "DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER": "Date/Heure, Engin, Métier, Position/Zone de pêche",
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Engin, Métier, Position/Zone de pêche, Caractéristiques"
       },
+      "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Marée: Colonne 'SAMPLING_METHOD'",
+      "TRIP_EXTRACTION_SAMPLING_METHODS": {
+        "OBSERVER": "Observer",
+        "SELF_SAMPLING": "SelfSampling"
+      },
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Sortie > Date de début : Heure ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Sortie: Date de fin ?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Sortie: Saisir les observateurs ?",

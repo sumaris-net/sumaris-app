@@ -1860,6 +1860,11 @@
         "DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER": "Date/Heure, Gear, Metier, Position/Fishing area",
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Gear, Metier, Position/Fishing area, Features"
       },
+      "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Trips: Column 'SAMPLING_METHOD'",
+      "TRIP_EXTRACTION_SAMPLING_METHODS": {
+        "OBSERVER": "Observer",
+        "SELF_SAMPLING": "SelfSampling"
+      },
       "OBSERVED_LOCATION_START_TIME_ENABLE": "Observation > Start date: Time ?",
       "OBSERVED_LOCATION_END_DATE_TIME_ENABLE": "Observation > End date?",
       "OBSERVED_LOCATION_OBSERVERS_ENABLE": "Observation: Fill observers?",
