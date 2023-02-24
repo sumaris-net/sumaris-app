@@ -28,8 +28,9 @@ import { ObservedLocation } from '../../services/model/observed-location.model';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { TaxonGroupLabels, TaxonGroupRef } from '../../../referential/services/model/taxon-group.model';
 import { Program } from '../../../referential/services/model/program.model';
-import { IPmfm } from '../../../referential/services/model/pmfm.model';
+import { IPmfm, PMFM_ID_REGEXP } from '../../../referential/services/model/pmfm.model';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
+import { FormErrorTranslatorOptions } from '@sumaris-net/ngx-components/src/app/shared/validator/form-error-adapter.class';
 
 @Component({
   selector: 'app-auction-control',
@@ -45,6 +46,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
   taxonGroupControl: UntypedFormControl;
   showOtherTaxonGroup = false;
   controlledSpeciesPmfmId: number;
+  errorTranslatorOptions: FormErrorTranslatorOptions;
 
   pmfms$: Observable<IPmfm[]>;
   $taxonGroupPmfm = new BehaviorSubject<IPmfm>(null);
@@ -66,6 +68,7 @@ export class AuctionControlPage extends LandingPage implements OnInit {
     });
 
     this.taxonGroupControl = this.formBuilder.control(null, [SharedValidators.entity]);
+    this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
   }
 
   ngOnInit() {
@@ -328,6 +331,14 @@ export class AuctionControlPage extends LandingPage implements OnInit {
         break;
     }
     return color;
+  }
+
+  translateControlPath(controlPath: string): string {
+    // Redirect pmfm control path, to the landing form
+    if (PMFM_ID_REGEXP.test(controlPath)) {
+      controlPath = `measurementValues.${controlPath}`;
+    }
+    return this.landingForm.translateControlPath(controlPath);
   }
 
   /* -- protected method -- */

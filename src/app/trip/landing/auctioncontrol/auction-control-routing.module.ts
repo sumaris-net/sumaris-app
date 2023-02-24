@@ -17,7 +17,11 @@ const routes: Routes = [
         pathMatch: 'full',
         runGuardsAndResolvers: 'pathParamsChange',
         component: AuctionControlPage,
-        canDeactivate: [ComponentDirtyGuard]
+        canDeactivate: [ComponentDirtyGuard],
+        data: {
+          profile: 'USER',
+          pathIdParam: 'controlId'
+        }
       },
       {
         path: 'report',

@@ -122,7 +122,8 @@
       <div>
 
         <!-- error -->
-        <ion-item *ngIf="samplesTable.error || (landingForm.measurementValuesForm|translateFormError); let error" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="submitted && (samplesTable.error || (landingForm.measurementValuesForm|translateFormError: errorTranslatorOptions)); let error"
+                  visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
         </ion-item>
@@ -190,7 +191,8 @@
                            [pmfmValueColor]="getPmfmValueColor"
                            [compactFields]="true"
                            [i18nColumnSuffix]="i18nContext.suffix"
-                           [debug]="debug">
+                           [debug]="debug"
+                           [mobile]="mobile">
 
           <ion-buttons slot="end">
             <!-- Help button -->
