@@ -1,6 +1,6 @@
 import { EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, fromDateISOString, IEntityFilter, isNil, isNotNil } from '@sumaris-net/ngx-components';
 import { isMoment, Moment } from 'moment';
-import { RoundWeightConversionRef } from '@app/referential/round-weight-conversion/round-weight-conversion.model';
+import { RoundWeightConversionRef } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
 import { isNonEmptyArray } from '@apollo/client/utilities';
 import { StoreObject } from '@apollo/client/core';
 

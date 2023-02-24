@@ -1,7 +1,34 @@
-<app-toolbar [title]="$title | async" color="primary" [hasValidate]="!loading" (onValidate)="save($event)"
+<app-toolbar color="primary"
+             [hasValidate]="!loading" (onValidate)="save($event)"
              [defaultBackHref]="defaultBackHref" [canGoBack]="true">
-  <ion-spinner slot="end" *ngIf="loading"></ion-spinner>
+
+  <ion-title [innerHTML]="$title | async"></ion-title>
+
+  <button slot="end" mat-icon-button
+          *ngIf="enabled && !isNewData || debug"
+          [matMenuTriggerFor]="optionsMenu"
+          [title]="'COMMON.BTN_OPTIONS'|translate">
+    <mat-icon>more_vert</mat-icon>
+  </button>
+
 </app-toolbar>
+
+
+<!-- Options menu -->
+<mat-menu #optionsMenu="matMenu" xPosition="after">
+
+  <ng-template matMenuContent>
+
+    <!-- download as JSON -->
+    <button mat-menu-item
+            [title]="'COMMON.BTN_DOWNLOAD_JSON'|translate"
+            (click)="downloadAsJson()">
+      <mat-icon>download</mat-icon>
+      <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
+    </button>
+  </ng-template>
+
+</mat-menu>
 
 <ion-content>
 
@@ -69,9 +96,24 @@
       </ng-template>
 
       <div class="ion-padding">
-
-        <h2>Coming soon !</h2>
+        <ion-text color="danger" class="ion-text-center">
+          <p [innerHTML]="'ERROR.FEATURE_NOT_IMPLEMENTED'|translate"></p>
+        </ion-text>
       </div>
+    </mat-tab>
+
+
+    <!-- TAB: transcribing -->
+    <mat-tab label="{{'PROGRAM.STRATEGY.TAB_TRANSCRIBING'|translate}}" [disabled]="isNewData">
+      <ng-template mat-tab-label>
+        <mat-icon>
+          <ion-icon matPrefix slot="start" name="list"></ion-icon>
+        </mat-icon>
+        <ion-label translate>PROGRAM.STRATEGY.TAB_TRANSCRIBING</ion-label>
+        <!--        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>-->
+      </ng-template>
+
+      <app-transcribing-item-table></app-transcribing-item-table>
     </mat-tab>
 
   </mat-tab-group>
@@ -93,3 +135,41 @@
 
   </app-form-buttons-bar>
 </ion-footer>
+
+<ion-modal #importModal [isOpen]="showImportModal"
+           class="modal-large"
+           enter-animation="modal-slide-in"
+           leave-animation="modal-slide-out">
+  <ng-template>
+    <app-modal-toolbar color="secondary">
+      <ion-title>{{'PROGRAM.STRATEGY.TAB_TRANSCRIBING'|translate}}</ion-title>
+    </app-modal-toolbar>
+    <ion-content>
+      <app-transcribing-item-table #transcribingTable
+        (ngInit)="initTranscribingItemTable(transcribingTable)"
+        [debug]="debug">
+
+      </app-transcribing-item-table>
+    </ion-content>
+    <ion-footer>
+      <ion-toolbar>
+        <ion-row>
+          <ion-col>
+
+          </ion-col>
+          <ion-col class="ion-float-end" size="auto">
+            <ion-button (click)="importModal.dismiss()"
+                        fill="clear" color="dark">
+              <ion-label translate>COMMON.BTN_CANCEL</ion-label>
+            </ion-button>
+            <ion-button (click)="startImport($event)"
+                        [fill]="transcribingTable.valid ? 'solid' : 'clear'"
+                        [color]="transcribingTable.valid ? 'tertiary' : undefined">
+              <ion-label translate>COMMON.BTN_VALIDATE</ion-label>
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-toolbar>
+    </ion-footer>
+  </ng-template>
+</ion-modal>

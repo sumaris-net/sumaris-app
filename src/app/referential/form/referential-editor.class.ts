@@ -23,7 +23,6 @@ import { ReferentialRefService } from '../services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { ReferentialService } from '@app/referential/services/referential.service';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ValidatorService } from '@e-is/ngx-material-table';
 
 export interface AppReferentialEditorOptions extends AppEditorOptions {
   entityName: string;

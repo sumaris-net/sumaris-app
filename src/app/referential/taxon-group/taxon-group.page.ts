@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
 import { isNotNil, joinPropertiesPath, MatAutocompleteFieldConfig, Referential } from '@sumaris-net/ngx-components';
 import { ReferentialService } from '@app/referential/services/referential.service';
-import { RoundWeightConversionTable } from '@app/referential/round-weight-conversion/round-weight-conversion.table';
+import { RoundWeightConversionTable } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.table';
 import { TaxonGroupValidatorService } from '@app/referential/taxon-group/taxon-group.validator';
 import { AppReferentialEditor } from '@app/referential/form/referential-editor.class';
 import { ReferentialForm } from '@app/referential/form/referential.form';

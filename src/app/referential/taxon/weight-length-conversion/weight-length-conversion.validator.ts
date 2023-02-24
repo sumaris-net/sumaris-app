@@ -1,10 +1,10 @@
 import {Injectable} from "@angular/core";
 import {UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
-import {ReferentialValidatorService} from "../services/validator/referential.validator";
-import {TaxonName} from "../services/model/taxon-name.model";
+import {ReferentialValidatorService} from "../../services/validator/referential.validator";
+import {TaxonName} from "../../services/model/taxon-name.model";
 import { AppValidatorService, toBoolean } from '@sumaris-net/ngx-components';
 import {SharedValidators} from "@sumaris-net/ngx-components";
-import { WeightLengthConversion } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
+import { WeightLengthConversion } from '@app/referential/taxon/weight-length-conversion/weight-length-conversion.model';
 
 @Injectable({providedIn: 'root'})
 export class WeightLengthConversionValidatorService extends AppValidatorService<WeightLengthConversion> {

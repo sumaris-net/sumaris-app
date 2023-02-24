@@ -16,6 +16,8 @@
     "BTN_COMPACT_ROWS": "Compacter les lignes",
     "BTN_DONE": "Terminer",
     "BTN_DOWNLOAD": "Télécharger",
+    "BTN_DOWNLOAD_DOTS": "Télécharger...",
+    "BTN_DOWNLOAD_JSON": "Télécharger (JSON)",
     "BTN_IMPORT": "Importer",
     "BTN_IMPORT_FROM_FILE_DOTS": "Importer depuis un fichier...",
     "BTN_DUPLICATE": "Dupliquer",
@@ -552,8 +554,6 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
-      "BTN_DOWNLOAD_DOTS": "Télécharger...",
-      "BTN_DOWNLOAD_JSON": "Télécharger (JSON)",
       "DOWNLOAD_JSON_FILENAME": "Marées.json",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
@@ -1706,6 +1706,13 @@
       "NAME": "Méthode de collecte",
       "DESCRIPTION": "description"
     },
+    "TRANSCRIBING_ITEM": {
+      "OBJECT": "Référence",
+      "LABEL": "Code transcodé",
+      "NAME": "Libellé transcodé",
+      "STATUS_ID": "État",
+      "TYPE": "Type de transcodage"
+    },
     "LIST": {
       "TITLE": "Référentiels",
       "FILTER": {
@@ -1921,6 +1928,8 @@
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_FROM_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
+      "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-Stratégie-{{label}}.json",
+      "TAB_TRANSCRIBING": "Transcodages",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplication",
         "HELP": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :"

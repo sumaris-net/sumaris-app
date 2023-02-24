@@ -16,6 +16,8 @@
     "BTN_COMPACT_ROWS": "Compact rows",
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
+    "BTN_DOWNLOAD_DOTS": "Download...",
+    "BTN_DOWNLOAD_JSON": "Download (JSON)",
     "BTN_IMPORT": "Import",
     "BTN_IMPORT_FROM_FILE_DOTS": "Import from file...",
     "BTN_DUPLICATE": "Duplicate",
@@ -551,8 +553,6 @@
       "NO_LOCAL_RESULT": "No result (in trips NOT sent)",
       "BTN_NEW_OFFLINE": "Field input mode (offline)",
       "BTN_NEW_ONLINE": "Desktop input mode (online)",
-      "BTN_DOWNLOAD_DOTS": "Download...",
-      "BTN_DOWNLOAD_JSON": "Download (JSON)",
       "DOWNLOAD_JSON_FILENAME": "Trips.json",
       "FILTER": {
         "PROGRAM": "Data collection program",

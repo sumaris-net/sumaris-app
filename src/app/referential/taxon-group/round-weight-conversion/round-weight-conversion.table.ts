@@ -12,9 +12,9 @@ import { LocationLevelIds, ParameterLabelGroups } from '@app/referential/service
 
 @Component({
   selector: 'app-round-weight-conversion-table',
-  templateUrl: '../table/base-referential.table.html',
+  templateUrl: '../../table/base-referential.table.html',
   styleUrls: [
-    '../table/base-referential.table.scss'
+    '../../table/base-referential.table.scss'
   ]
 })
 // @ts-ignore
@@ -54,7 +54,7 @@ export class RoundWeightConversionTable extends BaseReferentialTable<RoundWeight
         i18nColumnPrefix: 'REFERENTIAL.TAXON_GROUP.ROUND_WEIGHT_CONVERSION.',
         canUpload: true
       }
-      );
+    );
     this.showTitle = false;
     this.showIdColumn = false;
     this.autoLoad = false; // Wait filter

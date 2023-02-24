@@ -155,7 +155,7 @@ export abstract class BaseReferentialTable<
     this.registerAutocompleteFields();
 
     this.columnDefinitions = this.loadColumnDefinitions(this.options);
-    this.defaultSortBy = this.columnDefinitions[0].key;
+    this.defaultSortBy = this.columnDefinitions[0]?.key || 'id';
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {

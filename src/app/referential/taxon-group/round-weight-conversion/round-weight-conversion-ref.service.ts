@@ -13,10 +13,10 @@ import {
   PlatformService
 } from '@sumaris-net/ngx-components';
 import { Injectable } from '@angular/core';
-import { RoundWeightConversion, RoundWeightConversionRef } from '@app/referential/round-weight-conversion/round-weight-conversion.model';
+import { RoundWeightConversion, RoundWeightConversionRef } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.model';
 import { gql } from '@apollo/client/core';
-import { RoundWeightConversionFragments } from '@app/referential/round-weight-conversion/round-weight-conversion.fragments';
-import { RoundWeightConversionFilter } from '@app/referential/round-weight-conversion/round-weight-conversion.filter';
+import { RoundWeightConversionFragments } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.fragments';
+import { RoundWeightConversionFilter } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.filter';
 import { Moment } from 'moment';
 import { CacheService } from 'ionic-cache';
 import { SortDirection } from '@angular/material/sort';

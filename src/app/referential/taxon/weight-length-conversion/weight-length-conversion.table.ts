@@ -1,11 +1,11 @@
 import { WeightLengthConversion } from './weight-length-conversion.model';
-import { WeightLengthConversionFilter } from '../services/filter/weight-length-conversion.filter';
+import { WeightLengthConversionFilter } from '../../services/filter/weight-length-conversion.filter';
 import { Component, Injector, Input } from '@angular/core';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
-import { WeightLengthConversionService } from '@app/referential/weight-length-conversion/weight-length-conversion.service';
+import { WeightLengthConversionService } from '@app/referential/taxon/weight-length-conversion/weight-length-conversion.service';
 import { Validators } from '@angular/forms';
 import { DateUtils, firstNotNilPromise, FormFieldDefinition, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
-import { WeightLengthConversionValidatorService } from '@app/referential/weight-length-conversion/weight-length-conversion.validator';
+import { WeightLengthConversionValidatorService } from '@app/referential/taxon/weight-length-conversion/weight-length-conversion.validator';
 import moment from 'moment';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 import { LocationLevelGroups, ParameterLabelGroups, UnitLabelGroups } from '@app/referential/services/model/model.enum';
@@ -14,9 +14,9 @@ import { BehaviorSubject } from 'rxjs';
 
 @Component({
   selector: 'app-weight-length-conversion-table',
-  templateUrl: '../table/base-referential.table.html',
+  templateUrl: '../../table/base-referential.table.html',
   styleUrls: [
-    '../table/base-referential.table.scss'
+    '../../table/base-referential.table.scss'
   ]
 })
 // @ts-ignore

@@ -147,7 +147,7 @@
           [matMenuTriggerFor]="downloadTypesMenu"
           [matMenuTriggerData]="{$implicit: extractionTypes$}">
     <mat-icon><ion-icon name="cloud-download"></ion-icon></mat-icon>
-    <ion-label translate>TRIP.TABLE.BTN_DOWNLOAD_DOTS</ion-label>
+    <ion-label translate>COMMON.BTN_DOWNLOAD_DOTS</ion-label>
   </button>
 
   <!-- Download as JSON -->
@@ -156,7 +156,7 @@
           [disabled]="offline"
           (click)="downloadSelectionAsJson($event)">
     <mat-icon>download</mat-icon>
-    <ion-label translate>TRIP.TABLE.BTN_DOWNLOAD_JSON</ion-label>
+    <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
   </button>
 
 </mat-menu>
