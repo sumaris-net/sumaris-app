@@ -9,7 +9,9 @@
 
     <!-- Autocomplete combo -->
     <ng-container *ngSwitchCase="'autocomplete'">
-      <mat-form-field [floatLabel]="floatLabel">
+      <mat-form-field [floatLabel]="floatLabel"
+                      [appearance]="appearance"
+                      [title]="_displayValue">
 
         <input matInput #matInput type="text"
                [formControl]="formControl"
@@ -59,7 +61,7 @@
           </ion-col>
         </ion-row>
 
-        <mat-option *ngFor="let item of items | async" [value]="item" class="ion-no-padding">
+        <mat-option *ngFor="let item of _items$ | async" [value]="item" class="ion-no-padding">
           <ion-row>
               <ion-col *ngFor="let attr of searchAttributes"
                        size="{{attr==='label' ? 3 : undefined}}"
@@ -70,7 +72,10 @@
     </ng-container>
 
     <!-- Basic select -->
-    <mat-form-field *ngSwitchCase="'select'" [floatLabel]="floatLabel">
+    <mat-form-field *ngSwitchCase="'select'"
+                    [floatLabel]="floatLabel"
+                    [appearance]="appearance"
+                    [title]="_displayValue">
 
       <mat-select #matInput [required]="required"
                   [placeholder]="placeholder"

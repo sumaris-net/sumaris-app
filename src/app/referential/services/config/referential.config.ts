@@ -355,6 +355,13 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     autocomplete: PmfmAutocompleteConfig,
     defaultValue: PmfmIds.HULL_MATERIAL
   },
+  PMFM_SELECTIVITY_DEVICE_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.Pmfm.SELECTIVITY_DEVICE.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.PMFM_SELECTIVITY_DEVICE_ID',
+    type: 'entity',
+    autocomplete: PmfmAutocompleteConfig,
+    defaultValue: PmfmIds.SELECTIVITY_DEVICE
+  },
   PARAMETER_GROUP_SURVEY_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.ParameterGroup.SURVEY.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.PARAMETER_GROUP_SURVEY_ID',

@@ -1558,6 +1558,7 @@
     }
   },
   "REFERENTIAL": {
+    "ID": "#",
     "LABEL": "Code",
     "NAME": "Name",
     "LEVEL": "Level",
@@ -1802,6 +1803,7 @@
       "TRIP_METIERS_ENABLE": "Trip: Enter metiers?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Trip: Filtered metiers > Nb. days",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Trip: Are other features optional, when on field?",
+      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Trip > Gears: Optional pmfms to show (ids)",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Trip > Gear: Allow sub-gears?",
       "TRIP_PHYSICAL_GEAR_HELP_MESSAGE": "Trip > Gear: Help message",

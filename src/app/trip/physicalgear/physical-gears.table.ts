@@ -14,6 +14,9 @@ import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { environment } from '@environments/environment';
 import { BehaviorSubject, merge, Subscription } from 'rxjs';
 import { OverlayEventDetail } from '@ionic/core';
+import { IPmfm } from '@app/referential/services/model/pmfm.model';
+import { TripContextService } from '@app/trip/services/trip-context.service';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
 
 export const GEAR_RESERVED_START_COLUMNS: string[] = ['gear'];
 export const GEAR_RESERVED_END_COLUMNS: string[] = ['subGearsCount', 'lastUsed', 'comments'];
@@ -113,7 +116,8 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   constructor(
     injector: Injector,
     formBuilder: UntypedFormBuilder,
-    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>
+    @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) dataService: IEntitiesService<PhysicalGear, PhysicalGearFilter>,
+    protected context: TripContextService
   ) {
     super(injector,
       PhysicalGear, PhysicalGearFilter,
@@ -122,7 +126,7 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
       {
         reservedStartColumns: GEAR_RESERVED_START_COLUMNS,
         reservedEndColumns: GEAR_RESERVED_END_COLUMNS,
-        mapPmfms: (pmfms) => pmfms.filter(p => p.required)
+        mapPmfms: (pmfms) => this.mapPmfms(pmfms)
       });
 
     this.filterForm = formBuilder.group({
@@ -241,6 +245,12 @@ export class PhysicalGearTable extends BaseMeasurementsTable<PhysicalGear, Physi
   }
 
   /* -- protected function -- */
+
+  protected async mapPmfms(pmfms: IPmfm[]): Promise<IPmfm[]> {
+    const includedPmfmIds = this.context.program?.getPropertyAsNumbers(ProgramProperties.TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS);
+    // Keep selectivity device, if any
+    return pmfms.filter(p => p.required || (includedPmfmIds?.includes(p.id)));
+  }
 
   protected async openNewRowDetail(): Promise<boolean> {
     if (!this.allowRowDetail) return false;

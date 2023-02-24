@@ -114,17 +114,17 @@ export abstract class PmfmValueUtils {
 
   static asObject(value: PmfmValue | PmfmValue[] | any): string|any {
     if (isNil(value)) return undefined;
-    // If moment object, then convert to ISO string- fix #157
+    // Multiple values (e.g. selective device, on a physical gear)
+    if (Array.isArray(value)) {
+      return value.map(v => this.asObject(v)).join(PMFM_VALUE_SEPARATOR);
+    }
+    // If moment object, then convert to ISO string - fix #157
     if (isMoment(value)) {
       return toDateISOString(value);
     }
     // If date, convert to ISO string
     if (value instanceof Date) {
      return toDateISOString(moment(value));
-    }
-    if (Array.isArray(value)) {
-      // Do nothing, managed in measurementValuesMultiples property
-      return value;
     }
     // Number with conversion
     else if (this.isConvertedNumber(value)) {
