@@ -360,7 +360,8 @@ export abstract class BaseReferentialTable<
       .then((entities) => {
         $progress.next(new FileResponse({body: entities}));
         $progress.complete();
-      });
+      })
+      .catch(err => $progress.error(err));
 
     return $progress.asObservable();
   }

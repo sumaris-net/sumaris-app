@@ -5,6 +5,7 @@ import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
 import { TranscribingItemTable } from '@app/referential/transcribing/transcribing-item.table';
+import {TranscribingItemsModal} from '@app/referential/transcribing/modal/transcribing-items.modal';
 
 @NgModule({
   imports: [
@@ -18,6 +19,7 @@ import { TranscribingItemTable } from '@app/referential/transcribing/transcribin
     // Pipes
 
     // Components
+    TranscribingItemsModal,
     TranscribingItemTable
   ],
   exports: [
@@ -26,7 +28,8 @@ import { TranscribingItemTable } from '@app/referential/transcribing/transcribin
     // Pipes
 
     // Components
-    TranscribingItemTable
+    TranscribingItemTable,
+    TranscribingItemsModal
   ],
 })
 export class AppTranscribingModule {

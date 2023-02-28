@@ -66,7 +66,7 @@ export class Strategy<
     target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
 
     if (opts && opts.keepRemoteId === false) {
-      AppReferentialUtils.deleteIdAndDates(target, true);
+      AppReferentialUtils.cleanIdAndDates(target, true, ['gears', 'taxonGroups', 'taxonNames']);
       delete target.programId;
     }
 

@@ -1,32 +1,21 @@
-import { ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, OnInit, Self } from '@angular/core';
-import { ValidatorService } from '@e-is/ngx-material-table';
-import { StrategyValidatorService } from '@app/referential/services/validator/strategy.validator';
-import { AppBaseTable } from '@app/shared/table/base.table';
-import { TranscribingItem, TranscribingItemFilter, TranscribingItemType } from '@app/referential/transcribing/transcribing.model';
-import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
-import { WeightLengthConversionService } from '@app/referential/taxon/weight-length-conversion/weight-length-conversion.service';
-import { WeightLengthConversionValidatorService } from '@app/referential/taxon/weight-length-conversion/weight-length-conversion.validator';
-import { ParameterService } from '@app/referential/services/parameter.service';
-import { WeightLengthConversion } from '@app/referential/taxon/weight-length-conversion/weight-length-conversion.model';
-import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
-import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { ReferentialService } from '@app/referential/services/referential.service';
-import { TranscribingItemValidatorService } from '@app/referential/transcribing/transcribing-item.validator';
-import { EntityUtils, IEntitiesService, InMemoryEntitiesService, LoadResult, ReferentialRef, SharedValidators, StatusIds } from '@sumaris-net/ngx-components';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
-import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
-import { ImageAttachment, ImageAttachmentFilter } from '@app/data/image/image-attachment.model';
-import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
-import { LocationLevelIds, ParameterLabelGroups } from '@app/referential/services/model/model.enum';
-import { Validators } from '@angular/forms';
+import {ChangeDetectionStrategy, Component, Inject, InjectionToken, Injector, Input, OnInit, Self} from '@angular/core';
+import {ValidatorService} from '@e-is/ngx-material-table';
+import {StrategyValidatorService} from '@app/referential/services/validator/strategy.validator';
+import {TranscribingItem, TranscribingItemFilter, TranscribingItemType} from '@app/referential/transcribing/transcribing.model';
+import {BaseReferentialTable} from '@app/referential/table/base-referential.table';
+import {ReferentialRefService} from '@app/referential/services/referential-ref.service';
+import {TranscribingItemValidatorService} from '@app/referential/transcribing/transcribing-item.validator';
+import {DateUtils, EntityUtils, IEntitiesService, InMemoryEntitiesService, LoadResult, ReferentialRef, SharedValidators, StatusIds} from '@sumaris-net/ngx-components';
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
+import {Validators} from '@angular/forms';
 import moment from 'moment/moment';
-import { RxState } from '@rx-angular/state';
+import {RxState} from '@rx-angular/state';
 
 export const TRANSCRIBING_ITEM_DATA_SERVICE_TOKEN = new InjectionToken<IEntitiesService<TranscribingItem, TranscribingItemFilter>>('TranscribingItemService');
 
 export interface TranscribingItemTableState {
-  //type: ReferentialRef;
+  type: TranscribingItemType;
+  objectFilter: Partial<ReferentialRefFilter>;
 }
 
 @Component({
@@ -51,8 +40,33 @@ export interface TranscribingItemTableState {
 })
 export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem, TranscribingItemFilter> implements OnInit {
 
+  @Input()
+  set value(data: TranscribingItem[]) {
+    this.memoryDataService.value = data;
+  }
+
+  get value(): TranscribingItem[] {
+    return this.memoryDataService.value;
+  }
+
+  @Input() set objectFilter(value: Partial<ReferentialRefFilter>) {
+    this.state.set('objectFilter', _ => value);
+  }
+
+  get objectFilter(): Partial<ReferentialRefFilter> {
+    return this.state.get('objectFilter');
+  }
+
+  @Input() set type(value: TranscribingItemType) {
+    this.state.set('type', _ => value);
+  }
+
+  get type(): TranscribingItemType {
+    return this.state.get('type');
+  }
+
   constructor(injector: Injector,
-              @Self() @Inject(TRANSCRIBING_ITEM_DATA_SERVICE_TOKEN) entityService: IEntitiesService<TranscribingItem, TranscribingItemFilter>,
+              @Self() @Inject(TRANSCRIBING_ITEM_DATA_SERVICE_TOKEN) dataService: IEntitiesService<TranscribingItem, TranscribingItemFilter>,
               validatorService: TranscribingItemValidatorService,
               protected referentialRefService: ReferentialRefService,
               protected state: RxState<TranscribingItemTableState>
@@ -60,7 +74,7 @@ export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem
     super(injector,
       TranscribingItem,
       TranscribingItemFilter,
-      entityService,
+      dataService,
       validatorService,
       {
         i18nColumnPrefix: 'REFERENTIAL.TRANSCRIBING_ITEM.',
@@ -112,19 +126,17 @@ export class TranscribingItemTable extends BaseReferentialTable<TranscribingItem
   }
 
   protected defaultNewRowValue(): any {
-    const creationDate = moment(new Date());
     return {
       ...super.defaultNewRowValue(),
-      //type: this.type, // TODO get last ?
-      creationDate
+      type: this.type,
+      creationDate: DateUtils.moment()
     };
   }
 
   protected async suggestObject(value: any, filter: ReferentialRefFilter): Promise<LoadResult<ReferentialRef>> {
-    // TODO: check type entity name
     return this.referentialRefService.suggest(value, {
       ...filter,
-      entityName: 'Location' // TODO: replace from the type's object type
+      ...this.objectFilter
     });
   }
 }

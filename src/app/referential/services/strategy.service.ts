@@ -536,8 +536,8 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       programLabel: program?.label
     });
 
-    // Write to file
-    JsonUtils.writeToFile(jsonArray, {filename});
+    // Export to file
+    JsonUtils.exportToFile(jsonArray, {filename});
   }
 
   async downloadAsJson(entity: Strategy, opts?: {keepRemoteId: boolean, program?: Program}) {
@@ -555,8 +555,8 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       label: entity.label
     });
 
-    // Write to file
-    JsonUtils.writeToFile(json, {filename});
+    // Export to file
+    JsonUtils.exportToFile(json, {filename});
   }
 
   /* -- protected functions -- */

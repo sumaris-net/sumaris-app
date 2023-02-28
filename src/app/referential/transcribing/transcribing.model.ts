@@ -9,6 +9,10 @@ export class TranscribingItemType extends BaseReferential<TranscribingItemType> 
   static fromObject: (source: any, opts?: any) => TranscribingItemType;
 
   objectType: ReferentialRef;
+  items: TranscribingItem[];
+
+  systemId: number;
+  system: ReferentialRef;
 
   constructor() {
     super(TranscribingItemType.TYPENAME);
@@ -17,11 +21,22 @@ export class TranscribingItemType extends BaseReferential<TranscribingItemType> 
   fromObject(source: any) {
     super.fromObject(source);
     this.objectType = source.objectType && ReferentialRef.fromObject(source.objectType);
+    this.system = source.system && ReferentialRef.fromObject(source.system);
+    this.items = source.items && source.items.map(item => TranscribingItem.fromObject(item));
   }
 
   asObject(opts?: ReferentialAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.objectType = this.objectType?.asObject(opts);
+    target.items = this.items?.map(item => item.asObject(opts));
+    target.systemId = toNumber(this.systemId, this.system?.id);
+    if (opts?.minify) {
+      delete target.items;
+      delete target.system;
+    }
+    else {
+      target.system = this.system?.asObject(opts);
+    }
     return target;
   }
 }
