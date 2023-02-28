@@ -1,14 +1,10 @@
 import { NgModule } from '@angular/core';
 import { SoftwarePage } from './software/software.page';
 import { ParameterPage } from './pmfm/parameter.page';
-import { SelectReferentialModal } from './list/select-referential.modal';
-import { ReferentialRefTable } from './list/referential-ref.table';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
-import { SimpleReferentialTable } from './list/referential-simple.table';
-import { ReferentialsPage } from '@app/referential/list/referentials.page';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppStrategyModule } from '@app/referential/strategy/strategy.module';
 import { AppTranscribingModule } from '@app/referential/transcribing/transcribing.module';
@@ -18,7 +14,7 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 import { AppProgramModule } from '@app/referential/program/program.module';
 import { AppTaxonGroupModule } from '@app/referential/taxon-group/taxon-group.module';
 import { AppTaxonModule } from '@app/referential/taxon/taxon.module';
-import { AppReferentialListModule } from '@app/referential/list/referential-list.module';
+import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
 
 @NgModule({
   imports: [
@@ -30,7 +26,7 @@ import { AppReferentialListModule } from '@app/referential/list/referential-list
 
     // Sub modules
     AppReferentialFormModule,
-    AppReferentialListModule,
+    AppReferentialTableModule,
     AppReferentialPipesModule,
     AppPmfmModule,
     AppProgramModule,
@@ -51,7 +47,7 @@ import { AppReferentialListModule } from '@app/referential/list/referential-list
     // Sub Modules
     AppReferentialPipesModule,
     AppReferentialFormModule,
-    AppReferentialListModule,
+    AppReferentialTableModule,
     AppPmfmModule,
     AppProgramModule,
     AppStrategyModule,

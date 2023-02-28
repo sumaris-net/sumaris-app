@@ -2,7 +2,7 @@ import { Directive, Input, OnInit, Optional, ViewChild } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { AppTable, EntitiesTableDataSource, EntitiesTableDataSourceConfig, IEntitiesService, IEntity, isNotNil, ReferentialRef, toBoolean } from '@sumaris-net/ngx-components';
 import { Subject } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { environment } from '@environments/environment';
 import {TableElement} from '@e-is/ngx-material-table';
 
 export interface IBaseSelectEntityModalOptions<T = any, F = any> {

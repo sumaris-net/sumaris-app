@@ -2,7 +2,7 @@ import {ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit} from "@an
 import {ModalController} from "@ionic/angular";
 import {PmfmService} from "../services/pmfm.service";
 import {Pmfm} from "../services/model/pmfm.model";
-import {BaseSelectEntityModal} from "../list/base-select-entity.modal";
+import {BaseSelectEntityModal} from "../table/base-select-entity.modal";
 import { PmfmFilter } from "@app/referential/services/filter/pmfm.filter";
 
 export interface ISelectPmfmModalOptions {

@@ -10,6 +10,7 @@ import { PersonPrivilegesTable } from './privilege/person-privileges.table';
 import { AppReferentialFormModule } from '@app/referential/form/referential-form.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { AppStrategyModule } from '@app/referential/strategy/strategy.module';
+import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
 
 @NgModule({
   imports: [
@@ -21,6 +22,7 @@ import { AppStrategyModule } from '@app/referential/strategy/strategy.module';
 
     // Sub modules
     AppReferentialFormModule,
+    AppReferentialTableModule,
     AppReferentialPipesModule,
     AppStrategyModule
   ],

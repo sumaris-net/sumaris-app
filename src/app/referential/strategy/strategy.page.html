@@ -113,7 +113,9 @@
         <!--        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>-->
       </ng-template>
 
-      <app-transcribing-item-table></app-transcribing-item-table>
+      <div style="height: var(--mat-tab-body-content-height)">
+        <app-transcribing-item-table></app-transcribing-item-table>
+      </div>
     </mat-tab>
 
   </mat-tab-group>

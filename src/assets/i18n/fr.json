@@ -1929,6 +1929,7 @@
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_FROM_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
       "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-Stratégie-{{label}}.json",
+      "DOWNLOAD_MANY_JSON_FILENAME": "{{programLabel}}-Stratégies.json",
       "TAB_TRANSCRIBING": "Transcodages",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplication",

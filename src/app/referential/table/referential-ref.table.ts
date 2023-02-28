@@ -13,7 +13,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { debounceTime, filter } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { environment } from '@environments/environment';
 import { ReferentialFilter } from '../services/filter/referential.filter';
 import { BehaviorSubject } from 'rxjs';
 import { ReferentialI18nKeys } from '@app/referential/referential.utils';

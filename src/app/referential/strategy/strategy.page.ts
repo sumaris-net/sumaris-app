@@ -28,14 +28,11 @@ import {ProgramRefService} from '../services/program-ref.service';
 import { COPY_LOCALLY_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
 import { TranscribingItemTable } from '@app/referential/transcribing/transcribing-item.table';
 
-export enum AnimationState {
-  ENTER = 'enter',
-  LEAVE = 'leave'
-}
 
 @Component({
   selector: 'app-strategy',
   templateUrl: 'strategy.page.html',
+  styleUrls: ['./strategy.page.scss'],
   providers: [
     {provide: ValidatorService, useExisting: StrategyValidatorService}
   ],
@@ -197,7 +194,7 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
   }
 
 
-  protected async downloadAsJson(event?: Event, opts?: {keepRemoteId: boolean}) {
+  protected async downloadAsJson(event?: Event, opts = {keepRemoteId: false}) {
     if (event?.defaultPrevented) return false; // Skip
     event?.preventDefault(); // Avoid propagation
 
@@ -211,21 +208,11 @@ export class StrategyPage extends AppEntityEditor<Strategy, StrategyService> imp
       : await this.saveIfDirtyAndConfirm();
     if (!saved) return; // not saved
 
-    // Convert strategy into JSON
-    const json = this.data.asObject({...COPY_LOCALLY_AS_OBJECT_OPTIONS, keepRemoteId: false, ...opts, minify: false});
-    delete json.denormalizedPmfms; // Not used, because we already have pmfms
-
-    // Serialize to string
-    const content = JSON.stringify(json);
-
-    const programLabel = this.$program.value?.label;
-    const filename = this.translate.instant("PROGRAM.STRATEGY.DOWNLOAD_JSON_FILENAME", {
-      programLabel,
-      label: this.data.label
-    });
-
-    // Write to file
-    FilesUtils.writeTextToFile(content, {filename, type: 'application/json'});
+    // Download as JSON
+    await this.service.downloadAsJson(this.data, {
+      keepRemoteId: false,
+      ...opts,
+      program: this.$program.value});
   }
 
   protected async askConfirmationToReload() {

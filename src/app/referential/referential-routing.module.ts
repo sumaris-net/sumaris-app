@@ -1,6 +1,6 @@
 import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
-import { ReferentialsPage } from './list/referentials.page';
+import { ReferentialTable } from './table/referential.table';
 import { ProgramPage } from './program/program.page';
 import { SoftwarePage } from './software/software.page';
 import { ParameterPage } from './pmfm/parameter.page';
@@ -18,7 +18,7 @@ const routes: Routes = [
   {
     path: 'list',
     pathMatch: 'full',
-    component: ReferentialsPage,
+    component: ReferentialTable,
     runGuardsAndResolvers: 'pathParamsChange',
     data: {
       profile: 'ADMIN'

@@ -18,7 +18,7 @@ import { Parameter } from '../services/model/parameter.model';
 import { ParameterService } from '../services/parameter.service';
 import { ReferentialRefService } from '../services/referential-ref.service';
 import { environment } from '../../../environments/environment';
-import { SimpleReferentialTable } from '../list/referential-simple.table';
+import { SimpleReferentialTable } from '../table/referential-simple.table';
 
 @Component({
   selector: 'app-parameter',

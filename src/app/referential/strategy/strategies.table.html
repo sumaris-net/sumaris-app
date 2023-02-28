@@ -46,14 +46,33 @@
     </button>
   </ng-template>
 
-  <!-- spacer -->
-  <span class="toolbar-spacer"></span>
 
   <!-- error (desktop) -->
   <ion-item *ngIf="error" hidden-xs hidden-sm hidden-mobile lines="none">
     <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
     <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
   </ion-item>
+
+  <!-- spacer -->
+  <span class="toolbar-spacer"></span>
+
+  <ng-content select="[matToolbarEnd]"></ng-content>
+
+  <!-- download button -->
+  <button mat-button
+          *ngIf="canDownload"
+          (click)="downloadAsJson($event)">
+    <mat-icon>download</mat-icon>
+    <ion-label>{{'COMMON.BTN_DOWNLOAD'|translate|uppercase}}</ion-label>
+  </button>
+
+  <!-- upload button -->
+  <button mat-button
+          *ngIf="canUpload"
+          (click)="importFromJson($event)">
+    <mat-icon>upload</mat-icon>
+    <ion-label>{{'COMMON.BTN_IMPORT'|translate|uppercase}}</ion-label>
+  </button>
 </mat-toolbar>
 
 <!-- error (mobile) -->

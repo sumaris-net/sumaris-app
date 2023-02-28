@@ -6,7 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
 import { SimpleReferentialTable } from './referential-simple.table';
-import { ReferentialsPage } from './referentials.page';
+import { ReferentialTable } from './referential.table';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 
@@ -24,7 +24,7 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
   declarations: [
 
     // Components
-    ReferentialsPage,
+    ReferentialTable,
     SimpleReferentialTable,
     ReferentialRefTable,
     SelectReferentialModal
@@ -33,10 +33,10 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
     TranslateModule,
 
     // Components
-    ReferentialsPage,
+    ReferentialTable,
     ReferentialRefTable,
     SelectReferentialModal
   ],
 })
-export class AppReferentialListModule {
+export class AppReferentialTableModule {
 }

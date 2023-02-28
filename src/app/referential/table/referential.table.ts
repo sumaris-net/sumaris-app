@@ -27,7 +27,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
-import { environment } from '../../../environments/environment';
+import { environment } from '@environments/environment';
 import { ReferentialFilter } from '../services/filter/referential.filter';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
@@ -41,14 +41,14 @@ export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
 
 @Component({
   selector: 'app-referential-page',
-  templateUrl: 'referentials.page.html',
-  styleUrls: ['referentials.page.scss'],
+  templateUrl: 'referential.table.html',
+  styleUrls: ['referential.table.scss'],
   providers: [
     {provide: ValidatorService, useExisting: ReferentialValidatorService}
   ],
   animations: [slideUpDownAnimation]
 })
-export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
+export class ReferentialTable extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
 
   static DEFAULT_ENTITY_NAME = "Pmfm";
 
@@ -256,7 +256,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     }
 
     // Load default entity
-    await this.applyEntityName(this._entityName || entity || ReferentialsPage.DEFAULT_ENTITY_NAME);
+    await this.applyEntityName(this._entityName || entity || ReferentialTable.DEFAULT_ENTITY_NAME);
   }
 
   async applyEntityName(entityName: string, opts?: { emitEvent?: boolean; skipLocationChange?: boolean }) {
@@ -345,7 +345,7 @@ export class ReferentialsPage extends AppTable<Referential, ReferentialFilter> i
     return res;
   }
 
-  getI18nEntityName(entityName: string, self?: ReferentialsPage): string {
+  getI18nEntityName(entityName: string, self?: ReferentialTable): string {
     self = self || this;
 
     if (isNil(entityName)) return undefined;
