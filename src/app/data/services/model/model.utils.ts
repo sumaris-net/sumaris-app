@@ -140,6 +140,17 @@ export function qualityFlagToColor(qualityFlagId: number): PredefinedColors {
   }
 }
 
+export function qualityFlagInvalid(qualityFlagId: number): boolean {
+  switch (qualityFlagId) {
+    case QualityFlagIds.BAD:
+    case QualityFlagIds.MISSING:
+    case QualityFlagIds.NOT_COMPLETED:
+      return true;
+    default:
+      return false;
+  }
+}
+
 export declare type QualityIonIcon = SynchronizationIonIcon |'checkmark'|'checkmark-circle'|'flag'|'alert'|'alert-circle'|'alert-circle-outline'|'warning';
 
 export function qualityFlagToIcon(qualityFlagId: number): QualityIonIcon {

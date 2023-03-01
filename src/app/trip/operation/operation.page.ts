@@ -1130,11 +1130,14 @@ export class OperationPage<S extends OperationState = OperationState>
     super.updateViewState(data, opts);
 
     // Display form error, if has errors from context, applies it on form.
-    const errorMessage = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) && data.qualificationComments;
-    if (errorMessage) {
+    const errorMessage = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) ? data.qualificationComments : undefined;
+    if (isNotNilOrBlank(errorMessage)) {
+      console.info('[operation-page] Restore error from qualificationComments : ', errorMessage);
+
+      // Clean error
       this.form.get('qualificationComments').reset();
+
       setTimeout(() => {
-        console.info('[operation-page] Operation errors: ', errorMessage);
         this.markAllAsTouched();
         this.form.updateValueAndValidity();
 

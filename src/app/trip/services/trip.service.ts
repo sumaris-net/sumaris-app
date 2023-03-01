@@ -1267,7 +1267,7 @@ export class TripService
           program,
           progression: opts?.progression,
           maxProgression: progressionStep
-        })
+        });
 
         if (errors) {
           return {

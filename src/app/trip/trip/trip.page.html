@@ -232,18 +232,13 @@
 
       <div class="ion-no-padding">
 
-        <!-- error -->
-        <ion-item *ngIf="mobile && physicalGearsTable.error" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
-        </ion-item>
-
         <app-physical-gears-table #physicalGearsTable
                                   [programLabel]="$programLabel|async"
                                   [showToolbar]="!mobile"
-                                  [showError]="false"
                                   (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
                                   [useSticky]="!mobile"
+                                  [mobile]="mobile"
+                                  [usageMode]="usageMode"
                                   [debug]="debug">
         </app-physical-gears-table>
 

@@ -224,11 +224,29 @@ export class TripPage
       this.tabGroup.selectedIndex = TripPageTabs.OPERATIONS;
 
       // Reset other errors
+      this.physicalGearsTable.resetError(opts);
       super.setError(undefined, opts);
-    } else {
+    }
+
+    // If errors in gears
+    else if (typeof error !== 'string' && error?.details?.errors?.gears) {
+      // Show error in operation table
+      this.physicalGearsTable.setError('TRIP.ERROR.INVALID_GEARS');
+
+      // Open the operation tab
+      this.tabGroup.selectedIndex = TripPageTabs.PHYSICAL_GEARS;
+
+      // Reset other errors
+      this.operationsTable.resetError(opts);
+      super.setError(undefined, opts);
+    }
+
+    // Error in the main form
+    else {
       super.setError(error, opts);
 
-      // Reset operation filter and error
+      // Reset error in table (and filter in op table)
+      this.physicalGearsTable.resetError(opts);
       this.operationsTable.resetError(opts);
     }
   }
@@ -297,6 +315,7 @@ export class TripPage
     this.physicalGearsTable.setModalOption('helpMessage', program.getProperty(ProgramProperties.TRIP_PHYSICAL_GEAR_HELP_MESSAGE));
     this.physicalGearsTable.setModalOption('maxVisibleButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_VISIBLE_BUTTONS));
     this.physicalGearsTable.setModalOption('maxItemCountForButtons', program.getPropertyAsInt(ProgramProperties.MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS));
+    this.physicalGearsTable.setModalOption('minChildrenCount', program.getPropertyAsInt(ProgramProperties.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT));
     this.physicalGearsTable.i18nColumnSuffix = i18nSuffix;
 
     // Operation table

@@ -45,14 +45,15 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
     opts = this.fillDefaultOptions(opts);
 
     // Convert the array of Measurement into a normalized map of form values
-    const measurementValues = data
-      && (MeasurementValuesUtils.isMeasurementFormValues(data) ? data
+    const measurementValues = data && (MeasurementValuesUtils.isMeasurementFormValues(data)
+        ? data
+        // Transform to form values, if need
         : MeasurementValuesUtils.normalizeValuesToForm(MeasurementUtils.toMeasurementValues(data as unknown as Measurement[]),
-          opts.pmfms,
+            opts.pmfms,
           {
-            keepSourceObject: true,
-            onlyExistingPmfms: false
-          })) || undefined;
+              keepSourceObject: true,
+              onlyExistingPmfms: false
+            })) || undefined;
 
     const config = opts.pmfms.reduce((res, pmfm) => {
         const validator = PmfmValidators.create(pmfm, null, opts);

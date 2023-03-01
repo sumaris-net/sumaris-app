@@ -556,7 +556,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
       // Prepare control options
       opts = await this.fillControlOptionsForTrip(trip.id, {trip, ...opts});
-      const progressionStep = maxProgression / (data?.length || 1) / 2; // 2 steps by operation: control, then save
+      const progressionStep = maxProgression / data.length / 2; // 2 steps by operation: control, then save
 
       let errorsById: FormErrors = null;
 
@@ -574,11 +574,11 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
           errorsById[entity.id] = errors;
 
           // translate, then save normally
-          const message = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
+          const errorMessage = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
           entity.controlDate = null;
-          entity.qualificationComments = message;
+          entity.qualificationComments = errorMessage;
 
-          if (opts.progression?.cancelled) return; // Stop here
+          if (opts.progression?.cancelled) return; // Cancel
 
           // Save entity
           await this.save(entity);
@@ -587,11 +587,12 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
         // OK succeed: terminate
         else {
-          if (opts.progression?.cancelled) return; // Stop here
+          if (opts.progression?.cancelled) return; // Cancel
 
           await this.terminate(entity);
         }
 
+        // increament, after save/terminate
         opts.progression.increment(progressionStep);
       }
 

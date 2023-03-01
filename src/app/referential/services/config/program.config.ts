@@ -119,6 +119,12 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false',
     type: 'boolean'
   },
+  TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT: <FormFieldDefinition>{
+    key: 'sumaris.trip.gear.minChildrenCount',
+    label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT',
+    defaultValue: 2,
+    type: 'integer'
+  },
   TRIP_PHYSICAL_GEAR_HELP_MESSAGE: <FormFieldDefinition>{
     key: 'sumaris.trip.gear.help.message',
     label: 'PROGRAM.OPTIONS.TRIP_PHYSICAL_GEAR_HELP_MESSAGE',

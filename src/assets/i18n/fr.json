@@ -598,6 +598,7 @@
     "ERROR": {
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé",
       "ADD_GEAR": "Erreur lors de l'ajout d'un engin sur la marée",
+      "INVALID_GEARS": "Veuillez corriger les engins invalides ci-dessous",
       "INVALID_OPERATIONS": "Veuillez corriger les opérations invalides ci-dessous"
     },
     "MEASUREMENT": {
@@ -1813,6 +1814,7 @@
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Pmfms optionnels à afficher (ids)",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
+      "TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT": "Marée > Engin: Nombre minimum de sous-engins ?",
       "TRIP_PHYSICAL_GEAR_HELP_MESSAGE": "Marée > Engin: Message d'aide",
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
       "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",

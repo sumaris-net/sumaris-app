@@ -146,7 +146,17 @@
         <ion-label>#</ion-label>
       </th>
       <td mat-cell *matCellDef="let row"
-          [class.ion-padding-start]="mobile">{{ row.currentData?.rankOrder }}</td>
+          [class.ion-padding-start]="mobile"
+          [title]="row.currentData.qualificationComments || ''">
+        <ion-label matBadge="!"
+                   [matBadgeHidden]="!(row.currentData.qualityFlagId|qualityFlagInvalid)"
+                   matBadgeColor="accent"
+                   matBadgePosition="above after"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small">
+          {{ row.currentData?.rankOrder }}
+        </ion-label>
+      </td>
     </ng-container>
 
     <!-- gear -->
@@ -215,7 +225,10 @@
     </app-actions-column>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="mat-row-disabled" (click)="clickRow($event, row)"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+        class="mat-row-disabled"
+        (click)="clickRow($event, row)"
+    ></tr>
   </table>
 
   <ng-container *ngIf="loadingSubject|async; else noResult">

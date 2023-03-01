@@ -34,6 +34,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import {PhysicalGearValidatorOptions} from '@app/trip/physicalgear/physicalgear.validator';
 
 
 export interface IPmfmForm {
@@ -84,7 +85,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
   }
 
   getFormGroup(data?: Operation, opts?: O): UntypedFormGroup {
-    opts = this.fillDefaultOptions(opts);
+    opts = opts || <O>{};
 
     const form = super.getFormGroup(data, opts);
 
