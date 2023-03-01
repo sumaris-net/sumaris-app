@@ -3,7 +3,7 @@ import {
   AbstractUserEventService,
   AccountService,
   Entity,
-  EntityServiceLoadOptions, fromDateISOString,
+  EntityServiceLoadOptions, ErrorCodes, fromDateISOString,
   GraphqlService,
   IEntityService,
   isEmptyArray,
@@ -132,15 +132,15 @@ export class UserEventService extends
     return super.watchAll(offset, size, sortBy, sortDirection, filter, options);
   }
 
-  watchPage(page: Page, filter?: Partial<UserEventFilter>, options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
+  watchPage(page: Page, filter?: Partial<UserEventFilter>, opts?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
     filter = filter || this.defaultFilter();
     if (!filter.startDate) {
       filter.startDate = fromDateISOString('1970-01-01T00:00:00.000Z');
     }
     return super.watchPage({ ...page, sortBy: 'creationDate', sortDirection: 'desc' }, filter, {
-      ...options,
       fetchPolicy: 'no-cache',
-      withContent: true
+      withContent: false,
+      ...opts
     });
   }
 
@@ -160,10 +160,19 @@ export class UserEventService extends
     return super.listenCountChanges(filter, { ...options, fetchPolicy: 'no-cache' });
   }
 
-  async load(id: number, opts?: EntityServiceLoadOptions & {withContent?: boolean}): Promise<UserEvent> {
-    const filter = this.defaultFilter();
-    filter.includedIds = [id];
-    const { data } = await this.loadPage({offset: 0, size: 1}, filter, {withContent: true, ...opts});
+  async load(id: number, opts?: EntityServiceLoadOptions & {withContent?: boolean }): Promise<UserEvent> {
+    const filter: Partial<UserEventFilter> = {includedIds: [id]};
+
+    // Allow admin to load SYSTEM notifications
+    if (this.accountService.isAdmin()) {
+      filter.recipients = [this.defaultRecipient(), 'SYSTEM'];
+    }
+
+    const { data } = await this.loadPage({offset: 0, size: 1}, filter, {
+      withContent: true,
+      ...opts,
+      withTotal: false
+    });
     const entity = data && data[0];
     return entity;
   }

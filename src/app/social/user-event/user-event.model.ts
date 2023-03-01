@@ -13,7 +13,7 @@ import {
   IUserEvent,
   IUserEventFilter,
   toDateISOString,
-  IUserEventAction
+  IUserEventAction, isNotNilOrBlank
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
 import {StoreObject} from '@apollo/client/core';
@@ -40,6 +40,7 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
   updateDate: Moment;
 
   message: string;
+  hasContent: boolean;
   content: any;
 
   avatar: string;
@@ -68,11 +69,18 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
     if (typeof this.content === 'object') {
       target.content = JSON.stringify(this.content);
     }
+    else {
+      target.content = null;
+    }
+    target.hasContent = this.hasContent || isNotNilOrBlank(target.content);
 
-    delete target.avatar;
-    delete target.avatarIcon;
-    delete target.icon;
-    delete target.actions;
+    if (opts?.minify) {
+      delete target.avatar;
+      delete target.avatarIcon;
+      delete target.icon;
+      delete target.actions;
+      delete target.hasContent;
+    }
 
     // Pod
     if (opts?.keepLocalId === false) {
@@ -95,7 +103,10 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
       }
     } catch (err) {
       console.error('Error during UserEvent deserialization', err);
+      this.content = null;
     }
+
+    this.hasContent = this.hasContent || !!this.content || false;
   }
 
   addAction(action: IUserEventAction) {

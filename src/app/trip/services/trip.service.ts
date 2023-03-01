@@ -77,7 +77,7 @@ import { Program, ProgramUtils } from '@app/referential/services/model/program.m
 import { Geometries } from '@app/shared/geometries.utils';
 import { BBox } from 'geojson';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { UserEvent } from '@app/social/user-event/user-event.model';
+import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.model';
 
 import moment from 'moment';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
@@ -473,8 +473,17 @@ export class TripService
                 matIcon: 'content_copy'
               },
               executeAction: async (e) => {
+                // Fetch event's content, if not present
+                if (!event.content) {
+                  event = await userEventService.load(e.id, {withContent: true});
+                }
                 const context = this.getEventContext(event);
-                await this.copyLocally(Trip.fromObject(context), { displaySuccessToast: true });
+                if (context) {
+                  await this.copyLocally(Trip.fromObject(context), { displaySuccessToast: true });
+                }
+                else {
+                  await this.showToast({message: 'ERROR.LOAD_DATA_ERROR', type: 'error'});
+                }
               },
             });
           return event;
@@ -504,11 +513,13 @@ export class TripService
   }
 
   isDebugData(event: UserEvent): boolean {
-    if (event.type === 'DEBUG_DATA') {
-      const context = this.getEventContext(event);
-      return context && context.__typename === Trip.TYPENAME;
-    }
-    return false;
+    return event.type === UserEventTypeEnum.DEBUG_DATA
+      && (
+        // If content not fetched, use only the hasContent flag (BUT insecrued, because data can be NOT a Trip)
+        (!event.content && event.hasContent)
+        // If content fetched, make sure data is a Trip
+        || this.getEventContext(event)?.__typename === Trip.TYPENAME
+      );
   }
 
   async loadAll(offset: number,

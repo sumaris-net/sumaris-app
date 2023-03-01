@@ -2458,9 +2458,9 @@
       "ICON": "Icône",
       "CREATION_DATE": "Date/Heure",
       "MESSAGE": "Message",
-      "BTN_COPY_TO_LOCAL": "Copier localement",
+      "BTN_COPY_TO_LOCAL": "Copier localement, dans les données non envoyées",
       "INFO": {
-        "COPIED_LOCALLY": "Copier localement avec succès"
+        "COPIED_LOCALLY": "Copié avec succès, dans les <b>données non envoyées</b> !"
       },
       "TYPE_ENUM": {
         "DEBUG_DATA": "Problème remonté par <a>{{issuer}}</a> : <b>{{message}}</b>",
