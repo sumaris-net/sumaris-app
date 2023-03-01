@@ -1,20 +1,20 @@
 import { Injectable, InjectionToken } from '@angular/core';
 import {
-  AccountService,
+  AccountService, AppFormUtils,
   arrayDistinct,
   BaseEntityGraphqlQueries,
   BaseGraphqlService,
   EntitiesServiceWatchOptions,
   EntitiesStorage, EntityUtils,
-  firstNotNilPromise,
+  firstNotNilPromise, FormErrors, FormErrorTranslator, FormErrorTranslatorOptions,
   GraphqlService,
-  IEntitiesService,
+  IEntitiesService, isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService
+  NetworkService, toBoolean, toNumber
 } from '@sumaris-net/ngx-components';
 import { Trip } from '../services/model/trip.model';
 import { environment } from '@environments/environment';
@@ -32,6 +32,16 @@ import { mergeLoadResult } from '@app/shared/functions';
 import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { ProgramFragments } from '@app/referential/services/program.fragments';
 import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
+import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { OperationControlOptions } from '@app/trip/services/operation.service';
+import { PhysicalGearValidatorOptions, PhysicalGearValidatorService } from '@app/trip/physicalgear/physicalgear.validator';
+import { OperationValidatorOptions } from '@app/trip/services/validator/operation.validator';
+import { IProgressionOptions } from '@app/data/services/data-quality-service.class';
+import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { MeasurementUtils } from '@app/trip/services/model/measurement.model';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { Geometries } from '@app/shared/geometries.utils';
 
 const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
   loadAll: gql`query PhysicalGears($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
@@ -92,6 +102,16 @@ export declare interface PhysicalGearServiceWatchOptions extends EntitiesService
   query?: any;
 }
 
+export declare interface PhysicalGearControlOptions extends PhysicalGearValidatorOptions, IProgressionOptions {
+  allowChildren?: boolean;
+  isChild?: boolean;
+  acquisitionLevel?: AcquisitionLevelType;
+  initialPmfms?: DenormalizedPmfmStrategy[];
+
+  // Translator options
+  translatorOptions?: FormErrorTranslatorOptions;
+}
+
 @Injectable({providedIn: 'root'})
 export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, PhysicalGearFilter>
   implements IEntitiesService<PhysicalGear, PhysicalGearFilter, PhysicalGearServiceWatchOptions> {
@@ -102,7 +122,9 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected accountService: AccountService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    protected validatorService: PhysicalGearValidatorService,
+    protected formErrorTranslator: FormErrorTranslator
   ) {
     super(graphql, environment);
     this._logPrefix = '[physical-gear-service] ';
@@ -444,6 +466,87 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     return res?.data;
   }
 
+  async controlAllByTrip(trip: Trip, opts?: PhysicalGearControlOptions): Promise<FormErrors> {
+
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    opts = {
+      ...opts,
+      maxProgression
+    };
+    opts.progression = opts.progression || new ProgressionModel({total: maxProgression});
+    const endProgression = opts.progression.current + maxProgression;
+
+    try {
+
+      const data = trip.gears;
+      if (isEmptyArray(data)) return undefined; // Skip if empty
+
+      // Prepare control options
+      opts = await this.fillControlOptionsForTrip(trip.id, opts);
+      const progressionStep = maxProgression / (data?.length || 1); // 2 steps by gear: control, then save
+
+      let errorsById: FormErrors = null;
+
+      // For each entity
+      for (let entity of data) {
+
+        const errors = await this.control(entity, opts);
+
+        // Control failed: save error
+        if (errors) {
+          errorsById = errorsById || {};
+          errorsById[entity.id] = errors;
+
+          // translate, then save normally
+          const message = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
+          entity.controlDate = null;
+          entity.qualificationComments = message;
+
+        }
+
+        if (opts.progression?.cancelled) return; // Stop here
+
+        opts.progression.increment(progressionStep);
+      }
+
+      return errorsById;
+    }
+    catch (err) {
+      console.error(err && err.message || err);
+      throw err;
+    }
+    finally {
+      if (opts.progression.current < endProgression) {
+        opts.progression.current = endProgression;
+      }
+    }
+  }
+
+  async control(entity: PhysicalGear, opts?: PhysicalGearControlOptions): Promise<FormErrors> {
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[physical-gear-service] Control #${entity.id}...`, entity);
+
+    // Prepare control options
+    opts = await this.fillControlOptionsForGear(entity, opts);
+
+    // Create validator
+    const form = this.validatorService.getFormGroup(entity, opts);
+
+    if (!form.valid) {
+      // Wait end of validation (e.g. async validators)
+      await AppFormUtils.waitWhilePending(form);
+
+      // Get form errors
+      if (form.invalid) {
+        const errors = AppFormUtils.getFormErrors(form);
+        console.info(`[physical-gear-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
+
+        return errors;
+      }
+    }
+  }
+
   async executeImport(filter: Partial<PhysicalGearFilter>,
                       opts?: {
                         progression?: BehaviorSubject<number>;
@@ -482,4 +585,42 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     return PhysicalGearFilter.fromObject(filter);
   }
 
+  protected async fillValidatorOptionsForTrip(tripId: number, opts?: PhysicalGearValidatorOptions): Promise<PhysicalGearValidatorOptions> {
+    opts = opts || {};
+
+    // Check program filled
+    if (!opts.program) throw new Error('Missing program in options. Unable to control trip\'s physical gears');
+
+    return {
+      acquisitionLevel: 'PHYSICAL_GEAR',
+      withChildren: opts.program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN),
+      ...opts,
+      isOnFieldMode: false, // Always disable 'on field mode'
+      withMeasurements: true // Need by full validation
+    };
+  }
+
+  private async fillControlOptionsForTrip(tripId: number, opts?: PhysicalGearControlOptions): Promise<PhysicalGearControlOptions> {
+
+    // Fill options need by the operation validator
+    opts = await this.fillValidatorOptionsForTrip(tripId, opts);
+
+    return opts;
+  }
+
+  private async fillControlOptionsForGear(entity: PhysicalGear, opts?: PhysicalGearControlOptions): Promise<PhysicalGearControlOptions> {
+    const hasParent = isNotNil(toNumber(entity.parentId, entity.parent.id));
+
+    // Fill acquisition level, BEFORE loading pmfms
+    opts.isChild = opts.allowParentOperation !== false && (isNotNil(entity.parentOperationId) || isNotNil(entity.parentOperation?.id));
+    opts.acquisitionLevel = opts.isChild ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
+    opts.initialPmfms = null; // Force to reload pmfms, on the same acquisition level
+
+    opts = await this.fillControlOptionsForTrip(entity.tripId, opts);
+
+    return {
+      ...opts,
+      acquisitionLevel: hasParent ? 'PHYSICAL_GEAR': 'CHILD_PHYSICAL_GEAR',
+    }
+  }
 }

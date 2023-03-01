@@ -33,6 +33,7 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
 
 
 export interface IPmfmForm {
@@ -76,6 +77,7 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     settings: LocalSettingsService,
     private positionValidator: PositionValidatorService,
     private fishingAreaValidator: FishingAreaValidatorService,
+    private programRefService: ProgramRefService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);

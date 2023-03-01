@@ -1258,22 +1258,46 @@ export class TripService
 
     if (opts?.progression) opts.progression.increment(progressionStep);
 
-    // If trip is Valid, control operations
+    // If trip is valid: continue
     if (!opts || !opts.withOperationGroup) {
-      const errors = await this.operationService.controlAllByTrip(entity, {
-        program,
-        progression: opts?.progression,
-        maxProgression: maxProgression - progressionStep
-      });
-      if (errors) {
-        return {
-          message: 'TRIP.ERROR.INVALID_OPERATIONS',
-          details: {
-            errors: {
-              operations: errors
+
+      // Control physical gears
+      {
+        const errors = await this.physicalGearService.controlAllByTrip(entity, {
+          program,
+          progression: opts?.progression,
+          maxProgression: progressionStep
+        })
+
+        if (errors) {
+          return {
+            message: 'TRIP.ERROR.INVALID_GEARS',
+            details: {
+              errors: {
+                gears: errors
+              }
             }
-          }
-        };
+          };
+        }
+      }
+
+      // Control operations
+      {
+        const errors = await this.operationService.controlAllByTrip(entity, {
+          program,
+          progression: opts?.progression,
+          maxProgression: maxProgression - progressionStep * 2
+        });
+        if (errors) {
+          return {
+            message: 'TRIP.ERROR.INVALID_OPERATIONS',
+            details: {
+              errors: {
+                operations: errors
+              }
+            }
+          };
+        }
       }
     }
 

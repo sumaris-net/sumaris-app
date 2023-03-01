@@ -1,14 +1,23 @@
 import { Injectable } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
-import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AbstractControlOptions, UntypedFormArray, UntypedFormBuilder, FormGroup, Validators, UntypedFormGroup } from '@angular/forms';
 import { LocalSettingsService, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { DataRootEntityValidatorOptions, DataRootEntityValidatorService } from '@app/data/services/validator/root-data-entity.validator';
 import { TranslateService } from '@ngx-translate/core';
+import { AcquisitionLevelCodes, AcquisitionLevelType } from '@app/referential/services/model/model.enum';
+import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
+import { Program } from '@app/referential/services/model/program.model';
+import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
+import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
 
 
-export interface PhysicalGearValidatorOptions extends DataRootEntityValidatorOptions {
+export interface PhysicalGearValidatorOptions extends DataEntityValidatorOptions {
+  program?: Program;
   withChildren?: boolean;
+  withMeasurements?: boolean;
+  pmfms?: DenormalizedPmfmStrategy[];
+  acquisitionLevel?: AcquisitionLevelType;
 }
 
 @Injectable({providedIn: 'root'})
@@ -18,8 +27,29 @@ export class PhysicalGearValidatorService
 
   constructor(formBuilder: UntypedFormBuilder,
               translate: TranslateService,
-              settings?: LocalSettingsService) {
+              protected measurementsValidatorService: MeasurementsValidatorService,
+              settings?: LocalSettingsService,
+              ) {
     super(formBuilder, translate, settings);
+  }
+
+  getFormGroup(data?: PhysicalGear, opts?: PhysicalGearValidatorOptions): UntypedFormGroup {
+    const form = super.getFormGroup(data, opts);
+
+    // Add measurement form
+    if (opts.withMeasurements) {
+      if (!opts.pmfms) {
+        const acquisitionLevel = opts.isChild ? AcquisitionLevelCodes.CHILD_OPERATION : AcquisitionLevelCodes.OPERATION;
+        opts.pmfms = (opts.program?.strategies?.[0] && opts.program.strategies[0].denormalizedPmfms || [])
+          .filter(p => p.acquisitionLevel === acquisitionLevel);
+      }
+      form.addControl('measurements', this.measurementsValidatorService.getFormGroup(data && data.measurements, {
+        forceOptional: opts.isOnFieldMode,
+        pmfms: opts.pmfms
+      }));
+    }
+
+    return form;
   }
 
   getFormGroupConfig(data?: PhysicalGear, opts?: PhysicalGearValidatorOptions): { [key: string]: any } {

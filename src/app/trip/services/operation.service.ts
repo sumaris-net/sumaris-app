@@ -624,7 +624,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     const incrementProgression = () => opts.progression.increment(progressionStep);
 
     const now = this._debug && Date.now();
-    if (this._debug) console.debug(`[operation-service] Control {${entity.id}}...`, entity);
+    if (this._debug) console.debug(`[operation-service] Control #${entity.id}...`, entity);
 
     // Fill options (trip, program, pmfms, etc. )
     opts = await this.fillControlOptionsForOperation(entity, opts);
@@ -639,7 +639,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
       // Get form errors
       if (form.invalid) {
         const errors = AppFormUtils.getFormErrors(form);
-        console.info(`[operation-service] Control operation {${entity.id}} [INVALID] in ${Date.now() - now}ms`, errors);
+        console.info(`[operation-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
 
         incrementProgression(); // Increment progression
 
