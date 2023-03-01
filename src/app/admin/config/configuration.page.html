@@ -137,7 +137,12 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="notifications"></ion-icon>
         </mat-icon>
-        <ion-label translate>CONFIGURATION.TAB_NOTIFICATIONS</ion-label>
+        <ion-label [matBadge]="userEventsTable.totalRowCount"
+                   [matBadgeHidden]="!userEventsTable.totalRowCount"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+                   translate>CONFIGURATION.TAB_NOTIFICATIONS</ion-label>
       </ng-template>
 
       <app-user-events-table #userEventsTable
