@@ -216,18 +216,25 @@
     </ng-container>
 
     <!-- Actions column -->
-    <app-actions-column [stickyEnd]="useSticky">
-      <!--<button mat-icon-button matHeader
-              [title]="'COMMON.BTN_OPTIONS'|translate"
-              [matMenuTriggerFor]="optionsMenu">
-        <mat-icon>more_vert</mat-icon>
-      </button>-->
+    <app-actions-column [stickyEnd]="mobile && selection.hasValue()"
+                        [cellTemplate]="cellTemplate">
+      <ng-template #cellTemplate let-row>
+          <!-- Delete row button -->
+          <button mat-icon-button
+                  *ngIf="mobile && enabled && singleSelectedRow === row"
+                  [title]="'COMMON.BTN_DELETE'|translate"
+                  (click)="cancelOrDelete($event, row)">
+            <mat-icon>delete</mat-icon>
+          </button>
+      </ng-template>
     </app-actions-column>
 
     <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"
         class="mat-row-disabled"
+        [class.mat-row-selected]="highlightedRowId === row.id || (mobile && selection.isSelected(row))"
         (click)="clickRow($event, row)"
+        (press)="pressRow($event, row)"
     ></tr>
   </table>
 
