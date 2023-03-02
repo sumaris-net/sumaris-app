@@ -1807,11 +1807,11 @@
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
-      "TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Marée > Hors-Ligne > Niveau(x) de lieu à importer (ids)",
+      "TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Marée > Hors-Ligne > Niveau(x) de lieu à importer",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
-      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Pmfms optionnels à afficher (ids)",
+      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Colonne(s) supplémentaire(s)",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
       "TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT": "Marée > Engin: Nombre minimum de sous-engins ?",
@@ -1869,7 +1869,7 @@
         "DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER": "Date/Heure, Engin, Métier, Position/Zone de pêche",
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Engin, Métier, Position/Zone de pêche, Caractéristiques"
       },
-      "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Marée: Colonne 'SAMPLING_METHOD'",
+      "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Marée brutes: Valeur de la colonne 'SAMPLING_METHOD'",
       "TRIP_EXTRACTION_SAMPLING_METHODS": {
         "OBSERVER": "Observer",
         "SELF_SAMPLING": "SelfSampling"
@@ -1888,7 +1888,7 @@
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
-      "LANDING_EDITOR_SAMPLING": "Echantillonnage biologique",
+      "LANDING_EDITOR_SAMPLING": "Échantillonnage biologique",
       "LANDING_CREATION_DATE_ENABLE": "Sortie > Débarquements : Afficher la date de création ?",
       "LANDING_RECORDER_PERSON_ENABLE": "Sortie > Débarquements : Afficher le saisisseur ?",
       "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port d'attache ?",
