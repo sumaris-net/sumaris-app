@@ -66,9 +66,9 @@
         </ion-item>
 
         <!-- error -->
-        <ion-item *ngIf="(error || physicalGearForm.error) as errorMsg" visible-xs visible-sm visible-mobile lines="none">
+        <ion-item *ngIf="(error || physicalGearForm.error) as error" visible-xs visible-sm visible-mobile lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" [innerHTML]="errorMsg|translate"></ion-label>
+          <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
         </ion-item>
 
         <!-- DEBUG -->
@@ -82,7 +82,9 @@
                 modal.valid: {{valid}}<br/>
                 modal.i18nSuffix: {{i18nSuffix}}<br/>
                 modal.allowChildrenGears: {{allowChildrenGears}}<br/>
-                modal.showChildrenTable: {{showChildrenTable$|push:'immediate'}}
+                modal.minChildrenCount: {{minChildrenCount}}<br/>
+                modal.showChildrenTable: {{showChildrenTable$|push:'immediate'}}<br/>
+                modal.usageMode: {{usageMode}}<br/>
               </ion-col>
               <ion-col>
                 form.loading: {{physicalGearForm.loading}}<br/>
@@ -102,10 +104,10 @@
                                 [canEditGear]="canEditGear"
                                 [canEditRankOrder]="canEditRankOrder"
                                 [showGear]="showGear"
-                                [showError]="false"
                                 [i18nSuffix]="i18nSuffix"
                                 (onSubmit)="saveAndClose($event)"
                                 [compact]="false"
+                                [showError]="false"
                                 [mobile]="mobile" >
         </app-physical-gear-form>
 

@@ -75,7 +75,7 @@ export abstract class AppBaseTable<T extends Entity<T, ID>,
   @Input() stickyEnd = false;
   @Input() compact = false;
   @Input() mobile = false;
-  @Input() pressHighlightDuration = 4000; // 4s
+  @Input() pressHighlightDuration = 10000; // 10s
 
 
   @Input() set canEdit(value: boolean) {

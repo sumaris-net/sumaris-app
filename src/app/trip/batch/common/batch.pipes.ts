@@ -12,10 +12,10 @@ import { PmfmIds, QualitativeValueIds } from '@app/referential/services/model/mo
   name: 'isSamplingRatioComputed'
 })
 export class IsSamplingRatioComputedPipe implements PipeTransform {
-  transform(value: Batch | {samplingRatio: number; samplingRatioText: string; } | string, format?: SamplingRatioFormat): boolean {
-    if (!value) return false;
-    if (typeof value === 'string') return BatchUtils.isSamplingRatioComputed(value, format);
-    return BatchUtils.isSamplingRatioComputed(value.samplingRatioText, format);
+  transform(batch: Batch | {samplingRatio: number; samplingRatioText: string; samplingRatioComputed?: boolean; } | string, format?: SamplingRatioFormat): boolean {
+    if (!batch) return false;
+    if (typeof batch === 'string') return BatchUtils.isSamplingRatioComputed(batch, format);
+    return batch.samplingRatioComputed || BatchUtils.isSamplingRatioComputed(batch.samplingRatioText, format);
   }
 }
 

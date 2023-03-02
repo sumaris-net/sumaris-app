@@ -28,6 +28,7 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import {ErrorCodes} from '../../../../../ngx-sumaris-components/src/app/core/services/errors';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
@@ -186,14 +187,29 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       showEstimatedWeight: false
     }
 
-    this.setValue(this.data);
+    this.load();
   }
 
   ngAfterViewInit(): void {
-    this.form.markAsReady();
     // Focus on the first field (if new AND desktop AND enabled)
     if (this.isNew && !this.mobile && this.enabled) {
       this.form.ready().then(() => this.form.focusFirstInput());
+    }
+  }
+
+  async load() {
+    this.markAsReady();
+    this.markAsLoading();
+
+    try {
+      await this.updateView(this.data);
+    }
+    catch(err) {
+      if (err === 'CANCELLED') return;
+      this.setError(err);
+    }
+    finally {
+      this.markAsLoaded();
     }
   }
 
@@ -201,54 +217,47 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this._subscription.unsubscribe();
   }
 
-  async setValue(data?: BatchGroup) {
+  async updateView(data: BatchGroup, opts?: {
+    emitEvent?: boolean;
+  }): Promise<void> {
 
-    console.debug('[batch-group-modal] Applying value to form...', data);
     this.resetError();
 
-    try {
-      this.data = data || new BatchGroup();
+    if (!data) throw {code: ErrorCodes.DATA_NOT_FOUND_ERROR, message: 'ERROR.DATA_NO_FOUND'};
 
-      // Set form value
-      await this.form.setValue(this.data);
+    this.data = data;
 
-      // Restore validation error
-      this.restoreError(this.data);
+    await this.setValue(data);
+
+    if (!opts || opts.emitEvent !== false) {
+      this.markAsPristine();
+      this.markAsUntouched();
+      this.updateViewState(data);
     }
-    catch(err) {
-      this.form.error = (err && err.message || err);
-      console.error('[batch-group-modal] Error while load data: ' + (err && err.message || err), err);
-    }
-    finally {
-      if (!this.disabled) this.enable();
-      this.form.markAsUntouched();
-      this.form.markAsPristine();
-      this.markForCheck();
-    }
+  }
+
+  async setValue(data: BatchGroup) {
+    await this.form.setValue(data);
   }
 
   protected ready(): Promise<void> {
     return this.form.ready();
   }
 
-  /**
-   * Show validation error (if NOT on field mode)
-   * @param data
-   * @protected
-   */
-  protected restoreError(data?: BatchGroup) {
-    if (this._isOnFieldMode) return; // Skip if on field mode
+  protected updateViewState(data?: BatchGroup, opts?: {emitEvent?: boolean}) {
+    if (this.isNew || this.enabled) {
+      this.enable(opts);
+    }
+    else {
+      this.disable(opts);
+    }
 
-    if (data?.qualityFlagId === QualityFlagIds.BAD
-      && isNotNilOrBlank(data?.qualificationComments)
-      // Skip if default/generic error, because this one is not useful. It can have been set when closing the modal
-      && data.qualificationComments !== this.translate.instant('ERROR.INVALID_OR_INCOMPLETE_FILL')) {
+    const errorMessage = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) ? data.qualificationComments : null;
+    // Skip if default/generic error, because this one is not useful. It can have been set when closing the modal
+    if (isNotNilOrBlank(errorMessage) && errorMessage !== this.translate.instant('ERROR.INVALID_OR_INCOMPLETE_FILL')) {
 
-      const error = data.qualificationComments
-        // Replace newline by a <br> tag
-        .replace(/(\n|\r|<br\/>)+/g, '<br/>');
-
-      this.setError(error);
+      // Replace newline by a <br> tag, then display
+      this.setError(errorMessage.replace(/(\n|\r|<br\/>)+/g, '<br/>'));
     }
   }
 
@@ -420,7 +429,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
 
 
   protected async reset(data?: BatchGroup) {
-    await this.setValue(data || new BatchGroup());
+    await this.updateView(data || new BatchGroup());
   }
 
   async onShowSubBatchesButtonClick(event?: Event) {
@@ -475,6 +484,10 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
     this.cd.markForCheck();
   }
 
+  protected markAsReady() {
+    this.form.markAsReady();
+  }
+
   protected markAsLoading() {
     this.loading = true;
     this.markForCheck();
@@ -486,7 +499,8 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
   }
 
   protected setError(error: any) {
-    this.form.error = error;
+    const errorMessage = error?.message ? error.message : error;
+    this.form.error = errorMessage;
   }
 
   protected resetError() {
