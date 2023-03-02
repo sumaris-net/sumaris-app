@@ -666,7 +666,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
   }
 
   protected async fillControlOptionsForGear(entity: PhysicalGear, opts?: PhysicalGearControlOptions): Promise<PhysicalGearControlOptions> {
-
+    opts = opts || {};
 
     opts = await this.fillControlOptionsForTrip(entity.tripId, opts);
 

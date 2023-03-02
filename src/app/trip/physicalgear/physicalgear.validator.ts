@@ -88,10 +88,10 @@ export class PhysicalGearValidatorService
       PhysicalGear.equals,
       (value) => isNil(value),
       {
-        allowEmptyArray: true,
+        allowEmptyArray: !opts || !opts.minChildrenCount,
         allowReuseControls: false,
         validators: opts?.minChildrenCount > 0
-          ? OperationValidators.requiredArrayMinLength(opts?.minChildrenCount)
+          ? OperationValidators.requiredArrayMinLength(opts.minChildrenCount)
           : undefined
       });
     if (data) {
@@ -110,7 +110,8 @@ export class PhysicalGearValidatorService
     opts = super.fillDefaultOptions(opts);
 
     opts.withChildren = toBoolean(opts.withChildren, toBoolean(opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN), false));
+    opts.minChildrenCount = toNumber(opts.minChildrenCount, opts.program?.getPropertyAsInt(ProgramProperties.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT));
 
-    return
+    return opts;
   }
 }
