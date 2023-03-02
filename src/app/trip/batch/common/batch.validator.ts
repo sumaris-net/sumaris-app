@@ -154,7 +154,7 @@ export class BatchValidatorService<
     return config;
   }
 
-  getChildrenFormArray(data?: Batch[], opts?: BatchValidatorOptions): AppFormArray<T, FormGroup> {
+  getChildrenFormArray(data?: Batch[], opts?: BatchValidatorOptions): AppFormArray<T, UntypedFormGroup> {
     const formArray = new AppFormArray<T, UntypedFormGroup>(
       (value) => this.getFormGroup(value, <O>{withWeight: true, withMeasurements: true, ...opts}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
