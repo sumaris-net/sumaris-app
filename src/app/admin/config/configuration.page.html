@@ -88,13 +88,13 @@
                   </ion-grid>
                 </ng-container>
 
-                <ng-container *ngIf="partners | async | isNotEmptyArray">
+                <ng-container *ngIf="$partners | async | isNotEmptyArray">
                   <h4>
                     <ion-text translate>CONFIGURATION.LOGO_PARTNERS</ion-text>
                   </h4>
 
                   <div class="bottom-banner">
-                    <div class="partner-logo" *ngFor="let item of partners | async; let i = index ">
+                    <div class="partner-logo" *rxFor="let item of $partners; let i = index ">
                       <img class="logo" src="{{ item.logo }}" alt="{{item.label}}" [title]="item.name" width="50"/>
                       <!--<mat-icon class="button-close" (click)="removePartnerAt(i)">close</mat-icon>-->
                     </div>
