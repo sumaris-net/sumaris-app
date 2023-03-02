@@ -20,7 +20,7 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService,
+  NetworkService, removeDuplicatesFromArray,
   toNumber
 } from '@sumaris-net/ngx-components';
 import {Trip} from '../services/model/trip.model';
@@ -112,6 +112,7 @@ export declare interface PhysicalGearServiceWatchOptions extends EntitiesService
 export declare interface PhysicalGearControlOptions extends PhysicalGearValidatorOptions, IProgressionOptions {
   acquisitionLevel?: AcquisitionLevelType;
   initialPmfms?: DenormalizedPmfmStrategy[];
+  initialChildrenPmfms?: DenormalizedPmfmStrategy[];
 
   // Translator options
   translatorOptions?: FormErrorTranslatorOptions;
@@ -622,10 +623,14 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     // Check program filled
     if (!opts.program) throw new Error('Missing program in options. Unable to control trip\'s physical gears');
 
+    const allowChildren = opts?.program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN);
+
     return {
       acquisitionLevel: AcquisitionLevelCodes.PHYSICAL_GEAR, // Default value. Can be override isf gear has parent
+      withChildren: allowChildren,
+      minChildrenCount: allowChildren && opts?.program.getPropertyAsInt(ProgramProperties.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT),
       ...opts,
-      withMeasurementValues: true // Need for a full validation
+      withMeasurementValues: true, // Need for a full validation
     };
   }
 
@@ -637,8 +642,15 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     // Prepare pmfms (the full list, not filtered by gearId)
     if (!opts.initialPmfms) {
       const programLabel = opts.program?.label;
-      const acquisitionLevel = opts.acquisitionLevel;
+      const acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
       opts.initialPmfms = programLabel && (await this.programRefService.loadProgramPmfms(programLabel, {acquisitionLevel})) || [];
+    }
+
+    // Prepare children pmfms (the full list, not filtered by gearId)
+    if (opts.withChildren && !opts.initialChildrenPmfms) {
+      const programLabel = opts.program?.label;
+      const acquisitionLevel = AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR;
+      opts.initialChildrenPmfms = programLabel && (await this.programRefService.loadProgramPmfms(programLabel, {acquisitionLevel})) || [];
     }
 
     // Prepare error translator
@@ -650,30 +662,38 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
       };
     }
 
-    return {
-      withChildren: opts.program?.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN),
-      ...opts,
-    };
+    return opts;
   }
 
   protected async fillControlOptionsForGear(entity: PhysicalGear, opts?: PhysicalGearControlOptions): Promise<PhysicalGearControlOptions> {
-    const isChild = isNotNil(toNumber(entity.parentId, entity.parent?.id));
 
-    // Fill acquisition level, BEFORE loading pmfms
-    opts.withChildren = opts.withChildren && !isChild;
-    opts.acquisitionLevel = isChild ? AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR : AcquisitionLevelCodes.PHYSICAL_GEAR;
-    opts.initialPmfms = null; // Force to reload pmfms, on the same acquisition level
 
     opts = await this.fillControlOptionsForTrip(entity.tripId, opts);
 
+    // Fill acquisition level
+    const isChild = isNotNil(toNumber(entity.parentId, entity.parent?.id));
+    opts.withChildren = opts.withChildren && !isChild;
+    opts.acquisitionLevel = isChild ? AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR : AcquisitionLevelCodes.PHYSICAL_GEAR;
+
     // Filter pmfms for the operation's gear
+    const initialPmfms = isChild ? opts.initialChildrenPmfms : opts.initialPmfms;
     const gearId = entity.gear?.id;
     if (isNotNil(gearId)) {
-      opts.pmfms = (opts.initialPmfms || [])
+      opts.pmfms = initialPmfms
         .filter(p => isEmptyArray(p.gearIds) || p.gearIds.includes(gearId));
     }
     else {
-      opts.pmfms = (opts.initialPmfms || []);
+      opts.pmfms = (initialPmfms || []);
+    }
+
+    // Filter children pmfms, for children gears
+    const childrenGearIds = opts.withChildren ? removeDuplicatesFromArray((entity.children || []).map(child => child.gear?.id)) : undefined;
+    if (isNotEmptyArray(childrenGearIds) && opts.initialChildrenPmfms) {
+      opts.childrenPmfms = opts.initialChildrenPmfms
+        .filter(p => isEmptyArray(p.gearIds) || p.gearIds.some(gearId => childrenGearIds.includes(gearId)));
+    }
+    else {
+      opts.childrenPmfms = (opts.initialChildrenPmfms || []);
     }
 
     return opts;
