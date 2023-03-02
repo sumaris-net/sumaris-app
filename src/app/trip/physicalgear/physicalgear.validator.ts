@@ -88,7 +88,7 @@ export class PhysicalGearValidatorService
       PhysicalGear.equals,
       (value) => isNil(value),
       {
-        allowEmptyArray: !opts || !opts.minChildrenCount,
+        allowEmptyArray: true,
         allowReuseControls: false,
         validators: opts?.minChildrenCount > 0
           ? OperationValidators.requiredArrayMinLength(opts.minChildrenCount)
