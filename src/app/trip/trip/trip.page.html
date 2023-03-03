@@ -65,6 +65,12 @@
     </ion-label>
   </button>
 
+  <button mat-menu-item *ngIf="canCopyLocally"
+          (click)="copyLocally()">
+    <mat-icon>file_copy</mat-icon>
+    <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+  </button>
+
   <!-- DEV only -->
   <ng-container *ngIf="debug">
     <button mat-menu-item *ngIf="isNewData"
@@ -72,11 +78,6 @@
       <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
       <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
       <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
-    </button>
-    <button mat-menu-item *ngIf="!isNewData && data?.id > 0"
-            (click)="copyLocally()">
-      <mat-icon>file_copy</mat-icon>
-      <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
     </button>
     <button mat-menu-item
             (click)="devToggleOfflineMode()">

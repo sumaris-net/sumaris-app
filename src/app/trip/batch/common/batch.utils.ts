@@ -85,7 +85,7 @@ export class BatchUtils {
   }
 
   static isSamplingBatch(batch: Batch) {
-    return batch && isNotNilOrBlank(batch.label) && batch.label.endsWith(Batch.SAMPLING_BATCH_SUFFIX);
+    return batch?.label?.endsWith(Batch.SAMPLING_BATCH_SUFFIX) || false;
   }
 
   static isParentOfSamplingBatch(batch: Batch): boolean {
@@ -145,7 +145,15 @@ export class BatchUtils {
 
   static getSamplingChild(parent: Batch): Batch | undefined {
     const samplingLabel = parent.label + Batch.SAMPLING_BATCH_SUFFIX;
-    return (parent.children || []).find(b => b.label === samplingLabel);
+    return parent.children?.length === 1 && parent.children.find(b => b.label === samplingLabel);
+  }
+
+  static isEmptySamplingBatch(batch: Batch) {
+    return BatchUtils.isSamplingBatch(batch)
+      && isNil(BatchUtils.getWeight(batch)?.value)
+      && isNil(batch.samplingRatio)
+      && (batch.individualCount || 0) === 0
+      && isEmptyArray(batch.children)
   }
 
   /**

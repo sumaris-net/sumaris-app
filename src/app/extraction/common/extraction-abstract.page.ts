@@ -55,6 +55,7 @@ export interface ExtractionState<T extends ExtractionType> {
 // tslint:disable-next-line:directive-class-suffix
 export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends ExtractionState<T>> extends AppTabEditor<T> {
 
+  protected readonly type$ = this._state.select('type');
   protected readonly types$ = this._state.select('types');
 
   form: UntypedFormGroup;
@@ -156,12 +157,13 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
 
   protected async loadFromRouteOrSettings(): Promise<boolean> {
 
+    let found = false;
     try {
       // Read the route queryParams
       {
         const { category, label, sheet, q, meta } = this.route.snapshot.queryParams;
         if (this.debug) console.debug('[extraction-abstract-page] Reading route queryParams...', this.route.snapshot.queryParams);
-        const found = await this.loadQueryParams({ category, label, sheet, q, meta }, {emitEvent: false});
+        found = await this.loadQueryParams({ category, label, sheet, q, meta }, {emitEvent: false});
         if (found) return true; // found! stop here
       }
 
@@ -174,7 +176,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
           if (settingsAgeInHours <= 12 /* Apply filter, if age <= 12h */) {
             if (this.debug) console.debug('[extraction-abstract-page] Restoring from settings...', json);
             const { category, label, sheet, q, meta } = json;
-            await this.loadQueryParams({ category, label, sheet, q, meta }, {emitEvent: false});
+            found = await this.loadQueryParams({ category, label, sheet, q, meta }, {emitEvent: false});
+            if (found) return true; // found! stop here
           }
         }
       }
@@ -182,8 +185,10 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       return false; // not loaded
     }
     finally {
-      // Mark as started, with a delay, to avoid reload twice, because of listen on page/sort
-      setTimeout(() => this.markAsStarted(), 450);
+      if (found) {
+        // Mark as started, with a delay, to avoid reload twice, because of listen on page/sort
+        setTimeout(() => this.markAsStarted(), 450);
+      }
     }
   }
 
@@ -265,6 +270,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
         return false;
       }
       console.debug(`[extraction-form] Set type to {${type.label}}`, type);
+      this.form.patchValue({})
       this.type = type;
       this.criteriaForm.type = type;
 
@@ -282,12 +288,12 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     }
 
     // Update the window location
-    if (opts.skipLocationChange === false) {
+    if (opts?.skipLocationChange !== true) {
       setTimeout(() => this.updateQueryParams(), 500);
     }
 
     // Refresh data
-    if (!opts || opts.emitEvent !== true) {
+    if (!opts || opts.emitEvent !== false) {
       this.onRefresh.emit();
     }
 
@@ -300,7 +306,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
     this.form.patchValue({sheetName}, opts);
     this.criteriaForm.sheetName = sheetName;
 
-    if (opts.skipLocationChange !== true) {
+    if (opts?.skipLocationChange !== true) {
       setTimeout(() => this.updateQueryParams(), 500);
     }
 
