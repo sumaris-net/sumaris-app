@@ -334,8 +334,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         });
 
         // Add complex validator
-        if (form.valid && !isTaxonGroupNoWeight) {
-          const requiredSampleWeight = (!opts || opts.allowSamplingBatches !== false) && target.observedIndividualCount > 0;
+        if (form.valid && !isTaxonGroupNoWeight && enableSamplingBatch) {
+          const requiredSampleWeight = target.observedIndividualCount > 0;
           form.setValidators(BatchGroupValidators.samplingRatioAndWeight({ qvPmfm, requiredSampleWeight, samplingRatioFormat, weightMaxDecimals }));
           form.updateValueAndValidity();
         }
@@ -414,6 +414,12 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
     const samplingBatch = BatchUtils.getSamplingChild(batch);
     if (samplingBatch) samplingBatch.weight = BatchUtils.getWeight(samplingBatch);
+
+    // Remove the sampling batch, if existe but empty
+    if (BatchUtils.isEmptySamplingBatch(samplingBatch)) {
+      batch.children = [];
+      return;
+    }
 
     // If total weight = 0, fill sampling weight to zero (if weight is required)
     if (opts.weightRequired && totalWeight === 0) {

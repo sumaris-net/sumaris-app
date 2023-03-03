@@ -601,7 +601,8 @@ export class BatchValidators {
         }
 
         // If sampling weight is required, but a value is expected
-        if (!isSamplingWeightValid && opts?.requiredSampleWeight === true && isNil(totalWeight) || totalWeight > 0) {
+        // BUT skip if totalWeight=0
+        if (!isSamplingWeightValid && opts?.requiredSampleWeight === true && totalWeight !== 0) {
           if (!samplingWeightValueControl.hasError('required')) {
             samplingWeightValueControl.setErrors({ ...samplingWeightValueControl.errors, required: true }, opts);
           }
