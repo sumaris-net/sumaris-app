@@ -11,6 +11,7 @@ import { AcquisitionLevelCodes, PmfmIds } from '@app/referential/services/model/
 import { AppRootDataEditor } from '@app/data/form/root-data-editor.class';
 import { UntypedFormGroup, Validators } from '@angular/forms';
 import {
+  AccountService,
   Alerts,
   AppErrorWithDetails,
   DateUtils,
@@ -98,6 +99,7 @@ export class TripPage
   enableReport: boolean;
   operationEditor: OperationEditor;
   operationPasteFlags: number;
+  canCopyLocally = false;
 
   @Input() toolbarColor: PredefinedColors = 'primary';
 
@@ -125,6 +127,7 @@ export class TripPage
     protected operationService: OperationService,
     protected context: ContextService,
     protected tripContext: TripContextService,
+    protected accountService: AccountService,
     public network: NetworkService,
     @Self() @Inject(PHYSICAL_GEAR_DATA_SERVICE_TOKEN) public physicalGearService: InMemoryEntitiesService<PhysicalGear, PhysicalGearFilter>
   ) {
@@ -430,6 +433,8 @@ export class TripPage
     // program
     const programLabel =  data.program?.label;
     if (programLabel) this.$programLabel.next(programLabel);
+
+    this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
   }
 
   updateViewState(data: Trip, opts?: {onlySelf?: boolean, emitEvent?: boolean; }) {
