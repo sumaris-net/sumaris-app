@@ -117,6 +117,8 @@ export const environment = Object.freeze(<AppEnvironment>{
 
     // Token auth (using Person.pubkey)
     username: 'admin@sumaris.net', password: 'admin'
+
+    //username: 'admsih@sfa.sc', password: 'admsih321'
   },
 
   account: {
