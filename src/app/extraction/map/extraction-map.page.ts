@@ -35,7 +35,7 @@ import { ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, Extracti
 import { Location } from '@angular/common';
 import { ControlOptions, CRS, MapOptions, WMSParams } from 'leaflet';
 import { Feature } from 'geojson';
-import { debounceTime, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, filter, first, mergeMap, skip, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { SelectExtractionTypeModal, SelectExtractionTypeModalOptions } from '../type/select-extraction-type.modal';
 import { DEFAULT_CRITERION_OPERATOR, ExtractionAbstractPage, ExtractionState } from '../common/extraction-abstract.page';
@@ -97,8 +97,22 @@ const BASE_LAYER_SLD_BODY = '<sld:StyledLayerDescriptor version="1.0.0" xsi:sche
   '   </sld:NamedLayer>' +
   '</sld:StyledLayerDescriptor>';
 
-export interface ExtractionMapState extends ExtractionState<ExtractionProduct>{
+export interface FeatureProperty {
+  name: string;
+  value: string
+}
+export interface FeatureDetails {
+  title: string;
+  value?: string;
+  otherValue?: string;
+  properties: FeatureProperty[];
+}
 
+export interface ExtractionMapState extends ExtractionState<ExtractionProduct>{
+  overFeature: Feature;
+  details: FeatureDetails;
+  legendItems: ColorScaleLegendItem[] | undefined;
+  customLegendOptions: Partial<LegendOptions>;
 }
 
 @Component({
@@ -173,14 +187,35 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   showLegend = false;
   legendForm: UntypedFormGroup;
   showLegendForm = false;
-  customLegendOptions: Partial<LegendOptions> = undefined;
   legendStyle = {};
-  $legendItems = new BehaviorSubject<ColorScaleLegendItem[] | undefined>([]);
+  legendItems$ = this._state.select('legendItems');
+
+  set customLegendOptions(value: Partial<LegendOptions>) {
+    this._state.set('customLegendOptions', _ => value);
+  }
+  get customLegendOptions(): Partial<LegendOptions> {
+    return this._state.get('customLegendOptions');
+  }
 
   // -- Details card --
-  $onOverFeature = new Subject<Feature>();
-  $selectedFeature = new BehaviorSubject<Feature | undefined>(undefined);
-  $details = new Subject<{ title: string; value?: string;  otherValue?: string; properties: { name: string; value: string }[]; }>();
+  overFeature$ = this._state.select('overFeature');
+  details$ = this._state.select('details');
+
+  set overFeature(value: Feature) {
+    this._state.set('overFeature', _ => value);
+  }
+
+  get overFeature(): Feature {
+    return this._state.get('overFeature');
+  }
+
+  set details(value: FeatureDetails) {
+    this._state.set('details', _ => value);
+  }
+
+  get details(): FeatureDetails {
+    return this._state.get('details');
+  }
 
   // -- Tech chart card
   techChartOptions: TechChartOptions = {
@@ -351,7 +386,9 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       min: [0, Validators.required],
       max: [1000, Validators.required],
       startColor: [legendStartColor.rgba(), Validators.required],
-      endColor: [legendEndColor.rgba(), Validators.required]
+      endColor: [legendEndColor.rgba(), Validators.required],
+      conversionCoefficient: [1],
+      unit: [null]
     });
 
     const account = this.accountService.account;
@@ -394,12 +431,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
     this.addChildForm(this.criteriaForm);
 
-    this.registerSubscription(
-      this.$onOverFeature
-        .pipe(
-          throttleTime(300),
-          tap(feature => this.openFeatureDetails(feature))
-        ).subscribe());
+    this._state.connect('details', this.overFeature$, (oldState, value) => this.computeFeatureDetails(value))
 
     this.registerSubscription(
       this.criteriaForm.form.valueChanges
@@ -430,11 +462,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
   ngOnDestroy() {
     super.ngOnDestroy();
-    //this.$layers.unsubscribe();
-    this.$legendItems.unsubscribe();
-    this.$onOverFeature.unsubscribe();
-    this.$selectedFeature.unsubscribe();
-    this.$details.unsubscribe();
     this.$title.unsubscribe();
     this.$sheetNames.unsubscribe();
     this.$timeColumns.unsubscribe();
@@ -546,6 +573,8 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     const changed = await super.setType(type, opts);
 
     if (changed) {
+      // Reset year
+      this.form.get('year').setValue(null);
 
       // Update the title
       this.updateTitle();
@@ -579,10 +608,14 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     const changed = this.sheetName !== sheetName;
 
     // Reset min/max of the custom legend (if exists)
-    if (changed) {
-      if (this.customLegendOptions) {
-        this.customLegendOptions.min = 0;
-        this.customLegendOptions.max = undefined;
+    if (changed || opts?.emitEvent == true) {
+      const customLegendOptions = this.customLegendOptions;
+      if (customLegendOptions) {
+        this.customLegendOptions = {
+          ...customLegendOptions,
+          min: 0,
+          max: undefined
+        };
       }
 
       // Stop animation
@@ -610,6 +643,10 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
             return this.loadGeoData();
           }
         });
+    }
+    else {
+      this.applyDefaultStrata(opts);
+      this.updateColumns(opts);
     }
   }
 
@@ -684,7 +721,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     this.data = {total: 0, min: 0, max: 0};
 
     // Hide details
-    this.$details.next();
+    this.details = null;
     // Hide chart
     this.$tech.next(null);
     // Hide legend
@@ -820,6 +857,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       }
       while (!hasData && year >= endYear);
 
+      //if (hasData) this.setYear(year, {emitEvent: true, skipLocationChange: true, stopAnimation: true})
 
     }
     finally {
@@ -927,7 +965,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
         layer.setStyle(this.getFeatureStyleFn(scale, aggColumnName));
         this.updateLegendStyle(scale);
 
-
         // Add countries layers
         if (this.showCountriesLayer) {
 
@@ -959,14 +996,15 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
     } catch (err) {
       console.error(err);
-      this.error = err && err.message || err;
+      this.setError(err && err.message || err);
       this.showLegend = false;
       this.markForCheck();
     } finally {
       if (!this.isAnimated) {
         this.markAsLoaded();
         this.enable();
-        await this.fitToBounds();
+
+        if (this.data.total) await this.fitToBounds();
       }
     }
   }
@@ -1190,12 +1228,12 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
   }
 
   protected onEachFeature(feature: Feature, layer: L.Layer) {
-    layer.on('mouseover', (_) => this.$onOverFeature.next(feature));
+    layer.on('mouseover', (_) => this.overFeature = feature);
     layer.on('mouseout', (_) => this.closeFeatureDetails(feature));
   }
 
-  protected openFeatureDetails(feature: Feature) {
-    if (this.$selectedFeature.getValue() === feature) return; // skip if already selected
+  protected computeFeatureDetails(feature: Feature): FeatureDetails {
+
     const strata = this.getStrataValue();
     const properties = Object.getOwnPropertyNames(feature.properties)
       .filter(key => !strata.aggColumnName || key !== strata.aggColumnName)
@@ -1205,7 +1243,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
           value: feature.properties[key]
         };
       });
-    const aggValue = feature.properties[strata.aggColumnName];
+    let aggValue = feature.properties[strata.aggColumnName];
     let value = this.floatToLocaleString(aggValue);
 
     let title = isNotNilOrBlank(strata.aggColumnName) ? this.columnNames[strata.aggColumnName] : undefined;
@@ -1214,15 +1252,28 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     if (matches) {
       title = matches[1];
       let unit = matches[2];
-      unit = unit || (strata.aggColumnName?.endsWith('_weight') ? UnitLabel.KG : undefined);
+      unit = unit || (strata.aggColumnName?.endsWith('_weight') ? UnitLabel.GRAM : undefined);
       if (unit) {
+        let conversionCoefficient = 1;
+
+        // - Convert G to KG
+        if (unit === UnitLabel.GRAM) {
+          conversionCoefficient = 1/1000;
+          unit = UnitLabel.KG;
+        }
+
         // Append unit to value
+        aggValue = parseFloat(aggValue) * conversionCoefficient;
+        value = this.floatToLocaleString(aggValue);
         if (value) value += ` ${unit}`;
 
         // Try to compute other value, using unit
         // - Convert KG to ton
         if (unit === UnitLabel.KG) {
-          otherValue = this.floatToLocaleString(parseFloat(aggValue) / 1000) + ' ' + UnitLabel.TON;
+          const weightInTons = parseFloat(aggValue) / 1000;
+          if (weightInTons >= 1) {
+            otherValue = this.floatToLocaleString(weightInTons) + ' ' + UnitLabel.TON;
+          }
         }
         // - Convert minutes into human duration
         else if (unit === UnitLabel.MINUTES) {
@@ -1236,22 +1287,27 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     }
 
     // Emit events
-    this.$details.next({title, value, otherValue, properties});
-    this.$selectedFeature.next(feature);
+    return {title, value, otherValue, properties};
   }
 
   closeFeatureDetails(feature: Feature, force?: boolean) {
-    if (this.$selectedFeature.value !== feature) return; // skip is not the selected feature
+    if (this.overFeature !== feature) return; // skip is not the selected feature
 
     // Close now, of forced (already wait 5s)
     if (force) {
-      this.$selectedFeature.next(undefined);
-      this.$details.next(); // Hide details
+      this.details = null; // Hide details
       return;
     }
 
     // Wait 4s before closing
-    return setTimeout(() => this.closeFeatureDetails(feature, true), 4000);
+    return timer(4000)
+      .pipe(
+        // Ignore a new selected feature arrived
+        takeUntil(this.overFeature$.pipe(skip(1))),
+        first(),
+      )
+      // Loop
+      .subscribe(() => this.closeFeatureDetails(feature, true));
   }
 
   openLegendForm(event: Event) {
@@ -1390,7 +1446,6 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     }
   }
 
-
   getFilterValue(strata?: IAggregationStrata): ExtractionFilter {
 
     const filter = super.getFilterValue();
@@ -1492,13 +1547,13 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
 
   protected createLegendScale(opts?: Partial<LegendOptions>): ColorScale {
     opts = opts || this.legendForm.value;
-    const min = opts.min || 0;
-    const max = opts.max || 1000;
+    const min = (opts.min || 0);
+    const max = (opts.max || 1000);
     const startColor = Color.parseRgba(opts.startColor);
     const mainColor = Color.parseRgba(opts.endColor);
     const endColor = Color.parseRgba('rgb(0,0,0)');
 
-    // Create scale color (max 10 grades
+    // Create scale color (max 10 grades)
     const scaleCount = Math.max(2, Math.min(max, 10));
     const scale = ColorScale.custom(scaleCount, {
       min: min,
@@ -1510,7 +1565,7 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
       endColor: endColor.rgb
     });
 
-    this.$legendItems.next(scale.legend.items);
+    this._state.set('legendItems', _ => scale.legend.items);
     this.showLegendForm = false;
     return scale;
   }
@@ -1539,6 +1594,14 @@ export class ExtractionMapPage extends ExtractionAbstractPage<ExtractionProduct,
     const json = this.form.get('strata').value;
     delete json.__typename;
     return json as IAggregationStrata;
+  }
+
+  protected resetYear(value?: number, opts?: {emitEvent?: boolean}) {
+    this.form.get('year')?.reset(value, opts);
+  }
+
+  protected resetStrata(value?: IAggregationStrata, opts?: {emitEvent?: boolean}) {
+    this.form.get('strata')?.reset(value, opts);
   }
 
   protected floatToLocaleString(value: number|string): string|undefined {
