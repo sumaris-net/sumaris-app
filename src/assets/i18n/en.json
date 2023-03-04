@@ -563,7 +563,8 @@
         "SYNCHRONIZATION_STATUS": "State",
         "RECORDER_DEPARTMENT": "Recorder department",
         "RECORDER_PERSON": "Recorder user",
-        "OBSERVERS": "Observers"
+        "OBSERVERS": "Observers",
+        "QUALITY_FLAG_ID": "Quality flag"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Not-synchronized trips",

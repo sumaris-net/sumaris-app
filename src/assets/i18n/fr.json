@@ -564,7 +564,8 @@
         "SYNCHRONIZATION_STATUS": "Etat de la données",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "RECORDER_PERSON": "Saisisseur",
-        "OBSERVERS": "Observateurs"
+        "OBSERVERS": "Observateurs",
+        "QUALITY_FLAG_ID": "Niveau de qualité"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Marées hors-ligne",

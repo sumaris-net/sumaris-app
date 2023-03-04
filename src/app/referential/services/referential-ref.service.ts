@@ -62,6 +62,7 @@ import { RoundWeightConversionRefService } from '@app/referential/round-weight-c
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
 import { BBox } from 'geojson';
+import { translateQualityFlag } from '@app/data/services/model/model.utils';
 
 const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any; }>{
   lastUpdateDate: gql`query LastUpdateDate{
@@ -653,6 +654,21 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     return ReferentialRefFilter.fromObject(filter);
   }
 
+
+  async loadQualityFlags(): Promise<ReferentialRef[]> {
+    const { data: items } = await this.loadAll(0, 100, 'id', 'asc', {
+      entityName: 'QualityFlag',
+      statusId: StatusIds.ENABLE
+    }, {
+      fetchPolicy: "cache-first"
+    });
+
+    // Try to get i18n key instead of label
+    items?.forEach(flag => flag.label = translateQualityFlag(flag.id) || flag.label);
+
+    return items;
+  }
+
   private updateModelEnumerations(config: Configuration) {
     if (!config.properties) {
       console.warn('[referential-ref] No properties found in pod config! Skip model enumerations update');
@@ -760,4 +776,5 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS);
     }
   }
+
 }
