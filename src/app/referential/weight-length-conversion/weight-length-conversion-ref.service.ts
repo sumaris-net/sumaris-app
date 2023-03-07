@@ -1,30 +1,27 @@
 import {
   BaseEntityGraphqlQueries,
-  BaseEntityService, CryptoService, EntitiesStorage,
+  BaseEntityService,
+  CryptoService,
+  EntitiesStorage,
   EntityServiceLoadOptions,
-  firstArrayValue,
   GraphqlService,
-  IEntityService, isEmptyArray, isNil, isNotNil,
+  IEntityService,
+  isNil,
+  isNotEmptyArray,
+  isNotNil,
   LoadResult,
   NetworkService,
-  PlatformService, toNumber
+  PlatformService,
+  toNumber
 } from '@sumaris-net/ngx-components';
-import { Injectable } from '@angular/core';
-import { WeightLengthConversion, WeightLengthConversionRef } from './weight-length-conversion.model';
-import { WeightLengthConversionFilter } from '@app/referential/services/filter/weight-length-conversion.filter';
-import { gql } from '@apollo/client/core';
-import { WeightLengthConversionFragments } from './weight-length-conversion.fragments';
-import { SortDirection } from '@angular/material/sort';
-import { Program } from '@app/referential/services/model/program.model';
-import { map } from 'rxjs/operators';
-import { CacheService } from 'ionic-cache';
-import { defer } from 'rxjs';
-import { Moment } from 'moment';
-import { IPmfm } from '@app/referential/services/model/pmfm.model';
-import { PmfmService } from '@app/referential/services/pmfm.service';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { LengthMeterConversion, LengthUnitSymbol, WeightKgConversion, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { RoundWeightConversionRef } from '@app/referential/round-weight-conversion/round-weight-conversion.model';
+import {Injectable} from '@angular/core';
+import {WeightLengthConversion, WeightLengthConversionRef} from './weight-length-conversion.model';
+import {WeightLengthConversionFilter} from '@app/referential/services/filter/weight-length-conversion.filter';
+import {gql} from '@apollo/client/core';
+import {WeightLengthConversionFragments} from './weight-length-conversion.fragments';
+import {SortDirection} from '@angular/material/sort';
+import {CacheService} from 'ionic-cache';
+import {LengthMeterConversion, LengthUnitSymbol, WeightKgConversion, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`query WeightLengthConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: WeightLengthConversionFilterVOInput){
@@ -159,26 +156,23 @@ export class WeightLengthConversionRefService
 
     // First, try with full filter
     let res = await this.loadAll(0, size, sortBy, 'desc', filter, loadOptions);
+    if (isNotEmptyArray(res?.data)) return res.data[0];
 
-    // Retry on year only (without month)
-    if (isEmptyArray(res?.data) && isNotNil(filter.month)) {
+    if (isNotNil(filter.month) && isNotNil(filter.year)) {
+      // Retry on year only (without month)
       console.debug(this._logPrefix + 'No conversion found, for [month, year]. Retrying with year only.')
       res = await this.loadAll(0, size, sortBy, 'desc', {...filter, month: undefined}, loadOptions);
-    }
+      if (isNotEmptyArray(res?.data)) return res.data[0];
 
-    // Retry on month only (without year)
-    if (isEmptyArray(res?.data) && isNotNil(filter.month) && isNotNil(filter.year)) {
+      // Retry on month only (without year)
       console.debug(this._logPrefix + 'No conversion found, for [year]. Retrying without month only.')
       res = await this.loadAll(0, size, 'year', 'desc', {...filter, year: undefined}, loadOptions);
+      if (isNotEmptyArray(res?.data)) return res.data[0];
     }
 
     // Not found
-    if (isEmptyArray(res?.data)) {
-      console.debug(this._logPrefix + 'No conversion found!')
-      return null;
-    }
-
-    return res.data[0];
+    console.debug(this._logPrefix + 'No conversion found!')
+    return null;
   }
 
   loadAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<WeightLengthConversionFilter>,

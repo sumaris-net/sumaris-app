@@ -160,6 +160,9 @@ export const QualitativeValueIds = {
   BATCH_SORTING: {
     BULK: 390, // Vrac
     NON_BULK: 391 // Hors Vrac
+  },
+  SEX: {
+    UNSEXED: 188 // Non sexe
   }
 };
 

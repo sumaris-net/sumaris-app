@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import {Injectable} from '@angular/core';
+import {UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {
   DateUtils,
   isEmptyArray,
@@ -15,28 +15,29 @@ import {
   SharedValidators,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { Batch, BatchWeight } from '../common/batch.model';
-import { SubBatch } from './sub-batch.model';
-import { Subscription } from 'rxjs';
-import { BatchWeightValidator } from '@app/trip/batch/common/batch.validator';
-import { LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
-import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { WeightLengthConversionRefService } from '@app/referential/weight-length-conversion/weight-length-conversion-ref.service';
-import { FishingArea } from '@app/data/services/model/fishing-area.model';
-import { LocationUtils } from '@app/referential/location/location.utils';
-import { VesselPosition } from '@app/data/services/model/vessel-position.model';
-import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';
-import moment, { Moment } from 'moment';
-import { BatchErrorCodes } from '@app/trip/batch/batch.errors';
-import { RoundWeightConversionRefService } from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
-import { DenormalizedPmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
-import { isLengthUnitSymbol, isWeightUnitSymbol, WeightUtils } from '@app/referential/services/model/model.utils';
-import { DataContext } from '@app/data/services/model/data-context.model';
-import { BatchGroup, BatchGroupUtils } from '@app/trip/batch/group/batch-group.model';
-import { ContextService } from '@app/shared/context.service';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
-import { TranslateService } from '@ngx-translate/core';
+import {Batch, BatchWeight} from '../common/batch.model';
+import {SubBatch} from './sub-batch.model';
+import {Subscription} from 'rxjs';
+import {BatchWeightValidator} from '@app/trip/batch/common/batch.validator';
+import {LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
+import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {WeightLengthConversionRefService} from '@app/referential/weight-length-conversion/weight-length-conversion-ref.service';
+import {FishingArea} from '@app/data/services/model/fishing-area.model';
+import {LocationUtils} from '@app/referential/location/location.utils';
+import {VesselPosition} from '@app/data/services/model/vessel-position.model';
+import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
+import moment, {Moment} from 'moment';
+import {BatchErrorCodes} from '@app/trip/batch/batch.errors';
+import {RoundWeightConversionRefService} from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {isLengthUnitSymbol, isWeightUnitSymbol, WeightUtils} from '@app/referential/services/model/model.utils';
+import {DataContext} from '@app/data/services/model/data-context.model';
+import {BatchGroup, BatchGroupUtils} from '@app/trip/batch/group/batch-group.model';
+import {ContextService} from '@app/shared/context.service';
+import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
+import {TranslateService} from '@ngx-translate/core';
+import {PositionUtils} from '@app/trip/services/position.utils';
 
 export interface BatchContext extends DataContext {
   parentGroup?: BatchGroup;
@@ -237,12 +238,13 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     // Read fishing Areas
     const fishingAreas = this.context?.getValue('fishingAreas') as FishingArea[];
     if (isNotEmptyArray(fishingAreas)) {
-      console.debug('Trying to get rectangle from fishing areas: ', fishingAreas);
+      console.debug('[sub-batch-validator] Trying to get statistical rectangle, from fishing areas ...');
       const rectangle = (fishingAreas || [])
           .map(fa => fa.location)
           .filter(isNotNil)
           .find(location => isNil(location.levelId) || (location.levelId === LocationLevelIds.ICES_RECTANGLE || location.levelId === LocationLevelIds.GFCM_RECTANGLE));
       if (isNotNilOrBlank(rectangle?.label)) {
+        console.debug('[sub-batch-validator] Find statistical rectangle: ' + rectangle.label);
         return rectangle.label;
       }
       // Continue
@@ -251,10 +253,13 @@ export class SubBatchValidatorService extends DataEntityValidatorService<SubBatc
     // Read vessel positions
     const vesselPositions = this.context?.getValue('vesselPositions') as VesselPosition[];
     if (isNotEmptyArray(vesselPositions)) {
-      console.debug('Trying to get rectangle from position: ', vesselPositions);
-      const rectangleLabel = (vesselPositions || [])
+      console.debug('[sub-batch-validator] Trying to get statistical rectangle, from positions ...');
+      const rectangleLabel = (vesselPositions || []).slice()// Copy before reverse()
+        .reverse() // Last position first
+        .filter(p => PositionUtils.isNotNilAndValid(p))
         .map(position => LocationUtils.getRectangleLabelByLatLong(position.latitude, position.longitude))
         .find(isNotNil);
+      if (rectangleLabel) console.debug('[sub-batch-validator] Find statistical rectangle: ' + rectangleLabel);
       return rectangleLabel;
     }
   }
@@ -397,7 +402,7 @@ export class SubBatchValidators {
         month, year,
         lengthPmfmId: lengthPmfm.id,
         referenceTaxonId,
-        sexId: sex?.id,
+        sexId: toNumber(sex?.id, QualitativeValueIds.SEX.UNSEXED), // Unsexed by default
         rectangleLabel: opts.rectangleLabel
       });
 
