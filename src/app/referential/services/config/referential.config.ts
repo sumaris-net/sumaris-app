@@ -607,6 +607,20 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     defaultValue: QualitativeValueIds.BATCH_SORTING.NON_BULK
   },
 
+  QUALITATIVE_VALUE_SEX_UNSEXED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.SEX_UNSEXED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SEX_UNSEXED_ID',
+    type: 'entity',
+    autocomplete: {
+      attributes: ['id', 'name'],
+      filter: {
+        entityName: 'QualitativeValue',
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      }
+    },
+    defaultValue: QualitativeValueIds.SEX.UNSEXED
+  },
+
   TAXON_GROUP_TYPE_FAO_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.TaxonGroupType.FAO.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.TAXON_GROUP_TYPE_FAO_ID',

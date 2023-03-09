@@ -618,9 +618,13 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
         // RoundWeightConversion
         case 'RoundWeightConversion':
-          // TODO limit to program locationIds ? (if location class = SEA) and referenceTaxon from program (taxon groups) + referenceTaxons ?
           loadPageFn = (offset, size) => this.roundWeightConversionRefService
-            .loadAll(offset, size, 'id', 'asc', {statusIds, locationIds: opts?.countryIds}, getLoadOptions(offset));
+            .loadAll(offset, size, 'id', 'asc',
+              { statusIds,
+                // Limit to country from program (see trip service)
+                locationIds: opts?.countryIds
+              },
+              getLoadOptions(offset));
           break;
 
         // Other entities
@@ -754,7 +758,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     QualitativeValueIds.SIZE_UNLI_CAT.NONE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID);
     QualitativeValueIds.BATCH_SORTING.BULK = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_SORTING_BULK_ID);
     QualitativeValueIds.BATCH_SORTING.NON_BULK = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_SORTING_NON_BULK_ID);
-
+    QualitativeValueIds.SEX.UNSEXED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_SEX_UNSEXED_ID);
 
     // Taxon group type
     TaxonGroupTypeIds.FAO = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXON_GROUP_TYPE_FAO_ID);

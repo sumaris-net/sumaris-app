@@ -6,8 +6,9 @@ import {
   EntityServiceLoadOptions,
   GraphqlService,
   IEntityService,
+
   isNil,
-  isNotEmptyArray,
+ isNotEmptyArray,
   isNotNil,
   LoadResult,
   NetworkService,
@@ -20,8 +21,8 @@ import {WeightLengthConversionFilter} from '@app/referential/services/filter/wei
 import {gql} from '@apollo/client/core';
 import {WeightLengthConversionFragments} from './weight-length-conversion.fragments';
 import {SortDirection} from '@angular/material/sort';
-import {CacheService} from 'ionic-cache';
-import {LengthMeterConversion, LengthUnitSymbol, WeightKgConversion, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
+import {CacheService } from 'ionic-cache';
+import { LengthMeterConversion, LengthUnitSymbol, WeightKgConversion, WeightUnitSymbol } from '@app/referential/services/model/model.enum';
 
 const QUERIES: BaseEntityGraphqlQueries = {
   loadAll: gql`query WeightLengthConversions($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: WeightLengthConversionFilterVOInput){
@@ -125,6 +126,20 @@ export class WeightLengthConversionRefService
     return weightKg;
   }
 
+  /**
+   * Get the best fit weight-length conversion.
+   * Will try to load using this order
+   * <ul>
+   *     <li>pmfmId + year + month</li>
+   *     <li>pmfmId + year (without month)</li>
+   *     <li>pmfmId + month (without year)</li>
+   *     <li>TODO: Loop using parameterId (without pmfmId). If found, will convert unit</li>
+   * </ul>
+   * @param filter
+   * @param page
+   * @param fetchOptions
+   * @return
+   */
   async loadByFilter(filter: Partial<WeightLengthConversionFilter> & {
       month: number;
       year: number;

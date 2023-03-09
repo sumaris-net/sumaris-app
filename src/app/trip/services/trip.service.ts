@@ -1808,7 +1808,8 @@ export class TripService
                   ...IMPORT_REFERENTIAL_ENTITIES,
                   ...WEIGHT_CONVERSION_ENTITIES
                 ];
-                // Limit round weight
+
+                // Limit round weight, to the default country location id
                 const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
                 if (isNotNilOrBlank(countryId)) {
                   opts.countryIds = opts.countryIds || [];

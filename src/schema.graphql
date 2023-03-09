@@ -325,6 +325,14 @@ type IExtractionType_PersonVO_DepartmentVO {
   version: String
 }
 
+type IProgressionModel {
+  completed: Boolean!
+  current: Int!
+  jobId: Int
+  message: String
+  total: Int!
+}
+
 type ImageAttachmentVO {
   comments: String
   content: String
@@ -363,6 +371,7 @@ type JobVO {
   issuer: String
   log: String
   name: String
+  progressionModel: IProgressionModel
   report: String
   startDate: Date
   status: JobStatusEnum
@@ -739,6 +748,7 @@ type OperationVO {
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
+  rankOrder: Int
   rankOrderOnPeriod: Int
   recorderDepartment: DepartmentVO
   "Get operation's samples"
@@ -1611,6 +1621,7 @@ type UserEventVO {
   content: String
   creationDate: Date
   eventType: String
+  hasContent: Boolean
   hash: String
   id: Int
   issuer: String
@@ -2094,6 +2105,7 @@ input ExtractionFilterVOInput {
   criteria: [ExtractionFilterCriterionVOInput]
   excludeColumnNames: [String]
   includeColumnNames: [String]
+  meta: Map_String_ObjectScalar
   operator: String
   sheetName: String
 }
@@ -2521,6 +2533,7 @@ input OperationVOInput {
   qualificationComments: String
   qualificationDate: Date
   qualityFlagId: Int
+  rankOrder: Int
   rankOrderOnPeriod: Int
   recorderDepartment: DepartmentVOInput
   samples: [SampleVOInput]
@@ -3177,6 +3190,7 @@ input TripFilterVOInput {
   locationIds: [Int]
   observedLocationId: Int
   observerPersonIds: [Int]
+  operationIds: [Int]
   programIds: [Int]
   programLabel: String
   qualityFlagIds: [Int]
@@ -3250,6 +3264,7 @@ input UserEventVOInput {
   content: String
   creationDate: Date
   eventType: String
+  hasContent: Boolean
   hash: String
   id: Int
   issuer: String
@@ -3421,6 +3436,7 @@ input VesselVOInput {
 }
 
 input WeightLengthConversionFilterVOInput {
+  childLocationIds: [Int]
   lengthParameterIds: [Int]
   lengthPmfmIds: [Int]
   lengthUnitIds: [Int]
