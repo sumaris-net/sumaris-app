@@ -295,43 +295,69 @@
         <ion-row *ngIf="showObservers || showQuality">
 
           <!-- Observers -->
-          <ion-col *ngIf="showObservers">
+          <ion-col size="12" size-sm="6" *ngIf="showObservers">
             <mat-autocomplete-field
               [placeholder]="'TRIP.TABLE.FILTER.OBSERVERS'|translate"
               [formControl]="filterObserversForm.at(0)"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
               [clearable]="true">
-              <ion-icon matPrefix name="person"></ion-icon>
+              <ion-icon matPrefix name="person">
+              </ion-icon>
             </mat-autocomplete-field>
           </ion-col>
 
-          <!-- Data quality status -->
-          <ion-col *ngIf="showQuality && filterDataQualityControl; let control">
-            <mat-form-field>
-              <mat-select [formControl]="control"
-                          [placeholder]="'TRIP.TABLE.QUALITY'|translate">
-                <mat-select-trigger>
-                  <span *ngIf="statusById | mapGet: control.value; let item">
+
+          <ng-container *ngIf="showQuality && filterForm|formGetControl:'dataQualityStatus'; let control">
+            <!-- Data quality status -->
+            <ion-col>
+              <mat-form-field>
+                <mat-select [formControl]="control"
+                            [placeholder]="'TRIP.TABLE.QUALITY'|translate">
+                  <mat-select-trigger>
+                    <span *ngIf="statusById | mapGet: control.value; let item">
+                      <ion-icon [name]="item.icon"></ion-icon>
+                      {{ item.label | translate}}
+                    </span>
+
+                  </mat-select-trigger>
+                  <mat-option *ngFor="let item of statusList" [value]="item.id">
                     <ion-icon [name]="item.icon"></ion-icon>
-                    {{ item.label | translate}}
-                  </span>
+                    {{ item.label |translate }}
+                  </mat-option>
+                </mat-select>
 
-                </mat-select-trigger>
-                <mat-option *ngFor="let item of statusList" [value]="item.id">
-                  <ion-icon [name]="item.icon"></ion-icon>
-                  {{ item.label |translate }}
-                </mat-option>
-              </mat-select>
+                <button matSuffix mat-icon-button tabindex="-1"
+                        type="button"
+                        (click)="clearFilterValue('dataQualityStatus', $event)"
+                        [hidden]="disabled || !control.value">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-form-field>
+            </ion-col>
 
-              <button matSuffix mat-icon-button tabindex="-1"
-                      type="button"
-                      (click)="clearFilterValue('dataQualityStatus', $event)"
-                      [hidden]="disabled || !control.value">
-                <mat-icon>close</mat-icon>
-              </button>
-            </mat-form-field>
-          </ion-col>
+            <!-- Quality flag -->
+            <ion-col *ngIf="filterForm|formGetControl:'qualityFlagId'; let flagControl"
+                     [class.cdk-visually-hidden]="control.value !== 'QUALIFIED'">
+              <mat-form-field>
+                <mat-select [formControl]="flagControl"
+                            [placeholder]="'TRIP.TABLE.FILTER.QUALITY_FLAG_ID'|translate">
+                  <mat-option *ngFor="let item of (qualityFlags|arrayFilter: excludeNotQualified)"
+                              style="background-color: var(--ion-color-{{item.id|qualityFlagToColor}}); color: var(--ion-color-{{item.id|qualityFlagToColor}}-contrast)"
+                              [value]="item.id">
+                    {{ item.label |translate }}
+                  </mat-option>
+                </mat-select>
+
+                <button matSuffix mat-icon-button tabindex="-1"
+                        type="button"
+                        (click)="clearFilterValue('qualityFlagId', $event)"
+                        [hidden]="disabled || !flagControl.value">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </mat-form-field>
+            </ion-col>
+          </ng-container>
         </ion-row>
       </ion-grid>
     </form>

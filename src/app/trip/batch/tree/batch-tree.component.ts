@@ -680,6 +680,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     if (isNotNil(countryId) && isNil(this.context.getValue('country'))) {
       this.context.setValue('country', ReferentialRef.fromObject({id: countryId}));
     }
+    else {
+      if (this.enableWeightLengthConversion) {
+        console.error(`Missing country location id, for round weight conversion! Please define program property '${ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.key}' for ${program.label}`);
+      }
+      this.context.resetValue('country');
+    }
 
     // Force taxon name in sub batches, if not filled in root batch
     const subBatchesTaxonName = !this.batchGroupsTable.showTaxonNameColumn && program.getPropertyAsBoolean(ProgramProperties.TRIP_BATCH_MEASURE_INDIVIDUAL_TAXON_NAME_ENABLE);

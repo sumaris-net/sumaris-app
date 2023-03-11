@@ -8,13 +8,14 @@ import {
   EntityServiceLoadOptions,
   firstNotNilPromise,
   FormFieldDefinitionMap,
-  HistoryPageReference,
+  HistoryPageReference, isNotNil,
   NetworkService
 } from '@sumaris-net/ngx-components';
 import {SoftwareValidatorService} from '@app/referential/services/validator/software.validator';
 import {BehaviorSubject} from 'rxjs';
 import {AbstractSoftwarePage} from '@app/referential/software/abstract-software.page';
 import { environment } from '@environments/environment';
+import { filter, map } from 'rxjs/operators';
 
 declare interface CacheStatistic {
   name: string;
@@ -32,9 +33,10 @@ declare interface CacheStatistic {
 })
 export class ConfigurationPage extends AbstractSoftwarePage<Configuration, ConfigService> {
 
-  partners = new BehaviorSubject<Department[]>(null);
-  cacheStatistics = new BehaviorSubject<CacheStatistic[]>(null);
-  cacheStatisticTotal = new BehaviorSubject<CacheStatistic>(null);
+  $partners = new BehaviorSubject<Department[]>(null);
+  $cacheStatistics = new BehaviorSubject<CacheStatistic[]>(null);
+  $cacheStatisticTotal = new BehaviorSubject<CacheStatistic>(null);
+  $cacheStatisticsCount = this.$cacheStatistics.pipe(filter(isNotNil), map(data => data?.length || 0))
 
   get config(): Configuration {
     return this.data && (this.data as Configuration) || undefined;
@@ -69,7 +71,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     // Force the load of the config
     await super.load(config.id, {...opts, fetchPolicy: "network-only"});
 
-    this.cacheStatistics.subscribe(value => this.computeStatisticTotal(value));
+    this.$cacheStatistics.subscribe(value => this.computeStatisticTotal(value));
 
     // Get server cache statistics
     await this.loadCacheStat();
@@ -79,7 +81,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     if (!data) return; // Skip
 
     const json = data.asObject();
-    this.partners.next(json.partners);
+    this.$partners.next(json.partners);
 
     super.setValue(data);
   }
@@ -88,7 +90,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
     const json = await super.getJsonValueToSave();
 
     // Re add partners
-    json.partners = this.partners.getValue();
+    json.partners = this.$partners.getValue();
 
     return json;
   }
@@ -116,7 +118,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
         diskSize: stat.diskSize
       };
     });
-    this.cacheStatistics.next(stats);
+    this.$cacheStatistics.next(stats);
   }
 
   computeStatisticTotal(stats: CacheStatistic[]) {
@@ -127,7 +129,7 @@ export class ConfigurationPage extends AbstractSoftwarePage<Configuration, Confi
       total.offHeapSize += stat.offHeapSize;
       total.diskSize += stat.diskSize;
     });
-    this.cacheStatisticTotal.next(total);
+    this.$cacheStatisticTotal.next(total);
   }
 
   protected async computePageHistory(title: string): Promise<HistoryPageReference> {

@@ -15,16 +15,18 @@ import {
   isNotNil,
   MINIFY_ENTITY_FOR_LOCAL_STORAGE,
   PersonService,
-  PersonUtils, propertyComparator,
+  PersonUtils,
+  propertyComparator,
   ReferentialRef,
   SharedValidators,
   slideUpDownAnimation,
+  splitByProperty,
   StatusIds
 } from '@sumaris-net/ngx-components';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { Operation, Trip } from '../services/model/trip.model';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
-import { AcquisitionLevelCodes, LocationLevelIds } from '@app/referential/services/model/model.enum';
+import { AcquisitionLevelCodes, LocationLevelIds, QualityFlagIds } from '@app/referential/services/model/model.enum';
 import { TripTrashModal, TripTrashModalOptions } from './trash/trip-trash.modal';
 import { TRIP_CONFIG_OPTIONS, TRIP_FEATURE_NAME } from '../services/config/trip.config';
 import { AppRootDataTable, AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
@@ -42,7 +44,6 @@ import { OperationService } from '@app/trip/services/operation.service';
 import { OperationsMapModal, OperationsMapModalOptions } from '@app/trip/operation/map/operations-map.modal';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType, ExtractionTypeUtils } from '@app/extraction/type/extraction-type.model';
-import { ObservedLocationOfflineFilter } from '@app/trip/services/filter/observed-location.filter';
 import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
 
@@ -67,8 +68,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
   $title = new BehaviorSubject<string>('');
   statusList = DataQualityStatusList;
   statusById = DataQualityStatusEnum;
+  qualityFlags: ReferentialRef[];
+  qualityFlagsById: {[id:number]: ReferentialRef};
 
-  @Input() showQuality = true;
   @Input() showRecorder = true;
   @Input() showObservers = true;
   @Input() canDownload = false;
@@ -124,7 +126,8 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       recorderDepartment: [null, SharedValidators.entity],
       recorderPerson: [null, SharedValidators.entity],
       observers: formBuilder.array([[null, SharedValidators.entity]]),
-      dataQualityStatus: [null]
+      dataQualityStatus: [null],
+      qualityFlagId: [null, SharedValidators.integer]
     });
 
     this.autoLoad = false; // See restoreFilterOrLoad()
@@ -208,6 +211,13 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
             this.showQuality = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.QUALITY_PROCESS_ENABLE);
             this.setShowColumn('quality', this.showQuality, {emitEvent: false});
 
+            if (this.showQuality) {
+              this.referentialRefService.loadQualityFlags().then(items => {
+                this.qualityFlags = items;
+                this.qualityFlagsById = splitByProperty(items, 'id');
+              });
+            }
+
             // Recorder
             this.showRecorder = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_RECORDER);
             this.setShowColumn('recorderPerson', this.showRecorder, {emitEvent: false});
@@ -215,6 +225,7 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
             // Observers
             this.showObservers = config.getPropertyAsBoolean(DATA_CONFIG_OPTIONS.SHOW_OBSERVERS);
             this.setShowColumn('observers', this.showObservers, {emitEvent: false});
+
 
             this.updateColumns();
 
@@ -500,5 +511,9 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       filename: this.translate.instant("TRIP.TABLE.DOWNLOAD_JSON_FILENAME"),
       type: 'application/json'
     });
+  }
+
+  protected excludeNotQualified(qualityFlag: ReferentialRef): boolean {
+    return qualityFlag?.id !== QualityFlagIds.NOT_QUALIFIED;
   }
 }

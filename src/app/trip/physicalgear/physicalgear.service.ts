@@ -1,37 +1,54 @@
-import { Injectable, InjectionToken } from '@angular/core';
+import {Injectable, InjectionToken} from '@angular/core';
 import {
   AccountService,
+  AppFormUtils,
   arrayDistinct,
   BaseEntityGraphqlQueries,
   BaseGraphqlService,
   EntitiesServiceWatchOptions,
-  EntitiesStorage, EntityUtils,
+  EntitiesStorage,
+  EntityUtils,
   firstNotNilPromise,
+  FormErrors,
+  FormErrorTranslator,
+  FormErrorTranslatorOptions,
   GraphqlService,
   IEntitiesService,
+  isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService
+  NetworkService, removeDuplicatesFromArray,
+  toNumber
 } from '@sumaris-net/ngx-components';
-import { Trip } from '../services/model/trip.model';
-import { environment } from '@environments/environment';
-import { BehaviorSubject, combineLatest, EMPTY, Observable } from 'rxjs';
-import { filter, first, map, throttleTime } from 'rxjs/operators';
-import { gql, WatchQueryFetchPolicy } from '@apollo/client/core';
-import { PhysicalGearFragments } from '../services/trip.queries';
-import { ReferentialFragments } from '@app/referential/services/referential.fragments';
-import { SortDirection } from '@angular/material/sort';
-import { PhysicalGearFilter } from './physical-gear.filter';
+import {Trip} from '../services/model/trip.model';
+import {environment} from '@environments/environment';
+import {BehaviorSubject, combineLatest, EMPTY, Observable} from 'rxjs';
+import {filter, first, map, throttleTime} from 'rxjs/operators';
+import {gql, WatchQueryFetchPolicy} from '@apollo/client/core';
+import {PhysicalGearFragments} from '../services/trip.queries';
+import {ReferentialFragments} from '@app/referential/services/referential.fragments';
+import {SortDirection} from '@angular/material/sort';
+import {PhysicalGearFilter} from './physical-gear.filter';
 import moment from 'moment';
-import { TripFilter } from '@app/trip/services/filter/trip.filter';
-import { ErrorCodes } from '@app/data/services/errors';
-import { mergeLoadResult } from '@app/shared/functions';
-import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
-import { ProgramFragments } from '@app/referential/services/program.fragments';
-import { PhysicalGear } from "@app/trip/physicalgear/physical-gear.model";
+import {TripFilter} from '@app/trip/services/filter/trip.filter';
+import {ErrorCodes} from '@app/data/services/errors';
+import {mergeLoadResult} from '@app/shared/functions';
+import {VesselSnapshotFragments} from '@app/referential/services/vessel-snapshot.service';
+import {ProgramFragments} from '@app/referential/services/program.fragments';
+import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
+import {ProgressionModel} from '@app/shared/progression/progression.model';
+import {PhysicalGearValidatorOptions, PhysicalGearValidatorService} from '@app/trip/physicalgear/physicalgear.validator';
+import {IProgressionOptions} from '@app/data/services/data-quality-service.class';
+import {AcquisitionLevelCodes, AcquisitionLevelType} from '@app/referential/services/model/model.enum';
+import {DenormalizedPmfmStrategy} from '@app/referential/services/model/pmfm-strategy.model';
+import {MEASUREMENT_VALUES_PMFM_ID_REGEXP, MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import {ProgramProperties} from '@app/referential/services/config/program.config';
+import {ProgramRefService} from '@app/referential/services/program-ref.service';
+import {DataEntityUtils} from '@app/data/services/model/data-entity.model';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 
 const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
   loadAll: gql`query PhysicalGears($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
@@ -92,6 +109,15 @@ export declare interface PhysicalGearServiceWatchOptions extends EntitiesService
   query?: any;
 }
 
+export declare interface PhysicalGearControlOptions extends PhysicalGearValidatorOptions, IProgressionOptions {
+  acquisitionLevel?: AcquisitionLevelType;
+  initialPmfms?: DenormalizedPmfmStrategy[];
+  initialChildrenPmfms?: DenormalizedPmfmStrategy[];
+
+  // Translator options
+  translatorOptions?: FormErrorTranslatorOptions;
+}
+
 @Injectable({providedIn: 'root'})
 export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, PhysicalGearFilter>
   implements IEntitiesService<PhysicalGear, PhysicalGearFilter, PhysicalGearServiceWatchOptions> {
@@ -102,7 +128,10 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     protected graphql: GraphqlService,
     protected network: NetworkService,
     protected accountService: AccountService,
-    protected entities: EntitiesStorage
+    protected entities: EntitiesStorage,
+    protected validatorService: PhysicalGearValidatorService,
+    protected programRefService: ProgramRefService,
+    protected formErrorTranslator: FormErrorTranslator
   ) {
     super(graphql, environment);
     this._logPrefix = '[physical-gear-service] ';
@@ -444,6 +473,95 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     return res?.data;
   }
 
+  async controlAllByTrip(trip: Trip, opts?: PhysicalGearControlOptions): Promise<FormErrors> {
+
+    const maxProgression = toNumber(opts?.maxProgression, 100);
+    opts = {
+      ...opts,
+      maxProgression
+    };
+    opts.progression = opts.progression || new ProgressionModel({total: maxProgression});
+    const endProgression = opts.progression.current + maxProgression;
+
+    try {
+
+      const entities = trip.gears;
+      if (isEmptyArray(entities)) return undefined; // Skip if empty
+
+      // Prepare control options
+      opts = await this.fillControlOptionsForTrip(trip.id, opts);
+      const progressionStep = maxProgression / entities.length; // 2 steps by gear: control, then save
+
+      let errorsById: FormErrors = null;
+
+      // For each entity
+      for (let entity of entities) {
+
+        const errors = await this.control(entity, opts);
+
+        // Control failed: save error
+        if (errors) {
+          errorsById = errorsById || {};
+          errorsById[entity.id] = errors;
+
+          // translate, and update the entity
+          const errorMessage = this.formErrorTranslator.translateErrors(errors, opts.translatorOptions);
+
+          DataEntityUtils.markAsInvalid(entity, errorMessage);
+        }
+        // OK succeed: mark as controlled
+        else {
+          DataEntityUtils.markAsControlled(entity);
+        }
+
+        if (opts.progression?.cancelled) return; // Cancel
+        opts.progression.increment(progressionStep);
+      }
+
+      return errorsById;
+    }
+    catch (err) {
+      console.error(err && err.message || err);
+      throw err;
+    }
+    finally {
+      if (opts.progression.current < endProgression) {
+        opts.progression.current = endProgression;
+      }
+    }
+  }
+
+  async control(entity: PhysicalGear, opts?: PhysicalGearControlOptions): Promise<FormErrors> {
+
+    const now = this._debug && Date.now();
+    if (this._debug) console.debug(`[physical-gear-service] Control #${entity.id}...`, entity);
+
+    // Prepare control options
+    opts = await this.fillControlOptionsForGear(entity, opts);
+
+    // Make sure to convert ALL pmfms to form (sometime we convert only required pmfms - e.g. see optimization in the physical gear table)
+    if (MeasurementValuesUtils.isMeasurementFormValues(entity.measurementValues)) {
+      entity.measurementValues.__typename = undefined;
+      entity.measurementValues = MeasurementValuesUtils.normalizeValuesToForm(entity.measurementValues, opts.pmfms, {keepSourceObject: true, onlyExistingPmfms: true});
+    }
+
+    // Create validator
+    const form = this.validatorService.getFormGroup(entity, opts);
+
+    if (!form.valid) {
+      // Wait end of validation (e.g. async validators)
+      await AppFormUtils.waitWhilePending(form);
+
+      // Get form errors
+      if (form.invalid) {
+        const errors = AppFormUtils.getFormErrors(form);
+        console.info(`[physical-gear-service] Control #${entity.id} [INVALID] in ${Date.now() - now}ms`, errors);
+
+        return errors;
+      }
+    }
+  }
+
   async executeImport(filter: Partial<PhysicalGearFilter>,
                       opts?: {
                         progression?: BehaviorSubject<number>;
@@ -482,4 +600,102 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     return PhysicalGearFilter.fromObject(filter);
   }
 
+  translateControlPath(path, opts?: {i18nPrefix?: string, pmfms?: IPmfm[]}): string {
+    opts = opts || {};
+    opts.i18nPrefix = opts.i18nPrefix || 'TRIP.PHYSICAL_GEAR.EDIT.';
+
+    // Translate PMFM field
+    if (MEASUREMENT_VALUES_PMFM_ID_REGEXP.test(path) && opts.pmfms) {
+      const pmfmId = parseInt(path.split('.').pop());
+      const pmfm = opts.pmfms.find(p => p.id === pmfmId);
+      return PmfmUtils.getPmfmName(pmfm);
+    }
+
+    // Default translation
+    return this.formErrorTranslator.translateControlPath(path, opts);
+  }
+
+  /* -- protected methods -- */
+
+  protected async fillValidatorOptionsForTrip(tripId: number, opts?: PhysicalGearValidatorOptions): Promise<PhysicalGearValidatorOptions> {
+    opts = opts || {};
+
+    // Check program filled
+    if (!opts.program) throw new Error('Missing program in options. Unable to control trip\'s physical gears');
+
+    const allowChildren = opts?.program.getPropertyAsBoolean(ProgramProperties.TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN);
+
+    return {
+      acquisitionLevel: AcquisitionLevelCodes.PHYSICAL_GEAR, // Default value. Can be override isf gear has parent
+      withChildren: allowChildren,
+      minChildrenCount: allowChildren && opts?.program.getPropertyAsInt(ProgramProperties.TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT),
+      ...opts,
+      withMeasurementValues: true, // Need for a full validation
+    };
+  }
+
+  protected async fillControlOptionsForTrip(tripId: number, opts?: PhysicalGearControlOptions): Promise<PhysicalGearControlOptions> {
+
+    // Fill options need by the operation validator
+    opts = await this.fillValidatorOptionsForTrip(tripId, opts);
+
+    // Prepare pmfms (the full list, not filtered by gearId)
+    if (!opts.initialPmfms) {
+      const programLabel = opts.program?.label;
+      const acquisitionLevel = AcquisitionLevelCodes.PHYSICAL_GEAR;
+      opts.initialPmfms = programLabel && (await this.programRefService.loadProgramPmfms(programLabel, {acquisitionLevel})) || [];
+    }
+
+    // Prepare children pmfms (the full list, not filtered by gearId)
+    if (opts.withChildren && !opts.initialChildrenPmfms) {
+      const programLabel = opts.program?.label;
+      const acquisitionLevel = AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR;
+      opts.initialChildrenPmfms = programLabel && (await this.programRefService.loadProgramPmfms(programLabel, {acquisitionLevel})) || [];
+    }
+
+    // Prepare error translator
+    if (!opts.translatorOptions) {
+      opts.translatorOptions = {
+        controlPathTranslator: {
+          translateControlPath: (path) => this.translateControlPath(path, { pmfms: opts.initialPmfms })
+        }
+      };
+    }
+
+    return opts;
+  }
+
+  protected async fillControlOptionsForGear(entity: PhysicalGear, opts?: PhysicalGearControlOptions): Promise<PhysicalGearControlOptions> {
+    opts = opts || {};
+
+    opts = await this.fillControlOptionsForTrip(entity.tripId, opts);
+
+    // Fill acquisition level
+    const isChild = isNotNil(toNumber(entity.parentId, entity.parent?.id));
+    opts.withChildren = opts.withChildren && !isChild;
+    opts.acquisitionLevel = isChild ? AcquisitionLevelCodes.CHILD_PHYSICAL_GEAR : AcquisitionLevelCodes.PHYSICAL_GEAR;
+
+    // Filter pmfms for the operation's gear
+    const initialPmfms = isChild ? opts.initialChildrenPmfms : opts.initialPmfms;
+    const gearId = entity.gear?.id;
+    if (isNotNil(gearId)) {
+      opts.pmfms = initialPmfms
+        .filter(p => isEmptyArray(p.gearIds) || p.gearIds.includes(gearId));
+    }
+    else {
+      opts.pmfms = (initialPmfms || []);
+    }
+
+    // Filter children pmfms, for children gears
+    const childrenGearIds = opts.withChildren ? removeDuplicatesFromArray((entity.children || []).map(child => child.gear?.id)) : undefined;
+    if (isNotEmptyArray(childrenGearIds) && opts.initialChildrenPmfms) {
+      opts.childrenPmfms = opts.initialChildrenPmfms
+        .filter(p => isEmptyArray(p.gearIds) || p.gearIds.some(gearId => childrenGearIds.includes(gearId)));
+    }
+    else {
+      opts.childrenPmfms = (opts.initialChildrenPmfms || []);
+    }
+
+    return opts;
+  }
 }

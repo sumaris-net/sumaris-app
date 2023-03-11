@@ -308,27 +308,17 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         const weightRequired = isNotEmptyArray(weightPmfms) && !isTaxonGroupNoWeight;
         const individualCountRequired = isTaxonGroupNoWeight;
 
-        // Compute weight
-        if (!qvPmfm) {
-          target.weight = BatchUtils.getWeight(target, weightPmfms);
+        // For each batch that holds weight
+        (qvPmfm ? (target.children || []) : [target]).forEach(batch => {
+          // Compute weight
+          batch.weight = BatchUtils.getWeight(batch, weightPmfms);
 
           // Set default values, when landings not legal on this species (e.g. RJB)
-          if (isTaxonGroupNoLanding) this.fillNoLandingDefault(target, {weightPmfms, weightRequired, individualCountRequired});
+          if (isTaxonGroupNoLanding) this.fillNoLandingDefault(batch, {weightPmfms, weightRequired, individualCountRequired});
 
           // Set sampling batch default (eg. weight=0 if parent weight = 0);
-          if (enableSamplingBatch && isNotEmptyArray(target.children)) this.fillSamplingBatchDefault(target, {weightPmfms, weightRequired, samplingRatioFormat});
-        }
-        else {
-          (target.children || []).forEach(c => {
-            c.weight = BatchUtils.getWeight(c, weightPmfms);
-
-            // Set default values, when landings not legal on this species (e.g. RJB)
-            if (isTaxonGroupNoLanding) this.fillNoLandingDefault(c, {weightPmfms, weightRequired, individualCountRequired});
-
-            // Set sampling batch default (eg. weight=0 if parent weight = 0);
-            if (enableSamplingBatch && isNotEmptyArray(c.children)) this.fillSamplingBatchDefault(c, {weightPmfms, weightRequired, samplingRatioFormat});
-          });
-        }
+          if (enableSamplingBatch && isNotEmptyArray(batch.children)) this.fillSamplingBatchDefault(batch, {weightPmfms, weightRequired, samplingRatioFormat});
+        });
 
         // Create a form, with data
         const form = validator.getFormGroup(target, {
@@ -344,8 +334,8 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         });
 
         // Add complex validator
-        if (form.valid && !isTaxonGroupNoWeight) {
-          const requiredSampleWeight = (!opts || opts.allowSamplingBatches !== false) && target.observedIndividualCount > 0;
+        if (form.valid && !isTaxonGroupNoWeight && enableSamplingBatch) {
+          const requiredSampleWeight = target.observedIndividualCount > 0;
           form.setValidators(BatchGroupValidators.samplingRatioAndWeight({ qvPmfm, requiredSampleWeight, samplingRatioFormat, weightMaxDecimals }));
           form.updateValueAndValidity();
         }
@@ -425,6 +415,12 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     const samplingBatch = BatchUtils.getSamplingChild(batch);
     if (samplingBatch) samplingBatch.weight = BatchUtils.getWeight(samplingBatch);
 
+    // Remove the sampling batch, if existe but empty
+    if (BatchUtils.isEmptySamplingBatch(samplingBatch)) {
+      batch.children = [];
+      return;
+    }
+
     // If total weight = 0, fill sampling weight to zero (if weight is required)
     if (opts.weightRequired && totalWeight === 0) {
       if (samplingBatch && isNil(samplingBatch.weight?.value)) {
@@ -432,17 +428,20 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
         // no weight: OK, set default
         if (computedWeight === 0 && isNil(samplingBatch.samplingRatio) && (samplingBatch.individualCount || 0) === 0) {
           console.info(`[batch-service] Force weight to {0} on batch ${samplingBatch.label}, because parent weight = 0`);
-          const defaultWeightPmfm = opts.weightPmfms?.[0];
+          // Find same weight pmfm as total weight, or use the first one
+          const sampleWeightPmfm = opts.weightPmfms?.find(p => isNil(batch.weight?.methodId) || p.methodId === batch.weight.methodId);
           samplingBatch.weight = {
             value: 0,
-            methodId: defaultWeightPmfm?.methodId,
-            computed: defaultWeightPmfm?.isComputed || false,
-            estimated: defaultWeightPmfm?.methodId === MethodIds.ESTIMATED_BY_OBSERVER || false
+            methodId: sampleWeightPmfm?.methodId,
+            computed: sampleWeightPmfm?.isComputed || false,
+            estimated: sampleWeightPmfm?.methodId === MethodIds.ESTIMATED_BY_OBSERVER || false
           };
           // Set sampling ratio
           samplingBatch.samplingRatio = 0;
-          samplingBatch.samplingRatioText = `0%`;
           samplingBatch.samplingRatioComputed = true;
+          // WARN: to be detected as 'computed' by BatchUtils.isSamplingRatioComputed(), should not be 'x%' nor '1/x'
+          // => '0/1' should work with all samplingRatioFormats
+          samplingBatch.samplingRatioText = '0/1';
         }
       }
     }

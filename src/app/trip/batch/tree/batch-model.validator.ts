@@ -71,6 +71,7 @@ export class BatchModelValidatorService<
       if (opts?.physicalGear?.children && p.id === PmfmIds.CHILD_GEAR) {
         // Convert to referential item
         p = p.clone();
+        p.type = 'qualitative_value';
         p.qualitativeValues = (opts.physicalGear.children || []).map(pg => ReferentialRef.fromObject({
           id: pg.rankOrder,
           label: pg.rankOrder,

@@ -60,7 +60,7 @@
                   </ion-col>
                 </ion-row>
 
-                <h3 *ngIf="config?.smallLogo || config?.largeLogo || (partners | async | isNotEmptyArray)">
+                <h3 *ngIf="config?.smallLogo || config?.largeLogo || ($partners | async | isNotEmptyArray)">
                   <ion-text translate>CONFIGURATION.PREVIEW_DIVIDER</ion-text>
                 </h3>
 
@@ -88,13 +88,13 @@
                   </ion-grid>
                 </ng-container>
 
-                <ng-container *ngIf="partners | async | isNotEmptyArray">
+                <ng-container *ngIf="$partners | async | isNotEmptyArray">
                   <h4>
                     <ion-text translate>CONFIGURATION.LOGO_PARTNERS</ion-text>
                   </h4>
 
                   <div class="bottom-banner">
-                    <div class="partner-logo" *ngFor="let item of partners | async; let i = index ">
+                    <div class="partner-logo" *rxFor="let item of $partners; let i = index ">
                       <img class="logo" src="{{ item.logo }}" alt="{{item.label}}" [title]="item.name" width="50"/>
                       <!--<mat-icon class="button-close" (click)="removePartnerAt(i)">close</mat-icon>-->
                     </div>
@@ -117,7 +117,12 @@
     <mat-tab label="{{'CONFIGURATION.TAB_PROPERTIES'|translate}}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon matPrefix>build</mat-icon>
-        <ion-label translate>CONFIGURATION.TAB_PROPERTIES</ion-label>
+        <ion-label [matBadge]="propertiesForm.length"
+                   [matBadgeHidden]="!propertiesForm.length"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+                   translate>CONFIGURATION.TAB_PROPERTIES</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="propertiesForm.invalid"></ion-icon>
       </ng-template>
 
@@ -137,7 +142,12 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="notifications"></ion-icon>
         </mat-icon>
-        <ion-label translate>CONFIGURATION.TAB_NOTIFICATIONS</ion-label>
+        <ion-label [matBadge]="userEventsTable.totalRowCount"
+                   [matBadgeHidden]="!userEventsTable.totalRowCount"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+                   translate>CONFIGURATION.TAB_NOTIFICATIONS</ion-label>
       </ng-template>
 
       <app-user-events-table #userEventsTable
@@ -153,7 +163,13 @@
         <mat-icon>
           <ion-icon matPrefix slot="start" name="stats-chart"></ion-icon>
         </mat-icon>
-        <ion-label translate>CONFIGURATION.TAB_CACHE</ion-label>
+        <ion-label *rxLet="$cacheStatisticsCount as count"
+                   [matBadge]="count"
+                   [matBadgeHidden]="!count"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+                   translate>CONFIGURATION.TAB_CACHE</ion-label>
       </ng-template>
 
       <div>
@@ -209,7 +225,7 @@
             </ion-row>
 
             <!-- total -->
-            <ion-row *ngIf="cacheStatisticTotal | async as total" class="computed mat-row odd">
+            <ion-row *rxIf="$cacheStatisticTotal; let total" class="computed mat-row odd">
               <ion-col size="12" size-lg="6">
                 <ion-label class="ion-text-wrap" translate>CONFIGURATION.CACHE.TOTAL</ion-label>
               </ion-col>
@@ -230,7 +246,7 @@
             </ion-row>
 
             <!-- details -->
-            <ion-row *ngFor="let stat of cacheStatistics | async; odd as odd"
+            <ion-row *rxFor="let stat of $cacheStatistics; odd as odd"
                      class="mat-row"
                      [class.odd]="odd">
               <ion-col size="12" size-lg="6">

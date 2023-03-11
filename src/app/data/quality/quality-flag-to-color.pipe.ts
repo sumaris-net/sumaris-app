@@ -1,5 +1,5 @@
 import {Injectable, Pipe, PipeTransform} from '@angular/core';
-import {qualityFlagToColor} from "../model/model.utils";
+import {qualityFlagToColor} from "../services/model/model.utils";
 
 @Pipe({
   name: 'qualityFlagToColor'

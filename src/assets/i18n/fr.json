@@ -274,6 +274,7 @@
         "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Référentiel > Valeur qualitative > Catégorie de tri terrain / Sans",
         "QUALITATIVE_VALUE_SORTING_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Vrac",
         "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Hors-Vrac",
+        "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Référentiel > Valeur qualitative > Sex / Non sexé",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métier nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métier DCF niv 5"
@@ -564,7 +565,8 @@
         "SYNCHRONIZATION_STATUS": "Etat de la données",
         "RECORDER_DEPARTMENT": "Organisme saisisseur",
         "RECORDER_PERSON": "Saisisseur",
-        "OBSERVERS": "Observateurs"
+        "OBSERVERS": "Observateurs",
+        "QUALITY_FLAG_ID": "Niveau de qualité"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Marées hors-ligne",
@@ -598,6 +600,7 @@
     "ERROR": {
       "NO_PRACTICED_METIER_FOUND": "Aucun métier pratiqué trouvé",
       "ADD_GEAR": "Erreur lors de l'ajout d'un engin sur la marée",
+      "INVALID_GEARS": "Veuillez corriger les engins invalides ci-dessous",
       "INVALID_OPERATIONS": "Veuillez corriger les opérations invalides ci-dessous"
     },
     "MEASUREMENT": {
@@ -1813,13 +1816,14 @@
       "TRIP_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Marée > Lieux: nb caract. min pour recherche",
       "TRIP_SALE_ENABLE": "Marée: Saisir la vente ?",
       "TRIP_OBSERVERS_ENABLE": "Marée: Saisir les observateurs ?",
-      "TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Marée > Hors-Ligne > Niveau(x) de lieu à importer (ids)",
+      "TRIP_OFFLINE_IMPORT_LOCATION_LEVEL_IDS": "Marée > Hors-Ligne > Niveau(x) de lieu à importer",
       "TRIP_METIERS_ENABLE": "Marée: Saisir les métiers ?",
       "TRIP_METIERS_HISTORY_NB_DAYS": "Marée: Prédoc métiers > Nb. de jours",
       "TRIP_MEASUREMENTS_OPTIONAL_ON_FIELD_MODE": "Marée: Caractéristiques optionnelles si saisie terrain ?",
-      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Pmfms optionnels à afficher (ids)",
+      "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Marée > Engins: Colonne(s) supplémentaire(s)",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Marée > Engin: Saisir le numéro d'engin ?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Marée > Engin: Autoriser les sous-engins ?",
+      "TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT": "Marée > Engin: Nombre minimum de sous-engins ?",
       "TRIP_PHYSICAL_GEAR_HELP_MESSAGE": "Marée > Engin: Message d'aide",
       "TRIP_MAP_ENABLE": "Marée > Carte: Activer ?",
       "TRIP_MAP_CENTER": "Marée > Carte: Position du centre",
@@ -1874,7 +1878,7 @@
         "DATE_TIME_POSITION_FISHING_AREA_GEAR_METIER": "Date/Heure, Engin, Métier, Position/Zone de pêche",
         "DATE_POSITION_FISHING_AREA_MEASUREMENT_GEAR_METIER": "Date, Engin, Métier, Position/Zone de pêche, Caractéristiques"
       },
-      "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Marée: Colonne 'SAMPLING_METHOD'",
+      "TRIP_EXTRACTION_SAMPLING_METHOD": "Extraction > Marée brutes: Valeur de la colonne 'SAMPLING_METHOD'",
       "TRIP_EXTRACTION_SAMPLING_METHODS": {
         "OBSERVER": "Observer",
         "SELF_SAMPLING": "SelfSampling"
@@ -1893,7 +1897,7 @@
       "LANDING_EDITOR_LANDING": "Débarquement",
       "LANDING_EDITOR_CONTROL": "Contrôle",
       "LANDING_EDITOR_TRIP": "Marée",
-      "LANDING_EDITOR_SAMPLING": "Echantillonnage biologique",
+      "LANDING_EDITOR_SAMPLING": "Échantillonnage biologique",
       "LANDING_CREATION_DATE_ENABLE": "Sortie > Débarquements : Afficher la date de création ?",
       "LANDING_RECORDER_PERSON_ENABLE": "Sortie > Débarquements : Afficher le saisisseur ?",
       "LANDING_VESSEL_BASE_PORT_LOCATION_ENABLE": "Sortie > Débarquements : Afficher le port d'attache ?",
@@ -2468,9 +2472,9 @@
       "ICON": "Icône",
       "CREATION_DATE": "Date/Heure",
       "MESSAGE": "Message",
-      "BTN_COPY_TO_LOCAL": "Copier localement",
+      "BTN_COPY_TO_LOCAL": "Copier localement, dans les données non envoyées",
       "INFO": {
-        "COPIED_LOCALLY": "Copier localement avec succès"
+        "COPIED_LOCALLY": "Copié avec succès, dans les <b>données non envoyées</b> !"
       },
       "TYPE_ENUM": {
         "DEBUG_DATA": "Problème remonté par <a>{{issuer}}</a> : <b>{{message}}</b>",

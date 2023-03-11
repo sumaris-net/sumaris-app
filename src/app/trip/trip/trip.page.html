@@ -65,6 +65,12 @@
     </ion-label>
   </button>
 
+  <button mat-menu-item *ngIf="canCopyLocally"
+          (click)="copyLocally()">
+    <mat-icon>file_copy</mat-icon>
+    <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
+  </button>
+
   <!-- DEV only -->
   <ng-container *ngIf="debug">
     <button mat-menu-item *ngIf="isNewData"
@@ -72,11 +78,6 @@
       <mat-icon *ngIf="devAutoFillData">check_box</mat-icon>
       <mat-icon *ngIf="!devAutoFillData">check_box_outline_blank</mat-icon>
       <ion-label translate>COMMON.DEBUG.BTN_AUTO_FILL</ion-label>
-    </button>
-    <button mat-menu-item *ngIf="!isNewData && data?.id > 0"
-            (click)="copyLocally()">
-      <mat-icon>file_copy</mat-icon>
-      <ion-label translate>COMMON.DEBUG.BTN_COPY_LOCALLY</ion-label>
     </button>
     <button mat-menu-item
             (click)="devToggleOfflineMode()">
@@ -220,8 +221,8 @@
           <ion-icon matPrefix slot="start" name="settings"></ion-icon>
         </mat-icon>
         <ion-label
-          [matBadge]="physicalGearsTable.visibleRowCount"
-          [matBadgeHidden]="!physicalGearsTable.visibleRowCount"
+          [matBadge]="physicalGearsTable.totalRowCount"
+          [matBadgeHidden]="!physicalGearsTable.totalRowCount"
           matBadgeColor="primary"
           matBadgeOverlap="false"
           matBadgeSize="small"
@@ -232,18 +233,13 @@
 
       <div class="ion-no-padding">
 
-        <!-- error -->
-        <ion-item *ngIf="mobile && physicalGearsTable.error" lines="none">
-          <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
-          <ion-label color="danger" class="error" [innerHTML]="physicalGearsTable.error|translate"></ion-label>
-        </ion-item>
-
         <app-physical-gears-table #physicalGearsTable
                                   [programLabel]="$programLabel|async"
                                   [showToolbar]="!mobile"
-                                  [showError]="false"
                                   (openSelectPreviousGearModal)="openSearchPhysicalGearModal($event)"
                                   [useSticky]="!mobile"
+                                  [mobile]="mobile"
+                                  [usageMode]="usageMode"
                                   [debug]="debug">
         </app-physical-gears-table>
 

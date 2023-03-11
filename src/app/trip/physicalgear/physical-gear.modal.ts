@@ -1,6 +1,6 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild } from '@angular/core';
-import { AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds } from '@app/referential/services/model/model.enum';
-import { PhysicalGearForm } from './physical-gear.form';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Injector, Input, OnDestroy, OnInit, Output, Self, ViewChild} from '@angular/core';
+import {AcquisitionLevelCodes, AcquisitionLevelType, PmfmIds, QualityFlagIds} from '@app/referential/services/model/model.enum';
+import {PhysicalGearForm} from './physical-gear.form';
 import {
   AppEntityEditorModal,
   createPromiseEventEmitter,
@@ -11,23 +11,24 @@ import {
   isNil,
   isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   PromiseEvent,
   ReferentialRef,
   toBoolean,
   toNumber,
   TranslateContextService
 } from '@sumaris-net/ngx-components';
-import { MeasurementValuesUtils } from '@app/trip/services/model/measurement.model';
-import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { UntypedFormGroup } from '@angular/forms';
-import { PhysicalGearFilter } from '@app/trip/physicalgear/physical-gear.filter';
-import { PHYSICAL_GEAR_DATA_SERVICE_TOKEN } from '@app/trip/physicalgear/physicalgear.service';
-import { PhysicalGearTable } from '@app/trip/physicalgear/physical-gears.table';
-import { filter, switchMap } from 'rxjs/operators';
-import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { slideDownAnimation } from '@app/shared/material/material.animation';
-import { RxState } from '@rx-angular/state';
-import { environment } from '@environments/environment';
+import {MeasurementValuesUtils} from '@app/trip/services/model/measurement.model';
+import {PhysicalGear} from '@app/trip/physicalgear/physical-gear.model';
+import {UntypedFormGroup} from '@angular/forms';
+import {PhysicalGearFilter} from '@app/trip/physicalgear/physical-gear.filter';
+import {PHYSICAL_GEAR_DATA_SERVICE_TOKEN} from '@app/trip/physicalgear/physicalgear.service';
+import {PhysicalGearTable} from '@app/trip/physicalgear/physical-gears.table';
+import {filter, switchMap} from 'rxjs/operators';
+import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
+import {slideDownAnimation} from '@app/shared/material/material.animation';
+import {RxState} from '@rx-angular/state';
+import {environment} from '@environments/environment';
 
 export interface IPhysicalGearModalOptions
   extends IEntityEditorModalOptions<PhysicalGear> {
@@ -43,6 +44,7 @@ export interface IPhysicalGearModalOptions
   canEditGear: boolean;
   canEditRankOrder: boolean;
   allowChildrenGears: boolean;
+  minChildrenCount: number;
 
   // UI
   maxVisibleButtons?: number;
@@ -286,6 +288,26 @@ export class PhysicalGearModal
   updateViewState(data: PhysicalGear, opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
     super.updateViewState(data, opts);
     this.updateChildrenTableState(opts);
+
+    // Restore error
+    const errorMessage = this.enabled && this.usageMode === 'DESK' && isNil(data.controlDate) ? data.qualificationComments : undefined;
+    if (isNotNilOrBlank(errorMessage)) {
+      console.info('[physical-gear-modal] Restore error from qualificationComments : ', errorMessage);
+
+      // Clean quality flags
+      this.form.patchValue({
+        qualificationComments: null,
+        qualityFlagId: QualityFlagIds.NOT_QUALIFIED
+      }, {emitEvent: false});
+
+      setTimeout(() => {
+        this.markAllAsTouched();
+        this.form.updateValueAndValidity();
+
+        // Replace newline by a <br> tag, then display
+        this.setError(errorMessage.replace(/(\n|\r|<br\/>)+/g, '<br/>'));
+      });
+    }
   }
 
   updateChildrenTableState(opts?: { onlySelf?: boolean; emitEvent?: boolean }) {
@@ -305,29 +327,23 @@ export class PhysicalGearModal
 
   protected async setValue(data: PhysicalGear) {
 
-    try {
-      // Save children, before reset (not need in the main form)
-      const children = data.children;
-      data.children = undefined;
+    // Save children, before reset (not need in the main form)
+    const children = data.children;
+    data.children = undefined;
 
-      // Set main form
-      await this.physicalGearForm.setValue(data);
+    // Set main form
+    await this.physicalGearForm.setValue(data);
 
-      if (this.allowChildrenGears) {
-        const childrenTable = await firstNotNilPromise(this.childrenTable$, {stop: this.destroySubject, stopError: false});
+    if (this.allowChildrenGears) {
+      const childrenTable = await firstNotNilPromise(this.childrenTable$, {stop: this.destroySubject, stopError: false});
 
-        childrenTable.gearId = data.gear?.id;
-        childrenTable.markAsReady();
-        this.childrenGearService.value = children || [];
-        await childrenTable.waitIdle({timeout: 2000, stop: this.destroySubject, stopError: false});
+      childrenTable.gearId = data.gear?.id;
+      childrenTable.markAsReady();
+      this.childrenGearService.value = children || [];
+      await childrenTable.waitIdle({timeout: 2000, stop: this.destroySubject, stopError: false});
 
-        // Restore children
-        data.children = children;
-      }
-    }
-    catch (err) {
-      if (err === 'CANCELLED') return; // Skip
-      this.setError(err);
+      // Restore children
+      data.children = children;
     }
   }
 
@@ -416,4 +432,5 @@ export class PhysicalGearModal
       event.detail?.error(err);
     }
   }
+
 }

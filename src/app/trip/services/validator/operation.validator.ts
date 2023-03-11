@@ -33,6 +33,8 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { TranslateService } from '@ngx-translate/core';
 import { getFormOptions, setFormOptions } from '@app/trip/batch/common/batch.validator';
 import { DataEntity } from '@app/data/services/model/data-entity.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import {PhysicalGearValidatorOptions} from '@app/trip/physicalgear/physicalgear.validator';
 
 
 export interface IPmfmForm {
@@ -76,13 +78,14 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
     settings: LocalSettingsService,
     private positionValidator: PositionValidatorService,
     private fishingAreaValidator: FishingAreaValidatorService,
+    private programRefService: ProgramRefService,
     protected measurementsValidatorService: MeasurementsValidatorService
   ) {
     super(formBuilder, translate, settings);
   }
 
   getFormGroup(data?: Operation, opts?: O): UntypedFormGroup {
-    opts = this.fillDefaultOptions(opts);
+    opts = opts || <O>{};
 
     const form = super.getFormGroup(data, opts);
 
@@ -422,13 +425,18 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
 
       // fishingEndDateTime = START
       if (opts.withFishingEnd) {
-        fishingEndDateTimeControl.setValidators(Validators.compose([
+        const fishingEndDateTimeValidators = [
           Validators.required,
           // Should be after parent dates
           opts.withFishingStart
             ? SharedValidators.dateRangeEnd('fishingStartDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')
             : SharedValidators.dateRangeEnd('startDateTime', 'TRIP.OPERATION.ERROR.FIELD_DATE_BEFORE_PARENT_OPERATION')
-        ]));
+        ];
+        fishingEndDateTimeControl.setValidators(opts.withEnd
+          ? fishingEndDateTimeValidators
+          // If no endDateTime, add trip dates validator
+          : [...tripDatesValidators, ...fishingEndDateTimeValidators]
+        );
         fishingEndDateTimeControl.enable();
 
         // Enable position
@@ -448,9 +456,9 @@ export class OperationValidatorService<O extends OperationValidatorOptions = Ope
           ...tripDatesValidators,
           SharedValidators.copyParentErrors(['dateRange', 'dateMaxDuration'])
         ];
-        endDateTimeControl.setValidators(opts?.isOnFieldMode
-          ? Validators.compose(endDateTimeValidators)
-          : Validators.compose([Validators.required, ...endDateTimeValidators]));
+        endDateTimeControl.setValidators(opts.isOnFieldMode
+          ? endDateTimeValidators
+          : [Validators.required, ...endDateTimeValidators]);
         endDateTimeControl.enable();
 
         // Enable position

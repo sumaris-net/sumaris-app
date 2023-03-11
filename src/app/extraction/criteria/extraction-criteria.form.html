@@ -23,8 +23,8 @@
             <mat-select formControlName="name"
                         [placeholder]="'EXTRACTION.FILTER.CRITERION_NAME'|translate"
                         (selectionChange)="updateDefinitionAt(i, $event.value, true)">
-              <mat-option *ngFor="let column of $columns | async"
-                          [value]="column.columnName">{{column.name}}</mat-option>
+              <mat-option *rxFor="let definition of $columnValueDefinitions"
+                          [value]="definition.key">{{definition.label}}</mat-option>
             </mat-select>
           </mat-form-field>
 
@@ -47,18 +47,18 @@
                     endValue: (criterionForm|formGetControl:'endValue')
                  } as controls"
                  [class.has-two-fields]="controls.operator.value === 'BETWEEN'">
-          <ng-container *ngIf="getCriterionValueDefinition(i) | async; let definition; else unknownValue">
-
-            <app-form-field class="value"
+          <ng-container *rxIf="getCriterionValueDefinition(i); let definition; else unknownValue">
+            <app-form-field class="value" #field
                             [placeholder]="(controls.operator.value === 'BETWEEN' && 'EXTRACTION.FILTER.CRITERION_START_VALUE' || 'EXTRACTION.FILTER.CRITERION_VALUE') | translate"
                             [formControl]="controls.value"
-                            [definition]="definition">
+                            [definition]="definition"
+                            (keyup.enter)="controls.operator.value !== 'BETWEEN' && doSubmit($event)">
             </app-form-field>
 
             <!-- second value (for between operator) -->
             <app-form-field *ngIf="controls.operator.value === 'BETWEEN'"
                             class="value"
-                            [placeholder]=" 'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate"
+                            [placeholder]="'EXTRACTION.FILTER.CRITERION_END_VALUE'|translate"
                             [formControl]="controls.endValue"
                             [definition]="definition"
                             (keyup.enter)="doSubmit($event)">

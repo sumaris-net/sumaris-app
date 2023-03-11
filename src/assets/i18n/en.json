@@ -563,7 +563,8 @@
         "SYNCHRONIZATION_STATUS": "State",
         "RECORDER_DEPARTMENT": "Recorder department",
         "RECORDER_PERSON": "Recorder user",
-        "OBSERVERS": "Observers"
+        "OBSERVERS": "Observers",
+        "QUALITY_FLAG_ID": "Quality flag"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Not-synchronized trips",
@@ -2395,9 +2396,9 @@
       "ICON": "Icon",
       "CREATION_DATE": "Date/Time",
       "MESSAGE": "Message",
-      "BTN_COPY_TO_LOCAL": "Copy locally",
+      "BTN_COPY_TO_LOCAL": "Copy locally, in your offline data",
       "INFO": {
-        "COPIED_LOCALLY": "Successfully copied"
+        "COPIED_LOCALLY": "Successfully copied, in your <b>offline data</b>!"
       },
       "TYPE_ENUM": {
         "DEBUG_DATA": "Issue reported by <a>{{issuer}}</a>: <b>{{message}}</b>",

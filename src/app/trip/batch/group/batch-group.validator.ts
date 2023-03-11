@@ -183,11 +183,11 @@ export class BatchGroupValidators {
           const individualCount = form.get(qvFormPath + '.individualCount');
           const samplingIndividualCount = form.get(qvFormPath + '.children.0.individualCount');
 
-          if (!samplingIndividualCount) return; // Nothing to compute
+          if (!samplingIndividualCount) return; // Nothing to compute (no sampling batch)
 
           // Enable controls
           if (individualCount.disabled) individualCount.enable();
-          if (samplingIndividualCount?.disabled) samplingIndividualCount.enable();
+          if (samplingIndividualCount.disabled) samplingIndividualCount.enable();
 
           // Start computation
           return BatchValidators.computeSamplingRatioAndWeight(control.get(qvFormPath), {...opts, emitEvent: false, onlySelf: false});

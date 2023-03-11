@@ -3,7 +3,7 @@ import {
   AbstractUserEventService,
   AccountService,
   Entity,
-  EntityServiceLoadOptions, fromDateISOString,
+  EntityServiceLoadOptions, ErrorCodes, fromDateISOString,
   GraphqlService,
   IEntityService,
   isEmptyArray,
@@ -36,7 +36,14 @@ import { CacheService } from 'ionic-cache';
 import { Job } from '@app/social/job/job.model';
 import { JobService } from '@app/social/job/job.service';
 
-const queries: IUserEventQueries = {
+const queries: IUserEventQueries & { loadContent: any }= {
+  loadContent: gql`query UserEventContent($id: Int!) {
+    data: userEvents(filter: {includedIds: [$id], excludeRead: false}, page: {offset:0, size: 1}) {
+      id
+      content
+    }
+  }`,
+
   loadAll: gql`query UserEvents($filter: UserEventFilterVOInput, $page: PageInput) {
     data: userEvents(filter: $filter, page: $page) {
       ...LightUserEventFragment
@@ -127,20 +134,35 @@ export class UserEventService extends
     });
   }
 
+  async loadContent(id: number, opts?: {fetchPolicy?: FetchPolicy}): Promise<any> {
+    try {
+      const { data } = await this.graphql.query<{data: any[] }>({
+        query: queries.loadContent,
+        ...opts,
+        variables: { id }
+      });
+      const entity = data?.[0];
+      return entity && JSON.parse(entity.content) || undefined;
+    }
+    catch(err) {
+      console.error("Cannot load event content:", err);
+      return null;
+    }
+  }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<UserEventFilter>, options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
     return super.watchAll(offset, size, sortBy, sortDirection, filter, options);
   }
 
-  watchPage(page: Page, filter?: Partial<UserEventFilter>, options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
+  watchPage(page: Page, filter?: Partial<UserEventFilter>, opts?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
     filter = filter || this.defaultFilter();
     if (!filter.startDate) {
       filter.startDate = fromDateISOString('1970-01-01T00:00:00.000Z');
     }
     return super.watchPage({ ...page, sortBy: 'creationDate', sortDirection: 'desc' }, filter, {
-      ...options,
       fetchPolicy: 'no-cache',
-      withContent: true
+      withContent: false,
+      ...opts
     });
   }
 
@@ -160,10 +182,19 @@ export class UserEventService extends
     return super.listenCountChanges(filter, { ...options, fetchPolicy: 'no-cache' });
   }
 
-  async load(id: number, opts?: EntityServiceLoadOptions & {withContent?: boolean}): Promise<UserEvent> {
-    const filter = this.defaultFilter();
-    filter.includedIds = [id];
-    const { data } = await this.loadPage({offset: 0, size: 1}, filter, {withContent: true, ...opts});
+  async load(id: number, opts?: EntityServiceLoadOptions & {withContent?: boolean }): Promise<UserEvent> {
+    const filter: Partial<UserEventFilter> = {includedIds: [id]};
+
+    // Allow admin to load SYSTEM notifications
+    if (this.accountService.isAdmin()) {
+      filter.recipients = [this.defaultRecipient(), 'SYSTEM'];
+    }
+
+    const { data } = await this.loadPage({offset: 0, size: 1}, filter, {
+      withContent: true,
+      ...opts,
+      withTotal: false
+    });
     const entity = data && data[0];
     return entity;
   }
@@ -377,6 +408,9 @@ export class UserEventService extends
 
       // Job event:
       case UserEventTypeEnum.JOB:
+        if (source.hasContent && !source.content) {
+          source.content = await this.loadContent(source.id, {fetchPolicy: 'no-cache'});
+        }
         const job = Job.fromObject(source.content || {});
         const status = job.status
           || (source.level === 'INFO' && 'SUCCESS')

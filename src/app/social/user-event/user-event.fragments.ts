@@ -9,11 +9,12 @@ export const UserEventFragments = {
     level
     type
     recipient
-    content
     hash
     signature
     readDate
     readSignature
+    hasContent
+    content
     __typename
   }`,
   lightUserEvent: gql`fragment LightUserEventFragment on UserEventVO {
@@ -26,6 +27,7 @@ export const UserEventFragments = {
     type
     readDate
     readSignature
+    hasContent
     __typename
   }`
 };

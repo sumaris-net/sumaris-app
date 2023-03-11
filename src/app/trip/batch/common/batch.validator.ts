@@ -154,7 +154,7 @@ export class BatchValidatorService<
     return config;
   }
 
-  getChildrenFormArray(data?: Batch[], opts?: BatchValidatorOptions): AppFormArray<T, FormGroup> {
+  getChildrenFormArray(data?: Batch[], opts?: BatchValidatorOptions): AppFormArray<T, UntypedFormGroup> {
     const formArray = new AppFormArray<T, UntypedFormGroup>(
       (value) => this.getFormGroup(value, <O>{withWeight: true, withMeasurements: true, ...opts}),
       (v1, v2) => EntityUtils.equals(v1, v2, 'label'),
@@ -600,8 +600,9 @@ export class BatchValidators {
           }, opts);
         }
 
-        // If sampling weight is required
-        if (!isSamplingWeightValid && opts?.requiredSampleWeight === true) {
+        // If sampling weight is required, but a value is expected
+        // BUT skip if totalWeight=0
+        if (!isSamplingWeightValid && opts?.requiredSampleWeight === true && totalWeight !== 0) {
           if (!samplingWeightValueControl.hasError('required')) {
             samplingWeightValueControl.setErrors({ ...samplingWeightValueControl.errors, required: true }, opts);
           }

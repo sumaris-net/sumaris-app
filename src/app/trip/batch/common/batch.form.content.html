@@ -37,6 +37,7 @@
                                 [required]="true"
                                 [config]="delegate.autocompleteFields.taxonName"
                                 [filter]="delegate.taxonNameFilter">
+          <ion-icon matPrefix *ngIf="delegate.mobile && !delegate.showTaxonGroup" name="fish"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>
 

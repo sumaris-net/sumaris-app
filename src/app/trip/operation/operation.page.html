@@ -26,7 +26,7 @@
     <!-- New operation -->
     <ion-button fill="solid" color="tertiary" *ngIf="mobile"
                 hidden-xxs hidden-xs
-                [disabled]="invalid || vars.loading || vars.saving"
+                [disabled]="vars.loading || vars.saving"
                 (click)="saveAndNew($event)">
       <ion-icon slot="start" name="add-circle"></ion-icon>
       {{'TRIP.OPERATION.EDIT.BTN_NEW'|translate}}

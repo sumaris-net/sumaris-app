@@ -62,6 +62,7 @@ import { RoundWeightConversionRefService } from '@app/referential/taxon-group/ro
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
 import { BBox } from 'geojson';
+import { translateQualityFlag } from '@app/data/services/model/model.utils';
 
 const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any; loadLevels: any; }>{
   lastUpdateDate: gql`query LastUpdateDate{
@@ -617,9 +618,13 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
         // RoundWeightConversion
         case 'RoundWeightConversion':
-          // TODO limit to program locationIds ? (if location class = SEA) and referenceTaxon from program (taxon groups) + referenceTaxons ?
           loadPageFn = (offset, size) => this.roundWeightConversionRefService
-            .loadAll(offset, size, 'id', 'asc', {statusIds, locationIds: opts?.countryIds}, getLoadOptions(offset));
+            .loadAll(offset, size, 'id', 'asc',
+              { statusIds,
+                // Limit to country from program (see trip service)
+                locationIds: opts?.countryIds
+              },
+              getLoadOptions(offset));
           break;
 
         // Other entities
@@ -651,6 +656,21 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
 
   asFilter(filter: Partial<ReferentialRefFilter>): ReferentialRefFilter {
     return ReferentialRefFilter.fromObject(filter);
+  }
+
+
+  async loadQualityFlags(): Promise<ReferentialRef[]> {
+    const { data: items } = await this.loadAll(0, 100, 'id', 'asc', {
+      entityName: 'QualityFlag',
+      statusId: StatusIds.ENABLE
+    }, {
+      fetchPolicy: "cache-first"
+    });
+
+    // Try to get i18n key instead of label
+    items?.forEach(flag => flag.label = translateQualityFlag(flag.id) || flag.label);
+
+    return items;
   }
 
   private updateModelEnumerations(config: Configuration) {
@@ -738,7 +758,7 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
     QualitativeValueIds.SIZE_UNLI_CAT.NONE = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID);
     QualitativeValueIds.BATCH_SORTING.BULK = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_SORTING_BULK_ID);
     QualitativeValueIds.BATCH_SORTING.NON_BULK = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_SORTING_NON_BULK_ID);
-
+    QualitativeValueIds.SEX.UNSEXED = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.QUALITATIVE_VALUE_SEX_UNSEXED_ID);
 
     // Taxon group type
     TaxonGroupTypeIds.FAO = +config.getProperty(REFERENTIAL_CONFIG_OPTIONS.TAXON_GROUP_TYPE_FAO_ID);
@@ -760,4 +780,5 @@ export class ReferentialRefService extends BaseGraphqlService<ReferentialRef, Re
       LocationLevelGroups.WEIGHT_LENGTH_CONVERSION_AREA = config.getPropertyAsNumbers(REFERENTIAL_CONFIG_OPTIONS.WEIGHT_LENGTH_CONVERSION_AREA_IDS);
     }
   }
+
 }
