@@ -39,7 +39,6 @@ import { AppReferentialTableModule } from '@app/referential/table/referential-ta
 
     // Components
     SoftwarePage,
-    ParameterPage
   ],
   exports: [
     TranslateModule,
@@ -57,7 +56,6 @@ import { AppReferentialTableModule } from '@app/referential/table/referential-ta
 
     // Components
     SoftwarePage,
-    ParameterPage
   ],
 })
 export class AppReferentialModule {

@@ -16,7 +16,7 @@ export class AppReferentialUtils {
    * @param source
    * @param recursive
    */
-  static cleanIdAndDates<T extends IEntity<T>>(source: T, recursive?: boolean, excludedKeys?: string[], path=''): any {
+  static cleanIdAndDates<T extends IEntity<T>>(source: T, recursive?: boolean, excludedKeys?: string[], path='') {
     if (!source || isNil(source['__typename'])) return; // Skip
 
     // DEBUG
@@ -24,6 +24,12 @@ export class AppReferentialUtils {
 
     EntityUtils.cleanIdAndUpdateDate(source);
     if (source['creationDate']) source['creationDate'] = null;
+
+    // If use the generic class ReferentialVO, remove some other id fields
+    if (source['__typename'] === 'ReferentialVO') {
+      if (source['levelId']) source['levelId'] = null;
+      if (source['parentId']) source['parentId'] = null;
+    }
 
     // Loop to children objects
     if (recursive) {

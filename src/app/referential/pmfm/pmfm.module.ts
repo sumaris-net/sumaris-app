@@ -11,6 +11,8 @@ import { SelectPmfmModal } from './select-pmfm.modal';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialFormModule } from '@app/referential/form/referential-form.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
+import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
+import { ParameterPage } from '@app/referential/pmfm/parameter.page';
 
 @NgModule({
   imports: [
@@ -22,7 +24,8 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 
     // Sub modules
     AppReferentialFormModule,
-    AppReferentialPipesModule
+    AppReferentialPipesModule,
+    AppReferentialTableModule
   ],
   declarations: [
 
@@ -31,7 +34,8 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
     PmfmFormField,
     PmfmQvFormField,
     PmfmsTable,
-    SelectPmfmModal
+    SelectPmfmModal,
+    ParameterPage
   ],
   exports: [
     TranslateModule,
@@ -41,6 +45,7 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
     PmfmQvFormField,
     PmfmsTable,
     SelectPmfmModal,
+    ParameterPage
   ],
 })
 export class AppPmfmModule {

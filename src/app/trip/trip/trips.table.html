@@ -62,6 +62,7 @@
 
       <!-- download -->
       <button mat-icon-button
+              *ngIf="canDownload"
               [title]="'COMMON.BTN_DOWNLOAD'|translate"
               [matMenuTriggerFor]="downloadMenu">
         <mat-icon>download</mat-icon>
@@ -140,9 +141,8 @@
 <!-- Download menu -->
 <mat-menu #downloadMenu="matMenu" xPosition="after">
 
-  <!-- Download ... -->
+  <!-- Select extraction types -->
   <button mat-menu-item
-          *ngIf="canDownload"
           [disabled]="offline"
           [matMenuTriggerFor]="downloadTypesMenu"
           [matMenuTriggerData]="{$implicit: extractionTypes$}">
@@ -150,9 +150,8 @@
     <ion-label translate>COMMON.BTN_DOWNLOAD_DOTS</ion-label>
   </button>
 
-  <!-- Download as JSON -->
+  <!-- JSON -->
   <button mat-menu-item
-          *ngIf="canDownload"
           [disabled]="offline"
           (click)="downloadSelectionAsJson($event)">
     <mat-icon>download</mat-icon>
@@ -166,7 +165,7 @@
 <mat-menu #downloadTypesMenu="matMenu" xPosition="after">
   <ng-template matMenuContent let-types>
     <button mat-menu-item
-            *rxFor="let type of types"
+            *ngFor="let type of types|async"
             (click)="openDownloadPage($event, type)">
       <ion-label>{{type.name}}</ion-label>
     </button>

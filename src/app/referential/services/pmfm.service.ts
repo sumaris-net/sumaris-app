@@ -11,7 +11,7 @@ import {
   IEntitiesService,
   IEntityService,
   isNil, isNilOrNaN,
-  isNotNil,
+  isNotNil, isNotNilOrBlank,
   LoadResult,
   MINIFY_ENTITY_FOR_POD,
   ObjectMap,
@@ -237,6 +237,14 @@ export class PmfmService
 
     const now = Date.now();
     if (this._debug) console.debug(`[pmfm-service] Saving Pmfm...`, json);
+
+    // Check label not exists (if new entity)
+    if (isNil(entity.id) && isNotNilOrBlank(entity.label)) {
+      const exists = await this.existsByLabel(entity.label);
+      if (exists) {
+        throw {code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LABEL_NOT_UNIQUE'};
+      }
+    }
 
     await this.graphql.mutate<{ data: any }>({
       mutation: SaveQuery,

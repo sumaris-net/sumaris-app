@@ -1,24 +1,29 @@
 import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
-import { debounceTime, filter, map, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
 import { ReferentialService } from '../services/referential.service';
+import { PopoverController } from '@ionic/angular';
 import {
   AccountService,
   AppTable,
+  chainPromises,
   changeCaseToUnderscore,
-  EntitiesTableDataSource,
+  EntitiesTableDataSource, EntityServiceLoadOptions,
   EntityUtils,
-  firstNotNilPromise,
+  FileEvent, FileResponse,
+  FilesUtils,
+  firstNotNilPromise, IEntitiesService, IEntity, IEntityService, isEmptyArray,
   isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
+  JsonUtils,
   Referential,
   ReferentialRef,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS,
+  RESERVED_START_COLUMNS, sleep,
   slideUpDownAnimation,
   sort,
   StatusById,
@@ -32,6 +37,14 @@ import { ReferentialFilter } from '../services/filter/referential.filter';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ReferentialI18nKeys } from '@app/referential/referential.utils';
+import { ParameterService } from '@app/referential/services/parameter.service';
+import { AppReferentialUtils } from '@app/core/services/model/referential.utils';
+import { HttpEventType } from '@angular/common/http';
+import { Parameter } from '@app/referential/services/model/parameter.model';
+import { PmfmService } from '@app/referential/services/pmfm.service';
+import { Pmfm } from '@app/referential/services/model/pmfm.model';
+import { TaxonNameService } from '@app/referential/services/taxon-name.service';
+import { TaxonName } from '@app/referential/services/model/taxon-name.model';
 
 
 export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
@@ -61,7 +74,7 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
   i18nLevelName: string;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
-  detailsPath = {
+  readonly detailsPath = {
     'Program': '/referential/programs/:id',
     'Software': '/referential/software/:id?label=:label',
     'Pmfm': '/referential/pmfm/:id?label=:label',
@@ -71,6 +84,20 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     // Extraction (special case)
     'ExtractionProduct': '/extraction/product/:id?label=:label'
   };
+  readonly serviceTokens: { [key: string]: any} = {
+    'Parameter': ParameterService,
+    'Pmfm': PmfmService,
+    'TaxonName': TaxonNameService,
+    'TaxonGroup': ReferentialService,
+    'Gear': ReferentialService
+  }
+  readonly dataTypes: { [key: string]: new () => IEntity<any> } = {
+    'Parameter': Parameter,
+    'Pmfm': Pmfm,
+    'TaxonName': TaxonName,
+    'TaxonGroup': Referential,
+    'Gear': Referential
+  }
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
@@ -85,6 +112,8 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
 
   @Input() canEdit = false;
   @Input() canOpenDetail = false;
+  @Input() canDownload = false;
+  @Input() canUpload = false;
   @Input() canSelectEntity = true;
   @Input() persistFilterInSettings: boolean;
   @Input() title = 'REFERENTIAL.LIST.TITLE';
@@ -109,13 +138,14 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    injector: Injector,
+    private injector: Injector,
     protected accountService: AccountService,
     protected validatorService: ReferentialValidatorService,
     protected referentialService: ReferentialService,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: UntypedFormBuilder,
-    protected translate: TranslateService
+    protected popoverController: PopoverController,
+    protected translate: TranslateService,
   ) {
     super(injector,
       // columns
@@ -264,6 +294,9 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     this._entityName = entityName;
 
     this.canOpenDetail = false;
+    this.canDownload = false;
+    this.canUpload = false;
+    this.resetError();
 
     // Wait end of entities loading
     if (this.canSelectEntity) {
@@ -282,6 +315,8 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
 
     this.canOpenDetail = !!this.detailsPath[entityName];
     this.inlineEdition = !this.canOpenDetail;
+    this.canDownload = !!this.serviceTokens[entityName];
+    this.canUpload = !!this.serviceTokens[entityName] && !!this.dataTypes[entityName] && this.accountService.isAdmin();
 
     // Applying the filter (will reload if emitEvent = true)
     const filter = ReferentialFilter.fromObject({
@@ -436,6 +471,122 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     this.compact = !this.compact;
     this.markForCheck();
     this.settings.savePageSetting(this.settingsId, this.compact, REFERENTIAL_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
+  }
+
+  async downloadSelectionAsJson(event?: Event) {
+    if (!this._entityName || !this.selection.hasValue()) return; // Skip
+
+    const filename = `${changeCaseToUnderscore(this._entityName)}.json`;
+
+    const serviceToken = this.serviceTokens[this._entityName];
+    const service = serviceToken && this.injector.get(serviceToken) as IEntityService<any>;
+    if (!service) return; // Skip
+
+    const loadOpts: EntityServiceLoadOptions & {entityName?: string} = {fetchPolicy: 'no-cache', fullLoad: true};
+    if (service instanceof ReferentialService) {
+      loadOpts.entityName = this._entityName;
+    }
+
+    const ids = this.selection.selected.map(row => row.currentData.id);
+    const entities = await chainPromises(ids.map(id => async () => {
+      const entity = await service.load(id, loadOpts);
+      AppReferentialUtils.cleanIdAndDates(entity, true);
+      return entity.asObject({keepTypename: true});
+    }));
+
+    JsonUtils.exportToFile(entities, {filename});
+  }
+
+  async importFromJson(event?: Event) {
+    if (!this._entityName || !this.canEdit) return; // skip
+    const serviceToken = this.serviceTokens[this._entityName];
+    const service = serviceToken && this.injector.get(serviceToken) as IEntityService<any>;
+    const dataType = this.dataTypes[this._entityName];
+    if (!service || !dataType) return; // Skip
+
+    const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
+      uniqueFile: true,
+      fileExtension: '.json',
+      uploadFn: (file) => this.parseJsonFile(file)
+    });
+
+    const sources = (data || []).flatMap(file => file.response?.body || []);
+    if (isEmptyArray(sources)) return; // No entities: skip
+
+    console.info(`[referential-table] Importing ${sources.length} entities...`, sources);
+
+    const errors = [];
+
+    // Save entities, one by one
+    const entities = (await chainPromises(sources
+        // Keep non exists entities
+        .filter(source => source && isNil(source.id))
+        .map(source => async () => {
+          const target = new dataType();
+          try {
+            target.fromObject(source)
+            if (!service.canUserWrite(target)) return; // Cannot write: skip
+            return await service.save(target);
+          }
+          catch (err) {
+            let message = err && err.message || err;
+            if (typeof message === 'string') message = this.translate.instant(message);
+            const fullMessage = this.translate.instant("REFERENTIAL.ERROR.IMPORT_ENTITY_ERROR", {label: source.label, message});
+            errors.push(fullMessage);
+            console.error(fullMessage);
+            return null;
+          }
+        }))
+      )
+      .filter(isNotNil);
+
+    if (isNotEmptyArray(errors)) {
+      if (entities.length > 0) {
+        console.warn(`[referential-table] Importing ${entities.length} entities [OK] with errors:`, errors);
+        this.showToast({
+          type: 'warning',
+          message: 'REFERENTIAL.INFO.IMPORT_ENTITIES_WARNING',
+          messageParams: {count: entities.length, errorCount: errors.length, error: `<ul><li>${errors.join('</li><li>')}</li></ul>`}
+        });
+      }
+      else {
+        console.error(`[referential-table] Failed to import entities:`, errors);
+        this.showToast({
+          type: 'error',
+          message: 'REFERENTIAL.ERROR.IMPORT_ENTITIES_ERROR',
+          messageParams: { error: `<ul><li>${errors.join('</li><li>')}</li></ul>`}
+        });
+      }
+    }
+    else {
+      console.info(`[referential-table] Importing ${entities.length} entities [OK]`);
+      this.showToast({
+        type: 'info',
+        message: 'REFERENTIAL.INFO.IMPORT_ENTITIES_SUCCEED',
+        messageParams: {count: sources.length}
+      });
+    }
+
+    await sleep(1000);
+
+    this.onRefresh.emit();
+  }
+
+  protected  parseJsonFile<T = any>(file: File, opts?: {encoding?: string}): Observable<FileEvent<T[]>> {
+    console.info(`[referential-table] Reading JSON file ${file.name}...`);
+
+    return JsonUtils.parseFile(file, {encoding: opts?.encoding})
+      .pipe(
+        switchMap(event => {
+          if (event instanceof FileResponse){
+            const body: T[] = Array.isArray(event.body) ? event.body : [event.body];
+            return of(new FileResponse({body}));
+          }
+          // Unknown event: skip
+          return of(event);
+        }),
+        filter(isNotNil)
+      );
   }
 
   /* -- protected functions -- */

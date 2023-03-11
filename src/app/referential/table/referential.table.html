@@ -50,15 +50,30 @@
               (click)="deleteSelection($event)" >
         <mat-icon>delete</mat-icon>
       </button>
+
+      <!-- download -->
+      <button mat-icon-button
+              *ngIf="canDownload"
+              [title]="'COMMON.BTN_DOWNLOAD'|translate"
+              [matMenuTriggerFor]="downloadMenu">
+        <mat-icon>download</mat-icon>
+      </button>
     </ng-template>
 
-    <!-- entity selector -->
+    <!-- select entity -->
     <ion-button *ngIf="$selectedEntity | async as entity" fill="solid" color="accent"
                 [class.cdk-visually-hidden]="!canSelectEntity"
                 [matMenuTriggerFor]="selectEntityMenu">
       <ion-label>{{entity.label}}</ion-label>
       <mat-icon slot="end">arrow_drop_down</mat-icon>
     </ion-button>
+
+    <button mat-icon-button
+            [title]="'COMMON.BTN_OPTIONS'|translate"
+            *ngIf="canEdit"
+            [matMenuTriggerFor]="toolbarOptionsMenu">
+      <mat-icon>more_vert</mat-icon>
+    </button>
   </ion-buttons>
 </app-toolbar>
 
@@ -71,6 +86,29 @@
   </button>
 </mat-menu>
 
+
+<!-- Download menu -->
+<mat-menu #downloadMenu="matMenu" xPosition="after">
+
+  <!-- JSON -->
+  <button mat-menu-item
+          (click)="downloadSelectionAsJson($event)">
+    <mat-icon>download</mat-icon>
+    <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
+  </button>
+
+</mat-menu>
+
+<!-- Toolbar option menu -->
+<mat-menu #toolbarOptionsMenu="matMenu" xPosition="after">
+  <!-- upload button -->
+  <button mat-menu-item
+          [disabled]="!canUpload"
+          (click)="importFromJson($event)">
+    <mat-icon>upload</mat-icon>
+    <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
+  </button>
+</mat-menu>
 
 <!-- Table options menu -->
 <mat-menu #optionsMenu="matMenu" xPosition="after">
@@ -389,12 +427,12 @@
   </mat-paginator>
 
   <app-form-buttons-bar hidden-xs hidden-sm hidden-mobile
-                        *ngIf="canEdit && !canOpenDetail"
+                        *ngIf="canEdit && !canOpenDetail || (errorSubject|push)"
                         (onCancel)="onRefresh.emit()"
                         (onSave)="save()"
                         [disabled]="(loadingSubject|async) || !dirty">
     <!-- error -->
-    <ion-item *ngIf="error" lines="none">
+    <ion-item *rxIf="errorSubject; let error" lines="none">
       <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
       <ion-label color="danger" [innerHTML]="error|translate"></ion-label>
     </ion-item>

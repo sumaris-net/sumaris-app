@@ -1761,6 +1761,10 @@
       "VESSELS_IMPORT_ENABLE": "Référentiels > Navires: Activer l'importation fichier ?",
       "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires > Remplacement: Activer ?"
     },
+    "INFO": {
+      "IMPORT_ENTITIES_SUCCEED": "Importation terminée <b>avec succès</b> !<br/>{{count}} élément(s) ajouté(s).",
+      "IMPORT_ENTITIES_WARNING": "Importation terminée <b>avec erreur</b>: <br/>{{count}} élément(s) ajouté(s), {{errorCount}} en erreur :<br/>{{error}}"
+    },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
       "LOAD_REFERENTIAL_ERROR": "Erreur de chargement.",
@@ -1771,7 +1775,10 @@
       "LOAD_PROGRAM_GEARS_ERROR": "Erreur lors de chargement des engins du programme",
       "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Erreur lors de chargement des espèces commerciales du programme",
       "SAVE_PERSONS_ERROR": "Erreur de sauvegarde des utilisateurs",
-      "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs"
+      "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs",
+      "LABEL_NOT_UNIQUE": "Code déjà utilisé",
+      "IMPORT_ENTITIES_ERROR": "Échec de l'importation:<br/>{{error}}",
+      "IMPORT_ENTITY_ERROR": "'{{label}}': {{message}}"
     }
   },
   "PROGRAM": {
