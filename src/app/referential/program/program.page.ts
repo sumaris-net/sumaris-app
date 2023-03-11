@@ -260,10 +260,12 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
             data.properties[def.key] = null;
           }
         }
+        // If type = 'entity'
         else {
           let value = data.properties[def.key];
+          value = typeof value === 'string' ?  value.trim() : value;
           if (isNotNilOrBlank(value)) {
-            const entity = await this.resolveEntity(def, value.trim())
+            const entity = await this.resolveEntity(def, value)
             data.properties[def.key] = entity;
           }
           else {
