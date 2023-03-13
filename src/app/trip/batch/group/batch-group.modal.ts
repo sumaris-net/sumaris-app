@@ -3,7 +3,7 @@ import { Batch } from '../common/batch.model';
 import {
   Alerts,
   AppFormUtils,
-  AudioProvider,
+  AudioProvider, ErrorCodes,
   IReferentialRef,
   isNil,
   isNotNil,
@@ -28,7 +28,6 @@ import { TripContextService } from '@app/trip/services/trip-context.service';
 import { ContextService } from '@app/shared/context.service';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
-import {ErrorCodes} from '../../../../../ngx-sumaris-components/src/app/core/services/errors';
 
 
 export interface IBatchGroupModalOptions extends IBatchModalOptions<BatchGroup> {
