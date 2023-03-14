@@ -22,7 +22,7 @@ import {BatchWeightValidator} from '@app/trip/batch/common/batch.validator';
 import {LocationLevelIds, MethodIds, PmfmIds, QualitativeValueIds, WeightUnitSymbol} from '@app/referential/services/model/model.enum';
 import {DataEntityValidatorOptions, DataEntityValidatorService} from '@app/data/services/validator/data-entity.validator';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
-import {WeightLengthConversionRefService} from '@app/referential/taxon/weight-length-conversion/weight-length-conversion-ref.service';
+import {WeightLengthConversionRefService} from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service';
 import {FishingArea} from '@app/data/services/model/fishing-area.model';
 import {LocationUtils} from '@app/referential/location/location.utils';
 import {VesselPosition} from '@app/data/services/model/vessel-position.model';

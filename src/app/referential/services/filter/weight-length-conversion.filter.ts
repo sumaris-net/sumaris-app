@@ -1,6 +1,6 @@
 import { EntityAsObjectOptions, EntityClass, EntityFilter, FilterFn, fromDateISOString, IEntityFilter, isNotNil } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
-import { WeightLengthConversionRef } from '@app/referential/taxon/weight-length-conversion/weight-length-conversion.model';
+import { WeightLengthConversionRef } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
 import { isNonEmptyArray } from '@apollo/client/utilities';
 import { StoreObject } from '@apollo/client/core';
 

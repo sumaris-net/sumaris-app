@@ -4,7 +4,7 @@ import { EntityServiceLoadOptions, HistoryPageReference, isNil, isNotNil, joinPr
 import { TaxonName } from '../services/model/taxon-name.model';
 import { TaxonNameService } from '../services/taxon-name.service';
 import { TaxonNameValidatorService } from '../services/validator/taxon-name.validator';
-import { WeightLengthConversionTable } from '@app/referential/taxon/weight-length-conversion/weight-length-conversion.table';
+import { WeightLengthConversionTable } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.table';
 import { AppReferentialEditor } from '@app/referential/form/referential-editor.class';
 import { ReferentialForm } from '@app/referential/form/referential.form';
 

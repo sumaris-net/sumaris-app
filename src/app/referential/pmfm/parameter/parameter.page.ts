@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
 import { ValidatorService } from '@e-is/ngx-material-table';
 import { AbstractControl, UntypedFormGroup } from '@angular/forms';
-import { ReferentialForm } from '../form/referential.form';
-import { ParameterValidatorService } from '../services/validator/parameter.validator';
+import { ReferentialForm } from '../../form/referential.form';
+import { ParameterValidatorService } from '../../services/validator/parameter.validator';
 import {
   AccountService,
   AppEntityEditor,
@@ -14,11 +14,11 @@ import {
   referentialToString,
   ReferentialUtils,
 } from '@sumaris-net/ngx-components';
-import { Parameter } from '../services/model/parameter.model';
-import { ParameterService } from '../services/parameter.service';
-import { ReferentialRefService } from '../services/referential-ref.service';
-import { environment } from '../../../environments/environment';
-import { SimpleReferentialTable } from '../table/referential-simple.table';
+import { Parameter } from '../../services/model/parameter.model';
+import { ParameterService } from '../../services/parameter.service';
+import { ReferentialRefService } from '../../services/referential-ref.service';
+import { environment } from '@environments/environment';
+import { SimpleReferentialTable } from '../../table/referential-simple.table';
 
 @Component({
   selector: 'app-parameter',

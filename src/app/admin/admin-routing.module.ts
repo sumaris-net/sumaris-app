@@ -1,9 +1,8 @@
-import {RouterModule, Routes} from "@angular/router";
-import {AuthGuardService, UsersPage} from '@sumaris-net/ngx-components';
-import {NgModule} from "@angular/core";
-import {ConfigurationPage} from "./config/configuration.page";
-import {SharedRoutingModule} from "@sumaris-net/ngx-components";
-import {AppAdminModule} from "./admin.module";
+import { RouterModule, Routes } from '@angular/router';
+import { AuthGuardService, UsersPage } from '@sumaris-net/ngx-components';
+import { NgModule } from '@angular/core';
+import { ConfigurationPage } from './config/configuration.page';
+import { AppAdminModule } from './admin.module';
 
 const routes: Routes = [
   {

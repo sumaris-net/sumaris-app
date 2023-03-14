@@ -16,6 +16,7 @@ import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { AppMeasurementModule } from '@app/trip/measurement/measurement.module';
 import { SamplesModal } from '@app/trip/sample/samples.modal';
 import { ImageGalleryModule } from '@sumaris-net/ngx-components';
+import { AppPmfmSelectModalModule } from '@app/referential/pmfm/table/select-pmfm.module';
 
 @NgModule({
   imports: [
@@ -29,6 +30,7 @@ import { ImageGalleryModule } from '@sumaris-net/ngx-components';
 
     // Functional modules
     AppMeasurementModule,
+    AppPmfmSelectModalModule,
     ImageGalleryModule
   ],
   declarations: [

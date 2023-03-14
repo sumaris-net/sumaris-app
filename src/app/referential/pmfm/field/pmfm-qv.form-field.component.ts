@@ -39,8 +39,8 @@ import {
   toBoolean,
   toNumber, selectInputRange, isNotNilOrBlank
 } from '@sumaris-net/ngx-components';
-import { PmfmIds } from '../services/model/model.enum';
-import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
+import { PmfmIds } from '../../services/model/model.enum';
+import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
 import { IonButton } from '@ionic/angular';
 
 export declare type PmfmQvFormFieldStyle = 'autocomplete' | 'select' | 'button';

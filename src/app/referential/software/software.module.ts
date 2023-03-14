@@ -1,35 +1,39 @@
 import { NgModule } from '@angular/core';
+import { SoftwarePage } from './software.page';
 import { TranslateModule } from '@ngx-translate/core';
+
+import { TextMaskModule } from 'angular2-text-mask';
 import { CommonModule } from '@angular/common';
-import { TaxonNamePage } from './taxon-name.page';
 import { AppCoreModule } from '@app/core/core.module';
-import { WeightLengthConversionTable } from './weight-length-conversion/weight-length-conversion.table';
+import { AppTranscribingModule } from '@app/referential/transcribing/transcribing.module';
 import { AppReferentialFormModule } from '@app/referential/form/referential-form.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
+import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
 
 @NgModule({
   imports: [
     CommonModule,
+    TextMaskModule,
     TranslateModule.forChild(),
 
     AppCoreModule,
 
     // Sub modules
     AppReferentialFormModule,
-    AppReferentialPipesModule
+    AppReferentialTableModule,
+    AppReferentialPipesModule,
   ],
   declarations: [
 
     // Components
-    WeightLengthConversionTable,
-    TaxonNamePage
+    SoftwarePage,
   ],
   exports: [
     TranslateModule,
 
     // Components
-    TaxonNamePage
+    SoftwarePage
   ],
 })
-export class AppTaxonModule {
+export class AppSoftwareModule {
 }

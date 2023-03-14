@@ -2,10 +2,10 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Even
 import { ControlValueAccessor, FormGroupDirective, NG_VALUE_ACCESSOR, UntypedFormArray, UntypedFormBuilder, UntypedFormControl } from '@angular/forms';
 import { FloatLabelType } from '@angular/material/form-field';
 import { filterNumberInput, focusInput, FormArrayHelper, InputElement, isNil, LocalSettingsService, setTabIndex, toBoolean, toNumber } from '@sumaris-net/ngx-components';
-import { IPmfm, PmfmUtils } from '../services/model/pmfm.model';
-import { PmfmValidators } from '../services/validator/pmfm.validators';
-import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../services/model/model.enum';
-import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/pmfm-qv.form-field.component';
+import { IPmfm, PmfmUtils } from '../../services/model/pmfm.model';
+import { PmfmValidators } from '../../services/validator/pmfm.validators';
+import { PmfmLabelPatterns, UnitLabel, UnitLabelPatterns } from '../../services/model/model.enum';
+import { PmfmQvFormFieldStyle } from '@app/referential/pmfm/field/pmfm-qv.form-field.component';
 import { PmfmValue, PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { Subscription } from 'rxjs';

@@ -3,7 +3,7 @@ import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/
 import { AppTable, RESERVED_END_COLUMNS, RESERVED_START_COLUMNS, StatusById, StatusList } from '@sumaris-net/ngx-components';
 import { debounceTime, filter } from 'rxjs/operators';
 import { environment } from '@environments/environment';
-import { Pmfm } from '../services/model/pmfm.model';
+import { Pmfm } from '../../services/model/pmfm.model';
 import { PmfmFilter } from '@app/referential/services/filter/pmfm.filter';
 
 @Component({
