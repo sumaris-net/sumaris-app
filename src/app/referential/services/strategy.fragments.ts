@@ -13,7 +13,7 @@ export const StrategyFragments = {
     statusId
     programId
     gears {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     taxonGroups {
       ...TaxonGroupStrategyFragment
@@ -44,7 +44,7 @@ export const StrategyFragments = {
     statusId
     programId
     gears {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     taxonGroups {
       ...TaxonGroupStrategyFragment
@@ -67,7 +67,7 @@ export const StrategyFragments = {
       id
       strategyId
       location {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       appliedPeriods {
         ...AppliedPeriodFragment
@@ -87,13 +87,13 @@ export const StrategyFragments = {
       id
       strategyId
       location {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       privilege {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       department {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       __typename
     }`,
@@ -111,16 +111,16 @@ export const StrategyFragments = {
         ...LightPmfmFragment
       }
       parameter {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       matrix {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       fraction {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       method {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       gearIds
       taxonGroupIds
@@ -142,16 +142,16 @@ export const StrategyFragments = {
       ...PmfmFragment
     }
     parameter {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     matrix {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     fraction {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     method {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     gearIds
     taxonGroupIds
@@ -195,7 +195,7 @@ export const StrategyFragments = {
       statusId
       programId
       gears {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       taxonGroups {
         ...TaxonGroupStrategyFragment

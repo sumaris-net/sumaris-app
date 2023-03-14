@@ -1,11 +1,9 @@
-import {Injectable} from "@angular/core";
-import {AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators} from "@angular/forms";
-import { Referential, SharedValidators, toNumber } from '@sumaris-net/ngx-components';
-import {AppValidatorService}  from "@sumaris-net/ngx-components";
-import { FullReferential } from '@app/referential/services/model/referential.model';
+import { Injectable } from '@angular/core';
+import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import {AppValidatorService, BaseReferential, Referential, SharedValidators, toNumber} from '@sumaris-net/ngx-components';
 
 @Injectable({providedIn: 'root'})
-export class ReferentialValidatorService<T extends Referential = Referential>
+export class ReferentialValidatorService<T extends BaseReferential<T> = BaseReferential<any>>
   extends AppValidatorService<T> {
 
   constructor(protected formBuilder: UntypedFormBuilder) {
@@ -28,6 +26,7 @@ export class ReferentialValidatorService<T extends Referential = Referential>
 
   getFormGroupConfig(data?: T, opts?: {
     withDescription?: boolean;
+    withParent?: boolean;
     withComments?: boolean;
   }): {[key: string]: any} {
     opts = opts || {};
@@ -40,15 +39,20 @@ export class ReferentialValidatorService<T extends Referential = Referential>
       parentId: [toNumber(data?.parentId, null)],
       label: [data && data.label || null, Validators.required],
       name: [data && data.name || null, Validators.required],
-      entityName: [data && data.entityName || null, Validators.required]
+      entityName: [data && data.entityName || null, Validators.required],
+      properties: [data && data['properties'] || null]
     };
 
+    if (opts.withParent !== false) {
+      controlsConfig.parent = [data && data['parent'] || null, SharedValidators.entity];
+    }
     if (opts.withDescription !== false) {
       controlsConfig.description = [data && data.description || null, Validators.maxLength(255)];
     }
     if (opts.withComments !== false) {
       controlsConfig.comments = [data && data.comments || null, Validators.maxLength(2000)];
     }
+
     return controlsConfig;
   }
 

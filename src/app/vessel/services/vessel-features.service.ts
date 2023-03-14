@@ -22,7 +22,7 @@ export const VesselFeaturesFragments = {
       constructionYear
       ircs
       hullMaterial {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       creationDate
       updateDate
@@ -49,7 +49,7 @@ export const VesselFeatureQueries = {
   ${ReferentialFragments.location}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightPerson}
-  ${ReferentialFragments.referential}`
+  ${ReferentialFragments.lightReferential}`
 };
 
 @Injectable({providedIn: 'root'})

@@ -81,7 +81,9 @@
 
   </mat-sidenav-container>
 
-  <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
+  <ng-container *ngIf="mobile && !useModal">
+    <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
+  </ng-container>
 </ng-container>
 
 <ng-template #withModal>

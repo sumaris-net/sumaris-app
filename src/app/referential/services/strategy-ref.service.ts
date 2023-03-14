@@ -42,7 +42,7 @@ const Queries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.taxonName}
   `,
   loadAll: gql`query StrategyRefs($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -57,7 +57,7 @@ const Queries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.taxonName}`,
 
   loadAllWithTotal: gql`query StrategyRefWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -73,7 +73,7 @@ const Queries: BaseEntityGraphqlQueries = {
   ${StrategyFragments.denormalizedPmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.taxonName}`
 };
 

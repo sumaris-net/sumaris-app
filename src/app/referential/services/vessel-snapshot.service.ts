@@ -42,7 +42,7 @@ export const VesselSnapshotFragments = {
     registrationCode
     intRegistrationCode
     vesselType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     vesselStatusId
   }`,
@@ -58,7 +58,7 @@ export const VesselSnapshotFragments = {
       ...LocationFragment
     }
     vesselType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     vesselStatusId
   }`,
@@ -72,7 +72,7 @@ export const VesselSnapshotFragments = {
       ...LocationFragment
     }
     vesselType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     vesselStatusId
   }`
@@ -86,7 +86,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   // Load all with total
   loadAllWithTotal: gql`query VesselSnapshotsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
@@ -96,7 +96,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
     total: vesselSnapshotsCount(filter: $filter)
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   // Load one item
   load: gql`query VesselSnapshot($vesselId: Int, $vesselFeaturesId: Int) {
@@ -105,7 +105,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
     }
   }
   ${VesselSnapshotFragments.lightVesselSnapshot}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   // Load all WITH base port location
   loadAllWithPort: gql`query VesselSnapshotsWithPort($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
@@ -115,7 +115,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
   }
   ${VesselSnapshotFragments.lightVesselSnapshotWithPort}
   ${ReferentialFragments.location}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   // Load all WITH base port location AND total
   loadAllWithPortAndTotal: gql`query VesselSnapshotsWithPortAndTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
@@ -126,7 +126,7 @@ const QUERIES: BaseEntityGraphqlQueries & { loadAllWithPort: any; loadAllWithPor
   }
   ${VesselSnapshotFragments.lightVesselSnapshotWithPort}
   ${ReferentialFragments.location}
-  ${ReferentialFragments.referential}`
+  ${ReferentialFragments.lightReferential}`
 };
 
 export declare interface VesselServiceLoadOptions extends EntityServiceLoadOptions {

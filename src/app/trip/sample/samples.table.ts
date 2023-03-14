@@ -38,7 +38,7 @@ import { debounceTime } from 'rxjs/operators';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { SampleFilter } from '../services/filter/sample.filter';
 import { PmfmService } from '@app/referential/services/pmfm.service';
-import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/select-pmfm.modal';
+import { ISelectPmfmModalOptions, SelectPmfmModal } from '@app/referential/pmfm/table/select-pmfm.modal';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { MatMenu } from '@angular/material/menu';
 import { TaxonNameRef } from '@app/referential/services/model/taxon-name.model';

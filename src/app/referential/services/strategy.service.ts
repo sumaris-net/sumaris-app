@@ -16,6 +16,7 @@ import {
   isNilOrBlank,
   isNilOrNaN,
   isNotNil,
+  JsonUtils,
   LoadResult,
   NetworkService,
   Referential,
@@ -39,6 +40,8 @@ import { StrategyFilter } from '@app/referential/services/filter/strategy.filter
 import { PmfmStrategy } from '@app/referential/services/model/pmfm-strategy.model';
 import { ProgramService } from '@app/referential/services/program.service';
 import { Program } from '@app/referential/services/model/program.model';
+import { COPY_LOCALLY_AS_OBJECT_OPTIONS } from '@app/data/services/model/data-entity.model';
+import { TranslateService } from '@ngx-translate/core';
 
 
 const FindStrategyNextLabel: any = gql`
@@ -55,25 +58,25 @@ const FindStrategyNextSampleLabel: any = gql`
 
 const LoadAllAnalyticReferencesQuery: any = gql`query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}`;
+  ${ReferentialFragments.lightReferential}`;
 const LoadAllAnalyticReferencesWithTotalQuery: any = gql`query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
   data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-    ...ReferentialFragment
+    ...LightReferentialFragment
   }
   total: analyticReferencesCount(filter: $filter)
 }
-${ReferentialFragments.referential}`;
+${ReferentialFragments.lightReferential}`;
 
 const FindStrategiesReferentials: any = gql`
   query StrategiesReferentials($programId: Int!, $locationClassification: LocationClassificationEnum, $entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategiesReferentials(programId: $programId, locationClassification: $locationClassification, entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
 `;
 
 const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
@@ -89,10 +92,10 @@ const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
   ${StrategyFragments.pmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.parameter}
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}`,
 
   loadAll: gql`query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -107,7 +110,7 @@ const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}`,
 
@@ -124,7 +127,7 @@ const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}`,
 
@@ -146,10 +149,10 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.parameter}
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}`,
 
   delete: gql`mutation DeleteAllStrategies($id:Int!){
@@ -160,10 +163,10 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
 const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
   listenChanges: gql`subscription UpdateReferential($id: Int!, $interval: Int){
     updateReferential(entityName: "Strategy", id: $id, interval: $interval) {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}`
+  ${ReferentialFragments.lightReferential}`
 };
 
 @Injectable({providedIn: 'root'})
@@ -175,6 +178,7 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
     protected accountService: AccountService,
     protected cache: CacheService,
     protected entities: EntitiesStorage,
+    protected translate: TranslateService,
     protected programService: ProgramService,
     protected programRefService: ProgramRefService,
     protected strategyRefService: StrategyRefService,
@@ -512,6 +516,47 @@ export class StrategyService extends BaseReferentialService<Strategy, StrategyFi
       this.programRefService.clearCache(),
       this.strategyRefService.clearCache()
     ]);
+  }
+
+  async downloadAsJsonByIds(ids: number[], opts?: {keepRemoteId: boolean, program?: Program}) {
+    if (isEmptyArray(ids)) throw Error('Required not empty array of ids');
+
+    // Load entities
+    const { data } = await this.loadAll(0, 999, 'creationDate', 'asc', <Partial<StrategyFilter>>{
+      includedIds: ids
+    }, {withTotal: false});
+
+    if (!data.length) throw Error('COMMON.NO_RESULT');
+
+    // To json
+    const jsonArray = data.map(entity => entity.asObject({...COPY_LOCALLY_AS_OBJECT_OPTIONS, ...opts, minify: false}));
+
+    const program = opts.program || (await this.programRefService.load(data[0].programId));
+    const filename = this.translate.instant("PROGRAM.STRATEGY.DOWNLOAD_MANY_JSON_FILENAME", {
+      programLabel: program?.label
+    });
+
+    // Export to file
+    JsonUtils.exportToFile(jsonArray, {filename});
+  }
+
+  async downloadAsJson(entity: Strategy, opts?: {keepRemoteId: boolean, program?: Program}) {
+    if (!entity) throw new Error('Missing required \'entity\' argument');
+    if (isNilOrNaN(entity.programId)) throw new Error('Missing required \'entity.programId\'');
+
+    // Convert strategy into JSON
+    const json = Strategy.fromObject(entity)
+      .asObject({...COPY_LOCALLY_AS_OBJECT_OPTIONS, ...opts, minify: false});
+    delete json.denormalizedPmfms; // Not used, because we already have pmfms
+
+    const program = opts.program || (await this.programRefService.load(entity.programId));
+    const filename = this.translate.instant("PROGRAM.STRATEGY.DOWNLOAD_JSON_FILENAME", {
+      programLabel: program?.label,
+      label: entity.label
+    });
+
+    // Export to file
+    JsonUtils.exportToFile(json, {filename});
   }
 
   /* -- protected functions -- */

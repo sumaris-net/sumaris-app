@@ -1,12 +1,35 @@
 import {gql} from "@apollo/client/core";
 
 export const ReferentialFragments = {
-  referential: gql`fragment ReferentialFragment on ReferentialVO {
+  lightReferential: gql`fragment LightReferentialFragment on ReferentialVO {
     id
     label
     name
     rankOrder
     statusId
+    entityName
+    __typename
+  }`,
+  referential: gql`fragment ReferentialFragment on ReferentialVO {
+    id
+    label
+    name
+    description
+    comments
+    updateDate
+    creationDate
+    statusId
+    validityStatusId
+    levelId
+    parentId
+    parent {
+      id
+      label
+      name
+      entityName
+      __typename
+    }
+    rankOrder
     entityName
     __typename
   }`,
@@ -31,6 +54,7 @@ export const ReferentialFragments = {
     }
     rankOrder
     entityName
+    properties
     __typename
   }`,
   department: gql`fragment DepartmentFragment on DepartmentVO {
@@ -221,16 +245,16 @@ export const ReferentialFragments = {
       ...ParameterFragment
     }
     matrix {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     fraction {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     method {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     unit {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     __typename
   }`,
@@ -256,16 +280,16 @@ export const ReferentialFragments = {
       ...ParameterFragment
     }
     matrix {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     fraction {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     method {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     unit {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     __typename
   }`,
@@ -279,7 +303,7 @@ export const ReferentialFragments = {
     updateDate
     entityName
     qualitativeValues {
-      ...FullReferentialFragment
+      ...ReferentialFragment
     }
     __typename
   }`,

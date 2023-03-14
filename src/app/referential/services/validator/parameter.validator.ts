@@ -8,7 +8,8 @@ import {Referential}  from "@sumaris-net/ngx-components";
 export class ParameterValidatorService extends ReferentialValidatorService<Parameter> {
 
   constructor(
-    protected formBuilder: UntypedFormBuilder
+    protected formBuilder: UntypedFormBuilder,
+    protected referentialValidatorService: ReferentialValidatorService<Referential>
   ) {
     super(formBuilder);
   }
@@ -29,6 +30,6 @@ export class ParameterValidatorService extends ReferentialValidatorService<Param
   }
 
   getQualitativeValuesFormGroup(data?: Referential): UntypedFormGroup {
-    return this.formBuilder.group(super.getFormGroupConfig(data as Parameter));
+    return this.formBuilder.group(this.referentialValidatorService.getFormGroupConfig(data));
   }
 }

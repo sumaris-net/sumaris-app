@@ -16,140 +16,160 @@
 </app-referential-form>
 
 <!-- Filter form -->
-<form [formGroup]="form" class="form-container">
-  <ion-grid>
-    <ion-row>
+<mat-sidenav-container>
+  <mat-sidenav #sidenav mode="side">
+    <mat-accordion [formGroup]="form">
 
-      <ion-col size="12" size-md="4" size-lg="3">
-        <mat-accordion>
+      <!-- Acquisition levels -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <ion-toolbar color="transparent">
+            <mat-icon slot="start" class="ion-color-primary">layers</mat-icon>
+            <ion-label color="primary">
+              <span translate>PROGRAM.STRATEGY.ACQUISITION_LEVELS</span>
+              &nbsp;
+              <span *ngIf="acquisitionLevelList.length; let count">({{count}})&nbsp;</span>
+              <ion-icon name="filter" *ngIf="acquisitionLevelList.hasSelection()"></ion-icon>
+            </ion-label>
+          </ion-toolbar>
+        </mat-expansion-panel-header>
 
-          <!-- Acquisition levels -->
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <ion-text color="primary">
-                  <span translate>PROGRAM.STRATEGY.ACQUISITION_LEVELS</span>
-                  <ion-icon name="filter" *ngIf="acquisitionLevelList.hasSelection()"></ion-icon>
-                </ion-text>
-              </mat-panel-title>
-              <mat-panel-description *ngIf="acquisitionLevelList.length">({{acquisitionLevelList.length}})</mat-panel-description>
-            </mat-expansion-panel-header>
+        <app-list-form #acquisitionLevelList
+                       [displayWith]="getReferentialName"
+                       [formArray]="filterForm|formGetArray:'acquisitionLevels'"
+                       [equals]="referentialEquals"
+                       [options]="{allowEmptyArray: true, allowMultipleSelection: false}"
+                       (selectionChanges)="updateFilterAcquisitionLevel($event && $event[0])"
+                       (onNewItem)="addAcquisitionLevel()">
+        </app-list-form>
+      </mat-expansion-panel>
 
-            <app-list-form #acquisitionLevelList
-                           [displayWith]="getReferentialName"
-                           [formArray]="filterForm|formGetArray:'acquisitionLevels'"
-                           [equals]="referentialEquals"
-                           [options]="{allowEmptyArray: true, allowMultipleSelection: false}"
-                           (selectionChanges)="updateFilterAcquisitionLevel($event && $event[0])"
-                           (onNewItem)="addAcquisitionLevel()">
-            </app-list-form>
-          </mat-expansion-panel>
+      <!-- Locations -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <ion-toolbar color="transparent">
+            <ion-icon slot="start" color="primary" name="locate"></ion-icon>
+            <ion-label color="primary">
+              <span translate>PROGRAM.STRATEGY.LOCATIONS</span>
+              &nbsp;
+              <span *ngIf="locationList.length; let count">({{count}})&nbsp;</span>
+              <ion-icon name="filter" *ngIf="locationList.hasSelection()"></ion-icon>
+            </ion-label>
+          </ion-toolbar>
+        </mat-expansion-panel-header>
 
-          <!-- Locations -->
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <ion-text color="primary">
-                  <span translate>PROGRAM.STRATEGY.LOCATIONS</span>
-                  <ion-icon name="filter" *ngIf="locationList.hasSelection()"></ion-icon>
-                </ion-text>
-              </mat-panel-title>
-              <mat-panel-description *ngIf="locationList.length">({{locationList.length}})</mat-panel-description>
-            </mat-expansion-panel-header>
+        <app-list-form #locationList
+                       [formArray]="filterForm|formGetArray:'locations'"
+                       [displayWith]="referentialToString"
+                       [equals]="referentialEquals"
+                       [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
+                       (selectionChanges)="updateFilterLocations($event)"
+                       (onNewItem)="addLocation()">
+        </app-list-form>
+      </mat-expansion-panel>
 
-            <app-list-form #locationList
-                           [formArray]="filterForm|formGetArray:'locations'"
-                           [displayWith]="referentialToString"
-                           [equals]="referentialEquals"
-                           [options]="{allowEmptyArray: true, allowMultipleSelection: true}"
-                           (selectionChanges)="updateFilterLocations($event)"
-                           (onNewItem)="addLocation()">
-            </app-list-form>
-          </mat-expansion-panel>
+      <!-- Gears -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <ion-toolbar color="transparent">
+            <ion-icon slot="start" color="primary" name="settings"></ion-icon>
+            <ion-label color="primary">
+              <span translate>PROGRAM.STRATEGY.GEARS</span>
+              &nbsp;
+              <span *ngIf="gearList.length; let count">({{count}})&nbsp;</span>
+              <ion-icon name="filter" *ngIf="gearList.hasSelection()"></ion-icon>
+            </ion-label>
+          </ion-toolbar>
+        </mat-expansion-panel-header>
 
-          <!-- Gears -->
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <ion-text color="primary">
-                  <span translate>PROGRAM.STRATEGY.GEARS</span>
-                  <ion-icon name="filter" *ngIf="gearList.hasSelection()"></ion-icon>
-                </ion-text>
-              </mat-panel-title>
-              <mat-panel-description *ngIf="gearList.length">({{gearList.length}})</mat-panel-description>
-            </mat-expansion-panel-header>
+        <app-list-form #gearList
+                       formArrayName="gears"
+                       [displayWith]="referentialToString"
+                       [equals]="referentialEquals"
+                       [options]="gearListOptions"
+                       (selectionChanges)="updateFilterGears($event)"
+                       (onNewItem)="addGear()">
+        </app-list-form>
+      </mat-expansion-panel>
 
-            <app-list-form #gearList
-                           formArrayName="gears"
-                           [displayWith]="referentialToString"
-                           [equals]="referentialEquals"
-                           [options]="gearListOptions"
-                           (selectionChanges)="updateFilterGears($event)"
-                           (onNewItem)="addGear()">
-            </app-list-form>
-          </mat-expansion-panel>
+      <!-- Taxon Groups -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <ion-toolbar color="transparent">
+            <ion-icon slot="start" color="primary" name="fish"></ion-icon>
+            <ion-label color="primary">
+              <span translate>PROGRAM.STRATEGY.TAXON_GROUPS</span>
+              &nbsp;
+              <span *ngIf="taxonGroupList.length; let count">({{count}})&nbsp;</span>
+              <ion-icon name="filter" *ngIf="taxonGroupList.hasSelection()"></ion-icon>
+            </ion-label>
+          </ion-toolbar>
+        </mat-expansion-panel-header>
 
-          <!-- Taxon Groups -->
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <ion-text color="primary">
-                  <span translate>PROGRAM.STRATEGY.TAXON_GROUPS</span>
-                  <ion-icon name="filter" *ngIf="taxonGroupList.hasSelection()"></ion-icon>
-                </ion-text>
-              </mat-panel-title>
-              <mat-panel-description *ngIf="taxonGroupList.length">({{taxonGroupList.length}})</mat-panel-description>
-            </mat-expansion-panel-header>
+        <app-list-form #taxonGroupList
+                       formArrayName="taxonGroups"
+                       [displayWith]="taxonGroupStrategyToString"
+                       [equals]="taxonGroupStrategyEquals"
+                       [options]="taxonGroupListOptions"
+                       (selectionChanges)="updateFilterTaxonGroups($event)"
+                       (onNewItem)="addTaxonGroup()">
+        </app-list-form>
+      </mat-expansion-panel>
 
-            <app-list-form #taxonGroupList
-                           formArrayName="taxonGroups"
-                           [displayWith]="taxonGroupStrategyToString"
-                           [equals]="taxonGroupStrategyEquals"
-                           [options]="taxonGroupListOptions"
-                           (selectionChanges)="updateFilterTaxonGroups($event)"
-                           (onNewItem)="addTaxonGroup()">
-            </app-list-form>
-          </mat-expansion-panel>
+      <!-- Taxon names -->
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <ion-toolbar color="transparent">
+            <ion-icon slot="start" color="primary" name="fish"></ion-icon>
+            <ion-label color="primary">
+              <span translate>PROGRAM.STRATEGY.SCIENTIFIC_TAXON_NAMES</span>
+              &nbsp;
+              <span *ngIf="taxonNameList.length; let count">({{count}})&nbsp;</span>
+              <ion-icon name="filter" *ngIf="taxonNameList.hasSelection()"></ion-icon>
+            </ion-label>
+          </ion-toolbar>
+        </mat-expansion-panel-header>
 
-          <!-- Taxon names -->
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <ion-text color="primary">
-                  <span translate>PROGRAM.STRATEGY.SCIENTIFIC_TAXON_NAMES</span>
-                  <ion-icon name="filter" *ngIf="taxonNameList.hasSelection()"></ion-icon>
-                </ion-text>
-              </mat-panel-title>
-              <mat-panel-description *ngIf="taxonNameList.length">({{taxonNameList.length}})</mat-panel-description>
-            </mat-expansion-panel-header>
+        <app-list-form #taxonNameList
+                       formArrayName="taxonNames"
+                       [displayWith]="taxonNameStrategyToString"
+                       [equals]="taxonNameStrategyEquals"
+                       [options]="taxonNameListOptions"
+                       (selectionChanges)="updateFilterTaxonNames($event)"
+                       (onNewItem)="addTaxonName()">
+        </app-list-form>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </mat-sidenav>
 
-            <app-list-form #taxonNameList
-                           formArrayName="taxonNames"
-                           [displayWith]="taxonNameStrategyToString"
-                           [equals]="taxonNameStrategyEquals"
-                           [options]="taxonNameListOptions"
-                           (selectionChanges)="updateFilterTaxonNames($event)"
-                           (onNewItem)="addTaxonName()">
-            </app-list-form>
-          </mat-expansion-panel>
-        </mat-accordion>
-      </ion-col>
+  <!-- Pmfm strategies table -->
+  <mat-sidenav-content>
+    <app-pmfm-strategies-table #pmfmsTable
+                               [title]="'PROGRAM.STRATEGY.PMFM_STRATEGY.TABLE.TITLE'|translate"
+                               [canEdit]="enabled"
+                               [canDelete]="enabled"
+                               [sticky]="true"
+                               [showDetailsColumns]="true">
 
-      <!-- Pmfm strategies -->
-      <ion-col>
-        <ion-card class="ion-no-margin">
-            <app-pmfm-strategies-table #pmfmsTable
-                                       [title]="'PROGRAM.STRATEGY.PMFM_STRATEGY.TABLE.TITLE'|translate"
-                                       [canEdit]="enabled"
-                                       [canDelete]="enabled"
-                                       [sticky]="true"
-                                       [showDetailsColumns]="true">
-            </app-pmfm-strategies-table>
-        </ion-card>
+      <!-- Reset filter -->
+      <button matToolbarStart mat-icon-button (click)="resetFilter()"
+              *ngIf="filterCriteriaCount">
+        <mat-icon color="accent">filter_list_alt</mat-icon>
+        <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+      </button>
 
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
-</form>
+      <!-- Show filter -->
+      <button matToolbarStart mat-icon-button (click)="toggleFilterPanel()">
+        <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
+                  [matBadge]="filterCriteriaCount"
+                  matBadgeColor="accent"
+                  matBadgeSize="small"
+                  matBadgePosition="above after">filter_list_alt</mat-icon>
+        <ng-template #emptyFilter>
+          <mat-icon>filter_list_alt</mat-icon>
+        </ng-template>
+      </button>
+    </app-pmfm-strategies-table>
+  </mat-sidenav-content>
+</mat-sidenav-container>
 

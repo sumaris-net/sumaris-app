@@ -3,7 +3,7 @@ import { AccountService, LocalSettingsService } from '@sumaris-net/ngx-component
 import { ModalController, Platform } from '@ionic/angular';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
-import { ReferentialsPage } from '../list/referentials.page';
+import { ReferentialTable } from '../table/referential.table';
 import { AppRootTableSettingsEnum } from '@app/data/table/root-table.class';
 
 export const ProgramsPageSettingsEnum = {
@@ -22,7 +22,7 @@ export class ProgramsPage implements OnInit {
   canEdit: boolean;
   canDelete: boolean;
 
-  @ViewChild('table', { static: true }) table: ReferentialsPage;
+  @ViewChild('table', { static: true }) table: ReferentialTable;
 
   constructor(
     protected route: ActivatedRoute,

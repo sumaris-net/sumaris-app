@@ -50,7 +50,7 @@ const SamplingStrategyQueries = {
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.lightPmfm}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.taxonName}`,
 
   loadAllWithTotal: gql`query DenormalizedStrategiesWithTotal($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -66,7 +66,7 @@ const SamplingStrategyQueries = {
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonNameStrategy}
   ${ReferentialFragments.lightPmfm}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.taxonName}`,
 
   loadEffort: gql`query StrategyEffort($ids: [String!]!,

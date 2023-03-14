@@ -54,11 +54,11 @@ import { ReferentialRefFilter } from './filter/referential-ref.filter';
 import { REFERENTIAL_CONFIG_OPTIONS } from './config/referential.config';
 import { Metier } from '@app/referential/services/model/metier.model';
 import { MetierService } from '@app/referential/services/metier.service';
-import { WeightLengthConversion } from '@app/referential/weight-length-conversion/weight-length-conversion.model';
-import { WeightLengthConversionRefService } from '@app/referential/weight-length-conversion/weight-length-conversion-ref.service';
+import { WeightLengthConversion } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion.model';
+import { WeightLengthConversionRefService } from '@app/referential/taxon-name/weight-length-conversion/weight-length-conversion-ref.service';
 import { ProgramPropertiesUtils } from '@app/referential/services/config/program.config';
 import { TEXT_SEARCH_IGNORE_CHARS_REGEXP } from '@app/referential/services/base-referential-service.class';
-import { RoundWeightConversionRefService } from '@app/referential/round-weight-conversion/round-weight-conversion-ref.service';
+import { RoundWeightConversionRefService } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion-ref.service';
 import { TaxonNameRefService } from '@app/referential/services/taxon-name-ref.service';
 import { TaxonGroupRefService } from '@app/referential/services/taxon-group-ref.service';
 import { BBox } from 'geojson';
@@ -71,25 +71,25 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
 
   loadAll: gql`query ReferentialRefs($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   loadAllWithTotal: gql`query ReferentialRefsWithTotal($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     total: referentialsCount(entityName: $entityName, filter: $filter)
   }
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   loadLevels: gql`query ReferentialLevels($entityName: String) {
     data: referentialLevels(entityName: $entityName){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}`
+  ${ReferentialFragments.lightReferential}`
 };
 
 
