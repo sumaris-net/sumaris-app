@@ -1,6 +1,7 @@
 import { TypePolicies } from '@apollo/client/core';
-import { FormFieldDefinition, PRIORITIZED_AUTHORITIES } from '@sumaris-net/ngx-components';
+import {FormFieldDefinition, PRIORITIZED_AUTHORITIES, StatusIds} from '@sumaris-net/ngx-components';
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
+import {ReferentialRefFilter} from '@app/referential/services/filter/referential-ref.filter';
 
 export const DATA_GRAPHQL_TYPE_POLICIES = <TypePolicies>{
   'DataReferenceVO': {
@@ -65,8 +66,16 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
   ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS: <FormFieldDefinition>{
     key: 'sumaris.data.accessNotSelfData.department.ids',
     label: 'CONFIGURATION.OPTIONS.ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS',
+    type: 'entities',
+    autocomplete: {
+      attributes: ['label'],
+      filter: <ReferentialRefFilter>{
+        entityName: 'Department',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
+    },
     defaultValue: '',
-    type: 'string'
+
   },
   QUALITY_PROCESS_ENABLE: <FormFieldDefinition>{
     key: 'sumaris.data.quality.process.enable',

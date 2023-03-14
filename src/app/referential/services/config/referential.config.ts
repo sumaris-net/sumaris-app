@@ -64,6 +64,7 @@ const LocationLevelAutocompleteConfig = <MatAutocompleteFieldConfig>{
 };
 const PmfmAutocompleteConfig = <MatAutocompleteFieldConfig>{
   attributes: ['id', 'label'],
+  columnSizes: [3, 'auto'],
   filter: {
     entityName: 'Pmfm',
     statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
