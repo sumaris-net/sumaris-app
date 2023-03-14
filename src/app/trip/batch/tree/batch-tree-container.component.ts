@@ -510,7 +510,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     console.warn(this._logPrefix + 'autoFill() not implemented yet!');
   }
 
-  toggleSideNavMode(event?: Event) {
+  toggleFloatingPanel(event?: Event) {
     if (this.sidenav?.opened) this.sidenav.close();
   }
 
