@@ -1,6 +1,5 @@
 import { NgModule } from '@angular/core';
 import { SoftwarePage } from './software/software.page';
-import { ParameterPage } from './pmfm/parameter.page';
 import { TranslateModule } from '@ngx-translate/core';
 
 import { TextMaskModule } from 'angular2-text-mask';

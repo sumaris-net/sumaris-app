@@ -51,7 +51,7 @@ const ProgramQueries: BaseEntityGraphqlQueries = {
     }
   }
   ${ProgramFragments.program}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.lightPerson}`,
 
   // Load all query
@@ -79,7 +79,7 @@ const ProgramMutations: BaseEntityGraphqlMutations = {
     }
   }
   ${ProgramFragments.program}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.lightPerson}`,
 
   delete: gql`mutation DeletePrograms($ids:[Int]){

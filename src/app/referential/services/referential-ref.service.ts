@@ -71,25 +71,25 @@ const ReferentialRefQueries = <BaseEntityGraphqlQueries & { lastUpdateDate: any;
 
   loadAll: gql`query ReferentialRefs($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   loadAllWithTotal: gql`query ReferentialRefsWithTotal($entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: referentials(entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     total: referentialsCount(entityName: $entityName, filter: $filter)
   }
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   loadLevels: gql`query ReferentialLevels($entityName: String) {
     data: referentialLevels(entityName: $entityName){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}`
+  ${ReferentialFragments.lightReferential}`
 };
 
 

@@ -91,6 +91,7 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
       Program,
       programService, {
         pathIdAttribute: 'programId',
+        autoOpenNextTab: false,
         tabCount: 5
       });
     this.form = validatorService.getFormGroup();
@@ -159,6 +160,8 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
         }
       }
     });
+
+    this.markAsReady();
   }
 
 
@@ -222,24 +225,27 @@ export class ProgramPage extends AppEntityEditor<Program, ProgramService> {
   }
 
   protected setValue(data: Program) {
-    if (!data) return; // Skip
+    data = data || new Program()
 
     this.form.patchValue({...data,
       properties: [],
       locationClassifications: [],
-      strategies: []}, {emitEvent: false});
+      strategies: [],
+      persons: []
+      },
+      {emitEvent: false});
 
     // Program properties
     this.propertiesForm.value = EntityUtils.getMapAsArray(data.properties);
 
     // Location classification
-    this.locationClassificationList.setValue(data.locationClassifications);
+    this.locationClassificationList.setValue(data.locationClassifications || []);
 
     // Locations
     this.locationList.setValue(data.locations || []);
 
     // Users
-    this.personsTable.setValue(data.persons);
+    this.personsTable.setValue(data.persons || []);
 
     this.markForCheck();
   }

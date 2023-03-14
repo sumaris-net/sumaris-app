@@ -62,7 +62,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/parameter";
+    this.defaultBackHref = "/referential/list?entity=Parameter";
     this.canEdit = this.accountService.isAdmin();
     this.tabCount = 2;
 

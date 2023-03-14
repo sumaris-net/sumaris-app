@@ -13,6 +13,7 @@ import { SamplingStrategyPage } from './strategy/sampling/sampling-strategy.page
 import { TaxonNamePage } from './taxon/taxon-name.page';
 import { StrategiesPage } from './strategy/strategies.page';
 import { TaxonGroupPage } from '@app/referential/taxon-group/taxon-group.page';
+import { MethodPage } from '@app/referential/pmfm/method/method.page';
 
 const routes: Routes = [
   {
@@ -30,6 +31,7 @@ const routes: Routes = [
       {
         path: '',
         component: ProgramsPage,
+        pathMatch: 'full',
         data: {
           profile: 'SUPERVISOR'
         },
@@ -37,6 +39,10 @@ const routes: Routes = [
       },
       {
         path: ':programId',
+        data: {
+          profile: 'SUPERVISOR',
+          pathIdParam: 'programId'
+        },
         children: [
           {
             path: '',
@@ -118,6 +124,19 @@ const routes: Routes = [
         path: '',
         pathMatch: 'full',
         component: PmfmPage,
+        data: {
+          profile: 'ADMIN'
+        }
+      }
+    ]
+  },
+  {
+    path: 'method/:id',
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        component: MethodPage,
         data: {
           profile: 'ADMIN'
         }

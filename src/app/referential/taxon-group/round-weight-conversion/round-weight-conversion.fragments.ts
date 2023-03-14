@@ -28,11 +28,11 @@ export const RoundWeightConversionFragments = {
     }
     dressingId
     dressing {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     preservingId
     preserving {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     statusId
     description
@@ -40,5 +40,5 @@ export const RoundWeightConversionFragments = {
     creationDate
   }
   ${ReferentialFragments.location}
-  ${ReferentialFragments.referential}`
+  ${ReferentialFragments.lightReferential}`
 }

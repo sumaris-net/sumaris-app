@@ -1,4 +1,4 @@
-import { Component, Injector, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
@@ -7,25 +7,35 @@ import { ReferentialService } from '../services/referential.service';
 import { PopoverController } from '@ionic/angular';
 import {
   AccountService,
-  AppTable,
+  BaseReferential,
   chainPromises,
   changeCaseToUnderscore,
-  EntitiesTableDataSource, EntityServiceLoadOptions,
+  EntityServiceLoadOptions,
   EntityUtils,
-  FileEvent, FileResponse,
+  FileEvent,
+  FileResponse,
   FilesUtils,
-  firstNotNilPromise, IEntitiesService, IEntity, IEntityService, isEmptyArray,
+  firstNotNilPromise,
+  FormFieldDefinition,
+  FormFieldType,
+  IEntitiesService,
+  IEntityService,
+  IReferentialRef,
+  isEmptyArray,
   isNil,
+  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
   JsonUtils,
   Referential,
   ReferentialRef,
+  referentialToString,
+  removeDuplicatesFromArray,
   RESERVED_END_COLUMNS,
-  RESERVED_START_COLUMNS, sleep,
+  RESERVED_START_COLUMNS,
+  sleep,
   slideUpDownAnimation,
-  sort,
   StatusById,
   StatusList,
   toBoolean
@@ -33,35 +43,50 @@ import {
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
-import { ReferentialFilter } from '../services/filter/referential.filter';
+import { BaseReferentialFilter, ReferentialFilter } from '../services/filter/referential.filter';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ReferentialI18nKeys } from '@app/referential/referential.utils';
 import { ParameterService } from '@app/referential/services/parameter.service';
 import { AppReferentialUtils } from '@app/core/services/model/referential.utils';
-import { HttpEventType } from '@angular/common/http';
 import { Parameter } from '@app/referential/services/model/parameter.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Pmfm } from '@app/referential/services/model/pmfm.model';
 import { TaxonNameService } from '@app/referential/services/taxon-name.service';
 import { TaxonName } from '@app/referential/services/model/taxon-name.model';
+import { Method } from '@app/referential/pmfm/method/method.model';
+import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
+import { MethodValidatorService } from '@app/referential/pmfm/method/method.validator';
+import { AppBaseTable } from '@app/shared/table/base.table';
 
-
+export const BASE_REFERENTIAL_COLUMNS = ['label','name','level','status','creationDate','updateDate','comments'];
+export const IGNORED_ENTITY_COLUMNS = ['__typename', 'entityName', 'id', ...BASE_REFERENTIAL_COLUMNS, 'statusId', 'levelId', 'properties', 'parentId'];
 export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
   FILTER_KEY: 'filter',
   COMPACT_ROWS_KEY: 'compactRows'
 };
+
+export const DATA_TYPE = new InjectionToken<new () => BaseReferential<any, any>>('dataType');
+export const FILTER_TYPE = new InjectionToken<new () => BaseReferentialFilter<any, any>>('filterType');
+export const DATA_SERVICE = new InjectionToken<new () => IEntityService<any>>('dataService');
+
 
 @Component({
   selector: 'app-referential-page',
   templateUrl: 'referential.table.html',
   styleUrls: ['referential.table.scss'],
   providers: [
-    {provide: ValidatorService, useExisting: ReferentialValidatorService}
+    {provide: ValidatorService, useExisting: ReferentialValidatorService},
+    {provide: DATA_TYPE, useValue: Referential},
+    {provide: FILTER_TYPE, useValue: ReferentialFilter},
+    {provide: DATA_SERVICE, useExisting: ReferentialService},
   ],
   animations: [slideUpDownAnimation]
 })
-export class ReferentialTable extends AppTable<Referential, ReferentialFilter> implements OnInit, OnDestroy {
+export class ReferentialTable<
+  T extends BaseReferential<T> = Referential,
+  F extends BaseReferentialFilter<F, T> = ReferentialFilter
+> extends AppBaseTable<T, F> implements OnInit, OnDestroy {
 
   static DEFAULT_ENTITY_NAME = "Pmfm";
 
@@ -71,6 +96,7 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
   $selectedEntity = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }>(undefined);
   $entities = new BehaviorSubject<{ id: string; label: string; level?: string; levelLabel?: string }[]>(undefined);
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
+  columnDefinitions: FormFieldDefinition[];
   i18nLevelName: string;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
@@ -79,25 +105,34 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     'Software': '/referential/software/:id?label=:label',
     'Pmfm': '/referential/pmfm/:id?label=:label',
     'Parameter': '/referential/parameter/:id?label=:label',
+    'Method': '/referential/method/:id?label=:label',
     'TaxonName': '/referential/taxonName/:id?label=:label',
     'TaxonGroup': '/referential/taxonGroup/:id?label=:label',
     // Extraction (special case)
     'ExtractionProduct': '/extraction/product/:id?label=:label'
   };
-  readonly serviceTokens: { [key: string]: any} = {
-    'Parameter': ParameterService,
-    'Pmfm': PmfmService,
-    'TaxonName': TaxonNameService,
-    'TaxonGroup': ReferentialService,
-    'Gear': ReferentialService
-  }
-  readonly dataTypes: { [key: string]: new () => IEntity<any> } = {
+  readonly dataTypes: { [key: string]: new () => IReferentialRef<any> } = {
     'Parameter': Parameter,
     'Pmfm': Pmfm,
     'TaxonName': TaxonName,
-    'TaxonGroup': Referential,
-    'Gear': Referential
+    'Unit': Referential,
+    'Method': Method
+  };
+  readonly dataServices: { [key: string]: any} = {
+    'Parameter': ParameterService,
+    'Pmfm': PmfmService,
+    'TaxonName': TaxonNameService,
+    'Unit': ReferentialService
   }
+  readonly dataValidators: { [key: string]: any} = {
+    'Method': MethodValidatorService
+  };
+  readonly entityNamesWithParent = ['TaxonGroup'];
+
+  // Pu sub entity class (not editable without a root entity)
+  readonly excludedEntityNames: string[] = [
+    'QualitativeValue', 'RoundWeightConversion', 'WeightLengthConversion', 'ProgramPrivilege'
+  ]
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
@@ -110,7 +145,14 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     return this.getShowColumn('level');
   }
 
-  @Input() canEdit = false;
+  @Input() set showParentColumn(value: boolean) {
+    this.setShowColumn('parent', value);
+  }
+
+  get showParentColumn(): boolean {
+    return this.getShowColumn('parent');
+  }
+
   @Input() canOpenDetail = false;
   @Input() canDownload = false;
   @Input() canUpload = false;
@@ -138,52 +180,48 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
   @ViewChild(MatExpansionPanel, {static: true}) filterExpansionPanel: MatExpansionPanel;
 
   constructor(
-    private injector: Injector,
+    injector: Injector,
     protected accountService: AccountService,
-    protected validatorService: ReferentialValidatorService,
-    protected referentialService: ReferentialService,
+    protected referentialService: ReferentialService<T>,
     protected referentialRefService: ReferentialRefService,
     protected formBuilder: UntypedFormBuilder,
     protected popoverController: PopoverController,
     protected translate: TranslateService,
+    @Optional() @Inject(DATA_TYPE) dataType?: new () => T,
+    @Optional() @Inject(FILTER_TYPE) filterType?: new () => F,
+    @Optional() @Inject(DATA_SERVICE) entityService?: IEntitiesService<T, F>,
   ) {
     super(injector,
+      dataType,
+      filterType,
       // columns
       RESERVED_START_COLUMNS
-        .concat([
-          'label',
-          'name',
-          'level',
-          'status',
-          'creationDate',
-          'updateDate',
-          'comments'])
+        .concat(BASE_REFERENTIAL_COLUMNS)
         .concat(RESERVED_END_COLUMNS),
-      new EntitiesTableDataSource(Referential, referentialService, validatorService, {
+      entityService || injector.get(ReferentialService) as unknown as IEntitiesService<T, F>,
+      injector.get(ValidatorService),
+      {
         prependNewElements: false,
         suppressErrors: environment.production,
         saveOnlyDirtyRows: true
-      })
+      }
     );
 
     this.i18nColumnPrefix = 'REFERENTIAL.';
     this.allowRowDetail = false;
     this.confirmBeforeDelete = true;
-    this.autoLoad = false; // waiting dataSource to be set
 
     // Allow inline edition only if admin
     this.inlineEdition = accountService.isAdmin();
     this.canEdit = accountService.isAdmin();
+    this.autoLoad = false; // waiting dataSource to be set
 
-    this.setShowColumn('updateDate', !this.mobile); // Hide by default, if mobile
+    const filterConfig = this.getFilterFormConfig();
+    this.filterForm = this.formBuilder.group(filterConfig || {});
 
-    this.filterForm = formBuilder.group({
-      entityName: [null],
-      searchText: [null],
-      level: [null],
-      statusId: [null]
-    });
-
+    // Default hidden columns
+    this.excludesColumns.push('parent');
+    if (this.mobile) this.excludesColumns.push('updateDate');
 
     // FOR DEV ONLY
     this.debug = true;
@@ -195,20 +233,43 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     // Defaults
     this.persistFilterInSettings = toBoolean(this.persistFilterInSettings, this.canSelectEntity);
 
+
+    // Configure autocomplete fields
+    this.registerAutocompleteField('level', {
+      items: this.$levels,
+      mobile: this.mobile
+    });
+    this.registerAutocompleteField('parent', {
+      suggestFn: (value, filter) => this.referentialRefService.suggest(value, {
+        ...filter,
+        entityName: this.entityName
+      }),
+      attributes: ['label', 'name'],
+      displayWith: referentialToString
+    });
+
     // Load entities
     this.registerSubscription(
-      this.referentialService.loadTypes()
+      this.referentialService.watchTypes()
         .pipe(
-          map(types => types.map(type => ({
+          map(types => types
+            .filter(type => !this.excludedEntityNames.includes(type.id))
+            .map(type => ({
               id: type.id,
               label: this.getI18nEntityName(type.id),
               level: type.level,
               levelLabel: this.getI18nEntityName(type.level)
             }))),
-          map(types => sort(types, 'label'))
+          map(types => EntityUtils.sort(types, 'label'))
         )
         .subscribe(types => this.$entities.next(types))
     );
+
+    this.registerSubscription(
+      this.onRefresh.subscribe(() => {
+        this.filterForm.markAsUntouched();
+        this.filterForm.markAsPristine();
+      }));
 
     // Update filter when changes
     this.registerSubscription(
@@ -230,18 +291,6 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
         .subscribe()
       );
 
-    this.registerSubscription(
-      this.onRefresh.subscribe(() => {
-        this.filterForm.markAsUntouched();
-        this.filterForm.markAsPristine();
-      }));
-
-    // Level autocomplete
-    this.registerAutocompleteField('level', {
-      items: this.$levels,
-      mobile: this.mobile
-    });
-
     // Restore compact mode
     this.restoreCompactMode();
 
@@ -253,13 +302,17 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     }
   }
 
+  ngOnDestroy() {
+    super.ngOnDestroy();
+  }
+
   async restoreFilterOrLoad() {
     this.markAsLoading();
 
     const json = this.settings.getPageSettings(this.settingsId, REFERENTIAL_TABLE_SETTINGS_ENUM.FILTER_KEY);
     console.debug("[referentials] Restoring filter from settings...", json);
 
-    if (json && json.entityName) {
+    if (json?.entityName) {
       const filter = this.asFilter(json);
       this.filterForm.patchValue(json, {emitEvent: false});
       this.filterCriteriaCount = filter.countNotEmptyCriteria();
@@ -310,32 +363,50 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
       this.$selectedEntity.next(entity);
     }
 
-    // Load levels
-    await this.loadLevels(entityName);
+    try {
 
-    this.canOpenDetail = !!this.detailsPath[entityName];
-    this.inlineEdition = !this.canOpenDetail;
-    this.canDownload = !!this.serviceTokens[entityName];
-    this.canUpload = !!this.serviceTokens[entityName] && !!this.dataTypes[entityName] && this.accountService.isAdmin();
+      // Load levels
+      await this.loadLevels(entityName);
 
-    // Applying the filter (will reload if emitEvent = true)
-    const filter = ReferentialFilter.fromObject({
-      ...this.filterForm.value,
-      level: null,
-      entityName
-    });
-    this.filterForm.patchValue({entityName, level: null}, {emitEvent: false});
-    this.setFilter(filter, {emitEvent: opts.emitEvent});
+      // Load dynamic columns
+      const dataType = this.getDataType(entityName);
+      const validator = this.getValidator(entityName);
+      // TODO enable this
+      //this.columnDefinitions = this.loadColumnDefinitions(dataType, validator);
+      this.columnDefinitions = [];
+      this.displayedColumns = this.getDisplayColumns();
 
-    // Update route location
-    if (opts.skipLocationChange !== true && this.canSelectEntity) {
-      this.router.navigate(['.'], {
-        relativeTo: this.route,
-        skipLocationChange: false,
-        queryParams: {
-          entity: entityName
-        }
+      // Hide parent columns
+      this.showParentColumn = this.entityNamesWithParent.includes(entityName);
+
+      this.canOpenDetail = !!this.detailsPath[entityName];
+      this.inlineEdition = !this.canOpenDetail;
+      this.canDownload = !!this.getEntityService(entityName);
+      this.canUpload = this.accountService.isAdmin() && this.canDownload && !!this.getDataType(entityName);
+
+      // Applying the filter (will reload if emitEvent = true)
+      const filter = this.asFilter({
+        ...this.filterForm.value,
+        level: null,
+        entityName
       });
+      this.filterForm.patchValue({ entityName, level: null }, { emitEvent: false });
+      this.setFilter(filter, { emitEvent: opts.emitEvent });
+
+
+      // Update route location
+      if (opts.skipLocationChange !== true && this.canSelectEntity) {
+        this.router.navigate(['.'], {
+          relativeTo: this.route,
+          skipLocationChange: false,
+          queryParams: {
+            entity: entityName
+          }
+        });
+      }
+    } catch (err){
+      console.error(err);
+      this.setError(err);
     }
   }
 
@@ -356,6 +427,7 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
   }
 
   async loadLevels(entityName: string): Promise<ReferentialRef[]> {
+
     const res = await this.referentialRefService.loadLevels(entityName, {
       fetchPolicy: 'network-only'
     });
@@ -376,24 +448,22 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     if (this.canSelectEntity) {
       this.showLevelColumn = isNotEmptyArray(res);
     }
-
     return res;
   }
 
-  getI18nEntityName(entityName: string, self?: ReferentialTable): string {
-    self = self || this;
+  getI18nEntityName(entityName: string): string {
 
     if (isNil(entityName)) return undefined;
 
     const tableName = entityName.replace(/([a-z])([A-Z])/g, "$1_$2").toUpperCase();
     const key = `REFERENTIAL.ENTITY.${tableName}`;
-    let message = self.translate.instant(key);
+    let message = this.translate.instant(key);
 
     if (message !== key) return message;
     // No I18n translation: continue
 
     // Use tableName, but replace underscore with space
-    message = tableName.replace(/[_-]+/g, " ").toUpperCase() || '';
+    message = tableName.replace(/[_-]+/g, ' ').toUpperCase() || '';
     // First letter as upper case
     if (message.length > 1) {
       return message.substring(0, 1) + message.substring(1).toLowerCase();
@@ -401,7 +471,7 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     return message;
   }
 
-  async openRow(id: number, row: TableElement<Referential>): Promise<boolean> {
+  async openRow(id: number, row: TableElement<T>): Promise<boolean> {
     const path = this.detailsPath[this._entityName];
 
     if (isNotNilOrBlank(path)) {
@@ -440,17 +510,16 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
 
   resetFilter(event?: Event) {
     this.filterForm.reset({entityName: this._entityName}, {emitEvent: true});
-    this.setFilter(ReferentialFilter.fromObject({entityName: this._entityName}), {emitEvent: true});
+    const filter = this.asFilter({});
+    this.setFilter(filter, {emitEvent: true});
     this.filterCriteriaCount = 0;
     if (this.filterExpansionPanel && this.filterPanelFloating) this.filterExpansionPanel.close();
   }
 
-  patchFilter(filter: Partial<ReferentialFilter>) {
-    this.filterForm.patchValue(filter, {emitEvent: true});
-    this.setFilter(ReferentialFilter.fromObject({
-      ...this.filterForm.value,
-      entityName: this._entityName
-    }), {emitEvent: true});
+  patchFilter(partialFilter: Partial<ReferentialFilter>) {
+    this.filterForm.patchValue(partialFilter, {emitEvent: true});
+    const filter = this.asFilter(this.filterForm.value);
+    this.setFilter(filter, {emitEvent: true});
     this.filterExpansionPanel.close();
   }
 
@@ -476,10 +545,7 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
   async downloadSelectionAsJson(event?: Event) {
     if (!this._entityName || !this.selection.hasValue()) return; // Skip
 
-    const filename = `${changeCaseToUnderscore(this._entityName)}.json`;
-
-    const serviceToken = this.serviceTokens[this._entityName];
-    const service = serviceToken && this.injector.get(serviceToken) as IEntityService<any>;
+    const service = this.getEntityService(this._entityName);
     if (!service) return; // Skip
 
     const loadOpts: EntityServiceLoadOptions & {entityName?: string} = {fetchPolicy: 'no-cache', fullLoad: true};
@@ -488,20 +554,20 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
     }
 
     const ids = this.selection.selected.map(row => row.currentData.id);
-    const entities = await chainPromises(ids.map(id => async () => {
+    let entities = await chainPromises(ids.map(id => async () => {
       const entity = await service.load(id, loadOpts);
-      AppReferentialUtils.cleanIdAndDates(entity, true);
       return entity.asObject({keepTypename: true});
     }));
 
+    const filename = `${changeCaseToUnderscore(this._entityName)}.json`;
     JsonUtils.exportToFile(entities, {filename});
   }
 
   async importFromJson(event?: Event) {
-    if (!this._entityName || !this.canEdit) return; // skip
-    const serviceToken = this.serviceTokens[this._entityName];
-    const service = serviceToken && this.injector.get(serviceToken) as IEntityService<any>;
-    const dataType = this.dataTypes[this._entityName];
+    const entityName = this.entityName;
+    if (!entityName || !this.canEdit) return; // skip
+    const service = this.getEntityService(entityName);
+    const dataType = this.getDataType(entityName);
     if (!service || !dataType) return; // Skip
 
     const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
@@ -510,23 +576,80 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
       uploadFn: (file) => this.parseJsonFile(file)
     });
 
-    const sources = (data || []).flatMap(file => file.response?.body || []);
+    let sources = (data || []).flatMap(file => file.response?.body || []);
     if (isEmptyArray(sources)) return; // No entities: skip
+
+    // Sort by ID, to be able to import in the the same order
+    sources = EntityUtils.sort(sources, 'id', 'asc');
 
     console.info(`[referential-table] Importing ${sources.length} entities...`, sources);
 
+    let insertCount = 0;
+    let updateCount = 0;
     const errors = [];
 
     // Save entities, one by one
-    const entities = (await chainPromises(sources
+    const entities = ((await chainPromises(sources
         // Keep non exists entities
-        .filter(source => source && isNil(source.id))
+        .filter(source => source
+          // Check as label
+          && isNotNilOrBlank(source.label)
+          // Check expected entity class
+          && AppReferentialUtils.getEntityName(source) === entityName)
         .map(source => async () => {
-          const target = new dataType();
+          // Clean ids, update_date, etc.
+          AppReferentialUtils.cleanIdAndDates(source, false);
+
           try {
-            target.fromObject(source)
+            // Collect all entities
+            const missingReferences = [];
+            const internalSources = AppReferentialUtils.collectEntities(source).slice(1);
+            for (let internalSource of internalSources) {
+              const subEntityName = AppReferentialUtils.getEntityName(internalSource);
+              const label = internalSource['label'];
+              if (subEntityName && isNotNilOrBlank(label) && this.isKnownEntityName(subEntityName)) {
+                const existingTarget = await this.loadByLabel(label, {entityName: subEntityName});
+                if (existingTarget) {
+                  console.debug(`[referential-table] Found match ${subEntityName}#${existingTarget.id} for {label: '${label}'}`);
+                  internalSource.id = existingTarget.id;
+                }
+                else {
+                  missingReferences.push(`${subEntityName}#${label}`);
+                }
+              }
+              else {
+                // Clean ids, update_date, etc.
+                AppReferentialUtils.cleanIdAndDates(internalSource, false);
+              }
+
+            }
+
+            if (missingReferences.length) throw this.translate.instant('REFERENTIAL.ERROR.MISSING_REFERENCES', {error: missingReferences.join(', ')})
+
+            const existingTarget = await this.loadByLabel(source.label, {
+              entityName: this._entityName
+            });
+            const target = new dataType();
+            target.fromObject({
+              ...(existingTarget ? existingTarget.asObject() : {}),
+              ...source,
+              id: existingTarget?.id,
+              updateDate: existingTarget?.updateDate,
+              creationDate: existingTarget?.['creationDate']
+            });
+            const isNew = isNil(target.id);
+
+            // Check is user can write
             if (!service.canUserWrite(target)) return; // Cannot write: skip
-            return await service.save(target);
+
+            // Save
+            const savedTarget = await service.save(target);
+
+            // Update counter
+            insertCount += isNew ? 1 : 0;
+            updateCount += isNew ? 0 : 1;
+
+            return savedTarget;
           }
           catch (err) {
             let message = err && err.message || err;
@@ -537,16 +660,17 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
             return null;
           }
         }))
-      )
-      .filter(isNotNil);
+      ) || []).filter(isNotNil);
 
     if (isNotEmptyArray(errors)) {
-      if (entities.length > 0) {
+      if (insertCount > 0 || updateCount > 0) {
         console.warn(`[referential-table] Importing ${entities.length} entities [OK] with errors:`, errors);
         this.showToast({
           type: 'warning',
           message: 'REFERENTIAL.INFO.IMPORT_ENTITIES_WARNING',
-          messageParams: {count: entities.length, errorCount: errors.length, error: `<ul><li>${errors.join('</li><li>')}</li></ul>`}
+          messageParams: {insertCount, updateCount, errorCount: errors.length, error: `<ul><li>${errors.join('</li><li>')}</li></ul>`},
+          showCloseButton: true,
+          duration: -1
         });
       }
       else {
@@ -554,7 +678,9 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
         this.showToast({
           type: 'error',
           message: 'REFERENTIAL.ERROR.IMPORT_ENTITIES_ERROR',
-          messageParams: { error: `<ul><li>${errors.join('</li><li>')}</li></ul>`}
+          messageParams: { error: `<ul><li>${errors.join('</li><li>')}</li></ul>`},
+          showCloseButton: true,
+          duration: -1
         });
       }
     }
@@ -563,13 +689,64 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
       this.showToast({
         type: 'info',
         message: 'REFERENTIAL.INFO.IMPORT_ENTITIES_SUCCEED',
-        messageParams: {count: sources.length}
+        messageParams: {insertCount, updateCount}
       });
     }
 
     await sleep(1000);
 
     this.onRefresh.emit();
+  }
+
+  /* -- protected functions -- */
+
+  protected registerAutocompleteFields() {
+    // Can be overwritten by subclasses
+  }
+
+  protected loadColumnDefinitions(dataType: new () => IReferentialRef<any>,
+                                  validatorService?: ValidatorService): FormFieldDefinition[] {
+
+    return BaseReferentialTable.getEntityDisplayProperties(dataType, validatorService, IGNORED_ENTITY_COLUMNS)
+      .map(key => this.getColumnDefinition(key));
+  }
+
+  protected getColumnDefinition(key: string): FormFieldDefinition{
+    if (this.autocompleteFields[key]) {
+      return <FormFieldDefinition>{
+        key,
+        type: 'entity',
+        label: (this.i18nColumnPrefix) + changeCaseToUnderscore(key).toUpperCase(),
+        autocomplete: this.autocompleteFields[key]
+      };
+    }
+
+    return <FormFieldDefinition>{
+      key,
+      type: this.getColumnType(key),
+      label: (this.i18nColumnPrefix) + changeCaseToUnderscore(key).toUpperCase()
+    };
+  }
+
+  protected getColumnType(key: string): FormFieldType {
+    if (key === 'id' || key.endsWith('Id')) return 'integer';
+    key = key.toLowerCase();
+    if (key.endsWith('date')) return 'date';
+    if (key.endsWith('month') || key.endsWith('year')) return 'integer';
+    if (key.startsWith('is')) return 'boolean';
+    if (key.endsWith('label') || key.endsWith('name') || key.endsWith('code')
+      || key.endsWith('description') || key.endsWith('comments')) return 'string';
+    return 'string';
+  }
+
+  protected getDisplayColumns(): string[] {
+    let columns = removeDuplicatesFromArray(super.getDisplayColumns())
+      .filter(key => !RESERVED_END_COLUMNS.includes(key));
+    const additionalColumns = (this.columnDefinitions || []).map(col => col.key)
+      .filter(key => !columns.includes(key));
+    return  columns
+        .concat(additionalColumns)
+        .concat(RESERVED_END_COLUMNS);
   }
 
   protected  parseJsonFile<T = any>(file: File, opts?: {encoding?: string}): Observable<FileEvent<T[]>> {
@@ -589,30 +766,123 @@ export class ReferentialTable extends AppTable<Referential, ReferentialFilter> i
       );
   }
 
-  /* -- protected functions -- */
+  protected async loadByLabel<T extends IReferentialRef<T>>(label: string, filter: Partial<ReferentialFilter> & {entityName: string}): Promise<T> {
+    if (isNilOrBlank(label)) throw new Error('Missing required argument \'label\'');
+    const entityName = filter?.entityName;
+    if (!entityName) throw new Error('Missing required argument \'source.entityName\', or \'filter.entityName\'');
+    const service = this.getEntityService(entityName);
+    if (!service) throw new Error('No service defined for the entity name: ' + entityName);
 
+    const dataType = this.getDataType(entityName);
+    if (!dataType) throw new Error('No dataType defined for the entity name: ' + entityName);
+
+    try {
+      const { data, total } = await this.referentialService.loadAll(0, 1, 'label', 'asc', {
+        ...filter,
+        entityName,
+        label,
+      });
+      if (total === 0) return undefined;
+      if (total > 1) throw new Error(`To many match of ${entityName} with label ${label}`);
+      const json = data[0];
+
+      const target = new dataType();
+      target.fromObject(json);
+      return target as T;
+    }
+    catch (err) {
+      let message = err && err.message || err;
+      console.error(message);
+      throw err;
+    }
+  }
+
+  protected getFilterFormConfig(): any {
+    console.debug('[referential-table] Creating filter form group...');
+
+    // Base form config
+    const config = {
+      entityName: [null],
+      searchText: [null],
+      level: [null],
+      parentId: [null],
+      statusId: [null]
+    };
+
+    // Add other properties
+    return Object.keys(new this.filterType())
+      .filter(key => !IGNORED_ENTITY_COLUMNS.includes(key) && !config[key])
+      .reduce((config, key) => {
+        console.debug('[referential-table] Adding filter control: ' + key);
+        config[key] = [null];
+        return config;
+      }, config);
+  }
+
+  protected getEntityService<T extends IReferentialRef<any>>(entityName?: string): IEntityService<T> {
+    entityName = entityName || this._entityName;
+    if (!entityName) throw new Error('Missing required argument \'entityName\'');
+    const serviceToken = this.dataServices[entityName];
+    const service: IEntitiesService<T, any> & IEntityService<T> = serviceToken && this.injector.get(serviceToken) as IEntitiesService<T, any> & IEntityService<T>;
+    if (service && (typeof service.load !== 'function' || typeof service.save !== 'function')) throw new Error('Not a entities service. Missing load() or save()');
+    if (service) return service;
+
+    // Check if can be managed by generic service
+    if (!this.isKnownEntityName(entityName)) return undefined;
+
+    return this.referentialService as unknown as IEntityService<T>;
+  }
+
+  protected getDataType(entityName?: string): new () => IReferentialRef<any> {
+
+    entityName = entityName || this._entityName;
+
+    const dataType = this.dataTypes[entityName];
+    if (dataType) return dataType;
+
+    // Check if can be managed by generic class
+    if (!this.isKnownEntityName(entityName)) return undefined;
+
+    return Referential;
+  }
+
+  protected getValidator(entityName?: string): ValidatorService {
+
+    entityName = entityName || this._entityName;
+
+    const validatorToken = this.dataValidators[entityName];
+    const validator = validatorToken && this.injector.get(validatorToken);
+    if (validator) return validator;
+
+    // Check if can be managed by generic class
+    if (!this.isKnownEntityName(entityName)) return undefined;
+
+    return this.validatorService;
+  }
+
+  protected isKnownEntityName(entityName: string): boolean {
+    if (!entityName) return false;
+    return !!(this.$entities.value || []).find(item => item.id === entityName);
+  }
 
   protected async openNewRowDetail(): Promise<boolean> {
     const path = this.detailsPath[this._entityName];
 
     if (path) {
       await this.router.navigateByUrl(path
-        .replace(':id', "new")
-        .replace(':label', ""));
+        .replace(':id', 'new')
+        .replace(':label', ''));
       return true;
     }
 
     return super.openNewRowDetail();
   }
 
-  protected asFilter(source?: any): ReferentialFilter {
-    source = source || this.filterForm.value;
-
-    if (this._dataSource && this._dataSource.dataService) {
-      return this._dataSource.dataService.asFilter(source);
-    }
-
-    return ReferentialFilter.fromObject(source);
+  protected asFilter(source: any): F {
+    return super.asFilter({
+      entityName: source?.entityName || this._entityName,
+      ...source,
+    });
   }
 }
 

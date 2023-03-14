@@ -52,21 +52,21 @@ const LoadAllWithPartsQuery = gql`query PmfmsWithParts($offset: Int, $size: Int,
       __typename
     }
     matrix {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     fraction {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     method {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     unit {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
 }
 ${ReferentialFragments.lightPmfm}
-${ReferentialFragments.referential}
+${ReferentialFragments.lightReferential}
 `;
 const LoadAllWithPartsQueryWithTotal = gql`query PmfmsWithParts($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput) {
   data: pmfms(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
@@ -79,22 +79,22 @@ const LoadAllWithPartsQueryWithTotal = gql`query PmfmsWithParts($offset: Int, $s
       __typename
     }
     matrix {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     fraction {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     method {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     unit {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
   total: referentialsCount(entityName: "Pmfm", filter: $filter)
 }
 ${ReferentialFragments.lightPmfm}
-${ReferentialFragments.referential}
+${ReferentialFragments.lightReferential}
 `;
 
 const LoadAllWithDetailsQuery: any = gql`query PmfmsWithDetails($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -104,8 +104,8 @@ const LoadAllWithDetailsQuery: any = gql`query PmfmsWithDetails($offset: Int, $s
   total: referentialsCount(entityName: "Pmfm", filter: $filter)
 }
 ${ReferentialFragments.pmfm}
+${ReferentialFragments.lightReferential}
 ${ReferentialFragments.referential}
-${ReferentialFragments.fullReferential}
 ${ReferentialFragments.parameter}
 `;
 const LoadAllWithTotalQuery: any = gql`query PmfmsWithTotal($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
@@ -128,8 +128,8 @@ const LoadQuery: any = gql`query Pmfm($label: String, $id: Int){
   }
 }
 ${ReferentialFragments.pmfm}
+${ReferentialFragments.lightReferential}
 ${ReferentialFragments.referential}
-${ReferentialFragments.fullReferential}
 ${ReferentialFragments.parameter}`;
 
 const LoadPmfmFullQuery: any = gql`query Pmfm($label: String, $id: Int){
@@ -138,8 +138,8 @@ const LoadPmfmFullQuery: any = gql`query Pmfm($label: String, $id: Int){
   }
 }
 ${ReferentialFragments.pmfmFull}
+${ReferentialFragments.lightReferential}
 ${ReferentialFragments.referential}
-${ReferentialFragments.fullReferential}
 ${ReferentialFragments.parameter}`;
 
 const SaveQuery: any = gql`mutation SavePmfm($data: PmfmVOInput!){
@@ -148,8 +148,8 @@ const SaveQuery: any = gql`mutation SavePmfm($data: PmfmVOInput!){
   }
 }
 ${ReferentialFragments.pmfm}
+${ReferentialFragments.lightReferential}
 ${ReferentialFragments.referential}
-${ReferentialFragments.fullReferential}
 ${ReferentialFragments.parameter}`;
 
 

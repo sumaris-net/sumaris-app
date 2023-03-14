@@ -20,7 +20,7 @@ const SaveQuery: any = gql`
       ...ParameterFragment
     }
   }
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.parameter}
 `;
 
@@ -30,7 +30,7 @@ const LoadQuery: any = gql`
       ...ParameterFragment
     }
   }
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.parameter}
 `;
 

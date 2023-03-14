@@ -57,7 +57,7 @@ const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
     }
   }
   ${PhysicalGearFragments.physicalGear}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.lightDepartment}`,
 
   load: gql`query PhysicalGear($id: Int!) {
@@ -66,7 +66,7 @@ const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
     }
   }
   ${PhysicalGearFragments.physicalGear}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.lightDepartment}`,
 
   loadAllWithTrip: gql`query PhysicalGearsWithTrip($filter: PhysicalGearFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -85,7 +85,7 @@ const Queries: BaseEntityGraphqlQueries & {loadAllWithTrip: any} = {
     }
   }
   ${PhysicalGearFragments.physicalGear}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.lightDepartment}
   ${VesselSnapshotFragments.lightVesselSnapshot}

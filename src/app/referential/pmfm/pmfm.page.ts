@@ -64,7 +64,7 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
     this.form = validatorService.getFormGroup();
 
     // default values
-    this.defaultBackHref = "/referential/pmfm";
+    this.defaultBackHref = "/referential/list?entity=Pmfm";
 
     this.debug = !environment.production;
 

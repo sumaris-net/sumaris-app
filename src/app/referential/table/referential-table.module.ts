@@ -34,6 +34,7 @@ import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pi
 
     // Components
     ReferentialTable,
+    SimpleReferentialTable,
     ReferentialRefTable,
     SelectReferentialModal
   ],

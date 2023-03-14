@@ -1707,7 +1707,12 @@
     },
     "METHOD": {
       "NAME": "Méthode de collecte",
-      "DESCRIPTION": "description"
+      "DESCRIPTION": "description",
+      "IS_CALCULATED": "Calulée ?",
+      "IS_ESTIMATED": "Est estimée ?",
+      "EDIT": {
+        "TITLE": "Méthode {{label}} - {{name}}"
+      }
     },
     "TRANSCRIBING_ITEM": {
       "OBJECT": "Référence",
@@ -1731,19 +1736,26 @@
     },
     "ENTITY": {
       "DEPARTMENT": "Organismes",
+      "EXTRACTION_PRODUCT": "Extraction > Produits",
+      "EXTRACTION_TABLE": "Extraction > Tables de produit",
       "SALE_TYPE": "Types de vente",
       "LOCATION": "Lieux",
       "LOCATION_LEVEL": "Niveaux de lieux",
       "GEAR": "Engins",
       "GEAR_LEVEL": "Niveaux d'engin",
       "PARAMETER": "Paramètres",
+      "PARAMETER_GROUP": "Groupe de paramètres",
       "USER_PROFILE": "Profils utilisateur",
       "VESSEL_TYPE": "Types de navire",
       "PMFM": "Quadruplets PSFM",
       "DUPLICATE_STRATEGY": "Stratégies à dupliquer",
       "MATRIX": "Supports de mesure",
+      "METHOD": "Méthodes de mesure",
       "FRACTION": "Fractions du support",
+      "ORIGIN_ITEM_TYPE": "Type d'origine d'une entrée",
+      "OBJECT_TYPE": "Types d'entité",
       "QUALITATIVE_VALUE": "Valeurs qualitatives",
+      "QUALITY_FLAG": "Niveau de qualité",
       "TAXON_GROUP_TYPE": "Types de groupe d'espèce",
       "TAXON_GROUP": "Espèces commerciales (FAO)",
       "TAXON_NAME": "Espèces scientifique",
@@ -1752,9 +1764,14 @@
       "PROGRAM": "Programmes de collecte",
       "STRATEGY": "Stratégies de collecte",
       "ACQUISITION_LEVEL": "Niveaux d'acquisition",
-      "TRANSCRIBING_ITEM": "Transcodages",
+      "TRANSCRIBING_ITEM": "Transcodage > Entrées",
+      "TRANSCRIBING_ITEM_TYPE": "Transcodage > Types",
+      "TRANSCRIBING_SYSTEM": "Transcodage > Systèmes",
+      "UNIT": "Unités de mesure",
       "METIER": "Métiers",
-      "SOFTWARE": "Logiciels"
+      "SOFTWARE": "Logiciels",
+      "STATUS": "Etat de saisie",
+      "SYSTEM_VERSION": "Versions de la base"
     },
     "OPTIONS": {
       "VESSELS_ENABLE": "Référentiels > Navires: Activer ?",
@@ -1762,8 +1779,8 @@
       "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires > Remplacement: Activer ?"
     },
     "INFO": {
-      "IMPORT_ENTITIES_SUCCEED": "Importation terminée <b>avec succès</b> !<br/>{{count}} élément(s) ajouté(s).",
-      "IMPORT_ENTITIES_WARNING": "Importation terminée <b>avec erreur</b>: <br/>{{count}} élément(s) ajouté(s), {{errorCount}} en erreur :<br/>{{error}}"
+      "IMPORT_ENTITIES_SUCCEED": "Importation terminée <b>avec succès</b> !<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour.",
+      "IMPORT_ENTITIES_WARNING": "Importation terminée <b>avec erreur</b>: <br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{errorCount}} erreurs :<br/>{{error}}"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
@@ -1778,7 +1795,8 @@
       "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs",
       "LABEL_NOT_UNIQUE": "Code déjà utilisé",
       "IMPORT_ENTITIES_ERROR": "Échec de l'importation:<br/>{{error}}",
-      "IMPORT_ENTITY_ERROR": "'{{label}}': {{message}}"
+      "IMPORT_ENTITY_ERROR": "'{{label}}': {{message}}",
+      "MISSING_REFERENCES": "Référence(s) manquante(s): {{error}}"
     }
   },
   "PROGRAM": {

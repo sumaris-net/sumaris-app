@@ -13,6 +13,7 @@ import { AppReferentialFormModule } from '@app/referential/form/referential-form
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { AppReferentialTableModule } from '@app/referential/table/referential-table.module';
 import { ParameterPage } from '@app/referential/pmfm/parameter.page';
+import { MethodPage } from '@app/referential/pmfm/method/method.page';
 
 @NgModule({
   imports: [
@@ -35,7 +36,8 @@ import { ParameterPage } from '@app/referential/pmfm/parameter.page';
     PmfmQvFormField,
     PmfmsTable,
     SelectPmfmModal,
-    ParameterPage
+    ParameterPage,
+    MethodPage
   ],
   exports: [
     TranslateModule,
@@ -45,7 +47,8 @@ import { ParameterPage } from '@app/referential/pmfm/parameter.page';
     PmfmQvFormField,
     PmfmsTable,
     SelectPmfmModal,
-    ParameterPage
+    ParameterPage,
+    MethodPage
   ],
 })
 export class AppPmfmModule {

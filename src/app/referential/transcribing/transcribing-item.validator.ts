@@ -5,7 +5,7 @@ import { ReferentialValidatorService } from '@app/referential/services/validator
 import { TranscribingItem } from '@app/referential/transcribing/transcribing.model';
 
 @Injectable({providedIn: 'root'})
-export class TranscribingItemValidatorService extends ReferentialValidatorService {
+export class TranscribingItemValidatorService extends ReferentialValidatorService<TranscribingItem> {
 
   constructor(
     protected formBuilder: UntypedFormBuilder

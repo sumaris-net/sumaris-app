@@ -1,8 +1,21 @@
+.table-container {
+  --table-toolbar-height: 0px;
+  --table-paginator-height: 0px;
+  height: calc(100% - var(--table-toolbar-height) - var(--table-paginator-height));
+
+  &.has-toolbar {
+    --table-toolbar-height: var(--mat-toolbar-height);
+  }
+  &.has-paginator {
+    --table-paginator-height: var(--app-paginator-height);
+  }
+}
+
 .mat-table {
 
   .mat-column-acquisitionLevel {
     min-width: 80px;
-    max-width: 200px;
+    max-width: 110px;
   }
 
   .mat-column-rankOrder,

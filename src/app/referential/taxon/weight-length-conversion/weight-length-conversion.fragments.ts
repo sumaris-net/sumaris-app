@@ -40,15 +40,15 @@ export const WeightLengthConversionFragments = {
     }
     sexId
     sex {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     lengthParameterId
     lengthParameter {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     lengthUnitId
     lengthUnit {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     statusId
     description
@@ -56,5 +56,5 @@ export const WeightLengthConversionFragments = {
     creationDate
   }
   ${ReferentialFragments.location}
-  ${ReferentialFragments.referential}`
+  ${ReferentialFragments.lightReferential}`
 }

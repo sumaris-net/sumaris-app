@@ -17,12 +17,14 @@ import { StrategyModal } from './strategy.modal';
 import { AppTranscribingModule } from '@app/referential/transcribing/transcribing.module';
 import { AppReferentialFormModule } from '@app/referential/form/referential-form.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
+import { MatSidenavModule } from '@angular/material/sidenav';
 
 @NgModule({
   imports: [
     CommonModule,
     TextMaskModule,
     TranslateModule.forChild(),
+    MatSidenavModule,
 
     // App modules
     AppCoreModule,

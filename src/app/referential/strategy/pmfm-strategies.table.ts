@@ -45,8 +45,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
   fieldDefinitionsMap: FormFieldDefinitionMap = {};
   fieldDefinitions: FormFieldDefinition[] = [];
+  filterCriteriaCount = 0;
 
   @Input() showToolbar = true;
+  @Input() showPaginator = true;
   @Input() showHeaderRow = true;
   @Input() withDetails = true;
   @Input() pmfmFilter: PmfmFilter;
@@ -109,6 +111,10 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     );
   }
 
+  get filterIsEmpty(): boolean {
+    return this.filterCriteriaCount === 0;
+  }
+
   constructor(
     protected injector: Injector,
     protected validatorService: PmfmStrategyValidatorService,
@@ -149,6 +155,7 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
     this.defaultSortBy = 'id';
     this.defaultSortDirection = 'asc';
     this.saveBeforeDelete = true;
+    this.defaultPageSize = 20;
 
     this.debug = !environment.production;
 
@@ -323,22 +330,30 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
   setFilter(source: Partial<PmfmStrategyFilter>, opts?: { emitEvent: boolean }) {
     const target = new PmfmStrategyFilter();
     Object.assign(target, source);
+
+    // Update criteria count
+    const criteriaCount = target.countNotEmptyCriteria();
+    if (criteriaCount !== this.filterCriteriaCount) {
+      this.filterCriteriaCount = criteriaCount;
+      this.markForCheck();
+    }
+
     super.setFilter(target, opts);
   }
 
-  protected async onLoadData(data: PmfmStrategy[]): Promise<PmfmStrategy[]> {
+  protected async onLoadData(sources: PmfmStrategy[]): Promise<PmfmStrategy[]> {
 
     // Wait acquisition levels to be loaded
     const acquisitionLevels = await firstNotNilPromise(this.$acquisitionLevels);
 
     // Add at least one item
-    if (!this.allowEmpty && isEmptyArray(data)) {
+    if (!this.allowEmpty && isEmptyArray(sources)) {
       console.debug("[pmfm-strategy-table] Force add empty PmfmSTrategy, because allowEmpty=false");
-      data = [new PmfmStrategy()];
+      sources = [new PmfmStrategy()];
     }
 
     console.debug("[pmfm-strategy-table] Adapt loaded data to table...");
-    return data.map(source => {
+    const entities = sources.map(source => {
       const target = PmfmStrategy.fromObject(source);
 
       // Convert acquisition level, from string to entity
@@ -356,6 +371,8 @@ export class PmfmStrategiesTable extends AppInMemoryTable<PmfmStrategy, PmfmStra
 
       return target;
     });
+
+    return entities;
   }
 
 

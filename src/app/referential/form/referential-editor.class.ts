@@ -3,7 +3,7 @@ import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
-  AppEntityEditor,
+  AppEntityEditor, BaseReferential,
   changeCaseToUnderscore,
   EntityServiceLoadOptions,
   EntityUtils,
@@ -33,7 +33,7 @@ export interface AppReferentialEditorOptions extends AppEditorOptions {
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AppReferentialEditor<
-  T extends Referential<T, ID>,
+  T extends BaseReferential<T, ID>,
   S extends IEntityService<T, ID> = IEntityService<T, any>,
   ID = number
   >

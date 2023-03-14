@@ -95,7 +95,7 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
     }
   }
 
-  protected async onEntitySaved(data: TaxonName): Promise<void> {
+  protected async onEntitySaved(data: Referential): Promise<void> {
 
     // Save table
     if (this.rwcTable.dirty) {

@@ -58,25 +58,25 @@ const FindStrategyNextSampleLabel: any = gql`
 
 const LoadAllAnalyticReferencesQuery: any = gql`query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
     data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}`;
+  ${ReferentialFragments.lightReferential}`;
 const LoadAllAnalyticReferencesWithTotalQuery: any = gql`query AnalyticReferencesQuery($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: ReferentialFilterVOInput){
   data: analyticReferences(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
-    ...ReferentialFragment
+    ...LightReferentialFragment
   }
   total: analyticReferencesCount(filter: $filter)
 }
-${ReferentialFragments.referential}`;
+${ReferentialFragments.lightReferential}`;
 
 const FindStrategiesReferentials: any = gql`
   query StrategiesReferentials($programId: Int!, $locationClassification: LocationClassificationEnum, $entityName: String, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
     data: strategiesReferentials(programId: $programId, locationClassification: $locationClassification, entityName: $entityName, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection){
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
 `;
 
 const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
@@ -92,10 +92,10 @@ const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
   ${StrategyFragments.pmfmStrategy}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.parameter}
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}`,
 
   loadAll: gql`query Strategies($filter: StrategyFilterVOInput!, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String){
@@ -110,7 +110,7 @@ const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}`,
 
@@ -127,7 +127,7 @@ const QUERIES: BaseEntityGraphqlQueries & { count: any; } = {
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.lightPmfm}
   ${ReferentialFragments.taxonName}`,
 
@@ -149,10 +149,10 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
   ${StrategyFragments.strategyDepartment}
   ${StrategyFragments.taxonGroupStrategy}
   ${StrategyFragments.taxonNameStrategy}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${ReferentialFragments.pmfm}
   ${ReferentialFragments.parameter}
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.taxonName}`,
 
   delete: gql`mutation DeleteAllStrategies($id:Int!){
@@ -163,10 +163,10 @@ const MUTATIONS: BaseEntityGraphqlMutations = {
 const SUBSCRIPTIONS: BaseEntityGraphqlSubscriptions = {
   listenChanges: gql`subscription UpdateReferential($id: Int!, $interval: Int){
     updateReferential(entityName: "Strategy", id: $id, interval: $interval) {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
   }
-  ${ReferentialFragments.referential}`
+  ${ReferentialFragments.lightReferential}`
 };
 
 @Injectable({providedIn: 'root'})

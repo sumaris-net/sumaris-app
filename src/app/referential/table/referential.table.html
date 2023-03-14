@@ -315,6 +315,35 @@
         </td>
       </ng-container>
 
+      <!-- Generic columns -->
+      <ng-container *ngFor="let definition of columnDefinitions; first as first">
+        <ng-container [matColumnDef]="definition.key">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            <ion-label>{{ definition.label | translate}}</ion-label>
+          </th>
+          <td mat-cell *matCellDef="let row"
+              [class.ion-padding-start]="first"
+              [class.cdk-visually-hidden]="loadingSubject|async"
+              [class.mat-form-field-disabled]="!row.editing"
+              [class.mat-cell-date]="definition.type==='date'"
+              [class.mat-cell-date-time]="definition.type==='dateTime'">
+
+            <app-form-field *ngIf="row.editing && row.validator.controls|mapGet: definition.key; let control; else readonly"
+                            compact="true"
+                            floatLabel="never"
+                            [formControl]="control"
+                            [definition]="definition">
+            </app-form-field>
+
+            <ng-template #readonly>
+              <ion-label>
+                {{row.currentData|propertyFormat: definition}}
+              </ion-label>
+            </ng-template>
+          </td>
+        </ng-container>
+      </ng-container>
+
       <!-- Status column  -->
       <ng-container matColumnDef="status">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>
