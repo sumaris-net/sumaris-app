@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, Injector, ViewChild } from '@angular/core';
 import { isNotNil, joinPropertiesPath, MatAutocompleteFieldConfig, Referential } from '@sumaris-net/ngx-components';
 import { ReferentialService } from '@app/referential/services/referential.service';
-import { RoundWeightConversionTable } from '@app/referential/round-weight-conversion/round-weight-conversion.table';
+import { RoundWeightConversionTable } from '@app/referential/taxon-group/round-weight-conversion/round-weight-conversion.table';
 import { TaxonGroupValidatorService } from '@app/referential/taxon-group/taxon-group.validator';
 import { AppReferentialEditor } from '@app/referential/form/referential-editor.class';
 import { ReferentialForm } from '@app/referential/form/referential.form';
-import { TaxonName } from '@app/referential/services/model/taxon-name.model';
+import { TaxonGroupRef } from '@app/referential/services/model/taxon-group.model';
 
 @Component({
   selector: 'app-taxon-group',
@@ -32,7 +32,7 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
       dataService,
       validatorService.getFormGroup(),
       {
-        entityName: 'TaxonGroup',
+        entityName: TaxonGroupRef.ENTITY_NAME,
         uniqueLabel: false,
         withLevels: true,
         tabCount: 2
@@ -42,6 +42,9 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
 
   ngOnInit() {
     super.ngOnInit();
+
+    // Set entity name (required for referential form validator)
+    this.referentialForm.entityName = TaxonGroupRef.ENTITY_NAME;
 
     const autocompleteConfig: MatAutocompleteFieldConfig = {
       suggestFn: (value, opts) => this.referentialRefService.suggest(value, opts),
@@ -95,7 +98,7 @@ export class TaxonGroupPage extends AppReferentialEditor<Referential, Referentia
     }
   }
 
-  protected async onEntitySaved(data: TaxonName): Promise<void> {
+  protected async onEntitySaved(data: Referential): Promise<void> {
 
     // Save table
     if (this.rwcTable.dirty) {

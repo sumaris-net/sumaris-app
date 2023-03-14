@@ -1,3 +1,18 @@
+<app-debug *ngIf="debug">
+  <ion-row>
+    <ion-col>
+      loading: {{loading}}<br/>
+      enabled: {{enabled}}<br/>
+      dirty: {{dirty}}<br/>
+    </ion-col>
+    <ion-col>
+      filter: <pre>{{filter|json}}</pre><br/>
+    </ion-col>
+  </ion-row>
+
+  <ng-content select="[appDebug]"></ng-content>
+</app-debug>
+
 <mat-toolbar *ngIf="showToolbar">
 
   <ng-container *ngIf="!selection.hasValue(); else hasSelection">
@@ -91,6 +106,7 @@
      [class.has-paginator]="showPaginator">
 
   <table *ngIf="columnDefinitions|isNotEmptyArray"
+         #table
     mat-table
     matSort
     matSortDisableClear

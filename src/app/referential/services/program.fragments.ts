@@ -42,24 +42,24 @@ export const ProgramFragments = {
       statusId
       properties
       taxonGroupType {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       gearClassification {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       locationClassifications {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       locations {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       persons {
         id
         location {
-          ...ReferentialFragment
+          ...LightReferentialFragment
         }
         privilege {
-          ...ReferentialFragment
+          ...LightReferentialFragment
         }
         person {
            ...LightPersonFragment

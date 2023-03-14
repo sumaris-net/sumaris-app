@@ -7,7 +7,7 @@ import {
   BaseEntityService,
   BaseEntityServiceOptions, EntitiesServiceLoadOptions,
   EntityServiceLoadOptions,
-  GraphqlService,
+  GraphqlService, IEntityService,
   IReferentialRef,
   isNotNil,
   LoadResult,
@@ -16,9 +16,28 @@ import {
   SuggestService
 } from '@sumaris-net/ngx-components';
 import { Directive, Injector } from '@angular/core';
-import { IReferentialFilter } from './filter/referential.filter';
+import { IReferentialFilter, ReferentialFilter } from './filter/referential.filter';
 
 export const TEXT_SEARCH_IGNORE_CHARS_REGEXP = /[ \t-*]+/g;
+
+export interface IReferentialEntityService<
+  T extends IReferentialRef<T, ID>,
+  F extends IReferentialFilter<F, T, ID>,
+  ID = number,
+  LO = EntityServiceLoadOptions
+> extends IEntityService<T, ID, LO> {
+
+  /**
+   * Check if a label already exists in database
+   * @param label
+   * @param filter
+   * @param opts
+   */
+  existsByLabel(label: string, filter?: Partial<ReferentialFilter>, opts?: {
+    fetchPolicy?: FetchPolicy;
+  }): Promise<boolean>;
+
+}
 
 @Directive()
 // tslint:disable-next-line:directive-class-suffix

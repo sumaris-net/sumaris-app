@@ -106,7 +106,7 @@ export const LandingFragments = {
   ${DataCommonFragments.lightDepartment}
   ${DataCommonFragments.lightPerson}
   ${VesselSnapshotFragments.vesselSnapshot}
-  ${ReferentialFragments.referential}`,
+  ${ReferentialFragments.lightReferential}`,
 
   landing: gql`fragment LandingFragment on LandingVO {
     id

@@ -69,7 +69,7 @@ export const VesselFragments = {
         label
       }
       vesselType {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
       vesselFeatures {
         ...VesselFeaturesFragment
@@ -100,7 +100,7 @@ export const VesselFragments = {
           label
         }
         vesselType {
-            ...ReferentialFragment
+            ...LightReferentialFragment
         }
         vesselFeatures {
             ...VesselFeaturesFragment
@@ -130,7 +130,7 @@ const VesselQueries: BaseEntityGraphqlQueries & {importSiopFile: any} = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.lightReferential}`,
 
   loadAllWithTotal: gql`query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
         data: vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -144,7 +144,7 @@ const VesselQueries: BaseEntityGraphqlQueries & {importSiopFile: any} = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.lightReferential}`,
 
   loadAll: gql`query Vessels($offset: Int, $size: Int, $sortBy: String, $sortDirection: String, $filter: VesselFilterVOInput){
         data: vessels(offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection, filter: $filter){
@@ -157,7 +157,7 @@ const VesselQueries: BaseEntityGraphqlQueries & {importSiopFile: any} = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.lightReferential}`,
 
   importSiopFile:  gql`query ImportVesselSiopFile($fileName: String) {
       data: importSiopVessels(fileName: $fileName) {
@@ -180,7 +180,7 @@ const VesselMutations: BaseRootEntityGraphqlMutations & {replaceAll: any} = {
     ${ReferentialFragments.location}
     ${ReferentialFragments.lightDepartment}
     ${ReferentialFragments.lightPerson}
-    ${ReferentialFragments.referential}`,
+    ${ReferentialFragments.lightReferential}`,
 
   deleteAll: gql`mutation DeleteVessels($ids:[Int]!){
         deleteVessels(ids: $ids)

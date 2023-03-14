@@ -1,0 +1,8 @@
+:host {
+  //--table-container-offset: var(--mat-tab-link-height, 0px);
+
+  .mat-tab-group-root {
+    --mat-tab-body-content-height-root: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 2px);
+    --mat-tab-body-content-height: var(--mat-tab-body-content-height-root);
+  }
+}

@@ -6,7 +6,7 @@
 <ion-content>
 
   <mat-tab-group #tabGroup
-                 class="mat-tab-disabled-hidden mat-tab-fixed-content"
+                 class="mat-tab-fixed-content"
                  [(selectedIndex)]="selectedTabIndex"
                  (selectedTabChange)="onTabChange($event)"
                  [animationDuration]="tabGroupAnimationDuration"
@@ -72,7 +72,12 @@
     <mat-tab label="{{'PROGRAM.TAB_LOCATIONS'|translate}}">
       <ng-template mat-tab-label>
         <mat-icon>room</mat-icon>
-        <ion-label translate>PROGRAM.TAB_LOCATIONS</ion-label>
+        <ion-label [matBadge]="locationList.length"
+                   [matBadgeHidden]="locationList.invalid || !locationList.length"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+                   translate>PROGRAM.TAB_LOCATIONS</ion-label>
         <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && locationList.invalid"></ion-icon>
       </ng-template>
 
@@ -94,11 +99,15 @@
     </mat-tab>
 
     <!-- TAB: strategies -->
-    <mat-tab label="{{'PROGRAM.TAB_STRATEGIES'|translate}}" [disabled]="isNewData">
-      <ng-template mat-tab-label>
+    <mat-tab label="{{'PROGRAM.TAB_STRATEGIES' + i18nTabStrategiesSuffix|translate}}" [disabled]="isNewData">
+      <ng-template mat-tab-label *ngVar="strategiesTable as table">
         <mat-icon>date_range</mat-icon>
-        <ion-label>{{'PROGRAM.TAB_STRATEGIES' + i18nTabStrategiesSuffix | translate}}</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="strategiesTable?.invalid"></ion-icon>
+        <ion-label [matBadge]="table && table.visibleRowCount || 0"
+                   [matBadgeHidden]="!table || table.invalid || !table.visibleRowCount"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small">{{'PROGRAM.TAB_STRATEGIES' + i18nTabStrategiesSuffix | translate}}</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && table?.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-no-padding">
@@ -125,6 +134,8 @@
                               [program]="data"
                               [canEdit]="enabled"
                               [canDelete]="enabled"
+                              [canDownload]="loaded"
+                              [canUpload]="enabled"
                               (onOpenRow)="onOpenStrategy($event)"
                               (onNewRow)="onNewStrategy($event)">
           </app-strategy-table>
@@ -137,12 +148,17 @@
     <mat-tab label="{{'PROGRAM.TAB_PROPERTIES'|translate}}" [disabled]="isNewData">
       <ng-template mat-tab-label>
         <mat-icon matPrefix>build</mat-icon>
-        <ion-label translate>PROGRAM.TAB_PROPERTIES</ion-label>
-        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="propertiesForm.invalid"></ion-icon>
+        <ion-label *ngVar="propertiesForm.helper?.size() as propertiesCount"
+                   [matBadge]="propertiesCount"
+                   [matBadgeHidden]="propertiesForm.invalid || !propertiesCount"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+                   translate>PROGRAM.TAB_PROPERTIES</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && propertiesForm.invalid"></ion-icon>
       </ng-template>
 
       <div class="ion-padding">
-
         <app-properties-form #propertiesForm [definitions]="propertyDefinitions" [options]="{allowEmptyArray: true}">
 
         </app-properties-form>
@@ -151,14 +167,18 @@
 
     </mat-tab>
 
-    <!-- TAB: access rights -->
-    <mat-tab label="{{'PROGRAM.TAB_ACCESS_RIGHTS'|translate}}" [disabled]="isNewData">
-      <ng-template mat-tab-label>
+    <!-- TAB: privilege -->
+    <mat-tab label="{{'PROGRAM.TAB_PRIVILEGES'|translate}}" [disabled]="isNewData">
+      <ng-template mat-tab-label *ngVar="personsTable as table">
         <mat-icon>
           <ion-icon matPrefix slot="start" name="people"></ion-icon>
         </mat-icon>
-        <ion-label translate>PROGRAM.TAB_PRIVILEGES</ion-label>
-        <!--        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="samplesTable.invalid"></ion-icon>-->
+        <ion-label [matBadge]="table.visibleRowCount"
+                   [matBadgeHidden]="table.invalid || !table.visibleRowCount"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small">{{'PROGRAM.TAB_PRIVILEGES'|translate}}</ion-label>
+        <ion-icon slot="end" name="alert-circle" color="danger" *ngIf="submitted && table.invalid"></ion-icon>
       </ng-template>
 
       <div style="height: var(--mat-tab-body-content-height)">

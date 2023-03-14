@@ -47,9 +47,6 @@ export interface BaseReferentialTableOptions<
   canUpload?: boolean;
 }
 
-export declare type ColumnType = 'number'|'string'|'date'|'uri';
-
-
 export const IGNORED_ENTITY_COLUMNS = ['__typename', 'id', 'updateDate'];
 
 @Directive()
@@ -70,12 +67,16 @@ export abstract class BaseReferentialTable<
    * @param validatorService
    */
   static getEntityDisplayProperties<T>(dataType: new () => T,
-                                       validatorService?: ValidatorService): string[] {
+                                       validatorService?: ValidatorService,
+                                       excludedProperties?: string[]): string[] {
+    excludedProperties = excludedProperties || IGNORED_ENTITY_COLUMNS;
     return Object.keys(validatorService && validatorService.getRowValidator().controls || new dataType())
-      .filter(key => !IGNORED_ENTITY_COLUMNS.includes(key));
+      .filter(key => !excludedProperties.includes(key));
   }
-  static getFirstEntityColumn<T>(dataType: new () => T): string {
-    return Object.keys(new dataType()).find(key => !IGNORED_ENTITY_COLUMNS.includes(key));
+
+  static getFirstEntityColumn<T>(dataType: new () => T, excludedProperties?: string[]): string {
+    excludedProperties = excludedProperties || IGNORED_ENTITY_COLUMNS;
+    return Object.keys(new dataType()).find(key => !excludedProperties.includes(key));
   }
 
 
@@ -155,7 +156,7 @@ export abstract class BaseReferentialTable<
     this.registerAutocompleteFields();
 
     this.columnDefinitions = this.loadColumnDefinitions(this.options);
-    this.defaultSortBy = this.columnDefinitions[0].key;
+    this.defaultSortBy = this.columnDefinitions[0]?.key || 'id';
 
     this.registerSubscription(
       this.onRefresh.subscribe(() => {
@@ -360,7 +361,8 @@ export abstract class BaseReferentialTable<
       .then((entities) => {
         $progress.next(new FileResponse({body: entities}));
         $progress.complete();
-      });
+      })
+      .catch(err => $progress.error(err));
 
     return $progress.asObservable();
   }

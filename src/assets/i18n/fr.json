@@ -16,6 +16,8 @@
     "BTN_COMPACT_ROWS": "Compacter les lignes",
     "BTN_DONE": "Terminer",
     "BTN_DOWNLOAD": "Télécharger",
+    "BTN_DOWNLOAD_DOTS": "Télécharger...",
+    "BTN_DOWNLOAD_JSON": "Télécharger (JSON)",
     "BTN_IMPORT": "Importer",
     "BTN_IMPORT_FROM_FILE_DOTS": "Importer depuis un fichier...",
     "BTN_DUPLICATE": "Dupliquer",
@@ -181,9 +183,9 @@
       "ENABLE_GRAVATAR": "Utilisateur > Utiliser Gravatar ?",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
-      "ACCESS_PROGRAM_IDS": "Saisie > Programmes de collecte autorisés (ID)",
+      "ACCESS_PROGRAM_IDS": "Saisie > Programmes de collecte autorisés",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
-      "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres (ID)",
+      "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres",
       "SAMPLE_UNIQUE_TAG": "Persistance > Sample : Vérifier l'unicité du code de prélèvement",
       "SAMPLE_HASH_OPTIMIZATION": "Persistance > Sample : Optimiser la sauvegarde (hash)",
       "BATCH_HASH_OPTIMIZATION": "Persistance > Batch : Optimiser la sauvegarde (hash)",
@@ -249,6 +251,7 @@
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "PMFM_GEAR_LABEL_ID": "Référentiel > PSFM > Libellé de l'engin physique",
+        "PMFM_CHILD_GEAR_ID": "Référentiel > PSFM > Sous-engin",
         "PMFM_HAS_ACCIDENTAL_CATCHES_ID": "Référentiel > PSFM > Capture accidentelle",
         "PMFM_BATCH_SORTING_ID": "Référentiel > PSFM > Vrac/Hors vrac",
         "PMFM_SELECTIVITY_DEVICE_ID": "Référentiel > PSFM > Dispositif sélectif engin",
@@ -553,8 +556,6 @@
       "NO_LOCAL_RESULT": "Aucun résultat (parmi les marées <b>non synchronisées</b>)",
       "BTN_NEW_OFFLINE": "Saisie terrain (mode hors-ligne)",
       "BTN_NEW_ONLINE": "Saisie au bureau (mode connecté)",
-      "BTN_DOWNLOAD_DOTS": "Télécharger...",
-      "BTN_DOWNLOAD_JSON": "Télécharger (JSON)",
       "DOWNLOAD_JSON_FILENAME": "Marées.json",
       "FILTER": {
         "PROGRAM": "Programme de collecte",
@@ -1572,6 +1573,7 @@
     "LABEL": "Code",
     "NAME": "Libellé",
     "LEVEL": "Niveau",
+    "PARENT": "Parent",
     "DESCRIPTION": "Description",
     "COMMENTS": "Commentaires",
     "STATUS": "Etat",
@@ -1707,7 +1709,19 @@
     },
     "METHOD": {
       "NAME": "Méthode de collecte",
-      "DESCRIPTION": "description"
+      "DESCRIPTION": "description",
+      "IS_CALCULATED": "Calulée ?",
+      "IS_ESTIMATED": "Est estimée ?",
+      "EDIT": {
+        "TITLE": "Méthode {{label}} - {{name}}"
+      }
+    },
+    "TRANSCRIBING_ITEM": {
+      "OBJECT": "Référence",
+      "LABEL": "Code transcodé",
+      "NAME": "Libellé transcodé",
+      "STATUS_ID": "État",
+      "TYPE": "Type de transcodage"
     },
     "LIST": {
       "TITLE": "Référentiels",
@@ -1724,19 +1738,26 @@
     },
     "ENTITY": {
       "DEPARTMENT": "Organismes",
+      "EXTRACTION_PRODUCT": "Extraction > Produits",
+      "EXTRACTION_TABLE": "Extraction > Tables de produit",
       "SALE_TYPE": "Types de vente",
       "LOCATION": "Lieux",
       "LOCATION_LEVEL": "Niveaux de lieux",
       "GEAR": "Engins",
       "GEAR_LEVEL": "Niveaux d'engin",
       "PARAMETER": "Paramètres",
+      "PARAMETER_GROUP": "Groupe de paramètres",
       "USER_PROFILE": "Profils utilisateur",
       "VESSEL_TYPE": "Types de navire",
       "PMFM": "Quadruplets PSFM",
       "DUPLICATE_STRATEGY": "Stratégies à dupliquer",
       "MATRIX": "Supports de mesure",
+      "METHOD": "Méthodes de mesure",
       "FRACTION": "Fractions du support",
+      "ORIGIN_ITEM_TYPE": "Type d'origine d'une entrée",
+      "OBJECT_TYPE": "Types d'entité",
       "QUALITATIVE_VALUE": "Valeurs qualitatives",
+      "QUALITY_FLAG": "Niveau de qualité",
       "TAXON_GROUP_TYPE": "Types de groupe d'espèce",
       "TAXON_GROUP": "Espèces commerciales (FAO)",
       "TAXON_NAME": "Espèces scientifique",
@@ -1745,14 +1766,23 @@
       "PROGRAM": "Programmes de collecte",
       "STRATEGY": "Stratégies de collecte",
       "ACQUISITION_LEVEL": "Niveaux d'acquisition",
-      "TRANSCRIBING_ITEM": "Transcodages",
+      "TRANSCRIBING_ITEM": "Transcodage > Entrées",
+      "TRANSCRIBING_ITEM_TYPE": "Transcodage > Types",
+      "TRANSCRIBING_SYSTEM": "Transcodage > Systèmes",
+      "UNIT": "Unités de mesure",
       "METIER": "Métiers",
-      "SOFTWARE": "Logiciels"
+      "SOFTWARE": "Logiciels",
+      "STATUS": "Etat de saisie",
+      "SYSTEM_VERSION": "Versions de la base"
     },
     "OPTIONS": {
       "VESSELS_ENABLE": "Référentiels > Navires: Activer ?",
       "VESSELS_IMPORT_ENABLE": "Référentiels > Navires: Activer l'importation fichier ?",
       "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires > Remplacement: Activer ?"
+    },
+    "INFO": {
+      "IMPORT_ENTITIES_SUCCEED": "Importation terminée <b>avec succès</b> !<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour.",
+      "IMPORT_ENTITIES_WARNING": "Importation terminée <b>avec erreur</b>: <br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{errorCount}} erreurs :<br/>{{error}}"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
@@ -1764,7 +1794,11 @@
       "LOAD_PROGRAM_GEARS_ERROR": "Erreur lors de chargement des engins du programme",
       "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Erreur lors de chargement des espèces commerciales du programme",
       "SAVE_PERSONS_ERROR": "Erreur de sauvegarde des utilisateurs",
-      "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs"
+      "DELETE_PERSONS_ERROR": "Erreur lors de la suppression d'utilisateurs",
+      "LABEL_NOT_UNIQUE": "Code déjà utilisé",
+      "IMPORT_ENTITIES_ERROR": "Échec de l'importation:<br/>{{error}}",
+      "IMPORT_ENTITY_ERROR": "'{{label}}': {{message}}",
+      "MISSING_REFERENCES": "Référence(s) manquante(s): {{error}}"
     }
   },
   "PROGRAM": {
@@ -1925,6 +1959,9 @@
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_FROM_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
+      "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-Stratégie-{{label}}.json",
+      "DOWNLOAD_MANY_JSON_FILENAME": "{{programLabel}}-Stratégies.json",
+      "TAB_TRANSCRIBING": "Transcodages",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplication",
         "HELP": "Sélectionnez une année de suivie pour les nouvelles lignes de plan :"
@@ -2063,6 +2100,7 @@
         "MIN_VALUE": "Min",
         "MAX_VALUE": "Max",
         "DEFAULT_VALUE": "Valeur par défaut",
+        "DEFAULT_QUALITATIVE_VALUE": "Valeur par défaut",
         "TABLE": {
           "TITLE": "Paramètres collectés"
         }

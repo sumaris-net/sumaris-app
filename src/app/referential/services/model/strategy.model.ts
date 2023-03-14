@@ -1,15 +1,18 @@
-import {BaseReferential, Entity, EntityClass, fromDateISOString, isNotNil, ReferentialAsObjectOptions, ReferentialRef, toDateISOString} from '@sumaris-net/ngx-components';
+import { BaseReferential, Entity, EntityClass, EntityUtils, fromDateISOString, isNotNil, ReferentialAsObjectOptions, ReferentialRef, toDateISOString } from '@sumaris-net/ngx-components';
 import {Moment} from 'moment';
 import {TaxonGroupRef} from './taxon-group.model';
 import {DenormalizedPmfmStrategy, PmfmStrategy} from './pmfm-strategy.model';
 import {TaxonNameRef} from '@app/referential/services/model/taxon-name.model';
-import {MINIFY_OPTIONS, NOT_MINIFY_OPTIONS} from '@app/core/services/model/referential.utils';
+import { AppReferentialUtils, MINIFY_OPTIONS, NOT_MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
+export interface StrategyAsObjectOptions extends ReferentialAsObjectOptions {
+  keepRemoteId?: boolean;
+}
 
 @EntityClass({typename: 'StrategyVO'})
 export class Strategy<
   T extends Strategy<any> = Strategy<any>,
-  O extends ReferentialAsObjectOptions = ReferentialAsObjectOptions
+  O extends StrategyAsObjectOptions = StrategyAsObjectOptions
   > extends BaseReferential<Strategy, number, O> {
 
   static fromObject: (source: any, opts?: any) => Strategy;
@@ -52,7 +55,7 @@ export class Strategy<
   }
 
   asObject(opts?: O): any {
-    const target: any = super.asObject(opts);
+    const target: any = super.asObject({ ...opts, ...NOT_MINIFY_OPTIONS });
     target.programId = this.programId;
     target.appliedStrategies = this.appliedStrategies && this.appliedStrategies.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.pmfms = this.pmfms && this.pmfms.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
@@ -61,6 +64,12 @@ export class Strategy<
     target.gears = this.gears && this.gears.map(s => s.asObject(opts));
     target.taxonGroups = this.taxonGroups && this.taxonGroups.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
     target.taxonNames = this.taxonNames && this.taxonNames.map(s => s.asObject({ ...opts, ...NOT_MINIFY_OPTIONS }));
+
+    if (opts && opts.keepRemoteId === false) {
+      AppReferentialUtils.cleanIdAndDates(target, true, ['gears', 'taxonGroups', 'taxonNames']);
+      delete target.programId;
+    }
+
     return target;
   }
 
@@ -114,7 +123,7 @@ export class StrategyDepartment extends Entity<StrategyDepartment> {
 
 }
 
-export class AppliedStrategy extends Entity<AppliedStrategy> {
+export class AppliedStrategy extends Entity<AppliedStrategy, number, StrategyAsObjectOptions> {
 
   static TYPENAME = 'AppliedStrategyVO';
 
@@ -140,10 +149,18 @@ export class AppliedStrategy extends Entity<AppliedStrategy> {
     return target;
   }
 
-  asObject(opts?: ReferentialAsObjectOptions): any {
+  asObject(opts?: StrategyAsObjectOptions): any {
     const target: any = super.asObject(opts);
     target.location = this.location && this.location.asObject(opts);
     target.appliedPeriods = this.appliedPeriods && this.appliedPeriods.map(p => p.asObject(opts)) || undefined;
+
+    // Clean remote id
+    if (opts && opts.keepRemoteId === false) {
+      delete target.id;
+      delete target.updateDate; // Make to sens to keep updateDate of a local entity to save
+      delete target.strategyId;
+      if (EntityUtils.isRemoteId(target.location.id)) delete target.location.id;
+    }
     return target;
   }
 
@@ -185,11 +202,15 @@ export class AppliedPeriod {
     this.__typename = AppliedPeriod.TYPENAME;
   }
 
-  asObject(opts?: ReferentialAsObjectOptions): any {
+  asObject(opts?: StrategyAsObjectOptions): any {
     const target: any = Object.assign({}, this); //= {...this};
     if (!opts || opts.keepTypename !== true) delete target.__typename;
     target.startDate = toDateISOString(this.startDate);
     target.endDate = toDateISOString(this.endDate);
+    // Clean remote id
+    if (opts && opts.keepRemoteId === false && EntityUtils.isRemoteId(target.appliedStrategyId)) {
+      delete target.appliedStrategyId;
+    }
     return target;
   }
 

@@ -4,7 +4,7 @@ import { ImageAttachmentFragments } from '@app/data/image/image-attachment.servi
 
 
 export const DataCommonFragments = {
-  referential: ReferentialFragments.referential,
+  referential: ReferentialFragments.lightReferential,
   department: ReferentialFragments.department,
   lightDepartment: ReferentialFragments.lightDepartment,
   location: ReferentialFragments.location,
@@ -93,10 +93,10 @@ export const DataFragments = {
     updateDate
     creationDate
     matrix {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     taxonGroup {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     taxonName {
       ...TaxonNameFragment
@@ -126,7 +126,7 @@ export const DataFragments = {
     comments
     updateDate
     taxonGroup {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     taxonName {
       ...TaxonNameFragment
@@ -167,10 +167,10 @@ export const DataFragments = {
     comments
     updateDate
     taxonGroup {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     saleType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     measurementValues
     qualityFlagId
@@ -191,13 +191,13 @@ export const DataFragments = {
       ...LocationFragment
     }
     distanceToCoastGradient {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     depthGradient {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     nearbySpecificArea {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     operationId
     __typename
@@ -217,7 +217,7 @@ export const PhysicalGearFragments = {
     creationDate
     comments
     gear {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     recorderDepartment {
       ...LightDepartmentFragment
@@ -279,7 +279,7 @@ export const SaleFragments = {
     updateDate
     comments
     saleType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     saleLocation {
       ...LocationFragment
@@ -295,7 +295,7 @@ export const SaleFragments = {
     updateDate
     comments
     saleType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     saleLocation {
       ...LocationFragment
@@ -319,7 +319,7 @@ export const ExpectedSaleFragments = {
     id
     saleDate
     saleType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     saleLocation {
       ...LocationFragment
@@ -332,7 +332,7 @@ export const ExpectedSaleFragments = {
     id
     saleDate
     saleType {
-      ...ReferentialFragment
+      ...LightReferentialFragment
     }
     saleLocation {
       ...LocationFragment
