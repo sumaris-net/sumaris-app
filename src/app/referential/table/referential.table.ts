@@ -376,8 +376,15 @@ export class ReferentialTable<
       this.columnDefinitions = [];
       this.displayedColumns = this.getDisplayColumns();
 
-      // Hide parent columns
-      this.showParentColumn = this.entityNamesWithParent.includes(entityName);
+      // Show/Hide some columns (only if entityname can change, otherwise user should show/hide using @Input())
+      if (this.canSelectEntity) {
+        // Level columns
+        this.showLevelColumn = isNotEmptyArray(this.$levels.value);
+
+        // Hide parent columns
+        this.showParentColumn = this.entityNamesWithParent.includes(entityName);
+      }
+
 
       this.canOpenDetail = !!this.detailsPath[entityName];
       this.inlineEdition = !this.canOpenDetail;
@@ -445,9 +452,6 @@ export class ReferentialTable<
       this.i18nLevelName = ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }
 
-    if (this.canSelectEntity) {
-      this.showLevelColumn = isNotEmptyArray(res);
-    }
     return res;
   }
 
