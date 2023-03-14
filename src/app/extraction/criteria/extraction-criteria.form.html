@@ -72,13 +72,13 @@
             </mat-form-field>
           </ng-template>
 
-          <button type="button" mat-icon-button color="light" [disabled]="disabled"
+          <button type="button" mat-icon-button [disabled]="disabled"
                   [title]="'COMMON.BTN_DELETE'|translate"
                   (click)="removeFilterCriterion($event, i)">
             <mat-icon>delete</mat-icon>
           </button>
 
-          <button type="button" mat-icon-button color="light" [disabled]="disabled"
+          <button type="button" mat-icon-button [disabled]="disabled"
                   *ngIf="i == criteriaForm?.length-1"
                   [title]="'EXTRACTION.FILTER.BTN_ADD_CRITERION'|translate"
                   (click)="addFilterCriterion()">
