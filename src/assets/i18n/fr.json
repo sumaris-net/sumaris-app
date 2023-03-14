@@ -2098,6 +2098,7 @@
         "MIN_VALUE": "Min",
         "MAX_VALUE": "Max",
         "DEFAULT_VALUE": "Valeur par défaut",
+        "DEFAULT_QUALITATIVE_VALUE": "Valeur par défaut",
         "TABLE": {
           "TITLE": "Paramètres collectés"
         }
