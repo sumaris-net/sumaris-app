@@ -80,7 +80,6 @@ interface ComponentState {
   data: Batch;
   editingBatch: BatchModel;
   currentBadge: BadgeState;
-  treePanelMode: MatDrawerMode
   treePanelFloating: boolean;
 }
 
@@ -111,7 +110,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   protected readonly editingBatch$ = this._state.select('editingBatch');
   protected readonly currentBadge$ = this._state.select('currentBadge');
   protected readonly treePanelFloating$ = this._state.select('treePanelFloating');
-  protected readonly treePanelMode$ = this._state.select('treePanelMode');
 
   protected get model(): BatchModel {
     return this._state.get('model');
@@ -331,7 +329,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
     this.errorTranslatorOptions = {separator: '<br/>', controlPathTranslator: this};
     this._state.set({
       treePanelFloating: true,
-      treePanelMode: 'push'
     });
 
     // Watch program, to configure tables from program properties
@@ -424,10 +421,6 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       return badge;
     });
 
-    // Comput tree panel mode, from 'treePanelFloating'
-    this._state.connect('treePanelMode', this.treePanelFloating$
-      .pipe(map(floating => floating ? 'push' : 'side')));
-
     // DEBUG
     this.debug = !environment.production;
   }
@@ -518,11 +511,7 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
   }
 
   toggleSideNavMode(event?: Event) {
-    this._state.set('treePanelMode', s => {
-      const newMode = s.treePanelMode === 'side' ? 'push' : 'side';
-      if (newMode === 'push') this.sidenav?.close();
-      return newMode;
-    });
+    if (this.sidenav?.opened) this.sidenav.close();
   }
 
   toggleTreePanelFloating() {
