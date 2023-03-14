@@ -183,7 +183,7 @@
       "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
-      "ACCESS_PROGRAM_IDS": "Data entry > Authorized data programs (ID)",
+      "ACCESS_PROGRAM_IDS": "Data entry > Authorized data programs",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Data entry > Min. user profile (min) to access other people data",
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
       "SAMPLE_UNIQUE_TAG": "Persistence > Sample: Check if TAG_ID is unique",

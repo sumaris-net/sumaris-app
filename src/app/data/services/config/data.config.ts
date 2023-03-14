@@ -51,8 +51,15 @@ export const DATA_CONFIG_OPTIONS = Object.freeze({
   ACCESS_PROGRAM_IDS: <FormFieldDefinition>{
     key: "sumaris.data.program.ids",
     label: "CONFIGURATION.OPTIONS.ACCESS_PROGRAM_IDS",
+    type: 'entities',
+    autocomplete: {
+      attributes: ['label'],
+      filter: <ReferentialRefFilter>{
+        entityName: 'Program',
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY]
+      }
+    },
     defaultValue: '',
-    type: 'string'
   },
   ACCESS_NOT_SELF_DATA_ROLE: <FormFieldDefinition>{
     key: "sumaris.data.accessNotSelfData.role",

@@ -183,7 +183,7 @@
       "ENABLE_GRAVATAR": "Utilisateur > Utiliser Gravatar ?",
       "DEFAULT_LOCALE": "Langue par défaut",
       "DEFAULT_LATLONG_FORMAT": "Format lat/lon par défaut",
-      "ACCESS_PROGRAM_IDS": "Saisie > Programmes de collecte autorisés (ID)",
+      "ACCESS_PROGRAM_IDS": "Saisie > Programmes de collecte autorisés",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Saisie > Role min. pour voir les données des autres",
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Saisie > Services permettant de voir les données des autres",
       "SAMPLE_UNIQUE_TAG": "Persistance > Sample : Vérifier l'unicité du code de prélèvement",
