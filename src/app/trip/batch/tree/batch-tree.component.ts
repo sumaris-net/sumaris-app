@@ -429,7 +429,7 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
             .pipe(map(isNotEmptyArray))
         ])
         .pipe(
-          map(([hasPmfms, ready, howSows]) => hasPmfms && ready && howSows || false)
+          map(([hasPmfms, ready, howSows]) => hasPmfms && ready && howSows && this.allowSubBatches || false)
         )
       );
 
