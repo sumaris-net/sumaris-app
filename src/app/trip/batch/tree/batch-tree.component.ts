@@ -426,10 +426,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
           this.subBatchesTable.hasPmfms$,
           this.subBatchesTable.readySubject,
           this.batchGroupsTable.dataSource.rowsSubject
-            .pipe(map(isNotEmptyArray))
+            .pipe(map(isNotEmptyArray)),
+          this._state.select('allowSubBatches')
         ])
         .pipe(
-          map(([hasPmfms, ready, howSows]) => hasPmfms && ready && howSows && this.allowSubBatches || false)
+          map(([hasPmfms, ready, howSows, allowSubBatches]) => hasPmfms && ready && howSows && allowSubBatches || false)
         )
       );
 
