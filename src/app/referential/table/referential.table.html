@@ -299,6 +299,28 @@
         </td>
       </ng-container>
 
+      <!-- Parent column -->
+      <ng-container matColumnDef="parent">
+        <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showParentColumn" mat-sort-header>
+          <ion-label translate>REFERENTIAL.PARENT</ion-label>
+        </th>
+        <td mat-cell *matCellDef="let row"
+            [class.mat-form-field-disabled]="!row.editing"
+            [class.cdk-visually-hidden]="!showParentColumn">
+          <ng-container *ngIf="row.editing; else readonly">
+            <mat-autocomplete-field floatLabel="never"
+                                    *ngIf="row.validator|formGetControl:'parent'; let control"
+                                    [config]="autocompleteFields.parent"
+                                    [formControl]="control"
+                                    [placeholder]="i18nParentName|translate">
+            </mat-autocomplete-field>
+          </ng-container>
+          <ng-template #readonly>
+            <ion-text>{{row.currentData.parent|referentialToString}}</ion-text>
+          </ng-template>
+        </td>
+      </ng-container>
+
       <!-- Level column -->
       <ng-container matColumnDef="level">
         <th mat-header-cell *matHeaderCellDef [class.cdk-visually-hidden]="!showLevelColumn">

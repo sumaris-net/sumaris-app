@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AbstractControlOptions, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { AppValidatorService, BaseReferential, Referential, toNumber } from '@sumaris-net/ngx-components';
+import {AppValidatorService, BaseReferential, Referential, SharedValidators, toNumber} from '@sumaris-net/ngx-components';
 
 @Injectable({providedIn: 'root'})
 export class ReferentialValidatorService<T extends BaseReferential<T> = BaseReferential<any>>
@@ -26,6 +26,7 @@ export class ReferentialValidatorService<T extends BaseReferential<T> = BaseRefe
 
   getFormGroupConfig(data?: T, opts?: {
     withDescription?: boolean;
+    withParent?: boolean;
     withComments?: boolean;
   }): {[key: string]: any} {
     opts = opts || {};
@@ -42,12 +43,16 @@ export class ReferentialValidatorService<T extends BaseReferential<T> = BaseRefe
       properties: [data && data['properties'] || null]
     };
 
+    if (opts.withParent !== false) {
+      controlsConfig.parent = [data && data['parent'] || null, SharedValidators.entity];
+    }
     if (opts.withDescription !== false) {
       controlsConfig.description = [data && data.description || null, Validators.maxLength(255)];
     }
     if (opts.withComments !== false) {
       controlsConfig.comments = [data && data.comments || null, Validators.maxLength(2000)];
     }
+
     return controlsConfig;
   }
 

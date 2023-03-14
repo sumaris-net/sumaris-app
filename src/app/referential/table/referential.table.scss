@@ -38,6 +38,7 @@
     max-width: 150px;
   }
 
+  .mat-column-parent,
   .mat-column-level {
     min-width: 150px;
     max-width: 250px;
@@ -50,6 +51,13 @@
 
   .mat-column-comments {
     max-width: 110px;
+  }
+
+  .mat-column-updateDate,
+  .mat-column-creationDate {
+    min-width: 100px;
+    max-width: 100px;
+    font-size: x-small;
   }
 
   mat-header-cell.hidden,

@@ -59,7 +59,7 @@ import { BaseReferentialTable } from '@app/referential/table/base-referential.ta
 import { MethodValidatorService } from '@app/referential/pmfm/method/method.validator';
 import { AppBaseTable } from '@app/shared/table/base.table';
 
-export const BASE_REFERENTIAL_COLUMNS = ['label','name','level','status','creationDate','updateDate','comments'];
+export const BASE_REFERENTIAL_COLUMNS = ['label','name','parent','level','status','creationDate','updateDate','comments'];
 export const IGNORED_ENTITY_COLUMNS = ['__typename', 'entityName', 'id', ...BASE_REFERENTIAL_COLUMNS, 'statusId', 'levelId', 'properties', 'parentId'];
 export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
   FILTER_KEY: 'filter',
@@ -98,6 +98,7 @@ export class ReferentialTable<
   $levels = new BehaviorSubject<ReferentialRef[]>(undefined);
   columnDefinitions: FormFieldDefinition[];
   i18nLevelName: string;
+  i18nParentName: string;
   filterCriteriaCount = 0;
   filterPanelFloating = true;
   readonly detailsPath = {
@@ -127,7 +128,7 @@ export class ReferentialTable<
   readonly dataValidators: { [key: string]: any} = {
     'Method': MethodValidatorService
   };
-  readonly entityNamesWithParent = ['TaxonGroup'];
+  readonly entityNamesWithParent = ['TaxonGroup', 'TaxonName'];
 
   // Pu sub entity class (not editable without a root entity)
   readonly excludedEntityNames: string[] = [
@@ -390,6 +391,7 @@ export class ReferentialTable<
       this.inlineEdition = !this.canOpenDetail;
       this.canDownload = !!this.getEntityService(entityName);
       this.canUpload = this.accountService.isAdmin() && this.canDownload && !!this.getDataType(entityName);
+      this.i18nParentName = this.computeI18nParentName(entityName);
 
       // Applying the filter (will reload if emitEvent = true)
       const filter = this.asFilter({
@@ -443,8 +445,8 @@ export class ReferentialTable<
     this.$levels.next(levels);
 
     if (isNotEmptyArray(levels)) {
-      const typeName = levels[0].entityName;
-      const i18nLevelName = "REFERENTIAL.ENTITY." + changeCaseToUnderscore(typeName).toUpperCase();
+      const parentEntityName = levels[0].entityName;
+      const i18nLevelName = "REFERENTIAL.ENTITY." + changeCaseToUnderscore(parentEntityName).toUpperCase();
       const levelName = this.translate.instant(i18nLevelName);
       this.i18nLevelName = (levelName !== i18nLevelName) ? levelName : ReferentialI18nKeys.DEFAULT_I18N_LEVEL_NAME;
     }
@@ -453,6 +455,12 @@ export class ReferentialTable<
     }
 
     return res;
+  }
+
+  computeI18nParentName(entityName): string {
+    const i18nKey = "REFERENTIAL." + changeCaseToUnderscore(entityName).toUpperCase() + ".PARENT";
+    const translation = this.translate.instant(i18nKey);
+    return (translation !== i18nKey) ? translation : ReferentialI18nKeys.DEFAULT_I18N_PARENT_NAME;
   }
 
   getI18nEntityName(entityName: string): string {
