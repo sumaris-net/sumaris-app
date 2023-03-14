@@ -396,7 +396,12 @@ export class ExtractionCriteriaForm<E extends ExtractionType<E> = ExtractionType
           items: column.values,
           attributes: [undefined],
           columnNames: [column.name/*'EXTRACTION.FILTER.CRITERION_VALUE'*/],
-          displayWith: (value) => isNil(value) ? '' : value
+          mobile: false,
+          displayWith: (value) => {
+            // DEBUG
+            //console.debug('TODO display with', value);
+            return isNil(value) ? '' : value;
+          }
         }
       };
     }
