@@ -138,7 +138,7 @@
 
   <!-- TAB: individual measure -->
   <mat-tab #measureTab label="{{'TRIP.OPERATION.EDIT.TAB_BATCH_INDIVIDUAL'|translate}}"
-           [disabled]="!showSubBatchesTable"
+           [disabled]="showSubBatchesTable !== true"
            *ngIf="!mobile">
     <ng-template mat-tab-label>
       <mat-icon>assessment</mat-icon>
