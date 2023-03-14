@@ -44,6 +44,27 @@
             (click)="deleteSelection($event)">
       <mat-icon>delete</mat-icon>
     </button>
+
+
+    <!-- download button -->
+    <button mat-icon-button
+            *ngIf="canDownload"
+            [title]="'COMMON.BTN_DOWNLOAD'|translate"
+            [matMenuTriggerFor]="downloadMenu">
+      <mat-icon>download</mat-icon>
+    </button>
+
+    <!-- Download menu -->
+    <mat-menu #downloadMenu="matMenu" xPosition="after">
+
+      <!-- JSON -->
+      <button mat-menu-item
+              (click)="downloadSelectionAsJson($event)">
+        <mat-icon>download</mat-icon>
+        <ion-label translate>COMMON.BTN_DOWNLOAD_JSON</ion-label>
+      </button>
+
+    </mat-menu>
   </ng-template>
 
 
@@ -58,22 +79,29 @@
 
   <ng-content select="[matToolbarEnd]"></ng-content>
 
-  <!-- download button -->
-  <button mat-button
-          *ngIf="canDownload"
-          (click)="downloadAsJson($event)">
-    <mat-icon>download</mat-icon>
-    <ion-label>{{'COMMON.BTN_DOWNLOAD'|translate|uppercase}}</ion-label>
+  <!-- options button -->
+  <button mat-icon-button
+          [title]="'COMMON.BTN_OPTIONS'|translate"
+          *ngIf="canEdit"
+          [matMenuTriggerFor]="toolbarOptionsMenu">
+    <mat-icon>more_vert</mat-icon>
   </button>
 
-  <!-- upload button -->
-  <button mat-button
-          *ngIf="canUpload"
-          (click)="importFromJson($event)">
-    <mat-icon>upload</mat-icon>
-    <ion-label>{{'COMMON.BTN_IMPORT'|translate|uppercase}}</ion-label>
-  </button>
+  <!-- Toolbar option menu -->
+  <mat-menu #toolbarOptionsMenu="matMenu" xPosition="after">
+    <!-- upload button -->
+    <button mat-menu-item
+            [disabled]="!canUpload && debug"
+            (click)="importFromJson($event)">
+      <mat-icon>upload</mat-icon>
+      <ion-label translate>COMMON.BTN_IMPORT_FROM_FILE_DOTS</ion-label>
+    </button>
+  </mat-menu>
+
+
 </mat-toolbar>
+
+
 
 <!-- error (mobile) -->
 <ion-item *ngIf="showError && error" visible-xs visible-sm visible-mobile lines="none">

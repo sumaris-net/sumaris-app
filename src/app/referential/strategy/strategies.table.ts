@@ -114,7 +114,7 @@ export class StrategiesTable extends AppTable<Strategy, StrategyFilter> implemen
     this.cd.markForCheck();
   }
 
-  protected async downloadAsJson(event?: Event, opts = {keepRemoteId: false}) {
+  protected async downloadSelectionAsJson(event?: Event, opts = {keepRemoteId: false}) {
     const ids = this.selection.hasValue()
       ? this.selection.selected.map(row => row.currentData.id)
       : this.dataSource.getData().map(entity => entity.id);
