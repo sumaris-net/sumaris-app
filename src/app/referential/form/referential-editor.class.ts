@@ -134,6 +134,8 @@ export abstract class AppReferentialEditor<
       json.levelId = (this.$levels.value || []).find(l => l.id === data.levelId);
     }
 
+    json.entityName = json.entityName || this.entityName;
+
     this.form.patchValue(json, {emitEvent: false});
 
     this.markAsPristine();

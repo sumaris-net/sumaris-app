@@ -85,7 +85,7 @@ export class ParameterPage extends AppEntityEditor<Parameter> {
     super.ngOnInit();
 
     // Set entity name (required for referential form validator)
-    this.referentialForm.entityName = 'Parameter';
+    this.referentialForm.entityName = Parameter.ENTITY_NAME;
 
     // Check label is unique
     this.form.get('label')
