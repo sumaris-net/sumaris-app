@@ -254,7 +254,10 @@
         "PMFM_GEAR_LABEL_ID": "Référentiel > PSFM > Libellé de l'engin physique",
         "PMFM_CHILD_GEAR_ID": "Référentiel > PSFM > Sous-engin",
         "PMFM_HAS_ACCIDENTAL_CATCHES_ID": "Référentiel > PSFM > Capture accidentelle",
+        "PMFM_HULL_MATERIAL_ID": "Référentiel > PSFM > Matériaux de la coque (navire)",
         "PMFM_BATCH_SORTING_ID": "Référentiel > PSFM > Vrac/Hors vrac",
+        "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID": "Référentiel > PSFM > Poids du lot calculé par RTP",
+        "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Référentiel > PSFM > Sommes de poids RTP des lots fils",
         "PMFM_SELECTIVITY_DEVICE_ID": "Référentiel > PSFM > Dispositif sélectif engin",
         "PARAMETER_HULL_MATERIAL_ID": "Référentiel > Paramètres > Matériau de la coque",
         "PARAMETER_GROUP_SURVEY_ID": "Référentiel > Groupe de paramètres > Caractéristiques d'enquêtes",
@@ -262,6 +265,8 @@
         "METHOD_OBSERVED_BY_OBSERVER_ID": "Référentiel > Méthode > Observé par un observateur",
         "METHOD_ESTIMATED_BY_OBSERVER_ID": "Référentiel > Méthode > Estimé par un observateur",
         "METHOD_CALCULATED_ID": "Référentiel > Méthode > Calculée",
+        "METHOD_CALCULATED_WEIGHT_LENGTH_ID": "Référentiel > Méthode > Calcul de poids par RTP",
+        "METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Référentiel > Méthode > Calcul de la somme des poids RTP",
         "FRACTION_INDIVIDUAL_ID": "Référentiel > Fraction > Individu",
         "PARAMETER_GROUP_AGE_LABELS": "Stratégie > Paramètre > Code âge",
         "PARAMETER_GROUP_SEX_LABELS": "Stratégie > Paramètre > Code sexe",
@@ -271,12 +276,13 @@
         "FRACTION_GROUP_CALCIFIED_STRUCTURE_IDS": "Stratégie > Fraction > Identifiants pièces calcifiées",
         "UNIT_NONE_ID": "Référentiel > Unité > Aucune (masquées par défaut)",
         "QUALITATIVE_VALUE_LANDING_ID": "Référentiel > Valeur qualitative > Partie retenue (LAN)",
+        "QUALITATIVE_VALUE_DISCARD_ID": "Référentiel > Valeur qualitative > Partie rejetée (DIS)",
         "QUALITATIVE_VALUE_DRESSING_WHOLE_ID": "Référentiel > Valeur qualitative > Présentation de l'espèce / Entier",
         "QUALITATIVE_VALUE_PRESERVATION_FRESH_ID": "Référentiel > Valeur qualitative > État de l'espèce / Frais",
         "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Référentiel > Valeur qualitative > Catégorie de tri terrain / Sans",
         "QUALITATIVE_VALUE_SORTING_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Vrac",
         "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Référentiel > Valeur qualitative > Tri lot / Hors-Vrac",
-        "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Référentiel > Valeur qualitative > Sex / Non sexé",
+        "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Référentiel > Valeur qualitative > Sexe / Non sexé",
         "TAXON_GROUP_TYPE_FAO_ID": "Référentiel > Type de groupe d'espèces / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Type de groupe d'espèces / Métier nationaux",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Référentiel > Type de groupe d'espèces / Métier DCF niv 5"
@@ -1774,7 +1780,7 @@
       "METIER": "Métiers",
       "SOFTWARE": "Logiciels",
       "STATUS": "Etat de saisie",
-      "SYSTEM_VERSION": "Versions de la base"
+      "SYSTEM_VERSION": "Versions de la base de données"
     },
     "OPTIONS": {
       "VESSELS_ENABLE": "Référentiels > Navires: Activer ?",
@@ -1783,7 +1789,7 @@
     },
     "INFO": {
       "IMPORT_ENTITIES_SUCCEED": "Importation terminée <b>avec succès</b> !<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour.",
-      "IMPORT_ENTITIES_WARNING": "Importation terminée <b>avec erreur</b>: <br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{errorCount}} erreurs :<br/>{{error}}"
+      "IMPORT_ENTITIES_WARNING": "Importation terminée <b>avec erreur</b>:<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{errorCount}} erreurs :<br/>{{error}}"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
@@ -1799,7 +1805,7 @@
       "LABEL_NOT_UNIQUE": "Code déjà utilisé",
       "IMPORT_ENTITIES_ERROR": "Échec de l'importation:<br/>{{error}}",
       "IMPORT_ENTITY_ERROR": "'{{label}}': {{message}}",
-      "MISSING_REFERENCES": "Référence(s) manquante(s): {{error}}"
+      "MISSING_REFERENCES": "Référence(s) manquante(s) : {{error}}"
     }
   },
   "PROGRAM": {
@@ -1960,8 +1966,8 @@
       "SCIENTIFIC_TAXON_NAMES": "Espèces scientifiques",
       "BTN_APPLY_TO_SELECTED_PMFM": "Appliquer aux PSFMs sélectionnés",
       "BTN_REMOVE_FROM_SELECTED_PMFM": "Retirer des PSFMs sélectionnés",
-      "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-Stratégie-{{label}}.json",
-      "DOWNLOAD_MANY_JSON_FILENAME": "{{programLabel}}-Stratégies.json",
+      "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-stratégie-{{label}}.json",
+      "DOWNLOAD_MANY_JSON_FILENAME": "{{programLabel}}-stratégies.json",
       "TAB_TRANSCRIBING": "Transcodages",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplication",
@@ -2256,8 +2262,8 @@
       "LEGEND": "Légende",
       "SCALE_LINEAR" : "Linéaire",
       "SCALE_LOGARITHMIC":  "Logarithmique",
-      "CHART_AXIS_Y": "Echelle Y (gauche)",
-      "CHART_AXIS_X": "Echelle X (bas)",
+      "CHART_AXIS_Y": "Échelle Y (gauche)",
+      "CHART_AXIS_X": "Échelle X (bas)",
       "LEGEND_FORM": {
         "TITLE": "Paramètres",
         "OPACITY_PLACEHOLDER": "Opacité (%)",
