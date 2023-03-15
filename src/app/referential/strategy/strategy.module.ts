@@ -18,6 +18,7 @@ import { AppTranscribingModule } from '@app/referential/transcribing/transcribin
 import { AppReferentialFormModule } from '@app/referential/form/referential-form.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 
 @NgModule({
   imports: [
@@ -30,6 +31,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
     AppCoreModule,
     AppReferentialFormModule,
     AppReferentialPipesModule,
+    AppPmfmFormFieldModule,
     AppTranscribingModule
   ],
   declarations: [
