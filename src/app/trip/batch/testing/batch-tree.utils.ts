@@ -193,7 +193,7 @@ export function getExampleTree(key: string, programLabel?: string): any {
                             label: 'SORTING_BATCH#B.DIS.1',
                             rankOrder: 1,
                             taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
-                            measurementValues: getSortingMeasValues({ sizeCategory: 319 /*SANS*/ }),
+                            measurementValues: getSortingMeasValues({ sizeCategory: 319 /*NA*/ }),
                             children: [
                               {
                                 label: 'SORTING_BATCH#B.DIS.1.%',

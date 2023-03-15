@@ -108,7 +108,7 @@ export class BatchGroupUtils {
           else if (pmfm.id === PmfmIds.TRAWL_SIZE_CAT) {
             pmfm = pmfm.clone();
             pmfm.hidden = true;
-            pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.SIZE_UNLI_CAT.NONE, label: 'SANS' });
+            pmfm.defaultValue = ReferentialRef.fromObject({ id: QualitativeValueIds.SIZE_UNLI_CAT.NONE, label: 'NA' });
           }
           // Hide computed weight
           else if (pmfm.isComputed && PmfmUtils.isWeight(pmfm)) {
