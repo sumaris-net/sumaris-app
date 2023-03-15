@@ -91,6 +91,8 @@ export class VesselModal implements OnInit, OnDestroy, VesselModalOptions {
               this.withNameRequired = config.getPropertyAsBoolean(VESSEL_CONFIG_OPTIONS.VESSEL_NAME_REQUIRED);
               this.formVessel.withNameRequired = this.withNameRequired;
             }
+
+            this.formVessel.basePortLocationSuggestLengthThreshold = config.getPropertyAsInt(VESSEL_CONFIG_OPTIONS.VESSEL_BASE_PORT_LOCATION_SEARCH_TEXT_MIN_LENGTH);
           }
         })
       );

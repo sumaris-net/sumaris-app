@@ -224,6 +224,7 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Navire > Nouveau: Statut par défaut",
         "DEFAULT_FILTER_COUNTRY_ID": "Navires: Pavillon par défaut (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Navires: Afficher le port d'attache ?",
+        "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires > Port d'attache: Nb caract. min pour recherche",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Navires: Nb caract. min pour recherche",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Navires: Recherche d'immatriculation par préfixe (immat, nom) ?",
         "NAME_REQUIRED": "Navires: Nom obligatoire ?"
