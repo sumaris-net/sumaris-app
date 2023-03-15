@@ -5,6 +5,7 @@ import { CoreModule, SharedModule, TestingPage } from '@sumaris-net/ngx-componen
 import { TranslateModule } from '@ngx-translate/core';
 import { AppReferentialModule } from './referential.module';
 import { PmfmStrategiesTableTestPage } from './strategy/sampling/testing/pmfm-strategies.table.test';
+import { AppProgramModule } from '@app/referential/program/program.module';
 
 export const REFERENTIAL_TESTING_PAGES: TestingPage[] = [
   {label: 'Referential module', divider: true},
@@ -32,6 +33,7 @@ const routes: Routes = [
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
     AppReferentialModule,
+    AppProgramModule
   ],
   declarations: [
     PmfmStrategiesTableTestPage
