@@ -34,7 +34,6 @@ import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-fi
     // Sub modules
     AppImageAttachmentModule,
     AppEntityQualityModule,
-    AppPmfmFormFieldModule,
 
     // Pipes
     StatusToColorPipe,

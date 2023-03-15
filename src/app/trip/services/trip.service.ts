@@ -1262,7 +1262,8 @@ export class TripService
     if (!opts || !opts.withOperationGroup) {
 
       // Control physical gears
-      {
+      // FIXME remove this 'if' special case for APASE - this is a workaround for issue #409
+      if (programLabel !== 'APASE') {
         const errors = await this.physicalGearService.controlAllByTrip(entity, {
           program,
           progression: opts?.progression,

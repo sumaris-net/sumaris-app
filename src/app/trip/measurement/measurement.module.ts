@@ -22,6 +22,7 @@ import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-fi
   exports: [
     // Modules
     TranslateModule,
+    AppPmfmFormFieldModule,
 
     // Pipes
 
