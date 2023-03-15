@@ -102,7 +102,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   }
 
   get excludeInvalidData(): boolean {
-    return toBoolean(this.form.get('meta').value?.excludeInvalidData, true);
+    return toBoolean(this.form.get('meta').value?.excludeInvalidData, false);
   }
 
   @ViewChild('criteriaForm', {static: true}) criteriaForm: ExtractionCriteriaForm;
