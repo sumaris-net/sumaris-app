@@ -56,8 +56,9 @@ import { MatSidenavModule } from '@angular/material/sidenav';
     StrategyPage,
     StrategiesTable,
     SamplingStrategyPage,
-    SamplingStrategiesTable
-  ],
+    SamplingStrategiesTable,
+    PmfmStrategiesTable
+  ]
 })
 export class AppStrategyModule {
 }
