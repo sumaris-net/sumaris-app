@@ -1218,6 +1218,8 @@ export class BatchGroupsTable extends AbstractBatchesTable<
         openSubBatchesModal: (data) => this.openSubBatchesModalFromParentModal(data),
         onDelete: (event, batchGroup) => this.deleteEntity(event, batchGroup),
         onSaveAndNew: async (dataToSave) => {
+          // fix #403
+          isNew = isNew && !await this.findRowByEntity(dataToSave);
           if (isNew) {
             await this.addEntityToTable(dataToSave, {editing: false});
           } else {

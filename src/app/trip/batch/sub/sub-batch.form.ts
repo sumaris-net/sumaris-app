@@ -29,7 +29,7 @@ import {debounceTime, delay, distinctUntilChanged, filter, map, mergeMap, skip, 
 import { AcquisitionLevelCodes, MethodIds, PmfmIds, QualitativeLabels, WeightUnitSymbol } from '../../../referential/services/model/model.enum';
 import {BehaviorSubject, combineLatest, Observable, Subscription} from 'rxjs';
 import { MeasurementValuesUtils } from '../../services/model/measurement.model';
-import { PmfmFormField } from '../../../referential/pmfm/pmfm.form-field.component';
+import { PmfmFormField } from '../../../referential/pmfm/field/pmfm.form-field.component';
 import { SubBatch } from './sub-batch.model';
 import { BatchGroup, BatchGroupUtils } from '../group/batch-group.model';
 import { TranslateService } from '@ngx-translate/core';

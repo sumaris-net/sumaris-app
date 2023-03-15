@@ -6,7 +6,7 @@ import { isNotEmptyArray } from '@sumaris-net/ngx-components';
 import { Batch } from '../common/batch.model';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
-import { AcquisitionLevelCodes, MatrixIds } from '@app/referential/services/model/model.enum';
+import {AcquisitionLevelCodes, MatrixIds, PmfmIds} from '@app/referential/services/model/model.enum';
 import { BatchForm, BatchFormState } from '@app/trip/batch/common/batch.form';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { environment } from '@environments/environment';
@@ -87,7 +87,7 @@ export class CatchBatchForm extends BatchForm<Batch, CatchBatchFormState>
       const catchPmfms = pmfms.filter(p => (PmfmUtils.isWeight(p) || p.label?.indexOf('_WEIGHT') !== -1)
         && !onDeckPmfms.includes(p)
         && !sortingPmfms.includes(p));
-      const gearPmfms = pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.label?.indexOf('CHILD_GEAR') === 0);
+      const gearPmfms = pmfms.filter(p => p.matrixId === MatrixIds.GEAR || p.id === PmfmIds.CHILD_GEAR);
 
       // Compute grid column count
       const gridColCount = this.labelColSize /*label*/

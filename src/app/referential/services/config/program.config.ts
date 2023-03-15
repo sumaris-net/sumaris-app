@@ -3,6 +3,7 @@ import { LocationLevelGroups, LocationLevelIds, PmfmIds, UnitLabel } from '../mo
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
+import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
 export type OperationEditor = 'legacy' | 'selectivity';
@@ -319,7 +320,15 @@ export const ProgramProperties = Object.freeze({
   TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID: <FormFieldDefinition>{
     key: 'sumaris.trip.operation.batch.roundWeightConversion.country.id',
     label: 'PROGRAM.OPTIONS.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID',
-    type: 'integer',
+    type: 'entity',
+    autocomplete: {
+      filter: <ReferentialRefFilter>{
+        entityName: 'Location',
+        levelId: LocationLevelIds.COUNTRY,
+        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+      },
+      attributes: ['name']
+    },
     defaultValue: undefined
   },
   TRIP_SAMPLE_ENABLE: <FormFieldDefinition>{
@@ -839,6 +848,7 @@ export class ProgramPropertiesUtils {
     ProgramProperties.OBSERVED_LOCATION_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.PORT.toString();
     ProgramProperties.LANDED_TRIP_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelIds.ICES_RECTANGLE.toString();
     ProgramProperties.LANDING_FISHING_AREA_LOCATION_LEVEL_IDS.defaultValue = LocationLevelGroups.FISHING_AREA.toString();
+    ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.autocomplete.filter.levelId = LocationLevelIds.COUNTRY;
   }
 
   static getPropertiesByType(type: FormFieldType | FormFieldType[]): FormFieldDefinition[] {

@@ -6,6 +6,7 @@ import { AdminModule } from '@sumaris-net/ngx-components';
 import { NgxJdenticonModule } from 'ngx-jdenticon';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppSocialModule } from '@app/social/social.module';
+import { AppSoftwareModule } from '@app/referential/software/software.module';
 
 @NgModule({
   imports: [
@@ -16,7 +17,8 @@ import { AppSocialModule } from '@app/social/social.module';
     // App modules
     AppCoreModule,
     AppSocialModule,
-    AppReferentialModule
+    AppReferentialModule,
+    AppSoftwareModule
   ],
   declarations: [
     ConfigurationPage

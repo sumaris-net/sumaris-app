@@ -1,6 +1,6 @@
 import { Department, EntityAsObjectOptions, IEntity, isNotNilOrNaN, ITreeItemEntity, Person, Referential, ReferentialRef, StatusIds } from '@sumaris-net/ngx-components';
 import {PredefinedColors} from '@ionic/core';
-import {QualityFlagIds} from '@app/referential/services/model/model.enum';
+import { QualityFlagIds, QualityFlags } from '@app/referential/services/model/model.enum';
 import { SynchronizationIonIcon } from '@app/data/quality/entity-quality-icon.component';
 
 /* -- Enumerations -- */
@@ -184,4 +184,14 @@ export function statusToColor(statusId: number): PredefinedColors {
     default:
       return 'secondary';
   }
+}
+
+export function translateQualityFlag(qualityFlagId: number, qualityFlags?: ReferentialRef[]): string {
+  // Get label from the input list, if any
+  let qualityFlag: any = qualityFlags && qualityFlags.find(qf => qf.id === qualityFlagId);
+  if (qualityFlag && qualityFlag.label) return qualityFlag.label;
+
+  // Or try to compute a label from the model enumeration
+  qualityFlag = qualityFlag || QualityFlags.find(qf => qf.id === qualityFlagId);
+  return qualityFlag ? ('QUALITY.QUALITY_FLAGS.' + qualityFlag.label) : undefined;
 }

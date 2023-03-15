@@ -64,12 +64,20 @@ const LocationLevelAutocompleteConfig = <MatAutocompleteFieldConfig>{
 };
 const PmfmAutocompleteConfig = <MatAutocompleteFieldConfig>{
   attributes: ['id', 'label'],
+  columnSizes: [3, 'auto'],
   filter: {
     entityName: 'Pmfm',
     statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
   }
 };
-
+const QualitativeValueAutocompleteConfig = <MatAutocompleteFieldConfig>{
+  attributes: ['id', 'label', 'name'],
+  columnSizes: [3, 3, 'auto'],
+  filter: {
+    entityName: 'QualitativeValue',
+    statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
+  }
+};
 
 export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
   REFERENTIAL_VESSEL_ENABLE: <FormFieldDefinition>{
@@ -519,92 +527,58 @@ export const REFERENTIAL_CONFIG_OPTIONS = Object.freeze({
     key: 'sumaris.enumeration.QualitativeValue.LANDING.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_LANDING_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['label', 'name'],
-      filter: {
-        entityName: 'QualitativeValue',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.DISCARD_OR_LANDING.LANDING
   },
   QUALITATIVE_VALUE_DISCARD_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.DISCARD.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_DISCARD_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['label', 'name'],
-      filter: {
-        entityName: 'QualitativeValue',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.DISCARD_OR_LANDING.DISCARD
   },
   QUALITATIVE_VALUE_DRESSING_WHOLE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.DRESSING_WHOLE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_DRESSING_WHOLE_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'name'],
-      filter: {
-        entityName: 'QualitativeValue',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.DRESSING.WHOLE
   },
   QUALITATIVE_VALUE_PRESERVATION_FRESH_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.PRESERVATION_FRESH.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_PRESERVATION_FRESH_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'name'],
-      filter: {
-        entityName: 'QualitativeValue',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.PRESERVATION.FRESH
   },
   QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.SIZE_UNLI_CAT_NONE.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'name'],
-      filter: {
-        entityName: 'QualitativeValue',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.SIZE_UNLI_CAT.NONE
   },
   QUALITATIVE_VALUE_SORTING_BULK_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.SORTING_BULK.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SORTING_BULK_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'name'],
-      filter: {
-        entityName: 'QualitativeValue',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.BATCH_SORTING.BULK
   },
   QUALITATIVE_VALUE_SORTING_NON_BULK_ID: <FormFieldDefinition>{
     key: 'sumaris.enumeration.QualitativeValue.SORTING_NON_BULK.id',
     label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SORTING_NON_BULK_ID',
     type: 'entity',
-    autocomplete: {
-      attributes: ['id', 'name'],
-      filter: {
-        entityName: 'QualitativeValue',
-        statusIds: [StatusIds.DISABLE, StatusIds.ENABLE]
-      }
-    },
+    autocomplete: QualitativeValueAutocompleteConfig,
     defaultValue: QualitativeValueIds.BATCH_SORTING.NON_BULK
+  },
+
+  QUALITATIVE_VALUE_SEX_UNSEXED_ID: <FormFieldDefinition>{
+    key: 'sumaris.enumeration.QualitativeValue.SEX_UNSEXED.id',
+    label: 'CONFIGURATION.OPTIONS.ENUMERATION.QUALITATIVE_VALUE_SEX_UNSEXED_ID',
+    type: 'entity',
+    autocomplete: QualitativeValueAutocompleteConfig,
+    defaultValue: QualitativeValueIds.SEX.UNSEXED
   },
 
   TAXON_GROUP_TYPE_FAO_ID: <FormFieldDefinition>{

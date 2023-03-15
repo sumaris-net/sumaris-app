@@ -85,9 +85,9 @@
       <!-- flags menu -->
       <mat-menu #qualityFlagMenu="matMenu" class="ion-text-center">
         <ion-label class="ion-padding status" translate>QUALITY.QUALITY_FLAG</ion-label>
-        <ion-button  *ngFor="let qualityFlag of qualityFlags"
+        <ion-button  *rxFor="let qualityFlag of qualityFlags"
                      size="small" expand="block"
-                     [color]="qualityFlagToColor(qualityFlag.id)"
+                     [color]="qualityFlag.id|qualityFlagToColor"
                      (click)="qualify($event, qualityFlag.id)">
           {{qualityFlag.label | translate}}
         </ion-button>
@@ -113,10 +113,10 @@
           <br/>
         </ion-label>
         <ion-button [matMenuTriggerFor]="qualityFlagMenu" expand="block"
-                    [color]="qualityFlagToColor(data.qualityFlagId)">
+                    [color]="data.qualityFlagId|qualityFlagToColor">
           <ion-icon name="ribbon" slot="start" class="ion-float-start"></ion-icon>
           <ion-text>
-            {{getI18nQualityFlag(data.qualityFlagId, qualityFlags) | translate}}</ion-text>
+            {{translateQualityFlag(data.qualityFlagId, qualityFlags) | translate}}</ion-text>
           <ion-icon name="arrow-dropdown" slot="end" class="ion-float-end"></ion-icon>
         </ion-button>
       </ng-container>

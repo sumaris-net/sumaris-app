@@ -46,6 +46,12 @@ export const VESSEL_CONFIG_OPTIONS = {
     type: 'boolean',
     defaultValue: false
   },
+  VESSEL_BASE_PORT_LOCATION_SEARCH_TEXT_MIN_LENGTH: <FormFieldDefinition>{
+    key: 'sumaris.vessel.basePortLocation.filter.searchText.minLength',
+    label: 'CONFIGURATION.OPTIONS.VESSEL.BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH',
+    type: 'integer',
+    defaultValue: 0
+  },
   VESSEL_NAME_REQUIRED: <FormFieldDefinition>{
     key: 'sumaris.persistence.vessel.name.required',
     label: 'CONFIGURATION.OPTIONS.VESSEL.NAME_REQUIRED',

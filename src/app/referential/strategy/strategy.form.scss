@@ -1,6 +1,7 @@
-form.form-container {
-  padding-bottom: var(--ion-padding, 5px);
-}
 .mat-expansion-panel-body {
   padding: 0;
+}
+
+mat-sidenav-content {
+  height: calc(100vh - var(--app-toolbar-height, 0px) - var(--mat-tab-link-height, 0px) - var(--app-form-buttons-bar-height, 0px) - 1px);
 }

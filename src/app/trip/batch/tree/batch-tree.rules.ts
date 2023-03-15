@@ -13,27 +13,15 @@ export class BatchRules {
     configService.config.subscribe(_ => this.resetCache());
   }
 
-  getLandingPmfms<T>(pmfmPath = ''): Rule<T>[] {
-    const cacheKey = 'landingPmfms#' + pmfmPath;
-    this._cache[cacheKey] = this._cache[cacheKey] || this.createLandingPmfms(pmfmPath);
-    return this._cache[cacheKey];
-  }
-
   getNotLandingPmfms<T>(pmfmPath = ''): Rule<T>[] {
     const cacheKey = 'noLandingPmfms#' + pmfmPath;
-    this._cache[cacheKey] = this._cache[cacheKey] || this.createLandingPmfms(pmfmPath).map(Rule.not);
-    return this._cache[cacheKey];
-  }
-
-  getDiscardPmfms<T>(pmfmPath = ''): Rule<T>[] {
-    const cacheKey = 'discardPmfms#' + pmfmPath;
-    this._cache[cacheKey] = this._cache[cacheKey] || this.createDiscardPmfms(pmfmPath);
+    this._cache[cacheKey] = this._cache[cacheKey] || this.createNotLandingPmfms(pmfmPath);
     return this._cache[cacheKey];
   }
 
   getNotDiscardPmfms<T>(pmfmPath = ''): Rule<T>[] {
     const cacheKey = 'noDiscardPmfms#' + pmfmPath;
-    this._cache[cacheKey] = this._cache[cacheKey] || this.createDiscardPmfms(pmfmPath).map(Rule.not);
+    this._cache[cacheKey] = this._cache[cacheKey] || this.createNotDiscardPmfms(pmfmPath);
     return this._cache[cacheKey];
   }
 
@@ -41,38 +29,38 @@ export class BatchRules {
     this._cache.clear();
   }
 
-  private createLandingPmfms<T>(pmfmPath = ''): Rule<T>[] {
+  private createNotLandingPmfms<T>(pmfmPath = ''): Rule<T>[] {
     return [
       Rule.fromObject(<Partial<Rule>>{
           label: 'no-size-category-pmfm',
           controlledAttribute: `${pmfmPath}id`,
-          operator: '=',
+          operator: '!=',
           value: PmfmIds.SIZE_CATEGORY.toString(),
           message: 'Size category not allowed',
         }),
         Rule.fromObject(<Partial<Rule>>{
           label: 'no-batch-sorting-pmfm',
           controlledAttribute: `${pmfmPath}id`,
-          operator: '=',
+          operator: '!=',
           value: PmfmIds.TRAWL_SIZE_CAT.toString(),
           message: 'Trawl size category not allowed'
         })
     ];
   }
 
-  private createDiscardPmfms<T>(pmfmPath: string = ''): Rule<T>[] {
+  private createNotDiscardPmfms<T>(pmfmPath: string = ''): Rule<T>[] {
     return [
       Rule.fromObject(<Partial<Rule>>{
         label: 'no-batch-sorting-pmfm',
         controlledAttribute: `${pmfmPath}id`,
-        operator: '=',
+        operator: '!=',
         value: PmfmIds.BATCH_SORTING.toString(),
         message: 'Discard sorting pmfm not allowed'
       }),
       Rule.fromObject(<Partial<Rule>>{
         label: 'no-discard-weight-pmfm',
         controlledAttribute: `${pmfmPath}label`,
-        operator: '=',
+        operator: '!=',
         value: 'DISCARD_WEIGHT',
         message: 'Discard weight pmfm not allowed'
       })

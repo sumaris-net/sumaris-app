@@ -6,7 +6,7 @@
 
 <ng-container *ngIf="!useModal; else withModal">
   <mat-sidenav-container>
-    <mat-sidenav #sidenav [mode]="treePanelMode$|async"
+    <mat-sidenav #sidenav [mode]="'side'"
                  [class.has-footer]="!mobile">
 
         <!-- model tree -->
@@ -21,10 +21,10 @@
         <ion-footer *ngIf="!mobile">
           <ion-toolbar>
             <ion-buttons slot="end">
-              <button *rxLet="treePanelMode$ as mode"
-                mat-icon-button color="accent" (click)="toggleTreePanelFloating()"
-                      [title]="(mode === 'side' ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
-                <mat-icon><span>{{mode === 'side' ? '&#xab;' : '&#xbb;'}}</span></mat-icon>
+              <button *rxLet="treePanelFloating$ as floating"
+                      mat-icon-button color="accent" (click)="toggleTreePanelFloating()"
+                      [title]="(floating ? 'COMMON.BTN_HIDE_MENU' : 'COMMON.BTN_SHOW_MENU') |translate">
+                <mat-icon><span>{{floating ? '&#xbb;' : '&#xab;'}}</span></mat-icon>
               </button>
             </ion-buttons>
           </ion-toolbar>
@@ -81,7 +81,9 @@
 
   </mat-sidenav-container>
 
-  <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
+  <ng-container *ngIf="mobile && !useModal">
+    <ng-container *ngTemplateOutlet="fabButtons"></ng-container>
+  </ng-container>
 </ng-container>
 
 <ng-template #withModal>

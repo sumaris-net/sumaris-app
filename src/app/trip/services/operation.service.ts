@@ -111,7 +111,7 @@ export const OperationFragments = {
       id
       rankOrder
       gear {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
     }
     metier {
@@ -134,7 +134,7 @@ export const OperationFragments = {
   }
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${DataCommonFragments.position},
   ${DataCommonFragments.location}`,
 
@@ -154,7 +154,7 @@ export const OperationFragments = {
       id
       rankOrder
       gear {
-        ...ReferentialFragment
+        ...LightReferentialFragment
       }
     }
     tripId
@@ -190,7 +190,7 @@ export const OperationFragments = {
   }
   ${ReferentialFragments.lightDepartment}
   ${ReferentialFragments.metier}
-  ${ReferentialFragments.referential}
+  ${ReferentialFragments.lightReferential}
   ${DataCommonFragments.position}
   ${DataCommonFragments.measurement}
   ${DataFragments.sample}

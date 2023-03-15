@@ -3,7 +3,7 @@ import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import {
   AccountService,
   AppEditorOptions,
-  AppEntityEditor,
+  AppEntityEditor, BaseReferential,
   changeCaseToUnderscore,
   EntityServiceLoadOptions,
   EntityUtils,
@@ -23,7 +23,6 @@ import { ReferentialRefService } from '../services/referential-ref.service';
 import { environment } from '@environments/environment';
 import { ReferentialService } from '@app/referential/services/referential.service';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { ValidatorService } from '@e-is/ngx-material-table';
 
 export interface AppReferentialEditorOptions extends AppEditorOptions {
   entityName: string;
@@ -34,7 +33,7 @@ export interface AppReferentialEditorOptions extends AppEditorOptions {
 @Directive()
 // tslint:disable-next-line:directive-class-suffix
 export abstract class AppReferentialEditor<
-  T extends Referential<T, ID>,
+  T extends BaseReferential<T, ID>,
   S extends IEntityService<T, ID> = IEntityService<T, any>,
   ID = number
   >
@@ -134,6 +133,8 @@ export abstract class AppReferentialEditor<
     if (this.withLevels && isNotNil(data.levelId) && typeof data.levelId === 'number') {
       json.levelId = (this.$levels.value || []).find(l => l.id === data.levelId);
     }
+
+    json.entityName = json.entityName || this.entityName;
 
     this.form.patchValue(json, {emitEvent: false});
 

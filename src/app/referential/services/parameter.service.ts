@@ -1,7 +1,7 @@
 import {Injectable} from "@angular/core";
 import {gql} from "@apollo/client/core";
 import {ErrorCodes} from "./errors";
-import { AccountService, isEmptyArray, ReferentialUtils } from '@sumaris-net/ngx-components';
+import { AccountService, AppErrorWithDetails, isEmptyArray, isNilOrBlank, ReferentialUtils } from '@sumaris-net/ngx-components';
 import {GraphqlService}  from "@sumaris-net/ngx-components";
 import {ReferentialService} from "./referential.service";
 import {Observable, of} from "rxjs";
@@ -20,7 +20,7 @@ const SaveQuery: any = gql`
       ...ParameterFragment
     }
   }
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.parameter}
 `;
 
@@ -30,7 +30,7 @@ const LoadQuery: any = gql`
       ...ParameterFragment
     }
   }
-  ${ReferentialFragments.fullReferential}
+  ${ReferentialFragments.referential}
   ${ReferentialFragments.parameter}
 `;
 
@@ -112,6 +112,7 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
    * @param entity
    */
   async save(entity: Parameter, options?: EntityServiceLoadOptions): Promise<Parameter> {
+    if (isNilOrBlank(entity?.label)) throw new Error('Missing a required label');
 
     this.fillDefaultProperties(entity);
 
@@ -120,6 +121,14 @@ export class ParameterService extends BaseGraphqlService implements IEntityServi
 
     const now = Date.now();
     if (this._debug) console.debug(`[parameter-service] Saving Parameter...`, json);
+
+    // Check label not exists (if new entity)
+    if (isNil(entity.id)) {
+      const exists = await this.existsByLabel(entity.label);
+      if (exists) {
+        throw {code: ErrorCodes.SAVE_REFERENTIAL_ERROR, message: 'REFERENTIAL.ERROR.LABEL_NOT_UNIQUE'};
+      }
+    }
 
     await this.graphql.mutate<{ saveParameter: any }>({
       mutation: SaveQuery,

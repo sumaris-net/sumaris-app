@@ -426,10 +426,11 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
           this.subBatchesTable.hasPmfms$,
           this.subBatchesTable.readySubject,
           this.batchGroupsTable.dataSource.rowsSubject
-            .pipe(map(isNotEmptyArray))
+            .pipe(map(isNotEmptyArray)),
+          this._state.select('allowSubBatches')
         ])
         .pipe(
-          map(([hasPmfms, ready, howSows]) => hasPmfms && ready && howSows || false)
+          map(([hasPmfms, ready, howSows, allowSubBatches]) => hasPmfms && ready && howSows && allowSubBatches || false)
         )
       );
 
@@ -679,6 +680,12 @@ export class BatchTreeComponent extends AppTabEditor<Batch, any>
     const countryId = program.getPropertyAsInt(ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID);
     if (isNotNil(countryId) && isNil(this.context.getValue('country'))) {
       this.context.setValue('country', ReferentialRef.fromObject({id: countryId}));
+    }
+    else {
+      if (this.enableWeightLengthConversion) {
+        console.error(`Missing country location id, for round weight conversion! Please define program property '${ProgramProperties.TRIP_BATCH_ROUND_WEIGHT_CONVERSION_COUNTRY_ID.key}' for ${program.label}`);
+      }
+      this.context.resetValue('country');
     }
 
     // Force taxon name in sub batches, if not filled in root batch

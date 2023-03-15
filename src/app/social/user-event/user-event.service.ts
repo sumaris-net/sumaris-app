@@ -36,7 +36,14 @@ import { CacheService } from 'ionic-cache';
 import { Job } from '@app/social/job/job.model';
 import { JobService } from '@app/social/job/job.service';
 
-const queries: IUserEventQueries = {
+const queries: IUserEventQueries & { loadContent: any }= {
+  loadContent: gql`query UserEventContent($id: Int!) {
+    data: userEvents(filter: {includedIds: [$id], excludeRead: false}, page: {offset:0, size: 1}) {
+      id
+      content
+    }
+  }`,
+
   loadAll: gql`query UserEvents($filter: UserEventFilterVOInput, $page: PageInput) {
     data: userEvents(filter: $filter, page: $page) {
       ...LightUserEventFragment
@@ -127,6 +134,21 @@ export class UserEventService extends
     });
   }
 
+  async loadContent(id: number, opts?: {fetchPolicy?: FetchPolicy}): Promise<any> {
+    try {
+      const { data } = await this.graphql.query<{data: any[] }>({
+        query: queries.loadContent,
+        ...opts,
+        variables: { id }
+      });
+      const entity = data?.[0];
+      return entity && JSON.parse(entity.content) || undefined;
+    }
+    catch(err) {
+      console.error("Cannot load event content:", err);
+      return null;
+    }
+  }
 
   watchAll(offset: number, size: number, sortBy?: string, sortDirection?: SortDirection, filter?: Partial<UserEventFilter>, options?: UserEventWatchOptions): Observable<LoadResult<UserEvent>> {
     return super.watchAll(offset, size, sortBy, sortDirection, filter, options);
@@ -386,6 +408,9 @@ export class UserEventService extends
 
       // Job event:
       case UserEventTypeEnum.JOB:
+        if (source.hasContent && !source.content) {
+          source.content = await this.loadContent(source.id, {fetchPolicy: 'no-cache'});
+        }
         const job = Job.fromObject(source.content || {});
         const status = job.status
           || (source.level === 'INFO' && 'SUCCESS')

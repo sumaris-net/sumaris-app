@@ -16,6 +16,8 @@
     "BTN_COMPACT_ROWS": "Compact rows",
     "BTN_DONE": "Done",
     "BTN_DOWNLOAD": "Download",
+    "BTN_DOWNLOAD_DOTS": "Download...",
+    "BTN_DOWNLOAD_JSON": "Download (JSON)",
     "BTN_IMPORT": "Import",
     "BTN_IMPORT_FROM_FILE_DOTS": "Import from file...",
     "BTN_DUPLICATE": "Duplicate",
@@ -181,7 +183,7 @@
       "ENABLE_GRAVATAR": "User > Enable Gravatar ?",
       "DEFAULT_LOCALE": "Default Language",
       "DEFAULT_LATLONG_FORMAT": "Default lat/lon format",
-      "ACCESS_PROGRAM_IDS": "Data entry > Authorized data programs (ID)",
+      "ACCESS_PROGRAM_IDS": "Data entry > Authorized data programs",
       "ACCESS_NOT_SELF_DATA_MIN_ROLE": "Data entry > Min. user profile (min) to access other people data",
       "ACCESS_NOT_SELF_DATA_DEPARTMENT_IDS": "Data entry > Department that can access other people data",
       "SAMPLE_UNIQUE_TAG": "Persistence > Sample: Check if TAG_ID is unique",
@@ -222,6 +224,7 @@
         "DEFAULT_NEW_VESSEL_STATUS": "Default status for new vessel",
         "DEFAULT_FILTER_COUNTRY_ID": "Vessels: Default country (id)",
         "BASE_PORT_LOCATION_VISIBLE": "Vessels: Show base port?",
+        "BASE_PORT_LOCATION_FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels > Base port: Nb char. for search",
         "FILTER_SEARCH_TEXT_MIN_LENGTH": "Vessels: Nb char. for search",
         "REGISTRATION_CODE_SEARCH_AS_PREFIX": "Vessels: Registration: search as prefix?",
         "NAME_REQUIRED": "Vessels: Name required?"
@@ -234,7 +237,7 @@
         "LOCATION_LEVEL_ICES_RECTANGLE_ID": "Referential > Location level > CIEM/ICES Statistical Rectangle",
         "LOCATION_LEVEL_ICES_DIVISION_ID": "Referential > Location level > CIEM/ICES Division",
         "LOCATION_LEVEL_LOCATIONS_AREA_IDS": "Strategy > Location level(s) for fishing area (ids)",
-        "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Strategy > Location level(s) for areas in Length-Weight conversions (ids)",
+        "WEIGHT_LENGTH_CONVERSION_AREA_IDS": "Strategy > Location level(s) for areas in Length-Weight relationships (ids)",
         "ROUND_WEIGHT_CONVERSION_DEFAULT_COUNTRY_ID": "Referential > Default country for alive weight conversion (id)",
         "TAXONOMIC_LEVEL_FAMILY_ID": "Referential > Taxonomic level > Family",
         "TAXONOMIC_LEVEL_GENUS_ID": "Referential > Taxonomic level > Genus",
@@ -242,21 +245,28 @@
         "TAXONOMIC_LEVEL_SUBSPECIES_ID": "Referential > Taxonomic level > Subspecies",
         "PMFM_STRATEGY_LABEL_ID": "Referential > PMFM > Strategy label",
         "PMFM_TAG_ID": "Referential > PMFM > Sample Tag-ID",
-        "PMFM_TRIP_PROGRESS": "Referential > PSFM > Trip progress ? (Booleen)",
+        "PMFM_TRIP_PROGRESS": "Referential > PMFM > Trip progress ? (Booleen)",
         "PMFM_DRESSING": "Referential > PMFM > Dressing (Whole, ...)",
         "PMFM_PRESERVATION": "Referential > PMFM > Preservation (Fresh, ...)",
         "PMFM_TRAWL_SIZE_CAT": "Referential > PMFM > Sorting category for trawl (NONE, ...)",
         "PMFM_AGE_ID": "Referential > PMFM > Age",
         "PMFM_SEX_ID": "Referential > PMFM > Sex",
         "PMFM_GEAR_LABEL_ID": "Referential > PMFM > Physical gear label",
+        "PMFM_CHILD_GEAR_ID": "Referential > PSFM > Sub-gear",
         "PMFM_HAS_ACCIDENTAL_CATCHES_ID": "Referential > PMFM > Accidental catch",
+        "PMFM_HULL_MATERIAL_ID": "Referential > PMFM > Hull material (vessel)",
         "PMFM_BATCH_SORTING_ID": "Referential > PMFM > Bulk/Not Bulk",
+        "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_ID": "Referential > PMFM > Poids du lot calculé par RTP",
+        "PMFM_BATCH_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Referential > PMFM > Sommes de poids RTP des lots fils",
+        "PMFM_SELECTIVITY_DEVICE_ID": "Referential > PMFM > Selectivity device (gear)",
         "PARAMETER_HULL_MATERIAL_ID": "Referential > Parameter > Hull material",
         "PARAMETER_GROUP_SURVEY_ID": "Referential > Parameter group > Survey characteristics",
         "METHOD_MEASURED_BY_OBSERVER_ID": "Referential > Method > Measured by observer",
         "METHOD_OBSERVED_BY_OBSERVER_ID": "Referential > Method > Observed by observer",
         "METHOD_ESTIMATED_BY_OBSERVER_ID": "Referential > Method > Estimated by observer",
         "METHOD_CALCULATED_ID": "Referential > Method > Calculated",
+        "METHOD_CALCULATED_WEIGHT_LENGTH_ID": "Referential > Method > Computed by Weight-Length relationship",
+        "METHOD_CALCULATED_WEIGHT_LENGTH_SUM_ID": "Referential > Method > Sum of children Weight-Length weights",
         "FRACTION_INDIVIDUAL_ID": "Referential > Fraction > Individual",
         "PARAMETER_GROUP_AGE_LABELS": "Strategy > Parameter > Age labels",
         "PARAMETER_GROUP_SEX_LABELS": "Strategy > Parameter > Sex labels",
@@ -271,6 +281,7 @@
         "QUALITATIVE_VALUE_SIZE_UNLI_CAT_NONE_ID": "Referential > Qualitative value > Sorting category / None",
         "QUALITATIVE_VALUE_SORTING_BULK_ID": "Referential > Qualitative value > Sorting batch / Bulk",
         "QUALITATIVE_VALUE_SORTING_NON_BULK_ID": "Referential > Qualitative value > Sorting batch / Non Bulk",
+        "QUALITATIVE_VALUE_SEX_UNSEXED_ID": "Referential > Qualitative value > Sex / Unsexed",
         "TAXON_GROUP_TYPE_FAO_ID": "Referential > Taxon group type / FAO",
         "TAXON_GROUP_TYPE_NATIONAL_METIER_ID": "Référentiel > Taxon group type / National metier",
         "TAXON_GROUP_TYPE_DCF_METIER_LVL_5_ID": "Referential > Taxon group type / DCF metier lvl 5"
@@ -551,8 +562,6 @@
       "NO_LOCAL_RESULT": "No result (in trips NOT sent)",
       "BTN_NEW_OFFLINE": "Field input mode (offline)",
       "BTN_NEW_ONLINE": "Desktop input mode (online)",
-      "BTN_DOWNLOAD_DOTS": "Download...",
-      "BTN_DOWNLOAD_JSON": "Download (JSON)",
       "DOWNLOAD_JSON_FILENAME": "Trips.json",
       "FILTER": {
         "PROGRAM": "Data collection program",
@@ -563,7 +572,8 @@
         "SYNCHRONIZATION_STATUS": "State",
         "RECORDER_DEPARTMENT": "Recorder department",
         "RECORDER_PERSON": "Recorder user",
-        "OBSERVERS": "Observers"
+        "OBSERVERS": "Observers",
+        "QUALITY_FLAG_ID": "Quality flag"
       },
       "SYNCHRONIZATION_STATUS": {
         "DIRTY_HELP": "Not-synchronized trips",
@@ -597,6 +607,7 @@
     "ERROR": {
       "NO_PRACTICED_METIER_FOUND": "No practiced metier found",
       "ADD_GEAR": "Error while adding new physical gear to the trip",
+      "INVALID_GEARS": "Please correct invalid gears below",
       "INVALID_OPERATIONS": "Please correct invalid operations below"
     },
     "MEASUREMENT": {
@@ -956,9 +967,9 @@
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)",
         "CHILD_GEAR": "Sub-gear",
         "TRAWL_SELECTIVITY": {
-          "BATCH_MEASURED_WEIGHT": "Total batch weight (kg)",
-          "BATCH_ESTIMATED_WEIGHT": "Total batch weight (kg)",
-          "BATCH_CALCULATED_WEIGHT": "Total batch weight (kg)"
+          "BATCH_MEASURED_WEIGHT": "Total weight (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Total weight (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Total weight (kg)"
         }
       },
       "ERROR": {
@@ -1562,6 +1573,7 @@
     "LABEL": "Code",
     "NAME": "Name",
     "LEVEL": "Level",
+    "PARENT": "Parent",
     "DESCRIPTION": "Description",
     "COMMENTS": "Comments",
     "STATUS": "State",
@@ -1697,7 +1709,19 @@
     },
     "METHOD": {
       "NAME": "Data collection method",
-      "DESCRIPTION": "description"
+      "DESCRIPTION": "description",
+      "IS_CALCULATED": "Calculated?",
+      "IS_ESTIMATED": "Estimated?",
+      "EDIT": {
+        "TITLE": "Method {{label}} - {{name}}"
+      },
+      "TRANSCRIBING_ITEM": {
+        "OBJECT": "Reference",
+        "LABEL": "Transcribing code",
+        "NAME": "Transcribing name",
+        "STATUS_ID": "tatus",
+        "TYPE": "Transcribing type"
+      }
     },
     "LIST": {
       "TITLE": "Referential",
@@ -1714,17 +1738,21 @@
     },
     "ENTITY": {
       "DEPARTMENT": "Organizations",
+      "EXTRACTION_PRODUCT": "Extraction > Product",
+      "EXTRACTION_TABLE": "Extraction > Product tables",
       "SALE_TYPE": "Sale type",
       "LOCATION": "Location",
       "LOCATION_LEVEL": "Location levels",
       "GEAR": "Gears",
       "GEAR_LEVEL": "Gear levels",
       "PARAMETER": "Parameters",
+      "PARAMETER_GROUP": "Parameter groups",
       "USER_PROFILE": "User profiles",
       "VESSEL_TYPE": "Vessel types",
       "PMFM": "Collected parameters",
       "DUPLICATE_STRATEGY": "Strategy to duplicate",
       "MATRIX": "Matrices",
+      "METHOD": "Method",
       "FRACTION": "Fractions of the matrix",
       "QUALITATIVE_VALUE": "Qualitative values",
       "TAXON_GROUP_TYPE": "Species group types",
@@ -1735,14 +1763,23 @@
       "PROGRAM": "Data collection programmes",
       "STRATEGY": "Collection strategies",
       "ACQUISITION_LEVEL": "Acquisition levels",
-      "TRANSCRIBING_ITEM": "Transcribing",
+      "TRANSCRIBING_ITEM": "Transcribing > Item",
+      "TRANSCRIBING_ITEM_TYPE": "Transcribing > Types",
+      "TRANSCRIBING_SYSTEM": "Transcribing > Systems",
+      "UNIT": "Unit",
       "METIER": "Metiers",
-      "SOFTWARE": "Softwares"
+      "SOFTWARE": "Softwares",
+      "STATUS": "Status",
+      "SYSTEM_VERSION": "Database versions"
     },
     "OPTIONS": {
       "VESSELS_ENABLE": "Referential > Vessels: Enable?",
       "VESSELS_IMPORT_ENABLE": "Referential > Navires: Enable vessel file import?",
       "VESSELS_REPLACEMENT_ENABLE": "Referential > Vessels > Replacement: Enable?"
+    },
+    "INFO": {
+      "IMPORT_ENTITIES_SUCCEED": "Importation finished <b>successfully</b>!<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour.",
+      "IMPORT_ENTITIES_WARNING": "Importation finished <b>with some errors</b>:<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{errorCount}} erreurs :<br/>{{error}}"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Error while saving data.",
@@ -1754,7 +1791,11 @@
       "LOAD_PROGRAM_GEARS_ERROR": "Error while loading gears of the program",
       "LOAD_PROGRAM_TAXON_GROUPS_ERROR": "Error while loading taxon groups of the program",
       "SAVE_PERSONS_ERROR": "Error while saving users",
-      "DELETE_PERSONS_ERROR": "Error while  deleting some users"
+      "DELETE_PERSONS_ERROR": "Error while  deleting some users",
+      "LABEL_NOT_UNIQUE": "Code already used",
+      "IMPORT_ENTITIES_ERROR": "Importation failed:<br/>{{error}}",
+      "IMPORT_ENTITY_ERROR": "'{{label}}': {{message}}",
+      "MISSING_REFERENCES": "Missing reference(s): {{error}}"
     }
   },
   "PROGRAM": {
@@ -1806,6 +1847,7 @@
       "TRIP_PHYSICAL_GEARS_COLUMNS_PMFM_IDS": "Trip > Gears: Optional pmfms to show (ids)",
       "TRIP_PHYSICAL_GEAR_RANK_ORDER_ENABLE": "Trip > Gear: Enter the gear number?",
       "TRIP_PHYSICAL_GEAR_ALLOW_CHILDREN": "Trip > Gear: Allow sub-gears?",
+      "TRIP_PHYSICAL_GEAR_MIN_CHILDREN_COUNT": "Trip > Gear: Minimum number of sub-gears?",
       "TRIP_PHYSICAL_GEAR_HELP_MESSAGE": "Trip > Gear: Help message",
       "TRIP_MAP_ENABLE": "Trip > Map: Enable?",
       "TRIP_MAP_CENTER": "Trip > Map: cernter position",
@@ -1914,6 +1956,9 @@
       "SCIENTIFIC_TAXON_NAMES": "Scientific species",
       "BTN_APPLY_TO_SELECTED_PMFM": "Apply to selected PMFMs",
       "BTN_REMOVE_FROM_SELECTED_PMFM": "Remove from selected PMFMs",
+      "DOWNLOAD_JSON_FILENAME": "{{programLabel}}-strategy-{{label}}.json",
+      "DOWNLOAD_MANY_JSON_FILENAME": "{{programLabel}}-strategies.json",
+      "TAB_TRANSCRIBING": "Transcodages",
       "DUPLICATE_MODAL": {
         "TITLE": "Duplicate",
         "HELP": "Select a year for the new sampling plan: "
@@ -2024,6 +2069,7 @@
         "MIN_VALUE": "Min",
         "MAX_VALUE": "Max",
         "DEFAULT_VALUE": "Default value",
+        "DEFAULT_QUALITATIVE_VALUE": "Default value",
         "TABLE": {
           "TITLE": "Collected parameters"
         }

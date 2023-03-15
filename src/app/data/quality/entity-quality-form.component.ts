@@ -17,12 +17,10 @@ import {
   NetworkService,
   ReferentialRef,
   ShowToastOptions,
-  StatusIds,
   Toasts,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { IDataEntityQualityService, IProgressionOptions, IRootDataEntityQualityService, isDataQualityService, isRootDataQualityService } from '../services/data-quality-service.class';
-import { QualityFlags } from '@app/referential/services/model/model.enum';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { merge, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
@@ -30,7 +28,7 @@ import { ToastController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '@environments/environment';
 import { RootDataEntity } from '../services/model/root-data-entity.model';
-import { qualityFlagToColor } from '../services/model/model.utils';
+import { qualityFlagToColor, translateQualityFlag } from '../services/model/model.utils';
 import { OverlayEventDetail } from '@ionic/core';
 import { isDataSynchroService, RootDataSynchroService } from '../services/root-data-synchro-service.class';
 import { debounceTime } from 'rxjs/operators';
@@ -402,16 +400,7 @@ export class EntityQualityFormComponent<
     this.updateEditor(data);
   }
 
-  getI18nQualityFlag(qualityFlagId: number, qualityFlags?: ReferentialRef[]) {
-    // Get label from the input list, if any
-    let qualityFlag: any = qualityFlags && qualityFlags.find(qf => qf.id === qualityFlagId);
-    if (qualityFlag && qualityFlag.label) return qualityFlag.label;
-
-    // Or try to compute a label from the model enumeration
-    qualityFlag = qualityFlag || QualityFlags.find(qf => qf.id === qualityFlagId);
-    return qualityFlag ? ('QUALITY.QUALITY_FLAGS.' + qualityFlag.label) : undefined;
-  }
-
+  translateQualityFlag = translateQualityFlag;
   qualityFlagToColor = qualityFlagToColor;
 
   /* -- protected method -- */
@@ -463,27 +452,9 @@ export class EntityQualityFormComponent<
     this.markForCheck();
 
     if (this.canQualify || this.canUnqualify && !this.qualityFlags) {
-      this.loadQualityFlags();
+      this.referentialRefService.loadQualityFlags().then(items => this.qualityFlags = items);
     }
   }
-
-  protected async loadQualityFlags() {
-    const res = await this.referentialRefService.loadAll(0, 100, 'id', 'asc', {
-      entityName: 'QualityFlag',
-      statusId: StatusIds.ENABLE
-    }, {
-      fetchPolicy: "cache-first"
-    });
-
-    const items = res && res.data || [];
-
-    // Try to get i18n key instead of label
-    items.forEach(flag => flag.label = this.getI18nQualityFlag(flag.id) || flag.label);
-
-    this.qualityFlags = items;
-    this.markForCheck();
-  }
-
 
   protected async showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
     if (!this.toastController) throw new Error("Missing toastController in component's constructor");

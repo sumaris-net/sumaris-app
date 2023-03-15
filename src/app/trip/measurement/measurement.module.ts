@@ -4,6 +4,7 @@ import { AppReferentialModule } from '@app/referential/referential.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 import { AppCoreModule } from '@app/core/core.module';
+import { AppPmfmFormFieldModule } from '@app/referential/pmfm/field/pmfm.form-field.module';
 
 @NgModule({
   imports: [
@@ -12,7 +13,8 @@ import { AppCoreModule } from '@app/core/core.module';
 
     // App module
     AppCoreModule,
-    AppReferentialModule
+    AppReferentialModule,
+    AppPmfmFormFieldModule
   ],
   declarations: [
     MeasurementsForm
@@ -20,6 +22,7 @@ import { AppCoreModule } from '@app/core/core.module';
   exports: [
     // Modules
     TranslateModule,
+    AppPmfmFormFieldModule,
 
     // Pipes
 

@@ -33,7 +33,7 @@ import {
   FormFieldDefinitionMap,
   JobModule,
   LocalSettings, LocalSettingsOptions,
-  MenuItem,
+  MenuItem, APP_SETTINGS_MENU_ITEMS,
   MenuOptions,
   SOCIAL_TESTING_PAGES,
   StorageService,
@@ -75,7 +75,6 @@ import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '@sumaris-net/ngx-components';
 import {ProgressInterceptor} from '@sumaris-net/ngx-components';
 import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
-
 @NgModule({
   declarations: [
     AppComponent
@@ -317,6 +316,11 @@ import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.va
         { title: '' /*empty divider*/, cssClass: 'visible-mobile'}
       ]
     },
+
+    // Settings menu options
+    {provide: APP_SETTINGS_MENU_ITEMS, useValue: <MenuItem[]>[
+        {title: 'MENU.TESTING', path: '/testing', icon: 'code', color: 'danger', ifProperty: 'sumaris.testing.enable', profile: 'SUPERVISOR'},
+      ]},
 
     // About developers
     {

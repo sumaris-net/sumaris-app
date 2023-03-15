@@ -1,6 +1,6 @@
 import { Directive, Injector, Input, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
-import {debounceTime, distinctUntilChanged, filter, map, mapTo, mergeMap, startWith, tap, throttleTime} from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, map, startWith, tap, throttleTime } from 'rxjs/operators';
 import {
   AccountService,
   AppFormUtils,
@@ -18,11 +18,11 @@ import {
   referentialToString,
   toBoolean,
   toDateISOString,
-  UsageMode,
+  UsageMode
 } from '@sumaris-net/ngx-components';
-import {BehaviorSubject, merge, Observable} from 'rxjs';
-import { RootDataEntityUtils, RootDataEntity } from '../services/model/root-data-entity.model';
-import { qualityFlagToColor, SynchronizationStatus } from '../services/model/model.utils';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { RootDataEntity, RootDataEntityUtils } from '../services/model/root-data-entity.model';
+import { SynchronizationStatus } from '../services/model/model.utils';
 import { IDataSynchroService } from '../services/root-data-synchro-service.class';
 import { TableElement } from '@e-is/ngx-material-table';
 import { RootDataEntityFilter } from '../services/model/root-data-filter.model';
@@ -62,6 +62,7 @@ export abstract class AppRootDataTable<
   protected readonly userEventService: UserEventService;
   protected readonly accountService: AccountService;
   protected readonly popoverController: PopoverController;
+
   protected synchronizationStatus$: Observable<SynchronizationStatus>;
 
   canDelete: boolean;
@@ -86,6 +87,8 @@ export abstract class AppRootDataTable<
   get synchronizationStatus(): SynchronizationStatus {
     return this.filterForm.controls.synchronizationStatus.value || 'SYNC' /*= the default status*/;
   }
+
+  @Input() showQuality = true;
 
   @Input()
   set synchronizationStatus(value: SynchronizationStatus) {
@@ -184,6 +187,8 @@ export abstract class AppRootDataTable<
           tap(json => this.settings.savePageSetting(this.settingsId, {...json}, AppRootTableSettingsEnum.FILTER_KEY))
         )
         .subscribe());
+
+
   }
 
   ngOnDestroy() {
@@ -716,5 +721,6 @@ export abstract class AppRootDataTable<
         filter(isNotNil)
       );
   }
+
 }
 
