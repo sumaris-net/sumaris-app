@@ -248,7 +248,7 @@
         "PMFM_TRIP_PROGRESS": "Référentiel > PSFM > Déroulement normal ? (Booléen)",
         "PMFM_DRESSING": "Référentiel > PSFM > Présentation de l'espèce (Entier, ...)",
         "PMFM_PRESERVATION": "Référentiel > PSFM > État de l'espèce (Frais, ...)",
-        "PMFM_TRAWL_SIZE_CAT": "Référentiel > PSFM > Catégorie de tri chalut (SANS, ...)",
+        "PMFM_TRAWL_SIZE_CAT": "Référentiel > PSFM > Catégorie de tri chalut (NA, ...)",
         "PMFM_AGE_ID": "Référentiel > PSFM > Âge",
         "PMFM_SEX_ID": "Référentiel > PSFM > Sexe",
         "PMFM_GEAR_LABEL_ID": "Référentiel > PSFM > Libellé de l'engin physique",
