@@ -974,9 +974,9 @@
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Poids total RTP (kg)",
         "CHILD_GEAR": "Sous-engin",
         "TRAWL_SELECTIVITY": {
-          "BATCH_MEASURED_WEIGHT": "Poids total du lot (kg)",
-          "BATCH_ESTIMATED_WEIGHT": "Poids total du lot (kg)",
-          "BATCH_CALCULATED_WEIGHT": "Poids total du lot (kg)"
+          "BATCH_MEASURED_WEIGHT": "Poids total (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Poids total (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Poids total (kg)"
         }
       },
       "ERROR": {

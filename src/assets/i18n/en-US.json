@@ -967,9 +967,9 @@
         "BATCH_CALCULATED_WEIGHT_LENGTH_SUM": "Total weight LWR (kg)",
         "CHILD_GEAR": "Sub-gear",
         "TRAWL_SELECTIVITY": {
-          "BATCH_MEASURED_WEIGHT": "Total batch weight (kg)",
-          "BATCH_ESTIMATED_WEIGHT": "Total batch weight (kg)",
-          "BATCH_CALCULATED_WEIGHT": "Total batch weight (kg)"
+          "BATCH_MEASURED_WEIGHT": "Total weight (kg)",
+          "BATCH_ESTIMATED_WEIGHT": "Total weight (kg)",
+          "BATCH_CALCULATED_WEIGHT": "Total weight (kg)"
         }
       },
       "ERROR": {
