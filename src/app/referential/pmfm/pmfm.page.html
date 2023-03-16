@@ -102,6 +102,12 @@
                                           tabindex="25">
                           </app-form-field>
                         </ion-col>
+                        <ion-col>
+                          <app-form-field [definition]="fieldDefinitions.precision"
+                                          formControlName="precision"
+                                          tabindex="26">
+                          </app-form-field>
+                        </ion-col>
                       </ion-row>
                     </div>
 
@@ -111,13 +117,15 @@
                     <ion-row>
                       <ion-col>
                         <app-form-field [definition]="fieldDefinitions.matrix"
-                                        formControlName="matrix">
+                                        formControlName="matrix"
+                                        tabindex="27">
                         </app-form-field>
 
                       </ion-col>
                       <ion-col>
                         <app-form-field [definition]="fieldDefinitions.fraction"
-                                        formControlName="fraction">
+                                        formControlName="fraction"
+                                        tabindex="28">
                         </app-form-field>
                       </ion-col>
                     </ion-row>
@@ -126,7 +134,8 @@
                     <ion-row>
                       <ion-col>
                         <app-form-field [definition]="fieldDefinitions.method"
-                                        formControlName="method">
+                                        formControlName="method"
+                                        tabindex="29">
                         </app-form-field>
 
                       </ion-col>

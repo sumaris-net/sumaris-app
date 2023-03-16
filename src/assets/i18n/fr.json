@@ -1692,6 +1692,7 @@
       "DEFAULT_VALUE": "Valeur par défaut",
       "MAXIMUM_NUMBER_DECIMALS": "Nb décimales max",
       "SIGNIF_FIGURES_NUMBER": "Nb chiffres significatif",
+      "PRECISION": "Précision",
       "PARAMETER": "Paramètre",
       "MATRIX": "Support",
       "FRACTION": "Fraction",

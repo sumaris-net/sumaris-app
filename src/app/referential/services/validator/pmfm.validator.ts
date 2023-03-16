@@ -24,6 +24,7 @@ export class PmfmValidatorService extends ReferentialValidatorService<Pmfm> {
       defaultValue: [isNotNil(data && data.defaultValue) ? data.defaultValue : null],
       maximumNumberDecimals: [toNumber(data && data.maximumNumberDecimals, null), SharedValidators.integer],
       signifFiguresNumber: [toNumber(data && data.signifFiguresNumber, null), SharedValidators.integer],
+      precision: [toNumber(data && data.precision, null), SharedValidators.decimal()],
       parameter: [data && data.parameter || null, Validators.compose([Validators.required, SharedValidators.entity])],
       matrix: [data && data.matrix || null, SharedValidators.entity],
       fraction: [data && data.fraction || null, SharedValidators.entity],
