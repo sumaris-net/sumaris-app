@@ -2,13 +2,12 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { BehaviorSubject } from 'rxjs';
 import { ReferentialRefService } from '../../../referential/services/referential-ref.service';
-import { EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, PlatformService, SharedValidators, toDateISOString } from '@sumaris-net/ngx-components';
+import { DateUtils, EntitiesStorage, EntityUtils, isNotNil, MatAutocompleteConfigHolder, PlatformService, SharedValidators, toDateISOString } from '@sumaris-net/ngx-components';
 import { PmfmIds } from '../../../referential/services/model/model.enum';
 import { ProgramRefService } from '../../../referential/services/program-ref.service';
 import { SampleTreeComponent } from '@app/trip/sample/sample-tree.component';
 import { Sample, SampleUtils } from '@app/trip/services/model/sample.model';
 import { Moment } from 'moment';
-import moment from 'moment';
 
 function getMeasValues(opts?: {
   totalLength?: number;
@@ -76,7 +75,7 @@ function getReleaseMeasValues(opts?: {
 const TREE_EXAMPLES: {[key: string]: any} = {
   'default': [{
     label: 'SAMPLE#1', rankOrder: 1,
-    sampleDate: moment(),
+    sampleDate: DateUtils.moment(),
     taxonGroup: { id: 1122, label: 'MNZ', name: 'Baudroie nca' },
     taxonName: { id: 1034, label: 'ANK', name: 'Lophius budegassa' },
     measurementValues: getMeasValues({ tagId: 'TAG-1', totalLength: 100, sex: 'M' }),
@@ -84,14 +83,14 @@ const TREE_EXAMPLES: {[key: string]: any} = {
       {
         label: 'INDIVIDUAL_MONITORING#1',
         rankOrder: 1,
-        sampleDate: moment(),
+        sampleDate: DateUtils.moment(),
         measurementValues: getMonitoringMeasValues({ tagId: 'TAG-1' }),
       },
       {
         label: 'INDIVIDUAL_RELEASE#1',
         rankOrder: 1,
-        sampleDate: moment(),
-        measurementValues: getReleaseMeasValues({ tagId: 'TAG-1', latitude: 11, longitude: 11, dateTime: moment() }),
+        sampleDate: DateUtils.moment(),
+        measurementValues: getReleaseMeasValues({ tagId: 'TAG-1', latitude: 11, longitude: 11, dateTime: DateUtils.moment() }),
       }
     ]
   }],
@@ -108,7 +107,7 @@ export class SampleTreeTestPage implements OnInit {
   $programLabel = new BehaviorSubject<string>(undefined);
   form: UntypedFormGroup;
   autocomplete = new MatAutocompleteConfigHolder();
-  defaultSampleDate = moment();
+  defaultSampleDate = DateUtils.moment();
 
   outputs: {
     [key: string]: string;

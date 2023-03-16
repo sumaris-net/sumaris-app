@@ -466,10 +466,16 @@
                *ngIf="!embedded">
     <ion-row class="ion-no-padding" nowrap>
       <ion-col>
-        <ion-item *ngIf="error" lines="none">
+        <ion-item *rxIf="errorSubject; let error; else debugPanel" lines="none">
           <ion-icon color="danger" slot="start" name="alert-circle"></ion-icon>
           <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
         </ion-item>
+
+        <ng-template #debugPanel>
+          <app-debug *ngIf="debug">
+            loading: {{loading}}<br/>
+          </app-debug>
+        </ng-template>
       </ion-col>
 
       <ion-col size="auto">

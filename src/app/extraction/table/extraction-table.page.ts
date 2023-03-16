@@ -211,7 +211,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this._state.connect('program', this._state.select(['programLabel', 'programs'], res => res)
       .pipe(
         map(({programLabel, programs}) => {
-          return (programs || []).find(p => p.label === programLabel);
+          return programLabel && (programs || []).find(p => p.label === programLabel) || null;
         })
       ));
 
@@ -233,6 +233,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     super.ngOnDestroy();
 
     this.$cancel.next(true);
+  }
+
+  protected async loadFromRouteOrSettings(): Promise<boolean> {
+    const found = await super.loadFromRouteOrSettings();
+    if (found) return found;
+
+    // Mark as loaded, if not found
+    setTimeout(() => this.markAsLoaded());
   }
 
   async updateView(data: ExtractionResult) {
@@ -300,9 +308,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       // Reset program
       this.resetProgram();
 
-      this.markAsReady();
+      if (!opts || opts.emitEvent !== false) {
 
-      if (!opts || opts.emitEvent !== true) {
+        this.markAsReady();
+
         this.onRefresh.emit();
       }
     }
@@ -335,7 +344,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
     // Refresh data
     if (!opts || opts.emitEvent !== false) {
-      this.onRefresh.emit();
+
+      this.markAsReady();
+
+      this.loadData();
     }
   }
 
@@ -675,8 +687,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   }
 
   protected resetProgram() {
-    this._state.set('programLabel', (_) => null);
-    this._state.set('program', (_) => null);
+    this._state.set({programLabel: null, program: null});
   }
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {
