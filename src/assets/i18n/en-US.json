@@ -2317,7 +2317,8 @@
       "MAP_CENTER_LAT_LNG": "Extraction > Map: Default position (lat,lng)",
       "MAP_CENTER_ZOOM": "Extraction > Map: Default zoom (1 à 18)",
       "PRODUCT_ENABLE": "Extraction > Products: Enable?",
-      "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions"
+      "ACCESS_NOT_SELF_ROLE": "Extraction > Min. role to show not self extractions",
+      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Trips: Enable batch denormalization"
     },
     "PRODUCT": {
       "NEW": {

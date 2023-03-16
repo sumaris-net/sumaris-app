@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { AppFormArray, isEmptyArray, isNil, isNotEmptyArray, isNotNil, LocalSettingsService, ReferentialRef, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
+import { AppFormArray, AppFormUtils, isEmptyArray, isNil, isNotEmptyArray, isNotNil, LocalSettingsService, ReferentialRef, removeDuplicatesFromArray } from '@sumaris-net/ngx-components';
 import {IPmfm, PmfmUtils} from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
-import { DataEntityValidatorOptions } from '@app/data/services/validator/data-entity.validator';
+import { DataEntityValidatorOptions, ControlUpdateOnType } from '@app/data/services/validator/data-entity.validator';
 import { Batch, BatchAsObjectOptions, BatchFromObjectOptions } from '@app/trip/batch/common/batch.model';
 import { BatchValidatorService } from '@app/trip/batch/common/batch.validator';
 import { TranslateService } from '@ngx-translate/core';
@@ -258,23 +258,51 @@ export class BatchModelValidatorService<
     return model;
   }
 
-  createFormGroupByModel(model: BatchModel, opts: {allowSpeciesSampling: boolean}): UntypedFormGroup {
+  createFormGroupByModel(model: BatchModel, opts: {
+    allowSpeciesSampling: boolean;
+    isOnFieldMode?: boolean;
+    updateOn?: ControlUpdateOnType
+  }): UntypedFormGroup {
     if (!model) throw new Error('Missing required argument \'model\'');
+    if (!opts) throw new Error('Missing required argument \'opts\'');
 
     // DEBUG
     console.debug(`- ${model.originalData?.label} ${model.path}`);
 
+    const weightPmfms = model.weightPmfms;
+    const withWeight = isNotEmptyArray(weightPmfms);
+    // Init weight object
+    if (withWeight) {
+      model.originalData.weight = BatchUtils.getWeight(model.originalData, model.weightPmfms);
+    }
+    if (model.isLeaf && isNotEmptyArray(model.originalData.children)) {
+      const childrenWeightPmfms = (model.childrenPmfms || []).filter(PmfmUtils.isWeight);
+      if (isNotEmptyArray(childrenWeightPmfms)) {
+        model.originalData.children.forEach(batch => {
+          batch.weight = BatchUtils.getWeight(batch, childrenWeightPmfms);
+          const samplingBatch = BatchUtils.getSamplingChild(batch)
+          if (samplingBatch) samplingBatch.weight = BatchUtils.getWeight(samplingBatch, childrenWeightPmfms);
+        });
+      }
+    }
     const form = this.getFormGroup(model.originalData as T, <O>{
       pmfms: model.pmfms,
       withMeasurements: true,
       withMeasurementTypename: true,
+      withWeight,
+      weightRequired: opts.isOnFieldMode === false && withWeight,
       withChildren: model.isLeaf,
       childrenPmfms: model.isLeaf && model.childrenPmfms,
-      allowSpeciesSampling: opts.allowSpeciesSampling
+      allowSpeciesSampling: opts.allowSpeciesSampling,
+      isOnFieldMode: opts.isOnFieldMode,
+      updateOn: opts.updateOn
     });
 
     // Update model valid marker (check this BEFORE to add the children form array)
     model.valid = form.valid;
+    if (form.invalid) {
+      AppFormUtils.logFormErrors(form, '[batch-model-validator] ' + model.name + ' > ')
+    }
 
     // Recursive call, on each children model
     if (!model.isLeaf) {
@@ -284,7 +312,8 @@ export class BatchModelValidatorService<
         BatchModel.isEmpty,
         {
           allowReuseControls: false,
-          allowEmptyArray: true
+          allowEmptyArray: true,
+          updateOn: opts?.updateOn
         }
       );
       if (model.state?.showSamplingBatch) {
@@ -305,7 +334,8 @@ export class BatchModelValidatorService<
         BatchUtils.isEmpty,
         {
           allowReuseControls: false,
-          allowEmptyArray: true
+          allowEmptyArray: true,
+          updateOn: opts?.updateOn
         }
       );
       form.setControl('children', childrenFormArray, {emitEvent: false});
@@ -358,7 +388,8 @@ export class BatchModelValidatorService<
         config['measurementValues'] = this.getMeasurementValuesForm(data?.measurementValues, {
           pmfms: opts.pmfms,
           forceOptional: false, // We always need full validation, in model form
-          withTypename: opts.withMeasurementTypename
+          withTypename: opts.withMeasurementTypename,
+          updateOn: opts?.updateOn
         });
       }
       else {

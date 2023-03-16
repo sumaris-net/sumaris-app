@@ -7,7 +7,6 @@ import {
   FormErrorTranslator,
   isEmptyArray,
   isNil,
-  isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -130,17 +129,19 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       cleanPath = parts.slice(depth * 2).join('.'); // remove the qv part (remove 'children.<qvIndex>.')
     }
     else {
+      const parts = cleanPath.split('.');
+      cleanPath = parts.slice(depth * 2).join('.');
       isSampling = depth === 1;
     }
 
+    // Transform 'weight.value' into 'weight'
+    if (cleanPath === 'weight.value') cleanPath = 'weight';
 
-    if (cleanPath === '.weight.value'
+    if (cleanPath === 'weight'
       || cleanPath === 'individualCount'
       || cleanPath === 'label'
       || cleanPath === 'rankOrder') {
 
-      // Transform 'weight.value' into 'weight'
-      cleanPath = (cleanPath === 'weight.value') ? 'weight' : cleanPath;
       const i18nKey = opts.i18nPrefix
         // Add a sampling prefix
         + (isSampling ? 'SAMPLING_' : 'TOTAL_')
@@ -487,15 +488,23 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
       this.programRefService.loadProgramPmfms(program.label, { acquisitionLevel: AcquisitionLevelCodes.CATCH_BATCH, gearId: opts?.gearId }),
       this.programRefService.loadProgramPmfms(program.label, { acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH, gearId: opts?.gearId })
     ]);
+    const pmfms = [...catchPmfms, ...sortingPmfms];
 
     // Load sub gears
     if (allowChildrenGears && isNil(physicalGear.children)) {
       physicalGear = physicalGear?.clone(); // Keep original unchanged
-      physicalGear.children = await this.physicalGearService.loadAllByParentId({parentGearId: physicalGear.id});
+      physicalGear.children = await this.physicalGearService.loadAllByParentId({
+        tripId: physicalGear.tripId,
+        parentGearId: physicalGear.id
+      });
     }
 
+    // Create batch model, and the form
     const model = await this.batchModelValidatorService.createModel(entity, {catchPmfms, sortingPmfms, allowDiscard, physicalGear});
-    const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSpeciesSampling: allowSamplingBatches});
+    const form = this.batchModelValidatorService.createFormGroupByModel(model, {
+      allowSpeciesSampling: allowSamplingBatches,
+      isOnFieldMode: false
+    });
 
     if (!form.valid) {
       // Wait if pending
@@ -503,18 +512,34 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
 
       // Form is invalid (after pending)
       if (form.invalid) {
+        if (opts?.debug !== false) {
+          AppFormUtils.logFormErrors(form, '[batch-service] ');
+        }
         // Translate form error
-        const errors = AppFormUtils.getFormErrors(form, { controlName: opts?.controlName });
-        const message = this.formErrorTranslator.translateErrors(errors, {
+        const translatePathOption = {
+          pmfms,
+          i18nPrefix: 'TRIP.BATCH.EDIT.'
+        };
+        const translateErrorsOptions = {
           controlPathTranslator: {
-            translateControlPath: (path) => this.translateControlPath(path, {
-              pmfms: [...catchPmfms, ...sortingPmfms],
-              i18nPrefix: 'TRIP.BATCH.EDIT.'
-            })
+            translateControlPath: (path) => {
+              const cleanPath = opts?.controlName ? path.substring(opts.controlName.length + 1) : path;
+              const controlName = this.translateControlPath(cleanPath, translatePathOption);
+              const modelPath = cleanPath.replace(/\.weight\.value$|.individualCount$|.label$|.rankOrder$|/gi, '');
+              const batchModel = model.get(modelPath);
+              if (batchModel) batchModel.valid = false;
+              return (batchModel?.name) ? `${batchModel.name} > ${controlName}` : controlName;
+            }
           },
           separator: '\n'
-        });
+        };
+        const errors = AppFormUtils.getFormErrors(form, { controlName: opts?.controlName });
 
+        const message = this.formErrorTranslator.translateErrors(errors, translateErrorsOptions);
+
+        console.warn(`[batch-service] Control batch tree [INVALID]`, message);
+
+        // Mark catch batch as invalid (=not controlled)
         BatchUtils.markAsInvalid(entity, message);
 
         return errors;

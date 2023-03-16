@@ -20,7 +20,7 @@ import { MethodIds, QualityFlagIds } from '@app/referential/services/model/model
 import { Subscription } from 'rxjs';
 import { IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { MeasurementsValidatorService } from '@app/trip/services/validator/measurement.validator';
-import { DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
+import { ControlUpdateOnType, DataEntityValidatorOptions, DataEntityValidatorService } from '@app/data/services/validator/data-entity.validator';
 import { BatchUtils } from '@app/trip/batch/common/batch.utils';
 import { roundHalfUp } from '@app/shared/functions';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
@@ -314,7 +314,12 @@ export class BatchValidatorService<
     }
   }
 
-  protected getMeasurementValuesForm(data: undefined|MeasurementFormValues|MeasurementModelValues, opts: {pmfms: IPmfm[]; forceOptional?: boolean, withTypename?: boolean}) {
+  protected getMeasurementValuesForm(data: undefined|MeasurementFormValues|MeasurementModelValues, opts: {
+    pmfms: IPmfm[];
+    forceOptional?: boolean;
+    withTypename?: boolean;
+    updateOn?: ControlUpdateOnType
+  }) {
     const measurementValues = data && MeasurementValuesUtils.normalizeValuesToForm(data, opts.pmfms);
     return this.measurementsValidatorService.getFormGroup(measurementValues, opts);
   }

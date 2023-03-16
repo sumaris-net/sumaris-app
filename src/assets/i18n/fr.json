@@ -1692,6 +1692,7 @@
       "DEFAULT_VALUE": "Valeur par défaut",
       "MAXIMUM_NUMBER_DECIMALS": "Nb décimales max",
       "SIGNIF_FIGURES_NUMBER": "Nb chiffres significatif",
+      "PRECISION": "Précision",
       "PARAMETER": "Paramètre",
       "MATRIX": "Support",
       "FRACTION": "Fraction",
@@ -2383,7 +2384,8 @@
       "MAP_CENTER_LAT_LNG": "Extraction > Cartes : Position par défaut (lat,lng)",
       "MAP_CENTER_ZOOM": "Extraction > Cartes : Zoom par défaut (1 à 18)",
       "PRODUCT_ENABLE": "Extraction > Produits : Activer ?",
-      "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres"
+      "ACCESS_NOT_SELF_ROLE": "Extraction > Role min. pour voir les extractions des autres",
+      "BATCH_DENORMALIZATION_ENABLE": "Extraction > Marées: Activer la dénormalisation des lots"
     },
     "PRODUCT": {
       "NEW": {

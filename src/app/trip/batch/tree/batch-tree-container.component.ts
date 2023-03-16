@@ -378,7 +378,10 @@ export class BatchTreeContainerComponent extends AppEditor<Batch>
       .pipe(
         filter(({model, allowSpeciesSampling}) => !!model),
         map(({model, allowSpeciesSampling}) => {
-          const form = this.batchModelValidatorService.createFormGroupByModel(model, {allowSpeciesSampling});
+          const form = this.batchModelValidatorService.createFormGroupByModel(model, {
+            allowSpeciesSampling,
+            isOnFieldMode: this.isOnFieldMode
+          });
           form.disable();
           return form;
         })

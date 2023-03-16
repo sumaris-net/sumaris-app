@@ -134,6 +134,12 @@ export class PmfmPage extends AppEntityEditor<Pmfm> {
         type: 'integer',
         minValue: 0
       },
+      precision: {
+        key: `precision`,
+        label: `REFERENTIAL.PMFM.PRECISION`,
+        type: 'double',
+        minValue: 0
+      },
       matrix: {
         key: `matrix`,
         label: `REFERENTIAL.PMFM.MATRIX`,

@@ -453,7 +453,7 @@
 
 </ion-content>
 
-<ion-footer *ngIf="type">
+<ion-footer [class.cdk-visually-hidden]="!type">
 
   <!-- Paginator -->
   <mat-paginator [length]="data?.total" [pageSize]="defaultPageSize" [pageSizeOptions]="defaultPageSizeOptions"
