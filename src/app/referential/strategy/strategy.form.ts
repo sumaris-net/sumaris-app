@@ -11,7 +11,7 @@ import {
   LocalSettingsService,
   ReferentialRef,
   referentialToString,
-  ReferentialUtils, sleep,
+  ReferentialUtils,
   toNumber
 } from '@sumaris-net/ngx-components';
 import { PmfmStrategiesTable } from './pmfm-strategies.table';
@@ -526,6 +526,10 @@ export class StrategyForm extends AppEntityEditor<Strategy> {
 
   referentialToString = referentialToString;
   referentialEquals = ReferentialUtils.equals;
+
+  closeFloatingPanel() {
+    this.sidenav.close();
+  }
 
   protected markForCheck() {
     this.cd.markForCheck();
