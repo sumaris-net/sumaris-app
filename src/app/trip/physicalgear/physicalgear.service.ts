@@ -296,7 +296,7 @@ export class PhysicalGearService extends BaseGraphqlService<PhysicalGear, Physic
     opts?: PhysicalGearServiceWatchOptions
   ): Observable<LoadResult<PhysicalGear>> {
     if (!dataFilter || (isNil(dataFilter.tripId) && (isNil(dataFilter.vesselId) || isNil(dataFilter.program)))) {
-      console.warn('[physical-gear-service] Trying to load gears from trips without \'filter.vesselId\' and \'filter.program\' and without \'filter.tripdId\'. Skipping.');
+      console.warn('[physical-gear-service] Trying to load gears from trips without [vesselId, program] or without [tripdId]. Skipping.');
       return EMPTY;
     }
     const tripFilter = TripFilter.fromObject(dataFilter && <Partial<TripFilter>>{

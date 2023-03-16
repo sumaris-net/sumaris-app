@@ -491,7 +491,10 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     // Load sub gears
     if (allowChildrenGears && isNil(physicalGear.children)) {
       physicalGear = physicalGear?.clone(); // Keep original unchanged
-      physicalGear.children = await this.physicalGearService.loadAllByParentId({parentGearId: physicalGear.id});
+      physicalGear.children = await this.physicalGearService.loadAllByParentId({
+        tripId: physicalGear.tripId,
+        parentGearId: physicalGear.id
+      });
     }
 
     const model = await this.batchModelValidatorService.createModel(entity, {catchPmfms, sortingPmfms, allowDiscard, physicalGear});
