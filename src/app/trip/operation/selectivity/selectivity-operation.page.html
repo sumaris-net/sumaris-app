@@ -144,6 +144,15 @@
       </ion-label>
     </button>
 
+    <!-- Control -->
+    <button mat-menu-item *ngIf="enabled"
+            (click)="saveAndControl($event)">
+      <ion-label>
+        <mat-icon><ion-icon name="checkmark"></ion-icon></mat-icon>&nbsp;
+        <span translate>QUALITY.BTN_CONTROL</span>
+      </ion-label>
+    </button>
+
     <!-- online help -->
     <!-- TODO: enable this -->
     <button mat-menu-item

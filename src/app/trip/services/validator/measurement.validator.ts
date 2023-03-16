@@ -8,6 +8,7 @@ import {PmfmValidators} from '@app/referential/services/validator/pmfm.validator
 import {IPmfm} from '@app/referential/services/model/pmfm.model';
 import {PmfmValueUtils} from '@app/referential/services/model/pmfm-value.model';
 import { TranslateService } from '@ngx-translate/core';
+import { ControlUpdateOnType } from '@app/data/services/validator/data-entity.validator';
 
 export interface MeasurementsValidatorOptions {
   isOnFieldMode?: boolean;
@@ -15,6 +16,7 @@ export interface MeasurementsValidatorOptions {
   protectedAttributes?: string[];
   forceOptional?: boolean;
   withTypename?: boolean; // Default to true
+  updateOn?: ControlUpdateOnType
 }
 
 @Injectable({providedIn: 'root'})
@@ -66,7 +68,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       }, {});
 
     // Validate __typename
-    if (!opts || opts.withTypename !== false) {
+    if (opts.withTypename !== false) {
       config['__typename'] = [measurementValues ? measurementValues.__typename : MeasurementValuesTypes.MeasurementFormValue, Validators.required];
     }
 
@@ -74,7 +76,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
   }
 
   getFormGroupOptions(data?: T[] | MeasurementFormValues, opts?: O): AbstractControlOptions | null {
-    return null;
+    return { updateOn: opts?.updateOn };
   }
 
   updateFormGroup(form: UntypedFormGroup, opts?: O & {emitEvent?: boolean}) {
@@ -84,7 +86,7 @@ export class MeasurementsValidatorService<T extends Measurement = Measurement, O
       // Excluded protected attributes
       .filter(controlName => (!opts.protectedAttributes || !opts.protectedAttributes.includes(controlName)) && controlName !== '__typename');
 
-    opts.pmfms?.forEach(pmfm => {
+    opts.pmfms.forEach(pmfm => {
       const controlName = pmfm.id.toString();
 
       // Only one acquisition

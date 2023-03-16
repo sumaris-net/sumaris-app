@@ -90,6 +90,13 @@ export class SelectivityOperationPage extends OperationPage {
     return false;
   }
 
+  async saveAndControl(event?: Event, opts?: { emitEvent?: false }): Promise<boolean> {
+    if (this.batchTree.dirty) {
+       const saved = await this.batchTree.save();
+    }
+    return super.saveAndControl(event, opts);
+  }
+
   protected updateTablesState() {
     this.tabCount = this.showCatchTab ? 2 : 1;
 
