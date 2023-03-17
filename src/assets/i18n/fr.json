@@ -2369,7 +2369,8 @@
     },
     "SHEET": {
       "TR": "Marées",
-      "HH": "Stations",
+      "HH": "Opérations",
+      "PG": "Engins",
       "SL": "Captures",
       "HL": "Mensurations",
       "CA": "Sex-Age",
@@ -2397,6 +2398,9 @@
       }
     },
     "FORMAT": {
+      "APASE": {
+        "TITLE": "Marées brutes (APASE v{{version}})"
+      },
       "RDB": {
         "TITLE": "Marées brutes (RDB v{{version}})"
       },
