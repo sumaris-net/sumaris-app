@@ -333,7 +333,7 @@ export class BatchGroupModal implements OnInit, OnDestroy, IBatchGroupModalOptio
       }
       // Reset control (and old invalid quality flag)
       else {
-        BatchUtils.markAsNotControlled(this.data);
+        BatchUtils.markAsNotControlled(this.data, {withChildren: true});
       }
 
       return this.data;
