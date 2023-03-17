@@ -686,7 +686,7 @@ export class BatchUtils {
 
     // Recursive call to children
     if (!opts || opts.withChildren !== false) {
-      (entity.children || []).forEach(c => this.markAsControlled(c, opts));
+      (entity.children || []).forEach(c => this.markAsNotControlled(c, opts));
     }
   }
 
