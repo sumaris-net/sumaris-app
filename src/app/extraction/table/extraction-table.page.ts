@@ -192,10 +192,13 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
           this.paginator.pageIndex = 0;
         }
 
-        // Refresh
-        if (this.started && this.loaded) {
-          return this.loadData();
+        if (!this.started) {
+          console.warn('[extraction-table] Service not started: skip refresh event');
+          return;
         }
+
+        // Load data
+        return this.loadData();
       }));
 
     this.filterCriteriaCount$ = this.criteriaForm.form.valueChanges
@@ -311,6 +314,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       if (!opts || opts.emitEvent !== false) {
 
         this.markAsReady();
+        this.markAsStarted();
 
         this.onRefresh.emit();
       }
@@ -346,6 +350,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     if (!opts || opts.emitEvent !== false) {
 
       this.markAsReady();
+      this.markAsStarted();
 
       this.onRefresh.emit();
     }
