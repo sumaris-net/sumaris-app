@@ -1,6 +1,6 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
-import { CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext } from '@angular/core';
+import {CUSTOM_ELEMENTS_SCHEMA, NgModule, OnInit, SecurityContext} from '@angular/core';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
 
@@ -75,6 +75,8 @@ import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '@sumaris-net/ngx-components';
 import {ProgressInterceptor} from '@sumaris-net/ngx-components';
 import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
+import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@app/data/services/config/device-position.config';
+import {TripService} from '@app/trip/services/trip.service';
 @NgModule({
   declarations: [
     AppComponent
@@ -242,7 +244,8 @@ import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.va
       ...VESSEL_CONFIG_OPTIONS,
       ...DATA_CONFIG_OPTIONS,
       ...EXTRACTION_CONFIG_OPTIONS,
-      ...TRIP_CONFIG_OPTIONS
+      ...TRIP_CONFIG_OPTIONS,
+      ...DEVICE_POSITION_CONFIG_OPTION,
     }},
 
     // Menu config
@@ -404,6 +407,10 @@ import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.va
         },
         backColor: '#0000'
       }
+    },
+    {
+      provide: DEVICE_POSTION_ENTITY_MONITORING,
+      useValue: [TripService],
     }
   ],
   bootstrap: [AppComponent],

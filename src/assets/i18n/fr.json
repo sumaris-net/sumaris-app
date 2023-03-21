@@ -2768,5 +2768,11 @@
   },
   "WARNING": {
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>"
+  },
+  "DEVICE_POSITION_SERVICE": {
+    "ASK_FOR_ENABLE_GEOLOCATION": {
+      "TITLE": "Activation de la géolocalisation requise",
+      "MESSAGE": "Pour pouvoir utiliser l'application il est nécessaire d'autoriser la géolocalisation."
+    }
   }
 }
