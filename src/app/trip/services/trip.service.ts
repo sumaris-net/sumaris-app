@@ -897,6 +897,7 @@ export class TripService
       }
     });
 
+    this.onSave.next([entity]);
     return entity;
   }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject } from '@angular/core';
+import {ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, ViewChild} from '@angular/core';
 import {
   AccountService,
   ConfigService,
@@ -22,6 +22,8 @@ import { ReferentialRefService } from './referential/services/referential-ref.se
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
+import {DevicePositionService} from '@app/data/services/device-position-service.class';
+import {IonModal} from '@ionic/angular';
 
 @Component({
   selector: 'app-root',
@@ -34,6 +36,7 @@ export class AppComponent {
   protected logo: string;
   protected appName: string;
   protected enabledNotificationIcons = false;
+  @ViewChild('askForGeolocationModal') askForGeolocationModal: IonModal;
 
   constructor(
     @Inject(DOCUMENT) private _document: Document,
@@ -44,7 +47,8 @@ export class AppComponent {
     private settings: LocalSettingsService,
     private matIconRegistry: MatIconRegistry,
     private domSanitizer: DomSanitizer,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private devicePositionService: DevicePositionService,
   ) {
 
     this.start();
@@ -54,6 +58,17 @@ export class AppComponent {
     console.info('[app] Starting...');
 
     await this.platform.start();
+    this.devicePositionService.ready();
+    await this.devicePositionService.start();
+    this.devicePositionService.mustAskForEnableGeolocation.subscribe(sub => {
+      if (sub) {
+        this.askForGeolocationModal.present();
+        this.askForGeolocationModal.canDismiss = false;
+      } else {
+        this.askForGeolocationModal.canDismiss = true;
+        this.askForGeolocationModal.dismiss();
+      }
+    });
 
     // Listen for config changed
     this.configService.config.subscribe(config => this.onConfigChanged(config));
@@ -77,6 +92,10 @@ export class AppComponent {
         window.clearInterval(scrollToTop);
       }
     }, 16);
+  }
+
+  recheckIfPositionIsEnabled() {
+    this.devicePositionService.forceUpdatePosition();
   }
 
   protected onConfigChanged(config: Configuration) {
