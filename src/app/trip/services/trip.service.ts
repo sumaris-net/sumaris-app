@@ -44,7 +44,7 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE
 } from '@app/data/services/model/data-entity.model';
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { IProgressionOptions, IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -82,7 +82,6 @@ import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.
 import moment from 'moment';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
-import { EmitOnSave } from '@app/data/services/model/emit-on-save.model';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -432,9 +431,7 @@ export class TripService
   implements IEntitiesService<Trip, TripFilter>,
     IEntityService<Trip, number, TripLoadOptions>,
     IRootDataEntityQualityService<Trip>,
-    IDataSynchroService<Trip, TripFilter, number, TripLoadOptions>, EmitOnSave<Trip> {
-
-  readonly onSave:Subject<Trip[]> = new Subject<Trip[]>();
+    IDataSynchroService<Trip, TripFilter, number, TripLoadOptions> {
 
   constructor(
     injector: Injector,
@@ -880,7 +877,7 @@ export class TripService
           this.copyIdAndUpdateDate(savedEntity, entity, opts);
 
           // Insert into the cache
-          if (isNil(entity.id) && this.watchQueriesUpdatePolicy === 'update-cache') {
+          if (RootDataEntityUtils.isNew(entity) && this.watchQueriesUpdatePolicy === 'update-cache') {
             this.insertIntoMutableCachedQueries(cache, {
               queries: this.getLoadQueries(),
               data: savedEntity

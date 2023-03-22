@@ -79,6 +79,10 @@ export abstract class RootDataEntityUtils {
 
   static copyQualificationDateAndFlag = DataEntityUtils.copyQualificationDateAndFlag;
 
+  static isNew(entity: RootDataEntity<any, any>): boolean {
+    return isNil(entity.id);
+  }
+
   static isLocal(entity: RootDataEntity<any, any>): boolean {
     return entity && (isNil(entity.id) ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0);
   }

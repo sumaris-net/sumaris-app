@@ -1,6 +1,6 @@
 import {Injectable, Injector, Optional} from '@angular/core';
 import {
-  AccountService, AppErrorWithDetails,
+  AccountService,
   AppFormUtils,
   arrayDistinct,
   chainPromises,
@@ -30,18 +30,18 @@ import { DataCommonFragments, DataFragments } from './trip.queries';
 import { filter, map } from 'rxjs/operators';
 import {COPY_LOCALLY_AS_OBJECT_OPTIONS, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
 import { ObservedLocation } from './model/observed-location.model';
-import { RootDataEntityUtils } from '../../data/services/model/root-data-entity.model';
+import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
 import { SortDirection } from '@angular/material/sort';
-import { IDataEntityQualityService } from '../../data/services/data-quality-service.class';
+import { IDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { LandingFragments, LandingService } from './landing.service';
-import { IDataSynchroService, RootDataSynchroService } from '../../data/services/root-data-synchro-service.class';
+import { IDataSynchroService, RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
 import { Landing } from './model/landing.model';
 import { ObservedLocationValidatorService } from './validator/observed-location.validator';
-import { environment } from '../../../environments/environment';
-import { VesselSnapshotFragments } from '../../referential/services/vessel-snapshot.service';
+import { environment } from '@environments/environment';
+import { VesselSnapshotFragments } from '@app/referential/services/vessel-snapshot.service';
 import { OBSERVED_LOCATION_FEATURE_NAME } from './config/trip.config';
-import { ProgramProperties } from '../../referential/services/config/program.config';
-import { VESSEL_FEATURE_NAME } from '../../vessel/services/config/vessel.config';
+import { ProgramProperties } from '@app/referential/services/config/program.config';
+import { VESSEL_FEATURE_NAME } from '@app/vessel/services/config/vessel.config';
 import { LandingFilter } from './filter/landing.filter';
 import { ObservedLocationFilter } from './filter/observed-location.filter';
 import { SampleFilter } from '@app/trip/services/filter/sample.filter';
@@ -449,11 +449,9 @@ export class ObservedLocationService
   }
 
   async save(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
-    const isNew = isNil(entity.id);
 
     // If is a local entity: force a local save
-    const isLocal = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC') : entity.id < 0;
-    if (isLocal) {
+    if (RootDataEntityUtils.isLocal(entity)) {
       return this.saveLocally(entity, opts);
     }
 
@@ -473,7 +471,7 @@ export class ObservedLocationService
 
     // Transform into json
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    if (isNew) delete json.id; // Make to remove temporary id, before sending to graphQL
+    if (RootDataEntityUtils.isNew(entity)) delete json.id; // Make to remove temporary id, before sending to graphQL
     if (this._debug) console.debug('[observed-location-service] Using minify object, to send:', json);
 
     const variables = {
@@ -496,7 +494,7 @@ export class ObservedLocationService
         }
 
         // Add to cache
-        if (isNew) {
+        if (RootDataEntityUtils.isNew(entity)) {
           this.insertIntoMutableCachedQueries(proxy, {
             queries: this.getLoadQueries(),
             data: savedEntity
@@ -506,10 +504,11 @@ export class ObservedLocationService
     });
 
     // Update date of children entities, if need (see IMAGINE-276)
-    if (!isNew) {
+    if (!RootDataEntityUtils.isNew(entity)) {
       await this.updateChildrenDate(entity);
     }
 
+    this.onSave.next([entity]);
     return entity;
   }
 
