@@ -169,7 +169,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
   protected async onConfigChanged(config:Configuration) {
     const enabled = config.getPropertyAsBoolean(DEVICE_POSITION_CONFIG_OPTION.ENABLE);
-    const checkInterval = config.getPropertyAsNumbers(DEVICE_POSITION_CONFIG_OPTION.CHECK_INTERVAL)[0] * 1000;
+    const checkInterval = config.getPropertyAsNumbers(DEVICE_POSITION_CONFIG_OPTION.CHECK_INTERVAL)[0];
 
     if (isNotNil(this.$checkLoop)) this.$checkLoop.unsubscribe();
     this._watching = (this.platform.mobile && enabled);
@@ -180,6 +180,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     }
     await this.watchGeolocation();
     this.$checkLoop = interval(checkInterval).subscribe(async (_) => {
+      console.debug(`${this._logPrefix} : begins to check device position each ${checkInterval}ms...`)
       this.watchGeolocation();
     });
   }
@@ -201,6 +202,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
       longitude: position.longitude,
       date: DateUtils.moment(),
     }
+    console.log(`${this._logPrefix} : update last postison`, position);
     if (this.mustAskForEnableGeolocation.value === true) this.mustAskForEnableGeolocation.next(false);
     if (this._debug) console.debug(`${this._logPrefix} : ask for geolocation`, this.mustAskForEnableGeolocation.value);
   }
