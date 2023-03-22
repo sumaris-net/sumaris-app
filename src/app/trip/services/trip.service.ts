@@ -44,14 +44,14 @@ import {
   SAVE_AS_OBJECT_OPTIONS,
   SERIALIZE_FOR_OPTIMISTIC_RESPONSE
 } from '@app/data/services/model/data-entity.model';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { IProgressionOptions, IRootDataEntityQualityService } from '@app/data/services/data-quality-service.class';
 import { OperationService } from './operation.service';
 import { VesselSnapshotFragments, VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
 import { IMPORT_REFERENTIAL_ENTITIES, ReferentialRefService, WEIGHT_CONVERSION_ENTITIES } from '@app/referential/services/referential-ref.service';
 import { TripValidatorOptions, TripValidatorService } from './validator/trip.validator';
 import { Operation, OperationGroup, Trip } from './model/trip.model';
-import { RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import {RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
 import { fillRankOrder, fillTreeRankOrder, SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
 import { SortDirection } from '@angular/material/sort';
 import { OverlayEventDetail } from '@ionic/core';
@@ -82,6 +82,7 @@ import { UserEvent, UserEventTypeEnum } from '@app/social/user-event/user-event.
 import moment from 'moment';
 import { EntityServiceListenChangesOptions } from '@sumaris-net/ngx-components/src/app/shared/services/entity-service.class';
 import { ProgressionModel } from '@app/shared/progression/progression.model';
+import { EmitOnSave } from '@app/data/services/model/emit-on-save.model';
 
 export const TripFragments = {
   lightTrip: gql`fragment LightTripFragment on TripVO {
@@ -431,7 +432,9 @@ export class TripService
   implements IEntitiesService<Trip, TripFilter>,
     IEntityService<Trip, number, TripLoadOptions>,
     IRootDataEntityQualityService<Trip>,
-    IDataSynchroService<Trip, TripFilter, number, TripLoadOptions> {
+    IDataSynchroService<Trip, TripFilter, number, TripLoadOptions>, EmitOnSave<Trip> {
+
+  readonly onSave:Subject<Trip[]> = new Subject<Trip[]>();
 
   constructor(
     injector: Injector,
@@ -787,11 +790,8 @@ export class TripService
    * @param opts
    */
   async save(entity: Trip, opts?: TripSaveOptions): Promise<Trip> {
-    const isNew = isNil(entity.id);
-
     // If is a local entity: force a local save
-    const isLocal = isNew ? (entity.synchronizationStatus && entity.synchronizationStatus !== 'SYNC' || false) : EntityUtils.isLocalId(entity.id);
-    if (isLocal) {
+    if (RootDataEntityUtils.isLocal(entity)) {
       entity.updateDate = DateUtils.moment(); // Set a local time (need be EntityEditor.listenChanges())
       return this.saveLocally(entity, opts);
     }
@@ -880,7 +880,7 @@ export class TripService
           this.copyIdAndUpdateDate(savedEntity, entity, opts);
 
           // Insert into the cache
-          if (isNew && this.watchQueriesUpdatePolicy === 'update-cache') {
+          if (isNil(entity.id) && this.watchQueriesUpdatePolicy === 'update-cache') {
             this.insertIntoMutableCachedQueries(cache, {
               queries: this.getLoadQueries(),
               data: savedEntity
@@ -963,7 +963,7 @@ export class TripService
       entity.landing.observedLocationId = entity.observedLocationId;
     }
 
-
+    this.onSave.next([entity]);
     return entity;
   }
 
