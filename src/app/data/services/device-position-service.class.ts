@@ -11,23 +11,20 @@ import {IPosition} from '@app/trip/services/model/position.model';
 import {BehaviorSubject, interval, Subscription} from 'rxjs';
 import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@app/data/services/config/device-position.config';
 import {environment} from '@environments/environment';
-import moment from 'moment';
 import {DevicePosition, DevicePositionFilter, ITrackPosition} from '@app/data/services/model/device-position.model';
 import {PositionUtils} from '@app/trip/services/position.utils';
 import {RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
-import {Trip} from '@app/trip/services/model/trip.model';
 import {RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
 import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
 import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '@app/data/services/model/data-entity.model';
 import {ErrorCodes} from '@app/data/services/errors';
-import {json} from '@angular-devkit/core';
 
 // TODO
 const Queries: BaseEntityGraphqlQueries = {
   loadAll: ``,
 };
 
-// TODO Check type
+// TODO Check class type
 @Injectable({providedIn: 'root'})
 export class DevicePositionService extends RootDataSynchroService<DevicePosition<any>, DevicePositionFilter, number>  {
 
@@ -67,12 +64,11 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
   protected ngOnStart(): Promise<void> {
     console.log(`${this._logPrefix} starting...`)
     this.onSaveSubscriptions.add(
-      // TODO Type entities
       this.monitorOnSave.map(c => this.injector.get(c).onSave.subscribe((entities) => {
         if (this._watching) {
           entities.forEach(e => {
             const devicePosition:DevicePosition<any> = new DevicePosition<any>();
-            devicePosition.objectType = e.__typename;
+            devicePosition.objectType = e.TYPENAME;
             devicePosition.objectId = e.id;
             if (RootDataEntityUtils.isLocal(e)) this.saveLocally(devicePosition);
             else this.save(devicePosition, {}); // TODO Options
@@ -106,7 +102,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     this.fillOfflineDefaultProperties(entity);
     entity.synchronizationStatus = SynchronizationStatusEnum.DIRTY;
     const jsonLocal = this.asObject(entity, {...MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE});
-    if (this._debug) console.debug(`${this._logPrefix} [offline] Saving trip locally...`, jsonLocal);
+    if (this._debug) console.debug(`${this._logPrefix} [offline] Saving device position locally...`, jsonLocal);
     await this.entities.save(jsonLocal, {entityName: DevicePosition.TYPENAME});
   }
 

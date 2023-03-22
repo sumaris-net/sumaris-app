@@ -1,6 +1,6 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
-import {CUSTOM_ELEMENTS_SCHEMA, NgModule, OnInit, SecurityContext} from '@angular/core';
+import {CUSTOM_ELEMENTS_SCHEMA, NgModule, SecurityContext} from '@angular/core';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MAT_MOMENT_DATE_ADAPTER_OPTIONS, MomentDateAdapter } from '@angular/material-moment-adapter';
 
@@ -77,6 +77,7 @@ import {ProgressInterceptor} from '@sumaris-net/ngx-components';
 import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
 import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@app/data/services/config/device-position.config';
 import {TripService} from '@app/trip/services/trip.service';
+import {ObservedLocationService} from '@app/trip/services/observed-location.service';
 @NgModule({
   declarations: [
     AppComponent
@@ -410,7 +411,7 @@ import {TripService} from '@app/trip/services/trip.service';
     },
     {
       provide: DEVICE_POSTION_ENTITY_MONITORING,
-      useValue: [TripService],
+      useValue: [TripService, ObservedLocationService],
     }
   ],
   bootstrap: [AppComponent],

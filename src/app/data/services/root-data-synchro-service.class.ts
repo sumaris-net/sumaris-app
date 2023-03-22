@@ -1,4 +1,4 @@
-import { concat, defer, Observable, of } from 'rxjs';
+import {concat, defer, Observable, of, Subject} from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { RootDataEntityUtils, RootDataEntity } from './model/root-data-entity.model';
 import {
@@ -130,6 +130,7 @@ export abstract class RootDataSynchroService<
 
   protected importationProgress$: Observable<number>;
   protected loading = false;
+  readonly onSave:Subject<T[]> = new Subject<T[]>();
 
   get featureName(): string {
     return this._featureName || DEFAULT_FEATURE_NAME;
@@ -309,7 +310,7 @@ export abstract class RootDataSynchroService<
         data = res && res.data;
       }
 
-      // COnvert to entity
+      // Convert to entity
       const entity = (!opts || opts.toEntity !== false)
         ? this.fromObject(data)
         : (data as T);
