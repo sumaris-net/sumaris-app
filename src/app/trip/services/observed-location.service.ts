@@ -1,4 +1,4 @@
-import { Injectable, Injector } from '@angular/core';
+import {Injectable, Injector, Optional} from '@angular/core';
 import {
   AccountService, AppErrorWithDetails,
   AppFormUtils,
@@ -20,15 +20,15 @@ import {
   isNotNil,
   JobUtils,
   LoadResult,
-  NetworkService,
+  NetworkService, ShowToastOptions, Toasts,
   toNumber
 } from '@sumaris-net/ngx-components';
-import { Observable } from 'rxjs';
+import {Observable, Subject} from 'rxjs';
 
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { DataCommonFragments, DataFragments } from './trip.queries';
 import { filter, map } from 'rxjs/operators';
-import { MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS } from '../../data/services/model/data-entity.model';
+import {COPY_LOCALLY_AS_OBJECT_OPTIONS, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS} from '@app/data/services/model/data-entity.model';
 import { ObservedLocation } from './model/observed-location.model';
 import { RootDataEntityUtils } from '../../data/services/model/root-data-entity.model';
 import { SortDirection } from '@angular/material/sort';
@@ -54,6 +54,12 @@ import { AggregatedLanding } from '@app/trip/services/model/aggregated-landing.m
 import { AggregatedLandingService } from '@app/trip/services/aggregated-landing.service';
 import moment from 'moment';
 import { Program, ProgramUtils } from '@app/referential/services/model/program.model';
+import {Trip} from '@app/trip/services/model/trip.model';
+import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
+import {TrashRemoteService} from '@app/core/services/trash-remote.service';
+import {OverlayEventDetail} from '@ionic/core';
+import {ToastController} from '@ionic/angular';
+import {TranslateService} from '@ngx-translate/core';
 
 
 export interface ObservedLocationSaveOptions extends EntitySaveOptions {
@@ -256,6 +262,7 @@ export class ObservedLocationService
     IDataSynchroService<ObservedLocation, ObservedLocationFilter, number, ObservedLocationLoadOptions> {
 
   protected loading = false;
+  readonly onSave:Subject<ObservedLocation[]> = new Subject<ObservedLocation[]>();
 
   constructor(
     injector: Injector,
@@ -266,7 +273,10 @@ export class ObservedLocationService
     protected validatorService: ObservedLocationValidatorService,
     protected vesselService: VesselService,
     protected landingService: LandingService,
-    protected aggregatedLandingService: AggregatedLandingService
+    protected aggregatedLandingService: AggregatedLandingService,
+    protected trashRemoteService: TrashRemoteService,
+    @Optional() protected translate: TranslateService,
+    @Optional() protected toastController: ToastController
   ) {
     super(injector, ObservedLocation, ObservedLocationFilter, {
       queries: ObservedLocationQueries,
@@ -399,6 +409,17 @@ export class ObservedLocationService
     } finally {
       this.loading = false;
     }
+  }
+
+  async hasOfflineData(): Promise<boolean> {
+    const result = await super.hasOfflineData();
+    if (result) return result;
+
+    const res = await this.entities.loadAll(ObservedLocation.TYPENAME, {
+      offset: 0,
+      size: 0
+    });
+    return res && res.total > 0;
   }
 
   public listenChanges(id: number, opts?: {
@@ -551,7 +572,53 @@ export class ObservedLocationService
       await this.updateChildrenDate(entity);
     }
 
+    this.onSave.next([entity]);
     return entity;
+  }
+
+  async copyLocally(source: ObservedLocation, opts?: ObservedLocationLoadOptions): Promise<ObservedLocation> {
+    console.debug('[observed-location-service] Copy trip locally...', source);
+
+    opts = {
+      keepRemoteId: false,
+      deletedFromTrash: false,
+      withLanding: true,
+      ...opts
+    };
+    const isLocal = RootDataEntityUtils.isLocal(source);
+
+    // Create a new entity (without id and updateDate)
+    const json = this.asObject(source, {
+      ...COPY_LOCALLY_AS_OBJECT_OPTIONS,
+      keepRemoteId: opts.keepRemoteId,
+    });
+    json.synchronizationStatus = SynchronizationStatusEnum.DIRTY; // To make sure it will be saved locally
+
+    // Save
+    const target = await this.saveLocally(ObservedLocation.fromObject(json), opts);
+
+    // Remove from the local trash
+    if (opts.deletedFromTrash) {
+      if (isLocal) {
+        await this.entities.deleteFromTrash(source, {entityName: Trip.TYPENAME});
+      } else {
+        await this.trashRemoteService.delete(Trip.ENTITY_NAME, source.id);
+      }
+    }
+
+    if (opts.displaySuccessToast) {
+      await this.showToast({message: 'SOCIAL.USER_EVENT.INFO.COPIED_LOCALLY', type: 'info'});
+    }
+
+    return target;
+  }
+
+  async copyLocallyById(id: number, opts?: ObservedLocationLoadOptions & {displaySuccessToast?: boolean}): Promise<ObservedLocation> {
+    // Load existing data
+    const source = await this.load(id, {...opts, fetchPolicy: 'network-only'});
+    // Copy remote trip to local storage
+    const target = await this.copyLocally(source, opts);
+    return target;
   }
 
   /**
@@ -928,6 +995,10 @@ export class ObservedLocationService
         message: 'OBSERVED_LOCATION.ERROR.UPDATE_CHILDREN_DATE_ERROR'
       };
     }
+  }
+
+  protected showToast<T = any>(opts: ShowToastOptions): Promise<OverlayEventDetail<T>> {
+    return Toasts.show(this.toastController, this.translate, opts);
   }
 
 }
