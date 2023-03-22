@@ -10,7 +10,7 @@ import {
   AppTable,
   ConfigService,
   CORE_CONFIG_OPTIONS,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, EntityUtils,
   fadeInOutAnimation,
   firstNotNilPromise,
   HistoryPageReference,
@@ -44,7 +44,6 @@ import { VesselFilter } from '@app/vessel/services/filter/vessel.filter';
 import { APP_ENTITY_EDITOR } from '@app/data/quality/entity-quality-form.component';
 import moment from 'moment';
 import { TableElement } from '@e-is/ngx-material-table';
-import { setTimeout } from '@rx-angular/cdk/zone-less/browser';
 
 
 const ObservedLocationPageTabs = {
@@ -84,6 +83,7 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
   showObservers = true;
   landingEditor: LandingEditor = undefined;
   enableReport: boolean;
+  canCopyLocally = false;
 
   get table(): ILandingsTable {
     return this.$table.value;
@@ -383,6 +383,12 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     return this.router.navigateByUrl(this.computePageUrl(this.data.id) + '/report');
   }
 
+  async copyLocally() {
+    if (!this.data) return;
+    // Copy the trip
+    await this.dataService.copyLocallyById(this.data.id, {withLanding: true, displaySuccessToast: true});
+  }
+
   /* -- protected methods -- */
 
   protected async setProgram(program: Program) {
@@ -541,6 +547,8 @@ export class ObservedLocationPage extends AppRootDataEditor<ObservedLocation, Ob
     // Propagate program
     const programLabel = data.program && data.program.label;
     this.$programLabel.next(programLabel);
+
+    this.canCopyLocally = this.accountService.isAdmin() && EntityUtils.isRemoteId(data?.id);
   }
 
   protected async setValue(data: ObservedLocation) {
