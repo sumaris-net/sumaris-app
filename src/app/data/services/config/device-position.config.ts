@@ -7,15 +7,15 @@ export const DEVICE_POSTION_ENTITY_MONITORING = new InjectionToken<EmitOnSave<an
 
 export const DEVICE_POSITION_CONFIG_OPTION = Object.freeze({
   ENABLE: <FormFieldDefinition> {
-    key: 'sumaris.devicePosition.enable',
+    key: 'sumaris.app.service.gps.enable',
     label: 'CONFIGURATION.OPTIONS.DEVICE_POSITION_ENABLE',
     type: 'boolean',
     defaultValue: true,
   },
   CHECK_INTERVAL: <FormFieldDefinition> {
-    key: 'sumaris.devicePosition.enable',
+    key: 'sumaris.app.service.gps.periodMs',
     label: 'CONFIGURATION.OPTIONS.CHECK_INTERVAL',
     type: 'integer',
-    defaultValue: 5,
+    defaultValue: 30000,
   },
 });
