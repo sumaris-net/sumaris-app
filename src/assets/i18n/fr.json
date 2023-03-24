@@ -158,6 +158,7 @@
     "TAB_CACHE": "Données en cache",
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Nom de l'application",
+    "TAB_JOBS": "Traitements",
     "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
     "PREVIEW_DIVIDER": "Prévisualisation",
@@ -2326,6 +2327,7 @@
       "INDIVIDUAL_SEX": "Sexe individu",
       "SEX": "Sexe",
       "WEIGHT": "Poids (g)",
+      "SUBSAMPLE_WEIGHT": "Poids échantillonné (g)",
       "SUBSAMPLING_WEIGHT": "Poids échantillonné (g)",
       "SUBSAMPLING_CATEGORY": "Catégorie de sous-échantillonnage",
       "STATION_COUNT": "Nombre de station",
@@ -2370,14 +2372,15 @@
     "SHEET": {
       "TR": "Marées",
       "HH": "Opérations",
-      "PG": "Engins",
-      "SL": "Captures",
+      "CT": "Captures",
+      "SL": "Espèces",
       "HL": "Mensurations",
       "CA": "Sex-Age",
       "CL": "Débarquements",
       "CE": "Efforts",
       "ST": "Mesures individuelles",
-      "RL": "Relâché"
+      "RL": "Relâché",
+      "FG": "Engins de pêche"
     },
     "OPTIONS": {
       "ENABLE": "Extraction > Activer ?",
@@ -2585,6 +2588,17 @@
     },
     "INFO": {
       "MESSAGE_SENT": "Message <b>envoyé</b>"
+    }
+  },
+  "JOB": {
+    "LIST": {
+      "TITLE": "Liste des traitements",
+      "STOP_JOB": "Arrêter le traitement",
+      "JOB_NAME": "Nom du traitement",
+      "JOB_DESCRIPTION": "Description du traitement",
+      "JOB_TYPE": "Type de traitement",
+      "JOB_RECIPIENT": "Destinataire",
+      "JOB_PROGRESS": "Progression"
     }
   },
   "FILE": {

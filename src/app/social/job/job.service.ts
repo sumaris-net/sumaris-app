@@ -13,6 +13,7 @@ export const JobFragments = {
   light: gql`fragment LightJobFragment on JobVO {
     id
     name
+    startDate
     status
   }`,
   full: gql`

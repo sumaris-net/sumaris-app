@@ -1,0 +1,38 @@
+<mat-toolbar>
+  <button mat-icon-button (click)="openAddJobMenu()" [title]="'COMMON.BTN_ADD' | translate">
+    <mat-icon>add</mat-icon>
+  </button>
+  <button mat-icon-button (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH' | translate">
+    <mat-icon>refresh</mat-icon>
+  </button>
+</mat-toolbar>
+
+<ion-content>
+  <ion-list>
+    <ion-item *rxFor="let job of jobs$" (click)="openDetail(job)" tappable>
+      <app-icon *ngIf="job.icon; let icon" slot="start" [ref]="icon"></app-icon>
+      <ion-label color="dark">
+        <h4>{{ job.name }}
+          | <b>{{ 'SOCIAL.JOB.STATUS_ENUM.' + job.status | translate }}</b>
+        </h4>
+        <p>
+          <ng-container *ngIf="job.startDate && job.status !== 'RUNNING'">
+            {{job.startDate|dateFormat: {time: true} }}
+            &nbsp;|&nbsp;{{job.startDate|dateFromNow}}
+          </ng-container>
+          <ion-progress-bar
+            slot="end"
+            [class.cdk-visually-hidden]="job.status !== 'RUNNING'"
+            [value]="job.progression?.current"
+          ></ion-progress-bar>
+        </p>
+      </ion-label>
+
+      <ion-icon slot="end" *ngIf="job.status === 'RUNNING'; else notRunning"
+                name="close" (click)="cancel(job)" ></ion-icon>
+      <ng-template #notRunning>
+        <ion-badge slot="end">{{job.endDate|dateFormat}}</ion-badge>
+      </ng-template>
+    </ion-item>
+  </ion-list>
+</ion-content>
