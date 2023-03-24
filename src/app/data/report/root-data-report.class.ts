@@ -15,7 +15,10 @@ export interface RootDataReportOptions {
 }
 
 @Directive()
-export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number>
+export abstract class AppRootDataReport<
+  T extends DataEntity<T, ID>,
+  ID = number,
+  S = any>
   implements OnInit, AfterViewInit, OnDestroy {
 
   protected readonly route: ActivatedRoute;
@@ -53,7 +56,7 @@ export abstract class AppRootDataReport<T extends DataEntity<T, ID>, ID = number
   @Input() showToolbar = true;
   @Input() id: ID;
   @Input() data: T;
-  @Input() stats: any = {};
+  @Input() stats: Partial<S> = {};
   @Input() debug = !environment.production;
 
   @ViewChild('reveal', {read: RevealComponent, static: false}) reveal: RevealComponent;

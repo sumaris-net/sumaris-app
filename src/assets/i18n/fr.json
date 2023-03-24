@@ -1139,7 +1139,18 @@
     },
     "REPORT": {
       "TITLE": "<small>{{ vessel }}</small> Rapport marée du {{ departureDate }}",
-      "TITLE_SLIDE": "Rapport marée"
+      "TITLE_SLIDE": "Rapport marée",
+      "CHART": {
+        "INDIVIDUAL_COUNT": "Nb individus",
+        "LENGTH": "Taille",
+        "LANDING": "Débarquement",
+        "DISCARD": "Rejet",
+        "GEAR_POSITION_T": "Tribord",
+        "GEAR_POSITION_B": "Bâbord",
+        "SPECIES_LENGTH": "Répartition en taille",
+        "TOTAL_CATCH": "Capture totale",
+        "LANDING_AND_DISCARD_COMPARISON": "Comparaison des débarquements et rejets"
+      }
     }
   },
   "EXPECTED_SALE": {

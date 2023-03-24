@@ -2,7 +2,7 @@ import { Component, Inject, Injector, TemplateRef, ViewChild, ViewContainerRef, 
 import { AppRootDataReport } from '@app/data/report/root-data-report.class';
 import { Trip } from '@app/trip/services/model/trip.model';
 import { TripService } from '@app/trip/services/trip.service';
-import { Color, firstTruePromise, isNotNil, sleep, waitFor } from '@sumaris-net/ngx-components';
+import { collectByProperty, Color, EntityUtils, firstTruePromise, isEmptyArray, isNil, isNotEmptyArray, isNotNil, removeDuplicatesFromArray, sleep, waitFor } from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
 import { OperationService } from '@app/trip/services/operation.service';
 import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
@@ -12,6 +12,15 @@ import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, Scale
 import { DOCUMENT } from '@angular/common';
 import pluginTrendlineLinear from 'chartjs-plugin-trendline';
 import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
+import { SpeciesLength, TripReportService } from '@app/trip/trip/report/trip-report.service';
+import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
+import { ProgramRefService } from '@app/referential/services/program-ref.service';
+import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
+import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
+
+export declare type TripChart = ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions;
+export declare type TripCharts = { [key: string]: TripChart };
+export declare type TripReportStats = { charts: TripCharts };
 
 @Component({
   selector: 'app-trip-report',
@@ -19,19 +28,40 @@ import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
   styleUrls: ['./trip.report.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class TripReport extends AppRootDataReport<Trip> {
+export class TripReport extends AppRootDataReport<Trip, number, TripReportStats> {
 
-  private tripService: TripService;
-  private operationService: OperationService;
+  defaultTitleOptions: ChartTitleOptions = {
+    fontColor: Color.get('secondary').rgba(1),
+    fontSize: 42,
+    display: true
+  };
+  scaleLabelDefaultOption: ScaleTitleOptions = {
+    display: true,
+    fontStyle: 'bold',
+    fontSize: 18
+  };
+  legendDefaultOption: ChartLegendOptions = {
+    position: 'right'
+  };
+  defaultOpacity = 0.8;
+  colorLanding = ChartJsUtilsColor.getDerivativeColor(Color.get('tertiary'), 2);
+  colorDiscard = ChartJsUtilsColor.getDerivativeColor(Color.get('danger'), 2);
+
+  protected readonly tripService: TripService;
+  protected readonly tripReportService: TripReportService;
+  protected readonly pmfmNamePipe: PmfmNamePipe;
+
   mapReadySubject = new BehaviorSubject<boolean>(false);
 
   @ViewChild('mapContainer', { 'read': ViewContainerRef }) mapContainer;
   @ViewChild('mapTemplate') mapTemplate: TemplateRef<null>;
 
-  constructor(injector: Injector, @Inject(DOCUMENT) private _document: Document) {
+  constructor(injector: Injector,
+              @Inject(DOCUMENT) private _document: Document) {
     super(injector);
     this.tripService = injector.get(TripService);
-    this.operationService = injector.get(OperationService);
+    this.tripReportService = injector.get(TripReportService);
+    this.pmfmNamePipe = injector.get(PmfmNamePipe);
     Chart.plugins.register(pluginTrendlineLinear);
     Chart.plugins.register(ChartJsPluginTresholdLine);
     Chart.plugins.register(ChartJsPluginMedianLine);
@@ -41,14 +71,24 @@ export class TripReport extends AppRootDataReport<Trip> {
     console.debug(`[${this.constructor.name}.loadData]`, arguments);
     const data = await this.tripService.load(id, { withOperation: false });
 
-    const res = await this.operationService.loadAllByTrip({
-      tripId: id
-    }, { fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/ });
+    const speciesLength = await this.tripReportService.loadSpeciesLength({
+      program: data.program,
+      includedIds: [data.id]
+    }, {
+      fetchPolicy: 'no-cache',
+      cache: false // TODO: enable cache
+    })
 
-    data.operations = res.data;
+    // Load pmfms
+    const pmfms = await this.programRefService.loadProgramPmfms(data.program.label, {
+      acquisitionLevel: AcquisitionLevelCodes.SORTING_BATCH_INDIVIDUAL
+    });
 
     // NOTE : This may be done in another place
-    this.stats.charts = this.computeDummyCharts();
+    this.stats.charts = {
+      //...this.computeDummySpeciesCharts(),
+      ...this.computeSpeciesCharts(pmfms, speciesLength)
+    };
 
     return data;
   }
@@ -112,9 +152,236 @@ export class TripReport extends AppRootDataReport<Trip> {
     await firstTruePromise(this.mapReadySubject);
   }
 
+  protected computeSpeciesCharts(pmfms: IDenormalizedPmfm[],
+                                 data: SpeciesLength[]): TripCharts {
+
+    // For each species
+    const dataBySpecies = collectByProperty(data, 'species');
+    return Object.keys(dataBySpecies).reduce((charts, species) => {
+
+      // Get data
+      const speciesData = dataBySpecies[species];
+      const taxonGroupId = speciesData.find(sl => isNotNil(sl.taxonGroupId))?.taxonGroupId;
+
+      // Search the right length pmfms
+      const lengthPmfm = (pmfms || []).find(p => PmfmUtils.isLength(p)
+        && (isNil(taxonGroupId) || isEmptyArray(p.taxonGroupIds) || p.taxonGroupIds.includes(taxonGroupId))
+      );
+
+      let speciesChartIndex = 0;
+
+      const catchChart = this.computeSpeciesBarChart(species, lengthPmfm, speciesData);
+      if (catchChart) charts[species + '-' + speciesChartIndex++] = catchChart;
+
+      const landingChart = this.computeSpeciesBarChart(species, lengthPmfm, speciesData, 'LAN');
+      if (landingChart) charts[species + '-' + speciesChartIndex++] = landingChart;
+
+      const discardChart = this.computeSpeciesBarChart(species, lengthPmfm, speciesData, 'DIS');
+      if (discardChart) charts[species + '-' + speciesChartIndex++] = discardChart;
+
+      const bubbleChart = this.computeSpeciesBubbleChart(species, lengthPmfm, speciesData);
+      if (bubbleChart) charts[species + '-' + speciesChartIndex++] = bubbleChart;
+
+      return charts;
+    }, {});
+  }
+
+  protected computeSpeciesBarChart(species: string,
+                                   lengthPmfm: IDenormalizedPmfm,
+                                   data: SpeciesLength[],
+                                   catchCategoryFilter?: 'LAN' | 'DIS',
+                                   ): TripChart {
+    const pmfmName = lengthPmfm && this.pmfmNamePipe.transform(lengthPmfm, {withUnit: true, html: false})
+       || this.translate.instant('TRIP.REPORT.CHART.LENGTH');
+    const unitConversion =  lengthPmfm?.unitLabel === 'cm' ? 0.1 : 1;
+
+    // Filter data
+    if (catchCategoryFilter) {
+      data = data.filter(sl => sl.catchCategory === catchCategoryFilter);
+    }
+
+    // if no data: skip
+    if (isEmptyArray(data)) return null;
+
+    const translations = this.translate.instant([
+      'TRIP.REPORT.CHART.SPECIES_LENGTH',
+      'TRIP.REPORT.CHART.TOTAL_CATCH',
+      'TRIP.REPORT.CHART.GEAR_POSITION_T',
+      'TRIP.REPORT.CHART.GEAR_POSITION_B',
+      'TRIP.REPORT.CHART.DISCARD',
+      'TRIP.REPORT.CHART.LANDING',
+    ]);
+    const subtitle = catchCategoryFilter
+      ? translations[catchCategoryFilter === 'DIS' ? 'TRIP.REPORT.CHART.DISCARD' : 'TRIP.REPORT.CHART.LANDING']
+      : translations['TRIP.REPORT.CHART.TOTAL_CATCH'];
+    const chart: TripChart = {
+      type: 'bar',
+      options: {
+        title: {
+          ...this.defaultTitleOptions,
+          text: [
+            species,
+            translations['TRIP.REPORT.CHART.SPECIES_LENGTH'],
+            `- ${subtitle} -`
+          ]
+        },
+        scales: {
+          xAxes: [
+            {
+              stacked: true,
+              scaleLabel: {
+                ...this.scaleLabelDefaultOption,
+                labelString: pmfmName
+              }
+            }
+          ],
+          yAxes: [
+            {
+              stacked: true,
+              scaleLabel: {
+                ...this.scaleLabelDefaultOption,
+                labelString: this.translate.instant('TRIP.REPORT.CHART.INDIVIDUAL_COUNT')
+              }
+            }
+          ]
+        },
+        legend: {
+          ...this.legendDefaultOption
+        },
+        plugins: {
+          tresholdLine: { // NOTE : custom plugin
+            color: Color.get('red').rgba(this.defaultOpacity),
+            style: 'dashed',
+            width: 3,
+            value: 3, // TODO
+            orientation: 'x'
+          }
+        }
+      }
+    };
+
+
+    // Add labels
+    const min = data.reduce((max, sl) => Math.min(max, sl.lengthClass), 99999) * unitConversion;
+    const max = data.reduce((max, sl) => Math.max(max, sl.lengthClass), 0) * unitConversion;
+    const xAxisLabels = Array(max - min + 1)
+      .fill(min)
+      .map((v, index) => (v + index).toString());
+    ChartJsUtils.pushLabels(chart, xAxisLabels);
+
+    const createCathCategorySeries = (data: SpeciesLength[], stackIndex = 0, suffix = '' ) => {
+      const dataByCatchCategory = collectByProperty(data, 'catchCategory');
+
+      // For each LAN, DIS
+      const catchCategories = !catchCategoryFilter
+        ? removeDuplicatesFromArray(['LAN', 'DIS', ...Object.keys(dataByCatchCategory)])
+        : Object.keys(dataByCatchCategory);
+      catchCategories
+        .filter(cat => !catchCategoryFilter || catchCategoryFilter === cat)
+        .forEach(catchCategory => {
+          const data = Array(xAxisLabels.length).fill(0);
+          (dataByCatchCategory[catchCategory] || []).forEach(sl => {
+            const labelIndex = sl.lengthClass * unitConversion - min;
+            data[labelIndex] += (sl.numberAtLength || 0);
+          });
+
+          const color = catchCategory === 'DIS' ? this.colorDiscard[stackIndex] : this.colorLanding[stackIndex];
+          const label = translations[catchCategory === 'DIS' ? 'TRIP.REPORT.CHART.DISCARD' : 'TRIP.REPORT.CHART.LANDING'] + suffix;
+          ChartJsUtils.pushDataSetOnChart(chart, {
+            label,
+            backgroundColor: color.rgba(this.defaultOpacity),
+            stack: `${stackIndex}`,
+            data
+          });
+        });
+    }
+
+    const dataByGearPosition = collectByProperty(data, 'subGearPosition');
+    let gearPositions = Object.keys(dataByGearPosition);
+    if (isNotEmptyArray(gearPositions)) {
+      // For each T, B
+      gearPositions = removeDuplicatesFromArray(['B', 'T', ...gearPositions]);
+      gearPositions.forEach((gearPosition, stackIndex) => {
+        const seriesNameSuffix = ' - ' + translations['TRIP.REPORT.CHART.GEAR_POSITION_' + gearPosition.toUpperCase()];
+        createCathCategorySeries(dataByGearPosition[gearPosition], stackIndex, seriesNameSuffix)
+      })
+    }
+    else {
+      createCathCategorySeries(data);
+    }
+
+    return chart;
+  }
+
+  protected computeSpeciesBubbleChart(species: string,
+                                      lengthPmfm: IDenormalizedPmfm,
+                                      data: SpeciesLength[]): TripChart {
+    const pmfmName = lengthPmfm && this.pmfmNamePipe.transform(lengthPmfm, {withUnit: true, html: false})
+    || this.translate.instant('TRIP.REPORT.CHART.LENGTH');
+    const unitConversion =  lengthPmfm?.unitLabel === 'cm' ? 0.1 : 1;
+    const chart: TripChart = {
+      type: 'bubble',
+      options: {
+        title: {
+          ...this.defaultTitleOptions,
+          text: [species,
+            this.translate.instant('TRIP.REPORT.CHART.LANDING_AND_DISCARD_COMPARISON'),
+            //'(sous trait)'
+          ]
+        },
+        legend: {
+          ...this.legendDefaultOption
+        },
+        scales: {
+          xAxes: [
+            {
+              scaleLabel: {
+                ...this.scaleLabelDefaultOption,
+                labelString: 'Quantité dans le chalut sélectif (kg)'
+              }
+            }
+          ],
+          yAxes: [
+            {
+              scaleLabel: {
+                ...this.scaleLabelDefaultOption,
+                labelString: 'Quantité dans le chalut standard (kg)'
+              }
+            }
+          ]
+        },
+        plugins: {
+          medianLine: {
+            color: Color.get('red').rgba(this.defaultOpacity),
+            orientation: 'b',
+            style: 'solid',
+            width: 3
+          }
+        }
+      }
+    };
+    ChartJsUtils.pushDataSetOnChart(chart, {
+      label: 'Langoustine G',
+      backgroundColor: this.colorLanding[0].rgba(this.defaultOpacity),
+      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))
+    });
+    ChartJsUtils.pushDataSetOnChart(chart, {
+      label: 'Langoustine D',
+      backgroundColor: this.colorLanding[1].rgba(this.defaultOpacity),
+      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))
+    });
+    ChartJsUtils.pushDataSetOnChart(chart, {
+      label: 'Langoustine R',
+      backgroundColor: this.colorDiscard[0].rgba(this.defaultOpacity),
+      data: ChartJsUtils.computeSamplesToChartPoint(ChartJsUtils.genDummySamplesSets(30, 2, 0, 90))
+    });
+
+    return chart;
+  }
+
   /* -- DEBUG only -- */
 
-  protected computeDummyCharts(): { [key: string]: ChartConfiguration } {
+  protected computeDummySpeciesCharts(): { [key: string]: ChartConfiguration } {
     const defaultTitleOptions: ChartTitleOptions = {
       fontColor: Color.get('secondary').rgba(1),
       fontSize: 42,
@@ -134,73 +401,6 @@ export class TripReport extends AppRootDataReport<Trip> {
     const colorLanding = ChartJsUtilsColor.getDerivativeColor(Color.get('tertiary'), 2);
     const colorDiscard = ChartJsUtilsColor.getDerivativeColor(Color.get('danger'), 2);
 
-    charts['01'] = {
-      type: 'bar',
-      options: {
-        title: {
-          ...defaultTitleOptions,
-          text: ['Répartition en taille des langoustines', '- Capture totales -']
-        },
-        scales: {
-          xAxes: [
-            {
-              stacked: true,
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Taille céphalotoracique (mm)'
-              }
-            }
-          ],
-          yAxes: [
-            {
-              stacked: true,
-              scaleLabel: {
-                ...scaleLableDefaultOption,
-                labelString: 'Nb individus'
-              }
-            }
-          ]
-        },
-        legend: {
-          ...legendDefaultOption
-        },
-        plugins: {
-          tresholdLine: { // NOTE : custom plugin
-            color: Color.get('red').rgba(defaultOpacity),
-            style: 'dashed',
-            width: 3,
-            value: 3,
-            orientation: 'x'
-          }
-        }
-      }
-    };
-    const chart01_label = Array(12).fill(3).map((v, i) => (v * (i + 1)).toString());
-    ChartJsUtils.pushLabels(charts['01'], chart01_label);
-    ChartJsUtils.pushDataSetOnChart(charts['01'], {
-      label: 'Débarquement - Babord',
-      backgroundColor: colorLanding[0].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 20, 3, 2),
-      stack: '0'
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['01'], {
-      label: 'Rejet - Babord',
-      backgroundColor: colorDiscard[0].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 20, 3, 1 / 2),
-      stack: '0'
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['01'], {
-      label: 'Débarquement - Tribord',
-      backgroundColor: colorLanding[1].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 80, 20, 3, 2),
-      stack: '1'
-    });
-    ChartJsUtils.pushDataSetOnChart(charts['01'], {
-      label: 'Rejet - Tribord',
-      backgroundColor: colorDiscard[1].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 80, 20, 3, 1 / 2),
-      stack: '1'
-    });
 
     charts['02'] = {
       type: 'bar',
@@ -245,12 +445,12 @@ export class TripReport extends AppRootDataReport<Trip> {
     ChartJsUtils.pushDataSetOnChart(charts['02'], {
       label: 'Selectif - Tribord',
       backgroundColor: colorLanding[0].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 70, 20, 4, 1.2)
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart02_label, 70, 20, 4, 1.2)
     });
     ChartJsUtils.pushDataSetOnChart(charts['02'], {
       label: 'Selectif - Babord',
       backgroundColor: colorLanding[1].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 60, 20, 4, 2)
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart02_label, 60, 20, 4, 2)
     });
 
     charts['03'] = {
@@ -296,12 +496,12 @@ export class TripReport extends AppRootDataReport<Trip> {
     ChartJsUtils.pushDataSetOnChart(charts['03'], {
       label: 'Selectif - Tribord',
       backgroundColor: colorDiscard[0].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 90, 30, 4, 1.2)
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart03_label, 90, 30, 4, 1.2)
     });
     ChartJsUtils.pushDataSetOnChart(charts['03'], {
       label: 'Selectif - Babord',
       backgroundColor: colorDiscard[1].rgba(defaultOpacity),
-      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart01_label, 70, 30, 4, 1.2)
+      data: ChartJsUtils.genDummySampleFromLabelsWithWeight(chart03_label, 70, 30, 4, 1.2)
     });
 
     charts['04'] = {
