@@ -110,13 +110,13 @@ export abstract class AppRootDataReport<
     this.destroySubject.next();
   }
 
-  async start() {
+  async start(opts?: any) {
     console.debug(`[${this.constructor.name}.start]`);
     await this.platform.ready();
     try {
       // Load data by id
       if (isNotNil(this.id)) {
-        await this.load(this.id);
+        await this.load(this.id, opts);
         this.markAsLoaded();
       }
       // Load data by route
@@ -134,18 +134,37 @@ export abstract class AppRootDataReport<
     }
   };
 
-  async load(id: ID): Promise<void> {
+  async load(id: ID, opts?: any): Promise<void> {
     console.debug(`[${this.constructor.name}.id]`, arguments);
-    const data = await this.loadData(id);
+    const data = await this.loadData(id, opts);
 
     this.data = data;
 
     this.$defaultBackHref.next(this.computeDefaultBackHref(data));
     this.$title.next(await this.computeTitle(data));
     this.revealOptions.printHref = this.revealOptions.printHref || this.computePrintHref(data);
+  }
+
+  async reload(opts?: any) {
+    if (!this.loaded || isNil(this.id)) return; // skip
+
+    console.debug(`[${this.constructor.name}.reload]`);
+    this.markAsLoading();
+    try {
+      // Load data by id
+      await this.load(this.id, opts);
+      this.markAsLoaded();
+
+      // Update the view: initialise reveal
+      await this.updateView();
+
+    } catch (err) {
+      // NOTE: Test if setError work correctly
+      this.setError(err);
+    }
   };
 
-  protected abstract loadData(id: ID): Promise<T>;
+  protected abstract loadData(id: ID, opts?: any): Promise<T>;
 
   // NOTE: an interface for opts ???
   setError(err: string | AppErrorWithDetails, opts?: {
@@ -215,10 +234,10 @@ export abstract class AppRootDataReport<
     };
   }
 
-  protected async loadFromRoute(): Promise<void> {
+  protected async loadFromRoute(opts?: any): Promise<void> {
     console.debug(`[${this.constructor.name}.loadFromRoute]`);
-    const id = this.getIdFromPathIdAttribute(this._pathIdAttribute);
-    await this.load(id);
+    this.id = this.getIdFromPathIdAttribute(this._pathIdAttribute);
+    await this.load(this.id, opts);
     this.markAsLoaded();
   }
 
@@ -231,6 +250,13 @@ export abstract class AppRootDataReport<
   protected markForCheck() {
     console.debug(`[${this.constructor.name}.markForCheck]`);
     this.cd.markForCheck();
+  }
+
+  protected markAsLoading() {
+    console.debug(`[${this.constructor.name}.markAsLoading]`);
+    if (!this.loadingSubject.value) {
+      this.loadingSubject.next(true);
+    }
   }
 
   protected markAsLoaded() {

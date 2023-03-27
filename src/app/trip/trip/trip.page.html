@@ -47,7 +47,7 @@
 
   <!-- report -->
   <button mat-menu-item *ngIf="enableReport"
-          [disabled]="isNewData || disabled"
+          [disabled]="isNewData || !data.controlDate"
           (click)="openReport($event)">
     <ion-label>
       <mat-icon>description</mat-icon>&nbsp;

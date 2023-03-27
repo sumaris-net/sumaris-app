@@ -4,6 +4,11 @@
 
     <ion-title [innerHTML]="$title|async"></ion-title>
 
+    <!-- Refresh -->
+    <ion-button slot="end" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH'|translate">
+      <mat-icon slot="icon-only">refresh</mat-icon>
+    </ion-button>
+
     <!-- Help button -->
     <ion-button slot="end" (click)="reveal.toggleHelp()">
       <mat-icon slot="icon-only">help_outline</mat-icon>
@@ -50,25 +55,43 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate" (slideChanged)="onSlideChanged($event)">
     <section>
-      <section>
-        <h1>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
-        <ul>
-          <li>{{ 'TRIP.TABLE.VESSEL'|translateContext: i18nContext.suffix }} : {{ data.vesselSnapshot.exteriorMarking }}</li>
-          <li>{{ 'TRIP.DEPARTURE_DATE_TIME'|translateContext: i18nContext.suffix }} : {{ data.departureDateTime|dateFormat:{time: false} }}</li>
-          <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
+      <section class="summary">
+        <h2>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h2>
+        <ul *ngVar="{
+        startDate: data.departureDateTime|dateFormat:{time: false},
+        endDate: data.returnDateTime|dateFormat:{time: false}
+      } as vars">
+          <li><ion-icon name="boat"></ion-icon> {{ 'TRIP.REPORT.VESSEL_NAME'|translateContext: i18nContext.suffix }} <b>{{ data.vesselSnapshot.name }}</b></li>
+          <li class="no-icon"> {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING'|translateContext: i18nContext.suffix }} {{ data.vesselSnapshot.exteriorMarking }}</li>
+          <li><ion-icon name="settings"></ion-icon> {{ 'TRIP.REPORT.SELECTIVITY_DEVICES'|translateContext: i18nContext.suffix }} <b>{{ stats.selectivityDevices|arrayJoin:', ' }}</b></li>
+          <li><ion-icon name="calendar"></ion-icon> {{ 'TRIP.REPORT.DATES'|translateContext: i18nContext.suffix: vars }}</li>
+          <li *ngIf="stats.seabedFeatures"><mat-icon>terrain</mat-icon> {{ 'TRIP.REPORT.SEABED_FEATURES'|translateContext: i18nContext.suffix }} {{ stats.seabedFeatures | arrayJoin: ', '  }}</li>
+          <li *ngIf="stats.seaStates"><mat-icon>waves</mat-icon> {{ 'TRIP.REPORT.SEA_STATE'|translateContext: i18nContext.suffix }} {{ stats.seaStates | arrayJoin: ', '  }}</li>
+          <li *ngIf="stats.gearSpeed"><mat-icon>speed</mat-icon> {{ 'TRIP.REPORT.GEAR_SPEED'|translateContext: i18nContext.suffix }}
+            <span *ngIf="stats.gearSpeed.min !== stats.gearSpeed.max; else avgSpeedOnly"
+                  [innerHTML]="'TRIP.REPORT.GEAR_SPEED_STATS'|translateContext: i18nContext.suffix: stats.gearSpeed">
+            </span>
+            <ng-template #avgSpeedOnly>
+              <span [innerHTML]="'TRIP.REPORT.GEAR_SPEED_AVG'|translateContext: i18nContext.suffix: stats.gearSpeed"></span>
+            </ng-template>
+          </li>
+          <li><ion-icon name="navigate"></ion-icon> {{ 'TRIP.REPORT.OPERATION_COUNT'|translateContext: i18nContext.suffix }} {{ data.operations?.length || 0 }}</li>
         </ul>
       </section>
-      <section *ngFor="let c of stats.charts | keyvalue; last as last">
-        <div class="chart-container">
-          <canvas baseChart
-                  [datasets]="c.value.data.datasets"
-                  [options]="c.value.options"
-                  [labels]="c.value.data.labels"
-                  [colors]="c.value.colors"
-                  [chartType]="c.value.type">
-          </canvas>
-        </div>
-      </section>
+
+      <ng-container *ngFor="let s of stats.species">
+        <section *ngFor="let chart of s.charts | mapValues">
+          <div class="chart-container">
+            <canvas baseChart
+                    [chartType]="chart.type"
+                    [labels]="chart.data.labels"
+                    [colors]="chart.colors"
+                    [options]="chart.options"
+                    [datasets]="chart.data.datasets">
+            </canvas>
+          </div>
+        </section>
+      </ng-container>
       <section (entered)="!reveal.printing && showMap()">
         <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
         <!-- Operations map -->
@@ -96,7 +119,7 @@
                       [flyToBoundsDelay]="0"
                       [flyToBoundsDuration]="0"
                       [showGraticule]="true"
-                      [showTripTarget]="false"
+                      [showTripLayer]="false"
                       [latLongPattern]="latLongFormat">
   </app-operations-map>
 </ng-template>

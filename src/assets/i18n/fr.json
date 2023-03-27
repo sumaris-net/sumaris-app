@@ -1140,6 +1140,16 @@
     "REPORT": {
       "TITLE": "<small>{{ vessel }}</small> Rapport marée du {{ departureDate }}",
       "TITLE_SLIDE": "Rapport marée",
+      "VESSEL_NAME": "Nom navire(s) :",
+      "VESSEL_EXTERIOR_MARKING": "Immatriculation(s) :",
+      "SELECTIVITY_DEVICES": "Dispositif(s) testé(s) :",
+      "DATES": "Dates : du {{startDate}} au {{endDate}}",
+      "SEA_STATE": "État de la mer :",
+      "GEAR_SPEED": "Vitesse de traine :",
+      "GEAR_SPEED_STATS": "{{min}} à {{max}} Nds (<b>{{avg}} Nds</b> en moyenne)",
+      "GEAR_SPEED_AVG": "<b>{{avg}} Nds</b>",
+      "SEABED_FEATURES": "Types de fond :",
+      "OPERATION_COUNT": "Nombre d'OPs sélectionnés :",
       "CHART": {
         "INDIVIDUAL_COUNT": "Nb individus",
         "LENGTH": "Taille",
@@ -1149,7 +1159,13 @@
         "GEAR_POSITION_B": "Bâbord",
         "SPECIES_LENGTH": "Répartition en taille",
         "TOTAL_CATCH": "Capture totale",
-        "LANDING_AND_DISCARD_COMPARISON": "Comparaison des débarquements et rejets"
+        "LANDING_AND_DISCARD_COMPARISON": "Comparaison des débarquements et rejets",
+        "SELECTIVITY": {
+          "STANDARD": "Standard",
+          "SELECTIVE": "{{label}}",
+          "QUANTITY_IN_STANDARD": "Quantité dans le chalut standard (kg)",
+          "QUANTITY_IN_SELECTIVE": "Quantité dans le chalut sélectif (kg)"
+        }
       }
     }
   },

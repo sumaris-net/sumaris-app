@@ -259,13 +259,12 @@ export class ChartJsUtils {
     });
   }
 
-  static computeDataSetIntoCategs(dataset: number[], categs: ChartJsUtilsAutoCategItem[]): number[] {
-    return categs.map(c => dataset.filter(d => d >= c.start && d < c.stop).length);
+  static computeDataSetIntoCategs(dataset: number[], categories: ChartJsUtilsAutoCategItem[]): number[] {
+    return categories.map(c => dataset.filter(d => d >= c.start && d < c.stop).length);
   }
 
-  static computeSamplesToChartPoint(samples: number[][]): ChartPoint[] {
-    const radius = 6;
-    return samples.map(s => {return {x: s[0], y: s[1], r: radius}});
+  static computeChartPoints(values: number[][], radius: number = 6): ChartPoint[] {
+    return values.map(s => {return {x: s[0], y: s[1], r: radius}});
   }
 
   static computeColorsScaleFromLabels(labels: string[], options?: ColorScaleOptions): { label: string, color: Color }[] {

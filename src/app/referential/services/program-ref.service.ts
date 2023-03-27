@@ -472,7 +472,8 @@ export class ProgramRefService
    */
   watchProgramPmfms(programLabel: string, opts: {
     cache?: boolean;
-    acquisitionLevel: string;
+    acquisitionLevel?: string;
+    acquisitionLevels?: string[];
     strategyLabel?: string;
     gearId?: number;
     taxonGroupId?: number;
@@ -494,9 +495,10 @@ export class ProgramRefService
     }
 
     // Watch the program
+    const acquisitionLevels = opts?.acquisitionLevels || (opts?.acquisitionLevel && [opts.acquisitionLevel]);
     return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
         label: opts?.strategyLabel,
-        acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
+        acquisitionLevels
       }})
       .pipe(
         map(program => program.strategies || []),
@@ -536,7 +538,8 @@ export class ProgramRefService
    * Load program pmfms
    */
   loadProgramPmfms(programLabel: string, options?: {
-    acquisitionLevel: string;
+    acquisitionLevel?: string;
+    acquisitionLevels?: string[];
     strategyLabel?: string;
     gearId?: number;
     taxonGroupId?: number;
@@ -552,7 +555,8 @@ export class ProgramRefService
    * Watch program gears
    */
   watchGears(programLabel: string, opts?: {
-    acquisitionLevel: string;
+    acquisitionLevel?: string;
+    acquisitionLevels?: string[];
     strategyLabel?: string;
     toEntity?: boolean;
     cache?: boolean;
@@ -572,9 +576,10 @@ export class ProgramRefService
     }
 
     // Load the program, with strategies
+    const acquisitionLevels = opts?.acquisitionLevels || (opts?.acquisitionLevel && [opts.acquisitionLevel]);
     return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
       label: opts?.strategyLabel,
-      acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
+      acquisitionLevels
     }})
         .pipe(
           map(program => program.strategies || []),
@@ -603,6 +608,7 @@ export class ProgramRefService
    */
   watchTaxonGroups(programLabel: string, opts?: {
     acquisitionLevel?: string;
+    acquisitionLevels?: string[];
     strategyLabel?: string;
     toEntity?: boolean;
     cache?:  boolean;
@@ -622,9 +628,10 @@ export class ProgramRefService
     }
 
     // Watch program
+    const acquisitionLevels = opts?.acquisitionLevels || (opts?.acquisitionLevel && [opts.acquisitionLevel]);
     return this.watchByLabel(programLabel, {toEntity: false, withStrategies: true, strategyFilter: opts && {
         label: opts?.strategyLabel,
-        acquisitionLevels: opts?.acquisitionLevel && [opts.acquisitionLevel]
+        acquisitionLevels
       }})
       .pipe(
         // Get strategies
