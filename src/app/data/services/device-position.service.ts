@@ -11,17 +11,46 @@ import {IPosition} from '@app/trip/services/model/position.model';
 import {BehaviorSubject, interval, Subscription} from 'rxjs';
 import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@app/data/services/config/device-position.config';
 import {environment} from '@environments/environment';
-import {DevicePosition, DevicePositionFilter, ITrackPosition} from '@app/data/services/model/device-position.model';
+import {DevicePosition, DevicePositionFilter, ITrackPosition, ObjectType} from '@app/data/services/model/device-position.model';
 import {PositionUtils} from '@app/trip/services/position.utils';
 import {RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
 import {RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
 import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
-import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE} from '@app/data/services/model/data-entity.model';
+import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
 import {ErrorCodes} from '@app/data/services/errors';
+import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-service.class';
+import {gql} from '@apollo/client/core';
+import {DataCommonFragments} from '@app/trip/services/trip.queries';
+import {Trip} from '@app/trip/services/model/trip.model';
+
+export const DevicePositionFragment = {
+  devicePosition: gql`fragment DevicePositionFragment on DevicePositionVO {
+    id
+    dateTime
+    latitude
+    longitude
+    objectId
+    creationDate
+    updateDate
+    recorderPerson {
+      ...LightPersonFragment
+    }
+  }`,
+}
 
 // TODO
 const Queries: BaseEntityGraphqlQueries = {
   loadAll: ``,
+};
+const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
+  save: gql`mutation saveDevicePosition($devicePosition:DevicePositionVOInput!){
+    data: saveDevicePosition(devicePosition: $devicePosition){
+      ...DevicePositionFragment
+    }
+  }
+  ${DevicePositionFragment.devicePosition}
+  ${DataCommonFragments.lightPerson}
+  `,
 };
 
 // TODO Check class type
@@ -32,6 +61,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
   protected config:ConfigService;
 
+  protected saveInterval = 0;
   protected lastPosition:ITrackPosition;
   protected $checkLoop: Subscription;
   protected onSaveSubscriptions:Subscription = new Subscription();
@@ -54,6 +84,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
       DevicePositionFilter,
       {
         queries: Queries,
+        mutations: Mutations,
       }
     )
     this._logPrefix = '[DevicePositionService]';
@@ -68,8 +99,11 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
         if (this._watching) {
           entities.forEach(e => {
             const devicePosition:DevicePosition<any> = new DevicePosition<any>();
-            devicePosition.objectType = e.TYPENAME;
             devicePosition.objectId = e.id;
+            devicePosition.objectType = ObjectType.fromObject({name: e.constructor.ENTITY_NAME});
+            devicePosition.longitude = this.lastPosition.longitude;
+            devicePosition.latitude = this.lastPosition.latitude;
+            devicePosition.dateTime = this.lastPosition.date;
             if (RootDataEntityUtils.isLocal(e)) this.saveLocally(devicePosition);
             else this.save(devicePosition, {}); // TODO Options
           });
@@ -90,13 +124,80 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     return this.lastPosition;
   }
 
-  save(entity:DevicePosition<any>, opts?:EntitySaveOptions): Promise<DevicePosition<any>> {
+  async save(entity:DevicePosition<any>, opts?:EntitySaveOptions): Promise<DevicePosition<any>> {
     console.log(`${this._logPrefix} save current device position`, {position: this.lastPosition})
-    throw `${this._logPrefix} : remote save not yet implemented`;
+    const now = Date.now();
+    this.fillDefaultProperties(entity);
+    // Provide an optimistic response, if connection lost
+    // TODO
+    // const offlineResponse = (!opts || opts.enableOptimisticResponse !== false) ?
+    const offlineResponse = (false)
+      ? async (context) => {
+        // Make sure to fill id, with local ids
+        await this.fillOfflineDefaultProperties(entity);
+        // For the query to be tracked (see tracked query link) with a unique serialization key
+        context.tracked = (!entity.synchronizationStatus || entity.synchronizationStatus === 'SYNC');
+        if (isNotNil(entity.id)) context.serializationKey = `${Trip.TYPENAME}:${entity.id}`;
+        return {
+          data: [this.asObject(entity, SERIALIZE_FOR_OPTIMISTIC_RESPONSE)]
+        };
+      }
+      : undefined;
+    //  TODO ? Provide an optimistic response, if connection lost
+    const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
+    if (this._debug) console.debug(`[${this._logPrefix}] : Using minify object, to send:`, json);
+    const variables = {
+      devicePosition: json,
+    };
+    const mutation = this.mutations.save;
+    await this.graphql.mutate<{ data:any }>({
+      mutation,
+      variables,
+      offlineResponse,
+      refetchQueries: this.getRefetchQueriesForMutation({}), // TODO option
+      awaitRefetchQueries: false, // TODO option
+      error: {code: ErrorCodes.SAVE_ENTITY_ERROR, message: 'ERROR.SAVE_ENTITY_ERROR'},
+      update: async (cache, {data}) => {
+        const savedEntity = data && data.data;
+        // Local entity (optimistic response): save it
+        if (savedEntity.id < 0) {
+          if (this._debug) console.debug(`[${this._logPrefix}] [offline] : Saving trip locally...`, savedEntity);
+          await this.entities.save<DevicePosition<any, any>>(savedEntity);
+        } else {
+          // Remove existing entity from the local storage
+          // TODO Check this condition
+          if (entity.id < 0 && (savedEntity.id > 0 || savedEntity.updateDate)) {
+            if (this._debug) console.debug(`[${this._logPrefix}] Deleting trip {${entity.id}} from local storage`);
+            await this.entities.delete(entity);
+          }
+          // Copy id and update Date
+          this.copyIdAndUpdateDate(savedEntity, entity);
+          // Insert into the cache
+          if (RootDataEntityUtils.isNew(entity) && this.watchQueriesUpdatePolicy === 'update-cache') {
+            this.insertIntoMutableCachedQueries(cache, {
+              queries: this.getLoadQueries(),
+              data: savedEntity
+            });
+          }
+          if (opts && opts.update) {
+            opts.update(cache, {data});
+          }
+          if (this._debug) console.debug(`[${this._logPrefix}] DevicePosition saved remotely in ${Date.now() - now}ms`, entity);
+        }
+      },
+    });
+    //this.onSave.next([entity]);
+    return entity;
   }
 
   async saveLocally(entity:DevicePosition<any>, opts?:EntitySaveOptions) {
+    if (!(await this.checkIfmustSaveDevicePosition((await this.getLastDevicePositionSavedLocally())))) {
+      console.debug(`${this._logPrefix} skip save interval is less than this provided in configuration (${this.saveInterval})`);
+      return;
+    }
+
     console.log(`${this._logPrefix} save locally current device position`, {position: this.lastPosition})
+
     if (isNotNil(entity.id) && entity.id >= 0) throw new Error('Must be a local entity');
     this.fillDefaultProperties(entity);
     this.fillOfflineDefaultProperties(entity);
@@ -166,6 +267,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
   protected async onConfigChanged(config:Configuration) {
     const enabled = config.getPropertyAsBoolean(DEVICE_POSITION_CONFIG_OPTION.ENABLE);
     const checkInterval = config.getPropertyAsNumbers(DEVICE_POSITION_CONFIG_OPTION.CHECK_INTERVAL)[0];
+    this.saveInterval = config.getPropertyAsNumbers(DEVICE_POSITION_CONFIG_OPTION.SAVE_INTERVAL)[0];
 
     if (isNotNil(this.$checkLoop)) this.$checkLoop.unsubscribe();
     this._watching = (this.platform.mobile && enabled);
@@ -201,6 +303,20 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     console.log(`${this._logPrefix} : update last postison`, position);
     if (this.mustAskForEnableGeolocation.value === true) this.mustAskForEnableGeolocation.next(false);
     if (this._debug) console.debug(`${this._logPrefix} : ask for geolocation`, this.mustAskForEnableGeolocation.value);
+  }
+
+  protected async checkIfmustSaveDevicePosition(entity:DevicePosition<any, any>):Promise<boolean> {
+    const diffTime = DateUtils.moment().diff(entity.dateTime);
+    if (this._debug) console.debug(`${this._logPrefix} checkIfmustSaveDevicePosition : diff time between previous save is ${diffTime}`)
+    return diffTime > this.saveInterval;
+  }
+
+  protected async getLastDevicePositionSavedLocally():Promise<DevicePosition<any, any>> {
+    const currentId = await this.entities.currentValue(DevicePosition.TYPENAME);
+    return this.entities.load<DevicePosition<any, any>>(currentId, DevicePosition.TYPENAME);
+  }
+
+  protected async getLastDevicePositionSavedRemotely() {
   }
 
 }

@@ -18,4 +18,11 @@ export const DEVICE_POSITION_CONFIG_OPTION = Object.freeze({
     type: 'integer',
     defaultValue: 30000,
   },
+  SAVE_INTERVAL: <FormFieldDefinition> {
+    key: 'sumaris.app.service.gps.savePeriodMs',
+    label: 'CONFIGURATION.OPTIONS.SAVE_INTERVAL',
+    type: 'integer',
+    //defaultValue: 600000,
+    defaultValue: 30000,
+  },
 });
