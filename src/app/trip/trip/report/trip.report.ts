@@ -48,6 +48,7 @@ export class TripReport extends AppRootDataReport<Trip, number, TripReportStats>
   colorDiscard = ChartJsUtilsColor.getDerivativeColor(Color.get('danger'), 2);
 
   protected readonly tripService: TripService;
+  protected readonly operationService: OperationService;
   protected readonly tripReportService: TripReportService;
   protected readonly pmfmNamePipe: PmfmNamePipe;
 
@@ -60,6 +61,7 @@ export class TripReport extends AppRootDataReport<Trip, number, TripReportStats>
               @Inject(DOCUMENT) private _document: Document) {
     super(injector);
     this.tripService = injector.get(TripService);
+    this.operationService = injector.get(OperationService);
     this.tripReportService = injector.get(TripReportService);
     this.pmfmNamePipe = injector.get(PmfmNamePipe);
     Chart.plugins.register(pluginTrendlineLinear);
@@ -70,6 +72,12 @@ export class TripReport extends AppRootDataReport<Trip, number, TripReportStats>
   protected async loadData(id: number): Promise<Trip> {
     console.debug(`[${this.constructor.name}.loadData]`, arguments);
     const data = await this.tripService.load(id, { withOperation: false });
+
+    const { data: operations } = await this.operationService.loadAllByTrip({
+      tripId: id
+    }, { fetchPolicy: 'cache-first', fullLoad: false, withTotal: true /*to make sure cache has been filled*/ });
+
+    data.operations = operations;
 
     const speciesLength = await this.tripReportService.loadSpeciesLength({
       program: data.program,
