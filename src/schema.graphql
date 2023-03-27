@@ -189,6 +189,26 @@ type DepartmentVO {
     validityStatusId: Int
 }
 
+type DevicePositionVO {
+    controlDate: Date
+    creationDate: Date
+    dateTime: Date
+    id: Int
+    latitude: Float
+    longitude: Float
+    objectId: Int
+    objectType: ObjectType
+    qualificationComments: String
+    qualificationDate: Date
+    qualityFlagId: Int
+    recorderDepartment: DepartmentVO
+    recorderDepartmentId: Int
+    recorderPerson: PersonVO
+    recorderPersonId: Int
+    updateDate: Date
+    validationDate: Date
+}
+
 type ExpectedSaleVO {
     id: Int
     landing: LandingVO
@@ -523,6 +543,8 @@ type Mutation {
     controlTrip(trip: TripVOInput!): TripVO
     "Create an account"
     createAccount(account: AccountVOInput): AccountVO
+    "Delete a DevicePosition by id"
+    delete(id: Int): Boolean!
     "Delete many aggregated landings"
     deleteAggregatedLandings(filter: AggregatedLandingFilterVOInput, vesselSnapshotIds: [Int]): Boolean!
     "Delete an observed location"
@@ -583,6 +605,8 @@ type Mutation {
     saveConfiguration(config: ConfigurationVOInput): ConfigurationVO
     "Create or update a department"
     saveDepartment(department: DepartmentVOInput): DepartmentVO
+    "Save a DevicePosition"
+    saveDevicePosition(devicePosition: DevicePositionVOInput): DevicePositionVO
     "Create or update a extraction product"
     saveExtractionProduct(product: ExtractionProductVOInput!): ExtractionProductVO
     "Create or update an landing"
@@ -659,6 +683,21 @@ type Mutation {
     validateObservedLocation(observedLocation: ObservedLocationVOInput): ObservedLocationVO
     "Validate a trip"
     validateTrip(trip: TripVOInput!): TripVO
+}
+
+type ObjectType {
+    LENGTH_COMMENTS: Int!
+    LENGTH_LABEL: Int!
+    LENGTH_NAME: Int!
+    SEQUENCE_ALLOCATION_SIZE: Int!
+    comments: String
+    creationDate: Date
+    description: String
+    id: Int
+    label: String
+    name: String
+    status: Status
+    updateDate: Date
 }
 
 type ObservedLocationVO {
@@ -1099,6 +1138,10 @@ type Query {
     extractionRows(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): ExtractionResultVO
     "Get all available extraction types"
     extractionTypes(filter: ExtractionTypeFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "desc"): [ExtractionTypeVO] @deprecated(reason: "Use liveExtractionTypes and aggregationTypes")
+    "Find DevicePositions by filter"
+    findByFilter(fetchOptions: DevicePositionFetchOptionsInput, filter: DevicePositionFilterVOInput, page: PageInput): [DevicePositionVO]
+    "Find DevicePosition by id"
+    findById(fetchOptions: DevicePositionFetchOptionsInput, id: Int): DevicePositionVO
     "Search filter"
     images(filter: ImageAttachmentFilterVOInput, offset: Int = 0, size: Int = 100, sortBy: String, sortDirection: String = "desc"): [ImageAttachmentVO]
     "Import vessels from a SIOP file"
@@ -1387,6 +1430,15 @@ type SoftwareVO {
     name: String
     properties: Map_String_StringScalar
     statusId: Int
+    updateDate: Date
+}
+
+type Status {
+    SEQUENCE_ALLOCATION_SIZE: Int!
+    creationDate: Date
+    id: Int
+    label: String
+    name: String
     updateDate: Date
 }
 
@@ -2093,6 +2145,43 @@ input DepartmentVOInput {
     validityStatusId: Int
 }
 
+input DevicePositionFetchOptionsInput {
+    withChildrenEntities: Boolean!
+    withMeasurementValues: Boolean!
+    withObservers: Boolean!
+    withRecorderDepartment: Boolean!
+    withRecorderPerson: Boolean!
+}
+
+input DevicePositionFilterVOInput {
+    dataQualityStatus: [DataQualityStatusEnum]
+    endDate: Date
+    qualityFlagIds: [Int]
+    recorderDepartmentId: Int
+    recorderPersonId: Int
+    startDate: Date
+}
+
+input DevicePositionVOInput {
+    controlDate: Date
+    creationDate: Date
+    dateTime: Date
+    id: Int
+    latitude: Float
+    longitude: Float
+    objectId: Int
+    objectType: ObjectTypeInput
+    qualificationComments: String
+    qualificationDate: Date
+    qualityFlagId: Int
+    recorderDepartment: DepartmentVOInput
+    recorderDepartmentId: Int
+    recorderPerson: PersonVOInput
+    recorderPersonId: Int
+    updateDate: Date
+    validationDate: Date
+}
+
 input ExpectedSaleVOInput {
     id: Int
     landing: LandingVOInput
@@ -2440,6 +2529,17 @@ input MetierVOInput {
     taxonGroup: TaxonGroupVOInput
     updateDate: Date
     validityStatusId: Int
+}
+
+input ObjectTypeInput {
+    comments: String
+    creationDate: Date
+    description: String
+    id: Int
+    label: String
+    name: String
+    status: StatusInput
+    updateDate: Date
 }
 
 input ObservedLocationFilterVOInput {
@@ -3061,6 +3161,14 @@ input SoftwareVOInput {
     name: String
     properties: Map_String_StringScalar
     statusId: Int
+    updateDate: Date
+}
+
+input StatusInput {
+    creationDate: Date
+    id: Int
+    label: String
+    name: String
     updateDate: Date
 }
 

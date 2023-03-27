@@ -22,7 +22,7 @@ import { ReferentialRefService } from './referential/services/referential-ref.se
 import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
-import {DevicePositionService} from '@app/data/services/device-position-service.class';
+import {DevicePositionService} from '@app/data/services/device-position.service';
 import {IonModal} from '@ionic/angular';
 
 @Component({

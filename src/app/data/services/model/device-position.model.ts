@@ -15,7 +15,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
   latitude: number;
   longitude: number;
   objectId: number;
-  objectType: string;  // TODO Type this
+  objectType: ObjectType;
   recorderPerson: Person;
   recorderDepartment: Department;
   creationDate: Moment;
@@ -37,10 +37,14 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
     target.latitude = this.latitude;
     target.longitude = this.longitude;
     target.objectId = this.objectId;
-    target.objectType = this.objectType;
+    // TODO Find a way to work with real ObjectType
+    target.objectType = {name: this.objectType.name};
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
+    delete target.comments;
+    delete target.detail;
+    delete target.ENTITY_NAME;
     return target;
   }
 
@@ -49,8 +53,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
     this.dateTime = fromDateISOString(source.dateTime);
     this.latitude = source.latitude;
     this.longitude = source.longitude;
-    this.objectId = source.objectId;
-    this.objectType = source.ObjectType;
+    this.objectType = source.object; // TODO Mapping
     this.recorderPerson = Person.fromObject(source.recorderPerson, opts);
     this.recorderDepartment = Department.fromObject(source.recorderDepartment, opts);
     this.creationDate = fromDateISOString(source.creationDate);

@@ -7,7 +7,7 @@ import { AppImageAttachmentModule } from '@app/data/image/image-attachment.modul
 import { StatusToColorPipe } from '@app/data/services/pipes/status-to-color.pipe';
 import { AppSharedModule } from '@app/shared/shared.module';
 import { AppEntityQualityModule } from '@app/data/quality/entity-quality.module';
-import {DevicePositionService} from '@app/data/services/device-position-service.class';
+import {DevicePositionService} from '@app/data/services/device-position.service';
 
 @NgModule({
   imports: [
