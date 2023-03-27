@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, NgZone, OnDestroy, OnInit, Output } from '@angular/core';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { L } from '@app/shared/map/leaflet';
-import { LayerGroup, MapOptions, PathOptions } from 'leaflet';
+import { MapOptions, PathOptions } from 'leaflet';
 import {
   ConfigService,
   DateDiffDurationPipe,
@@ -21,7 +21,7 @@ import {
 import { Feature, LineString, MultiPolygon, Position } from 'geojson';
 import { ModalController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import { debounceTime, distinctUntilChanged, filter, mergeMap, switchMap, tap, throttleTime } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, switchMap, tap, throttleTime } from 'rxjs/operators';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
@@ -96,6 +96,7 @@ export class OperationsMap implements OnInit, OnDestroy {
   @Input() flyToBoundsDelay = 450;
   @Input() flyToBoundsDuration = 1; // seconds
   @Input() showGraticule = false;
+  @Input() showTripTarget = true;
 
   @Input()
   set programLabel(value: string) {
@@ -283,7 +284,7 @@ export class OperationsMap implements OnInit, OnDestroy {
             operationLayer.addData(feature);
 
             // Add to all position array
-            if (Geometries.isLineString(feature.geometry)) {
+            if (this.showTripTarget && Geometries.isLineString(feature.geometry))  {
               tripCoordinates = tripCoordinates.concat(feature.geometry.coordinates);
             }
           });
