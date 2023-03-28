@@ -10,7 +10,7 @@ import {
   firstTruePromise,
   getProperty,
   isEmptyArray,
-  isNil,
+  isNil, isNotEmptyArray,
   isNotNil,
   isNotNilOrNaN,
   removeDuplicatesFromArray,
@@ -56,7 +56,7 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
 
   defaultTitleOptions: ChartTitleOptions = {
     fontColor: Color.get('secondary').rgba(1),
-    fontSize: 42,
+    fontSize: 26,
     display: true
   };
   scaleLabelDefaultOption: ScaleTitleOptions = {
@@ -292,10 +292,8 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
       options: {
         title: {
           ...this.defaultTitleOptions,
-          text: [
-            species,
-            translations['TRIP.REPORT.CHART.SPECIES_LENGTH'],
-            `- ${opts?.subtitle} -`
+          text: [species,
+            [translations['TRIP.REPORT.CHART.SPECIES_LENGTH'], opts?.subtitle].filter(isNotNilOrNaN).join(' - ')
           ]
         },
         scales: {
@@ -328,6 +326,20 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
             width: opts.threshold,
             value: opts.threshold,
             orientation: 'x'
+          },
+          labels: {
+            render: function (args) {
+              const lines = args.text.split('\n');
+              const fontSize = args.index === 0 ? 18 : 14;
+              const lineHeight = args.index === 0 ? 1.2 : 1.5;
+
+              return lines
+                .map(
+                  (line) =>
+                    `<div style="font-size: ${fontSize}px; line-height: ${lineHeight}">${line}</div>`
+                )
+                .join('');
+            }
           }
         }
       }
@@ -466,4 +478,7 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
       .map(value => value.indexOf(' - ') !== -1 ? value.split(' - ')[1] : value as unknown as string);
   }
 
+  isNotEmptySpecies(species: {label: string; charts: SpeciesChart[];}) {
+    return isNotEmptyArray(species?.charts);
+  }
 }

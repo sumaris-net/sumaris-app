@@ -205,9 +205,9 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
       options: {
         title: {
           ...this.defaultTitleOptions,
-          text: [species,
-            this.translate.instant('TRIP.REPORT.CHART.LANDING_AND_DISCARD_COMPARISON'),
-            //'(sous trait)'
+          text: [
+            species,
+            this.translate.instant('TRIP.REPORT.CHART.LANDING_AND_DISCARD_COMPARISON')
           ]
         },
         legend: {
@@ -235,7 +235,7 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
           medianLine: {
             color: Color.get('medium').rgba(this.defaultOpacity),
             orientation: 'b',
-            style: 'solid',
+            style: 'dashed',
             width: 2
           }
         }
