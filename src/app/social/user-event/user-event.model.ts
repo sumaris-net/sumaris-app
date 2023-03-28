@@ -69,6 +69,9 @@ export class UserEvent extends Entity<UserEvent> implements IUserEvent<UserEvent
     if (typeof this.content === 'object') {
       target.content = JSON.stringify(this.content);
     }
+    else if (typeof this.content === 'string') {
+      target.content = this.content;
+    }
     else {
       target.content = null;
     }
