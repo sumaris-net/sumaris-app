@@ -79,9 +79,45 @@
         </ul>
       </section>
 
+      <ng-container *ngFor="let catchCategory of (stats.weights.catchCategories|mapKeys)">
+        <section *ngVar="catchCategory === 'LAN' ? 'LANDING' : 'DISCARD' as catchCategoryI18nSuffix">
+          <h4>{{ 'TRIP.REPORT.TABLE.SPECIES_LIST'|translateContext: i18nContext.suffix }} - {{'TRIP.REPORT.' + catchCategoryI18nSuffix |translateContext: i18nContext.suffix}}</h4>
+          <table [style.--col-count]="4">
+            <thead>
+              <tr>
+                <th >{{'TRIP.REPORT.SPECIES'|translateContext: i18nContext.suffix}}</th>
+                <th *ngFor="let subCategory of stats.subCategories"
+                    class="ion-text-center"
+                    [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.TOTAL_WEIGHT'|translate:{selectionDevice: subCategory}"></th>
+                <th class="ion-text-center" [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.TOTAL_VARIATION_' + catchCategoryI18nSuffix|translate"></th>
+                <th class="ion-text-center" *ngIf="stats.weights.enableAvgVariation" [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.AVG_VARIATION_' + catchCategoryI18nSuffix|translate"></th>
+              </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let species of stats.weights.catchCategories[catchCategory]">
+              <td>{{species.label}}</td>
+              <td *ngFor="let subCategory of stats.subCategories" class="numeric">
+                {{species.subCategories[subCategory]}}
+              </td>
+              <td class="numeric">
+                <span *ngIf="species.totalVariation|isNotNil">
+                  {{species.totalVariation|numberFormat: {fixedDecimals: 1} }} %
+                </span>
+              </td>
+              <td class="numeric" *ngIf="stats.weights.enableAvgVariation">
+                <span *ngIf="species.avgVariation|isNotNil">
+                  {{species.avgVariation|numberFormat: {fixedDecimals: 1} }} %
+                </span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </section>
+      </ng-container>
+
+      <!-- Operations map -->
       <section (entered)="!reveal.printing && showMap()">
-        <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
-        <!-- Operations map -->
+        <h4>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h4>
         <div style="height: 550px;">
           <ng-container #mapContainer></ng-container>
         </div>

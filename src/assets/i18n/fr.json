@@ -1151,21 +1151,33 @@
       "GEAR_SPEED_AVG": "<b>{{avg}} Nds</b>",
       "SEABED_FEATURES": "Types de fond :",
       "OPERATION_COUNT": "Nombre d'OPs sélectionnés :",
+      "SPECIES": "Espèce",
+      "LANDING": "Débarquement",
+      "DISCARD": "Rejet",
       "CHART": {
         "INDIVIDUAL_COUNT": "Nb individus",
         "LENGTH": "Taille",
-        "LANDING": "Débarquement",
-        "DISCARD": "Rejet",
         "GEAR_POSITION_T": "Tribord",
         "GEAR_POSITION_B": "Bâbord",
         "SPECIES_LENGTH": "Répartition en taille",
         "TOTAL_CATCH": "Capture totale",
         "LANDING_AND_DISCARD_COMPARISON": "Comparaison des débarquements et rejets",
-        "SELECTIVITY": {
+        "TRAWL_SELECTIVITY": {
           "STANDARD": "Standard",
           "SELECTIVE": "{{label}}",
           "QUANTITY_IN_STANDARD": "Quantité dans le chalut standard (kg)",
-          "QUANTITY_IN_SELECTIVE": "Quantité dans le chalut sélectif (kg)"
+          "QUANTITY_IN_SELECTIVE": "Quantité dans le chalut {{selectionDevice}} (kg)"
+        }
+      },
+      "TABLE": {
+        "SPECIES_LIST": "Capture par espèce",
+        "TRAWL_SELECTIVITY": {
+          "SPECIES_LIST": "Comparaison par espèce",
+          "TOTAL_WEIGHT": "Poids total chalut<br/>{{selectionDevice}}<br/><small>(kg)</small>",
+          "TOTAL_VARIATION_LANDING": "Taux de variation total<br/>Débarquement<br/><small>(%)</small>",
+          "TOTAL_VARIATION_DISCARD": "Taux de variation total<br/>Rejet<br/><small>(%)</small>",
+          "AVG_VARIATION_LANDING": "Taux de variation moyen<br/>Débarquement<br/><small>(%)</small>",
+          "AVG_VARIATION_DISCARD": "Taux de variation moyen<br/>Rejet<br/><small>(%)</small>"
         }
       }
     }

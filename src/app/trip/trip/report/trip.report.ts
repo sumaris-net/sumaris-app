@@ -147,8 +147,8 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
     const slMap = collectByProperty(data.SL, 'species');
     const hlMap = collectByProperty(data.HL, 'species');
 
-    // For each species (found in SL)
-    stats.species = await Promise.all(Object.keys(slMap)
+    // For each species (found in HL)
+    stats.species = await Promise.all(Object.keys(hlMap)
       .map(async (species) => {
         const speciesData = {
           ...data,
@@ -233,7 +233,7 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
     // Landing
     {
       const landingChart = this.computeSpeciesLengthBarChart(species, data, lengthPmfm, {
-        subtitle: this.translate.instant('TRIP.REPORT.CHART.LANDING'),
+        subtitle: this.translate.instant('TRIP.REPORT.LANDING'),
         filter: (sl: SpeciesLength) => sl.catchCategory === 'LAN',
         catchCategoryColors: [landingColors],
         subCategories,
@@ -246,7 +246,7 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
     {
       const discardFilter: (SpeciesLength) => boolean = (sl: SpeciesLength) => sl.catchCategory === 'DIS';
       const discardChart = this.computeSpeciesLengthBarChart(species, data, lengthPmfm, {
-        subtitle: this.translate.instant('TRIP.REPORT.CHART.LANDING'),
+        subtitle: this.translate.instant('TRIP.REPORT.LANDING'),
         filter: discardFilter,
         catchCategoryColors: [discardColors],
         subCategories,
@@ -284,8 +284,8 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
     const translations = this.translate.instant([
       'TRIP.REPORT.CHART.SPECIES_LENGTH',
       'TRIP.REPORT.CHART.TOTAL_CATCH',
-      'TRIP.REPORT.CHART.DISCARD',
-      'TRIP.REPORT.CHART.LANDING',
+      'TRIP.REPORT.DISCARD',
+      'TRIP.REPORT.LANDING',
     ]);
     const chart: SpeciesChart = {
       type: 'bar',
@@ -368,7 +368,7 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
 
           const color = opts.catchCategoryColors[index][seriesIndex];
           const label = !opts.filter
-            ? [translations[catchCategory === 'DIS' ? 'TRIP.REPORT.CHART.DISCARD' : 'TRIP.REPORT.CHART.LANDING'], seriesLabelSuffix].join(' - ')
+            ? [translations[catchCategory === 'DIS' ? 'TRIP.REPORT.DISCARD' : 'TRIP.REPORT.LANDING'], seriesLabelSuffix].join(' - ')
             : seriesLabelSuffix;
           ChartJsUtils.pushDataSetOnChart(chart, {
             label,

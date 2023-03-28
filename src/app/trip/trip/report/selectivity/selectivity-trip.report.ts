@@ -1,7 +1,18 @@
 import { Component, Inject, Injector, ViewEncapsulation } from '@angular/core';
 import { Trip } from '@app/trip/services/model/trip.model';
-import { arrayDistinct, collectByProperty, Color, IReferentialRef, isEmptyArray, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
-import { ChartJsUtils, ChartJsUtilsColor } from '@app/shared/chartsjs.utils';
+import {
+  arrayDistinct,
+  collectByProperty,
+  Color,
+  IReferentialRef,
+  isEmptyArray,
+  isNilOrBlank,
+  isNotEmptyArray,
+  isNotNil,
+  isNotNilOrBlank,
+  removeDuplicatesFromArray
+} from '@sumaris-net/ngx-components';
+import { ChartJsUtils } from '@app/shared/chartsjs.utils';
 import { DOCUMENT } from '@angular/common';
 import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
@@ -14,8 +25,25 @@ import { CatchCategoryType } from '@app/trip/trip/report/trip-report.model';
 import { SelectivityReportData, SelectivityTripReportService } from '@app/trip/trip/report/selectivity/selectivity-trip-report.service';
 import { BaseNumericStats, SpeciesChart, TripReport, TripReportStats } from '@app/trip/trip/report/trip.report';
 import { SelectivitySpeciesLength, SelectivitySpeciesList, SelectivityStation } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
+import { sampleTime } from 'rxjs/internal/operators';
 
+export interface SpeciesWeightStats {
+  label: string;
+  total: number;
+  totalVariation: number;
+  avgVariation: number;
+  standardDerivation?: number;
+  subCategories?: {
+    [subCategory: string]: number;
+  }
+}
 
+export interface WeightStats {
+  enableAvgVariation: boolean;
+  catchCategories: {
+    [catchCategory: string]: SpeciesWeightStats[];
+  }
+}
 export declare interface SelectivityTripReportStats extends TripReportStats {
   gearIdentifierByOperationId: {[key: string]: PhysicalGear};
   selectivityDeviceMap: {[key: string]: IReferentialRef};
@@ -23,7 +51,9 @@ export declare interface SelectivityTripReportStats extends TripReportStats {
   seaStates: string[];
   seabedFeatures: string[];
   gearSpeed: BaseNumericStats;
-};
+  subCategories: string[];
+  weights: WeightStats;
+}
 
 @Component({
   selector: 'app-selectivity-trip-report',
@@ -43,6 +73,10 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
               tripReportService: TripReportService<SelectivityReportData>,
               @Inject(DOCUMENT) document: Document) {
     super(injector, tripReportService, document);
+    this.i18nContext = {
+      ...this.i18nContext,
+      suffix: 'TRAWL_SELECTIVITY.'
+    }
   }
 
 
@@ -75,6 +109,7 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
   protected async computeStats(trip: Trip, data: SelectivityReportData, opts?: { cache?: boolean; }): Promise<SelectivityTripReportStats> {
     let stats = <SelectivityTripReportStats>{};
 
+    const standardSubCategory = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD');
     stats.gearSpeed = this.computeNumericStats(data.HH, 'gearSpeed');
     stats.seaStates = this.collectDistinctQualitativeValue(data.HH, 'seaState');
     stats.seabedFeatures = this.collectDistinctQualitativeValue(data.HH, 'seabedFeatures');
@@ -89,11 +124,11 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
       .filter(isNotNil)
       .forEach(selectiveDevice => {
         if (selectiveDevice.label === 'NA') {
-          selectiveDevice.name = this.translate.instant('TRIP.REPORT.CHART.SELECTIVITY.STANDARD');
+          selectiveDevice.name = standardSubCategory;
         }
         else {
           selectiveDevice.description = selectiveDevice.name;
-          selectiveDevice.name = this.translate.instant('TRIP.REPORT.CHART.SELECTIVITY.SELECTIVE', {label: selectiveDevice.name});
+          selectiveDevice.name = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.SELECTIVE', {label: selectiveDevice.name});
         }
       });
 
@@ -110,10 +145,92 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
       return selectiveDevice && selectiveDevice.name;
     };
 
+    // Compute sub categories (and store result in meta)
+    stats.subCategories = this.computeSubCategories(data.SL, {getSubCategory, standardSubCategory});
+    stats.weights = this.computeWeightStats(data.SL, { getSubCategory: (sl) => sl.meta?.subCategory, standardSubCategory })
+
     return {
       ...(await super.computeStats(trip, data, {...opts, getSubCategory})),
       ...stats
     };
+  }
+
+  protected computeWeightStats(data: SelectivitySpeciesList[], opts: {
+    getSubCategory: Function<any, string>;
+    standardSubCategory: string;
+  }): WeightStats {
+    const result = <WeightStats>{
+      enableAvgVariation: false,
+      catchCategories: {
+        LAN: [], DIS: []
+      }
+    };
+
+    // Compute sub categories (and store result in meta)
+    let subCategories = this.computeSubCategories(data, opts);
+    if (subCategories.length < 2) return result; // Skip
+
+    // Compute
+    const dataBySpecies = collectByProperty(data, 'species');
+    Object.keys(dataBySpecies).forEach(species => {
+      console.debug('Computing species stats ' + species);
+      const speciesStats = {
+        LAN: <SpeciesWeightStats>{label: species, total: 0, totalVariation: undefined, avgVariation: undefined, subCategories: {}},
+        DIS: <SpeciesWeightStats>{label: species, total: 0, totalVariation: undefined, avgVariation: undefined, subCategories: {}}
+      };
+      subCategories.forEach(subCategory => {
+        speciesStats.LAN.subCategories[subCategory] = 0;
+        speciesStats.DIS.subCategories[subCategory] = 0;
+      });
+      const speciesData = dataBySpecies[species];
+
+      // Compute total weights, by catch categories and sub categories
+      speciesData.forEach(sl => {
+        const catchCategoryStats = speciesStats[sl.catchCategory];
+        const weight = (sl.weight || 0) / 1000;  // Convert to kg
+        catchCategoryStats.total += weight;
+        // Increment sub category
+        const subCategory = opts.getSubCategory(sl);
+        catchCategoryStats.subCategories[subCategory] += weight;
+      })
+
+      // Compute weight total variation, between sub categories
+      if (speciesStats.LAN.total > 0) {
+        this.computeWeightTotalVariation(speciesStats.LAN, opts.standardSubCategory);
+        result.catchCategories.LAN.push(speciesStats.LAN);
+      }
+      if (speciesStats.DIS.total > 0) {
+        this.computeWeightTotalVariation(speciesStats.DIS, opts.standardSubCategory);
+        result.catchCategories.DIS.push(speciesStats.DIS);
+      }
+
+      // Compute AVG variation
+      const hasSubGearIdentifier = subCategories.length >= 2 && speciesData.findIndex(sl => isNotNil(sl.subGearIdentifier)) !== -1;
+      if (hasSubGearIdentifier) {
+        // TODO
+        // const speciesDataByStations = collectByProperty(speciesData, 'stationNumber');
+        // Object.keys(speciesDataByStations).forEach(stationNumber => {
+        //   const stationData = speciesDataByStations[stationNumber];
+        //   const weightBySubCategories = new Array(subCategories.length).fill(0);
+        //   stationData.forEach(sl => {
+        //   })
+        // })
+      }
+    })
+
+    return result;
+  }
+
+  protected computeWeightTotalVariation(weights: SpeciesWeightStats,
+                                        standardSubCategory: string) {
+    const selective = Object.keys(weights.subCategories)
+      .filter(sc => sc !== standardSubCategory).reduce((sum, subCategory) => {
+        return sum + (weights.subCategories[subCategory] || 0);
+      }, 0);
+    const standard = (weights.subCategories[standardSubCategory] || 0);
+    if (standard > 0) {
+      weights.totalVariation = ((selective - standard) / standard) * 100;
+    }
   }
 
   /**
@@ -162,8 +279,9 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
     // Add bubble charts, by category (= selective device)
     if (opts?.getSubCategory) {
       const selectivityCharts: SpeciesChart[] = this.computeSpeciesBubbleChart(species, data.SL, {
-          getSubCategory: opts.getSubCategory,
-          catchCategories: ['LAN', 'DIS']
+        subCategories: this.stats.subCategories,
+        getSubCategory: opts.getSubCategory,
+        catchCategories: ['LAN', 'DIS']
       });
       return [
         ...baseCharts,
@@ -179,12 +297,13 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
                                       opts?: {
                                         catchCategories: CatchCategoryType[],
                                         subCategories?: string[];
+                                        standardSubCategory?: string;
                                         getSubCategory: Function<any, string>
                                       }): SpeciesChart[] {
     const translations = this.translate.instant([
-      'TRIP.REPORT.CHART.SELECTIVITY.STANDARD',
-      'TRIP.REPORT.CHART.SELECTIVITY.QUANTITY_IN_STANDARD',
-      'TRIP.REPORT.CHART.SELECTIVITY.QUANTITY_IN_SELECTIVE',
+      'TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD',
+      'TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_STANDARD',
+      'TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE',
       'TRIP.REPORT.CHART.DISCARD',
       'TRIP.REPORT.CHART.LANDING',
     ]);
@@ -194,18 +313,11 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
       ? arrayDistinct([...opts.catchCategories, ...Object.keys(dataByCatchCategory)])
       : Object.keys(dataByCatchCategory);
 
-    // Compute sub category, in meta
-    let subCategories = [];
-    let getSubCategory = opts.getSubCategory;
-    data.forEach(sl => {
-      sl.meta = sl.meta || {};
-      sl.meta.subCategory = getSubCategory(sl);
-      // Append to list
-      if (sl.meta.subCategory && !subCategories.includes(sl.meta.subCategory)) subCategories.push(sl.meta.subCategory);
-    });
+    // Compute sub categories (and store result in meta)
+    let subCategories = this.computeSubCategories(data, opts);
     if (subCategories.length !== 2) return []; // Skip
 
-    subCategories = arrayDistinct([translations['TRIP.REPORT.CHART.SELECTIVITY.STANDARD'], ...subCategories])
+    subCategories = arrayDistinct([translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD'], ...subCategories])
 
     const chart: SpeciesChart = {
       type: 'bubble',
@@ -225,7 +337,7 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
             {
               scaleLabel: {
                 ...this.scaleLabelDefaultOption,
-                labelString: translations['TRIP.REPORT.CHART.SELECTIVITY.QUANTITY_IN_SELECTIVE']
+                labelString: translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE']
               }
             }
           ],
@@ -233,7 +345,7 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
             {
               scaleLabel: {
                 ...this.scaleLabelDefaultOption,
-                labelString: translations['TRIP.REPORT.CHART.SELECTIVITY.QUANTITY_IN_STANDARD']
+                labelString: translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_STANDARD']
               }
             }
           ]
@@ -251,7 +363,7 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
 
     // For each LAN, DIS
     catchCategories.forEach(catchCategory => {
-      const label = [species, translations[catchCategory === 'DIS' ? 'TRIP.REPORT.CHART.DISCARD' : 'TRIP.REPORT.CHART.LANDING']].join(' - ')
+      const label = [species, translations[catchCategory === 'DIS' ? 'TRIP.REPORT.DISCARD' : 'TRIP.REPORT.LANDING']].join(' - ')
       const color = catchCategory !== 'DIS' ? this.landingColor : this.discardColor;
       const dataByStation = collectByProperty(dataByCatchCategory[catchCategory] , 'stationNumber');
       const values = Object.keys(dataByStation).map(station => {
@@ -271,4 +383,25 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
     return [chart];
   }
 
+  protected computeSubCategories(data: SelectivitySpeciesList[], opts: {
+    subCategories?: string[];
+    standardSubCategory?: string;
+    getSubCategory: Function<any, string>;
+  }): string[] {
+
+    if (isNotEmptyArray(opts.subCategories)) return opts.subCategories; // Skip if already computed
+
+    // Compute sub category, in meta
+    opts.subCategories = [];
+    let getSubCategory = opts.getSubCategory;
+    data.forEach(sl => {
+      sl.meta = sl.meta || {};
+      sl.meta.subCategory = sl.meta.subCategory || getSubCategory(sl);
+      // Append to list
+      if (sl.meta.subCategory && !opts.subCategories.includes(sl.meta.subCategory)) opts.subCategories.push(sl.meta.subCategory);
+    });
+
+    // Make to keep standard sub category first
+    return removeDuplicatesFromArray([opts.standardSubCategory, ...opts.subCategories].filter(isNotNilOrBlank));
+  }
 }

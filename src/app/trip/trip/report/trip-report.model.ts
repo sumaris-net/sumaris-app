@@ -69,9 +69,16 @@ export class SpeciesList<SL = any> extends Entity<SpeciesList<SL>>{
     this.stationNumber = source.stationNumber;
     this.species = source.species;
     this.catchCategory = source.catchCategory;
-    this.weight = source.weight;
-    this.subsampleWeight = source.subsampleWeight;
+    this.weight = toNumber(source.weight);
+    this.subsampleWeight = toNumber(source.subsampleWeight);
     this.lengthCode = source.lengthCode;
+  }
+
+  get isLanding(): boolean {
+    return this.catchCategory === 'LAN';
+  }
+  get isDiscard(): boolean {
+    return this.catchCategory === 'DIS';
   }
 }
 
