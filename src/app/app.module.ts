@@ -75,6 +75,7 @@ import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '@sumaris-net/ngx-components';
 import {ProgressInterceptor} from '@sumaris-net/ngx-components';
 import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
+import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/entities-storage-explorer/entities-storage-explorer.module';
 @NgModule({
   declarations: [
     AppComponent
@@ -386,7 +387,8 @@ import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.va
         ...CORE_TESTING_PAGES,
         ...SOCIAL_TESTING_PAGES,
         ...DATA_TESTING_PAGES,
-        ...TRIP_TESTING_PAGES
+        ...TRIP_TESTING_PAGES,
+        ...ENTITIES_STORAGE_EXPLORER,
       ]},
 
     // Custom identicon style
