@@ -1,0 +1,39 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Entities Storage Explorer</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <div  *ngIf="loaded ; else loadingTemplate" class="table-container">
+    <mat-table [dataSource]="dataSource">
+      <ng-container matColumnDef="key">
+        <mat-header-cell *matHeaderCellDef>
+          KEY
+        </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <ion-label class="ion-margin">
+            {{ item.key }}
+          </ion-label>
+        </mat-cell>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <mat-header-cell *matHeaderCellDef>
+        </mat-header-cell>
+        <mat-cell *matCellDef="let item">
+          <ion-button color="primary" size="small" (click)="dumpValue(item.key)">Dump values</ion-button>
+        </mat-cell>
+      </ng-container>
+      <mat-header-row *matHeaderRowDef="displayedColumn"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumn;"></mat-row>
+    </mat-table>
+  </div>
+
+  <ng-template #loadingTemplate>
+    <div class="page-loader-spinner">
+      <ion-spinner slot="start" color="secondary" size="large"></ion-spinner>
+    </div>
+  </ng-template>
+
+</ion-content>
