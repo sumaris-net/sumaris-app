@@ -59,7 +59,7 @@ export abstract class AppRootDataReport<
   @Input() stats: Partial<S> = {};
   @Input() debug = !environment.production;
 
-  @ViewChild('reveal', {read: RevealComponent, static: false}) reveal: RevealComponent;
+  @ViewChild('reveal', {read: RevealComponent, static: false}) protected reveal: RevealComponent;
 
   get loaded(): boolean { return !this.loadingSubject.value; }
 

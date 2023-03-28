@@ -29,6 +29,7 @@ export interface ChartJsUtilsTresholdLineOptions {
     }
   }
 }
+
 export const ChartJsPluginTresholdLine: PluginServiceRegistrationOptions & PluginServiceGlobalRegistration = {
   id: 'thresholdline',
   afterDraw: function(chart: Chart) {
