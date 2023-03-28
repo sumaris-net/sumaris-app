@@ -45,6 +45,13 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
     super(injector, tripReportService, document);
   }
 
+
+  protected computePrintHref(data: Trip): string {
+    console.debug(`[${this.constructor.name}.computePrintHref]`, arguments);
+    const baseTripPath = `/trips/${data.id}`;
+    return `${baseTripPath}/report/selectivity`;
+  }
+
   protected loadReportData(trip: Trip,
                                  opts?: {
                                     cache?: boolean
