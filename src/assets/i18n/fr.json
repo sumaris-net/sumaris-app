@@ -543,7 +543,8 @@
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Marée du {{departureDateTime}}",
       "OTHER_FEATURES": "Caractéristiques :",
-      "BTN_DELETE": "Supprimer toute la marée"
+      "BTN_DELETE": "Supprimer toute la marée",
+      "BTN_REPORT_DOTS": "Éditer le rapport..."
     },
     "OPTIONS": {
       "ENABLE": "Marées > Activer ?",
@@ -1439,7 +1440,7 @@
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
       "OTHER_TAXON_GROUP": "Espèce commerciale (FAO)",
-      "BTN_REPORT": "Générer le rapport"
+      "BTN_REPORT": "Éditer le rapport"
     },
     "SAMPLE": {
       "NEW": {
@@ -1919,6 +1920,9 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
+      "TRIP_REPORT_TYPE": "Marée > Type de rapport",
+      "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
+      "TRIP_REPORT_TYPE_SELECTIVITY": "Sélectivité chalut",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
       "TRIP_OPERATION_EDITOR_SELECTIVITY": "Sélectivité chalut",

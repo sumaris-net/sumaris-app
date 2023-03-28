@@ -1,11 +1,12 @@
 import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
-import { LocationLevelGroups, LocationLevelIds, PmfmIds, UnitLabel } from '../model/model.enum';
+import { LocationLevelGroups, LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
 import { SamplingRatioFormat } from '@app/shared/material/sampling-ratio/material.sampling-ratio';
 import { ReferentialRefFilter } from '@app/referential/services/filter/referential-ref.filter';
 
 export type LandingEditor = 'landing' | 'control' | 'trip' | 'sampling';
+export type TripReportType = 'legacy' | 'selectivity';
 export type OperationEditor = 'legacy' | 'selectivity';
 export type StrategyEditor = 'legacy' | 'sampling';
 export type TripExtractionSamplingMethod = 'Observer' | 'SelfSampling';
@@ -420,6 +421,22 @@ export const ProgramProperties = Object.freeze({
     label: 'PROGRAM.OPTIONS.TRIP_APPLY_DATE_ON_NEW_OPERATION',
     defaultValue: 'false',
     type: 'boolean'
+  },
+  TRIP_REPORT_TYPE: <FormFieldDefinition>{
+    key: 'sumaris.trip.report.type',
+    label: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE',
+    type: 'enum',
+    values: [
+      {
+        key: <TripReportType>'legacy',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_LEGACY'
+      },
+      {
+        key: <TripReportType>'selectivity',
+        value: 'PROGRAM.OPTIONS.TRIP_REPORT_TYPE_SELECTIVITY'
+      }
+    ],
+    defaultValue: <TripReportType>'legacy'
   },
 
   // Operation
