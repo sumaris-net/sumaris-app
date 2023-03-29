@@ -1,18 +1,7 @@
 import { Component, Inject, Injector, ViewEncapsulation } from '@angular/core';
 import { Trip } from '@app/trip/services/model/trip.model';
-import {
-  arrayDistinct,
-  collectByProperty,
-  Color,
-  IReferentialRef,
-  isEmptyArray,
-  isNilOrBlank,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  removeDuplicatesFromArray
-} from '@sumaris-net/ngx-components';
-import { ChartJsUtils } from '@app/shared/chartsjs.utils';
+import { arrayDistinct, collectByProperty, Color, IReferentialRef, isEmptyArray, isNotEmptyArray, isNotNil } from '@sumaris-net/ngx-components';
+import { ChartJsUtils, ChartJsUtilsColor } from '@app/shared/chartsjs.utils';
 import { DOCUMENT } from '@angular/common';
 import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
@@ -25,16 +14,23 @@ import { CatchCategoryType } from '@app/trip/trip/report/trip-report.model';
 import { SelectivityReportData, SelectivityTripReportService } from '@app/trip/trip/report/selectivity/selectivity-trip-report.service';
 import { BaseNumericStats, SpeciesChart, TripReport, TripReportStats } from '@app/trip/trip/report/trip.report';
 import { SelectivitySpeciesLength, SelectivitySpeciesList, SelectivityStation } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
-import { sampleTime } from 'rxjs/internal/operators';
+import { MathUtils } from '@app/shared/math.utils';
+import { ChartConfiguration } from 'chart.js';
+
+
+export interface SubCategoryWeightStats {
+  total: number; // total weight
+  stations: {[station:string]: number}; // weight by station
+}
 
 export interface SpeciesWeightStats {
   label: string;
   total: number;
   totalVariation: number;
   avgVariation: number;
-  standardDerivation?: number;
+  avgStandardDerivation?: number;
   subCategories?: {
-    [subCategory: string]: number;
+    [subCategory: string]: SubCategoryWeightStats;
   }
 }
 
@@ -106,8 +102,8 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
   }
 
 
-  protected async computeStats(trip: Trip, data: SelectivityReportData, opts?: { cache?: boolean; }): Promise<SelectivityTripReportStats> {
-    let stats = <SelectivityTripReportStats>{};
+  protected async computeStats(trip: Trip, data: SelectivityReportData, opts?: { cache?: boolean; stats?: SelectivityTripReportStats }): Promise<SelectivityTripReportStats> {
+    const stats = opts?.stats || <SelectivityTripReportStats>{};
 
     const standardSubCategory = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD');
     stats.gearSpeed = this.computeNumericStats(data.HH, 'gearSpeed');
@@ -146,13 +142,10 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
     };
 
     // Compute sub categories (and store result in meta)
-    stats.subCategories = this.computeSubCategories(data.SL, {getSubCategory, standardSubCategory});
+    stats.subCategories = this.computeSubCategories(data.SL, {getSubCategory, firstSubCategory: standardSubCategory});
     stats.weights = this.computeWeightStats(data.SL, { getSubCategory: (sl) => sl.meta?.subCategory, standardSubCategory })
 
-    return {
-      ...(await super.computeStats(trip, data, {...opts, getSubCategory})),
-      ...stats
-    };
+    return super.computeStats(trip, data, {...opts, stats, getSubCategory});
   }
 
   protected computeWeightStats(data: SelectivitySpeciesList[], opts: {
@@ -170,17 +163,20 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
     let subCategories = this.computeSubCategories(data, opts);
     if (subCategories.length < 2) return result; // Skip
 
-    // Compute
+    // Split data by species
     const dataBySpecies = collectByProperty(data, 'species');
+
+    // Compute stats on each species
     Object.keys(dataBySpecies).forEach(species => {
-      console.debug('Computing species stats ' + species);
+      console.debug(`[selectivity-trip-report] Computing stats for species '${species}'...`);
+
       const speciesStats = {
         LAN: <SpeciesWeightStats>{label: species, total: 0, totalVariation: undefined, avgVariation: undefined, subCategories: {}},
         DIS: <SpeciesWeightStats>{label: species, total: 0, totalVariation: undefined, avgVariation: undefined, subCategories: {}}
       };
       subCategories.forEach(subCategory => {
-        speciesStats.LAN.subCategories[subCategory] = 0;
-        speciesStats.DIS.subCategories[subCategory] = 0;
+        speciesStats.LAN.subCategories[subCategory] = {total: 0, stations: {}};
+        speciesStats.DIS.subCategories[subCategory] = {total: 0, stations: {}};
       });
       const speciesData = dataBySpecies[species];
 
@@ -191,7 +187,14 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
         catchCategoryStats.total += weight;
         // Increment sub category
         const subCategory = opts.getSubCategory(sl);
-        catchCategoryStats.subCategories[subCategory] += weight;
+        {
+          const subCategoryStats = catchCategoryStats.subCategories[subCategory];
+          subCategoryStats.total += weight;
+          // Increment by station
+          const stationKey = `${sl.tripCode}|${sl.stationNumber}`;
+          subCategoryStats.stations[sl.stationNumber] = subCategoryStats.stations[sl.stationNumber] || 0;
+          subCategoryStats.stations[sl.stationNumber] += weight;
+        }
       })
 
       // Compute weight total variation, between sub categories
@@ -207,14 +210,15 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
       // Compute AVG variation
       const hasSubGearIdentifier = subCategories.length >= 2 && speciesData.findIndex(sl => isNotNil(sl.subGearIdentifier)) !== -1;
       if (hasSubGearIdentifier) {
-        // TODO
-        // const speciesDataByStations = collectByProperty(speciesData, 'stationNumber');
-        // Object.keys(speciesDataByStations).forEach(stationNumber => {
-        //   const stationData = speciesDataByStations[stationNumber];
-        //   const weightBySubCategories = new Array(subCategories.length).fill(0);
-        //   stationData.forEach(sl => {
-        //   })
-        // })
+        // Compute weight total variation, between sub categories
+        if (speciesStats.LAN.total > 0) {
+          result.enableAvgVariation = true;
+          this.computeWeightAvgVariation(speciesStats.LAN, opts.standardSubCategory);
+        }
+        if (speciesStats.DIS.total > 0) {
+          result.enableAvgVariation = true;
+          this.computeWeightAvgVariation(speciesStats.DIS, opts.standardSubCategory);
+        }
       }
     })
 
@@ -223,14 +227,39 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
 
   protected computeWeightTotalVariation(weights: SpeciesWeightStats,
                                         standardSubCategory: string) {
+    weights.totalVariation = this.computeWeightVariation(weights,standardSubCategory, stats => stats.total);
+  }
+
+  protected computeWeightAvgVariation(weights: SpeciesWeightStats,
+                                      standardSubCategory: string) {
+    // Collect all station keys
+    const stationKeys = Object.keys(weights.subCategories).reduce((res, subCategory) => {
+      return Object.keys(weights.subCategories[subCategory].stations).reduce((res, stationKey) => {
+        return res.includes(stationKey) ? res : res.concat(stationKey);
+      }, res)
+    }, <string[]>[]);
+
+    const stationVariations = stationKeys.map(stationKey => this.computeWeightVariation(weights, standardSubCategory, stats => stats.stations[stationKey]))
+      .filter(isNotNil); // Exclude when standard = 0
+
+    if (isNotEmptyArray(stationVariations)) {
+      weights.avgVariation = MathUtils.average(stationVariations);
+      weights.avgStandardDerivation = MathUtils.standardDerivationPercentage(stationVariations);
+    }
+  }
+
+  protected computeWeightVariation(weights: SpeciesWeightStats,
+                                   standardSubCategory: string,
+                                   weightGetter: Function<SubCategoryWeightStats, number>): number | undefined {
     const selective = Object.keys(weights.subCategories)
       .filter(sc => sc !== standardSubCategory).reduce((sum, subCategory) => {
-        return sum + (weights.subCategories[subCategory] || 0);
+        return sum + (weightGetter(weights.subCategories[subCategory]) || 0);
       }, 0);
-    const standard = (weights.subCategories[standardSubCategory] || 0);
+    const standard = (weightGetter(weights.subCategories[standardSubCategory]) || 0);
     if (standard > 0) {
-      weights.totalVariation = ((selective - standard) / standard) * 100;
+       return ((selective - standard) / standard) * 100;
     }
+    return undefined;
   }
 
   /**
@@ -270,26 +299,36 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
                                        species: string,
                                        data: SelectivityReportData,
                                        opts?: {
-                                         getSubCategory?: Function<any, string>
+                                         stats?: SelectivityTripReportStats;
+                                         getSubCategory: Function<any, string>|undefined;
+                                         subCategories?: string[];
                                        }
   ): Promise<SpeciesChart[]> {
 
-    const baseCharts = await super.computeSpeciesCharts(trip, species, data, opts);
+    let charts = await super.computeSpeciesCharts(trip, species, data, opts);
 
     // Add bubble charts, by category (= selective device)
     if (opts?.getSubCategory) {
-      const selectivityCharts: SpeciesChart[] = this.computeSpeciesBubbleChart(species, data.SL, {
+      // Add bubble charts, by category (= selective device)
+      const bubbleCharts = this.computeSpeciesBubbleChart(species, data.SL, {
         subCategories: this.stats.subCategories,
         getSubCategory: opts.getSubCategory,
         catchCategories: ['LAN', 'DIS']
       });
-      return [
-        ...baseCharts,
-        ...selectivityCharts
-      ];
+      if (isNotEmptyArray(bubbleCharts)) charts = charts.concat(...bubbleCharts);
+
+      // Add boxplot chart
+      if (opts.stats.weights) {
+        // const boxPlotChart = this.createSpeciesBoxPlot(species, {
+        //   stats: opts.stats,
+        //   subCategories: this.stats.subCategories,
+        //   catchCategories: ['LAN', 'DIS']
+        // });
+        // if (boxPlotChart) charts.push(boxPlotChart);
+      }
     }
 
-    return baseCharts;
+    return charts;
   }
 
   protected computeSpeciesBubbleChart(species: string,
@@ -304,8 +343,8 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
       'TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD',
       'TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_STANDARD',
       'TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE',
-      'TRIP.REPORT.CHART.DISCARD',
-      'TRIP.REPORT.CHART.LANDING',
+      'TRIP.REPORT.DISCARD',
+      'TRIP.REPORT.LANDING',
     ]);
 
     const dataByCatchCategory = collectByProperty(data, 'catchCategory');
@@ -318,6 +357,8 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
     if (subCategories.length !== 2) return []; // Skip
 
     subCategories = arrayDistinct([translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD'], ...subCategories])
+
+    translations['TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE'] = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.QUANTITY_IN_SELECTIVE', {selectionDevice: subCategories[1]});
 
     const chart: SpeciesChart = {
       type: 'bubble',
@@ -383,25 +424,100 @@ export class SelectivityTripReport extends TripReport<SelectivityReportData, Sel
     return [chart];
   }
 
-  protected computeSubCategories(data: SelectivitySpeciesList[], opts: {
-    subCategories?: string[];
-    standardSubCategory?: string;
-    getSubCategory: Function<any, string>;
-  }): string[] {
+  protected createSpeciesBoxPlot(species,
+                                 opts: {
+                                   stats: SelectivityTripReportStats
+                                   subCategories: string[];
+                                   catchCategories: string[];
+                                 }): SpeciesChart {
+    const weights = opts?.stats.weights;
+    const catchCategories = opts?.catchCategories || Object.keys(weights.catchCategories);
+    const subCategories = opts?.subCategories || [];
+    const speciesData: {[catchCategory: string]: SpeciesWeightStats} = catchCategories.reduce((res, catchCategory) => {
+      const catchCategoryStats = weights.catchCategories[catchCategory]?.find(stats => stats.label === species);
+      if (catchCategoryStats) {
+        Object.keys(catchCategoryStats).forEach(subCategory => {
+          if (!subCategories.includes(subCategory)) subCategories.push(subCategory)
+        });
+        res[catchCategory] = catchCategoryStats;
+      }
+      return res;
+    }, {});
+    const landingColors = ChartJsUtilsColor.getDerivativeColor(this.landingColor, Math.max(2, subCategories.length));
+    const discardColors = ChartJsUtilsColor.getDerivativeColor(this.discardColor, Math.max(2, subCategories.length));
 
-    if (isNotEmptyArray(opts.subCategories)) return opts.subCategories; // Skip if already computed
+    const colors = []; // TODO
 
-    // Compute sub category, in meta
-    opts.subCategories = [];
-    let getSubCategory = opts.getSubCategory;
-    data.forEach(sl => {
-      sl.meta = sl.meta || {};
-      sl.meta.subCategory = sl.meta.subCategory || getSubCategory(sl);
-      // Append to list
-      if (sl.meta.subCategory && !opts.subCategories.includes(sl.meta.subCategory)) opts.subCategories.push(sl.meta.subCategory);
-    });
+    // Box plot
+    const chart: SpeciesChart = <ChartConfiguration>{
+      type: 'boxplot',
+      colors: [
+        // Color should be specified, in order to works well
+        discardColors[0].rgba(this.defaultOpacity),
+        discardColors[1].rgba(this.defaultOpacity),
+        landingColors[0].rgba(this.defaultOpacity),
+        landingColors[1].rgba(this.defaultOpacity),
+      ],
+      options: {
+        title: {
+          ...this.defaultTitleOptions,
+          text: ['Comparaison des débarquements et rejets', '(sous trait)']
+        },
+        legend: {
+          ...this.legendDefaultOption
+        },
+        scales: {
+          xAxes: [
+            {
+              scaleLabel: {
+                ...this.scaleLabelDefaultOption,
+                labelString: 'Fraction'
+              }
+            }
+          ],
+          yAxes: [
+            {
+              scaleLabel: {
+                ...this.scaleLabelDefaultOption,
+                labelString: 'Poids capturés par OP (kg)'
+              }
+            }
+          ]
+        }
+      },
+      data: {
+        labels: ['Débarquement', 'Rejet'],
+        datasets: [
+          {
+            label: 'Dataset 1',
+            backgroundColor: 'rgba(255,0,0,0.5)',
+            borderColor: 'red',
+            borderWidth: 1,
+            //outlierColor: "#999999",
+            //padding: 10,
+            //itemRadius: 0,
+            data: [
+              [1000, 2000, 3000,1000, 2000, 3000, 5000]
+            ]
+          },
+          {
+            label: 'Dataset 2',
+            backgroundColor: 'rgba(0,0,255,0.5)',
+            borderColor: 'blue',
+            borderWidth: 1,
+            //outlierColor:
+            //"#999999",
+            //padding:
+            //10,
+            //itemRadius: 0,
+            data: [
+              [1000, 2000, 3000,1000, 2000, 3000, 5000]
+            ]
+          }
+        ]
+      }
+    };
 
-    // Make to keep standard sub category first
-    return removeDuplicatesFromArray([opts.standardSubCategory, ...opts.subCategories].filter(isNotNilOrBlank));
+    return chart;
   }
 }

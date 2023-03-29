@@ -49,9 +49,10 @@ export class Station<S = any> extends Entity<Station<S>> {
 export type CatchCategoryType = 'LAN'|'DIS';
 
 export class SpeciesList<SL = any> extends Entity<SpeciesList<SL>>{
+  tripCode: number;
+  stationNumber: number;
   species: string;
   catchCategory: CatchCategoryType;
-  stationNumber: number;
   lengthCode: string;
   weight: number;
   subsampleWeight: number;
@@ -66,6 +67,7 @@ export class SpeciesList<SL = any> extends Entity<SpeciesList<SL>>{
   }
 
   fromObject(source: any){
+    this.tripCode = source.tripCode;
     this.stationNumber = source.stationNumber;
     this.species = source.species;
     this.catchCategory = source.catchCategory;

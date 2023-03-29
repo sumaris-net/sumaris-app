@@ -97,7 +97,7 @@
             <tr *ngFor="let species of stats.weights.catchCategories[catchCategory]">
               <td>{{species.label}}</td>
               <td *ngFor="let subCategory of stats.subCategories" class="numeric">
-                {{species.subCategories[subCategory]}}
+                {{species.subCategories[subCategory].total}}
               </td>
               <td class="numeric">
                 <span *ngIf="species.totalVariation|isNotNil">
@@ -107,6 +107,9 @@
               <td class="numeric" *ngIf="stats.weights.enableAvgVariation">
                 <span *ngIf="species.avgVariation|isNotNil">
                   {{species.avgVariation|numberFormat: {fixedDecimals: 1} }} %
+                </span>
+                <span *ngIf="species.avgStandardDerivation|isNotNil">
+                  (<span [innerHTML]="'TRIP.REPORT.TABLE.STANDARD_DERIVATION'|translate"></span> {{species.avgStandardDerivation|numberFormat: {fixedDecimals: 1} }}%)
                 </span>
               </td>
             </tr>

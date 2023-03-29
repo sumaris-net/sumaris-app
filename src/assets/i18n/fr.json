@@ -1171,6 +1171,7 @@
       },
       "TABLE": {
         "SPECIES_LIST": "Capture par espèce",
+        "STANDARD_DERIVATION": "&sigma;",
         "TRAWL_SELECTIVITY": {
           "SPECIES_LIST": "Comparaison par espèce",
           "TOTAL_WEIGHT": "Poids total chalut<br/>{{selectionDevice}}<br/><small>(kg)</small>",

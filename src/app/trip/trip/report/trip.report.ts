@@ -10,8 +10,10 @@ import {
   firstTruePromise,
   getProperty,
   isEmptyArray,
-  isNil, isNotEmptyArray,
+  isNil,
+  isNotEmptyArray,
   isNotNil,
+  isNotNilOrBlank,
   isNotNilOrNaN,
   removeDuplicatesFromArray,
   sleep,
@@ -32,7 +34,6 @@ import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { collectByFunction, Function } from '@app/shared/functions';
 import { CatchCategoryType, SpeciesLength } from '@app/trip/trip/report/trip-report.model';
 import { filter } from 'rxjs/operators';
-import { SelectivitySpeciesLength, SelectivitySpeciesList, SelectivityStation } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
 
 export declare type BaseNumericStats = {min: number; max: number; avg: number};
 export declare type SpeciesChart = ChartConfiguration & ChartJsUtilsTresholdLineOptions & ChartJsUtilsMediandLineOptions;
@@ -125,23 +126,16 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
       includedIds: [trip.id]
     }, {
       ...opts,
-      formatLabel: 'apase',
-      dataTypes: {
-        HH: SelectivityStation,
-        SL: SelectivitySpeciesList,
-        HL: SelectivitySpeciesLength,
-      },
       fetchPolicy: 'no-cache'
     });
   }
 
   protected async computeStats(trip: Trip, data: R, opts?: {
     getSubCategory?: Function<any, string>;
+    stats?: S;
     cache?: boolean;
   }): Promise<S> {
-    const stats = <S>{};
-
-    const getSubCategory = opts?.getSubCategory; // TODO use a default value, e.g. by size category ?
+    const stats = opts?.stats || <S>{};
 
     // Split SL and HL by species
     const slMap = collectByProperty(data.SL, 'species');
@@ -155,9 +149,12 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
           SL: slMap[species],
           HL: hlMap[species]
         }
+
+        const speciesOpts = {getSubCategory: undefined, ...opts, stats};
+
         return {
           label: species,
-          charts: await this.computeSpeciesCharts(trip, species, speciesData, {getSubCategory})
+          charts: await this.computeSpeciesCharts(trip, species, speciesData, speciesOpts)
         };
       })
     );
@@ -165,12 +162,15 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
     return stats;
   }
 
+
   protected computeSpeciesCharts<HL extends SpeciesLength<HL>>(
     trip: Trip,
     species: string,
     data: R,
     opts?: {
-      getSubCategory?: Function<Partial<HL>, string>
+      stats?: S;
+      getSubCategory: Function<any, string>|undefined;
+      subCategories?: string[];
     }): Promise<SpeciesChart[]> {
 
     return this.computeSpeciesLengthCharts(trip, species, data.HL, opts);
@@ -181,9 +181,10 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
     species: string,
     data: HL[],
     opts?: {
-      getSubCategory?: Function<Partial<HL>, string>
+      getSubCategory: Function<Partial<HL>, string>|undefined;
+      subCategories?: string[];
     }): Promise<SpeciesChart[]> {
-    opts = opts || {};
+    opts = opts || {getSubCategory: undefined};
     if (isEmptyArray(data)) return [];
 
     // Load individual batch pmfms
@@ -194,20 +195,10 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
     // Get data
     const taxonGroupId = (data || []).find(sl => isNotNil(sl.taxonGroupId))?.taxonGroupId;
 
-    // Compute sub category, in meta
-    const subCategories = [];
-    let getSubCategory = opts.getSubCategory;
-    if (getSubCategory) {
-      data.forEach(sl => {
-        sl.meta = sl.meta || {};
-        sl.meta.subCategory = getSubCategory(sl);
-        // Append to list
-        if (sl.meta.subCategory && !subCategories.includes(sl.meta.subCategory)) subCategories.push(sl.meta.subCategory);
-      });
-      // Simplify original getCategory, by using meta
-      getSubCategory = (sl: HL) => sl.meta?.subCategory;
-    }
+    // Get sub categories
+    const subCategories = opts.getSubCategory && this.computeSubCategories(data, opts);
 
+    // Create landing/discard colors for each sub categories
     const landingColors = ChartJsUtilsColor.getDerivativeColor(this.landingColor, Math.max(2, subCategories?.length || 0));
     const discardColors = ChartJsUtilsColor.getDerivativeColor(this.discardColor, Math.max(2, subCategories?.length || 0));
 
@@ -225,7 +216,7 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
         catchCategories: ['LAN', 'DIS'],
         catchCategoryColors: [landingColors, discardColors],
         subCategories,
-        getSubCategory
+        getSubCategory: opts?.getSubCategory
       });
       if (catchChart) charts.push(catchChart);
     }
@@ -268,7 +259,7 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
       catchCategories?: CatchCategoryType[],
       catchCategoryColors?: Color[][],
       subCategories?: string[],
-      getSubCategory?: Function<Partial<HL>, string>;
+      getSubCategory?: Function<any, string>;
       threshold?: number;
     }): SpeciesChart {
     const pmfmName = lengthPmfm && this.pmfmNamePipe.transform(lengthPmfm, {withUnit: true, html: false})
@@ -348,8 +339,9 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
     // Add labels
     const min = data.reduce((max, sl) => Math.min(max, sl.lengthClass), 99999) * unitConversion;
     const max = data.reduce((max, sl) => Math.max(max, sl.lengthClass), 0) * unitConversion;
-    const xAxisLabels = new Array(max - min + 1)
-      .fill(min)
+    const labelCount = Math.min(1, Math.abs(max - min) + 1)
+    const xAxisLabels = new Array(labelCount)
+      .fill(Math.min(min, max))
       .map((v, index) => (v + index).toString());
     ChartJsUtils.pushLabels(chart, xAxisLabels);
 
@@ -391,6 +383,32 @@ export class TripReport<R extends TripReportData, S extends TripReportStats> ext
     }
 
     return chart;
+  }
+
+  protected computeSubCategories<T extends {meta?: {[key: string]: any}}>(data: T[], opts: {
+    subCategories?: string[];
+    firstSubCategory?: string;
+    getSubCategory: Function<any, string>;
+  }): string[] {
+
+    if (isNotEmptyArray(opts?.subCategories)) return opts.subCategories; // Skip if already computed
+
+    // Compute sub category, in meta
+    opts.subCategories = [];
+    let getSubCategory = opts.getSubCategory;
+    data.forEach(sl => {
+      sl.meta = sl.meta || {};
+      sl.meta.subCategory = sl.meta.subCategory || getSubCategory(sl);
+      // Append to list
+      if (sl.meta.subCategory && !opts.subCategories.includes(sl.meta.subCategory)) opts.subCategories.push(sl.meta.subCategory);
+    });
+
+    // Make to keep sub category first
+    if (opts.firstSubCategory) {
+      return removeDuplicatesFromArray([opts.firstSubCategory, ...opts.subCategories].filter(isNotNilOrBlank));
+    }
+
+    return opts.subCategories;
   }
 
   onMapReady() {
