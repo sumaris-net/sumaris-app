@@ -1622,6 +1622,7 @@
     "LABEL": "Code",
     "NAME": "Libellé",
     "LEVEL": "Niveau",
+    "TYPE": "Type",
     "PARENT": "Parent",
     "DESCRIPTION": "Description",
     "COMMENTS": "Commentaires",

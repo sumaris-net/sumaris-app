@@ -5,7 +5,7 @@ import { CoreModule, SHARED_TESTING_PAGES, SharedModule, SharedTestingModule, Te
 import { TranslateModule } from '@ngx-translate/core';
 import { REPORT_TESTING_PAGES } from '@app/shared/report/report.testing.module';
 import { MATERIAL_TESTING_PAGES } from '@app/shared/material/material.testing.module';
-import {EntitiesStorageExplorerModule} from '@app/shared/entities-storage-explorer/entities-storage-explorer.module';
+import {StorageExplorerModule} from '@app/shared/storage/storage-explorer.module';
 
 export const APP_SHARED_TESTING_PAGES: TestingPage[] = [
   ...SHARED_TESTING_PAGES,
@@ -21,7 +21,7 @@ const routes: Routes = [
     path: 'report', loadChildren: () => import('./report/report.testing.module').then(m => m.AppSharedReportTestingModule)
   },
   {
-    path: 'entities-storage-dumper', loadChildren: () => import('./entities-storage-explorer/entities-storage-explorer.module').then(m => m.EntitiesStorageExplorerModule)
+    path: 'storage', loadChildren: () => import('./storage/storage-explorer.module').then(m => m.StorageExplorerModule)
   },
 ];
 
@@ -33,7 +33,7 @@ const routes: Routes = [
     TranslateModule.forChild(),
     RouterModule.forChild(routes),
     SharedTestingModule,
-    EntitiesStorageExplorerModule,
+    StorageExplorerModule,
   ],
   declarations: [
 
