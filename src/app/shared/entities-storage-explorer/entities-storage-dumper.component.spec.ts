@@ -1,19 +1,19 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { IonicModule } from '@ionic/angular';
 
-import { EntitiesStorageExplorer } from './entities-storage-explorer';
+import { EntitiesStorageDumper } from './entities-storage-dumper.component';
 
 describe('EntitiesStorageExplorerComponent', () => {
-  let component: EntitiesStorageExplorer;
-  let fixture: ComponentFixture<EntitiesStorageExplorer>;
+  let component: EntitiesStorageDumper;
+  let fixture: ComponentFixture<EntitiesStorageDumper>;
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ EntitiesStorageExplorer ],
+      declarations: [ EntitiesStorageDumper ],
       imports: [IonicModule.forRoot()]
     }).compileComponents();
 
-    fixture = TestBed.createComponent(EntitiesStorageExplorer);
+    fixture = TestBed.createComponent(EntitiesStorageDumper);
     component = fixture.componentInstance;
     fixture.detectChanges();
   }));

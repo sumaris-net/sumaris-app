@@ -21,7 +21,7 @@ const routes: Routes = [
     path: 'report', loadChildren: () => import('./report/report.testing.module').then(m => m.AppSharedReportTestingModule)
   },
   {
-    path: 'entities-storage-explorer', loadChildren: () => import('./entities-storage-explorer/entities-storage-explorer.module').then(m => m.EntitiesStorageExplorerModule)
+    path: 'entities-storage-dumper', loadChildren: () => import('./entities-storage-explorer/entities-storage-explorer.module').then(m => m.EntitiesStorageExplorerModule)
   },
 ];
 

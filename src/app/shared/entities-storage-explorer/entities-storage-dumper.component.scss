@@ -1,0 +1,29 @@
+ion-grid.list-istorage {
+
+  --ion-grid-column-padding: 5px;
+
+  ion-row {
+    &.mat-header-row {
+      height: 40px;
+      ion-col {
+        vertical-align: center;
+      }
+    }
+    &.computed ion-col ion-label,
+    ion-label.computed
+    {
+      color: var(--ion-color-primary-tint) !important;
+      font-style: italic !important;
+    }
+    &.odd {
+      background-color: var(--ion-color-light);
+    }
+
+    ion-col {
+      padding: var(--ion-grid-column-padding);
+      ion-label {
+        vertical-align: center;
+      }
+    }
+  }
+}
