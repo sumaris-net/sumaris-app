@@ -1,36 +1,21 @@
-import { Component, Inject, Injector, Input, ViewEncapsulation } from '@angular/core';
-import { Trip } from '@app/trip/services/model/trip.model';
-import {
-  arrayDistinct,
-  collectByProperty,
-  Color,
-  FilterFn,
-  IReferentialRef,
-  isEmptyArray,
-  isNilOrBlank,
-  isNotEmptyArray,
-  isNotNil,
-  isNotNilOrBlank,
-  ReferentialRef
-} from '@sumaris-net/ngx-components';
+import { Component, Inject, Injector, ViewEncapsulation } from '@angular/core';
+import { arrayDistinct, collectByProperty, Color, FilterFn, IReferentialRef, isEmptyArray, isNilOrBlank, isNotEmptyArray, isNotNil, ReferentialRef } from '@sumaris-net/ngx-components';
 import { ChartJsUtils, ChartJsUtilsColor } from '@app/shared/chartsjs.utils';
 import { DOCUMENT } from '@angular/common';
 import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
 import { TripReportService } from '@app/trip/trip/report/trip-report.service';
 import { IDenormalizedPmfm, IPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
-import { PmfmValueUtils } from '@app/referential/services/model/pmfm-value.model';
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
-import { ArrayElementType, Function } from '@app/shared/functions';
-import { CatchCategoryType, RdbPmfmSpeciesLength } from '@app/trip/trip/report/trip-report.model';
+import { Function } from '@app/shared/functions';
+import { CatchCategoryType } from '@app/trip/trip/report/trip-report.model';
 import { SelectivityData, SelectivityTripReportService } from '@app/trip/trip/report/selectivity/selectivity-trip-report.service';
 import { BaseNumericStats, SpeciesChart, TripReport, TripReportStats } from '@app/trip/trip/report/trip.report';
 import { SelectivityGear, SelectivitySpeciesLength, SelectivitySpeciesList, SelectivityStation, SelectivityTrip } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
 import { MathUtils } from '@app/shared/math.utils';
 import { ChartConfiguration } from 'chart.js';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
-import { TripFilter } from '@app/trip/services/filter/trip.filter';
-import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
+import { environment } from '@environments/environment';
 
 
 export interface SubCategoryWeightStats {
@@ -334,12 +319,15 @@ export class SelectivityTripReport extends TripReport<SelectivityData, Selectivi
 
       // Add boxplot chart
       if (opts.stats.weights) {
-        const boxPlotChart = this.createSpeciesBoxPlot(species, {
-          stats: opts.stats,
-          subCategories: this.stats.subCategories,
-          catchCategories: ['LAN', 'DIS']
-        });
-        if (boxPlotChart) charts.push(boxPlotChart);
+        // TODO finish this feature, then enable
+        if (!environment.production) {
+          const boxPlotChart = this.createSpeciesBoxPlot(species, {
+            stats: opts.stats,
+            subCategories: this.stats.subCategories,
+            catchCategories: ['LAN', 'DIS']
+          });
+          if (boxPlotChart) charts.push(boxPlotChart);
+        }
       }
     }
 
