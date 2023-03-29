@@ -192,10 +192,13 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
           this.paginator.pageIndex = 0;
         }
 
-        // Refresh
-        if (this.started && this.loaded) {
-          return this.loadData();
+        if (!this.started) {
+          console.warn('[extraction-table] Service not started: skip refresh event');
+          return;
         }
+
+        // Load data
+        return this.loadData();
       }));
 
     this.filterCriteriaCount$ = this.criteriaForm.form.valueChanges
@@ -211,7 +214,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     this._state.connect('program', this._state.select(['programLabel', 'programs'], res => res)
       .pipe(
         map(({programLabel, programs}) => {
-          return (programs || []).find(p => p.label === programLabel);
+          return programLabel && (programs || []).find(p => p.label === programLabel) || null;
         })
       ));
 
@@ -233,6 +236,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
     super.ngOnDestroy();
 
     this.$cancel.next(true);
+  }
+
+  protected async loadFromRouteOrSettings(): Promise<boolean> {
+    const found = await super.loadFromRouteOrSettings();
+    if (found) return found;
+
+    // Mark as loaded, if not found
+    setTimeout(() => this.markAsLoaded());
   }
 
   async updateView(data: ExtractionResult) {
@@ -282,7 +293,7 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
   async setType(type: ExtractionType, opts?: { emitEvent?: boolean; skipLocationChange?: boolean; sheetName?: string }): Promise<boolean> {
 
-    const changed = await super.setType(type, {...opts, emitEvent: false});
+    const changed = await super.setType(type, {...opts, emitEvent: false, skipLocationChange: true});
 
     if (changed) {
       this.$cancel.next(); // Cancelled existing load process
@@ -300,9 +311,11 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       // Reset program
       this.resetProgram();
 
-      this.markAsReady();
+      if (!opts || opts.emitEvent !== false) {
 
-      if (!opts || opts.emitEvent !== true) {
+        this.markAsReady();
+        this.markAsStarted();
+
         this.onRefresh.emit();
       }
     }
@@ -335,6 +348,10 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
 
     // Refresh data
     if (!opts || opts.emitEvent !== false) {
+
+      this.markAsReady();
+      this.markAsStarted();
+
       this.onRefresh.emit();
     }
   }
@@ -668,15 +685,14 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
   /* -- protected method -- */
 
 
-  async updateQueryParams(type?: ExtractionType, opts: { skipLocationChange: boolean } = { skipLocationChange: false }): Promise<void> {
-    if (this.embedded) return; // Avoid to update route, if embedded
+  async updateQueryParams(type?: ExtractionType, opts= { skipLocationChange: false, skipSettingsChange: false }): Promise<void> {
+    if (this.embedded) return; // Skip route update route, if embedded
 
     return super.updateQueryParams(type, opts);
   }
 
   protected resetProgram() {
-    this._state.set('programLabel', (_) => null);
-    this._state.set('program', (_) => null);
+    this._state.set({programLabel: null, program: null});
   }
 
   protected watchAllTypes(): Observable<LoadResult<ExtractionType>> {

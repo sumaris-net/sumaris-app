@@ -1,5 +1,5 @@
 import { Component, Injector } from '@angular/core';
-import { AppRootDataReport } from '@app/data/report/root-data-report.class';
+import { AppDataEntityReport } from '@app/data/report/data-entity-report.class';
 import { ProgramProperties } from '@app/referential/services/config/program.config';
 import { Operation } from '@app/trip/services/model/trip.model';
 import { OperationService } from '@app/trip/services/operation.service';
@@ -11,7 +11,7 @@ import moment from 'moment';
   selector: 'app-operation-report',
   templateUrl: './operation.report.html',
 })
-export class OperationReport extends AppRootDataReport<Operation> {
+export class OperationReport extends AppDataEntityReport<Operation> {
 
   private tipService: TripService;
   private operationService: OperationService;
@@ -22,7 +22,7 @@ export class OperationReport extends AppRootDataReport<Operation> {
     this.operationService = injector.get(OperationService);
   }
 
-  protected async loadData(id: number): Promise<Operation> {
+  protected async load(id: number): Promise<Operation> {
     console.debug(`[${this.constructor.name}.loadData]`, arguments);
     const data = await this.operationService.load(id);
     data.trip = await this.tipService.load(data.tripId);

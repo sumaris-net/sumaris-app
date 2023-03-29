@@ -50,7 +50,7 @@ import { ObservedLocation } from '@app/trip/services/model/observed-location.mod
 import { MINIFY_OPTIONS } from '@app/core/services/model/referential.utils';
 
 import { TripFilter } from '@app/trip/services/filter/trip.filter';
-import { Moment } from 'moment/moment';
+import { Moment } from 'moment';
 import { ImageAttachment } from '@app/data/image/image-attachment.model';
 
 

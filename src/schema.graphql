@@ -327,14 +327,6 @@ type IExtractionType_PersonVO_DepartmentVO {
     version: String
 }
 
-type IProgressionModel {
-    completed: Boolean!
-    current: Int!
-    jobId: Int
-    message: String
-    total: Int!
-}
-
 type ImageAttachmentVO {
     comments: String
     content: String
@@ -373,7 +365,6 @@ type JobVO {
     issuer: String
     log: String
     name: String
-    progressionModel: IProgressionModel
     report: String
     startDate: Date
     status: JobStatusEnum
@@ -1086,7 +1077,7 @@ type Query {
     "Search in departments"
     departments(filter: DepartmentFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String = "name", sortDirection: String = "asc"): [DepartmentVO]
     "Read extraction data"
-    extraction(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): [JsonObject]
+    extraction(cacheDuration: String, filter: ExtractionFilterVOInput, offset: Int = 0, size: Int = 1000, sortBy: String, sortDirection: String = "asc", strata: AggregationStrataVOInput, type: ExtractionTypeVOInput!): Json
     "Read columns from an extraction"
     extractionColumns(sheet: String, type: ExtractionTypeVOInput!): [ExtractionTableColumnVO]
     "Extract data into a file"
@@ -1868,8 +1859,8 @@ scalar BigDecimal
 "Built-in scalar representing an instant in time"
 scalar Date
 
-"JSON object"
-scalar JsonObject
+"Any JSON value"
+scalar Json
 
 "A 64-bit signed integer"
 scalar Long
@@ -2122,6 +2113,7 @@ input ExtractionFilterVOInput {
     meta: Map_String_ObjectScalar
     operator: String
     sheetName: String
+    sheetNames: [String]
 }
 
 input ExtractionProductVOInput {

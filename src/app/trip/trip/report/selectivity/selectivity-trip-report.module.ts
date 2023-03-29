@@ -1,24 +1,23 @@
 import { NgModule } from '@angular/core';
-
 import { AppCoreModule } from '@app/core/core.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { AppOperationModule } from '@app/trip/operation/operation.module';
-import { ChartsModule } from 'ng2-charts';
-import { SelectivityReport } from './selectivity.report';
+import { SelectivityTripReport } from '@app/trip/trip/report/selectivity/selectivity-trip.report';
+import { AppReferentialModule } from "@app/referential/referential.module";
 
 
 @NgModule({
   declarations: [
-    SelectivityReport
+    SelectivityTripReport
   ],
   imports: [
     AppCoreModule,
     AppSharedReportModule,
     AppOperationModule,
-    ChartsModule,
+    AppReferentialModule
   ],
   exports: [
-    SelectivityReport,
+    SelectivityTripReport
   ],
 })
-export class SelectivityReportModule { }
+export class SelectivityTripReportModule { }

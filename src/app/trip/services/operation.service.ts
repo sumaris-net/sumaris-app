@@ -650,6 +650,8 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     incrementProgression(); // Increment progression
 
+    let dirty = false;
+
     // Control batches (skip if abnormal operation)
     if (!entity.abnormal && entity.catchBatch && opts?.program) {
       const hasIndividualMeasures = MeasurementUtils.asBooleanValue(entity.measurements, PmfmIds.HAS_INDIVIDUAL_MEASURES)
@@ -668,10 +670,14 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
         progression: opts.progression,
         maxProgression: progressionStep
       });
-      const dirty = errors || (wasInvalid !== BatchUtils.isInvalid(entity.catchBatch));
 
-      // Save if need
-      if (dirty) await this.save(entity);
+      if (errors) {
+        await this.save(entity);
+      }
+      else {
+        // Mark as dirty, if invalid changed
+        dirty = (wasInvalid !== BatchUtils.isInvalid(entity.catchBatch))
+      }
 
       incrementProgression();
 
@@ -685,11 +691,19 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
     }
 
     console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
+
+    // Lark local operation has controlled (to have a checkmark icon in the operation table)
+    if (entity.tripId < 0) {
+      DataEntityUtils.markAsControlled(entity);
+      dirty = true;
+    }
+
+    if (dirty) await this.save(entity);
+
     return undefined;
   }
 
   async terminate(entity: Operation): Promise<Operation> {
-
     // Clean error
     entity.qualificationComments = null;
 

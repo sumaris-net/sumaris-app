@@ -3,6 +3,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { AppOperationModule } from '@app/trip/operation/operation.module';
 import { TripReport } from './trip.report';
+import { AppReferentialModule } from '@app/referential/referential.module';
 
 
 @NgModule({
@@ -11,6 +12,7 @@ import { TripReport } from './trip.report';
   ],
   imports: [
     AppCoreModule,
+    AppReferentialModule,
     AppSharedReportModule,
     AppOperationModule
   ],

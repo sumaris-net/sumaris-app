@@ -279,6 +279,23 @@
 
     </mat-tab>
 
+
+    <!-- TAB: jobs -->
+    <mat-tab label="{{'CONFIGURATION.TAB_JOBS'|translate}}">
+      <ng-template mat-tab-label>
+        <mat-icon>schedule</mat-icon>
+        <ion-label *rxLet="jobList.jobsCount$ as count"
+                   [matBadge]="count"
+                   [matBadgeHidden]="!count"
+                   matBadgeColor="primary"
+                   matBadgeOverlap="false"
+                   matBadgeSize="small"
+                   translate>CONFIGURATION.TAB_JOBS</ion-label>
+      </ng-template>
+
+      <app-job-list #jobList></app-job-list>
+    </mat-tab>
+
   </mat-tab-group>
 </ion-content>
 

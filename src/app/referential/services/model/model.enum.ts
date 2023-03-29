@@ -53,6 +53,8 @@ export const TaxonomicLevelIds = {
 };
 
 export const PmfmIds = {
+  GEAR_SPEED: 9,
+  SEA_STATE: 33,
   TRIP_PROGRESS: 34,
   SURVIVAL_SAMPLING_TYPE: 35,
   DISCARD_WEIGHT: 56,
@@ -74,6 +76,7 @@ export const PmfmIds = {
   RELEASE_LATITUDE: 110,
   RELEASE_LONGITUDE: 111,
   SELECTIVITY_DEVICE: 4,
+  SELECTIVITY_DEVICE_APASE: 435,
 
   /* ADAP pmfms */
   LENGTH_TOTAL_CM: 81, // Use for test only
@@ -242,7 +245,8 @@ export const PmfmLabelPatterns = {
   LONGITUDE: /^LONGITUDE$/i,
   LENGTH: /LENGTH/i,
   WEIGHT: /WEIGHT$/i,
-  DRESSING: /^DRESSING/i
+  DRESSING: /^DRESSING/i,
+  SELECTIVITY_DEVICE: /^SELECTIVITY_DEVICE/i
 };
 
 export const UnitIds = {

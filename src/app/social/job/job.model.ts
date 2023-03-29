@@ -1,11 +1,12 @@
 import {
+  AppIconComponent, ColorName,
   Entity,
   EntityAsObjectOptions,
   EntityClass,
   EntityFilter,
   FilterFn,
-  fromDateISOString,
-  isNotEmptyArray, isNotNil,
+  fromDateISOString, IconRef,
+  isNotEmptyArray, isNotNil, JobProgression,
   toDateISOString
 } from '@sumaris-net/ngx-components';
 import { Moment } from 'moment';
@@ -28,6 +29,9 @@ export class Job extends Entity<Job> {
   log: string;
   configuration: any;
   report: any;
+
+  progression?: JobProgression;
+  icon?: IconRef;
 
   constructor() {
     super(Job.TYPENAME);

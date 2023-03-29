@@ -4,6 +4,11 @@
 
     <ion-title [innerHTML]="$title|async"></ion-title>
 
+    <!-- Refresh -->
+    <ion-button slot="end" (click)="onRefresh.emit()" [title]="'COMMON.BTN_REFRESH'|translate">
+      <mat-icon slot="icon-only">refresh</mat-icon>
+    </ion-button>
+
     <!-- Help button -->
     <ion-button slot="end" (click)="reveal.toggleHelp()">
       <mat-icon slot="icon-only">help_outline</mat-icon>
@@ -48,32 +53,40 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate" (slideChanged)="onSlideChanged($event)">
+  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     <section>
-      <section>
-        <h1>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h1>
-        <ul>
-          <li>{{ 'TRIP.TABLE.VESSEL'|translateContext: i18nContext.suffix }} : {{ data.vesselSnapshot.exteriorMarking }}</li>
-          <li>{{ 'TRIP.DEPARTURE_DATE_TIME'|translateContext: i18nContext.suffix }} : {{ data.departureDateTime|dateFormat:{time: false} }}</li>
-          <li>{{ 'TRIP.DEPARTURE_LOCATION'|translateContext: i18nContext.suffix }} : {{ data.departureLocation.name }}</li>
+      <!-- summary -->
+      <section class="summary">
+        <h2>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h2>
+        <ul *ngVar="{
+        startDate: data.departureDateTime|dateFormat:{time: false},
+        endDate: data.returnDateTime|dateFormat:{time: false}
+      } as vars">
+          <li><ion-icon name="boat"></ion-icon> {{ 'TRIP.REPORT.VESSEL_NAME'|translateContext: i18nContext.suffix }} <b>{{ stats.vesselSnapshots|referentialToString: ['name'] }}</b></li>
+          <li class="no-icon"> {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING'|translateContext: i18nContext.suffix }} {{ stats.vesselSnapshots|referentialToString: ['exteriorMarking'] }}</li>
+          <li><ion-icon name="calendar"></ion-icon> {{ 'TRIP.REPORT.DATES'|translateContext: i18nContext.suffix: vars }}</li>
+          <li><ion-icon name="navigate"></ion-icon> {{ 'TRIP.REPORT.OPERATION_COUNT'|translateContext: i18nContext.suffix }} {{ stats.operations?.length || 0 }}</li>
         </ul>
       </section>
-      <section *ngFor="let c of stats.charts | keyvalue; last as last">
-        <div class="chart-container">
-          <canvas baseChart
-                  [datasets]="c.value.data.datasets"
-                  [options]="c.value.options"
-                  [labels]="c.value.data.labels"
-                  [colors]="c.value.colors"
-                  [chartType]="c.value.type">
-          </canvas>
-        </div>
-      </section>
+
+      <!-- Operations map -->
       <section (entered)="!reveal.printing && showMap()">
         <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
-        <!-- Operations map -->
         <div style="height: 550px;">
           <ng-container #mapContainer></ng-container>
+        </div>
+      </section>
+    </section>
+    <section *ngFor="let s of stats.species">
+      <section *ngFor="let chart of s.charts | mapValues">
+        <div class="chart-container">
+          <canvas baseChart
+                  [chartType]="chart.type"
+                  [labels]="chart.data.labels"
+                  [colors]="chart.colors"
+                  [options]="chart.options"
+                  [datasets]="chart.data.datasets">
+          </canvas>
         </div>
       </section>
     </section>
@@ -91,11 +104,12 @@
 <ng-template #mapTemplate>
   <app-operations-map (ready)="onMapReady()"
                       [showTooltip]="false"
-                      [programLabel]="data.program.label"
-                      [data]="[data.operations]"
+                      [programLabel]="stats.programLabel"
+                      [data]="[stats.operations]"
                       [flyToBoundsDelay]="0"
                       [flyToBoundsDuration]="0"
                       [showGraticule]="true"
+                      [showTripLayer]="false"
                       [latLongPattern]="latLongFormat">
   </app-operations-map>
 </ng-template>

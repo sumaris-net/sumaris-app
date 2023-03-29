@@ -289,6 +289,10 @@ export abstract class PmfmUtils {
     return pmfm.type === 'date';
   }
 
+  static isQualitative(pmfm: IPmfm): boolean {
+    return pmfm.type === 'qualitative_value';
+  }
+
   /**
   * Check if individual weight (e.g. for batches, products)
   * @param pmfm
@@ -320,6 +324,17 @@ export abstract class PmfmUtils {
       || (pmfm instanceof Pmfm
         && UnitLabelGroups.LENGTH.includes(pmfm.unit?.label)
         && PmfmLabelPatterns.LENGTH.test(pmfm.parameter?.label))
+    );
+  }
+
+  /**
+   * Check if pmfm is a selectivity device
+   * @param pmfm
+   */
+  static isSelectivityDevice(pmfm: IPmfm): boolean {
+    return pmfm && (
+      PmfmLabelPatterns.SELECTIVITY_DEVICE.test(pmfm.label)
+      || (pmfm instanceof Pmfm && PmfmLabelPatterns.SELECTIVITY_DEVICE.test(pmfm.parameter?.label))
     );
   }
 

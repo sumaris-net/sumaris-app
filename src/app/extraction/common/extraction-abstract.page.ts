@@ -318,7 +318,7 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
   /**
    * Update the URL
    */
-  async updateQueryParams(type?: T, opts = {skipLocationChange: false}) {
+  async updateQueryParams(type?: T, opts = {skipLocationChange: false, skipSettingsChange: false}) {
     type = type || this.type;
     if (this.type !== type) return; // Skip
 
@@ -332,8 +332,8 @@ export abstract class ExtractionAbstractPage<T extends ExtractionType, S extends
       queryParams
     });
 
-    // Update settings
-    {
+    // Save router and filter in settings, to be able to restore it
+    if (!opts || opts.skipSettingsChange !== false) {
       const json = {...queryParams, updateDate: toDateISOString(DateUtils.moment())};
       await this.settings.savePageSetting(this.settingsId, json, EXTRACTION_SETTINGS_ENUM.filterKey);
     }

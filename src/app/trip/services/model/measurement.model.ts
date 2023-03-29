@@ -124,7 +124,7 @@ export class MeasurementUtils {
     });
   }
 
-  static getMeasurementEntityValue(source: Measurement, pmfm: IPmfm): any {
+  static getMeasurementEntityValue(source: Measurement, pmfm: IPmfm): PmfmValue {
     switch (pmfm.type) {
       case 'qualitative_value':
         if (source.qualitativeValue && source.qualitativeValue.id) {

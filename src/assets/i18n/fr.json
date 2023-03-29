@@ -158,6 +158,7 @@
     "TAB_CACHE": "Données en cache",
     "TAB_NOTIFICATIONS": "Notifications",
     "APP_NAME": "Nom de l'application",
+    "TAB_JOBS": "Traitements",
     "DESCRIPTION": "Description (page d'accueil)",
     "STATUS": "Etat",
     "PREVIEW_DIVIDER": "Prévisualisation",
@@ -542,7 +543,8 @@
     "EDIT": {
       "TITLE": "<small>{{vessel}}<br></small>Marée du {{departureDateTime}}",
       "OTHER_FEATURES": "Caractéristiques :",
-      "BTN_DELETE": "Supprimer toute la marée"
+      "BTN_DELETE": "Supprimer toute la marée",
+      "BTN_REPORT_DOTS": "Éditer le rapport..."
     },
     "OPTIONS": {
       "ENABLE": "Marées > Activer ?",
@@ -1138,7 +1140,47 @@
     },
     "REPORT": {
       "TITLE": "<small>{{ vessel }}</small> Rapport marée du {{ departureDate }}",
-      "TITLE_SLIDE": "Rapport marée"
+      "TITLE_SLIDE": "Rapport marée",
+      "VESSEL_NAME": "Nom navire(s) :",
+      "VESSEL_EXTERIOR_MARKING": "Immatriculation(s) :",
+      "SELECTIVITY_DEVICES": "Dispositif(s) testé(s) :",
+      "DATES": "Dates : du {{startDate}} au {{endDate}}",
+      "SEA_STATE": "État de la mer :",
+      "GEAR_SPEED": "Vitesse de traine :",
+      "GEAR_SPEED_STATS": "{{min}} à {{max}} Nds (<b>{{avg}} Nds</b> en moyenne)",
+      "GEAR_SPEED_AVG": "<b>{{avg}} Nds</b>",
+      "SEABED_FEATURES": "Types de fond :",
+      "OPERATION_COUNT": "Nombre d'OPs sélectionnés :",
+      "SPECIES": "Espèce",
+      "LANDING": "Débarquement",
+      "DISCARD": "Rejet",
+      "CHART": {
+        "INDIVIDUAL_COUNT": "Nb individus",
+        "LENGTH": "Taille",
+        "GEAR_POSITION_T": "Tribord",
+        "GEAR_POSITION_B": "Bâbord",
+        "SPECIES_LENGTH": "Répartition en taille",
+        "TOTAL_CATCH": "Capture totale",
+        "LANDING_AND_DISCARD_COMPARISON": "Comparaison des débarquements et rejets",
+        "TRAWL_SELECTIVITY": {
+          "STANDARD": "Standard",
+          "SELECTIVE": "{{label}}",
+          "QUANTITY_IN_STANDARD": "Quantité dans le chalut standard (kg)",
+          "QUANTITY_IN_SELECTIVE": "Quantité dans le chalut {{selectionDevice}} (kg)"
+        }
+      },
+      "TABLE": {
+        "SPECIES_LIST": "Capture par espèce",
+        "STANDARD_DERIVATION": "&sigma;",
+        "TRAWL_SELECTIVITY": {
+          "SPECIES_LIST": "Comparaison par espèce",
+          "TOTAL_WEIGHT": "Poids total chalut<br/>{{selectionDevice}}<br/><small>(kg)</small>",
+          "TOTAL_VARIATION_LANDING": "Taux de variation total<br/>Débarquement<br/><small>(%)</small>",
+          "TOTAL_VARIATION_DISCARD": "Taux de variation total<br/>Rejet<br/><small>(%)</small>",
+          "AVG_VARIATION_LANDING": "Taux de variation moyen<br/>Débarquement<br/><small>(%)</small>",
+          "AVG_VARIATION_DISCARD": "Taux de variation moyen<br/>Rejet<br/><small>(%)</small>"
+        }
+      }
     }
   },
   "EXPECTED_SALE": {
@@ -1411,7 +1453,7 @@
     "EDIT": {
       "TITLE": "Navire {{vessel}}",
       "OTHER_TAXON_GROUP": "Espèce commerciale (FAO)",
-      "BTN_REPORT": "Générer le rapport"
+      "BTN_REPORT": "Éditer le rapport"
     },
     "SAMPLE": {
       "NEW": {
@@ -1580,6 +1622,7 @@
     "LABEL": "Code",
     "NAME": "Libellé",
     "LEVEL": "Niveau",
+    "TYPE": "Type",
     "PARENT": "Parent",
     "DESCRIPTION": "Description",
     "COMMENTS": "Commentaires",
@@ -1736,6 +1779,11 @@
       "FILTER": {
         "ENTITY": "Type de référentiel",
         "SEARCH_TEXT": "Recherche : code, libellé"
+      },
+      "IMPORT_POLICY": {
+        "INSERT-ONLY": "Insertions uniquement",
+        "UPDATE-ONLY": "Mises à jour uniquement",
+        "INSERT-UPDATE": "Insertions ou mises à jour"
       }
     },
     "STATUS_ENUM": {
@@ -1789,8 +1837,8 @@
       "VESSELS_REPLACEMENT_ENABLE": "Référentiels > Navires > Remplacement: Activer ?"
     },
     "INFO": {
-      "IMPORT_ENTITIES_SUCCEED": "Importation terminée <b>avec succès</b> !<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour.",
-      "IMPORT_ENTITIES_WARNING": "Importation terminée <b>avec erreur</b>:<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{errorCount}} erreurs :<br/>{{error}}"
+      "IMPORT_ENTITIES_SUCCEED": "Importation terminée <b>avec succès</b> !<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{skipCount}} ignoré(s).",
+      "IMPORT_ENTITIES_WARNING": "Importation terminée <b>avec erreur</b>:<br/>{{insertCount}} insertion(s), {{updateCount}} mise(s) à jour, {{skipCount}} ignoré(s), {{errorCount}} erreurs :<br/>{{error}}"
     },
     "ERROR": {
       "SAVE_REFERENTIAL_ERROR": "Erreur de sauvegarde.",
@@ -1891,6 +1939,9 @@
       "TRIP_LATITUDE_DEFAULT_SIGN": "Marée > Position > Latitude: Direction par défaut :",
       "TRIP_LONGITUDE_DEFAULT_SIGN": "Marée > Position > Longitude: Direction par défaut :",
       "TRIP_ALLOW_PARENT_OPERATION": "Marée > Opération : Opérations liées (Filage/Virage) ?",
+      "TRIP_REPORT_TYPE": "Marée > Type de rapport",
+      "TRIP_REPORT_TYPE_LEGACY": "Par défaut",
+      "TRIP_REPORT_TYPE_SELECTIVITY": "Sélectivité chalut",
       "TRIP_OPERATION_EDITOR": "Marée > Opération : Éditeur",
       "TRIP_OPERATION_EDITOR_LEGACY": "Par défaut",
       "TRIP_OPERATION_EDITOR_SELECTIVITY": "Sélectivité chalut",
@@ -2326,6 +2377,7 @@
       "INDIVIDUAL_SEX": "Sexe individu",
       "SEX": "Sexe",
       "WEIGHT": "Poids (g)",
+      "SUBSAMPLE_WEIGHT": "Poids échantillonné (g)",
       "SUBSAMPLING_WEIGHT": "Poids échantillonné (g)",
       "SUBSAMPLING_CATEGORY": "Catégorie de sous-échantillonnage",
       "STATION_COUNT": "Nombre de station",
@@ -2369,14 +2421,16 @@
     },
     "SHEET": {
       "TR": "Marées",
-      "HH": "Stations",
-      "SL": "Captures",
+      "HH": "Opérations",
+      "CT": "Captures",
+      "SL": "Espèces",
       "HL": "Mensurations",
       "CA": "Sex-Age",
       "CL": "Débarquements",
       "CE": "Efforts",
       "ST": "Mesures individuelles",
-      "RL": "Relâché"
+      "RL": "Relâché",
+      "FG": "Engins de pêche"
     },
     "OPTIONS": {
       "ENABLE": "Extraction > Activer ?",
@@ -2397,6 +2451,9 @@
       }
     },
     "FORMAT": {
+      "APASE": {
+        "TITLE": "Marées brutes (APASE v{{version}})"
+      },
       "RDB": {
         "TITLE": "Marées brutes (RDB v{{version}})"
       },
@@ -2583,14 +2640,27 @@
       "MESSAGE_SENT": "Message <b>envoyé</b>"
     }
   },
+  "JOB": {
+    "LIST": {
+      "TITLE": "Liste des traitements",
+      "STOP_JOB": "Arrêter le traitement",
+      "JOB_NAME": "Nom du traitement",
+      "JOB_DESCRIPTION": "Description du traitement",
+      "JOB_TYPE": "Type de traitement",
+      "JOB_RECIPIENT": "Destinataire",
+      "JOB_PROGRESS": "Progression"
+    }
+  },
   "FILE": {
     "JSON": {
       "ENCODING": "UTF-8",
+      "FORMAT": "JSON",
       "BTN_DOWNLOAD_HELP": "Télécharger les données (JSON)"
     },
     "CSV": {
       "SEPARATOR": ";",
       "ENCODING": "UTF-8",
+      "FORMAT": "CSV",
       "BTN_DOWNLOAD_HELP": "Télécharger les données (CSV)",
       "ERROR": {
         "EMPTY_FILE": "Fichier vide, ou ligne d'entête manquante",

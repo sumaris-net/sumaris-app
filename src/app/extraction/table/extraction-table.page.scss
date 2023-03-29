@@ -89,4 +89,13 @@ ion-content.embedded.has-paginator {
   .mat-column-survival_sampling_type {
     min-width: 180px;
   }
+
+  /* -- Manage some well known large columns -- */
+  .mat-column-trip_comments,
+  .mat-column-gear_label,
+  .mat-column-gear_comments,
+  .mat-column-station_comments {
+    min-width: 180px;
+    max-width: 250px;
+  }
 }
