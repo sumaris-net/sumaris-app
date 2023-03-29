@@ -15,7 +15,7 @@ if [[ "_$INSTALL_DIR" == "_" ]]; then
 fi
 
 latest_version() {
-  echo "2.1.1" #lastest
+  echo "2.2.0" #lastest
 }
 
 api_release_url() {
