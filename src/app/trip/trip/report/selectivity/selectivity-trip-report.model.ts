@@ -1,7 +1,24 @@
-import { toNumber } from '@sumaris-net/ngx-components';
-import { SpeciesLength, SpeciesList, Station } from '@app/trip/trip/report/trip-report.model';
+import { Entity, toNumber } from '@sumaris-net/ngx-components';
+import { RdbPmfmSpeciesLength, RdbPmfmTrip, RdbSpeciesLength, RdbSpeciesList, RdbStation, RdbTrip } from '@app/trip/trip/report/trip-report.model';
 
-export class SelectivityStation extends Station<SelectivityStation> {
+export class SelectivityTrip extends RdbPmfmTrip<SelectivityTrip> {
+
+}
+
+export class SelectivityGear extends Entity<SelectivityGear> {
+  gearIdentifier: number;
+  subGearIdentifier: number;
+  selectionDevice: string;
+
+  fromObject(source: any) {
+    super.fromObject(source);
+    this.gearIdentifier = toNumber(source.gearIdentifier);
+    this.subGearIdentifier = toNumber(source.subGearIdentifier);
+    this.selectionDevice = source.selectionDevice || source.selectivityDeviceApase;
+  }
+}
+
+export class SelectivityStation extends RdbStation<SelectivityStation> {
   gearIdentifier: number;
   seabedFeatures: string;
   seaState: string;
@@ -16,7 +33,7 @@ export class SelectivityStation extends Station<SelectivityStation> {
   }
 }
 
-export class SelectivitySpeciesList extends SpeciesList<SelectivitySpeciesList> {
+export class SelectivitySpeciesList extends RdbSpeciesList<SelectivitySpeciesList> {
   gearIdentifier: number;
   subGearPosition: 'B' | 'T';
   subGearIdentifier: number;
@@ -29,7 +46,7 @@ export class SelectivitySpeciesList extends SpeciesList<SelectivitySpeciesList> 
   }
 }
 
-export class SelectivitySpeciesLength extends SpeciesLength<SelectivitySpeciesLength> {
+export class SelectivitySpeciesLength extends RdbPmfmSpeciesLength<SelectivitySpeciesLength> {
   subGearIdentifier: number;
   subGearPosition: 'B' | 'T';
 

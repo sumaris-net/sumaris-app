@@ -116,3 +116,5 @@ export function collectByFunction<T>(values: T[], getKey: Function<T, string|num
     return res;
   }, <KeyValueType<T[]>>{});
 }
+
+export type ArrayElementType<T> = T extends (infer E)[] ? E : never;

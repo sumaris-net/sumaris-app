@@ -163,6 +163,7 @@ export class ExtractionFilter extends EntityFilter<ExtractionFilter, IEntity<any
 
   searchText?: string;
   sheetName?: string;
+  sheetNames?: string[];
   preview?: boolean;
   criteria?: ExtractionFilterCriterion[];
 

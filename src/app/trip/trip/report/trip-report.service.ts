@@ -1,49 +1,50 @@
 import { Injectable } from '@angular/core';
-import { BaseGraphqlService, EntityUtils, GraphqlService, isEmptyArray } from '@sumaris-net/ngx-components';
+import { BaseGraphqlService, EntityUtils, GraphqlService, IEntity, isEmptyArray } from '@sumaris-net/ngx-components';
 import { FetchPolicy, gql } from '@apollo/client/core';
-import { ExtractionCacheDurationType } from '@app/extraction/type/extraction-type.model';
+import { ExtractionCacheDurationType, ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { TripFilter } from '@app/trip/services/filter/trip.filter';
-import { SpeciesLength, SpeciesList, Station } from '@app/trip/trip/report/trip-report.model';
+import { RdbPmfmSpeciesLength, RdbPmfmTrip, RdbSpeciesLength, RdbSpeciesList, RdbStation, RdbTrip } from '@app/trip/trip/report/trip-report.model';
 
 const Queries = {
-  tripReportData: gql`query Extraction($ids: [String!]!,
-    $programLabel: String!, $formatLabel: String!, $sheetNames: [String!]!,
-    $offset: Int, $size: Int, $sortBy: String, $sortDirection: String,
-    $cacheDuration: String) {
+  extraction: gql`query Extraction($formatLabel: String!, $filter: ExtractionFilterVOInput!, $offset: Int, $size: Int, $cacheDuration: String) {
     data: extraction(
       type: {format: $formatLabel},
       offset: $offset,
       size: $size,
-      sortBy: $sortBy,
-      sortDirection: $sortDirection,
       cacheDuration: $cacheDuration,
-      filter: {
-        sheetNames: $sheetNames,
-        criteria: [
-          {sheetName: "TR", name: "project", operator: "=", value: $programLabel},
-          {sheetName: "TR", name: "trip_code", operator: "IN", values: $ids}
-        ]
-      }
+      filter: $filter
     )
   }`
 };
 
-export interface TripReportData<
-  HH extends Station = Station,
-  SL extends SpeciesList = SpeciesList,
-  HL extends SpeciesLength = SpeciesLength
+export interface RdbData<
+  TR extends RdbTrip = RdbTrip,
+  HH extends RdbStation = RdbStation,
+  SL extends RdbSpeciesList = RdbSpeciesList,
+  HL extends RdbSpeciesLength = RdbSpeciesLength
 > {
+  TR: TR[];
   HH: HH[];
   SL: SL[];
   HL: HL[];
 }
 
+export interface RdbPmfmData<
+  TR extends RdbPmfmTrip = RdbPmfmTrip,
+  HH extends RdbStation = RdbStation,
+  SL extends RdbSpeciesList = RdbSpeciesList,
+  HL extends RdbPmfmSpeciesLength = RdbPmfmSpeciesLength
+> extends RdbData<TR, HH, SL, HL>{
+
+}
+
 @Injectable()
 export class TripReportService<
-  R extends TripReportData<HH, SL, HL> = TripReportData<any, any, any>,
-  HH extends Station = Station,
-  SL extends SpeciesList = SpeciesList,
-  HL extends SpeciesLength = SpeciesLength,
+  R extends RdbData<TR, HH, SL, HL> = RdbData<any, any, any, any>,
+  TR extends RdbTrip = RdbTrip,
+  HH extends RdbStation = RdbStation,
+  SL extends RdbSpeciesList = RdbSpeciesList,
+  HL extends RdbSpeciesLength = RdbSpeciesLength,
 > extends BaseGraphqlService {
 
   constructor(
@@ -52,15 +53,17 @@ export class TripReportService<
     super(graphql);
   }
 
-  async loadData(filter: Partial<TripFilter>,
-                 opts?: {
+  async loadAll(filter: Partial<ExtractionFilter>,
+                opts?: {
                    formatLabel?: string;
                    sheetNames?: string[];
                    query?: any;
                    dataTypes?: {
+                     TR: new () => TR,
                      HH: new () => HH,
                      SL: new () => SL,
-                     HL: new () => HL
+                     HL: new () => HL,
+                     [key: string]: new () => IEntity<any>
                    };
                    fetchPolicy?: FetchPolicy;
                    cache?: boolean; // enable by default
@@ -69,37 +72,30 @@ export class TripReportService<
 
     opts = {
       formatLabel: 'pmfm_trip',
+      sheetNames: ['TR', 'HH', 'SL', 'HL'],
       dataTypes: {
-        HH: Station as unknown as new () => HH,
-        SL: SpeciesList as unknown as new () => SL,
-        HL: SpeciesLength as unknown as new () => HL
+        TR: RdbTrip as unknown as new () => TR,
+        HH: RdbStation as unknown as new () => HH,
+        SL: RdbSpeciesList as unknown as new () => SL,
+        HL: RdbSpeciesLength as unknown as new () => HL
       },
       ...opts
     };
     const withCache = (!opts || opts.cache !== false);
     const cacheDuration = withCache ? (opts && opts.cacheDuration || 'default') : undefined;
-    filter = TripFilter.fromObject(filter);
-    const programLabel = filter.program?.label;
 
-    if (!programLabel) throw new Error('Missing filter program');
+    filter = ExtractionFilter.fromObject(filter);
+    if (filter.isEmpty()) throw new Error('Cannot load trip data: filter is empty!');
 
-    // TODO: load locally
-    const ids = filter.includedIds
-      .filter(EntityUtils.isRemoteId)
-      .map(id => id.toString());
-    if (isEmptyArray(ids)) {
-      console.debug(`[trip-report-service] No trip ids to load: Skip`);
-      return; // Skip is empty
-    }
+    const podFilter = filter.asPodObject()
+    podFilter.sheetNames = opts?.sheetNames;
+    delete podFilter.sheetName;
 
     const variables = {
-      ids,
-      programLabel,
-      formatLabel: opts?.formatLabel || 'pmfm_trip',
-      sheetNames: opts?.sheetNames || ['HH', 'SL', 'HL'],
+      filter: podFilter,
+      formatLabel: opts.formatLabel,
       offset: 0,
       size: 10000, // All rows
-      sortBy: 'station_number',
       sortDirection: 'asc',
       cacheDuration
     };
@@ -107,8 +103,8 @@ export class TripReportService<
     const now = Date.now();
     console.debug(`[trip-report-service] Loading extraction data... {cache: ${withCache}${withCache ? ', cacheDuration: \'' + cacheDuration + '\'' : ''}}`, variables);
 
-    const query = opts?.query || Queries.tripReportData;
-    const {data} = await this.graphql.query<{data: TripReportData<HH, SL, HL>}>({
+    const query = opts?.query || Queries.extraction;
+    const {data} = await this.graphql.query<{data: RdbData<TR, HH, SL, HL>}>({
       query,
       variables,
       fetchPolicy: opts && opts.fetchPolicy || 'no-cache'
@@ -117,12 +113,18 @@ export class TripReportService<
     const result = Object.keys(data).reduce((map, sheetName) => {
       const jsonArray = data[sheetName];
       const dataType = opts?.dataTypes[sheetName];
-      const entities = (jsonArray || []).map(json => {
-        const entity =  new dataType();
-        entity.fromObject(json);
-        return entity;
-      });
-      map[sheetName] = entities;
+      if (dataType) {
+        const entities = (jsonArray || []).map(json => {
+          const entity =  new dataType();
+          entity.fromObject(json);
+          return entity;
+        });
+        map[sheetName] = entities;
+      }
+      else {
+        console.warn('Unknown dataType for sheetName: ' + sheetName);
+        map[sheetName] = jsonArray; // Unknown data type
+      }
       return map;
     }, <R>{});
 

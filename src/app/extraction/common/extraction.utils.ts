@@ -2,6 +2,7 @@
 
 import { arraySize, isNil, isNilOrBlank, isNotEmptyArray, isNotNil, isNotNilOrBlank } from '@sumaris-net/ngx-components';
 import { CRITERION_OPERATOR_LIST, ExtractionColumn, ExtractionFilter, ExtractionFilterCriterion, ExtractionType } from '../type/extraction-type.model';
+import { Moment } from 'moment';
 
 export const SPATIAL_COLUMNS: string[] = [
   //'area', FIXME no area geometries in Pod

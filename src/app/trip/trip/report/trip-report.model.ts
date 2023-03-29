@@ -1,8 +1,42 @@
-import { Entity, fromDateISOString, toNumber } from '@sumaris-net/ngx-components';
-import { Operation } from '@app/trip/services/model/trip.model';
+import { DateUtils, Entity, fromDateISOString, ReferentialRef, toNumber } from '@sumaris-net/ngx-components';
+import { Operation, Trip } from '@app/trip/services/model/trip.model';
 import { VesselPosition } from '@app/data/services/model/vessel-position.model';
+import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
+import { Moment } from 'moment';
 
-export class Station<S = any> extends Entity<Station<S>> {
+export class RdbTrip<S = any> extends Entity<RdbTrip<S>> {
+  tripCode: number;
+  project: string;
+  vesselIdentifier: number;
+  vesselLength: number;
+  vesselSize: number;
+
+  meta?: {
+    [key: string]: any;
+  };
+
+  clone(opts?: any): RdbTrip<S> {
+    return super.clone(opts);
+  }
+
+  fromObject(source: any){
+    this.tripCode = toNumber(source.tripCode);
+    this.project = source.project;
+    this.vesselIdentifier = toNumber(source.vesselIdentifier);
+    this.vesselLength = toNumber(source.vesselLength);
+    this.vesselSize = toNumber(source.vesselSize);
+  }
+
+  asTrip(): Trip {
+    const target = new Trip();
+    target.id = this.tripCode;
+    target.program = ReferentialRef.fromObject({label: this.project});
+    target.vesselSnapshot = VesselSnapshot.fromObject({id: this.vesselIdentifier, lengthOverAll: this.vesselLength, grossTonnageGt: this.vesselSize});
+    return target;
+  }
+}
+
+export class RdbStation<S = any> extends Entity<RdbStation<S>> {
   tripCode: number;
   stationNumber: number;
   date: string;
@@ -16,10 +50,6 @@ export class Station<S = any> extends Entity<Station<S>> {
   meta?: {
     [key: string]: any;
   };
-
-  clone(opts?: any): Station<S> {
-    return super.clone(opts);
-  }
 
   fromObject(source: any){
     this.tripCode = +source.tripCode;
@@ -48,7 +78,7 @@ export class Station<S = any> extends Entity<Station<S>> {
 
 export type CatchCategoryType = 'LAN'|'DIS';
 
-export class SpeciesList<SL = any> extends Entity<SpeciesList<SL>>{
+export class RdbSpeciesList<SL = any> extends Entity<RdbSpeciesList<SL>>{
   tripCode: number;
   stationNumber: number;
   species: string;
@@ -61,10 +91,6 @@ export class SpeciesList<SL = any> extends Entity<SpeciesList<SL>>{
     subCategory?: string;
     [key: string]: any;
   };
-
-  clone(opts?: any): SpeciesList<SL> {
-    return super.clone(opts);
-  }
 
   fromObject(source: any){
     this.tripCode = source.tripCode;
@@ -84,25 +110,17 @@ export class SpeciesList<SL = any> extends Entity<SpeciesList<SL>>{
   }
 }
 
-export class SpeciesLength<HL = any> extends Entity<SpeciesLength<HL>>{
+export class RdbSpeciesLength<HL = any> extends Entity<RdbSpeciesLength<HL>>{
   species: string;
   catchCategory: CatchCategoryType;
   stationNumber: number;
   lengthClass: number;
   numberAtLength: number;
-  elevateNumberAtLength: number;
-
-  taxonGroupId: number;
-  referenceTaxonId: number;
 
   meta?: {
     subCategory?: string;
     [key: string]: any;
   };
-
-  clone(opts?: any): SpeciesLength<HL> {
-    return super.clone(opts);
-  }
 
   fromObject(source: any){
     this.stationNumber = source.stationNumber;
@@ -110,12 +128,38 @@ export class SpeciesLength<HL = any> extends Entity<SpeciesLength<HL>>{
     this.catchCategory = source.catchCategory;
     this.lengthClass = toNumber(source.lengthClass);
     this.numberAtLength = toNumber(source.numberAtLength);
+  }
+}
+
+/* -- RDB Pmfm extraction classes -- */
+
+export class RdbPmfmTrip<S = any> extends RdbTrip<S> {
+  departureDateTime: Moment;
+  returnDateTime: Moment;
+
+  fromObject(source: any){
+    super.fromObject(source)
+    this.departureDateTime = source.departureDateTime;
+    this.returnDateTime = source.returnDateTime;
+  }
+
+  asTrip(): Trip {
+    const target = super.asTrip();
+    target.departureDateTime = DateUtils.moment(this.departureDateTime, 'YYYY-MM-DD HH:mm:ss.SSSZ');
+    target.returnDateTime = DateUtils.moment(this.returnDateTime, 'YYYY-MM-DD HH:mm:ss.SSSZ');
+    return target;
+  }
+}
+
+export class RdbPmfmSpeciesLength<HL = any> extends RdbSpeciesLength<HL>{
+  elevateNumberAtLength: number;
+  taxonGroupId: number;
+  referenceTaxonId: number;
+
+  fromObject(source: any){
+    super.fromObject(source);
     this.elevateNumberAtLength = toNumber(source.elevateNumberAtLength);
     this.taxonGroupId = toNumber(source.taxonGroupId);
     this.referenceTaxonId = toNumber(source.referenceTaxonId);
   }
 }
-
-
-/* -- APASE classes -- */
-

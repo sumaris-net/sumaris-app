@@ -3,6 +3,7 @@ import { AppCoreModule } from '@app/core/core.module';
 import { AppSharedReportModule } from '@app/shared/report/report.module';
 import { AppOperationModule } from '@app/trip/operation/operation.module';
 import { SelectivityTripReport } from '@app/trip/trip/report/selectivity/selectivity-trip.report';
+import { AppReferentialModule } from "@app/referential/referential.module";
 
 
 @NgModule({
@@ -12,7 +13,8 @@ import { SelectivityTripReport } from '@app/trip/trip/report/selectivity/selecti
   imports: [
     AppCoreModule,
     AppSharedReportModule,
-    AppOperationModule
+    AppOperationModule,
+    AppReferentialModule
   ],
   exports: [
     SelectivityTripReport

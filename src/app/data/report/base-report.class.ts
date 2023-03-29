@@ -1,22 +1,31 @@
 import { AfterViewInit, ChangeDetectorRef, Directive, Injector, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ProgramRefService } from '@app/referential/services/program-ref.service';
-import { RevealComponent, IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
+import { IRevealExtendedOptions, RevealComponent } from '@app/shared/report/reveal/reveal.component';
 import { environment } from '@environments/environment';
 import { TranslateService } from '@ngx-translate/core';
-import { AppErrorWithDetails, DateFormatService, firstFalsePromise, isNil, isNotNil, isNotNilOrBlank, isNumber, LocalSettingsService, PlatformService, WaitForOptions, LatLongPattern } from '@sumaris-net/ngx-components';
+import {
+  AppErrorWithDetails,
+  DateFormatService,
+  firstFalsePromise, isNil,
+  isNotNil,
+  isNotNilOrBlank, isNumber,
+  LatLongPattern,
+  LocalSettingsService,
+  PlatformService,
+  WaitForOptions
+} from '@sumaris-net/ngx-components';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { DataEntity } from '../services/model/data-entity.model';
 import { ModalController } from '@ionic/angular';
 
-export interface RootDataReportOptions {
+export interface BaseReportOptions {
   pathIdAttribute?: string;
   pathParentIdAttribute?: string;
 }
 
 @Directive()
-export abstract class AppRootDataReport<
-  T extends DataEntity<T, ID>,
+export abstract class AppBaseReport<
+  T = any,
   ID = number,
   S = any>
   implements OnInit, AfterViewInit, OnDestroy {
@@ -54,10 +63,10 @@ export abstract class AppRootDataReport<
   @Input() modal: boolean;
   @Input() showError = true;
   @Input() showToolbar = true;
-  @Input() id: ID;
-  @Input() data: T;
-  @Input() stats: Partial<S> = {};
   @Input() debug = !environment.production;
+
+  @Input() data: T;
+  @Input() stats: S = <S>{};
 
   @ViewChild('reveal', {read: RevealComponent, static: false}) protected reveal: RevealComponent;
 
@@ -73,7 +82,7 @@ export abstract class AppRootDataReport<
 
   protected constructor(
     injector: Injector,
-    @Optional() options?: RootDataReportOptions,
+    @Optional() options?: BaseReportOptions,
   ) {
     console.debug(`[${this.constructor.name}.constructor]`, arguments);
 
@@ -90,8 +99,6 @@ export abstract class AppRootDataReport<
     this._pathParentIdAttribute = options?.pathParentIdAttribute;
     // NOTE: In route.snapshot data is optional. On which case it may be not set ???
     this._pathIdAttribute = this.route.snapshot.data?.pathIdParam || options?.pathIdAttribute || 'id';
-
-    this.revealOptions = this.computeSlidesOptions();
   }
 
   async ngOnInit() {
@@ -114,89 +121,30 @@ export abstract class AppRootDataReport<
     console.debug(`[${this.constructor.name}.start]`);
     await this.platform.ready();
     try {
-      // Load data by id
-      if (isNotNil(this.id)) {
-        await this.load(this.id, opts);
-        this.markAsLoaded();
-      }
-      // Load data by route
-      else {
-        await this.loadFromRoute();
-        this.markAsLoaded();
-      }
+      // Load data
+      this.data = await this.ngOnStart(opts);
 
-      // Update the view: initialise reveal
-      await this.updateView();
+      this.$defaultBackHref.next(this.computeDefaultBackHref(this.data, this.stats));
+      this.$title.next(await this.computeTitle(this.data, this.stats));
+      this.revealOptions = this.computeSlidesOptions(this.data, this.stats);
 
-    } catch (err) {
-      // NOTE: Test if setError work correctly
-      this.setError(err);
-    }
-  };
-
-  async load(id: ID, opts?: any): Promise<void> {
-    console.debug(`[${this.constructor.name}.id]`, arguments);
-    const data = await this.loadData(id, opts);
-
-    this.data = data;
-
-    this.$defaultBackHref.next(this.computeDefaultBackHref(data));
-    this.$title.next(await this.computeTitle(data));
-    this.revealOptions.printHref = this.revealOptions.printHref || this.computePrintHref(data);
-  }
-
-  async reload(opts?: any) {
-    if (!this.loaded || isNil(this.id)) return; // skip
-
-    console.debug(`[${this.constructor.name}.reload]`);
-    this.markAsLoading();
-    try {
-      // Load data by id
-      await this.load(this.id, opts);
       this.markAsLoaded();
 
       // Update the view: initialise reveal
       await this.updateView();
 
     } catch (err) {
-      // NOTE: Test if setError work correctly
+      console.error(err);
       this.setError(err);
     }
   };
 
-  protected abstract loadData(id: ID, opts?: any): Promise<T>;
+  async reload(opts?: any) {
+    if (!this.loaded) return; // skip
 
-  // NOTE: an interface for opts ???
-  setError(err: string | AppErrorWithDetails, opts?: {
-    detailsCssClass?: string;
-    emitEvent?: boolean;
-  }) {
-    console.debug(`[${this.constructor.name}.setError]`, arguments);
-    if (!err) {
-      this.error = undefined;
-    } else if (typeof err === 'string') {
-      console.error(`[${this.constructor.name}] Error: ${err}`);
-      this.error = err as string;
-    } else {
-      console.error(`[${this.constructor.name}] Error: ${err.message}`, err);
-      // NOTE: Case when `|| err` is possible ?
-      let userMessage: string = err.message && this.translate.instant(err.message) || err;
-      // NOTE: replace || by && ???
-      const detailMessage: string = (!err.details || typeof (err.message) === 'string')
-        ? err.details as string
-        : err.details.message;
-      // NOTE: !isNotNilOrBlank ??? (invert the test)
-      if (isNotNilOrBlank(detailMessage)) {
-        const cssClass = opts?.detailsCssClass || 'hidden-xs hidden-sm';
-        userMessage += `<br/><small class="${cssClass}" title="${detailMessage}">`;
-        userMessage += detailMessage.length < 70
-          ? detailMessage
-          : detailMessage.substring(0, 67) + '...';
-        userMessage += '</small>';
-      }
-      this.error = userMessage;
-      if (!opts || opts.emitEvent !== false) this.markForCheck();
-    }
+    console.debug(`[${this.constructor.name}.reload]`);
+    this.markAsLoading();
+    return this.start(opts);
   }
 
   cancel() {
@@ -205,22 +153,29 @@ export abstract class AppRootDataReport<
     }
   }
 
-  markAsReady() {
-    console.debug(`[${this.constructor.name}.markAsReady]`, arguments);
-    if (!this.readySubject.value) {
-      this.readySubject.next(true);
+  protected abstract ngOnStart(opts: any): Promise<T>;
+
+  // NOTE : Can have parent. Can take param from interface ?
+  protected abstract computeTitle(data: T, stats: S): Promise<string>;
+
+  // NOTE : Can have parent. Can take param from interface ?
+  protected abstract computeDefaultBackHref(data: T, stats: S): string;
+
+  protected abstract computePrintHref(data: T, stats: S): string;
+
+  protected getIdFromPathIdAttribute<ID>(pathIdAttribute: string): ID {
+    const route = this.route.snapshot;
+    const id = route.params[pathIdAttribute] as ID;
+    if (isNotNil(id)) {
+      if (typeof id === 'string' && isNumber(id)) {
+        return (+id) as any as ID;
+      }
+      return id;
     }
+    return undefined;
   }
 
-  // NOTE : Can have parent. Can take param from interface ?
-  protected abstract computeTitle(data: T): Promise<string>;
-
-  // NOTE : Can have parent. Can take param from interface ?
-  protected abstract computeDefaultBackHref(data: T): string;
-
-  protected abstract computePrintHref(data: T): string;
-
-  protected computeSlidesOptions(): Partial<IRevealExtendedOptions> {
+  protected computeSlidesOptions(data: T, stats: S): Partial<IRevealExtendedOptions> {
     console.debug(`[${this.constructor.name}.computeSlidesOptions]`);
     const mobile = this.settings.mobile;
     return {
@@ -230,21 +185,23 @@ export abstract class AppRootDataReport<
       // Reveal options
       pdfMaxPagesPerSlide: 1,
       disableLayout: mobile,
-      touch: mobile
+      touch: mobile,
+      printHref: this.computePrintHref(this.data, this.stats)
     };
-  }
-
-  protected async loadFromRoute(opts?: any): Promise<void> {
-    console.debug(`[${this.constructor.name}.loadFromRoute]`);
-    this.id = this.getIdFromPathIdAttribute(this._pathIdAttribute);
-    await this.load(this.id, opts);
-    this.markAsLoaded();
   }
 
   async updateView() {
     console.debug(`[${this.constructor.name}.updateView]`);
+
     this.cd.detectChanges();
     await this.reveal.initialize();
+  }
+
+  markAsReady() {
+    console.debug(`[${this.constructor.name}.markAsReady]`, arguments);
+    if (!this.readySubject.value) {
+      this.readySubject.next(true);
+    }
   }
 
   protected markForCheck() {
@@ -272,17 +229,32 @@ export abstract class AppRootDataReport<
     await firstFalsePromise(this.loadingSubject, { stop: this.destroySubject, ...opts });
   }
 
-  protected getIdFromPathIdAttribute(pathIdAttribute: string): ID {
-    console.debug(`[${this.constructor.name}.getIdFromPathIdAttribute]`, arguments);
-    const route = this.route.snapshot;
-    const id = route.params[pathIdAttribute] as ID;
-    if (isNil(id)) {
-      throw new Error(`[getIdFromPathIdAttribute] id for param ${pathIdAttribute} is nil`);
+  setError(err: string | AppErrorWithDetails, opts?: {
+    detailsCssClass?: string;
+    emitEvent?: boolean;
+  }) {
+    if (!err) {
+      this.error = undefined;
+    } else if (typeof err === 'string') {
+      this.error = err as string;
+    } else {
+      // NOTE: Case when `|| err` is possible ?
+      let userMessage: string = err.message && this.translate.instant(err.message) || err;
+      // NOTE: replace || by && ???
+      const detailMessage: string = (!err.details || typeof (err.message) === 'string')
+        ? err.details as string
+        : err.details.message;
+      // NOTE: !isNotNilOrBlank ??? (invert the test)
+      if (isNotNilOrBlank(detailMessage)) {
+        const cssClass = opts?.detailsCssClass || 'hidden-xs hidden-sm';
+        userMessage += `<br/><small class="${cssClass}" title="${detailMessage}">`;
+        userMessage += detailMessage.length < 70
+          ? detailMessage
+          : detailMessage.substring(0, 67) + '...';
+        userMessage += '</small>';
+      }
+      this.error = userMessage;
+      if (!opts || opts.emitEvent !== false) this.markForCheck();
     }
-    if (typeof id === 'string' && isNumber(id)) {
-      return (+id) as any as ID;
-    }
-    return id;
   }
-
 }

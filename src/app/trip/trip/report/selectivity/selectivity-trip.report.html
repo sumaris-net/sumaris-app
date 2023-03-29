@@ -53,16 +53,16 @@
     <ion-label color="danger" class="error" [innerHTML]="error|translate"></ion-label>
   </ion-item>
 
-  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate" (slideChanged)="onSlideChanged($event)">
+  <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     <section>
       <section class="summary">
         <h2>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h2>
         <ul *ngVar="{
-        startDate: data.departureDateTime|dateFormat:{time: false},
-        endDate: data.returnDateTime|dateFormat:{time: false}
+        startDate: stats.startDate|dateFormat:{time: false},
+        endDate: stats.endDate|dateFormat:{time: false}
       } as vars">
-          <li><ion-icon name="boat"></ion-icon> {{ 'TRIP.REPORT.VESSEL_NAME'|translateContext: i18nContext.suffix }} <b>{{ data.vesselSnapshot.name }}</b></li>
-          <li class="no-icon"> {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING'|translateContext: i18nContext.suffix }} {{ data.vesselSnapshot.exteriorMarking }}</li>
+          <li><ion-icon name="boat"></ion-icon> {{ 'TRIP.REPORT.VESSEL_NAME'|translateContext: i18nContext.suffix }} <b>{{ stats.vesselSnapshots|referentialToString: ['name'] }}</b></li>
+          <li class="no-icon"> {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING'|translateContext: i18nContext.suffix }} {{ stats.vesselSnapshots|referentialToString:['exteriorMarking'] }}</li>
           <li><ion-icon name="settings"></ion-icon> {{ 'TRIP.REPORT.SELECTIVITY_DEVICES'|translateContext: i18nContext.suffix }} <b>{{ stats.selectivityDevices|arrayJoin:', ' }}</b></li>
           <li><ion-icon name="calendar"></ion-icon> {{ 'TRIP.REPORT.DATES'|translateContext: i18nContext.suffix: vars }}</li>
           <li *ngIf="stats.seabedFeatures"><mat-icon>terrain</mat-icon> {{ 'TRIP.REPORT.SEABED_FEATURES'|translateContext: i18nContext.suffix }} {{ stats.seabedFeatures | arrayJoin: ', '  }}</li>
@@ -75,13 +75,13 @@
               <span [innerHTML]="'TRIP.REPORT.GEAR_SPEED_AVG'|translateContext: i18nContext.suffix: stats.gearSpeed"></span>
             </ng-template>
           </li>
-          <li><ion-icon name="navigate"></ion-icon> {{ 'TRIP.REPORT.OPERATION_COUNT'|translateContext: i18nContext.suffix }} {{ data.operations?.length || 0 }}</li>
+          <li><ion-icon name="navigate"></ion-icon> {{ 'TRIP.REPORT.OPERATION_COUNT'|translateContext: i18nContext.suffix }} {{ stats.operations?.length || 0 }}</li>
         </ul>
       </section>
 
-      <ng-container *ngFor="let catchCategory of (stats.weights.catchCategories|mapKeys)">
-        <section *ngVar="catchCategory === 'LAN' ? 'LANDING' : 'DISCARD' as catchCategoryI18nSuffix">
-          <h4>{{ 'TRIP.REPORT.TABLE.SPECIES_LIST'|translateContext: i18nContext.suffix }} - {{'TRIP.REPORT.' + catchCategoryI18nSuffix |translateContext: i18nContext.suffix}}</h4>
+      <ng-container *ngFor="let catchCategory of stats.weights?.catchCategories|mapValues">
+        <section *ngVar="catchCategory.key === 'LAN' ? 'LANDING' : 'DISCARD' as catchCategoryI18nSuffix">
+          <h4>{{ 'TRIP.REPORT.TABLE.SPECIES_LIST'|translateContext: i18nContext.suffix }} - {{catchCategory.label |translateContext: i18nContext.suffix}}</h4>
           <table [style.--col-count]="4">
             <thead>
               <tr>
@@ -90,11 +90,11 @@
                     class="ion-text-center"
                     [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.TOTAL_WEIGHT'|translate:{selectionDevice: subCategory}"></th>
                 <th class="ion-text-center" [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.TOTAL_VARIATION_' + catchCategoryI18nSuffix|translate"></th>
-                <th class="ion-text-center" *ngIf="stats.weights.enableAvgVariation" [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.AVG_VARIATION_' + catchCategoryI18nSuffix|translate"></th>
+                <th class="ion-text-center" *ngIf="catchCategory.enableAvgVariation" [innerHTML]="'TRIP.REPORT.TABLE.TRAWL_SELECTIVITY.AVG_VARIATION_' + catchCategoryI18nSuffix|translate"></th>
               </tr>
             </thead>
             <tbody>
-            <tr *ngFor="let species of stats.weights.catchCategories[catchCategory]">
+            <tr *ngFor="let species of catchCategory.species">
               <td>{{species.label}}</td>
               <td *ngFor="let subCategory of stats.subCategories" class="numeric">
                 {{species.subCategories[subCategory].total}}
@@ -104,7 +104,7 @@
                   {{species.totalVariation|numberFormat: {fixedDecimals: 1} }} %
                 </span>
               </td>
-              <td class="numeric" *ngIf="stats.weights.enableAvgVariation">
+              <td class="numeric" *ngIf="catchCategory.enableAvgVariation">
                 <span *ngIf="species.avgVariation|isNotNil">
                   {{species.avgVariation|numberFormat: {fixedDecimals: 1} }} %
                 </span>
@@ -154,8 +154,8 @@
 <ng-template #mapTemplate>
   <app-operations-map (ready)="onMapReady()"
                       [showTooltip]="false"
-                      [programLabel]="data.program.label"
-                      [data]="[data.operations]"
+                      [programLabel]="stats.programLabel"
+                      [data]="[stats.operations]"
                       [flyToBoundsDelay]="0"
                       [flyToBoundsDuration]="0"
                       [showGraticule]="true"
