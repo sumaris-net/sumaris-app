@@ -1,4 +1,4 @@
-import { Injectable, Injector, Input } from '@angular/core';
+import { Directive, Injectable, Injector, Input } from '@angular/core';
 import { isObservable, Observable, of, Subject } from 'rxjs';
 import { filter, switchMap } from 'rxjs/operators';
 import {
@@ -40,7 +40,7 @@ import { ErrorCodes } from '@app/referential/services/errors';
 
 export declare type ReferentialImportPolicy = 'insert-update'|'insert-only'|'update-only'|'delete-only';
 
-@Injectable()
+@Directive()
 export class ReferentialFileService<
   T extends IReferentialRef<T> = Referential,
   F extends BaseReferentialFilter<F, T> = BaseReferentialFilter<any, any>
