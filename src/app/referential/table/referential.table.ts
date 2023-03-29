@@ -1,6 +1,6 @@
 import { Component, Inject, InjectionToken, Injector, Input, OnDestroy, OnInit, Optional, ViewChild } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { debounceTime, filter, map, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
+import { debounceTime, filter, map, tap } from 'rxjs/operators';
 import { TableElement, ValidatorService } from '@e-is/ngx-material-table';
 import { ReferentialValidatorService } from '../services/validator/referential.validator';
 import { ReferentialService } from '../services/referential.service';
@@ -12,16 +12,12 @@ import {
   changeCaseToUnderscore,
   EntityServiceLoadOptions,
   EntityUtils,
-  FileEvent,
-  FileResponse,
-  FilesUtils,
   firstNotNilPromise,
   FormFieldDefinition,
   FormFieldType,
   IEntitiesService,
   IEntityService,
   IReferentialRef,
-  isEmptyArray,
   isNil,
   isNilOrBlank,
   isNotEmptyArray,
@@ -36,8 +32,8 @@ import {
   RESERVED_START_COLUMNS,
   sleep,
   slideUpDownAnimation,
-  StatusById,
-  StatusList,
+  StatusById, StatusIds,
+  StatusList, suggestFromArray,
   toBoolean
 } from '@sumaris-net/ngx-components';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -48,7 +44,6 @@ import { MatExpansionPanel } from '@angular/material/expansion';
 import { ReferentialRefService } from '@app/referential/services/referential-ref.service';
 import { ReferentialI18nKeys } from '@app/referential/referential.utils';
 import { ParameterService } from '@app/referential/services/parameter.service';
-import { AppReferentialUtils } from '@app/core/services/model/referential.utils';
 import { Parameter } from '@app/referential/services/model/parameter.model';
 import { PmfmService } from '@app/referential/services/pmfm.service';
 import { Pmfm } from '@app/referential/services/model/pmfm.model';
@@ -58,9 +53,12 @@ import { Method } from '@app/referential/pmfm/method/method.model';
 import { BaseReferentialTable } from '@app/referential/table/base-referential.table';
 import { MethodValidatorService } from '@app/referential/pmfm/method/method.validator';
 import { AppBaseTable } from '@app/shared/table/base.table';
+import { ReferentialImportPolicy, ReferentialFileService } from '@app/referential/table/referential-file.service';
+import { FullReferential } from '@app/referential/services/model/referential.model';
+import { ErrorCodes } from '@app/referential/services/errors';
 
 export const BASE_REFERENTIAL_COLUMNS = ['label','name','parent','level','status','creationDate','updateDate','comments'];
-export const IGNORED_ENTITY_COLUMNS = ['__typename', 'entityName', 'id', ...BASE_REFERENTIAL_COLUMNS, 'statusId', 'levelId', 'properties', 'parentId'];
+export const IGNORED_ENTITY_COLUMNS = ['__typename', 'entityName', 'id', 'statusId', 'levelId', 'properties', 'parentId'];
 export const REFERENTIAL_TABLE_SETTINGS_ENUM = {
   FILTER_KEY: 'filter',
   COMPACT_ROWS_KEY: 'compactRows'
@@ -112,18 +110,20 @@ export class ReferentialTable<
     // Extraction (special case)
     'ExtractionProduct': '/extraction/product/:id?label=:label'
   };
-  readonly dataTypes: { [key: string]: new () => IReferentialRef<any> } = {
+  readonly dataTypes: { [key: string]: new () => BaseReferential<any> } = {
     'Parameter': Parameter,
     'Pmfm': Pmfm,
     'TaxonName': TaxonName,
-    'Unit': Referential,
-    'Method': Method
+    'Unit': FullReferential,
+    'Method': Method,
+    'TaxonGroup': FullReferential
   };
   readonly dataServices: { [key: string]: any} = {
     'Parameter': ParameterService,
     'Pmfm': PmfmService,
     'TaxonName': TaxonNameService,
-    'Unit': ReferentialService
+    'Unit': ReferentialService,
+    'TaxonGroup': ReferentialService
   }
   readonly dataValidators: { [key: string]: any} = {
     'Method': MethodValidatorService
@@ -137,6 +137,9 @@ export class ReferentialTable<
 
   readonly statusList = StatusList;
   readonly statusById = StatusById;
+  protected fileService: ReferentialFileService<IReferentialRef<any>>;
+  readonly importPolicies: ReferentialImportPolicy[] = ['insert-update', 'insert-only', 'update-only'];
+
 
   @Input() set showLevelColumn(value: boolean) {
     this.setShowColumn('level', value);
@@ -172,6 +175,14 @@ export class ReferentialTable<
 
   get entityName(): string {
     return this._entityName;
+  }
+
+  @Input() set importPolicy(value: ReferentialImportPolicy) {
+    if (this.fileService && this.canUpload) this.fileService.importPolicy = value;
+  }
+
+  get importPolicy(): ReferentialImportPolicy {
+    return this.fileService?.importPolicy || 'insert-update';
   }
 
   @Input() sticky = false;
@@ -237,6 +248,10 @@ export class ReferentialTable<
 
     // Configure autocomplete fields
     this.registerAutocompleteField('level', {
+      items: this.$levels,
+      mobile: this.mobile
+    });
+    this.registerAutocompleteField('levelId', {
       items: this.$levels,
       mobile: this.mobile
     });
@@ -369,12 +384,47 @@ export class ReferentialTable<
       // Load levels
       await this.loadLevels(entityName);
 
-      // Load dynamic columns
+      const showLevelColumn = isNotEmptyArray(this.$levels.value);
+      const showParentColumn = this.entityNamesWithParent.includes(entityName);
       const dataType = this.getDataType(entityName);
       const validator = this.getValidator(entityName);
+      const dataService = this.getEntityService(entityName);
+
+      const columnDefinitions = this.loadColumnDefinitions(dataType, validator,
+        ['statusId', ...(showLevelColumn && ['levelId'] || [])],
+        [
+          ...IGNORED_ENTITY_COLUMNS,
+          'creationDate', 'updateDate',
+          ...(!showParentColumn && ['parent'] || [])
+        ]);
+      if (this.fileService) {
+        this.fileService.columnDefinitions = columnDefinitions;
+        this.fileService.dataType = dataType;
+        this.fileService.dataService = dataService;
+        this.fileService.entityName = entityName;
+      }
+      else {
+        this.fileService = new ReferentialFileService<IReferentialRef<any>>(this.injector,
+          this.dataSource,
+          columnDefinitions,
+          dataService,
+          dataType);
+        this.fileService.i18nColumnPrefix = this.i18nColumnPrefix;
+        this.fileService.defaultNewRowValue = () => this.defaultNewRowValue();
+        this.fileService.isKnownEntityName = (entityName) => this.isKnownEntityName(entityName);
+        this.fileService.loadByLabel = (label, filter) => this.loadByLabel(label, filter);
+        this.fileService.entityName = entityName;
+        this.fileService.loadLevelById = (levelId) => {
+          return (this.$levels.value || []).find(l => l.id === levelId);
+        }
+        this.fileService.loadStatusById = (statusId) => this.statusById[statusId];
+      }
+
+      // Load dynamic columns
       // TODO enable this
       //this.columnDefinitions = this.loadColumnDefinitions(dataType, validator);
       this.columnDefinitions = [];
+
       this.displayedColumns = this.getDisplayColumns();
 
       // Show/Hide some columns (only if entityname can change, otherwise user should show/hide using @Input())
@@ -417,6 +467,9 @@ export class ReferentialTable<
       console.error(err);
       this.setError(err);
     }
+  }
+  protected defaultNewRowValue(): any {
+    return {entityName: this.entityName, statusId: StatusIds.ENABLE};
   }
 
   async onEntityNameChange(entityName: string): Promise<any> {
@@ -554,173 +607,92 @@ export class ReferentialTable<
     this.settings.savePageSetting(this.settingsId, this.compact, REFERENTIAL_TABLE_SETTINGS_ENUM.COMPACT_ROWS_KEY);
   }
 
-  async downloadSelectionAsJson(event?: Event) {
-    if (!this._entityName || !this.selection.hasValue()) return; // Skip
+  async exportToJson(event: Event) {
+    if (!this._entityName) return; // Skip
+    const ids = this.selection.hasValue() && this.selection.selected.map(row => row.currentData.id);
+    await this.fileService.exportToJson(event, {ids, context: this.filter?.asObject()});
+  }
 
-    const service = this.getEntityService(this._entityName);
-    if (!service) return; // Skip
+  async exportToCsv(event: Event) {
+    if (!this._entityName) return; // Skip
+    const ids = this.selection.hasValue() && this.selection.selected.map(row => row.currentData.id);
+    await this.fileService.exportToCsv(event, {ids, context: this.filter?.asObject()});
+  }
 
-    const loadOpts: EntityServiceLoadOptions & {entityName?: string} = {fetchPolicy: 'no-cache', fullLoad: true};
-    if (service instanceof ReferentialService) {
-      loadOpts.entityName = this._entityName;
+  async importFromCsv(event?: Event) {
+    if (!this.canEdit) return; // skip
+    try {
+      await this.fileService.importFromCsv(event);
+      await sleep(1000);
+      this.onRefresh.emit();
     }
-
-    const ids = this.selection.selected.map(row => row.currentData.id);
-    let entities = await chainPromises(ids.map(id => async () => {
-      const entity = await service.load(id, loadOpts);
-      return entity.asObject({keepTypename: true});
-    }));
-
-    const filename = `${changeCaseToUnderscore(this._entityName)}.json`;
-    JsonUtils.exportToFile(entities, {filename});
+    catch(err) {
+      console.error(err)
+      this.setError(err);
+    }
   }
 
   async importFromJson(event?: Event) {
-    const entityName = this.entityName;
-    if (!entityName || !this.canEdit) return; // skip
-    const service = this.getEntityService(entityName);
-    const dataType = this.getDataType(entityName);
-    if (!service || !dataType) return; // Skip
-
-    const { data } = await FilesUtils.showUploadPopover(this.popoverController, event, {
-      uniqueFile: true,
-      fileExtension: '.json',
-      uploadFn: (file) => this.parseJsonFile(file)
-    });
-
-    let sources = (data || []).flatMap(file => file.response?.body || []);
-    if (isEmptyArray(sources)) return; // No entities: skip
-
-    // Sort by ID, to be able to import in the the same order
-    sources = EntityUtils.sort(sources, 'id', 'asc');
-
-    console.info(`[referential-table] Importing ${sources.length} entities...`, sources);
-
-    let insertCount = 0;
-    let updateCount = 0;
-    const errors = [];
-
-    // Save entities, one by one
-    const entities = ((await chainPromises(sources
-        // Keep non exists entities
-        .filter(source => source
-          // Check as label
-          && isNotNilOrBlank(source.label)
-          // Check expected entity class
-          && AppReferentialUtils.getEntityName(source) === entityName)
-        .map(source => async () => {
-          // Clean ids, update_date, etc.
-          AppReferentialUtils.cleanIdAndDates(source, false);
-
-          try {
-            // Collect all entities
-            const missingReferences = [];
-            const internalSources = AppReferentialUtils.collectEntities(source).slice(1);
-            for (let internalSource of internalSources) {
-              const subEntityName = AppReferentialUtils.getEntityName(internalSource);
-              const label = internalSource['label'];
-              if (subEntityName && isNotNilOrBlank(label) && this.isKnownEntityName(subEntityName)) {
-                const existingTarget = await this.loadByLabel(label, {entityName: subEntityName});
-                if (existingTarget) {
-                  console.debug(`[referential-table] Found match ${subEntityName}#${existingTarget.id} for {label: '${label}'}`);
-                  internalSource.id = existingTarget.id;
-                }
-                else {
-                  missingReferences.push(`${subEntityName}#${label}`);
-                }
-              }
-              else {
-                // Clean ids, update_date, etc.
-                AppReferentialUtils.cleanIdAndDates(internalSource, false);
-              }
-
-            }
-
-            if (missingReferences.length) throw this.translate.instant('REFERENTIAL.ERROR.MISSING_REFERENCES', {error: missingReferences.join(', ')})
-
-            const existingTarget = await this.loadByLabel(source.label, {
-              entityName: this._entityName
-            });
-            const target = new dataType();
-            target.fromObject({
-              ...(existingTarget ? existingTarget.asObject() : {}),
-              ...source,
-              id: existingTarget?.id,
-              updateDate: existingTarget?.updateDate,
-              creationDate: existingTarget?.['creationDate']
-            });
-            const isNew = isNil(target.id);
-
-            // Check is user can write
-            if (!service.canUserWrite(target)) return; // Cannot write: skip
-
-            // Save
-            const savedTarget = await service.save(target);
-
-            // Update counter
-            insertCount += isNew ? 1 : 0;
-            updateCount += isNew ? 0 : 1;
-
-            return savedTarget;
-          }
-          catch (err) {
-            let message = err && err.message || err;
-            if (typeof message === 'string') message = this.translate.instant(message);
-            const fullMessage = this.translate.instant("REFERENTIAL.ERROR.IMPORT_ENTITY_ERROR", {label: source.label, message});
-            errors.push(fullMessage);
-            console.error(fullMessage);
-            return null;
-          }
-        }))
-      ) || []).filter(isNotNil);
-
-    if (isNotEmptyArray(errors)) {
-      if (insertCount > 0 || updateCount > 0) {
-        console.warn(`[referential-table] Importing ${entities.length} entities [OK] with errors:`, errors);
-        this.showToast({
-          type: 'warning',
-          message: 'REFERENTIAL.INFO.IMPORT_ENTITIES_WARNING',
-          messageParams: {insertCount, updateCount, errorCount: errors.length, error: `<ul><li>${errors.join('</li><li>')}</li></ul>`},
-          showCloseButton: true,
-          duration: -1
-        });
-      }
-      else {
-        console.error(`[referential-table] Failed to import entities:`, errors);
-        this.showToast({
-          type: 'error',
-          message: 'REFERENTIAL.ERROR.IMPORT_ENTITIES_ERROR',
-          messageParams: { error: `<ul><li>${errors.join('</li><li>')}</li></ul>`},
-          showCloseButton: true,
-          duration: -1
-        });
-      }
+    if (!this.canEdit) return; // skip
+    try {
+      await this.fileService.importFromJson(event);
+      await sleep(1000);
+      this.onRefresh.emit();
     }
-    else {
-      console.info(`[referential-table] Importing ${entities.length} entities [OK]`);
-      this.showToast({
-        type: 'info',
-        message: 'REFERENTIAL.INFO.IMPORT_ENTITIES_SUCCEED',
-        messageParams: {insertCount, updateCount}
-      });
+    catch(err) {
+      console.error(err)
+      this.setError(err);
     }
-
-    await sleep(1000);
-
-    this.onRefresh.emit();
   }
 
   /* -- protected functions -- */
+
+  protected async loadByLabel<T extends IReferentialRef<T>>(label: string, filter: Partial<ReferentialFilter> & {entityName: string}): Promise<T> {
+    if (isNilOrBlank(label)) throw new Error('Missing required argument \'label\'');
+    const entityName = filter?.entityName;
+    if (!entityName) throw new Error('Missing required argument \'source.entityName\', or \'filter.entityName\'');
+    const service = this.getEntityService(entityName);
+    if (!service) throw new Error('No service defined for the entity name: ' + entityName);
+
+    const dataType = this.getDataType(entityName);
+    if (!dataType) throw new Error('No dataType defined for the entity name: ' + entityName);
+
+    try {
+      const { data, total } = await this.referentialService.loadAll(0, 1, 'label', 'asc', {
+        ...filter,
+        entityName,
+        label
+      });
+      if (total === 0) return undefined;
+      if (total > 1) throw {code: ErrorCodes.TOO_MANY_REFERENCE_FOUND, message: `To many match of ${entityName} with label ${label}`};
+      const json = data[0];
+
+      const target = new dataType();
+      target.fromObject(json);
+      return target as unknown as T;
+    }
+    catch (err) {
+      let message = err && err.message || err;
+      console.error(message);
+      throw err;
+    }
+  }
 
   protected registerAutocompleteFields() {
     // Can be overwritten by subclasses
   }
 
   protected loadColumnDefinitions(dataType: new () => IReferentialRef<any>,
-                                  validatorService?: ValidatorService): FormFieldDefinition[] {
+                                  validatorService?: ValidatorService,
+                                  includedProperties?: string[],
+                                  excludedProperties?: string[]): FormFieldDefinition[] {
 
-    return BaseReferentialTable.getEntityDisplayProperties(dataType, validatorService, IGNORED_ENTITY_COLUMNS)
-      .map(key => this.getColumnDefinition(key));
+    const properties = BaseReferentialTable.getEntityDisplayProperties(dataType, validatorService, excludedProperties || IGNORED_ENTITY_COLUMNS);
+
+    // Force include properties (e.g. level)
+    if (includedProperties) includedProperties?.filter(p => !properties.includes(p)).forEach(p => properties.push(p));
+
+    return properties.map(key => this.getColumnDefinition(key));
   }
 
   protected getColumnDefinition(key: string): FormFieldDefinition{
@@ -761,53 +733,6 @@ export class ReferentialTable<
         .concat(RESERVED_END_COLUMNS);
   }
 
-  protected  parseJsonFile<T = any>(file: File, opts?: {encoding?: string}): Observable<FileEvent<T[]>> {
-    console.info(`[referential-table] Reading JSON file ${file.name}...`);
-
-    return JsonUtils.parseFile(file, {encoding: opts?.encoding})
-      .pipe(
-        switchMap(event => {
-          if (event instanceof FileResponse){
-            const body: T[] = Array.isArray(event.body) ? event.body : [event.body];
-            return of(new FileResponse({body}));
-          }
-          // Unknown event: skip
-          return of(event);
-        }),
-        filter(isNotNil)
-      );
-  }
-
-  protected async loadByLabel<T extends IReferentialRef<T>>(label: string, filter: Partial<ReferentialFilter> & {entityName: string}): Promise<T> {
-    if (isNilOrBlank(label)) throw new Error('Missing required argument \'label\'');
-    const entityName = filter?.entityName;
-    if (!entityName) throw new Error('Missing required argument \'source.entityName\', or \'filter.entityName\'');
-    const service = this.getEntityService(entityName);
-    if (!service) throw new Error('No service defined for the entity name: ' + entityName);
-
-    const dataType = this.getDataType(entityName);
-    if (!dataType) throw new Error('No dataType defined for the entity name: ' + entityName);
-
-    try {
-      const { data, total } = await this.referentialService.loadAll(0, 1, 'label', 'asc', {
-        ...filter,
-        entityName,
-        label,
-      });
-      if (total === 0) return undefined;
-      if (total > 1) throw new Error(`To many match of ${entityName} with label ${label}`);
-      const json = data[0];
-
-      const target = new dataType();
-      target.fromObject(json);
-      return target as T;
-    }
-    catch (err) {
-      let message = err && err.message || err;
-      console.error(message);
-      throw err;
-    }
-  }
 
   protected getFilterFormConfig(): any {
     console.debug('[referential-table] Creating filter form group...');
@@ -845,7 +770,7 @@ export class ReferentialTable<
     return this.referentialService as unknown as IEntityService<T>;
   }
 
-  protected getDataType(entityName?: string): new () => IReferentialRef<any> {
+  protected getDataType(entityName?: string): new () => BaseReferential<any> {
 
     entityName = entityName || this._entityName;
 
@@ -896,5 +821,6 @@ export class ReferentialTable<
       ...source,
     });
   }
+
 }
 

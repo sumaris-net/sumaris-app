@@ -9,6 +9,7 @@ import { SimpleReferentialTable } from './referential-simple.table';
 import { ReferentialTable } from './referential.table';
 import { AppCoreModule } from '@app/core/core.module';
 import { AppReferentialPipesModule } from '@app/referential/pipes/referential-pipes.module';
+import { ReferentialFileService } from '@app/referential/table/referential-file.service';
 
 @NgModule({
   imports: [

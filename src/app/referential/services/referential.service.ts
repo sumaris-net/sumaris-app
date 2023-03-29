@@ -297,8 +297,10 @@ export class ReferentialService<T extends BaseReferential<T> = Referential>
 
   load(id: number, opts?: ReferentialServiceLoadOptions): Promise<T> {
     return this.loadAll(0,1,null, null, {
-      includedIds: [id],
-        entityName: opts.entityName
+        includedIds: [id],
+        entityName: opts.entityName,
+        // Force the full status list, to make sure to load disabled entities (required to be able to export it - see ReferentialFileService)
+        statusIds: [StatusIds.ENABLE, StatusIds.TEMPORARY, StatusIds.DISABLE]
       },
       {withTotal: false, ...opts})
       .then(res => {
