@@ -30,6 +30,7 @@ import {gql} from '@apollo/client/core';
 import {DataCommonFragments} from '@app/trip/services/trip.queries';
 import {Trip} from '@app/trip/services/model/trip.model';
 import {SortDirection} from '@angular/material/sort';
+import {Moment} from 'moment';
 
 export const DevicePositionFragment = {
   devicePosition: gql`fragment DevicePositionFragment on DevicePositionVO {
@@ -89,6 +90,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
   protected $checkLoop: Subscription;
   protected onSaveSubscriptions:Subscription = new Subscription();
   protected entities: EntitiesStorage;
+  protected lastSavedPositionDate:Moment;
 
   protected loading:boolean = false;
 
@@ -121,7 +123,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     console.log(`${this._logPrefix} starting...`)
     this.onSaveSubscriptions.add(
       this.monitorOnSave.map(c => this.injector.get(c).onSave.subscribe((entities) => {
-        if (this._watching) {
+        if (this._watching && this.checkIfmustSaveDevicePosition()) {
           entities.forEach(e => {
             const devicePosition:DevicePosition<any> = new DevicePosition<any>();
             devicePosition.objectId = e.id;
@@ -131,6 +133,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
             devicePosition.dateTime = this.lastPosition.date;
             if (RootDataEntityUtils.isLocal(e)) this.saveLocally(devicePosition);
             else this.save(devicePosition, {}); // TODO Options
+            this.lastSavedPositionDate = DateUtils.moment();
           });
         }
       }))
@@ -151,10 +154,6 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
   async save(entity:DevicePosition<any>, opts?:EntitySaveOptions): Promise<DevicePosition<any>> {
     console.log(`${this._logPrefix} save current device position`, {position: this.lastPosition})
-    // if (!(await this.checkIfmustSaveDevicePosition((await this.getLastDevicePositionSavedRemotely())))) {
-    //   console.debug(`${this._logPrefix} skip save interval is less than this provided in configuration (${this.saveInterval})`);
-    //   return;
-    // }
     const now = Date.now();
     this.fillDefaultProperties(entity);
     // Provide an optimistic response, if connection lost
@@ -220,11 +219,6 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
   }
 
   async saveLocally(entity:DevicePosition<any>, opts?:EntitySaveOptions) {
-    if (!(await this.checkIfmustSaveDevicePosition((await this.getLastDevicePositionSavedLocally())))) {
-      console.debug(`${this._logPrefix} skip save interval is less than this provided in configuration (${this.saveInterval})`);
-      return;
-    }
-
     console.log(`${this._logPrefix} save locally current device position`, {position: this.lastPosition})
 
     if (isNotNil(entity.id) && entity.id >= 0) throw new Error('Must be a local entity');
@@ -360,19 +354,12 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     if (this._debug) console.debug(`${this._logPrefix} : ask for geolocation`, this.mustAskForEnableGeolocation.value);
   }
 
-  protected async checkIfmustSaveDevicePosition(entity:DevicePosition<any, any>):Promise<boolean> {
-    const diffTime = DateUtils.moment().diff(entity.dateTime);
-    if (this._debug) console.debug(`${this._logPrefix} checkIfmustSaveDevicePosition : diff time between previous save is ${diffTime}`)
+  protected checkIfmustSaveDevicePosition():boolean {
+    if (this._debug) console.debug(`${this._logPrefix} : checkIfmustSaveDevicePosition`, {lastSavedPositionDate: this.lastSavedPositionDate});
+    if (isNil(this.lastSavedPositionDate)) return true;
+    const diffTime = DateUtils.moment().diff(this.lastSavedPositionDate);
+    if (this._debug) console.debug(`${this._logPrefix} checkIfmustSaveDevicePosition : timeDiff`, {diff: diffTime, saveInterval: this.saveInterval})
     return diffTime > this.saveInterval;
-  }
-
-  protected async getLastDevicePositionSavedLocally():Promise<DevicePosition<any, any>> {
-    const currentId = await this.entities.currentValue(DevicePosition.TYPENAME);
-    return this.entities.load<DevicePosition<any, any>>(currentId, DevicePosition.TYPENAME);
-  }
-
-  protected async getLastDevicePositionSavedRemotely() {
-    // const result
   }
 
 }
