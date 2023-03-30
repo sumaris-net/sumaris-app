@@ -4,6 +4,18 @@ import { VesselPosition } from '@app/data/services/model/vessel-position.model';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { Moment } from 'moment';
 
+export interface RdbExtractionData<
+  TR extends RdbTrip = RdbTrip,
+  HH extends RdbStation = RdbStation,
+  SL extends RdbSpeciesList = RdbSpeciesList,
+  HL extends RdbSpeciesLength = RdbSpeciesLength
+> {
+  TR: TR[];
+  HH: HH[];
+  SL: SL[];
+  HL: HL[];
+}
+
 export class RdbTrip<S = any> extends Entity<RdbTrip<S>> {
   tripCode: number;
   project: string;
@@ -53,7 +65,7 @@ export class RdbStation<S = any> extends Entity<RdbStation<S>> {
 
   fromObject(source: any){
     this.tripCode = +source.tripCode;
-    this.stationNumber = +source.stationNumber;
+    this.stationNumber = toNumber(source.stationNumber);
     this.date = source.date;
     this.time = source.time;
     this.fishingTime = toNumber(source.fishingTime, source.fishingDuration);
@@ -93,8 +105,8 @@ export class RdbSpeciesList<SL = any> extends Entity<RdbSpeciesList<SL>>{
   };
 
   fromObject(source: any){
-    this.tripCode = source.tripCode;
-    this.stationNumber = source.stationNumber;
+    this.tripCode = toNumber(source.tripCode);
+    this.stationNumber = toNumber(source.stationNumber);
     this.species = source.species;
     this.catchCategory = source.catchCategory;
     this.weight = toNumber(source.weight);
@@ -123,7 +135,7 @@ export class RdbSpeciesLength<HL = any> extends Entity<RdbSpeciesLength<HL>>{
   };
 
   fromObject(source: any){
-    this.stationNumber = source.stationNumber;
+    this.stationNumber = toNumber(source.stationNumber);
     this.species = source.species;
     this.catchCategory = source.catchCategory;
     this.lengthClass = toNumber(source.lengthClass);
@@ -132,6 +144,15 @@ export class RdbSpeciesLength<HL = any> extends Entity<RdbSpeciesLength<HL>>{
 }
 
 /* -- RDB Pmfm extraction classes -- */
+
+export interface RdbPmfmExtractionData<
+  TR extends RdbPmfmTrip = RdbPmfmTrip,
+  HH extends RdbPmfmStation = RdbPmfmStation,
+  SL extends RdbPmfmSpeciesList = RdbPmfmSpeciesList,
+  HL extends RdbPmfmSpeciesLength = RdbPmfmSpeciesLength
+> extends RdbExtractionData<TR, HH, SL, HL> {
+
+}
 
 export class RdbPmfmTrip<S = any> extends RdbTrip<S> {
   departureDateTime: Moment;
@@ -149,6 +170,13 @@ export class RdbPmfmTrip<S = any> extends RdbTrip<S> {
     target.returnDateTime = DateUtils.moment(this.returnDateTime, 'YYYY-MM-DD HH:mm:ss.SSSZ');
     return target;
   }
+}
+export class RdbPmfmStation<HH = any> extends RdbStation<HH>{
+
+}
+
+export class RdbPmfmSpeciesList<SL = any> extends RdbSpeciesList<SL>{
+
 }
 
 export class RdbPmfmSpeciesLength<HL = any> extends RdbSpeciesLength<HL>{

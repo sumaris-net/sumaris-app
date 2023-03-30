@@ -9,9 +9,16 @@ import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enu
 import { PhysicalGear } from '@app/trip/physicalgear/physical-gear.model';
 import { Function } from '@app/shared/functions';
 import { CatchCategoryType } from '@app/trip/trip/report/trip-report.model';
-import { SelectivityData, SelectivityTripReportService } from '@app/trip/trip/report/selectivity/selectivity-trip-report.service';
+import { SelectivityTripReportService } from '@app/trip/trip/report/selectivity/selectivity-trip-report.service';
 import { BaseNumericStats, SpeciesChart, TripReport, TripReportStats } from '@app/trip/trip/report/trip.report';
-import { SelectivityGear, SelectivitySpeciesLength, SelectivitySpeciesList, SelectivityStation, SelectivityTrip } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
+import {
+  SelectivityExtractionData,
+  SelectivityGear,
+  SelectivitySpeciesLength,
+  SelectivitySpeciesList,
+  SelectivityStation,
+  SelectivityTrip
+} from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
 import { MathUtils } from '@app/shared/math.utils';
 import { ChartConfiguration } from 'chart.js';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
@@ -67,11 +74,11 @@ export declare interface SelectivityTripReportStats extends TripReportStats {
   ],
   encapsulation: ViewEncapsulation.None
 })
-export class SelectivityTripReport extends TripReport<SelectivityData, SelectivityTripReportStats> {
+export class SelectivityTripReport extends TripReport<SelectivityExtractionData, SelectivityTripReportStats> {
 
 
   constructor(injector: Injector,
-              tripReportService: TripReportService<SelectivityData>,
+              tripReportService: TripReportService<SelectivityExtractionData>,
               @Inject(DOCUMENT) document: Document) {
     super(injector, tripReportService, document);
     this.i18nContext = {
@@ -83,7 +90,7 @@ export class SelectivityTripReport extends TripReport<SelectivityData, Selectivi
   protected loadData(filter: ExtractionFilter,
                  opts?: {
                    cache?: boolean
-                 }): Promise<SelectivityData> {
+                 }): Promise<SelectivityExtractionData> {
     return this.tripReportService.loadAll(filter, {
       ...opts,
       formatLabel: 'apase',
@@ -98,7 +105,7 @@ export class SelectivityTripReport extends TripReport<SelectivityData, Selectivi
   }
 
 
-  protected async computeStats(data: SelectivityData, opts?: { cache?: boolean; stats?: SelectivityTripReportStats }): Promise<SelectivityTripReportStats> {
+  protected async computeStats(data: SelectivityExtractionData, opts?: { cache?: boolean; stats?: SelectivityTripReportStats }): Promise<SelectivityTripReportStats> {
     const stats = opts?.stats || <SelectivityTripReportStats>{};
     const programLabel = (data.TR || []).map(t => t.project).find(isNotNil);
 
@@ -274,7 +281,7 @@ export class SelectivityTripReport extends TripReport<SelectivityData, Selectivi
    * @param gearPmfms
    * @protected
    */
-  protected computeSelectivityDevices(data: SelectivityData, gearPmfms: IPmfm[]): {[key: string]: IReferentialRef} {
+  protected computeSelectivityDevices(data: SelectivityExtractionData, gearPmfms: IPmfm[]): {[key: string]: IReferentialRef} {
     const selectivityDevicePmfmIds = (gearPmfms || []).filter(PmfmUtils.isSelectivityDevice);
     if (isEmptyArray(selectivityDevicePmfmIds)) return { };
 
@@ -297,7 +304,7 @@ export class SelectivityTripReport extends TripReport<SelectivityData, Selectivi
 
 
   protected async computeSpeciesCharts(species: string,
-                                       data: SelectivityData,
+                                       data: SelectivityExtractionData,
                                        opts: {
                                          stats: SelectivityTripReportStats;
                                          getSubCategory: Function<any, string>|undefined;
@@ -540,7 +547,7 @@ export class SelectivityTripReport extends TripReport<SelectivityData, Selectivi
     return chart;
   }
 
-  protected computePrintHref(data: SelectivityData, stats: SelectivityTripReportStats): string {
+  protected computePrintHref(data: SelectivityExtractionData, stats: SelectivityTripReportStats): string {
     console.debug(`[${this.constructor.name}.computePrintHref]`, arguments);
     if (stats.trips?.length === 1) {
       const baseTripPath = `/trips/${stats.trips[0].id}`;

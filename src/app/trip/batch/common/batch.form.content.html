@@ -23,7 +23,7 @@
                                 [tabindex]="delegate.tabindex"
                                 [required]="true"
                                 [config]="delegate.autocompleteFields.taxonGroup"
-                                [showSearchBar]="!delegate.autocompleteFields.taxonGroup.items">
+                                [showSearchBar]="delegate.showTaxonGroupSearchBar">
           <ion-icon matPrefix *ngIf="delegate.mobile" name="fish"></ion-icon>
         </mat-autocomplete-field>
       </ion-col>

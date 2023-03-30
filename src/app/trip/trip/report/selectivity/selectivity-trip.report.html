@@ -55,6 +55,7 @@
 
   <app-reveal #reveal [options]="revealOptions" *ngIf="loaded; else loadingTemplate">
     <section>
+      <!-- summary -->
       <section class="summary">
         <h2>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h2>
         <ul *ngVar="{

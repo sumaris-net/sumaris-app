@@ -10,7 +10,7 @@ import {
   firstTruePromise,
   getProperty,
   isEmptyArray,
-  isNil,
+  isNil, isNilOrBlank,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -26,12 +26,12 @@ import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, Scale
 import { DOCUMENT } from '@angular/common';
 import pluginTrendlineLinear from 'chartjs-plugin-trendline';
 import '@sgratzl/chartjs-chart-boxplot/build/Chart.BoxPlot.js';
-import { RdbPmfmData, TripReportService } from '@app/trip/trip/report/trip-report.service';
+import { TripReportService } from '@app/trip/trip/report/trip-report.service';
 import { IDenormalizedPmfm, PmfmUtils } from '@app/referential/services/model/pmfm.model';
 import { AcquisitionLevelCodes } from '@app/referential/services/model/model.enum';
 import { PmfmNamePipe } from '@app/referential/pipes/pmfms.pipe';
 import { ArrayElementType, collectByFunction, Function } from '@app/shared/functions';
-import { CatchCategoryType, RdbSpeciesLength } from '@app/trip/trip/report/trip-report.model';
+import { CatchCategoryType, RdbPmfmExtractionData, RdbSpeciesLength } from '@app/trip/trip/report/trip-report.model';
 import { filter } from 'rxjs/operators';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
@@ -65,7 +65,7 @@ export declare class TripReportStats {
   encapsulation: ViewEncapsulation.None
 })
 export class TripReport<
-  R extends RdbPmfmData,
+  R extends RdbPmfmExtractionData,
   S extends TripReportStats,
   HL extends ArrayElementType<R['HL']> = ArrayElementType<R['HL']>
   >
@@ -180,9 +180,9 @@ export class TripReport<
     const slMap = collectByProperty(data.SL, 'species');
     const hlMap = collectByProperty(data.HL, 'species');
 
-    // For each species (found in HL)
-    stats.species = await Promise.all(
-      Object.keys(hlMap).map(species => {
+    // For each species (found in SL, because HL is not always filled)
+    const speciesNames = Object.keys(slMap);
+    stats.species = (await Promise.all(speciesNames.map(async (species) => {
         const speciesData = {
           ...data,
           SL: slMap[species],
@@ -190,10 +190,12 @@ export class TripReport<
         }
 
         const speciesOpts = {getSubCategory: undefined, ...opts, stats};
-        return this.computeSpeciesCharts(species, speciesData, speciesOpts)
-          .then(charts => ({ label: species, charts}));
+        const charts = await this.computeSpeciesCharts(species, speciesData, speciesOpts);
+        if (isNotEmptyArray(charts)) {
+          return { label: species, charts};
+        }
       })
-    );
+    )).filter(isNotNil);
 
     return stats;
   }
@@ -376,18 +378,29 @@ export class TripReport<
       }
     };
 
+    // FInd min/max (and check if can used elevatedNumberAtLength)
+    let min = 99999;
+    let max = 0;
+    let hasElevateNumberAtLength = true;
+    data.forEach(sl => {
+      const length = sl.lengthClass * unitConversion;
+      min = Math.min(min, length);
+      max = Math.max(max, length);
+      if (isNil(sl.elevateNumberAtLength) && hasElevateNumberAtLength) hasElevateNumberAtLength = false;
+    }) ;
+
     // Add labels
-    const min = data.reduce((max, sl) => Math.min(max, sl.lengthClass), 99999) * unitConversion;
-    const max = data.reduce((max, sl) => Math.max(max, sl.lengthClass), 0) * unitConversion;
-    const labelCount = Math.min(1, Math.abs(max - min) + 1)
+    const labelCount = Math.max(1, Math.abs(max - min) + 1)
     const xAxisLabels = new Array(labelCount)
       .fill(Math.min(min, max))
       .map((v, index) => (v + index).toString());
     ChartJsUtils.pushLabels(chart, xAxisLabels);
 
-    const getNumberAtLength = opts?.getNumberAtLength || ((hl) => hl.numberAtLength);
+    const getNumberAtLength = opts?.getNumberAtLength
+      || (hasElevateNumberAtLength &&  ((hl) => hl.elevateNumberAtLength))
+      || ((hl) => hl.numberAtLength);
 
-    const createCatchCategorySeries = (data: HL[], seriesIndex = 0, seriesLabelSuffix = '' ) => {
+    const createCatchCategorySeries = (data: HL[], seriesIndex = 0, subCategory?: string) => {
       const dataByCatchCategory = collectByProperty(data, 'catchCategory');
 
       // For each LAN, DIS
@@ -401,9 +414,9 @@ export class TripReport<
           });
 
           const color = opts.catchCategoryColors[index][seriesIndex];
-          const label = !opts.filter
-            ? [translations[catchCategory === 'DIS' ? 'TRIP.REPORT.DISCARD' : 'TRIP.REPORT.LANDING'], seriesLabelSuffix].join(' - ')
-            : seriesLabelSuffix;
+          const label = (!opts.filter || isNil(subCategory))
+            ? [translations[catchCategory === 'DIS' ? 'TRIP.REPORT.DISCARD' : 'TRIP.REPORT.LANDING'], subCategory].filter(isNotNil).join(' - ')
+            : subCategory;
           ChartJsUtils.pushDataSetOnChart(chart, {
             label,
             backgroundColor: color.rgba(this.defaultOpacity),
@@ -415,10 +428,16 @@ export class TripReport<
 
     if (opts.getSubCategory) {
       const dataBySubCategory = collectByFunction<HL>(data, opts.getSubCategory);
-      const subCategories: string[] = removeDuplicatesFromArray([...opts?.subCategories, ...Object.keys(dataBySubCategory)]);
-      subCategories.forEach((subCategory, index) => {
-        createCatchCategorySeries(dataBySubCategory[subCategory], index, subCategory)
-      })
+      const subCategories = removeDuplicatesFromArray([...opts?.subCategories, ...Object.keys(dataBySubCategory)]);
+      if (isNotEmptyArray(subCategories)) {
+        console.warn(`[${this.constructor.name}] No sub categories found for species '${species}'`);
+        subCategories.forEach((subCategory, index) => {
+          createCatchCategorySeries(dataBySubCategory[subCategory], index, subCategory)
+        })
+      }
+      else {
+          createCatchCategorySeries(data);
+      }
     }
     else {
       createCatchCategorySeries(data);
