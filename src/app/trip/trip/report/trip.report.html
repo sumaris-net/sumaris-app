@@ -59,8 +59,8 @@
       <section class="summary">
         <h2>{{ 'TRIP.REPORT.TITLE_SLIDE'|translateContext: i18nContext.suffix }}</h2>
         <ul *ngVar="{
-        startDate: data.departureDateTime|dateFormat:{time: false},
-        endDate: data.returnDateTime|dateFormat:{time: false}
+        startDate: stats.startDate|dateFormat:{time: false},
+        endDate: stats.endDate|dateFormat:{time: false}
       } as vars">
           <li><ion-icon name="boat"></ion-icon> {{ 'TRIP.REPORT.VESSEL_NAME'|translateContext: i18nContext.suffix }} <b>{{ stats.vesselSnapshots|referentialToString: ['name'] }}</b></li>
           <li class="no-icon"> {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING'|translateContext: i18nContext.suffix }} {{ stats.vesselSnapshots|referentialToString: ['exteriorMarking'] }}</li>
@@ -71,13 +71,14 @@
 
       <!-- Operations map -->
       <section (entered)="!reveal.printing && showMap()">
-        <h2>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h2>
+        <h4>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h4>
         <div style="height: 550px;">
           <ng-container #mapContainer></ng-container>
         </div>
       </section>
     </section>
-    <section *ngFor="let s of stats.species">
+
+    <section *ngFor="let s of stats.species | arrayFilter: isNotEmptySpecies">
       <section *ngFor="let chart of s.charts | mapValues">
         <div class="chart-container">
           <canvas baseChart

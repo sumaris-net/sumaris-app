@@ -1,9 +1,8 @@
 import { Injectable } from '@angular/core';
-import { BaseGraphqlService, EntityUtils, GraphqlService, IEntity, isEmptyArray } from '@sumaris-net/ngx-components';
+import { BaseGraphqlService, GraphqlService, IEntity } from '@sumaris-net/ngx-components';
 import { FetchPolicy, gql } from '@apollo/client/core';
 import { ExtractionCacheDurationType, ExtractionFilter } from '@app/extraction/type/extraction-type.model';
-import { TripFilter } from '@app/trip/services/filter/trip.filter';
-import { RdbPmfmSpeciesLength, RdbPmfmTrip, RdbSpeciesLength, RdbSpeciesList, RdbStation, RdbTrip } from '@app/trip/trip/report/trip-report.model';
+import { RdbExtractionData, RdbPmfmSpeciesLength, RdbPmfmSpeciesList, RdbPmfmStation, RdbPmfmTrip, RdbSpeciesList, RdbStation } from '@app/trip/trip/report/trip-report.model';
 
 const Queries = {
   extraction: gql`query Extraction($formatLabel: String!, $filter: ExtractionFilterVOInput!, $offset: Int, $size: Int, $cacheDuration: String) {
@@ -17,34 +16,13 @@ const Queries = {
   }`
 };
 
-export interface RdbData<
-  TR extends RdbTrip = RdbTrip,
-  HH extends RdbStation = RdbStation,
-  SL extends RdbSpeciesList = RdbSpeciesList,
-  HL extends RdbSpeciesLength = RdbSpeciesLength
-> {
-  TR: TR[];
-  HH: HH[];
-  SL: SL[];
-  HL: HL[];
-}
-
-export interface RdbPmfmData<
-  TR extends RdbPmfmTrip = RdbPmfmTrip,
-  HH extends RdbStation = RdbStation,
-  SL extends RdbSpeciesList = RdbSpeciesList,
-  HL extends RdbPmfmSpeciesLength = RdbPmfmSpeciesLength
-> extends RdbData<TR, HH, SL, HL>{
-
-}
-
 @Injectable()
 export class TripReportService<
-  R extends RdbData<TR, HH, SL, HL> = RdbData<any, any, any, any>,
-  TR extends RdbTrip = RdbTrip,
-  HH extends RdbStation = RdbStation,
-  SL extends RdbSpeciesList = RdbSpeciesList,
-  HL extends RdbSpeciesLength = RdbSpeciesLength,
+  R extends RdbExtractionData<TR, HH, SL, HL> = RdbExtractionData<any, any, any, any>,
+  TR extends RdbPmfmTrip = RdbPmfmTrip,
+  HH extends RdbPmfmStation = RdbPmfmStation,
+  SL extends RdbPmfmSpeciesList = RdbPmfmSpeciesList,
+  HL extends RdbPmfmSpeciesLength = RdbPmfmSpeciesLength,
 > extends BaseGraphqlService {
 
   constructor(
@@ -74,10 +52,10 @@ export class TripReportService<
       formatLabel: 'pmfm_trip',
       sheetNames: ['TR', 'HH', 'SL', 'HL'],
       dataTypes: {
-        TR: RdbTrip as unknown as new () => TR,
+        TR: RdbPmfmTrip as unknown as new () => TR,
         HH: RdbStation as unknown as new () => HH,
         SL: RdbSpeciesList as unknown as new () => SL,
-        HL: RdbSpeciesLength as unknown as new () => HL
+        HL: RdbPmfmSpeciesLength as unknown as new () => HL
       },
       ...opts
     };
@@ -104,7 +82,7 @@ export class TripReportService<
     console.debug(`[trip-report-service] Loading extraction data... {cache: ${withCache}${withCache ? ', cacheDuration: \'' + cacheDuration + '\'' : ''}}`, variables);
 
     const query = opts?.query || Queries.extraction;
-    const {data} = await this.graphql.query<{data: RdbData<TR, HH, SL, HL>}>({
+    const {data} = await this.graphql.query<{data: RdbExtractionData<TR, HH, SL, HL>}>({
       query,
       variables,
       fetchPolicy: opts && opts.fetchPolicy || 'no-cache'
