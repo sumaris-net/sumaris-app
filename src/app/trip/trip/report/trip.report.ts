@@ -396,6 +396,9 @@ export class TripReport<
       .map((v, index) => (v + index).toString());
     ChartJsUtils.pushLabels(chart, xAxisLabels);
 
+    if (!hasElevateNumberAtLength) {
+      console.warn(`[${this.constructor.name}] Cannot used elevateNumberAtLength, for species '${species}'`);
+    }
     const getNumberAtLength = opts?.getNumberAtLength
       || (hasElevateNumberAtLength &&  ((hl) => hl.elevateNumberAtLength))
       || ((hl) => hl.numberAtLength);

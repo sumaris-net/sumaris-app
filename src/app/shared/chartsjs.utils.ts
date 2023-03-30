@@ -1,19 +1,6 @@
-import { ChartArea, ChartConfiguration, ChartData, ChartDataSets, ChartPoint, ChartScales, PluginServiceGlobalRegistration, PluginServiceRegistrationOptions } from "chart.js";
-import { Color, ColorScale, ColorScaleOptions, rgbArrayToHex } from '@sumaris-net/ngx-components';
+import {ChartArea, ChartConfiguration, ChartDataSets, ChartPoint, ChartScales, PluginServiceGlobalRegistration, PluginServiceRegistrationOptions} from 'chart.js';
+import {Color, ColorScale, ColorScaleOptions, isNil} from '@sumaris-net/ngx-components';
 
-
-export interface ChartJsUtilsAutoCategItem {
-  label: string,
-  start: number,
-  stop: number,
-}
-
-interface ChartJsUtilsItemHelper {
-  label: string,
-  color: Color,
-  data: number[],
-  stack?: string,
-}
 
 interface TresholdLineOptions {
   color?: string,
@@ -129,15 +116,17 @@ export interface ChartJsUtilsMediandLineOptions {
   }
 }
 export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginServiceGlobalRegistration = {
+
   id: 'medianline',
+
   afterDraw: function(chart: Chart) {
 
-    function getStartSropFromOrientation(
+    function getStartStopFromOrientation(
       area: ChartArea,
       scales: { x: ChartScales, y: ChartScales },
       orientation: 'x' | 'y' | 'b'
     ): { start: { x: number, y: number }, stop: { x: number, y: number } } {
-      var res = { start: { x: 0, y: 0 }, stop: { x: 0, y: 0 } };
+      const res = {start: {x: 0, y: 0}, stop: {x: 0, y: 0}};
       let median = 0;
       switch (orientation) {
         case 'x':
@@ -178,7 +167,7 @@ export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginS
 
     // Get the first x and y scale on the chart
     const scales: { x: ChartScales, y: ChartScales } = ((chartScales: ChartScales[]) => {
-      var res = { x: undefined, y: undefined };
+      const res = {x: undefined, y: undefined};
       for (let scaleId in chartScales) {
         let idFirstChar = scaleId[0]; // be x or y
         if (['x', 'y'].includes(idFirstChar)) res[idFirstChar] = chartScales[scaleId];
@@ -190,9 +179,9 @@ export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginS
       console.warn(`[${this.constructor.name}.getStartSropFromOrientation] least one scale is undefinded`, scales);
     }
 
-    //Draw median
+    // Draw median
     const ctx = chart.ctx;
-    const lineStartStop = getStartSropFromOrientation(chart.chartArea, scales, param.orientation);
+    const lineStartStop = getStartStopFromOrientation(chart.chartArea, scales, param.orientation);
     ctx.lineWidth = param.width;
     if (param.style === 'dashed') ctx.setLineDash([8, 8]);
     ctx.beginPath();
@@ -203,36 +192,7 @@ export const ChartJsPluginMedianLine: PluginServiceRegistrationOptions & PluginS
   },
 }
 
-
 export class ChartJsUtils {
-
-  static computeCategsFromMinMax(min: number, max: number, nb: number): ChartJsUtilsAutoCategItem[] {
-    console.debug(`[${this.constructor.name}.computeCategsFromMinMax]`, arguments);
-    const diff = max - min;
-    const interval = Math.trunc(diff / nb);
-    return Array(nb).fill(0).map((_, i) => {
-      const next = (interval * (i + 1)) + min;
-      const start = (next - interval);
-      var stop = 0;
-      var label = '';
-      if ((i + 1) === nb) { // This is the last categorie
-        stop = max + 1; // The last categorie must include the max value
-        label = `>=${start} - <=${max}`;
-      } else {
-        stop = next;
-        label = `>=${start} - <${stop}`;
-      }
-      return ({
-        label: label,
-        start: start,
-        stop: stop,
-      });
-    });
-  }
-
-  static computeDataSetIntoCategs(dataset: number[], categories: ChartJsUtilsAutoCategItem[]): number[] {
-    return categories.map(c => dataset.filter(d => d >= c.start && d < c.stop).length);
-  }
 
   static computeChartPoints(values: number[][], radius: number = 6): ChartPoint[] {
     return values.map(s => {return {x: s[0], y: s[1], r: radius}});
@@ -255,17 +215,19 @@ export class ChartJsUtils {
   }
 
   static pushLabels(chart: ChartConfiguration, labels: string[]) {
-    console.debug(`[${this.constructor.name}.pushDataSetOnChart]`, arguments);
-    if (chart.data === undefined) chart.data = {};
-    if (chart.data.labels === undefined) chart.data.labels = [];
-    chart.data.labels.push(...labels);
+    chart.data = chart.data || {};
+    if (isNil(chart.data.labels)) {
+      chart.data.labels = labels;
+    }
+    else {
+      chart.data.labels.push(...labels);
+    }
   }
 
   static pushDataSetOnChart(chart: ChartConfiguration, dataset: ChartDataSets) {
-    console.debug(`[${this.constructor.name}.pushDataSetOnChart]`, arguments);
-    if (chart.data === undefined) chart.data = {};
-    if (chart.data.datasets === undefined) chart.data.datasets = [];
-    chart.data.datasets.push(dataset);
+    chart.data = chart.data || {};
+    if (isNil(chart.data.datasets)) chart.data.datasets = [dataset]
+    else chart.data.datasets.push(dataset);
   }
 
 }
