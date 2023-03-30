@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { NavController } from '@ionic/angular';
-import { HttpClient } from '@angular/common/http';
-import { catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
-import {SharedDocument} from '@app/social/share/shared.model';
+import {Component, OnInit} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
+import {NavController} from '@ionic/angular';
+import {HttpClient} from '@angular/common/http';
+import {catchError} from 'rxjs/operators';
+import {of} from 'rxjs';
+import {SharedElement} from '@app/social/share/shared-page.model';
 
 @Component({
   selector: 'app-shared-page',
@@ -32,7 +32,7 @@ export class SharedPage implements OnInit {
           return of();
         })
       )
-      .subscribe((res: SharedDocument) => {
+      .subscribe((res: SharedElement) => {
         const path = res.path;
         const pathParams = res.pathParams;
         const queryParams = res.queryParams;
