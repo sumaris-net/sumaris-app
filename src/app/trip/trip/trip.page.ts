@@ -556,8 +556,8 @@ export class TripPage
 
     // Open the operation editor
     setTimeout(async () => {
-      const editor = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
-      await this.router.navigate(['trips', this.data.id, 'operation', ...editor, 'new'], {
+      const editorPath = this.operationEditor !== 'legacy' ? [this.operationEditor] : [];
+      await this.router.navigate(['trips', this.data.id, 'operation', ...editorPath, 'new'], {
         queryParams: operationQueryParams || {}
       });
       this.markAsLoaded();
