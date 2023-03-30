@@ -107,6 +107,7 @@ export class BatchForm<
   @Input() showTaxonName = true;
   @Input() showError = true;
   @Input() availableTaxonGroups: IReferentialRef[] | Observable<IReferentialRef[]>;
+  @Input() showTaxonGroupSearchBar = true;
   @Input() maxVisibleButtons: number;
   @Input() maxItemCountForButtons: number;
   @Input() i18nSuffix: string;
@@ -431,6 +432,11 @@ export class BatchForm<
         items: this.availableTaxonGroups,
         mobile: this.mobile
       });
+
+      // Hide taxon group searchbar, if only few items
+      if (Array.isArray(this.availableTaxonGroups) && this.mobile && this.availableTaxonGroups.length < 10) {
+        this.showTaxonGroupSearchBar = false;
+      }
     } else {
       this.registerAutocompleteField('taxonGroup', {
         suggestFn: (value: any, filter?: any) => this.programRefService.suggestTaxonGroups(value, {...filter, program: this.programLabel}),
