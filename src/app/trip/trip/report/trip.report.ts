@@ -378,16 +378,27 @@ export class TripReport<
       }
     };
 
+    // FInd min/max (and check if can used elevatedNumberAtLength)
+    let min = 99999;
+    let max = 0;
+    let hasElevateNumberAtLength = true;
+    data.forEach(sl => {
+      const length = sl.lengthClass * unitConversion;
+      min = Math.min(min, length);
+      max = Math.max(max, length);
+      if (isNil(sl.elevateNumberAtLength) && hasElevateNumberAtLength) hasElevateNumberAtLength = false;
+    }) ;
+
     // Add labels
-    const min = data.reduce((max, sl) => Math.min(max, sl.lengthClass), 99999) * unitConversion;
-    const max = data.reduce((max, sl) => Math.max(max, sl.lengthClass), 0) * unitConversion;
-    const labelCount = Math.min(1, Math.abs(max - min) + 1)
+    const labelCount = Math.max(1, Math.abs(max - min) + 1)
     const xAxisLabels = new Array(labelCount)
       .fill(Math.min(min, max))
       .map((v, index) => (v + index).toString());
     ChartJsUtils.pushLabels(chart, xAxisLabels);
 
-    const getNumberAtLength = opts?.getNumberAtLength || ((hl) => hl.numberAtLength);
+    const getNumberAtLength = opts?.getNumberAtLength
+      || (hasElevateNumberAtLength &&  ((hl) => hl.elevateNumberAtLength))
+      || ((hl) => hl.numberAtLength);
 
     const createCatchCategorySeries = (data: HL[], seriesIndex = 0, subCategory?: string) => {
       const dataByCatchCategory = collectByProperty(data, 'catchCategory');
