@@ -1,8 +1,7 @@
-import { NgModule } from '@angular/core';
-import { ExtraOptions, RouterModule, Routes } from '@angular/router';
-import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
-import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
-import { environment } from '@environments/environment';
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
+import {AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule} from '@sumaris-net/ngx-components';
+import {QuicklinkModule, QuicklinkStrategy} from 'ngx-quicklink';
 
 const routes: Routes = [
   // Core path
@@ -92,6 +91,15 @@ const routes: Routes = [
       profile: 'USER'
     },
     loadChildren: () => import('./social/message/inbox-message-routing.module').then(m => m.AppInboxMessageRoutingModule)
+  },
+
+  // Shared page
+  {
+    path: 'share',
+    loadChildren: () => import('./social/share/shared-page.module').then(m => m.SharedPageModule),
+    data: {
+      preload: false
+    }
   },
 
   // Test module (disable in menu, by default - can be enabled by the Pod configuration page)
