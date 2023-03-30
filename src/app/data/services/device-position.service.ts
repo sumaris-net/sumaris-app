@@ -3,9 +3,16 @@ import {
   AppErrorWithDetails,
   BaseEntityGraphqlQueries,
   ConfigService,
-  Configuration, DateUtils, EntitiesStorage, Entity,
-  EntitySaveOptions, FormErrors, isNil,
+  Configuration,
+  DateUtils,
+  EntitiesStorage,
+  Entity,
+  EntitySaveOptions,
+  EntityServiceLoadOptions,
+  FormErrors,
+  isNil,
   isNotNil,
+  LoadResult,
 } from '@sumaris-net/ngx-components';
 import {IPosition} from '@app/trip/services/model/position.model';
 import {BehaviorSubject, interval, Subscription} from 'rxjs';
@@ -22,6 +29,7 @@ import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-servi
 import {gql} from '@apollo/client/core';
 import {DataCommonFragments} from '@app/trip/services/trip.queries';
 import {Trip} from '@app/trip/services/model/trip.model';
+import {SortDirection} from '@angular/material/sort';
 
 export const DevicePositionFragment = {
   devicePosition: gql`fragment DevicePositionFragment on DevicePositionVO {
@@ -40,7 +48,22 @@ export const DevicePositionFragment = {
 
 // TODO
 const Queries: BaseEntityGraphqlQueries = {
-  loadAll: ``,
+  loadAll: gql`query DevicePosition($filter: DevicePositionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    data: devicePositions(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+      ...DevicePositionFragment
+    }
+  }
+  ${DevicePositionFragment.devicePosition}
+  ${DataCommonFragments.lightPerson}
+  `,
+  // load: gql`query DevicePosition($id: Int!) {
+  //   data: devicePosition(id: $id) {
+  //     ...DevicePositionFragment
+  //   }
+  // }
+  // ${DevicePositionFragment}
+  // ${DataCommonFragments.lightPerson}
+  // `,
 };
 const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
   save: gql`mutation saveDevicePosition($devicePosition:DevicePositionVOInput!){
@@ -66,6 +89,8 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
   protected $checkLoop: Subscription;
   protected onSaveSubscriptions:Subscription = new Subscription();
   protected entities: EntitiesStorage;
+
+  protected loading:boolean = false;
 
   protected _watching:boolean = false;
   // get watching(): boolean {
@@ -126,6 +151,10 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
   async save(entity:DevicePosition<any>, opts?:EntitySaveOptions): Promise<DevicePosition<any>> {
     console.log(`${this._logPrefix} save current device position`, {position: this.lastPosition})
+    // if (!(await this.checkIfmustSaveDevicePosition((await this.getLastDevicePositionSavedRemotely())))) {
+    //   console.debug(`${this._logPrefix} skip save interval is less than this provided in configuration (${this.saveInterval})`);
+    //   return;
+    // }
     const now = Date.now();
     this.fillDefaultProperties(entity);
     // Provide an optimistic response, if connection lost
@@ -256,12 +285,38 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     return Promise.resolve(undefined);
   }
 
-  protected async fillOfflineDefaultProperties(entity:DevicePosition<any>) {
-  }
-
   forceUpdatePosition() {
     this.mustAskForEnableGeolocation.next(false);
     this.watchGeolocation();
+  }
+
+  async loadAll(offset:number,
+                size: number,
+                sortBy?:string,
+                sortDirection?:SortDirection,
+                filter?: Partial<DevicePositionFilter>,
+                opts?: EntityServiceLoadOptions):Promise<LoadResult<DevicePosition<any, any>>> {
+    const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
+    if (offlineData) {
+      // TODO
+    }
+    return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
+//   async load(id:number, opts?:EntityServiceLoadOptions):Promise<DevicePosition<any, any>> {
+//     if (isNil(id)) throw new Error('Missing argument \'id\'');
+//
+//     const now = Date.now();
+//     if (this._debug) console.debug(`${this._logPrefix} : Loading {${id}}...`);
+//     this.loading = false;
+//
+//     try {
+// h
+//     } catch (e) {
+//     }
+//   }
+
+  protected async fillOfflineDefaultProperties(entity:DevicePosition<any>) {
   }
 
   protected async onConfigChanged(config:Configuration) {
@@ -317,6 +372,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
   }
 
   protected async getLastDevicePositionSavedRemotely() {
+    // const result
   }
 
 }
