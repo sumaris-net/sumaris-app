@@ -1,8 +1,7 @@
 import { NgModule } from '@angular/core';
-import { ExtraOptions, RouterModule, Routes } from '@angular/router';
+import { RouterModule, Routes } from '@angular/router';
 import { AccountPage, AuthGuardService, ComponentDirtyGuard, HomePage, RegisterConfirmPage, SettingsPage, SharedRoutingModule } from '@sumaris-net/ngx-components';
 import { QuicklinkModule, QuicklinkStrategy } from 'ngx-quicklink';
-import { environment } from '@environments/environment';
 
 const routes: Routes = [
   // Core path
@@ -82,6 +81,16 @@ const routes: Routes = [
       profile: 'GUEST'
     },
     loadChildren: () => import('./extraction/extraction-routing.module').then(m => m.AppExtractionRoutingModule)
+  },
+
+  // DevicePosition path
+  {
+    path: 'device-position',
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'SUPERVISOR'
+    },
+    loadChildren: () => import('./device-position/device-position-routing.module').then(m => m.DevicePositionRoutingModule)
   },
 
   // Inbox message

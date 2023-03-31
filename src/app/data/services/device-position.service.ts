@@ -4,7 +4,7 @@ import {
   BaseEntityGraphqlQueries,
   ConfigService,
   Configuration,
-  DateUtils,
+  DateUtils, EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
@@ -12,10 +12,10 @@ import {
   FormErrors,
   isNil,
   isNotNil,
-  LoadResult,
+  LoadResult, QueryVariables,
 } from '@sumaris-net/ngx-components';
 import {IPosition} from '@app/trip/services/model/position.model';
-import {BehaviorSubject, interval, Subscription} from 'rxjs';
+import {BehaviorSubject, combineLatest, EMPTY, from, interval, Observable, Subscription} from 'rxjs';
 import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@app/data/services/config/device-position.config';
 import {environment} from '@environments/environment';
 import {DevicePosition, DevicePositionFilter, ITrackPosition, ObjectType} from '@app/data/services/model/device-position.model';
@@ -26,11 +26,25 @@ import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
 import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
 import {ErrorCodes} from '@app/data/services/errors';
 import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-service.class';
-import {gql} from '@apollo/client/core';
+import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
 import {DataCommonFragments} from '@app/trip/services/trip.queries';
 import {Trip} from '@app/trip/services/model/trip.model';
 import {SortDirection} from '@angular/material/sort';
 import {Moment} from 'moment';
+import {OperationFilter} from '@app/trip/services/filter/operation.filter';
+import {filter, map, mergeMap} from 'rxjs/operators';
+import {mergeLoadResult} from '@app/shared/functions';
+
+export declare interface DevicePositionServiceWatchOptions extends EntitiesServiceWatchOptions {
+  fullLoad?: boolean;
+  fetchPolicy?: WatchQueryFetchPolicy; // Avoid the use cache-and-network, that exists in WatchFetchPolicy
+  mutable?: boolean; // should be a mutable query ? true by default
+  withOffline?: boolean;
+
+  // TODO Need this ?
+  // mapFn?: (operations: Operation[]) => Operation[] | Promise<Operation[]>;
+  computeRankOrder?: boolean;
+}
 
 export const DevicePositionFragment = {
   devicePosition: gql`fragment DevicePositionFragment on DevicePositionVO {
@@ -53,6 +67,15 @@ const Queries: BaseEntityGraphqlQueries = {
     data: devicePositions(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
       ...DevicePositionFragment
     }
+  }
+  ${DevicePositionFragment.devicePosition}
+  ${DataCommonFragments.lightPerson}
+  `,
+  loadAllWithTotal: gql`query DevicePosition($filter: DevicePositionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
+    data: devicePositions(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
+      ...DevicePositionFragment
+    }
+    total: devicePositionsCount(filter:$filter)
   }
   ${DevicePositionFragment.devicePosition}
   ${DataCommonFragments.lightPerson}
@@ -284,6 +307,137 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     this.watchGeolocation();
   }
 
+  watchAll(offset: number,
+           size: number,
+           sortBy?: string,
+           sortDirection?: SortDirection,
+           dataFilter?: DevicePositionFilter | any,
+           opts?: DevicePositionServiceWatchOptions,
+  ):Observable<LoadResult<DevicePosition<any, any>>> {
+    const forceOffline = this.network.offline;
+    const offline = forceOffline || opts?.withOffline || false;
+    const online = !forceOffline;
+    let tempOpts:DevicePositionServiceWatchOptions = opts;
+    if (offline && online) {
+      tempOpts = {
+        ...opts,
+        // mapFn: undefined,
+        toEntity: false,
+        computeRankOrder: false,
+        sortByDistance: false
+      }
+    }
+
+    const offline$ = offline && this.watchAllLocally(offset, size, sortBy, sortDirection, dataFilter, tempOpts);
+    const online$ = online && this.watchAllRemotely(offset, size, sortBy, sortDirection, dataFilter, tempOpts);
+    if (offline$ && online$) {
+      return combineLatest([offline$, online$])
+        .pipe(
+          map(([res1, res2]) => mergeLoadResult(res1, res2)),
+          mergeMap(({ data, total }) => {
+            return this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts);
+          })
+        );
+    }
+    return offline$ || online$;
+  }
+
+  watchAllLocally(offset: number,
+                  size: number,
+                  sortBy?: string,
+                  sortDirection?: SortDirection,
+                  filter?: Partial<DevicePositionFilter>,
+                  opts?: DevicePositionServiceWatchOptions): Observable<LoadResult<DevicePosition<any, any>>> {
+
+    if (!filter) {
+      console.warn(`${this._logPrefix} : Trying to load without filter. Skipping.`);
+      return EMPTY;
+    }
+
+    filter = this.asFilter(filter);
+
+    const variables = {
+      offset: offset || 0,
+      size: size >= 0 ? size : 1000,
+      sortBy: (sortBy !== 'id' && sortBy), // TODO || (opts && opts.trash ? 'updateDate' : 'endDateTime')
+      sortDirection: sortDirection, // TOOD || (opts && opts.trash ? 'desc' : 'asc'),
+      // TODO trash: opts && opts.trash || false,
+      filter: filter.asFilterFn()
+    };
+
+    if (this._debug) console.debug(`${this._logPrefix} : Loading locally... using options:`, variables);
+    return this.entities.watchAll<DevicePosition<any, any>>(DevicePosition.TYPENAME, variables, { fullLoad: opts && opts.fullLoad })
+      .pipe(mergeMap(async ({ data, total }) => {
+        return await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, filter, opts);
+      }));
+  }
+
+  watchAllRemotely(offset: number,
+                   size: number,
+                   sortBy?: string,
+                   sortDirection?: SortDirection,
+                   dataFilter?: DevicePosition<any, any> | any,
+                   opts?: DevicePositionServiceWatchOptions,
+  ): Observable<LoadResult<DevicePosition<any, any>>> {
+
+    if (!dataFilter) {
+      console.warn(`${this._logPrefix} : Trying to load without filter. Skipping.`);
+      return EMPTY;
+    }
+    if (opts && opts.fullLoad) {
+      throw new Error('Loading full operation (opts.fullLoad) is only available for local DevicePosition');
+    }
+
+    dataFilter = this.asFilter(dataFilter);
+
+    const variables: QueryVariables<OperationFilter> = {
+      offset: offset || 0,
+      size: size >= 0 ? size : 1000,
+      sortBy: sortBy, // TODO (sortBy !== 'id' && sortBy) || (opts && opts.trash ? 'updateDate' : 'endDateTime'),
+      sortDirection: sortDirection, // TODO || (opts && opts.trash ? 'desc' : 'asc'),
+      // trash: opts && opts.trash || false,
+      filter: dataFilter.asPodObject(),
+    };
+
+    let now = this._debug && Date.now();
+    if (this._debug) console.debug(`${DevicePositionFilter} : Loading operations... using options:`, variables);
+
+    const withTotal = !opts || opts.withTotal !== false;
+    const query = opts?.query || (withTotal ? Queries.loadAllWithTotal : Queries.loadAll);
+    const mutable = (!opts || opts.mutable !== false) && (opts?.fetchPolicy !== 'no-cache');
+
+    const result$ = mutable
+      ? this.mutableWatchQuery<LoadResult<any>>({
+        queryName: withTotal ? 'LoadAllWithTotal' : 'LoadAll',
+        query,
+        arrayFieldName: 'data',
+        totalFieldName: withTotal ? 'total' : undefined,
+        insertFilterFn: dataFilter.asFilterFn(),
+        variables,
+        error: { code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR' },
+        fetchPolicy: opts && opts.fetchPolicy || 'cache-and-network'
+      })
+      : from(this.graphql.query<LoadResult<any>>({
+        query,
+        variables,
+        error: { code: ErrorCodes.LOAD_ENTITIES_ERROR, message: 'ERROR.LOAD_ENTITIES_ERROR' },
+        fetchPolicy: (opts && opts.fetchPolicy as FetchPolicy) || 'no-cache'
+      }));
+
+    return result$
+      .pipe(
+        // Skip update during load()
+        filter(() => !this.loading),
+
+        mergeMap(async ({ data, total }) => {
+          if (now) {
+            console.debug(`${this._logPrefix} : Loaded ${data.length} operations in ${Date.now() - now}ms`);
+            now = undefined;
+          }
+          return await this.applyWatchOptions({ data, total }, offset, size, sortBy, sortDirection, dataFilter, opts);
+        }));
+  }
+
   async loadAll(offset:number,
                 size: number,
                 sortBy?:string,
@@ -295,6 +449,10 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
       // TODO
     }
     return super.loadAll(offset, size, sortBy, sortDirection, filter, opts);
+  }
+
+  asFilter(source: Partial<DevicePositionFilter>): DevicePositionFilter {
+    return DevicePositionFilter.fromObject(source);
   }
 
 //   async load(id:number, opts?:EntityServiceLoadOptions):Promise<DevicePosition<any, any>> {
@@ -360,6 +518,25 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     const diffTime = DateUtils.moment().diff(this.lastSavedPositionDate);
     if (this._debug) console.debug(`${this._logPrefix} checkIfmustSaveDevicePosition : timeDiff`, {diff: diffTime, saveInterval: this.saveInterval})
     return diffTime > this.saveInterval;
+  }
+
+  protected async applyWatchOptions({data, total}: LoadResult<DevicePosition<any, any>>,
+                                    offset: number,
+                                    size: number,
+                                    sortBy?: string,
+                                    sortDirection?: SortDirection,
+                                    filter?: Partial<DevicePositionFilter>,
+                                    opts?: DevicePositionServiceWatchOptions): Promise<LoadResult<DevicePosition<any, any>>> {
+    let entities = (!opts || opts.toEntity !== false) ?
+      (data || []).map(source => DevicePosition.fromObject(source, opts))
+      : (data || []) as DevicePosition<any, any>[];
+
+    // TODO
+    // if (opts?.mapFn) {
+    //   entities = await opts.mapFn(entities);
+    // }
+
+    return {data: entities, total};
   }
 
 }

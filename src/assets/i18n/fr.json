@@ -343,7 +343,8 @@
     "SERVER": "Configuration serveur",
     "LOGOUT": "Se déconnecter",
     "ABOUT": "À propos",
-    "BTN_MY_ACCOUNT": "Mon compte"
+    "BTN_MY_ACCOUNT": "Mon compte",
+    "DEVICE_POSITION": "Positions des appareils"
   },
   "ABOUT": {
     "TITLE": "À propos",
@@ -2769,10 +2770,18 @@
   "WARNING": {
     "SYNCHRONIZE_NO_HISTORICAL_DATA": "L'importation des données historiques n'a pas été effectuée. <small><br/>Veuillez mettre à jour le mode hors-ligne.</small>"
   },
-  "DEVICE_POSITION_SERVICE": {
+  "DEVICE_POSITION": {
     "ASK_FOR_ENABLE_GEOLOCATION": {
       "TITLE": "Activation de la géolocalisation requise",
       "MESSAGE": "Pour pouvoir utiliser l'application il est nécessaire d'autoriser la géolocalisation."
+    },
+    "PAGE": {
+      "TITLE": "Positions des périphériques",
+      "FILTER": {
+        "RECORDER_PERSON": "Saisisseur",
+        "START_DATE": "Début de période",
+        "END_DATE": "Fin de période"
+      }
     }
   }
 }

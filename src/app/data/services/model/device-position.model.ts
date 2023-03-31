@@ -92,8 +92,12 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
 @EntityClass({typename: 'DevicePositionFilterVO'})
 export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFilter, DevicePosition<any>, number> {
 
+  static TYPENAME = 'DevicePositionVO';
+
   objectType:ObjectType;
-  recorderPerson:Person;
+  startDate:Moment = null;
+  endDate:Moment = null;
+  recorderPerson:Person = null;
 
   static fromObject: (source: any, opts?: any) => DevicePositionFilter;
 

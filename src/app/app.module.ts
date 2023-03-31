@@ -78,6 +78,7 @@ import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.va
 import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@app/data/services/config/device-position.config';
 import {TripService} from '@app/trip/services/trip.service';
 import {ObservedLocationService} from '@app/trip/services/observed-location.service';
+import {DevicePositionModule} from '@app/device-position/device-position.module';
 @NgModule({
   declarations: [
     AppComponent
@@ -132,6 +133,7 @@ import {ObservedLocationService} from '@app/trip/services/observed-location.serv
     AppCoreModule.forRoot(),
     AppRoutingModule,
     UserEventModule,
+    DevicePositionModule,
     JobModule
   ],
   providers: [
@@ -279,6 +281,8 @@ import {ObservedLocationService} from '@app/trip/services/observed-location.serv
         {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST'},
         {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', ifProperty: 'sumaris.extraction.product.enable', profile: 'GUEST'},
         {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
+        // TODO ifProperty: 'sumaris.app.service.gps.enable'
+        {title: 'MENU.DEVICE_POSITION', path: '/device-position', icon: 'location', profile: 'SUPERVISOR'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
