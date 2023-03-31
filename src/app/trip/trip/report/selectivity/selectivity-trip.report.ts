@@ -234,11 +234,11 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
         // Compute weight total variation, between sub categories
         if (speciesStats.LAN.total > 0) {
           result.catchCategories.LAN.enableAvgVariation = true;
-          this.computeWeightAvgVariation(speciesStats.LAN, opts.standardSubCategory);
+          this.computeWeightAvgVariation('LAN', speciesStats.LAN, opts.standardSubCategory);
         }
         if (speciesStats.DIS.total > 0) {
           result.catchCategories.DIS.enableAvgVariation = true;
-          this.computeWeightAvgVariation(speciesStats.DIS, opts.standardSubCategory);
+          this.computeWeightAvgVariation('DIS', speciesStats.DIS, opts.standardSubCategory);
         }
       }
     })
@@ -251,7 +251,8 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     weights.totalVariation = this.computeWeightVariation(weights,standardSubCategory, stats => stats.total);
   }
 
-  protected computeWeightAvgVariation(weights: SpeciesWeightStats,
+  protected computeWeightAvgVariation(catchCategory: CatchCategoryType,
+                                      weights: SpeciesWeightStats,
                                       standardSubCategory: string) {
     // Collect all station keys
     const stationKeys = Object.keys(weights.subCategories).reduce((res, subCategory) => {
@@ -264,8 +265,9 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       .filter(isNotNil); // Exclude when standard = 0
 
     if (isNotEmptyArray(stationVariations)) {
+      console.debug(`[selectivity-trip-report] Weight variations by station for {${catchCategory} - ${weights.label}}: `, stationVariations);
       weights.avgVariation = MathUtils.average(stationVariations);
-      weights.avgStandardDerivation = MathUtils.standardDerivationPercentage(stationVariations);
+      weights.avgStandardDerivation = MathUtils.standardDerivationPercentage(stationVariations, weights.avgVariation);
     }
   }
 

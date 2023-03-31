@@ -1,3 +1,5 @@
+import { toNumber } from '@sumaris-net/ngx-components';
+
 export class MathUtils {
 
   /**
@@ -11,18 +13,19 @@ export class MathUtils {
   /**
    * Calcul l'écart type d'un tableau de nombres
    */
-  static standardDerivation(numbers: number[]): number {
-    const avg = this.average(numbers);
-    const variance = this.average(numbers.map((x) => Math.pow(x - avg, 2)));
+  static standardDerivation(numbers: number[], average?: number): number {
+    const avg = toNumber(average, this.average(numbers));
+    const diffPow2 = numbers.map((x) => (x - avg) ** 2);
+    const variance = this.average(diffPow2);
     return Math.sqrt(variance);
   }
 
   /**
    * Calcul l'écart type en pourcentage d'un tableau de nombres
    */
-  static standardDerivationPercentage(numbers: number[]): number {
-    const avg = this.average(numbers);
-    const stdDev = this.standardDerivation(numbers);
+  static standardDerivationPercentage(numbers: number[], average?: number): number {
+    const avg = toNumber(average, this.average(numbers));
+    const stdDev = this.standardDerivation(numbers, average);
     const percentage = (stdDev / avg) * 100;
     return percentage;
   }
