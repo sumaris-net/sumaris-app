@@ -132,7 +132,8 @@
       </ng-container>
 
       <!-- Operations map -->
-      <section (entered)="!reveal.printing && showMap()">
+      <section *ngIf="stats.operations|isNotEmptyArray"
+               (entered)="!reveal.printing && showMap()">
         <h4>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h4>
         <div style="height: 550px;">
           <ng-container #mapContainer></ng-container>

@@ -48,6 +48,7 @@ export declare class TripReportStats {
   trips: Trip[];
   operations: Operation[];
   vesselSnapshots: VesselSnapshot[];
+  vesselLength: BaseNumericStats;
   species: {
     label: string;
     charts: SpeciesChart[];
@@ -174,6 +175,7 @@ export class TripReport<
 
     stats.startDate = stats.trips.reduce((date, t) => DateUtils.min(date, t.departureDateTime), DateUtils.moment());
     stats.endDate = stats.trips.reduce((date, t) => DateUtils.max(date, t.departureDateTime), DateUtils.moment(0));
+    stats.vesselLength = this.computeNumericStats(data.TR, 'vesselLength');
 
     // Split SL and HL by species
     const slMap = collectByProperty(data.SL, 'species');

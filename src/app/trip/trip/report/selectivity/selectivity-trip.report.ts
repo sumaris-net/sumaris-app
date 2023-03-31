@@ -55,7 +55,6 @@ export declare interface SelectivityTripReportStats extends TripReportStats {
   gearIdentifierByOperationId: {[key: string]: PhysicalGear};
   selectivityDeviceMap: {[key: string]: IReferentialRef};
   selectivityDevices: string[];
-  vesselLength: BaseNumericStats,
   seaStates: string[];
   seabedFeatures: string[];
   gearSpeed: BaseNumericStats;
@@ -112,7 +111,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
 
     const standardSubCategory = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD');
 
-    stats.vesselLength = this.computeNumericStats(data.TR, 'vesselLength');
+
     stats.gearSpeed = this.computeNumericStats(data.HH, 'gearSpeed');
     stats.seaStates = this.collectDistinctQualitativeValue(data.HH, 'seaState')
       .map(seaState => {
