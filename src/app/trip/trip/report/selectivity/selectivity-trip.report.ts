@@ -212,7 +212,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
           subCategoryStats.total += weight;
           // Increment by station
           const stationKey = `${sl.tripCode}|${sl.stationNumber}`;
-          subCategoryStats.stations[stationKey] = subCategoryStats.stations[sl.stationNumber] || 0;
+          subCategoryStats.stations[stationKey] = subCategoryStats.stations[stationKey] || 0;
           subCategoryStats.stations[stationKey] += weight;
         }
       })
@@ -253,7 +253,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
   protected computeWeightAvgVariation(catchCategory: CatchCategoryType,
                                       weights: SpeciesWeightStats,
                                       standardSubCategory: string) {
-    // Collect all station keys
+    // Collect all station keys, found on every sub category
     const stationKeys = Object.keys(weights.subCategories).reduce((res, subCategory) => {
       return Object.keys(weights.subCategories[subCategory].stations).reduce((res, stationKey) => {
         return res.includes(stationKey) ? res : res.concat(stationKey);
@@ -269,6 +269,13 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     }
   }
 
+  /**
+   * Calcul le taux de variation, suivant la formule : (<poids_espèce_chalut_selectif> - <poids_espèce_chalut_standard>) / <poids_espèce_chalut_standard>
+   * @param weights
+   * @param standardSubCategory libellé de correspond au chalut standard.
+   * @param weightGetter function pour lire le poids.
+   * @protected
+   */
   protected computeWeightVariation(weights: SpeciesWeightStats,
                                    standardSubCategory: string,
                                    weightGetter: Function<SubCategoryWeightStats, number>): number | undefined {
