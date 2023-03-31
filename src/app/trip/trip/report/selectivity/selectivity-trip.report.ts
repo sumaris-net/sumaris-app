@@ -343,12 +343,12 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       if (opts.stats.weights) {
         // TODO finish this feature, then enable
         if (!environment.production) {
-          const boxPlotChart = this.createSpeciesBoxPlot(species, {
-            stats: opts.stats,
-            subCategories: this.stats.subCategories,
-            catchCategories: ['LAN', 'DIS']
-          });
-          if (boxPlotChart) charts.push(boxPlotChart);
+          // const boxPlotChart = this.createSpeciesBoxPlot(species, {
+          //   stats: opts.stats,
+          //   subCategories: this.stats.subCategories,
+          //   catchCategories: ['LAN', 'DIS']
+          // });
+          // if (boxPlotChart) charts.push(boxPlotChart);
         }
       }
     }
@@ -404,6 +404,8 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     const chart: SpeciesChart = {
       type: 'bubble',
       options: {
+        // FIXME
+        //aspectRatio: 1,
         title: {
           ...this.defaultTitleOptions,
           text: [
@@ -443,6 +445,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       }
     };
 
+    let max = 0;
     // For each LAN, DIS
     catchCategories.forEach(catchCategory => {
       const label = [species, translations[catchCategory === 'DIS' ? 'TRIP.REPORT.DISCARD' : 'TRIP.REPORT.LANDING']].join(' - ')
@@ -451,16 +454,27 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       const values = Object.keys(dataByStation).map(station => {
         return dataByStation[station].reduce((res, sl) => {
           const index = subCategories.indexOf(sl.meta.subCategory);
-          if (index != -1) res[index] += sl.weight / 1000; // Convert to kg
+          const weight = sl.weight / 1000; // Convert to kg
+          if (index != -1) {
+            res[index] += weight;
+            max = Math.max(max, weight);
+          }
           return res;
         }, new Array(subCategories.length).fill(0));
       });
+
       ChartJsUtils.pushDataSetOnChart(chart, {
         label,
         backgroundColor: color.rgba(this.defaultOpacity),
         data: ChartJsUtils.computeChartPoints(values)
       });
+
     });
+
+    // Set max scale
+    const scaleMax = Math.ceil(max / 10 + 0.5) * 10;
+    chart.options.scales.xAxes[0].ticks = {min: 0, max: scaleMax};
+    chart.options.scales.yAxes[0].ticks = {min: 0, max: scaleMax};
 
     return [chart];
   }
