@@ -481,7 +481,13 @@ export class BatchService implements IDataEntityQualityService<Batch<any, any>, 
     let physicalGear = opts?.physicalGear;
     if (!physicalGear) throw new Error('Missing required \'opts.physicalGear\'')
 
-    if (!environment.production) return undefined;
+    // Recompute rank order
+    BatchUtils.computeRankOrder(entity);
+
+    if (!environment.production) {
+      // SKip validation
+      return undefined;
+    }
 
     const allowSamplingBatches = (opts?.allowSamplingBatches || BatchUtils.sumObservedIndividualCount(entity.children) > 0);
     const allowDiscard = allowSamplingBatches;

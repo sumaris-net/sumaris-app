@@ -692,7 +692,7 @@ export class OperationService extends BaseGraphqlService<Operation, OperationFil
 
     console.info(`[operation-service] Control operation {${entity.id}} [OK] in ${Date.now() - now}ms`);
 
-    // Lark local operation has controlled (to have a checkmark icon in the operation table)
+    // Mark local operation has controlled (to have a checkmark icon in the operation table)
     if (entity.tripId < 0) {
       DataEntityUtils.markAsControlled(entity);
       dirty = true;

@@ -108,6 +108,10 @@ export class SelectivityOperationPage extends OperationPage {
 
     // Force suffix
     this.i18nContext.suffix = 'TRAWL_SELECTIVITY.';
+
+    // Force rankOrder to be recompute
+    // this is required because batch tree container can generate same batch label, for individual sorting batch
+    this.saveOptions.computeBatchRankOrder = true;
   }
 
   protected computePageUrl(id: number | 'new', tripId?: number): string | any[] {
