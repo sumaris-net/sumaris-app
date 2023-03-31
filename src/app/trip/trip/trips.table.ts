@@ -46,6 +46,8 @@ import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
 import { ExtractionType, ExtractionTypeUtils } from '@app/extraction/type/extraction-type.model';
 import { ExtractionTypeService } from '@app/extraction/type/extraction-type.service';
 import { ExtractionTypeFilter } from '@app/extraction/type/extraction-type.filter';
+import {OperationEditor, ProgramProperties} from '@app/referential/services/config/program.config';
+import {NavController} from '@ionic/angular';
 
 export const TripsPageSettingsEnum = {
   PAGE_ID: "trips",
@@ -470,8 +472,14 @@ export class TripTable extends AppRootDataTable<Trip, TripFilter> implements OnI
       this.selection.clear();
       this.markForCheck();
 
-      // Open the operation
-      await this.router.navigate(['trips', data.tripId, 'operation', data.id]);
+      //Full load the program
+      const program = await this.programRefService.loadByLabel(programLabel);
+
+      // Build the final path
+      const operationEditor = program.getProperty<OperationEditor>(ProgramProperties.TRIP_OPERATION_EDITOR);
+      const editorPath = operationEditor !== 'legacy' ? [operationEditor]: [];
+      await this.router.navigate(['trips', data.tripId, 'operation', ...editorPath, data.id]);
+
       return;
     }
   }

@@ -66,6 +66,14 @@
           <li class="no-icon"> {{ 'TRIP.REPORT.VESSEL_EXTERIOR_MARKING'|translateContext: i18nContext.suffix }} {{ stats.vesselSnapshots|referentialToString:['exteriorMarking'] }}</li>
           <li><ion-icon name="settings"></ion-icon> {{ 'TRIP.REPORT.SELECTIVITY_DEVICES'|translateContext: i18nContext.suffix }} <b>{{ stats.selectivityDevices|arrayJoin:', ' }}</b></li>
           <li><ion-icon name="calendar"></ion-icon> {{ 'TRIP.REPORT.DATES'|translateContext: i18nContext.suffix: vars }}</li>
+          <li><mat-icon>straighten</mat-icon> {{ 'TRIP.REPORT.VESSEL_LENGTH'|translateContext: i18nContext.suffix }}
+            <span *ngIf="stats.vesselLength.min !== stats.vesselLength.max; else avgLengthOnly"
+                  [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_STATS'|translateContext: i18nContext.suffix: stats.vesselLength">
+            </span>
+            <ng-template #avgLengthOnly>
+              <span [innerHTML]="'TRIP.REPORT.VESSEL_LENGTH_AVG'|translateContext: i18nContext.suffix: stats.vesselLength"></span>
+            </ng-template>
+          </li>
           <li *ngIf="stats.seabedFeatures"><mat-icon>terrain</mat-icon> {{ 'TRIP.REPORT.SEABED_FEATURES'|translateContext: i18nContext.suffix }} {{ stats.seabedFeatures | arrayJoin: ', '  }}</li>
           <li *ngIf="stats.seaStates"><mat-icon>waves</mat-icon> {{ 'TRIP.REPORT.SEA_STATE'|translateContext: i18nContext.suffix }} {{ stats.seaStates | arrayJoin: ', '  }}</li>
           <li *ngIf="stats.gearSpeed"><mat-icon>speed</mat-icon> {{ 'TRIP.REPORT.GEAR_SPEED'|translateContext: i18nContext.suffix }}
@@ -98,7 +106,7 @@
             <tr *ngFor="let species of catchCategory.species">
               <td>{{species.label}}</td>
               <td *ngFor="let subCategory of stats.subCategories" class="numeric">
-                {{species.subCategories[subCategory].total}}
+                {{species.subCategories[subCategory].total|numberFormat: {fixedDecimals: 1} }}
               </td>
               <td class="numeric">
                 <span *ngIf="species.totalVariation|isNotNil">
@@ -106,12 +114,16 @@
                 </span>
               </td>
               <td class="numeric" *ngIf="catchCategory.enableAvgVariation">
-                <span *ngIf="species.avgVariation|isNotNil">
-                  {{species.avgVariation|numberFormat: {fixedDecimals: 1} }} %
-                </span>
-                <span *ngIf="species.avgStandardDerivation|isNotNil">
-                  (<span [innerHTML]="'TRIP.REPORT.TABLE.STANDARD_DERIVATION'|translate"></span> {{species.avgStandardDerivation|numberFormat: {fixedDecimals: 1} }}%)
-                </span>
+                <ion-grid class="ion-no-padding">
+                  <ion-row>
+                    <ion-col *ngIf="species.avgVariation?.avg|isNotNil; let value">
+                      {{species.avgVariation.avg|numberFormat: {fixedDecimals: 1} }} %
+                    </ion-col>
+                    <ion-col *ngIf="species.avgVariation?.stdDevPct|isNotNil" class="standard-derivation">
+                      <span [innerHTML]="'TRIP.REPORT.TABLE.STANDARD_DERIVATION'|translate"></span> {{species.avgVariation.stdDevPct|numberFormat: {fixedDecimals: 1} }}%
+                    </ion-col>
+                  </ion-row>
+                </ion-grid>
               </td>
             </tr>
             </tbody>
@@ -120,7 +132,8 @@
       </ng-container>
 
       <!-- Operations map -->
-      <section (entered)="!reveal.printing && showMap()">
+      <section *ngIf="stats.operations|isNotEmptyArray"
+               (entered)="!reveal.printing && showMap()">
         <h4>{{ 'TRIP.OPERATION.MAP.TITLE'|translate }}</h4>
         <div style="height: 550px;">
           <ng-container #mapContainer></ng-container>

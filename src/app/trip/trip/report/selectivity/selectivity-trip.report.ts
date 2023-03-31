@@ -19,7 +19,7 @@ import {
   SelectivityStation,
   SelectivityTrip
 } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
-import { MathUtils } from '@app/shared/math.utils';
+import { AverageDetails, MathUtils } from '@app/shared/math.utils';
 import { ChartConfiguration } from 'chart.js';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { environment } from '@environments/environment';
@@ -34,8 +34,7 @@ export interface SpeciesWeightStats {
   label: string;
   total: number;
   totalVariation: number;
-  avgVariation: number;
-  avgStandardDerivation?: number;
+  avgVariation?: AverageDetails;
   subCategories?: {
     [subCategory: string]: SubCategoryWeightStats;
   }
@@ -110,8 +109,16 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     const programLabel = (data.TR || []).map(t => t.project).find(isNotNil);
 
     const standardSubCategory = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD');
+
+
     stats.gearSpeed = this.computeNumericStats(data.HH, 'gearSpeed');
-    stats.seaStates = this.collectDistinctQualitativeValue(data.HH, 'seaState');
+    stats.seaStates = this.collectDistinctQualitativeValue(data.HH, 'seaState')
+      .map(seaState => {
+        // Clean value (e.g.  remove ", vagues de X à Xm")
+        const separatorIndex = seaState.indexOf(',');
+        if (separatorIndex !== -1) return seaState.substring(0, separatorIndex);
+        return seaState;
+      });
     stats.seabedFeatures = this.collectDistinctQualitativeValue(data.HH, 'seabedFeatures');
 
     const gearPmfms = await this.programRefService.loadProgramPmfms(programLabel, {
@@ -226,11 +233,11 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
         // Compute weight total variation, between sub categories
         if (speciesStats.LAN.total > 0) {
           result.catchCategories.LAN.enableAvgVariation = true;
-          this.computeWeightAvgVariation(speciesStats.LAN, opts.standardSubCategory);
+          this.computeWeightAvgVariation('LAN', speciesStats.LAN, opts.standardSubCategory);
         }
         if (speciesStats.DIS.total > 0) {
           result.catchCategories.DIS.enableAvgVariation = true;
-          this.computeWeightAvgVariation(speciesStats.DIS, opts.standardSubCategory);
+          this.computeWeightAvgVariation('DIS', speciesStats.DIS, opts.standardSubCategory);
         }
       }
     })
@@ -243,7 +250,8 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     weights.totalVariation = this.computeWeightVariation(weights,standardSubCategory, stats => stats.total);
   }
 
-  protected computeWeightAvgVariation(weights: SpeciesWeightStats,
+  protected computeWeightAvgVariation(catchCategory: CatchCategoryType,
+                                      weights: SpeciesWeightStats,
                                       standardSubCategory: string) {
     // Collect all station keys
     const stationKeys = Object.keys(weights.subCategories).reduce((res, subCategory) => {
@@ -256,8 +264,8 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
       .filter(isNotNil); // Exclude when standard = 0
 
     if (isNotEmptyArray(stationVariations)) {
-      weights.avgVariation = MathUtils.average(stationVariations);
-      weights.avgStandardDerivation = MathUtils.standardDerivationPercentage(stationVariations);
+      console.debug(`[selectivity-trip-report] Weight variations by station for {${catchCategory} - ${weights.label}}: `, stationVariations);
+      weights.avgVariation = MathUtils.averageWithDetails(stationVariations);
     }
   }
 

@@ -10,7 +10,7 @@ import {
   firstTruePromise,
   getProperty,
   isEmptyArray,
-  isNil, isNilOrBlank,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -20,7 +20,6 @@ import {
   waitFor
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
-import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { ChartJsPluginMedianLine, ChartJsPluginTresholdLine, ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMediandLineOptions, ChartJsUtilsTresholdLineOptions } from '@app/shared/chartsjs.utils';
 import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
@@ -49,6 +48,7 @@ export declare class TripReportStats {
   trips: Trip[];
   operations: Operation[];
   vesselSnapshots: VesselSnapshot[];
+  vesselLength: BaseNumericStats;
   species: {
     label: string;
     charts: SpeciesChart[];
@@ -82,7 +82,7 @@ export class TripReport<
     fontSize: 18
   };
   legendDefaultOption: ChartLegendOptions = {
-    position: 'right'
+    position: 'right' // or 'right'
   };
   defaultOpacity = 0.8;
   landingColor = Color.get('tertiary');
@@ -175,6 +175,7 @@ export class TripReport<
 
     stats.startDate = stats.trips.reduce((date, t) => DateUtils.min(date, t.departureDateTime), DateUtils.moment());
     stats.endDate = stats.trips.reduce((date, t) => DateUtils.max(date, t.departureDateTime), DateUtils.moment(0));
+    stats.vesselLength = this.computeNumericStats(data.TR, 'vesselLength');
 
     // Split SL and HL by species
     const slMap = collectByProperty(data.SL, 'species');
@@ -278,7 +279,7 @@ export class TripReport<
     {
       const discardFilter: (SpeciesLength) => boolean = (sl: RdbSpeciesLength) => sl.catchCategory === 'DIS';
       const discardChart = this.computeSpeciesLengthBarChart(species, data, lengthPmfm, {
-        subtitle: this.translate.instant('TRIP.REPORT.LANDING'),
+        subtitle: this.translate.instant('TRIP.REPORT.DISCARD'),
         filter: discardFilter,
         catchCategoryColors: [discardColors],
         subCategories,
@@ -396,6 +397,9 @@ export class TripReport<
       .map((v, index) => (v + index).toString());
     ChartJsUtils.pushLabels(chart, xAxisLabels);
 
+    if (!hasElevateNumberAtLength) {
+      console.warn(`[${this.constructor.name}] Cannot used elevateNumberAtLength, for species '${species}'`);
+    }
     const getNumberAtLength = opts?.getNumberAtLength
       || (hasElevateNumberAtLength &&  ((hl) => hl.elevateNumberAtLength))
       || ((hl) => hl.numberAtLength);
