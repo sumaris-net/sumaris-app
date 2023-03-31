@@ -10,7 +10,7 @@ import {
   firstTruePromise,
   getProperty,
   isEmptyArray,
-  isNil, isNilOrBlank,
+  isNil,
   isNotEmptyArray,
   isNotNil,
   isNotNilOrBlank,
@@ -20,7 +20,6 @@ import {
   waitFor
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject } from 'rxjs';
-import { IRevealExtendedOptions } from '@app/shared/report/reveal/reveal.component';
 import { ChartJsPluginMedianLine, ChartJsPluginTresholdLine, ChartJsUtils, ChartJsUtilsColor, ChartJsUtilsMediandLineOptions, ChartJsUtilsTresholdLineOptions } from '@app/shared/chartsjs.utils';
 import { Chart, ChartConfiguration, ChartLegendOptions, ChartTitleOptions, ScaleTitleOptions } from 'chart.js';
 import { DOCUMENT } from '@angular/common';
@@ -82,7 +81,7 @@ export class TripReport<
     fontSize: 18
   };
   legendDefaultOption: ChartLegendOptions = {
-    position: 'right'
+    position: 'right' // or 'right'
   };
   defaultOpacity = 0.8;
   landingColor = Color.get('tertiary');
@@ -278,7 +277,7 @@ export class TripReport<
     {
       const discardFilter: (SpeciesLength) => boolean = (sl: RdbSpeciesLength) => sl.catchCategory === 'DIS';
       const discardChart = this.computeSpeciesLengthBarChart(species, data, lengthPmfm, {
-        subtitle: this.translate.instant('TRIP.REPORT.LANDING'),
+        subtitle: this.translate.instant('TRIP.REPORT.DISCARD'),
         filter: discardFilter,
         catchCategoryColors: [discardColors],
         subCategories,

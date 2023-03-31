@@ -13,7 +13,7 @@ export class MathUtils {
    */
   static standardDerivation(numbers: number[]): number {
     const avg = this.average(numbers);
-    const variance = this.average(numbers.map((x) => (x - avg) ** 2));
+    const variance = this.average(numbers.map((x) => Math.pow(x - avg, 2)));
     return Math.sqrt(variance);
   }
 

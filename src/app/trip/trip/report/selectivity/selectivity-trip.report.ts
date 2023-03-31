@@ -55,6 +55,7 @@ export declare interface SelectivityTripReportStats extends TripReportStats {
   gearIdentifierByOperationId: {[key: string]: PhysicalGear};
   selectivityDeviceMap: {[key: string]: IReferentialRef};
   selectivityDevices: string[];
+  vesselLength: BaseNumericStats,
   seaStates: string[];
   seabedFeatures: string[];
   gearSpeed: BaseNumericStats;
@@ -110,8 +111,16 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
     const programLabel = (data.TR || []).map(t => t.project).find(isNotNil);
 
     const standardSubCategory = this.translate.instant('TRIP.REPORT.CHART.TRAWL_SELECTIVITY.STANDARD');
+
+    stats.vesselLength = this.computeNumericStats(data.TR, 'vesselLength');
     stats.gearSpeed = this.computeNumericStats(data.HH, 'gearSpeed');
-    stats.seaStates = this.collectDistinctQualitativeValue(data.HH, 'seaState');
+    stats.seaStates = this.collectDistinctQualitativeValue(data.HH, 'seaState')
+      .map(seaState => {
+        // Clean value (e.g.  remove ", vagues de X à Xm")
+        const separatorIndex = seaState.indexOf(',');
+        if (separatorIndex !== -1) return seaState.substring(0, separatorIndex);
+        return seaState;
+      });
     stats.seabedFeatures = this.collectDistinctQualitativeValue(data.HH, 'seabedFeatures');
 
     const gearPmfms = await this.programRefService.loadProgramPmfms(programLabel, {
