@@ -19,7 +19,7 @@ import {
   SelectivityStation,
   SelectivityTrip
 } from '@app/trip/trip/report/selectivity/selectivity-trip-report.model';
-import { MathUtils } from '@app/shared/math.utils';
+import { AverageDetails, MathUtils } from '@app/shared/math.utils';
 import { ChartConfiguration } from 'chart.js';
 import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
 import { environment } from '@environments/environment';
@@ -34,8 +34,7 @@ export interface SpeciesWeightStats {
   label: string;
   total: number;
   totalVariation: number;
-  avgVariation: number;
-  avgStandardDerivation?: number;
+  avgVariation?: AverageDetails;
   subCategories?: {
     [subCategory: string]: SubCategoryWeightStats;
   }
@@ -266,8 +265,7 @@ export class SelectivityTripReport extends TripReport<SelectivityExtractionData,
 
     if (isNotEmptyArray(stationVariations)) {
       console.debug(`[selectivity-trip-report] Weight variations by station for {${catchCategory} - ${weights.label}}: `, stationVariations);
-      weights.avgVariation = MathUtils.average(stationVariations);
-      weights.avgStandardDerivation = MathUtils.standardDerivationPercentage(stationVariations, weights.avgVariation);
+      weights.avgVariation = MathUtils.averageWithDetails(stationVariations);
     }
   }
 
