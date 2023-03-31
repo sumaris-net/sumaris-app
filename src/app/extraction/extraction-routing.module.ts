@@ -40,6 +40,30 @@ const routes: Routes = [
         }
       }
     ]
+  },
+  {
+    path: 'map',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: '',
+        component: ExtractionMapPage,
+        runGuardsAndResolvers: 'pathParamsChange',
+        data: {
+          profile: 'USER'
+        }
+      }
+    ]
+  },
+  {
+    path: 'report',
+    canActivate: [AuthGuardService],
+    children: [
+      {
+        path: 'trips',
+        loadChildren: () => import('../trip/trip/report/trip-report-routing.module').then(m => m.TripReportRoutingModule)
+      }
+    ]
   }
 ];
 

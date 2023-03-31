@@ -33,7 +33,7 @@ import { ArrayElementType, collectByFunction, Function } from '@app/shared/funct
 import { CatchCategoryType, RdbPmfmExtractionData, RdbSpeciesLength } from '@app/trip/trip/report/trip-report.model';
 import { filter } from 'rxjs/operators';
 import { ExtractionUtils } from '@app/extraction/common/extraction.utils';
-import { ExtractionFilter } from '@app/extraction/type/extraction-type.model';
+import { ExtractionFilter, ExtractionType } from '@app/extraction/type/extraction-type.model';
 import { AppExtractionReport } from '@app/data/report/extraction-report.class';
 import { VesselSnapshot } from '@app/referential/services/model/vessel-snapshot.model';
 import { VesselSnapshotService } from '@app/referential/services/vessel-snapshot.service';
@@ -126,16 +126,25 @@ export class TripReport<
       this.filter = ExtractionUtils.createTripFilter(trip.program.label, [trip.id]);
     }
     else {
-      // TODO parse query params
+      const {label, category, q} = this.route.snapshot.queryParams;
+      this.type = ExtractionType.fromObject({label, category});
+      const criteria = q && ExtractionUtils.parseCriteriaFromString(q);
+      if (isNotEmptyArray(criteria)) {
+        this.filter = ExtractionFilter.fromObject({criteria});
+      }
     }
 
     if (!this.filter || this.filter.isEmpty())  throw { message:  'ERROR.LOAD_DATA_ERROR' };
 
-    return this.load(this.filter, opts);
+    return this.load(this.filter, {
+      ...opts,
+      type: this.type
+    });
   }
 
   protected async load(filter: ExtractionFilter, opts?: {
-    cache?: boolean
+    type?: ExtractionType;
+    cache?: boolean;
   }): Promise<R> {
     console.debug(`[${this.constructor.name}.load]`, arguments);
 
@@ -151,10 +160,12 @@ export class TripReport<
 
   protected loadData(filter: ExtractionFilter,
                      opts?: {
-                                cache?: boolean
-                              }): Promise<R> {
+                       type?: ExtractionType;
+                       cache?: boolean;
+                     }): Promise<R> {
     return this.tripReportService.loadAll(filter, {
       ...opts,
+      formatLabel: this.type?.label,
       fetchPolicy: 'no-cache'
     });
   }

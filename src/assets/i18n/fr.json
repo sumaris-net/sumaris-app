@@ -2287,7 +2287,8 @@
     "TABLE": {
       "TITLE": "Extraction de données",
       "BTN_SELECT_TYPE": "Sources<span class=\"hidden-xs hidden-sm\"> de données</span>",
-      "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :"
+      "SELECT_TYPE_HELP": "Veuillez <b>choisir une source de données</b>, pour lancer une extraction :",
+      "BTN_REPORT": "Éditer le rapport"
     },
     "MAP": {
       "BTN_MAP_LIST": "Liste des cartes",

@@ -7,6 +7,13 @@
 
   <ion-buttons slot="end" *ngIf="type; let type">
 
+    <!-- report -->
+    <button mat-icon-button *rxIf="($enableReport|push) && !(loadingSubject|push)"
+            [title]="'EXTRACTION.TABLE.BTN_REPORT'|translate"
+            (click)="openReport()">
+      <mat-icon><ion-icon slot="icon-only" name="bar-chart"></ion-icon></mat-icon>&nbsp;
+    </button>
+
     <!-- edit product -->
     <button mat-icon-button
             *ngIf="!mobile && canEdit && type?.category === 'PRODUCT'"
