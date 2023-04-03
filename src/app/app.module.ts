@@ -283,6 +283,8 @@ import {ENTITIES_STORAGE_EXPLORER} from '@app/shared/storage/storage-explorer.mo
         {title: 'MENU.PROGRAMS', path: '/referential/programs', icon: 'contract', profile: 'SUPERVISOR'},
         {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
+
+        {title: 'MENU.SYSTEM_DIVIDER', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
 
         // Settings

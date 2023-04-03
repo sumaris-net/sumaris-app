@@ -340,7 +340,8 @@
     "MAP": "Maps",
     "FOOTER_VERSION_ABOUT": "v{{version}} | About",
     "LOCAL_SETTINGS": "Settings",
-    "SERVER": "Server settings",
+    "SYSTEM_DIVIDER": "System",
+    "SERVER": "System settings",
     "LOGOUT": "Logout",
     "ABOUT": "About",
     "BTN_MY_ACCOUNT": "My account"
