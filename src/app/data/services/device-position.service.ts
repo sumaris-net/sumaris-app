@@ -20,7 +20,7 @@ import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@
 import {environment} from '@environments/environment';
 import {DevicePosition, DevicePositionFilter, ITrackPosition, ObjectType} from '@app/data/services/model/device-position.model';
 import {PositionUtils} from '@app/trip/services/position.utils';
-import {RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
+import {RootDataEntity, RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
 import {RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
 import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
 import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
@@ -32,7 +32,7 @@ import {Trip} from '@app/trip/services/model/trip.model';
 import {SortDirection} from '@angular/material/sort';
 import {Moment} from 'moment';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {filter, map, mergeMap} from 'rxjs/operators';
+import {filter, map, mergeMap, tap} from 'rxjs/operators';
 import {mergeLoadResult} from '@app/shared/functions';
 
 export declare interface DevicePositionServiceWatchOptions extends EntitiesServiceWatchOptions {
@@ -111,10 +111,8 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
   protected saveInterval = 0;
   protected lastPosition:ITrackPosition;
   protected $checkLoop: Subscription;
-  protected onSaveSubscriptions:Subscription = new Subscription();
   protected entities: EntitiesStorage;
   protected lastSavedPositionDate:Moment;
-
   protected loading:boolean = false;
 
   protected _watching:boolean = false;
@@ -126,7 +124,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
   constructor(
     protected injector: Injector,
-    @Inject(DEVICE_POSTION_ENTITY_MONITORING) private monitorOnSave,
+    @Inject(DEVICE_POSTION_ENTITY_MONITORING) private monitorOnSave:RootDataSynchroService<any, any>[],
   ) {
     super(
       injector,
@@ -137,43 +135,11 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
         mutations: Mutations,
       }
     )
-    this._logPrefix = '[DevicePositionService]';
+    this._logPrefix = '[device-position-service]';
     this.config = injector.get(ConfigService);
     this._debug = !environment.production;
   }
 
-  protected ngOnStart(): Promise<void> {
-    console.log(`${this._logPrefix} starting...`)
-    this.onSaveSubscriptions.add(
-      this.monitorOnSave.map(c => this.injector.get(c).onSave.subscribe((entities) => {
-        if (this._watching && this.checkIfmustSaveDevicePosition()) {
-          entities.forEach(e => {
-            const devicePosition:DevicePosition<any> = new DevicePosition<any>();
-            devicePosition.objectId = e.id;
-            devicePosition.objectType = ObjectType.fromObject({name: e.constructor.ENTITY_NAME});
-            devicePosition.longitude = this.lastPosition.longitude;
-            devicePosition.latitude = this.lastPosition.latitude;
-            devicePosition.dateTime = this.lastPosition.date;
-            if (RootDataEntityUtils.isLocal(e)) this.saveLocally(devicePosition);
-            else this.save(devicePosition, {}); // TODO Options
-            this.lastSavedPositionDate = DateUtils.moment();
-          });
-        }
-      }))
-    );
-    this.config.config.subscribe((config) => this.onConfigChanged(config));
-    return Promise.resolve(undefined);
-  }
-
-  protected ngOnStop(): Promise<void> | void {
-    this.$checkLoop.unsubscribe();
-    this.onSaveSubscriptions.unsubscribe();
-    return super.ngOnStop();
-  }
-
-  getLastPostion(): IPosition {
-    return this.lastPosition;
-  }
 
   async save(entity:DevicePosition<any>, opts?:EntitySaveOptions): Promise<DevicePosition<any>> {
     console.log(`${this._logPrefix} save current device position`, {position: this.lastPosition})
@@ -196,7 +162,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
       : undefined;
     //  TODO ? Provide an optimistic response, if connection lost
     const json = this.asObject(entity, SAVE_AS_OBJECT_OPTIONS);
-    if (this._debug) console.debug(`[${this._logPrefix}] : Using minify object, to send:`, json);
+    if (this._debug) console.debug(`[${this._logPrefix}] Using minify object, to send:`, json);
     const variables = {
       devicePosition: json,
     };
@@ -212,7 +178,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
         const savedEntity = data && data.data;
         // Local entity (optimistic response): save it
         if (savedEntity.id < 0) {
-          if (this._debug) console.debug(`[${this._logPrefix}] [offline] : Saving trip locally...`, savedEntity);
+          if (this._debug) console.debug(`[${this._logPrefix}] [offline] Saving trip locally...`, savedEntity);
           await this.entities.save<DevicePosition<any, any>>(savedEntity);
         } else {
           // Remove existing entity from the local storage
@@ -237,7 +203,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
         }
       },
     });
-    //this.onSave.next([entity]);
+    this.onSave.next([entity]);
     return entity;
   }
 
@@ -455,6 +421,56 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     return DevicePositionFilter.fromObject(source);
   }
 
+  protected ngOnStart(): Promise<void> {
+    console.log(`${this._logPrefix} starting...`)
+
+    this.subscribeEntitiesOnSave();
+    this.registerSubscription(
+      this.config.config
+        .pipe(filter(isNotNil))
+        .subscribe((config) => this.onConfigChanged(config))
+    );
+
+    return Promise.resolve(undefined);
+  }
+
+  protected async subscribeEntitiesOnSave() {
+    this.monitorOnSave.forEach((serviceClass:RootDataSynchroService<any, any>) => {
+      const service = this.injector.get(serviceClass);
+      this.registerSubscription(
+        service.onSave.subscribe((entities) => {
+          entities.forEach(e => this.saveNewDevicePositionFromEntity(e));
+        })
+      )
+    });
+  }
+
+  protected async saveNewDevicePositionFromEntity(entity:RootDataEntity<any>) {
+    // If we're not watching position or if the delay between two device position
+    // saving is not reach we not save the position.
+    if (!this._watching || this.checkIfSkipSaveDevicePosition()) return;
+
+    if (this._debug) console.log(`${this._logPrefix} saveNewDevicePositionFromEntity`, entity);
+
+    const devicePosition:DevicePosition<any> = new DevicePosition<any>();
+    devicePosition.objectId = entity.id;
+    // TODO Search is it exists a standard way to remove VO a the en of __typename
+    devicePosition.objectType = ObjectType.fromObject({name: entity.__typename.replace(/(^[A-Za-z]*)(VO$)/, "\$1")});
+    devicePosition.longitude = this.lastPosition.longitude;
+    devicePosition.latitude = this.lastPosition.latitude;
+    devicePosition.dateTime = this.lastPosition.date;
+
+    if (RootDataEntityUtils.isLocal(entity)) this.saveLocally(devicePosition);
+    else this.save(devicePosition, {}); // TODO Options
+
+    this.lastSavedPositionDate = DateUtils.moment();
+  }
+
+  protected ngOnStop(): Promise<void> | void {
+    this.$checkLoop.unsubscribe();
+    return super.ngOnStop();
+  }
+
 //   async load(id:number, opts?:EntityServiceLoadOptions):Promise<DevicePosition<any, any>> {
 //     if (isNil(id)) throw new Error('Missing argument \'id\'');
 //
@@ -468,6 +484,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 //     }
 //   }
 
+  // TODO
   protected async fillOfflineDefaultProperties(entity:DevicePosition<any>) {
   }
 
@@ -483,6 +500,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
       this.mustAskForEnableGeolocation.next(false);
       return;
     }
+
     await this.watchGeolocation();
     this.$checkLoop = interval(checkInterval).subscribe(async (_) => {
       console.debug(`${this._logPrefix} : begins to check device position each ${checkInterval}ms...`)
@@ -512,14 +530,6 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     if (this._debug) console.debug(`${this._logPrefix} : ask for geolocation`, this.mustAskForEnableGeolocation.value);
   }
 
-  protected checkIfmustSaveDevicePosition():boolean {
-    if (this._debug) console.debug(`${this._logPrefix} : checkIfmustSaveDevicePosition`, {lastSavedPositionDate: this.lastSavedPositionDate});
-    if (isNil(this.lastSavedPositionDate)) return true;
-    const diffTime = DateUtils.moment().diff(this.lastSavedPositionDate);
-    if (this._debug) console.debug(`${this._logPrefix} checkIfmustSaveDevicePosition : timeDiff`, {diff: diffTime, saveInterval: this.saveInterval})
-    return diffTime > this.saveInterval;
-  }
-
   protected async applyWatchOptions({data, total}: LoadResult<DevicePosition<any, any>>,
                                     offset: number,
                                     size: number,
@@ -537,6 +547,12 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     // }
 
     return {data: entities, total};
+  }
+
+  protected checkIfSkipSaveDevicePosition():boolean {
+    if (isNil(this.lastSavedPositionDate)) return false;
+    const diffTime = DateUtils.moment().diff(this.lastSavedPositionDate);
+    return diffTime < this.saveInterval;
   }
 
 }
