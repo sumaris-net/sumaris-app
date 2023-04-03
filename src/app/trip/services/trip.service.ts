@@ -763,7 +763,9 @@ export class TripService
 
     if (this._debug) console.debug(`[trip-service] Saving ${entities.length} trips...`);
     const jobsFactories = (entities || []).map(entity => () => this.save(entity, {...opts}));
-    return chainPromises<Trip>(jobsFactories);
+    const result = await chainPromises<Trip>(jobsFactories);
+    this.onSave.next(result);
+    return result;
   }
 
   /**

@@ -263,6 +263,7 @@ export class ObservedLocationService
 
   protected loading = false;
   readonly onSave:Subject<ObservedLocation[]> = new Subject<ObservedLocation[]>();
+  re
 
   constructor(
     injector: Injector,
@@ -510,6 +511,12 @@ export class ObservedLocationService
 
     this.onSave.next([entity]);
     return entity;
+  }
+
+  async saveAll(entities: ObservedLocation[], opts?: ObservedLocationSaveOptions): Promise<ObservedLocation[]> {
+    const result = await super.saveAll(entities, opts);
+    this.onSave.next(result);
+    return result;
   }
 
   async saveLocally(entity: ObservedLocation, opts?: ObservedLocationSaveOptions): Promise<ObservedLocation> {
