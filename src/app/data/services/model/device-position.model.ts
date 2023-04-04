@@ -1,6 +1,6 @@
 import {IPosition} from '@app/trip/services/model/position.model';
 import {Moment} from 'moment/moment';
-import {Department, Entity, EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, Person, Referential, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
+import { DateUtils, Department, Entity, EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, Person, Referential, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
 import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
 import {RootDataEntityFilter} from '@app/data/services/model/root-data-filter.model';
 
@@ -80,9 +80,14 @@ export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFil
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
+    target.startDate = toDateISOString(this.startDate);
+    target.endDate = toDateISOString(this.endDate);
     if (opts && opts.minify) {
       target.objectTypeLabel = this.objectType?.label;
       delete target.objectType;
+
+      target.startDate = this.startDate ? DateUtils.resetTime(target.startDate) : undefined;
+      target.endDate = this.endDate ? DateUtils.resetTime(this.endDate.add(1, 'day')) : undefined;
     }
     else {
       target.objectType = this.objectType && this.objectType.asObject(opts) || undefined;

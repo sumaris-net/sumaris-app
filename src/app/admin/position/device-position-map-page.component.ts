@@ -33,11 +33,14 @@ import { Geometries } from '@app/shared/geometries.utils';
 import { Operation, VesselPositionUtils } from '@app/trip/services/model/trip.model';
 import { LocationUtils } from '@app/referential/location/location.utils';
 import { PositionUtils } from '@app/trip/services/position.utils';
+import { State } from '@angular-devkit/architect/src/progress-schema';
 
 export const DEVICE_POSITION_MAP_SETTINGS = {
   FILTER_KEY: 'filter',
 };
 export interface DevicePositionMapState extends BaseMapState {
+  data: DevicePosition<any>[];
+  total: number;
 }
 
 @Component({
@@ -54,11 +57,11 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
   protected readonly accountService:AccountService;
   protected readonly personService:PersonService;
 
+  protected readonly data$ = this._state.select('data');
+
   protected _autocompleteConfigHolder:MatAutocompleteConfigHolder;
   protected filter:DevicePositionFilter = new DevicePositionFilter();
 
-  totalRowCount = 0;
-  data: T[] = null;
   filterForm:UntypedFormGroup;
 
   i18nPrefix = 'DEVICE_POSITION.PAGE.';
@@ -72,14 +75,22 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
   @Input() persistFilterInSettings = true;
   @Input() showTooltip = true;
 
-  @ViewChild(MatExpansionPanel,{static: true}) filterExpansionPanel:MatExpansionPanel;
+  @ViewChild('filterExpansionPanel',{static: true}) filterExpansionPanel:MatExpansionPanel;
+  @ViewChild('tableExpansionPanel',{static: true}) tableExpansionPanel:MatExpansionPanel;
+
+
+  get total() {
+    return this._state.get('total');
+  }
 
   constructor(
     injector:Injector,
     protected formBuilder: UntypedFormBuilder,
     protected _state: RxState<DevicePositionMapState>
   ) {
-    super(injector, _state);
+    super(injector, _state, {
+      maxZoom: 12
+    });
     this.dataService = injector.get(DevicePositionService);
     this.personService = injector.get(PersonService);
     this.accountService = injector.get(AccountService);
@@ -134,7 +145,7 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
           // mergeMap(() => this.configService.ready()),
           // filter(() => false && this.accountService.isAdmin()),
           switchMap((event: any) => this.dataService.watchAll(
-                0, 1000, null, null, this.filter
+                0, 100, 'dateTime', 'desc', this.filter
             )),
           catchError(err => {
             if (this._debug) console.error(err);
@@ -241,20 +252,34 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
   }
 
   async updateView(res: LoadResult<T> | undefined, opts?: {emitEvent?: boolean;}): Promise<void> {
-    if (!res) {
-      this.totalRowCount = 0;
-      this.data = [];
-      return; // Skip (e.g error)
+    let {data, total} = res;
+
+
+    // Add fake data
+    if (!environment.production && data && data.length < 10) {
+      const fakeData = new Array(100).fill({});
+      data = fakeData.map((item, index) =>  data[index % data.length]);
     }
-    const {data, total} = res;
 
-    this.totalRowCount = toNumber(total, data?.length || 0);
-    this.data = data as T[] | [];
-    if (this._debug) console.debug(`${this._logPrefix} : ${this.totalRowCount} items loaded`);
+    data = data || [];
+    total = toNumber(total, data?.length || 0);
 
-    await this.loadLayers();
+    if (this._debug) console.debug(`${this._logPrefix} : ${total} items loaded`);
+
+    await this.loadLayers(data);
+
+    // Update state
+    this._state.set(state => <DevicePositionMapState>{
+      ...state, data, total
+    });
+
 
     if (!opts || opts.emitEvent !== false) {
+
+      // Open table, if has data
+      if (total) this.tableExpansionPanel.open();
+      else this.tableExpansionPanel.close();
+
       this.markAsLoaded({emitEvent: false});
     }
 
@@ -279,7 +304,7 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
     return this._autocompleteConfigHolder.add(fieldName, options);
   }
 
-  async loadLayers(): Promise<void> {
+  async loadLayers(data: T[]): Promise<void> {
     // Should never call load() without leaflet map
     if (!this.map) return; // Skip
 
@@ -297,7 +322,7 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
       this.layers.push(layer);
 
       // Add each position to layer
-      (this.data || [])
+      (data || [])
         //.sort(EntityUtils.sortComparator('dateTime', 'asc'))
         .forEach((position, index) => {
             const feature = this.toFeature(position, index);

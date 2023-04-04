@@ -103,19 +103,6 @@
     </mat-action-row>
   </mat-expansion-panel>
 
-<!--  <div>-->
-<!--    <ion-grid>-->
-<!--      <ion-row *ngFor="let row of rows">-->
-<!--        <ion-col>{{row.dateTime|dateFormat: {time: true} }}</ion-col>-->
-<!--        <ion-col>{{row.latitude|numberFormat }}</ion-col>-->
-<!--        <ion-col>{{row.longitude|numberFormat }}</ion-col>-->
-<!--      </ion-row>-->
-<!--    </ion-grid>-->
-
-
-<!--    -->
-<!--  </div>-->
-
   <div class="map-container">
     <!-- Leaflet map -->
     <div leaflet [attr.id]="mapId"
@@ -125,5 +112,30 @@
 
     </div>
   </div>
+
+  <mat-expansion-panel #tableExpansionPanel class="table-panel"
+                       [class.table-panel-floating]="filterPanelFloating">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <ion-label color="primary">Liste des positions</ion-label>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+      <ion-grid>
+        <ion-row>
+          <ion-col></ion-col>
+          <ion-col></ion-col>
+          <ion-col></ion-col>
+          <ion-col></ion-col>
+        </ion-row>
+        <ion-row *rxFor="let item of data$">
+          <ion-col>
+            {{item.dateTime|dateFormat: {time: true} }} <ion-text color="medium"><ion-icon name="time-outline"></ion-icon> {{item.dateTime|dateFromNow }}</ion-text>
+          </ion-col>
+          <ion-col>{{item.latitude|numberFormat }}</ion-col>
+          <ion-col>{{item.longitude|numberFormat }}</ion-col>
+          <ion-col></ion-col>
+        </ion-row>
+      </ion-grid>
+  </mat-expansion-panel>
 
 </ion-content>

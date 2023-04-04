@@ -83,16 +83,6 @@ const routes: Routes = [
     loadChildren: () => import('./extraction/extraction-routing.module').then(m => m.AppExtractionRoutingModule)
   },
 
-  // DevicePosition path
-  {
-    path: 'device-position',
-    canActivate: [AuthGuardService],
-    data: {
-      profile: 'SUPERVISOR'
-    },
-    loadChildren: () => import('./position/device-position-routing.module').then(m => m.DevicePositionRoutingModule)
-  },
-
   // Inbox message
   {
     path: 'inbox',

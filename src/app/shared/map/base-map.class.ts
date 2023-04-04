@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Directive, Injector, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Directive, Injector, Input, NgZone, OnDestroy, OnInit, Optional } from '@angular/core';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { L } from '@app/shared/map/leaflet';
@@ -26,6 +26,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
 
   protected _logPrefix = `[${this.constructor.name}] : `;
   protected readonly _debug: boolean;
+  protected readonly _maxZoom: number;
   protected readonly subscription = new Subscription();
   protected readonly destroySubject = new Subject();
   protected readonly mobile: boolean;
@@ -85,13 +86,18 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
 
   protected constructor(
     injector:Injector,
-    protected _state: RxState<S>
+    protected _state: RxState<S>,
+    @Optional() options?: {
+      maxZoom: number;
+    }
   ) {
     this.zone = injector.get(NgZone);
     this.settings = injector.get(LocalSettingsService);
     this.configService = injector.get(ConfigService);
     this.cd = injector.get(ChangeDetectorRef);
     this.mobile = this.settings.mobile;
+
+    this._maxZoom = options?.maxZoom || MapUtils.MAX_ZOOM;
     this._debug = !environment.production;
   }
 

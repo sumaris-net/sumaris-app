@@ -34,3 +34,25 @@
   }
 
 }
+
+.table-panel {
+  margin-bottom: 5px;
+  --expansion-panel-padding: 0!important;
+  max-height: calc(33vh);
+
+  &.table-panel-floating {
+    z-index: 10000;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow-y: scroll;
+  }
+
+  mat-action-row {
+    height: 46px;
+    ion-label {
+      line-height: 36px;
+    }
+  }
+}

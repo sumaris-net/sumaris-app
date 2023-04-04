@@ -78,7 +78,6 @@ import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.va
 import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES} from '@app/data/services/config/device-position.config';
 import {TripService} from '@app/trip/services/trip.service';
 import {ObservedLocationService} from '@app/trip/services/observed-location.service';
-import {DevicePositionModule} from '@app/position/device-position.module';
 @NgModule({
   declarations: [
     AppComponent
@@ -133,7 +132,6 @@ import {DevicePositionModule} from '@app/position/device-position.module';
     AppCoreModule.forRoot(),
     AppRoutingModule,
     UserEventModule,
-    DevicePositionModule,
     JobModule
   ],
   providers: [
@@ -290,8 +288,8 @@ import {DevicePositionModule} from '@app/position/device-position.module';
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
 
-        // TODO ifProperty: 'sumaris.app.service.gps.enable'
-        {title: 'MENU.DEVICE_POSITION', path: '/device-position', icon: 'location', profile: 'ADMIN'},
+        //{title: 'MENU.DEVICE_POSITION', path: '/admin/device-position', icon: 'location', ifProperty: 'sumaris.app.service.gps.enable', profile: 'ADMIN'},
+        {title: 'MENU.DEVICE_POSITION', path: '/admin/device-position', icon: 'location', profile: 'ADMIN'},
 
         // Settings
         {title: '' /*empty divider*/, cssClass: 'flex-spacer'},
