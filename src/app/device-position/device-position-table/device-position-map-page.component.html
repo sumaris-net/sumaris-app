@@ -1,0 +1,109 @@
+<app-toolbar [title]="i18nprefix+title|translate"
+             color="primary"
+             [canGoBack]="false">
+
+  <ion-buttons slot="end">
+
+    <!-- reset filter -->
+    <button mat-icon-button (click)="resetFilter()"
+            *ngIf="filterCriteriaCount">
+      <mat-icon color="accent">filter_list_alt</mat-icon>
+      <mat-icon  class="icon-secondary" style="left: 16px; top: 5px; font-weight: bold;">close</mat-icon>
+    </button>
+
+    <!-- show filter -->
+    <button mat-icon-button (click)="filterExpansionPanel.toggle()">
+      <mat-icon *ngIf="filterCriteriaCount; else emptyFilter"
+                [matBadge]="filterCriteriaCount"
+                matBadgeColor="accent"
+                matBadgeSize="small"
+                matBadgePosition="above after">filter_list_alt</mat-icon>
+      <ng-template #emptyFilter>
+        <mat-icon>filter_list_alt</mat-icon>
+      </ng-template>
+    </button>
+
+  </ion-buttons>
+
+</app-toolbar>
+
+<ion-content class="ion-no-padding" scroll-y="false">
+
+  <mat-expansion-panel #filterExpansionPanel class="filter-panel">
+    <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="applyFilterAndClosePanel($event)">
+
+      <ion-grid>
+        <ion-row>
+
+          <ion-col>
+            <!-- Recorder person -->
+            <mat-autocomplete-field
+              [placeholder]="i18nprefix+'FILTER.RECORDER_PERSON'|translate"
+              formControlName="recorderPerson"
+              [config]="autocompleteFields.person"
+              [i18nPrefix]="'USER.'"
+              [clearable]="true">
+              <ion-icon matPrefix name="person"></ion-icon>
+            </mat-autocomplete-field>
+          </ion-col>
+
+          <ion-col>
+            <!-- Start date -->
+            <mat-date-field [placeholder]="i18nprefix+'FILTER.START_DATE'|translate"
+                            formControlName="startDate"
+                            [clearable]="true">
+              <ion-icon matPrefix name="calendar-outline"></ion-icon>
+            </mat-date-field>
+          </ion-col>
+
+          <ion-col>
+            <!-- End date -->
+            <mat-date-field [placeholder]="i18nprefix+'FILTER.END_DATE'|translate"
+                            formControlName="endDate"
+                            [clearable]="true">
+            </mat-date-field>
+          </ion-col>
+
+        </ion-row>
+      </ion-grid>
+    </form>
+
+    <mat-action-row>
+      <!-- Counter  -->
+      <ion-label [class.cdk-visually-hidden]="(loadingSubject|async) || filterForm.dirty"
+                 [color]="totalResult === 0 ? 'danger' : undefined"
+                 class="ion-padding">
+        {{ (totalResult ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count:(totalResult|numberFormat)} }}
+      </ion-label>
+
+      <div class="toolbar-spacer"></div>
+
+      <button mat-icon-button color="accent"
+              (click)="toggleFilterPanelFloating()"
+              class="hidden-xs hidden-sm hidden-md"
+              [title]="(filterPanelFloating ? 'COMMON.BTN_EXPAND' : 'COMMON.BTN_HIDE')|translate">
+        <mat-icon><span style="transform: rotate(90deg);">{{filterPanelFloating ? '&#xbb;' : '&#xab;'}}</span></mat-icon>
+      </button>
+
+      <!-- Close panel -->
+      <ion-button mat-button fill="clear" color="dark"
+                  (click)="closeFilterPanel()"
+                  [disabled]="loadingSubject|async">
+        <ion-text>{{ 'COMMON.BTN_CLOSE'|translate }}</ion-text>
+      </ion-button>
+
+      <!-- Search button -->
+      <ion-button mat-button
+                  [color]="filterForm.dirty ? 'tertiary' : 'dark'"
+                  [fill]="filterForm.dirty ? 'solid' : 'clear'"
+                  (click)="applyFilterAndClosePanel($event)">
+        <ion-text> {{ 'COMMON.BTN_APPLY'|translate }}</ion-text>
+      </ion-button>
+    </mat-action-row>
+  </mat-expansion-panel>
+
+  <div>
+    <p>TEST</p>
+  </div>
+
+</ion-content>

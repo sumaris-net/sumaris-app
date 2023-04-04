@@ -1,0 +1,21 @@
+.filter-panel {
+  margin-bottom: 5px;
+
+  --expansion-panel-padding: 0!important;
+
+  .form-container {
+    mat-form-field {
+      width: 100%;
+      .datetime-md {
+        padding: 0 !important;
+      }
+    }
+  }
+
+  mat-action-row {
+    height: 46px;
+    ion-label {
+      line-height: 36px;
+    }
+  }
+}
