@@ -1,7 +1,10 @@
 .filter-panel {
   margin-bottom: 5px;
-
   --expansion-panel-padding: 0!important;
+
+  &.filter-panel-floating {
+    z-index: 10000
+  }
 
   .form-container {
     mat-form-field {
@@ -18,4 +21,16 @@
       line-height: 36px;
     }
   }
+}
+
+.map-container {
+  height: 100%;
+  width: 100%;
+
+  div[leaflet] {
+    height: 100%;
+    width: 100%;
+    padding: 0;
+  }
+
 }

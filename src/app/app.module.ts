@@ -75,10 +75,10 @@ import { APP_SOCIAL_CONFIG_OPTIONS } from '@app/social/config/social.config';
 import {APP_PROGRESS_BAR_SERVICE, ProgressBarService} from '@sumaris-net/ngx-components';
 import {ProgressInterceptor} from '@sumaris-net/ngx-components';
 import { BATCH_VALIDATOR_I18N_ERROR_KEYS } from '@app/trip/batch/common/batch.validator';
-import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@app/data/services/config/device-position.config';
+import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES} from '@app/data/services/config/device-position.config';
 import {TripService} from '@app/trip/services/trip.service';
 import {ObservedLocationService} from '@app/trip/services/observed-location.service';
-import {DevicePositionModule} from '@app/device-position/device-position.module';
+import {DevicePositionModule} from '@app/position/device-position.module';
 @NgModule({
   declarations: [
     AppComponent
@@ -281,8 +281,6 @@ import {DevicePositionModule} from '@app/device-position/device-position.module'
         {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST'},
         {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', ifProperty: 'sumaris.extraction.product.enable', profile: 'GUEST'},
         {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
-        // TODO ifProperty: 'sumaris.app.service.gps.enable'
-        {title: 'MENU.DEVICE_POSITION', path: '/device-position', icon: 'location', profile: 'SUPERVISOR'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},
@@ -291,6 +289,9 @@ import {DevicePositionModule} from '@app/device-position/device-position.module'
         {title: 'MENU.REFERENTIAL', path: '/referential/list', icon: 'list', profile: 'ADMIN'},
         {title: 'MENU.USERS', path: '/admin/users', icon: 'people', profile: 'ADMIN'},
         {title: 'MENU.SERVER', path: '/admin/config', icon: 'server', profile: 'ADMIN'},
+
+        // TODO ifProperty: 'sumaris.app.service.gps.enable'
+        {title: 'MENU.DEVICE_POSITION', path: '/device-position', icon: 'location', profile: 'ADMIN'},
 
         // Settings
         {title: '' /*empty divider*/, cssClass: 'flex-spacer'},
@@ -414,7 +415,7 @@ import {DevicePositionModule} from '@app/device-position/device-position.module'
       }
     },
     {
-      provide: DEVICE_POSTION_ENTITY_MONITORING,
+      provide: DEVICE_POSITION_ENTITY_SERVICES,
       useValue: [TripService, ObservedLocationService],
     }
   ],

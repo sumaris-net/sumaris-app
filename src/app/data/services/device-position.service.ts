@@ -16,7 +16,7 @@ import {
 } from '@sumaris-net/ngx-components';
 import {IPosition} from '@app/trip/services/model/position.model';
 import {BehaviorSubject, combineLatest, EMPTY, from, interval, Observable, Subscription} from 'rxjs';
-import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@app/data/services/config/device-position.config';
+import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES} from '@app/data/services/config/device-position.config';
 import {environment} from '@environments/environment';
 import {DevicePosition, DevicePositionFilter, ITrackPosition} from '@app/data/services/model/device-position.model';
 import {PositionUtils} from '@app/trip/services/position.utils';
@@ -117,7 +117,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
   static ENTITY_NAME = 'DevicePosition';
 
-  protected config:ConfigService;
+  protected config: ConfigService;
 
   protected saveInterval = 0;
   protected lastPosition:ITrackPosition;
@@ -135,7 +135,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
   constructor(
     protected injector: Injector,
-    @Inject(DEVICE_POSTION_ENTITY_MONITORING) private monitoredServices:RootDataSynchroService<any, any>[],
+    @Inject(DEVICE_POSITION_ENTITY_SERVICES) private listenedDataServices:RootDataSynchroService<any, any>[],
   ) {
     super(
       injector,
@@ -377,7 +377,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     };
 
     let now = this._debug && Date.now();
-    if (this._debug) console.debug(`${DevicePositionFilter} : Loading operations... using options:`, variables);
+    if (this._debug) console.debug(`${this._logPrefix} : Loading operations... using options:`, variables);
 
     const withTotal = !opts || opts.withTotal !== false;
     const query = opts?.query || (withTotal ? Queries.loadAllWithTotal : Queries.loadAll);
@@ -433,45 +433,25 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     return DevicePositionFilter.fromObject(source);
   }
 
-  protected ngOnStart(): Promise<void> {
+  protected async ngOnStart(): Promise<void> {
     console.log(`${this._logPrefix} starting...`)
 
-    this.subscribeMonitoredServiceEvents();
+    this.listenDataServices();
     this.registerSubscription(
       this.config.config
         .pipe(filter(isNotNil))
         .subscribe((config) => this.onConfigChanged(config))
     );
-
-    this.myTest();
-    return Promise.resolve(undefined);
   }
-
-  protected async myTest() {
-    const filter = DevicePositionFilter.fromObject({
-      objectType: Referential.fromObject({label: ObjectTypeEnum.ObservedLocation}),
-    });
-    const remoteData = await this.loadAll(0, 9999, 'id', 'asc', filter, {withTotal: true});
-    // const localData = await this.entities.loadAll('DevicePositionVO', {
-    //   filter: filter.asFilterFn(),
-    // });
-    console.debug('MYTET REMOTE', remoteData);
-    // console.debug('MYTET LOCAL', localData);
-
-    // const toto = this.entities.watchAll('DevicePositionVO', {
-    //   filter: filter.buildFilter(),
-    // });
-  }
-
 
   protected ngOnStop(): Promise<void> | void {
     this.$checkLoop.unsubscribe();
     return super.ngOnStop();
   }
 
-  protected async subscribeMonitoredServiceEvents() {
-    this.monitoredServices.forEach((serviceClass:RootDataSynchroService<any, any>) => {
-      const service = this.injector.get(serviceClass);
+  protected listenDataServices() {
+    this.listenedDataServices.forEach(bean => {
+      const service = this.injector.get(bean);
 
       this.registerSubscription(
         service.onSave.subscribe((entities) => {

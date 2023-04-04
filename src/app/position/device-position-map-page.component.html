@@ -1,4 +1,4 @@
-<app-toolbar [title]="i18nprefix+title|translate"
+<app-toolbar [title]="i18nPrefix+title|translate"
              color="primary"
              [canGoBack]="false">
 
@@ -29,7 +29,8 @@
 
 <ion-content class="ion-no-padding" scroll-y="false">
 
-  <mat-expansion-panel #filterExpansionPanel class="filter-panel">
+  <mat-expansion-panel #filterExpansionPanel class="filter-panel"
+    [class.filter-panel-floating]="filterPanelFloating">
     <form class="form-container ion-padding-top" [formGroup]="filterForm" (ngSubmit)="applyFilterAndClosePanel($event)">
 
       <ion-grid>
@@ -38,7 +39,7 @@
           <ion-col>
             <!-- Recorder person -->
             <mat-autocomplete-field
-              [placeholder]="i18nprefix+'FILTER.RECORDER_PERSON'|translate"
+              [placeholder]="i18nPrefix+'FILTER.RECORDER_PERSON'|translate"
               formControlName="recorderPerson"
               [config]="autocompleteFields.person"
               [i18nPrefix]="'USER.'"
@@ -49,7 +50,7 @@
 
           <ion-col>
             <!-- Start date -->
-            <mat-date-field [placeholder]="i18nprefix+'FILTER.START_DATE'|translate"
+            <mat-date-field [placeholder]="i18nPrefix+'FILTER.START_DATE'|translate"
                             formControlName="startDate"
                             [clearable]="true">
               <ion-icon matPrefix name="calendar-outline"></ion-icon>
@@ -58,7 +59,7 @@
 
           <ion-col>
             <!-- End date -->
-            <mat-date-field [placeholder]="i18nprefix+'FILTER.END_DATE'|translate"
+            <mat-date-field [placeholder]="i18nPrefix+'FILTER.END_DATE'|translate"
                             formControlName="endDate"
                             [clearable]="true">
             </mat-date-field>
@@ -70,8 +71,8 @@
 
     <mat-action-row>
       <!-- Counter  -->
-      <ion-label [class.cdk-visually-hidden]="(loadingSubject|async) || filterForm.dirty"
-                 [color]="totalResult === 0 ? 'danger' : undefined"
+      <ion-label [class.cdk-visually-hidden]="(loading$|async) || filterForm.dirty"
+                 [color]="totalRowCount === 0 ? 'danger' : undefined"
                  class="ion-padding">
         {{ (totalResult ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count:(totalResult|numberFormat)} }}
       </ion-label>
@@ -102,8 +103,27 @@
     </mat-action-row>
   </mat-expansion-panel>
 
-  <div>
-    <p>TEST</p>
+<!--  <div>-->
+<!--    <ion-grid>-->
+<!--      <ion-row *ngFor="let row of rows">-->
+<!--        <ion-col>{{row.dateTime|dateFormat: {time: true} }}</ion-col>-->
+<!--        <ion-col>{{row.latitude|numberFormat }}</ion-col>-->
+<!--        <ion-col>{{row.longitude|numberFormat }}</ion-col>-->
+<!--      </ion-row>-->
+<!--    </ion-grid>-->
+
+
+<!--    -->
+<!--  </div>-->
+
+  <div class="map-container">
+    <!-- Leaflet map -->
+    <div leaflet [attr.id]="mapId"
+         (leafletMapReady)="onMapReady($event)"
+         [leafletOptions]="options"
+         [leafletLayersControl]="layersControl">
+
+    </div>
   </div>
 
 </ion-content>

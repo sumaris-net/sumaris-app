@@ -1,18 +1,19 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import {comment} from 'postcss';
-import {DevicePositionMapPage} from '@app/device-position/device-position-table/device-position-map-page.component';
+import {DevicePositionMapPage} from '@app/position/device-position-map-page.component';
 import {AuthGuardService} from '@sumaris-net/ngx-components';
 
 
 const routes: Routes = [
   {
     path: '',
+    pathMatch: 'full',
     component: DevicePositionMapPage,
+    canActivate: [AuthGuardService],
     data: {
-      profile: 'SUPERVISOR'
+      profile: 'ADMIN'
     },
-    canActivate: [AuthGuardService], // TODO ensure this can only be accessed by admin
   },
 ];
 

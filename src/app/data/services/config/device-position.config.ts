@@ -2,8 +2,7 @@ import {FormFieldDefinition} from '@sumaris-net/ngx-components';
 import {InjectionToken} from '@angular/core';
 import {RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
 
-// TODO Type entity (RootDataEntity<any, any>)
-export const DEVICE_POSTION_ENTITY_MONITORING = new InjectionToken<RootDataSynchroService<any, any>>('entityToMonitorPositionOnSave');
+export const DEVICE_POSITION_ENTITY_SERVICES = new InjectionToken<RootDataSynchroService<any, any>>('devicePositionEntityServices');
 
 export const DEVICE_POSITION_CONFIG_OPTION = Object.freeze({
   ENABLE: <FormFieldDefinition> {

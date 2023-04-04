@@ -80,8 +80,13 @@ export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFil
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
-    target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts) || undefined;
-    target.objectType = this.objectType && this.objectType.asObject(opts) || undefined;
+    if (opts && opts.minify) {
+      target.objectTypeLabel = this.objectType?.label;
+      delete target.objectType;
+    }
+    else {
+      target.objectType = this.objectType && this.objectType.asObject(opts) || undefined;
+    }
     return target;
   }
 

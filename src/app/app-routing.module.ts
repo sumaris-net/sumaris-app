@@ -90,7 +90,7 @@ const routes: Routes = [
     data: {
       profile: 'SUPERVISOR'
     },
-    loadChildren: () => import('./device-position/device-position-routing.module').then(m => m.DevicePositionRoutingModule)
+    loadChildren: () => import('./position/device-position-routing.module').then(m => m.DevicePositionRoutingModule)
   },
 
   // Inbox message
