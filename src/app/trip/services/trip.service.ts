@@ -1328,8 +1328,8 @@ export class TripService
       return this.deleteAllLocally(localEntities, opts);
     }
 
-    const ids = entities && entities.map(t => t.id)
-      .filter(id => id >= 0);
+    const remoteEntities = entities && entities.filter(t => t.id >= 0);
+    const ids = remoteEntities && remoteEntities.map(t => t.id);
     if (isEmptyArray(ids)) return; // stop if empty
 
     const now = Date.now();
@@ -1346,6 +1346,7 @@ export class TripService
         });
 
         if (this._debug) console.debug(`[trip-service] Trips deleted remotely in ${Date.now() - now}ms`);
+        this.onDelete.next(remoteEntities);
       }
     });
   }
@@ -1413,6 +1414,7 @@ export class TripService
       console.error('Error during trip deletion: ', err);
       throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: 'ERROR.DELETE_ENTITY_ERROR'};
     }
+    this.onDelete.next([entity]);
   }
 
   /**

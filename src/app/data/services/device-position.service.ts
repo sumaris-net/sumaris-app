@@ -8,17 +8,17 @@ import {
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
-  EntityServiceLoadOptions,
+  EntityServiceLoadOptions, EntityUtils,
   FormErrors,
   isNil,
   isNotNil,
-  LoadResult, QueryVariables,
+  LoadResult, QueryVariables, Referential,
 } from '@sumaris-net/ngx-components';
 import {IPosition} from '@app/trip/services/model/position.model';
 import {BehaviorSubject, combineLatest, EMPTY, from, interval, Observable, Subscription} from 'rxjs';
 import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSTION_ENTITY_MONITORING} from '@app/data/services/config/device-position.config';
 import {environment} from '@environments/environment';
-import {DevicePosition, DevicePositionFilter, ITrackPosition, ObjectType} from '@app/data/services/model/device-position.model';
+import {DevicePosition, DevicePositionFilter, ITrackPosition} from '@app/data/services/model/device-position.model';
 import {PositionUtils} from '@app/trip/services/position.utils';
 import {RootDataEntity, RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
 import {RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
@@ -34,6 +34,11 @@ import {Moment} from 'moment';
 import {OperationFilter} from '@app/trip/services/filter/operation.filter';
 import {filter, map, mergeMap, tap} from 'rxjs/operators';
 import {mergeLoadResult} from '@app/shared/functions';
+
+export enum ObjectTypeEnum {
+  Trip = "FISHING_TRIP",
+  ObservedLocation = "OBSERVED_LOCATION",
+}
 
 export declare interface DevicePositionServiceWatchOptions extends EntitiesServiceWatchOptions {
   fullLoad?: boolean;
@@ -53,6 +58,9 @@ export const DevicePositionFragment = {
     latitude
     longitude
     objectId
+    objectType {
+      ...LightReferentialFragment
+    }
     creationDate
     updateDate
     recorderPerson {
@@ -70,15 +78,17 @@ const Queries: BaseEntityGraphqlQueries = {
   }
   ${DevicePositionFragment.devicePosition}
   ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.referential}
   `,
   loadAllWithTotal: gql`query DevicePosition($filter: DevicePositionFilterVOInput, $offset: Int, $size: Int, $sortBy: String, $sortDirection: String) {
     data: devicePositions(filter: $filter, offset: $offset, size: $size, sortBy: $sortBy, sortDirection: $sortDirection) {
       ...DevicePositionFragment
     }
-    total: devicePositionsCount(filter:$filter)
+    total: devicePositionsCount(filter: $filter)
   }
   ${DevicePositionFragment.devicePosition}
   ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.referential}
   `,
   // load: gql`query DevicePosition($id: Int!) {
   //   data: devicePosition(id: $id) {
@@ -97,6 +107,7 @@ const Mutations: Partial<BaseRootEntityGraphqlMutations> = {
   }
   ${DevicePositionFragment.devicePosition}
   ${DataCommonFragments.lightPerson}
+  ${DataCommonFragments.referential}
   `,
 };
 
@@ -124,7 +135,7 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
   constructor(
     protected injector: Injector,
-    @Inject(DEVICE_POSTION_ENTITY_MONITORING) private monitorOnSave:RootDataSynchroService<any, any>[],
+    @Inject(DEVICE_POSTION_ENTITY_MONITORING) private monitoredServices:RootDataSynchroService<any, any>[],
   ) {
     super(
       injector,
@@ -409,7 +420,8 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
                 sortBy?:string,
                 sortDirection?:SortDirection,
                 filter?: Partial<DevicePositionFilter>,
-                opts?: EntityServiceLoadOptions):Promise<LoadResult<DevicePosition<any, any>>> {
+                opts?: EntityServiceLoadOptions
+  ):Promise<LoadResult<DevicePosition<any, any>>> {
     const offlineData = this.network.offline || (filter && filter.synchronizationStatus && filter.synchronizationStatus !== 'SYNC') || false;
     if (offlineData) {
       // TODO
@@ -424,28 +436,56 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
   protected ngOnStart(): Promise<void> {
     console.log(`${this._logPrefix} starting...`)
 
-    this.subscribeEntitiesOnSave();
+    this.subscribeMonitoredServiceEvents();
     this.registerSubscription(
       this.config.config
         .pipe(filter(isNotNil))
         .subscribe((config) => this.onConfigChanged(config))
     );
 
+    this.myTest();
     return Promise.resolve(undefined);
   }
 
-  protected async subscribeEntitiesOnSave() {
-    this.monitorOnSave.forEach((serviceClass:RootDataSynchroService<any, any>) => {
+  protected async myTest() {
+    const filter = DevicePositionFilter.fromObject({
+      objectType: Referential.fromObject({label: ObjectTypeEnum.ObservedLocation}),
+    });
+    const remoteData = await this.loadAll(0, 9999, 'id', 'asc', filter, {withTotal: true});
+    // const localData = await this.entities.loadAll('DevicePositionVO', {
+    //   filter: filter.asFilterFn(),
+    // });
+    console.debug('MYTET REMOTE', remoteData);
+    // console.debug('MYTET LOCAL', localData);
+
+    // const toto = this.entities.watchAll('DevicePositionVO', {
+    //   filter: filter.buildFilter(),
+    // });
+  }
+
+
+  protected ngOnStop(): Promise<void> | void {
+    this.$checkLoop.unsubscribe();
+    return super.ngOnStop();
+  }
+
+  protected async subscribeMonitoredServiceEvents() {
+    this.monitoredServices.forEach((serviceClass:RootDataSynchroService<any, any>) => {
       const service = this.injector.get(serviceClass);
+
       this.registerSubscription(
         service.onSave.subscribe((entities) => {
-          entities.forEach(e => this.saveNewDevicePositionFromEntity(e));
+          entities.forEach(e => this.createFromEntitySave(e));
         })
-      )
+      );
+
+      this.registerSubscription(
+        service.onDelete.subscribe(entities => this.deleteFromEntities(entities))
+      );
     });
   }
 
-  protected async saveNewDevicePositionFromEntity(entity:RootDataEntity<any>) {
+  protected async createFromEntitySave(entity:RootDataEntity<any, any>) {
     // If we're not watching position or if the delay between two device position
     // saving is not reach we not save the position.
     if (!this._watching || this.checkIfSkipSaveDevicePosition()) return;
@@ -454,8 +494,10 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
     const devicePosition:DevicePosition<any> = new DevicePosition<any>();
     devicePosition.objectId = entity.id;
-    // TODO Search is it exists a standard way to remove VO a the en of __typename
-    devicePosition.objectType = ObjectType.fromObject({name: entity.__typename.replace(/(^[A-Za-z]*)(VO$)/, "\$1")});
+    // TODO Search is it exists a standard way to remove VO at the end of __typename
+    devicePosition.objectType = Referential.fromObject({
+      label: ObjectTypeEnum[entity.__typename.replace(/(^[A-Za-z]*)(VO$)/, "\$1")],
+    });
     devicePosition.longitude = this.lastPosition.longitude;
     devicePosition.latitude = this.lastPosition.latitude;
     devicePosition.dateTime = this.lastPosition.date;
@@ -466,9 +508,11 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
     this.lastSavedPositionDate = DateUtils.moment();
   }
 
-  protected ngOnStop(): Promise<void> | void {
-    this.$checkLoop.unsubscribe();
-    return super.ngOnStop();
+  protected async deleteFromEntities(entities:RootDataEntity<any, any>[]) {
+    const localEntities = entities.filter(e => EntityUtils.isLocal(e));
+    const remoteEntities = entities.filter(e => EntityUtils.isRemote(e));
+    const localDevicePosition = "";
+    const remoteDevicePosition = "";
   }
 
 //   async load(id:number, opts?:EntityServiceLoadOptions):Promise<DevicePosition<any, any>> {

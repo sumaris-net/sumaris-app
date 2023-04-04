@@ -263,7 +263,6 @@ export class ObservedLocationService
 
   protected loading = false;
   readonly onSave:Subject<ObservedLocation[]> = new Subject<ObservedLocation[]>();
-  re
 
   constructor(
     injector: Injector,
@@ -642,7 +641,8 @@ export class ObservedLocationService
       return this.deleteAllLocally(localEntities, opts);
     }
 
-    const ids = entities?.filter(EntityUtils.isRemote).map(t => t.id);
+    const remoteEntities = entities?.filter(EntityUtils.isRemote);
+    const ids = remoteEntities?.map(t => t.id);
     if (isEmptyArray(ids)) return; // stop if empty
 
     const now = Date.now();
@@ -659,7 +659,7 @@ export class ObservedLocationService
         });
 
         if (this._debug) console.debug(`[observed-location-service] Observed locations deleted in ${Date.now() - now}ms`);
-
+        this.onDelete.next(remoteEntities);
       }
     });
   }
@@ -717,6 +717,7 @@ export class ObservedLocationService
       console.error('Error during observation location deletion: ', err);
       throw {code: ErrorCodes.DELETE_ENTITY_ERROR, message: 'ERROR.DELETE_ENTITY_ERROR'};
     }
+    this.onDelete.next([entity]);
   }
 
   async control(entity: ObservedLocation): Promise<FormErrors> {
@@ -748,7 +749,6 @@ export class ObservedLocationService
     }
 
     if (this._debug) console.debug(`[observed-location-service] Control ${entity.id}} [OK] in ${Date.now() - now}ms`);
-
     return undefined;
   }
 

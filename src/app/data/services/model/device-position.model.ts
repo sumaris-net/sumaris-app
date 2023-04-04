@@ -1,37 +1,8 @@
 import {IPosition} from '@app/trip/services/model/position.model';
 import {Moment} from 'moment/moment';
-import {Department, Entity, EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, Person, toDateISOString} from '@sumaris-net/ngx-components';
+import {Department, Entity, EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, Person, Referential, ReferentialUtils, toDateISOString} from '@sumaris-net/ngx-components';
 import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
 import {RootDataEntityFilter} from '@app/data/services/model/root-data-filter.model';
-
-// Used to be compatible with ObjectTypeVO on pod side
-// TODO Move this in its own file
-@EntityClass({ typename: 'ObjectTypeVO' })
-export class ObjectType extends Entity<Entity<any>> {
-  static TYPENAME:string;
-  __typename:string;
-  id: number = null;
-  updateDate:Moment = null;
-  name:string = null;
-
-  static fromObject(source:any):ObjectType {
-    const target = new ObjectType();
-    target.fromObject(source);
-    return target;
-  }
-
-  asObject(opts?: EntityAsObjectOptions): any {
-    const target = super.asObject(opts);
-    target.name = this.name;
-    return target;
-  }
-
-  fromObject(source: any, opts?: any) {
-    super.fromObject(source, opts);
-    this.name = source.name;
-  }
-
-}
 
 export interface ITrackPosition extends IPosition {
   date: Moment;
@@ -44,7 +15,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
   latitude: number;
   longitude: number;
   objectId: number;
-  objectType: ObjectType;
+  objectType: Referential;
   recorderPerson: Person;
   recorderDepartment: Department;
   creationDate: Moment;
@@ -66,8 +37,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
     target.latitude = this.latitude;
     target.longitude = this.longitude;
     target.objectId = this.objectId;
-    // TODO Find a way to work with real ObjectType
-    target.objectType = this.objectType && this.objectType.asObject(opts);
+    target.objectType = this.objectType && this.objectType.asObject({...opts, minify: false});
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts);
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
@@ -82,7 +52,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
     this.dateTime = fromDateISOString(source.dateTime);
     this.latitude = source.latitude;
     this.longitude = source.longitude;
-    this.objectType = ObjectType.fromObject(source.objectType);
+    this.objectType = Referential.fromObject(source.objectType);
     this.recorderPerson = Person.fromObject(source.recorderPerson, opts);
     this.recorderDepartment = Department.fromObject(source.recorderDepartment, opts);
     this.creationDate = fromDateISOString(source.creationDate);
@@ -94,7 +64,7 @@ export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFil
 
   static TYPENAME = 'DevicePositionVO';
 
-  objectType:ObjectType;
+  objectType:Referential;
   startDate:Moment = null;
   endDate:Moment = null;
   recorderPerson:Person = null;
@@ -104,22 +74,26 @@ export class DevicePositionFilter extends RootDataEntityFilter<DevicePositionFil
   fromObject(source:any, opts?:any) {
     super.fromObject(source, opts);
     this.synchronizationStatus = source.synchronizationStatus || undefined;
-    this.objectType = ObjectType.fromObject(source.objectType);
+    this.objectType = Referential.fromObject(source.objectType);
     this.recorderPerson = Person.fromObject(source.recorderPerson)
   }
 
   asObject(opts?: EntityAsObjectOptions): any {
     const target = super.asObject(opts);
     target.recorderPerson = this.recorderPerson && this.recorderPerson.asObject(opts) || undefined;
-    target.object = this.objectType && this.objectType.asObject(opts);
+    target.objectType = this.objectType && this.objectType.asObject(opts) || undefined;
     return target;
   }
 
   buildFilter(): FilterFn<DevicePosition<any, any>>[] {
     const filterFns = super.buildFilter();
+    if (ReferentialUtils.isNotEmpty(this.recorderPerson)) {
+      const recorderPersonId = this.recorderPerson.id;
+      filterFns.push(t => (t.recorderPerson && t.recorderPerson.id === recorderPersonId));
+    }
     if (this.objectType) {
-      const objectTypeName = this.objectType.name;
-      filterFns.push(t => (t.objectType.name === objectTypeName))
+      const objectTypeLabel = this.objectType.label;
+      filterFns.push(t => (t.objectType.label === objectTypeLabel))
     }
     return filterFns;
   }

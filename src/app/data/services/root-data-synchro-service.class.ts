@@ -131,6 +131,7 @@ export abstract class RootDataSynchroService<
   protected importationProgress$: Observable<number>;
   protected loading = false;
   readonly onSave:Subject<T[]> = new Subject<T[]>();
+  readonly onDelete:Subject<T[]> = new Subject<T[]>();
 
   get featureName(): string {
     return this._featureName || DEFAULT_FEATURE_NAME;
