@@ -1,8 +1,8 @@
-import {IPosition} from '@app/trip/services/model/position.model';
-import {Moment} from 'moment/moment';
-import { DateUtils, Department, Entity, EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, Person, Referential, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
-import {RootDataEntity} from '@app/data/services/model/root-data-entity.model';
-import {RootDataEntityFilter} from '@app/data/services/model/root-data-filter.model';
+import { IPosition } from '@app/trip/services/model/position.model';
+import { Moment } from 'moment/moment';
+import { DateUtils, Department, EntityAsObjectOptions, EntityClass, FilterFn, fromDateISOString, Person, Referential, ReferentialUtils, toDateISOString } from '@sumaris-net/ngx-components';
+import { RootDataEntity } from '@app/data/services/model/root-data-entity.model';
+import { RootDataEntityFilter } from '@app/data/services/model/root-data-filter.model';
 
 export interface ITrackPosition extends IPosition {
   date: Moment;

@@ -72,9 +72,9 @@
     <mat-action-row>
       <!-- Counter  -->
       <ion-label [class.cdk-visually-hidden]="(loading$|async) || filterForm.dirty"
-                 [color]="totalRowCount === 0 ? 'danger' : undefined"
+                 [color]="total === 0 ? 'danger' : undefined"
                  class="ion-padding">
-        {{ (totalResult ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count:(totalResult|numberFormat)} }}
+        {{ (total ? 'COMMON.RESULT_COUNT' : 'COMMON.NO_RESULT') | translate: {count:(total|numberFormat)} }}
       </ion-label>
 
       <div class="toolbar-spacer"></div>
@@ -89,7 +89,7 @@
       <!-- Close panel -->
       <ion-button mat-button fill="clear" color="dark"
                   (click)="closeFilterPanel()"
-                  [disabled]="loadingSubject|async">
+                  [disabled]="loading$|async">
         <ion-text>{{ 'COMMON.BTN_CLOSE'|translate }}</ion-text>
       </ion-button>
 
@@ -117,24 +117,44 @@
                        [class.table-panel-floating]="filterPanelFloating">
     <mat-expansion-panel-header>
       <mat-panel-title>
-        <ion-label color="primary">Liste des positions</ion-label>
+        <ion-text color="primary">
+          {{'DEVICE_POSITION.MAP.TABLE.TITLE'|translate}}
+          <span *ngIf="total<=visibleTotal; else warning">({{total}})</span>
+          <ng-template #warning>
+            <ion-text color="danger">
+              <ion-icon name="alert-circle"></ion-icon>
+              {{'DEVICE_POSITION.MAP.TABLE.LIMIT_TO'|translate: {total: total, visibleTotal: visibleTotal} }}
+            </ion-text>
+          </ng-template>
+        </ion-text>
       </mat-panel-title>
+      <mat-panel-description>
+
+      </mat-panel-description>
     </mat-expansion-panel-header>
       <ion-grid>
-        <ion-row>
-          <ion-col></ion-col>
-          <ion-col></ion-col>
-          <ion-col></ion-col>
-          <ion-col></ion-col>
+        <ion-row class="mat-header-row">
+          <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.DATE_TIME</ion-col>
+          <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.LATITUDE</ion-col>
+          <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.LONGITUDE</ion-col>
+          <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
         </ion-row>
-        <ion-row *rxFor="let item of data$">
-          <ion-col>
-            {{item.dateTime|dateFormat: {time: true} }} <ion-text color="medium"><ion-icon name="time-outline"></ion-icon> {{item.dateTime|dateFromNow }}</ion-text>
-          </ion-col>
-          <ion-col>{{item.latitude|numberFormat }}</ion-col>
-          <ion-col>{{item.longitude|numberFormat }}</ion-col>
-          <ion-col></ion-col>
-        </ion-row>
+        <ng-container *rxFor="let feature of features$">
+          <ion-row class="mat-row">
+            <ion-col>
+              {{feature.properties.dateTime|dateFormat: {time: true} }} <ion-text color="medium"><ion-icon name="time-outline"></ion-icon> {{feature.properties.dateTime|dateFromNow }}</ion-text>
+            </ion-col>
+            <ion-col>{{feature.properties.latitude|numberFormat }}</ion-col>
+            <ion-col>{{feature.properties.longitude|numberFormat }}</ion-col>
+            <ion-col>
+              <ion-button class="text-button" size="small" fill="clear" color="primary"
+                      (click)="openEditor(feature.properties)"
+                      [title]="'DEVICE_POSITION.MAP.TABLE.BTN_OPEN_DATA'|translate">
+                {{feature.properties.objectTypeName}} #{{feature.properties.objectId}}
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ng-container>
       </ion-grid>
   </mat-expansion-panel>
 

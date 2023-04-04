@@ -1,15 +1,13 @@
-import { ChangeDetectorRef, Component, EventEmitter, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Injector, Input, OnInit, ViewChild } from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatExpansionPanel } from '@angular/material/expansion';
-import { BehaviorSubject, of, Subject, Subscription } from 'rxjs';
+import { of } from 'rxjs';
 import { IGNORED_ENTITY_COLUMNS } from '@app/referential/table/referential.table';
 import { DevicePosition, DevicePositionFilter } from '@app/data/services/model/device-position.model';
 import { DevicePositionService } from '@app/data/services/device-position.service';
 import {
-  AccountService,
-  ConfigService, EntityUtils, firstNotNilPromise, joinPropertiesPath, LatLongPattern,
+  AccountService, capitalizeFirstLetter, changeCaseToUnderscore, isNilOrNaN, isNotNil, isNotNilOrNaN,
   LoadResult,
-  LocalSettingsService,
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions,
   MatAutocompleteFieldConfig,
@@ -21,26 +19,21 @@ import {
 import { catchError, debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { environment } from '@environments/environment';
 import { RxState } from '@rx-angular/state';
-import { MapCenter, MapUtils } from '@app/shared/map/map.utils';
 import { L } from '@app/shared/map/leaflet';
-import { MapGraticule } from '@app/shared/map/map.graticule';
-import { v4 as uuidv4 } from 'uuid';
-import { MapOptions, PathOptions } from 'leaflet';
-import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
+import { PathOptions } from 'leaflet';
 import { BaseMap, BaseMapState } from '@app/shared/map/base-map.class';
-import { Feature, LineString, MultiPolygon, Point, Position } from 'geojson';
-import { Geometries } from '@app/shared/geometries.utils';
-import { Operation, VesselPositionUtils } from '@app/trip/services/model/trip.model';
-import { LocationUtils } from '@app/referential/location/location.utils';
-import { PositionUtils } from '@app/trip/services/position.utils';
-import { State } from '@angular-devkit/architect/src/progress-schema';
+import { Feature, Point } from 'geojson';
+import { ObjectTypeEnum } from '@app/referential/services/model/model.enum';
+import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
+import { NavController } from '@ionic/angular';
 
 export const DEVICE_POSITION_MAP_SETTINGS = {
   FILTER_KEY: 'filter',
 };
 export interface DevicePositionMapState extends BaseMapState {
-  data: DevicePosition<any>[];
+  features: Feature[];
   total: number;
+  visibleTotal: number;
 }
 
 @Component({
@@ -53,18 +46,14 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
   extends BaseMap<DevicePositionMapState>
   implements OnInit {
 
-  protected readonly dataService:DevicePositionService;
-  protected readonly accountService:AccountService;
-  protected readonly personService:PersonService;
-
-  protected readonly data$ = this._state.select('data');
+  protected readonly features$ = this._state.select('features');
 
   protected _autocompleteConfigHolder:MatAutocompleteConfigHolder;
   protected filter:DevicePositionFilter = new DevicePositionFilter();
 
   filterForm:UntypedFormGroup;
 
-  i18nPrefix = 'DEVICE_POSITION.PAGE.';
+  i18nPrefix = 'DEVICE_POSITION.MAP.';
   title = 'TITLE';
   filterCriteriaCount = 0;
   filterPanelFloating = true;
@@ -82,18 +71,22 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
   get total() {
     return this._state.get('total');
   }
+  get visibleTotal() {
+    return this._state.get('visibleTotal');
+  }
 
   constructor(
     injector:Injector,
     protected formBuilder: UntypedFormBuilder,
-    protected _state: RxState<DevicePositionMapState>
+    protected _state: RxState<DevicePositionMapState>,
+    protected dataService: DevicePositionService,
+    protected personService: PersonService,
+    protected accountService: AccountService,
+    protected navController: NavController
   ) {
     super(injector, _state, {
       maxZoom: 12
     });
-    this.dataService = injector.get(DevicePositionService);
-    this.personService = injector.get(PersonService);
-    this.accountService = injector.get(AccountService);
 
     this.settingsId = 'device-position-map';
 
@@ -255,22 +248,24 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
     let {data, total} = res;
 
 
+    data = data || [];
+    total = toNumber(total, data?.length || 0);
+
     // Add fake data
     if (!environment.production && data && data.length < 10) {
       const fakeData = new Array(100).fill({});
       data = fakeData.map((item, index) =>  data[index % data.length]);
+      total = data.length;
     }
 
-    data = data || [];
-    total = toNumber(total, data?.length || 0);
 
     if (this._debug) console.debug(`${this._logPrefix} : ${total} items loaded`);
 
-    await this.loadLayers(data);
+    const features = await this.loadLayers(data);
 
     // Update state
     this._state.set(state => <DevicePositionMapState>{
-      ...state, data, total
+      ...state, features, total, visibleTotal: features.length
     });
 
 
@@ -304,7 +299,7 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
     return this._autocompleteConfigHolder.add(fieldName, options);
   }
 
-  async loadLayers(data: T[]): Promise<void> {
+  async loadLayers(data: T[]): Promise<Feature[]> {
     // Should never call load() without leaflet map
     if (!this.map) return; // Skip
 
@@ -322,21 +317,25 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
       this.layers.push(layer);
 
       // Add each position to layer
-      (data || [])
+      const features = (data || [])
         //.sort(EntityUtils.sortComparator('dateTime', 'asc'))
-        .forEach((position, index) => {
+        .map((position, index) => {
             const feature = this.toFeature(position, index);
             if (!feature) return; // Skip if empty
 
             // Add feature to layer
             layer.addData(feature);
+
+            return feature
           });
 
       const layerName = 'Positions' // TODO this.translate.instant(...)
-    this.layersControl.overlays[layerName] = layer;
+      this.layersControl.overlays[layerName] = layer;
       this.layers.forEach(layer => layer.addTo(this.map));
 
       await this.flyToBounds();
+
+      return features;
 
     } catch (err) {
       console.error("[operations-map] Error while load layers:", err);
@@ -346,22 +345,16 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
     }
   }
 
-  protected toFeature(source: DevicePosition<any>, index: number): Feature {
+  protected toFeature(position: DevicePosition<any>, index: number): Feature {
 
     // Create feature
     const features = <Feature>{
+      id: position.id,
       type: 'Feature',
-      geometry: <Point>{ type: "Point", coordinates: [source.longitude, source.latitude]},
-      id: source.id,
+      geometry: <Point>{ type: "Point", coordinates: [position.longitude, position.latitude]},
       properties: {
-        first: index === 0,
-        ...source,
-        // Replace date with a formatted date
-        // TODO
-        //dateTime: this.dateFormat.transform(source.startDateTime || source.fishingStartDateTime, { time: true }),
-        //recorderPerson: // TODO
-        // Add index
-        index
+        ...position,
+        objectTypeName: this.getObjectTypeName(position)
       }
     };
 
@@ -374,5 +367,42 @@ export class DevicePositionMapPage<T extends DevicePosition<any> = DevicePositio
       opacity: 0.8,
       color: 'blue'
     };
+  }
+
+  protected getObjectTypeName(position: DevicePosition<any>): string {
+    if (!position) return '';
+    const objectType = position.objectType?.label;
+    if (objectType) {
+      switch (objectType) {
+        case ObjectTypeEnum.TRIP:
+          return this.translate.instant('TRIP.TITLE')
+        case ObjectTypeEnum.OBSERVED_LOCATION:
+          return this.translate.instant('OBSERVED_LOCATION.TITLE')
+      }
+      return objectType.split('_').map(capitalizeFirstLetter).join(' ');
+    }
+  }
+
+  protected async openEditor(position: DevicePosition<any>|any) {
+    const objectId = +position.objectId;
+    const objectType = position.objectType?.label;
+    if (isNilOrNaN(objectId) && objectType) {
+      console.error('Missing objectId or objectType.label: ', position);
+      return; // Skip
+    }
+    let path: string;
+    switch (objectType) {
+      case ObjectTypeEnum.TRIP:
+        path = `/trips/${objectId}`
+        break;
+      case ObjectTypeEnum.OBSERVED_LOCATION:
+        path = `/observations/${objectId}`
+        break;
+    }
+    if (!path) {
+      console.error('Cannot load router path for objectType: ' + objectType);
+      return
+    }
+    await this.navController.navigateForward(path);
   }
 }

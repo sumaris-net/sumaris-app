@@ -13,6 +13,7 @@ import { MapGraticule } from '@app/shared/map/map.graticule';
 import { v4 as uuidv4 } from 'uuid';
 import { MapCenter, MapUtils } from '@app/shared/map/map.utils';
 import { RxState } from '@rx-angular/state';
+import { TranslateService } from '@ngx-translate/core';
 
 const maxZoom = MapUtils.MAX_ZOOM;
 
@@ -36,6 +37,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected readonly center$ = this._state.select('center');
   protected readonly loading$ = this._state.select('loading');
 
+  protected readonly translate: TranslateService;
   protected readonly configService: ConfigService;
   protected readonly settings: LocalSettingsService;
   protected readonly cd: ChangeDetectorRef;
@@ -92,8 +94,9 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
     }
   ) {
     this.zone = injector.get(NgZone);
-    this.settings = injector.get(LocalSettingsService);
+    this.translate = injector.get(TranslateService);
     this.configService = injector.get(ConfigService);
+    this.settings = injector.get(LocalSettingsService);
     this.cd = injector.get(ChangeDetectorRef);
     this.mobile = this.settings.mobile;
 

@@ -49,10 +49,7 @@
     overflow-y: scroll;
   }
 
-  mat-action-row {
-    height: 46px;
-    ion-label {
-      line-height: 36px;
-    }
+  .text-button {
+    text-transform: none;
   }
 }

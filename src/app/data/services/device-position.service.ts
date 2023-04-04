@@ -1,44 +1,45 @@
-import {Inject, Injectable, Injector} from '@angular/core';
+import { Inject, Injectable, Injector } from '@angular/core';
 import {
   AppErrorWithDetails,
   BaseEntityGraphqlQueries,
   ConfigService,
   Configuration,
-  DateUtils, EntitiesServiceWatchOptions,
+  DateUtils,
+  EntitiesServiceWatchOptions,
   EntitiesStorage,
   Entity,
   EntitySaveOptions,
-  EntityServiceLoadOptions, EntityUtils,
+  EntityServiceLoadOptions,
+  EntityUtils,
   FormErrors,
   isNil,
   isNotNil,
-  LoadResult, QueryVariables, Referential,
+  LoadResult,
+  QueryVariables,
+  Referential
 } from '@sumaris-net/ngx-components';
-import {IPosition} from '@app/trip/services/model/position.model';
-import {BehaviorSubject, combineLatest, EMPTY, from, interval, Observable, Subscription} from 'rxjs';
-import {DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES} from '@app/data/services/config/device-position.config';
-import {environment} from '@environments/environment';
-import {DevicePosition, DevicePositionFilter, ITrackPosition} from '@app/data/services/model/device-position.model';
-import {PositionUtils} from '@app/trip/services/position.utils';
-import {RootDataEntity, RootDataEntityUtils} from '@app/data/services/model/root-data-entity.model';
-import {RootDataSynchroService} from '@app/data/services/root-data-synchro-service.class';
-import {SynchronizationStatusEnum} from '@app/data/services/model/model.utils';
-import {MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE} from '@app/data/services/model/data-entity.model';
-import {ErrorCodes} from '@app/data/services/errors';
-import {BaseRootEntityGraphqlMutations} from '@app/data/services/root-data-service.class';
-import {FetchPolicy, gql, WatchQueryFetchPolicy} from '@apollo/client/core';
-import {DataCommonFragments} from '@app/trip/services/trip.queries';
-import {Trip} from '@app/trip/services/model/trip.model';
-import {SortDirection} from '@angular/material/sort';
-import {Moment} from 'moment';
-import {OperationFilter} from '@app/trip/services/filter/operation.filter';
-import {filter, map, mergeMap, tap} from 'rxjs/operators';
-import {mergeLoadResult} from '@app/shared/functions';
+import { IPosition } from '@app/trip/services/model/position.model';
+import { BehaviorSubject, combineLatest, EMPTY, from, interval, Observable, Subscription } from 'rxjs';
+import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/services/config/device-position.config';
+import { environment } from '@environments/environment';
+import { DevicePosition, DevicePositionFilter, ITrackPosition } from '@app/data/services/model/device-position.model';
+import { PositionUtils } from '@app/trip/services/position.utils';
+import { RootDataEntity, RootDataEntityUtils } from '@app/data/services/model/root-data-entity.model';
+import { RootDataSynchroService } from '@app/data/services/root-data-synchro-service.class';
+import { SynchronizationStatusEnum } from '@app/data/services/model/model.utils';
+import { DataEntityUtils, MINIFY_DATA_ENTITY_FOR_LOCAL_STORAGE, SAVE_AS_OBJECT_OPTIONS, SERIALIZE_FOR_OPTIMISTIC_RESPONSE } from '@app/data/services/model/data-entity.model';
+import { ErrorCodes } from '@app/data/services/errors';
+import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-service.class';
+import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
+import { DataCommonFragments } from '@app/trip/services/trip.queries';
+import { Trip } from '@app/trip/services/model/trip.model';
+import { SortDirection } from '@angular/material/sort';
+import { Moment } from 'moment';
+import { OperationFilter } from '@app/trip/services/filter/operation.filter';
+import { filter, map, mergeMap } from 'rxjs/operators';
+import { mergeLoadResult } from '@app/shared/functions';
+import { ModelEnumUtils, ObjectTypeEnum } from '@app/referential/services/model/model.enum';
 
-export enum ObjectTypeEnum {
-  Trip = "FISHING_TRIP",
-  ObservedLocation = "OBSERVED_LOCATION",
-}
 
 export declare interface DevicePositionServiceWatchOptions extends EntitiesServiceWatchOptions {
   fullLoad?: boolean;
@@ -474,9 +475,9 @@ export class DevicePositionService extends RootDataSynchroService<DevicePosition
 
     const devicePosition:DevicePosition<any> = new DevicePosition<any>();
     devicePosition.objectId = entity.id;
-    // TODO Search is it exists a standard way to remove VO at the end of __typename
+    const entityName = DataEntityUtils.getEntityName(entity);
     devicePosition.objectType = Referential.fromObject({
-      label: ObjectTypeEnum[entity.__typename.replace(/(^[A-Za-z]*)(VO$)/, "\$1")],
+      label: ModelEnumUtils.getObjectTypeByEntityName(entityName),
     });
     devicePosition.longitude = this.lastPosition.longitude;
     devicePosition.latitude = this.lastPosition.latitude;
