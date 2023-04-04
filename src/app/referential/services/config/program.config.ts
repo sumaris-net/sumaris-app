@@ -1,4 +1,4 @@
-import { FormFieldDefinition, FormFieldType, isNilOrBlank, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
+import { FormFieldDefinition, FormFieldType, isNilOrBlank, Property, removeDuplicatesFromArray, StatusIds } from '@sumaris-net/ngx-components';
 import { LocationLevelGroups, LocationLevelIds, UnitLabel } from '../model/model.enum';
 import { TaxonGroupTypeIds } from '@app/referential/services/model/taxon-group.model';
 import { Program } from '@app/referential/services/model/program.model';
@@ -749,6 +749,31 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'false'
   },
 
+
+  /* -- Extraction options -- */
+
+  EXTRACTION_FORMATS: <FormFieldDefinition>{
+    key: 'sumaris.extraction.formats',
+    label: 'PROGRAM.OPTIONS.EXTRACTION_FORMATS',
+    type: 'enums',
+    values: [
+      <Property>{key: 'NA', value: 'COMMON.EMPTY_OPTION'}, // Used to disabled extraction
+      <Property>{key: 'RDB', value: 'EXTRACTION.FORMAT.RDB.NAME'},
+      <Property>{key: 'COST', value: 'EXTRACTION.FORMAT.COST.NAME'},
+      <Property>{key: 'FREE1', value: 'EXTRACTION.FORMAT.FREE1.NAME'},
+      <Property>{key: 'FREE2', value: 'EXTRACTION.FORMAT.FREE2.NAME'},
+      <Property>{key: 'PMFM_TRIP', value: 'EXTRACTION.FORMAT.PMFM_TRIP.NAME'},
+      <Property>{key: 'STRAT', value: 'EXTRACTION.FORMAT.STRAT.NAME'},
+      <Property>{key: 'APASE', value: 'EXTRACTION.FORMAT.APASE.NAME'},
+    ],
+    autocomplete: {
+      columnNames: ['key', 'value'],
+      columnSizes: [4, 8],
+      displayWith: (p) => p.key
+    },
+    defaultValue: null // =  All
+  },
+
   /* -- Program / Strategy options -- */
 
   STRATEGY_EDITOR_PREDOC_ENABLE: <FormFieldDefinition>{
@@ -833,7 +858,7 @@ export const ProgramProperties = Object.freeze({
     defaultValue: 'legacy'
   },
 
-  /* -- QUalitative value options -- */
+  /* -- Qualitative value options -- */
 
   MEASUREMENTS_MAX_VISIBLE_BUTTONS: <FormFieldDefinition>{
     key: 'sumaris.measurements.maxVisibleButtons',

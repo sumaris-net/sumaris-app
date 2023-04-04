@@ -1892,6 +1892,7 @@
       "PRIVILEGE": "Privilège"
     },
     "OPTIONS": {
+      "EXTRACTION_FORMATS": "Extraction > Formats actifs:",
       "I18N_SUFFIX" : "Dictionnaire thématique",
       "I18N_SUFFIX_LEGACY" : "Par défaut",
       "I18N_SUFFIX_SAMPLING" : "Paramètres biologiques",
@@ -2010,6 +2011,7 @@
       "STRATEGY_EDITOR_PREDOC_FETCH_SIZE": "Stratégie > Éditeur : Nb éléments affichés pour le pré-filtrage des champs",
       "STRATEGY_DEPARTMENT_ENABLE": "Stratégie > Activer les droits d'accès par département (STRATEGY_DEPARTMENT)",
       "MEASUREMENTS_MAX_VISIBLE_BUTTONS": "Valeurs qualitative > Nb max boutons (mobile)",
+      "MEASUREMENTS_MAX_ITEM_COUNT_FOR_BUTTONS": "Valeurs qualitative > Nb valeurs max pour affichage en boutons (mobile)",
       "VESSEL_TYPE_ENABLE": "Navires > Activer le type de navire ?"
     },
     "STRATEGY": {
@@ -2457,10 +2459,12 @@
     },
     "FORMAT": {
       "APASE": {
-        "TITLE": "Marées brutes (APASE v{{version}})"
+        "TITLE": "Marées brutes (APASE v{{version}})",
+        "NAME": "Sélectivity châlut (APASE)"
       },
       "RDB": {
-        "TITLE": "Marées brutes (RDB v{{version}})"
+        "TITLE": "Marées brutes (RDB v{{version}})",
+        "NAME": "Regional Database (RDB)"
       },
       "COST": {
         "TITLE": "Marées brutes (COST v{{version}})"

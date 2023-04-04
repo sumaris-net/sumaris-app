@@ -880,4 +880,16 @@ export class ExtractionTablePage extends ExtractionAbstractPage<ExtractionType, 
       queryParams: ExtractionUtils.asQueryParams(this.type, filter)
     });
   }
+
+  private _extractionTypesProgramLabel: string;
+  private _extractionTypesByPrograms$: Observable<ExtractionType[]>;
+
+  protected watchExtractionTypesByProgram(programLabel: string) {
+    if (this._extractionTypesProgramLabel !== programLabel) {
+      this._extractionTypesProgramLabel = programLabel;
+      this._extractionTypesByPrograms$ = this.extractionTypeService.watchAllByProgramLabels([programLabel]);
+    }
+
+    return this._extractionTypesByPrograms$;
+  }
 }

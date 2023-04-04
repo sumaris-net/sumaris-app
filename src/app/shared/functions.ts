@@ -1,7 +1,7 @@
 
 // TODO: remove after then updating to last version of ngx-components
 
-import { isNil, isNotNil, KeyValueType, LoadResult } from '@sumaris-net/ngx-components';
+import { isEmptyArray, isNil, isNotNil, KeyValueType, LoadResult } from '@sumaris-net/ngx-components';
 
 export declare type Function<P, R> = (value: P) => R;
 export declare type BiFunction<P1, P2, R> = (v1: P1, v2: P2) => R;
@@ -118,3 +118,12 @@ export function collectByFunction<T>(values: T[], getKey: Function<T, string|num
 }
 
 export type ArrayElementType<T> = T extends (infer E)[] ? E : never;
+
+export function intersectArrays<T = any>(values: T[][]): T[] {
+  if (isEmptyArray(values)) return [];
+
+  // Utilise la méthode reduce pour obtenir l'intersection des tableaux
+  return values.reduce((acc, curr) => {
+    return acc.filter(x => curr.includes(x));
+  }, values[0].slice());
+}

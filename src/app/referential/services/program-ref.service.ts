@@ -467,6 +467,17 @@ export class ProgramRefService
     return entity;
   }
 
+  loadAllByLabels(labels: string[], opts?: {
+    toEntity?: boolean;
+    query?: any;
+    cache?: boolean;
+    fetchPolicy?: FetchPolicy;
+  }) {
+    return Promise.all(
+      arrayDistinct(labels).map(label => this.loadByLabel(label, opts))
+    ).then(programs => programs.filter(isNotNil));
+  }
+
   /**
    * Watch program pmfms
    */
