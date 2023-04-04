@@ -42,8 +42,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
     target.recorderDepartment = this.recorderDepartment && this.recorderDepartment.asObject(opts);
     target.creationDate = toDateISOString(this.creationDate);
     delete target.comments;
-    delete target.detail;
-    delete target.ENTITY_NAME;
+    delete target.detail; // TODO to remove ?
     return target;
   }
 
@@ -52,6 +51,7 @@ export class DevicePosition<T extends DevicePosition<any, ID>, ID = number, AO =
     this.dateTime = fromDateISOString(source.dateTime);
     this.latitude = source.latitude;
     this.longitude = source.longitude;
+    this.objectId = source.objectId;
     this.objectType = Referential.fromObject(source.objectType);
     this.recorderPerson = Person.fromObject(source.recorderPerson, opts);
     this.recorderDepartment = Department.fromObject(source.recorderDepartment, opts);
