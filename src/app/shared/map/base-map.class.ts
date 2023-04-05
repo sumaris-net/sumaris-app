@@ -76,7 +76,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
 
   protected map: L.Map;
   protected mapId: string;
-  protected selection = new SelectionModel<Feature>(false);
+  protected readonly selection = new SelectionModel<Feature>(false, []);
 
   @Input() latLongPattern: LatLongPattern;
   @Input() flyToBoundsDelay = 450;

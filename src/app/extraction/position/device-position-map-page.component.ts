@@ -53,15 +53,15 @@ export class DevicePositionMapPage
   protected _autocompleteConfigHolder:MatAutocompleteConfigHolder;
   protected filter:DevicePositionFilter = new DevicePositionFilter();
 
-  filterForm:UntypedFormGroup;
+  filterForm: UntypedFormGroup;
 
   i18nPrefix = 'DEVICE_POSITION.MAP.';
   title = 'TITLE';
   filterCriteriaCount = 0;
   filterPanelFloating = true;
 
-  autocompleteFields:{[key:string]:MatAutocompleteFieldConfig};
-  onRefresh:EventEmitter<any> = new EventEmitter<any>();
+  autocompleteFields: {[key:string]:MatAutocompleteFieldConfig};
+  onRefresh = new EventEmitter<any>();
 
   @Input() persistFilterInSettings = true;
   @Input() showTooltip = true;
@@ -371,8 +371,9 @@ export class DevicePositionMapPage
         const layer = layerByPersonId[p.id];
         const layerName = PersonUtils.personToString(p);
         this.layersControl.overlays[layerName] = layer;
-        this.layers.forEach(layer => layer.addTo(this.map));
       })
+
+      this.layers.forEach(layer => layer.addTo(this.map));
 
       await this.flyToBounds();
 

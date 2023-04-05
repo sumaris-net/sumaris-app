@@ -140,7 +140,7 @@
         <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON</ion-col>
         <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
       </ion-row>
-      <ng-container *ngFor="let feature of features$|async" >
+      <ng-container *rxFor="let feature of features$" >
         <ion-row #tableRows
                  class="mat-row"
                  [class.mat-row-selected]="selection.isSelected(feature)">
