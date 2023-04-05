@@ -1,11 +1,10 @@
 import { ChangeDetectorRef, Directive, Injector, Input, NgZone, OnDestroy, OnInit, Optional } from '@angular/core';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { debounceTime, map } from 'rxjs/operators';
 import { L } from '@app/shared/map/leaflet';
 import { MapOptions } from 'leaflet';
 import { ConfigService, firstNotNilPromise, isEmptyArray, LatLongPattern, LocalSettingsService, sleep } from '@sumaris-net/ngx-components';
 import { Feature } from 'geojson';
-import { debounceTime } from 'rxjs/operators';
 import { LeafletControlLayersConfig } from '@asymmetrik/ngx-leaflet';
 import { environment } from '@environments/environment';
 
@@ -14,8 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MapCenter, MapUtils } from '@app/shared/map/map.utils';
 import { RxState } from '@rx-angular/state';
 import { TranslateService } from '@ngx-translate/core';
-
-const maxZoom = MapUtils.MAX_ZOOM;
+import { SelectionModel } from '@angular/cdk/collections';
 
 export interface BaseMapState {
   center: MapCenter;
@@ -44,18 +42,20 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
   protected readonly zone: NgZone;
 
   // -- Map Layers --
-  protected osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom,
+  protected readonly osmBaseLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: MapUtils.MAX_ZOOM,
     attribution: '<a href=\'https://www.openstreetmap.org\'>Open Street Map</a>'
   });
-  protected sextantBaseLayer = L.tileLayer(
+  protected readonly sextantBaseLayer = L.tileLayer(
     'https://sextant.ifremer.fr/geowebcache/service/wmts'
-    + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}',
-    {maxZoom, attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"});
+      + '?Service=WMTS&Layer=sextant&Style=&TileMatrixSet=EPSG:3857&Request=GetTile&Version=1.0.0&Format=image/png&TileMatrix=EPSG:3857:{z}&TileCol={x}&TileRow={y}', {
+      maxZoom: MapUtils.MAX_ZOOM,
+      attribution: "<a href='https://sextant.ifremer.fr'>Sextant</a>"
+  });
 
-  protected options = <MapOptions>{
+  protected readonly options = <MapOptions>{
     layers: [this.sextantBaseLayer],
-    maxZoom, // max zoom to sextant layer
+    maxZoom: MapUtils.MAX_ZOOM,
   };
   protected layersControl = <LeafletControlLayersConfig>{
     baseLayers: {
@@ -76,6 +76,7 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
 
   protected map: L.Map;
   protected mapId: string;
+  protected selection = new SelectionModel<Feature>(false);
 
   @Input() latLongPattern: LatLongPattern;
   @Input() flyToBoundsDelay = 450;
@@ -102,6 +103,14 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
 
     this._maxZoom = options?.maxZoom || MapUtils.MAX_ZOOM;
     this._debug = !environment.production;
+
+    if (this._maxZoom !== MapUtils.MAX_ZOOM) {
+      this.options.maxZoom = this._maxZoom;
+      this.osmBaseLayer.options.maxZoom = this._maxZoom;
+      this.sextantBaseLayer.options.maxZoom = this._maxZoom;
+    }
+
+    this._state.set((s) => <S>{...s, loading: true});
   }
 
   ngOnInit() {
@@ -213,12 +222,12 @@ export abstract class BaseMap<S extends BaseMapState> implements OnInit, OnDestr
     console.debug('[operations-map] Go to bounds:', bounds);
     if (bounds && bounds.isValid()) {
       if (this.flyToBoundsDuration <= 0) {
-        this.map.fitBounds(bounds, { maxZoom } );
+        this.map.fitBounds(bounds, { maxZoom: this._maxZoom } );
         return;
       }
       else {
         try {
-          this.map.flyToBounds(bounds, { maxZoom, duration: this.flyToBoundsDuration });
+          this.map.flyToBounds(bounds, { maxZoom: this._maxZoom, duration: this.flyToBoundsDuration });
           return;
         }
         catch(err) {

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Injector, Input, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Injector, Input, OnInit, QueryList, Renderer2, ViewChild, ViewChildren } from '@angular/core';
 import { AbstractControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { MatExpansionPanel } from '@angular/material/expansion';
 import { of } from 'rxjs';
@@ -6,11 +6,13 @@ import { IGNORED_ENTITY_COLUMNS } from '@app/referential/table/referential.table
 import { DevicePosition, DevicePositionFilter } from '@app/data/services/model/device-position.model';
 import { DevicePositionService } from '@app/data/services/device-position.service';
 import {
-  AccountService, capitalizeFirstLetter, changeCaseToUnderscore, isNilOrNaN, isNotNil, isNotNilOrNaN,
+  AccountService, arrayDistinct,
+  capitalizeFirstLetter, Color, ColorScale, isNil,
+  isNilOrNaN, isNotNil,
   LoadResult,
   MatAutocompleteConfigHolder,
   MatAutocompleteFieldAddOptions,
-  MatAutocompleteFieldConfig,
+  MatAutocompleteFieldConfig, Person,
   PersonService,
   PersonUtils,
   StatusIds,
@@ -24,8 +26,7 @@ import { PathOptions } from 'leaflet';
 import { BaseMap, BaseMapState } from '@app/shared/map/base-map.class';
 import { Feature, Point } from 'geojson';
 import { ObjectTypeEnum } from '@app/referential/services/model/model.enum';
-import { DataEntityUtils } from '@app/data/services/model/data-entity.model';
-import { NavController } from '@ionic/angular';
+import { IonGrid, NavController } from '@ionic/angular';
 
 export const DEVICE_POSITION_MAP_SETTINGS = {
   FILTER_KEY: 'filter',
@@ -40,7 +41,8 @@ export interface DevicePositionMapState extends BaseMapState {
   selector: 'app-device-position-map',
   templateUrl: './device-position-map-page.component.html',
   styleUrls: ['./device-position-map-page.component.scss'],
-  providers: [RxState]
+  providers: [RxState],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DevicePositionMapPage
   extends BaseMap<DevicePositionMapState>
@@ -66,7 +68,8 @@ export class DevicePositionMapPage
 
   @ViewChild('filterExpansionPanel',{static: true}) filterExpansionPanel:MatExpansionPanel;
   @ViewChild('tableExpansionPanel',{static: true}) tableExpansionPanel:MatExpansionPanel;
-
+  @ViewChild('table',{static: true, read: ElementRef}) tableElement: ElementRef;
+  @ViewChildren('tableRows', {read: ElementRef}) tableRows!: QueryList<ElementRef>;
 
   get total() {
     return this._state.get('total');
@@ -82,10 +85,11 @@ export class DevicePositionMapPage
     protected dataService: DevicePositionService,
     protected personService: PersonService,
     protected accountService: AccountService,
+    protected renderer: Renderer2,
     protected navController: NavController
   ) {
     super(injector, _state, {
-      maxZoom: 12
+      maxZoom: 14 // Need by SFA
     });
 
     this.settingsId = 'device-position-map';
@@ -159,8 +163,35 @@ export class DevicePositionMapPage
   }
 
   protected onFeatureClick(feature: Feature) {
-    // TODO
     console.info(this._logPrefix + 'Click on feature', feature);
+
+    // Highlight the row
+    this.selection.toggle(feature);
+    this.markForCheck();
+
+    // Scroll to row
+    const index = this._state.get('features')?.findIndex(f => f === feature);
+    if (index !== -1) {
+      this.scrollToRow(index);
+    }
+  }
+
+  protected scrollToRow(index: number) {
+
+    const rowElement = this.tableRows.get(index);
+    if (!rowElement) {
+      console.warn(this._logPrefix + 'Cannot found row by index=' + index);
+      return;
+    }
+    const rowRect = rowElement.nativeElement.getBoundingClientRect();
+    const gridRect = this.tableElement.nativeElement.getBoundingClientRect();
+
+    if (rowRect.top < gridRect.top || rowRect.bottom > gridRect.bottom) {
+      this.tableElement.nativeElement.scrollTo({
+        top: rowElement.nativeElement.offsetTop - (gridRect.height - rowRect.height) / 2,
+        behavior: 'smooth'
+      });
+    }
   }
 
   resetFilter() {
@@ -253,10 +284,14 @@ export class DevicePositionMapPage
     // Add fake data
     if (!environment.production && data && data.length < 10) {
       const fakeData = new Array(100).fill({});
-      data = fakeData.map((item, index) =>  data[index % data.length]);
+      data = fakeData.map((item, index) =>  {
+        const newPosition = Object.assign({}, data[index % data.length]);
+        newPosition.latitude += Math.random() * 0.01;
+        newPosition.longitude += Math.random() * 0.01;
+        return newPosition;
+      });
       total = data.length;
     }
-
 
     if (this._debug) console.debug(`${this._logPrefix} : ${total} items loaded`);
 
@@ -308,29 +343,36 @@ export class DevicePositionMapPage
       // Clean existing layers, if any
       this.cleanMapLayers();
 
-      // Create  layer
-      const layer = L.geoJSON(null, {
-        onEachFeature: this.showTooltip ? this.onEachFeature.bind(this) : undefined,
-        style: (feature) => this.getFeatureStyle(feature)
-      });
-      this.layers.push(layer);
+      const persons: Person[] = arrayDistinct((data || []).map(position => position.recorderPerson).filter(p => isNotNil(p?.id)), 'id');
+      const layerByPersonId = persons.reduce((res, p, index) => {
+        const layer = L.geoJSON(null, {
+          onEachFeature: this.showTooltip ? this.onEachFeature.bind(this) : undefined
+        });
+        res[p.id] = layer;
+        this.layers.push(layer);
+        return res;
+      }, {})
 
       // Add each position to layer
       const features = (data || [])
-        //.sort(EntityUtils.sortComparator('dateTime', 'asc'))
         .map((position, index) => {
-            const feature = this.toFeature(position, index);
-            if (!feature) return; // Skip if empty
+          const personId = position.recorderPerson?.id;
+          if (isNil(personId)) return;
+          const feature = this.toFeature(position, index);
+          if (!feature) return; // Skip if empty
 
-            // Add feature to layer
-            layer.addData(feature);
+          // Add feature to layer
+          const layer = layerByPersonId[personId];
+          layer.addData(feature);
+          return feature;
+        }).filter(isNotNil);
 
-            return feature
-          });
-
-      const layerName = 'Positions' // TODO this.translate.instant(...)
-      this.layersControl.overlays[layerName] = layer;
-      this.layers.forEach(layer => layer.addTo(this.map));
+      persons.forEach(p => {
+        const layer = layerByPersonId[p.id];
+        const layerName = PersonUtils.personToString(p);
+        this.layersControl.overlays[layerName] = layer;
+        this.layers.forEach(layer => layer.addTo(this.map));
+      })
 
       await this.flyToBounds();
 

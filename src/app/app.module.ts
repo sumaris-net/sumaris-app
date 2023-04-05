@@ -282,7 +282,7 @@ import { DevicePositionService } from '@app/data/services/device-position.servic
         {title: 'MENU.DATA_ACCESS_DIVIDER', ifProperty: 'sumaris.extraction.enabled', profile: 'GUEST'},
         {title: 'MENU.DOWNLOADS', path: '/extraction/data', icon: 'cloud-download', ifProperty: 'sumaris.extraction.product.enable', profile: 'GUEST'},
         {title: 'MENU.MAP', path: '/extraction/map', icon: 'earth', ifProperty: 'sumaris.extraction.map.enable', profile: 'GUEST'},
-        {title: 'MENU.DEVICE_POSITION', path: '/admin/device-position', icon: 'location', ifProperty: 'sumaris.device.position.tracking.enable', profile: 'ADMIN'},
+        {title: 'MENU.DEVICE_POSITION', path: '/extraction/device-position', icon: 'location-outline', ifProperty: 'sumaris.device.position.tracking.enable', profile: 'ADMIN'},
 
         // Referential
         {title: 'MENU.REFERENTIAL_DIVIDER', profile: 'USER'},

@@ -117,11 +117,11 @@
                        [class.table-panel-floating]="filterPanelFloating">
     <mat-expansion-panel-header>
       <mat-panel-title>
-        <ion-text color="primary">
+        <ion-text color="primary" >
           {{'DEVICE_POSITION.MAP.TABLE.TITLE'|translate}}
           <span *ngIf="total<=visibleTotal; else warning">({{total}})</span>
           <ng-template #warning>
-            <ion-text color="danger">
+            <ion-text color="danger" *ngIf="!loading">
               <ion-icon name="alert-circle"></ion-icon>
               {{'DEVICE_POSITION.MAP.TABLE.LIMIT_TO'|translate: {total: total, visibleTotal: visibleTotal} }}
             </ion-text>
@@ -132,30 +132,34 @@
 
       </mat-panel-description>
     </mat-expansion-panel-header>
-      <ion-grid>
-        <ion-row class="mat-header-row">
-          <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.DATE_TIME</ion-col>
-          <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.LATITUDE</ion-col>
-          <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.LONGITUDE</ion-col>
-          <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
+    <ion-grid class="mat-table" #table>
+      <ion-row class="mat-header-row">
+        <ion-col class="mat-header-cell mat-column-dateTime" translate>DEVICE_POSITION.MAP.TABLE.DATE_TIME</ion-col>
+        <ion-col class="mat-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LATITUDE</ion-col>
+        <ion-col class="mat-header-cell" size="2" translate>DEVICE_POSITION.MAP.TABLE.LONGITUDE</ion-col>
+        <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.RECORDER_PERSON</ion-col>
+        <ion-col class="mat-header-cell" translate>DEVICE_POSITION.MAP.TABLE.OBJECT_TYPE</ion-col>
+      </ion-row>
+      <ng-container *ngFor="let feature of features$|async" >
+        <ion-row #tableRows
+                 class="mat-row"
+                 [class.mat-row-selected]="selection.isSelected(feature)">
+          <ion-col class="mat-cell mat-column-dateTime">
+            {{feature.properties.dateTime|dateFormat: {time: true} }} <ion-text color="medium"><ion-icon name="time-outline"></ion-icon> {{feature.properties.dateTime|dateFromNow }}</ion-text>
+          </ion-col>
+          <ion-col class="mat-cell" size="2">{{feature.properties.latitude|numberFormat }}</ion-col>
+          <ion-col class="mat-cell" size="2">{{feature.properties.longitude|numberFormat }}</ion-col>
+          <ion-col class="mat-cell">{{feature.properties.recorderPerson|personToString }}</ion-col>
+          <ion-col class="mat-cell">
+            <ion-button class="text-button" size="small" fill="clear" color="primary"
+                        (click)="openEditor(feature.properties)"
+                        [title]="'DEVICE_POSITION.MAP.TABLE.BTN_OPEN_DATA'|translate">
+              {{feature.properties.objectTypeName}} #{{feature.properties.objectId}}
+            </ion-button>
+          </ion-col>
         </ion-row>
-        <ng-container *rxFor="let feature of features$">
-          <ion-row class="mat-row">
-            <ion-col>
-              {{feature.properties.dateTime|dateFormat: {time: true} }} <ion-text color="medium"><ion-icon name="time-outline"></ion-icon> {{feature.properties.dateTime|dateFromNow }}</ion-text>
-            </ion-col>
-            <ion-col>{{feature.properties.latitude|numberFormat }}</ion-col>
-            <ion-col>{{feature.properties.longitude|numberFormat }}</ion-col>
-            <ion-col>
-              <ion-button class="text-button" size="small" fill="clear" color="primary"
-                      (click)="openEditor(feature.properties)"
-                      [title]="'DEVICE_POSITION.MAP.TABLE.BTN_OPEN_DATA'|translate">
-                {{feature.properties.objectTypeName}} #{{feature.properties.objectId}}
-              </ion-button>
-            </ion-col>
-          </ion-row>
-        </ng-container>
-      </ion-grid>
+      </ng-container>
+    </ion-grid>
   </mat-expansion-panel>
 
 </ion-content>

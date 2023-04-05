@@ -40,7 +40,17 @@ const routes: Routes = [
         }
       }
     ]
-  }
+  },
+
+  // Device Position path
+  {
+    path: 'device-position',
+    canActivate: [AuthGuardService],
+    data: {
+      profile: 'ADMIN'
+    },
+    loadChildren: () => import('./position/device-position-routing.module').then(m => m.DevicePositionRoutingModule)
+  },
 ];
 
 @NgModule({
