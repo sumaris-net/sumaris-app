@@ -14,9 +14,9 @@ import {
   FormErrors,
   isNil,
   isNotNil,
-  LoadResult, LocalSettings,
+  LoadResult,
   QueryVariables,
-  Referential, toBoolean
+  Referential
 } from '@sumaris-net/ngx-components';
 import { BehaviorSubject, combineLatest, EMPTY, from, Observable, Subscription, timer } from 'rxjs';
 import { DEVICE_POSITION_CONFIG_OPTION, DEVICE_POSITION_ENTITY_SERVICES } from '@app/data/services/config/device-position.config';
@@ -32,14 +32,13 @@ import { BaseRootEntityGraphqlMutations } from '@app/data/services/root-data-ser
 import { FetchPolicy, gql, WatchQueryFetchPolicy } from '@apollo/client/core';
 import { DataCommonFragments } from '@app/trip/services/trip.queries';
 import { SortDirection } from '@angular/material/sort';
-import { Moment } from 'moment';
 import { OperationFilter } from '@app/trip/services/filter/operation.filter';
 import { debounceTime, distinctUntilChanged, filter, map, mergeMap } from 'rxjs/operators';
 import { mergeLoadResult } from '@app/shared/functions';
 import { ModelEnumUtils } from '@app/referential/services/model/model.enum';
 import { AlertController } from '@ionic/angular';
 import { TranslateService } from '@ngx-translate/core';
-import {v4 as uuid} from 'uuid';
+import { v4 as uuid } from 'uuid';
 import { TRIP_LOCAL_SETTINGS_OPTIONS } from '@app/trip/services/config/trip.config';
 
 export declare interface DevicePositionServiceWatchOptions extends EntitiesServiceWatchOptions {
